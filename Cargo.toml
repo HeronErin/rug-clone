@@ -23,6 +23,7 @@ documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugint/"
 repository = "https://gitlab.com/tspiteri/rugint"
 readme = "README.md"
 keywords = ["gmp", "mathematics", "numerics"]
+categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [dependencies]
