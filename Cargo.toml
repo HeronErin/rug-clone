@@ -23,6 +23,7 @@ documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugflo/"
 repository = "https://gitlab.com/tspiteri/rugflo"
 readme = "README.md"
 keywords = ["mpfr", "mathematics", "numerics"]
+categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [dependencies]
