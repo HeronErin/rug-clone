@@ -23,6 +23,7 @@ documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugcom/"
 repository = "https://gitlab.com/tspiteri/rugcom"
 readme = "README.md"
 keywords = ["mpc", "mathematics", "numerics"]
+categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [dependencies]
