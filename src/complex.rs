@@ -17,8 +17,8 @@
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
-use rugflo::{self, AddRound, AssignRound, DivRound, Float, FromRound,
-             MulRound, PowRound, Prec, Round, ShlRound, ShrRound, SubRound};
+use rugflo::{self, AddRound, AssignRound, DivRound, Float, FromRound, MulRound,
+             PowRound, Prec, Round, ShlRound, ShrRound, SubRound};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
@@ -37,6 +37,9 @@ pub type Prec2 = (Prec, Prec);
 
 /// The rounding metod the real and imaginary parts of a
 /// [`Complex`](./struct.Complex.html) number.
+///
+/// Note that for `Complex` numbers, `Round::AwayFromZero` is not
+/// implemented, and trying to use it will panic.
 pub type Round2 = (Round, Round);
 
 /// The ordering for the real and imaginary parts of a
@@ -1699,6 +1702,9 @@ fn rraw(round: Round) -> mpfr::mpfr_rnd_t {
 }
 
 fn rraw2(round: Round2) -> mpc::mpc_rnd_t {
+    if round.0 == Round::AwayFromZero || round.1 == Round::AwayFromZero {
+        unimplemented!();
+    }
     (rraw(round.0) as mpc::mpc_rnd_t) + ((rraw(round.1) as mpc::mpc_rnd_t) << 4)
 }
 
