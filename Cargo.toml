@@ -23,6 +23,7 @@ documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugrat/"
 repository = "https://gitlab.com/tspiteri/rugrat"
 readme = "README.md"
 keywords = ["gmp", "mathematics", "numerics"]
+categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [dependencies]
