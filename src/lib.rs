@@ -71,81 +71,116 @@ extern crate rugrat;
 
 mod float;
 
-pub use float::{Constant, Exp, Float, Prec, Round, Special, exp_max, exp_min,
-                prec_max, prec_min};
-use std::cmp::Ordering;
+pub use float::{Constant, Float, Round, Special, exp_max, exp_min, prec_max,
+                prec_min};
 
 /// Assigns to a number from another value, applying the specified
 /// rounding method.
-pub trait AssignRound<T, R = Round, O = Ordering> {
+pub trait AssignRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// Peforms the assignment and rounding.
-    fn assign_round(&mut self, T, R) -> O;
+    fn assign_round(&mut self, T, Self::Round) -> Self::Ordering;
 }
 
 /// Construct `Self` via a conversion with a specified precision,
 /// applying the specified rounding method.
-pub trait FromRound<T, P = Prec, R = Round, O = Ordering>
+pub trait FromRound<T, P>
     where Self: Sized
 {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// Performs the conversion.
-    fn from_round(T, P, R) -> (Self, O);
+    fn from_round(T, P, Self::Round) -> (Self, Self::Ordering);
 }
 
 /// Provides addition with a specified rounding method.
-pub trait AddRound<T, R = Round, O = Ordering> {
+pub trait AddRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the addition.
     type Output;
     /// Performs the addition.
-    fn add_round(self, T, R) -> (Self::Output, O);
+    fn add_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides subtraction with a specified rounding method.
-pub trait SubRound<T, R = Round, O = Ordering> {
+pub trait SubRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the subtraction.
     type Output;
     /// Performs the subtraction.
-    fn sub_round(self, T, R) -> (Self::Output, O);
+    fn sub_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides multiplication with a specified rounding method.
-pub trait MulRound<T, R = Round, O = Ordering> {
+pub trait MulRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the multiplication.
     type Output;
     /// Performs the multiplication.
-    fn mul_round(self, T, R) -> (Self::Output, O);
+    fn mul_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides division with a specified rounding method.
-pub trait DivRound<T, R = Round, O = Ordering> {
+pub trait DivRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the division.
     type Output;
     /// Performs the division.
-    fn div_round(self, T, R) -> (Self::Output, O);
+    fn div_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides the left shift operation with a specified rounding
 /// method.
-pub trait ShlRound<T, R = Round, O = Ordering> {
+pub trait ShlRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the left shift operation.
     type Output;
     /// Performs the left shift operation.
-    fn shl_round(self, T, R) -> (Self::Output, O);
+    fn shl_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides the right shift operation with a specified rounding
 /// method.
-pub trait ShrRound<T, R = Round, O = Ordering> {
+pub trait ShrRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the right shift operation.
     type Output;
     /// Performs the right shift operation.
-    fn shr_round(self, T, R) -> (Self::Output, O);
+    fn shr_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides the power operation inside `self` with a specified
 /// rounding method.
-pub trait PowRound<T, R = Round, O = Ordering> {
+pub trait PowRound<T> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// The resulting type after the power operation.
     type Output;
     /// Performs the power operation.
-    fn pow_round(self, T, R) -> (Self::Output, O);
+    fn pow_round(self, T, Self::Round) -> (Self::Output, Self::Ordering);
 }
