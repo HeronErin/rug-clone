@@ -16,7 +16,7 @@
 
 [package]
 name = "rugflo"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Multiple-precision floating-point numbers based on GNU MPFR"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugflo/"
