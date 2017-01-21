@@ -16,7 +16,7 @@
 
 [package]
 name = "rugcom"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Multiple-precision complex numbers based on GNU MPC"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugcom/"
@@ -32,6 +32,6 @@ default = ["rand"]
 [dependencies]
 gmp-mpfr-sys = "0.3"
 rand = { version = "0.3", optional = true }
-rugint = { version = "0.1", default-features = false }
+rugint = "0.1"
 rugrat = "0.1"
 rugflo = "0.1.1"
