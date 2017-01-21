@@ -1302,6 +1302,146 @@ impl Float {
         Ordering::Equal
     }
 
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the continuous range
+    /// `0 <= n < 1`, and rounds to the nearest.
+    ///
+    /// The rounded result can actually be equal to one.
+    /// This is equivalent to calling
+    /// [`assign_random_cont_round(rng, Round::Nearest)`]
+    /// (#method.assign_random_cont_round).
+    pub fn assign_random_cont<R: Rng>(&mut self, rng: &mut R) {
+        self.assign_random_cont_round(rng, Round::Nearest);
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the continous range
+    /// `0 <= n < 1` and applies the specified rounding method.
+    ///
+    /// The rounded result can actually be equal to one. Unlike
+    /// [`assign_random_bits_round()`](#method.assign_random_bits_round)
+    /// which generates a discrete random number at intervals
+    /// depending on the precision, this method is equivalent to
+    /// generating a continuous random number with infinite precision
+    /// and then rounding the result. This means that even the smaller
+    /// numbers will be using all the available precision bits, and
+    /// rounding is performed in all cases, not in some corner case.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rand;
+    /// extern crate rugflo;
+    /// use rugflo::{Float, Round};
+    /// use std::cmp::Ordering;
+    /// fn main() {
+    ///     let mut rng = rand::thread_rng();
+    ///     let mut f = Float::new(2);
+    ///     let dir = f.assign_random_cont_round(&mut rng, Round::Nearest);
+    ///     // We cannot have an exact value without rounding.
+    ///     assert!(dir != Ordering::Equal);
+    ///     // The significand is either 0b10 or 0b11
+    ///     //           10          11
+    ///     assert!(f == 1.0 || f == 0.75 ||
+    ///             f == 0.5 || f == 0.375 ||
+    ///             f == 0.25 || f <= 0.1875);
+    ///     // If the result is 1.0, rounding was up.
+    ///     assert!(f != 1.0 || dir == Ordering::Greater);
+    /// }
+    /// ```
+    pub fn assign_random_cont_round<R: Rng>(&mut self,
+                                            rng: &mut R,
+                                            round: Round)
+                                            -> Ordering {
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let bits = raw(self)._mpfr_prec as u32;
+        let total_limbs = (bits + limb_size - 1) / limb_size;
+        // If exp is too small, random_cont_first_limb will
+        // have the result.
+        if let Some(ret) = self.random_cont_first_limb(bits, rng, round) {
+            return ret;
+        }
+        for i in 1..total_limbs {
+            unsafe {
+                *raw_mut(self)._mpfr_d.offset(i as isize) = rng.gen();
+            }
+        }
+        let high_one: gmp::mp_limb_t = 1 << (limb_size - 1);
+        let spare_bit;
+        unsafe {
+            let ptr = raw_mut(self)._mpfr_d.offset(total_limbs as isize - 1);
+            spare_bit = (*ptr & high_one) != 0;
+            *ptr |= high_one;
+        };
+        let down = match round {
+            Round::Down | Round::Zero => true,
+            Round::Up | Round::AwayFromZero => false,
+            Round::Nearest => spare_bit,
+        };
+        if down {
+            return Ordering::Less;
+        }
+        unsafe {
+            mpfr::mpfr_nextabove(raw_mut(self));
+        }
+        Ordering::Greater
+    }
+
+    fn random_cont_first_limb<R: Rng>(&mut self,
+                                      bits: u32,
+                                      rng: &mut R,
+                                      round: Round)
+                                      -> Option<Ordering> {
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let mut exp: i32 = 0;
+        let mut val: gmp::mp_limb_t;
+        let mut zeros;
+        loop {
+            val = rng.gen();
+            zeros = val.leading_zeros();
+            // if exp too small, return ~0
+            if exp < exp_min() + zeros as i32 {
+                unsafe {
+                    mpfr::mpfr_set_zero(raw_mut(self), 0);
+                }
+                let down = match round {
+                    Round::Down | Round::Zero => true,
+                    Round::Up | Round::AwayFromZero => false,
+                    Round::Nearest => {
+                        exp + 1 < exp_min() + zeros as i32 ||
+                        (zeros == limb_size && rng.gen::<bool>())
+                    }
+                };
+                if down {
+                    return Some(Ordering::Less);
+                }
+                unsafe {
+                    mpfr::mpfr_nextabove(raw_mut(self));
+                }
+                return Some(Ordering::Greater);
+            }
+            exp -= zeros as i32;
+            if val != 0 {
+                unsafe {
+                    mpfr::mpfr_set_exp(raw_mut(self), exp.into());
+                }
+                break;
+            }
+        }
+        // increment zero to ignore msb, which we know is one
+        zeros += 1;
+        // fill the least significant limb
+        let bits_in_lsl = (bits - 1) % limb_size + 1;
+        if limb_size < bits_in_lsl + zeros {
+            val = rng.gen();
+        }
+        val <<= limb_size - bits_in_lsl;
+        unsafe {
+            *raw_mut(self)._mpfr_d = val;
+        }
+        None
+    }
+
     /// Returns a string representation of `self` for the specified
     /// `radix` rounding to the nearest.
     /// The exponent is encoded in decimal.
@@ -1552,7 +1692,7 @@ impl<T> From<(T, i32)> for Float
 }
 
 impl<T> FromRound<T, i32> for Float
-    where Float: FromRound<T, u32, Round=Round, Ordering=Ordering>
+    where Float: FromRound<T, u32, Round = Round, Ordering = Ordering>
 {
     type Round = Round;
     type Ordering = Ordering;
