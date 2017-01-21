@@ -548,6 +548,38 @@ impl Complex {
          imag.assign_random_bits_round(rng, round.1))
     }
 
+    #[cfg(feature = "rand")]
+    /// Generates a random complex number, rounding to the nearest.
+    ///
+    /// Both the real and imaginary parts are in the continuous range
+    /// `0 <= n < 1`. After rounding, the value may be equal to one.
+    /// Calling this method is equivalent to calling
+    /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
+    /// (#method.assign_random_cont_round).
+    pub fn assign_random_cont<R: Rng>(&mut self, rng: &mut R) {
+        self.assign_random_cont_round(rng, (Round::Nearest, Round::Nearest));
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random complex number, applying the specified
+    /// rounding method.
+    ///
+    /// Both the real and imaginary parts are in the continuous range
+    /// `0 <= n < 1`. After rounding, the value may be equal to one.
+    /// Calling this method is equivalent to calling
+    /// [`assign_random_cont_round(rng, round.0)`]
+    /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
+    /// on the real part, and the same with `round.1` on the
+    /// imaginary part.
+    pub fn assign_random_cont_round<R: Rng>(&mut self,
+                                            rng: &mut R,
+                                            round: Round2)
+                                            -> Ordering2 {
+        let (real, imag) = self.as_mut_real_imag();
+        (real.assign_random_cont_round(rng, round.0),
+         imag.assign_random_cont_round(rng, round.1))
+    }
+
     /// Returns a string representation of `self` for the specified
     /// `radix` rounding to the nearest.
     /// The exponent is encoded in decimal.
