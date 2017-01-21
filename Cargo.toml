@@ -16,7 +16,7 @@
 
 [package]
 name = "rugint"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision integers based on GMP"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugint/"
