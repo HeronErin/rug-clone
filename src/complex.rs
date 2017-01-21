@@ -17,6 +17,8 @@
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
+#[cfg(feature = "rand")]
+use rand::Rng;
 use rugflo::{self, AddRound, AssignRound, DivRound, Float, FromRound, MulRound,
              PowRound, Prec, Round, ShlRound, ShrRound, SubRound};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
@@ -518,6 +520,22 @@ impl Complex {
          applying the specified rounding method.",
         atanh_round,
         mpc::mpc_atanh
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random complex number with both the real and
+    /// imaginary parts in the range `0 <= n < 1`.
+    ///
+    /// See [`rugflo::Float::random_bits`]
+    /// (../rugflo/struct.Float.html#method.random_bits) for details.
+    /// If the real or imaginary parts are set to NaN as described in
+    /// `rugflo::Float::random_bits`, `None` is retured.
+    pub fn random_bits<R: Rng>(&mut self, rng: &mut R) -> Option<&mut Complex> {
+        let some_both = {
+            let (real, imag) = self.as_mut_real_imag();
+            real.random_bits(rng).is_some() && imag.random_bits(rng).is_some()
+        };
+        if some_both { Some(self) } else { None }
     }
 
     /// Returns a string representation of `self` for the specified

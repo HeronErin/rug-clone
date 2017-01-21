@@ -44,15 +44,15 @@
 //!
 //! The crate provides the [`Complex`](./struct.Complex.html) type, which
 //! holds a multiple-precision complex number.
-//! 
+//!
 //! ## Examples
-//! 
+//!
 //! ```rust
 //! extern crate rugint;
 //! extern crate rugcom;
 //! use rugint::Assign;
 //! use rugcom::Complex;
-//! 
+//!
 //! fn main() {
 //!     // Create complex number with 16 bits of precision.
 //!     let mut com = Complex::new((16, 16));
@@ -63,6 +63,8 @@
 //! ```
 
 extern crate gmp_mpfr_sys;
+#[cfg(feature = "rand")]
+extern crate rand;
 extern crate rugint;
 extern crate rugrat;
 extern crate rugflo;

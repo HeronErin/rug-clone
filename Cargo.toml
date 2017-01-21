@@ -26,8 +26,12 @@ keywords = ["mpc", "mathematics", "numerics"]
 categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
+[features]
+default = ["rand"]
+
 [dependencies]
 gmp-mpfr-sys = "0.3"
-rugint = "0.1"
+rand = { version = "0.3", optional = true }
+rugint = { version = "0.1", default-features = false }
 rugrat = "0.1"
-rugflo = "0.1"
+rugflo = "0.1.1"
