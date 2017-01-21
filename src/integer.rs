@@ -27,11 +27,12 @@ use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
                BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
                RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::{c_ulong, c_void};
 #[cfg(feature = "rand")]
 use std::os::raw::c_int;
+use std::os::raw::c_void;
 use std::ptr;
 use std::str::FromStr;
+use std::u32;
 
 /// An arbitrary-precision integer.
 ///
@@ -81,11 +82,6 @@ fn raw(z: &Integer) -> &Raw {
 fn raw_mut(z: &mut Integer) -> &mut Raw {
     &mut z.data
 }
-
-/// The type for the bit count of an `Integer` value.
-pub type BitCount = c_ulong;
-
-const MAX_BIT_COUNT: BitCount = !0;
 
 impl Drop for Integer {
     fn drop(&mut self) {
@@ -351,55 +347,83 @@ impl Integer {
     /// let i = Integer::from(7);
     /// assert!(i.significant_bits() == 3);
     /// ```
-    pub fn significant_bits(&self) -> usize {
+    pub fn significant_bits(&self) -> u32 {
         let bits = unsafe { gmp::__gmpz_sizeinbase(raw(self), 2) };
-        // sizeinbase returns 1 if number is 0;
-        if bits == 1 && *self == 0 { 0 } else { bits }
+        if bits > u32::MAX as usize {
+            panic!("overflow");
+        }
+        // sizeinbase returns 1 if number is 0
+        if bits == 1 && *self == 0 {
+            0
+        } else {
+            bits as u32
+        }
     }
 
     /// Returns the number of ones in `self` if the value >= 0.
-    pub fn count_ones(&self) -> Option<BitCount> {
-        match unsafe { gmp::__gmpz_popcount(raw(self)) } {
-            MAX_BIT_COUNT => None,
-            val => Some(val),
-        }
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// assert!(Integer::from(0).count_ones() == Some(0));
+    /// assert!(Integer::from(15).count_ones() == Some(4));
+    /// assert!(Integer::from(-1).count_ones() == None);
+    /// ```
+    pub fn count_ones(&self) -> Option<u32> {
+        bitcount_to_u32(unsafe { gmp::__gmpz_popcount(raw(self)) })
     }
 
     /// Retuns the Hamming distance between `self` and `other` if they
-    /// have the same sign, otherwise `None`.
-    pub fn ham_dist(&self, other: &Integer) -> Option<BitCount> {
-        match unsafe { gmp::__gmpz_hamdist(raw(self), raw(other)) } {
-            MAX_BIT_COUNT => None,
-            val => Some(val),
-        }
+    /// have the same sign.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::from(-1);
+    /// assert!(Integer::from(0).ham_dist(&i) == None);
+    /// assert!(Integer::from(-1).ham_dist(&i) == Some(0));
+    /// assert!(Integer::from(-13).ham_dist(&i) == Some(2));
+    /// ```
+    pub fn ham_dist(&self, other: &Integer) -> Option<u32> {
+        bitcount_to_u32(unsafe { gmp::__gmpz_hamdist(raw(self), raw(other)) })
     }
 
     /// Returns the location of the first zero, starting at `start`.
     /// If the bit at location `start` is zero, returns `start`.
-    pub fn find_zero(&self, start: BitCount) -> Option<BitCount> {
-        match unsafe { gmp::__gmpz_scan0(raw(self), start) } {
-            MAX_BIT_COUNT => None,
-            val => Some(val),
-        }
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// assert!(Integer::from(-2).find_zero(0) == Some(0));
+    /// assert!(Integer::from(-2).find_zero(1) == None);
+    /// assert!(Integer::from(15).find_zero(0) == Some(4));
+    /// assert!(Integer::from(15).find_zero(20) == Some(20));
+    pub fn find_zero(&self, start: u32) -> Option<u32> {
+        bitcount_to_u32(unsafe { gmp::__gmpz_scan0(raw(self), start.into()) })
     }
 
     /// Returns the location of the first one, starting at `start`.
     /// If the bit at location `start` is one, returns `start`.
-    pub fn find_one(&self, start: BitCount) -> Option<BitCount> {
-        match unsafe { gmp::__gmpz_scan1(raw(self), start) } {
-            MAX_BIT_COUNT => None,
-            val => Some(val),
-        }
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// assert!(Integer::from(1).find_one(0) == Some(0));
+    /// assert!(Integer::from(1).find_one(1) == None);
+    /// assert!(Integer::from(-16).find_one(0) == Some(4));
+    /// assert!(Integer::from(-16).find_one(20) == Some(20));
+    pub fn find_one(&self, start: u32) -> Option<u32> {
+        bitcount_to_u32(unsafe { gmp::__gmpz_scan1(raw(self), start.into()) })
     }
 
     /// Sets the bit at location `index` to 1 if `val` is `true` or 0
     /// if `val` is `false`.
-    pub fn set_bit(&mut self, index: BitCount, val: bool) -> &mut Integer {
+    pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Integer {
         unsafe {
             if val {
-                gmp::__gmpz_setbit(raw_mut(self), index);
+                gmp::__gmpz_setbit(raw_mut(self), index.into());
             } else {
-                gmp::__gmpz_clrbit(raw_mut(self), index);
+                gmp::__gmpz_clrbit(raw_mut(self), index.into());
             }
         }
         self
@@ -407,20 +431,20 @@ impl Integer {
 
     /// Returns `true` if the bit at location `index` is 1 or `false`
     /// if the bit is 0.
-    pub fn get_bit(&self, index: BitCount) -> bool {
-        unsafe { gmp::__gmpz_tstbit(raw(self), index) != 0 }
+    pub fn get_bit(&self, index: u32) -> bool {
+        unsafe { gmp::__gmpz_tstbit(raw(self), index.into()) != 0 }
     }
 
     /// Toggles the bit at location `index`.
-    pub fn invert_bit(&mut self, index: BitCount) -> &mut Integer {
+    pub fn invert_bit(&mut self, index: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_combit(raw_mut(self), index);
+            gmp::__gmpz_combit(raw_mut(self), index.into());
         }
         self
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number consisting of the required number of
+    /// Generates a random number with a specified maximum number of
     /// bits.
     ///
     /// # Examples
@@ -432,51 +456,48 @@ impl Integer {
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
     ///     let mut i = Integer::new();
-    ///     i.random_bits(0, &mut rng);
+    ///     i.assign_random_bits(0, &mut rng);
     ///     assert!(i == 0);
-    ///     i.random_bits(80, &mut rng);
+    ///     i.assign_random_bits(80, &mut rng);
     ///     assert!(i.significant_bits() <= 80);
     /// }
     /// ```
-    pub fn random_bits<R: Rng>(&mut self,
-                               bits: BitCount,
-                               rng: &mut R)
-                               -> &mut Integer {
+    pub fn assign_random_bits<R: Rng>(&mut self, bits: u32, rng: &mut R) {
         self.assign(0);
         if bits == 0 {
-            return self;
+            return;
         }
-        // ensure we have enough limbs
-        self.set_bit(bits - 1, true);
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as isize;
-        let whole_limbs = bits as isize / limb_size;
-        let rem_bits = bits as isize % limb_size;
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let whole_limbs = bits / limb_size;
+        let extra_bits = bits % limb_size;
+        // Avoid conditions and overflow, equivalent to:
+        // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
+        let total_limbs = whole_limbs +
+                          (extra_bits + limb_size - 1) / limb_size;
+        if (raw(self)._mp_alloc as u32) < total_limbs {
+            unsafe {
+                gmp::__gmpz_realloc(raw_mut(self), total_limbs.into());
+            }
+        }
         let mut limbs: c_int = 0;
-        for i in 0..whole_limbs {
-            let val: gmp::mp_limb_t = rng.gen();
+        for i in 0..total_limbs {
+            let mut val: gmp::mp_limb_t = rng.gen();
+            if i == whole_limbs {
+                val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
+            }
             if val != 0 {
                 limbs = i as c_int + 1;
             }
             unsafe {
-                *raw_mut(self)._mp_d.offset(i) = val;
-            }
-        }
-        if rem_bits > 0 {
-            let mut val: gmp::mp_limb_t = rng.gen();
-            val &= ((1 as gmp::mp_limb_t) << rem_bits) - 1;
-            if val != 0 {
-                limbs = whole_limbs as c_int + 1;
-            }
-            unsafe {
-                *raw_mut(self)._mp_d.offset(whole_limbs) = val;
+                *raw_mut(self)._mp_d.offset(i as isize) = val;
             }
         }
         raw_mut(self)._mp_size = limbs;
-        self
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a non-negative random number below the given value.
+    /// Generates a non-negative random number below the given
+    /// boundary value.
     ///
     /// # Examples
     ///
@@ -496,52 +517,41 @@ impl Integer {
     ///
     /// # Panics
     ///
-    /// Panics if `self` is less than or equal to zero.
+    /// Panics if the boundary value is less than or equal to zero.
     pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
         assert!(self.sign() == Ordering::Greater);
         let bits = self.significant_bits();
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as isize;
-        let whole_limbs = bits as isize / limb_size;
-        let rem_bits = bits as isize % limb_size;
-        // if the number is > original, repeat
-        'repeat: loop {
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let whole_limbs = bits / limb_size;
+        let extra_bits = bits % limb_size;
+        // Avoid conditions and overflow, equivalent to:
+        // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
+        let total_limbs = whole_limbs +
+                          (extra_bits + limb_size - 1) / limb_size;
+        // if the random number is >= bound, restart
+        'restart: loop {
             let mut limbs: c_int = 0;
             let mut still_equal = true;
-            if rem_bits > 0 {
+            'next_limb: for i in (0..total_limbs).rev() {
                 let mut val: gmp::mp_limb_t = rng.gen();
-                val &= ((1 as gmp::mp_limb_t) << rem_bits) - 1;
-                if val != 0 {
-                    limbs = whole_limbs as c_int + 1;
+                if i == whole_limbs {
+                    val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
                 }
-                let r =
-                    unsafe { &mut *raw_mut(self)._mp_d.offset(whole_limbs) };
-                match val.cmp(r) {
-                    Ordering::Greater => continue 'repeat,
-                    Ordering::Equal => {}
-                    Ordering::Less => {
-                        still_equal = false;
-                        *r = val;
-                    }
-                }
-            }
-            for i in (0..whole_limbs).rev() {
-                let val: gmp::mp_limb_t = rng.gen();
                 if limbs == 0 && val != 0 {
                     limbs = i as c_int + 1;
                 }
-                let r = unsafe { &mut *raw_mut(self)._mp_d.offset(i) };
+                let in_int =
+                    unsafe { &mut *raw_mut(self)._mp_d.offset(i as isize) };
                 if still_equal {
-                    match val.cmp(r) {
-                        Ordering::Greater => continue 'repeat,
-                        Ordering::Equal => {}
-                        Ordering::Less => {
-                            still_equal = false;
-                            *r = val;
-                        }
+                    if val > *in_int {
+                        continue 'restart;
                     }
-                } else {
-                    *r = val;
+                    if val == *in_int {
+                        continue 'next_limb;
+                    }
+                    still_equal = false;
                 }
+                *in_int = val;
             }
             if !still_equal {
                 raw_mut(self)._mp_size = limbs;
@@ -1161,5 +1171,16 @@ impl fmt::UpperHex for Integer {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let prefix = if f.alternate() { "0X" } else { "" };
         write!(f, "{}", self.make_string(16, true, prefix))
+    }
+}
+
+fn bitcount_to_u32(bits: gmp::mp_bitcnt_t) -> Option<u32> {
+    let max: gmp::mp_bitcnt_t = !0;
+    if bits == max {
+        None
+    } else if bits > u32::MAX as gmp::mp_bitcnt_t {
+        panic!("overflow")
+    } else {
+        Some(bits as u32)
     }
 }

@@ -81,7 +81,7 @@ extern crate rand;
 
 mod integer;
 
-pub use integer::{BitCount, Integer};
+pub use integer::Integer;
 
 /// Assigns to a number from another value.
 pub trait Assign<T> {
