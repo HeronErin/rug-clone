@@ -17,14 +17,19 @@
 use {Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
      SubFromAssign};
 use gmp_mpfr_sys::gmp;
+
+#[cfg(feature = "rand")]
+use rand::Rng;
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::mem;
-use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
-               BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
-               Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
+               BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
+               RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_ulong, c_void};
+#[cfg(feature = "rand")]
+use std::os::raw::c_int;
 use std::ptr;
 use std::str::FromStr;
 
@@ -47,7 +52,7 @@ use std::str::FromStr;
 ///
 /// let mut i = Integer::from(1) << 1000;
 /// // i is now 1000000... (1000 zeros)
-/// assert!(i.size_in_bits() == 1001);
+/// assert!(i.significant_bits() == 1001);
 /// assert!(i.find_one(0) == Some(1000));
 /// i -= 1;
 /// // i is now 111111... (1000 ones)
@@ -326,17 +331,30 @@ impl Integer {
         unsafe { gmp::__gmpz_cmpabs(raw(self), raw(other)).cmp(&0) }
     }
 
-    /// Returns `Less` if `self` is less than zero,
-    /// `Greater` if `self` is greater than zero,
-    /// or `Equal` if `self` is equal to zero.
+    /// Returns the same result as self.cmp(0), but is faster.
     pub fn sign(&self) -> Ordering {
         raw(self)._mp_size.cmp(&0)
     }
 
     /// Returns the number of bits required to represent the absolute
     /// value of `self`.
-    pub fn size_in_bits(&self) -> usize {
-        unsafe { gmp::__gmpz_sizeinbase(raw(self), 2) }
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    ///
+    /// let i = Integer::from(0);
+    /// assert!(i.significant_bits() == 0);
+    /// let i = Integer::from(4);
+    /// assert!(i.significant_bits() == 3);
+    /// let i = Integer::from(7);
+    /// assert!(i.significant_bits() == 3);
+    /// ```
+    pub fn significant_bits(&self) -> usize {
+        let bits = unsafe { gmp::__gmpz_sizeinbase(raw(self), 2) };
+        // sizeinbase returns 1 if number is 0;
+        if bits == 1 && *self == 0 { 0 } else { bits }
     }
 
     /// Returns the number of ones in `self` if the value >= 0.
@@ -399,6 +417,137 @@ impl Integer {
             gmp::__gmpz_combit(raw_mut(self), index);
         }
         self
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number consisting of the required number of
+    /// bits.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rand;
+    /// extern crate rugint;
+    /// use rugint::Integer;
+    /// fn main() {
+    ///     let mut rng = rand::thread_rng();
+    ///     let mut i = Integer::new();
+    ///     i.random_bits(0, &mut rng);
+    ///     assert!(i == 0);
+    ///     i.random_bits(80, &mut rng);
+    ///     assert!(i.significant_bits() <= 80);
+    /// }
+    /// ```
+    pub fn random_bits<R: Rng>(&mut self,
+                               bits: BitCount,
+                               rng: &mut R)
+                               -> &mut Integer {
+        self.assign(0);
+        if bits == 0 {
+            return self;
+        }
+        // ensure we have enough limbs
+        self.set_bit(bits - 1, true);
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as isize;
+        let whole_limbs = bits as isize / limb_size;
+        let rem_bits = bits as isize % limb_size;
+        let mut limbs: c_int = 0;
+        for i in 0..whole_limbs {
+            let val: gmp::mp_limb_t = rng.gen();
+            if val != 0 {
+                limbs = i as c_int + 1;
+            }
+            unsafe {
+                *raw_mut(self)._mp_d.offset(i) = val;
+            }
+        }
+        if rem_bits > 0 {
+            let mut val: gmp::mp_limb_t = rng.gen();
+            val &= ((1 as gmp::mp_limb_t) << rem_bits) - 1;
+            if val != 0 {
+                limbs = whole_limbs as c_int + 1;
+            }
+            unsafe {
+                *raw_mut(self)._mp_d.offset(whole_limbs) = val;
+            }
+        }
+        raw_mut(self)._mp_size = limbs;
+        self
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a non-negative random number below the given value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rand;
+    /// extern crate rugint;
+    /// use rugint::Integer;
+    /// fn main() {
+    ///     let mut rng = rand::thread_rng();
+    ///     let bound = Integer::from(15);
+    ///     let mut random = bound.clone();
+    ///     random.random_below(&mut rng);
+    ///     println!("0 <= {} < {}", random, bound);
+    ///     assert!(random < bound);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` is less than or equal to zero.
+    pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
+        assert!(self.sign() == Ordering::Greater);
+        let bits = self.significant_bits();
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as isize;
+        let whole_limbs = bits as isize / limb_size;
+        let rem_bits = bits as isize % limb_size;
+        // if the number is > original, repeat
+        'repeat: loop {
+            let mut limbs: c_int = 0;
+            let mut still_equal = true;
+            if rem_bits > 0 {
+                let mut val: gmp::mp_limb_t = rng.gen();
+                val &= ((1 as gmp::mp_limb_t) << rem_bits) - 1;
+                if val != 0 {
+                    limbs = whole_limbs as c_int + 1;
+                }
+                let r =
+                    unsafe { &mut *raw_mut(self)._mp_d.offset(whole_limbs) };
+                match val.cmp(r) {
+                    Ordering::Greater => continue 'repeat,
+                    Ordering::Equal => {}
+                    Ordering::Less => {
+                        still_equal = false;
+                        *r = val;
+                    }
+                }
+            }
+            for i in (0..whole_limbs).rev() {
+                let val: gmp::mp_limb_t = rng.gen();
+                if limbs == 0 && val != 0 {
+                    limbs = i as c_int + 1;
+                }
+                let r = unsafe { &mut *raw_mut(self)._mp_d.offset(i) };
+                if still_equal {
+                    match val.cmp(r) {
+                        Ordering::Greater => continue 'repeat,
+                        Ordering::Equal => {}
+                        Ordering::Less => {
+                            still_equal = false;
+                            *r = val;
+                        }
+                    }
+                } else {
+                    *r = val;
+                }
+            }
+            if !still_equal {
+                raw_mut(self)._mp_size = limbs;
+                return self;
+            }
+        }
     }
 
     /// Returns a string representation of `self` for the specified

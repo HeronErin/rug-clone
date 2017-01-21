@@ -76,6 +76,8 @@
 //! similarly consumed by the addition operation.
 
 extern crate gmp_mpfr_sys;
+#[cfg(feature = "rand")]
+extern crate rand;
 
 mod integer;
 
