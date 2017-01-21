@@ -42,20 +42,20 @@
 //!
 //! The crate provides the [`Float`](./struct.Float.html) type, which
 //! holds a multiple-precision floating-point number.
-//! 
+//!
 //! ## Examples
-//! 
+//!
 //! ```rust
 //! extern crate rugint;
 //! extern crate rugflo;
 //! use rugint::Assign;
 //! use rugflo::Float;
-//! 
+//!
 //! fn main() {
 //!     // Create a floating-point number with 53 bits of precision.
-//!     // (An `f64` has 53 bits of precision too.) 
+//!     // (An `f64` has 53 bits of precision too.)
 //!     let flo53 = Float::from((0xff00ff, 53));
-//!     assert!(flo.to_f64() == 0xff00ff as f64);
+//!     assert!(flo53.to_f64() == 0xff00ff as f64);
 //!     // Create a floating-point number with only 16 bits of precision.
 //!     let flo16 = Float::from((0xff00ff, 16));
 //!     // Now the number is rounded.
@@ -64,6 +64,8 @@
 //! ```
 
 extern crate gmp_mpfr_sys;
+#[cfg(feature = "rand")]
+extern crate rand;
 extern crate rugint;
 extern crate rugrat;
 

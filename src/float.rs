@@ -18,6 +18,8 @@ use {AddRound, AssignRound, DivRound, FromRound, MulRound, PowRound, ShlRound,
      ShrRound, SubRound};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
+#[cfg(feature = "rand")]
+use rand::Rng;
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
@@ -29,6 +31,8 @@ use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
+#[cfg(feature = "rand")]
+use std::os::raw::c_uint;
 use std::ptr;
 
 /// The type for the exponent of a `Float` value.
@@ -1188,6 +1192,103 @@ impl Float {
         unsafe {
             mpfr::mpfr_subnormalize(raw_mut(self), prev, rraw(round)).cmp(&0)
         }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the range `0 <= n < 1`.
+    ///
+    /// This is equivalent to generating a random integer in the range
+    /// `0 <= n < 2 ^ p`, where `2 ^ p` is two raised to the power of
+    /// the precision, and then dividing the integer by `2 ^ p`. The
+    /// smallest non-zero result will thus be `2 ^ -p`, and will only
+    /// have one bit set. In the smaller possible results, many bits
+    /// will be zero, and not all the precision will be used.
+    ///
+    /// If the precision is very large, and the generated random
+    /// number is very small, this may require an exponent smaller
+    /// than `rugflo::exp_min()`; in this case, the value in `self` is
+    /// set to NaN and `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rand;
+    /// extern crate rugflo;
+    /// use rugflo::Float;
+    /// fn main() {
+    ///     let mut rng = rand::thread_rng();
+    ///     let mut f = Float::new(2);
+    ///     f.random_bits(&mut rng);
+    ///     assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
+    ///     println!("0.0 <= {} < 1.0", f);
+    /// }
+    /// ```
+    pub fn random_bits<R: Rng>(&mut self, rng: &mut R) -> Option<&mut Float> {
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as isize;
+        let bits_to_gen = raw(self)._mpfr_prec as isize;
+        let last_limb_bits = bits_to_gen % limb_size;
+        let (limbs, last_limb_zeros) = if last_limb_bits == 0 {
+            (bits_to_gen / limb_size, 0)
+        } else {
+            (bits_to_gen / limb_size + 1, limb_size - last_limb_bits)
+        };
+        let mut lead_zeros: isize = limbs as isize * limb_size;
+        let mut val: gmp::mp_limb_t = rng.gen();
+        let zero_limb: gmp::mp_limb_t = 0;
+        val &= (!zero_limb) << last_limb_zeros;
+        if val != 0 {
+            lead_zeros = (limbs - 1) * limb_size + val.leading_zeros() as isize;
+        }
+        unsafe {
+            *raw_mut(self)._mpfr_d = val;
+        }
+        for i in 1..limbs {
+            val = rng.gen();
+            if val != 0 {
+                lead_zeros = (limbs - 1 - i) * limb_size +
+                             val.leading_zeros() as isize;
+            }
+            unsafe {
+                *raw_mut(self)._mpfr_d.offset(i) = val;
+            }
+        }
+        let zero_limbs = lead_zeros / limb_size;
+        if zero_limbs == limbs {
+            unsafe {
+                mpfr::mpfr_set_zero(raw_mut(self), 0);
+            }
+            return Some(self);
+        }
+        let zero_bits = lead_zeros % limb_size;
+        let err = unsafe {
+            mpfr::mpfr_set_exp(raw_mut(self), (-lead_zeros) as mpfr::mpfr_exp_t)
+        };
+        if err != 0 {
+            unsafe {
+                mpfr::mpfr_set_nan(raw_mut(self));
+            }
+            return None;
+        }
+        if zero_bits > 0 {
+            unsafe {
+                gmp::__gmpn_lshift(raw_mut(self)._mpfr_d.offset(zero_limbs),
+                                   raw(self)._mpfr_d,
+                                   (limbs - zero_limbs) as gmp::mp_size_t,
+                                   zero_bits as c_uint);
+            }
+        } else if zero_limbs > 0 {
+            unsafe {
+                ptr::copy(raw(self)._mpfr_d,
+                          raw_mut(self)._mpfr_d.offset(zero_limbs),
+                          (limbs - zero_limbs) as usize);
+            }
+        }
+        for i in 0..zero_limbs {
+            unsafe {
+                *raw_mut(self)._mpfr_d.offset(i) = 0;
+            }
+        }
+        Some(self)
     }
 
     /// Returns a string representation of `self` for the specified
