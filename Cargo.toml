@@ -32,6 +32,6 @@ default = ["rand"]
 [dependencies]
 gmp-mpfr-sys = "0.3"
 rand = { version = "0.3", optional = true }
-rugint = "0.1"
+rugint = { version = "0.1", default-features = false }
 rugrat = "0.1"
 rugflo = "0.1.1"

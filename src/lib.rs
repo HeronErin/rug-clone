@@ -71,4 +71,4 @@ extern crate rugflo;
 
 mod complex;
 
-pub use complex::{Complex, Ordering2, Prec2, Round2};
+pub use complex::Complex;

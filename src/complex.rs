@@ -20,7 +20,7 @@ use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "rand")]
 use rand::Rng;
 use rugflo::{self, AddRound, AssignRound, DivRound, Float, FromRound, MulRound,
-             PowRound, Prec, Round, ShlRound, ShrRound, SubRound};
+             PowRound, Round, ShlRound, ShrRound, SubRound};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
@@ -33,20 +33,11 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_int, c_ulong};
 
-/// The precision for the real and imaginary parts of a
-/// [`Complex`](./struct.Complex.html) number.
-pub type Prec2 = (Prec, Prec);
+type Prec2 = (u32, u32);
 
-/// The rounding metod the real and imaginary parts of a
-/// [`Complex`](./struct.Complex.html) number.
-///
-/// Note that for `Complex` numbers, `Round::AwayFromZero` is not
-/// implemented, and trying to use it will panic.
-pub type Round2 = (Round, Round);
+type Round2 = (Round, Round);
 
-/// The ordering for the real and imaginary parts of a
-/// [`Complex`](./struct.Complex.html) number.
-pub type Ordering2 = (Ordering, Ordering);
+type Ordering2 = (Ordering, Ordering);
 
 /// A multi-precision complex number.
 /// The precision has to be set during construction.
@@ -56,7 +47,7 @@ pub type Ordering2 = (Ordering, Ordering);
 /// 1. The first rounds the returned or stored `Complex` number to the
 ///    [nearest](enum.Round.html#variant.Nearest) representable value.
 /// 2. The second applies the specified [rounding
-///    methods](enum.Round.html) for the real and imaginary parts, and
+///    methods](../rugflo/enum.Round.html) for the real and imaginary parts, and
 ///    returns the rounding directions for both:
 ///    * `Ordering::Less` if the returned/stored part is less than
 ///      the exact result,
@@ -64,6 +55,12 @@ pub type Ordering2 = (Ordering, Ordering);
 ///      the exact result,
 ///    * `Ordering::Greater` if the returned/stored part is greater
 ///      than the exact result,
+///
+/// # Note on `Round::AwayFromZero`
+///
+/// For `Complex` numbers, `Round::AwayFromZero` is not implemented,
+/// and trying to use it will start a panic.
+
 pub struct Complex {
     data: mpc::__mpc_struct,
 }
@@ -526,16 +523,29 @@ impl Complex {
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
     ///
-    /// See [`rugflo::Float::random_bits`]
-    /// (../rugflo/struct.Float.html#method.random_bits) for details.
-    /// If the real or imaginary parts are set to NaN as described in
-    /// `rugflo::Float::random_bits`, `None` is retured.
-    pub fn random_bits<R: Rng>(&mut self, rng: &mut R) -> Option<&mut Complex> {
-        let some_both = {
-            let (real, imag) = self.as_mut_real_imag();
-            real.random_bits(rng).is_some() && imag.random_bits(rng).is_some()
-        };
-        if some_both { Some(self) } else { None }
+    /// This is equivalent to calling
+    /// [`assign_random_bits_round(rng, (Round::Nearest, Round::Nearest))`]
+    /// (#method.assign_random_bits_round).
+    pub fn assign_random_bits<R: Rng>(&mut self, rng: &mut R) {
+        self.assign_random_bits_round(rng, (Round::Nearest, Round::Nearest));
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random complex number with both the real and
+    /// imaginary parts in the range `0 <= n < 1`.
+    ///
+    /// This is equivalent to calling
+    /// [`assign_random_bits_round(rng, round.0)`]
+    /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
+    /// on the real part, and the same with `round.1` on the
+    /// imaginary part.
+    pub fn assign_random_bits_round<R: Rng>(&mut self,
+                                            rng: &mut R,
+                                            round: Round2)
+                                            -> Ordering2 {
+        let (real, imag) = self.as_mut_real_imag();
+        (real.assign_random_bits_round(rng, round.0),
+         imag.assign_random_bits_round(rng, round.1))
     }
 
     /// Returns a string representation of `self` for the specified
@@ -744,6 +754,38 @@ impl Complex {
     }
 }
 
+impl<T> From<(T, (i32, i32))> for Complex
+    where Complex: From<(T, (u32, u32))>
+{
+    fn from((t, prec): (T, (i32, i32))) -> Complex {
+        assert!(prec.0 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        assert!(prec.1 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        Complex::from((t, (prec.0 as u32, prec.1 as u32)))
+    }
+}
+
+impl<T> FromRound<T, (i32, i32)> for Complex
+    where Complex: FromRound<T,
+                             (u32, u32),
+                             Round = Round2,
+                             Ordering = Ordering2>
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn from_round(t: T,
+                  prec: (i32, i32),
+                  round: Round2)
+                  -> (Complex, Ordering2) {
+        assert!(prec.0 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        assert!(prec.1 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        Complex::from_round(t, (prec.0 as u32, prec.1 as u32), round)
+    }
+}
+
 macro_rules! from_life_a {
     { $d:expr, $t:ty } => {
         impl<'a> From<($t, Prec2)> for Complex {
@@ -757,7 +799,10 @@ macro_rules! from_life_a {
             }
         }
 
-        impl<'a> FromRound<$t, Prec2, Round2, Ordering2> for Complex {
+        impl<'a> FromRound<$t, Prec2> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+
             /// Constructs a `Complex` number from
             #[doc=$d]
             /// with the specified precisions, applying the specified
@@ -783,7 +828,10 @@ macro_rules! from {
             }
         }
 
-        impl FromRound<$t, Prec2, Round2, Ordering2> for Complex {
+        impl FromRound<$t, Prec2> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+
             /// Constructs a `Complex` number from
             #[doc=$d]
             /// with the specified precisions, applying the specified
@@ -834,7 +882,10 @@ macro_rules! assign {
             }
         }
 
-        impl<'a> AssignRound<$reft, Round2, Ordering2> for Complex {
+        impl<'a> AssignRound<$reft> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+
             /// Assigns from
             #[doc=$d]
             /// and applies the specified rounding method.
@@ -855,7 +906,10 @@ macro_rules! assign {
             }
         }
 
-        impl AssignRound<$t, Round2, Ordering2> for Complex {
+        impl AssignRound<$t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+
             /// Assigns from
             #[doc=$d]
             /// and applies the specified rounding method.
@@ -906,7 +960,10 @@ macro_rules! assign_prim {
             }
         }
 
-        impl AssignRound<$t, Round2, Ordering2> for Complex {
+        impl AssignRound<$t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+
             /// Assigns from
             #[doc=$d]
             /// and applies the specified rounding method.
@@ -925,7 +982,10 @@ macro_rules! assign_prim {
             }
         }
 
-        impl AssignRound<($t, $t), Round2, Ordering2> for Complex {
+        impl AssignRound<($t, $t)> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+
             /// Assigns from
             #[doc=$d_pair]
             /// and applies the specified rounding method.
@@ -973,7 +1033,9 @@ macro_rules! arith_for_complex {
             }
         }
 
-        impl<'a> $imp_round<&'a $t, Round2, Ordering2> for Complex {
+        impl<'a> $imp_round<&'a $t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(mut self, op: &'a $t, round: Round2)
                              -> (Complex, Ordering2) {
@@ -984,7 +1046,9 @@ macro_rules! arith_for_complex {
             }
         }
 
-        impl $imp_round<$t, Round2, Ordering2> for Complex {
+        impl $imp_round<$t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: $t, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1036,7 +1100,9 @@ macro_rules! arith_commut {
             }
         }
 
-        impl $imp_round<Complex, Round2, Ordering2> for $t {
+        impl $imp_round<Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1044,7 +1110,9 @@ macro_rules! arith_commut {
             }
         }
 
-        impl<'a> $imp_round<&'a Complex, Round2, Ordering2> for $t {
+        impl<'a> $imp_round<&'a Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: &'a Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1084,7 +1152,9 @@ macro_rules! arith_non_commut {
             }
         }
 
-        impl $imp_round<Complex, Round2, Ordering2> for $t {
+        impl $imp_round<Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, mut op: Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1093,7 +1163,9 @@ macro_rules! arith_non_commut {
             }
         }
 
-        impl<'a> $imp_round<&'a Complex, Round2, Ordering2> for $t {
+        impl<'a> $imp_round<&'a Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: &'a Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1188,7 +1260,9 @@ macro_rules! arith_prim_for_complex {
             }
         }
 
-        impl $imp_round<$t, Round2, Ordering2> for Complex {
+        impl $imp_round<$t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(mut self, op: $t, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1245,7 +1319,9 @@ macro_rules! arith_prim_non_commut {
             }
         }
 
-        impl $imp_round<Complex, Round2, Ordering2> for $t {
+        impl $imp_round<Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, mut op: Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1259,7 +1335,9 @@ macro_rules! arith_prim_non_commut {
             }
         }
 
-        impl<'a> $imp_round<&'a Complex, Round2, Ordering2> for $t {
+        impl<'a> $imp_round<&'a Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: &'a Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1308,7 +1386,9 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl $imp_round<Complex, Round2, Ordering2> for $t {
+        impl $imp_round<Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1316,7 +1396,9 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl<'a> $imp_round<&'a Complex, Round2, Ordering2> for $t {
+        impl<'a> $imp_round<&'a Complex> for $t {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn $method_round(self, op: &'a Complex, round: Round2)
                              -> (Complex, Ordering2) {
@@ -1388,7 +1470,9 @@ impl<'a> Sub<&'a Complex> for (u32, u32) {
     }
 }
 
-impl SubRound<Complex, Round2, Ordering2> for (u32, u32) {
+impl SubRound<Complex> for (u32, u32) {
+    type Round = Round2;
+    type Ordering = Ordering2;
     type Output = Complex;
     fn sub_round(self, mut op: Complex, round: Round2) -> (Complex, Ordering2) {
         let ord = unsafe {
@@ -1402,7 +1486,9 @@ impl SubRound<Complex, Round2, Ordering2> for (u32, u32) {
     }
 }
 
-impl<'a> SubRound<&'a Complex, Round2, Ordering2> for (u32, u32) {
+impl<'a> SubRound<&'a Complex> for (u32, u32) {
+    type Round = Round2;
+    type Ordering = Ordering2;
     type Output = Complex;
     fn sub_round(self, op: &'a Complex, round: Round2) -> (Complex, Ordering2) {
         self.sub_round(op.clone(), round)
@@ -1455,7 +1541,9 @@ macro_rules! sh_op {
             }
         }
 
-        impl $imp_round<$t, Round2, Ordering2> for Complex {
+        impl $imp_round<$t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             #[doc=$doc]
             /// `self` by 2 to the power of `op`, applying the
@@ -1537,7 +1625,9 @@ macro_rules! pow_others {
             }
         }
 
-        impl PowRound<$t, Round2, Ordering2> for Complex {
+        impl PowRound<$t> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
             type Output = Complex;
             fn pow_round(self, op: $t, round: Round2) -> (Complex, Ordering2) {
                 self.pow_round(&op, round)
@@ -1552,7 +1642,9 @@ macro_rules! pow_others {
     )* };
 }
 
-impl<'a> PowRound<&'a Integer, Round2, Ordering2> for Complex {
+impl<'a> PowRound<&'a Integer> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
     type Output = Complex;
     fn pow_round(mut self,
                  op: &'a Integer,
@@ -1579,7 +1671,9 @@ impl<'a> PowAssign<&'a Integer> for Complex {
     }
 }
 
-impl<'a> PowRound<&'a Float, Round2, Ordering2> for Complex {
+impl<'a> PowRound<&'a Float> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
     type Output = Complex;
     fn pow_round(mut self,
                  op: &'a Float,
@@ -1606,7 +1700,9 @@ impl<'a> PowAssign<&'a Float> for Complex {
     }
 }
 
-impl<'a> PowRound<&'a Complex, Round2, Ordering2> for Complex {
+impl<'a> PowRound<&'a Complex> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
     type Output = Complex;
     fn pow_round(mut self,
                  op: &'a Complex,
