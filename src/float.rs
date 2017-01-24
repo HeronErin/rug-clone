@@ -1383,6 +1383,7 @@ impl Float {
         Ordering::Greater
     }
 
+    #[cfg(feature = "rand")]
     fn random_cont_first_limb<R: Rng>(&mut self,
                                       bits: usize,
                                       rng: &mut R,
