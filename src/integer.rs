@@ -72,23 +72,21 @@ use std::u32;
 /// assert!(format!("{:x}", complement_a) == "-f00e");
 /// ```
 pub struct Integer {
-    data: gmp::__mpz_struct,
+    data: gmp::mpz_t,
 }
 
-type Raw = gmp::__mpz_struct;
-
-fn raw(z: &Integer) -> &Raw {
+fn raw(z: &Integer) -> &gmp::mpz_t {
     &z.data
 }
 
-fn raw_mut(z: &mut Integer) -> &mut Raw {
+fn raw_mut(z: &mut Integer) -> &mut gmp::mpz_t {
     &mut z.data
 }
 
 impl Drop for Integer {
     fn drop(&mut self) {
         unsafe {
-            gmp::__gmpz_clear(raw_mut(self));
+            gmp::mpz_clear(raw_mut(self));
         }
     }
 }
@@ -115,8 +113,8 @@ impl Integer {
     /// Constructs a new arbitrary-precision integer with value 0.
     pub fn new() -> Integer {
         unsafe {
-            let mut data: Raw = mem::uninitialized();
-            gmp::__gmpz_init(&mut data);
+            let mut data: gmp::mpz_t = mem::uninitialized();
+            gmp::mpz_init(&mut data);
             Integer { data: data }
         }
     }
@@ -125,19 +123,19 @@ impl Integer {
     /// If the value is too large for the target type,
     /// only the least-significant bits are returned.
     pub fn to_u32(&self) -> u32 {
-        unsafe { gmp::__gmpz_get_ui(raw(self)) as u32 }
+        unsafe { gmp::mpz_get_ui(raw(self)) as u32 }
     }
 
     /// Converts to an `i32`.
     /// If the value is too large for the target type,
     /// only the least-significant bits are returned.
     pub fn to_i32(&self) -> i32 {
-        unsafe { gmp::__gmpz_get_si(raw(self)) as i32 }
+        unsafe { gmp::mpz_get_si(raw(self)) as i32 }
     }
 
     /// Converts to an `f64` rounding towards zero.
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::__gmpz_get_d(raw(self)) }
+        unsafe { gmp::mpz_get_d(raw(self)) }
     }
 
     /// Converts to an `f32` rounding towards zero.
@@ -149,17 +147,17 @@ impl Integer {
     /// `divisor. The remainder is stored in `divisor`.
     pub fn div_rem(&mut self, divisor: &mut Integer) {
         unsafe {
-            gmp::__gmpz_tdiv_qr(raw_mut(self),
-                                raw_mut(divisor),
-                                raw(self),
-                                raw(divisor))
+            gmp::mpz_tdiv_qr(raw_mut(self),
+                             raw_mut(divisor),
+                             raw(self),
+                             raw(divisor))
         };
     }
 
     /// Computes the absolute value of `self`.
     pub fn abs(&mut self) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_abs(raw_mut(self), raw(self));
+            gmp::mpz_abs(raw_mut(self), raw(self));
         }
         self
     }
@@ -174,27 +172,27 @@ impl Integer {
     pub fn div_exact(&mut self, other: &Integer) -> &mut Integer {
         assert!(*other != 0);
         unsafe {
-            gmp::__gmpz_divexact(raw_mut(self), raw(self), raw(other));
+            gmp::mpz_divexact(raw_mut(self), raw(self), raw(other));
         }
         self
     }
 
     /// Returns `true` if `self` is divisible by `other`.
     pub fn is_divisible(&self, other: &Integer) -> bool {
-        unsafe { gmp::__gmpz_divisible_p(raw(self), raw(other)) != 0 }
+        unsafe { gmp::mpz_divisible_p(raw(self), raw(other)) != 0 }
     }
 
     /// Returns `true` if `self` is congruent to `c` modulo `d`, that
     /// is, if there exists a `q` such that `self == c + q * d`.
     /// Unlike other division functions, `d` can be zero.
     pub fn is_congruent(&self, c: &Integer, d: &Integer) -> bool {
-        unsafe { gmp::__gmpz_congruent_p(raw(self), raw(c), raw(d)) != 0 }
+        unsafe { gmp::mpz_congruent_p(raw(self), raw(c), raw(d)) != 0 }
     }
 
     /// Computes the `n`th root of `self` and truncates the result.
     pub fn root(&mut self, n: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_root(raw_mut(self), raw(self), n.into());
+            gmp::mpz_root(raw_mut(self), raw(self), n.into());
         }
         self
     }
@@ -205,17 +203,14 @@ impl Integer {
     /// The remainder is stored in `buf`.
     pub fn root_rem(&mut self, buf: &mut Integer, n: u32) {
         unsafe {
-            gmp::__gmpz_rootrem(raw_mut(self),
-                                raw_mut(buf),
-                                raw(self),
-                                n.into());
+            gmp::mpz_rootrem(raw_mut(self), raw_mut(buf), raw(self), n.into());
         }
     }
 
     /// Computes the square root of `self` and truncates the result.
     pub fn sqrt(&mut self) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_sqrt(raw_mut(self), raw(self));
+            gmp::mpz_sqrt(raw_mut(self), raw(self));
         }
         self
     }
@@ -226,25 +221,25 @@ impl Integer {
     /// The remainder is stored in `buf`.
     pub fn sqrt_rem(&mut self, buf: &mut Integer) {
         unsafe {
-            gmp::__gmpz_sqrtrem(raw_mut(self), raw_mut(buf), raw(self));
+            gmp::mpz_sqrtrem(raw_mut(self), raw_mut(buf), raw(self));
         }
     }
 
     /// Returns `true` if `self` is a perfect power.
     pub fn is_perfect_power(&self) -> bool {
-        unsafe { gmp::__gmpz_perfect_power_p(raw(self)) != 0 }
+        unsafe { gmp::mpz_perfect_power_p(raw(self)) != 0 }
     }
 
     /// Returns `true` if `self` is a perfect square.
     pub fn is_perfect_square(&self) -> bool {
-        unsafe { gmp::__gmpz_perfect_square_p(raw(self)) != 0 }
+        unsafe { gmp::mpz_perfect_square_p(raw(self)) != 0 }
     }
 
     /// Finds the greatest common divisor. The result is always
     /// positive except when both inputs are zero.
     pub fn gcd(&mut self, other: &Integer) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_gcd(raw_mut(self), raw(self), raw(other));
+            gmp::mpz_gcd(raw_mut(self), raw(self), raw(other));
         }
         self
     }
@@ -253,7 +248,7 @@ impl Integer {
     /// except when one or both inputs are zero.
     pub fn lcm(&mut self, other: &Integer) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_lcm(raw_mut(self), raw(self), raw(other));
+            gmp::mpz_lcm(raw_mut(self), raw(self), raw(other));
         }
         self
     }
@@ -265,9 +260,8 @@ impl Integer {
     /// Panics if `m` is zero.
     pub fn invert(&mut self, m: &Integer) -> Option<&mut Integer> {
         assert!(*m != 0);
-        let exists = unsafe {
-            gmp::__gmpz_invert(raw_mut(self), raw(self), raw(m)) != 0
-        };
+        let exists =
+            unsafe { gmp::mpz_invert(raw_mut(self), raw(self), raw(m)) != 0 };
         if exists { Some(self) } else { None }
     }
 
@@ -275,7 +269,7 @@ impl Integer {
     /// The value of `self` is ignored.
     pub fn set_factorial(&mut self, n: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_fac_ui(raw_mut(self), n.into());
+            gmp::mpz_fac_ui(raw_mut(self), n.into());
         }
         self
     }
@@ -284,7 +278,7 @@ impl Integer {
     /// The value of `self` is ignored.
     pub fn set_factorial_2(&mut self, n: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_2fac_ui(raw_mut(self), n.into());
+            gmp::mpz_2fac_ui(raw_mut(self), n.into());
         }
         self
     }
@@ -293,7 +287,7 @@ impl Integer {
     /// The value of `self` is ignored.
     pub fn set_factorial_m(&mut self, n: u32, m: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_mfac_uiui(raw_mut(self), n.into(), m.into());
+            gmp::mpz_mfac_uiui(raw_mut(self), n.into(), m.into());
         }
         self
     }
@@ -302,7 +296,7 @@ impl Integer {
     /// The value of `self` is ignored.
     pub fn set_primorial(&mut self, n: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_primorial_ui(raw_mut(self), n.into());
+            gmp::mpz_primorial_ui(raw_mut(self), n.into());
         }
         self
     }
@@ -310,7 +304,7 @@ impl Integer {
     /// Computes the binomial coefficient `self` over `k`.
     pub fn binomial(&mut self, k: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_bin_ui(raw_mut(self), raw(self), k.into());
+            gmp::mpz_bin_ui(raw_mut(self), raw(self), k.into());
         }
         self
     }
@@ -319,14 +313,14 @@ impl Integer {
     /// The value of `self` is ignored.
     pub fn set_binomial(&mut self, n: u32, k: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_bin_uiui(raw_mut(self), n.into(), k.into());
+            gmp::mpz_bin_uiui(raw_mut(self), n.into(), k.into());
         }
         self
     }
 
     /// Compares the absolute values of `self` and `other`.
     pub fn cmp_abs(&self, other: &Integer) -> Ordering {
-        unsafe { gmp::__gmpz_cmpabs(raw(self), raw(other)).cmp(&0) }
+        unsafe { gmp::mpz_cmpabs(raw(self), raw(other)).cmp(&0) }
     }
 
     /// Returns the same result as self.cmp(0), but is faster.
@@ -350,7 +344,7 @@ impl Integer {
     /// assert!(i.significant_bits() == 3);
     /// ```
     pub fn significant_bits(&self) -> u32 {
-        let bits = unsafe { gmp::__gmpz_sizeinbase(raw(self), 2) };
+        let bits = unsafe { gmp::mpz_sizeinbase(raw(self), 2) };
         if bits > u32::MAX as usize {
             panic!("overflow");
         }
@@ -373,7 +367,7 @@ impl Integer {
     /// assert!(Integer::from(-1).count_ones() == None);
     /// ```
     pub fn count_ones(&self) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::__gmpz_popcount(raw(self)) })
+        bitcount_to_u32(unsafe { gmp::mpz_popcount(raw(self)) })
     }
 
     /// Retuns the Hamming distance between `self` and `other` if they
@@ -389,7 +383,7 @@ impl Integer {
     /// assert!(Integer::from(-13).ham_dist(&i) == Some(2));
     /// ```
     pub fn ham_dist(&self, other: &Integer) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::__gmpz_hamdist(raw(self), raw(other)) })
+        bitcount_to_u32(unsafe { gmp::mpz_hamdist(raw(self), raw(other)) })
     }
 
     /// Returns the location of the first zero, starting at `start`.
@@ -402,7 +396,7 @@ impl Integer {
     /// assert!(Integer::from(15).find_zero(0) == Some(4));
     /// assert!(Integer::from(15).find_zero(20) == Some(20));
     pub fn find_zero(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::__gmpz_scan0(raw(self), start.into()) })
+        bitcount_to_u32(unsafe { gmp::mpz_scan0(raw(self), start.into()) })
     }
 
     /// Returns the location of the first one, starting at `start`.
@@ -415,7 +409,7 @@ impl Integer {
     /// assert!(Integer::from(-16).find_one(0) == Some(4));
     /// assert!(Integer::from(-16).find_one(20) == Some(20));
     pub fn find_one(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::__gmpz_scan1(raw(self), start.into()) })
+        bitcount_to_u32(unsafe { gmp::mpz_scan1(raw(self), start.into()) })
     }
 
     /// Sets the bit at location `index` to 1 if `val` is `true` or 0
@@ -423,9 +417,9 @@ impl Integer {
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Integer {
         unsafe {
             if val {
-                gmp::__gmpz_setbit(raw_mut(self), index.into());
+                gmp::mpz_setbit(raw_mut(self), index.into());
             } else {
-                gmp::__gmpz_clrbit(raw_mut(self), index.into());
+                gmp::mpz_clrbit(raw_mut(self), index.into());
             }
         }
         self
@@ -434,13 +428,13 @@ impl Integer {
     /// Returns `true` if the bit at location `index` is 1 or `false`
     /// if the bit is 0.
     pub fn get_bit(&self, index: u32) -> bool {
-        unsafe { gmp::__gmpz_tstbit(raw(self), index.into()) != 0 }
+        unsafe { gmp::mpz_tstbit(raw(self), index.into()) != 0 }
     }
 
     /// Toggles the bit at location `index`.
     pub fn invert_bit(&mut self, index: u32) -> &mut Integer {
         unsafe {
-            gmp::__gmpz_combit(raw_mut(self), index.into());
+            gmp::mpz_combit(raw_mut(self), index.into());
         }
         self
     }
@@ -478,12 +472,12 @@ impl Integer {
                           ((extra_bits + limb_size - 1) / limb_size) as usize;
         let limbs = unsafe {
             if (raw(self)._mp_alloc as usize) < total_limbs {
-                gmp::__gmpz_realloc(raw_mut(self), total_limbs as c_long);
+                gmp::_mpz_realloc(raw_mut(self), total_limbs as c_long);
             }
             slice::from_raw_parts_mut(raw_mut(self)._mp_d, total_limbs)
         };
         let mut limbs_used: c_int = 0;
-        for i in 0..total_limbs {
+        for (i, limb) in limbs.iter_mut().enumerate() {
             let mut val: gmp::mp_limb_t = rng.gen();
             if i == whole_limbs {
                 val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
@@ -491,7 +485,7 @@ impl Integer {
             if val != 0 {
                 limbs_used = i as c_int + 1;
             }
-            limbs[i] = val;
+            *limb = val;
         }
         raw_mut(self)._mp_size = limbs_used;
     }
@@ -599,8 +593,7 @@ impl Integer {
     /// ```
     pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
         let c_str = CString::new(src).map_err(|_| ())?;
-        let err =
-            unsafe { gmp::__gmpz_set_str(raw_mut(self), c_str.as_ptr(), 0) };
+        let err = unsafe { gmp::mpz_set_str(raw_mut(self), c_str.as_ptr(), 0) };
         if err == 0 {
             Ok(())
         } else {
@@ -630,7 +623,7 @@ impl Integer {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let c_str = CString::new(src).map_err(|_| ())?;
         let err = unsafe {
-            gmp::__gmpz_set_str(raw_mut(self), c_str.as_ptr(), radix.into())
+            gmp::mpz_set_str(raw_mut(self), c_str.as_ptr(), radix.into())
         };
         if err == 0 {
             Ok(())
@@ -690,7 +683,7 @@ impl<'a> Assign<&'a Integer> for Integer {
     /// Assigns from another `Integer`.
     fn assign(&mut self, other: &'a Integer) {
         unsafe {
-            gmp::__gmpz_set(raw_mut(self), raw(other));
+            gmp::mpz_set(raw_mut(self), raw(other));
         }
     }
 }
@@ -705,14 +698,14 @@ impl<'a> Assign<Integer> for Integer {
 impl Assign<u32> for Integer {
     /// Assigns from a `u32`.
     fn assign(&mut self, val: u32) {
-        unsafe { gmp::__gmpz_set_ui(raw_mut(self), val.into()) }
+        unsafe { gmp::mpz_set_ui(raw_mut(self), val.into()) }
     }
 }
 
 impl Assign<i32> for Integer {
     /// Assigns from an `i32`.
     fn assign(&mut self, val: i32) {
-        unsafe { gmp::__gmpz_set_si(raw_mut(self), val.into()) }
+        unsafe { gmp::mpz_set_si(raw_mut(self), val.into()) }
     }
 }
 
@@ -720,7 +713,7 @@ impl Assign<f64> for Integer {
     /// Assigns from an `f64`, rounding towards zero.
     fn assign(&mut self, val: f64) {
         unsafe {
-            gmp::__gmpz_set_d(raw_mut(self), val);
+            gmp::mpz_set_d(raw_mut(self), val);
         }
     }
 }
@@ -767,11 +760,11 @@ macro_rules! arith_integer {
     };
 }
 
-arith_integer! { Add add, AddAssign add_assign, gmp::__gmpz_add }
-arith_integer! { Sub sub, SubAssign sub_assign, gmp::__gmpz_sub }
-arith_integer! { Mul mul, MulAssign mul_assign, gmp::__gmpz_mul }
-arith_integer! { Div div, DivAssign div_assign, gmp::__gmpz_tdiv_q }
-arith_integer! { Rem rem, RemAssign rem_assign, gmp::__gmpz_tdiv_r }
+arith_integer! { Add add, AddAssign add_assign, gmp::mpz_add }
+arith_integer! { Sub sub, SubAssign sub_assign, gmp::mpz_sub }
+arith_integer! { Mul mul, MulAssign mul_assign, gmp::mpz_mul }
+arith_integer! { Div div, DivAssign div_assign, gmp::mpz_tdiv_q }
+arith_integer! { Rem rem, RemAssign rem_assign, gmp::mpz_tdiv_r }
 
 impl SubFromAssign for Integer {
     fn sub_from_assign(&mut self, lhs: Integer) {
@@ -782,7 +775,7 @@ impl SubFromAssign for Integer {
 impl<'a> SubFromAssign<&'a Integer> for Integer {
     fn sub_from_assign(&mut self, lhs: &Integer) {
         unsafe {
-            gmp::__gmpz_sub(raw_mut(self), raw(lhs), raw(self));
+            gmp::mpz_sub(raw_mut(self), raw(lhs), raw(self));
         }
     }
 }
@@ -796,7 +789,7 @@ impl DivFromAssign for Integer {
 impl<'a> DivFromAssign<&'a Integer> for Integer {
     fn div_from_assign(&mut self, lhs: &Integer) {
         unsafe {
-            gmp::__gmpz_tdiv_q(raw_mut(self), raw(lhs), raw(self));
+            gmp::mpz_tdiv_q(raw_mut(self), raw(lhs), raw(self));
         }
     }
 }
@@ -891,22 +884,22 @@ macro_rules! arith_prim_commut {
     };
 }
 
-arith_prim_commut! { Add add, AddAssign add_assign, u32, gmp::__gmpz_add_ui }
+arith_prim_commut! { Add add, AddAssign add_assign, u32, gmp::mpz_add_ui }
 arith_prim_non_commut! { Sub sub, SubAssign sub_assign,
                          SubFromAssign sub_from_assign,
-                         u32, gmp::__gmpz_sub_ui, gmp::__gmpz_ui_sub }
-arith_prim_commut! { Mul mul, MulAssign mul_assign, u32, gmp::__gmpz_mul_ui }
-arith_prim_commut! { Mul mul, MulAssign mul_assign, i32, gmp::__gmpz_mul_si }
+                         u32, gmp::mpz_sub_ui, gmp::mpz_ui_sub }
+arith_prim_commut! { Mul mul, MulAssign mul_assign, u32, gmp::mpz_mul_ui }
+arith_prim_commut! { Mul mul, MulAssign mul_assign, i32, gmp::mpz_mul_si }
 arith_prim_for_integer! { Div div, DivAssign div_assign, u32,
-                          gmp::__gmpz_tdiv_q_ui }
+                          gmp::mpz_tdiv_q_ui }
 arith_prim_for_integer! { Rem rem, RemAssign rem_assign, u32,
-                          gmp::__gmpz_tdiv_r_ui }
+                          gmp::mpz_tdiv_r_ui }
 arith_prim_for_integer! { Shl shl, ShlAssign shl_assign, u32,
-                          gmp::__gmpz_mul_2exp }
+                          gmp::mpz_mul_2exp }
 arith_prim_for_integer! { Shr shr, ShrAssign shr_assign, u32,
-                          gmp::__gmpz_fdiv_q_2exp }
+                          gmp::mpz_fdiv_q_2exp }
 arith_prim_for_integer! { Pow pow, PowAssign pow_assign, u32,
-                          gmp::__gmpz_pow_ui }
+                          gmp::mpz_pow_ui }
 
 impl Neg for Integer {
     type Output = Integer;
@@ -919,7 +912,7 @@ impl Neg for Integer {
 impl NegAssign for Integer {
     fn neg_assign(&mut self) {
         unsafe {
-            gmp::__gmpz_neg(raw_mut(self), raw(self));
+            gmp::mpz_neg(raw_mut(self), raw(self));
         }
     }
 }
@@ -928,7 +921,7 @@ impl Eq for Integer {}
 
 impl Ord for Integer {
     fn cmp(&self, other: &Integer) -> Ordering {
-        let ord = unsafe { gmp::__gmpz_cmp(raw(self), raw(other)) };
+        let ord = unsafe { gmp::mpz_cmp(raw(self), raw(other)) };
         ord.cmp(&0)
     }
 }
@@ -950,7 +943,7 @@ impl PartialOrd<f64> for Integer {
         if other.is_nan() {
             None
         } else {
-            let ord = unsafe { gmp::__gmpz_cmp_d(raw(self), *other) };
+            let ord = unsafe { gmp::mpz_cmp_d(raw(self), *other) };
             Some(ord.cmp(&0))
         }
     }
@@ -1038,8 +1031,8 @@ macro_rules! cmp_int {
     };
 }
 
-cmp_int! { u32, gmp::__gmpz_cmp_ui }
-cmp_int! { i32, gmp::__gmpz_cmp_si }
+cmp_int! { u32, gmp::mpz_cmp_ui }
+cmp_int! { i32, gmp::mpz_cmp_si }
 
 macro_rules! bit {
     ($Tr:ident $method:ident,
@@ -1076,9 +1069,9 @@ macro_rules! bit {
     };
 }
 
-bit! { BitAnd bitand, BitAndAssign bitand_assign, gmp::__gmpz_and }
-bit! { BitOr bitor, BitOrAssign bitor_assign, gmp::__gmpz_ior }
-bit! { BitXor bitxor, BitXorAssign bitxor_assign, gmp::__gmpz_xor }
+bit! { BitAnd bitand, BitAndAssign bitand_assign, gmp::mpz_and }
+bit! { BitOr bitor, BitOrAssign bitor_assign, gmp::mpz_ior }
+bit! { BitXor bitxor, BitXorAssign bitxor_assign, gmp::mpz_xor }
 
 impl Not for Integer {
     type Output = Integer;
@@ -1091,7 +1084,7 @@ impl Not for Integer {
 impl NotAssign for Integer {
     fn not_assign(&mut self) {
         unsafe {
-            gmp::__gmpz_com(raw_mut(self), raw(self));
+            gmp::mpz_com(raw_mut(self), raw(self));
         }
     }
 }
@@ -1102,7 +1095,7 @@ impl Integer {
         let s;
         let cstr;
         unsafe {
-            s = gmp::__gmpz_get_str(ptr::null_mut(), radix.into(), raw(self));
+            s = gmp::mpz_get_str(ptr::null_mut(), radix.into(), raw(self));
             assert!(!s.is_null());
             cstr = CStr::from_ptr(s);
         }
@@ -1122,9 +1115,9 @@ impl Integer {
         }
         unsafe {
             let mut free = None;
-            gmp::__gmp_get_memory_functions(ptr::null_mut(),
-                                            ptr::null_mut(),
-                                            &mut free);
+            gmp::mp_get_memory_functions(ptr::null_mut(),
+                                         ptr::null_mut(),
+                                         &mut free);
             let free = free.unwrap();
             let free_len = cstr.to_bytes().len() + 1;
             free(s as *mut c_void, free_len);
