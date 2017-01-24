@@ -62,53 +62,51 @@ type Ordering2 = (Ordering, Ordering);
 /// and trying to use it will start a panic.
 
 pub struct Complex {
-    data: mpc::__mpc_struct,
+    data: mpc::mpc_t,
 }
 
-pub fn raw(q: &Complex) -> &mpc::__mpc_struct {
+pub fn raw(q: &Complex) -> &mpc::mpc_t {
     &q.data
 }
 
-pub fn raw_mut(q: &mut Complex) -> &mut mpc::__mpc_struct {
+pub fn raw_mut(q: &mut Complex) -> &mut mpc::mpc_t {
     &mut q.data
 }
 
 impl Complex {
-    fn real_raw(&self) -> &mpfr::__mpfr_struct {
-        &raw(self).re[0]
+    fn real_raw(&self) -> &mpfr::mpfr_t {
+        &raw(self).re
     }
 
-    fn imag_raw(&self) -> &mpfr::__mpfr_struct {
-        &raw(self).im[0]
+    fn imag_raw(&self) -> &mpfr::mpfr_t {
+        &raw(self).im
     }
 
-    fn real_imag_raw(&self) -> (&mpfr::__mpfr_struct, &mpfr::__mpfr_struct) {
+    fn real_imag_raw(&self) -> (&mpfr::mpfr_t, &mpfr::mpfr_t) {
         let r = raw(self);
-        (&r.re[0], &r.im[0])
+        (&r.re, &r.im)
     }
 
-    fn real_raw_mut(&mut self) -> &mut mpfr::__mpfr_struct {
-        &mut raw_mut(self).re[0]
+    fn real_raw_mut(&mut self) -> &mut mpfr::mpfr_t {
+        &mut raw_mut(self).re
     }
 
-    fn imag_raw_mut(&mut self) -> &mut mpfr::__mpfr_struct {
-        &mut raw_mut(self).im[0]
+    fn imag_raw_mut(&mut self) -> &mut mpfr::mpfr_t {
+        &mut raw_mut(self).im
     }
 
-    fn real_imag_raw_mut
-        (&mut self)
-         -> (&mut mpfr::__mpfr_struct, &mut mpfr::__mpfr_struct) {
+    fn real_imag_raw_mut(&mut self) -> (&mut mpfr::mpfr_t, &mut mpfr::mpfr_t) {
         let r = raw_mut(self);
-        (&mut r.re[0], &mut r.im[0])
+        (&mut r.re, &mut r.im)
     }
 }
 
-fn float_unraw(r: &mpfr::__mpfr_struct) -> &Float {
+fn float_unraw(r: &mpfr::mpfr_t) -> &Float {
     let ptr = r as *const _ as *const Float;
     unsafe { &*ptr }
 }
 
-fn float_unraw_mut(r: &mut mpfr::__mpfr_struct) -> &mut Float {
+fn float_unraw_mut(r: &mut mpfr::mpfr_t) -> &mut Float {
     let ptr = r as *mut _ as *mut Float;
     unsafe { &mut *ptr }
 }
@@ -168,10 +166,10 @@ impl Complex {
                 prec.1 <= rugflo::prec_max(),
                 "precision out of range");
         unsafe {
-            let mut data: mpc::__mpc_struct = mem::uninitialized();
+            let mut data: mpc::mpc_t = mem::uninitialized();
             mpc::mpc_init3(&mut data, prec.0.into(), prec.1.into());
-            mpfr::mpfr_set_zero(&mut data.re[0], 0);
-            mpfr::mpfr_set_zero(&mut data.im[0], 0);
+            mpfr::mpfr_set_zero(&mut data.re, 0);
+            mpfr::mpfr_set_zero(&mut data.im, 0);
             Complex { data: data }
         }
     }
@@ -1480,9 +1478,9 @@ arith_prim_non_commut! {
     mpc::mpc_ui_div
 }
 
-unsafe fn ui_sub(x: mpc::mpc_ptr,
+unsafe fn ui_sub(x: *mut mpc::mpc_t,
                  y: c_ulong,
-                 z: mpc::mpc_srcptr,
+                 z: *const mpc::mpc_t,
                  r: mpc::mpc_rnd_t)
                  -> c_int {
     mpc::mpc_ui_ui_sub(x, y, 0, z, r)
@@ -1817,23 +1815,23 @@ impl fmt::UpperHex for Complex {
     }
 }
 
-fn integer_raw(z: &Integer) -> &gmp::__mpz_struct {
-    let ptr = z as *const _ as *const gmp::__mpz_struct;
+fn integer_raw(z: &Integer) -> &gmp::mpz_t {
+    let ptr = z as *const _ as *const gmp::mpz_t;
     unsafe { &*ptr }
 }
 
-fn rational_raw(q: &Rational) -> &gmp::__mpq_struct {
-    let ptr = q as *const _ as *const gmp::__mpq_struct;
+fn rational_raw(q: &Rational) -> &gmp::mpq_t {
+    let ptr = q as *const _ as *const gmp::mpq_t;
     unsafe { &*ptr }
 }
 
-fn float_raw(f: &Float) -> &mpfr::__mpfr_struct {
-    let ptr = f as *const _ as *const mpfr::__mpfr_struct;
+fn float_raw(f: &Float) -> &mpfr::mpfr_t {
+    let ptr = f as *const _ as *const mpfr::mpfr_t;
     unsafe { &*ptr }
 }
 
-fn float_raw_mut(f: &mut Float) -> &mut mpfr::__mpfr_struct {
-    let ptr = f as *mut _ as *mut mpfr::__mpfr_struct;
+fn float_raw_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
+    let ptr = f as *mut _ as *mut mpfr::mpfr_t;
     unsafe { &mut *ptr }
 }
 
