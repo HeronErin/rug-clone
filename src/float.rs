@@ -34,6 +34,8 @@ use std::os::raw::{c_char, c_int, c_long, c_ulong};
 #[cfg(feature = "rand")]
 use std::os::raw::c_uint;
 use std::ptr;
+#[cfg(feature = "rand")]
+use std::slice;
 
 /// Returns the minimum value for the exponent.
 pub fn exp_min() -> i32 {
@@ -1234,15 +1236,18 @@ impl Float {
                                             rng: &mut R,
                                             round: Round)
                                             -> Ordering {
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as isize;
-        let bits = raw(self)._mpfr_prec as isize;
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as usize;
+        let bits = raw(self)._mpfr_prec as usize;
         let whole_limbs = bits / limb_size;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
                           (extra_bits + limb_size - 1) / limb_size;
-        let mut lead_zeros: isize = total_limbs as isize * limb_size;
+        let limbs = unsafe {
+            slice::from_raw_parts_mut(raw_mut(self)._mpfr_d, total_limbs)
+        };
+        let mut lead_zeros = total_limbs * limb_size;
         for i in 0..total_limbs {
             let mut val: gmp::mp_limb_t = rng.gen();
             if i == 0 && extra_bits > 0 {
@@ -1251,53 +1256,47 @@ impl Float {
             }
             if val != 0 {
                 lead_zeros = (total_limbs - 1 - i) * limb_size +
-                             val.leading_zeros() as isize;
+                             val.leading_zeros() as usize;
             }
-            unsafe {
-                *raw_mut(self)._mpfr_d.offset(i) = val;
-            }
+            limbs[i] = val;
         }
-        let zero_limbs = lead_zeros / limb_size;
+        let zero_limbs = lead_zeros / limb_size as usize;
         if zero_limbs == total_limbs {
             unsafe {
                 mpfr::mpfr_set_zero(raw_mut(self), 0);
             }
             return Ordering::Equal;
         }
-        let zero_bits = lead_zeros % limb_size;
+        let zero_bits = (lead_zeros % limb_size) as c_uint;
         let err = unsafe {
-            mpfr::mpfr_set_exp(raw_mut(self), (-lead_zeros) as mpfr::mpfr_exp_t)
+            mpfr::mpfr_set_exp(raw_mut(self), -(lead_zeros as mpfr::mpfr_exp_t))
         };
         if err != 0 {
-            // this is extremely unlikely, we can be inefficient
+            // This is extremely unlikely, we can be inefficient.
+            // Firs set MSB, then subtract by 0.5
             let high_one: gmp::mp_limb_t = 1 << (limb_size - 1);
+            limbs[total_limbs - 1] |= high_one;
             let ord = unsafe {
-                // set msb and subtract by 0.5
                 mpfr::mpfr_set_exp(raw_mut(self), 0);
-                *raw_mut(self)._mpfr_d.offset(total_limbs - 1) |= high_one;
                 mpfr::mpfr_sub_d(raw_mut(self), raw(self), 0.5, rraw(round))
             };
             return ord.cmp(&0);
         }
         if zero_bits > 0 {
+            let ptr_offset = zero_limbs as isize;
             unsafe {
-                gmp::__gmpn_lshift(raw_mut(self)._mpfr_d.offset(zero_limbs),
+                gmp::__gmpn_lshift(raw_mut(self)._mpfr_d.offset(ptr_offset),
                                    raw(self)._mpfr_d,
-                                   (total_limbs - zero_limbs) as
-                                   gmp::mp_size_t,
-                                   zero_bits as c_uint);
+                                   (total_limbs - zero_limbs) as gmp::mp_size_t,
+                                   zero_bits);
             }
         } else if zero_limbs > 0 {
-            unsafe {
-                ptr::copy(raw(self)._mpfr_d,
-                          raw_mut(self)._mpfr_d.offset(zero_limbs),
-                          (total_limbs - zero_limbs) as usize);
+            for i in (zero_limbs..total_limbs).rev() {
+                limbs[i] = limbs[i - zero_limbs];
             }
         }
         for i in 0..zero_limbs {
-            unsafe {
-                *raw_mut(self)._mpfr_d.offset(i) = 0;
-            }
+            limbs[i] = 0;
         }
         Ordering::Equal
     }
@@ -1353,26 +1352,23 @@ impl Float {
                                             rng: &mut R,
                                             round: Round)
                                             -> Ordering {
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
-        let bits = raw(self)._mpfr_prec as u32;
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as usize;
+        let bits = raw(self)._mpfr_prec as usize;
         let total_limbs = (bits + limb_size - 1) / limb_size;
+        let limbs = unsafe {
+            slice::from_raw_parts_mut(raw_mut(self)._mpfr_d, total_limbs)
+        };
         // If exp is too small, random_cont_first_limb will
         // have the result.
         if let Some(ret) = self.random_cont_first_limb(bits, rng, round) {
             return ret;
         }
         for i in 1..total_limbs {
-            unsafe {
-                *raw_mut(self)._mpfr_d.offset(i as isize) = rng.gen();
-            }
+            limbs[i] = rng.gen();
         }
         let high_one: gmp::mp_limb_t = 1 << (limb_size - 1);
-        let spare_bit;
-        unsafe {
-            let ptr = raw_mut(self)._mpfr_d.offset(total_limbs as isize - 1);
-            spare_bit = (*ptr & high_one) != 0;
-            *ptr |= high_one;
-        };
+        let spare_bit = (limbs[total_limbs - 1] & high_one) != 0;
+        limbs[total_limbs - 1] |= high_one;
         let down = match round {
             Round::Down | Round::Zero => true,
             Round::Up | Round::AwayFromZero => false,
@@ -1388,19 +1384,19 @@ impl Float {
     }
 
     fn random_cont_first_limb<R: Rng>(&mut self,
-                                      bits: u32,
+                                      bits: usize,
                                       rng: &mut R,
                                       round: Round)
                                       -> Option<Ordering> {
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as usize;
         let mut exp: i32 = 0;
         let mut val: gmp::mp_limb_t;
         let mut zeros;
         loop {
             val = rng.gen();
-            zeros = val.leading_zeros();
+            zeros = val.leading_zeros() as i32;
             // if exp too small, return ~0
-            if exp < exp_min() + zeros as i32 {
+            if exp < exp_min() + zeros {
                 unsafe {
                     mpfr::mpfr_set_zero(raw_mut(self), 0);
                 }
@@ -1408,8 +1404,8 @@ impl Float {
                     Round::Down | Round::Zero => true,
                     Round::Up | Round::AwayFromZero => false,
                     Round::Nearest => {
-                        exp + 1 < exp_min() + zeros as i32 ||
-                        (zeros == limb_size && rng.gen::<bool>())
+                        exp + 1 < exp_min() + zeros ||
+                        (zeros as usize == limb_size && rng.gen::<bool>())
                     }
                 };
                 if down {
@@ -1420,7 +1416,7 @@ impl Float {
                 }
                 return Some(Ordering::Greater);
             }
-            exp -= zeros as i32;
+            exp -= zeros;
             if val != 0 {
                 unsafe {
                     mpfr::mpfr_set_exp(raw_mut(self), exp.into());
@@ -1432,7 +1428,7 @@ impl Float {
         zeros += 1;
         // fill the least significant limb
         let bits_in_lsl = (bits - 1) % limb_size + 1;
-        if limb_size < bits_in_lsl + zeros {
+        if limb_size < bits_in_lsl + zeros as usize {
             val = rng.gen();
         }
         val <<= limb_size - bits_in_lsl;
