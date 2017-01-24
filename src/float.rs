@@ -184,14 +184,14 @@ fn ordering2(ord: i32) -> (Ordering, Ordering) {
 ///    * `Ordering::Greater` if the returned/stored `Float` is greater
 ///      than the exact result,
 pub struct Float {
-    data: mpfr::__mpfr_struct,
+    data: mpfr::mpfr_t,
 }
 
-fn raw(f: &Float) -> &mpfr::__mpfr_struct {
+fn raw(f: &Float) -> &mpfr::mpfr_t {
     &f.data
 }
 
-fn raw_mut(f: &mut Float) -> &mut mpfr::__mpfr_struct {
+fn raw_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
     &mut f.data
 }
 
@@ -276,7 +276,7 @@ impl Float {
         assert!(prec >= prec_min() && prec <= prec_max(),
                 "precision out of range");
         unsafe {
-            let mut data: mpfr::__mpfr_struct = mem::uninitialized();
+            let mut data: mpfr::mpfr_t = mem::uninitialized();
             mpfr::mpfr_init2(&mut data, prec.into());
             mpfr::mpfr_set_zero(&mut data, 0);
             Float { data: data }
@@ -1285,10 +1285,10 @@ impl Float {
         if zero_bits > 0 {
             let ptr_offset = zero_limbs as isize;
             unsafe {
-                gmp::__gmpn_lshift(raw_mut(self)._mpfr_d.offset(ptr_offset),
-                                   raw(self)._mpfr_d,
-                                   (total_limbs - zero_limbs) as gmp::mp_size_t,
-                                   zero_bits);
+                gmp::mpn_lshift(raw_mut(self)._mpfr_d.offset(ptr_offset),
+                                raw(self)._mpfr_d,
+                                (total_limbs - zero_limbs) as gmp::mp_size_t,
+                                zero_bits);
             }
         } else if zero_limbs > 0 {
             for i in (zero_limbs..total_limbs).rev() {
@@ -1662,16 +1662,16 @@ impl Float {
     }
 }
 
-unsafe fn jn(rop: mpfr::mpfr_ptr,
-             op: mpfr::mpfr_srcptr,
+unsafe fn jn(rop: *mut mpfr::mpfr_t,
+             op: *const mpfr::mpfr_t,
              n: i32,
              rnd: mpfr::mpfr_rnd_t)
              -> c_int {
     mpfr::mpfr_jn(rop, n.into(), op, rnd)
 }
 
-unsafe fn yn(rop: mpfr::mpfr_ptr,
-             op: mpfr::mpfr_srcptr,
+unsafe fn yn(rop: *mut mpfr::mpfr_t,
+             op: *const mpfr::mpfr_t,
              n: i32,
              rnd: mpfr::mpfr_rnd_t)
              -> c_int {
@@ -1942,16 +1942,16 @@ fn num_den_shift_exp(num: &mut Integer, den: &mut Integer, exp: i32) {
         if exp < 0 {
             let uexp = exp.wrapping_neg() as u32;
             unsafe {
-                gmp::__gmpz_mul_2exp(integer_raw_mut(den),
-                                     integer_raw(den),
-                                     uexp.into());
+                gmp::mpz_mul_2exp(integer_raw_mut(den),
+                                  integer_raw(den),
+                                  uexp.into());
             }
         } else {
             let uexp = exp as u32;
             unsafe {
-                gmp::__gmpz_mul_2exp(integer_raw_mut(num),
-                                     integer_raw(num),
-                                     uexp.into());
+                gmp::mpz_mul_2exp(integer_raw_mut(num),
+                                  integer_raw(num),
+                                  uexp.into());
             }
         }
     }
@@ -3039,17 +3039,17 @@ impl fmt::UpperHex for Float {
     }
 }
 
-fn integer_raw(z: &Integer) -> &gmp::__mpz_struct {
-    let ptr = z as *const _ as *const gmp::__mpz_struct;
+fn integer_raw(z: &Integer) -> &gmp::mpz_t {
+    let ptr = z as *const _ as *const gmp::mpz_t;
     unsafe { &*ptr }
 }
 
-fn integer_raw_mut(z: &mut Integer) -> &mut gmp::__mpz_struct {
-    let ptr = z as *mut _ as *mut gmp::__mpz_struct;
+fn integer_raw_mut(z: &mut Integer) -> &mut gmp::mpz_t {
+    let ptr = z as *mut _ as *mut gmp::mpz_t;
     unsafe { &mut *ptr }
 }
 
-fn rational_raw(z: &Rational) -> &gmp::__mpq_struct {
-    let ptr = z as *const _ as *const gmp::__mpq_struct;
+fn rational_raw(z: &Rational) -> &gmp::mpq_t {
+    let ptr = z as *const _ as *const gmp::mpq_t;
     unsafe { &*ptr }
 }
