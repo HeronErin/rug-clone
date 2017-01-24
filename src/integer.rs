@@ -28,9 +28,11 @@ use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
                BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
                RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 #[cfg(feature = "rand")]
-use std::os::raw::c_int;
+use std::os::raw::{c_int, c_long};
 use std::os::raw::c_void;
 use std::ptr;
+#[cfg(feature = "rand")]
+use std::slice;
 use std::str::FromStr;
 use std::u32;
 
@@ -468,31 +470,30 @@ impl Integer {
             return;
         }
         let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
-        let whole_limbs = bits / limb_size;
+        let whole_limbs = (bits / limb_size) as usize;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
-                          (extra_bits + limb_size - 1) / limb_size;
-        if (raw(self)._mp_alloc as u32) < total_limbs {
-            unsafe {
-                gmp::__gmpz_realloc(raw_mut(self), total_limbs.into());
+                          ((extra_bits + limb_size - 1) / limb_size) as usize;
+        let limbs = unsafe {
+            if (raw(self)._mp_alloc as usize) < total_limbs {
+                gmp::__gmpz_realloc(raw_mut(self), total_limbs as c_long);
             }
-        }
-        let mut limbs: c_int = 0;
+            slice::from_raw_parts_mut(raw_mut(self)._mp_d, total_limbs)
+        };
+        let mut limbs_used: c_int = 0;
         for i in 0..total_limbs {
             let mut val: gmp::mp_limb_t = rng.gen();
             if i == whole_limbs {
                 val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
             }
             if val != 0 {
-                limbs = i as c_int + 1;
+                limbs_used = i as c_int + 1;
             }
-            unsafe {
-                *raw_mut(self)._mp_d.offset(i as isize) = val;
-            }
+            limbs[i] = val;
         }
-        raw_mut(self)._mp_size = limbs;
+        raw_mut(self)._mp_size = limbs_used;
     }
 
     #[cfg(feature = "rand")]
@@ -522,39 +523,40 @@ impl Integer {
         assert!(self.sign() == Ordering::Greater);
         let bits = self.significant_bits();
         let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
-        let whole_limbs = bits / limb_size;
+        let whole_limbs = (bits / limb_size) as usize;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
-                          (extra_bits + limb_size - 1) / limb_size;
+                          ((extra_bits + limb_size - 1) / limb_size) as usize;
+        let limbs = unsafe {
+            slice::from_raw_parts_mut(raw_mut(self)._mp_d, total_limbs)
+        };
         // if the random number is >= bound, restart
         'restart: loop {
-            let mut limbs: c_int = 0;
+            let mut limbs_used: c_int = 0;
             let mut still_equal = true;
             'next_limb: for i in (0..total_limbs).rev() {
                 let mut val: gmp::mp_limb_t = rng.gen();
                 if i == whole_limbs {
                     val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
                 }
-                if limbs == 0 && val != 0 {
-                    limbs = i as c_int + 1;
+                if limbs_used == 0 && val != 0 {
+                    limbs_used = i as c_int + 1;
                 }
-                let in_int =
-                    unsafe { &mut *raw_mut(self)._mp_d.offset(i as isize) };
                 if still_equal {
-                    if val > *in_int {
+                    if val > limbs[i] {
                         continue 'restart;
                     }
-                    if val == *in_int {
+                    if val == limbs[i] {
                         continue 'next_limb;
                     }
                     still_equal = false;
                 }
-                *in_int = val;
+                limbs[i] = val;
             }
             if !still_equal {
-                raw_mut(self)._mp_size = limbs;
+                raw_mut(self)._mp_size = limbs_used;
                 return self;
             }
         }
