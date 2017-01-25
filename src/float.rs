@@ -39,26 +39,39 @@ use std::slice;
 
 /// Returns the minimum value for the exponent.
 pub fn exp_min() -> i32 {
-    -exp_max()
+    let min = unsafe { mpfr::mpfr_get_emin() };
+    if mem::size_of::<mpfr::mpfr_exp_t>() <= mem::size_of::<i32>() ||
+       min > i32::MIN as mpfr::mpfr_exp_t {
+        min as i32
+    } else {
+        i32::MIN
+    }
 }
 
 /// Returns the maximum value for the exponent.
 pub fn exp_max() -> i32 {
-    (1 << 30) - 1
+    let max = unsafe { mpfr::mpfr_get_emax() };
+    if mem::size_of::<mpfr::mpfr_exp_t>() <= mem::size_of::<i32>() ||
+       max < i32::MAX as mpfr::mpfr_exp_t {
+        max as i32
+    } else {
+        i32::MAX
+    }
 }
 
 /// Returns the minimum value for the precision.
 pub fn prec_min() -> u32 {
-    2
+    mpfr::MPFR_PREC_MIN as u32
 }
 
 /// Returns the maximum value for the precision.
 pub fn prec_max() -> u32 {
-    let umax: mpfr::mpfr_uprec_t = !0 >> 1;
-    if umax > u32::MAX as mpfr::mpfr_uprec_t {
-        u32::MAX
+    let max = mpfr::MPFR_PREC_MAX;
+    if mem::size_of::<mpfr::mpfr_prec_t>() <= mem::size_of::<u32>() ||
+       max < u32::MAX as mpfr::mpfr_prec_t {
+        max as u32
     } else {
-        umax as u32
+        u32::MAX
     }
 }
 
@@ -277,7 +290,7 @@ impl Float {
                 "precision out of range");
         unsafe {
             let mut data: mpfr::mpfr_t = mem::uninitialized();
-            mpfr::mpfr_init2(&mut data, prec.into());
+            mpfr::mpfr_init2(&mut data, prec as mpfr::mpfr_prec_t);
             mpfr::mpfr_set_zero(&mut data, 0);
             Float { data: data }
         }
@@ -307,7 +320,9 @@ impl Float {
         assert!(prec >= prec_min() && prec <= prec_max(),
                 "precision out of range");
         unsafe {
-            mpfr::mpfr_prec_round(raw_mut(self), prec.into(), rraw(round))
+            mpfr::mpfr_prec_round(raw_mut(self),
+                                  prec as mpfr::mpfr_prec_t,
+                                  rraw(round))
                 .cmp(&0)
         }
     }
