@@ -45,17 +45,13 @@
 //! ## Examples
 //!
 //! ```rust
-//! extern crate rugint;
-//! extern crate rugrat;
 //! use rugrat::Rational;
 //!
-//! fn main() {
-//!     // Create a rational number, -22 / 4 = -11 / 2.
-//!     let rat = Rational::from((-22, 4));
-//!     assert!(rat.numer().to_i32() == -11);
-//!     assert!(*rat.denom() == 2);
-//!     assert!(rat.to_f32() == -5.5);
-//! }
+//! // Create a rational number, -22 / 4 = -11 / 2.
+//! let rat = Rational::from((-22, 4));
+//! assert!(rat.numer().to_i32() == -11);
+//! assert!(*rat.denom() == 2);
+//! assert!(rat.to_f32() == -5.5);
 //! ```
 
 extern crate gmp_mpfr_sys;
