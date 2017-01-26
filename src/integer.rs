@@ -325,7 +325,7 @@ impl Integer {
 
     /// Returns the same result as self.cmp(0), but is faster.
     pub fn sign(&self) -> Ordering {
-        raw(self)._mp_size.cmp(&0)
+        raw(self).size.cmp(&0)
     }
 
     /// Returns the number of bits required to represent the absolute
@@ -463,7 +463,7 @@ impl Integer {
         if bits == 0 {
             return;
         }
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as u32;
         let whole_limbs = (bits / limb_size) as usize;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
@@ -471,23 +471,23 @@ impl Integer {
         let total_limbs = whole_limbs +
                           ((extra_bits + limb_size - 1) / limb_size) as usize;
         let limbs = unsafe {
-            if (raw(self)._mp_alloc as usize) < total_limbs {
+            if (raw(self).alloc as usize) < total_limbs {
                 gmp::_mpz_realloc(raw_mut(self), total_limbs as c_long);
             }
-            slice::from_raw_parts_mut(raw_mut(self)._mp_d, total_limbs)
+            slice::from_raw_parts_mut(raw_mut(self).d, total_limbs)
         };
         let mut limbs_used: c_int = 0;
         for (i, limb) in limbs.iter_mut().enumerate() {
-            let mut val: gmp::mp_limb_t = rng.gen();
+            let mut val: gmp::limb_t = rng.gen();
             if i == whole_limbs {
-                val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
+                val &= ((1 as gmp::limb_t) << extra_bits) - 1;
             }
             if val != 0 {
                 limbs_used = i as c_int + 1;
             }
             *limb = val;
         }
-        raw_mut(self)._mp_size = limbs_used;
+        raw_mut(self).size = limbs_used;
     }
 
     #[cfg(feature = "rand")]
@@ -516,24 +516,23 @@ impl Integer {
     pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
         assert!(self.sign() == Ordering::Greater);
         let bits = self.significant_bits();
-        let limb_size = 8 * mem::size_of::<gmp::mp_limb_t>() as u32;
+        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as u32;
         let whole_limbs = (bits / limb_size) as usize;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
                           ((extra_bits + limb_size - 1) / limb_size) as usize;
-        let limbs = unsafe {
-            slice::from_raw_parts_mut(raw_mut(self)._mp_d, total_limbs)
-        };
+        let limbs =
+            unsafe { slice::from_raw_parts_mut(raw_mut(self).d, total_limbs) };
         // if the random number is >= bound, restart
         'restart: loop {
             let mut limbs_used: c_int = 0;
             let mut still_equal = true;
             'next_limb: for i in (0..total_limbs).rev() {
-                let mut val: gmp::mp_limb_t = rng.gen();
+                let mut val: gmp::limb_t = rng.gen();
                 if i == whole_limbs {
-                    val &= ((1 as gmp::mp_limb_t) << extra_bits) - 1;
+                    val &= ((1 as gmp::limb_t) << extra_bits) - 1;
                 }
                 if limbs_used == 0 && val != 0 {
                     limbs_used = i as c_int + 1;
@@ -550,7 +549,7 @@ impl Integer {
                 limbs[i] = val;
             }
             if !still_equal {
-                raw_mut(self)._mp_size = limbs_used;
+                raw_mut(self).size = limbs_used;
                 return self;
             }
         }
@@ -1115,9 +1114,9 @@ impl Integer {
         }
         unsafe {
             let mut free = None;
-            gmp::mp_get_memory_functions(ptr::null_mut(),
-                                         ptr::null_mut(),
-                                         &mut free);
+            gmp::get_memory_functions(ptr::null_mut(),
+                                      ptr::null_mut(),
+                                      &mut free);
             let free = free.unwrap();
             let free_len = cstr.to_bytes().len() + 1;
             free(s as *mut c_void, free_len);
@@ -1169,11 +1168,11 @@ impl fmt::UpperHex for Integer {
     }
 }
 
-fn bitcount_to_u32(bits: gmp::mp_bitcnt_t) -> Option<u32> {
-    let max: gmp::mp_bitcnt_t = !0;
+fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
+    let max: gmp::bitcnt_t = !0;
     if bits == max {
         None
-    } else if bits > u32::MAX as gmp::mp_bitcnt_t {
+    } else if bits > u32::MAX as gmp::bitcnt_t {
         panic!("overflow")
     } else {
         Some(bits as u32)
