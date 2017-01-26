@@ -46,21 +46,16 @@
 //! ## Examples
 //!
 //! ```rust
-//! extern crate rugint;
-//! extern crate rugflo;
-//! use rugint::Assign;
 //! use rugflo::Float;
 //!
-//! fn main() {
-//!     // Create a floating-point number with 53 bits of precision.
-//!     // (An `f64` has 53 bits of precision too.)
-//!     let flo53 = Float::from((0xff00ff, 53));
-//!     assert!(flo53.to_f64() == 0xff00ff as f64);
-//!     // Create a floating-point number with only 16 bits of precision.
-//!     let flo16 = Float::from((0xff00ff, 16));
-//!     // Now the number is rounded.
-//!     assert!(flo16.to_f64() == 0xff0100 as f64);
-//! }
+//! // Create a floating-point number with 53 bits of precision.
+//! // (An `f64` has 53 bits of precision too.)
+//! let flo53 = Float::from((0xff00ff, 53));
+//! assert!(flo53.to_f64() == 0xff00ff as f64);
+//! // Create a floating-point number with only 16 bits of precision.
+//! let flo16 = Float::from((0xff00ff, 16));
+//! // Now the number is rounded.
+//! assert!(flo16.to_f64() == 0xff0100 as f64);
 //! ```
 
 extern crate gmp_mpfr_sys;
