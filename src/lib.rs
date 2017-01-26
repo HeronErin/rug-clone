@@ -41,15 +41,14 @@
 //!
 //! The crate provides the [`Rational`](./struct.Rational.html) type,
 //! which holds an arbitrary-precision rational number.
-//! 
+//!
 //! ## Examples
-//! 
+//!
 //! ```rust
 //! extern crate rugint;
 //! extern crate rugrat;
-//! use rugint::Assign;
 //! use rugrat::Rational;
-//! 
+//!
 //! fn main() {
 //!     // Create a rational number, -22 / 4 = -11 / 2.
 //!     let rat = Rational::from((-22, 4));

@@ -48,7 +48,7 @@ To use this crate, add `rugrat` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rugrat = "0.1"
+rugrat = "0.1.2"
 ```
 
 This crate depends on the low-level bindings in the crate

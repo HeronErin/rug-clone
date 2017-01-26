@@ -68,29 +68,29 @@ fn raw_mut(q: &mut Rational) -> &mut gmp::mpq_t {
 
 impl Rational {
     fn num_raw(&self) -> &gmp::mpz_t {
-        &raw(self)._mp_num
+        &raw(self).num
     }
 
     fn den_raw(&self) -> &gmp::mpz_t {
-        &raw(self)._mp_den
+        &raw(self).den
     }
 
     fn num_den_raw(&self) -> (&gmp::mpz_t, &gmp::mpz_t) {
         let r = raw(self);
-        (&r._mp_num, &r._mp_den)
+        (&r.num, &r.den)
     }
 
     fn num_raw_mut(&mut self) -> &mut gmp::mpz_t {
-        &mut raw_mut(self)._mp_num
+        &mut raw_mut(self).num
     }
 
     fn den_raw_mut(&mut self) -> &mut gmp::mpz_t {
-        &mut raw_mut(self)._mp_den
+        &mut raw_mut(self).den
     }
 
     fn num_den_raw_mut(&mut self) -> (&mut gmp::mpz_t, &mut gmp::mpz_t) {
         let r = raw_mut(self);
-        (&mut r._mp_num, &mut r._mp_den)
+        (&mut r.num, &mut r.den)
     }
 }
 
@@ -816,9 +816,9 @@ impl Rational {
         }
         unsafe {
             let mut free = None;
-            gmp::mp_get_memory_functions(ptr::null_mut(),
-                                         ptr::null_mut(),
-                                         &mut free);
+            gmp::get_memory_functions(ptr::null_mut(),
+                                      ptr::null_mut(),
+                                      &mut free);
             let free = free.unwrap();
             let free_len = cstr.to_bytes().len() + 1;
             free(s as *mut c_void, free_len);
@@ -884,13 +884,13 @@ impl<'a> Drop for MutNumerDenom<'a> {
         let rat_num = integer_raw_mut(self.0);
         let rat_den = integer_raw_mut(self.1);
         let mut canon: gmp::mpq_t = unsafe { mem::uninitialized() };
-        canon._mp_num = *rat_num;
-        canon._mp_den = *rat_den;
+        canon.num = *rat_num;
+        canon.den = *rat_den;
         unsafe {
             gmp::mpq_canonicalize(&mut canon);
         }
-        *rat_num = canon._mp_num;
-        *rat_den = canon._mp_den;
+        *rat_num = canon.num;
+        *rat_den = canon.den;
         mem::forget(canon);
     }
 }
