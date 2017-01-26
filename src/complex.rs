@@ -114,7 +114,7 @@ fn float_unraw_mut(r: &mut mpfr::mpfr_t) -> &mut Float {
 impl Drop for Complex {
     fn drop(&mut self) {
         unsafe {
-            mpc::mpc_clear(raw_mut(self));
+            mpc::clear(raw_mut(self));
         }
     }
 }
@@ -167,9 +167,9 @@ impl Complex {
                 "precision out of range");
         unsafe {
             let mut data: mpc::mpc_t = mem::uninitialized();
-            mpc::mpc_init3(&mut data, prec.0.into(), prec.1.into());
-            mpfr::mpfr_set_zero(&mut data.re, 0);
-            mpfr::mpfr_set_zero(&mut data.im, 0);
+            mpc::init3(&mut data, prec.0.into(), prec.1.into());
+            mpfr::set_zero(&mut data.re, 0);
+            mpfr::set_zero(&mut data.im, 0);
             Complex { data: data }
         }
     }
@@ -256,7 +256,7 @@ impl Complex {
         "Computes a projection onto the Riemann sphere, \
          applying the specified rounding method.",
         proj_round,
-        mpc::mpc_proj
+        mpc::proj
     }
     math_op1! {
         "Computes the square, \
@@ -265,7 +265,7 @@ impl Complex {
         "Computes the square, \
          applying the specified rounding method.",
         square_round,
-        mpc::mpc_sqr
+        mpc::sqr
     }
     math_op1! {
         "Computes the square root, \
@@ -274,7 +274,7 @@ impl Complex {
         "Computes the square root, \
          applying the specified rounding method.",
         sqrt_round,
-        mpc::mpc_sqrt
+        mpc::sqrt
     }
 
     /// Computes the complex conjugate,
@@ -282,7 +282,7 @@ impl Complex {
     pub fn conjugate(&mut self) -> &mut Complex {
         let round = (Round::Nearest, Round::Nearest);
         unsafe {
-            mpc::mpc_conj(raw_mut(self), raw(self), rraw2(round));
+            mpc::conj(raw_mut(self), raw(self), rraw2(round));
         }
         self
     }
@@ -297,9 +297,7 @@ impl Complex {
     /// Computes the absolute value,
     /// applying the specified rounding method.
     pub fn abs_round(&self, buf: &mut Float, round: Round) -> Ordering {
-        unsafe {
-            mpc::mpc_abs(float_raw_mut(buf), raw(self), rraw(round)).cmp(&0)
-        }
+        unsafe { mpc::abs(float_raw_mut(buf), raw(self), rraw(round)).cmp(&0) }
     }
 
     /// Computes the argument,
@@ -312,15 +310,13 @@ impl Complex {
     /// Computes the argument,
     /// applying the specified rounding method.
     pub fn arg_round(&self, buf: &mut Float, round: Round) -> Ordering {
-        unsafe {
-            mpc::mpc_arg(float_raw_mut(buf), raw(self), rraw(round)).cmp(&0)
-        }
+        unsafe { mpc::arg(float_raw_mut(buf), raw(self), rraw(round)).cmp(&0) }
     }
 
     pub fn mul_i(&mut self, negative: bool, round: Round2) -> Ordering2 {
         let sgn = if negative { -1 } else { 0 };
         ordering2(unsafe {
-            mpc::mpc_mul_i(raw_mut(self), raw(self), sgn, rraw2(round))
+            mpc::mul_i(raw_mut(self), raw(self), sgn, rraw2(round))
         })
     }
 
@@ -335,7 +331,7 @@ impl Complex {
     /// applying the specified rounding method.
     pub fn recip_round(&mut self, round: Round2) -> Ordering2 {
         ordering2(unsafe {
-            mpc::mpc_ui_div(raw_mut(self), 1, raw(self), rraw2(round))
+            mpc::ui_div(raw_mut(self), 1, raw(self), rraw2(round))
         })
     }
 
@@ -349,9 +345,7 @@ impl Complex {
     /// Computes the norm, that is the square of the absolute value,
     /// applying the specified rounding method.
     pub fn norm_round(&self, buf: &mut Float, round: Round) -> Ordering {
-        unsafe {
-            mpc::mpc_norm(float_raw_mut(buf), raw(self), rraw(round)).cmp(&0)
-        }
+        unsafe { mpc::norm(float_raw_mut(buf), raw(self), rraw(round)).cmp(&0) }
     }
 
     math_op1! {
@@ -361,7 +355,7 @@ impl Complex {
         "Computes the natural logarithm, \
          applying the specified rounding method.",
         ln_round,
-        mpc::mpc_log
+        mpc::log
     }
     math_op1! {
         "Computes the logarithm to base 10, \
@@ -370,7 +364,7 @@ impl Complex {
         "Computes the logarithm to base 10, \
          applying the specified rounding method.",
         log10_round,
-        mpc::mpc_log10
+        mpc::log10
     }
     math_op1! {
         "Computes the exponential, \
@@ -379,7 +373,7 @@ impl Complex {
         "Computes the exponential, \
          applying the specified rounding method.",
         exp_round,
-        mpc::mpc_exp
+        mpc::exp
     }
     math_op1! {
         "Computes the sine, \
@@ -388,7 +382,7 @@ impl Complex {
         "Computes the sine, \
          applying the specified rounding method.",
         sin_round,
-        mpc::mpc_sin
+        mpc::sin
     }
     math_op1! {
         "Computes the cosine, \
@@ -397,7 +391,7 @@ impl Complex {
         "Computes the cosine, \
          applying the specified rounding method.",
         cos_round,
-        mpc::mpc_cos
+        mpc::cos
     }
 
     /// Computes the sine and cosine, rounding to the nearest. The
@@ -417,11 +411,11 @@ impl Complex {
                          round_cos: Round2)
                          -> (Ordering2, Ordering2) {
         let ord = unsafe {
-            mpc::mpc_sin_cos(raw_mut(self),
-                             raw_mut(buf),
-                             raw(self),
-                             rraw2(round_sin),
-                             rraw2(round_cos))
+            mpc::sin_cos(raw_mut(self),
+                         raw_mut(buf),
+                         raw(self),
+                         rraw2(round_sin),
+                         rraw2(round_cos))
         };
         (ordering2(ord & 15), ordering2(ord >> 4))
     }
@@ -433,7 +427,7 @@ impl Complex {
         "Computes the tangent, \
          applying the specified rounding method.",
         tan_round,
-        mpc::mpc_tan
+        mpc::tan
     }
     math_op1! {
         "Computes the hyperbolic sine, \
@@ -442,7 +436,7 @@ impl Complex {
         "Computes the hyperboic sine, \
          applying the specified rounding method.",
         sinh_round,
-        mpc::mpc_sinh
+        mpc::sinh
     }
     math_op1! {
         "Computes the hyperbolic cosine, \
@@ -451,7 +445,7 @@ impl Complex {
         "Computes the hyperboic cosine, \
          applying the specified rounding method.",
         cosh_round,
-        mpc::mpc_cosh
+        mpc::cosh
     }
     math_op1! {
         "Computes the hyperbolic tangent, \
@@ -460,7 +454,7 @@ impl Complex {
         "Computes the hyperboic tangent, \
          applying the specified rounding method.",
         tanh_round,
-        mpc::mpc_tanh
+        mpc::tanh
     }
     math_op1! {
         "Computes the inverse sine, \
@@ -469,7 +463,7 @@ impl Complex {
         "Computes the inverse sine, \
          applying the specified rounding method.",
         asin_round,
-        mpc::mpc_asin
+        mpc::asin
     }
     math_op1! {
         "Computes the inverse cosine, \
@@ -478,7 +472,7 @@ impl Complex {
         "Computes the inverse cosine, \
          applying the specified rounding method.",
         acos_round,
-        mpc::mpc_acos
+        mpc::acos
     }
     math_op1! {
         "Computes the inverse tangent, \
@@ -487,7 +481,7 @@ impl Complex {
         "Computes the inverse tangent, \
          applying the specified rounding method.",
         atan_round,
-        mpc::mpc_atan
+        mpc::atan
     }
     math_op1! {
         "Computes the inverse hyperbolic sine, \
@@ -496,7 +490,7 @@ impl Complex {
         "Computes the inverse hyperboic sine, \
          applying the specified rounding method.",
         asinh_round,
-        mpc::mpc_asinh
+        mpc::asinh
     }
     math_op1! {
         "Computes the inverse hyperbolic cosine, \
@@ -505,7 +499,7 @@ impl Complex {
         "Computes the inverse hyperboic cosine, \
          applying the specified rounding method.",
         acosh_round,
-        mpc::mpc_acosh
+        mpc::acosh
     }
     math_op1! {
         "Computes the inverse hyperbolic tangent, \
@@ -514,7 +508,7 @@ impl Complex {
         "Computes the inverse hyperboic tangent, \
          applying the specified rounding method.",
         atanh_round,
-        mpc::mpc_atanh
+        mpc::atanh
     }
 
     #[cfg(feature = "rand")]
@@ -730,7 +724,7 @@ impl Complex {
                             -> Result<Ordering2, ()> {
         let c_str = CString::new(src).map_err(|_| ())?;
         let ord = unsafe {
-            mpc::mpc_set_str(raw_mut(self), c_str.as_ptr(), 0, rraw2(round))
+            mpc::set_str(raw_mut(self), c_str.as_ptr(), 0, rraw2(round))
         };
         if ord < 0 {
             self.assign(0);
@@ -773,7 +767,7 @@ impl Complex {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let c_str = CString::new(src).map_err(|_| ())?;
         let ord = unsafe {
-            mpc::mpc_set_str(raw_mut(self), c_str.as_ptr(), radix, rraw2(round))
+            mpc::set_str(raw_mut(self), c_str.as_ptr(), radix, rraw2(round))
         };
         if ord < 0 {
             self.assign(0);
@@ -958,26 +952,26 @@ fn tup_ref<T>(pair: &(T, T)) -> (&T, &T) {
 }
 
 assign! { "an `Integer`", Integer, &'a Integer, unit,
-           |c, t, r| unsafe { mpc::mpc_set_z(c, integer_raw(t), r) } }
+           |c, t, r| unsafe { mpc::set_z(c, integer_raw(t), r) } }
 assign! { "a `Rational` number", Rational, &'a Rational, unit,
-           |c, t, r| unsafe { mpc::mpc_set_q(c, rational_raw(t), r) } }
+           |c, t, r| unsafe { mpc::set_q(c, rational_raw(t), r) } }
 assign! { "a `Float`", Float, &'a Float, unit,
-           |c, t, r| unsafe { mpc::mpc_set_fr(c, float_raw(t), r) } }
+           |c, t, r| unsafe { mpc::set_fr(c, float_raw(t), r) } }
 assign! { "another `Complex` number", Complex, &'a Complex, unit,
-           |c, t, r| unsafe { mpc::mpc_set(c, raw(t), r) } }
+           |c, t, r| unsafe { mpc::set(c, raw(t), r) } }
 
 assign! { "a real and an imaginary `Integer`",
            (Integer, Integer), (&'a Integer, &'a Integer), tup_ref,
            |c, t: (&Integer, &Integer), r| unsafe {
-               mpc::mpc_set_z_z(c, integer_raw(t.0), integer_raw(t.1), r) } }
+               mpc::set_z_z(c, integer_raw(t.0), integer_raw(t.1), r) } }
 assign! { "a real and an imaginary `Rational` number",
            (Rational, Rational), (&'a Rational, &'a Rational), tup_ref,
            |c, t: (&Rational, &Rational), r| unsafe {
-               mpc::mpc_set_q_q(c, rational_raw(t.0), rational_raw(t.1), r) }}
+               mpc::set_q_q(c, rational_raw(t.0), rational_raw(t.1), r) }}
 assign! { "a real and an imaginary `Float`",
            (Float, Float), (&'a Float, &'a Float), tup_ref,
            |c, t: (&Float, &Float), r| unsafe {
-               mpc::mpc_set_fr_fr(c, float_raw(t.0), float_raw(t.1), r) } }
+               mpc::set_fr_fr(c, float_raw(t.0), float_raw(t.1), r) } }
 
 macro_rules! assign_prim {
     { $d:expr, $d_pair:expr, $t:ty, $func:path, $func_pair:path } => {
@@ -1035,13 +1029,13 @@ macro_rules! assign_prim {
 }
 
 assign_prim! { "a `u32`", "a real and an imaginary `u32`", u32,
-                mpc::mpc_set_ui, mpc::mpc_set_ui_ui }
+                mpc::set_ui, mpc::set_ui_ui }
 assign_prim! { "an `i32`", "a real and an imaginary `i32`", i32,
-                mpc::mpc_set_si, mpc::mpc_set_si_si }
+                mpc::set_si, mpc::set_si_si }
 assign_prim! { "an `f32`", "a real and an imaginary `f32`", f32,
-                mpc::mpc_set_d, mpc::mpc_set_d_d }
+                mpc::set_d, mpc::set_d_d }
 assign_prim! { "an `f64`", "a real and an imaginary `f64`", f64,
-                mpc::mpc_set_d, mpc::mpc_set_d_d }
+                mpc::set_d, mpc::set_d_d }
 
 macro_rules! arith_for_complex {
     ($imp:ident $method:ident,
@@ -1219,9 +1213,9 @@ macro_rules! arith_non_commut {
 }
 
 arith_for_complex! { Add add, AddRound add_round, AddAssign add_assign, Complex,
-                     |c, t, r| unsafe { mpc::mpc_add(c, c, raw(t), r) } }
+                     |c, t, r| unsafe { mpc::add(c, c, raw(t), r) } }
 arith_for_complex! { Sub sub, SubRound sub_round, SubAssign sub_assign, Complex,
-                     |c, t, r| unsafe { mpc::mpc_sub(c, c, raw(t), r) } }
+                     |c, t, r| unsafe { mpc::sub(c, c, raw(t), r) } }
 
 impl SubFromAssign for Complex {
     fn sub_from_assign(&mut self, lhs: Complex) {
@@ -1232,18 +1226,18 @@ impl SubFromAssign for Complex {
 impl<'a> SubFromAssign<&'a Complex> for Complex {
     fn sub_from_assign(&mut self, lhs: &Complex) {
         unsafe {
-            mpc::mpc_sub(raw_mut(self),
-                         raw(lhs),
-                         raw(self),
-                         rraw2((Round::Nearest, Round::Nearest)));
+            mpc::sub(raw_mut(self),
+                     raw(lhs),
+                     raw(self),
+                     rraw2((Round::Nearest, Round::Nearest)));
         }
     }
 }
 
 arith_for_complex! { Mul mul, MulRound mul_round, MulAssign mul_assign, Complex,
-                     |c, t, r| unsafe { mpc::mpc_mul(c, c, raw(t), r) } }
+                     |c, t, r| unsafe { mpc::mul(c, c, raw(t), r) } }
 arith_for_complex! { Div div, DivRound div_round, DivAssign div_assign, Complex,
-                     |c, t, r| unsafe { mpc::mpc_div(c, c, raw(t), r) } }
+                     |c, t, r| unsafe { mpc::div(c, c, raw(t), r) } }
 
 impl DivFromAssign for Complex {
     fn div_from_assign(&mut self, lhs: Complex) {
@@ -1254,28 +1248,28 @@ impl DivFromAssign for Complex {
 impl<'a> DivFromAssign<&'a Complex> for Complex {
     fn div_from_assign(&mut self, lhs: &Complex) {
         unsafe {
-            mpc::mpc_div(raw_mut(self),
-                         raw(lhs),
-                         raw(self),
-                         rraw2((Round::Nearest, Round::Nearest)));
+            mpc::div(raw_mut(self),
+                     raw(lhs),
+                     raw(self),
+                     rraw2((Round::Nearest, Round::Nearest)));
         }
     }
 }
 
 arith_commut! { Add add, AddRound add_round, AddAssign add_assign, Float,
-                |c, t, r| unsafe { mpc::mpc_add_fr(c, c, float_raw(t), r) } }
+                |c, t, r| unsafe { mpc::add_fr(c, c, float_raw(t), r) } }
 
 arith_non_commut! { Sub sub, SubRound sub_round, SubAssign sub_assign,
                     SubFromAssign sub_from_assign, Float,
-                   |c, t, r| unsafe { mpc::mpc_sub_fr(c, c, float_raw(t), r) },
-                   |t, c, r| unsafe { mpc::mpc_fr_sub(c, float_raw(t), c, r) }}
+                   |c, t, r| unsafe { mpc::sub_fr(c, c, float_raw(t), r) },
+                   |t, c, r| unsafe { mpc::fr_sub(c, float_raw(t), c, r) }}
 
 arith_commut! { Mul mul, MulRound mul_round, MulAssign mul_assign, Float,
-                |c, t, r| unsafe { mpc::mpc_mul_fr(c, c, float_raw(t), r) } }
+                |c, t, r| unsafe { mpc::mul_fr(c, c, float_raw(t), r) } }
 arith_non_commut! { Div div, DivRound div_round, DivAssign div_assign,
                     DivFromAssign div_from_assign, Float,
-                   |c, t, r| unsafe { mpc::mpc_div_fr(c, c, float_raw(t), r) },
-                   |t, c, r| unsafe { mpc::mpc_fr_div(c, float_raw(t), c, r) }}
+                   |c, t, r| unsafe { mpc::div_fr(c, c, float_raw(t), r) },
+                   |t, c, r| unsafe { mpc::fr_div(c, float_raw(t), c, r) }}
 
 macro_rules! arith_prim_for_complex {
     ($imp:ident $method:ident,
@@ -1443,7 +1437,7 @@ arith_prim_commut! {
     AddRound add_round,
     AddAssign add_assign,
     u32,
-    mpc::mpc_add_ui
+    mpc::add_ui
 }
 arith_prim_non_commut! {
     Sub sub,
@@ -1451,7 +1445,7 @@ arith_prim_non_commut! {
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     u32,
-    mpc::mpc_sub_ui,
+    mpc::sub_ui,
     ui_sub
 }
 arith_prim_commut! {
@@ -1459,14 +1453,14 @@ arith_prim_commut! {
     MulRound mul_round,
     MulAssign mul_assign,
     u32,
-    mpc::mpc_mul_ui
+    mpc::mul_ui
 }
 arith_prim_commut! {
     Mul mul,
     MulRound mul_round,
     MulAssign mul_assign,
     i32,
-    mpc::mpc_mul_si
+    mpc::mul_si
 }
 arith_prim_non_commut! {
     Div div,
@@ -1474,16 +1468,16 @@ arith_prim_non_commut! {
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     u32,
-    mpc::mpc_div_ui,
-    mpc::mpc_ui_div
+    mpc::div_ui,
+    mpc::ui_div
 }
 
 unsafe fn ui_sub(x: *mut mpc::mpc_t,
                  y: c_ulong,
                  z: *const mpc::mpc_t,
-                 r: mpc::mpc_rnd_t)
+                 r: mpc::rnd_t)
                  -> c_int {
-    mpc::mpc_ui_ui_sub(x, y, 0, z, r)
+    mpc::ui_ui_sub(x, y, 0, z, r)
 }
 
 impl Sub<Complex> for (u32, u32) {
@@ -1506,11 +1500,11 @@ impl SubRound<Complex> for (u32, u32) {
     type Output = Complex;
     fn sub_round(self, mut op: Complex, round: Round2) -> (Complex, Ordering2) {
         let ord = unsafe {
-            mpc::mpc_ui_ui_sub(raw_mut(&mut op),
-                               self.0.into(),
-                               self.1.into(),
-                               raw(&op),
-                               rraw2(round))
+            mpc::ui_ui_sub(raw_mut(&mut op),
+                           self.0.into(),
+                           self.1.into(),
+                           raw(&op),
+                           rraw2(round))
         };
         (op, ordering2(ord))
     }
@@ -1528,11 +1522,11 @@ impl<'a> SubRound<&'a Complex> for (u32, u32) {
 impl SubFromAssign<(u32, u32)> for Complex {
     fn sub_from_assign(&mut self, lhs: (u32, u32)) {
         unsafe {
-            mpc::mpc_ui_ui_sub(raw_mut(self),
-                               lhs.0.into(),
-                               lhs.1.into(),
-                               raw(self),
-                               rraw2((Round::Nearest, Round::Nearest)));
+            mpc::ui_ui_sub(raw_mut(self),
+                           lhs.0.into(),
+                           lhs.1.into(),
+                           raw(self),
+                           rraw2((Round::Nearest, Round::Nearest)));
         }
     }
 }
@@ -1549,7 +1543,7 @@ impl NegAssign for Complex {
     fn neg_assign(&mut self) {
         let round = (Round::Nearest, Round::Nearest);
         unsafe {
-            mpc::mpc_neg(raw_mut(self), raw(self), rraw2(round));
+            mpc::neg(raw_mut(self), raw(self), rraw2(round));
         }
     }
 }
@@ -1612,7 +1606,7 @@ sh_op! {
     ShlRound shl_round,
     ShlAssign shl_assign,
     u32,
-    mpc::mpc_mul_2ui
+    mpc::mul_2ui
 }
 sh_op! {
     "Divides",
@@ -1620,7 +1614,7 @@ sh_op! {
     ShrRound shr_round,
     ShrAssign shr_assign,
     u32,
-    mpc::mpc_div_2ui
+    mpc::div_2ui
 }
 sh_op! {
     "Multiplies",
@@ -1628,7 +1622,7 @@ sh_op! {
     ShlRound shl_round,
     ShlAssign shl_assign,
     i32,
-    mpc::mpc_mul_2si
+    mpc::mul_2si
 }
 sh_op! {
     "Divides",
@@ -1636,7 +1630,7 @@ sh_op! {
     ShrRound shr_round,
     ShrAssign shr_assign,
     i32,
-    mpc::mpc_div_2si
+    mpc::div_2si
 }
 
 macro_rules! pow_others {
@@ -1681,10 +1675,10 @@ impl<'a> PowRound<&'a Integer> for Complex {
                  round: Round2)
                  -> (Complex, Ordering2) {
         let ord = unsafe {
-            mpc::mpc_pow_z(raw_mut(&mut self),
-                           raw(&self),
-                           integer_raw(op),
-                           rraw2(round))
+            mpc::pow_z(raw_mut(&mut self),
+                       raw(&self),
+                       integer_raw(op),
+                       rraw2(round))
         };
         (self, ordering2(ord))
     }
@@ -1693,10 +1687,10 @@ impl<'a> PowRound<&'a Integer> for Complex {
 impl<'a> PowAssign<&'a Integer> for Complex {
     fn pow_assign(&mut self, op: &'a Integer) {
         unsafe {
-            mpc::mpc_pow_z(raw_mut(self),
-                           raw(self),
-                           integer_raw(op),
-                           rraw2((Round::Nearest, Round::Nearest)));
+            mpc::pow_z(raw_mut(self),
+                       raw(self),
+                       integer_raw(op),
+                       rraw2((Round::Nearest, Round::Nearest)));
         }
     }
 }
@@ -1710,10 +1704,10 @@ impl<'a> PowRound<&'a Float> for Complex {
                  round: Round2)
                  -> (Complex, Ordering2) {
         let ord = unsafe {
-            mpc::mpc_pow_fr(raw_mut(&mut self),
-                            raw(&self),
-                            float_raw(op),
-                            rraw2(round))
+            mpc::pow_fr(raw_mut(&mut self),
+                        raw(&self),
+                        float_raw(op),
+                        rraw2(round))
         };
         (self, ordering2(ord))
     }
@@ -1722,10 +1716,10 @@ impl<'a> PowRound<&'a Float> for Complex {
 impl<'a> PowAssign<&'a Float> for Complex {
     fn pow_assign(&mut self, op: &'a Float) {
         unsafe {
-            mpc::mpc_pow_fr(raw_mut(self),
-                            raw(self),
-                            float_raw(op),
-                            rraw2((Round::Nearest, Round::Nearest)));
+            mpc::pow_fr(raw_mut(self),
+                        raw(self),
+                        float_raw(op),
+                        rraw2((Round::Nearest, Round::Nearest)));
         }
     }
 }
@@ -1739,7 +1733,7 @@ impl<'a> PowRound<&'a Complex> for Complex {
                  round: Round2)
                  -> (Complex, Ordering2) {
         let ord = unsafe {
-            mpc::mpc_pow(raw_mut(&mut self), raw(&self), raw(op), rraw2(round))
+            mpc::pow(raw_mut(&mut self), raw(&self), raw(op), rraw2(round))
         };
         (self, ordering2(ord))
     }
@@ -1748,10 +1742,10 @@ impl<'a> PowRound<&'a Complex> for Complex {
 impl<'a> PowAssign<&'a Complex> for Complex {
     fn pow_assign(&mut self, op: &'a Complex) {
         unsafe {
-            mpc::mpc_pow(raw_mut(self),
-                         raw(self),
-                         raw(op),
-                         rraw2((Round::Nearest, Round::Nearest)));
+            mpc::pow(raw_mut(self),
+                     raw(self),
+                     raw(op),
+                     rraw2((Round::Nearest, Round::Nearest)));
         }
     }
 }
@@ -1765,11 +1759,11 @@ impl Complex {
         let s;
         let cstr;
         unsafe {
-            s = mpc::mpc_get_str(radix.into(), 0, raw(self), rraw2(round));
+            s = mpc::get_str(radix.into(), 0, raw(self), rraw2(round));
             assert!(!s.is_null());
             cstr = CStr::from_ptr(s);
             buf.push_str(cstr.to_str().unwrap());
-            mpc::mpc_free_str(s);
+            mpc::free_str(s);
         }
         buf
     }
@@ -1835,21 +1829,21 @@ fn float_raw_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
     unsafe { &mut *ptr }
 }
 
-fn rraw(round: Round) -> mpfr::mpfr_rnd_t {
+fn rraw(round: Round) -> mpfr::rnd_t {
     match round {
-        Round::Nearest => mpfr::mpfr_rnd_t::MPFR_RNDN,
-        Round::Zero => mpfr::mpfr_rnd_t::MPFR_RNDZ,
-        Round::Up => mpfr::mpfr_rnd_t::MPFR_RNDU,
-        Round::Down => mpfr::mpfr_rnd_t::MPFR_RNDD,
-        Round::AwayFromZero => mpfr::mpfr_rnd_t::MPFR_RNDA,
+        Round::Nearest => mpfr::rnd_t::RNDN,
+        Round::Zero => mpfr::rnd_t::RNDZ,
+        Round::Up => mpfr::rnd_t::RNDU,
+        Round::Down => mpfr::rnd_t::RNDD,
+        Round::AwayFromZero => mpfr::rnd_t::RNDA,
     }
 }
 
-fn rraw2(round: Round2) -> mpc::mpc_rnd_t {
+fn rraw2(round: Round2) -> mpc::rnd_t {
     if round.0 == Round::AwayFromZero || round.1 == Round::AwayFromZero {
         unimplemented!();
     }
-    (rraw(round.0) as mpc::mpc_rnd_t) + ((rraw(round.1) as mpc::mpc_rnd_t) << 4)
+    (rraw(round.0) as mpc::rnd_t) + ((rraw(round.1) as mpc::rnd_t) << 4)
 }
 
 fn ordering2(ord: i32) -> (Ordering, Ordering) {

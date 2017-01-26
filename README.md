@@ -50,7 +50,7 @@ To use this crate, add `rugcom` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rugcom = "0.1"
+rugcom = "0.1.2"
 ```
 
 This crate depends on the low-level bindings in the crate
