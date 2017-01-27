@@ -37,7 +37,7 @@
 //!   * [`rugcom`](../rugcom/index.html) for multiple-precision
 //!     complex numbers.
 //!
-//! # Basic use
+//! ## Basic use
 //!
 //! The crate provides the [`Integer`](./struct.Integer.html) type,
 //! which holds an arbitrary-precision integer. You can construct this
@@ -46,7 +46,7 @@
 //! type and primitive types; in this case, the result is returned as
 //! an arbitrary-precision type.
 //!
-//! # Examples
+//! ## Examples
 //!
 //! ```rust
 //! use rugint::{Assign, Integer};
@@ -74,9 +74,38 @@
 //! The `Integer` instance is moved into the shift operation so that
 //! the result can be stored in the same instance, then that result is
 //! similarly consumed by the addition operation.
+//!
+//! ## Usage
+//!
+//! To use `rugint` in your crate, add `extern crate rugint;` to the
+//! crate root and add `rugint` as a dependency in `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! rugint = "0.1.2"
+//! ```
+
+//! The `rugint` crate depends on the low-level bindings in the
+//! [`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate.
+//! This should be transparent on GNU/Linux and macOS, but may need
+//! some work on Windows. See the `gmp-mpfr-sys`
+//! [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
+//! for some details.
+//!
+//! ### Optional feature
+//!
+//! The `rugint` crate has an optional feature `random` to enable
+//! random number generation. The `random` feature has a build
+//! dependency on the `rand` crate. The feature is enabled by default;
+//! to disable it add this to `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! rugint = { version = "0.1.2", default-features = false }
+//! ```
 
 extern crate gmp_mpfr_sys;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 extern crate rand;
 
 mod integer;

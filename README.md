@@ -13,6 +13,14 @@ The `rugint` crate provides arbitrary-precision integers using the
   * [`rugcom`](https://tspiteri.gitlab.io/gmp-mpfr/rugcom/)
     for multiple-precision complex numbers.
 
+This crate is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+  
+See [LICENSE-LGPL](LICENSE-LGPL.md) and [LICENSE-GPL](LICENSE-GPL.md)
+for details.
+
 ## Documentation
 
 [Documentation](https://tspiteri.gitlab.io/gmp-mpfr/rugint/) for this
@@ -22,7 +30,8 @@ It can also be helpful to refer to the documentation at the
 [GMP](https://gmplib.org/manual/) page.
 
 The crate provides the
-[`Integer`](http://tspiteri.gitlab.io/gmp-mpfr/current/rugint/struct.Integer.html)
+[`Integer`]
+(http://tspiteri.gitlab.io/gmp-mpfr/current/rugint/struct.Integer.html)
 type, which holds an arbitrary-precision integer. You can construct
 this from primitive data types, and use the standard arithmetic
 operators. Many operators can also operate on a mixture of this type
@@ -64,26 +73,29 @@ similarly consumed by the addition operation.
 
 ## Usage
 
-To use this crate, add `rugint` as a dependency in `Cargo.toml`:
+To use `rugint` in your crate, add `extern crate rugint;` to the crate
+root and add `rugint` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
 rugint = "0.1.2"
 ```
 
-This crate depends on the low-level bindings in the crate
-[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys). This
+The `rugint` crate depends on the low-level bindings in the
+[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate. This
 should be transparent on GNU/Linux and macOS, but may need some work
 on Windows. See the `gmp-mpfr-sys`
 [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
 for some details.
 
-## License
+### Optional feature
 
-This crate is free software: you can redistribute it and/or modify it
-under the terms of the GNU Lesser General Public License as published
-by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-  
-See [LICENSE-LGPL](LICENSE-LGPL.md) and [LICENSE-GPL](LICENSE-GPL.md)
-for details.
+The `rugint` crate has an optional feature `random` to enable random
+number generation. The `random` feature has a build dependency on the
+`rand` crate. The feature is enabled by default; to disable it add
+this to `Cargo.toml`:
+
+```toml
+[dependencies]
+rugint = { version = "0.1.2", default-features = false }
+```

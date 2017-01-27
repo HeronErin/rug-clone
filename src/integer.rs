@@ -18,7 +18,7 @@ use {Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
      SubFromAssign};
 use gmp_mpfr_sys::gmp;
 
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use rand::Rng;
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
@@ -27,11 +27,11 @@ use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
                BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
                RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use std::os::raw::{c_int, c_long};
 use std::os::raw::c_void;
 use std::ptr;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
 use std::u32;
@@ -439,7 +439,7 @@ impl Integer {
         self
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
@@ -490,7 +490,7 @@ impl Integer {
         raw_mut(self).size = limbs_used;
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///

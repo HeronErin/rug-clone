@@ -27,7 +27,8 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [features]
-default = ["rand"]
+default = ["random"]
+random = ["rand"]
 
 [dependencies]
 gmp-mpfr-sys = { path = "../gmp-mpfr-sys", version = "0.5" }
