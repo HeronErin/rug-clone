@@ -18,7 +18,7 @@ use {AddRound, AssignRound, DivRound, FromRound, MulRound, PowRound, ShlRound,
      ShrRound, SubRound};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use rand::Rng;
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
@@ -31,10 +31,10 @@ use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use std::os::raw::c_uint;
 use std::ptr;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use std::slice;
 
 /// Returns the minimum value for the exponent.
@@ -1190,7 +1190,7 @@ impl Float {
         unsafe { mpfr::subnormalize(raw_mut(self), prev, rraw(round)).cmp(&0) }
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random number in the range `0 <= n < 1`.
     ///
     /// This is equivalent to calling
@@ -1200,7 +1200,7 @@ impl Float {
         self.assign_random_bits_round(rng, Round::Nearest);
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random number in the range `0 <= n < 1`.
     ///
     /// This is equivalent to generating a random integer in the range
@@ -1298,7 +1298,7 @@ impl Float {
         Ordering::Equal
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random number in the continuous range
     /// `0 <= n < 1`, and rounds to the nearest.
     ///
@@ -1310,7 +1310,7 @@ impl Float {
         self.assign_random_cont_round(rng, Round::Nearest);
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random number in the continous range
     /// `0 <= n < 1` and applies the specified rounding method.
     ///
@@ -1379,7 +1379,7 @@ impl Float {
         Ordering::Greater
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     fn random_cont_first_limb<R: Rng>(&mut self,
                                       bits: usize,
                                       rng: &mut R,

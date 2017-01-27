@@ -14,6 +14,14 @@ of four crates:
   * [`rugcom`](https://tspiteri.gitlab.io/gmp-mpfr/rugcom/)
     for multiple-precision complex numbers.
 
+This crate is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published
+by the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+  
+See [LICENSE-LGPL](LICENSE-LGPL.md) and [LICENSE-GPL](LICENSE-GPL.md)
+for details.
+
 ## Documentation
 
 [Documentation](https://tspiteri.gitlab.io/gmp-mpfr/rugflo/) for this
@@ -23,15 +31,14 @@ It can also be helpful to refer to the documentation at the
 [MPFR](http://www.mpfr.org/mpfr-current/mpfr.html) page.
 
 The crate provides the
-[`Float`](http://tspiteri.gitlab.io/gmp-mpfr/current/rugflo/struct.Float.html)
+[`Float`]
+(http://tspiteri.gitlab.io/gmp-mpfr/current/rugflo/struct.Float.html)
 type, which holds a multiple-precision floating-point number.
 
 ## Examples
 
 ```rust
-extern crate rugint;
 extern crate rugflo;
-use rugint::Assign;
 use rugflo::Float;
 
 fn main() {
@@ -48,26 +55,30 @@ fn main() {
 
 ## Usage
 
-To use this crate, add `rugflo` as a dependency in `Cargo.toml`:
+To use `rugflo` in your crate, add `extern crate rugflo;` to the crate
+root and add `rugflo` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
 rugflo = "0.1.2"
 ```
 
-This crate depends on the low-level bindings in the crate
-[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys). This
+The `rugflo` crate depends on the low-level bindings in the
+[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate. This
 should be transparent on GNU/Linux and macOS, but may need some work
 on Windows. See the `gmp-mpfr-sys`
 [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
 for some details.
 
-## License
+### Optional feature
 
-This crate is free software: you can redistribute it and/or modify it
-under the terms of the GNU Lesser General Public License as published
-by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-  
-See [LICENSE-LGPL](LICENSE-LGPL.md) and [LICENSE-GPL](LICENSE-GPL.md)
-for details.
+The `rugflo` crate has an optional feature `random` to enable random
+number generation. The `random` feature has a build dependency on the
+`rand` crate. The feature is enabled by default; to disable it add
+this to `Cargo.toml`:
+
+```toml
+[dependencies.rugflo]
+version = "0.1.2"
+default-features = false
+```

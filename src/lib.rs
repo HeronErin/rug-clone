@@ -38,7 +38,7 @@
 //!   * [`rugcom`](../rugcom/index.html) for multiple-precision
 //!     complex numbers.
 //!
-//! # Basic use
+//! ## Basic use
 //!
 //! The crate provides the [`Float`](./struct.Float.html) type, which
 //! holds a multiple-precision floating-point number.
@@ -47,7 +47,6 @@
 //!
 //! ```rust
 //! use rugflo::Float;
-//!
 //! // Create a floating-point number with 53 bits of precision.
 //! // (An `f64` has 53 bits of precision too.)
 //! let flo53 = Float::from((0xff00ff, 53));
@@ -57,9 +56,39 @@
 //! // Now the number is rounded.
 //! assert!(flo16.to_f64() == 0xff0100 as f64);
 //! ```
+//!
+//! ## Usage
+//!
+//! To use `rugflo` in your crate, add `extern crate rugflo;` to the
+//! crate root and add `rugflo` as a dependency in `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! rugflo = "0.1.2"
+//! ```
+
+//! The `rugflo` crate depends on the low-level bindings in the
+//! [`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate.
+//! This should be transparent on GNU/Linux and macOS, but may need
+//! some work on Windows. See the `gmp-mpfr-sys`
+//! [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
+//! for some details.
+//!
+//! ### Optional feature
+//!
+//! The `rugflo` crate has an optional feature `random` to enable
+//! random number generation. The `random` feature has a build
+//! dependency on the `rand` crate. The feature is enabled by default;
+//! to disable it add this to `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies.rugflo]
+//! version = "0.1.2"
+//! default-features = false
+//! ```
 
 extern crate gmp_mpfr_sys;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 extern crate rand;
 extern crate rugint;
 extern crate rugrat;
