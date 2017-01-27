@@ -96,6 +96,7 @@ number generation. The `random` feature has a build dependency on the
 this to `Cargo.toml`:
 
 ```toml
-[dependencies]
-rugint = { version = "0.1.2", default-features = false }
+[dependencies.rugint]
+version = "0.1.2"
+default-features = false
 ```

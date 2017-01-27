@@ -100,8 +100,9 @@
 //! to disable it add this to `Cargo.toml`:
 //!
 //! ```toml
-//! [dependencies]
-//! rugint = { version = "0.1.2", default-features = false }
+//! [dependencies.rugint]
+//! version = "0.1.2"
+//! default-features = false
 //! ```
 
 extern crate gmp_mpfr_sys;
