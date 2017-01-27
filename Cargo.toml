@@ -27,11 +27,27 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [features]
-default = ["rand"]
+default = ["random"]
+random = ["rand", "rugflo/random"]
 
-[dependencies]
-gmp-mpfr-sys = { path = "../gmp-mpfr-sys", version = "0.5" }
-rand = { version = "0.3", optional = true }
-rugint = { path = "../rugint", version = "0.1.2", default-features = false }
-rugrat = { path = "../rugrat", version = "0.1.2" }
-rugflo = { path = "../rugflo", version = "0.1.2" }
+[dependencies.gmp-mpfr-sys]
+version = "0.5"
+path = "../gmp-mpfr-sys"
+
+[dependencies.rand]
+version = "0.3"
+optional = true
+
+[dependencies.rugint]
+version = "0.1.2"
+default-features = false
+path = "../rugint"
+
+[dependencies.rugrat]
+version = "0.1.2"
+path = "../rugrat"
+
+[dependencies.rugflo]
+version = "0.1.2"
+default-features = false
+path = "../rugflo"

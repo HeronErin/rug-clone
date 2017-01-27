@@ -17,7 +17,7 @@
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 use rand::Rng;
 use rugflo::{self, AddRound, AssignRound, DivRound, Float, FromRound, MulRound,
              PowRound, Round, ShlRound, ShrRound, SubRound};
@@ -511,7 +511,7 @@ impl Complex {
         mpc::atanh
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
     ///
@@ -522,7 +522,7 @@ impl Complex {
         self.assign_random_bits_round(rng, (Round::Nearest, Round::Nearest));
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
     ///
@@ -540,7 +540,7 @@ impl Complex {
          imag.assign_random_bits_round(rng, round.1))
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random complex number, rounding to the nearest.
     ///
     /// Both the real and imaginary parts are in the continuous range
@@ -552,7 +552,7 @@ impl Complex {
         self.assign_random_cont_round(rng, (Round::Nearest, Round::Nearest));
     }
 
-    #[cfg(feature = "rand")]
+    #[cfg(feature = "random")]
     /// Generates a random complex number, applying the specified
     /// rounding method.
     ///

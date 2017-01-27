@@ -31,19 +31,19 @@
 //!
 //! This crate is one of a group of four crates:
 //!
-//!   * [`rugint`](../rugint/index.html) for arbitrary-precision
-//!     integers,
-//!   * [`rugrat`](../rugrat/index.html) for arbitrary-precision
-//!     rational numbers,
-//!   * [`rugflo`](../rugflo/index.html) for multiple-precision
-//!     floating-point numbers, and
-//!   * [`rugcom`](../rugcom/index.html) for multiple-precision
-//!     complex numbers.
+//! * [`rugint`](../rugint/index.html) for arbitrary-precision
+//!   integers,
+//! * [`rugrat`](../rugrat/index.html) for arbitrary-precision
+//!   rational numbers,
+//! * [`rugflo`](../rugflo/index.html) for multiple-precision
+//!   floating-point numbers, and
+//! * [`rugcom`](../rugcom/index.html) for multiple-precision complex
+//!   numbers.
 //!
-//! # Basic use
+//! ## Basic use
 //!
-//! The crate provides the [`Complex`](./struct.Complex.html) type, which
-//! holds a multiple-precision complex number.
+//! The crate provides the [`Complex`](./struct.Complex.html) type,
+//! which holds a multiple-precision complex number.
 //!
 //! ## Examples
 //!
@@ -62,9 +62,39 @@
 //!     assert!(*com.imag() == 3.5);
 //! }
 //! ```
+//!
+//! ## Usage
+//!
+//! To use `rugcom` in your crate, add `extern crate rugcom;` to the
+//! crate root and add `rugcom` as a dependency in `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! rugcom = "0.1.2"
+//! ```
+
+//! The `rugcom` crate depends on the low-level bindings in the
+//! [`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate.
+//! This should be transparent on GNU/Linux and macOS, but may need
+//! some work on Windows. See the `gmp-mpfr-sys`
+//! [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
+//! for some details.
+//!
+//! ### Optional feature
+//!
+//! The `rugcom` crate has an optional feature `random` to enable
+//! random number generation. The `random` feature has a build
+//! dependency on the `rand` crate. The feature is enabled by default;
+//! to disable it add this to `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies.rugcom]
+//! version = "0.1.2"
+//! default-features = false
+//! ```
 
 extern crate gmp_mpfr_sys;
-#[cfg(feature = "rand")]
+#[cfg(feature = "random")]
 extern crate rand;
 extern crate rugint;
 extern crate rugrat;
