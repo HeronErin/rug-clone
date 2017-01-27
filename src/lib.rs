@@ -37,7 +37,7 @@
 //!   * [`rugcom`](../rugcom/index.html) for multiple-precision
 //!     complex numbers.
 //!
-//! # Basic use
+//! ## Basic use
 //!
 //! The crate provides the [`Rational`](./struct.Rational.html) type,
 //! which holds an arbitrary-precision rational number.
@@ -46,13 +46,29 @@
 //!
 //! ```rust
 //! use rugrat::Rational;
-//!
 //! // Create a rational number, -22 / 4 = -11 / 2.
 //! let rat = Rational::from((-22, 4));
 //! assert!(rat.numer().to_i32() == -11);
 //! assert!(*rat.denom() == 2);
 //! assert!(rat.to_f32() == -5.5);
 //! ```
+//!
+//! ## Usage
+//!
+//! To use `rugrat` in your crate, add `extern crate rugrat;` to the
+//! crate root and add `rugrat` as a dependency in `Cargo.toml`:
+//!
+//! ```toml
+//! [dependencies]
+//! rugrat = "0.1.2"
+//! ```
+
+//! The `rugrat` crate depends on the low-level bindings in the
+//! [`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate.
+//! This should be transparent on GNU/Linux and macOS, but may need
+//! some work on Windows. See the `gmp-mpfr-sys`
+//! [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
+//! for some details.
 
 extern crate gmp_mpfr_sys;
 extern crate rugint;

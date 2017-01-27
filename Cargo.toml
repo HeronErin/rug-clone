@@ -26,6 +26,11 @@ keywords = ["gmp", "mathematics", "numerics"]
 categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
-[dependencies]
-gmp-mpfr-sys = { path = "../gmp-mpfr-sys", version = "0.5" }
-rugint = { path = "../rugint", version = "0.1.2", default-features = false }
+[dependencies.gmp-mpfr-sys]
+version = "0.5"
+path = "../gmp-mpfr-sys"
+
+[dependencies.rugint]
+version = "0.1.2"
+default-features = false
+path = "../rugint"
