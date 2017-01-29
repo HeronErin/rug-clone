@@ -1235,6 +1235,9 @@ impl Float {
                                             round: Round)
                                             -> Ordering {
         let limb_size = 8 * mem::size_of::<gmp::limb_t>() as usize;
+        // limb_size is known at compile time for constant folding,
+        // but we can still check once against gmp run time constant.
+        assert!(limb_size == unsafe { gmp::bits_per_limb as usize });
         let bits = raw(self).prec as usize;
         let whole_limbs = bits / limb_size;
         let extra_bits = bits % limb_size;
@@ -1350,6 +1353,9 @@ impl Float {
                                             round: Round)
                                             -> Ordering {
         let limb_size = 8 * mem::size_of::<gmp::limb_t>() as usize;
+        // limb_size is known at compile time for constant folding,
+        // but we can still check once against gmp run time constant.
+        assert!(limb_size == unsafe { gmp::bits_per_limb as usize });
         let bits = raw(self).prec as usize;
         let total_limbs = (bits + limb_size - 1) / limb_size;
         let limbs =
