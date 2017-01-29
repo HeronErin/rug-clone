@@ -417,7 +417,7 @@ impl Complex {
                          rraw2(round_sin),
                          rraw2(round_cos))
         };
-        (ordering2(ord & 15), ordering2(ord >> 4))
+        (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
     }
 
     math_op1! {
@@ -1843,22 +1843,12 @@ fn rraw2(round: Round2) -> mpc::rnd_t {
     if round.0 == Round::AwayFromZero || round.1 == Round::AwayFromZero {
         unimplemented!();
     }
-    (rraw(round.0) as mpc::rnd_t) + ((rraw(round.1) as mpc::rnd_t) << 4)
+    mpc::RND(rraw(round.0) as mpc::rnd_t, rraw(round.1) as mpc::rnd_t)
 }
 
-fn ordering2(ord: i32) -> (Ordering, Ordering) {
+fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     // ord == first + 4 * second
-    let first = match ord % 4 {
-        0 => Ordering::Equal,
-        1 => Ordering::Greater,
-        2 => Ordering::Less,
-        _ => unreachable!(),
-    };
-    let second = match ord / 4 {
-        0 => Ordering::Equal,
-        1 => Ordering::Greater,
-        2 => Ordering::Less,
-        _ => unreachable!(),
-    };
+    let first = mpc::INEX_RE(ord).cmp(&0);
+    let second = mpc::INEX_IM(ord).cmp(&0);
     (first, second)
 }
