@@ -464,6 +464,9 @@ impl Integer {
             return;
         }
         let limb_size = 8 * mem::size_of::<gmp::limb_t>() as u32;
+        // limb_size is known at compile time for constant folding,
+        // but we can still check once against gmp run time constant.
+        assert!(limb_size == unsafe { gmp::bits_per_limb as u32 });
         let whole_limbs = (bits / limb_size) as usize;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
@@ -517,6 +520,9 @@ impl Integer {
         assert!(self.sign() == Ordering::Greater);
         let bits = self.significant_bits();
         let limb_size = 8 * mem::size_of::<gmp::limb_t>() as u32;
+        // limb_size is known at compile time for constant folding,
+        // but we can still check once against gmp run time constant.
+        assert!(limb_size == unsafe { gmp::bits_per_limb as u32 });
         let whole_limbs = (bits / limb_size) as usize;
         let extra_bits = bits % limb_size;
         // Avoid conditions and overflow, equivalent to:
