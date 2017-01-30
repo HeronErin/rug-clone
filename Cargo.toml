@@ -16,7 +16,7 @@
 
 [package]
 name = "rugrat"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision rational numbers based on GMP"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugrat/"
@@ -27,10 +27,10 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [dependencies.gmp-mpfr-sys]
-version = "0.5"
+version = "0.5.2"
 path = "../gmp-mpfr-sys"
 
 [dependencies.rugint]
-version = "0.1.2"
+version = "0.1.3"
 default-features = false
 path = "../rugint"

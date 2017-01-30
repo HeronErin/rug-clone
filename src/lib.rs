@@ -60,7 +60,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rugrat = "0.1.2"
+//! rugrat = "0.1.3"
 //! ```
 
 //! The `rugrat` crate depends on the low-level bindings in the
