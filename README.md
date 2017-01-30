@@ -78,7 +78,7 @@ root and add `rugint` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rugint = "0.1.2"
+rugint = "0.1.3"
 ```
 
 The `rugint` crate depends on the low-level bindings in the
@@ -97,6 +97,6 @@ this to `Cargo.toml`:
 
 ```toml
 [dependencies.rugint]
-version = "0.1.2"
+version = "0.1.3"
 default-features = false
 ```
