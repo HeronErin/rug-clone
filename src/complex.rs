@@ -167,7 +167,9 @@ impl Complex {
                 "precision out of range");
         unsafe {
             let mut data: mpc::mpc_t = mem::uninitialized();
-            mpc::init3(&mut data, prec.0.into(), prec.1.into());
+            mpc::init3(&mut data,
+                       prec.0 as mpfr::prec_t,
+                       prec.1 as mpfr::prec_t);
             mpfr::set_zero(&mut data.re, 0);
             mpfr::set_zero(&mut data.im, 0);
             Complex { data: data }
