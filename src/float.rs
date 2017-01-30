@@ -1234,47 +1234,44 @@ impl Float {
                                             rng: &mut R,
                                             round: Round)
                                             -> Ordering {
-        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as usize;
-        // limb_size is known at compile time for constant folding,
-        // but we can still check once against gmp run time constant.
-        assert!(limb_size == unsafe { gmp::bits_per_limb as usize });
+        let limb_bits = gmp::LIMB_BITS as usize;
         let bits = raw(self).prec as usize;
-        let whole_limbs = bits / limb_size;
-        let extra_bits = bits % limb_size;
+        let whole_limbs = bits / limb_bits;
+        let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
-                          (extra_bits + limb_size - 1) / limb_size;
+                          (extra_bits + limb_bits - 1) / limb_bits;
         let limbs =
             unsafe { slice::from_raw_parts_mut(raw_mut(self).d, total_limbs) };
-        let mut lead_zeros = total_limbs * limb_size;
+        let mut lead_zeros = total_limbs * limb_bits;
         for (i, limb) in limbs.iter_mut().enumerate() {
             let mut val: gmp::limb_t = rng.gen();
             if i == 0 && extra_bits > 0 {
                 let all_ones: gmp::limb_t = !0;
-                val &= all_ones << (limb_size - extra_bits);
+                val &= all_ones << (limb_bits - extra_bits);
             }
             if val != 0 {
-                lead_zeros = (total_limbs - 1 - i) * limb_size +
+                lead_zeros = (total_limbs - 1 - i) * limb_bits +
                              val.leading_zeros() as usize;
             }
             *limb = val;
         }
-        let zero_limbs = lead_zeros / limb_size as usize;
+        let zero_limbs = lead_zeros / limb_bits as usize;
         if zero_limbs == total_limbs {
             unsafe {
                 mpfr::set_zero(raw_mut(self), 0);
             }
             return Ordering::Equal;
         }
-        let zero_bits = (lead_zeros % limb_size) as c_uint;
+        let zero_bits = (lead_zeros % limb_bits) as c_uint;
         let err = unsafe {
             mpfr::set_exp(raw_mut(self), -(lead_zeros as mpfr::exp_t))
         };
         if err != 0 {
             // This is extremely unlikely, we can be inefficient.
             // Firs set MSB, then subtract by 0.5
-            let high_one: gmp::limb_t = 1 << (limb_size - 1);
+            let high_one: gmp::limb_t = 1 << (limb_bits - 1);
             limbs[total_limbs - 1] |= high_one;
             let ord = unsafe {
                 mpfr::set_exp(raw_mut(self), 0);
@@ -1352,12 +1349,9 @@ impl Float {
                                             rng: &mut R,
                                             round: Round)
                                             -> Ordering {
-        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as usize;
-        // limb_size is known at compile time for constant folding,
-        // but we can still check once against gmp run time constant.
-        assert!(limb_size == unsafe { gmp::bits_per_limb as usize });
+        let limb_bits = gmp::LIMB_BITS as usize;
         let bits = raw(self).prec as usize;
-        let total_limbs = (bits + limb_size - 1) / limb_size;
+        let total_limbs = (bits + limb_bits - 1) / limb_bits;
         let limbs =
             unsafe { slice::from_raw_parts_mut(raw_mut(self).d, total_limbs) };
         // If exp is too small, random_cont_first_limb will
@@ -1368,7 +1362,7 @@ impl Float {
         for limb in limbs.iter_mut().skip(1) {
             *limb = rng.gen();
         }
-        let high_one: gmp::limb_t = 1 << (limb_size - 1);
+        let high_one: gmp::limb_t = 1 << (limb_bits - 1);
         let spare_bit = (limbs[total_limbs - 1] & high_one) != 0;
         limbs[total_limbs - 1] |= high_one;
         let down = match round {
@@ -1391,7 +1385,7 @@ impl Float {
                                       rng: &mut R,
                                       round: Round)
                                       -> Option<Ordering> {
-        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as usize;
+        let limb_bits = gmp::LIMB_BITS as usize;
         let mut exp: i32 = 0;
         let mut val: gmp::limb_t;
         let mut zeros;
@@ -1408,7 +1402,7 @@ impl Float {
                     Round::Up | Round::AwayFromZero => false,
                     Round::Nearest => {
                         exp + 1 < exp_min() + zeros ||
-                        (zeros as usize == limb_size && rng.gen::<bool>())
+                        (zeros as usize == limb_bits && rng.gen::<bool>())
                     }
                 };
                 if down {
@@ -1430,11 +1424,11 @@ impl Float {
         // increment zero to ignore msb, which we know is one
         zeros += 1;
         // fill the least significant limb
-        let bits_in_lsl = (bits - 1) % limb_size + 1;
-        if limb_size < bits_in_lsl + zeros as usize {
+        let bits_in_lsl = (bits - 1) % limb_bits + 1;
+        if limb_bits < bits_in_lsl + zeros as usize {
             val = rng.gen();
         }
-        val <<= limb_size - bits_in_lsl;
+        val <<= limb_bits - bits_in_lsl;
         unsafe {
             *raw_mut(self).d = val;
         }
