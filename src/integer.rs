@@ -463,16 +463,13 @@ impl Integer {
         if bits == 0 {
             return;
         }
-        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as u32;
-        // limb_size is known at compile time for constant folding,
-        // but we can still check once against gmp run time constant.
-        assert!(limb_size == unsafe { gmp::bits_per_limb as u32 });
-        let whole_limbs = (bits / limb_size) as usize;
-        let extra_bits = bits % limb_size;
+        let limb_bits = gmp::LIMB_BITS as u32;
+        let whole_limbs = (bits / limb_bits) as usize;
+        let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
-                          ((extra_bits + limb_size - 1) / limb_size) as usize;
+                          ((extra_bits + limb_bits - 1) / limb_bits) as usize;
         let limbs = unsafe {
             if (raw(self).alloc as usize) < total_limbs {
                 gmp::_mpz_realloc(raw_mut(self), total_limbs as c_long);
@@ -519,16 +516,13 @@ impl Integer {
     pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
         assert!(self.sign() == Ordering::Greater);
         let bits = self.significant_bits();
-        let limb_size = 8 * mem::size_of::<gmp::limb_t>() as u32;
-        // limb_size is known at compile time for constant folding,
-        // but we can still check once against gmp run time constant.
-        assert!(limb_size == unsafe { gmp::bits_per_limb as u32 });
-        let whole_limbs = (bits / limb_size) as usize;
-        let extra_bits = bits % limb_size;
+        let limb_bits = gmp::LIMB_BITS as u32;
+        let whole_limbs = (bits / limb_bits) as usize;
+        let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
         let total_limbs = whole_limbs +
-                          ((extra_bits + limb_size - 1) / limb_size) as usize;
+                          ((extra_bits + limb_bits - 1) / limb_bits) as usize;
         let limbs =
             unsafe { slice::from_raw_parts_mut(raw_mut(self).d, total_limbs) };
         // if the random number is >= bound, restart
