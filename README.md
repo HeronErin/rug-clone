@@ -4,14 +4,14 @@ The `rugrat` crate provides arbitrary-precision rational numbers using
 the [GNU Multiple Precision Arithmetic Library](https://gmplib.org/)
 (GMP). It is one of a group of four crates:
 
-  * [`rugint`](https://tspiteri.gitlab.io/gmp-mpfr/rugint/)
-    for arbitrary-precision integers,
-  * [`rugrat`](https://tspiteri.gitlab.io/gmp-mpfr/rugrat/)
-    for arbitrary-precision rational numbers,
-  * [`rugflo`](https://tspiteri.gitlab.io/gmp-mpfr/rugflo/)
-    for multiple-precision floating-point numbers, and
-  * [`rugcom`](https://tspiteri.gitlab.io/gmp-mpfr/rugcom/)
-    for multiple-precision complex numbers.
+* [`rugint`](https://gitlab.com/tspiteri/rugint)
+  provides arbitrary-precision integers based on GMP.
+* [`rugrat`](https://gitlab.com/tspiteri/rugrat)
+  provides arbitrary-precision rational number based on GMP.
+* [`rugflo`](https://gitlab.com/tspiteri/rugflo)
+  provides arbitrary-precision floating-point numbers based on MPFR.
+* [`rugcom`](https://gitlab.com/tspiteri/rugcom)
+  provides arbitrary-precision complex numbers based on MPC.
 
 This crate is free software: you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published
@@ -61,6 +61,6 @@ rugrat = "0.1.3"
 The `rugrat` crate depends on the low-level bindings in the
 [`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate. This
 should be transparent on GNU/Linux and macOS, but may need some work
-on Windows. See the `gmp-mpfr-sys`
-[README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
-for some details.
+on Windows. See
+[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) for some
+details.
