@@ -27,16 +27,20 @@
 //! published by the Free Software Foundation, either version 3 of the
 //! License, or (at your option) any later version.
 //!
+//! See [LICENSE-LGPL](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+//! and [LICENSE-GPL](https://www.gnu.org/licenses/gpl-3.0.html) for
+//! details.
+//!
 //! This crate is one of a group of four crates:
 //!
-//!   * [`rugint`](../rugint/index.html) for arbitrary-precision
-//!     integers,
-//!   * [`rugrat`](../rugrat/index.html) for arbitrary-precision
-//!     rational numbers,
-//!   * [`rugflo`](../rugflo/index.html) for multiple-precision
-//!     floating-point numbers, and
-//!   * [`rugcom`](../rugcom/index.html) for multiple-precision
-//!     complex numbers.
+//! * [`rugint`](https://tspiteri.gitlab.io/gmp-mpfr/rugint/)
+//!   provides arbitrary-precision integers based on GMP.
+//! * [`rugrat`](https://tspiteri.gitlab.io/gmp-mpfr/rugrat/)
+//!   provides arbitrary-precision rational number based on GMP.
+//! * [`rugflo`](https://tspiteri.gitlab.io/gmp-mpfr/rugflo/)
+//!   provides arbitrary-precision floating-point numbers based on MPFR.
+//! * [`rugcom`](https://tspiteri.gitlab.io/gmp-mpfr/rugcom/)
+//!   provides arbitrary-precision complex numbers based on MPC.
 //!
 //! ## Basic use
 //!
@@ -66,12 +70,12 @@
 //! [dependencies]
 //! rugflo = "0.1.3"
 //! ```
-
+//!
 //! The `rugflo` crate depends on the low-level bindings in the
-//! [`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate.
-//! This should be transparent on GNU/Linux and macOS, but may need
-//! some work on Windows. See the `gmp-mpfr-sys`
-//! [README](https://gitlab.com/tspiteri/gmp-mpfr-sys/blob/master/README.md)
+//! [`gmp-mpfr-sys`](https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/)
+//! crate. This should be transparent on GNU/Linux and macOS, but may
+//! need some work on Windows. See
+//! [`gmp-mpfr-sys`](https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/)
 //! for some details.
 //!
 //! ### Optional feature
