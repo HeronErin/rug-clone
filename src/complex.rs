@@ -73,44 +73,6 @@ pub fn raw_mut(q: &mut Complex) -> &mut mpc::mpc_t {
     &mut q.data
 }
 
-impl Complex {
-    fn real_raw(&self) -> &mpfr::mpfr_t {
-        &raw(self).re
-    }
-
-    fn imag_raw(&self) -> &mpfr::mpfr_t {
-        &raw(self).im
-    }
-
-    fn real_imag_raw(&self) -> (&mpfr::mpfr_t, &mpfr::mpfr_t) {
-        let r = raw(self);
-        (&r.re, &r.im)
-    }
-
-    fn real_raw_mut(&mut self) -> &mut mpfr::mpfr_t {
-        &mut raw_mut(self).re
-    }
-
-    fn imag_raw_mut(&mut self) -> &mut mpfr::mpfr_t {
-        &mut raw_mut(self).im
-    }
-
-    fn real_imag_raw_mut(&mut self) -> (&mut mpfr::mpfr_t, &mut mpfr::mpfr_t) {
-        let r = raw_mut(self);
-        (&mut r.re, &mut r.im)
-    }
-}
-
-fn float_unraw(r: &mpfr::mpfr_t) -> &Float {
-    let ptr = r as *const _ as *const Float;
-    unsafe { &*ptr }
-}
-
-fn float_unraw_mut(r: &mut mpfr::mpfr_t) -> &mut Float {
-    let ptr = r as *mut _ as *mut Float;
-    unsafe { &mut *ptr }
-}
-
 impl Drop for Complex {
     fn drop(&mut self) {
         unsafe {
@@ -170,8 +132,10 @@ impl Complex {
             mpc::init3(&mut data,
                        prec.0 as mpfr::prec_t,
                        prec.1 as mpfr::prec_t);
-            mpfr::set_zero(&mut data.re, 0);
-            mpfr::set_zero(&mut data.im, 0);
+            let real = mpc::realref(&mut data);
+            let imag = mpc::imagref(&mut data);
+            mpfr::set_zero(real, 0);
+            mpfr::set_zero(imag, 0);
             Complex { data: data }
         }
     }
@@ -188,8 +152,9 @@ impl Complex {
     ///
     /// Panics if `prec.0` or `prec.1` is out of the allowed range.
     pub fn set_prec(&mut self, prec: Prec2) {
-        float_unraw_mut(self.real_raw_mut()).set_prec(prec.0);
-        float_unraw_mut(self.imag_raw_mut()).set_prec(prec.1);
+        let (real, imag) = self.as_mut_real_imag();
+        real.set_prec(prec.0);
+        imag.set_prec(prec.1);
     }
 
     /// Sets the precision of the real and imaginary parts exactly,
@@ -199,24 +164,30 @@ impl Complex {
     ///
     /// Panics if `prec.0` or `prec.1` is out of the allowed range.
     pub fn set_prec_round(&mut self, prec: Prec2, round: Round2) -> Ordering2 {
-        (float_unraw_mut(self.real_raw_mut()).set_prec_round(prec.0, round.0),
-         float_unraw_mut(self.imag_raw_mut()).set_prec_round(prec.1, round.1))
+        let (real, imag) = self.as_mut_real_imag();
+        (real.set_prec_round(prec.0, round.0),
+         imag.set_prec_round(prec.1, round.1))
     }
 
     /// Borrows the real part.
     pub fn real(&self) -> &Float {
-        float_unraw(self.real_raw())
+        unsafe {
+            let real_ptr = mpc::realref(raw(self) as *const _ as *mut _);
+            &*(real_ptr as *const Float)
+        }
     }
 
     /// Borrows the imaginary part.
     pub fn imag(&self) -> &Float {
-        float_unraw(self.imag_raw())
+        unsafe {
+            let imag_ptr = mpc::imagref(raw(self) as *const _ as *mut _);
+            &*(imag_ptr as *const Float)
+        }
     }
 
     /// Borrows the real and imaginary parts.
     pub fn as_real_imag(&self) -> (&Float, &Float) {
-        let (real, imag) = self.real_imag_raw();
-        (float_unraw(real), float_unraw(imag))
+        (self.real(), self.imag())
     }
 
     /// Borrows the real and imaginary parts mutably.
@@ -237,16 +208,22 @@ impl Complex {
     /// assert!(*real == 4 && *imag == 6);
     /// ```
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
-        let (real, imag) = self.real_imag_raw_mut();
-        (float_unraw_mut(real), float_unraw_mut(imag))
+        unsafe {
+            let real_ptr = mpc::realref(raw_mut(self));
+            let imag_ptr = mpc::imagref(raw_mut(self));
+            (&mut *(real_ptr as *mut Float), &mut *(imag_ptr as *mut Float))
+        }
     }
 
     /// Converts `self` into real and imaginary `Float` values,
     /// consuming `self`.
-    pub fn into_real_imag(self) -> (Float, Float) {
+    pub fn into_real_imag(mut self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
-        *float_raw_mut(&mut real) = *self.real_raw();
-        *float_raw_mut(&mut imag) = *self.imag_raw();
+        {
+            let (self_real, self_imag) = self.as_mut_real_imag();
+            mem::swap(&mut real, self_real);
+            mem::swap(&mut imag, self_imag);
+        }
         mem::forget(self);
         (real, imag)
     }
@@ -1842,10 +1819,26 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 }
 
 fn rraw2(round: Round2) -> mpc::rnd_t {
-    if round.0 == Round::AwayFromZero || round.1 == Round::AwayFromZero {
-        unimplemented!();
+    match (round.0, round.1) {
+        (Round::Nearest, Round::Nearest) => mpc::RNDNN,
+        (Round::Nearest, Round::Zero) => mpc::RNDNZ,
+        (Round::Nearest, Round::Up) => mpc::RNDNU,
+        (Round::Nearest, Round::Down) => mpc::RNDND,
+        (Round::Zero, Round::Nearest) => mpc::RNDZN,
+        (Round::Zero, Round::Zero) => mpc::RNDZZ,
+        (Round::Zero, Round::Up) => mpc::RNDZU,
+        (Round::Zero, Round::Down) => mpc::RNDZD,
+        (Round::Up, Round::Nearest) => mpc::RNDUN,
+        (Round::Up, Round::Zero) => mpc::RNDUZ,
+        (Round::Up, Round::Up) => mpc::RNDUU,
+        (Round::Up, Round::Down) => mpc::RNDUD,
+        (Round::Down, Round::Nearest) => mpc::RNDDN,
+        (Round::Down, Round::Zero) => mpc::RNDDZ,
+        (Round::Down, Round::Up) => mpc::RNDDU,
+        (Round::Down, Round::Down) => mpc::RNDDD,
+        (Round::AwayFromZero, _) |
+        (_, Round::AwayFromZero) => unimplemented!(),
     }
-    mpc::RND(rraw(round.0) as mpc::rnd_t, rraw(round.1) as mpc::rnd_t)
 }
 
 fn ordering2(ord: c_int) -> (Ordering, Ordering) {
