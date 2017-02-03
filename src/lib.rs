@@ -55,7 +55,6 @@
 //! use rugint::{Assign, Integer};
 //! // Create an integer initialized as zero.
 //! let mut int = Integer::new();
-//! assert!(int.to_u32() == 0);
 //! assert!(int == 0);
 //! int.assign(14);
 //! assert!(int == 14);

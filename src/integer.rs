@@ -112,7 +112,7 @@ impl Integer {
     }
 
     /// Converts to a `u32`, wrapping if the value is too large.
-    pub fn to_u32(&self) -> u32 {
+    pub fn to_u32_wrapping(&self) -> u32 {
         let u = unsafe { gmp::mpz_get_ui(&self.inner) as u32 };
         if self.sign() == Ordering::Less {
             u.wrapping_neg()
@@ -122,8 +122,8 @@ impl Integer {
     }
 
     /// Converts to an `i32`, wrapping if the value is too large.
-    pub fn to_i32(&self) -> i32 {
-        unsafe { gmp::mpz_get_si(&self.inner) as i32 }
+    pub fn to_i32_wrapping(&self) -> i32 {
+        self.to_u32_wrapping() as i32
     }
 
     /// Converts to an `f64`, rounding towards zero.
@@ -1444,15 +1444,20 @@ mod tests {
     #[test]
     fn check_conversion() {
         let minus_one = Integer::from(-1);
-        assert!(minus_one.to_u32() == u32::MAX);
-        assert!(minus_one.to_i32() == -1);
+        assert!(minus_one.to_u32_wrapping() == u32::MAX);
+        assert!(minus_one.to_i32_wrapping() == -1);
         assert!(minus_one.to_f32() == -1.0);
         assert!(minus_one.to_f64() == -1.0);
         let high_bits: Integer = Integer::from(0xff000000u32) << 4;
-        assert!(high_bits.to_u32() == 0xf0000000u32);
-        assert!(high_bits.to_i32() == 0xf0000000u32 as i32);
+        assert!(high_bits.to_u32_wrapping() == 0xf0000000u32);
+        assert!(high_bits.to_i32_wrapping() == 0xf0000000u32 as i32);
         assert!(high_bits.to_f32() == 255.0 * 2f32.powi(28));
         assert!(high_bits.to_f64() == 255.0 * 2f64.powi(28));
+        let high_bits: Integer = high_bits.clone() << 32 | high_bits;
+        assert!(high_bits.to_u32_wrapping() == 0xf0000000u32);
+        assert!(high_bits.to_i32_wrapping() == 0xf0000000u32 as i32);
+        assert!(high_bits.to_f32() == 255.0 * 2f32.powi(60));
+        assert!(high_bits.to_f64() == 255.0 * (2f64.powi(60) + 2f64.powi(28)));
     }
 
     #[test]
