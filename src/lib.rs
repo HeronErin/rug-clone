@@ -173,6 +173,26 @@ pub trait DivFromAssign<Lhs = Self> {
     fn div_from_assign(&mut self, Lhs);
 }
 
+/// Compute the remainder and assign the result to the rhs operand.
+///
+/// `rhs.rem_from_assign(lhs)` has the same effect as
+/// `rhs = lhs % rhs`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rugint::{Integer, RemFromAssign};
+/// let lhs = Integer::from(17);
+/// let mut rhs = Integer::from(2);
+/// rhs.rem_from_assign(&lhs);
+/// // rhs = 17 / 2
+/// assert!(rhs == 1);
+/// ```
+pub trait RemFromAssign<Lhs = Self> {
+    /// Peforms the remainder operation.
+    fn rem_from_assign(&mut self, Lhs);
+}
+
 /// Provides the power operation.
 pub trait Pow<T> {
     /// The resulting type after the power operation.
