@@ -1005,7 +1005,7 @@ unsafe fn mpz_ui_tdiv_r(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     }
 }
 
-unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = op2 as gmp::limb_t;
     match (*op1).size.cmp(&0) {
@@ -1023,7 +1023,7 @@ unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     }
 }
 
-unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = op2 as gmp::limb_t;
     match (*op1).size.cmp(&0) {
@@ -1052,7 +1052,7 @@ unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     }
 }
 
-unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = op2 as gmp::limb_t;
     match (*op1).size.cmp(&0) {
