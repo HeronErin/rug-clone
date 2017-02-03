@@ -373,6 +373,7 @@ impl Float {
     }
 
     /// Converts to a `u32`, rounding to the nearest.
+    ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
@@ -380,29 +381,8 @@ impl Float {
         self.to_u32_round(Round::Nearest)
     }
 
-    /// Converts to an `i32`, rounding to the nearest.
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
-    pub fn to_i32(&self) -> Option<i32> {
-        self.to_i32_round(Round::Nearest)
-    }
-
-    /// Converts to an `f64`, rounding to the nearest.
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    pub fn to_f64(&self) -> f64 {
-        self.to_f64_round(Round::Nearest)
-    }
-
-    /// Converts to an `f32`, rounding to the nearest.
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    pub fn to_f32(&self) -> f32 {
-        self.to_f32_round(Round::Nearest)
-    }
-
     /// Converts to a `u32`, applying the specified rounding method.
+    ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
@@ -418,7 +398,17 @@ impl Float {
         }
     }
 
+    /// Converts to an `i32`, rounding to the nearest.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    /// If the value is a NaN, `None` is returned.
+    pub fn to_i32(&self) -> Option<i32> {
+        self.to_i32_round(Round::Nearest)
+    }
+
     /// Converts to an `i32`, applying the specified rounding method.
+    ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
@@ -436,14 +426,32 @@ impl Float {
         }
     }
 
+    /// Converts to an `f64`, rounding to the nearest.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    pub fn to_f64(&self) -> f64 {
+        self.to_f64_round(Round::Nearest)
+    }
+
     /// Converts to an `f64`, applying the specified rounding method.
+    ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     pub fn to_f64_round(&self, round: Round) -> f64 {
         unsafe { mpfr::get_d(&self.inner, rraw(round)) }
     }
 
+    /// Converts to an `f32`, rounding to the nearest.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    pub fn to_f32(&self) -> f32 {
+        self.to_f32_round(Round::Nearest)
+    }
+
     /// Converts to an `f32`, applying the specified rounding method.
+    ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     pub fn to_f32_round(&self, round: Round) -> f32 {
