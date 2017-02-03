@@ -197,21 +197,13 @@ fn ordering2(ord: i32) -> (Ordering, Ordering) {
 ///    * `Ordering::Greater` if the returned/stored `Float` is greater
 ///      than the exact result,
 pub struct Float {
-    data: mpfr::mpfr_t,
-}
-
-fn raw(f: &Float) -> &mpfr::mpfr_t {
-    &f.data
-}
-
-fn raw_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
-    &mut f.data
+    inner: mpfr::mpfr_t,
 }
 
 impl Drop for Float {
     fn drop(&mut self) {
         unsafe {
-            mpfr::clear(raw_mut(self));
+            mpfr::clear(&mut self.inner);
         }
     }
 }
@@ -245,8 +237,8 @@ macro_rules! math_op1 {
         pub fn $method_round(&mut self, $($param: $t,)* round: Round)
                              -> Ordering {
             unsafe {
-                $func(raw_mut(self),
-                      raw(self),
+                $func(&mut self.inner,
+                      &self.inner,
                       $($param.into(),)*
                       rraw(round))
                     .cmp(&0)
@@ -271,7 +263,7 @@ macro_rules! math_op2 {
         pub fn $method_round(&mut self, other: &Float, round: Round)
                              -> Ordering {
             unsafe {
-                $func(raw_mut(self), raw(self), raw(other), rraw(round))
+                $func(&mut self.inner, &self.inner, &other.inner, rraw(round))
                     .cmp(&0)
             }
         }
@@ -289,16 +281,16 @@ impl Float {
         assert!(prec >= prec_min() && prec <= prec_max(),
                 "precision out of range");
         unsafe {
-            let mut data: mpfr::mpfr_t = mem::uninitialized();
-            mpfr::init2(&mut data, prec as mpfr::prec_t);
-            mpfr::set_zero(&mut data, 0);
-            Float { data: data }
+            let mut inner: mpfr::mpfr_t = mem::uninitialized();
+            mpfr::init2(&mut inner, prec as mpfr::prec_t);
+            mpfr::set_zero(&mut inner, 0);
+            Float { inner: inner }
         }
     }
 
     /// Returns the precision of `self`.
     pub fn prec(&self) -> u32 {
-        unsafe { mpfr::get_prec(raw(self)) as u32 }
+        unsafe { mpfr::get_prec(&self.inner) as u32 }
     }
 
     /// Sets the precision of `self` exactly, rounding to the nearest.
@@ -320,7 +312,7 @@ impl Float {
         assert!(prec >= prec_min() && prec <= prec_max(),
                 "precision out of range");
         unsafe {
-            mpfr::prec_round(raw_mut(self), prec as mpfr::prec_t, rraw(round))
+            mpfr::prec_round(&mut self.inner, prec as mpfr::prec_t, rraw(round))
                 .cmp(&0)
         }
     }
@@ -334,7 +326,8 @@ impl Float {
     pub fn to_integer_round(&self, round: Round) -> (Integer, Ordering) {
         let mut i = Integer::new();
         let ord = unsafe {
-            mpfr::get_z(integer_raw_mut(&mut i), raw(self), rraw(round)).cmp(&0)
+            mpfr::get_z(integer_inner_mut(&mut i), &self.inner, rraw(round))
+                .cmp(&0)
         };
         (i, ord)
     }
@@ -374,7 +367,7 @@ impl Float {
         }
         let mut i = Integer::new();
         let exp = unsafe {
-            mpfr::get_z_2exp(integer_raw_mut(&mut i), raw(self)) as i32
+            mpfr::get_z_2exp(integer_inner_mut(&mut i), &self.inner) as i32
         };
         Some((i, exp))
     }
@@ -417,7 +410,7 @@ impl Float {
         if self.is_nan() {
             return None;
         }
-        let u = unsafe { mpfr::get_ui(raw(self), rraw(round)) };
+        let u = unsafe { mpfr::get_ui(&self.inner, rraw(round)) };
         if u >= u32::MAX as c_ulong {
             Some(u32::MAX)
         } else {
@@ -433,7 +426,7 @@ impl Float {
         if self.is_nan() {
             return None;
         }
-        let i = unsafe { mpfr::get_si(raw(self), rraw(round)) };
+        let i = unsafe { mpfr::get_si(&self.inner, rraw(round)) };
         if i >= i32::MAX as c_long {
             Some(i32::MAX)
         } else if i <= i32::MIN as c_long {
@@ -447,7 +440,7 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     pub fn to_f64_round(&self, round: Round) -> f64 {
-        unsafe { mpfr::get_d(raw(self), rraw(round)) }
+        unsafe { mpfr::get_d(&self.inner, rraw(round)) }
     }
 
     /// Converts to an `f32`, applying the specified rounding method.
@@ -486,7 +479,7 @@ impl Float {
     /// Sets `self` to the square root of `u`,
     /// applying the specified rounding method.
     pub fn set_sqrt_round(&mut self, u: u32, round: Round) -> Ordering {
-        unsafe { mpfr::sqrt_ui(raw_mut(self), u.into(), rraw(round)).cmp(&0) }
+        unsafe { mpfr::sqrt_ui(&mut self.inner, u.into(), rraw(round)).cmp(&0) }
     }
 
     math_op1! {
@@ -522,7 +515,7 @@ impl Float {
     /// rounding to the nearest.
     pub fn abs(&mut self) -> &mut Float {
         unsafe {
-            mpfr::abs(raw_mut(self), raw(self), rraw(Round::Nearest));
+            mpfr::abs(&mut self.inner, &self.inner, rraw(Round::Nearest));
         }
         self
     }
@@ -538,7 +531,7 @@ impl Float {
     /// applying the specified rounding method.
     pub fn recip_round(&mut self, round: Round) -> Ordering {
         unsafe {
-            mpfr::si_div(raw_mut(self), 1, raw(self), rraw(round)).cmp(&0)
+            mpfr::si_div(&mut self.inner, 1, &self.inner, rraw(round)).cmp(&0)
         }
     }
 
@@ -555,8 +548,8 @@ impl Float {
     /// Compares the absolute values of `self` and `other`.
     pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
         unsafe {
-            match mpfr::unordered_p(raw(self), raw(other)) {
-                0 => Some(mpfr::cmpabs(raw(self), raw(other)).cmp(&0)),
+            match mpfr::unordered_p(&self.inner, &other.inner) {
+                0 => Some(mpfr::cmpabs(&self.inner, &other.inner).cmp(&0)),
                 _ => None,
             }
         }
@@ -659,7 +652,10 @@ impl Float {
                          round: Round)
                          -> (Ordering, Ordering) {
         let ord = unsafe {
-            mpfr::sin_cos(raw_mut(self), raw_mut(buf), raw(self), rraw(round))
+            mpfr::sin_cos(&mut self.inner,
+                          &mut buf.inner,
+                          &self.inner,
+                          rraw(round))
         };
         ordering2(ord)
     }
@@ -777,7 +773,10 @@ impl Float {
                            round: Round)
                            -> (Ordering, Ordering) {
         let ord = unsafe {
-            mpfr::sinh_cosh(raw_mut(self), raw_mut(buf), raw(self), rraw(round))
+            mpfr::sinh_cosh(&mut self.inner,
+                            &mut buf.inner,
+                            &self.inner,
+                            rraw(round))
         };
         ordering2(ord)
     }
@@ -847,7 +846,7 @@ impl Float {
     /// Sets `self` to the factorial of `u`,
     /// applying the specified rounding method.
     pub fn set_factorial_round(&mut self, u: u32, round: Round) -> Ordering {
-        unsafe { mpfr::fac_ui(raw_mut(self), u.into(), rraw(round)).cmp(&0) }
+        unsafe { mpfr::fac_ui(&mut self.inner, u.into(), rraw(round)).cmp(&0) }
     }
 
     math_op1! {
@@ -923,7 +922,7 @@ impl Float {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
         let ord = unsafe {
-            mpfr::lgamma(raw_mut(self), sign_ptr, raw(self), rraw(round))
+            mpfr::lgamma(&mut self.inner, sign_ptr, &self.inner, rraw(round))
                 .cmp(&0)
         };
         let sign_ord = if sign < 0 {
@@ -963,7 +962,7 @@ impl Float {
     /// Sets `self` to the value of the Riemann Zeta function on `u`,
     /// applying the specified rounding method.
     pub fn set_zeta_round(&mut self, u: u32, round: Round) -> Ordering {
-        unsafe { mpfr::zeta_ui(raw_mut(self), u.into(), rraw(round)).cmp(&0) }
+        unsafe { mpfr::zeta_ui(&mut self.inner, u.into(), rraw(round)).cmp(&0) }
     }
 
     math_op1! {
@@ -1111,42 +1110,42 @@ impl Float {
 
     /// Returns `true` if `self` is an integer.
     pub fn is_integer(&self) -> bool {
-        unsafe { mpfr::integer_p(raw(self)) != 0 }
+        unsafe { mpfr::integer_p(&self.inner) != 0 }
     }
 
     /// Returns `true` if `self` is not a number.
     pub fn is_nan(&self) -> bool {
-        unsafe { mpfr::nan_p(raw(self)) != 0 }
+        unsafe { mpfr::nan_p(&self.inner) != 0 }
     }
 
     /// Returns `true` if `self` is plus or minus infinity.
     pub fn is_infinite(&self) -> bool {
-        unsafe { mpfr::inf_p(raw(self)) != 0 }
+        unsafe { mpfr::inf_p(&self.inner) != 0 }
     }
 
     /// Returns `true` if `self` is a finite number,
     /// that is neither NaN nor infinity.
     pub fn is_finite(&self) -> bool {
-        unsafe { mpfr::number_p(raw(self)) != 0 }
+        unsafe { mpfr::number_p(&self.inner) != 0 }
     }
 
     /// Returns `true` if `self` is plus or minus zero.
     pub fn is_zero(&self) -> bool {
-        unsafe { mpfr::zero_p(raw(self)) != 0 }
+        unsafe { mpfr::zero_p(&self.inner) != 0 }
     }
 
     /// Returns `true` if `self` is a normal number, that is neither
     /// NaN, nor infinity, nor zero. Note that `Float` cannot be
     /// subnormal.
     pub fn is_normal(&self) -> bool {
-        unsafe { mpfr::regular_p(raw(self)) != 0 }
+        unsafe { mpfr::regular_p(&self.inner) != 0 }
     }
 
     /// Returns `Less` if `self` is less than zero,
     /// `Greater` if `self` is greater than zero,
     /// or `Equal` if `self` is equal to zero.
     pub fn sign(&self) -> Ordering {
-        unsafe { mpfr::sgn(raw(self)).cmp(&0) }
+        unsafe { mpfr::sgn(&self.inner).cmp(&0) }
     }
 
     /// Returns the exponent of `self` if `self` is a normal number,
@@ -1154,7 +1153,7 @@ impl Float {
     /// The significand is assumed to be in the range [0.5,1).
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
-            let e = unsafe { mpfr::get_exp(raw(self)) };
+            let e = unsafe { mpfr::get_exp(&self.inner) };
             assert!(e <= i32::MAX as mpfr::exp_t, "overflow");
             Some(e as i32)
         } else {
@@ -1164,7 +1163,7 @@ impl Float {
 
     /// Returns the sign bit, that is `true` if the number is negative.
     pub fn get_sign(&self) -> bool {
-        unsafe { mpfr::signbit(raw(self)) != 0 }
+        unsafe { mpfr::signbit(&self.inner) != 0 }
     }
 
     /// Emulate subnormal numbers, rounding to the nearest. This
@@ -1187,7 +1186,9 @@ impl Float {
             Ordering::Equal => 0,
             Ordering::Greater => 1,
         };
-        unsafe { mpfr::subnormalize(raw_mut(self), prev, rraw(round)).cmp(&0) }
+        unsafe {
+            mpfr::subnormalize(&mut self.inner, prev, rraw(round)).cmp(&0)
+        }
     }
 
     #[cfg(feature = "random")]
@@ -1235,7 +1236,7 @@ impl Float {
                                             round: Round)
                                             -> Ordering {
         let limb_bits = gmp::LIMB_BITS as usize;
-        let bits = raw(self).prec as usize;
+        let bits = self.inner.prec as usize;
         let whole_limbs = bits / limb_bits;
         let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
@@ -1243,7 +1244,7 @@ impl Float {
         let total_limbs = whole_limbs +
                           (extra_bits + limb_bits - 1) / limb_bits;
         let limbs =
-            unsafe { slice::from_raw_parts_mut(raw_mut(self).d, total_limbs) };
+            unsafe { slice::from_raw_parts_mut(self.inner.d, total_limbs) };
         let mut lead_zeros = total_limbs * limb_bits;
         for (i, limb) in limbs.iter_mut().enumerate() {
             let mut val: gmp::limb_t = rng.gen();
@@ -1260,13 +1261,13 @@ impl Float {
         let zero_limbs = lead_zeros / limb_bits as usize;
         if zero_limbs == total_limbs {
             unsafe {
-                mpfr::set_zero(raw_mut(self), 0);
+                mpfr::set_zero(&mut self.inner, 0);
             }
             return Ordering::Equal;
         }
         let zero_bits = (lead_zeros % limb_bits) as c_uint;
         let err = unsafe {
-            mpfr::set_exp(raw_mut(self), -(lead_zeros as mpfr::exp_t))
+            mpfr::set_exp(&mut self.inner, -(lead_zeros as mpfr::exp_t))
         };
         if err != 0 {
             // This is extremely unlikely, we can be inefficient.
@@ -1274,16 +1275,16 @@ impl Float {
             let high_one: gmp::limb_t = 1 << (limb_bits - 1);
             limbs[total_limbs - 1] |= high_one;
             let ord = unsafe {
-                mpfr::set_exp(raw_mut(self), 0);
-                mpfr::sub_d(raw_mut(self), raw(self), 0.5, rraw(round))
+                mpfr::set_exp(&mut self.inner, 0);
+                mpfr::sub_d(&mut self.inner, &self.inner, 0.5, rraw(round))
             };
             return ord.cmp(&0);
         }
         if zero_bits > 0 {
             let ptr_offset = zero_limbs as isize;
             unsafe {
-                gmp::mpn_lshift(raw_mut(self).d.offset(ptr_offset),
-                                raw(self).d,
+                gmp::mpn_lshift(self.inner.d.offset(ptr_offset),
+                                self.inner.d,
                                 (total_limbs - zero_limbs) as gmp::size_t,
                                 zero_bits);
             }
@@ -1350,10 +1351,10 @@ impl Float {
                                             round: Round)
                                             -> Ordering {
         let limb_bits = gmp::LIMB_BITS as usize;
-        let bits = raw(self).prec as usize;
+        let bits = self.inner.prec as usize;
         let total_limbs = (bits + limb_bits - 1) / limb_bits;
         let limbs =
-            unsafe { slice::from_raw_parts_mut(raw_mut(self).d, total_limbs) };
+            unsafe { slice::from_raw_parts_mut(self.inner.d, total_limbs) };
         // If exp is too small, random_cont_first_limb will
         // have the result.
         if let Some(ret) = self.random_cont_first_limb(bits, rng, round) {
@@ -1374,7 +1375,7 @@ impl Float {
             return Ordering::Less;
         }
         unsafe {
-            mpfr::nextabove(raw_mut(self));
+            mpfr::nextabove(&mut self.inner);
         }
         Ordering::Greater
     }
@@ -1395,7 +1396,7 @@ impl Float {
             // if exp too small, return ~0
             if exp < exp_min() + zeros {
                 unsafe {
-                    mpfr::set_zero(raw_mut(self), 0);
+                    mpfr::set_zero(&mut self.inner, 0);
                 }
                 let down = match round {
                     Round::Down | Round::Zero => true,
@@ -1409,14 +1410,14 @@ impl Float {
                     return Some(Ordering::Less);
                 }
                 unsafe {
-                    mpfr::nextabove(raw_mut(self));
+                    mpfr::nextabove(&mut self.inner);
                 }
                 return Some(Ordering::Greater);
             }
             exp -= zeros;
             if val != 0 {
                 unsafe {
-                    mpfr::set_exp(raw_mut(self), exp.into());
+                    mpfr::set_exp(&mut self.inner, exp.into());
                 }
                 break;
             }
@@ -1430,7 +1431,7 @@ impl Float {
         }
         val <<= limb_bits - bits_in_lsl;
         unsafe {
-            *raw_mut(self).d = val;
+            *self.inner.d = val;
         }
         None
     }
@@ -1530,7 +1531,7 @@ impl Float {
     pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
         let c_str = CString::new(src).map_err(|_| ())?;
         let err = unsafe {
-            mpfr::set_str(raw_mut(self),
+            mpfr::set_str(&mut self.inner,
                           c_str.as_ptr(),
                           0,
                           rraw(Round::Nearest))
@@ -1565,7 +1566,7 @@ impl Float {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let c_str = CString::new(src).map_err(|_| ())?;
         let err = unsafe {
-            mpfr::set_str(raw_mut(self),
+            mpfr::set_str(&mut self.inner,
                           c_str.as_ptr(),
                           radix.into(),
                           rraw(Round::Nearest))
@@ -1598,7 +1599,7 @@ impl Float {
         let c_str = CString::new(src).map_err(|_| ())?;
         let mut c_str_end: *const c_char = ptr::null();
         let ord = unsafe {
-            mpfr::strtofr(raw_mut(self),
+            mpfr::strtofr(&mut self.inner,
                           c_str.as_ptr(),
                           &mut c_str_end as *mut _ as *mut *mut c_char,
                           0,
@@ -1641,7 +1642,7 @@ impl Float {
         let c_str = CString::new(src).map_err(|_| ())?;
         let mut c_str_end: *const c_char = ptr::null();
         let ord = unsafe {
-            mpfr::strtofr(raw_mut(self),
+            mpfr::strtofr(&mut self.inner,
                           c_str.as_ptr(),
                           &mut c_str_end as *mut _ as *mut *mut c_char,
                           radix.into(),
@@ -1793,13 +1794,15 @@ impl AssignRound<Constant> for Float {
     fn assign_round(&mut self, other: Constant, round: Round) -> Ordering {
         let mpfr_ret = unsafe {
             match other {
-                Constant::Log2 => mpfr::const_log2(raw_mut(self), rraw(round)),
-                Constant::Pi => mpfr::const_pi(raw_mut(self), rraw(round)),
+                Constant::Log2 => {
+                    mpfr::const_log2(&mut self.inner, rraw(round))
+                }
+                Constant::Pi => mpfr::const_pi(&mut self.inner, rraw(round)),
                 Constant::Euler => {
-                    mpfr::const_euler(raw_mut(self), rraw(round))
+                    mpfr::const_euler(&mut self.inner, rraw(round))
                 }
                 Constant::Catalan => {
-                    mpfr::const_catalan(raw_mut(self), rraw(round))
+                    mpfr::const_catalan(&mut self.inner, rraw(round))
                 }
             }
         };
@@ -1812,11 +1815,11 @@ impl Assign<Special> for Float {
     fn assign(&mut self, other: Special) {
         unsafe {
             match other {
-                Special::Zero => mpfr::set_zero(raw_mut(self), 0),
-                Special::MinusZero => mpfr::set_zero(raw_mut(self), -1),
-                Special::Infinity => mpfr::set_inf(raw_mut(self), 0),
-                Special::MinusInfinity => mpfr::set_inf(raw_mut(self), -1),
-                Special::Nan => mpfr::set_nan(raw_mut(self)),
+                Special::Zero => mpfr::set_zero(&mut self.inner, 0),
+                Special::MinusZero => mpfr::set_zero(&mut self.inner, -1),
+                Special::Infinity => mpfr::set_inf(&mut self.inner, 0),
+                Special::MinusInfinity => mpfr::set_inf(&mut self.inner, -1),
+                Special::Nan => mpfr::set_nan(&mut self.inner),
             };
         }
     }
@@ -1842,7 +1845,7 @@ macro_rules! assign {
             /// and applies the specified rounding method.
             fn assign_round(&mut self, other: &'a $t, round: Round)
                             -> Ordering {
-                $eval(raw_mut(self), other, rraw(round)).cmp(&0)
+                $eval(&mut self.inner, other, rraw(round)).cmp(&0)
             }
         }
 
@@ -1870,17 +1873,17 @@ macro_rules! assign {
 }
 
 assign! { "another `Float`", Float,
-           |f, t, r| unsafe { mpfr::set(f, raw(t), r) } }
+           |f, t: &Float, r| unsafe { mpfr::set(f, &t.inner, r) } }
 assign! { "an `Integer`", Integer,
-           |f, t, r| unsafe { mpfr::set_z(f, integer_raw(t), r) } }
+           |f, t, r| unsafe { mpfr::set_z(f, integer_inner(t), r) } }
 assign! { "a `Rational` number", Rational,
-           |f, t, r| unsafe { mpfr::set_q(f, rational_raw(t), r) } }
+           |f, t, r| unsafe { mpfr::set_q(f, rational_inner(t), r) } }
 
 impl<'a> Assign<&'a Float> for Integer {
     /// Assigns from a `Float`, rounding towards zero.
     fn assign(&mut self, val: &'a Float) {
         unsafe {
-            mpfr::get_z(integer_raw_mut(self), raw(val), rraw(Round::Zero));
+            mpfr::get_z(integer_inner_mut(self), &val.inner, rraw(Round::Zero));
         }
     }
 }
@@ -1935,15 +1938,15 @@ fn num_den_shift_exp(num: &mut Integer, den: &mut Integer, exp: i32) {
         if exp < 0 {
             let uexp = exp.wrapping_neg() as u32;
             unsafe {
-                gmp::mpz_mul_2exp(integer_raw_mut(den),
-                                  integer_raw(den),
+                gmp::mpz_mul_2exp(integer_inner_mut(den),
+                                  integer_inner(den),
                                   uexp.into());
             }
         } else {
             let uexp = exp as u32;
             unsafe {
-                gmp::mpz_mul_2exp(integer_raw_mut(num),
-                                  integer_raw(num),
+                gmp::mpz_mul_2exp(integer_inner_mut(num),
+                                  integer_inner(num),
                                   uexp.into());
             }
         }
@@ -2002,7 +2005,7 @@ impl<'a> Assign<&'a Float> for Rational {
         assert!(val.is_finite());
         let mut num_den = self.as_mut_numer_denom();
         let exp = unsafe {
-            mpfr::get_z_2exp(integer_raw_mut(num_den.0), raw(val)) as i32
+            mpfr::get_z_2exp(integer_inner_mut(num_den.0), &val.inner) as i32
         };
         num_den_shift_exp(&mut num_den.0, &mut num_den.1, exp);
     }
@@ -2048,7 +2051,7 @@ macro_rules! arith_for_float {
             type Output = Float;
             fn $method_round(mut self, op: &'a $t, round: Round)
                              -> (Float, Ordering) {
-                let ord = $eval(raw_mut(&mut self),
+                let ord = $eval(&mut self.inner,
                                 op,
                                 rraw(round)).cmp(&0);
                 (self, ord)
@@ -2067,7 +2070,7 @@ macro_rules! arith_for_float {
 
         impl<'a> $imp_assign<&'a $t> for Float {
             fn $method_assign(&mut self, op: &'a $t) {
-                $eval(raw_mut(self),
+                $eval(&mut self.inner,
                       op,
                       rraw(Round::Nearest));
             }
@@ -2132,9 +2135,9 @@ macro_rules! arith_commut {
 }
 
 arith_for_float! { Add add, AddRound add_round, AddAssign add_assign, Float,
-                   |f, t, r| unsafe { mpfr::add(f, f, raw(t), r) } }
+                   |f, t: &Float, r| unsafe { mpfr::add(f, f, &t.inner, r) } }
 arith_for_float! { Sub sub, SubRound sub_round, SubAssign sub_assign, Float,
-                   |f, t, r| unsafe { mpfr::sub(f, f, raw(t), r) } }
+                   |f, t: &Float, r| unsafe { mpfr::sub(f, f, &t.inner, r) } }
 
 impl SubFromAssign for Float {
     fn sub_from_assign(&mut self, lhs: Float) {
@@ -2145,15 +2148,18 @@ impl SubFromAssign for Float {
 impl<'a> SubFromAssign<&'a Float> for Float {
     fn sub_from_assign(&mut self, lhs: &Float) {
         unsafe {
-            mpfr::sub(raw_mut(self), raw(lhs), raw(self), rraw(Round::Nearest));
+            mpfr::sub(&mut self.inner,
+                      &lhs.inner,
+                      &self.inner,
+                      rraw(Round::Nearest));
         }
     }
 }
 
 arith_for_float! { Mul mul, MulRound mul_round, MulAssign mul_assign, Float,
-                   |f, t, r| unsafe { mpfr::mul(f, f, raw(t), r) } }
+                   |f, t: &Float, r| unsafe { mpfr::mul(f, f, &t.inner, r) } }
 arith_for_float! { Div div, DivRound div_round, DivAssign div_assign, Float,
-                   |f, t, r| unsafe { mpfr::div(f, f, raw(t), r) } }
+                   |f, t: &Float, r| unsafe { mpfr::div(f, f, &t.inner, r) } }
 
 impl DivFromAssign for Float {
     fn div_from_assign(&mut self, lhs: Float) {
@@ -2164,16 +2170,19 @@ impl DivFromAssign for Float {
 impl<'a> DivFromAssign<&'a Float> for Float {
     fn div_from_assign(&mut self, lhs: &Float) {
         unsafe {
-            mpfr::div(raw_mut(self), raw(lhs), raw(self), rraw(Round::Nearest));
+            mpfr::div(&mut self.inner,
+                      &lhs.inner,
+                      &self.inner,
+                      rraw(Round::Nearest));
         }
     }
 }
 
 arith_commut! { Add add, AddRound add_round, AddAssign add_assign, Integer,
-                |f, t, r| unsafe { mpfr::add_z(f, f, integer_raw(t), r) } }
+                |f, t, r| unsafe { mpfr::add_z(f, f, integer_inner(t), r) } }
 
 arith_for_float! { Sub sub, SubRound sub_round, SubAssign sub_assign, Integer,
-                   |f, t, r| unsafe  { mpfr::sub_z(f, f, integer_raw(t), r) } }
+                  |f, t, r| unsafe  { mpfr::sub_z(f, f, integer_inner(t), r) } }
 
 impl Sub<Float> for Integer {
     type Output = Float;
@@ -2195,9 +2204,9 @@ impl SubRound<Float> for Integer {
     type Output = Float;
     fn sub_round(self, mut op: Float, round: Round) -> (Float, Ordering) {
         let ord = unsafe {
-            mpfr::z_sub(raw_mut(&mut op),
-                        integer_raw(&self),
-                        raw(&op),
+            mpfr::z_sub(&mut op.inner,
+                        integer_inner(&self),
+                        &op.inner,
                         rraw(round))
                 .cmp(&0)
         };
@@ -2223,27 +2232,27 @@ impl SubFromAssign<Integer> for Float {
 impl<'a> SubFromAssign<&'a Integer> for Float {
     fn sub_from_assign(&mut self, lhs: &Integer) {
         unsafe {
-            mpfr::z_sub(raw_mut(self),
-                        integer_raw(lhs),
-                        raw(self),
+            mpfr::z_sub(&mut self.inner,
+                        integer_inner(lhs),
+                        &self.inner,
                         rraw(Round::Nearest));
         }
     }
 }
 
 arith_commut! { Mul mul, MulRound mul_round, MulAssign mul_assign, Integer,
-                |f, t, r| unsafe { mpfr::mul_z(f, f, integer_raw(t), r) } }
+                |f, t, r| unsafe { mpfr::mul_z(f, f, integer_inner(t), r) } }
 arith_for_float! { Div div, DivRound div_round, DivAssign div_assign, Integer,
-                   |f, t, r| unsafe { mpfr::div_z(f, f, integer_raw(t), r) } }
+                   |f, t, r| unsafe { mpfr::div_z(f, f, integer_inner(t), r) } }
 
 arith_commut! { Add add, AddRound add_round, AddAssign add_assign, Rational,
-                |f, t, r| unsafe { mpfr::add_q(f, f, rational_raw(t), r) } }
+                |f, t, r| unsafe { mpfr::add_q(f, f, rational_inner(t), r) } }
 arith_for_float! { Sub sub, SubRound sub_round, SubAssign sub_assign, Rational,
-                   |f, t, r| unsafe { mpfr::sub_q(f, f, rational_raw(t), r) } }
+                  |f, t, r| unsafe { mpfr::sub_q(f, f, rational_inner(t), r) } }
 arith_commut! { Mul mul, MulRound mul_round, MulAssign mul_assign, Rational,
-                |f, t, r| unsafe { mpfr::mul_q(f, f, rational_raw(t), r) } }
+                |f, t, r| unsafe { mpfr::mul_q(f, f, rational_inner(t), r) } }
 arith_for_float! { Div div, DivRound div_round, DivAssign div_assign, Rational,
-                   |f, t, r| unsafe { mpfr::div_q(f, f, rational_raw(t), r) } }
+                  |f, t, r| unsafe { mpfr::div_q(f, f, rational_inner(t), r) } }
 
 macro_rules! sh_op {
     { $doc:expr,
@@ -2272,8 +2281,8 @@ macro_rules! sh_op {
             fn $method_round(mut self, op: $t, round: Round)
                              -> (Float, Ordering) {
                 let ord = unsafe {
-                    $func(raw_mut(&mut self),
-                          raw(&self),
+                    $func(&mut self.inner,
+                          &self.inner,
                           op.into(),
                           rraw(round))
                         .cmp(&0)
@@ -2288,8 +2297,8 @@ macro_rules! sh_op {
             /// nearest.
             fn $method_assign(&mut self, op: $t) {
                 unsafe {
-                    $func(raw_mut(self),
-                          raw(self),
+                    $func(&mut self.inner,
+                          &self.inner,
                           op.into(),
                           rraw(Round::Nearest));
                 }
@@ -2370,7 +2379,7 @@ impl<'a> PowRound<&'a Float> for Float {
     type Output = Float;
     fn pow_round(mut self, op: &'a Float, round: Round) -> (Float, Ordering) {
         let ord = unsafe {
-            mpfr::pow(raw_mut(&mut self), raw(&self), raw(op), rraw(round))
+            mpfr::pow(&mut self.inner, &self.inner, &op.inner, rraw(round))
                 .cmp(&0)
         };
         (self, ord)
@@ -2380,7 +2389,10 @@ impl<'a> PowRound<&'a Float> for Float {
 impl<'a> PowAssign<&'a Float> for Float {
     fn pow_assign(&mut self, op: &'a Float) {
         unsafe {
-            mpfr::pow(raw_mut(self), raw(self), raw(op), rraw(Round::Nearest))
+            mpfr::pow(&mut self.inner,
+                      &self.inner,
+                      &op.inner,
+                      rraw(Round::Nearest))
         };
     }
 }
@@ -2391,9 +2403,9 @@ impl<'a> PowRound<&'a Integer> for Float {
     type Output = Float;
     fn pow_round(mut self, op: &'a Integer, round: Round) -> (Float, Ordering) {
         let ord = unsafe {
-            mpfr::pow_z(raw_mut(&mut self),
-                        raw(&self),
-                        integer_raw(op),
+            mpfr::pow_z(&mut self.inner,
+                        &self.inner,
+                        integer_inner(op),
                         rraw(round))
                 .cmp(&0)
         };
@@ -2404,9 +2416,9 @@ impl<'a> PowRound<&'a Integer> for Float {
 impl<'a> PowAssign<&'a Integer> for Float {
     fn pow_assign(&mut self, op: &'a Integer) {
         unsafe {
-            mpfr::pow_z(raw_mut(self),
-                        raw(self),
-                        integer_raw(op),
+            mpfr::pow_z(&mut self.inner,
+                        &self.inner,
+                        integer_inner(op),
                         rraw(Round::Nearest));
         }
     }
@@ -2434,8 +2446,8 @@ macro_rules! arith_prim_for_float {
             fn $method_round(mut self, op: $t, round: Round)
                              -> (Float, Ordering) {
                 let ord = unsafe {
-                    $func(raw_mut(&mut self),
-                          raw(&self),
+                    $func(&mut self.inner,
+                          &self.inner,
                           op.into(),
                           rraw(round))
                         .cmp(&0)
@@ -2447,8 +2459,8 @@ macro_rules! arith_prim_for_float {
         impl $imp_assign<$t> for Float {
             fn $method_assign(&mut self, op: $t) {
                 unsafe {
-                    $func(raw_mut(self),
-                          raw(self),
+                    $func(&mut self.inner,
+                          &self.inner,
                           op.into(),
                           rraw(Round::Nearest));
                 }
@@ -2494,9 +2506,9 @@ macro_rules! arith_prim_non_commut {
             fn $method_round(self, mut op: Float, round: Round)
                              -> (Float, Ordering) {
                 let ord = unsafe {
-                    $func_from(raw_mut(&mut op),
+                    $func_from(&mut op.inner,
                                self.into(),
-                               raw(&op),
+                               &op.inner,
                                rraw(round))
                         .cmp(&0)
                 };
@@ -2517,9 +2529,9 @@ macro_rules! arith_prim_non_commut {
         impl $imp_from_assign<$t> for Float {
             fn $method_from_assign(&mut self, lhs: $t) {
                 unsafe {
-                    $func_from(raw_mut(self),
+                    $func_from(&mut self.inner,
                                lhs.into(),
-                               raw(self),
+                               &self.inner,
                                rraw(Round::Nearest));
                 }
             }
@@ -2591,7 +2603,9 @@ macro_rules! conv_ops {
             type Round = Round;
             type Ordering = Ordering;
             fn assign_round(&mut self, val: $t, round: Round) -> Ordering {
-                unsafe { $set(raw_mut(self), val.into(), rraw(round)).cmp(&0) }
+                unsafe {
+                    $set(&mut self.inner, val.into(), rraw(round)).cmp(&0)
+                }
             }
         }
 
@@ -2722,7 +2736,7 @@ impl PowRound<u32> for Float {
     type Output = Float;
     fn pow_round(mut self, op: u32, round: Round) -> (Float, Ordering) {
         let ord = unsafe {
-            mpfr::pow_ui(raw_mut(&mut self), raw(&self), op.into(), rraw(round))
+            mpfr::pow_ui(&mut self.inner, &self.inner, op.into(), rraw(round))
                 .cmp(&0)
         };
         (self, ord)
@@ -2735,7 +2749,7 @@ impl PowRound<Float> for u32 {
     type Output = Float;
     fn pow_round(self, mut op: Float, round: Round) -> (Float, Ordering) {
         let ord = unsafe {
-            mpfr::ui_pow(raw_mut(&mut op), self.into(), raw(&op), rraw(round))
+            mpfr::ui_pow(&mut op.inner, self.into(), &op.inner, rraw(round))
                 .cmp(&0)
         };
         (op, ord)
@@ -2754,8 +2768,8 @@ impl<'a> PowRound<&'a Float> for u32 {
 impl PowAssign<u32> for Float {
     fn pow_assign(&mut self, op: u32) {
         unsafe {
-            mpfr::pow_ui(raw_mut(self),
-                         raw(self),
+            mpfr::pow_ui(&mut self.inner,
+                         &self.inner,
                          op.into(),
                          rraw(Round::Nearest))
         };
@@ -2775,7 +2789,7 @@ impl PowRound<i32> for Float {
     type Output = Float;
     fn pow_round(mut self, op: i32, round: Round) -> (Float, Ordering) {
         let ord = unsafe {
-            mpfr::pow_si(raw_mut(&mut self), raw(&self), op.into(), rraw(round))
+            mpfr::pow_si(&mut self.inner, &self.inner, op.into(), rraw(round))
                 .cmp(&0)
         };
         (self, ord)
@@ -2785,8 +2799,8 @@ impl PowRound<i32> for Float {
 impl PowAssign<i32> for Float {
     fn pow_assign(&mut self, op: i32) {
         unsafe {
-            mpfr::pow_si(raw_mut(self),
-                         raw(self),
+            mpfr::pow_si(&mut self.inner,
+                         &self.inner,
                          op.into(),
                          rraw(Round::Nearest))
         };
@@ -2804,14 +2818,14 @@ impl Neg for Float {
 impl NegAssign for Float {
     fn neg_assign(&mut self) {
         unsafe {
-            mpfr::neg(raw_mut(self), raw(self), rraw(Round::Nearest));
+            mpfr::neg(&mut self.inner, &self.inner, rraw(Round::Nearest));
         }
     }
 }
 
 impl PartialEq for Float {
     fn eq(&self, other: &Float) -> bool {
-        unsafe { mpfr::equal_p(raw(self), raw(other)) != 0 }
+        unsafe { mpfr::equal_p(&self.inner, &other.inner) != 0 }
     }
 }
 
@@ -2820,27 +2834,27 @@ impl PartialOrd for Float {
     /// or `None` if one (or both) of them is a NaN.
     fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
         unsafe {
-            match mpfr::unordered_p(raw(self), raw(other)) {
-                0 => Some(mpfr::cmp(raw(self), raw(other)).cmp(&0)),
+            match mpfr::unordered_p(&self.inner, &other.inner) {
+                0 => Some(mpfr::cmp(&self.inner, &other.inner).cmp(&0)),
                 _ => None,
             }
         }
     }
 
     fn lt(&self, other: &Float) -> bool {
-        unsafe { mpfr::less_p(raw(self), raw(other)) != 0 }
+        unsafe { mpfr::less_p(&self.inner, &other.inner) != 0 }
     }
 
     fn le(&self, other: &Float) -> bool {
-        unsafe { mpfr::lessequal_p(raw(self), raw(other)) != 0 }
+        unsafe { mpfr::lessequal_p(&self.inner, &other.inner) != 0 }
     }
 
     fn gt(&self, other: &Float) -> bool {
-        unsafe { mpfr::greater_p(raw(self), raw(other)) != 0 }
+        unsafe { mpfr::greater_p(&self.inner, &other.inner) != 0 }
     }
 
     fn ge(&self, other: &Float) -> bool {
-        unsafe { mpfr::greaterequal_p(raw(self), raw(other)) != 0 }
+        unsafe { mpfr::greaterequal_p(&self.inner, &other.inner) != 0 }
     }
 }
 
@@ -2858,7 +2872,7 @@ macro_rules! compare_common {
                 if self.is_nan() {
                     return None;
                 }
-                Some($eval(raw(self), other).cmp(&0))
+                Some($eval(&self.inner, other).cmp(&0))
             }
         }
 
@@ -2903,8 +2917,8 @@ macro_rules! compare_float {
     };
 }
 
-compare_int! { Integer, |f, t| unsafe { mpfr::cmp_z(f, integer_raw(t)) } }
-compare_int! { Rational, |f, t| unsafe { mpfr::cmp_q(f, rational_raw(t)) } }
+compare_int! { Integer, |f, t| unsafe { mpfr::cmp_z(f, integer_inner(t)) } }
+compare_int! { Rational, |f, t| unsafe { mpfr::cmp_q(f, rational_inner(t)) } }
 compare_int! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
 compare_int! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
 compare_float! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
@@ -2928,7 +2942,7 @@ impl Float {
                               &mut exp,
                               radix.into(),
                               0,
-                              raw(self),
+                              &self.inner,
                               rraw(round));
             assert!(!s.is_null());
             cstr = CStr::from_ptr(s);
@@ -3013,17 +3027,17 @@ impl fmt::UpperHex for Float {
     }
 }
 
-fn integer_raw(z: &Integer) -> &gmp::mpz_t {
+fn integer_inner(z: &Integer) -> &gmp::mpz_t {
     let ptr = z as *const _ as *const gmp::mpz_t;
     unsafe { &*ptr }
 }
 
-fn integer_raw_mut(z: &mut Integer) -> &mut gmp::mpz_t {
+fn integer_inner_mut(z: &mut Integer) -> &mut gmp::mpz_t {
     let ptr = z as *mut _ as *mut gmp::mpz_t;
     unsafe { &mut *ptr }
 }
 
-fn rational_raw(z: &Rational) -> &gmp::mpq_t {
+fn rational_inner(z: &Rational) -> &gmp::mpq_t {
     let ptr = z as *const _ as *const gmp::mpq_t;
     unsafe { &*ptr }
 }
