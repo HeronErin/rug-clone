@@ -56,8 +56,10 @@
 //! // Create an integer initialized as zero.
 //! let mut int = Integer::new();
 //! assert!(int == 0);
+//! assert!(int.to_u32() == Some(0));
 //! int.assign(14);
 //! assert!(int == 14);
+//! assert!(int.to_i32() == Some(14));
 //! ```
 //!
 //! Arithmetic operations with mixed arbitrary and primitive types are

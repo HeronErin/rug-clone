@@ -19,6 +19,7 @@ use {Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 #[cfg(feature = "random")]
 use rand::Rng;
+use std::{i32, u32};
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::fmt;
@@ -33,7 +34,6 @@ use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
-use std::u32;
 
 /// An arbitrary-precision integer.
 ///
@@ -111,6 +111,15 @@ impl Integer {
         }
     }
 
+    /// Converts to a `u32` if the value fits.
+    pub fn to_u32(&self) -> Option<u32> {
+        if self.sign() != Ordering::Less && *self <= u32::MAX {
+            Some(self.to_u32_wrapping())
+        } else {
+            None
+        }
+    }
+
     /// Converts to a `u32`, wrapping if the value is too large.
     pub fn to_u32_wrapping(&self) -> u32 {
         let u = unsafe { gmp::mpz_get_ui(&self.inner) as u32 };
@@ -118,6 +127,15 @@ impl Integer {
             u.wrapping_neg()
         } else {
             u
+        }
+    }
+
+    /// Converts to an `i32` if the value fits.
+    pub fn to_i32(&self) -> Option<i32> {
+        if i32::MIN <= *self && *self <= i32::MAX {
+            Some(self.to_i32_wrapping())
+        } else {
+            None
         }
     }
 
@@ -1366,7 +1384,7 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
 mod tests {
     use gmp_mpfr_sys::gmp;
     use integer::*;
-    use std::{i32, u32};
+    use std::{f32, f64, i32, u32};
     use std::cmp::Ordering;
     use std::mem;
 
@@ -1442,27 +1460,75 @@ mod tests {
     }
 
     #[test]
-    fn check_conversion() {
-        let minus_one = Integer::from(-1);
-        assert!(minus_one.to_u32_wrapping() == u32::MAX);
-        assert!(minus_one.to_i32_wrapping() == -1);
-        assert!(minus_one.to_f32() == -1.0);
-        assert!(minus_one.to_f64() == -1.0);
-        let high_bits: Integer = Integer::from(0xff000000u32) << 4;
-        assert!(high_bits.to_u32_wrapping() == 0xf0000000u32);
-        assert!(high_bits.to_i32_wrapping() == 0xf0000000u32 as i32);
-        assert!(high_bits.to_f32() == 255.0 * 2f32.powi(28));
-        assert!(high_bits.to_f64() == 255.0 * 2f64.powi(28));
-        let high_bits: Integer = high_bits.clone() << 32 | high_bits;
-        assert!(high_bits.to_u32_wrapping() == 0xf0000000u32);
-        assert!(high_bits.to_i32_wrapping() == 0xf0000000u32 as i32);
-        assert!(high_bits.to_f32() == 255.0 * 2f32.powi(60));
-        assert!(high_bits.to_f64() == 255.0 * (2f64.powi(60) + 2f64.powi(28)));
+    fn check_int_conversions() {
+        let mut i = Integer::from(-1);
+        assert!(i.to_u32_wrapping() == u32::MAX);
+        assert!(i.to_i32_wrapping() == -1);
+        i.assign(0xff000000u32);
+        i <<= 4;
+        assert!(i.to_u32_wrapping() == 0xf0000000u32);
+        assert!(i.to_i32_wrapping() == 0xf0000000u32 as i32);
+        i = i.clone() << 32 | i;
+        assert!(i.to_u32_wrapping() == 0xf0000000u32);
+        assert!(i.to_i32_wrapping() == 0xf0000000u32 as i32);
+        i.neg_assign();
+        assert!(i.to_u32_wrapping() == 0x10000000u32);
+        assert!(i.to_i32_wrapping() == 0x10000000i32);
+    }
+
+    #[test]
+    fn check_option_conversion() {
+        let mut i = Integer::new();
+        assert!(i.to_u32() == Some(0));
+        assert!(i.to_i32() == Some(0));
+        i -= 1;
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == Some(-1));
+        i.assign(i32::MIN);
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == Some(i32::MIN));
+        i -= 1;
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        i.assign(i32::MAX);
+        assert!(i.to_u32() == Some(i32::MAX as u32));
+        assert!(i.to_i32() == Some(i32::MAX));
+        i += 1;
+        assert!(i.to_u32() == Some(i32::MAX as u32 + 1));
+        assert!(i.to_i32() == None);
+        i.assign(u32::MAX);
+        assert!(i.to_u32() == Some(u32::MAX));
+        assert!(i.to_i32() == None);
+        i += 1;
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+    }
+
+    #[test]
+    fn check_float_conversions() {
+        let mut i = Integer::from(0);
+        assert!(i.to_f32() == 0.0);
+        assert!(i.to_f64() == 0.0);
+        i.assign(0xff);
+        assert!(i.to_f32() == 255.0);
+        assert!(i.to_f64() == 255.0);
+        i <<= 80;
+        assert!(i.to_f32() == 255.0 * 2f32.powi(80));
+        assert!(i.to_f64() == 255.0 * 2f64.powi(80));
+        i = i.clone() << 30 | i;
+        assert!(i.to_f32() == 255.0 * 2f32.powi(110));
+        assert!(i.to_f64() == 255.0 * (2f64.powi(80) + 2f64.powi(110)));
+        i <<= 100;
+        assert!(i.to_f32() == f32::INFINITY);
+        assert!(i.to_f64() == 255.0 * (2f64.powi(180) + 2f64.powi(210)));
+        i <<= 1000;
+        assert!(i.to_f32() == f32::INFINITY);
+        assert!(i.to_f64() == f64::INFINITY);
     }
 
     #[test]
     fn check_no_nails() {
-        // we assume no nail bits in random number functions
+        // we assume no nail bits
         assert!(gmp::NAIL_BITS == 0);
         assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
         assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
