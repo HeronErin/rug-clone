@@ -55,59 +55,13 @@ use std::str::FromStr;
 /// }
 /// ```
 pub struct Rational {
-    data: gmp::mpq_t,
-}
-
-fn raw(q: &Rational) -> &gmp::mpq_t {
-    &q.data
-}
-
-fn raw_mut(q: &mut Rational) -> &mut gmp::mpq_t {
-    &mut q.data
-}
-
-impl Rational {
-    fn num_raw(&self) -> &gmp::mpz_t {
-        &raw(self).num
-    }
-
-    fn den_raw(&self) -> &gmp::mpz_t {
-        &raw(self).den
-    }
-
-    fn num_den_raw(&self) -> (&gmp::mpz_t, &gmp::mpz_t) {
-        let r = raw(self);
-        (&r.num, &r.den)
-    }
-
-    fn num_raw_mut(&mut self) -> &mut gmp::mpz_t {
-        &mut raw_mut(self).num
-    }
-
-    fn den_raw_mut(&mut self) -> &mut gmp::mpz_t {
-        &mut raw_mut(self).den
-    }
-
-    fn num_den_raw_mut(&mut self) -> (&mut gmp::mpz_t, &mut gmp::mpz_t) {
-        let r = raw_mut(self);
-        (&mut r.num, &mut r.den)
-    }
-}
-
-fn integer_unraw(r: &gmp::mpz_t) -> &Integer {
-    let ptr = r as *const _ as *const Integer;
-    unsafe { &*ptr }
-}
-
-fn integer_unraw_mut(r: &mut gmp::mpz_t) -> &mut Integer {
-    let ptr = r as *mut _ as *mut Integer;
-    unsafe { &mut *ptr }
+    inner: gmp::mpq_t,
 }
 
 impl Drop for Rational {
     fn drop(&mut self) {
         unsafe {
-            gmp::mpq_clear(raw_mut(self));
+            gmp::mpq_clear(&mut self.inner);
         }
     }
 }
@@ -134,15 +88,15 @@ impl Rational {
     /// Constructs a new arbitrary-precision rational number with value 0.
     pub fn new() -> Rational {
         unsafe {
-            let mut data: gmp::mpq_t = mem::uninitialized();
-            gmp::mpq_init(&mut data);
-            Rational { data: data }
+            let mut inner: gmp::mpq_t = mem::uninitialized();
+            gmp::mpq_init(&mut inner);
+            Rational { inner: inner }
         }
     }
 
     /// Converts `self` to an `f64`, rounding towards zero.
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpq_get_d(raw(self)) }
+        unsafe { gmp::mpq_get_d(&self.inner) }
     }
 
     /// Converts `self` to an `f32`, rounding towards zero.
@@ -152,18 +106,23 @@ impl Rational {
 
     /// Borrows the numerator.
     pub fn numer(&self) -> &Integer {
-        integer_unraw(self.num_raw())
+        unsafe {
+            let ptr = gmp::mpq_numref(&self.inner as *const _ as *mut _);
+            &*(ptr as *const Integer)
+        }
     }
 
     /// Borrows the denominator.
     pub fn denom(&self) -> &Integer {
-        integer_unraw(self.den_raw())
+        unsafe {
+            let ptr = gmp::mpq_denref(&self.inner as *const _ as *mut _);
+            &*(ptr as *const Integer)
+        }
     }
 
     /// Borrows the numerator and denominator.
     pub fn as_numer_denom(&self) -> (&Integer, &Integer) {
-        let (num, den) = self.num_den_raw();
-        (integer_unraw(num), integer_unraw(den))
+        (self.numer(), self.denom())
     }
 
     /// Borrows the numerator and denominator mutably. The number is
@@ -191,24 +150,33 @@ impl Rational {
     ///
     /// Panics if the denominator is zero when the borrow ends.
     pub fn as_mut_numer_denom(&mut self) -> MutNumerDenom {
-        let (num, den) = self.num_den_raw_mut();
-        MutNumerDenom(integer_unraw_mut(num), integer_unraw_mut(den))
+        unsafe {
+            let numer_ptr = gmp::mpq_numref(&mut self.inner);
+            let denom_ptr = gmp::mpq_denref(&mut self.inner);
+            MutNumerDenom(&mut *(numer_ptr as *mut Integer),
+                          &mut *(denom_ptr as *mut Integer))
+        }
     }
 
     /// Converts `self` into numerator and denominator integers,
     /// consuming `self`.
-    pub fn into_numer_denom(self) -> (Integer, Integer) {
-        let (mut num, mut den) = unsafe { mem::uninitialized() };
-        *integer_raw_mut(&mut num) = *self.num_raw();
-        *integer_raw_mut(&mut den) = *self.den_raw();
+    pub fn into_numer_denom(mut self) -> (Integer, Integer) {
+        let (mut numer, mut denom) = unsafe { mem::uninitialized() };
+        {
+            let self_numer_denom = self.as_mut_numer_denom();
+            mem::swap(&mut numer, self_numer_denom.0);
+            mem::swap(&mut denom, self_numer_denom.1);
+            // do not canonicalize uninitialized values
+            mem::forget(self_numer_denom);
+        }
         mem::forget(self);
-        (num, den)
+        (numer, denom)
     }
 
     /// Computes the absolute value of `self`
     pub fn abs(&mut self) -> &mut Rational {
         unsafe {
-            gmp::mpq_abs(raw_mut(self), raw(self));
+            gmp::mpq_abs(&mut self.inner, &self.inner);
         }
         self
     }
@@ -216,7 +184,7 @@ impl Rational {
     /// Computes the reciprocal of `self`.
     pub fn recip(&mut self) -> &mut Rational {
         unsafe {
-            gmp::mpq_inv(raw_mut(self), raw(self));
+            gmp::mpq_inv(&mut self.inner, &self.inner);
         }
         self
     }
@@ -267,13 +235,14 @@ impl Rational {
     /// ```
     pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
         let c_str = CString::new(src).map_err(|_| ())?;
-        let err = unsafe { gmp::mpq_set_str(raw_mut(self), c_str.as_ptr(), 0) };
+        let err =
+            unsafe { gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), 0) };
         if err != 0 || *self.denom() == 0 {
             self.assign(0);
             return Err(());
         }
         unsafe {
-            gmp::mpq_canonicalize(raw_mut(self));
+            gmp::mpq_canonicalize(&mut self.inner);
         }
         Ok(())
     }
@@ -300,13 +269,13 @@ impl Rational {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let c_str = CString::new(src).map_err(|_| ())?;
         let err =
-            unsafe { gmp::mpq_set_str(raw_mut(self), c_str.as_ptr(), radix) };
+            unsafe { gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), radix) };
         if err != 0 || *self.denom() == 0 {
             self.assign(0);
             return Err(());
         }
         unsafe {
-            gmp::mpq_canonicalize(raw_mut(self));
+            gmp::mpq_canonicalize(&mut self.inner);
         }
         Ok(())
     }
@@ -374,16 +343,16 @@ impl From<(Integer, Integer)> for Rational {
     /// Panics
     ///
     /// Panics if the denominator is zero.
-    fn from((num, den): (Integer, Integer)) -> Rational {
+    fn from((mut num, mut den): (Integer, Integer)) -> Rational {
         assert!(den != 0);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        *dst.num_raw_mut() = *integer_raw(&num);
-        *dst.den_raw_mut() = *integer_raw(&den);
+        {
+            let num_den = dst.as_mut_numer_denom();
+            mem::swap(&mut num, num_den.0);
+            mem::swap(&mut den, num_den.1);
+        }
         mem::forget(num);
         mem::forget(den);
-        unsafe {
-            gmp::mpq_canonicalize(raw_mut(&mut dst));
-        }
         dst
     }
 }
@@ -419,7 +388,7 @@ impl<'a> Assign<&'a Rational> for Rational {
     /// Assigns from another `Rational` number.
     fn assign(&mut self, other: &'a Rational) {
         unsafe {
-            gmp::mpq_set(raw_mut(self), raw(other));
+            gmp::mpq_set(&mut self.inner, &other.inner);
         }
     }
 }
@@ -430,7 +399,7 @@ impl<'a> Assign<&'a Integer> for Rational {
     /// Assigns from an `Integer`.
     fn assign(&mut self, val: &'a Integer) {
         unsafe {
-            gmp::mpq_set_z(raw_mut(self), integer_raw(val));
+            gmp::mpq_set_z(&mut self.inner, integer_inner(val));
         }
     }
 }
@@ -445,11 +414,9 @@ impl Assign<(Integer, Integer)> for Rational {
     /// Panics if the denominator is zero.
     fn assign(&mut self, (num, den): (Integer, Integer)) {
         assert!(den != 0);
-        integer_unraw_mut(self.num_raw_mut()).assign(num);
-        integer_unraw_mut(self.den_raw_mut()).assign(den);
-        unsafe {
-            gmp::mpq_canonicalize(raw_mut(self));
-        }
+        let num_den = self.as_mut_numer_denom();
+        num_den.0.assign(num);
+        num_den.1.assign(den);
     }
 }
 
@@ -461,11 +428,9 @@ impl<'a> Assign<(&'a Integer, &'a Integer)> for Rational {
     /// Panics if the denominator is zero.
     fn assign(&mut self, (num, den): (&Integer, &Integer)) {
         assert!(*den != 0);
-        integer_unraw_mut(self.num_raw_mut()).assign(num);
-        integer_unraw_mut(self.den_raw_mut()).assign(den);
-        unsafe {
-            gmp::mpq_canonicalize(raw_mut(self));
-        }
+        let num_den = self.as_mut_numer_denom();
+        num_den.0.assign(num);
+        num_den.1.assign(den);
     }
 }
 
@@ -493,7 +458,7 @@ impl Assign<f64> for Rational {
         assert!(!f.is_nan());
         assert!(!f.is_infinite());
         unsafe {
-            gmp::mpq_set_d(raw_mut(self), f);
+            gmp::mpq_set_d(&mut self.inner, f);
         }
     }
 }
@@ -518,8 +483,8 @@ impl Assign<(u32, u32)> for Rational {
     fn assign(&mut self, (num, den): (u32, u32)) {
         assert!(den != 0);
         unsafe {
-            gmp::mpq_set_ui(raw_mut(self), num.into(), den.into());
-            gmp::mpq_canonicalize(raw_mut(self));
+            gmp::mpq_set_ui(&mut self.inner, num.into(), den.into());
+            gmp::mpq_canonicalize(&mut self.inner);
         }
     }
 }
@@ -533,8 +498,8 @@ impl Assign<(i32, u32)> for Rational {
     fn assign(&mut self, (num, den): (i32, u32)) {
         assert!(den != 0);
         unsafe {
-            gmp::mpq_set_si(raw_mut(self), num.into(), den.into());
-            gmp::mpq_canonicalize(raw_mut(self));
+            gmp::mpq_set_si(&mut self.inner, num.into(), den.into());
+            gmp::mpq_canonicalize(&mut self.inner);
         }
     }
 }
@@ -560,7 +525,7 @@ impl<'a> Assign<&'a Rational> for Integer {
     /// Assigns from a `Rational` number, rounding towards zero.
     fn assign(&mut self, val: &'a Rational) {
         unsafe {
-            gmp::mpz_set_q(integer_raw_mut(self), raw(val));
+            gmp::mpz_set_q(integer_inner_mut(self), &val.inner);
         }
     }
 }
@@ -594,7 +559,7 @@ macro_rules! arith_op {
         impl<'a> $imp_assign<&'a Rational> for Rational {
             fn $method_assign(&mut self, op: &'a Rational) {
                 unsafe {
-                    $func(raw_mut(self), raw(self), raw(op));
+                    $func(&mut self.inner, &self.inner, &op.inner);
                 }
             }
         }
@@ -621,7 +586,7 @@ impl SubFromAssign for Rational {
 impl<'a> SubFromAssign<&'a Rational> for Rational {
     fn sub_from_assign(&mut self, lhs: &Rational) {
         unsafe {
-            gmp::mpq_sub(raw_mut(self), raw(lhs), raw(self));
+            gmp::mpq_sub(&mut self.inner, &lhs.inner, &self.inner);
         }
     }
 }
@@ -635,7 +600,7 @@ impl DivFromAssign for Rational {
 impl<'a> DivFromAssign<&'a Rational> for Rational {
     fn div_from_assign(&mut self, lhs: &Rational) {
         unsafe {
-            gmp::mpq_div(raw_mut(self), raw(lhs), raw(self));
+            gmp::mpq_div(&mut self.inner, &lhs.inner, &self.inner);
         }
     }
 }
@@ -653,7 +618,7 @@ impl ShlAssign<u32> for Rational {
     /// Multiplies `self` by 2 to the power of `op`.
     fn shl_assign(&mut self, op: u32) {
         unsafe {
-            gmp::mpq_mul_2exp(raw_mut(self), raw(self), op.into());
+            gmp::mpq_mul_2exp(&mut self.inner, &self.inner, op.into());
         }
     }
 }
@@ -671,7 +636,7 @@ impl ShrAssign<u32> for Rational {
     /// Divides `self` by 2 to the power of `op`.
     fn shr_assign(&mut self, op: u32) {
         unsafe {
-            gmp::mpq_div_2exp(raw_mut(self), raw(self), op.into());
+            gmp::mpq_div_2exp(&mut self.inner, &self.inner, op.into());
         }
     }
 }
@@ -692,8 +657,9 @@ impl PowAssign<i32> for Rational {
         } else {
             (op as u32).into()
         };
-        integer_unraw_mut(self.num_raw_mut()).pow_assign(uop);
-        integer_unraw_mut(self.den_raw_mut()).pow_assign(uop);
+        let num_den = self.as_mut_numer_denom();
+        num_den.0.pow_assign(uop);
+        num_den.1.pow_assign(uop);
     }
 }
 
@@ -708,7 +674,7 @@ impl Neg for Rational {
 impl NegAssign for Rational {
     fn neg_assign(&mut self) {
         unsafe {
-            gmp::mpq_neg(raw_mut(self), raw(self));
+            gmp::mpq_neg(&mut self.inner, &self.inner);
         }
     }
 }
@@ -717,14 +683,14 @@ impl Eq for Rational {}
 
 impl Ord for Rational {
     fn cmp(&self, other: &Rational) -> Ordering {
-        let ord = unsafe { gmp::mpq_cmp(raw(self), raw(other)) };
+        let ord = unsafe { gmp::mpq_cmp(&self.inner, &other.inner) };
         ord.cmp(&0)
     }
 }
 
 impl PartialEq for Rational {
     fn eq(&self, other: &Rational) -> bool {
-        unsafe { gmp::mpq_equal(raw(self), raw(other)) != 0 }
+        unsafe { gmp::mpq_equal(&self.inner, &other.inner) != 0 }
     }
 }
 
@@ -744,7 +710,7 @@ macro_rules! cmp {
 
         impl PartialOrd<$t> for Rational {
             fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
-                Some($eval(raw(self), other))
+                Some($eval(&self.inner, other))
             }
         }
 
@@ -765,7 +731,7 @@ macro_rules! cmp {
     }
 }
 
-cmp! { Integer, |r, t| unsafe { gmp::mpq_cmp_z(r, integer_raw(t)).cmp(&0) } }
+cmp! { Integer, |r, t| unsafe { gmp::mpq_cmp_z(r, integer_inner(t)).cmp(&0) } }
 cmp! { u32, |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1).cmp(&0) } }
 cmp! { i32, |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1).cmp(&0) } }
 
@@ -796,7 +762,7 @@ impl Rational {
         let s;
         let cstr;
         unsafe {
-            s = gmp::mpq_get_str(ptr::null_mut(), radix.into(), raw(self));
+            s = gmp::mpq_get_str(ptr::null_mut(), radix.into(), &self.inner);
             assert!(!s.is_null());
             cstr = CStr::from_ptr(s);
         }
@@ -881,26 +847,28 @@ pub struct MutNumerDenom<'a>(pub &'a mut Integer, pub &'a mut Integer);
 impl<'a> Drop for MutNumerDenom<'a> {
     fn drop(&mut self) {
         assert!(*self.1 != 0);
-        let rat_num = integer_raw_mut(self.0);
-        let rat_den = integer_raw_mut(self.1);
-        let mut canon: gmp::mpq_t = unsafe { mem::uninitialized() };
-        canon.num = *rat_num;
-        canon.den = *rat_den;
+        let rat_num = integer_inner_mut(self.0);
+        let rat_den = integer_inner_mut(self.1);
         unsafe {
+            let mut canon: gmp::mpq_t = mem::uninitialized();
+            let canon_num_ptr = gmp::mpq_numref(&mut canon);
+            let canon_den_ptr = gmp::mpq_denref(&mut canon);
+            mem::swap(rat_num, &mut *canon_num_ptr);
+            mem::swap(rat_den, &mut *canon_den_ptr);
             gmp::mpq_canonicalize(&mut canon);
+            mem::swap(rat_num, &mut *canon_num_ptr);
+            mem::swap(rat_den, &mut *canon_den_ptr);
+            mem::forget(canon);
         }
-        *rat_num = canon.num;
-        *rat_den = canon.den;
-        mem::forget(canon);
     }
 }
 
-fn integer_raw(z: &Integer) -> &gmp::mpz_t {
+fn integer_inner(z: &Integer) -> &gmp::mpz_t {
     let ptr = z as *const _ as *const gmp::mpz_t;
     unsafe { &*ptr }
 }
 
-fn integer_raw_mut(z: &mut Integer) -> &mut gmp::mpz_t {
+fn integer_inner_mut(z: &mut Integer) -> &mut gmp::mpz_t {
     let ptr = z as *mut _ as *mut gmp::mpz_t;
     unsafe { &mut *ptr }
 }
