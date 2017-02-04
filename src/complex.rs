@@ -19,8 +19,8 @@ use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "random")]
 use rand::Rng;
-use rugflo::{self, AddRound, AssignRound, DivRound, Float, FromRound, MulRound,
-             PowRound, Round, ShlRound, ShrRound, SubRound};
+use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float, FromRound,
+             MulRound, PowRound, Round, ShlRound, ShrRound, Special, SubRound};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
@@ -178,6 +178,41 @@ impl Complex {
         }
     }
 
+    /// Borrows the real part mutably.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugcom;
+    /// use rugint::Assign;
+    /// use rugcom::Complex;
+    ///
+    /// fn main() {
+    ///     let mut c = Complex::from(((1, 2), (53, 53)));
+    ///     assert!(c == (1, 2));
+    ///     c.mut_real().assign(12.5);
+    ///     *c.mut_imag() += 12;
+    ///     assert!(c == (12.5, 14));
+    /// }
+    /// ```
+    pub fn mut_real(&mut self) -> &mut Float {
+        unsafe {
+            let ptr = mpc::realref(&mut self.inner);
+            &mut *(ptr as *mut Float)
+        }
+    }
+
+    /// Borrows the imaginary part mutably.
+    ///
+    /// See the example for [`mut_real()`](#method.mut_real).
+    pub fn mut_imag(&mut self) -> &mut Float {
+        unsafe {
+            let ptr = mpc::imagref(&mut self.inner);
+            &mut *(ptr as *mut Float)
+        }
+    }
+
     /// Borrows the real and imaginary parts.
     pub fn as_real_imag(&self) -> (&Float, &Float) {
         (self.real(), self.imag())
@@ -190,7 +225,6 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     ///
-    /// let x = Complex::from((1, (53, 53)));
     /// let mut c = Complex::from(((1, 2), (53, 53)));
     /// {
     ///     let mut real_imag = c.as_mut_real_imag();
@@ -260,8 +294,24 @@ impl Complex {
         self
     }
 
-    /// Computes the absolute value,
-    /// rounding to the nearest.
+    /// Computes the absolute value, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugflo;
+    /// extern crate rugcom;
+    /// use rugflo::{Float, Special};
+    /// use rugcom::Complex;
+    ///
+    /// fn main() {
+    ///     let mut f = Float::new(53);
+    ///     let c1 = Complex::from(((30, 40), (53, 53)));
+    ///     assert!(*c1.abs(&mut f) == 50);
+    ///     let c2 = Complex::from(((12, Special::Infinity), (53, 53)));
+    ///     assert!(c2.abs(&mut f).is_infinite());
+    /// }
+    /// ```
     pub fn abs<'a>(&self, buf: &'a mut Float) -> &'a mut Float {
         self.abs_round(buf, Round::Nearest);
         buf
@@ -275,8 +325,43 @@ impl Complex {
         }
     }
 
-    /// Computes the argument,
-    /// rounding to the nearest.
+    /// Computes the argument, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugflo;
+    /// extern crate rugcom;
+    /// use rugint::Assign;
+    /// use rugflo::{Float, Special};
+    /// use rugcom::Complex;
+    /// use std::f64;
+    ///
+    /// fn main() {
+    ///     // f has precision 53, just like f64, so PI constants match.
+    ///     let mut f = Float::new(53);
+    ///     let c_pos = Complex::from((1, (53, 53)));
+    ///     assert!(c_pos.arg(&mut f).is_zero());
+    ///     let c_neg = Complex::from((-1.3, (53, 53)));
+    ///     assert!(*c_neg.arg(&mut f) == f64::consts::PI);
+    ///     let c_pi_4 = Complex::from(((1.333, 1.333), (53, 53)));
+    ///     assert!(*c_pi_4.arg(&mut f) == f64::consts::FRAC_PI_4);
+
+    ///     // Special values are handled like atan2 in IEEE 754-2008.
+    ///     // Examples for real, imag set to plus, minus zero below:
+    ///     let mut zero = Complex::new((53, 53));
+    ///     zero.assign((Special::Zero, Special::Zero));
+    ///     assert!(zero.arg(&mut f).is_zero() && !f.get_sign());
+    ///     zero.assign((Special::Zero, Special::MinusZero));
+    ///     assert!(zero.arg(&mut f).is_zero() && f.get_sign());
+    ///     zero.assign((Special::MinusZero, Special::Zero));
+    ///     println!("{} {}", zero, zero.arg(&mut f));
+    ///     assert!(*zero.arg(&mut f) == f64::consts::PI);
+    ///     zero.assign((Special::MinusZero, Special::MinusZero));
+    ///     assert!(*zero.arg(&mut f) == -f64::consts::PI);
+    /// }
+    /// ```
     pub fn arg<'a>(&self, buf: &'a mut Float) -> &'a mut Float {
         self.arg_round(buf, Round::Nearest);
         buf
@@ -947,7 +1032,7 @@ macro_rules! assign {
 }
 
 assign_ref! { Integer Rational Float }
-assign! { Integer Rational Float u32 i32 f64 f32 }
+assign! { Integer Rational Float Special Constant u32 i32 f64 f32 }
 
 macro_rules! arith_for_complex {
     ($imp:ident $method:ident,
@@ -1664,6 +1749,35 @@ impl<'a> PowAssign<&'a Complex> for Complex {
 
 pow_others! { Integer Float Complex }
 
+impl PartialEq for Complex {
+    fn eq(&self, other: &Complex) -> bool {
+        self.real().eq(other.real()) && self.imag().eq(other.imag())
+    }
+}
+
+impl<T, U> PartialEq<(T, U)> for Complex
+    where Float: PartialEq<T>,
+          Float: PartialEq<U>
+{
+    fn eq(&self, other: &(T, U)) -> bool {
+        self.real().eq(&other.0) && self.imag().eq(&other.1)
+    }
+}
+
+macro_rules! partial_eq {
+    { $($t:ty)* } => {
+        $(
+            impl PartialEq<$t> for Complex {
+                fn eq(&self, other: &$t) -> bool {
+                    self.real().eq(other) && self.imag().is_zero()
+                }
+            }
+        )*
+    };
+}
+
+partial_eq! { Integer Rational Float u32 i32 f64 f32 }
+
 impl Complex {
     fn make_string(&self, radix: i32, round: Round2) -> String {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
@@ -1774,4 +1888,17 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     let first = mpc::INEX_RE(ord).cmp(&0);
     let second = mpc::INEX_IM(ord).cmp(&0);
     (first, second)
+}
+
+#[cfg(test)]
+mod tests {
+    use complex::*;
+
+    #[test]
+    fn check_no_nails() {
+        // we assume no nail bits when we use limbs
+        assert!(gmp::NAIL_BITS == 0);
+        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
+        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+    }
 }
