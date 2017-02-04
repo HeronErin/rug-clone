@@ -33,8 +33,6 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_int, c_ulong};
 
-type Prec2 = (u32, u32);
-
 type Round2 = (Round, Round);
 
 type Ordering2 = (Ordering, Ordering);
@@ -114,7 +112,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `prec.0` or `prec.1` is out of the allowed range.
-    pub fn new(prec: Prec2) -> Complex {
+    pub fn new(prec: (u32, u32)) -> Complex {
         assert!(prec.0 >= rugflo::prec_min() && prec.0 <= rugflo::prec_max() &&
                 prec.1 >= rugflo::prec_min() &&
                 prec.1 <= rugflo::prec_max(),
@@ -133,7 +131,7 @@ impl Complex {
     }
 
     /// Returns the precision of the real and imaginary parts.
-    pub fn prec(&self) -> Prec2 {
+    pub fn prec(&self) -> (u32, u32) {
         (self.real().prec(), self.imag().prec())
     }
 
@@ -143,7 +141,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `prec.0` or `prec.1` is out of the allowed range.
-    pub fn set_prec(&mut self, prec: Prec2) {
+    pub fn set_prec(&mut self, prec: (u32, u32)) {
         let (real, imag) = self.as_mut_real_imag();
         real.set_prec(prec.0);
         imag.set_prec(prec.1);
@@ -155,7 +153,10 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `prec.0` or `prec.1` is out of the allowed range.
-    pub fn set_prec_round(&mut self, prec: Prec2, round: Round2) -> Ordering2 {
+    pub fn set_prec_round(&mut self,
+                          prec: (u32, u32),
+                          round: Round2)
+                          -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
         (real.set_prec_round(prec.0, round.0),
          imag.set_prec_round(prec.1, round.1))
@@ -189,6 +190,7 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     ///
+    /// let x = Complex::from((1, (53, 53)));
     /// let mut c = Complex::from(((1, 2), (53, 53)));
     /// {
     ///     let mut real_imag = c.as_mut_real_imag();
@@ -575,7 +577,7 @@ impl Complex {
     /// rounding to the nearest.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    pub fn from_str(src: &str, prec: Prec2) -> Result<Complex, ()> {
+    pub fn from_str(src: &str, prec: (u32, u32)) -> Result<Complex, ()> {
         let mut val = Complex::new(prec);
         val.assign_str(src)?;
         Ok(val)
@@ -591,7 +593,7 @@ impl Complex {
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn from_str_radix(src: &str,
                           radix: i32,
-                          prec: Prec2)
+                          prec: (u32, u32))
                           -> Result<Complex, ()> {
         let mut val = Complex::new(prec);
         val.assign_str_radix(src, radix)?;
@@ -603,7 +605,7 @@ impl Complex {
     ///
     /// See the [corresponding assignment](#method.assign_str_round).
     pub fn from_str_round(src: &str,
-                          prec: Prec2,
+                          prec: (u32, u32),
                           round: Round2)
                           -> Result<(Complex, Ordering2), ()> {
         let mut val = Complex::new(prec);
@@ -621,7 +623,7 @@ impl Complex {
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn from_str_radix_round(src: &str,
                                 radix: i32,
-                                prec: Prec2,
+                                prec: (u32, u32),
                                 round: Round2)
                                 -> Result<(Complex, Ordering2), ()> {
         let mut val = Complex::new(prec);
@@ -787,232 +789,165 @@ impl<T> FromRound<T, (i32, i32)> for Complex
     }
 }
 
-macro_rules! from_life_a {
-    { $d:expr, $t:ty } => {
-        impl<'a> From<($t, Prec2)> for Complex {
-            /// Constructs a `Complex` number from
-            #[doc=$d]
-            /// with the specified precisions, rounding to the nearest.
-            fn from((t, prec): ($t, Prec2)) -> Complex {
-                let mut ret = Complex::new(prec);
-                ret.assign(t);
-                ret
-            }
-        }
-
-        impl<'a> FromRound<$t, Prec2> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            /// Constructs a `Complex` number from
-            #[doc=$d]
-            /// with the specified precisions, applying the specified
-            /// rounding method.
-            fn from_round(t: $t, prec: Prec2, round: Round2)
-                          -> (Complex, Ordering2) {
-                let mut ret = Complex::new(prec);
-                let ord = ret.assign_round(t, round);
-                (ret, ord)
-            }
-        }
-    };
+impl<T> From<(T, (i32, u32))> for Complex
+    where Complex: From<(T, (u32, u32))>
+{
+    fn from((t, prec): (T, (i32, u32))) -> Complex {
+        assert!(prec.0 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        Complex::from((t, (prec.0 as u32, prec.1)))
+    }
 }
 
-macro_rules! from {
-    { $d:expr, $t:ty } => {
-        impl From<($t, Prec2)> for Complex {
-            /// Constructs a `Complex` number from
-            #[doc=$d]
-            /// with the specified precisions, rounding to the nearest.
-            fn from((t, prec): ($t, Prec2)) -> Complex {
-                Complex::from_round(t, prec, (Round::Nearest, Round::Nearest)).0
-            }
-        }
-
-        impl FromRound<$t, Prec2> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            /// Constructs a `Complex` number from
-            #[doc=$d]
-            /// with the specified precisions, applying the specified
-            /// rounding method.
-            fn from_round(t: $t, prec: Prec2, round: Round2)
-                          -> (Complex, Ordering2) {
-                let mut ret = Complex::new(prec);
-                let ord = ret.assign_round(t, round);
-                (ret, ord)
-            }
-        }
-    };
+impl<T> FromRound<T, (i32, u32)> for Complex
+    where Complex: FromRound<T,
+                             (u32, u32),
+                             Round = Round2,
+                             Ordering = Ordering2>
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn from_round(t: T,
+                  prec: (i32, u32),
+                  round: Round2)
+                  -> (Complex, Ordering2) {
+        assert!(prec.0 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        Complex::from_round(t, (prec.0 as u32, prec.1), round)
+    }
 }
 
-from! { "an `Integer`", Integer }
-from! { "a `Rational` number", Rational }
-from! { "a `Float`", Float }
-from! { "another `Complex` number", Complex }
-from_life_a! { "an `Integer`", &'a Integer }
-from_life_a! { "a `Rational` number", &'a Rational }
-from_life_a! { "a `Float`", &'a Float }
-from_life_a! { "another `Complex` number", &'a Complex }
-from! { "a `u32`", u32 }
-from! { "an `i32`", i32 }
-from! { "an `f64`", f64 }
-from! { "an `f32`", f32 }
+impl<T> From<(T, (u32, i32))> for Complex
+    where Complex: From<(T, (u32, u32))>
+{
+    fn from((t, prec): (T, (u32, i32))) -> Complex {
+        assert!(prec.1 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        Complex::from((t, (prec.0, prec.1 as u32)))
+    }
+}
 
-from! { "a real and an imaginary `Integer`", (Integer, Integer) }
-from! { "a real and an imaginary `Rational` number", (Rational, Rational) }
-from! { "a real and an imaginary `Float`", (Float, Float) }
-from_life_a! { "a real and an imaginary `Integer`", (&'a Integer, &'a Integer) }
-from_life_a! { "a real and an imaginary `Rational` number",
-                (&'a Rational, &'a Rational) }
-from_life_a! { "a real and an imaginary `Float`", (&'a Float, &'a Float) }
-from! { "a real and an imaginary `u32`", (u32, u32) }
-from! { "a real and an imaginary `i32`", (i32, i32) }
-from! { "a real and an imaginary `f64`", (f64, f64) }
-from! { "a real and an imaginary `f32`", (f32, f32) }
+impl<T> FromRound<T, (u32, i32)> for Complex
+    where Complex: FromRound<T,
+                             (u32, u32),
+                             Round = Round2,
+                             Ordering = Ordering2>
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn from_round(t: T,
+                  prec: (u32, i32),
+                  round: Round2)
+                  -> (Complex, Ordering2) {
+        assert!(prec.1 >= rugflo::prec_min() as i32,
+                "precision out of range");
+        Complex::from_round(t, (prec.0, prec.1 as u32), round)
+    }
+}
+
+impl<T> From<(T, (u32, u32))> for Complex
+    where Complex: FromRound<T, (u32, u32), Round = Round2>
+{
+    fn from((t, prec): (T, (u32, u32))) -> Complex {
+        Complex::from_round(t, prec, (Round::Nearest, Round::Nearest)).0
+    }
+}
+
+impl<T> FromRound<T, (u32, u32)> for Complex
+    where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn from_round(t: T,
+                  prec: (u32, u32),
+                  round: Round2)
+                  -> (Complex, Ordering2) {
+        let mut ret = Complex::new(prec);
+        let ord = ret.assign_round(t, round);
+        (ret, ord)
+    }
+}
+
+impl<T> Assign<T> for Complex
+    where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
+{
+    fn assign(&mut self, other: T) {
+        self.assign_round(other, (Round::Nearest, Round::Nearest));
+    }
+}
+
+impl<'a> AssignRound<&'a Complex> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+
+    fn assign_round(&mut self, other: &Complex, round: Round2) -> Ordering2 {
+        let ord =
+            unsafe { mpc::set(&mut self.inner, &other.inner, rraw2(round)) };
+        ordering2(ord)
+    }
+}
+
+impl AssignRound<Complex> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+
+    fn assign_round(&mut self, other: Complex, round: Round2) -> Ordering2 {
+        self.assign_round(&other, round)
+    }
+}
+
+impl<T, U> AssignRound<(T, U)> for Complex
+    where Float: AssignRound<T, Round = Round, Ordering = Ordering>,
+          Float: AssignRound<U, Round = Round, Ordering = Ordering>
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn assign_round(&mut self, other: (T, U), round: Round2) -> Ordering2 {
+        let (real, imag) = self.as_mut_real_imag();
+        let ord1 = real.assign_round(other.0, round.0);
+        let ord2 = imag.assign_round(other.1, round.1);
+        (ord1, ord2)
+    }
+}
+
+macro_rules! assign_ref {
+    { $($t:ty)* } => {
+        $(
+            impl<'a> AssignRound<&'a $t> for Complex {
+                type Round = Round2;
+                type Ordering = Ordering2;
+                fn assign_round(&mut self, other: &'a $t, round: Round2)
+                                -> Ordering2 {
+                    let (real, imag) = self.as_mut_real_imag();
+                    let ord1 = real.assign_round(other, round.0);
+                    let ord2 = imag.assign_round(0, round.1);
+                    (ord1, ord2)
+                }
+            }
+        )*
+    };
+}
 
 macro_rules! assign {
-    { $d:expr, $t:ty, $reft:ty, $addr:expr, $eval:expr } => {
-        impl<'a> Assign<$reft> for Complex {
-            /// Assigns from
-            #[doc=$d]
-            /// and rounds to the nearest.
-            fn assign(&mut self, other: $reft) {
-                self.assign_round(other, (Round::Nearest, Round::Nearest));
+    { $($t:ty)* } => {
+        $(
+            impl AssignRound<$t> for Complex {
+                type Round = Round2;
+                type Ordering = Ordering2;
+                fn assign_round(&mut self, other: $t, round: Round2)
+                                -> Ordering2 {
+                    let (real, imag) = self.as_mut_real_imag();
+                    let ord1 = real.assign_round(other, round.0);
+                    let ord2 = imag.assign_round(0, round.1);
+                    (ord1, ord2)
+                }
             }
-        }
-
-        impl<'a> AssignRound<$reft> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            /// Assigns from
-            #[doc=$d]
-            /// and applies the specified rounding method.
-            fn assign_round(&mut self, other: $reft, round: Round2)
-                            -> Ordering2 {
-                let ord = $eval(&mut self.inner, other, rraw2(round));
-                ordering2(ord)
-            }
-        }
-
-        impl Assign<$t> for Complex {
-            /// Assigns from
-            #[doc=$d]
-            /// and rounds to the nearest.
-            fn assign(&mut self, other: $t) {
-                self.assign_round($addr(&other),
-                                  (Round::Nearest, Round::Nearest));
-            }
-        }
-
-        impl AssignRound<$t> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            /// Assigns from
-            #[doc=$d]
-            /// and applies the specified rounding method.
-            fn assign_round(&mut self, other: $t, round: Round2) -> Ordering2 {
-                self.assign_round($addr(&other), round)
-            }
-        }
+        )*
     };
 }
 
-fn unit<T>(val: T) -> T {
-    val
-}
-fn tup_ref<T>(pair: &(T, T)) -> (&T, &T) {
-    (&pair.0, &pair.1)
-}
-
-assign! { "an `Integer`", Integer, &'a Integer, unit,
-           |c, t, r| unsafe { mpc::set_z(c, integer_inner(t), r) } }
-assign! { "a `Rational` number", Rational, &'a Rational, unit,
-           |c, t, r| unsafe { mpc::set_q(c, rational_inner(t), r) } }
-assign! { "a `Float`", Float, &'a Float, unit,
-           |c, t, r| unsafe { mpc::set_fr(c, float_inner(t), r) } }
-assign! { "another `Complex` number", Complex, &'a Complex, unit,
-           |c, t: &Complex, r| unsafe { mpc::set(c, &t.inner, r) } }
-
-assign! { "a real and an imaginary `Integer`",
-           (Integer, Integer), (&'a Integer, &'a Integer), tup_ref,
-           |c, t: (&Integer, &Integer), r| unsafe {
-               mpc::set_z_z(c, integer_inner(t.0), integer_inner(t.1), r) } }
-assign! { "a real and an imaginary `Rational` number",
-           (Rational, Rational), (&'a Rational, &'a Rational), tup_ref,
-           |c, t: (&Rational, &Rational), r| unsafe {
-               mpc::set_q_q(c, rational_inner(t.0), rational_inner(t.1), r) }}
-assign! { "a real and an imaginary `Float`",
-           (Float, Float), (&'a Float, &'a Float), tup_ref,
-           |c, t: (&Float, &Float), r| unsafe {
-               mpc::set_fr_fr(c, float_inner(t.0), float_inner(t.1), r) } }
-
-macro_rules! assign_prim {
-    { $d:expr, $d_pair:expr, $t:ty, $func:path, $func_pair:path } => {
-        impl Assign<$t> for Complex {
-            /// Assigns from
-            #[doc=$d]
-            /// and rounds to the nearest.
-            fn assign(&mut self, other: $t) {
-                self.assign_round(other, (Round::Nearest, Round::Nearest));
-            }
-        }
-
-        impl AssignRound<$t> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            /// Assigns from
-            #[doc=$d]
-            /// and applies the specified rounding method.
-            fn assign_round(&mut self, other: $t, round: Round2) -> Ordering2 {
-                ordering2(unsafe {
-                    $func(&mut self.inner, other.into(), rraw2(round))
-                })
-            }
-        }
-        impl Assign<($t, $t)> for Complex {
-            /// Assigns from
-            #[doc=$d_pair]
-            /// and rounds to the nearest.
-            fn assign(&mut self, other: ($t, $t)) {
-                self.assign_round(other, (Round::Nearest, Round::Nearest));
-            }
-        }
-
-        impl AssignRound<($t, $t)> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            /// Assigns from
-            #[doc=$d_pair]
-            /// and applies the specified rounding method.
-            fn assign_round(&mut self,
-                            other: ($t, $t),
-                            round: Round2)
-                            -> Ordering2 {
-                ordering2(unsafe {
-                    $func_pair(&mut self.inner,
-                               other.0.into(),
-                               other.1.into(),
-                               rraw2(round))
-                })
-            }
-        }
-    };
-}
-
-assign_prim! { "a `u32`", "a real and an imaginary `u32`", u32,
-                mpc::set_ui, mpc::set_ui_ui }
-assign_prim! { "an `i32`", "a real and an imaginary `i32`", i32,
-                mpc::set_si, mpc::set_si_si }
-assign_prim! { "an `f32`", "a real and an imaginary `f32`", f32,
-                mpc::set_d, mpc::set_d_d }
-assign_prim! { "an `f64`", "a real and an imaginary `f64`", f64,
-                mpc::set_d, mpc::set_d_d }
+assign_ref! { Integer Rational Float }
+assign! { Integer Rational Float u32 i32 f64 f32 }
 
 macro_rules! arith_for_complex {
     ($imp:ident $method:ident,
@@ -1791,19 +1726,14 @@ fn integer_inner(z: &Integer) -> &gmp::mpz_t {
     unsafe { &*ptr }
 }
 
-fn rational_inner(q: &Rational) -> &gmp::mpq_t {
-    let ptr = q as *const _ as *const gmp::mpq_t;
-    unsafe { &*ptr }
-}
-
 fn float_inner(f: &Float) -> &mpfr::mpfr_t {
     let ptr = f as *const _ as *const mpfr::mpfr_t;
     unsafe { &*ptr }
 }
 
-fn float_inner_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
+unsafe fn float_inner_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
     let ptr = f as *mut _ as *mut mpfr::mpfr_t;
-    unsafe { &mut *ptr }
+    &mut *ptr
 }
 
 fn rraw(round: Round) -> mpfr::rnd_t {
