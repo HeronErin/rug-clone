@@ -1152,8 +1152,12 @@ impl Float {
     /// Returns `Less` if `self` is less than zero,
     /// `Greater` if `self` is greater than zero,
     /// or `Equal` if `self` is equal to zero.
-    pub fn sign(&self) -> Ordering {
-        unsafe { mpfr::sgn(&self.inner).cmp(&0) }
+    pub fn sign(&self) -> Option<Ordering> {
+        if self.is_nan() {
+            None
+        } else {
+            Some(unsafe { mpfr::sgn(&self.inner).cmp(&0) })
+        }
     }
 
     /// Returns the exponent of `self` if `self` is a normal number,
@@ -1765,17 +1769,7 @@ macro_rules! from {
 }
 
 from! { "a `Constant`", Constant }
-
-impl From<(Special, u32)> for Float {
-    /// Constructs a `Float` from a `Special` with the specified
-    /// precision.
-    fn from((special, prec): (Special, u32)) -> Float {
-        let mut ret = Float::new(prec);
-        ret.assign(special);
-        ret
-    }
-}
-
+from! { "a `Special`", Special }
 from! { "an `Integer`", Integer }
 from! { "a `Rational` number", Rational }
 from! { "another `Float`", Float }
@@ -1830,6 +1824,16 @@ impl Assign<Special> for Float {
                 Special::Nan => mpfr::set_nan(&mut self.inner),
             };
         }
+    }
+}
+
+impl AssignRound<Special> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    /// Assigns from a `Special`.
+    fn assign_round(&mut self, other: Special, _round: Round) -> Ordering {
+        self.assign(other);
+        Ordering::Equal
     }
 }
 
@@ -3040,12 +3044,25 @@ fn integer_inner(z: &Integer) -> &gmp::mpz_t {
     unsafe { &*ptr }
 }
 
-fn integer_inner_mut(z: &mut Integer) -> &mut gmp::mpz_t {
+unsafe fn integer_inner_mut(z: &mut Integer) -> &mut gmp::mpz_t {
     let ptr = z as *mut _ as *mut gmp::mpz_t;
-    unsafe { &mut *ptr }
+    &mut *ptr
 }
 
 fn rational_inner(z: &Rational) -> &gmp::mpq_t {
     let ptr = z as *const _ as *const gmp::mpq_t;
     unsafe { &*ptr }
+}
+
+#[cfg(test)]
+mod tests {
+    use float::*;
+
+    #[test]
+    fn check_no_nails() {
+        // we assume no nail bits when we use limbs
+        assert!(gmp::NAIL_BITS == 0);
+        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
+        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+    }
 }
