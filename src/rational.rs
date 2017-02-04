@@ -999,4 +999,12 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn check_no_nails() {
+        // we assume no nail bits when we use limbs
+        assert!(gmp::NAIL_BITS == 0);
+        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
+        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+    }
 }
