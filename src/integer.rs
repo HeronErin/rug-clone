@@ -29,9 +29,7 @@ use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
                BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
                RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::{c_char, c_long, c_ulong};
-#[cfg(feature = "random")]
-use std::os::raw::c_int;
+use std::os::raw::{c_char, c_int, c_long, c_ulong};
 #[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
@@ -535,7 +533,7 @@ impl Integer {
     ///
     /// Panics if the boundary value is less than or equal to zero.
     pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
-        assert!(self.sign() == Ordering::Greater);
+        assert!(self.sign() == Ordering::Greater, "cannot be below zero");
         let bits = self.significant_bits();
         let limb_bits = gmp::LIMB_BITS as u32;
         let whole_limbs = (bits / limb_bits) as usize;
@@ -597,7 +595,7 @@ impl Integer {
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix(&self, radix: i32) -> String {
-        make_string(&self.inner, radix, false)
+        make_string(self, radix, false)
     }
 
     /// Parses an `Integer`.
@@ -650,14 +648,11 @@ impl Integer {
                             radix: i32)
                             -> Result<(), ParseError> {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        if src.is_empty() {
-            return Err(ParseError::new("cannot parse integer from empty \
-                                        string"));
-        }
-        let mut first = true;
+        let mut can_be_sign = true;
+        let mut got_digit = false;
         for c in src.chars() {
-            if first {
-                first = false;
+            if can_be_sign {
+                can_be_sign = false;
                 if c == '+' || c == '-' {
                     continue;
                 }
@@ -673,9 +668,12 @@ impl Integer {
             if digit_value > radix {
                 return Err(ParseError::new("invalid digit found in string"));
             }
+            got_digit = true;
+        }
+        if !got_digit {
+            return Err(ParseError::new("cannot parse integer with no digits"));
         }
         let c_str = CString::new(src).unwrap();
-
         let err = unsafe {
             gmp::mpz_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
@@ -1319,22 +1317,19 @@ macro_rules! cmp_int {
 cmp_int! { u32, gmp::mpz_cmp_ui }
 cmp_int! { i32, gmp::mpz_cmp_si }
 
-fn make_string(z: &mpz_t, radix: i32, to_upper: bool) -> String {
+fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let z_size = unsafe { gmp::mpz_sizeinbase(z, radix) };
-    // size + 1 for '-' + 1 for nul
-    let size = z_size.checked_add(2).unwrap();
+    let i_size = unsafe { gmp::mpz_sizeinbase(&i.inner, radix) };
+    // size + 2 for '-' and nul
+    let size = i_size.checked_add(2).unwrap();
     let mut buf = Vec::<u8>::with_capacity(size);
-    let cradix = if to_upper { -radix } else { radix };
+    let case_radix = if to_upper { -radix } else { radix };
     unsafe {
         buf.set_len(size);
-        // set highest two bytes so that later we can do a sanity check
-        buf[size - 1] = 32;
-        buf[size - 2] = 32;
-        gmp::mpz_get_str(buf.as_mut_ptr() as *mut c_char, cradix as c_int, z);
-        let nul_index = if buf[0] == b'-' { size - 1 } else { size - 2 };
-        // sanity check: check the nul is where it should be
-        assert!(buf[nul_index] == 0);
+        gmp::mpz_get_str(buf.as_mut_ptr() as *mut c_char,
+                         case_radix as c_int,
+                         &i.inner);
+        let nul_index = buf.iter().position(|&x| x == 0).unwrap();
         buf.set_len(nul_index);
         String::from_utf8_unchecked(buf)
     }
@@ -1346,7 +1341,7 @@ fn fmt_radix(i: &Integer,
              to_upper: bool,
              prefix: &str)
              -> fmt::Result {
-    let s = make_string(&i.inner, radix, to_upper);
+    let s = make_string(i, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {
@@ -1391,17 +1386,6 @@ impl UpperHex for Integer {
     }
 }
 
-fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
-    let max: gmp::bitcnt_t = !0;
-    if bits == max {
-        None
-    } else if bits > u32::MAX as gmp::bitcnt_t {
-        panic!("overflow")
-    } else {
-        Some(bits as u32)
-    }
-}
-
 #[derive(Debug)]
 pub struct ParseError {
     description: String,
@@ -1422,6 +1406,17 @@ impl ParseError {
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
+    }
+}
+
+fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
+    let max: gmp::bitcnt_t = !0;
+    if bits == max {
+        None
+    } else if bits > u32::MAX as gmp::bitcnt_t {
+        panic!("overflow")
+    } else {
+        Some(bits as u32)
     }
 }
 
@@ -1570,6 +1565,23 @@ mod tests {
         i <<= 1000;
         assert!(i.to_f32() == f32::INFINITY);
         assert!(i.to_f64() == f64::INFINITY);
+    }
+
+    #[test]
+    fn check_formatting() {
+        let r = Rational::from((-11));
+        assert!(format!("{}", r) == "-11");
+        assert!(format!("{:?}", r) == "-11");
+        assert!(format!("{:b}", r) == "-1011");
+        assert!(format!("{:#b}", r) == "-0b1011");
+        assert!(format!("{:o}", r) == "-13");
+        assert!(format!("{:#o}", r) == "-0o13");
+        assert!(format!("{:x}", r) == "-b");
+        assert!(format!("{:X}", r) == "-B");
+        assert!(format!("{:8x}", r) == "      -b");
+        assert!(format!("{:08X}", r) == "-000000B");
+        assert!(format!("{:#08x}", r) == "-0x0000b");
+        assert!(format!("{:#8X}", r) == "    -0xB");
     }
 
     #[test]
