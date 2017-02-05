@@ -69,6 +69,7 @@
 //! use rugint::Integer;
 //! let mut a = Integer::from(0xc);
 //! a = (a << 80) + 0xffee;
+//! println!("{}", a.to_string_radix(16));
 //! assert!(a.to_string_radix(16) == "c0000000000000000ffee");
 //! //                                 ^   ^   ^   ^   ^
 //! //                                80  64  48  32  16
@@ -115,7 +116,7 @@ extern crate rand;
 
 mod integer;
 
-pub use integer::Integer;
+pub use integer::{Integer, ParseError};
 
 /// Assigns to a number from another value.
 pub trait Assign<T> {

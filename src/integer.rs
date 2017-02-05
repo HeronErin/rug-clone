@@ -21,16 +21,17 @@ use gmp_mpfr_sys::gmp::{self, mpz_t};
 use rand::Rng;
 use std::{i32, u32};
 use std::cmp::Ordering;
-use std::ffi::{CStr, CString};
-use std::fmt;
+use std::error::Error;
+use std::ffi::CString;
+use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
+               UpperHex};
 use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
                BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
                RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::{c_long, c_ulong, c_void};
+use std::os::raw::{c_char, c_long, c_ulong};
 #[cfg(feature = "random")]
 use std::os::raw::c_int;
-use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
@@ -132,7 +133,7 @@ impl Integer {
 
     /// Converts to an `i32` if the value fits.
     pub fn to_i32(&self) -> Option<i32> {
-        if i32::MIN <= *self && *self <= i32::MAX {
+        if *self >= i32::MIN && *self <= i32::MAX {
             Some(self.to_i32_wrapping())
         } else {
             None
@@ -578,11 +579,25 @@ impl Integer {
     /// Returns a string representation of `self` for the specified
     /// `radix`.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// let mut i = Integer::new();
+    /// assert!(i.to_string_radix(10) == "0");
+    /// i.assign(-10);
+    /// assert!(i.to_string_radix(16) == "-a");
+    /// i.assign(0x1234cdef);
+    /// assert!(i.to_string_radix(4) == "102031030313233");
+    /// i.assign_str_radix("1234567890aAbBcCdDeEfF", 16).unwrap();
+    /// assert!(i.to_string_radix(16) == "1234567890aabbccddeeff");
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix(&self, radix: i32) -> String {
-        self.make_string(radix, false, "")
+        make_string(&self.inner, radix, false)
     }
 
     /// Parses an `Integer`.
@@ -592,13 +607,15 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str, radix: i32) -> Result<Integer, ()> {
+    pub fn from_str_radix(src: &str,
+                          radix: i32)
+                          -> Result<Integer, ParseError> {
         let mut i = Integer::new();
         i.assign_str_radix(src, radix)?;
         Ok(i)
     }
 
-    /// Parses an `Integer` from a string.
+    /// Parses an `Integer` from a string in decimal.
     ///
     /// # Examples
     ///
@@ -610,16 +627,8 @@ impl Integer {
     /// let ret = i.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let err =
-            unsafe { gmp::mpz_set_str(&mut self.inner, c_str.as_ptr(), 0) };
-        if err == 0 {
-            Ok(())
-        } else {
-            self.assign(0);
-            Err(())
-        }
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseError> {
+        self.assign_str_radix(src, 10)
     }
 
     /// Parses an `Integer` from a string with the specified radix.
@@ -639,28 +648,49 @@ impl Integer {
     pub fn assign_str_radix(&mut self,
                             src: &str,
                             radix: i32)
-                            -> Result<(), ()> {
+                            -> Result<(), ParseError> {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let c_str = CString::new(src).map_err(|_| ())?;
+        if src.is_empty() {
+            return Err(ParseError::new("cannot parse integer from empty \
+                                        string"));
+        }
+        let mut first = true;
+        for c in src.chars() {
+            if first {
+                first = false;
+                if c == '+' || c == '-' {
+                    continue;
+                }
+            }
+            let digit_value = match c {
+                '0'...'9' => c as i32 - '0' as i32,
+                'a'...'z' => c as i32 - 'a' as i32 + 10,
+                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+                _ => {
+                    return Err(ParseError::new("invalid digit found in string"))
+                }
+            };
+            if digit_value > radix {
+                return Err(ParseError::new("invalid digit found in string"));
+            }
+        }
+        let c_str = CString::new(src).unwrap();
+
         let err = unsafe {
             gmp::mpz_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
-        if err == 0 {
-            Ok(())
-        } else {
-            self.assign(0);
-            Err(())
-        }
+        assert!(err == 0);
+        Ok(())
     }
 }
 
 impl FromStr for Integer {
-    type Err = ();
+    type Err = ParseError;
 
     /// Parses an `Integer`.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    fn from_str(src: &str) -> Result<Integer, ()> {
+    fn from_str(src: &str) -> Result<Integer, ParseError> {
         let mut i = Integer::new();
         i.assign_str(src)?;
         Ok(i)
@@ -1289,83 +1319,75 @@ macro_rules! cmp_int {
 cmp_int! { u32, gmp::mpz_cmp_ui }
 cmp_int! { i32, gmp::mpz_cmp_si }
 
-impl Integer {
-    fn make_string(&self, radix: i32, to_upper: bool, prefix: &str) -> String {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let s;
-        let cstr;
-        unsafe {
-            s = gmp::mpz_get_str(ptr::null_mut(), radix.into(), &self.inner);
-            assert!(!s.is_null());
-            cstr = CStr::from_ptr(s);
-        }
-        let mut chars = cstr.to_str().unwrap().chars();
-        let mut buf = String::new();
-        let mut c = chars.next();
-        if c == Some('-') {
-            buf.push('-');
-            c = chars.next();
-        }
-        buf.push_str(prefix);
-        if let Some(x) = c {
-            buf.push(x);
-        }
-        for c in chars {
-            buf.push(c);
-        }
-        unsafe {
-            let mut free = None;
-            gmp::get_memory_functions(ptr::null_mut(),
-                                      ptr::null_mut(),
-                                      &mut free);
-            let free = free.unwrap();
-            let free_len = cstr.to_bytes().len() + 1;
-            free(s as *mut c_void, free_len);
-        }
-        if to_upper {
-            buf = buf.to_uppercase();
-        }
-        buf
+fn make_string(z: &mpz_t, radix: i32, to_upper: bool) -> String {
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let z_size = unsafe { gmp::mpz_sizeinbase(z, radix) };
+    // size + 1 for '-' + 1 for nul
+    let size = z_size.checked_add(2).unwrap();
+    let mut buf = Vec::<u8>::with_capacity(size);
+    let cradix = if to_upper { -radix } else { radix };
+    unsafe {
+        buf.set_len(size);
+        // set highest two bytes so that later we can do a sanity check
+        buf[size - 1] = 32;
+        buf[size - 2] = 32;
+        gmp::mpz_get_str(buf.as_mut_ptr() as *mut c_char, cradix as c_int, z);
+        let nul_index = if buf[0] == b'-' { size - 1 } else { size - 2 };
+        // sanity check: check the nul is where it should be
+        assert!(buf[nul_index] == 0);
+        buf.set_len(nul_index);
+        String::from_utf8_unchecked(buf)
     }
 }
 
-impl fmt::Display for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string_radix(10))
+fn fmt_radix(i: &Integer,
+             f: &mut Formatter,
+             radix: i32,
+             to_upper: bool,
+             prefix: &str)
+             -> fmt::Result {
+    let s = make_string(&i.inner, radix, to_upper);
+    let (neg, buf) = if s.starts_with('-') {
+        (true, &s[1..])
+    } else {
+        (false, &s[..])
+    };
+    f.pad_integral(!neg, prefix, buf)
+}
+
+impl Display for Integer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
-impl fmt::Debug for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.make_string(16, false, "0x"))
+impl Debug for Integer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
-impl fmt::Binary for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0b" } else { "" };
-        write!(f, "{}", self.make_string(2, false, prefix))
+impl Binary for Integer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 2, false, "0b")
     }
 }
 
-impl fmt::Octal for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0o" } else { "" };
-        write!(f, "{}", self.make_string(8, false, prefix))
+impl Octal for Integer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 8, false, "0o")
     }
 }
 
-impl fmt::LowerHex for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0x" } else { "" };
-        write!(f, "{}", self.make_string(16, false, prefix))
+impl LowerHex for Integer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, false, "0x")
     }
 }
 
-impl fmt::UpperHex for Integer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0X" } else { "" };
-        write!(f, "{}", self.make_string(16, true, prefix))
+impl UpperHex for Integer {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, true, "0x")
     }
 }
 
@@ -1377,6 +1399,29 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
         panic!("overflow")
     } else {
         Some(bits as u32)
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseError {
+    description: String,
+}
+
+impl Error for ParseError {
+    fn description(&self) -> &str {
+        &self.description
+    }
+}
+
+impl ParseError {
+    fn new(description: &str) -> ParseError {
+        ParseError { description: description.to_string() }
+    }
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
     }
 }
 
@@ -1483,6 +1528,7 @@ mod tests {
         assert!(i.to_i32() == Some(0));
         i -= 1;
         assert!(i.to_u32() == None);
+        println!("i {}", i);
         assert!(i.to_i32() == Some(-1));
         i.assign(i32::MIN);
         assert!(i.to_u32() == None);
@@ -1528,7 +1574,7 @@ mod tests {
 
     #[test]
     fn check_no_nails() {
-        // we assume no nail bits
+        // we assume no nail bits when we use limbs
         assert!(gmp::NAIL_BITS == 0);
         assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
         assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
