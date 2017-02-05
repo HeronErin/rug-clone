@@ -105,4 +105,4 @@ extern crate rugflo;
 
 mod complex;
 
-pub use complex::Complex;
+pub use complex::{Complex, ParseComplexError};

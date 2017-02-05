@@ -25,8 +25,10 @@ use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
 use std::cmp::Ordering;
-use std::ffi::{CStr, CString};
-use std::fmt;
+use std::error::Error;
+use std::ffi::CStr;
+use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
+               Octal, UpperExp, UpperHex};
 use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
@@ -662,7 +664,9 @@ impl Complex {
     /// rounding to the nearest.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    pub fn from_str(src: &str, prec: (u32, u32)) -> Result<Complex, ()> {
+    pub fn from_str(src: &str,
+                    prec: (u32, u32))
+                    -> Result<Complex, ParseComplexError> {
         let mut val = Complex::new(prec);
         val.assign_str(src)?;
         Ok(val)
@@ -679,7 +683,7 @@ impl Complex {
     pub fn from_str_radix(src: &str,
                           radix: i32,
                           prec: (u32, u32))
-                          -> Result<Complex, ()> {
+                          -> Result<Complex, ParseComplexError> {
         let mut val = Complex::new(prec);
         val.assign_str_radix(src, radix)?;
         Ok(val)
@@ -689,10 +693,11 @@ impl Complex {
     /// applying the specified rounding.
     ///
     /// See the [corresponding assignment](#method.assign_str_round).
-    pub fn from_str_round(src: &str,
-                          prec: (u32, u32),
-                          round: Round2)
-                          -> Result<(Complex, Ordering2), ()> {
+    pub fn from_str_round
+        (src: &str,
+         prec: (u32, u32),
+         round: Round2)
+         -> Result<(Complex, Ordering2), ParseComplexError> {
         let mut val = Complex::new(prec);
         let ord = val.assign_str_round(src, round)?;
         Ok((val, ord))
@@ -706,11 +711,12 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix_round(src: &str,
-                                radix: i32,
-                                prec: (u32, u32),
-                                round: Round2)
-                                -> Result<(Complex, Ordering2), ()> {
+    pub fn from_str_radix_round
+        (src: &str,
+         radix: i32,
+         prec: (u32, u32),
+         round: Round2)
+         -> Result<(Complex, Ordering2), ParseComplexError> {
         let mut val = Complex::new(prec);
         let ord = val.assign_str_radix_round(src, radix, round)?;
         Ok((val, ord))
@@ -730,9 +736,8 @@ impl Complex {
     /// let ret = c.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
-        self.assign_str_round(src, (Round::Nearest, Round::Nearest))?;
-        Ok(())
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseComplexError> {
+        self.assign_str_radix(src, 10)
     }
 
     /// Parses a `Complex` number from a string with the specified
@@ -754,11 +759,11 @@ impl Complex {
     pub fn assign_str_radix(&mut self,
                             src: &str,
                             radix: i32)
-                            -> Result<(), ()> {
+                            -> Result<(), ParseComplexError> {
         self.assign_str_radix_round(src,
                                     radix,
-                                    (Round::Nearest, Round::Nearest))?;
-        Ok(())
+                                    (Round::Nearest, Round::Nearest))
+            .map(|_| ())
     }
 
     /// Parses a `Complex` number from a string, applying the specified
@@ -785,17 +790,8 @@ impl Complex {
     pub fn assign_str_round(&mut self,
                             src: &str,
                             round: Round2)
-                            -> Result<Ordering2, ()> {
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let ord = unsafe {
-            mpc::set_str(&mut self.inner, c_str.as_ptr(), 0, rraw2(round))
-        };
-        if ord < 0 {
-            self.assign(0);
-            Err(())
-        } else {
-            Ok(ordering2(ord))
-        }
+                            -> Result<Ordering2, ParseComplexError> {
+        self.assign_str_radix_round(src, 10, round)
     }
 
     /// Parses a `Complex` number from a string with the specified
@@ -827,18 +823,77 @@ impl Complex {
                                   src: &str,
                                   radix: i32,
                                   round: Round2)
-                                  -> Result<Ordering2, ()> {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let ord = unsafe {
-            mpc::set_str(&mut self.inner, c_str.as_ptr(), radix, rraw2(round))
-        };
-        if ord < 0 {
-            self.assign(0);
-            Err(())
-        } else {
-            Ok(ordering2(ord))
+                                  -> Result<Ordering2, ParseComplexError> {
+        match check_str_radix(src, radix)? {
+            PossibleFromStr::Real(r) => {
+                let real_ord = self.mut_real()
+                    .assign_str_radix_round(r, radix, round.0)
+                    .unwrap();
+                self.mut_imag().assign(Special::Zero);
+                Ok((real_ord, Ordering::Equal))
+            }
+            PossibleFromStr::Complex(r, i) => {
+                let real_ord = self.mut_real()
+                    .assign_str_radix_round(r, radix, round.0)
+                    .unwrap();
+                let imag_ord = self.mut_imag()
+                    .assign_str_radix_round(i, radix, round.1)
+                    .unwrap();
+                Ok((real_ord, imag_ord))
+            }
         }
+    }
+
+    /// Checks if a `Complex` number can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses a `Complex` number. If this method
+    /// returns an error, the other functions will return the same
+    /// error.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseComplexError> {
+        check_str_radix(src, radix).map(|_| ())
+    }
+}
+
+enum PossibleFromStr<'a> {
+    Real(&'a str),
+    Complex(&'a str, &'a str),
+}
+
+fn check_str_radix(src: &str,
+                   radix: i32)
+                   -> Result<PossibleFromStr, ParseComplexError> {
+    use self::ParseComplexError as Error;
+    use self::ParseErrorKind as Kind;
+
+    if src.starts_with('(') {
+        let space = src.find(' ').ok_or(Error { kind: Kind::MissingSpace })?;
+        let real_str = &src[1..space];
+        if Float::valid_str_radix(real_str, radix).is_err() {
+            return Err(Error { kind: Kind::InvalidRealFloat });
+        }
+        let real_rest = &src[space + 1..];
+        let close = real_rest.find(')')
+            .ok_or(Error { kind: Kind::MissingClose })?;
+        let imag_str = &real_rest[0..close];
+        if Float::valid_str_radix(imag_str, radix).is_err() {
+            return Err(Error { kind: Kind::InvalidImagFloat });
+        }
+        if close != real_rest.len() - 1 {
+            return Err(Error { kind: Kind::CloseNotLast });
+        }
+        Ok(PossibleFromStr::Complex(real_str, imag_str))
+    } else {
+        if Float::valid_str_radix(src, radix).is_err() {
+            return Err(Error { kind: Kind::InvalidFloat });
+        }
+        Ok(PossibleFromStr::Real(src))
     }
 }
 
@@ -1795,43 +1850,79 @@ impl Complex {
     }
 }
 
-impl fmt::Display for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Display for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{}", self.to_string_radix(10))
     }
 }
-impl fmt::Debug for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Debug for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let round = (Round::Nearest, Round::Nearest);
         write!(f, "{}", self.make_string(16, round))
     }
 }
 
-impl fmt::Binary for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Binary for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let round = (Round::Nearest, Round::Nearest);
         write!(f, "{}", self.make_string(2, round))
     }
 }
 
-impl fmt::Octal for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl Octal for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let round = (Round::Nearest, Round::Nearest);
         write!(f, "{}", self.make_string(8, round))
     }
 }
 
-impl fmt::LowerHex for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl LowerHex for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let round = (Round::Nearest, Round::Nearest);
         write!(f, "{}", self.make_string(16, round))
     }
 }
 
-impl fmt::UpperHex for Complex {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+impl UpperHex for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let round = (Round::Nearest, Round::Nearest);
         write!(f, "{}", self.make_string(16, round))
+    }
+}
+
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParseComplexError {
+    kind: ParseErrorKind,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum ParseErrorKind {
+    InvalidFloat,
+    InvalidRealFloat,
+    InvalidImagFloat,
+    MissingSpace,
+    MissingClose,
+    CloseNotLast,
+}
+
+impl Error for ParseComplexError {
+    fn description(&self) -> &str {
+        use self::ParseErrorKind::*;
+        match self.kind {
+            InvalidFloat => "string is not a valid float",
+            InvalidRealFloat => "real part of string is not a valid float",
+            InvalidImagFloat => "imaginary part of string is not a valid float",
+            MissingSpace => "string has no space after opening bracket",
+            MissingClose => "string has no closing bracket",
+            CloseNotLast => "string has more characters after closing bracket",
+        }
+    }
+}
+
+impl Display for ParseComplexError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
     }
 }
 
@@ -1893,6 +1984,44 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 #[cfg(test)]
 mod tests {
     use complex::*;
+    use std::f64;
+
+    #[test]
+    fn check_from_str() {
+        let mut c = Complex::new((53, 53));
+        c.assign_str("(+0 -0)").unwrap();
+        assert!(c == (0, 0));
+        assert!(!c.real().get_sign());
+        assert!(c.imag().get_sign());
+        c.assign_str("(5 6)").unwrap();
+        assert!(c == (5, 6));
+        c.assign_str_radix("(50 60)", 8).unwrap();
+        assert!(c == (0o50, 0o60));
+        c.assign_str_radix("33", 16).unwrap();
+        assert!(c == (0x33, 0));
+
+        let bad_strings = [("(0,0)", None),
+                           ("(0 0 )", None),
+                           ("( 0 0)", None),
+                           ("( 0)", None),
+                           ("(0 )", None),
+                           (" ( 2)", None),
+                           ("+(1 1)", None),
+                           ("-(1. 1.)", None),
+                           ("(1 1@1a(", Some(16)),
+                           ("(8 9)", Some(9))];
+        for &(s, radix) in bad_strings.into_iter() {
+            assert!(Complex::valid_str_radix(s, radix.unwrap_or(10)).is_err());
+        }
+        let good_strings =
+            [("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
+             ("(+0e99 1.)", 2, 0.0, 1.0),
+             ("-9.9e1", 10, -99.0, 0.0)];
+        for &(s, radix, r, i) in good_strings.into_iter() {
+            assert!(Complex::from_str_radix(s, radix, (53, 53)).unwrap() ==
+                    (r, i));
+        }
+    }
 
     #[test]
     fn check_no_nails() {
