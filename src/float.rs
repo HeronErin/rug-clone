@@ -1636,103 +1636,15 @@ impl Float {
                                   radix: i32,
                                   round: Round)
                                   -> Result<Ordering, ParseFloatError> {
-        use self::ParseFloatError as Error;
-        use self::ParseErrorKind as Kind;
 
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let (inf10, neg_inf10, nan10) =
-            (&["inf", "+inf", "infinity", "+infinity"],
-             &["-inf", "-infinity"],
-             &["nan", "+nan", "-nan"]);
-        let (inf, neg_inf, nan) =
-            (&["@inf@", "+@inf@", "@infinity@", "+@infinity@"],
-             &["-@inf@", "-@infinity@"],
-             &["@nan@", "+@nan@", "-@nan@"]);
-        if (radix <= 10 && lcase_in(src, inf10)) || lcase_in(src, inf) {
-            self.assign(Special::Infinity);
-            return Ok(Ordering::Equal);
-        }
-        if (radix <= 10 && lcase_in(src, neg_inf10)) || lcase_in(src, neg_inf) {
-            self.assign(Special::MinusInfinity);
-            return Ok(Ordering::Equal);
-        }
-        if (radix <= 10 && lcase_in(src, nan10)) || lcase_in(src, nan) {
-            self.assign(Special::Nan);
-            return Ok(Ordering::Equal);
-        }
-
-        let mut char_indices = src.char_indices();
-        let starts_with_plus = src.starts_with('+');
-        if starts_with_plus || src.starts_with('-') {
-            char_indices.next();
-        }
-        let mut got_digit = false;
-        let mut got_point = false;
-        let mut exp = false;
-        let mut fresh_exp = false;
-        let mut buf = None;
-        for (pos, c) in char_indices {
-            if fresh_exp {
-                fresh_exp = false;
-                if c == '-' {
-                    continue;
-                }
-                if c == '+' {
-                    // CString should use extra byte for nul.
-                    let mut s = String::with_capacity(src.len());
-                    let begin_index = if starts_with_plus { 1 } else { 0 };
-                    s.push_str(&src[begin_index..pos]);
-                    s.push_str(&src[pos + 1..]);
-                    buf = Some(s);
-                    continue;
-                }
+        let c_str = match check_str_radix(src, radix, true)? {
+            PossibleFromStr::Owned(s) => CString::new(s).unwrap(),
+            PossibleFromStr::Borrowed(s) => CString::new(s).unwrap(),
+            PossibleFromStr::Special(s) => {
+                self.assign(s);
+                return Ok(Ordering::Equal);
             }
-            if c == '.' {
-                if exp {
-                    return Err(Error { kind: Kind::PointInExp });
-                }
-                if got_point {
-                    return Err(Error { kind: Kind::TooManyPoints });
-                }
-                got_point = true;
-                continue;
-            }
-            if (radix <= 10 && (c == 'e' || c == 'E')) || c == '@' {
-                if exp {
-                    return Err(Error { kind: Kind::TooManyExp });
-                }
-                if !got_digit {
-                    return Err(Error { kind: Kind::SignifNoDigits });
-                }
-                got_digit = false;
-                exp = true;
-                fresh_exp = true;
-                continue;
-            }
-            let digit_value = match c {
-                '0'...'9' => c as i32 - '0' as i32,
-                'a'...'z' => c as i32 - 'a' as i32 + 10,
-                'A'...'Z' => c as i32 - 'A' as i32 + 10,
-                _ => Err(Error { kind: Kind::InvalidDigit })?,
-            };
-            if (!exp && digit_value >= radix) || (exp && digit_value >= 10) {
-                return Err(Error { kind: Kind::InvalidDigit });
-            }
-            got_digit = true;
-        }
-        if !got_digit && exp {
-            return Err(Error { kind: Kind::ExpNoDigits });
-        } else if !got_digit {
-            return Err(Error { kind: Kind::NoDigits });
-        }
-        let c_str = if let Some(buf) = buf {
-            CString::new(buf)
-        } else if starts_with_plus {
-            CString::new(&src[1..])
-        } else {
-            CString::new(src)
         };
-        let c_str = c_str.unwrap();
         let mut c_str_end: *const c_char = ptr::null();
         let ord = unsafe {
             mpfr::strtofr(&mut self.inner,
@@ -1746,6 +1658,129 @@ impl Float {
                   *const c_char;
         assert!(c_str_end == nul);
         Ok(ord)
+    }
+
+    /// Checks if a `Float` can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses a `Float`. If this method returns
+    /// an error, the other functions will return the same error.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseFloatError> {
+        check_str_radix(src, radix, false).map(|_| ())
+    }
+}
+
+enum PossibleFromStr<'a> {
+    Owned(String),
+    Borrowed(&'a str),
+    Special(Special),
+}
+
+// If will_use_returned is false, do not allocate as the result will
+// be discarded anyway.
+fn check_str_radix(src: &str,
+                   radix: i32,
+                   will_use_returned: bool)
+                   -> Result<PossibleFromStr, ParseFloatError> {
+    use self::ParseFloatError as Error;
+    use self::ParseErrorKind as Kind;
+
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let (inf10, neg_inf10, nan10) = (&["inf", "+inf", "infinity", "+infinity"],
+                                     &["-inf", "-infinity"],
+                                     &["nan", "+nan", "-nan"]);
+    let (inf, neg_inf, nan) =
+        (&["@inf@", "+@inf@", "@infinity@", "+@infinity@"],
+         &["-@inf@", "-@infinity@"],
+         &["@nan@", "+@nan@", "-@nan@"]);
+    if (radix <= 10 && lcase_in(src, inf10)) || lcase_in(src, inf) {
+        return Ok(PossibleFromStr::Special(Special::Infinity));
+    }
+    if (radix <= 10 && lcase_in(src, neg_inf10)) || lcase_in(src, neg_inf) {
+        return Ok(PossibleFromStr::Special(Special::MinusInfinity));
+    }
+    if (radix <= 10 && lcase_in(src, nan10)) || lcase_in(src, nan) {
+        return Ok(PossibleFromStr::Special(Special::Nan));
+    }
+
+    let mut char_indices = src.char_indices();
+    let starts_with_plus = src.starts_with('+');
+    if starts_with_plus || src.starts_with('-') {
+        char_indices.next();
+    }
+    let mut got_digit = false;
+    let mut got_point = false;
+    let mut exp = false;
+    let mut fresh_exp = false;
+    let mut buf = None;
+    for (pos, c) in char_indices {
+        if fresh_exp {
+            fresh_exp = false;
+            if c == '-' {
+                continue;
+            }
+            if c == '+' {
+                if will_use_returned {
+                    // CString should use extra byte for nul.
+                    let mut s = String::with_capacity(src.len());
+                    let begin_index = if starts_with_plus { 1 } else { 0 };
+                    s.push_str(&src[begin_index..pos]);
+                    s.push_str(&src[pos + 1..]);
+                    buf = Some(s);
+                }
+                continue;
+            }
+        }
+        if c == '.' {
+            if exp {
+                return Err(Error { kind: Kind::PointInExp });
+            }
+            if got_point {
+                return Err(Error { kind: Kind::TooManyPoints });
+            }
+            got_point = true;
+            continue;
+        }
+        if (radix <= 10 && (c == 'e' || c == 'E')) || c == '@' {
+            if exp {
+                return Err(Error { kind: Kind::TooManyExp });
+            }
+            if !got_digit {
+                return Err(Error { kind: Kind::SignifNoDigits });
+            }
+            got_digit = false;
+            exp = true;
+            fresh_exp = true;
+            continue;
+        }
+        let digit_value = match c {
+            '0'...'9' => c as i32 - '0' as i32,
+            'a'...'z' => c as i32 - 'a' as i32 + 10,
+            'A'...'Z' => c as i32 - 'A' as i32 + 10,
+            _ => Err(Error { kind: Kind::InvalidDigit })?,
+        };
+        if (!exp && digit_value >= radix) || (exp && digit_value >= 10) {
+            return Err(Error { kind: Kind::InvalidDigit });
+        }
+        got_digit = true;
+    }
+    if !got_digit && exp {
+        return Err(Error { kind: Kind::ExpNoDigits });
+    } else if !got_digit {
+        return Err(Error { kind: Kind::NoDigits });
+    }
+    if let Some(buf) = buf {
+        Ok(PossibleFromStr::Owned(buf))
+    } else if starts_with_plus {
+        Ok(PossibleFromStr::Borrowed(&src[1..]))
+    } else {
+        Ok(PossibleFromStr::Borrowed(src))
     }
 }
 
@@ -3249,12 +3284,7 @@ mod tests {
                            ("1@1a", Some(16)),
                            ("9e0", Some(9))];
         for &(s, radix) in bad_strings.into_iter() {
-            let res = if let Some(radix) = radix {
-                Float::from_str_radix(s, radix, 53)
-            } else {
-                Float::from_str(s, 53)
-            };
-            assert!(res.is_err());
+            assert!(Float::valid_str_radix(s, radix.unwrap_or(10)).is_err());
         }
         let good_strings = [("inf", 10, f64::INFINITY),
                             ("-@inf@", 16, f64::NEG_INFINITY),
