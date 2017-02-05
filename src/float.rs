@@ -24,9 +24,12 @@ use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
 use std::{i32, u32};
+use std::ascii::AsciiExt;
 use std::cmp::Ordering;
+use std::error::Error;
 use std::ffi::{CStr, CString};
-use std::fmt;
+use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
+               Octal, UpperExp, UpperHex};
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
@@ -1450,13 +1453,28 @@ impl Float {
 
     /// Returns a string representation of `self` for the specified
     /// `radix` rounding to the nearest.
-    /// The exponent is encoded in decimal.
+    ///
+    /// The exponent is encoded in decimal. The output string will have
+    /// enough precision such that reading it again will give the exact
+    /// same number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::{Float, Special};
+    /// let neg_inf = Float::from((Special::MinusInfinity, 53));
+    /// assert!(neg_inf.to_string_radix(10) == "-inf");
+    /// assert!(neg_inf.to_string_radix(16) == "-@inf@");
+    /// let fifteen = Float::from((15, 8));
+    /// assert!(fifteen.to_string_radix(10) == "0.1500e2");
+    /// assert!(fifteen.to_string_radix(16) == "0.f00@1");
+    /// ```
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix(&self, radix: i32) -> String {
-        self.make_string(radix, Round::Nearest, false, "")
+        self.to_string_radix_round(radix, Round::Nearest)
     }
 
     /// Returns a string representation of `self` for the specified
@@ -1467,14 +1485,14 @@ impl Float {
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix_round(&self, radix: i32, round: Round) -> String {
-        self.make_string(radix, round, false, "")
+        make_string(self, radix, None, round, false)
     }
 
     /// Parses a `Float` with the specified precision, rounding to the
     /// nearest.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    pub fn from_str(src: &str, prec: u32) -> Result<Float, ()> {
+    pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseError> {
         let mut f = Float::new(prec);
         f.assign_str(src)?;
         Ok(f)
@@ -1491,7 +1509,7 @@ impl Float {
     pub fn from_str_radix(src: &str,
                           radix: i32,
                           prec: u32)
-                          -> Result<Float, ()> {
+                          -> Result<Float, ParseError> {
         let mut f = Float::new(prec);
         f.assign_str_radix(src, radix)?;
         Ok(f)
@@ -1504,7 +1522,7 @@ impl Float {
     pub fn from_str_round(src: &str,
                           prec: u32,
                           round: Round)
-                          -> Result<(Float, Ordering), ()> {
+                          -> Result<(Float, Ordering), ParseError> {
         let mut f = Float::new(prec);
         let ord = f.assign_str_round(src, round)?;
         Ok((f, ord))
@@ -1522,7 +1540,7 @@ impl Float {
                                 radix: i32,
                                 prec: u32,
                                 round: Round)
-                                -> Result<(Float, Ordering), ()> {
+                                -> Result<(Float, Ordering), ParseError> {
         let mut f = Float::new(prec);
         let ord = f.assign_str_radix_round(src, radix, round)?;
         Ok((f, ord))
@@ -1540,20 +1558,8 @@ impl Float {
     /// let ret = f.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let err = unsafe {
-            mpfr::set_str(&mut self.inner,
-                          c_str.as_ptr(),
-                          0,
-                          rraw(Round::Nearest))
-        };
-        if err == 0 {
-            Ok(())
-        } else {
-            self.assign(0);
-            Err(())
-        }
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseError> {
+        self.assign_str_radix(src, 10)
     }
 
     /// Parses a `Float` from a string with the specified radix,
@@ -1574,21 +1580,8 @@ impl Float {
     pub fn assign_str_radix(&mut self,
                             src: &str,
                             radix: i32)
-                            -> Result<(), ()> {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let err = unsafe {
-            mpfr::set_str(&mut self.inner,
-                          c_str.as_ptr(),
-                          radix.into(),
-                          rraw(Round::Nearest))
-        };
-        if err == 0 {
-            Ok(())
-        } else {
-            self.assign(0);
-            Err(())
-        }
+                            -> Result<(), ParseError> {
+        self.assign_str_radix_round(src, radix, Round::Nearest).map(|_| ())
     }
 
     /// Parses a `Float` from a string, applying the specified
@@ -1607,25 +1600,8 @@ impl Float {
     pub fn assign_str_round(&mut self,
                             src: &str,
                             round: Round)
-                            -> Result<Ordering, ()> {
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let mut c_str_end: *const c_char = ptr::null();
-        let ord = unsafe {
-            mpfr::strtofr(&mut self.inner,
-                          c_str.as_ptr(),
-                          &mut c_str_end as *mut _ as *mut *mut c_char,
-                          0,
-                          rraw(round))
-                .cmp(&0)
-        };
-        let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
-                  *const c_char;
-        if c_str_end == nul {
-            Ok(ord)
-        } else {
-            self.assign(0);
-            Err(())
-        }
+                            -> Result<Ordering, ParseError> {
+        self.assign_str_radix_round(src, 10, round)
     }
 
     /// Parses a `Float` from a string with the specified radix,
@@ -1649,26 +1625,94 @@ impl Float {
                                   src: &str,
                                   radix: i32,
                                   round: Round)
-                                  -> Result<Ordering, ()> {
+                                  -> Result<Ordering, ParseError> {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let c_str = CString::new(src).map_err(|_| ())?;
+        if radix <= 10 {
+            if ucase_eq(src, "inf") || ucase_eq(src, "infinity") {
+                self.assign(Special::Infinity);
+                return Ok(Ordering::Equal);
+            }
+            if ucase_eq(src, "-inf") || ucase_eq(src, "-infinity") {
+                self.assign(Special::MinusInfinity);
+                return Ok(Ordering::Equal);
+            }
+            if ucase_eq(src, "nan") || ucase_eq(src, "-nan") {
+                self.assign(Special::Nan);
+                return Ok(Ordering::Equal);
+            }
+        }
+        if ucase_eq(src, "@inf@") || ucase_eq(src, "@infinity@") {
+            self.assign(Special::Infinity);
+            return Ok(Ordering::Equal);
+        }
+        if ucase_eq(src, "-@inf@") || ucase_eq(src, "-@infinity@") {
+            self.assign(Special::MinusInfinity);
+            return Ok(Ordering::Equal);
+        }
+        if ucase_eq(src, "@nan@") || ucase_eq(src, "-@nan@") {
+            self.assign(Special::Nan);
+            return Ok(Ordering::Equal);
+        }
+        let mut can_be_sign = true;
+        let mut got_digit = false;
+        let mut got_point = false;
+        let mut exp = false;
+        for c in src.chars() {
+            if can_be_sign {
+                can_be_sign = false;
+                if c == '+' || c == '-' {
+                    continue;
+                }
+            }
+            if !got_point && !exp && c == '.' {
+                got_point = true;
+                continue;
+            }
+            if (radix <= 10 && (c == 'e' || c == 'E')) || c == '@' {
+                if exp {
+                    return Err(ParseError::new("float can only have one \
+                                                exponent"));
+                }
+                if !got_digit {
+                    break;
+                }
+                can_be_sign = true;
+                exp = true;
+                continue;
+            }
+            let digit_value = match c {
+                '0'...'9' => c as i32 - '0' as i32,
+                'a'...'z' => c as i32 - 'a' as i32 + 10,
+                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+                _ => {
+                    return Err(ParseError::new("invalid digit found in string"))
+                }
+            };
+            if (!exp && digit_value > radix) || (exp && digit_value > 10) {
+                return Err(ParseError::new("invalid digit found in string"));
+            }
+            got_digit = true;
+        }
+        if !got_digit && exp {
+            return Err(ParseError::new("cannot parse exponent with no digits"));
+        } else if !got_digit {
+            return Err(ParseError::new("cannot parse float with no digits"));
+        }
+        let c_str = CString::new(src).unwrap();
         let mut c_str_end: *const c_char = ptr::null();
+        println!("{} {:?}", src, c_str);
         let ord = unsafe {
             mpfr::strtofr(&mut self.inner,
                           c_str.as_ptr(),
                           &mut c_str_end as *mut _ as *mut *mut c_char,
-                          radix.into(),
+                          radix as c_int,
                           rraw(round))
                 .cmp(&0)
         };
         let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
                   *const c_char;
-        if c_str_end == nul {
-            Ok(ord)
-        } else {
-            self.assign(0);
-            Err(())
-        }
+        assert!(c_str_end == nul);
+        Ok(ord)
     }
 }
 
@@ -2936,106 +2980,162 @@ compare_int! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
 compare_float! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
 compare_float! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, *t as f64) } }
 
-impl Float {
-    fn make_string(&self,
-                   radix: i32,
-                   round: Round,
-                   to_upper: bool,
-                   prefix: &str)
-                   -> String {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let mut buf = String::new();
-        let mut exp: mpfr::exp_t;
-        let s;
-        let cstr;
-        unsafe {
-            exp = mem::uninitialized();
-            s = mpfr::get_str(ptr::null_mut(),
-                              &mut exp,
-                              radix.into(),
-                              0,
-                              &self.inner,
-                              rraw(round));
-            assert!(!s.is_null());
-            cstr = CStr::from_ptr(s);
-        }
-        let mut chars = cstr.to_str().unwrap().chars();
-        let mut c = chars.next();
-        if c == Some('-') {
-            buf.push('-');
-            c = chars.next();
-        }
-        let mut special = true;
-        if let Some(x) = c {
-            match x {
-                '0'...'9' | 'a'...'z' | 'A'...'Z' => {
-                    buf.push_str(prefix);
-                    buf.push_str("0.");
-                    special = false;
-                }
-                _ => {}
-            };
-            buf.push(x);
-        }
-        for c in chars {
-            buf.push(c);
-        }
-        unsafe {
-            mpfr::free_str(s);
-        }
-        if !special {
-            match radix {
-                2 => buf.push_str(&format!("p{}", exp)),
-                4 => buf.push_str(&format!("p{}", exp * 2)),
-                8 => buf.push_str(&format!("p{}", exp * 3)),
-                16 => buf.push_str(&format!("p{}", exp * 4)),
-                10 => buf.push_str(&format!("e{}", exp)),
-                _ => buf.push_str(&format!("*{}^{}", radix, exp)),
+fn make_string(f: &Float,
+               radix: i32,
+               precision: Option<usize>,
+               round: Round,
+               to_upper: bool)
+               -> String {
+    use std::fmt::Write;
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    if f.is_zero() {
+        return "0".to_string();
+    }
+    if f.is_infinite() {
+        return match (radix > 10, f.get_sign()) {
+            (false, false) => "inf".to_string(),
+            (false, true) => "-inf".to_string(),
+            (true, false) => "@inf@".to_string(),
+            (true, true) => "-@inf@".to_string(),
+        };
+    }
+    if f.is_nan() {
+        let s = if radix <= 10 { "NaN" } else { "@NaN@" };
+        return s.to_string();
+    }
+    let mut buf = String::new();
+    let mut exp: mpfr::exp_t;
+    let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
+    let s;
+    let cstr;
+    unsafe {
+        exp = mem::uninitialized();
+        s = mpfr::get_str(ptr::null_mut(),
+                          &mut exp,
+                          radix.into(),
+                          digits,
+                          &f.inner,
+                          rraw(round));
+        assert!(!s.is_null());
+        cstr = CStr::from_ptr(s);
+    }
+    let mut chars = cstr.to_str().unwrap().chars();
+    let mut c = chars.next();
+    if c == Some('-') {
+        buf.push('-');
+        c = chars.next();
+    }
+    if let Some(x) = c {
+        match x {
+            '0'...'9' | 'a'...'z' | 'A'...'Z' => {
+                buf.push_str("0.");
             }
-        }
-        if !special && to_upper {
-            buf = buf.to_uppercase();
-        }
-        buf
+            _ => unreachable!(),
+        };
+        buf.push(x);
+    }
+    for c in chars {
+        buf.push(if to_upper { c.to_ascii_uppercase() } else { c });
+    }
+    unsafe {
+        mpfr::free_str(s);
+    }
+    buf.push(if radix <= 10 {
+        if to_upper { 'E' } else { 'e' }
+    } else {
+        '@'
+    });
+    let _ = write!(buf, "{}", exp);
+    buf
+}
+
+fn fmt_radix(flt: &Float,
+             f: &mut Formatter,
+             radix: i32,
+             to_upper: bool,
+             prefix: &str,
+             show_neg_zero: bool)
+             -> fmt::Result {
+    let s = make_string(flt, radix, f.precision(), Round::Nearest, to_upper);
+    if !flt.is_finite() {
+        return f.pad(&s);
+    }
+    let (neg, buf) = if s.starts_with('-') {
+        (true, &s[1..])
+    } else {
+        (show_neg_zero && flt.is_zero(), &s[..])
+    };
+    f.pad_integral(!neg, prefix, buf)
+}
+
+impl Display for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
     }
 }
 
-impl fmt::Display for Float {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string_radix(10))
-    }
-}
-impl fmt::Debug for Float {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.make_string(16, Round::Nearest, false, "0x"))
+impl Debug for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", true)
     }
 }
 
-impl fmt::Binary for Float {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0b" } else { "" };
-        write!(f, "{}", self.make_string(2, Round::Nearest, false, prefix))
+impl LowerExp for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
     }
 }
 
-impl fmt::Octal for Float {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0o" } else { "" };
-        write!(f, "{}", self.make_string(8, Round::Nearest, false, prefix))
+impl UpperExp for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, true, "", false)
     }
 }
 
-impl fmt::LowerHex for Float {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0x" } else { "" };
-        write!(f, "{}", self.make_string(16, Round::Nearest, false, prefix))
+impl Binary for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 2, false, "0b", false)
     }
 }
 
-impl fmt::UpperHex for Float {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0X" } else { "" };
-        write!(f, "{}", self.make_string(16, Round::Nearest, true, prefix))
+impl Octal for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 8, false, "0o", false)
+    }
+}
+
+impl LowerHex for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, false, "0x", false)
+    }
+}
+
+impl UpperHex for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, true, "0x", false)
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseError {
+    description: String,
+}
+
+impl Error for ParseError {
+    fn description(&self) -> &str {
+        &self.description
+    }
+}
+
+impl ParseError {
+    fn new(description: &str) -> ParseError {
+        ParseError { description: description.to_string() }
+    }
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
     }
 }
 
@@ -3054,9 +3154,50 @@ fn rational_inner(z: &Rational) -> &gmp::mpq_t {
     unsafe { &*ptr }
 }
 
+fn ucase_eq(a: &str, b: &str) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let (mut ac, mut bc) = (a.chars(), b.chars());
+    loop {
+        let (a, b) = (ac.next(), bc.next());
+        if a.is_none() && b.is_none() {
+            return true;
+        }
+        if a.is_none() || b.is_none() {
+            return false;
+        }
+        let ua = a.unwrap().to_ascii_uppercase();
+        let ub = b.unwrap().to_ascii_uppercase();
+        if ua != ub {
+            return false;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use float::*;
+
+    #[test]
+    fn check_formatting() {
+        let f = Float::from((-27, 53));
+        assert!(format!("{:.2}", f) == "-0.27e2");
+        assert!(format!("{:.4?}", f) == "-0.2700e2");
+        assert!(format!("{:.4e}", f) == "-0.2700e2");
+        assert!(format!("{:.4E}", f) == "-0.2700E2");
+        assert!(format!("{:.8b}", f) == "-0.11011000e5");
+        assert!(format!("{:.3b}", f) == "-0.111e5");
+        assert!(format!("{:#.8b}", f) == "-0b0.11011000e5");
+        assert!(format!("{:.2o}", f) == "-0.33e2");
+        assert!(format!("{:#.2o}", f) == "-0o0.33e2");
+        assert!(format!("{:.2x}", f) == "-0.1b@2");
+        assert!(format!("{:.2X}", f) == "-0.1B@2");
+        assert!(format!("{:12.1x}", f) == "     -0.1b@2");
+        assert!(format!("{:012.3X}", f) == "-00000.1B0@2");
+        assert!(format!("{:#012.2x}", f) == "-0x0000.1b@2");
+        assert!(format!("{:#12.2X}", f) == "   -0x0.1B@2");
+    }
 
     #[test]
     fn check_no_nails() {

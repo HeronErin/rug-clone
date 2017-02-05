@@ -98,8 +98,8 @@ extern crate rugrat;
 
 mod float;
 
-pub use float::{Constant, Float, Round, Special, exp_max, exp_min, prec_max,
-                prec_min};
+pub use float::{Constant, Float, ParseError, Round, Special, exp_max, exp_min,
+                prec_max, prec_min};
 
 /// Assigns to a number from another value, applying the specified
 /// rounding method.
