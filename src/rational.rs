@@ -18,14 +18,15 @@ use gmp_mpfr_sys::gmp;
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use std::cmp::Ordering;
-use std::ffi::{CStr, CString};
-use std::fmt;
+use std::error::Error;
+use std::ffi::CString;
+use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
+               UpperHex};
 use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::c_void;
-use std::ptr;
+use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
 
 /// An arbitrary-precision rational number.
@@ -204,11 +205,22 @@ impl Rational {
     /// Returns a string representation of `self` for the specified
     /// `radix`.
     ///
-    /// # Panics
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r1 = Rational::from(0);
+    /// assert!(r1.to_string_radix(10) == "0");
+    /// let r2 = Rational::from((15, 5));
+    /// assert!(r2.to_string_radix(10) == "3");
+    /// let r3 = Rational::from((10, -6));
+    /// assert!(r3.to_string_radix(10) == "-5/3");
+    /// assert!(r3.to_string_radix(5) == "-10/3");
+    /// ```
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix(&self, radix: i32) -> String {
-        self.make_string(radix, false, "")
+        make_string(self, radix, false)
     }
 
     /// Parses a `Rational` number.
@@ -218,7 +230,9 @@ impl Rational {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str, radix: i32) -> Result<Rational, ()> {
+    pub fn from_str_radix(src: &str,
+                          radix: i32)
+                          -> Result<Rational, ParseError> {
         let mut r = Rational::new();
         r.assign_str_radix(src, radix)?;
         Ok(r)
@@ -233,23 +247,12 @@ impl Rational {
     /// let mut r = Rational::new();
     /// let ret = r.assign_str("1/0");
     /// assert!(ret.is_err());
-    /// r.assign_str("24/2").unwrap();
-    /// let (num, den) = r.as_numer_denom();
-    /// assert!(*num == 12);
-    /// assert!(*den == 1);
+    /// r.assign_str("24/-2").unwrap();
+    /// assert!(*r.numer() == -12);
+    /// assert!(*r.denom() == 1);
     /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ()> {
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let err =
-            unsafe { gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), 0) };
-        if err != 0 || *self.denom() == 0 {
-            self.assign(0);
-            return Err(());
-        }
-        unsafe {
-            gmp::mpq_canonicalize(&mut self.inner);
-        }
-        Ok(())
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseError> {
+        self.assign_str_radix(src, 10)
     }
 
     /// Parses a `Rational` number from a string with the specified
@@ -262,6 +265,8 @@ impl Rational {
     /// let mut r = Rational::new();
     /// r.assign_str_radix("ff/a", 16).unwrap();
     /// assert!(r == (255, 10));
+    /// r.assign_str_radix("-ff0/-a0", 16).unwrap();
+    /// assert!(r == (255, 10));
     /// ```
     ///
     /// # Panics
@@ -270,15 +275,61 @@ impl Rational {
     pub fn assign_str_radix(&mut self,
                             src: &str,
                             radix: i32)
-                            -> Result<(), ()> {
+                            -> Result<(), ParseError> {
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let c_str = CString::new(src).map_err(|_| ())?;
-        let err =
-            unsafe { gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), radix) };
-        if err != 0 || *self.denom() == 0 {
-            self.assign(0);
-            return Err(());
+        let mut can_be_sign = true;
+        let mut got_digit = false;
+        let mut denom = false;
+        let mut denom_non_zero = false;
+        for c in src.chars() {
+            if can_be_sign {
+                can_be_sign = false;
+                if c == '+' || c == '-' {
+                    continue;
+                }
+            }
+            if c == '/' {
+                if denom {
+                    return Err(ParseError::new("rational can only have one /"));
+                }
+                if !got_digit {
+                    break;
+                }
+                can_be_sign = true;
+                got_digit = false;
+                denom = true;
+                continue;
+            }
+            let digit_value = match c {
+                '0'...'9' => c as i32 - '0' as i32,
+                'a'...'z' => c as i32 - 'a' as i32 + 10,
+                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+                _ => {
+                    return Err(ParseError::new("invalid digit found in string"))
+                }
+            };
+            if digit_value > radix {
+                return Err(ParseError::new("invalid digit found in string"));
+            }
+            got_digit = true;
+            if denom && digit_value > 0 {
+                denom_non_zero = true;
+            }
         }
+        if !got_digit && denom {
+            return Err(ParseError::new("cannot parse denominator with no \
+                                        digits"));
+        } else if !got_digit {
+            return Err(ParseError::new("cannot parse rational with no digits"));
+        }
+        if denom && !denom_non_zero {
+            return Err(ParseError::new("denominator cannot be zero"));
+        }
+        let c_str = CString::new(src).unwrap();
+        let err = unsafe {
+            gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
+        };
+        assert!(err == 0);
         unsafe {
             gmp::mpq_canonicalize(&mut self.inner);
         }
@@ -287,12 +338,12 @@ impl Rational {
 }
 
 impl FromStr for Rational {
-    type Err = ();
+    type Err = ParseError;
 
     /// Parses a `Rational` number.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    fn from_str(src: &str) -> Result<Rational, ()> {
+    fn from_str(src: &str) -> Result<Rational, ParseError> {
         let mut r = Rational::new();
         r.assign_str(src)?;
         Ok(r)
@@ -804,82 +855,97 @@ cmp! { (i32, i32), |r, t: &(i32, i32)| {
     unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
 } }
 
-impl Rational {
-    fn make_string(&self, radix: i32, to_upper: bool, prefix: &str) -> String {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let s;
-        let cstr = unsafe {
-            s = gmp::mpq_get_str(ptr::null_mut(), radix.into(), &self.inner);
-            assert!(!s.is_null());
-            CStr::from_ptr(s)
-        };
-        let mut chars = cstr.to_str().unwrap().chars();
-        let mut buf = String::new();
-        let mut c = chars.next();
-        if c == Some('-') {
-            buf.push('-');
-            c = chars.next();
-        }
-        buf.push_str(prefix);
-        if let Some(x) = c {
-            buf.push(x);
-        }
-        for c in chars {
-            buf.push(c);
-        }
-        unsafe {
-            let mut free = None;
-            gmp::get_memory_functions(ptr::null_mut(),
-                                      ptr::null_mut(),
-                                      &mut free);
-            let free = free.unwrap();
-            let free_len = cstr.to_bytes().len() + 1;
-            free(s as *mut c_void, free_len);
-        }
-        if to_upper {
-            buf = buf.to_uppercase();
-        }
-        buf
+fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let (num, den) = r.as_numer_denom();
+    let n_size = unsafe { gmp::mpz_sizeinbase(integer_inner(&num), radix) };
+    let d_size = unsafe { gmp::mpz_sizeinbase(integer_inner(&den), radix) };
+    // n_size + d_size + 3 for '-', '/' and nul
+    let size = n_size.checked_add(d_size).unwrap().checked_add(3).unwrap();
+    let mut buf = Vec::<u8>::with_capacity(size);
+    let case_radix = if to_upper { -radix } else { radix };
+    unsafe {
+        buf.set_len(size);
+        gmp::mpq_get_str(buf.as_mut_ptr() as *mut c_char,
+                         case_radix as c_int,
+                         &r.inner);
+        let nul_index = buf.iter().position(|&x| x == 0).unwrap();
+        buf.set_len(nul_index);
+        String::from_utf8_unchecked(buf)
     }
 }
 
-impl fmt::Display for Rational {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string_radix(10))
+fn fmt_radix(r: &Rational,
+             f: &mut Formatter,
+             radix: i32,
+             to_upper: bool,
+             prefix: &str)
+             -> fmt::Result {
+    let s = make_string(r, radix, to_upper);
+    let (neg, buf) = if s.starts_with('-') {
+        (true, &s[1..])
+    } else {
+        (false, &s[..])
+    };
+    f.pad_integral(!neg, prefix, buf)
+}
+
+impl Display for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
-impl fmt::Debug for Rational {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.make_string(16, false, "0x"))
+impl Debug for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
-impl fmt::Binary for Rational {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0b" } else { "" };
-        write!(f, "{}", self.make_string(2, false, prefix))
+impl Binary for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 2, false, "0b")
     }
 }
 
-impl fmt::Octal for Rational {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0o" } else { "" };
-        write!(f, "{}", self.make_string(8, false, prefix))
+impl Octal for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 8, false, "0o")
     }
 }
 
-impl fmt::LowerHex for Rational {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0x" } else { "" };
-        write!(f, "{}", self.make_string(16, false, prefix))
+impl LowerHex for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, false, "0x")
     }
 }
 
-impl fmt::UpperHex for Rational {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let prefix = if f.alternate() { "0X" } else { "" };
-        write!(f, "{}", self.make_string(16, true, prefix))
+impl UpperHex for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, true, "0x")
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseError {
+    description: String,
+}
+
+impl Error for ParseError {
+    fn description(&self) -> &str {
+        &self.description
+    }
+}
+
+impl ParseError {
+    fn new(description: &str) -> ParseError {
+        ParseError { description: description.to_string() }
+    }
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Debug::fmt(self, f)
     }
 }
 
@@ -998,6 +1064,23 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn check_formatting() {
+        let r = Rational::from((-11, 15));
+        assert!(format!("{}", r) == "-11/15");
+        assert!(format!("{:?}", r) == "-11/15");
+        assert!(format!("{:b}", r) == "-1011/1111");
+        assert!(format!("{:#b}", r) == "-0b1011/1111");
+        assert!(format!("{:o}", r) == "-13/17");
+        assert!(format!("{:#o}", r) == "-0o13/17");
+        assert!(format!("{:x}", r) == "-b/f");
+        assert!(format!("{:X}", r) == "-B/F");
+        assert!(format!("{:8x}", r) == "    -b/f");
+        assert!(format!("{:08X}", r) == "-0000B/F");
+        assert!(format!("{:#08x}", r) == "-0x00b/f");
+        assert!(format!("{:#8X}", r) == "  -0xB/F");
     }
 
     #[test]
