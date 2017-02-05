@@ -232,7 +232,7 @@ impl Rational {
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn from_str_radix(src: &str,
                           radix: i32)
-                          -> Result<Rational, ParseError> {
+                          -> Result<Rational, ParseRationalError> {
         let mut r = Rational::new();
         r.assign_str_radix(src, radix)?;
         Ok(r)
@@ -247,11 +247,11 @@ impl Rational {
     /// let mut r = Rational::new();
     /// let ret = r.assign_str("1/0");
     /// assert!(ret.is_err());
-    /// r.assign_str("24/-2").unwrap();
+    /// r.assign_str("-24/2").unwrap();
     /// assert!(*r.numer() == -12);
     /// assert!(*r.denom() == 1);
     /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseError> {
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
         self.assign_str_radix(src, 10)
     }
 
@@ -265,7 +265,7 @@ impl Rational {
     /// let mut r = Rational::new();
     /// r.assign_str_radix("ff/a", 16).unwrap();
     /// assert!(r == (255, 10));
-    /// r.assign_str_radix("-ff0/-a0", 16).unwrap();
+    /// r.assign_str_radix("+ff0/a0", 16).unwrap();
     /// assert!(r == (255, 10));
     /// ```
     ///
@@ -275,27 +275,29 @@ impl Rational {
     pub fn assign_str_radix(&mut self,
                             src: &str,
                             radix: i32)
-                            -> Result<(), ParseError> {
+                            -> Result<(), ParseRationalError> {
+        use self::ParseRationalError as Error;
+        use self::ParseErrorKind as Kind;
+
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let mut can_be_sign = true;
+        let (skip_plus, chars) = if src.starts_with('+') {
+            (&src[1..], src[1..].chars())
+        } else if src.starts_with('-') {
+            (src, src[1..].chars())
+        } else {
+            (src, src.chars())
+        };
         let mut got_digit = false;
         let mut denom = false;
         let mut denom_non_zero = false;
-        for c in src.chars() {
-            if can_be_sign {
-                can_be_sign = false;
-                if c == '+' || c == '-' {
-                    continue;
-                }
-            }
+        for c in chars {
             if c == '/' {
                 if denom {
-                    return Err(ParseError::new("rational can only have one /"));
+                    return Err(Error { kind: Kind::TooManySlashes });
                 }
                 if !got_digit {
-                    break;
+                    return Err(Error { kind: Kind::NumerNoDigits });
                 }
-                can_be_sign = true;
                 got_digit = false;
                 denom = true;
                 continue;
@@ -304,12 +306,10 @@ impl Rational {
                 '0'...'9' => c as i32 - '0' as i32,
                 'a'...'z' => c as i32 - 'a' as i32 + 10,
                 'A'...'Z' => c as i32 - 'A' as i32 + 10,
-                _ => {
-                    return Err(ParseError::new("invalid digit found in string"))
-                }
+                _ => Err(Error { kind: Kind::InvalidDigit })?,
             };
-            if digit_value > radix {
-                return Err(ParseError::new("invalid digit found in string"));
+            if digit_value >= radix {
+                return Err(Error { kind: Kind::InvalidDigit });
             }
             got_digit = true;
             if denom && digit_value > 0 {
@@ -317,15 +317,14 @@ impl Rational {
             }
         }
         if !got_digit && denom {
-            return Err(ParseError::new("cannot parse denominator with no \
-                                        digits"));
+            return Err(Error { kind: Kind::DenomNoDigits });
         } else if !got_digit {
-            return Err(ParseError::new("cannot parse rational with no digits"));
+            return Err(Error { kind: Kind::NoDigits });
         }
         if denom && !denom_non_zero {
-            return Err(ParseError::new("denominator cannot be zero"));
+            return Err(Error { kind: Kind::DenomZero });
         }
-        let c_str = CString::new(src).unwrap();
+        let c_str = CString::new(skip_plus).unwrap();
         let err = unsafe {
             gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
@@ -338,12 +337,12 @@ impl Rational {
 }
 
 impl FromStr for Rational {
-    type Err = ParseError;
+    type Err = ParseRationalError;
 
     /// Parses a `Rational` number.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    fn from_str(src: &str) -> Result<Rational, ParseError> {
+    fn from_str(src: &str) -> Result<Rational, ParseRationalError> {
         let mut r = Rational::new();
         r.assign_str(src)?;
         Ok(r)
@@ -926,24 +925,36 @@ impl UpperHex for Rational {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError {
-    description: String,
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParseRationalError {
+    kind: ParseErrorKind,
 }
 
-impl Error for ParseError {
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum ParseErrorKind {
+    InvalidDigit,
+    NoDigits,
+    NumerNoDigits,
+    DenomNoDigits,
+    TooManySlashes,
+    DenomZero,
+}
+
+impl Error for ParseRationalError {
     fn description(&self) -> &str {
-        &self.description
+        use self::ParseErrorKind::*;
+        match self.kind {
+            InvalidDigit => "invalid digit found in string",
+            NoDigits => "string has no digits",
+            NumerNoDigits => "string has no digits for numerator",
+            DenomNoDigits => "string has no digits for denominator",
+            TooManySlashes => "more than one / found in string",
+            DenomZero => "string has zero denominator",
+        }
     }
 }
 
-impl ParseError {
-    fn new(description: &str) -> ParseError {
-        ParseError { description: description.to_string() }
-    }
-}
-
-impl Display for ParseError {
+impl Display for ParseRationalError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -1063,6 +1074,41 @@ mod tests {
                     assert!(zero.partial_cmp(&Rational::from((n, d))) == ans);
                 }
             }
+        }
+    }
+
+    #[test]
+    fn check_from_str() {
+        let bad_strings = [(" 1", None),
+                           ("1/-1", None),
+                           ("1/+3", None),
+                           ("1/0", None),
+                           ("1 / 1", None),
+                           ("2/", None),
+                           ("/2", None),
+                           ("++1", None),
+                           ("+-1", None),
+                           ("1/80", Some(8)),
+                           ("0xf", Some(16)),
+                           ("9", Some(9))];
+        for &(s, radix) in bad_strings.into_iter() {
+            let res = if let Some(radix) = radix {
+                Rational::from_str_radix(s, radix)
+            } else {
+                Rational::from_str(s)
+            };
+            assert!(res.is_err());
+        }
+        let good_strings = [("0", 10, 0, 1),
+                            ("+0/fC", 16, 0, 1),
+                            ("-0/10", 2, 0, 1),
+                            ("-99/3", 10, -33, 1),
+                            ("+Ce/fF", 16, 0xce, 0xff),
+                            ("-77/2", 8, -0o77, 2)];
+        for &(s, radix, n, d) in good_strings.into_iter() {
+            let r = Rational::from_str_radix(s, radix).unwrap();
+            assert!(*r.numer() == n);
+            assert!(*r.denom() == d);
         }
     }
 

@@ -78,4 +78,4 @@ extern crate rugint;
 
 mod rational;
 
-pub use rational::{MutNumerDenom, ParseError, Rational};
+pub use rational::{MutNumerDenom, ParseRationalError, Rational};
