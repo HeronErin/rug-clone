@@ -355,12 +355,13 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     ///
-    /// let i = Integer::from(0);
-    /// assert!(i.significant_bits() == 0);
-    /// let i = Integer::from(4);
-    /// assert!(i.significant_bits() == 3);
-    /// let i = Integer::from(7);
-    /// assert!(i.significant_bits() == 3);
+    /// assert!(Integer::from(0).significant_bits() == 0);
+    /// assert!(Integer::from(1).significant_bits() == 1);
+    /// assert!(Integer::from(-1).significant_bits() == 1);
+    /// assert!(Integer::from(4).significant_bits() == 3);
+    /// assert!(Integer::from(-4).significant_bits() == 3);
+    /// assert!(Integer::from(7).significant_bits() == 3);
+    /// assert!(Integer::from(-7).significant_bits() == 3);
     /// ```
     pub fn significant_bits(&self) -> u32 {
         let bits = unsafe { gmp::mpz_sizeinbase(&self.inner, 2) };
@@ -607,7 +608,7 @@ impl Integer {
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn from_str_radix(src: &str,
                           radix: i32)
-                          -> Result<Integer, ParseError> {
+                          -> Result<Integer, ParseIntegerError> {
         let mut i = Integer::new();
         i.assign_str_radix(src, radix)?;
         Ok(i)
@@ -625,7 +626,7 @@ impl Integer {
     /// let ret = i.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseError> {
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseIntegerError> {
         self.assign_str_radix(src, 10)
     }
 
@@ -646,34 +647,35 @@ impl Integer {
     pub fn assign_str_radix(&mut self,
                             src: &str,
                             radix: i32)
-                            -> Result<(), ParseError> {
+                            -> Result<(), ParseIntegerError> {
+        use self::ParseIntegerError as Error;
+        use self::ParseErrorKind as Kind;
+
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let mut can_be_sign = true;
+        let (skip_plus, chars) = if src.starts_with('+') {
+            (&src[1..], src[1..].chars())
+        } else if src.starts_with('-') {
+            (src, src[1..].chars())
+        } else {
+            (src, src.chars())
+        };
         let mut got_digit = false;
-        for c in src.chars() {
-            if can_be_sign {
-                can_be_sign = false;
-                if c == '+' || c == '-' {
-                    continue;
-                }
-            }
+        for c in chars {
             let digit_value = match c {
                 '0'...'9' => c as i32 - '0' as i32,
                 'a'...'z' => c as i32 - 'a' as i32 + 10,
                 'A'...'Z' => c as i32 - 'A' as i32 + 10,
-                _ => {
-                    return Err(ParseError::new("invalid digit found in string"))
-                }
+                _ => return Err(Error { kind: Kind::InvalidDigit }),
             };
-            if digit_value > radix {
-                return Err(ParseError::new("invalid digit found in string"));
+            if digit_value >= radix {
+                return Err(Error { kind: Kind::InvalidDigit });
             }
             got_digit = true;
         }
         if !got_digit {
-            return Err(ParseError::new("cannot parse integer with no digits"));
+            return Err(Error { kind: Kind::NoDigits });
         }
-        let c_str = CString::new(src).unwrap();
+        let c_str = CString::new(skip_plus).unwrap();
         let err = unsafe {
             gmp::mpz_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
@@ -683,12 +685,12 @@ impl Integer {
 }
 
 impl FromStr for Integer {
-    type Err = ParseError;
+    type Err = ParseIntegerError;
 
     /// Parses an `Integer`.
     ///
     /// See the [corresponding assignment](#method.assign_str).
-    fn from_str(src: &str) -> Result<Integer, ParseError> {
+    fn from_str(src: &str) -> Result<Integer, ParseIntegerError> {
         let mut i = Integer::new();
         i.assign_str(src)?;
         Ok(i)
@@ -1386,24 +1388,28 @@ impl UpperHex for Integer {
     }
 }
 
-#[derive(Debug)]
-pub struct ParseError {
-    description: String,
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ParseIntegerError {
+    kind: ParseErrorKind,
 }
 
-impl Error for ParseError {
+#[derive(Clone, Debug, Eq, PartialEq)]
+enum ParseErrorKind {
+    InvalidDigit,
+    NoDigits,
+}
+
+impl Error for ParseIntegerError {
     fn description(&self) -> &str {
-        &self.description
+        use self::ParseErrorKind::*;
+        match self.kind {
+            InvalidDigit => "invalid digit found in string",
+            NoDigits => "string has no digits",
+        }
     }
 }
 
-impl ParseError {
-    fn new(description: &str) -> ParseError {
-        ParseError { description: description.to_string() }
-    }
-}
-
-impl Display for ParseError {
+impl Display for ParseIntegerError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -1523,7 +1529,6 @@ mod tests {
         assert!(i.to_i32() == Some(0));
         i -= 1;
         assert!(i.to_u32() == None);
-        println!("i {}", i);
         assert!(i.to_i32() == Some(-1));
         i.assign(i32::MIN);
         assert!(i.to_u32() == None);
@@ -1568,20 +1573,59 @@ mod tests {
     }
 
     #[test]
+    fn check_from_str() {
+        let mut i: Integer = "+134".parse().unwrap();
+        assert!(i == 134);
+        i.assign_str_radix("-ffFFffffFfFfffffffffffffffffffff", 16).unwrap();
+        assert!(i.significant_bits() == 128);
+        i -= 1;
+        assert!(i.significant_bits() == 129);
+
+        let bad_strings = [(" 1", None),
+                           ("+-3", None),
+                           ("-+3", None),
+                           ("++3", None),
+                           ("--3", None),
+                           ("0+3", None),
+                           ("0 ", None),
+                           ("", None),
+                           ("80", Some(8)),
+                           ("0xf", Some(16)),
+                           ("9", Some(9))];
+        for &(s, radix) in bad_strings.into_iter() {
+            let res = if let Some(radix) = radix {
+                Integer::from_str_radix(s, radix)
+            } else {
+                Integer::from_str(s)
+            };
+            assert!(res.is_err());
+        }
+        let good_strings = [("0", 10, 0),
+                            ("+0", 16, 0),
+                            ("-0", 2, 0),
+                            ("99", 10, 99),
+                            ("+Cc", 16, 0xcc),
+                            ("-77", 8, -0o77)];
+        for &(s, radix, i) in good_strings.into_iter() {
+            assert!(Integer::from_str_radix(s, radix).unwrap() == i);
+        }
+    }
+
+    #[test]
     fn check_formatting() {
-        let r = Rational::from((-11));
-        assert!(format!("{}", r) == "-11");
-        assert!(format!("{:?}", r) == "-11");
-        assert!(format!("{:b}", r) == "-1011");
-        assert!(format!("{:#b}", r) == "-0b1011");
-        assert!(format!("{:o}", r) == "-13");
-        assert!(format!("{:#o}", r) == "-0o13");
-        assert!(format!("{:x}", r) == "-b");
-        assert!(format!("{:X}", r) == "-B");
-        assert!(format!("{:8x}", r) == "      -b");
-        assert!(format!("{:08X}", r) == "-000000B");
-        assert!(format!("{:#08x}", r) == "-0x0000b");
-        assert!(format!("{:#8X}", r) == "    -0xB");
+        let i = Integer::from((-11));
+        assert!(format!("{}", i) == "-11");
+        assert!(format!("{:?}", i) == "-11");
+        assert!(format!("{:b}", i) == "-1011");
+        assert!(format!("{:#b}", i) == "-0b1011");
+        assert!(format!("{:o}", i) == "-13");
+        assert!(format!("{:#o}", i) == "-0o13");
+        assert!(format!("{:x}", i) == "-b");
+        assert!(format!("{:X}", i) == "-B");
+        assert!(format!("{:8x}", i) == "      -b");
+        assert!(format!("{:08X}", i) == "-000000B");
+        assert!(format!("{:#08x}", i) == "-0x0000b");
+        assert!(format!("{:#8X}", i) == "    -0xB");
     }
 
     #[test]

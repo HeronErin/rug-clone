@@ -116,7 +116,7 @@ extern crate rand;
 
 mod integer;
 
-pub use integer::{Integer, ParseError};
+pub use integer::{Integer, ParseIntegerError};
 
 /// Assigns to a number from another value.
 pub trait Assign<T> {
