@@ -648,40 +648,61 @@ impl Integer {
                             src: &str,
                             radix: i32)
                             -> Result<(), ParseIntegerError> {
-        use self::ParseIntegerError as Error;
-        use self::ParseErrorKind as Kind;
-
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let (skip_plus, chars) = if src.starts_with('+') {
-            (&src[1..], src[1..].chars())
-        } else if src.starts_with('-') {
-            (src, src[1..].chars())
-        } else {
-            (src, src.chars())
-        };
-        let mut got_digit = false;
-        for c in chars {
-            let digit_value = match c {
-                '0'...'9' => c as i32 - '0' as i32,
-                'a'...'z' => c as i32 - 'a' as i32 + 10,
-                'A'...'Z' => c as i32 - 'A' as i32 + 10,
-                _ => return Err(Error { kind: Kind::InvalidDigit }),
-            };
-            if digit_value >= radix {
-                return Err(Error { kind: Kind::InvalidDigit });
-            }
-            got_digit = true;
-        }
-        if !got_digit {
-            return Err(Error { kind: Kind::NoDigits });
-        }
-        let c_str = CString::new(skip_plus).unwrap();
+        let s = check_str_radix(src, radix)?;
+        let c_str = CString::new(s).unwrap();
         let err = unsafe {
             gmp::mpz_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
         assert!(err == 0);
         Ok(())
     }
+
+    /// Checks if an `Integer` can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses an `Integer`. If this method
+    /// returns an error, the other functions will return the same
+    /// error.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseIntegerError> {
+        check_str_radix(src, radix).map(|_| ())
+    }
+}
+
+fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseIntegerError> {
+    use self::ParseIntegerError as Error;
+    use self::ParseErrorKind as Kind;
+
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let (skip_plus, chars) = if src.starts_with('+') {
+        (&src[1..], src[1..].chars())
+    } else if src.starts_with('-') {
+        (src, src[1..].chars())
+    } else {
+        (src, src.chars())
+    };
+    let mut got_digit = false;
+    for c in chars {
+        let digit_value = match c {
+            '0'...'9' => c as i32 - '0' as i32,
+            'a'...'z' => c as i32 - 'a' as i32 + 10,
+            'A'...'Z' => c as i32 - 'A' as i32 + 10,
+            _ => return Err(Error { kind: Kind::InvalidDigit }),
+        };
+        if digit_value >= radix {
+            return Err(Error { kind: Kind::InvalidDigit });
+        }
+        got_digit = true;
+    }
+    if !got_digit {
+        return Err(Error { kind: Kind::NoDigits });
+    }
+    Ok(skip_plus)
 }
 
 impl FromStr for Integer {
@@ -1593,12 +1614,7 @@ mod tests {
                            ("0xf", Some(16)),
                            ("9", Some(9))];
         for &(s, radix) in bad_strings.into_iter() {
-            let res = if let Some(radix) = radix {
-                Integer::from_str_radix(s, radix)
-            } else {
-                Integer::from_str(s)
-            };
-            assert!(res.is_err());
+            assert!(Integer::valid_str_radix(s, radix.unwrap_or(10)).is_err());
         }
         let good_strings = [("0", 10, 0),
                             ("+0", 16, 0),
