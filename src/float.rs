@@ -2821,55 +2821,53 @@ conv_ops! {
     (mpfr::add_d, mpfr::sub_d, mpfr::d_sub),
     (mpfr::mul_d, mpfr::div_d, mpfr::d_div)
 }
+conv_ops! {
+    (f32, set_single),
+    (add_single, sub_single, single_sub),
+    (mul_single, div_single, single_div)
+}
 
-macro_rules! cast_arith_op {
-    { $imp:ident $method:ident,
-      $imp_round:ident $method_round:ident,
-      $imp_assign:ident $method_assign:ident } => {
-        impl $imp<f32> for Float {
-            type Output = Float;
-            fn $method(self, val: f32) -> Float {
-                self.$method(val as f64)
+macro_rules! cast_op {
+    {
+        $( $name:ident = mpfr::$func:ident(
+            $($before:ident: $before_ty:ty),*;
+            $op:ident;
+            $($after:ident: $after_ty:ty),*
+        ) -> $ret_ty:ty;)*
+    } => {
+        $(
+            unsafe fn $name($($before: $before_ty),*,
+                            $op: f32,
+                            $($after: $after_ty),*)
+                            -> $ret_ty {
+                mpfr::$func($($before),*, $op as f64, $($after),*)
             }
-        }
-
-        impl $imp_round<f32> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(self, val: f32, round: Round)
-                             -> (Float, Ordering) {
-                self.$method_round(val as f64, round)
-            }
-        }
-
-        impl $imp_assign<f32> for Float {
-            fn $method_assign(&mut self, val: f32) {
-                self.$method_assign(val as f64);
-            }
-        }
+        )*
     };
 }
-
-impl Assign<f32> for Float {
-    fn assign(&mut self, val: f32) {
-        self.assign_round(val, Round::Nearest);
-    }
+cast_op! {
+    set_single = mpfr::set_d(rop: *mut mpfr_t;
+                             op;
+                             rnd: mpfr::rnd_t) -> c_int;
+    add_single = mpfr::add_d(rop: *mut mpfr_t, op1: *const mpfr_t;
+                             op2;
+                             rnd: mpfr::rnd_t) -> c_int;
+    sub_single = mpfr::sub_d(rop: *mut mpfr_t, op1: *const mpfr_t;
+                             op2;
+                             rnd: mpfr::rnd_t) -> c_int;
+    single_sub = mpfr::d_sub(rop: *mut mpfr_t;
+                             op1;
+                             op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
+    mul_single = mpfr::mul_d(rop: *mut mpfr_t, op1: *const mpfr_t;
+                             op2;
+                             rnd: mpfr::rnd_t) -> c_int;
+    div_single = mpfr::div_d(rop: *mut mpfr_t, op1: *const mpfr_t;
+                             op2;
+                             rnd: mpfr::rnd_t) -> c_int;
+    single_div = mpfr::d_div(rop: *mut mpfr_t;
+                             op1;
+                             op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
 }
-
-impl AssignRound<f32> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    fn assign_round(&mut self, val: f32, round: Round) -> Ordering {
-        self.assign_round(val as f64, round)
-    }
-}
-
-cast_arith_op! { Add add, AddRound add_round, AddAssign add_assign }
-cast_arith_op! { Sub sub, SubRound sub_round, SubAssign sub_assign }
-cast_arith_op! { Mul mul, MulRound mul_round, MulAssign mul_assign }
-cast_arith_op! { Div div, DivRound div_round, DivAssign div_assign }
-
 
 impl Pow<u32> for Float {
     type Output = Float;
@@ -3299,7 +3297,7 @@ fn char_to_upper_if(c: char, to_upper: bool) -> char {
 #[cfg(test)]
 mod tests {
     use float::*;
-    use std::f64;
+    use std::{f32, f64};
     use std::str::FromStr;
 
     fn same(a: Float, b: Float) -> bool {
@@ -3316,7 +3314,7 @@ mod tests {
     }
 
     #[test]
-    fn check_arith_f_z_q() {
+    fn check_arith_others() {
         let work_prec = 20;
         let check_prec = 100;
         let f = [Float::from((Special::Zero, work_prec)),
@@ -3340,6 +3338,32 @@ mod tests {
                  Rational::from(-1),
                  Rational::from_str("-1000000000000/33333333333").unwrap(),
                  Rational::from_str("1000000000000/33333333333").unwrap()];
+        let u = [0, 1, 1000, u32::MAX];
+        let s = [i32::MIN, -1000, -1, 0, 1, 1000, i32::MAX];
+        let double = [f64::INFINITY,
+                      f64::MAX,
+                      f64::MIN_POSITIVE,
+                      0.0,
+                      -0.0,
+                      -f64::MIN_POSITIVE,
+                      f64::MIN,
+                      f64::NEG_INFINITY,
+                      f64::NAN,
+                      1.0,
+                      2.0,
+                      12.0e43];
+        let single = [f32::INFINITY,
+                      f32::MAX,
+                      f32::MIN_POSITIVE,
+                      0.0,
+                      -0.0,
+                      -f32::MIN_POSITIVE,
+                      f32::MIN,
+                      f32::NEG_INFINITY,
+                      f32::NAN,
+                      1.0,
+                      2.0,
+                      12.0e30];
         for zz in &z {
             let zf = Float::from((zz, check_prec));
             for ff in &f {
@@ -3364,6 +3388,58 @@ mod tests {
                 assert!(same(qq.clone() - ff.clone(), qf.clone() - ff));
                 assert!(same(qq.clone() * ff.clone(), qf.clone() * ff));
                 assert!(same(qq.clone() / ff.clone(), qf.clone() / ff));
+            }
+        }
+        for uu in &u {
+            let uf = Float::from((*uu, check_prec));
+            for ff in &f {
+                assert!(same(ff.clone() + *uu, ff.clone() + &uf));
+                assert!(same(ff.clone() - *uu, ff.clone() - &uf));
+                assert!(same(ff.clone() * *uu, ff.clone() * &uf));
+                assert!(same(ff.clone() / *uu, ff.clone() / &uf));
+                assert!(same(*uu + ff.clone(), uf.clone() + ff));
+                assert!(same(*uu - ff.clone(), uf.clone() - ff));
+                assert!(same(*uu * ff.clone(), uf.clone() * ff));
+                assert!(same(*uu / ff.clone(), uf.clone() / ff));
+            }
+        }
+        for ss in &s {
+            let sf = Float::from((*ss, check_prec));
+            for ff in &f {
+                assert!(same(ff.clone() + *ss, ff.clone() + &sf));
+                assert!(same(ff.clone() - *ss, ff.clone() - &sf));
+                assert!(same(ff.clone() * *ss, ff.clone() * &sf));
+                assert!(same(ff.clone() / *ss, ff.clone() / &sf));
+                assert!(same(*ss + ff.clone(), sf.clone() + ff));
+                assert!(same(*ss - ff.clone(), sf.clone() - ff));
+                assert!(same(*ss * ff.clone(), sf.clone() * ff));
+                assert!(same(*ss / ff.clone(), sf.clone() / ff));
+            }
+        }
+        for oo in &double {
+            let of = Float::from((*oo, check_prec));
+            for ff in &f {
+                assert!(same(ff.clone() + *oo, ff.clone() + &of));
+                assert!(same(ff.clone() - *oo, ff.clone() - &of));
+                assert!(same(ff.clone() * *oo, ff.clone() * &of));
+                assert!(same(ff.clone() / *oo, ff.clone() / &of));
+                assert!(same(*oo + ff.clone(), of.clone() + ff));
+                assert!(same(*oo - ff.clone(), of.clone() - ff));
+                assert!(same(*oo * ff.clone(), of.clone() * ff));
+                assert!(same(*oo / ff.clone(), of.clone() / ff));
+            }
+        }
+        for oo in &single {
+            let of = Float::from((*oo, check_prec));
+            for ff in &f {
+                assert!(same(ff.clone() + *oo, ff.clone() + &of));
+                assert!(same(ff.clone() - *oo, ff.clone() - &of));
+                assert!(same(ff.clone() * *oo, ff.clone() * &of));
+                assert!(same(ff.clone() / *oo, ff.clone() / &of));
+                assert!(same(*oo + ff.clone(), of.clone() + ff));
+                assert!(same(*oo - ff.clone(), of.clone() - ff));
+                assert!(same(*oo * ff.clone(), of.clone() * ff));
+                assert!(same(*oo / ff.clone(), of.clone() / ff));
             }
         }
     }
