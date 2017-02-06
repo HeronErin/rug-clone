@@ -2034,18 +2034,25 @@ impl<'a> From<&'a Float> for Rational {
     /// extern crate rugrat;
     /// extern crate rugflo;
     /// use rugrat::Rational;
-    /// use rugflo::Float;
+    /// use rugflo::{Float, FromRound, Round};
+    /// use std::str::FromStr;
+    /// use std::cmp::Ordering;
     ///
     /// fn main() {
-    ///     let large_f = Float::from((6.5, 16u32));
-    ///     let large_r = Rational::from(&large_f); // borrow
-    ///     let small_f = Float::from((-0.125, 16));
-    ///     let small_r = Rational::from(small_f); // move
-    ///
-    ///     assert!(*large_r.numer() == 13);
-    ///     assert!(*large_r.denom() == 2);
-    ///     assert!(*small_r.numer() == -1);
-    ///     assert!(*small_r.denom() == 8);
+    ///     // Consider the number 123,456,789 / 10,000,000,000.
+    ///     let res = Float::from_str_round("0.0123456789", 35, Round::Down);
+    ///     let (f, f_rounding) = res.unwrap();
+    ///     assert!(f_rounding == Ordering::Less);
+    ///     let r = Rational::from_str("123456789/10000000000").unwrap();
+    ///     // Set fr to the value of f exactly.
+    ///     let fr = Rational::from(&f);
+    ///     // Since f == fr and f was rounded down, r != fr.
+    ///     assert!(r != fr);
+    ///     let res = Float::from_round(&fr, 35, Round::Down);
+    ///     let (frf, frf_rounding) = res;
+    ///     assert!(frf_rounding == Ordering::Equal);
+    ///     assert!(frf == f);
+    ///     assert!(format!("{:.9}", frf) == "1.23456789e-2");
     /// }
     /// ```
     ///
@@ -2053,30 +2060,8 @@ impl<'a> From<&'a Float> for Rational {
     ///
     /// Panics if `val` is a NaN or infinite.
     fn from(val: &Float) -> Rational {
-        let (mut num, exp) = val.to_integer_exp().unwrap();
-        let mut den = Integer::from(1);
-        num_den_shift_exp(&mut num, &mut den, exp);
-        (num, den).into()
-    }
-}
-
-fn num_den_shift_exp(num: &mut Integer, den: &mut Integer, exp: i32) {
-    if *num != 0 {
-        if exp < 0 {
-            let uexp = exp.wrapping_neg() as u32;
-            unsafe {
-                gmp::mpz_mul_2exp(integer_inner_mut(den),
-                                  integer_inner(den),
-                                  uexp.into());
-            }
-        } else {
-            let uexp = exp as u32;
-            unsafe {
-                gmp::mpz_mul_2exp(integer_inner_mut(num),
-                                  integer_inner(num),
-                                  uexp.into());
-            }
-        }
+        let (num, exp) = val.to_integer_exp().unwrap();
+        Rational::from(num) << exp
     }
 }
 
@@ -2130,11 +2115,14 @@ impl<'a> Assign<&'a Float> for Rational {
     /// Panics if `val` is a NaN or infinite.
     fn assign(&mut self, val: &'a Float) {
         assert!(val.is_finite());
-        let mut num_den = self.as_mut_numer_denom();
-        let exp = unsafe {
-            mpfr::get_z_2exp(integer_inner_mut(num_den.0), &val.inner) as i32
+        let exp = {
+            let mut num_den = self.as_mut_numer_denom();
+            num_den.1.assign(1);
+            unsafe {
+                mpfr::get_z_2exp(integer_inner_mut(num_den.0), &val.inner)
+            }
         };
-        num_den_shift_exp(&mut num_den.0, &mut num_den.1, exp);
+        *self <<= exp as i32;
     }
 }
 
