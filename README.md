@@ -61,7 +61,7 @@ root and add `rugcom` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rugcom = "0.1.3"
+rugcom = "0.2.0"
 ```
 
 The `rugcom` crate depends on the low-level bindings in the
@@ -80,6 +80,6 @@ this to `Cargo.toml`:
 
 ```toml
 [dependencies.rugcom]
-version = "0.1.3"
+version = "0.2.0"
 default-features = false
 ```
