@@ -380,8 +380,8 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
-    pub fn to_u32(&self) -> Option<u32> {
-        self.to_u32_round(Round::Nearest)
+    pub fn to_u32_saturating(&self) -> Option<u32> {
+        self.to_u32_saturating_round(Round::Nearest)
     }
 
     /// Converts to a `u32`, applying the specified rounding method.
@@ -389,7 +389,7 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
-    pub fn to_u32_round(&self, round: Round) -> Option<u32> {
+    pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
             return None;
         }
@@ -406,8 +406,8 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
-    pub fn to_i32(&self) -> Option<i32> {
-        self.to_i32_round(Round::Nearest)
+    pub fn to_i32_saturating(&self) -> Option<i32> {
+        self.to_i32_saturating_round(Round::Nearest)
     }
 
     /// Converts to an `i32`, applying the specified rounding method.
@@ -415,7 +415,7 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
-    pub fn to_i32_round(&self, round: Round) -> Option<i32> {
+    pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
             return None;
         }
