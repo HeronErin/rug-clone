@@ -24,9 +24,9 @@ use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float, FromRound,
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
+use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::i32;
@@ -640,24 +640,44 @@ impl Complex {
 
     /// Returns a string representation of `self` for the specified
     /// `radix` rounding to the nearest.
-    /// The exponent is encoded in decimal.
+    ///
+    /// The exponent is encoded in decimal. The output string will have
+    /// enough precision such that reading it again will give the exact
+    /// same number.
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix(&self, radix: i32) -> String {
-        self.make_string(radix, (Round::Nearest, Round::Nearest))
+    pub fn to_string_radix(&self,
+                           radix: i32,
+                           num_digits: Option<usize>)
+                           -> String {
+        self.to_string_radix_round(radix,
+                                   num_digits,
+                                   (Round::Nearest, Round::Nearest))
     }
 
     /// Returns a string representation of `self` for the specified
     /// `radix` applying the specified rounding method.
-    /// The exponent is encoded in decimal.
+    ///
+    /// The exponent is encoded in decimal. The output string will have
+    /// enough precision such that reading it again will give the exact
+    /// same number.
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix_round(&self, radix: i32, round: Round2) -> String {
-        self.make_string(radix, round)
+    pub fn to_string_radix_round(&self,
+                                 radix: i32,
+                                 num_digits: Option<usize>,
+                                 round: Round2)
+                                 -> String {
+        let mut buf = String::from("(");
+        buf += &self.real().to_string_radix_round(radix, num_digits, round.0);
+        buf.push(' ');
+        buf += &self.imag().to_string_radix_round(radix, num_digits, round.0);
+        buf.push(')');
+        buf
     }
 
     /// Parses a `Complex` number with the specified precision,
@@ -1833,60 +1853,101 @@ macro_rules! partial_eq {
 
 partial_eq! { Integer Rational Float u32 i32 f64 f32 }
 
-impl Complex {
-    fn make_string(&self, radix: i32, round: Round2) -> String {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let mut buf = String::new();
-        let s;
-        let cstr;
-        unsafe {
-            s = mpc::get_str(radix.into(), 0, &self.inner, rraw2(round));
-            assert!(!s.is_null());
-            cstr = CStr::from_ptr(s);
-            buf.push_str(cstr.to_str().unwrap());
-            mpc::free_str(s);
-        }
-        buf
+fn fmt_radix(c: &Complex,
+             fmt: &mut Formatter,
+             radix: i32,
+             to_upper: bool,
+             prefix: &str,
+             show_neg_zero: bool)
+             -> fmt::Result {
+    let (real, imag) = c.as_real_imag();
+    let mut buf = String::from("(");
+    fmt_float(&mut buf, real, fmt, radix, to_upper, prefix, show_neg_zero);
+    buf.push(' ');
+    fmt_float(&mut buf, imag, fmt, radix, to_upper, prefix, show_neg_zero);
+    buf.push(')');
+    let count = buf.chars().count();
+    let padding = match fmt.width() {
+        Some(width) if width > count => width - count,
+        _ => return fmt.write_str(&buf),
+    };
+    let mut fill_buf = String::with_capacity(4);
+    fill_buf.push(fmt.fill());
+    for _ in 0..padding {
+        fmt.write_str(&fill_buf)?;
     }
+    fmt.write_str(&buf)
+}
+
+fn fmt_float(buf: &mut String,
+             flt: &Float,
+             fmt: &mut Formatter,
+             radix: i32,
+             to_upper: bool,
+             prefix: &str,
+             show_neg_zero: bool) {
+    let show_neg_zero = show_neg_zero || fmt.sign_plus();
+    let mut s = flt.to_string_radix(radix, fmt.precision());
+    if s.starts_with('-') ||
+       (show_neg_zero && flt.is_zero() && flt.get_sign()) {
+        buf.push('-');
+    } else if fmt.sign_plus() {
+        buf.push('+');
+    }
+    if fmt.alternate() {
+        buf.push_str(prefix);
+    }
+    if to_upper && flt.is_finite() {
+        s.make_ascii_uppercase();
+    }
+    buf.push_str(if s.starts_with('-') { &s[1..] } else { &s });
 }
 
 impl Display for Complex {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        write!(f, "{}", self.to_string_radix(10))
+        fmt_radix(self, f, 10, false, "", false)
     }
 }
+
 impl Debug for Complex {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let round = (Round::Nearest, Round::Nearest);
-        write!(f, "{}", self.make_string(16, round))
+        fmt_radix(self, f, 10, false, "", true)
+    }
+}
+
+impl LowerExp for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
+    }
+}
+
+impl UpperExp for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, true, "", false)
     }
 }
 
 impl Binary for Complex {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let round = (Round::Nearest, Round::Nearest);
-        write!(f, "{}", self.make_string(2, round))
+        fmt_radix(self, f, 2, false, "0b", false)
     }
 }
 
 impl Octal for Complex {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let round = (Round::Nearest, Round::Nearest);
-        write!(f, "{}", self.make_string(8, round))
+        fmt_radix(self, f, 8, false, "0o", false)
     }
 }
 
 impl LowerHex for Complex {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let round = (Round::Nearest, Round::Nearest);
-        write!(f, "{}", self.make_string(16, round))
+        fmt_radix(self, f, 16, false, "0x", false)
     }
 }
 
 impl UpperHex for Complex {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let round = (Round::Nearest, Round::Nearest);
-        write!(f, "{}", self.make_string(16, round))
+        fmt_radix(self, f, 16, true, "0x", false)
     }
 }
 
@@ -2021,6 +2082,31 @@ mod tests {
             assert!(Complex::from_str_radix(s, radix, (53, 53)).unwrap() ==
                     (r, i));
         }
+    }
+
+
+    #[test]
+    fn check_formatting() {
+        let mut c = Complex::new((53, 53));
+        c.assign((Special::Zero, Special::MinusZero));
+        assert!(format!("{}", c) == "(0.0 0.0)");
+        assert!(format!("{:?}", c) == "(0.0 -0.0)");
+        assert!(format!("{:+}", c) == "(+0.0 -0.0)");
+        c.assign((2.7, f64::NEG_INFINITY));
+        assert!(format!("{:.2}", c) == "(2.7e0 -inf)");
+        assert!(format!("{:+.8}", c) == "(+2.7000000e0 -inf)");
+        assert!(format!("{:.4e}", c) == "(2.700e0 -inf)");
+        assert!(format!("{:.4E}", c) == "(2.700E0 -inf)");
+        assert!(format!("{:16.2}", c) == "    (2.7e0 -inf)");
+        c.assign((3.5, 11));
+        assert!(format!("{:.4b}", c) == "(1.110e1 1.011e3)");
+        assert!(format!("{:#.4b}", c) == "(0b1.110e1 0b1.011e3)");
+        assert!(format!("{:.4o}", c) == "(3.400e0 1.300e1)");
+        assert!(format!("{:#.4o}", c) == "(0o3.400e0 0o1.300e1)");
+        assert!(format!("{:.2x}", c) == "(3.8@0 b.0@0)");
+        assert!(format!("{:#.2x}", c) == "(0x3.8@0 0xb.0@0)");
+        assert!(format!("{:.2X}", c) == "(3.8@0 B.0@0)");
+        assert!(format!("{:#.2X}", c) == "(0x3.8@0 0xB.0@0)");
     }
 
     #[test]
