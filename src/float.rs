@@ -1477,24 +1477,27 @@ impl Float {
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix(&self,
                            radix: i32,
-                           num_digits: Option<u32>)
+                           num_digits: Option<usize>)
                            -> String {
         self.to_string_radix_round(radix, num_digits, Round::Nearest)
     }
 
     /// Returns a string representation of `self` for the specified
     /// `radix` applying the specified rounding method.
-    /// The exponent is encoded in decimal.
+    ///
+    /// The exponent is encoded in decimal. The output string will have
+    /// enough precision such that reading it again will give the exact
+    /// same number.
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix_round(&self,
                                  radix: i32,
-                                 num_digits: Option<u32>,
+                                 num_digits: Option<usize>,
                                  round: Round)
                                  -> String {
-        make_string(self, radix, num_digits.map(|n| n as usize), round, false)
+        make_string(self, radix, num_digits, round, false)
     }
 
     /// Parses a `Float` with the specified precision, rounding to the
