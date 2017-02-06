@@ -878,8 +878,8 @@ cmp! { (i32, i32), |r, t: &(i32, i32)| {
 fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let (num, den) = r.as_numer_denom();
-    let n_size = unsafe { gmp::mpz_sizeinbase(integer_inner(&num), radix) };
-    let d_size = unsafe { gmp::mpz_sizeinbase(integer_inner(&den), radix) };
+    let n_size = unsafe { gmp::mpz_sizeinbase(integer_inner(num), radix) };
+    let d_size = unsafe { gmp::mpz_sizeinbase(integer_inner(den), radix) };
     // n_size + d_size + 3 for '-', '/' and nul
     let size = n_size.checked_add(d_size).unwrap().checked_add(3).unwrap();
     let mut buf = Vec::<u8>::with_capacity(size);
