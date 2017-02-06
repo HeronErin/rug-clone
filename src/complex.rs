@@ -34,6 +34,7 @@ use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_int, c_ulong};
+use std::ptr;
 
 type Round2 = (Round, Round);
 
@@ -249,10 +250,10 @@ impl Complex {
     /// consuming `self`.
     pub fn into_real_imag(mut self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
-        {
-            let (self_real, self_imag) = self.as_mut_real_imag();
-            mem::swap(&mut real, self_real);
-            mem::swap(&mut imag, self_imag);
+        unsafe {
+            let real_imag = self.as_mut_real_imag();
+            ptr::copy_nonoverlapping(real_imag.0, &mut real, 1);
+            ptr::copy_nonoverlapping(real_imag.1, &mut imag, 1);
         }
         mem::forget(self);
         (real, imag)
@@ -914,6 +915,25 @@ fn check_str_radix(src: &str,
             return Err(Error { kind: Kind::InvalidFloat });
         }
         Ok(PossibleFromStr::Real(src))
+    }
+}
+
+impl From<(Float, Float)> for Complex {
+    /// Constructs a `Complex` number from a real `Float` and
+    /// imaginary `Float`.
+    ///
+    /// This constructor does not allocate, as it reuses the `Float`
+    /// components.
+    fn from((real, imag): (Float, Float)) -> Complex {
+        let mut dst: Complex = unsafe { mem::uninitialized() };
+        unsafe {
+            let mut real_imag = dst.as_mut_real_imag();
+            ptr::copy_nonoverlapping(&real, real_imag.0, 1);
+            ptr::copy_nonoverlapping(&imag, real_imag.1, 1);
+        }
+        mem::forget(real);
+        mem::forget(imag);
+        dst
     }
 }
 
