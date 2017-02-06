@@ -87,7 +87,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rugint = "0.1.3"
+//! rugint = "0.2.0"
 //! ```
 //!
 //! The `rugint` crate depends on the low-level bindings in the
@@ -106,7 +106,7 @@
 //!
 //! ```toml
 //! [dependencies.rugint]
-//! version = "0.1.3"
+//! version = "0.2.0"
 //! default-features = false
 //! ```
 
