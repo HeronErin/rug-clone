@@ -40,7 +40,7 @@
 //! Apart from this documentation, it can be helpful to refer to the
 //! documentation of the [GMP][gmp] library.
 //!
-//! The crate provides the [`Integer`][Integer] type, which holds an
+//! The crate provides the [`Integer`][integer] type, which holds an
 //! arbitrary-precision integer. You can construct this from primitive
 //! data types, and use the standard arithmetic operators. Many
 //! operators can also operate on a mixture of this type and primitive
@@ -99,7 +99,7 @@
 //! ### Optional feature
 //! 
 //! The `rugint` crate has an optional feature `random` to enable
-//! random number generation. The `random` feature has a build
+//! random number generation. The `random` feature introduces a
 //! dependency on the `rand` crate. The feature is enabled by default;
 //! to disable it add this to `Cargo.toml`:
 //! 
@@ -114,7 +114,7 @@
 //! [gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
 //! [integer]:  https://tspiteri.gitlab.io/gmp-mpfr/rugint/struct.Integer.html
 //! [lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
-//! [rugcom]:   https://tspiteri.gitlab.io/gmp-mpfr/rugdom/
+//! [rugcom]:   https://tspiteri.gitlab.io/gmp-mpfr/rugcom/
 //! [rugflo]:   https://tspiteri.gitlab.io/gmp-mpfr/rugflo/
 //! [rugint]:   https://tspiteri.gitlab.io/gmp-mpfr/rugint/
 //! [rugrat]:   https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
