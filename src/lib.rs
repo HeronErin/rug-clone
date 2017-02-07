@@ -86,6 +86,9 @@
 //! [rugrat]:   https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
 //! [sys]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/
 
+#![warn(missing_docs)]
+#![doc(test(attr(deny(warnings))))]
+
 extern crate gmp_mpfr_sys;
 extern crate rugint;
 

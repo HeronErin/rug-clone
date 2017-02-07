@@ -947,6 +947,7 @@ impl UpperHex for Rational {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// An error which can be returned when parsing a `Rational` number.
 pub struct ParseRationalError {
     kind: ParseErrorKind,
 }
