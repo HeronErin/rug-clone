@@ -1,42 +1,34 @@
 # Arbitrary-precision integers
 
 The `rugint` crate provides arbitrary-precision integers using the
-[GNU Multiple Precision Arithmetic Library](https://gmplib.org/)
-(GMP). It is one of a group of four crates:
+[GNU Multiple Precision Arithmetic Library][gmp home] (GMP). It is one
+of a group of four crates:
 
-* [`rugint`](https://gitlab.com/tspiteri/rugint)
-  provides arbitrary-precision integers based on GMP.
-* [`rugrat`](https://gitlab.com/tspiteri/rugrat)
-  provides arbitrary-precision rational number based on GMP.
-* [`rugflo`](https://gitlab.com/tspiteri/rugflo)
-  provides arbitrary-precision floating-point numbers based on MPFR.
-* [`rugcom`](https://gitlab.com/tspiteri/rugcom)
-  provides arbitrary-precision complex numbers based on MPC.
+* [`rugint`][rugint] provides arbitrary-precision integers based on
+  GMP.
+* [`rugrat`][rugrat] provides arbitrary-precision rational number
+  based on GMP.
+* [`rugflo`][rugflo] provides arbitrary-precision floating-point
+  numbers based on MPFR.
+* [`rugcom`][rugcom] provides arbitrary-precision complex numbers
+  based on MPC.
 
 This crate is free software: you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-  
-See [LICENSE-LGPL](LICENSE-LGPL.md) and [LICENSE-GPL](LICENSE-GPL.md)
-for details.
+(at your option) any later version. See the full text of the
+[GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 
-## Documentation
+## Basic use
 
-[Documentation](https://tspiteri.gitlab.io/gmp-mpfr/rugint/) for this
-crate is available.
+[Documentation][rugint] for this crate is available. It can also be
+helpful to refer to the documentation of the [GMP][gmp] library.
 
-It can also be helpful to refer to the documentation at the
-[GMP](https://gmplib.org/manual/) page.
-
-The crate provides the
-[`Integer`]
-(http://tspiteri.gitlab.io/gmp-mpfr/current/rugint/struct.Integer.html)
-type, which holds an arbitrary-precision integer. You can construct
-this from primitive data types, and use the standard arithmetic
-operators. Many operators can also operate on a mixture of this type
-and primitive types; in this case, the result is returned as an
-arbitrary-precision type.
+The crate provides the [`Integer`][Integer] type, which holds an
+arbitrary-precision integer. You can construct this from primitive
+data types, and use the standard arithmetic operators. Many operators
+can also operate on a mixture of this type and primitive types; in
+this case, the result is returned as an arbitrary-precision type.
 
 ## Examples
 
@@ -47,15 +39,16 @@ use rugint::{Assign, Integer};
 fn main() {
     // Create an integer initialized as zero.
     let mut int = Integer::new();
-    assert!(int.to_u32() == 0);
     assert!(int == 0);
+    assert!(int.to_u32() == Some(0));
     int.assign(14);
     assert!(int == 14);
+    assert!(int.to_i32() == Some(14));
 }
 ```
 
 Arithmetic operations with mixed arbitrary and primitive types are
-allowed. However, the supported operations are not exhaustive.
+allowed.
 
 ```rust
 use rugint::Integer;
@@ -66,9 +59,9 @@ assert!(a.to_string_radix(16) == "c0000000000000000ffee");
 //                                80  64  48  32  16
 ```
 
-Note that in the above example, there is only one construction.
-The `Integer` instance is moved into the shift operation so that
-the result can be stored in the same instance, then that result is
+Note that in the above example, there is only one allocation. The
+`Integer` instance is moved into the shift operation so that the
+result can be stored in the same instance, then that result is
 similarly consumed by the addition operation.
 
 ## Usage
@@ -82,11 +75,9 @@ rugint = "0.2.0"
 ```
 
 The `rugint` crate depends on the low-level bindings in the
-[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate. This
-should be transparent on GNU/Linux and macOS, but may need some work
-on Windows. See
-[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) for some
-details.
+`gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
+macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
+[documentation][sys] for some details.
 
 ### Optional feature
 
@@ -100,3 +91,14 @@ this to `Cargo.toml`:
 version = "0.2.0"
 default-features = false
 ```
+
+[gmp home]: https://gmplib.org/
+[gmp]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp/
+[gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
+[integer]:  https://tspiteri.gitlab.io/gmp-mpfr/rugint/struct.Integer.html
+[lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
+[rugcom]:   https://tspiteri.gitlab.io/gmp-mpfr/rugdom/
+[rugflo]:   https://tspiteri.gitlab.io/gmp-mpfr/rugflo/
+[rugint]:   https://tspiteri.gitlab.io/gmp-mpfr/rugint/
+[rugrat]:   https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
+[sys]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/
