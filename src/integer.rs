@@ -1410,6 +1410,7 @@ impl UpperHex for Integer {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// An error which can be returned when parsing an `Integer`.
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
 }
