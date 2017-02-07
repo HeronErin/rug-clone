@@ -1,40 +1,32 @@
-# Multiple-precision complex numbers
+# Arbitrary-precision complex numbers
 
-The `rugcom` crate provides multiple-precision complex numbers using
-[GNU MPC](http://www.multiprecision.org/), a library for the
-arithmetic of complex numbers with arbitrarily high precision and
-correct rounding of the result. It is one of a group of four crates:
+The `rugcom` crate provides arbitrary-precision complex numbers using
+[GNU MPC][mpc home], a library for the arithmetic of complex numbers
+with arbitrarily high precision and correct rounding of the result. It
+is one of a group of four crates:
 
-* [`rugint`](https://gitlab.com/tspiteri/rugint)
-  provides arbitrary-precision integers based on GMP.
-* [`rugrat`](https://gitlab.com/tspiteri/rugrat)
-  provides arbitrary-precision rational number based on GMP.
-* [`rugflo`](https://gitlab.com/tspiteri/rugflo)
-  provides arbitrary-precision floating-point numbers based on MPFR.
-* [`rugcom`](https://gitlab.com/tspiteri/rugcom)
-  provides arbitrary-precision complex numbers based on MPC.
+* [`rugint`][rugint] provides arbitrary-precision integers based on
+  GMP.
+* [`rugrat`][rugrat] provides arbitrary-precision rational number
+  based on GMP.
+* [`rugflo`][rugflo] provides arbitrary-precision floating-point
+  numbers based on MPFR.
+* [`rugcom`][rugcom] provides arbitrary-precision complex numbers
+  based on MPC.
 
 This crate is free software: you can redistribute it and/or modify it
 under the terms of the GNU Lesser General Public License as published
 by the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-  
-See [LICENSE-LGPL](LICENSE-LGPL.md) and [LICENSE-GPL](LICENSE-GPL.md)
-for details.
+(at your option) any later version. See the full text of the
+[GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 
-## Documentation
+## Basic use
 
-[Documentation](https://tspiteri.gitlab.io/gmp-mpfr/rugcom/) for this crate
-is available.
+[Documentation][rugcom] for this crate is available. It can also be
+helpful to refer to the documentation of the [MPC][mpc] library.
 
-It can also be helpful to refer to the documentation at the
-[MPC](http://www.multiprecision.org/index.php?prog=mpc&page=html)
-page.
-
-The crate provides the
-[`Complex`]
-(http://tspiteri.gitlab.io/gmp-mpfr/current/rugcom/struct.Complex.html)
-type, which holds a multiple-precision complex number.
+The crate provides the [`Complex`][complex] type, which provides an
+arbitrary-precision complex number with correct rounding.
 
 ## Examples
 
@@ -65,16 +57,14 @@ rugcom = "0.2.0"
 ```
 
 The `rugcom` crate depends on the low-level bindings in the
-[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) crate. This
-should be transparent on GNU/Linux and macOS, but may need some work
-on Windows. See
-[`gmp-mpfr-sys`](https://gitlab.com/tspiteri/gmp-mpfr-sys) for some
-details.
+`gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
+macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
+[documentation][sys] for some details.
 
 ### Optional feature
 
 The `rugcom` crate has an optional feature `random` to enable random
-number generation. The `random` feature has a build dependency on the
+number generation. The `random` feature introduces a dependency on the
 `rand` crate. The feature is enabled by default; to disable it add
 this to `Cargo.toml`:
 
@@ -83,3 +73,14 @@ this to `Cargo.toml`:
 version = "0.2.0"
 default-features = false
 ```
+
+[complex]:  https://tspiteri.gitlab.io/gmp-mpfr/rugcom/struct.Complex.html
+[gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
+[lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
+[mpc home]: http://www.multiprecision.org/
+[mpc]:      https://tspiteri.gitlab.io/gmp-mpfr/mpc/
+[rugcom]:   https://tspiteri.gitlab.io/gmp-mpfr/rugcom/
+[rugflo]:   https://tspiteri.gitlab.io/gmp-mpfr/rugflo/
+[rugint]:   https://tspiteri.gitlab.io/gmp-mpfr/rugint/
+[rugrat]:   https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
+[sys]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/
