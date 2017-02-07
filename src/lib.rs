@@ -14,50 +14,52 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! # Multiple-precision floating-point numbers
+//! # Arbitrary-precision floating-point numbers
 //!
-//! The `rugflo` crate provides multiple-precision floating-point
-//! numbers using the [GNU MPFR Library](http://www.mpfr.org/), a
-//! library for multiple-precision floating-point computations. It
-//! can be helpful to refer to the documentation at the
-//! [MPFR](http://www.mpfr.org/mpfr-current/mpfr.html) page.
+//! The `rugflo` crate provides arbitrary-precision floating-point
+//! numbers using the [GNU MPFR Library][mpfr home], a library for
+//! multiple-precision floating-point computations. It is one of a
+//! group of four crates:
+//!
+//! * [`rugint`][rugint] provides arbitrary-precision integers based
+//!   on GMP.
+//! * [`rugrat`][rugrat] provides arbitrary-precision rational number
+//!   based on GMP.
+//! * [`rugflo`][rugflo] provides arbitrary-precision floating-point
+//!   numbers based on MPFR.
+//! * [`rugcom`][rugcom] provides arbitrary-precision complex numbers
+//!   based on MPC.
 //!
 //! This crate is free software: you can redistribute it and/or modify
 //! it under the terms of the GNU Lesser General Public License as
 //! published by the Free Software Foundation, either version 3 of the
-//! License, or (at your option) any later version.
-//!
-//! See the [LGPL](https://www.gnu.org/licenses/lgpl-3.0.en.html) and
-//! [GPL](https://www.gnu.org/licenses/gpl-3.0.html) for details.
-//!
-//! This crate is one of a group of four crates:
-//!
-//! * [`rugint`](https://tspiteri.gitlab.io/gmp-mpfr/rugint/)
-//!   provides arbitrary-precision integers based on GMP.
-//! * [`rugrat`](https://tspiteri.gitlab.io/gmp-mpfr/rugrat/)
-//!   provides arbitrary-precision rational number based on GMP.
-//! * [`rugflo`](https://tspiteri.gitlab.io/gmp-mpfr/rugflo/)
-//!   provides arbitrary-precision floating-point numbers based on MPFR.
-//! * [`rugcom`](https://tspiteri.gitlab.io/gmp-mpfr/rugcom/)
-//!   provides arbitrary-precision complex numbers based on MPC.
+//! License, or (at your option) any later version. See the full text
+//! of the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 //!
 //! ## Basic use
 //!
-//! The crate provides the [`Float`](./struct.Float.html) type, which
-//! holds a multiple-precision floating-point number.
+//! Apart from this documentation, it can be helpful to refer to the
+//! documentation of the [MPFR][mpfr] library.
+//!
+//! The crate provides the [`Float`][float] type, which provides an
+//! arbitrary-precision floating-point number with correct rounding.
 //!
 //! ## Examples
 //!
 //! ```rust
+//! extern crate rugflo;
 //! use rugflo::Float;
-//! // Create a floating-point number with 53 bits of precision.
-//! // (An `f64` has 53 bits of precision too.)
-//! let flo53 = Float::from((0xff00ff, 53));
-//! assert!(flo53.to_f64() == 0xff00ff as f64);
-//! // Create a floating-point number with only 16 bits of precision.
-//! let flo16 = Float::from((0xff00ff, 16));
-//! // Now the number is rounded.
-//! assert!(flo16.to_f64() == 0xff0100 as f64);
+//!
+//! fn main() {
+//!     // Create a floating-point number with 53 bits of precision.
+//!     // (An f64 has 53 bits of precision too.)
+//!     let flo53 = Float::from((0xff00ff, 53));
+//!     assert!(flo.to_f64() == 0xff00ff as f64);
+//!     // Create a floating-point number with only 16 bits of precision.
+//!     let flo16 = Float::from((0xff00ff, 16));
+//!     // Now the number is rounded.
+//!     assert!(flo16.to_f64() == 0xff0100 as f64);
+//! }
 //! ```
 //!
 //! ## Usage
@@ -71,16 +73,14 @@
 //! ```
 //!
 //! The `rugflo` crate depends on the low-level bindings in the
-//! [`gmp-mpfr-sys`](https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/)
-//! crate. This should be transparent on GNU/Linux and macOS, but may
-//! need some work on Windows. See
-//! [`gmp-mpfr-sys`](https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/)
-//! for some details.
+//! `gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
+//! macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
+//! [documentation][sys] for some details.
 //!
 //! ### Optional feature
 //!
 //! The `rugflo` crate has an optional feature `random` to enable
-//! random number generation. The `random` feature has a build
+//! random number generation. The `random` feature introduces a
 //! dependency on the `rand` crate. The feature is enabled by default;
 //! to disable it add this to `Cargo.toml`:
 //!
@@ -89,6 +89,17 @@
 //! version = "0.2.0"
 //! default-features = false
 //! ```
+//!
+//! [float]:     https://tspiteri.gitlab.io/gmp-mpfr/rugflo/struct.Float.html
+//! [gpl]:       https://www.gnu.org/licenses/gpl-3.0.html
+//! [lgpl]:      https://www.gnu.org/licenses/lgpl-3.0.en.html
+//! [mpfr home]: http://www.mpfr.org/
+//! [mpfr]:      https://tspiteri.gitlab.io/gmp-mpfr/mpfr/
+//! [rugcom]:    https://tspiteri.gitlab.io/gmp-mpfr/rugcom/
+//! [rugflo]:    https://tspiteri.gitlab.io/gmp-mpfr/rugflo/
+//! [rugint]:    https://tspiteri.gitlab.io/gmp-mpfr/rugint/
+//! [rugrat]:    https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
+//! [sys]:       https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/
 
 extern crate gmp_mpfr_sys;
 #[cfg(feature = "random")]
