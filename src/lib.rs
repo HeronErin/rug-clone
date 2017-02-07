@@ -54,7 +54,7 @@
 //!     // Create a floating-point number with 53 bits of precision.
 //!     // (An f64 has 53 bits of precision too.)
 //!     let flo53 = Float::from((0xff00ff, 53));
-//!     assert!(flo.to_f64() == 0xff00ff as f64);
+//!     assert!(flo53.to_f64() == 0xff00ff as f64);
 //!     // Create a floating-point number with only 16 bits of precision.
 //!     let flo16 = Float::from((0xff00ff, 16));
 //!     // Now the number is rounded.
@@ -100,6 +100,9 @@
 //! [rugint]:    https://tspiteri.gitlab.io/gmp-mpfr/rugint/
 //! [rugrat]:    https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
 //! [sys]:       https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/
+
+#![warn(missing_docs)]
+#![doc(test(attr(deny(warnings))))]
 
 extern crate gmp_mpfr_sys;
 #[cfg(feature = "random")]

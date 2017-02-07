@@ -3215,6 +3215,7 @@ impl UpperHex for Float {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// An error which can be returned when parsing a `Float`.
 pub struct ParseFloatError {
     kind: ParseErrorKind,
 }
