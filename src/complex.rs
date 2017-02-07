@@ -37,6 +37,7 @@ use std::os::raw::{c_int, c_ulong};
 use std::ptr;
 
 type Round2 = (Round, Round);
+const NEAREST: Round2 = (Round::Nearest, Round::Nearest);
 
 type Ordering2 = (Ordering, Ordering);
 
@@ -95,7 +96,7 @@ macro_rules! math_op1 {
       $func:path } => {
         #[doc=$d]
         pub fn $method(&mut self) -> &mut Complex {
-            self.$method_round((Round::Nearest, Round::Nearest));
+            self.$method_round(NEAREST);
             self
         }
 
@@ -290,9 +291,8 @@ impl Complex {
     /// Computes the complex conjugate,
     /// rounding to the nearest.
     pub fn conjugate(&mut self) -> &mut Complex {
-        let round = (Round::Nearest, Round::Nearest);
         unsafe {
-            mpc::conj(&mut self.inner, &self.inner, rraw2(round));
+            mpc::conj(&mut self.inner, &self.inner, rraw2(NEAREST));
         }
         self
     }
@@ -378,7 +378,16 @@ impl Complex {
         }
     }
 
-    pub fn mul_i(&mut self, negative: bool, round: Round2) -> Ordering2 {
+    /// Multiplies the complex number by *i*,
+    /// rounding to the nearest.
+    pub fn mul_i(&mut self, negative: bool) -> &mut Complex {
+        self.mul_i_round(negative, NEAREST);
+        self
+    }
+
+    /// Multiplies the complex number by *i*,
+    /// applying the specified rounding method.
+    pub fn mul_i_round(&mut self, negative: bool, round: Round2) -> Ordering2 {
         let sgn = if negative { -1 } else { 0 };
         ordering2(unsafe {
             mpc::mul_i(&mut self.inner, &self.inner, sgn, rraw2(round))
@@ -388,7 +397,7 @@ impl Complex {
     /// Computes the reciprocal,
     /// rounding to the nearest.
     pub fn recip(&mut self) -> &mut Complex {
-        self.recip_round((Round::Nearest, Round::Nearest));
+        self.recip_round(NEAREST);
         self
     }
 
@@ -465,8 +474,7 @@ impl Complex {
     /// sine is stored in `self` and keeps its precision, while the
     /// cosine is stored in `buf` keeping its precision.
     pub fn sin_cos(&mut self, buf: &mut Complex) {
-        let round = (Round::Nearest, Round::Nearest);
-        self.sin_cos_round(buf, round, round);
+        self.sin_cos_round(buf, NEAREST, NEAREST);
     }
 
     /// Computes the sine and cosine, applying the specified rounding
@@ -586,7 +594,7 @@ impl Complex {
     /// [`assign_random_bits_round(rng, (Round::Nearest, Round::Nearest))`]
     /// (#method.assign_random_bits_round).
     pub fn assign_random_bits<R: Rng>(&mut self, rng: &mut R) {
-        self.assign_random_bits_round(rng, (Round::Nearest, Round::Nearest));
+        self.assign_random_bits_round(rng, NEAREST);
     }
 
     #[cfg(feature = "random")]
@@ -616,7 +624,7 @@ impl Complex {
     /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
     /// (#method.assign_random_cont_round).
     pub fn assign_random_cont<R: Rng>(&mut self, rng: &mut R) {
-        self.assign_random_cont_round(rng, (Round::Nearest, Round::Nearest));
+        self.assign_random_cont_round(rng, NEAREST);
     }
 
     #[cfg(feature = "random")]
@@ -653,9 +661,7 @@ impl Complex {
                            radix: i32,
                            num_digits: Option<usize>)
                            -> String {
-        self.to_string_radix_round(radix,
-                                   num_digits,
-                                   (Round::Nearest, Round::Nearest))
+        self.to_string_radix_round(radix, num_digits, NEAREST)
     }
 
     /// Returns a string representation of `self` for the specified
@@ -781,10 +787,7 @@ impl Complex {
                             src: &str,
                             radix: i32)
                             -> Result<(), ParseComplexError> {
-        self.assign_str_radix_round(src,
-                                    radix,
-                                    (Round::Nearest, Round::Nearest))
-            .map(|_| ())
+        self.assign_str_radix_round(src, radix, NEAREST).map(|_| ())
     }
 
     /// Parses a `Complex` number from a string, applying the specified
@@ -1029,7 +1032,7 @@ impl<T> From<(T, (u32, u32))> for Complex
     where Complex: FromRound<T, (u32, u32), Round = Round2>
 {
     fn from((t, prec): (T, (u32, u32))) -> Complex {
-        Complex::from_round(t, prec, (Round::Nearest, Round::Nearest)).0
+        Complex::from_round(t, prec, NEAREST).0
     }
 }
 
@@ -1052,7 +1055,7 @@ impl<T> Assign<T> for Complex
     where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
 {
     fn assign(&mut self, other: T) {
-        self.assign_round(other, (Round::Nearest, Round::Nearest));
+        self.assign_round(other, NEAREST);
     }
 }
 
@@ -1138,14 +1141,14 @@ macro_rules! arith_for_complex {
         impl<'a> $imp<&'a $t> for Complex {
             type Output = Complex;
             fn $method(self, op: &'a $t) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
         impl $imp<$t> for Complex {
             type Output = Complex;
             fn $method(self, op: $t) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1176,7 +1179,7 @@ macro_rules! arith_for_complex {
             fn $method_assign(&mut self, op: &'a $t) {
                 $eval(&mut self.inner,
                       op,
-                      rraw2((Round::Nearest, Round::Nearest)));
+                      rraw2(NEAREST));
             }
         }
 
@@ -1205,14 +1208,14 @@ macro_rules! arith_commut {
         impl $imp<Complex> for $t {
             type Output = Complex;
             fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
         impl<'a> $imp<&'a Complex> for $t {
             type Output = Complex;
             fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1257,14 +1260,14 @@ macro_rules! arith_non_commut {
         impl $imp<Complex> for $t {
             type Output = Complex;
             fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
         impl<'a> $imp<&'a Complex> for $t {
             type Output = Complex;
             fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1297,7 +1300,7 @@ macro_rules! arith_non_commut {
 
         impl<'a> $imp_from_assign<&'a $t> for Complex {
             fn $method_from_assign(&mut self, lhs: &$t) {
-                let round = (Round::Nearest, Round::Nearest);
+                let round = NEAREST;
                 $eval_from(lhs, &mut self.inner, rraw2(round));
             }
         }
@@ -1318,10 +1321,7 @@ impl SubFromAssign for Complex {
 impl<'a> SubFromAssign<&'a Complex> for Complex {
     fn sub_from_assign(&mut self, lhs: &Complex) {
         unsafe {
-            mpc::sub(&mut self.inner,
-                     &lhs.inner,
-                     &self.inner,
-                     rraw2((Round::Nearest, Round::Nearest)));
+            mpc::sub(&mut self.inner, &lhs.inner, &self.inner, rraw2(NEAREST));
         }
     }
 }
@@ -1340,10 +1340,7 @@ impl DivFromAssign for Complex {
 impl<'a> DivFromAssign<&'a Complex> for Complex {
     fn div_from_assign(&mut self, lhs: &Complex) {
         unsafe {
-            mpc::div(&mut self.inner,
-                     &lhs.inner,
-                     &self.inner,
-                     rraw2((Round::Nearest, Round::Nearest)));
+            mpc::div(&mut self.inner, &lhs.inner, &self.inner, rraw2(NEAREST));
         }
     }
 }
@@ -1372,7 +1369,7 @@ macro_rules! arith_prim_for_complex {
         impl $imp<$t> for Complex {
             type Output = Complex;
             fn $method(self, op: $t) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1398,7 +1395,7 @@ macro_rules! arith_prim_for_complex {
                     $func(&mut self.inner,
                           &self.inner,
                           op.into(),
-                          rraw2((Round::Nearest, Round::Nearest)));
+                          rraw2(NEAREST));
                 }
             }
         }
@@ -1424,14 +1421,14 @@ macro_rules! arith_prim_non_commut {
         impl $imp<Complex> for $t {
             type Output = Complex;
             fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
         impl<'a> $imp<&'a Complex> for $t {
             type Output = Complex;
             fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1467,7 +1464,7 @@ macro_rules! arith_prim_non_commut {
                     $func_from(&mut self.inner,
                                lhs.into(),
                                &self.inner,
-                               rraw2((Round::Nearest, Round::Nearest)));
+                               rraw2(NEAREST));
                 }
             }
         }
@@ -1491,14 +1488,14 @@ macro_rules! arith_prim_commut {
         impl $imp<Complex> for $t {
             type Output = Complex;
             fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
         impl<'a> $imp<&'a Complex> for $t {
             type Output = Complex;
             fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1575,14 +1572,14 @@ unsafe fn ui_sub(x: *mut mpc::mpc_t,
 impl Sub<Complex> for (u32, u32) {
     type Output = Complex;
     fn sub(self, op: Complex) -> Complex {
-        self.sub_round(op, (Round::Nearest, Round::Nearest)).0
+        self.sub_round(op, NEAREST).0
     }
 }
 
 impl<'a> Sub<&'a Complex> for (u32, u32) {
     type Output = Complex;
     fn sub(self, op: &'a Complex) -> Complex {
-        self.sub_round(op, (Round::Nearest, Round::Nearest)).0
+        self.sub_round(op, NEAREST).0
     }
 }
 
@@ -1618,7 +1615,7 @@ impl SubFromAssign<(u32, u32)> for Complex {
                            lhs.0.into(),
                            lhs.1.into(),
                            &self.inner,
-                           rraw2((Round::Nearest, Round::Nearest)));
+                           rraw2(NEAREST));
         }
     }
 }
@@ -1633,7 +1630,7 @@ impl Neg for Complex {
 
 impl NegAssign for Complex {
     fn neg_assign(&mut self) {
-        let round = (Round::Nearest, Round::Nearest);
+        let round = NEAREST;
         unsafe {
             mpc::neg(&mut self.inner, &self.inner, rraw2(round));
         }
@@ -1653,7 +1650,7 @@ macro_rules! sh_op {
             /// `self` by 2 to the power of `op`, rounding to the
             /// nearest.
             fn $method(self, op: $t) -> Complex {
-                self.$method_round(op, (Round::Nearest, Round::Nearest)).0
+                self.$method_round(op, NEAREST).0
             }
         }
 
@@ -1685,7 +1682,7 @@ macro_rules! sh_op {
                     $func(&mut self.inner,
                           &self.inner,
                           op.into(),
-                          rraw2((Round::Nearest, Round::Nearest)));
+                          rraw2(NEAREST));
                 }
             }
         }
@@ -1730,14 +1727,14 @@ macro_rules! pow_others {
         impl<'a> Pow<&'a $t> for Complex {
             type Output = Complex;
             fn pow(self, op: &'a $t) -> Complex {
-                self.pow_round(op, (Round::Nearest, Round::Nearest)).0
+                self.pow_round(op, NEAREST).0
             }
         }
 
         impl Pow<$t> for Complex {
             type Output = Complex;
             fn pow(self, op: $t) -> Complex {
-                self.pow_round(op, (Round::Nearest, Round::Nearest)).0
+                self.pow_round(op, NEAREST).0
             }
         }
 
@@ -1782,7 +1779,7 @@ impl<'a> PowAssign<&'a Integer> for Complex {
             mpc::pow_z(&mut self.inner,
                        &self.inner,
                        integer_inner(op),
-                       rraw2((Round::Nearest, Round::Nearest)));
+                       rraw2(NEAREST));
         }
     }
 }
@@ -1811,7 +1808,7 @@ impl<'a> PowAssign<&'a Float> for Complex {
             mpc::pow_fr(&mut self.inner,
                         &self.inner,
                         float_inner(op),
-                        rraw2((Round::Nearest, Round::Nearest)));
+                        rraw2(NEAREST));
         }
     }
 }
@@ -1834,10 +1831,7 @@ impl<'a> PowRound<&'a Complex> for Complex {
 impl<'a> PowAssign<&'a Complex> for Complex {
     fn pow_assign(&mut self, op: &'a Complex) {
         unsafe {
-            mpc::pow(&mut self.inner,
-                     &self.inner,
-                     &op.inner,
-                     rraw2((Round::Nearest, Round::Nearest)));
+            mpc::pow(&mut self.inner, &self.inner, &op.inner, rraw2(NEAREST));
         }
     }
 }
@@ -1973,6 +1967,7 @@ impl UpperHex for Complex {
 
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+/// An error which can be returned when parsing a `Complex` number.
 pub struct ParseComplexError {
     kind: ParseErrorKind,
 }
