@@ -46,13 +46,13 @@
 //! operators can also operate on a mixture of this type and primitive
 //! types; in this case, the result is returned as an
 //! arbitrary-precision type.
-//! 
+//!
 //! ## Examples
-//! 
+//!
 //! ```rust
 //! extern crate rugint;
 //! use rugint::{Assign, Integer};
-//! 
+//!
 //! fn main() {
 //!     // Create an integer initialized as zero.
 //!     let mut int = Integer::new();
@@ -63,10 +63,10 @@
 //!     assert!(int.to_i32() == Some(14));
 //! }
 //! ```
-//! 
+//!
 //! Arithmetic operations with mixed arbitrary and primitive types are
 //! allowed.
-//! 
+//!
 //! ```rust
 //! use rugint::Integer;
 //! let mut a = Integer::from(0xc);
@@ -75,40 +75,40 @@
 //! //                                 ^   ^   ^   ^   ^
 //! //                                80  64  48  32  16
 //! ```
-//! 
+//!
 //! Note that in the above example, there is only one allocation. The
 //! `Integer` instance is moved into the shift operation so that the
 //! result can be stored in the same instance, then that result is
 //! similarly consumed by the addition operation.
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! To use `rugint` in your crate, add `extern crate rugint;` to the
 //! crate root and add `rugint` as a dependency in `Cargo.toml`:
-//! 
+//!
 //! ```toml
 //! [dependencies]
 //! rugint = "0.2.0"
 //! ```
-//! 
+//!
 //! The `rugint` crate depends on the low-level bindings in the
 //! `gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
 //! macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
 //! [documentation][sys] for some details.
-//! 
+//!
 //! ### Optional feature
-//! 
+//!
 //! The `rugint` crate has an optional feature `random` to enable
 //! random number generation. The `random` feature introduces a
 //! dependency on the `rand` crate. The feature is enabled by default;
 //! to disable it add this to `Cargo.toml`:
-//! 
+//!
 //! ```toml
 //! [dependencies.rugint]
 //! version = "0.2.0"
 //! default-features = false
 //! ```
-//! 
+//!
 //! [gmp home]: https://gmplib.org/
 //! [gmp]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp/
 //! [gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
@@ -132,9 +132,9 @@ mod integer;
 pub use integer::{Integer, ParseIntegerError};
 
 /// Assigns to a number from another value.
-pub trait Assign<T> {
+pub trait Assign<Rhs = Self> {
     /// Peforms the assignement.
-    fn assign(&mut self, T);
+    fn assign(&mut self, rhs: Rhs);
 }
 
 /// Negates the value inside `self`.
@@ -165,7 +165,7 @@ pub trait NotAssign {
 /// ```
 pub trait SubFromAssign<Lhs = Self> {
     /// Peforms the subtraction.
-    fn sub_from_assign(&mut self, Lhs);
+    fn sub_from_assign(&mut self, lhs: Lhs);
 }
 
 /// Divide and assign the result to the rhs operand.
@@ -185,7 +185,7 @@ pub trait SubFromAssign<Lhs = Self> {
 /// ```
 pub trait DivFromAssign<Lhs = Self> {
     /// Peforms the division.
-    fn div_from_assign(&mut self, Lhs);
+    fn div_from_assign(&mut self, lhs: Lhs);
 }
 
 /// Compute the remainder and assign the result to the rhs operand.
@@ -205,19 +205,19 @@ pub trait DivFromAssign<Lhs = Self> {
 /// ```
 pub trait RemFromAssign<Lhs = Self> {
     /// Peforms the remainder operation.
-    fn rem_from_assign(&mut self, Lhs);
+    fn rem_from_assign(&mut self, lhs: Lhs);
 }
 
 /// Provides the power operation.
-pub trait Pow<T> {
+pub trait Pow<Rhs> {
     /// The resulting type after the power operation.
     type Output;
     /// Performs the power operation.
-    fn pow(self, T) -> Self::Output;
+    fn pow(self, rhs: Rhs) -> Self::Output;
 }
 
 /// Provides the power operation inside `self`.
-pub trait PowAssign<T> {
+pub trait PowAssign<Rhs> {
     /// Peforms the power operation.
-    fn pow_assign(&mut self, T);
+    fn pow_assign(&mut self, rhs: Rhs);
 }
