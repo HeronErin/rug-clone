@@ -3272,21 +3272,14 @@ fn lcase_in(a: &str, bs: &[&str]) -> bool {
         if a.len() != b.len() {
             continue 'next_b;
         }
-        let (mut ac, mut bc) = (a.chars(), b.chars());
-        loop {
-            let (a, b) = (ac.next(), bc.next());
-            if a.is_none() && b.is_none() {
-                return true;
-            }
-            if a.is_none() || b.is_none() {
-                continue 'next_b;
-            }
-            let ua = a.unwrap().to_ascii_lowercase();
-            let ub = b.unwrap();
-            if ua != ub {
+        let acs = a.chars().map(|c| c.to_ascii_lowercase());
+        let bcs = b.chars().map(|c| c.to_ascii_lowercase());
+        for (ac, bc) in acs.zip(bcs) {
+            if ac != bc {
                 continue 'next_b;
             }
         }
+        return true;
     }
     false
 }
@@ -3454,22 +3447,23 @@ mod tests {
         let huge_hex = "1@99999999999999999999999999999999";
         assert!(Float::from_str_radix(huge_hex, 16, 53).unwrap().is_infinite());
 
-        let bad_strings = [("inf", Some(16)),
-                           ("1e", None),
-                           ("e10", None),
-                           (".e10", None),
-                           ("1e1.", None),
-                           ("1e+-1", None),
-                           ("1e-+1", None),
-                           ("+-1", None),
-                           ("-+1", None),
-                           ("1@1a", Some(16)),
-                           ("9e0", Some(9))];
+        let bad_strings = [("inf", 16),
+                           ("1e", 10),
+                           ("e10", 10),
+                           (".e10", 10),
+                           ("1e1.", 10),
+                           ("1e+-1", 10),
+                           ("1e-+1", 10),
+                           ("+-1", 10),
+                           ("-+1", 10),
+                           ("infinit", 10),
+                           ("1@1a", 16),
+                           ("9e0", 9)];
         for &(s, radix) in bad_strings.into_iter() {
-            assert!(Float::valid_str_radix(s, radix.unwrap_or(10)).is_err());
+            assert!(Float::valid_str_radix(s, radix).is_err());
         }
-        let good_strings = [("inf", 10, f64::INFINITY),
-                            ("-@inf@", 16, f64::NEG_INFINITY),
+        let good_strings = [("INF", 10, f64::INFINITY),
+                            ("-@iNf@", 16, f64::NEG_INFINITY),
                             ("+0e99", 2, 0.0),
                             ("-9.9e1", 10, -99.0),
                             ("-.99e+2", 10, -99.0),
