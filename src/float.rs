@@ -1655,7 +1655,7 @@ impl Float {
                           &mut c_str_end as *mut _ as *mut *mut c_char,
                           radix as c_int,
                           rraw(round))
-                .cmp(&0)
+                    .cmp(&0)
         };
         let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
                   *const c_char;
@@ -2569,7 +2569,7 @@ impl<'a> PowRound<&'a Integer> for Float {
                         &self.inner,
                         integer_inner(op),
                         rraw(round))
-                .cmp(&0)
+                    .cmp(&0)
         };
         (self, ord)
     }
@@ -3097,11 +3097,11 @@ fn make_string(f: &Float,
     }
     if f.is_infinite() {
         return match (radix > 10, f.get_sign()) {
-            (false, false) => "inf".to_string(),
-            (false, true) => "-inf".to_string(),
-            (true, false) => "@inf@".to_string(),
-            (true, true) => "-@inf@".to_string(),
-        };
+                   (false, false) => "inf".to_string(),
+                   (false, true) => "-inf".to_string(),
+                   (true, false) => "@inf@".to_string(),
+                   (true, true) => "-@inf@".to_string(),
+               };
     }
     if f.is_nan() {
         let s = if radix <= 10 { "NaN" } else { "@NaN@" };
@@ -3138,10 +3138,10 @@ fn make_string(f: &Float,
         mpfr::free_str(s);
     }
     buf.push(if radix <= 10 {
-        char_to_upper_if('e', to_upper)
-    } else {
-        '@'
-    });
+                 char_to_upper_if('e', to_upper)
+             } else {
+                 '@'
+             });
     let exp = exp.checked_sub(1).expect("overflow");
     let _ = write!(buf, "{}", exp);
     buf
