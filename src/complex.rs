@@ -390,8 +390,11 @@ impl Complex {
     pub fn mul_i_round(&mut self, negative: bool, round: Round2) -> Ordering2 {
         let sgn = if negative { -1 } else { 0 };
         ordering2(unsafe {
-            mpc::mul_i(&mut self.inner, &self.inner, sgn, rraw2(round))
-        })
+                      mpc::mul_i(&mut self.inner,
+                                 &self.inner,
+                                 sgn,
+                                 rraw2(round))
+                  })
     }
 
     /// Computes the reciprocal,
@@ -405,8 +408,8 @@ impl Complex {
     /// applying the specified rounding method.
     pub fn recip_round(&mut self, round: Round2) -> Ordering2 {
         ordering2(unsafe {
-            mpc::ui_div(&mut self.inner, 1, &self.inner, rraw2(round))
-        })
+                      mpc::ui_div(&mut self.inner, 1, &self.inner, rraw2(round))
+                  })
     }
 
     /// Computes the norm, that is the square of the absolute value,
