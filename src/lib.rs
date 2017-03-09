@@ -48,7 +48,7 @@
 //! ```rust
 //! extern crate rugrat;
 //! use rugrat::Rational;
-//! 
+//!
 //! fn main() {
 //!     // Create a rational number, -22 / 4 = -11 / 2.
 //!     let rat = Rational::from((-22, 4));
@@ -74,7 +74,7 @@
 //! `gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
 //! macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
 //! [documentation][sys] for some details.
-//! 
+//!
 //! [gmp home]: https://gmplib.org/
 //! [gmp]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp/
 //! [gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
