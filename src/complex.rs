@@ -19,8 +19,9 @@ use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "random")]
 use rand::Rng;
-use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float, FromRound,
-             MulRound, PowRound, Round, ShlRound, ShrRound, Special, SubRound};
+use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float,
+             FromRound, MulRound, PowRound, Round, ShlRound, ShrRound,
+             Special, SubRound};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use rugrat::Rational;
@@ -683,9 +684,11 @@ impl Complex {
                                  round: Round2)
                                  -> String {
         let mut buf = String::from("(");
-        buf += &self.real().to_string_radix_round(radix, num_digits, round.0);
+        buf += &self.real()
+                    .to_string_radix_round(radix, num_digits, round.0);
         buf.push(' ');
-        buf += &self.imag().to_string_radix_round(radix, num_digits, round.0);
+        buf += &self.imag()
+                    .to_string_radix_round(radix, num_digits, round.0);
         buf.push(')');
         buf
     }
@@ -906,7 +909,8 @@ fn check_str_radix(src: &str,
             return Err(Error { kind: Kind::InvalidRealFloat });
         }
         let real_rest = &src[space + 1..];
-        let close = real_rest.find(')')
+        let close = real_rest
+            .find(')')
             .ok_or(Error { kind: Kind::MissingClose })?;
         let imag_str = &real_rest[0..close];
         if Float::valid_str_radix(imag_str, radix).is_err() {
