@@ -28,6 +28,7 @@ license = "LGPL-3.0+"
 
 [dependencies.gmp-mpfr-sys]
 version = "1.0"
+default-features = false
 path = "../gmp-mpfr-sys"
 
 [dependencies.rugint]
