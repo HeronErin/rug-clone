@@ -26,9 +26,9 @@ use std::ffi::CString;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::mem;
-use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
-               BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem,
-               RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
+               BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
+               Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 #[cfg(feature = "random")]
 use std::slice;
@@ -1598,7 +1598,8 @@ mod tests {
     fn check_from_str() {
         let mut i: Integer = "+134".parse().unwrap();
         assert!(i == 134);
-        i.assign_str_radix("-ffFFffffFfFfffffffffffffffffffff", 16).unwrap();
+        i.assign_str_radix("-ffFFffffFfFfffffffffffffffffffff", 16)
+            .unwrap();
         assert!(i.significant_bits() == 128);
         i -= 1;
         assert!(i.significant_bits() == 129);
