@@ -1594,7 +1594,8 @@ impl Float {
                             src: &str,
                             radix: i32)
                             -> Result<(), ParseFloatError> {
-        self.assign_str_radix_round(src, radix, Round::Nearest).map(|_| ())
+        self.assign_str_radix_round(src, radix, Round::Nearest)
+            .map(|_| ())
     }
 
     /// Parses a `Float` from a string, applying the specified
@@ -3445,7 +3446,9 @@ mod tests {
         assert!(!Float::from_str("+0", 53).unwrap().get_sign());
         assert!(Float::from_str("1e1000", 53).unwrap().is_finite());
         let huge_hex = "1@99999999999999999999999999999999";
-        assert!(Float::from_str_radix(huge_hex, 16, 53).unwrap().is_infinite());
+        assert!(Float::from_str_radix(huge_hex, 16, 53)
+                    .unwrap()
+                    .is_infinite());
 
         let bad_strings = [("inf", 16),
                            ("1e", 10),
