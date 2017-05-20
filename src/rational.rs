@@ -188,7 +188,7 @@ impl Rational {
     ///
     /// Panics if the value is zero.
     pub fn recip(&mut self) -> &mut Rational {
-        assert!(self.sign() != Ordering::Equal, "division by zero");
+        assert_ne!(self.sign(), Ordering::Equal, "division by zero");
         unsafe {
             gmp::mpq_inv(&mut self.inner, &self.inner);
         }
@@ -281,7 +281,7 @@ impl Rational {
         let err = unsafe {
             gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
-        assert!(err == 0);
+        assert_eq!(err, 0);
         unsafe {
             gmp::mpq_canonicalize(&mut self.inner);
         }
@@ -423,7 +423,7 @@ impl From<(Integer, Integer)> for Rational {
     ///
     /// Panics if the denominator is zero.
     fn from((mut num, mut den): (Integer, Integer)) -> Rational {
-        assert!(den.sign() != Ordering::Equal, "division by zero");
+        assert_ne!(den.sign(), Ordering::Equal, "division by zero");
         let mut dst: Rational = unsafe { mem::uninitialized() };
         {
             let num_den = dst.as_mut_numer_denom();
@@ -852,7 +852,7 @@ cmp! { u32, |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1).cmp(&0) } }
 cmp! { i32, |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1).cmp(&0) } }
 
 cmp! { (u32, u32), |r, t: &(u32, u32)| {
-    assert!(t.1 != 0, "division by zero");
+    assert_ne!(t.1, 0, "division by zero");
     unsafe { gmp::mpq_cmp_ui(r, t.0.into(), t.1.into()).cmp(&0) }
 } }
 cmp! { (i32, u32), |r, t: &(i32, u32)| {
@@ -992,7 +992,7 @@ pub struct MutNumerDenom<'a>(pub &'a mut Integer, pub &'a mut Integer);
 
 impl<'a> Drop for MutNumerDenom<'a> {
     fn drop(&mut self) {
-        assert!(self.1.sign() != Ordering::Equal, "division by zero");
+        assert_ne!(self.1.sign(), Ordering::Equal, "division by zero");
         unsafe {
             let rat_num = integer_inner_mut(self.0);
             let rat_den = integer_inner_mut(self.1);
@@ -1004,7 +1004,6 @@ impl<'a> Drop for MutNumerDenom<'a> {
             gmp::mpq_canonicalize(&mut canon);
             mem::swap(rat_num, &mut *canon_num_ptr);
             mem::swap(rat_den, &mut *canon_den_ptr);
-            mem::forget(canon);
         }
     }
 }
@@ -1027,7 +1026,7 @@ unsafe fn integer_inner_mut(z: &mut Integer) -> &mut gmp::mpz_t {
 unsafe fn single_limbs(limbs: (&mut gmp::limb_t, &mut gmp::limb_t),
                        neg: bool)
                        -> gmp::mpq_t {
-    assert!(*limbs.1 != 0, "division by zero");
+    assert_ne!(*limbs.1, 0, "division by zero");
     let mut ret = mem::uninitialized();
     *gmp::mpq_numref(&mut ret) = gmp::mpz_t {
         alloc: 1,
