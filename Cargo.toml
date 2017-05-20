@@ -32,6 +32,7 @@ random = ["rand"]
 
 [dependencies.gmp-mpfr-sys]
 version = "1.0"
+default-features = false
 path = "../gmp-mpfr-sys"
 
 [dependencies.rand]
