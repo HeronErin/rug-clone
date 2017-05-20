@@ -32,6 +32,8 @@ random = ["rand", "rugflo/random"]
 
 [dependencies.gmp-mpfr-sys]
 version = "1.0"
+default-features = false
+features = ["mpc"]
 path = "../gmp-mpfr-sys"
 
 [dependencies.rand]
