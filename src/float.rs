@@ -1660,7 +1660,7 @@ impl Float {
         };
         let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
                   *const c_char;
-        assert!(c_str_end == nul);
+        assert_eq!(c_str_end, nul);
         Ok(ord)
     }
 
@@ -2397,7 +2397,7 @@ unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
     let mut denom_buf: Float;
     let denom = if let Some(div) = div {
         let mut prec = (*rop).prec as u32;
-        assert!(prec as mpfr::prec_t == (*rop).prec, "overflow");
+        assert_eq!(prec as mpfr::prec_t, (*rop).prec, "overflow");
         prec = prec.checked_add(div.significant_bits()).expect("overflow");
         denom_buf = Float::new(prec);
         mpfr::mul_z(&mut denom_buf.inner,
