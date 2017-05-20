@@ -160,7 +160,7 @@ impl Integer {
     ///
     /// Panics if `divisor` is zero.
     pub fn div_rem(&mut self, divisor: &mut Integer) {
-        assert!(divisor.sign() != Ordering::Equal, "division by zero");
+        assert_ne!(divisor.sign(), Ordering::Equal, "division by zero");
         unsafe {
             gmp::mpz_tdiv_qr(&mut self.inner,
                              &mut divisor.inner,
@@ -185,7 +185,7 @@ impl Integer {
     ///
     /// Panics if `other` is zero.
     pub fn div_exact(&mut self, other: &Integer) -> &mut Integer {
-        assert!(other.sign() != Ordering::Equal, "division by zero");
+        assert_ne!(other.sign(), Ordering::Equal, "division by zero");
         unsafe {
             gmp::mpz_divexact(&mut self.inner, &self.inner, &other.inner);
         }
@@ -277,7 +277,7 @@ impl Integer {
     ///
     /// Panics if `m` is zero.
     pub fn invert(&mut self, m: &Integer) -> Option<&mut Integer> {
-        assert!(m.sign() != Ordering::Equal, "division by zero");
+        assert_ne!(m.sign(), Ordering::Equal, "division by zero");
         let exists = unsafe {
             gmp::mpz_invert(&mut self.inner, &self.inner, &m.inner) != 0
         };
@@ -534,7 +534,7 @@ impl Integer {
     ///
     /// Panics if the boundary value is less than or equal to zero.
     pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
-        assert!(self.sign() == Ordering::Greater, "cannot be below zero");
+        assert_eq!(self.sign(), Ordering::Greater, "cannot be below zero");
         let bits = self.significant_bits();
         let limb_bits = gmp::LIMB_BITS as u32;
         let whole_limbs = (bits / limb_bits) as usize;
@@ -653,7 +653,7 @@ impl Integer {
         let err = unsafe {
             gmp::mpz_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
         };
-        assert!(err == 0);
+        assert_eq!(err, 0);
         Ok(())
     }
 
@@ -904,12 +904,12 @@ impl NotAssign for Integer {
 }
 
 unsafe fn mpz_tdiv_q(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
-    assert!(gmp::mpz_sgn(d) != 0, "division by zero");
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
     gmp::mpz_tdiv_q(q, n, d);
 }
 
 unsafe fn mpz_tdiv_r(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
-    assert!(gmp::mpz_sgn(d) != 0, "division by zero");
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
     gmp::mpz_tdiv_r(q, n, d);
 }
 
@@ -1041,13 +1041,13 @@ arith_prim_for_integer! { Shr shr, ShrAssign shr_assign, i32,
                           mpz_rshift_si }
 
 unsafe fn mpz_tdiv_q_ui(q: *mut mpz_t, n: *const mpz_t, d: c_ulong) {
-    assert!(d != 0, "division by zero");
+    assert_ne!(d, 0, "division by zero");
     gmp::mpz_tdiv_q_ui(q, n, d);
 }
 
 unsafe fn mpz_ui_tdiv_q(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
-    assert!(sgn_d != 0, "division by zero");
+    assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
         gmp::mpz_set_ui(q, 0);
     } else {
@@ -1060,12 +1060,12 @@ unsafe fn mpz_ui_tdiv_q(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
 }
 
 unsafe fn mpz_tdiv_r_ui(q: *mut mpz_t, n: *const mpz_t, d: c_ulong) {
-    assert!(d != 0, "division by zero");
+    assert_ne!(d, 0, "division by zero");
     gmp::mpz_tdiv_r_ui(q, n, d);
 }
 
 unsafe fn mpz_ui_tdiv_r(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
-    assert!(gmp::mpz_sgn(d) != 0, "division by zero");
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
         gmp::mpz_set_ui(q, n);
     } else {
