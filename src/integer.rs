@@ -1448,6 +1448,153 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     }
 }
 
+macro_rules! unary_ref {
+    { $d: expr, $n:ident, $Op:ident, $func:ident, $f:expr } => {
+        #[doc=$d]
+        #[derive(Copy, Clone)]
+        pub struct $n<'a> {
+            op: &'a Integer,
+        }
+
+        impl<'a> $Op for &'a Integer {
+            type Output = $n<'a>;
+            fn $func(self) -> $n<'a> {
+                $n {
+                    op: self,
+                }
+            }
+        }
+
+        impl<'a> Assign<$n<'a>> for Integer {
+            fn assign(&mut self, rhs: $n) {
+                $f(&mut self.inner, &rhs.op.inner);
+            }
+        }
+
+        impl<'a> From<$n<'a>> for Integer {
+            fn from(t: $n) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
+            }
+        }
+    };
+}
+
+macro_rules! bin_ref {
+    { $d: expr, $n:ident, $Op:ident, $func:ident, $f:expr } => {
+        #[doc=$d]
+        #[derive(Copy, Clone)]
+        pub struct $n<'a> {
+            lhs: &'a Integer,
+            rhs: &'a Integer,
+        }
+
+        impl<'a> $Op<&'a Integer> for &'a Integer {
+            type Output = $n<'a>;
+            fn $func(self, rhs: &'a Integer) -> $n {
+                $n {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl<'a> Assign<$n<'a>> for Integer {
+            fn assign(&mut self, rhs: $n) {
+                $f(&mut self.inner, &rhs.lhs.inner, &rhs.rhs.inner);
+            }
+        }
+
+        impl<'a> From<$n<'a>> for Integer {
+            fn from(t: $n) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
+            }
+        }
+    };
+}
+
+macro_rules! shift_ref {
+    { $d: expr, $n:ident, $s:ident, $Op:ident, $func:ident, $f:expr } => {
+        #[doc=$d]
+        #[derive(Copy, Clone)]
+        pub struct $n<'a> {
+            lhs: &'a Integer,
+            rhs: $s,
+        }
+
+        impl<'a> $Op<$s> for &'a Integer {
+            type Output = $n<'a>;
+            fn $func(self, rhs: $s) -> $n<'a> {
+                $n {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl<'a> Assign<$n<'a>> for Integer {
+            fn assign(&mut self, rhs: $n) {
+                $f(&mut self.inner, &rhs.lhs.inner, rhs.rhs.into());
+            }
+        }
+
+        impl<'a> From<$n<'a>> for Integer {
+            fn from(t: $n) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
+            }
+        }
+    };
+}
+
+unary_ref!{ "Negation of an `Integer` reference.",
+             IntegerNeg, Neg, neg,
+             |target, op| unsafe { gmp::mpz_neg(target, op) } }
+bin_ref!{ "Addition of two `Integer` references.",
+           IntegerAdd, Add, add,
+           |target, lhs, rhs| unsafe { gmp::mpz_add(target, lhs, rhs) } }
+bin_ref!{ "Subtraction of two `Integer` references.",
+           IntegerSub, Sub, sub,
+           |target, lhs, rhs| unsafe { gmp::mpz_sub(target, lhs, rhs) } }
+bin_ref!{ "Multiplication of two `Integer` references.",
+           IntegerMul, Mul, mul,
+           |target, lhs, rhs| unsafe { gmp::mpz_mul(target, lhs, rhs) } }
+bin_ref!{ "Division of two `Integer` references.",
+           IntegerDiv, Div, div,
+           |target, lhs, rhs| unsafe { mpz_tdiv_q(target, lhs, rhs) } }
+bin_ref!{ "Remainder of two `Integer` references.",
+           IntegerRem, Rem, rem,
+           |target, lhs, rhs| unsafe { mpz_tdiv_r(target, lhs, rhs) } }
+unary_ref!{ "Bitwise NOT of an `Integer` reference.",
+             IntegerNot, Not, not,
+             |target, op| unsafe { gmp::mpz_com(target, op) } }
+bin_ref!{ "Bitwise AND of two `Integer` references.",
+           IntegerBitAnd, BitAnd, bitand,
+           |target, lhs, rhs| unsafe { gmp::mpz_and(target, lhs, rhs) } }
+bin_ref!{ "Bitwise OR of two `Integer` references.",
+           IntegerBitOr, BitOr, bitor,
+           |target, lhs, rhs| unsafe { gmp::mpz_ior(target, lhs, rhs) } }
+bin_ref!{ "Bitwise XOR of two `Integer` references.",
+           IntegerBitXor, BitXor, bitxor,
+           |target, lhs, rhs| unsafe { gmp::mpz_xor(target, lhs, rhs) } }
+
+shift_ref!{ "Left shift of an `Integer` reference by a `u32`.",
+             IntegerShlU, u32, Shl, shl,
+             |target, lhs, rhs| unsafe { gmp::mpz_mul_2exp(target, lhs, rhs) } }
+shift_ref!{ "Right shift of an `Integer` reference by a `u32`.",
+             IntegerShrU, u32, Shr, shr, |target, lhs, rhs| unsafe {
+                 gmp::mpz_fdiv_q_2exp(target, lhs, rhs) } }
+shift_ref!{ "Left shift of an `Integer` reference by an `i32`.",
+             IntegerShlI, i32, Shl, shl,
+             |target, lhs, rhs| unsafe { mpz_lshift_si(target, lhs, rhs) } }
+shift_ref!{ "Right shift of an `Integer` reference by an `i32`.",
+             IntegerShrI, i32, Shr, shr,
+             |target, lhs, rhs| unsafe { mpz_rshift_si(target, lhs, rhs) } }
+
 #[cfg(test)]
 mod tests {
     use gmp_mpfr_sys::gmp;
@@ -1511,6 +1658,28 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn check_ref_op() {
+        let lhs = Integer::from(0x00ff);
+        let rhs = Integer::from(0x0f0f);
+        let su = 30_u32;
+        let si = -15_i32;
+        assert!(Integer::from(-&lhs) == -lhs.clone());
+        assert!(Integer::from(&lhs + &rhs) == lhs.clone() + &rhs);
+        assert!(Integer::from(&lhs - &rhs) == lhs.clone() - &rhs);
+        assert!(Integer::from(&lhs * &rhs) == lhs.clone() * &rhs);
+        assert!(Integer::from(&lhs / &rhs) == lhs.clone() / &rhs);
+        assert!(Integer::from(&lhs % &rhs) == lhs.clone() % &rhs);
+        assert!(Integer::from(!&lhs) == !lhs.clone());
+        assert!(Integer::from(&lhs & &rhs) == lhs.clone() & &rhs);
+        assert!(Integer::from(&lhs | &rhs) == lhs.clone() | &rhs);
+        assert!(Integer::from(&lhs ^ &rhs) == lhs.clone() ^ &rhs);
+        assert!(Integer::from(&lhs << su) == lhs.clone() << su);
+        assert!(Integer::from(&lhs << si) == lhs.clone() << si);
+        assert!(Integer::from(&lhs >> su) == lhs.clone() >> su);
+        assert!(Integer::from(&lhs >> si) == lhs.clone() >> si);
     }
 
     #[test]
