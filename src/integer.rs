@@ -151,20 +151,20 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(12.7);
-    /// assert!(ret);
+    /// assert!(ret.is_ok());
     /// assert!(i == 12);
     /// let ret = i.assign_f64(1.0 / 0.0);
-    /// assert!(!ret);
+    /// assert!(ret.is_err());
     /// assert!(i == 12);
     /// ```
-    pub fn assign_f64(&mut self, val: f64) -> bool {
+    pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             unsafe {
                 gmp::mpz_set_d(&mut self.inner, val);
             }
-            true
+            Ok(())
         } else {
-            false
+            Err(())
         }
     }
 
@@ -173,7 +173,7 @@ impl Integer {
     pub fn from_f64(val: f64) -> Option<Integer> {
         if val.is_finite() {
             let mut i = Integer::new();
-            i.assign_f64(val);
+            i.assign_f64(val).unwrap();
             Some(i)
         } else {
             None
@@ -186,7 +186,7 @@ impl Integer {
     }
 
     /// Assigns from an `f32` if it is finite, rounding towards zero.
-    pub fn assign_f32(&mut self, val: f32) -> bool {
+    pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val as f64)
     }
 
