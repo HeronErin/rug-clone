@@ -766,10 +766,10 @@ impl FromStr for Integer {
     }
 }
 
-impl Assign<Integer> for Integer {
+impl Assign for Integer {
     /// Assigns from another `Integer`.
-    fn assign(&mut self, other: Integer) {
-        self.assign(&other);
+    fn assign(&mut self, mut other: Integer) {
+        mem::swap(self, &mut other);
     }
 }
 
