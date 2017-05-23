@@ -827,7 +827,8 @@ macro_rules! arith_unary_integer {
     {
         $imp:ident $method:ident,
         $imp_assign:ident $method_assign:ident,
-        $func:path
+        $func:path,
+        $inter:ident
     } => {
         impl $imp for Integer {
             type Output = Integer;
@@ -842,6 +843,36 @@ macro_rules! arith_unary_integer {
                 unsafe {
                     $func(&mut self.inner, &self.inner);
                 }
+            }
+        }
+
+        /// This is actually private, this documentation should not be
+        /// visible.
+        #[derive(Clone, Copy)]
+        pub struct $inter<'a> {
+            op: &'a Integer,
+        }
+
+        impl<'a> $imp for &'a Integer {
+            type Output = $inter<'a>;
+            fn $method(self) -> $inter<'a> {
+                $inter { op: self }
+            }
+        }
+
+        impl<'a> Assign<$inter<'a>> for Integer {
+            fn assign(&mut self, rhs: $inter) {
+                unsafe {
+                    $func(&mut self.inner, &rhs.op.inner);
+                }
+            }
+        }
+
+        impl<'a> From<$inter<'a>> for Integer {
+            fn from(t: $inter) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
             }
         }
     };
@@ -910,7 +941,7 @@ macro_rules! arith_noncommut_integer {
     };
 }
 
-arith_unary_integer! { Neg neg, NegAssign neg_assign, gmp::mpz_neg }
+arith_unary_integer! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegInter }
 arith_integer! { Add add, AddAssign add_assign, gmp::mpz_add }
 arith_noncommut_integer! { Sub sub, SubAssign sub_assign,
                            SubFromAssign sub_from_assign, gmp::mpz_sub }
@@ -919,7 +950,7 @@ arith_noncommut_integer! { Div div, DivAssign div_assign,
                            DivFromAssign div_from_assign, mpz_tdiv_q }
 arith_noncommut_integer! { Rem rem, RemAssign rem_assign,
                            RemFromAssign rem_from_assign, mpz_tdiv_r }
-arith_unary_integer! { Not not, NotAssign not_assign, gmp::mpz_com }
+arith_unary_integer! { Not not, NotAssign not_assign, gmp::mpz_com, NotInter }
 arith_integer! { BitAnd bitand, BitAndAssign bitand_assign, gmp::mpz_and }
 arith_integer! { BitOr bitor, BitOrAssign bitor_assign, gmp::mpz_ior }
 arith_integer! { BitXor bitxor, BitXorAssign bitxor_assign, gmp::mpz_xor }
@@ -1605,39 +1636,6 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     }
 }
 
-macro_rules! unary_ref {
-    { $d: expr, $n:ident, $Op:ident, $func:ident, $f:expr } => {
-        #[doc=$d]
-        #[derive(Copy, Clone)]
-        pub struct $n<'a> {
-            op: &'a Integer,
-        }
-
-        impl<'a> $Op for &'a Integer {
-            type Output = $n<'a>;
-            fn $func(self) -> $n<'a> {
-                $n {
-                    op: self,
-                }
-            }
-        }
-
-        impl<'a> Assign<$n<'a>> for Integer {
-            fn assign(&mut self, rhs: $n) {
-                $f(&mut self.inner, &rhs.op.inner);
-            }
-        }
-
-        impl<'a> From<$n<'a>> for Integer {
-            fn from(t: $n) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    };
-}
-
 macro_rules! bin_ref {
     { $d: expr, $n:ident, $Op:ident, $func:ident, $f:expr } => {
         #[doc=$d]
@@ -1708,9 +1706,6 @@ macro_rules! shift_ref {
     };
 }
 
-unary_ref!{ "Negation of an `Integer` reference.",
-             IntegerNeg, Neg, neg,
-             |target, op| unsafe { gmp::mpz_neg(target, op) } }
 bin_ref!{ "Addition of two `Integer` references.",
            IntegerAdd, Add, add,
            |target, lhs, rhs| unsafe { gmp::mpz_add(target, lhs, rhs) } }
@@ -1726,9 +1721,6 @@ bin_ref!{ "Division of two `Integer` references.",
 bin_ref!{ "Remainder of two `Integer` references.",
            IntegerRem, Rem, rem,
            |target, lhs, rhs| unsafe { mpz_tdiv_r(target, lhs, rhs) } }
-unary_ref!{ "Bitwise NOT of an `Integer` reference.",
-             IntegerNot, Not, not,
-             |target, op| unsafe { gmp::mpz_com(target, op) } }
 bin_ref!{ "Bitwise AND of two `Integer` references.",
            IntegerBitAnd, BitAnd, bitand,
            |target, lhs, rhs| unsafe { gmp::mpz_and(target, lhs, rhs) } }
