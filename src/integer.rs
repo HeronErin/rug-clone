@@ -846,18 +846,18 @@ macro_rules! arith_unary_integer {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        #[derive(Clone, Copy)]
-        pub struct $inter<'a> {
-            op: &'a Integer,
-        }
-
         impl<'a> $imp for &'a Integer {
             type Output = $inter<'a>;
             fn $method(self) -> $inter<'a> {
                 $inter { op: self }
             }
+        }
+
+        /// This is actually private, this documentation should not be
+        /// visible.
+        #[derive(Clone, Copy)]
+        pub struct $inter<'a> {
+            op: &'a Integer,
         }
 
         impl<'a> Assign<$inter<'a>> for Integer {
@@ -914,14 +914,6 @@ macro_rules! arith_integer {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        #[derive(Clone, Copy)]
-        pub struct $inter<'a> {
-            lhs: &'a Integer,
-            rhs: &'a Integer,
-        }
-
         impl<'a> $imp<&'a Integer> for &'a Integer {
             type Output = $inter<'a>;
             fn $method(self, rhs: &'a Integer) -> $inter<'a> {
@@ -930,6 +922,14 @@ macro_rules! arith_integer {
                     rhs: rhs,
                 }
             }
+        }
+
+        /// This is actually private, this documentation should not be
+        /// visible.
+        #[derive(Clone, Copy)]
+        pub struct $inter<'a> {
+            lhs: &'a Integer,
+            rhs: &'a Integer,
         }
 
         impl<'a> Assign<$inter<'a>> for Integer {
@@ -1026,7 +1026,8 @@ macro_rules! arith_prim_for_integer {
     ($imp:ident $method:ident,
      $imp_assign:ident $method_assign:ident,
      $t:ty,
-     $func:path) => {
+     $func:path,
+     $inter:ident) => {
         impl $imp<$t> for Integer {
             type Output = Integer;
             fn $method(mut self, op: $t) -> Integer {
@@ -1042,6 +1043,40 @@ macro_rules! arith_prim_for_integer {
                 }
             }
         }
+
+        impl<'a> $imp<$t> for &'a Integer {
+            type Output = $inter<'a>;
+            fn $method(self, op: $t) -> $inter<'a> {
+                $inter {
+                    lhs: self,
+                    rhs: op,
+                }
+            }
+        }
+
+        /// This is actually private, this documentation should not be
+        /// visible.
+        #[derive(Clone, Copy)]
+        pub struct $inter<'a> {
+            lhs: &'a Integer,
+            rhs: $t,
+        }
+
+        impl<'a> Assign<$inter<'a>> for Integer {
+            fn assign(&mut self, rhs: $inter) {
+                unsafe {
+                    $func(&mut self.inner, &rhs.lhs.inner, rhs.rhs.into());
+                }
+            }
+        }
+
+        impl<'a> From<$inter<'a>> for Integer {
+            fn from(t: $inter) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
+            }
+        }
     };
 }
 
@@ -1051,12 +1086,15 @@ macro_rules! arith_prim_non_commut {
      $imp_from_assign:ident $method_from_assign:ident,
      $t:ty,
      $func:path,
-     $func_from:path) => {
+     $func_from:path,
+     $inter:ident,
+     $inter_from:ident) => {
         arith_prim_for_integer! {
             $imp $method,
             $imp_assign $method_assign,
             $t,
-            $func
+            $func,
+            $inter
         }
 
         impl $imp<Integer> for $t {
@@ -1067,18 +1105,46 @@ macro_rules! arith_prim_non_commut {
             }
         }
 
-        impl<'a> $imp<&'a Integer> for $t {
-            type Output = Integer;
-            fn $method(self, op: &'a Integer) -> Integer {
-                self.$method(op.clone())
-            }
-        }
-
         impl $imp_from_assign<$t> for Integer {
             fn $method_from_assign(&mut self, lhs: $t) {
                 unsafe {
                     $func_from(&mut self.inner, lhs.into(), &self.inner);
                 }
+            }
+        }
+
+        impl<'a> $imp<&'a Integer> for $t {
+            type Output = $inter_from<'a>;
+            fn $method(self, op: &'a Integer) -> $inter_from<'a> {
+                $inter_from {
+                    lhs: self,
+                    rhs: op,
+                }
+            }
+        }
+
+        /// This is actually private, this documentation should not be
+        /// visible.
+        #[derive(Clone, Copy)]
+        pub struct $inter_from<'a> {
+            lhs: $t,
+            rhs: &'a Integer,
+        }
+
+
+        impl<'a> Assign<$inter_from<'a>> for Integer {
+            fn assign(&mut self, rhs: $inter_from) {
+                unsafe {
+                    $func_from(&mut self.inner, rhs.lhs.into(), &rhs.rhs.inner);
+                }
+            }
+        }
+
+        impl<'a> From<$inter_from<'a>> for Integer {
+            fn from(t: $inter_from) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
             }
         }
     };
@@ -1088,12 +1154,14 @@ macro_rules! arith_prim_commut {
     ($imp:ident $method:ident,
      $imp_assign:ident $method_assign:ident,
      $t:ty,
-     $func:path) => {
+     $func:path,
+     $inter:ident) => {
         arith_prim_for_integer! {
             $imp $method,
             $imp_assign $method_assign,
             $t,
-            $func
+            $func,
+            $inter
         }
 
         impl $imp<Integer> for $t {
@@ -1104,53 +1172,138 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $imp<&'a Integer> for $t {
-            type Output = Integer;
-            fn $method(self, op: &'a Integer) -> Integer {
-                self.$method(op.clone())
+            type Output = $inter<'a>;
+            fn $method(self, op: &'a Integer) -> $inter<'a> {
+                op.$method(self)
             }
         }
     };
 }
 
-arith_prim_commut! { Add add, AddAssign add_assign, u32, gmp::mpz_add_ui }
-arith_prim_non_commut! { Sub sub, SubAssign sub_assign,
+arith_prim_commut! { Add add,
+                     AddAssign add_assign,
+                     u32,
+                     gmp::mpz_add_ui,
+                     AddInterU32 }
+arith_prim_non_commut! { Sub sub,
+                         SubAssign sub_assign,
                          SubFromAssign sub_from_assign,
-                         u32, gmp::mpz_sub_ui, gmp::mpz_ui_sub }
-arith_prim_commut! { Mul mul, MulAssign mul_assign, u32, gmp::mpz_mul_ui }
-arith_prim_non_commut! { Div div, DivAssign div_assign,
+                         u32,
+                         gmp::mpz_sub_ui,
+                         gmp::mpz_ui_sub,
+                         SubInterU32,
+                         SubFromInterU32 }
+arith_prim_commut! { Mul mul,
+                     MulAssign mul_assign,
+                     u32,
+                     gmp::mpz_mul_ui,
+                     MulInterU32 }
+arith_prim_non_commut! { Div div,
+                         DivAssign div_assign,
                          DivFromAssign div_from_assign,
-                         u32, mpz_tdiv_q_ui, mpz_ui_tdiv_q }
-arith_prim_non_commut! { Rem rem, RemAssign rem_assign,
+                         u32,
+                         mpz_tdiv_q_ui,
+                         mpz_ui_tdiv_q,
+                         DivInterU32,
+                         DivFromInterU32 }
+arith_prim_non_commut! { Rem rem,
+                         RemAssign rem_assign,
                          RemFromAssign rem_from_assign,
-                         u32, mpz_tdiv_r_ui, mpz_ui_tdiv_r }
-arith_prim_for_integer! { Shl shl, ShlAssign shl_assign, u32,
-                          gmp::mpz_mul_2exp }
-arith_prim_for_integer! { Shr shr, ShrAssign shr_assign, u32,
-                          gmp::mpz_fdiv_q_2exp }
-arith_prim_for_integer! { Pow pow, PowAssign pow_assign, u32,
-                          gmp::mpz_pow_ui }
-arith_prim_commut! { BitAnd bitand, BitAndAssign bitand_assign, u32, bitand_ui }
-arith_prim_commut! { BitOr bitor, BitOrAssign bitor_assign, u32, bitor_ui }
-arith_prim_commut! { BitXor bitxor, BitXorAssign bitxor_assign, u32, bitxor_ui }
+                         u32,
+                         mpz_tdiv_r_ui,
+                         mpz_ui_tdiv_r,
+                         RemInterU32,
+                         RemFromInterU32 }
+arith_prim_for_integer! { Shl shl,
+                          ShlAssign shl_assign,
+                          u32,
+                          gmp::mpz_mul_2exp,
+                          ShlInterU32 }
+arith_prim_for_integer! { Shr shr,
+                          ShrAssign shr_assign,
+                          u32,
+                          gmp::mpz_fdiv_q_2exp,
+                          ShrInterU32 }
+arith_prim_for_integer! { Pow pow,
+                          PowAssign pow_assign,
+                          u32,
+                          gmp::mpz_pow_ui,
+                          PowInterU32 }
+arith_prim_commut! { BitAnd bitand,
+                     BitAndAssign bitand_assign,
+                     u32,
+                     bitand_ui,
+                     BitAndInterU32 }
+arith_prim_commut! { BitOr bitor,
+                     BitOrAssign bitor_assign,
+                     u32,
+                     bitor_ui,
+                     BitOrInterU32 }
+arith_prim_commut! { BitXor bitxor,
+                     BitXorAssign bitxor_assign,
+                     u32,
+                     bitxor_ui,
+                     BitXorInterU32 }
 
-arith_prim_commut! { Add add, AddAssign add_assign, i32, mpz_add_si }
-arith_prim_non_commut! { Sub sub, SubAssign sub_assign,
+arith_prim_commut! { Add add,
+                     AddAssign add_assign,
+                     i32,
+                     mpz_add_si,
+                     AddInterI32 }
+arith_prim_non_commut! { Sub sub,
+                         SubAssign sub_assign,
                          SubFromAssign sub_from_assign,
-                         i32, mpz_sub_si, mpz_si_sub }
-arith_prim_commut! { Mul mul, MulAssign mul_assign, i32, gmp::mpz_mul_si }
-arith_prim_non_commut! { Div div, DivAssign div_assign,
+                         i32,
+                         mpz_sub_si,
+                         mpz_si_sub,
+                         SubInterI32,
+                         SubFromInterI32 }
+arith_prim_commut! { Mul mul,
+                     MulAssign mul_assign,
+                     i32,
+                     gmp::mpz_mul_si,
+                     MulInterI32 }
+arith_prim_non_commut! { Div div,
+                         DivAssign div_assign,
                          DivFromAssign div_from_assign,
-                         i32, mpz_tdiv_q_si, mpz_si_tdiv_q }
-arith_prim_non_commut! { Rem rem, RemAssign rem_assign,
+                         i32,
+                         mpz_tdiv_q_si,
+                         mpz_si_tdiv_q,
+                         DivInterI32,
+                         DivFromInterI32 }
+arith_prim_non_commut! { Rem rem,
+                         RemAssign rem_assign,
                          RemFromAssign rem_from_assign,
-                         i32, mpz_tdiv_r_si, mpz_si_tdiv_r }
-arith_prim_for_integer! { Shl shl, ShlAssign shl_assign, i32,
-                          mpz_lshift_si }
-arith_prim_for_integer! { Shr shr, ShrAssign shr_assign, i32,
-                          mpz_rshift_si }
-arith_prim_commut! { BitAnd bitand, BitAndAssign bitand_assign, i32, bitand_si }
-arith_prim_commut! { BitOr bitor, BitOrAssign bitor_assign, i32, bitor_si }
-arith_prim_commut! { BitXor bitxor, BitXorAssign bitxor_assign, i32, bitxor_si }
+                         i32,
+                         mpz_tdiv_r_si,
+                         mpz_si_tdiv_r,
+                         RemInterI32,
+                         RemFromInterI32 }
+arith_prim_for_integer! { Shl shl,
+                          ShlAssign shl_assign,
+                          i32,
+                          mpz_lshift_si,
+                          ShlInterI32 }
+arith_prim_for_integer! { Shr shr,
+                          ShrAssign shr_assign,
+                          i32,
+                          mpz_rshift_si,
+                          ShrInterI32 }
+arith_prim_commut! { BitAnd bitand,
+                     BitAndAssign bitand_assign,
+                     i32,
+                     bitand_si,
+                     BitAndInterI32 }
+arith_prim_commut! { BitOr bitor,
+                     BitOrAssign bitor_assign,
+                     i32,
+                     bitor_si,
+                     BitOrInterI32 }
+arith_prim_commut! { BitXor bitxor,
+                     BitXorAssign bitxor_assign,
+                     i32,
+                     bitxor_si,
+                     BitXorInterI32 }
 
 unsafe fn mpz_tdiv_q_ui(q: *mut mpz_t, n: *const mpz_t, d: c_ulong) {
     assert_ne!(d, 0, "division by zero");
@@ -1360,11 +1513,12 @@ unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
             }
         }
         Ordering::Greater => {
+            gmp::mpz_set(rop, op1);
             *(*rop).d ^= !lop2;
             if (*rop).size == 1 && *(*rop).d == 0 {
                 (*rop).size = 0;
             }
-            gmp::mpz_com(rop, op1);
+            gmp::mpz_com(rop, rop);
         }
         Ordering::Less if op2 >= 0 => {
             gmp::mpz_com(rop, op1);
@@ -1693,54 +1847,6 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     }
 }
 
-macro_rules! shift_ref {
-    { $d: expr, $n:ident, $s:ident, $Op:ident, $func:ident, $f:expr } => {
-        #[doc=$d]
-        #[derive(Copy, Clone)]
-        pub struct $n<'a> {
-            lhs: &'a Integer,
-            rhs: $s,
-        }
-
-        impl<'a> $Op<$s> for &'a Integer {
-            type Output = $n<'a>;
-            fn $func(self, rhs: $s) -> $n<'a> {
-                $n {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        impl<'a> Assign<$n<'a>> for Integer {
-            fn assign(&mut self, rhs: $n) {
-                $f(&mut self.inner, &rhs.lhs.inner, rhs.rhs.into());
-            }
-        }
-
-        impl<'a> From<$n<'a>> for Integer {
-            fn from(t: $n) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    };
-}
-
-shift_ref!{ "Left shift of an `Integer` reference by a `u32`.",
-             IntegerShlU, u32, Shl, shl,
-             |target, lhs, rhs| unsafe { gmp::mpz_mul_2exp(target, lhs, rhs) } }
-shift_ref!{ "Right shift of an `Integer` reference by a `u32`.",
-             IntegerShrU, u32, Shr, shr, |target, lhs, rhs| unsafe {
-                 gmp::mpz_fdiv_q_2exp(target, lhs, rhs) } }
-shift_ref!{ "Left shift of an `Integer` reference by an `i32`.",
-             IntegerShlI, i32, Shl, shl,
-             |target, lhs, rhs| unsafe { mpz_lshift_si(target, lhs, rhs) } }
-shift_ref!{ "Right shift of an `Integer` reference by an `i32`.",
-             IntegerShrI, i32, Shr, shr,
-             |target, lhs, rhs| unsafe { mpz_rshift_si(target, lhs, rhs) } }
-
 #[cfg(test)]
 mod tests {
     use gmp_mpfr_sys::gmp;
@@ -1770,16 +1876,16 @@ mod tests {
                 assert!(b.clone() & op == b.clone() & &iop);
                 assert!(b.clone() | op == b.clone() | &iop);
                 assert!(b.clone() ^ op == b.clone() ^ &iop);
-                assert!(op + &b == iop.clone() + &b);
-                assert!(op - &b == iop.clone() - &b);
-                assert!(op * &b == iop.clone() * &b);
+                assert!(op + b.clone() == iop.clone() + &b);
+                assert!(op - b.clone() == iop.clone() - &b);
+                assert!(op * b.clone() == iop.clone() * &b);
                 if b.sign() != Ordering::Equal {
-                    assert!(op / &b == iop.clone() / &b);
-                    assert!(op % &b == iop.clone() % &b);
+                    assert!(op / b.clone() == iop.clone() / &b);
+                    assert!(op % b.clone() == iop.clone() % &b);
                 }
-                assert!(op & &b == iop.clone() & &b);
-                assert!(op | &b == iop.clone() | &b);
-                assert!(op ^ &b == iop.clone() ^ &b);
+                assert!(op & b.clone() == iop.clone() & &b);
+                assert!(op | b.clone() == iop.clone() | &b);
+                assert!(op ^ b.clone() == iop.clone() ^ &b);
             }
         }
         for &op in &s {
@@ -1798,16 +1904,16 @@ mod tests {
                 assert!(b.clone() & op == b.clone() & &iop);
                 assert!(b.clone() | op == b.clone() | &iop);
                 assert!(b.clone() ^ op == b.clone() ^ &iop);
-                assert!(op + &b == iop.clone() + &b);
-                assert!(op - &b == iop.clone() - &b);
-                assert!(op * &b == iop.clone() * &b);
+                assert!(op + b.clone() == iop.clone() + &b);
+                assert!(op - b.clone() == iop.clone() - &b);
+                assert!(op * b.clone() == iop.clone() * &b);
                 if b.sign() != Ordering::Equal {
-                    assert!(op / &b == iop.clone() / &b);
-                    assert!(op % &b == iop.clone() % &b);
+                    assert!(op / b.clone() == iop.clone() / &b);
+                    assert!(op % b.clone() == iop.clone() % &b);
                 }
-                assert!(op & &b == iop.clone() & &b);
-                assert!(op | &b == iop.clone() | &b);
-                assert!(op ^ &b == iop.clone() ^ &b);
+                assert!(op & b.clone() == iop.clone() & &b);
+                assert!(op | b.clone() == iop.clone() | &b);
+                assert!(op ^ b.clone() == iop.clone() ^ &b);
             }
         }
     }
@@ -1816,8 +1922,8 @@ mod tests {
     fn check_ref_op() {
         let lhs = Integer::from(0x00ff);
         let rhs = Integer::from(0x0f0f);
-        let su = 30_u32;
-        let si = -15_i32;
+        let pu = 30_u32;
+        let pi = -15_i32;
         assert!(Integer::from(-&lhs) == -lhs.clone());
         assert!(Integer::from(&lhs + &rhs) == lhs.clone() + &rhs);
         assert!(Integer::from(&lhs - &rhs) == lhs.clone() - &rhs);
@@ -1828,10 +1934,47 @@ mod tests {
         assert!(Integer::from(&lhs & &rhs) == lhs.clone() & &rhs);
         assert!(Integer::from(&lhs | &rhs) == lhs.clone() | &rhs);
         assert!(Integer::from(&lhs ^ &rhs) == lhs.clone() ^ &rhs);
-        assert!(Integer::from(&lhs << su) == lhs.clone() << su);
-        assert!(Integer::from(&lhs << si) == lhs.clone() << si);
-        assert!(Integer::from(&lhs >> su) == lhs.clone() >> su);
-        assert!(Integer::from(&lhs >> si) == lhs.clone() >> si);
+
+        assert!(Integer::from(&lhs + pu) == lhs.clone() + pu);
+        assert!(Integer::from(&lhs - pu) == lhs.clone() - pu);
+        assert!(Integer::from(&lhs * pu) == lhs.clone() * pu);
+        assert!(Integer::from(&lhs / pu) == lhs.clone() / pu);
+        assert!(Integer::from(&lhs % pu) == lhs.clone() % pu);
+        assert!(Integer::from(&lhs & pu) == lhs.clone() & pu);
+        assert!(Integer::from(&lhs | pu) == lhs.clone() | pu);
+        assert!(Integer::from(&lhs ^ pu) == lhs.clone() ^ pu);
+        assert!(Integer::from(&lhs << pu) == lhs.clone() << pu);
+        assert!(Integer::from(&lhs >> pu) == lhs.clone() >> pu);
+        assert!(Integer::from((&lhs).pow(pu)) == lhs.clone().pow(pu));
+
+        assert!(Integer::from(&lhs + pi) == lhs.clone() + pi);
+        assert!(Integer::from(&lhs - pi) == lhs.clone() - pi);
+        assert!(Integer::from(&lhs * pi) == lhs.clone() * pi);
+        assert!(Integer::from(&lhs / pi) == lhs.clone() / pi);
+        assert!(Integer::from(&lhs % pi) == lhs.clone() % pi);
+        assert!(Integer::from(&lhs & pi) == lhs.clone() & pi);
+        assert!(Integer::from(&lhs | pi) == lhs.clone() | pi);
+        assert!(Integer::from(&lhs ^ pi) == lhs.clone() ^ pi);
+        assert!(Integer::from(&lhs << pi) == lhs.clone() << pi);
+        assert!(Integer::from(&lhs >> pi) == lhs.clone() >> pi);
+
+        assert!(Integer::from(pu + &lhs) == pu + lhs.clone());
+        assert!(Integer::from(pu - &lhs) == pu - lhs.clone());
+        assert!(Integer::from(pu * &lhs) == pu * lhs.clone());
+        assert!(Integer::from(pu / &lhs) == pu / lhs.clone());
+        assert!(Integer::from(pu % &lhs) == pu % lhs.clone());
+        assert!(Integer::from(pu & &lhs) == pu & lhs.clone());
+        assert!(Integer::from(pu | &lhs) == pu | lhs.clone());
+        assert!(Integer::from(pu ^ &lhs) == pu ^ lhs.clone());
+
+        assert!(Integer::from(pi + &lhs) == pi + lhs.clone());
+        assert!(Integer::from(pi - &lhs) == pi - lhs.clone());
+        assert!(Integer::from(pi * &lhs) == pi * lhs.clone());
+        assert!(Integer::from(pi / &lhs) == pi / lhs.clone());
+        assert!(Integer::from(pi % &lhs) == pi % lhs.clone());
+        assert!(Integer::from(pi & &lhs) == pi & lhs.clone());
+        assert!(Integer::from(pi | &lhs) == pi | lhs.clone());
+        assert!(Integer::from(pi ^ &lhs) == pi ^ lhs.clone());
     }
 
     #[test]
