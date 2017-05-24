@@ -907,6 +907,20 @@ impl FromStr for Integer {
     }
 }
 
+macro_rules! from_borrow {
+    { $d:expr, $T:ty } => {
+        impl<'a> From<$T> for Integer {
+            /// Constructs an `Integer` from
+            #[doc=$d]
+            fn from(t: $T) -> Integer {
+                let mut ret = Integer::new();
+                ret.assign(t);
+                ret
+            }
+        }
+    };
+}
+
 impl Assign for Integer {
     /// Assigns from another `Integer`.
     fn assign(&mut self, mut other: Integer) {
@@ -926,9 +940,11 @@ impl<'a> Assign<&'a Integer> for Integer {
 impl<'a> From<&'a Integer> for Integer {
     /// Constructs an `Integer` from another `Integer`.
     fn from(t: &Integer) -> Integer {
-        let mut ret = Integer::new();
-        ret.assign(t);
-        ret
+        unsafe {
+            let mut inner: mpz_t = mem::uninitialized();
+            gmp::mpz_init_set(&mut inner, &t.inner);
+            Integer { inner: inner }
+        }
     }
 }
 
@@ -942,9 +958,11 @@ impl Assign<u32> for Integer {
 impl From<u32> for Integer {
     /// Constructs an `Integer` from a `u32`.
     fn from(t: u32) -> Integer {
-        let mut ret = Integer::new();
-        ret.assign(t);
-        ret
+        unsafe {
+            let mut inner: mpz_t = mem::uninitialized();
+            gmp::mpz_init_set_ui(&mut inner, t.into());
+            Integer { inner: inner }
+        }
     }
 }
 
@@ -956,11 +974,13 @@ impl Assign<i32> for Integer {
 }
 
 impl From<i32> for Integer {
-    /// Constructs an `Integer` from a `i32`.
+    /// Constructs an `Integer` from an `i32`.
     fn from(t: i32) -> Integer {
-        let mut ret = Integer::new();
-        ret.assign(t);
-        ret
+        unsafe {
+            let mut inner: mpz_t = mem::uninitialized();
+            gmp::mpz_init_set_si(&mut inner, t.into());
+            Integer { inner: inner }
+        }
     }
 }
 
@@ -1008,13 +1028,7 @@ macro_rules! arith_unary {
             }
         }
 
-        impl<'a> From<$Inter<'a>> for Integer {
-            fn from(t: $Inter) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
+        from_borrow! { "an intermediate value.", $Inter<'a> }
     };
 }
 
@@ -1079,13 +1093,7 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> From<$Inter<'a>> for Integer {
-            fn from(t: $Inter) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
+        from_borrow! { "an intermediate value.", $Inter<'a> }
     };
 }
 
@@ -1208,13 +1216,7 @@ macro_rules! arith_prim {
             }
         }
 
-        impl<'a> From<$Inter<'a>> for Integer {
-            fn from(t: $Inter) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
+        from_borrow! { "an intermediate value.", $Inter<'a> }
     };
 }
 
@@ -1277,13 +1279,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl<'a> From<$InterFrom<'a>> for Integer {
-            fn from(t: $InterFrom) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
+        from_borrow! { "an intermediate value.", $InterFrom<'a> }
     };
 }
 
