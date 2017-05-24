@@ -217,10 +217,37 @@ impl Integer {
         };
     }
 
+    /// Sets `self` and `rem` to the quotient and remainder of
+    /// `dividend` divided by `divisor.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    pub fn set_div_rem(&mut self,
+                       rem: &mut Integer,
+                       dividend: &Integer,
+                       divisor: &Integer) {
+        assert_ne!(divisor.sign(), Ordering::Equal, "division by zero");
+        unsafe {
+            gmp::mpz_tdiv_qr(&mut self.inner,
+                             &mut rem.inner,
+                             &dividend.inner,
+                             &divisor.inner)
+        };
+    }
+
     /// Computes the absolute value of `self`.
     pub fn abs(&mut self) -> &mut Integer {
         unsafe {
             gmp::mpz_abs(&mut self.inner, &self.inner);
+        }
+        self
+    }
+
+    /// Sets `self` to the absolute value of `val`.
+    pub fn set_abs(&mut self, val: &Integer) -> &mut Integer {
+        unsafe {
+            gmp::mpz_abs(&mut self.inner, &val.inner);
         }
         self
     }
@@ -231,25 +258,61 @@ impl Integer {
     ///
     /// # Panics
     ///
-    /// Panics if `other` is zero.
-    pub fn div_exact(&mut self, other: &Integer) -> &mut Integer {
-        assert_ne!(other.sign(), Ordering::Equal, "division by zero");
+    /// Panics if `divisor` is zero.
+    pub fn div_exact(&mut self, divisor: &Integer) -> &mut Integer {
+        assert_ne!(divisor.sign(), Ordering::Equal, "division by zero");
         unsafe {
-            gmp::mpz_divexact(&mut self.inner, &self.inner, &other.inner);
+            gmp::mpz_divexact(&mut self.inner, &self.inner, &divisor.inner);
         }
         self
     }
 
-    /// Returns `true` if `self` is divisible by `other`.
-    pub fn is_divisible(&self, other: &Integer) -> bool {
-        unsafe { gmp::mpz_divisible_p(&self.inner, &other.inner) != 0 }
+    /// Sets `self` to the exact division of `dividend` by `divisor`.
+    /// This is much faster than normal division, but produces correct
+    /// results only when the division is exact.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `divisor` is zero.
+    pub fn set_div_exact(&mut self,
+                         dividend: &Integer,
+                         divisor: &Integer)
+                         -> &mut Integer {
+        assert_ne!(divisor.sign(), Ordering::Equal, "division by zero");
+        unsafe {
+            gmp::mpz_divexact(&mut self.inner, &dividend.inner, &divisor.inner);
+        }
+        self
     }
 
-    /// Returns `true` if `self` is congruent to `c` modulo `d`, that
-    /// is, if there exists a `q` such that `self == c + q * d`.
-    /// Unlike other division functions, `d` can be zero.
-    pub fn is_congruent(&self, c: &Integer, d: &Integer) -> bool {
-        unsafe { gmp::mpz_congruent_p(&self.inner, &c.inner, &d.inner) != 0 }
+    /// Returns `true` if `self` is divisible by `divisor`. Unlike
+    /// other division functions, `divisor` can be zero.
+    pub fn is_divisible(&self, divisor: &Integer) -> bool {
+        unsafe { gmp::mpz_divisible_p(&self.inner, &divisor.inner) != 0 }
+    }
+
+    /// Returns `true` if `self` is divisible by `divisor`. Unlike
+    /// other division functions, `divisor` can be zero.
+    pub fn is_divisible_u(&self, divisor: u32) -> bool {
+        unsafe { gmp::mpz_divisible_ui_p(&self.inner, divisor.into()) != 0 }
+    }
+
+    /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
+    /// is, if there exists a `q` such that `self == c + q * divisor`.
+    /// Unlike other division functions, `divisor` can be zero.
+    pub fn is_congruent(&self, c: &Integer, divisor: &Integer) -> bool {
+        unsafe {
+            gmp::mpz_congruent_p(&self.inner, &c.inner, &divisor.inner) != 0
+        }
+    }
+
+    /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
+    /// is, if there exists a `q` such that `self == c + q * divisor`.
+    /// Unlike other division functions, `divisor` can be zero.
+    pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
+        unsafe {
+            gmp::mpz_congruent_ui_p(&self.inner, c.into(), divisor.into()) != 0
+        }
     }
 
     /// Computes the `n`th root of `self` and truncates the result.
@@ -260,15 +323,35 @@ impl Integer {
         self
     }
 
+    /// Sets `self` to the `n`th root of `val` and truncates the result.
+    pub fn set_root(&mut self, val: &Integer, n: u32) -> &mut Integer {
+        unsafe {
+            gmp::mpz_root(&mut self.inner, &val.inner, n.into());
+        }
+        self
+    }
+
     /// Computes the `n`th root of `self` and returns the truncated
-    /// root and the remainder.  The remainder is `self` minus the
-    /// truncated root raised to the power of `n`.
-    /// The remainder is stored in `buf`.
-    pub fn root_rem(&mut self, buf: &mut Integer, n: u32) {
+    /// root and the remainder. The remainder is `self` minus the
+    /// truncated root raised to the power of `n`. The remainder is
+    /// stored in `rem`; the original value of `rem` is discarded.
+    pub fn root_rem(&mut self, rem: &mut Integer, n: u32) {
         unsafe {
             gmp::mpz_rootrem(&mut self.inner,
-                             &mut buf.inner,
+                             &mut rem.inner,
                              &self.inner,
+                             n.into());
+        }
+    }
+
+    /// Sets `self` to the `n`th root of `val` and sets `rem` to the
+    /// remainder. The remainder is `val` minus the truncated root
+    /// raised to the power of `n`.
+    pub fn set_root_rem(&mut self, rem: &mut Integer, val: &Integer, n: u32) {
+        unsafe {
+            gmp::mpz_rootrem(&mut self.inner,
+                             &mut rem.inner,
+                             &val.inner,
                              n.into());
         }
     }
@@ -281,13 +364,31 @@ impl Integer {
         self
     }
 
-    /// Computes the square root of `self` and returns the truncated
-    /// root and the remainder.  The remainder is `self` minus the
-    /// truncated root squared.
-    /// The remainder is stored in `buf`.
-    pub fn sqrt_rem(&mut self, buf: &mut Integer) {
+    /// Sets `self` to the square root of `val` and truncates the
+    /// result.
+    pub fn set_sqrt(&mut self, val: &Integer) -> &mut Integer {
         unsafe {
-            gmp::mpz_sqrtrem(&mut self.inner, &mut buf.inner, &self.inner);
+            gmp::mpz_sqrt(&mut self.inner, &val.inner);
+        }
+        self
+    }
+
+    /// Computes the square root of `self` and returns the truncated
+    /// root and the remainder. The remainder is `self` minus the
+    /// truncated root squared. The remainder is stored in `rem`; the
+    /// original value of `rem` is discarded.
+    pub fn sqrt_rem(&mut self, rem: &mut Integer) {
+        unsafe {
+            gmp::mpz_sqrtrem(&mut self.inner, &mut rem.inner, &self.inner);
+        }
+    }
+
+    /// Sets `self` to the square root of `val` and sets `rem` to the
+    /// remainder. The remainder is `val` minus the truncated root
+    /// squared.
+    pub fn set_sqrt_rem(&mut self, rem: &mut Integer, val: &Integer) {
+        unsafe {
+            gmp::mpz_sqrtrem(&mut self.inner, &mut rem.inner, &val.inner);
         }
     }
 
@@ -310,11 +411,31 @@ impl Integer {
         self
     }
 
+    /// Sets `self` to the greatest common divisor of `op1` and `op2`.
+    /// The result is always positive except when both inputs are
+    /// zero.
+    pub fn set_gcd(&mut self, op1: &Integer, op2: &Integer) -> &mut Integer {
+        unsafe {
+            gmp::mpz_gcd(&mut self.inner, &op1.inner, &op2.inner);
+        }
+        self
+    }
+
     /// Finds the least common multiple. The result is always positive
     /// except when one or both inputs are zero.
     pub fn lcm(&mut self, other: &Integer) -> &mut Integer {
         unsafe {
             gmp::mpz_lcm(&mut self.inner, &self.inner, &other.inner);
+        }
+        self
+    }
+
+    /// Sets `self` to the least common multiple of `op1` and `op2`.
+    /// The result is always positive except when one or both inputs
+    /// are zero.
+    pub fn set_lcm(&mut self, op1: &Integer, op2: &Integer) -> &mut Integer {
+        unsafe {
+            gmp::mpz_lcm(&mut self.inner, &op1.inner, &op2.inner);
         }
         self
     }
@@ -332,8 +453,24 @@ impl Integer {
         if exists { Some(self) } else { None }
     }
 
-    /// Computes the factorial of `n`.
-    /// The value of `self` is ignored.
+    /// Sets `self` to the inverse of `val` modulo `m` if an inverse
+    /// exists.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `m` is zero.
+    pub fn set_inverse(&mut self,
+                       val: &Integer,
+                       m: &Integer)
+                       -> Option<&mut Integer> {
+        assert_ne!(m.sign(), Ordering::Equal, "division by zero");
+        let exists = unsafe {
+            gmp::mpz_invert(&mut self.inner, &val.inner, &m.inner) != 0
+        };
+        if exists { Some(self) } else { None }
+    }
+
+    /// Sets `self` to the factorial of `n`.
     pub fn set_factorial(&mut self, n: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_fac_ui(&mut self.inner, n.into());
@@ -341,8 +478,7 @@ impl Integer {
         self
     }
 
-    /// Computes the double factorial of `n`.
-    /// The value of `self` is ignored.
+    /// Sets `self` to the double factorial of `n`.
     pub fn set_factorial_2(&mut self, n: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_2fac_ui(&mut self.inner, n.into());
@@ -350,8 +486,7 @@ impl Integer {
         self
     }
 
-    /// Computes the `m`-multi factorial of `n`.
-    /// The value of `self` is ignored.
+    /// Sets `self` to the `m`-multi factorial of `n`.
     pub fn set_factorial_m(&mut self, n: u32, m: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_mfac_uiui(&mut self.inner, n.into(), m.into());
@@ -359,8 +494,7 @@ impl Integer {
         self
     }
 
-    /// Computes the primorial of `n`.
-    /// The value of `self` is ignored.
+    /// Sets `self` to the primorial of `n`.
     pub fn set_primorial(&mut self, n: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_primorial_ui(&mut self.inner, n.into());
@@ -376,9 +510,16 @@ impl Integer {
         self
     }
 
-    /// Computes the binomial coefficient `n` over `k`.
-    /// The value of `self` is ignored.
-    pub fn set_binomial(&mut self, n: u32, k: u32) -> &mut Integer {
+    /// Sets `self` to the binomial coefficient `n` over `k`.
+    pub fn set_binomial(&mut self, n: &Integer, k: u32) -> &mut Integer {
+        unsafe {
+            gmp::mpz_bin_ui(&mut self.inner, &n.inner, k.into());
+        }
+        self
+    }
+
+    /// Sets `self` to the binomial coefficient `n` over `k`.
+    pub fn set_binomial_u(&mut self, n: u32, k: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_bin_uiui(&mut self.inner, n.into(), k.into());
         }
@@ -823,7 +964,7 @@ impl From<i32> for Integer {
     }
 }
 
-macro_rules! arith_unary_integer {
+macro_rules! arith_unary {
     {
         $imp:ident $method:ident,
         $imp_assign:ident $method_assign:ident,
@@ -878,7 +1019,7 @@ macro_rules! arith_unary_integer {
     };
 }
 
-macro_rules! arith_integer {
+macro_rules! arith_binary {
     {
         $imp:ident $method:ident,
         $imp_assign:ident $method_assign:ident,
@@ -950,7 +1091,7 @@ macro_rules! arith_integer {
     };
 }
 
-macro_rules! arith_noncommut_integer {
+macro_rules! arith_noncommut {
     {
         $imp:ident $method:ident,
         $imp_assign:ident $method_assign:ident,
@@ -958,7 +1099,7 @@ macro_rules! arith_noncommut_integer {
         $func:path,
         $inter:ident
     } => {
-        arith_integer! { $imp $method,
+        arith_binary! { $imp $method,
                          $imp_assign $method_assign,
                          $func,
                          $inter }
@@ -980,37 +1121,37 @@ macro_rules! arith_noncommut_integer {
     };
 }
 
-arith_unary_integer! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegInter }
-arith_integer! { Add add, AddAssign add_assign, gmp::mpz_add, AddInter }
-arith_noncommut_integer! { Sub sub,
-                           SubAssign sub_assign,
-                           SubFromAssign sub_from_assign,
-                           gmp::mpz_sub,
-                           SubInter }
-arith_integer! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulInter }
-arith_noncommut_integer! { Div div,
-                           DivAssign div_assign,
-                           DivFromAssign div_from_assign,
-                           mpz_tdiv_q,
-                           DivInter }
-arith_noncommut_integer! { Rem rem,
-                           RemAssign rem_assign,
-                           RemFromAssign rem_from_assign,
-                           mpz_tdiv_r,
-                           RemInter }
-arith_unary_integer! { Not not, NotAssign not_assign, gmp::mpz_com, NotInter }
-arith_integer! { BitAnd bitand,
-                 BitAndAssign bitand_assign,
-                 gmp::mpz_and,
-                 BitAndInter }
-arith_integer! { BitOr bitor,
-                 BitOrAssign bitor_assign,
-                 gmp::mpz_ior,
-                 BitOrInter }
-arith_integer! { BitXor bitxor,
-                 BitXorAssign bitxor_assign,
-                 gmp::mpz_xor,
-                 BitXorInter }
+arith_unary! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegInter }
+arith_binary! { Add add, AddAssign add_assign, gmp::mpz_add, AddInter }
+arith_noncommut! { Sub sub,
+                   SubAssign sub_assign,
+                   SubFromAssign sub_from_assign,
+                   gmp::mpz_sub,
+                   SubInter }
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulInter }
+arith_noncommut! { Div div,
+                   DivAssign div_assign,
+                   DivFromAssign div_from_assign,
+                   mpz_tdiv_q,
+                   DivInter }
+arith_noncommut! { Rem rem,
+                   RemAssign rem_assign,
+                   RemFromAssign rem_from_assign,
+                   mpz_tdiv_r,
+                   RemInter }
+arith_unary! { Not not, NotAssign not_assign, gmp::mpz_com, NotInter }
+arith_binary! { BitAnd bitand,
+                BitAndAssign bitand_assign,
+                gmp::mpz_and,
+                BitAndInter }
+arith_binary! { BitOr bitor,
+                BitOrAssign bitor_assign,
+                gmp::mpz_ior,
+                BitOrInter }
+arith_binary! { BitXor bitxor,
+                BitXorAssign bitxor_assign,
+                gmp::mpz_xor,
+                BitXorInter }
 
 unsafe fn mpz_tdiv_q(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
     assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
@@ -1022,7 +1163,7 @@ unsafe fn mpz_tdiv_r(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
     gmp::mpz_tdiv_r(q, n, d);
 }
 
-macro_rules! arith_prim_for_integer {
+macro_rules! arith_prim {
     ($imp:ident $method:ident,
      $imp_assign:ident $method_assign:ident,
      $t:ty,
@@ -1080,7 +1221,7 @@ macro_rules! arith_prim_for_integer {
     };
 }
 
-macro_rules! arith_prim_non_commut {
+macro_rules! arith_prim_noncommut {
     ($imp:ident $method:ident,
      $imp_assign:ident $method_assign:ident,
      $imp_from_assign:ident $method_from_assign:ident,
@@ -1089,7 +1230,7 @@ macro_rules! arith_prim_non_commut {
      $func_from:path,
      $inter:ident,
      $inter_from:ident) => {
-        arith_prim_for_integer! {
+        arith_prim! {
             $imp $method,
             $imp_assign $method_assign,
             $t,
@@ -1156,7 +1297,7 @@ macro_rules! arith_prim_commut {
      $t:ty,
      $func:path,
      $inter:ident) => {
-        arith_prim_for_integer! {
+        arith_prim! {
             $imp $method,
             $imp_assign $method_assign,
             $t,
@@ -1185,50 +1326,46 @@ arith_prim_commut! { Add add,
                      u32,
                      gmp::mpz_add_ui,
                      AddInterU32 }
-arith_prim_non_commut! { Sub sub,
-                         SubAssign sub_assign,
-                         SubFromAssign sub_from_assign,
-                         u32,
-                         gmp::mpz_sub_ui,
-                         gmp::mpz_ui_sub,
-                         SubInterU32,
-                         SubFromInterU32 }
+arith_prim_noncommut! { Sub sub,
+                        SubAssign sub_assign,
+                        SubFromAssign sub_from_assign,
+                        u32,
+                        gmp::mpz_sub_ui,
+                        gmp::mpz_ui_sub,
+                        SubInterU32,
+                        SubFromInterU32 }
 arith_prim_commut! { Mul mul,
                      MulAssign mul_assign,
                      u32,
                      gmp::mpz_mul_ui,
                      MulInterU32 }
-arith_prim_non_commut! { Div div,
-                         DivAssign div_assign,
-                         DivFromAssign div_from_assign,
-                         u32,
-                         mpz_tdiv_q_ui,
-                         mpz_ui_tdiv_q,
-                         DivInterU32,
-                         DivFromInterU32 }
-arith_prim_non_commut! { Rem rem,
-                         RemAssign rem_assign,
-                         RemFromAssign rem_from_assign,
-                         u32,
-                         mpz_tdiv_r_ui,
-                         mpz_ui_tdiv_r,
-                         RemInterU32,
-                         RemFromInterU32 }
-arith_prim_for_integer! { Shl shl,
-                          ShlAssign shl_assign,
-                          u32,
-                          gmp::mpz_mul_2exp,
-                          ShlInterU32 }
-arith_prim_for_integer! { Shr shr,
-                          ShrAssign shr_assign,
-                          u32,
-                          gmp::mpz_fdiv_q_2exp,
-                          ShrInterU32 }
-arith_prim_for_integer! { Pow pow,
-                          PowAssign pow_assign,
-                          u32,
-                          gmp::mpz_pow_ui,
-                          PowInterU32 }
+arith_prim_noncommut! { Div div,
+                        DivAssign div_assign,
+                        DivFromAssign div_from_assign,
+                        u32,
+                        mpz_tdiv_q_ui,
+                        mpz_ui_tdiv_q,
+                        DivInterU32,
+                        DivFromInterU32 }
+arith_prim_noncommut! { Rem rem,
+                        RemAssign rem_assign,
+                        RemFromAssign rem_from_assign,
+                        u32,
+                        mpz_tdiv_r_ui,
+                        mpz_ui_tdiv_r,
+                        RemInterU32,
+                        RemFromInterU32 }
+arith_prim! { Shl shl,
+              ShlAssign shl_assign,
+              u32,
+              gmp::mpz_mul_2exp,
+              ShlInterU32 }
+arith_prim! { Shr shr,
+              ShrAssign shr_assign,
+              u32,
+              gmp::mpz_fdiv_q_2exp,
+              ShrInterU32 }
+arith_prim! { Pow pow, PowAssign pow_assign, u32, gmp::mpz_pow_ui, PowInterU32 }
 arith_prim_commut! { BitAnd bitand,
                      BitAndAssign bitand_assign,
                      u32,
@@ -1250,45 +1387,37 @@ arith_prim_commut! { Add add,
                      i32,
                      mpz_add_si,
                      AddInterI32 }
-arith_prim_non_commut! { Sub sub,
-                         SubAssign sub_assign,
-                         SubFromAssign sub_from_assign,
-                         i32,
-                         mpz_sub_si,
-                         mpz_si_sub,
-                         SubInterI32,
-                         SubFromInterI32 }
+arith_prim_noncommut! { Sub sub,
+                        SubAssign sub_assign,
+                        SubFromAssign sub_from_assign,
+                        i32,
+                        mpz_sub_si,
+                        mpz_si_sub,
+                        SubInterI32,
+                        SubFromInterI32 }
 arith_prim_commut! { Mul mul,
                      MulAssign mul_assign,
                      i32,
                      gmp::mpz_mul_si,
                      MulInterI32 }
-arith_prim_non_commut! { Div div,
-                         DivAssign div_assign,
-                         DivFromAssign div_from_assign,
-                         i32,
-                         mpz_tdiv_q_si,
-                         mpz_si_tdiv_q,
-                         DivInterI32,
-                         DivFromInterI32 }
-arith_prim_non_commut! { Rem rem,
-                         RemAssign rem_assign,
-                         RemFromAssign rem_from_assign,
-                         i32,
-                         mpz_tdiv_r_si,
-                         mpz_si_tdiv_r,
-                         RemInterI32,
-                         RemFromInterI32 }
-arith_prim_for_integer! { Shl shl,
-                          ShlAssign shl_assign,
-                          i32,
-                          mpz_lshift_si,
-                          ShlInterI32 }
-arith_prim_for_integer! { Shr shr,
-                          ShrAssign shr_assign,
-                          i32,
-                          mpz_rshift_si,
-                          ShrInterI32 }
+arith_prim_noncommut! { Div div,
+                        DivAssign div_assign,
+                        DivFromAssign div_from_assign,
+                        i32,
+                        mpz_tdiv_q_si,
+                        mpz_si_tdiv_q,
+                        DivInterI32,
+                        DivFromInterI32 }
+arith_prim_noncommut! { Rem rem,
+                        RemAssign rem_assign,
+                        RemFromAssign rem_from_assign,
+                        i32,
+                        mpz_tdiv_r_si,
+                        mpz_si_tdiv_r,
+                        RemInterI32,
+                        RemFromInterI32 }
+arith_prim! { Shl shl, ShlAssign shl_assign, i32, mpz_lshift_si, ShlInterI32 }
+arith_prim! { Shr shr, ShrAssign shr_assign, i32, mpz_rshift_si, ShrInterI32 }
 arith_prim_commut! { BitAnd bitand,
                      BitAndAssign bitand_assign,
                      i32,
@@ -1704,7 +1833,7 @@ impl PartialOrd<Integer> for f32 {
     }
 }
 
-macro_rules! cmp_int {
+macro_rules! cmp {
     { $t:ty, $func:path } => {
         impl PartialOrd<$t> for Integer {
             fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
@@ -1736,8 +1865,8 @@ macro_rules! cmp_int {
     };
 }
 
-cmp_int! { u32, gmp::mpz_cmp_ui }
-cmp_int! { i32, gmp::mpz_cmp_si }
+cmp! { u32, gmp::mpz_cmp_ui }
+cmp! { i32, gmp::mpz_cmp_si }
 
 fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
