@@ -667,7 +667,6 @@ macro_rules! arith_binary {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        #[derive(Clone, Copy)]
         pub struct $inter<'a> {
             lhs: &'a Rational,
             rhs: &'a Rational,
@@ -814,7 +813,6 @@ macro_rules! arith_prim {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        #[derive(Clone, Copy)]
         pub struct $inter<'a> {
             lhs: &'a Rational,
             rhs: $t,
