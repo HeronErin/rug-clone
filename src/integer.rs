@@ -996,7 +996,6 @@ macro_rules! arith_unary {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        #[derive(Clone, Copy)]
         pub struct $inter<'a> {
             op: &'a Integer,
         }
@@ -1067,7 +1066,6 @@ macro_rules! arith_binary {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        #[derive(Clone, Copy)]
         pub struct $inter<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
@@ -1197,7 +1195,6 @@ macro_rules! arith_prim {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        #[derive(Clone, Copy)]
         pub struct $inter<'a> {
             lhs: &'a Integer,
             rhs: $t,
@@ -1266,7 +1263,6 @@ macro_rules! arith_prim_noncommut {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        #[derive(Clone, Copy)]
         pub struct $inter_from<'a> {
             lhs: $t,
             rhs: &'a Integer,
