@@ -164,6 +164,10 @@ impl Float
 impl From<(T, i32)> for Float where Float: From<(T, u32)>;
 impl FromRound<T, i32> for Float where Float: FromRound<T, u32, Round = Round, Ordering = Ordering>;
 
+assign_inter!
+    impl Assign<Inter> for Float;
+    impl AssignRound<Inter> for Float;
+
 from_borrow!
     impl From<(&T, u32)> for Float;
     impl FromRound<&T, u32> for Float;
@@ -186,6 +190,13 @@ assign!
     impl AssignRound<T> for Float;
 Float, Integer, Rational;
 
+impl Neg for Float;
+impl NegAssign for Float;
+impl Neg for &Float; // Output = NegInter;
+struct NegInter;
+assign_inter! NegInter;
+from_borrow! NegInter;
+
 arith_binary!
     impl Imp<&T> for Float;
     impl ImpRound<&T> for Float;
@@ -195,10 +206,8 @@ arith_binary!
     impl ImpAssign<&T> for Float
     impl ImpAssign<T> for Float;
     struct Inter;
-    impl Assign<Inter> for Float;
-    impl AssignRound<Inter> for Float;
-    impl From<(Inter, u32)> for Float;
-    impl FromRound<Inter, u32> for Float;
+    assign_inter! Inter;
+    from_borrow! Inter;
 
 arith_commut_float!
     arith_binary!<Float>
@@ -212,22 +221,26 @@ arith_noncommut_float!
     impl ImpRound<Float> for &Float;
     impl ImpFromAssign<&Float> for Float;
     impl ImpFromAssign for Float;
-Sub, Div;
+Sub, Div, Pow;
 
-arith_commut!
+arith_forward!
     arith_binary!
     impl Imp<T> for &Float; // Output = Inter
+PowInteger;
+
+arith_commut!
+    arith_forward!
     impl Imp<Float> for &T;
     impl ImpRound<Float> for &T
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
     impl Imp<&Float> for &T; // Output = Inter
     impl Imp<&Float> for T; // Output = Inter
-Add<Integer>, Mul<Integer>, Add<Rational>, Mul<Rational>;
+Add<Integer>, Mul<Integer>;
+Add<Rational>, Mul<Rational>;
 
 arith_non_commut!
-    arith_binary!
-    impl Imp<T> for &Float; // Output = Inter
+    arith_forward!
     impl Imp<Float> for &T;
     impl ImpRound<Float> for &T;
     impl Imp<Float> for T;
@@ -237,8 +250,72 @@ arith_non_commut!
     impl ImpFromAssign<&T> for Float;
     impl ImpFromAssign<T> for Float;
     struct InterFrom;
-    impl Assign<InterFrom> for Float;
-    impl AssignRound<InterFrom> for Float;
-    impl From<(InterFrom, u32)> for Float;
-    impl FromRound<InterFrom, u32> for Float;
-Sub<Integer>, Div<Integer>, Sub<Rational>, Div<Rational>;
+    assign_inter! InterFrom;
+    from_borrow! InterFrom;
+Sub<Integer>, Div<Integer>;
+Sub<Rational>, Div<Rational>;
+
+arith_prim!
+    impl Imp<T> for Float;
+    impl ImpRound<T> for Float;
+    impl Imp<T> for &Float; // Output = Inter
+    impl ImpAssign<T> for Float;
+    struct Inter;
+    assign_inter! Inter;
+    from_borrow! Inter;
+Shl<u32>, Shr<u32>;
+Shl<i32>, Shr<i32>, Pow<i32>;
+
+arith_prim_commut!
+    arith_prim!
+    impl Imp<Float> for T;
+    impl ImpRound<Float> for T;
+    impl Imp<&Float> for T; // Output = Inter;
+
+arith_prim_noncommut!
+    arith_prim!
+    impl Imp<Float> for T;
+    impl ImpRound<Float> for T;
+    impl Imp<&Float> for T; // Output = InterFrom;
+    impl ImpFromAssign<T> for Float;
+    struct InterFrom;
+    assign_inter! InterFrom;
+    from_borrow! InterFrom;
+Pow<u32>;
+
+conv_ops!
+    impl Assign<T> for Float;
+    impl AssignRound<T> for Float;
+    arith_prim_commut! Add<T>, Mul<T>;
+    arith_prim_noncommut! Sub<T>, Div<T>;
+u32, i32, f64, f32;
+
+impl PartialEq for Float;
+impl PartialOrd for Float;
+
+cmp_common!
+    impl PartialEq<T> for Float;
+    impl PartialOrd<T> for Float;
+    impl PartialEq<Float> for T;
+    impl PartialOrd<Float> for T;
+
+cmp_int!
+    cmp_common!
+Integer, Rational, u32, i32;
+
+cmp_float!
+    cmp_common!
+f64, f32;
+
+impl Display for Float;
+impl Debug for Float;
+impl LowerExp for Float;
+impl UpperExp for Float;
+impl Binary for Float;
+impl Octal for Float;
+impl LowerHex for Float;
+impl UpperHex for Float;
+
+struct ParseFloatError;
+impl Error for ParseFloatError;
+impl Display for ParseFloatError;

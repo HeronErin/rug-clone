@@ -2586,6 +2586,38 @@ assign! { "another `Float`", Float, mpfr::set }
 assign! { "an `Integer`", Integer, mpfr::set_z }
 assign! { "a `Rational` number", Rational, mpfr::set_q }
 
+impl Neg for Float {
+    type Output = Float;
+    fn neg(mut self) -> Float {
+        self.neg_assign();
+        self
+    }
+}
+
+impl NegAssign for Float {
+    fn neg_assign(&mut self) {
+        unsafe {
+            mpfr::neg(self.inner_mut(), self.inner(), rraw(Round::Nearest));
+        }
+    }
+}
+
+impl<'a> Neg for &'a Float {
+    type Output = NegInter<'a>;
+    fn neg(self) -> NegInter<'a> {
+        NegInter { op: self }
+    }
+}
+
+/// This is actually private, this documentation should not be
+/// visible.
+pub struct NegInter<'a> {
+    op: &'a Float,
+}
+
+assign_inter! { NegInter => |s, i: NegInter, r| mpfr::neg(s, i.op.inner(), r) }
+from_borrow! { "an intermediate value", NegInter<'a> }
+
 macro_rules! arith_binary {
     {
         $Imp:ident $method:ident,
@@ -3585,38 +3617,6 @@ unsafe fn single_div(rop: *mut mpfr_t,
     mpfr::d_div(rop, op1 as f64, op2, rnd)
 }
 
-impl Neg for Float {
-    type Output = Float;
-    fn neg(mut self) -> Float {
-        self.neg_assign();
-        self
-    }
-}
-
-impl NegAssign for Float {
-    fn neg_assign(&mut self) {
-        unsafe {
-            mpfr::neg(self.inner_mut(), self.inner(), rraw(Round::Nearest));
-        }
-    }
-}
-
-impl<'a> Neg for &'a Float {
-    type Output = NegInter<'a>;
-    fn neg(self) -> NegInter<'a> {
-        NegInter { op: self }
-    }
-}
-
-/// This is actually private, this documentation should not be
-/// visible.
-pub struct NegInter<'a> {
-    op: &'a Float,
-}
-
-assign_inter! { NegInter => |s, i: NegInter, r| mpfr::neg(s, i.op.inner(), r) }
-from_borrow! { "an intermediate value", NegInter<'a> }
-
 impl PartialEq for Float {
     fn eq(&self, other: &Float) -> bool {
         unsafe { mpfr::equal_p(self.inner(), other.inner()) != 0 }
@@ -3652,7 +3652,7 @@ impl PartialOrd for Float {
     }
 }
 
-macro_rules! compare_common {
+macro_rules! cmp_common {
     { $T:ty, $eval:expr, $d_self:expr, $d_other:expr } => {
         impl PartialEq<$T> for Float {
             fn eq(&self, other: &$T) -> bool {
@@ -3685,9 +3685,9 @@ macro_rules! compare_common {
     }
 }
 
-macro_rules! compare_int {
+macro_rules! cmp_int {
     { $T:ty, $eval:expr } => {
-        compare_common! {
+        cmp_common! {
             $T,
             $eval,
             "Returns the ordering of `self` and `other`, \
@@ -3698,9 +3698,9 @@ macro_rules! compare_int {
     };
 }
 
-macro_rules! compare_float {
+macro_rules! cmp_float {
     { $T:ty, $eval:expr } => {
-        compare_common! {
+        cmp_common! {
             $T,
             $eval,
             "Returns the ordering of `self` and `other`, \
@@ -3711,13 +3711,13 @@ macro_rules! compare_float {
     };
 }
 
-compare_int! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.inner()) } }
-compare_int! { Rational,
+cmp_int! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.inner()) } }
+cmp_int! { Rational,
                |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.inner()) } }
-compare_int! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
-compare_int! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
-compare_float! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
-compare_float! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, *t as f64) } }
+cmp_int! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
+cmp_int! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
+cmp_float! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
+cmp_float! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, *t as f64) } }
 
 fn make_string(f: &Float,
                radix: i32,
