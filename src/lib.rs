@@ -221,3 +221,12 @@ pub trait PowAssign<Rhs> {
     /// Peforms the power operation.
     fn pow_assign(&mut self, rhs: Rhs);
 }
+
+/// Calculate the power and assign the result to the rhs operand.
+///
+/// `rhs.pow_from_assign(lhs)` has the same effect as
+/// `rhs = lhs.pow(rhs)`.
+pub trait PowFromAssign<Lhs = Self> {
+    /// Peforms the power operation.
+    fn pow_from_assign(&mut self, lhs: Lhs);
+}

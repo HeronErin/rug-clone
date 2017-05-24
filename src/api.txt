@@ -23,6 +23,9 @@ trait Pow<Rhs>
 trait PowAssign<Rhs>
     pow_assign(&mut self, Rhs);
 
+trait PowFromAssign<Lhs = Self>
+    pow_from_assign(&mut self, Lhs);
+
 
 
 
