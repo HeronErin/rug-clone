@@ -1,0 +1,116 @@
+struct Rational;
+impl Drop for Rational;
+impl Default for Rational;
+impl Clone for Rational
+
+impl Rational
+    new() -> Rational;
+    assign_f64(&mut self, f64) -> Result<(), ()>;
+    from_f64(f64) -> Option<Rational>;
+    to_f64(&self) -> f64;
+    assign_f32(&mut self, f32) -> Result<(), ()>;
+    from_f32(f32) -> Option<Rational>;
+    to_f32(&self) -> f32;
+    numer(&self) -> &Integer;
+    denom(&self) -> &Integer;
+    as_numer_denom(&self) -> (&Integer, &Integer);
+    as_mut_numer_denom(&self) -> MutNumerDenom;
+    into_numer_denom(mut self) -> (Integer, Integer);
+    abs(&mut self) -> &mut Rational;
+    set_abs(&mut self, &Rational) -> &mut Rational;
+    recip(&mut self) -> &mut Rational;
+    set_recip(&mut self, &Rational) -> &mut Rational;
+    sign(&self) -> Ordering;
+    to_string_radix(&self, i32) -> String;
+    from_str_radix(&str, i32) -> Result<Rational, ParseRationalError>;
+    assign_str(&mut self, &str) -> Result<(), ParseRationalError>;
+    assign_str_radix(&mut self, &str, i32) -> Result<(), ParseRationalError>;
+    valid_str_radix(&mut self, &str, i32) -> Result<(), ParseRationalError>;
+
+impl FromStr for Rational;
+
+from_borrow!
+    impl From<T> for Rational;
+&Rational, &Integer, (&Integer, &Integer)
+
+from!
+    impl From<T> for Rational;
+u32, i32, (u32, u32), (i32, u32), (u32, i32), (i32, i32)
+
+impl From<Integer> for Rational;
+impl From<(Integer, Integer)> for Rational;
+
+impl Assign<&Rational> for Rational;
+impl Assign for Rational;
+impl Assign<&Integer> for Rational;
+impl Assign<Integer> for Rational;
+
+assign_frac!
+    impl Assign<(T1, T2)> for Rational;
+(Integer, Integer), (u32, u32), (i32, u32), (u32, i32), (i32, i32)
+
+impl Assign<(&Integer, &Integer)> for Rational;
+impl Assign<u32> for Rational;
+impl Assign<i32> for Rational;
+impl Assign<&Rational> for Integer;
+impl Assign<Rational> for Integer;
+
+arith_binary!
+    impl Imp<&Rational> for Rational;
+    impl Imp<Rational> for Rational;
+    impl ImpAssign<&Rational> for Rational;
+    impl ImpAssign<Rational> for Rational;
+    impl Imp<&Rational> for &Rational; // Output = Inter
+    struct Inter derive(Clone, Copy);
+    impl Assign<Inter> for Rational;
+    impl From<Inter> for Rational;
+Add, Mul
+
+arith_noncommut!
+    arith_binary!
+    impl ImpFromAssign<&Rational> for Rational;
+    impl ImpFromAssign<Rational> for Rational;
+Sub, Div
+
+impl Neg for Rational;
+impl NegAssign for Rational;
+impl Neg for &Rational; // Output = NegInter
+NegInter derive(Clone, Copy);
+impl Assign<NegInter> for Rational;
+impl From<NegInter> for Rational;
+
+arith_prim
+    impl Imp<T> for Rational;
+    impl ImpAssign<T> for Rational;
+    impl Imp<T> for &Rational; // Output = Inter
+    struct Inter derive(Clone, Copy);
+    impl Assign<Inter> for Rational;
+    impl From<Inter> for Rational;
+Shl<u32>, Shr<u32>, Pow<u32>
+Shl<i32>, Shr<i32>, Pow<i32>
+
+impl Eq for Rational;
+impl Ord for Rational;
+impl PartialEq for Rational;
+impl PartialOrd for Rational;
+
+cmp!
+    impl PartialEq<T> for Rational;
+    impl PartialOrd<T> for Rational;
+    impl PartialEq<Rational> for T;
+    impl PartialOrd<Rational> for T;
+Integer, u32, i32, (u32, u32), (i32, u32), (u32, i32), (i32, i32)
+
+impl Display for Rational;
+impl Debug for Rational;
+impl Binary for Rational;
+impl Octal for Rational;
+impl LowerHex for Rational;
+impl UpperHex for Rational;
+
+struct ParseRationalError derive(Clone, Debug, Eq, PartialEq);
+impl Error for ParseRationalError;
+impl Display for ParseRationalError;
+
+struct MutNumerDenom;
+impl Drop for MutNumerDenom;

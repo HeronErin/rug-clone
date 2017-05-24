@@ -217,6 +217,14 @@ impl Rational {
         self
     }
 
+    /// Sets `self` to the absolute value of `val`
+    pub fn setabs(&mut self, val: &Rational) -> &mut Rational {
+        unsafe {
+            gmp::mpq_abs(&mut self.inner, &val.inner);
+        }
+        self
+    }
+
     /// Computes the reciprocal of `self`.
     ///
     /// # Panics
@@ -226,6 +234,19 @@ impl Rational {
         assert_ne!(self.sign(), Ordering::Equal, "division by zero");
         unsafe {
             gmp::mpq_inv(&mut self.inner, &self.inner);
+        }
+        self
+    }
+
+    /// Sets `self` to the reciprocal of `val`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is zero.
+    pub fn set_recip(&mut self, val: &Rational) -> &mut Rational {
+        assert_ne!(val.sign(), Ordering::Equal, "division by zero");
+        unsafe {
+            gmp::mpq_inv(&mut self.inner, &val.inner);
         }
         self
     }
@@ -407,7 +428,7 @@ impl FromStr for Rational {
     }
 }
 
-macro_rules! from_lifetime_a {
+macro_rules! from_borrow {
     { $d:expr, $t:ty } => {
         impl<'a> From<$t> for Rational {
             /// Constructs a `Rational` number from
@@ -435,7 +456,7 @@ macro_rules! from {
     };
 }
 
-from_lifetime_a! { "another `Rational` number.", &'a Rational }
+from_borrow! { "another `Rational` number.", &'a Rational }
 
 impl From<Integer> for Rational {
     /// Constructs a `Rational` number from an `Integer`.
@@ -447,7 +468,7 @@ impl From<Integer> for Rational {
     }
 }
 
-from_lifetime_a! { "an `Integer`.", &'a Integer }
+from_borrow! { "an `Integer`.", &'a Integer }
 
 impl From<(Integer, Integer)> for Rational {
     /// Constructs a `Rational` number from a numerator `Integer` and
@@ -473,8 +494,8 @@ impl From<(Integer, Integer)> for Rational {
     }
 }
 
-from_lifetime_a! { "a numerator `Integer` and denominator `Integer`.",
-                    (&'a Integer, &'a Integer) }
+from_borrow! { "a numerator `Integer` and denominator `Integer`.",
+                (&'a Integer, &'a Integer) }
 
 from! { "a `u32`.", u32 }
 from! { "an `i32`.", i32 }
@@ -598,7 +619,7 @@ impl<'a> Assign<Rational> for Integer {
     }
 }
 
-macro_rules! arith_op {
+macro_rules! arith_binary {
     {
         $imp:ident $method:ident,
         $imp_assign:ident $method_assign:ident,
@@ -670,7 +691,7 @@ macro_rules! arith_op {
     };
 }
 
-macro_rules! arith_noncommut_op {
+macro_rules! arith_noncommut {
     {
         $imp:ident $method:ident,
         $imp_assign:ident $method_assign:ident,
@@ -678,7 +699,10 @@ macro_rules! arith_noncommut_op {
         $func:path,
         $inter:ident
     } => {
-        arith_op! { $imp $method, $imp_assign $method_assign, $func, $inter }
+        arith_binary! { $imp $method,
+                        $imp_assign $method_assign,
+                        $func,
+                        $inter }
 
         impl<'a> $imp_from_assign<&'a Rational> for Rational {
             fn $method_from_assign(&mut self, lhs: &'a Rational) {
@@ -697,18 +721,18 @@ macro_rules! arith_noncommut_op {
     };
 }
 
-arith_op! { Add add, AddAssign add_assign, gmp::mpq_add, AddInter }
-arith_noncommut_op! { Sub sub,
-                      SubAssign sub_assign,
-                      SubFromAssign sub_from_assign,
-                      gmp::mpq_sub,
-                      SubInter }
-arith_op! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulInter }
-arith_noncommut_op! { Div div,
-                      DivAssign div_assign,
-                      DivFromAssign div_from_assign,
-                      gmp::mpq_div,
-                      DivInter }
+arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddInter }
+arith_noncommut! { Sub sub,
+                   SubAssign sub_assign,
+                   SubFromAssign sub_from_assign,
+                   gmp::mpq_sub,
+                   SubInter }
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulInter }
+arith_noncommut! { Div div,
+                   DivAssign div_assign,
+                   DivFromAssign div_from_assign,
+                   gmp::mpq_div,
+                   DivInter }
 
 impl Neg for Rational {
     type Output = Rational;
