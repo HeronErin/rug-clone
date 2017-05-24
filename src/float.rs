@@ -3992,6 +3992,70 @@ mod tests {
     }
 
     #[test]
+    fn check_ref_op() {
+        let lhs = Float::from((12.25, 53));
+        let rhs = Float::from((-1.375, 53));
+        let pu = 30_u32;
+        let pi = -15_i32;
+        let ps = 31.625_f32;
+        let pd = -1.5_f64;
+        assert!(Float::from((-&lhs, 53)) == -lhs.clone());
+        assert!(Float::from((&lhs + &rhs, 53)) == lhs.clone() + &rhs);
+        assert!(Float::from((&lhs - &rhs, 53)) == lhs.clone() - &rhs);
+        assert!(Float::from((&lhs * &rhs, 53)) == lhs.clone() * &rhs);
+        assert!(Float::from((&lhs / &rhs, 53)) == lhs.clone() / &rhs);
+        assert!(Float::from(((&lhs).pow(&rhs), 53)) == lhs.clone().pow(&rhs));
+
+        assert!(Float::from((&lhs + pu, 53)) == lhs.clone() + pu);
+        assert!(Float::from((&lhs - pu, 53)) == lhs.clone() - pu);
+        assert!(Float::from((&lhs * pu, 53)) == lhs.clone() * pu);
+        assert!(Float::from((&lhs / pu, 53)) == lhs.clone() / pu);
+        assert!(Float::from((&lhs << pu, 53)) == lhs.clone() << pu);
+        assert!(Float::from((&lhs >> pu, 53)) == lhs.clone() >> pu);
+        assert!(Float::from(((&lhs).pow(pu), 53)) == lhs.clone().pow(pu));
+
+        assert!(Float::from((pu + &lhs, 53)) == pu + lhs.clone());
+        assert!(Float::from((pu - &lhs, 53)) == pu - lhs.clone());
+        assert!(Float::from((pu * &lhs, 53)) == pu * lhs.clone());
+        assert!(Float::from((pu / &lhs, 53)) == pu / lhs.clone());
+        assert!(Float::from((Pow::pow(pu, &lhs), 53)) ==
+                Pow::pow(pu, lhs.clone()));
+
+        assert!(Float::from((&lhs + pi, 53)) == lhs.clone() + pi);
+        assert!(Float::from((&lhs - pi, 53)) == lhs.clone() - pi);
+        assert!(Float::from((&lhs * pi, 53)) == lhs.clone() * pi);
+        assert!(Float::from((&lhs / pi, 53)) == lhs.clone() / pi);
+        assert!(Float::from((&lhs << pi, 53)) == lhs.clone() << pi);
+        assert!(Float::from((&lhs >> pi, 53)) == lhs.clone() >> pi);
+        assert!(Float::from(((&lhs).pow(pi), 53)) == lhs.clone().pow(pi));
+
+        assert!(Float::from((pi + &lhs, 53)) == pi + lhs.clone());
+        assert!(Float::from((pi - &lhs, 53)) == pi - lhs.clone());
+        assert!(Float::from((pi * &lhs, 53)) == pi * lhs.clone());
+        assert!(Float::from((pi / &lhs, 53)) == pi / lhs.clone());
+
+        assert!(Float::from((&lhs + ps, 53)) == lhs.clone() + ps);
+        assert!(Float::from((&lhs - ps, 53)) == lhs.clone() - ps);
+        assert!(Float::from((&lhs * ps, 53)) == lhs.clone() * ps);
+        assert!(Float::from((&lhs / ps, 53)) == lhs.clone() / ps);
+
+        assert!(Float::from((ps + &lhs, 53)) == ps + lhs.clone());
+        assert!(Float::from((ps - &lhs, 53)) == ps - lhs.clone());
+        assert!(Float::from((ps * &lhs, 53)) == ps * lhs.clone());
+        assert!(Float::from((ps / &lhs, 53)) == ps / lhs.clone());
+
+        assert!(Float::from((&lhs + pd, 53)) == lhs.clone() + pd);
+        assert!(Float::from((&lhs - pd, 53)) == lhs.clone() - pd);
+        assert!(Float::from((&lhs * pd, 53)) == lhs.clone() * pd);
+        assert!(Float::from((&lhs / pd, 53)) == lhs.clone() / pd);
+
+        assert!(Float::from((pd + &lhs, 53)) == pd + lhs.clone());
+        assert!(Float::from((pd - &lhs, 53)) == pd - lhs.clone());
+        assert!(Float::from((pd * &lhs, 53)) == pd * lhs.clone());
+        assert!(Float::from((pd / &lhs, 53)) == pd / lhs.clone());
+    }
+
+    #[test]
     fn check_arith_others() {
         let work_prec = 20;
         let check_prec = 100;
