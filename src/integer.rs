@@ -966,12 +966,12 @@ impl From<i32> for Integer {
 
 macro_rules! arith_unary {
     {
-        $imp:ident $method:ident,
-        $imp_assign:ident $method_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
-        impl $imp for Integer {
+        impl $Imp for Integer {
             type Output = Integer;
             fn $method(mut self) -> Integer {
                 self.$method_assign();
@@ -979,7 +979,7 @@ macro_rules! arith_unary {
             }
         }
 
-        impl $imp_assign for Integer {
+        impl $ImpAssign for Integer {
             fn $method_assign(&mut self) {
                 unsafe {
                     $func(&mut self.inner, &self.inner);
@@ -987,29 +987,29 @@ macro_rules! arith_unary {
             }
         }
 
-        impl<'a> $imp for &'a Integer {
-            type Output = $inter<'a>;
-            fn $method(self) -> $inter<'a> {
-                $inter { op: self }
+        impl<'a> $Imp for &'a Integer {
+            type Output = $Inter<'a>;
+            fn $method(self) -> $Inter<'a> {
+                $Inter { op: self }
             }
         }
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter<'a> {
+        pub struct $Inter<'a> {
             op: &'a Integer,
         }
 
-        impl<'a> Assign<$inter<'a>> for Integer {
-            fn assign(&mut self, rhs: $inter) {
+        impl<'a> Assign<$Inter<'a>> for Integer {
+            fn assign(&mut self, rhs: $Inter) {
                 unsafe {
                     $func(&mut self.inner, &rhs.op.inner);
                 }
             }
         }
 
-        impl<'a> From<$inter<'a>> for Integer {
-            fn from(t: $inter) -> Integer {
+        impl<'a> From<$Inter<'a>> for Integer {
+            fn from(t: $Inter) -> Integer {
                 let mut ret = Integer::new();
                 ret.assign(t);
                 ret
@@ -1020,27 +1020,27 @@ macro_rules! arith_unary {
 
 macro_rules! arith_binary {
     {
-        $imp:ident $method:ident,
-        $imp_assign:ident $method_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
-        impl<'a> $imp<&'a Integer> for Integer {
+        impl<'a> $Imp<&'a Integer> for Integer {
             type Output = Integer;
             fn $method(mut self, op: &'a Integer) -> Integer {
-                $imp_assign::<&'a Integer>::$method_assign(&mut self, op);
+                $ImpAssign::<&'a Integer>::$method_assign(&mut self, op);
                 self
             }
         }
 
-        impl $imp<Integer> for Integer {
+        impl $Imp<Integer> for Integer {
             type Output = Integer;
             fn $method(self, op: Integer) -> Integer {
                 self.$method(&op)
             }
         }
 
-        impl<'a> $imp_assign<&'a Integer> for Integer {
+        impl<'a> $ImpAssign<&'a Integer> for Integer {
             fn $method_assign(&mut self, op: &'a Integer) {
                 unsafe {
                     $func(&mut self.inner, &self.inner, &op.inner);
@@ -1048,16 +1048,16 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $imp_assign<Integer> for Integer {
+        impl $ImpAssign<Integer> for Integer {
             fn $method_assign(&mut self, op: Integer) {
                 self.$method_assign(&op);
             }
         }
 
-        impl<'a> $imp<&'a Integer> for &'a Integer {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: &'a Integer) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<&'a Integer> for &'a Integer {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: &'a Integer) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -1066,21 +1066,21 @@ macro_rules! arith_binary {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter<'a> {
+        pub struct $Inter<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
         }
 
-        impl<'a> Assign<$inter<'a>> for Integer {
-            fn assign(&mut self, rhs: $inter) {
+        impl<'a> Assign<$Inter<'a>> for Integer {
+            fn assign(&mut self, rhs: $Inter) {
                 unsafe {
                     $func(&mut self.inner, &rhs.lhs.inner, &rhs.rhs.inner);
                 }
             }
         }
 
-        impl<'a> From<$inter<'a>> for Integer {
-            fn from(t: $inter) -> Integer {
+        impl<'a> From<$Inter<'a>> for Integer {
+            fn from(t: $Inter) -> Integer {
                 let mut ret = Integer::new();
                 ret.assign(t);
                 ret
@@ -1091,18 +1091,18 @@ macro_rules! arith_binary {
 
 macro_rules! arith_noncommut {
     {
-        $imp:ident $method:ident,
-        $imp_assign:ident $method_assign:ident,
-        $imp_from_assign:ident $method_from_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
-        arith_binary! { $imp $method,
-                         $imp_assign $method_assign,
+        arith_binary! { $Imp $method,
+                         $ImpAssign $method_assign,
                          $func,
-                         $inter }
+                         $Inter }
 
-        impl<'a> $imp_from_assign<&'a Integer> for Integer {
+        impl<'a> $ImpFromAssign<&'a Integer> for Integer {
             fn $method_from_assign(&mut self, lhs: &'a Integer) {
                 unsafe {
                     $func(&mut self.inner, &lhs.inner, &self.inner);
@@ -1110,7 +1110,7 @@ macro_rules! arith_noncommut {
             }
         }
 
-        impl $imp_from_assign<Integer> for Integer {
+        impl $ImpFromAssign<Integer> for Integer {
             fn $method_from_assign(&mut self, lhs: Integer) {
                 self.$method_from_assign(&lhs);
             }
@@ -1162,31 +1162,31 @@ unsafe fn mpz_tdiv_r(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
 }
 
 macro_rules! arith_prim {
-    ($imp:ident $method:ident,
-     $imp_assign:ident $method_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $T:ty,
      $func:path,
-     $inter:ident) => {
-        impl $imp<$t> for Integer {
+     $Inter:ident) => {
+        impl $Imp<$T> for Integer {
             type Output = Integer;
-            fn $method(mut self, op: $t) -> Integer {
+            fn $method(mut self, op: $T) -> Integer {
                 self.$method_assign(op);
                 self
             }
         }
 
-        impl $imp_assign<$t> for Integer {
-            fn $method_assign(&mut self, op: $t) {
+        impl $ImpAssign<$T> for Integer {
+            fn $method_assign(&mut self, op: $T) {
                 unsafe {
                     $func(&mut self.inner, &self.inner, op.into());
                 }
             }
         }
 
-        impl<'a> $imp<$t> for &'a Integer {
-            type Output = $inter<'a>;
-            fn $method(self, op: $t) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<$T> for &'a Integer {
+            type Output = $Inter<'a>;
+            fn $method(self, op: $T) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: op,
                 }
@@ -1195,21 +1195,21 @@ macro_rules! arith_prim {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter<'a> {
+        pub struct $Inter<'a> {
             lhs: &'a Integer,
-            rhs: $t,
+            rhs: $T,
         }
 
-        impl<'a> Assign<$inter<'a>> for Integer {
-            fn assign(&mut self, rhs: $inter) {
+        impl<'a> Assign<$Inter<'a>> for Integer {
+            fn assign(&mut self, rhs: $Inter) {
                 unsafe {
                     $func(&mut self.inner, &rhs.lhs.inner, rhs.rhs.into());
                 }
             }
         }
 
-        impl<'a> From<$inter<'a>> for Integer {
-            fn from(t: $inter) -> Integer {
+        impl<'a> From<$Inter<'a>> for Integer {
+            fn from(t: $Inter) -> Integer {
                 let mut ret = Integer::new();
                 ret.assign(t);
                 ret
@@ -1219,23 +1219,23 @@ macro_rules! arith_prim {
 }
 
 macro_rules! arith_prim_noncommut {
-    ($imp:ident $method:ident,
-     $imp_assign:ident $method_assign:ident,
-     $imp_from_assign:ident $method_from_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $ImpFromAssign:ident $method_from_assign:ident,
+     $T:ty,
      $func:path,
      $func_from:path,
-     $inter:ident,
-     $inter_from:ident) => {
+     $Inter:ident,
+     $InterFrom:ident) => {
         arith_prim! {
-            $imp $method,
-            $imp_assign $method_assign,
-            $t,
+            $Imp $method,
+            $ImpAssign $method_assign,
+            $T,
             $func,
-            $inter
+            $Inter
         }
 
-        impl $imp<Integer> for $t {
+        impl $Imp<Integer> for $T {
             type Output = Integer;
             fn $method(self, mut op: Integer) -> Integer {
                 op.$method_from_assign(self);
@@ -1243,18 +1243,18 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl $imp_from_assign<$t> for Integer {
-            fn $method_from_assign(&mut self, lhs: $t) {
+        impl $ImpFromAssign<$T> for Integer {
+            fn $method_from_assign(&mut self, lhs: $T) {
                 unsafe {
                     $func_from(&mut self.inner, lhs.into(), &self.inner);
                 }
             }
         }
 
-        impl<'a> $imp<&'a Integer> for $t {
-            type Output = $inter_from<'a>;
-            fn $method(self, op: &'a Integer) -> $inter_from<'a> {
-                $inter_from {
+        impl<'a> $Imp<&'a Integer> for $T {
+            type Output = $InterFrom<'a>;
+            fn $method(self, op: &'a Integer) -> $InterFrom<'a> {
+                $InterFrom {
                     lhs: self,
                     rhs: op,
                 }
@@ -1263,22 +1263,22 @@ macro_rules! arith_prim_noncommut {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter_from<'a> {
-            lhs: $t,
+        pub struct $InterFrom<'a> {
+            lhs: $T,
             rhs: &'a Integer,
         }
 
 
-        impl<'a> Assign<$inter_from<'a>> for Integer {
-            fn assign(&mut self, rhs: $inter_from) {
+        impl<'a> Assign<$InterFrom<'a>> for Integer {
+            fn assign(&mut self, rhs: $InterFrom) {
                 unsafe {
                     $func_from(&mut self.inner, rhs.lhs.into(), &rhs.rhs.inner);
                 }
             }
         }
 
-        impl<'a> From<$inter_from<'a>> for Integer {
-            fn from(t: $inter_from) -> Integer {
+        impl<'a> From<$InterFrom<'a>> for Integer {
+            fn from(t: $InterFrom) -> Integer {
                 let mut ret = Integer::new();
                 ret.assign(t);
                 ret
@@ -1288,29 +1288,29 @@ macro_rules! arith_prim_noncommut {
 }
 
 macro_rules! arith_prim_commut {
-    ($imp:ident $method:ident,
-     $imp_assign:ident $method_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $T:ty,
      $func:path,
-     $inter:ident) => {
+     $Inter:ident) => {
         arith_prim! {
-            $imp $method,
-            $imp_assign $method_assign,
-            $t,
+            $Imp $method,
+            $ImpAssign $method_assign,
+            $T,
             $func,
-            $inter
+            $Inter
         }
 
-        impl $imp<Integer> for $t {
+        impl $Imp<Integer> for $T {
             type Output = Integer;
             fn $method(self, op: Integer) -> Integer {
                 op.$method(self)
             }
         }
 
-        impl<'a> $imp<&'a Integer> for $t {
-            type Output = $inter<'a>;
-            fn $method(self, op: &'a Integer) -> $inter<'a> {
+        impl<'a> $Imp<&'a Integer> for $T {
+            type Output = $Inter<'a>;
+            fn $method(self, op: &'a Integer) -> $Inter<'a> {
                 op.$method(self)
             }
         }
@@ -1830,21 +1830,21 @@ impl PartialOrd<Integer> for f32 {
 }
 
 macro_rules! cmp {
-    { $t:ty, $func:path } => {
-        impl PartialOrd<$t> for Integer {
-            fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
+    { $T:ty, $func:path } => {
+        impl PartialOrd<$T> for Integer {
+            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 let ord = unsafe { $func(&self.inner, (*other).into()) };
                 Some(ord.cmp(&0))
             }
         }
 
-        impl PartialEq<$t> for Integer {
-            fn eq(&self, other: &$t) -> bool {
+        impl PartialEq<$T> for Integer {
+            fn eq(&self, other: &$T) -> bool {
                 self.partial_cmp(other) == Some(Ordering::Equal)
             }
         }
 
-        impl PartialOrd<Integer> for $t {
+        impl PartialOrd<Integer> for $T {
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
                 match other.partial_cmp(self) {
                     Some(x) => Some(x.reverse()),
@@ -1853,7 +1853,7 @@ macro_rules! cmp {
             }
         }
 
-        impl PartialEq<Integer> for $t {
+        impl PartialEq<Integer> for $T {
             fn eq(&self, other: &Integer) -> bool {
                 other.eq(self)
             }
