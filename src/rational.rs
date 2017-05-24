@@ -429,11 +429,11 @@ impl FromStr for Rational {
 }
 
 macro_rules! from_borrow {
-    { $d:expr, $t:ty } => {
-        impl<'a> From<$t> for Rational {
+    { $d:expr, $T:ty } => {
+        impl<'a> From<$T> for Rational {
             /// Constructs a `Rational` number from
             #[doc=$d]
-            fn from(t: $t) -> Rational {
+            fn from(t: $T) -> Rational {
                 let mut ret = Rational::new();
                 ret.assign(t);
                 ret
@@ -443,11 +443,11 @@ macro_rules! from_borrow {
 }
 
 macro_rules! from {
-    { $d:expr, $t:ty } => {
-        impl From<$t> for Rational {
+    { $d:expr, $T:ty } => {
+        impl From<$T> for Rational {
             /// Constructs a `Rational` number from
             #[doc=$d]
-            fn from(t: $t) -> Rational {
+            fn from(t: $T) -> Rational {
                 let mut ret = Rational::new();
                 ret.assign(t);
                 ret
@@ -551,15 +551,15 @@ impl Assign<Integer> for Rational {
 }
 
 macro_rules! assign_frac {
-    { $d:expr, $t1:ty, $t2:ty } => {
-        impl Assign<($t1, $t2)> for Rational {
+    { $d:expr, $T1:ty, $T2:ty } => {
+        impl Assign<($T1, $T2)> for Rational {
             /// Assigns from
             #[doc=$d]
             ///
             /// # Panics
             ///
             /// Panics if the denominator is zero.
-            fn assign(&mut self, (num, den): ($t1, $t2)) {
+            fn assign(&mut self, (num, den): ($T1, $T2)) {
                 let num_den = self.as_mut_numer_denom();
                 num_den.0.assign(num);
                 num_den.1.assign(den);
@@ -621,12 +621,12 @@ impl<'a> Assign<Rational> for Integer {
 
 macro_rules! arith_binary {
     {
-        $imp:ident $method:ident,
-        $imp_assign:ident $method_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $inter: ident
+        $Inter: ident
     } => {
-        impl<'a> $imp<&'a Rational> for Rational {
+        impl<'a> $Imp<&'a Rational> for Rational {
             type Output = Rational;
             fn $method(mut self, op: &'a Rational) -> Rational {
                 self.$method_assign(op);
@@ -634,14 +634,14 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $imp<Rational> for Rational {
+        impl $Imp<Rational> for Rational {
             type Output = Rational;
             fn $method(self, op: Rational) -> Rational {
                 self.$method(&op)
             }
         }
 
-        impl<'a> $imp_assign<&'a Rational> for Rational {
+        impl<'a> $ImpAssign<&'a Rational> for Rational {
             fn $method_assign(&mut self, op: &'a Rational) {
                 unsafe {
                     $func(&mut self.inner, &self.inner, &op.inner);
@@ -649,16 +649,16 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $imp_assign<Rational> for Rational {
+        impl $ImpAssign<Rational> for Rational {
             fn $method_assign(&mut self, op: Rational) {
                 self.add_assign(&op);
             }
         }
 
-        impl<'a> $imp<&'a Rational> for &'a Rational {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: &'a Rational) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<&'a Rational> for &'a Rational {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: &'a Rational) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -667,21 +667,21 @@ macro_rules! arith_binary {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter<'a> {
+        pub struct $Inter<'a> {
             lhs: &'a Rational,
             rhs: &'a Rational,
         }
 
-        impl<'a> Assign<$inter<'a>> for Rational {
-            fn assign(&mut self, rhs: $inter) {
+        impl<'a> Assign<$Inter<'a>> for Rational {
+            fn assign(&mut self, rhs: $Inter) {
                 unsafe {
                     $func(&mut self.inner, &rhs.lhs.inner, &rhs.rhs.inner);
                 }
             }
         }
 
-        impl<'a> From<$inter<'a>> for Rational {
-            fn from(t: $inter) -> Rational {
+        impl<'a> From<$Inter<'a>> for Rational {
+            fn from(t: $Inter) -> Rational {
                 let mut ret = Rational::new();
                 ret.assign(t);
                 ret
@@ -692,18 +692,18 @@ macro_rules! arith_binary {
 
 macro_rules! arith_noncommut {
     {
-        $imp:ident $method:ident,
-        $imp_assign:ident $method_assign:ident,
-        $imp_from_assign:ident $method_from_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
-        arith_binary! { $imp $method,
-                        $imp_assign $method_assign,
+        arith_binary! { $Imp $method,
+                        $ImpAssign $method_assign,
                         $func,
-                        $inter }
+                        $Inter }
 
-        impl<'a> $imp_from_assign<&'a Rational> for Rational {
+        impl<'a> $ImpFromAssign<&'a Rational> for Rational {
             fn $method_from_assign(&mut self, lhs: &'a Rational) {
                 unsafe {
                     $func(&mut self.inner, &lhs.inner, &self.inner);
@@ -711,7 +711,7 @@ macro_rules! arith_noncommut {
             }
         }
 
-        impl $imp_from_assign<Rational> for Rational {
+        impl $ImpFromAssign<Rational> for Rational {
             fn $method_from_assign(&mut self, lhs: Rational) {
                 self.$method_from_assign(&lhs);
             }
@@ -780,31 +780,31 @@ impl<'a> From<NegInter<'a>> for Rational {
 }
 
 macro_rules! arith_prim {
-    ($imp:ident $method:ident,
-     $imp_assign:ident $method_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $T:ty,
      $func:path,
-     $inter:ident) => {
-        impl $imp<$t> for Rational {
+     $Inter:ident) => {
+        impl $Imp<$T> for Rational {
             type Output = Rational;
-            fn $method(mut self, op: $t) -> Rational {
+            fn $method(mut self, op: $T) -> Rational {
                 self.$method_assign(op);
                 self
             }
         }
 
-        impl $imp_assign<$t> for Rational {
-            fn $method_assign(&mut self, op: $t) {
+        impl $ImpAssign<$T> for Rational {
+            fn $method_assign(&mut self, op: $T) {
                 unsafe {
                     $func(&mut self.inner, &self.inner, op.into());
                 }
             }
         }
 
-        impl<'a> $imp<$t> for &'a Rational {
-            type Output = $inter<'a>;
-            fn $method(self, op: $t) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<$T> for &'a Rational {
+            type Output = $Inter<'a>;
+            fn $method(self, op: $T) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: op,
                 }
@@ -813,21 +813,21 @@ macro_rules! arith_prim {
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter<'a> {
+        pub struct $Inter<'a> {
             lhs: &'a Rational,
-            rhs: $t,
+            rhs: $T,
         }
 
-        impl<'a> Assign<$inter<'a>> for Rational {
-            fn assign(&mut self, rhs: $inter) {
+        impl<'a> Assign<$Inter<'a>> for Rational {
+            fn assign(&mut self, rhs: $Inter) {
                 unsafe {
                     $func(&mut self.inner, &rhs.lhs.inner, rhs.rhs.into());
                 }
             }
         }
 
-        impl<'a> From<$inter<'a>> for Rational {
-            fn from(t: $inter) -> Rational {
+        impl<'a> From<$Inter<'a>> for Rational {
+            fn from(t: $Inter) -> Rational {
                 let mut ret = Rational::new();
                 ret.assign(t);
                 ret
@@ -916,26 +916,26 @@ impl PartialOrd for Rational {
 }
 
 macro_rules! cmp {
-    { $t:ty, $eval:expr } => {
-        impl PartialEq<$t> for Rational {
-            fn eq(&self, other: &$t) -> bool {
+    { $T:ty, $eval:expr } => {
+        impl PartialEq<$T> for Rational {
+            fn eq(&self, other: &$T) -> bool {
                 self.partial_cmp(other) == Some(Ordering::Equal)
             }
         }
 
-        impl PartialOrd<$t> for Rational {
-            fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
+        impl PartialOrd<$T> for Rational {
+            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 Some($eval(&self.inner, other))
             }
         }
 
-        impl PartialEq<Rational> for $t {
+        impl PartialEq<Rational> for $T {
             fn eq(&self, other: &Rational) -> bool {
                 other.eq(self)
             }
         }
 
-        impl PartialOrd<Rational> for $t {
+        impl PartialOrd<Rational> for $T {
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
                 match other.partial_cmp(self) {
                     Some(x) => Some(x.reverse()),
