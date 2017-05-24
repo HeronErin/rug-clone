@@ -188,28 +188,57 @@ Float, Integer, Rational;
 
 arith_binary!
     impl Imp<&T> for Float;
-    impl Imp<T> for Float;
     impl ImpRound<&T> for Float;
+    impl Imp<T> for Float;
     impl ImpRound<T> for Float;
+    impl Imp<&T> for &Float; // Output = Inter
     impl ImpAssign<&T> for Float
     impl ImpAssign<T> for Float;
-Add<Float>, Sub<Float>, Mul<Float>, Div<Float>;
+    struct Inter;
+    impl Assign<Inter> for Float;
+    impl AssignRound<Inter> for Float;
+    impl From<(Inter, u32)> for Float;
+    impl FromRound<Inter, u32> for Float;
+
+arith_commut_float!
+    arith_binary!<Float>
+    impl Imp<Float> for &Float;
+    impl ImpRound<Float> for &Float
+Add, Mul;
+
+arith_noncommut_float!
+    arith_binary!<Float>
+    impl Imp<Float> for &Float;
+    impl ImpRound<Float> for &Float;
+    impl ImpFromAssign<&Float> for Float;
+    impl ImpFromAssign for Float;
+Sub, Div;
 
 arith_commut!
     arith_binary!
+    impl Imp<T> for &Float; // Output = Inter
+    impl Imp<Float> for &T;
+    impl ImpRound<Float> for &T
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
+    impl Imp<&Float> for &T; // Output = Inter
+    impl Imp<&Float> for T; // Output = Inter
 Add<Integer>, Mul<Integer>, Add<Rational>, Mul<Rational>;
 
-arith_noncommut!
+arith_non_commut!
     arith_binary!
+    impl Imp<T> for &Float; // Output = Inter
+    impl Imp<Float> for &T;
+    impl ImpRound<Float> for &T;
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
+    impl Imp<&Float> for &T; // Output = InterFrom
+    impl Imp<&Float> for T; // Output = InterFrom
     impl ImpFromAssign<&T> for Float;
     impl ImpFromAssign<T> for Float;
+    struct InterFrom;
+    impl Assign<InterFrom> for Float;
+    impl AssignRound<InterFrom> for Float;
+    impl From<(InterFrom, u32)> for Float;
+    impl FromRound<InterFrom, u32> for Float;
 Sub<Integer>, Div<Integer>, Sub<Rational>, Div<Rational>;
-
-impl SubFromAssign<&Float> for Float;
-impl SubFromAssign<Float> for Float;
-impl DivFromAssign<&Float> for Float;
-impl DivFromAssign<Float> for Float;

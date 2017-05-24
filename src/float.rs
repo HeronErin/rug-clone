@@ -21,7 +21,7 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "random")]
 use rand::Rng;
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
-             SubFromAssign};
+             PowFromAssign, SubFromAssign};
 use rugrat::Rational;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
@@ -2785,7 +2785,7 @@ macro_rules! arith_noncommut_float {
     }
 }
 
-macro_rules! arith_commut {
+macro_rules! arith_forward {
     {
         $Imp:ident $method:ident,
         $ImpRound:ident $method_round:ident,
@@ -2811,6 +2811,26 @@ macro_rules! arith_commut {
                     rhs: OwnBorrow::Own(rhs),
                 }
             }
+        }
+    };
+}
+
+macro_rules! arith_commut {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Inter:ident
+    } => {
+        arith_forward! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
+            $func,
+            $Inter
         }
 
         impl<'a> $Imp<Float> for &'a $T {
@@ -2881,23 +2901,13 @@ macro_rules! arith_noncommut {
         $Inter:ident,
         $InterFrom:ident
     } => {
-        arith_binary! {
+        arith_forward! {
             $Imp $method,
             $ImpRound $method_round,
             $ImpAssign $method_assign,
             $T,
             $func,
             $Inter
-        }
-
-        impl<'a> $Imp<$T> for &'a Float {
-            type Output = $Inter<'a>;
-            fn $method(self, rhs: $T) -> $Inter<'a> {
-                $Inter {
-                    lhs: self,
-                    rhs: OwnBorrow::Own(rhs),
-                }
-            }
         }
 
         impl<'a> $Imp<Float> for &'a $T {
@@ -3055,6 +3065,14 @@ arith_noncommut_float! {
     mpfr::div,
     DivInter
 }
+arith_noncommut_float! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    PowFromAssign pow_from_assign,
+    mpfr::pow,
+    PowInter
+}
 
 arith_commut! {
     Add add,
@@ -3093,6 +3111,14 @@ arith_noncommut! {
     z_div,
     DivInterInteger,
     DivFromInterInteger
+}
+arith_forward! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    Integer,
+    mpfr::pow_z,
+    PowInterInteger
 }
 
 arith_commut! {
@@ -3217,90 +3243,6 @@ unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
         mpfr::ui_div(rop, 1, denom, rnd)
     }
 }
-
-
-macro_rules! pow_others {
-    { $($T:ty)* } => { $(
-        impl<'a> Pow<&'a $T> for Float {
-            type Output = Float;
-            fn pow(self, op: &'a $T) -> Float {
-                self.pow_round(op, Round::Nearest).0
-            }
-        }
-
-        impl Pow<$T> for Float {
-            type Output = Float;
-            fn pow(self, op: $T) -> Float {
-                self.pow_round(op, Round::Nearest).0
-            }
-        }
-
-        impl PowRound<$T> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn pow_round(self, op: $T, round: Round) -> (Float, Ordering) {
-                self.pow_round(&op, round)
-            }
-        }
-
-        impl PowAssign<$T> for Float {
-            fn pow_assign(&mut self, op: $T) {
-                self.pow_assign(&op);
-            }
-        }
-    )* };
-}
-
-impl<'a> PowRound<&'a Float> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    type Output = Float;
-    fn pow_round(mut self, op: &'a Float, round: Round) -> (Float, Ordering) {
-        let ord = unsafe {
-            mpfr::pow(self.inner_mut(), self.inner(), op.inner(), rraw(round))
-                .cmp(&0)
-        };
-        (self, ord)
-    }
-}
-
-impl<'a> PowAssign<&'a Float> for Float {
-    fn pow_assign(&mut self, op: &'a Float) {
-        unsafe {
-            mpfr::pow(self.inner_mut(),
-                      self.inner(),
-                      op.inner(),
-                      rraw(Round::Nearest))
-        };
-    }
-}
-
-impl<'a> PowRound<&'a Integer> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    type Output = Float;
-    fn pow_round(mut self, op: &'a Integer, round: Round) -> (Float, Ordering) {
-        let ord = unsafe {
-            mpfr::pow_z(self.inner_mut(), self.inner(), op.inner(), rraw(round))
-                .cmp(&0)
-        };
-        (self, ord)
-    }
-}
-
-impl<'a> PowAssign<&'a Integer> for Float {
-    fn pow_assign(&mut self, op: &'a Integer) {
-        unsafe {
-            mpfr::pow_z(self.inner_mut(),
-                        self.inner(),
-                        op.inner(),
-                        rraw(Round::Nearest));
-        }
-    }
-}
-
-pow_others! { Float Integer }
 
 macro_rules! arith_prim {
     ($Imp:ident $method:ident,
@@ -4021,7 +3963,7 @@ trait Inner {
     fn inner(&self) -> &Self::Output;
 }
 
-trait InnerMut : Inner {
+trait InnerMut: Inner {
     unsafe fn inner_mut(&mut self) -> &mut Self::Output;
 }
 
@@ -4061,12 +4003,16 @@ impl Inner for Rational {
     }
 }
 
-enum OwnBorrow<'a, T> where T : 'a {
+enum OwnBorrow<'a, T>
+    where T: 'a
+{
     Own(T),
     Borrow(&'a T),
 }
 
-impl<'a, T> Inner for OwnBorrow<'a, T> where T : Inner {
+impl<'a, T> Inner for OwnBorrow<'a, T>
+    where T: Inner
+{
     type Output = <T as Inner>::Output;
     fn inner(&self) -> &Self::Output {
         match *self {
