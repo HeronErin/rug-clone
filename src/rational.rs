@@ -680,13 +680,7 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> From<$Inter<'a>> for Rational {
-            fn from(t: $Inter) -> Rational {
-                let mut ret = Rational::new();
-                ret.assign(t);
-                ret
-            }
-        }
+        from_borrow! { "an intermediate value.", $Inter<'a> }
     };
 }
 
@@ -758,7 +752,6 @@ impl<'a> Neg for &'a Rational {
 
 /// This is actually private, this documentation should not be
 /// visible.
-#[derive(Clone, Copy)]
 pub struct NegInter<'a> {
     op: &'a Rational,
 }
@@ -771,13 +764,7 @@ impl<'a> Assign<NegInter<'a>> for Rational {
     }
 }
 
-impl<'a> From<NegInter<'a>> for Rational {
-    fn from(t: NegInter) -> Rational {
-        let mut ret = Rational::new();
-        ret.assign(t);
-        ret
-    }
-}
+from_borrow! { "an intermediate value.", NegInter<'a> }
 
 macro_rules! arith_prim {
     ($Imp:ident $method:ident,
@@ -826,13 +813,7 @@ macro_rules! arith_prim {
             }
         }
 
-        impl<'a> From<$Inter<'a>> for Rational {
-            fn from(t: $Inter) -> Rational {
-                let mut ret = Rational::new();
-                ret.assign(t);
-                ret
-            }
-        }
+        from_borrow! { "an intermediate value.", $Inter<'a> }
     };
 }
 
