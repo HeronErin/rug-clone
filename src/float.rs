@@ -233,23 +233,23 @@ macro_rules! math_op1 {
       $method_round:ident,
       $d_set_round:expr,
       $method_set_round:ident,
-      $func:path $(, $param:ident: $t:ty)* } => {
+      $func:path $(, $param:ident: $T:ty)* } => {
         #[doc=$d]
-        pub fn $method(&mut self $(, $param: $t)*) -> &mut Float {
+        pub fn $method(&mut self $(, $param: $T)*) -> &mut Float {
             self.$method_round($($param,)* Round::Nearest);
             self
         }
 
         #[doc=$d_set]
         pub fn $method_set(&mut self,
-                           val: &mut Float $(, $param: $t)*)
+                           val: &mut Float $(, $param: $T)*)
                            -> &mut Float {
             self.$method_set_round(val, $($param,)* Round::Nearest);
             self
         }
 
         #[doc=$d_round]
-        pub fn $method_round(&mut self, $($param: $t,)* round: Round)
+        pub fn $method_round(&mut self, $($param: $T,)* round: Round)
                              -> Ordering {
             unsafe {
                 $func(self.inner_mut(),
@@ -263,7 +263,7 @@ macro_rules! math_op1 {
         #[doc=$d_set_round]
         pub fn $method_set_round(&mut self,
                                  val: &mut Float,
-                                 $($param: $t,)* round: Round)
+                                 $($param: $T,)* round: Round)
                                  -> Ordering {
             unsafe {
                 $func(self.inner_mut(),
@@ -2385,19 +2385,19 @@ impl<T> FromRound<T, i32> for Float
 }
 
 macro_rules! from_borrow {
-    { $d:expr, $t:ty } => {
-        impl<'a> From<(&'a $t, u32)> for Float {
+    { $d:expr, $T:ty } => {
+        impl<'a> From<(&'a $T, u32)> for Float {
             /// Constructs a `Float` from
             #[doc=$d]
             /// with the specified precision, rounding to the nearest.
-            fn from((t, prec): (&'a $t, u32)) -> Float {
+            fn from((t, prec): (&'a $T, u32)) -> Float {
                 let mut ret = Float::new(prec);
                 ret.assign(t);
                 ret
             }
         }
 
-        impl<'a> FromRound<&'a $t, u32> for Float {
+        impl<'a> FromRound<&'a $T, u32> for Float {
             type Round = Round;
             type Ordering = Ordering;
 
@@ -2405,7 +2405,7 @@ macro_rules! from_borrow {
             #[doc=$d]
             /// with the specified precision, applying the specified
             /// rounding method.
-            fn from_round(t: &'a $t, prec: u32, round: Round)
+            fn from_round(t: &'a $T, prec: u32, round: Round)
                           -> (Float, Ordering) {
                 let mut ret = Float::new(prec);
                 let ord = ret.assign_round(t, round);
@@ -2416,17 +2416,17 @@ macro_rules! from_borrow {
 }
 
 macro_rules! from {
-    { $d:expr, $t:ty } => {
-        impl From<($t, u32)> for Float {
+    { $d:expr, $T:ty } => {
+        impl From<($T, u32)> for Float {
             /// Constructs a `Float` from
             #[doc=$d]
             /// with the specified precision, rounding to the nearest.
-            fn from((t, prec): ($t, u32)) -> Float {
+            fn from((t, prec): ($T, u32)) -> Float {
                 Float::from_round(t, prec, Round::Nearest).0
             }
         }
 
-        impl FromRound<$t, u32> for Float {
+        impl FromRound<$T, u32> for Float {
             type Round = Round;
             type Ordering = Ordering;
 
@@ -2434,7 +2434,7 @@ macro_rules! from {
             #[doc=$d]
             /// with the specified precision, applying the specified
             /// rounding method.
-            fn from_round(t: $t, prec: u32, round: Round)
+            fn from_round(t: $T, prec: u32, round: Round)
                           -> (Float, Ordering) {
                 let mut ret = Float::new(prec);
                 let ord = ret.assign_round(t, round);
@@ -2514,24 +2514,24 @@ impl AssignRound<Special> for Float {
 }
 
 macro_rules! assign {
-    { $d:expr, $t:ty, $func:path } => {
-        impl<'a> Assign<&'a $t> for Float {
+    { $d:expr, $T:ty, $func:path } => {
+        impl<'a> Assign<&'a $T> for Float {
             /// Assigns from
             #[doc=$d]
             /// and rounds to the nearest.
-            fn assign(&mut self, other: &'a $t) {
+            fn assign(&mut self, other: &'a $T) {
                 self.assign_round(other, Round::Nearest);
             }
         }
 
-        impl<'a> AssignRound<&'a $t> for Float {
+        impl<'a> AssignRound<&'a $T> for Float {
             type Round = Round;
             type Ordering = Ordering;
 
             /// Assigns from
             #[doc=$d]
             /// and applies the specified rounding method.
-            fn assign_round(&mut self, other: &'a $t, round: Round)
+            fn assign_round(&mut self, other: &'a $T, round: Round)
                             -> Ordering {
                 unsafe {
                     $func(self.inner_mut(), other.inner(), rraw(round))
@@ -2539,23 +2539,23 @@ macro_rules! assign {
             }
         }
 
-        impl Assign<$t> for Float {
+        impl Assign<$T> for Float {
             /// Assigns from
             #[doc=$d]
             /// and rounds to the nearest.
-            fn assign(&mut self, other: $t) {
+            fn assign(&mut self, other: $T) {
                 self.assign_round(&other, Round::Nearest);
             }
         }
 
-        impl AssignRound<$t> for Float {
+        impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
 
             /// Assigns from
             #[doc=$d]
             /// and applies the specified rounding method.
-            fn assign_round(&mut self, other: $t, round: Round) -> Ordering {
+            fn assign_round(&mut self, other: $T, round: Round) -> Ordering {
                 self.assign_round(&other, round)
             }
         }
@@ -2568,25 +2568,25 @@ assign! { "a `Rational` number", Rational, mpfr::set_q }
 
 macro_rules! arith_binary {
     {
-        $imp:ident $method:ident,
-        $imp_round:ident $method_round:ident,
-        $imp_assign:ident $method_assign:ident,
-        $t:ty,
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
-        impl<'a> $imp<&'a $t> for Float {
+        impl<'a> $Imp<&'a $T> for Float {
             type Output = Float;
-            fn $method(self, rhs: &'a $t) -> Float {
+            fn $method(self, rhs: &'a $T) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp_round<&'a $t> for Float {
+        impl<'a> $ImpRound<&'a $T> for Float {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
-            fn $method_round(mut self, rhs: &'a $t, round: Round)
+            fn $method_round(mut self, rhs: &'a $T, round: Round)
                              -> (Float, Ordering) {
                 let ord = unsafe {
                     $func(self.inner_mut(),
@@ -2598,35 +2598,35 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $imp<$t> for Float {
+        impl $Imp<$T> for Float {
             type Output = Float;
-            fn $method(self, rhs: $t) -> Float {
+            fn $method(self, rhs: $T) -> Float {
                 self.$method(&rhs)
             }
         }
 
-        impl $imp_round<$t> for Float {
+        impl $ImpRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
-            fn $method_round(self, rhs: $t, round: Round)
+            fn $method_round(self, rhs: $T, round: Round)
                              -> (Float, Ordering) {
                 self.$method_round(&rhs, round)
             }
         }
 
-        impl<'a> $imp<&'a $t> for &'a Float {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: &'a $t) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<&'a $T> for &'a Float {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: &'a $T) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: OwnBorrow::Borrow(rhs),
                 }
             }
         }
 
-        impl<'a> $imp_assign<&'a $t> for Float {
-            fn $method_assign(&mut self, rhs: &'a $t) {
+        impl<'a> $ImpAssign<&'a $T> for Float {
+            fn $method_assign(&mut self, rhs: &'a $T) {
                 unsafe {
                     $func(self.inner_mut(),
                           self.inner(),
@@ -2636,29 +2636,29 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $imp_assign<$t> for Float {
-            fn $method_assign(&mut self, rhs: $t) {
+        impl $ImpAssign<$T> for Float {
+            fn $method_assign(&mut self, rhs: $T) {
                 self.$method_assign(&rhs);
             }
         }
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter<'a> {
+        pub struct $Inter<'a> {
             lhs: &'a Float,
-            rhs: OwnBorrow<'a, $t>,
+            rhs: OwnBorrow<'a, $T>,
         }
 
-        impl<'a> Assign<$inter<'a>> for Float {
-            fn assign(&mut self, rhs: $inter) {
+        impl<'a> Assign<$Inter<'a>> for Float {
+            fn assign(&mut self, rhs: $Inter) {
                 self.assign_round(rhs, Round::Nearest);
             }
         }
 
-        impl<'a> AssignRound<$inter<'a>> for Float {
+        impl<'a> AssignRound<$Inter<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn assign_round(&mut self, rhs: $inter, round: Round) -> Ordering {
+            fn assign_round(&mut self, rhs: $Inter, round: Round) -> Ordering {
                 unsafe {
                     $func(self.inner_mut(),
                           rhs.lhs.inner(),
@@ -2668,18 +2668,18 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> From<($inter<'a>, u32)> for Float {
-            fn from((i, prec): ($inter, u32)) -> Float {
+        impl<'a> From<($Inter<'a>, u32)> for Float {
+            fn from((i, prec): ($Inter, u32)) -> Float {
                 let mut ret = Float::new(prec);
                 ret.assign(i);
                 ret
             }
         }
 
-        impl<'a> FromRound<$inter<'a>, u32> for Float {
+        impl<'a> FromRound<$Inter<'a>, u32> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn from_round(i: $inter, prec: u32, round: Round)
+            fn from_round(i: $Inter, prec: u32, round: Round)
                           -> (Float, Ordering) {
                 let mut ret = Float::new(prec);
                 let ord = ret.assign_round(i, round);
@@ -2691,29 +2691,29 @@ macro_rules! arith_binary {
 
 macro_rules! arith_commut_float {
     {
-        $imp:ident $method:ident,
-        $imp_round:ident $method_round:ident,
-        $imp_assign:ident $method_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
         arith_binary! {
-            $imp $method,
-            $imp_round $method_round,
-            $imp_assign $method_assign,
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
             Float,
             $func,
-            $inter
+            $Inter
         }
 
-        impl<'a> $imp<Float> for &'a Float {
+        impl<'a> $Imp<Float> for &'a Float {
             type Output = Float;
             fn $method(self, rhs: Float) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp_round<Float> for &'a Float {
+        impl<'a> $ImpRound<Float> for &'a Float {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -2727,30 +2727,30 @@ macro_rules! arith_commut_float {
 
 macro_rules! arith_noncommut_float {
     {
-        $imp:ident $method:ident,
-        $imp_round:ident $method_round:ident,
-        $imp_assign:ident $method_assign:ident,
-        $imp_from_assign:ident $method_from_assign:ident,
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
         arith_binary! {
-            $imp $method,
-            $imp_round $method_round,
-            $imp_assign $method_assign,
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
             Float,
             $func,
-            $inter
+            $Inter
         }
 
-        impl<'a> $imp<Float> for &'a Float {
+        impl<'a> $Imp<Float> for &'a Float {
             type Output = Float;
             fn $method(self, rhs: Float) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp_round<Float> for &'a Float {
+        impl<'a> $ImpRound<Float> for &'a Float {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -2766,7 +2766,7 @@ macro_rules! arith_noncommut_float {
             }
         }
 
-        impl<'a> $imp_from_assign<&'a Float> for Float {
+        impl<'a> $ImpFromAssign<&'a Float> for Float {
             fn $method_from_assign(&mut self, lhs: &Float) {
                 unsafe {
                     $func(self.inner_mut(),
@@ -2777,7 +2777,7 @@ macro_rules! arith_noncommut_float {
             }
         }
 
-        impl $imp_from_assign for Float {
+        impl $ImpFromAssign for Float {
             fn $method_from_assign(&mut self, lhs: Float) {
                 self.$method_from_assign(&lhs);
             }
@@ -2787,40 +2787,40 @@ macro_rules! arith_noncommut_float {
 
 macro_rules! arith_commut {
     {
-        $imp:ident $method:ident,
-        $imp_round:ident $method_round:ident,
-        $imp_assign:ident $method_assign:ident,
-        $t:ty,
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
         $func:path,
-        $inter:ident
+        $Inter:ident
     } => {
         arith_binary! {
-            $imp $method,
-            $imp_round $method_round,
-            $imp_assign $method_assign,
-            $t,
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
             $func,
-            $inter
+            $Inter
         }
 
-        impl<'a> $imp<$t> for &'a Float {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: $t) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<$T> for &'a Float {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: $T) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: OwnBorrow::Own(rhs),
                 }
             }
         }
 
-        impl<'a> $imp<Float> for &'a $t {
+        impl<'a> $Imp<Float> for &'a $T {
             type Output = Float;
             fn $method(self, rhs: Float) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp_round<Float> for &'a $t {
+        impl<'a> $ImpRound<Float> for &'a $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -2830,14 +2830,14 @@ macro_rules! arith_commut {
             }
         }
 
-        impl $imp<Float> for $t {
+        impl $Imp<Float> for $T {
             type Output = Float;
             fn $method(self, rhs: Float) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl $imp_round<Float> for $t {
+        impl $ImpRound<Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -2847,20 +2847,20 @@ macro_rules! arith_commut {
             }
         }
 
-        impl<'a> $imp<&'a Float> for &'a $t {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: &'a Float) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<&'a Float> for &'a $T {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: &'a Float) -> $Inter<'a> {
+                $Inter {
                     lhs: rhs,
                     rhs: OwnBorrow::Borrow(self),
                 }
             }
         }
 
-        impl<'a> $imp<&'a Float> for $t {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: &'a Float) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<&'a Float> for $T {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: &'a Float) -> $Inter<'a> {
+                $Inter {
                     lhs: rhs,
                     rhs: OwnBorrow::Own(self),
                 }
@@ -2871,43 +2871,43 @@ macro_rules! arith_commut {
 
 macro_rules! arith_noncommut {
     {
-        $imp:ident $method:ident,
-        $imp_round:ident $method_round:ident,
-        $imp_assign:ident $method_assign:ident,
-        $imp_from_assign:ident $method_from_assign:ident,
-        $t:ty,
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
+        $T:ty,
         $func:path,
         $func_from:path,
-        $inter:ident,
-        $inter_from:ident
+        $Inter:ident,
+        $InterFrom:ident
     } => {
         arith_binary! {
-            $imp $method,
-            $imp_round $method_round,
-            $imp_assign $method_assign,
-            $t,
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
             $func,
-            $inter
+            $Inter
         }
 
-        impl<'a> $imp<$t> for &'a Float {
-            type Output = $inter<'a>;
-            fn $method(self, rhs: $t) -> $inter<'a> {
-                $inter {
+        impl<'a> $Imp<$T> for &'a Float {
+            type Output = $Inter<'a>;
+            fn $method(self, rhs: $T) -> $Inter<'a> {
+                $Inter {
                     lhs: self,
                     rhs: OwnBorrow::Own(rhs),
                 }
             }
         }
 
-        impl<'a> $imp<Float> for &'a $t {
+        impl<'a> $Imp<Float> for &'a $T {
             type Output = Float;
             fn $method(self, rhs: Float) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp_round<Float> for &'a $t {
+        impl<'a> $ImpRound<Float> for &'a $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -2923,14 +2923,14 @@ macro_rules! arith_noncommut {
             }
         }
 
-        impl $imp<Float> for $t {
+        impl $Imp<Float> for $T {
             type Output = Float;
             fn $method(self, rhs: Float) -> Float {
                 self.$method_round(rhs, Round::Nearest).0
             }
         }
 
-        impl $imp_round<Float> for $t {
+        impl $ImpRound<Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -2940,28 +2940,28 @@ macro_rules! arith_noncommut {
             }
         }
 
-        impl<'a> $imp<&'a Float> for &'a $t {
-            type Output = $inter_from<'a>;
-            fn $method(self, rhs: &'a Float) -> $inter_from<'a> {
-                $inter_from {
+        impl<'a> $Imp<&'a Float> for &'a $T {
+            type Output = $InterFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
+                $InterFrom {
                     lhs: OwnBorrow::Borrow(self),
                     rhs: rhs,
                 }
             }
         }
 
-        impl<'a> $imp<&'a Float> for $t {
-            type Output = $inter_from<'a>;
-            fn $method(self, rhs: &'a Float) -> $inter_from<'a> {
-                $inter_from {
+        impl<'a> $Imp<&'a Float> for $T {
+            type Output = $InterFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
+                $InterFrom {
                     lhs: OwnBorrow::Own(self),
                     rhs: rhs,
                 }
             }
         }
 
-        impl<'a> $imp_from_assign<&'a $t> for Float {
-            fn $method_from_assign(&mut self, lhs: &'a $t) {
+        impl<'a> $ImpFromAssign<&'a $T> for Float {
+            fn $method_from_assign(&mut self, lhs: &'a $T) {
                 unsafe {
                     $func_from(self.inner_mut(),
                                lhs.inner(),
@@ -2971,29 +2971,29 @@ macro_rules! arith_noncommut {
             }
         }
 
-        impl $imp_from_assign<$t> for Float {
-            fn $method_from_assign(&mut self, lhs: $t) {
+        impl $ImpFromAssign<$T> for Float {
+            fn $method_from_assign(&mut self, lhs: $T) {
                 self.$method_from_assign(&lhs);
             }
         }
 
         /// This is actually private, this documentation should not be
         /// visible.
-        pub struct $inter_from<'a> {
-            lhs: OwnBorrow<'a, $t>,
+        pub struct $InterFrom<'a> {
+            lhs: OwnBorrow<'a, $T>,
             rhs: &'a Float,
         }
 
-        impl<'a> Assign<$inter_from<'a>> for Float {
-            fn assign(&mut self, rhs: $inter_from) {
+        impl<'a> Assign<$InterFrom<'a>> for Float {
+            fn assign(&mut self, rhs: $InterFrom) {
                 self.assign_round(rhs, Round::Nearest);
             }
         }
 
-        impl<'a> AssignRound<$inter_from<'a>> for Float {
+        impl<'a> AssignRound<$InterFrom<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn assign_round(&mut self, rhs: $inter_from, round: Round)
+            fn assign_round(&mut self, rhs: $InterFrom, round: Round)
                             -> Ordering {
                 unsafe {
                     $func_from(self.inner_mut(),
@@ -3004,18 +3004,18 @@ macro_rules! arith_noncommut {
             }
         }
 
-        impl<'a> From<($inter_from<'a>, u32)> for Float {
-            fn from((i, prec): ($inter_from, u32)) -> Float {
+        impl<'a> From<($InterFrom<'a>, u32)> for Float {
+            fn from((i, prec): ($InterFrom, u32)) -> Float {
                 let mut ret = Float::new(prec);
                 ret.assign(i);
                 ret
             }
         }
 
-        impl<'a> FromRound<$inter_from<'a>, u32> for Float {
+        impl<'a> FromRound<$InterFrom<'a>, u32> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn from_round(i: $inter_from, prec: u32, round: Round)
+            fn from_round(i: $InterFrom, prec: u32, round: Round)
                           -> (Float, Ordering) {
                 let mut ret = Float::new(prec);
                 let ord = ret.assign_round(i, round);
@@ -3220,32 +3220,32 @@ unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
 
 
 macro_rules! pow_others {
-    { $($t:ty)* } => { $(
-        impl<'a> Pow<&'a $t> for Float {
+    { $($T:ty)* } => { $(
+        impl<'a> Pow<&'a $T> for Float {
             type Output = Float;
-            fn pow(self, op: &'a $t) -> Float {
+            fn pow(self, op: &'a $T) -> Float {
                 self.pow_round(op, Round::Nearest).0
             }
         }
 
-        impl Pow<$t> for Float {
+        impl Pow<$T> for Float {
             type Output = Float;
-            fn pow(self, op: $t) -> Float {
+            fn pow(self, op: $T) -> Float {
                 self.pow_round(op, Round::Nearest).0
             }
         }
 
-        impl PowRound<$t> for Float {
+        impl PowRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
-            fn pow_round(self, op: $t, round: Round) -> (Float, Ordering) {
+            fn pow_round(self, op: $T, round: Round) -> (Float, Ordering) {
                 self.pow_round(&op, round)
             }
         }
 
-        impl PowAssign<$t> for Float {
-            fn pow_assign(&mut self, op: $t) {
+        impl PowAssign<$T> for Float {
+            fn pow_assign(&mut self, op: $T) {
                 self.pow_assign(&op);
             }
         }
@@ -3303,23 +3303,23 @@ impl<'a> PowAssign<&'a Integer> for Float {
 pow_others! { Float Integer }
 
 macro_rules! arith_prim {
-    ($imp:ident $method:ident,
-     $imp_round:ident $method_round:ident,
-     $imp_assign:ident $method_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpRound:ident $method_round:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $T:ty,
      $func:path) => {
-        impl $imp<$t> for Float {
+        impl $Imp<$T> for Float {
             type Output = Float;
-            fn $method(self, op: $t) -> Float {
+            fn $method(self, op: $T) -> Float {
                 self.$method_round(op, Round::Nearest).0
             }
         }
 
-        impl $imp_round<$t> for Float {
+        impl $ImpRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
-            fn $method_round(mut self, op: $t, round: Round)
+            fn $method_round(mut self, op: $T, round: Round)
                              -> (Float, Ordering) {
                 let ord = unsafe {
                     $func(self.inner_mut(),
@@ -3332,8 +3332,8 @@ macro_rules! arith_prim {
             }
         }
 
-        impl $imp_assign<$t> for Float {
-            fn $method_assign(&mut self, op: $t) {
+        impl $ImpAssign<$T> for Float {
+            fn $method_assign(&mut self, op: $T) {
                 unsafe {
                     $func(self.inner_mut(),
                           self.inner(),
@@ -3346,36 +3346,36 @@ macro_rules! arith_prim {
 }
 
 macro_rules! arith_prim_noncommut {
-    ($imp:ident $method:ident,
-     $imp_round:ident $method_round:ident,
-     $imp_assign:ident $method_assign:ident,
-     $imp_from_assign:ident $method_from_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpRound:ident $method_round:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $ImpFromAssign:ident $method_from_assign:ident,
+     $T:ty,
      $func:path,
      $func_from:path) => {
         arith_prim! {
-            $imp $method,
-            $imp_round $method_round,
-            $imp_assign $method_assign,
-            $t,
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
             $func
         }
 
-        impl $imp<Float> for $t {
+        impl $Imp<Float> for $T {
             type Output = Float;
             fn $method(self, op: Float) -> Float {
                 self.$method_round(op, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp<&'a Float> for $t {
+        impl<'a> $Imp<&'a Float> for $T {
             type Output = Float;
             fn $method(self, op: &'a Float) -> Float {
                 self.$method_round(op, Round::Nearest).0
             }
         }
 
-        impl $imp_round<Float> for $t {
+        impl $ImpRound<Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -3392,7 +3392,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl<'a> $imp_round<&'a Float> for $t {
+        impl<'a> $ImpRound<&'a Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -3402,8 +3402,8 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl $imp_from_assign<$t> for Float {
-            fn $method_from_assign(&mut self, lhs: $t) {
+        impl $ImpFromAssign<$T> for Float {
+            fn $method_from_assign(&mut self, lhs: $T) {
                 unsafe {
                     $func_from(self.inner_mut(),
                                lhs.into(),
@@ -3416,34 +3416,34 @@ macro_rules! arith_prim_noncommut {
 }
 
 macro_rules! arith_prim_commut {
-    ($imp:ident $method:ident,
-     $imp_round:ident $method_round:ident,
-     $imp_assign:ident $method_assign:ident,
-     $t:ty,
+    ($Imp:ident $method:ident,
+     $ImpRound:ident $method_round:ident,
+     $ImpAssign:ident $method_assign:ident,
+     $T:ty,
      $func:path) => {
         arith_prim! {
-            $imp $method,
-            $imp_round $method_round,
-            $imp_assign $method_assign,
-            $t,
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
             $func
         }
 
-        impl $imp<Float> for $t {
+        impl $Imp<Float> for $T {
             type Output = Float;
             fn $method(self, op: Float) -> Float {
                 self.$method_round(op, Round::Nearest).0
             }
         }
 
-        impl<'a> $imp<&'a Float> for $t {
+        impl<'a> $Imp<&'a Float> for $T {
             type Output = Float;
             fn $method(self, op: &'a Float) -> Float {
                 self.$method_round(op, Round::Nearest).0
             }
         }
 
-        impl $imp_round<Float> for $t {
+        impl $ImpRound<Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -3453,7 +3453,7 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl<'a> $imp_round<&'a Float> for $t {
+        impl<'a> $ImpRound<&'a Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             type Output = Float;
@@ -3466,19 +3466,19 @@ macro_rules! arith_prim_commut {
 }
 
 macro_rules! conv_ops {
-    { ($t:ty, $set:path),
+    { ($T:ty, $set:path),
       ($add:path, $sub: path, $sub_from: path),
       ($mul:path, $div: path, $div_from: path) } => {
-        impl Assign<$t> for Float {
-            fn assign(&mut self, val: $t) {
+        impl Assign<$T> for Float {
+            fn assign(&mut self, val: $T) {
                 self.assign_round(val, Round::Nearest);
             }
         }
 
-        impl AssignRound<$t> for Float {
+        impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn assign_round(&mut self, val: $t, round: Round) -> Ordering {
+            fn assign_round(&mut self, val: $T, round: Round) -> Ordering {
                 unsafe {
                     $set(self.inner_mut(), val.into(), rraw(round)).cmp(&0)
                 }
@@ -3489,7 +3489,7 @@ macro_rules! conv_ops {
             Add add,
             AddRound add_round,
             AddAssign add_assign,
-            $t,
+            $T,
             $add
         }
         arith_prim_noncommut! {
@@ -3497,7 +3497,7 @@ macro_rules! conv_ops {
             SubRound sub_round,
             SubAssign sub_assign,
             SubFromAssign sub_from_assign,
-            $t,
+            $T,
             $sub,
             $sub_from
         }
@@ -3505,7 +3505,7 @@ macro_rules! conv_ops {
             Mul mul,
             MulRound mul_round,
             MulAssign mul_assign,
-            $t,
+            $T,
             $mul
         }
         arith_prim_noncommut! {
@@ -3513,7 +3513,7 @@ macro_rules! conv_ops {
             DivRound div_round,
             DivAssign div_assign,
             DivFromAssign div_from_assign,
-            $t,
+            $T,
             $div,
             $div_from
         }
@@ -3572,16 +3572,16 @@ arith_prim! {
 macro_rules! cast_op {
     {
         $( $name:ident = mpfr::$func:ident(
-            $($before:ident: $before_ty:ty),*;
+            $($before:ident: $BeforeTy:ty),*;
             $op:ident;
-            $($after:ident: $after_ty:ty),*
-        ) -> $ret_ty:ty;)*
+            $($after:ident: $AfterTy:ty),*
+        ) -> $RetTy:ty;)*
     } => {
         $(
-            unsafe fn $name($($before: $before_ty),*,
+            unsafe fn $name($($before: $BeforeTy),*,
                             $op: f32,
-                            $($after: $after_ty),*)
-                            -> $ret_ty {
+                            $($after: $AfterTy),*)
+                            -> $RetTy {
                 mpfr::$func($($before),*, $op as f64, $($after),*)
             }
         )*
@@ -3761,16 +3761,16 @@ impl PartialOrd for Float {
 }
 
 macro_rules! compare_common {
-    { $t:ty, $eval:expr, $d_self:expr, $d_other:expr } => {
-        impl PartialEq<$t> for Float {
-            fn eq(&self, other: &$t) -> bool {
+    { $T:ty, $eval:expr, $d_self:expr, $d_other:expr } => {
+        impl PartialEq<$T> for Float {
+            fn eq(&self, other: &$T) -> bool {
                 self.partial_cmp(other) == Some(Ordering::Equal)
             }
         }
 
-        impl PartialOrd<$t> for Float {
+        impl PartialOrd<$T> for Float {
             #[doc=$d_self]
-            fn partial_cmp(&self, other: &$t) -> Option<Ordering> {
+            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if self.is_nan() {
                     return None;
                 }
@@ -3778,13 +3778,13 @@ macro_rules! compare_common {
             }
         }
 
-        impl PartialEq<Float> for $t {
+        impl PartialEq<Float> for $T {
             fn eq(&self, other: &Float) -> bool {
                 other.eq(self)
             }
         }
 
-        impl PartialOrd<Float> for $t {
+        impl PartialOrd<Float> for $T {
             #[doc=$d_other]
             fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
                 other.partial_cmp(self).map(Ordering::reverse)
@@ -3794,9 +3794,9 @@ macro_rules! compare_common {
 }
 
 macro_rules! compare_int {
-    { $t:ty, $eval:expr } => {
+    { $T:ty, $eval:expr } => {
         compare_common! {
-            $t,
+            $T,
             $eval,
             "Returns the ordering of `self` and `other`, \
              or `None` if `self` is a NaN.",
@@ -3807,9 +3807,9 @@ macro_rules! compare_int {
 }
 
 macro_rules! compare_float {
-    { $t:ty, $eval:expr } => {
+    { $T:ty, $eval:expr } => {
         compare_common! {
-            $t,
+            $T,
             $eval,
             "Returns the ordering of `self` and `other`, \
              or `None` if one (or both) of them is a NaN.",
