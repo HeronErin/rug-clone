@@ -1008,7 +1008,9 @@ macro_rules! arith_unary {
         }
 
         impl<'a> $Imp for &'a Integer {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self) -> $Inter<'a> {
                 $Inter { op: self }
             }
@@ -1069,7 +1071,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a Integer> for &'a Integer {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Integer) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
@@ -1192,7 +1196,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Integer {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, op: $T) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
@@ -1254,7 +1260,9 @@ macro_rules! arith_prim_noncommut {
         }
 
         impl<'a> $Imp<&'a Integer> for $T {
+            /// An intermediate value.
             type Output = $InterFrom<'a>;
+            /// Creates an intermediate value.
             fn $method(self, op: &'a Integer) -> $InterFrom<'a> {
                 $InterFrom {
                     lhs: self,
@@ -1305,7 +1313,9 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $Imp<&'a Integer> for $T {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, op: &'a Integer) -> $Inter<'a> {
                 op.$method(self)
             }
