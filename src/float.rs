@@ -826,12 +826,13 @@ impl Float {
                          sin: &mut Float,
                          round: Round)
                          -> (Ordering, Ordering) {
-        ordering2(unsafe {
-                      mpfr::sin_cos(sin.inner_mut(),
-                                    self.inner_mut(),
-                                    self.inner(),
-                                    rraw(round))
-                  })
+        let ord = ordering2(unsafe {
+                                mpfr::sin_cos(sin.inner_mut(),
+                                              self.inner_mut(),
+                                              self.inner(),
+                                              rraw(round))
+                            });
+        (ord.1, ord.0)
     }
 
     /// Computes the sine and cosine of `val`, rounding to the
@@ -1007,12 +1008,13 @@ impl Float {
                            sin: &mut Float,
                            round: Round)
                            -> (Ordering, Ordering) {
-        ordering2(unsafe {
-                      mpfr::sinh_cosh(sin.inner_mut(),
-                                      self.inner_mut(),
-                                      self.inner(),
-                                      rraw(round))
-                  })
+        let ord = ordering2(unsafe {
+                                mpfr::sinh_cosh(sin.inner_mut(),
+                                                self.inner_mut(),
+                                                self.inner(),
+                                                rraw(round))
+                            });
+        (ord.1, ord.0)
     }
 
     /// Computes the hyperbolic sine and cosine of `val`, rounding to
