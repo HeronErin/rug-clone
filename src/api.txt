@@ -222,7 +222,7 @@ Sub, Div, Pow;
 arith_forward!
     arith_binary!
     impl Imp<T> for &Float; // Output = Hold
-PowInteger;
+Pow<Integer>;
 
 arith_commut!
     arith_forward!
@@ -308,6 +308,6 @@ impl Octal for Float;
 impl LowerHex for Float;
 impl UpperHex for Float;
 
-struct ParseFloatError;
+struct ParseFloatError derive(Clone, Debug, Eq, PartialEq);
 impl Error for ParseFloatError;
 impl Display for ParseFloatError;
