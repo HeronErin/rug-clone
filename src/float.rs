@@ -242,7 +242,7 @@ macro_rules! math_op1 {
 
         #[doc=$d_set]
         pub fn $method_set(&mut self,
-                           val: &mut Float $(, $param: $T)*)
+                           val: &Float $(, $param: $T)*)
                            -> &mut Float {
             self.$method_set_round(val, $($param,)* Round::Nearest);
             self
@@ -262,7 +262,7 @@ macro_rules! math_op1 {
 
         #[doc=$d_set_round]
         pub fn $method_set_round(&mut self,
-                                 val: &mut Float,
+                                 val: &Float,
                                  $($param: $T,)* round: Round)
                                  -> Ordering {
             unsafe {
