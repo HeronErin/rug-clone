@@ -224,116 +224,6 @@ impl Clone for Float {
     }
 }
 
-macro_rules! math_op1 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_round:meta])* fn $method_round:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Float {
-            $(#[$attr])*
-            pub fn $method(&mut self $(, $param: $T)*) -> &mut Float {
-                self.$method_round($($param,)* Round::Nearest);
-                self
-            }
-
-            $(#[$attr_round])*
-            pub fn $method_round(&mut self, $($param: $T,)* round: Round)
-                                 -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          $($param.into(),)* rraw(round))
-                }.cmp(&0)
-            }
-
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
-                $Hold {
-                    val: self,
-                    $($param: $param,)*
-                }
-            }
-        }
-
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            val: &'a Float,
-            $($param: $T,)*
-        }
-
-        impl<'a> AssignRound<$Hold<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
-                            -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          src.val.inner(),
-                          $(src.$param.into(),)* rraw(round))
-                }.cmp(&0)
-            }
-        }
-    };
-}
-
-macro_rules! math_op2 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_round:meta])* fn $method_round:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path
-    } => {
-        impl Float {
-            $(#[$attr])*
-            pub fn $method(&mut self, rhs: &Float) -> &mut Float {
-                self.$method_round(rhs, Round::Nearest);
-                self
-            }
-
-            $(#[$attr_round])*
-            pub fn $method_round(&mut self, rhs: &Float, round: Round)
-                                 -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          rhs.inner(),
-                          rraw(round))
-                }.cmp(&0)
-            }
-
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self, rhs: &'a Float) -> $Hold<'a> {
-                $Hold {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            lhs: &'a Float,
-            rhs: &'a Float,
-        }
-
-        impl<'a> AssignRound<$Hold<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
-                            -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          src.lhs.inner(),
-                          src.rhs.inner(),
-                          rraw(round))
-                }.cmp(&0)
-            }
-        }
-    };
-}
-
 impl Float {
     /// Create a new floating-point number with the specified
     /// precision and with value 0.
@@ -578,6 +468,431 @@ impl Float {
     pub fn to_f32_round(&self, round: Round) -> f32 {
         self.to_f64_round(round) as f32
     }
+
+    /// Returns `true` if `self` is an integer.
+    pub fn is_integer(&self) -> bool {
+        unsafe { mpfr::integer_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is not a number.
+    pub fn is_nan(&self) -> bool {
+        unsafe { mpfr::nan_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is plus or minus infinity.
+    pub fn is_infinite(&self) -> bool {
+        unsafe { mpfr::inf_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is a finite number,
+    /// that is neither NaN nor infinity.
+    pub fn is_finite(&self) -> bool {
+        unsafe { mpfr::number_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is plus or minus zero.
+    pub fn is_zero(&self) -> bool {
+        unsafe { mpfr::zero_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is a normal number, that is neither
+    /// NaN, nor infinity, nor zero. Note that `Float` cannot be
+    /// subnormal.
+    pub fn is_normal(&self) -> bool {
+        unsafe { mpfr::regular_p(self.inner()) != 0 }
+    }
+
+    /// Returns `Less` if `self` is less than zero,
+    /// `Greater` if `self` is greater than zero,
+    /// or `Equal` if `self` is equal to zero.
+    pub fn sign(&self) -> Option<Ordering> {
+        if self.is_nan() {
+            None
+        } else {
+            Some(unsafe { mpfr::sgn(self.inner()).cmp(&0) })
+        }
+    }
+
+    /// Returns the exponent of `self` if `self` is a normal number,
+    /// otherwise `None`.
+    /// The significand is assumed to be in the range [0.5,1).
+    pub fn get_exp(&self) -> Option<i32> {
+        if self.is_normal() {
+            let e = unsafe { mpfr::get_exp(self.inner()) };
+            assert!(e <= i32::MAX as mpfr::exp_t, "overflow");
+            Some(e as i32)
+        } else {
+            None
+        }
+    }
+
+    /// Returns the sign bit, that is `true` if the number is negative.
+    pub fn get_sign(&self) -> bool {
+        unsafe { mpfr::signbit(self.inner()) != 0 }
+    }
+
+    /// Emulate subnormal numbers, rounding to the nearest. This
+    /// method has no effect if the value is not in the subnormal
+    /// range.
+    pub fn subnormalize(&mut self) -> &mut Float {
+        self.subnormalize_round(Ordering::Equal, Round::Nearest);
+        self
+    }
+
+    /// Emulate subnormal numbers, applying the specified rounding
+    /// method. This method simply propagates `prev_rounding` if the
+    /// value is not in the subnormal range.
+    pub fn subnormalize_round(&mut self,
+                              prev_rounding: Ordering,
+                              round: Round)
+                              -> Ordering {
+        let prev = match prev_rounding {
+            Ordering::Less => -1,
+            Ordering::Equal => 0,
+            Ordering::Greater => 1,
+        };
+        unsafe {
+            mpfr::subnormalize(self.inner_mut(), prev, rraw(round)).cmp(&0)
+        }
+    }
+
+    /// Returns a string representation of `self` for the specified
+    /// `radix` rounding to the nearest.
+    ///
+    /// The exponent is encoded in decimal. The output string will have
+    /// enough precision such that reading it again will give the exact
+    /// same number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::{Float, Special};
+    /// let neg_inf = Float::from((Special::MinusInfinity, 53));
+    /// assert!(neg_inf.to_string_radix(10, None) == "-inf");
+    /// assert!(neg_inf.to_string_radix(16, None) == "-@inf@");
+    /// let fifteen = Float::from((15, 8));
+    /// assert!(fifteen.to_string_radix(10, None) == "1.500e1");
+    /// assert!(fifteen.to_string_radix(16, None) == "f.00@0");
+    /// assert!(fifteen.to_string_radix(10, Some(2)) == "1.5e1");
+    /// assert!(fifteen.to_string_radix(16, Some(4)) == "f.000@0");
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn to_string_radix(&self,
+                           radix: i32,
+                           num_digits: Option<usize>)
+                           -> String {
+        self.to_string_radix_round(radix, num_digits, Round::Nearest)
+    }
+
+    /// Returns a string representation of `self` for the specified
+    /// `radix` applying the specified rounding method.
+    ///
+    /// The exponent is encoded in decimal. The output string will have
+    /// enough precision such that reading it again will give the exact
+    /// same number.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn to_string_radix_round(&self,
+                                 radix: i32,
+                                 num_digits: Option<usize>,
+                                 round: Round)
+                                 -> String {
+        make_string(self, radix, num_digits, round, false)
+    }
+
+    /// Parses a `Float` with the specified precision, rounding to the
+    /// nearest.
+    ///
+    /// See the [corresponding assignment](#method.assign_str).
+    pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
+        let mut f = Float::new(prec);
+        f.assign_str(src)?;
+        Ok(f)
+    }
+
+    /// Parses a `Float` with the specified radix and precision,
+    /// rounding to the nearest.
+    ///
+    /// See the [corresponding assignment](#method.assign_str_radix).
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix(src: &str,
+                          radix: i32,
+                          prec: u32)
+                          -> Result<Float, ParseFloatError> {
+        let mut f = Float::new(prec);
+        f.assign_str_radix(src, radix)?;
+        Ok(f)
+    }
+
+    /// Parses a `Float` with the specified precision, applying the
+    /// specified rounding.
+    ///
+    /// See the [corresponding assignment](#method.assign_str_round).
+    pub fn from_str_round(src: &str,
+                          prec: u32,
+                          round: Round)
+                          -> Result<(Float, Ordering), ParseFloatError> {
+        let mut f = Float::new(prec);
+        let ord = f.assign_str_round(src, round)?;
+        Ok((f, ord))
+    }
+
+    /// Parses a `Float` with the specified radix and precision,
+    /// applying the specified rounding.
+    ///
+    /// See the [corresponding assignment](#method.assign_str_radix_round).
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix_round
+        (src: &str,
+         radix: i32,
+         prec: u32,
+         round: Round)
+         -> Result<(Float, Ordering), ParseFloatError> {
+        let mut f = Float::new(prec);
+        let ord = f.assign_str_radix_round(src, radix, round)?;
+        Ok((f, ord))
+    }
+
+    /// Parses a `Float` from a string, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::Float;
+    /// let mut f = Float::new(53);
+    /// f.assign_str("12.5e2").unwrap();
+    /// assert!(f == 12.5e2);
+    /// let ret = f.assign_str("bad");
+    /// assert!(ret.is_err());
+    /// ```
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
+        self.assign_str_radix(src, 10)
+    }
+
+    /// Parses a `Float` from a string with the specified radix,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::Float;
+    /// let mut f = Float::new(53);
+    /// f.assign_str_radix("f.f", 16).unwrap();
+    /// assert!(f == 15.9375);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn assign_str_radix(&mut self,
+                            src: &str,
+                            radix: i32)
+                            -> Result<(), ParseFloatError> {
+        self.assign_str_radix_round(src, radix, Round::Nearest)
+            .map(|_| ())
+    }
+
+    /// Parses a `Float` from a string, applying the specified
+    /// rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// use rugflo::{Float, Round};
+    /// use std::cmp::Ordering;
+    /// let mut f = Float::new(4);
+    /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
+    /// assert!(f == 14);
+    /// assert!(dir == Ordering::Less);
+    /// ```
+    pub fn assign_str_round(&mut self,
+                            src: &str,
+                            round: Round)
+                            -> Result<Ordering, ParseFloatError> {
+        self.assign_str_radix_round(src, 10, round)
+    }
+
+    /// Parses a `Float` from a string with the specified radix,
+    /// applying the specified rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// use rugflo::{Float, Round};
+    /// use std::cmp::Ordering;
+    /// let mut f = Float::new(4);
+    /// let dir = f.assign_str_radix_round("e.c", 16, Round::Up).unwrap();
+    /// assert!(f == 15);
+    /// assert!(dir == Ordering::Greater);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn assign_str_radix_round(&mut self,
+                                  src: &str,
+                                  radix: i32,
+                                  round: Round)
+                                  -> Result<Ordering, ParseFloatError> {
+
+        let c_str = match check_str_radix(src, radix, true)? {
+            PossibleFromStr::Owned(s) => CString::new(s).unwrap(),
+            PossibleFromStr::Borrowed(s) => CString::new(s).unwrap(),
+            PossibleFromStr::Special(s) => {
+                self.assign(s);
+                return Ok(Ordering::Equal);
+            }
+        };
+        let mut c_str_end: *const c_char = ptr::null();
+        let ord = unsafe {
+            mpfr::strtofr(self.inner_mut(),
+                          c_str.as_ptr(),
+                          &mut c_str_end as *mut _ as *mut *mut c_char,
+                          radix as c_int,
+                          rraw(round))
+                    .cmp(&0)
+        };
+        let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
+                  *const c_char;
+        assert_eq!(c_str_end, nul);
+        Ok(ord)
+    }
+
+    /// Checks if a `Float` can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses a `Float`. If this method returns
+    /// an error, the other functions will return the same error.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseFloatError> {
+        check_str_radix(src, radix, false).map(|_| ())
+    }
+}
+
+macro_rules! math_op1 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_round:meta])* fn $method_round:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        impl Float {
+            $(#[$attr])*
+            pub fn $method(&mut self $(, $param: $T)*) -> &mut Float {
+                self.$method_round($($param,)* Round::Nearest);
+                self
+            }
+
+            $(#[$attr_round])*
+            pub fn $method_round(&mut self, $($param: $T,)* round: Round)
+                                 -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          $($param.into(),)* rraw(round))
+                }.cmp(&0)
+            }
+
+            $(#[$attr_hold])*
+            pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
+                $Hold {
+                    val: self,
+                    $($param: $param,)*
+                }
+            }
+        }
+
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            val: &'a Float,
+            $($param: $T,)*
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.val.inner(),
+                          $(src.$param.into(),)* rraw(round))
+                }.cmp(&0)
+            }
+        }
+    };
+}
+
+macro_rules! math_op2 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_round:meta])* fn $method_round:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        impl Float {
+            $(#[$attr])*
+            pub fn $method(&mut self, rhs: &Float) -> &mut Float {
+                self.$method_round(rhs, Round::Nearest);
+                self
+            }
+
+            $(#[$attr_round])*
+            pub fn $method_round(&mut self, rhs: &Float, round: Round)
+                                 -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          rhs.inner(),
+                          rraw(round))
+                }.cmp(&0)
+            }
+
+            $(#[$attr_hold])*
+            pub fn $method_hold<'a>(&'a self, rhs: &'a Float) -> $Hold<'a> {
+                $Hold {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            lhs: &'a Float,
+            rhs: &'a Float,
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.inner(),
+                          rraw(round))
+                }.cmp(&0)
+            }
+        }
+    };
 }
 
 math_op1! {
@@ -1478,93 +1793,6 @@ math_op1! {
 }
 
 impl Float {
-    /// Returns `true` if `self` is an integer.
-    pub fn is_integer(&self) -> bool {
-        unsafe { mpfr::integer_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is not a number.
-    pub fn is_nan(&self) -> bool {
-        unsafe { mpfr::nan_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is plus or minus infinity.
-    pub fn is_infinite(&self) -> bool {
-        unsafe { mpfr::inf_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is a finite number,
-    /// that is neither NaN nor infinity.
-    pub fn is_finite(&self) -> bool {
-        unsafe { mpfr::number_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is plus or minus zero.
-    pub fn is_zero(&self) -> bool {
-        unsafe { mpfr::zero_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is a normal number, that is neither
-    /// NaN, nor infinity, nor zero. Note that `Float` cannot be
-    /// subnormal.
-    pub fn is_normal(&self) -> bool {
-        unsafe { mpfr::regular_p(self.inner()) != 0 }
-    }
-
-    /// Returns `Less` if `self` is less than zero,
-    /// `Greater` if `self` is greater than zero,
-    /// or `Equal` if `self` is equal to zero.
-    pub fn sign(&self) -> Option<Ordering> {
-        if self.is_nan() {
-            None
-        } else {
-            Some(unsafe { mpfr::sgn(self.inner()).cmp(&0) })
-        }
-    }
-
-    /// Returns the exponent of `self` if `self` is a normal number,
-    /// otherwise `None`.
-    /// The significand is assumed to be in the range [0.5,1).
-    pub fn get_exp(&self) -> Option<i32> {
-        if self.is_normal() {
-            let e = unsafe { mpfr::get_exp(self.inner()) };
-            assert!(e <= i32::MAX as mpfr::exp_t, "overflow");
-            Some(e as i32)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the sign bit, that is `true` if the number is negative.
-    pub fn get_sign(&self) -> bool {
-        unsafe { mpfr::signbit(self.inner()) != 0 }
-    }
-
-    /// Emulate subnormal numbers, rounding to the nearest. This
-    /// method has no effect if the value is not in the subnormal
-    /// range.
-    pub fn subnormalize(&mut self) -> &mut Float {
-        self.subnormalize_round(Ordering::Equal, Round::Nearest);
-        self
-    }
-
-    /// Emulate subnormal numbers, applying the specified rounding
-    /// method. This method simply propagates `prev_rounding` if the
-    /// value is not in the subnormal range.
-    pub fn subnormalize_round(&mut self,
-                              prev_rounding: Ordering,
-                              round: Round)
-                              -> Ordering {
-        let prev = match prev_rounding {
-            Ordering::Less => -1,
-            Ordering::Equal => 0,
-            Ordering::Greater => 1,
-        };
-        unsafe {
-            mpfr::subnormalize(self.inner_mut(), prev, rraw(round)).cmp(&0)
-        }
-    }
-
     #[cfg(feature = "random")]
     /// Generates a random number in the range `0 <= n < 1`.
     ///
@@ -1808,234 +2036,6 @@ impl Float {
             *self.inner.d = val;
         }
         None
-    }
-
-    /// Returns a string representation of `self` for the specified
-    /// `radix` rounding to the nearest.
-    ///
-    /// The exponent is encoded in decimal. The output string will have
-    /// enough precision such that reading it again will give the exact
-    /// same number.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugflo::{Float, Special};
-    /// let neg_inf = Float::from((Special::MinusInfinity, 53));
-    /// assert!(neg_inf.to_string_radix(10, None) == "-inf");
-    /// assert!(neg_inf.to_string_radix(16, None) == "-@inf@");
-    /// let fifteen = Float::from((15, 8));
-    /// assert!(fifteen.to_string_radix(10, None) == "1.500e1");
-    /// assert!(fifteen.to_string_radix(16, None) == "f.00@0");
-    /// assert!(fifteen.to_string_radix(10, Some(2)) == "1.5e1");
-    /// assert!(fifteen.to_string_radix(16, Some(4)) == "f.000@0");
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix(&self,
-                           radix: i32,
-                           num_digits: Option<usize>)
-                           -> String {
-        self.to_string_radix_round(radix, num_digits, Round::Nearest)
-    }
-
-    /// Returns a string representation of `self` for the specified
-    /// `radix` applying the specified rounding method.
-    ///
-    /// The exponent is encoded in decimal. The output string will have
-    /// enough precision such that reading it again will give the exact
-    /// same number.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix_round(&self,
-                                 radix: i32,
-                                 num_digits: Option<usize>,
-                                 round: Round)
-                                 -> String {
-        make_string(self, radix, num_digits, round, false)
-    }
-
-    /// Parses a `Float` with the specified precision, rounding to the
-    /// nearest.
-    ///
-    /// See the [corresponding assignment](#method.assign_str).
-    pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
-        let mut f = Float::new(prec);
-        f.assign_str(src)?;
-        Ok(f)
-    }
-
-    /// Parses a `Float` with the specified radix and precision,
-    /// rounding to the nearest.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_radix).
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str,
-                          radix: i32,
-                          prec: u32)
-                          -> Result<Float, ParseFloatError> {
-        let mut f = Float::new(prec);
-        f.assign_str_radix(src, radix)?;
-        Ok(f)
-    }
-
-    /// Parses a `Float` with the specified precision, applying the
-    /// specified rounding.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_round).
-    pub fn from_str_round(src: &str,
-                          prec: u32,
-                          round: Round)
-                          -> Result<(Float, Ordering), ParseFloatError> {
-        let mut f = Float::new(prec);
-        let ord = f.assign_str_round(src, round)?;
-        Ok((f, ord))
-    }
-
-    /// Parses a `Float` with the specified radix and precision,
-    /// applying the specified rounding.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_radix_round).
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix_round
-        (src: &str,
-         radix: i32,
-         prec: u32,
-         round: Round)
-         -> Result<(Float, Ordering), ParseFloatError> {
-        let mut f = Float::new(prec);
-        let ord = f.assign_str_radix_round(src, radix, round)?;
-        Ok((f, ord))
-    }
-
-    /// Parses a `Float` from a string, rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugflo::Float;
-    /// let mut f = Float::new(53);
-    /// f.assign_str("12.5e2").unwrap();
-    /// assert!(f == 12.5e2);
-    /// let ret = f.assign_str("bad");
-    /// assert!(ret.is_err());
-    /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
-        self.assign_str_radix(src, 10)
-    }
-
-    /// Parses a `Float` from a string with the specified radix,
-    /// rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugflo::Float;
-    /// let mut f = Float::new(53);
-    /// f.assign_str_radix("f.f", 16).unwrap();
-    /// assert!(f == 15.9375);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix(&mut self,
-                            src: &str,
-                            radix: i32)
-                            -> Result<(), ParseFloatError> {
-        self.assign_str_radix_round(src, radix, Round::Nearest)
-            .map(|_| ())
-    }
-
-    /// Parses a `Float` from a string, applying the specified
-    /// rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rugflo::{Float, Round};
-    /// use std::cmp::Ordering;
-    /// let mut f = Float::new(4);
-    /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
-    /// assert!(f == 14);
-    /// assert!(dir == Ordering::Less);
-    /// ```
-    pub fn assign_str_round(&mut self,
-                            src: &str,
-                            round: Round)
-                            -> Result<Ordering, ParseFloatError> {
-        self.assign_str_radix_round(src, 10, round)
-    }
-
-    /// Parses a `Float` from a string with the specified radix,
-    /// applying the specified rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rugflo::{Float, Round};
-    /// use std::cmp::Ordering;
-    /// let mut f = Float::new(4);
-    /// let dir = f.assign_str_radix_round("e.c", 16, Round::Up).unwrap();
-    /// assert!(f == 15);
-    /// assert!(dir == Ordering::Greater);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix_round(&mut self,
-                                  src: &str,
-                                  radix: i32,
-                                  round: Round)
-                                  -> Result<Ordering, ParseFloatError> {
-
-        let c_str = match check_str_radix(src, radix, true)? {
-            PossibleFromStr::Owned(s) => CString::new(s).unwrap(),
-            PossibleFromStr::Borrowed(s) => CString::new(s).unwrap(),
-            PossibleFromStr::Special(s) => {
-                self.assign(s);
-                return Ok(Ordering::Equal);
-            }
-        };
-        let mut c_str_end: *const c_char = ptr::null();
-        let ord = unsafe {
-            mpfr::strtofr(self.inner_mut(),
-                          c_str.as_ptr(),
-                          &mut c_str_end as *mut _ as *mut *mut c_char,
-                          radix as c_int,
-                          rraw(round))
-                    .cmp(&0)
-        };
-        let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
-                  *const c_char;
-        assert_eq!(c_str_end, nul);
-        Ok(ord)
-    }
-
-    /// Checks if a `Float` can be parsed.
-    ///
-    /// If this method does not return an error, neither will any
-    /// other function that parses a `Float`. If this method returns
-    /// an error, the other functions will return the same error.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn valid_str_radix(src: &str,
-                           radix: i32)
-                           -> Result<(), ParseFloatError> {
-        check_str_radix(src, radix, false).map(|_| ())
     }
 }
 
