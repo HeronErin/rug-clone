@@ -1,0 +1,98 @@
+struct Complex;
+impl Drop for Complex;
+impl Clone for Complex;
+
+impl Complex
+    new((u32, u32)) -> Complex;
+    prec(&self) -> (u32, u32);
+    set_prec(&mut self, (u32, u32));
+    set_prec_round(&mut self, (u32, u32), (Round, Round)) -> (Ordering, Ordering);
+    real(&self) -> &Float;
+    imag(&self) -> &Float;
+    mut_real(&mut self) -> &mut Float;
+    mut_imag(&mut self) -> &mut Float;
+    as_real_image(&self) -> (&Float, &Float);
+    as_mut_real_image(&mut self) -> (&mut Float, &mut Float);
+    into_real_image(self) -> (Float, Float);
+
+math_op1!
+    Complex::method(&mut self) -> &mut Complex;
+    Complex::method_round(&mut self, (Round, Round)) -> (Ordering, Ordering);
+    Complex::method_hold(&self) -> Hold;
+    struct Hold;
+    impl AssignRound<Hold> for Complex;
+
+math_op1! proj, square, sqrt, conjugate;
+Complex::abs_hold(&self) -> AbsHold;
+struct AbsHold;
+impl AssignRound<AbsHold> for Float;
+Complex::arg_hold(&self) -> AbsHold;
+struct ArgHold;
+impl AssignRound<ArgHold> for Float;
+Complex::mul_i(&self, negative) -> AbsHold;
+Complex::mul_i_hold(&self) -> AbsHold;
+Complex::arg_hold(&self) -> AbsHold;
+struct ArgHold;
+impl AssignRound<ArgHold> for Float;
+math_op1! mul_i;
+Complex::norm_hold(&self) -> NormHold;
+struct NormHold;
+impl AssignRound<NormHold> for Float;
+math_op1! ln, log10, exp, sin, cos;
+Complex::sin_cos(&mut self, &mut Complex);
+Complex::sin_cos_round(&mut self, &mut Complex, (Round, Round)) -> ((Ordering, Ordering), (Ordering, Ordering));
+Complex::cos_sin(&mut self, &mut Complex);
+Complex::cos_sin_round(&mut self, &mut Complex, (Round, Round)) -> ((Ordering, Ordering), (Ordering, Ordering));
+Complex::assign_sin_cos(&mut self, &mut Complex, &Complex);
+Complex::assign_sin_cos_round(&mut self, &mut Complex, &Complex, Round) -> ((Ordering, Ordering), (Ordering, Ordering));
+math_op1! tan, sinh, cosh, tanh, asin, acos, atan, asinh, acosh, atanh;
+
+impl Complex
+    assign_random_bits(&mut self, &mut R: Rng);
+    assign_random_bits_round(&mut self, &mut R: Rng, (Round, Round)) -> (Ordering, Ordering);
+    assign_random_cont(&mut self, &mut R: Rng);
+    assign_random_cont_round(&mut self, &mut R: Rng, (Round, Round)) -> (Ordering, Ordering);
+    to_string_radix(&self, i32, Option<usize>) -> String;
+    to_string_radix_round(&self, i32, Option<usize>, (Round, Round)) -> String;
+    from_str(&str, (u32, u32)) -> Result<Complex, ParseComplexError>;
+    from_str_radix(&str, i32, (u32, u32)) -> Result<Complex, ParseComplexError>;
+    from_str_round(&str, (u32, u32), (Round, Round)) -> Result<(Complex, (Ordering, Ordering)), ParseComplexError>;
+    from_str_radix_round(&str, i32, (u32, u32), (Round, Round)) -> Result<(Complex, (Ordering, Ordering)), ParseComplexError>;
+    assign_str(&mut self, &str) -> Result<(), ParseComplexError>
+    assign_str_radix(&mut self, &str, i32) -> Result<(), ParseComplexError>
+    assign_str_round(&mut self, &str) -> Result<(Ordering, Ordering), ParseComplexError>
+    assign_str_radix_round(&mut self, &str, i32) -> Result<(Ordering, Ordering), ParseComplexError>
+    valid_str_radix(&str, i32) -> Result<(), ParseComplexError>
+
+impl From<(Float, Float)> for Complex;
+impl From<(T, (i32, i32))> for Complex
+    where Complex: From<(T, (u32, u32))>;
+impl FromRound<T, (i32, i32)> for Complex
+    where Complex: FromRound<T, (u32, u32)>;
+impl From<(T, (i32, u32))> for Complex
+    where Complex: From<(T, (u32, u32))>;
+impl FromRound<T, (i32, u32)> for Complex
+    where Complex: FromRound<T, (u32, u32)>;
+impl From<(T, (u32, i32))> for Complex
+    where Complex: From<(T, (u32, u32))>;
+impl FromRound<T, (u32, i32)> for Complex
+    where Complex: FromRound<T, (u32, u32)>;
+impl From<(T, (u32, u32))> for Complex
+    where Complex: FromRound<T, (u32, u32)>;
+impl FromRound<T, (u32, u32)> for Complex
+    where Complex: AssignRound<T>;
+impl Assign<T> for Complex
+    where Complex: AssignRound<T>;
+
+impl AssignRound<&Complex> for Complex;
+impl AssignRound<Complex> for Complex;
+impl AssignRound<(T, U)> for Complex
+    where Float: AssignRound<T>, Float: AssignRound<U>;
+
+assign_ref!
+    impl AssignRound<&T> for Complex;
+Integer, Rational, Float;
+
+assign!
+    impl AssignRound<T> for Complex;
+Integer, Rational, Float, Special, Constant, u32, i32, f64, f32;
