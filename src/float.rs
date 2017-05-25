@@ -279,50 +279,56 @@ macro_rules! math_op1 {
 }
 
 macro_rules! math_op2 {
-    { $d:expr,
-      $method:ident,
-      $d_set:expr,
-      $method_set:ident,
-      $d_round:expr,
-      $method_round:ident,
-      $d_set_round:expr,
-      $method_set_round:ident,
-      $func:path } => {
-        #[doc=$d]
-        pub fn $method(&mut self, other: &Float) -> &mut Float {
-            self.$method_round(other, Round::Nearest);
-            self
-        }
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_round:meta])* fn $method_round:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        impl Float {
+            $(#[$attr])*
+            pub fn $method(&mut self, rhs: &Float) -> &mut Float {
+                self.$method_round(rhs, Round::Nearest);
+                self
+            }
 
-        #[doc=$d_set]
-        pub fn $method_set(&mut self, op1: &Float, op2: &Float) -> &mut Float {
-            self.$method_set_round(op1, op2, Round::Nearest);
-            self
-        }
+            $(#[$attr_round])*
+            pub fn $method_round(&mut self, rhs: &Float, round: Round)
+                                 -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          rhs.inner(),
+                          rraw(round))
+                }.cmp(&0)
+            }
 
-        #[doc=$d_round]
-        pub fn $method_round(&mut self,
-                             other: &Float,
-                             round: Round)
-                             -> Ordering {
-            unsafe {
-                $func(self.inner_mut(),
-                      self.inner(),
-                      other.inner(),
-                      rraw(round))
-                    .cmp(&0)
+            $(#[$attr_hold])*
+            pub fn $method_hold<'a>(&'a self, rhs: &'a Float) -> $Hold<'a> {
+                $Hold {
+                    lhs: self,
+                    rhs: rhs,
+                }
             }
         }
 
-        #[doc=$d_set_round]
-        pub fn $method_set_round(&mut self,
-                                 op1: &Float,
-                                 op2: &Float,
-                                 round: Round)
-                             -> Ordering {
-            unsafe {
-                $func(self.inner_mut(), op1.inner(), op2.inner(), rraw(round))
-                    .cmp(&0)
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            lhs: &'a Float,
+            rhs: &'a Float,
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.inner(),
+                          rraw(round))
+                }.cmp(&0)
             }
         }
     };
@@ -668,23 +674,20 @@ unsafe fn recip(rop: *mut mpfr_t,
                 -> c_int {
     mpfr::ui_div(rop, 1, op, rnd)
 }
-impl Float {
-    math_op2! {
-        "Computes the positive difference between `self` and `other`, \
-         rounding to the nearest.",
-        dim,
-        "Sets `self` to the positive difference between `op1` and `op2`, \
-         rounding to the nearest.",
-        set_dim,
-        "Computes the positive difference between `self` and `other`, \
-         applying the specified rounding method.",
-        dim_round,
-        "Sets `self` to the positive difference between `op1` and `op2`, \
-         applying the specified rounding method.",
-        set_dim_round,
-        mpfr::dim
-    }
 
+math_op2! {
+    /// Computes the positive difference between `self` and `rhs`,
+    /// rounding to the nearest.
+    fn dim;
+    /// Computes the positive difference between `self` and `rhs`,
+    /// applying the specified rounding method.
+    fn dim_round;
+    /// Hold a computation of the positive difference.
+    fn dim_hold -> DimHold;
+    mpfr::dim
+}
+
+impl Float {
     /// Compares the absolute values of `self` and `other`.
     pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
         unsafe {
@@ -914,37 +917,25 @@ math_op1! {
     fn atan_hold -> AtanHold;
     mpfr::atan
 }
-
-impl Float {
-    math_op2! {
-        "Computes the arc-tangent2 of `self` and `other`, \
-         rounding to the nearest.\n\n\
-         This is similar to the arc-tangent of `self / other`, \
-         except in the cases when either `self` or `other` or both \
-         are zero or infinity.",
-        atan2,
-        "Sets `self` to the arc-tangent2 of `op1` and `op2`, \
-         rounding to the nearest.\n\n\
-         This is similar to the arc-tangent of `op1 / op2`, \
-         except in the cases when either `op1` or `op2` or both \
-         are zero or infinity.",
-        set_atan2,
-        "Computes the arc-tangent2 of `self` and `other`, \
-         applying the specified rounding method.\n\n\
-         This is similar to the arc-tangent of `self / other`, \
-         except in the cases when either `self` or `other` or both \
-         are zero or infinity.",
-        atan2_round,
-        "Sets `self` to the arc-tangent2 of `op1` and `op2`, \
-         applying the specified rounding method.\n\n\
-         This is similar to the arc-tangent of `op1 / op2`, \
-         except in the cases when either `op1` or `op2` or both \
-         are zero or infinity.",
-        set_atan2_round,
-        mpfr::atan2
-    }
+math_op2! {
+    /// Computes the arc-tangent2 of `self` and `other`, rounding to
+    /// the nearest.
+    ///
+    /// This is similar to the arc-tangent of `self / other`, except
+    /// in the cases when either `self` or `other` or both are zero or
+    /// infinity.
+    fn atan2;
+    /// Computes the arc-tangent2 of `self` and `other`, applying the
+    /// specified rounding method.
+    ///
+    /// This is similar to the arc-tangent of `self / other`, except
+    /// in the cases when either `self` or `other` or both are zero or
+    /// infinity.
+    fn atan2_round;
+    /// Hold a computation of the arc-tangent.
+    fn atan2_hold -> Atan2Hold;
+    mpfr::atan2
 }
-
 math_op1! {
     /// Computes the hyperbolic cosine, rounding to the nearest.
     fn cosh;
@@ -1400,37 +1391,27 @@ math_op1! {
     yn,
     n: i32
 }
-impl Float {
-    math_op2! {
-        "Computes the arithmetic-geometric mean of `self` and `other`, \
-         rounding to the nearest.",
-        agm,
-        "Sets `self` to the arithmetic-geometric mean of `op1` and `op2`, \
-         rounding to the nearest.",
-        set_agm,
-        "Computes the arithmetic-geometric mean of `self` and `other`, \
-         applying the specified rounding method.",
-        agm_round,
-        "Sets `self` to the arithmetic-geometric mean of `op1` and `op2`, \
-         applying the specified rounding method.",
-        set_agm_round,
-        mpfr::agm
-    }
-    math_op2! {
-        "Computes the Euclidean norm of `self` and `other`, \
-         rounding to the nearest.",
-        hypot,
-        "Sets `self` to the Euclidean norm of `op1` and `op2`, \
-         rounding to the nearest.",
-        set_hypot,
-        "Computes the Euclidean norm of `self` and `other`, \
-         applying the specified rounding method.",
-        hypot_round,
-        "Sets `self` to the Euclidean norm of `op1` and `op2`, \
-         applying the specified rounding method.",
-        set_hypot_round,
-        mpfr::hypot
-    }
+math_op2! {
+    /// Computes the arithmetic-geometric mean of `self` and `other`,
+    /// rounding to the nearest.
+    fn agm;
+    /// Computes the arithmetic-geometric mean of `self` and `other`,
+    /// applying the specified rounding method.
+    fn agm_round;
+    /// Hold a computation of the arithmetic-geometric mean.
+    fn agm_hold -> AgmHold;
+    mpfr::agm
+}
+math_op2! {
+    /// Computes the Euclidean norm of `self` and `other`, rounding to
+    /// the nearest.
+    fn hypot;
+    /// Computes the Euclidean norm of `self` and `other`, applying
+    /// the specified rounding method.
+    fn hypot_round;
+    /// Hold a computation of the Euclidean norm.
+    fn hypot_hold -> HypotHold;
+    mpfr::hypot
 }
 math_op1! {
     /// Computes the value of the Airy function Ai on `self`, rounding
@@ -2231,20 +2212,6 @@ impl<T> Assign<T> for Float
     }
 }
 
-macro_rules! assign_inter {
-    {
-        $Inter:ident => $func:expr
-    } => {
-        impl<'a> AssignRound<$Inter<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, i: $Inter, round: Round) -> Ordering {
-                unsafe { $func(self.inner_mut(), i, rraw(round)) }.cmp(&0)
-            }
-        }
-    };
-}
-
 impl AssignRound<Constant> for Float {
     type Round = Round;
     type Ordering = Ordering;
@@ -2328,21 +2295,27 @@ impl NegAssign for Float {
 }
 
 impl<'a> Neg for &'a Float {
-    /// An intermediate value.
-    type Output = NegInter<'a>;
-    /// Creates an intermediate value.
-    fn neg(self) -> NegInter<'a> {
-        NegInter { op: self }
+    /// A held negation operation.
+    type Output = NegHold<'a>;
+    /// Creates a held negation operation.
+    fn neg(self) -> NegHold<'a> {
+        NegHold { val: self }
     }
 }
 
-/// This is actually private, this documentation should not be
-/// visible.
-pub struct NegInter<'a> {
-    op: &'a Float,
+/// Holds a negation.
+pub struct NegHold<'a> {
+    val: &'a Float,
 }
 
-assign_inter! { NegInter => |s, i: NegInter, r| mpfr::neg(s, i.op.inner(), r) }
+impl<'a> AssignRound<NegHold<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: NegHold<'a>, round: Round) -> Ordering {
+        unsafe { mpfr::neg(self.inner_mut(), src.val.inner(), rraw(round)) }
+            .cmp(&0)
+    }
+}
 
 macro_rules! arith_binary {
     {
@@ -2351,7 +2324,7 @@ macro_rules! arith_binary {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     } => {
         impl<'a> $Imp<&'a $T> for Float {
             type Output = Float;
@@ -2394,11 +2367,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a $T> for &'a Float {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a $T) -> $Inter<'a> {
-                $Inter {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a $T) -> $Hold<'a> {
+                $Hold {
                     lhs: self,
                     rhs: OwnBorrow::Borrow(rhs),
                 }
@@ -2422,15 +2393,24 @@ macro_rules! arith_binary {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        pub struct $Inter<'a> {
+        /// Holds an operation.
+        pub struct $Hold<'a> {
             lhs: &'a Float,
             rhs: OwnBorrow<'a, $T>,
         }
 
-        assign_inter! { $Inter => |s, i: $Inter, r|
-                        $func(s, i.lhs.inner(), i.rhs.inner(), r) }
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold, round: Round) -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.inner(),
+                          rraw(round))
+                }.cmp(&0)
+            }
+        }
     };
 }
 
@@ -2440,7 +2420,7 @@ macro_rules! arith_commut_float {
         $ImpRound:ident $method_round:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -2448,7 +2428,7 @@ macro_rules! arith_commut_float {
             $ImpAssign $method_assign,
             Float,
             $func,
-            $Inter
+            $Hold
         }
 
         impl<'a> $Imp<Float> for &'a Float {
@@ -2477,7 +2457,7 @@ macro_rules! arith_noncommut_float {
         $ImpAssign:ident $method_assign:ident,
         $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -2485,7 +2465,7 @@ macro_rules! arith_noncommut_float {
             $ImpAssign $method_assign,
             Float,
             $func,
-            $Inter
+            $Hold
         }
 
         impl<'a> $Imp<Float> for &'a Float {
@@ -2537,7 +2517,7 @@ macro_rules! arith_forward {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -2545,15 +2525,13 @@ macro_rules! arith_forward {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Inter
+            $Hold
         }
 
         impl<'a> $Imp<$T> for &'a Float {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: $T) -> $Inter<'a> {
-                $Inter {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: $T) -> $Hold<'a> {
+                $Hold {
                     lhs: self,
                     rhs: OwnBorrow::Own(rhs),
                 }
@@ -2569,7 +2547,7 @@ macro_rules! arith_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     } => {
         arith_forward! {
             $Imp $method,
@@ -2577,7 +2555,7 @@ macro_rules! arith_commut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Inter
+            $Hold
         }
 
         impl<'a> $Imp<Float> for &'a $T {
@@ -2615,19 +2593,15 @@ macro_rules! arith_commut {
         }
 
         impl<'a> $Imp<&'a Float> for &'a $T {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Float) -> $Inter<'a> {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Float) -> $Hold<'a> {
                 rhs.$method(self)
             }
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Float) -> $Inter<'a> {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Float) -> $Hold<'a> {
                 rhs.$method(self)
             }
         }
@@ -2643,8 +2617,8 @@ macro_rules! arith_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Inter:ident,
-        $InterFrom:ident
+        $Hold:ident,
+        $HoldFrom:ident
     } => {
         arith_forward! {
             $Imp $method,
@@ -2652,7 +2626,7 @@ macro_rules! arith_noncommut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Inter
+            $Hold
         }
 
         impl<'a> $Imp<Float> for &'a $T {
@@ -2696,11 +2670,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for &'a $T {
-            /// An intermediate value.
-            type Output = $InterFrom<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
-                $InterFrom {
+            type Output = $HoldFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $HoldFrom<'a> {
+                $HoldFrom {
                     lhs: OwnBorrow::Borrow(self),
                     rhs: rhs,
                 }
@@ -2708,11 +2680,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            /// An intermediate value.
-            type Output = $InterFrom<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
-                $InterFrom {
+            type Output = $HoldFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $HoldFrom<'a> {
+                $HoldFrom {
                     lhs: OwnBorrow::Own(self),
                     rhs: rhs,
                 }
@@ -2736,15 +2706,25 @@ macro_rules! arith_noncommut {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        pub struct $InterFrom<'a> {
+        /// Holds an operation.
+        pub struct $HoldFrom<'a> {
             lhs: OwnBorrow<'a, $T>,
             rhs: &'a Float,
         }
 
-        assign_inter! { $InterFrom => |s, i: $InterFrom, r|
-                        $func_from(s, i.lhs.inner(), i.rhs.inner(), r) }
+        impl<'a> AssignRound<$HoldFrom<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $HoldFrom, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func_from(self.inner_mut(),
+                               src.lhs.inner(),
+                               src.rhs.inner(),
+                               rraw(round))
+                }.cmp(&0)
+            }
+        }
     };
 }
 
@@ -2753,7 +2733,7 @@ arith_commut_float! {
     AddRound add_round,
     AddAssign add_assign,
     mpfr::add,
-    AddInter
+    AddHold
 }
 arith_noncommut_float! {
     Sub sub,
@@ -2761,14 +2741,14 @@ arith_noncommut_float! {
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     mpfr::sub,
-    SubInter
+    SubHold
 }
 arith_commut_float! {
     Mul mul,
     MulRound mul_round,
     MulAssign mul_assign,
     mpfr::mul,
-    MulInter
+    MulHold
 }
 arith_noncommut_float! {
     Div div,
@@ -2776,7 +2756,7 @@ arith_noncommut_float! {
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     mpfr::div,
-    DivInter
+    DivHold
 }
 arith_noncommut_float! {
     Pow pow,
@@ -2784,7 +2764,7 @@ arith_noncommut_float! {
     PowAssign pow_assign,
     PowFromAssign pow_from_assign,
     mpfr::pow,
-    PowInter
+    PowHold
 }
 
 arith_commut! {
@@ -2793,7 +2773,7 @@ arith_commut! {
     AddAssign add_assign,
     Integer,
     mpfr::add_z,
-    AddInterInteger
+    AddHoldInteger
 }
 arith_noncommut! {
     Sub sub,
@@ -2803,8 +2783,8 @@ arith_noncommut! {
     Integer,
     mpfr::sub_z,
     mpfr::z_sub,
-    SubInterInteger,
-    SubFromInterInteger
+    SubHoldInteger,
+    SubFromHoldInteger
 }
 arith_commut! {
     Mul mul,
@@ -2812,7 +2792,7 @@ arith_commut! {
     MulAssign mul_assign,
     Integer,
     mpfr::mul_z,
-    MulInterInteger
+    MulHoldInteger
 }
 arith_noncommut! {
     Div div,
@@ -2822,8 +2802,8 @@ arith_noncommut! {
     Integer,
     mpfr::div_z,
     z_div,
-    DivInterInteger,
-    DivFromInterInteger
+    DivHoldInteger,
+    DivFromHoldInteger
 }
 arith_forward! {
     Pow pow,
@@ -2831,7 +2811,7 @@ arith_forward! {
     PowAssign pow_assign,
     Integer,
     mpfr::pow_z,
-    PowInterInteger
+    PowHoldInteger
 }
 
 arith_commut! {
@@ -2840,7 +2820,7 @@ arith_commut! {
     AddAssign add_assign,
     Rational,
     mpfr::add_q,
-    AddInterRational
+    AddHoldRational
 }
 arith_noncommut! {
     Sub sub,
@@ -2850,8 +2830,8 @@ arith_noncommut! {
     Rational,
     mpfr::sub_q,
     q_sub,
-    SubInterRational,
-    SubFromInterRational
+    SubHoldRational,
+    SubFromHoldRational
 }
 arith_commut! {
     Mul mul,
@@ -2859,7 +2839,7 @@ arith_commut! {
     MulAssign mul_assign,
     Rational,
     mpfr::mul_q,
-    MulInterRational
+    MulHoldRational
 }
 arith_noncommut! {
     Div div,
@@ -2869,8 +2849,8 @@ arith_noncommut! {
     Rational,
     mpfr::div_q,
     q_div,
-    DivInterRational,
-    DivFromInterRational
+    DivHoldRational,
+    DivFromHoldRational
 }
 
 unsafe fn z_div(r: *mut mpfr_t,
@@ -2964,7 +2944,7 @@ macro_rules! arith_prim {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     }=> {
         impl $Imp<$T> for Float {
             type Output = Float;
@@ -2990,11 +2970,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Float {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: $T) -> $Inter<'a> {
-                $Inter {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: $T) -> $Hold<'a> {
+                $Hold {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -3012,15 +2990,24 @@ macro_rules! arith_prim {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        pub struct $Inter<'a> {
+        /// Holds an operation.
+        pub struct $Hold<'a> {
             lhs: &'a Float,
             rhs: $T,
         }
 
-        assign_inter! { $Inter => |s, i: $Inter, r|
-                        $func(s, i.lhs.inner(), i.rhs.into(), r) }
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold, round: Round) -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.into(),
+                          rraw(round))
+                }.cmp(&0)
+            }
+        }
     };
 }
 
@@ -3031,7 +3018,7 @@ macro_rules! arith_prim_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     }=> {
         arith_prim! {
             $Imp $method,
@@ -3039,7 +3026,7 @@ macro_rules! arith_prim_commut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Inter
+            $Hold
         }
 
         impl $Imp<Float> for $T {
@@ -3060,10 +3047,8 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Float) -> $Inter<'a> {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Float) -> $Hold<'a> {
                 rhs.$method(self)
             }
         }
@@ -3079,8 +3064,8 @@ macro_rules! arith_prim_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Inter:ident,
-        $InterFrom:ident
+        $Hold:ident,
+        $HoldFrom:ident
     } => {
         arith_prim! {
             $Imp $method,
@@ -3088,7 +3073,7 @@ macro_rules! arith_prim_noncommut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Inter
+            $Hold
         }
 
         impl $Imp<Float> for $T {
@@ -3115,11 +3100,9 @@ macro_rules! arith_prim_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            /// An intermediate value.
-            type Output = $InterFrom<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
-                $InterFrom {
+            type Output = $HoldFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $HoldFrom<'a> {
+                $HoldFrom {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -3137,27 +3120,37 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        pub struct $InterFrom<'a> {
+        /// Holds an operation.
+        pub struct $HoldFrom<'a> {
             lhs: $T,
             rhs: &'a Float,
         }
 
-        assign_inter! { $InterFrom => |s, i: $InterFrom, r|
-                        $func_from(s, i.lhs.into(), i.rhs.inner(), r) }
+        impl<'a> AssignRound<$HoldFrom<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $HoldFrom, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func_from(self.inner_mut(),
+                               src.lhs.into(),
+                               src.rhs.inner(),
+                               rraw(round))
+                }.cmp(&0)
+            }
+        }
     };
 }
 
 macro_rules! conv_ops {
     {
         ($T:ty, $set:path),
-        ($AddInter:ident $add:path,
-         $SubInter:ident $sub:path,
-         $SubFromInter:ident $sub_from:path),
-        ($MulInter:ident $mul:path,
-         $DivInter:ident $div: path,
-         $DivFromInter:ident $div_from:path)
+        ($AddHold:ident $add:path,
+         $SubHold:ident $sub:path,
+         $SubFromHold:ident $sub_from:path),
+        ($MulHold:ident $mul:path,
+         $DivHold:ident $div: path,
+         $DivFromHold:ident $div_from:path)
     } => {
         impl AssignRound<$T> for Float {
             type Round = Round;
@@ -3175,7 +3168,7 @@ macro_rules! conv_ops {
             AddAssign add_assign,
             $T,
             $add,
-            $AddInter
+            $AddHold
         }
         arith_prim_noncommut! {
             Sub sub,
@@ -3185,8 +3178,8 @@ macro_rules! conv_ops {
             $T,
             $sub,
             $sub_from,
-            $SubInter,
-            $SubFromInter
+            $SubHold,
+            $SubFromHold
         }
         arith_prim_commut! {
             Mul mul,
@@ -3194,7 +3187,7 @@ macro_rules! conv_ops {
             MulAssign mul_assign,
             $T,
             $mul,
-            $MulInter
+            $MulHold
         }
         arith_prim_noncommut! {
             Div div,
@@ -3204,47 +3197,47 @@ macro_rules! conv_ops {
             $T,
             $div,
             $div_from,
-            $DivInter,
-            $DivFromInter
+            $DivHold,
+            $DivFromHold
         }
     }
 }
 
 conv_ops! {
     (u32, mpfr::set_ui),
-    (AddInterU32 mpfr::add_ui,
-     SubInterU32 mpfr::sub_ui,
-     SubFromInterU32 mpfr::ui_sub),
-    (MulInterU32 mpfr::mul_ui,
-     DivInterU32 mpfr::div_ui,
-     DivFromInterU32 mpfr::ui_div)
+    (AddHoldU32 mpfr::add_ui,
+     SubHoldU32 mpfr::sub_ui,
+     SubFromHoldU32 mpfr::ui_sub),
+    (MulHoldU32 mpfr::mul_ui,
+     DivHoldU32 mpfr::div_ui,
+     DivFromHoldU32 mpfr::ui_div)
 }
 conv_ops! {
     (i32, mpfr::set_si),
-    (AddInterI32 mpfr::add_si,
-     SubInterI32 mpfr::sub_si,
-     SubFromInterI32 mpfr::si_sub),
-    (MulInterI32 mpfr::mul_si,
-     DivInterI32 mpfr::div_si,
-     DivFromInterI32 mpfr::si_div)
+    (AddHoldI32 mpfr::add_si,
+     SubHoldI32 mpfr::sub_si,
+     SubFromHoldI32 mpfr::si_sub),
+    (MulHoldI32 mpfr::mul_si,
+     DivHoldI32 mpfr::div_si,
+     DivFromHoldI32 mpfr::si_div)
 }
 conv_ops! {
     (f64, mpfr::set_d),
-    (AddInterF64 mpfr::add_d,
-     SubInterF64 mpfr::sub_d,
-     SubFromInterF64 mpfr::d_sub),
-    (MulInterF64 mpfr::mul_d,
-     DivInterF64 mpfr::div_d,
-     DivFromInterF64 mpfr::d_div)
+    (AddHoldF64 mpfr::add_d,
+     SubHoldF64 mpfr::sub_d,
+     SubFromHoldF64 mpfr::d_sub),
+    (MulHoldF64 mpfr::mul_d,
+     DivHoldF64 mpfr::div_d,
+     DivFromHoldF64 mpfr::d_div)
 }
 conv_ops! {
     (f32, set_single),
-    (AddInterF32 add_single,
-     SubInterF32 sub_single,
-     SubFromInterF32 single_sub),
-    (MulInterF32 mul_single,
-     DivInterF32 div_single,
-     DivFromInterF32 single_div)
+    (AddHoldF32 add_single,
+     SubHoldF32 sub_single,
+     SubFromHoldF32 single_sub),
+    (MulHoldF32 mul_single,
+     DivHoldF32 div_single,
+     DivFromHoldF32 single_div)
 }
 
 arith_prim! {
@@ -3253,7 +3246,7 @@ arith_prim! {
     ShlAssign shl_assign,
     u32,
     mpfr::mul_2ui,
-    ShlInterU32
+    ShlHoldU32
 }
 arith_prim! {
     Shr shr,
@@ -3261,7 +3254,7 @@ arith_prim! {
     ShrAssign shr_assign,
     u32,
     mpfr::div_2ui,
-    ShrInterU32
+    ShrHoldU32
 }
 arith_prim_noncommut!{
     Pow pow,
@@ -3271,8 +3264,8 @@ arith_prim_noncommut!{
     u32,
     mpfr::pow_ui,
     mpfr::ui_pow,
-    PowInterU32,
-    PowFromInterU32
+    PowHoldU32,
+    PowFromHoldU32
 }
 arith_prim! {
     Shl shl,
@@ -3280,7 +3273,7 @@ arith_prim! {
     ShlAssign shl_assign,
     i32,
     mpfr::mul_2si,
-    ShlInterI32
+    ShlHoldI32
 }
 arith_prim! {
     Shr shr,
@@ -3288,7 +3281,7 @@ arith_prim! {
     ShrAssign shr_assign,
     i32,
     mpfr::div_2si,
-    ShrInterI32
+    ShrHoldI32
 }
 arith_prim!{
     Pow pow,
@@ -3296,7 +3289,7 @@ arith_prim!{
     PowAssign pow_assign,
     i32,
     mpfr::pow_si,
-    PowInterI32
+    PowHoldI32
 }
 
 unsafe fn set_single(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
