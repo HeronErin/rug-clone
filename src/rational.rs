@@ -656,7 +656,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a Rational> for &'a Rational {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Rational) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
@@ -744,7 +746,9 @@ impl NegAssign for Rational {
 }
 
 impl<'a> Neg for &'a Rational {
+    /// An intermediate value.
     type Output = NegInter<'a>;
+    /// Creates an intermediate value.
     fn neg(self) -> NegInter<'a> {
         NegInter { op: self }
     }
@@ -789,7 +793,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Rational {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, op: $T) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
