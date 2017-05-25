@@ -46,39 +46,50 @@ impl Integer
     assign_f32(&mut self, f32) -> Result<(), ()>;
     from_f32(f32) -> Option<f32>;
     to_f32(&self) -> f32;
-    div_rem(&mut self, &mut Integer);
-    set_div_rem(&mut self, &mut Integer, &Integer, &Integer);
-    abs(&mut self) -> &mut Integer;
-    set_abs(&mut self, &Integer) -> &mut Integer;
-    div_exact(&mut self, &Integer) -> &mut Integer;
-    set_div_exact(&mut self, &Integer, &Integer) -> &mut Integer;
+    to_string_radix(&self, i32) -> String;
+    from_str_radix(&str, i32) -> Result<Integer, ParseIntegerError>;
+    assign_str(&mut self, &str) -> Result<(), ParseIntegerError>;
+    assign_str_radix(&mut self, &str, i32) -> Result<(), ParseIntegerError>;
+    valid_str_radix(&str, i32) -> Result<(), ParseIntegerError>;
     is_divisible(&self, &Integer) -> bool;
     is_divisible_u(&self, u32) -> bool;
     is_congruent(&self, &Integer, &Integer) -> bool;
     is_congruent_u(&self, u32, u32) -> bool;
-    root(&mut self, u32) -> &mut Integer;
-    set_root(&mut self, &Integer, u32) -> &mut Integer;
-    root_rem(&mut self, &mut Integer, u32);
-    set_root_rem(&mut self, &mut Integer, &Integer, u32);
-    sqrt(&mut self) -> &mut Integer;
-    set_sqrt(&mut self, &Integer) -> &mut Integer;
-    sqrt_rem(&mut self, &mut Integer) -> &mut Integer;
-    set_sqrt_rem(&mut self, &mut Integer, &Integer);
     is_perfect_power(&self) -> bool;
     is_perfect_square(&self) -> bool;
-    gcd(&mut self, &Integer) -> &mut Integer;
-    set_gcd(&mut self, &Integer, &Integer) -> &mut Integer;
-    lcm(&mut self, &Integer) -> &mut Integer;
-    set_lcm(&mut self, &Integer, &Integer) -> &mut Integer;
-    invert(&mut self, &Integer) -> Option<&mut Integer>;
-    set_inverse(&mut self, &Integer, &Integer) -> Option<&mut Integer>;
-    set_factorial(&mut self, u32) -> &mut Integer;
-    set_factorial_2(&mut self, u32) -> &mut Integer;
-    set_factorial_m(&mut self, u32, u32) -> &mut Integer;
-    set_primorial(&mut self, u32) -> &mut Integer;
-    binomial(&mut self, u32) -> &mut Integer;
-    set_binomial(&mut self, &Integer, u32) -> &mut Integer;
-    set_binomial_u(&mut self, u32, u32) -> &mut Integer;
+
+math_op1!
+    Integer::method(&mut self, T...) -> &mut Integer;
+    Integer::method_hold(&self, T...) -> Hold;
+    struct Hold;
+    impl Assign<Hold> for Integer;
+abs, root(u32), sqrt, binomial(u32);
+
+math_op2!
+    Integer::method(&mut self, &Integer, T...) -> &mut Integer;
+    Integer::method_hold(&self, &Integer, T...) -> Hold;
+    struct Hold;
+    impl Assign<Hold> for Integer;
+div_exact, gcd, lcm;
+
+math_op1_2!
+    Integer::method(&mut self, &mut Integer, T...);
+    Integer::method_assign(&mut self, &mut Integer, &Integer, T...);
+root_rem(u32), sqrt_rem;
+
+math_op2_2!
+    Integer::method(&mut self, &mut Integer, T...);
+    Integer::method_assign(&mut self, &mut Integer, &Integer, &Integer, T...);
+div_rem;
+
+impl Integer
+    invert(&mut self, &Integer) -> bool;
+    assign_inverse(&mut self, &Integer, &Integer) -> bool;
+    assign_factorial(&mut self, u32);
+    assign_factorial_2(&mut self, u32);
+    assign_factorial_m(&mut self, u32, u32);
+    assign_primorial(&mut self, u32);
+    assign_binomial_u(&mut self, u32, u32);
     cmp_abs(&self, &Integer) -> Ordering;
     sign(&self) -> Ordering;
     significant_bits(&self) -> u32;
@@ -91,11 +102,6 @@ impl Integer
     invert_bit(&mut self, u32) -> &mut Integer;
     assign_random_bits(&mut self, u32, &mut R: Rng);
     random_below(&mut self, &mut R: Rng) -> &mut Integer;
-    to_string_radix(&self, i32) -> String;
-    from_str_radix(&str, i32) -> Result<Integer, ParseIntegerError>;
-    assign_str(&mut self, &str) -> Result<(), ParseIntegerError>;
-    assign_str_radix(&mut self, &str, i32) -> Result<(), ParseIntegerError>;
-    valid_str_radix(&str, i32) -> Result<(), ParseIntegerError>;
 
 impl FromStr for Integer;
 
