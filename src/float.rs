@@ -2384,16 +2384,38 @@ impl<T> FromRound<T, i32> for Float
     }
 }
 
+impl<T> From<(T, u32)> for Float
+    where Float: FromRound<T, u32, Round = Round>
+{
+    fn from((t, prec): (T, u32)) -> Float {
+        Float::from_round(t, prec, Round::Nearest).0
+    }
+}
+
+impl<T> FromRound<T, u32> for Float
+    where Float: AssignRound<T, Round = Round, Ordering = Ordering>
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn from_round(t: T, prec: u32, round: Round) -> (Float, Ordering) {
+        let mut ret = Float::new(prec);
+        let ord = ret.assign_round(t, round);
+        (ret, ord)
+    }
+}
+
+impl<T> Assign<T> for Float
+    where Float: AssignRound<T, Round = Round, Ordering = Ordering>
+{
+    fn assign(&mut self, other: T) {
+        self.assign_round(other, Round::Nearest);
+    }
+}
+
 macro_rules! assign_inter {
     {
         $Inter:ident => $func:expr
     } => {
-        impl<'a> Assign<$Inter<'a>> for Float {
-            fn assign(&mut self, i: $Inter) {
-                self.assign_round(i, Round::Nearest);
-            }
-        }
-
         impl<'a> AssignRound<$Inter<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -2404,91 +2426,9 @@ macro_rules! assign_inter {
     };
 }
 
-macro_rules! from_borrow {
-    { $d:expr, $T:ty } => {
-        impl<'a> From<($T, u32)> for Float {
-            /// Constructs a `Float` from
-            #[doc=$d]
-            /// with the specified precision, rounding to the nearest.
-            fn from((t, prec): ($T, u32)) -> Float {
-                let mut ret = Float::new(prec);
-                ret.assign(t);
-                ret
-            }
-        }
-
-        impl<'a> FromRound<$T, u32> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-
-            /// Constructs a `Float` from
-            #[doc=$d]
-            /// with the specified precision, applying the specified
-            /// rounding method.
-            fn from_round(t: $T, prec: u32, round: Round)
-                          -> (Float, Ordering) {
-                let mut ret = Float::new(prec);
-                let ord = ret.assign_round(t, round);
-                (ret, ord)
-            }
-        }
-    };
-}
-
-macro_rules! from {
-    { $d:expr, $T:ty } => {
-        impl From<($T, u32)> for Float {
-            /// Constructs a `Float` from
-            #[doc=$d]
-            /// with the specified precision, rounding to the nearest.
-            fn from((t, prec): ($T, u32)) -> Float {
-                Float::from_round(t, prec, Round::Nearest).0
-            }
-        }
-
-        impl FromRound<$T, u32> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-
-            /// Constructs a `Float` from
-            #[doc=$d]
-            /// with the specified precision, applying the specified
-            /// rounding method.
-            fn from_round(t: $T, prec: u32, round: Round)
-                          -> (Float, Ordering) {
-                let mut ret = Float::new(prec);
-                let ord = ret.assign_round(t, round);
-                (ret, ord)
-            }
-        }
-    };
-}
-
-from! { "a `Constant`", Constant }
-from! { "a `Special`", Special }
-from! { "an `Integer`", Integer }
-from! { "a `Rational` number", Rational }
-from! { "another `Float`", Float }
-from_borrow! { "an `Integer`", &'a Integer }
-from_borrow! { "a `Rational` number", &'a Rational }
-from_borrow! { "another `Float", &'a Float }
-from! { "a `u32`", u32 }
-from! { "an `i32`", i32 }
-from! { "an `f64`", f64 }
-from! { "an `f32`", f32 }
-
-impl Assign<Constant> for Float {
-    /// Assigns from a `Constant` and rounds to the nearest.
-    fn assign(&mut self, other: Constant) {
-        self.assign_round(other, Round::Nearest);
-    }
-}
-
 impl AssignRound<Constant> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    /// Assigns from a `Constant` and applies the specified rounding
-    /// method.
     fn assign_round(&mut self, other: Constant, round: Round) -> Ordering {
         let mpfr_ret = unsafe {
             match other {
@@ -2508,9 +2448,10 @@ impl AssignRound<Constant> for Float {
     }
 }
 
-impl Assign<Special> for Float {
-    /// Assigns from a `Special`.
-    fn assign(&mut self, other: Special) {
+impl AssignRound<Special> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, other: Special, _round: Round) -> Ordering {
         unsafe {
             match other {
                 Special::Zero => mpfr::set_zero(self.inner_mut(), 0),
@@ -2520,37 +2461,15 @@ impl Assign<Special> for Float {
                 Special::Nan => mpfr::set_nan(self.inner_mut()),
             };
         }
-    }
-}
-
-impl AssignRound<Special> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    /// Assigns from a `Special`.
-    fn assign_round(&mut self, other: Special, _round: Round) -> Ordering {
-        self.assign(other);
         Ordering::Equal
     }
 }
 
 macro_rules! assign {
-    { $d:expr, $T:ty, $func:path } => {
-        impl<'a> Assign<&'a $T> for Float {
-            /// Assigns from
-            #[doc=$d]
-            /// and rounds to the nearest.
-            fn assign(&mut self, other: &'a $T) {
-                self.assign_round(other, Round::Nearest);
-            }
-        }
-
+    { $T:ty, $func:path } => {
         impl<'a> AssignRound<&'a $T> for Float {
             type Round = Round;
             type Ordering = Ordering;
-
-            /// Assigns from
-            #[doc=$d]
-            /// and applies the specified rounding method.
             fn assign_round(&mut self, other: &'a $T, round: Round)
                             -> Ordering {
                 unsafe {
@@ -2559,22 +2478,9 @@ macro_rules! assign {
             }
         }
 
-        impl Assign<$T> for Float {
-            /// Assigns from
-            #[doc=$d]
-            /// and rounds to the nearest.
-            fn assign(&mut self, other: $T) {
-                self.assign_round(&other, Round::Nearest);
-            }
-        }
-
         impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
-
-            /// Assigns from
-            #[doc=$d]
-            /// and applies the specified rounding method.
             fn assign_round(&mut self, other: $T, round: Round) -> Ordering {
                 self.assign_round(&other, round)
             }
@@ -2582,9 +2488,9 @@ macro_rules! assign {
     };
 }
 
-assign! { "another `Float`", Float, mpfr::set }
-assign! { "an `Integer`", Integer, mpfr::set_z }
-assign! { "a `Rational` number", Rational, mpfr::set_q }
+assign! { Float, mpfr::set }
+assign! { Integer, mpfr::set_z }
+assign! { Rational, mpfr::set_q }
 
 impl Neg for Float {
     type Output = Float;
@@ -2618,7 +2524,6 @@ pub struct NegInter<'a> {
 }
 
 assign_inter! { NegInter => |s, i: NegInter, r| mpfr::neg(s, i.op.inner(), r) }
-from_borrow! { "an intermediate value", NegInter<'a> }
 
 macro_rules! arith_binary {
     {
@@ -2707,7 +2612,6 @@ macro_rules! arith_binary {
 
         assign_inter! { $Inter => |s, i: $Inter, r|
                         $func(s, i.lhs.inner(), i.rhs.inner(), r) }
-        from_borrow! { "an intermediate value", $Inter<'a> }
     };
 }
 
@@ -3022,7 +2926,6 @@ macro_rules! arith_noncommut {
 
         assign_inter! { $InterFrom => |s, i: $InterFrom, r|
                         $func_from(s, i.lhs.inner(), i.rhs.inner(), r) }
-        from_borrow! { "an intermediate value", $InterFrom<'a> }
     };
 }
 
@@ -3299,7 +3202,6 @@ macro_rules! arith_prim {
 
         assign_inter! { $Inter => |s, i: $Inter, r|
                         $func(s, i.lhs.inner(), i.rhs.into(), r) }
-        from_borrow! { "an intermediate value", $Inter<'a> }
     };
 }
 
@@ -3425,7 +3327,6 @@ macro_rules! arith_prim_noncommut {
 
         assign_inter! { $InterFrom => |s, i: $InterFrom, r|
                         $func_from(s, i.lhs.into(), i.rhs.inner(), r) }
-        from_borrow! { "an intermediate value", $InterFrom<'a> }
     };
 }
 
@@ -3439,12 +3340,6 @@ macro_rules! conv_ops {
          $DivInter:ident $div: path,
          $DivFromInter:ident $div_from:path)
     } => {
-        impl Assign<$T> for Float {
-            fn assign(&mut self, val: $T) {
-                self.assign_round(val, Round::Nearest);
-            }
-        }
-
         impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
