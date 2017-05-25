@@ -2562,6 +2562,55 @@ mod tests {
     use std::f64;
 
     #[test]
+    fn check_ref_op() {
+        let prec = (53, 53);
+        let ri1 = (12.25, -1.375);
+        let ri2 = (-1.375, 13);
+        let lhs = Complex::from((ri1, prec));
+        let rhs = Complex::from((ri2, prec));
+        let pu = 30_u32;
+        let pi = -15_i32;
+        let ps = 31.625_f32;
+        let pd = -1.5_f64;
+        assert!(Complex::from((-&lhs, prec)) == -lhs.clone());
+        assert!(Complex::from((&lhs + &rhs, prec)) == lhs.clone() + &rhs);
+        assert!(Complex::from((&lhs - &rhs, prec)) == lhs.clone() - &rhs);
+        assert!(Complex::from((&lhs * &rhs, prec)) == lhs.clone() * &rhs);
+        assert!(Complex::from((&lhs / &rhs, prec)) == lhs.clone() / &rhs);
+        assert!(Complex::from(((&lhs).pow(&rhs), prec)) ==
+                lhs.clone().pow(&rhs));
+
+        assert!(Complex::from((&lhs + pu, prec)) == lhs.clone() + pu);
+        assert!(Complex::from((&lhs - pu, prec)) == lhs.clone() - pu);
+        assert!(Complex::from((&lhs * pu, prec)) == lhs.clone() * pu);
+        assert!(Complex::from((&lhs / pu, prec)) == lhs.clone() / pu);
+        assert!(Complex::from((&lhs << pu, prec)) == lhs.clone() << pu);
+        assert!(Complex::from((&lhs >> pu, prec)) == lhs.clone() >> pu);
+        assert!(Complex::from(((&lhs).pow(pu), prec)) == lhs.clone().pow(pu));
+
+        assert!(Complex::from((pu + &lhs, prec)) == pu + lhs.clone());
+        assert!(Complex::from((pu - &lhs, prec)) == pu - lhs.clone());
+        assert!(Complex::from((pu * &lhs, prec)) == pu * lhs.clone());
+        assert!(Complex::from((pu / &lhs, prec)) == pu / lhs.clone());
+
+        assert!(Complex::from((&lhs + pi, prec)) == lhs.clone() + pi);
+        assert!(Complex::from((&lhs - pi, prec)) == lhs.clone() - pi);
+        assert!(Complex::from((&lhs * pi, prec)) == lhs.clone() * pi);
+        assert!(Complex::from((&lhs / pi, prec)) == lhs.clone() / pi);
+        assert!(Complex::from((&lhs << pi, prec)) == lhs.clone() << pi);
+        assert!(Complex::from((&lhs >> pi, prec)) == lhs.clone() >> pi);
+        assert!(Complex::from(((&lhs).pow(pi), prec)) == lhs.clone().pow(pi));
+
+        assert!(Complex::from((pi + &lhs, prec)) == pi + lhs.clone());
+        assert!(Complex::from((pi - &lhs, prec)) == pi - lhs.clone());
+        assert!(Complex::from((pi * &lhs, prec)) == pi * lhs.clone());
+        assert!(Complex::from((pi / &lhs, prec)) == pi / lhs.clone());
+
+        assert!(Complex::from(((&lhs).pow(ps), prec)) == lhs.clone().pow(ps));
+        assert!(Complex::from(((&lhs).pow(pd), prec)) == lhs.clone().pow(pd));
+    }
+
+    #[test]
     fn check_from_str() {
         let mut c = Complex::new((53, 53));
         c.assign_str("(+0 -0)").unwrap();
