@@ -23,7 +23,7 @@ use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float,
              FromRound, MulRound, PowRound, Round, ShlRound, ShrRound,
              Special, SubRound};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
-             SubFromAssign};
+             PowFromAssign, SubFromAssign};
 use rugrat::Rational;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -34,7 +34,7 @@ use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::{c_int, c_ulong};
+use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
 
 type Round2 = (Round, Round);
@@ -71,7 +71,7 @@ pub struct Complex {
 impl Drop for Complex {
     fn drop(&mut self) {
         unsafe {
-            mpc::clear(&mut self.inner);
+            mpc::clear(self.inner_mut());
         }
     }
 }
@@ -149,7 +149,7 @@ impl Complex {
     /// Borrows the real part.
     pub fn real(&self) -> &Float {
         unsafe {
-            let ptr = mpc::realref(&self.inner as *const _ as *mut _);
+            let ptr = mpc::realref(self.inner() as *const _ as *mut _);
             &*(ptr as *const Float)
         }
     }
@@ -157,7 +157,7 @@ impl Complex {
     /// Borrows the imaginary part.
     pub fn imag(&self) -> &Float {
         unsafe {
-            let ptr = mpc::imagref(&self.inner as *const _ as *mut _);
+            let ptr = mpc::imagref(self.inner() as *const _ as *mut _);
             &*(ptr as *const Float)
         }
     }
@@ -182,7 +182,7 @@ impl Complex {
     /// ```
     pub fn mut_real(&mut self) -> &mut Float {
         unsafe {
-            let ptr = mpc::realref(&mut self.inner);
+            let ptr = mpc::realref(self.inner_mut());
             &mut *(ptr as *mut Float)
         }
     }
@@ -192,7 +192,7 @@ impl Complex {
     /// See the example for [`mut_real()`](#method.mut_real).
     pub fn mut_imag(&mut self) -> &mut Float {
         unsafe {
-            let ptr = mpc::imagref(&mut self.inner);
+            let ptr = mpc::imagref(self.inner_mut());
             &mut *(ptr as *mut Float)
         }
     }
@@ -221,8 +221,8 @@ impl Complex {
     /// ```
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
-            let real_ptr = mpc::realref(&mut self.inner);
-            let imag_ptr = mpc::imagref(&mut self.inner);
+            let real_ptr = mpc::realref(self.inner_mut());
+            let imag_ptr = mpc::imagref(self.inner_mut());
             (&mut *(real_ptr as *mut Float), &mut *(imag_ptr as *mut Float))
         }
     }
@@ -259,8 +259,8 @@ macro_rules! math_op1 {
             pub fn $method_round(&mut self, $($param: $T,)* round: Round2)
                                  -> Ordering2 {
                 ordering2(unsafe {
-                    $func(&mut self.inner,
-                          &self.inner,
+                    $func(self.inner_mut(),
+                          self.inner(),
                           $($param.into(),)* rraw2(round))
                 })
             }
@@ -287,8 +287,8 @@ macro_rules! math_op1 {
             fn assign_round(&mut self, src: $Hold<'a>, round: Round2)
                             -> Ordering2 {
                 ordering2(unsafe {
-                    $func(&mut self.inner,
-                          &src.val.inner,
+                    $func(self.inner_mut(),
+                          src.val.inner(),
                           $(src.$param.into(),)* rraw2(round))
                 })
             }
@@ -369,7 +369,7 @@ impl<'a> AssignRound<AbsHold<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: AbsHold<'a>, round: Round) -> Ordering {
-        unsafe { mpc::abs(float_inner_mut(self), &src.val.inner, rraw(round)) }
+        unsafe { mpc::abs(self.inner_mut(), src.val.inner(), rraw(round)) }
             .cmp(&0)
     }
 }
@@ -432,7 +432,7 @@ impl<'a> AssignRound<ArgHold<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: ArgHold<'a>, round: Round) -> Ordering {
-        unsafe { mpc::arg(float_inner_mut(self), &src.val.inner, rraw(round)) }
+        unsafe { mpc::arg(self.inner_mut(), src.val.inner(), rraw(round)) }
             .cmp(&0)
     }
 }
@@ -490,7 +490,7 @@ impl<'a> AssignRound<NormHold<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: NormHold<'a>, round: Round) -> Ordering {
-        unsafe { mpc::norm(float_inner_mut(self), &src.val.inner, rraw(round)) }
+        unsafe { mpc::norm(self.inner_mut(), src.val.inner(), rraw(round)) }
             .cmp(&0)
     }
 }
@@ -561,9 +561,9 @@ impl Complex {
                          round: Round2)
                          -> (Ordering2, Ordering2) {
         let ord = unsafe {
-            mpc::sin_cos(&mut self.inner,
-                         &mut cos.inner,
-                         &self.inner,
+            mpc::sin_cos(self.inner_mut(),
+                         cos.inner_mut(),
+                         self.inner(),
                          rraw2(round),
                          rraw2(round))
         };
@@ -587,9 +587,9 @@ impl Complex {
                          round: Round2)
                          -> (Ordering2, Ordering2) {
         let ord = unsafe {
-            mpc::sin_cos(&mut sin.inner,
-                         &mut self.inner,
-                         &self.inner,
+            mpc::sin_cos(sin.inner_mut(),
+                         self.inner_mut(),
+                         self.inner(),
                          rraw2(round),
                          rraw2(round))
         };
@@ -613,9 +613,9 @@ impl Complex {
                                 round: Round2)
                                 -> (Ordering2, Ordering2) {
         let ord = unsafe {
-            mpc::sin_cos(&mut self.inner,
-                         &mut cos.inner,
-                         &val.inner,
+            mpc::sin_cos(self.inner_mut(),
+                         cos.inner_mut(),
+                         val.inner(),
                          rraw2(round),
                          rraw2(round))
         };
@@ -1208,7 +1208,7 @@ impl<'a> AssignRound<&'a Complex> for Complex {
 
     fn assign_round(&mut self, other: &Complex, round: Round2) -> Ordering2 {
         let ord =
-            unsafe { mpc::set(&mut self.inner, &other.inner, rraw2(round)) };
+            unsafe { mpc::set(self.inner_mut(), other.inner(), rraw2(round)) };
         ordering2(ord)
     }
 }
@@ -1275,494 +1275,6 @@ macro_rules! assign {
 assign_ref! { Integer Rational Float }
 assign! { Integer Rational Float Special Constant u32 i32 f64 f32 }
 
-macro_rules! arith_for_complex {
-    ($Imp:ident $method:ident,
-     $ImpRound:ident $method_round:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $T:ty,
-     $eval:expr) => {
-        impl<'a> $Imp<&'a $T> for Complex {
-            type Output = Complex;
-            fn $method(self, op: &'a $T) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl $Imp<$T> for Complex {
-            type Output = Complex;
-            fn $method(self, op: $T) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl<'a> $ImpRound<&'a $T> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(mut self, op: &'a $T, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = $eval(&mut self.inner,
-                                op,
-                                rraw2(round));
-                (self, ordering2(ord))
-            }
-        }
-
-        impl $ImpRound<$T> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: $T, round: Round2)
-                             -> (Complex, Ordering2) {
-                self.$method_round(&op, round)
-            }
-        }
-
-        impl<'a> $ImpAssign<&'a $T> for Complex {
-            fn $method_assign(&mut self, op: &'a $T) {
-                $eval(&mut self.inner,
-                      op,
-                      rraw2(NEAREST));
-            }
-        }
-
-        impl $ImpAssign<$T> for Complex {
-            fn $method_assign(&mut self, op: $T) {
-                self.$method_assign(&op);
-            }
-        }
-    };
-}
-
-macro_rules! arith_commut {
-    ($Imp:ident $method:ident,
-     $ImpRound:ident $method_round:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $T:ty,
-     $eval:expr) => {
-        arith_for_complex! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $eval
-        }
-
-        impl $Imp<Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl<'a> $Imp<&'a Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl $ImpRound<Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                op.$method_round(self, round)
-            }
-        }
-
-        impl<'a> $ImpRound<&'a Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: &'a Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                self.$method_round(op.clone(), round)
-            }
-        }
-    };
-}
-
-macro_rules! arith_non_commut {
-    ($Imp:ident $method:ident,
-     $ImpRound:ident $method_round:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $Imp_from_assign:ident $method_from_assign:ident,
-     $T:ty,
-     $eval:expr,
-     $eval_from:expr) => {
-        arith_for_complex! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $eval
-        }
-
-        impl $Imp<Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl<'a> $Imp<&'a Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl $ImpRound<Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, mut op: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = $eval_from(&self, &mut op.inner, rraw2(round));
-                (op, ordering2(ord))
-            }
-        }
-
-        impl<'a> $ImpRound<&'a Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: &'a Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                self.$method_round(op.clone(), round)
-            }
-        }
-
-        impl $Imp_from_assign<$T> for Complex {
-            fn $method_from_assign(&mut self, lhs: $T) {
-                self.$method_from_assign(&lhs);
-            }
-        }
-
-        impl<'a> $Imp_from_assign<&'a $T> for Complex {
-            fn $method_from_assign(&mut self, lhs: &$T) {
-                let round = NEAREST;
-                $eval_from(lhs, &mut self.inner, rraw2(round));
-            }
-        }
-    };
-}
-
-arith_for_complex! { Add add, AddRound add_round, AddAssign add_assign, Complex,
-                    |c, t: &Complex, r| unsafe { mpc::add(c, c, &t.inner, r) } }
-arith_for_complex! { Sub sub, SubRound sub_round, SubAssign sub_assign, Complex,
-                    |c, t: &Complex, r| unsafe { mpc::sub(c, c, &t.inner, r) } }
-
-impl SubFromAssign for Complex {
-    fn sub_from_assign(&mut self, lhs: Complex) {
-        self.sub_from_assign(&lhs);
-    }
-}
-
-impl<'a> SubFromAssign<&'a Complex> for Complex {
-    fn sub_from_assign(&mut self, lhs: &Complex) {
-        unsafe {
-            mpc::sub(&mut self.inner, &lhs.inner, &self.inner, rraw2(NEAREST));
-        }
-    }
-}
-
-arith_for_complex! { Mul mul, MulRound mul_round, MulAssign mul_assign, Complex,
-                    |c, t: &Complex, r| unsafe { mpc::mul(c, c, &t.inner, r) } }
-arith_for_complex! { Div div, DivRound div_round, DivAssign div_assign, Complex,
-                    |c, t: &Complex, r| unsafe { mpc::div(c, c, &t.inner, r) } }
-
-impl DivFromAssign for Complex {
-    fn div_from_assign(&mut self, lhs: Complex) {
-        self.div_from_assign(&lhs);
-    }
-}
-
-impl<'a> DivFromAssign<&'a Complex> for Complex {
-    fn div_from_assign(&mut self, lhs: &Complex) {
-        unsafe {
-            mpc::div(&mut self.inner, &lhs.inner, &self.inner, rraw2(NEAREST));
-        }
-    }
-}
-
-arith_commut! { Add add, AddRound add_round, AddAssign add_assign, Float,
-                |c, t, r| unsafe { mpc::add_fr(c, c, float_inner(t), r) } }
-
-arith_non_commut! { Sub sub, SubRound sub_round, SubAssign sub_assign,
-                    SubFromAssign sub_from_assign, Float,
-                   |c, t, r| unsafe { mpc::sub_fr(c, c, float_inner(t), r) },
-                   |t, c, r| unsafe { mpc::fr_sub(c, float_inner(t), c, r) }}
-
-arith_commut! { Mul mul, MulRound mul_round, MulAssign mul_assign, Float,
-                |c, t, r| unsafe { mpc::mul_fr(c, c, float_inner(t), r) } }
-arith_non_commut! { Div div, DivRound div_round, DivAssign div_assign,
-                    DivFromAssign div_from_assign, Float,
-                   |c, t, r| unsafe { mpc::div_fr(c, c, float_inner(t), r) },
-                   |t, c, r| unsafe { mpc::fr_div(c, float_inner(t), c, r) }}
-
-macro_rules! arith_prim_for_complex {
-    ($Imp:ident $method:ident,
-     $ImpRound:ident $method_round:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $T:ty,
-     $func:path) => {
-        impl $Imp<$T> for Complex {
-            type Output = Complex;
-            fn $method(self, op: $T) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl $ImpRound<$T> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(mut self, op: $T, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = unsafe {
-                    $func(&mut self.inner,
-                          &self.inner,
-                          op.into(),
-                          rraw2(round))
-                };
-                (self, ordering2(ord))
-            }
-        }
-
-        impl $ImpAssign<$T> for Complex {
-            fn $method_assign(&mut self, op: $T) {
-                unsafe {
-                    $func(&mut self.inner,
-                          &self.inner,
-                          op.into(),
-                          rraw2(NEAREST));
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_prim_non_commut {
-    ($Imp:ident $method:ident,
-     $ImpRound:ident $method_round:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $ImpFromAssign:ident $method_from_assign:ident,
-     $T:ty,
-     $func:path,
-     $func_from:path) => {
-        arith_prim_for_complex! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func
-        }
-
-        impl $Imp<Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl<'a> $Imp<&'a Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl $ImpRound<Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, mut op: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = unsafe {
-                    $func_from(&mut op.inner,
-                               self.into(),
-                               &op.inner,
-                               rraw2(round))
-                };
-                (op, ordering2(ord))
-            }
-        }
-
-        impl<'a> $ImpRound<&'a Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: &'a Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                self.$method_round(op.clone(), round)
-            }
-        }
-
-        impl $ImpFromAssign<$T> for Complex {
-            fn $method_from_assign(&mut self, lhs: $T) {
-                unsafe {
-                    $func_from(&mut self.inner,
-                               lhs.into(),
-                               &self.inner,
-                               rraw2(NEAREST));
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_prim_commut {
-    ($Imp:ident $method:ident,
-     $ImpRound:ident $method_round:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $T:ty,
-     $func:path) => {
-        arith_prim_for_complex! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func
-        }
-
-        impl $Imp<Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl<'a> $Imp<&'a Complex> for $T {
-            type Output = Complex;
-            fn $method(self, op: &'a Complex) -> Complex {
-                self.$method_round(op, NEAREST).0
-            }
-        }
-
-        impl $ImpRound<Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                op.$method_round(self, round)
-            }
-        }
-
-        impl<'a> $ImpRound<&'a Complex> for $T {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            type Output = Complex;
-            fn $method_round(self, op: &'a Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                self.$method_round(op.clone(), round)
-            }
-        }
-    };
-}
-
-arith_prim_commut! {
-    Add add,
-    AddRound add_round,
-    AddAssign add_assign,
-    u32,
-    mpc::add_ui
-}
-arith_prim_non_commut! {
-    Sub sub,
-    SubRound sub_round,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    u32,
-    mpc::sub_ui,
-    ui_sub
-}
-arith_prim_commut! {
-    Mul mul,
-    MulRound mul_round,
-    MulAssign mul_assign,
-    u32,
-    mpc::mul_ui
-}
-arith_prim_commut! {
-    Mul mul,
-    MulRound mul_round,
-    MulAssign mul_assign,
-    i32,
-    mpc::mul_si
-}
-arith_prim_non_commut! {
-    Div div,
-    DivRound div_round,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    u32,
-    mpc::div_ui,
-    mpc::ui_div
-}
-
-unsafe fn ui_sub(x: *mut mpc::mpc_t,
-                 y: c_ulong,
-                 z: *const mpc::mpc_t,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    mpc::ui_ui_sub(x, y, 0, z, r)
-}
-
-impl Sub<Complex> for (u32, u32) {
-    type Output = Complex;
-    fn sub(self, op: Complex) -> Complex {
-        self.sub_round(op, NEAREST).0
-    }
-}
-
-impl<'a> Sub<&'a Complex> for (u32, u32) {
-    type Output = Complex;
-    fn sub(self, op: &'a Complex) -> Complex {
-        self.sub_round(op, NEAREST).0
-    }
-}
-
-impl SubRound<Complex> for (u32, u32) {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    type Output = Complex;
-    fn sub_round(self, mut op: Complex, round: Round2) -> (Complex, Ordering2) {
-        let ord = unsafe {
-            mpc::ui_ui_sub(&mut op.inner,
-                           self.0.into(),
-                           self.1.into(),
-                           &op.inner,
-                           rraw2(round))
-        };
-        (op, ordering2(ord))
-    }
-}
-
-impl<'a> SubRound<&'a Complex> for (u32, u32) {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    type Output = Complex;
-    fn sub_round(self, op: &'a Complex, round: Round2) -> (Complex, Ordering2) {
-        self.sub_round(op.clone(), round)
-    }
-}
-
-impl SubFromAssign<(u32, u32)> for Complex {
-    fn sub_from_assign(&mut self, lhs: (u32, u32)) {
-        unsafe {
-            mpc::ui_ui_sub(&mut self.inner,
-                           lhs.0.into(),
-                           lhs.1.into(),
-                           &self.inner,
-                           rraw2(NEAREST));
-        }
-    }
-}
-
 impl Neg for Complex {
     type Output = Complex;
     fn neg(mut self) -> Complex {
@@ -1773,25 +1285,68 @@ impl Neg for Complex {
 
 impl NegAssign for Complex {
     fn neg_assign(&mut self) {
-        let round = NEAREST;
         unsafe {
-            mpc::neg(&mut self.inner, &self.inner, rraw2(round));
+            mpc::neg(self.inner_mut(), self.inner(), rraw2(NEAREST));
         }
     }
 }
 
-macro_rules! sh_op {
-    { $doc:expr,
-      $Imp:ident $method:ident,
-      $ImpRound:ident $method_round:ident,
-      $ImpAssign:ident $method_assign:ident,
-      $T:ty,
-      $func:path } => {
+impl<'a> Neg for &'a Complex {
+    type Output = NegHold<'a>;
+    fn neg(self) -> NegHold<'a> {
+        NegHold { val: self }
+    }
+}
+
+/// Holds a negation.
+pub struct NegHold<'a> {
+    val: &'a Complex,
+}
+
+impl<'a> AssignRound<NegHold<'a>> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn assign_round(&mut self, src: NegHold<'a>, round: Round2) -> Ordering2 {
+        ordering2(unsafe {
+                      mpc::neg(self.inner_mut(), src.val.inner(), rraw2(round))
+                  })
+    }
+}
+
+macro_rules! arith_binary {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    } => {
+        impl<'a> $Imp<&'a $T> for Complex {
+            type Output = Complex;
+            fn $method(self, op: &'a $T) -> Complex {
+                self.$method_round(op, NEAREST).0
+            }
+        }
+
+        impl<'a> $ImpRound<&'a $T> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(mut self, rhs: &'a $T, round: Round2)
+                             -> (Complex, Ordering2) {
+                let ord = ordering2(unsafe {
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          rhs.inner(),
+                          rraw2(round))
+                });
+                (self, ord)
+            }
+        }
+
         impl $Imp<$T> for Complex {
             type Output = Complex;
-            #[doc=$doc]
-            /// `self` by 2 to the power of `op`, rounding to the
-            /// nearest.
             fn $method(self, op: $T) -> Complex {
                 self.$method_round(op, NEAREST).0
             }
@@ -1801,185 +1356,915 @@ macro_rules! sh_op {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            #[doc=$doc]
-            /// `self` by 2 to the power of `op`, applying the
-            /// specified rounding.
-            fn $method_round(mut self, op: $T, round: Round2)
+            fn $method_round(self, rhs: $T, round: Round2)
                              -> (Complex, Ordering2) {
-                let ord = unsafe {
-                    $func(&mut self.inner,
-                          &self.inner,
-                          op.into(),
-                          rraw2(round))
-                };
-                (self, ordering2(ord))
+                self.$method_round(&rhs, round)
             }
         }
 
-        impl $ImpAssign<$T> for Complex {
-            #[doc=$doc]
-            /// `self` by 2 to the power of `op`, rounding to the
-            /// nearest.
-            fn $method_assign(&mut self, op: $T) {
+        impl<'a> $Imp<&'a $T> for &'a Complex {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a $T) -> $Hold<'a> {
+                $Hold {
+                    lhs: self,
+                    rhs: OwnBorrow::Borrow(rhs),
+                }
+            }
+        }
+
+        impl<'a> $ImpAssign<&'a $T> for Complex {
+            fn $method_assign(&mut self, rhs: &'a $T) {
                 unsafe {
-                    $func(&mut self.inner,
-                          &self.inner,
-                          op.into(),
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          rhs.inner(),
                           rraw2(NEAREST));
                 }
             }
         }
-    }
-}
 
-sh_op! {
-    "Multiplies",
-    Shl shl,
-    ShlRound shl_round,
-    ShlAssign shl_assign,
-    u32,
-    mpc::mul_2ui
-}
-sh_op! {
-    "Divides",
-    Shr shr,
-    ShrRound shr_round,
-    ShrAssign shr_assign,
-    u32,
-    mpc::div_2ui
-}
-sh_op! {
-    "Multiplies",
-    Shl shl,
-    ShlRound shl_round,
-    ShlAssign shl_assign,
-    i32,
-    mpc::mul_2si
-}
-sh_op! {
-    "Divides",
-    Shr shr,
-    ShrRound shr_round,
-    ShrAssign shr_assign,
-    i32,
-    mpc::div_2si
-}
-
-macro_rules! pow_others {
-    { $($T:ty)* } => { $(
-        impl<'a> Pow<&'a $T> for Complex {
-            type Output = Complex;
-            fn pow(self, op: &'a $T) -> Complex {
-                self.pow_round(op, NEAREST).0
+        impl $ImpAssign<$T> for Complex {
+            fn $method_assign(&mut self, rhs: $T) {
+                self.$method_assign(&rhs);
             }
         }
 
-        impl Pow<$T> for Complex {
+        /// Holds an operation.
+        pub struct $Hold<'a> {
+            lhs: &'a Complex,
+            rhs: OwnBorrow<'a, $T>,
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, src: $Hold, round: Round2) -> Ordering2 {
+                ordering2(unsafe {
+                    $func(self.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.inner(),
+                          rraw2(round))
+                })
+            }
+        }
+    };
+}
+
+macro_rules! arith_commut_complex {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $func:path,
+        $Hold:ident
+    } => {
+        arith_binary! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            Complex,
+            $func,
+            $Hold
+        }
+
+        impl<'a> $Imp<Complex> for &'a Complex {
             type Output = Complex;
-            fn pow(self, op: $T) -> Complex {
-                self.pow_round(op, NEAREST).0
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
             }
         }
 
-        impl PowRound<$T> for Complex {
+        impl<'a> $ImpRound<Complex> for &'a Complex {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn pow_round(self, op: $T, round: Round2) -> (Complex, Ordering2) {
-                self.pow_round(&op, round)
+            fn $method_round(self, rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                rhs.$method_round(self, round)
+            }
+        }
+    }
+}
+
+macro_rules! arith_noncommut_complex {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
+        $func:path,
+        $Hold:ident
+    } => {
+        arith_binary! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            Complex,
+            $func,
+            $Hold
+        }
+
+        impl<'a> $Imp<Complex> for &'a Complex {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
             }
         }
 
-        impl PowAssign<$T> for Complex {
-            fn pow_assign(&mut self, op: $T) {
-                self.pow_assign(&op);
+        impl<'a> $ImpRound<Complex> for &'a Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, mut rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                let ord = ordering2(unsafe {
+                    $func(rhs.inner_mut(),
+                          self.inner(),
+                          rhs.inner(),
+                          rraw2(round))
+                });
+                (rhs, ord)
             }
         }
-    )* };
-}
 
-impl<'a> PowRound<&'a Integer> for Complex {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    type Output = Complex;
-    fn pow_round(mut self,
-                 op: &'a Integer,
-                 round: Round2)
-                 -> (Complex, Ordering2) {
-        let ord = unsafe {
-            mpc::pow_z(&mut self.inner,
-                       &self.inner,
-                       integer_inner(op),
-                       rraw2(round))
-        };
-        (self, ordering2(ord))
-    }
-}
+        impl<'a> $ImpFromAssign<&'a Complex> for Complex {
+            fn $method_from_assign(&mut self, lhs: &Complex) {
+                unsafe {
+                    $func(self.inner_mut(),
+                          lhs.inner(),
+                          self.inner(),
+                          rraw2(NEAREST));
+                }
+            }
+        }
 
-impl<'a> PowAssign<&'a Integer> for Complex {
-    fn pow_assign(&mut self, op: &'a Integer) {
-        unsafe {
-            mpc::pow_z(&mut self.inner,
-                       &self.inner,
-                       integer_inner(op),
-                       rraw2(NEAREST));
+        impl $ImpFromAssign for Complex {
+            fn $method_from_assign(&mut self, lhs: Complex) {
+                self.$method_from_assign(&lhs);
+            }
         }
     }
 }
 
-impl<'a> PowRound<&'a Float> for Complex {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    type Output = Complex;
-    fn pow_round(mut self,
-                 op: &'a Float,
-                 round: Round2)
-                 -> (Complex, Ordering2) {
-        let ord = unsafe {
-            mpc::pow_fr(&mut self.inner,
-                        &self.inner,
-                        float_inner(op),
-                        rraw2(round))
-        };
-        (self, ordering2(ord))
-    }
-}
-
-impl<'a> PowAssign<&'a Float> for Complex {
-    fn pow_assign(&mut self, op: &'a Float) {
-        unsafe {
-            mpc::pow_fr(&mut self.inner,
-                        &self.inner,
-                        float_inner(op),
-                        rraw2(NEAREST));
+macro_rules! arith_forward {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    } => {
+        arith_binary! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
+            $func,
+            $Hold
         }
-    }
-}
 
-impl<'a> PowRound<&'a Complex> for Complex {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    type Output = Complex;
-    fn pow_round(mut self,
-                 op: &'a Complex,
-                 round: Round2)
-                 -> (Complex, Ordering2) {
-        let ord = unsafe {
-            mpc::pow(&mut self.inner, &self.inner, &op.inner, rraw2(round))
-        };
-        (self, ordering2(ord))
-    }
-}
-
-impl<'a> PowAssign<&'a Complex> for Complex {
-    fn pow_assign(&mut self, op: &'a Complex) {
-        unsafe {
-            mpc::pow(&mut self.inner, &self.inner, &op.inner, rraw2(NEAREST));
+        impl<'a> $Imp<$T> for &'a Complex {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: $T) -> $Hold<'a> {
+                $Hold {
+                    lhs: self,
+                    rhs: OwnBorrow::Own(rhs),
+                }
+            }
         }
+    };
+}
+
+macro_rules! arith_commut {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    } => {
+        arith_forward! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
+            $func,
+            $Hold
+        }
+
+        impl<'a> $Imp<Complex> for &'a $T {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl<'a> $ImpRound<Complex> for &'a $T {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                rhs.$method_round(self, round)
+            }
+        }
+
+        impl $Imp<Complex> for $T {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl $ImpRound<Complex> for $T {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                rhs.$method_round(self, round)
+            }
+        }
+
+        impl<'a> $Imp<&'a Complex> for &'a $T {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Complex) -> $Hold<'a> {
+                rhs.$method(self)
+            }
+        }
+
+        impl<'a> $Imp<&'a Complex> for $T {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Complex) -> $Hold<'a> {
+                rhs.$method(self)
+            }
+        }
+    };
+}
+
+macro_rules! arith_noncommut {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
+        $T:ty,
+        $func:path,
+        $func_from:path,
+        $Hold:ident,
+        $HoldFrom:ident
+    } => {
+        arith_forward! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
+            $func,
+            $Hold
+        }
+
+        impl<'a> $Imp<Complex> for &'a $T {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl<'a> $ImpRound<Complex> for &'a $T {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, mut rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                let ord = ordering2(unsafe {
+                    $func_from(rhs.inner_mut(),
+                               self.inner(),
+                               rhs.inner(),
+                               rraw2(round))
+                });
+                (rhs, ord)
+            }
+        }
+
+        impl $Imp<Complex> for $T {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl $ImpRound<Complex> for $T {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                (&self).$method_round(rhs, round)
+            }
+        }
+
+        impl<'a> $Imp<&'a Complex> for &'a $T {
+            type Output = $HoldFrom<'a>;
+            fn $method(self, rhs: &'a Complex) -> $HoldFrom<'a> {
+                $HoldFrom {
+                    lhs: OwnBorrow::Borrow(self),
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl<'a> $Imp<&'a Complex> for $T {
+            type Output = $HoldFrom<'a>;
+            fn $method(self, rhs: &'a Complex) -> $HoldFrom<'a> {
+                $HoldFrom {
+                    lhs: OwnBorrow::Own(self),
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl<'a> $ImpFromAssign<&'a $T> for Complex {
+            fn $method_from_assign(&mut self, lhs: &'a $T) {
+                unsafe {
+                    $func_from(self.inner_mut(),
+                               lhs.inner(),
+                               self.inner(),
+                               rraw2(NEAREST));
+                }
+            }
+        }
+
+        impl $ImpFromAssign<$T> for Complex {
+            fn $method_from_assign(&mut self, lhs: $T) {
+                self.$method_from_assign(&lhs);
+            }
+        }
+
+        /// Holds an operation.
+        pub struct $HoldFrom<'a> {
+            lhs: OwnBorrow<'a, $T>,
+            rhs: &'a Complex,
+        }
+
+        impl<'a> AssignRound<$HoldFrom<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, src: $HoldFrom, round: Round2)
+                            -> Ordering2 {
+                ordering2(unsafe {
+                    $func_from(self.inner_mut(),
+                               src.lhs.inner(),
+                               src.rhs.inner(),
+                               rraw2(round))
+                })
+            }
+        }
+    };
+}
+
+arith_commut_complex! {
+    Add add, AddRound add_round, AddAssign add_assign, mpc::add, AddHold
+}
+arith_noncommut_complex! {
+    Sub sub,
+    SubRound sub_round,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    mpc::sub,
+    SubHold
+}
+arith_commut_complex! {
+    Mul mul, MulRound mul_round, MulAssign mul_assign, mpc::mul, MulHold
+}
+arith_noncommut_complex! {
+    Div div,
+    DivRound div_round,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    mpc::div,
+    DivHold
+}
+arith_noncommut_complex! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    PowFromAssign pow_from_assign,
+    mpc::pow,
+    PowHold
+}
+
+arith_commut! {
+    Add add,
+    AddRound add_round,
+    AddAssign add_assign,
+    Float,
+    mpc::add_fr,
+    AddHoldFloat
+}
+arith_noncommut! {
+    Sub sub,
+    SubRound sub_round,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    Float,
+    mpc::sub_fr,
+    mpc::fr_sub,
+    SubHoldFloat,
+    SubFromHoldFloat
+}
+arith_commut! {
+    Mul mul,
+    MulRound mul_round,
+    MulAssign mul_assign,
+    Float,
+    mpc::mul_fr,
+    MulHoldFloat
+}
+arith_noncommut! {
+    Div div,
+    DivRound div_round,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    Float,
+    mpc::div_fr,
+    mpc::fr_div,
+    DivHoldFloat,
+    DivFromHoldFloat
+}
+arith_forward! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    Float,
+    mpc::pow_fr,
+    PowHoldFloat
+}
+arith_forward! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    Integer,
+    mpc::pow_z,
+    PowHoldInteger
+}
+
+macro_rules! arith_prim {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    } => {
+        impl $Imp<$T> for Complex {
+            type Output = Complex;
+            fn $method(self, rhs: $T) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl $ImpRound<$T> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(mut self, rhs: $T, round: Round2)
+                             -> (Complex, Ordering2) {
+                let ord = ordering2(unsafe {
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          rhs.into(),
+                          rraw2(round))
+                });
+                (self, ord)
+            }
+        }
+
+        impl<'a> $Imp<$T> for &'a Complex {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: $T) -> $Hold<'a> {
+                $Hold {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl $ImpAssign<$T> for Complex {
+            fn $method_assign(&mut self, rhs: $T) {
+                unsafe {
+                    $func(self.inner_mut(),
+                          self.inner(),
+                          rhs.into(),
+                          rraw2(NEAREST));
+                }
+            }
+        }
+
+        /// Holds an operation.
+        pub struct $Hold<'a> {
+            lhs: &'a Complex,
+            rhs: $T,
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, src: $Hold, round: Round2) -> Ordering2 {
+                ordering2(unsafe {
+                    $func(self.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.into(),
+                          rraw2(round))
+                })
+            }
+        }
+    };
+}
+
+macro_rules! arith_prim_commut {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    }=> {
+        arith_prim! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
+            $func,
+            $Hold
+        }
+
+        impl $Imp<Complex> for $T {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl $ImpRound<Complex> for $T {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                rhs.$method_round(self, round)
+            }
+        }
+
+        impl<'a> $Imp<&'a Complex> for $T {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Complex) -> $Hold<'a> {
+                rhs.$method(self)
+            }
+        }
+    };
+}
+
+macro_rules! arith_prim_noncommut {
+    {
+        $Imp:ident $method:ident,
+        $ImpRound:ident $method_round:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
+        $T:ty,
+        $func:path,
+        $func_from:path,
+        $Hold:ident,
+        $HoldFrom:ident
+    } => {
+        arith_prim! {
+            $Imp $method,
+            $ImpRound $method_round,
+            $ImpAssign $method_assign,
+            $T,
+            $func,
+            $Hold
+        }
+
+        impl $Imp<Complex> for $T {
+            type Output = Complex;
+            fn $method(self, rhs: Complex) -> Complex {
+                self.$method_round(rhs, NEAREST).0
+            }
+        }
+
+        impl $ImpRound<Complex> for $T {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            type Output = Complex;
+            fn $method_round(self, mut rhs: Complex, round: Round2)
+                             -> (Complex, Ordering2) {
+                let ord = ordering2(unsafe {
+                    $func_from(rhs.inner_mut(),
+                               self.into(),
+                               rhs.inner(),
+                               rraw2(round))
+                });
+                (rhs, ord)
+            }
+        }
+
+        impl<'a> $Imp<&'a Complex> for $T {
+            type Output = $HoldFrom<'a>;
+            fn $method(self, rhs: &'a Complex) -> $HoldFrom<'a> {
+                $HoldFrom {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl $ImpFromAssign<$T> for Complex {
+            fn $method_from_assign(&mut self, lhs: $T) {
+                unsafe {
+                    $func_from(self.inner_mut(),
+                               lhs.into(),
+                               self.inner(),
+                               rraw2(NEAREST));
+                }
+            }
+        }
+
+        /// Holds an operation.
+        pub struct $HoldFrom<'a> {
+            lhs: $T,
+            rhs: &'a Complex,
+        }
+
+        impl<'a> AssignRound<$HoldFrom<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, src: $HoldFrom, round: Round2)
+                            -> Ordering2 {
+                ordering2(unsafe {
+                    $func_from(self.inner_mut(),
+                               src.lhs.into(),
+                               src.rhs.inner(),
+                               rraw2(round))
+                })
+            }
+        }
+    };
+}
+
+arith_prim_commut! {
+    Add add,
+    AddRound add_round,
+    AddAssign add_assign,
+    u32,
+    mpc::add_ui,
+    AddHoldU32
+}
+arith_prim_noncommut! {
+    Sub sub,
+    SubRound sub_round,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    u32,
+    mpc::sub_ui,
+    ui_sub,
+    SubHoldU32,
+    SubFromHoldU32
+}
+arith_prim_commut! {
+    Mul mul,
+    MulRound mul_round,
+    MulAssign mul_assign,
+    u32,
+    mpc::mul_ui,
+    MulHoldU32
+}
+arith_prim_noncommut! {
+    Div div,
+    DivRound div_round,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    u32,
+    mpc::div_ui,
+    mpc::ui_div,
+    DivHoldU32,
+    DivFromHoldU32
+}
+arith_prim_commut! {
+    Add add,
+    AddRound add_round,
+    AddAssign add_assign,
+    i32,
+    add_si,
+    AddHoldI32
+}
+arith_prim_noncommut! {
+    Sub sub,
+    SubRound sub_round,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    i32,
+    sub_si,
+    si_sub,
+    SubHoldI32,
+    SubFromHoldI32
+}
+arith_prim_commut! {
+    Mul mul,
+    MulRound mul_round,
+    MulAssign mul_assign,
+    i32,
+    mpc::mul_si,
+    MulHoldI32
+}
+arith_prim_noncommut! {
+    Div div,
+    DivRound div_round,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    i32,
+    div_si,
+    si_div,
+    DivHoldI32,
+    DivFromHoldI32
+}
+
+unsafe fn ui_sub(x: *mut mpc::mpc_t,
+                 y: c_ulong,
+                 z: *const mpc::mpc_t,
+                 r: mpc::rnd_t)
+                 -> c_int {
+    let mz = z as *mut _;
+    let (r_re, r_im) = rnd_re_im(r);
+    let re = mpfr::ui_sub(mpc::realref(x), y, mpc::realref(mz), r_re);
+    let re = match re.cmp(&0) {
+        Ordering::Less => 2,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
+    };
+    let im = mpfr::ui_sub(mpc::imagref(x), 0, mpc::imagref(mz), r_im);
+    let im = match im.cmp(&0) {
+        Ordering::Less => 8,
+        Ordering::Equal => 0,
+        Ordering::Greater => 4,
+    };
+    re | im
+}
+
+unsafe fn add_si(x: *mut mpc::mpc_t,
+                 y: *const mpc::mpc_t,
+                 z: c_long,
+                 r: mpc::rnd_t)
+                 -> c_int {
+    if z < 0 {
+        mpc::sub_ui(x, y, z.wrapping_neg() as c_ulong, r)
+    } else {
+        mpc::add_ui(x, y, z as c_ulong, r)
     }
 }
 
-pow_others! { Integer Float Complex }
+unsafe fn sub_si(x: *mut mpc::mpc_t,
+                 y: *const mpc::mpc_t,
+                 z: c_long,
+                 r: mpc::rnd_t)
+                 -> c_int {
+    if z < 0 {
+        mpc::add_ui(x, y, z.wrapping_neg() as c_ulong, r)
+    } else {
+        mpc::sub_ui(x, y, z as c_ulong, r)
+    }
+}
+
+unsafe fn si_sub(x: *mut mpc::mpc_t,
+                 y: c_long,
+                 z: *const mpc::mpc_t,
+                 r: mpc::rnd_t)
+                 -> c_int {
+    let mz = z as *mut _;
+    let (r_re, r_im) = rnd_re_im(r);
+    let re = mpfr::si_sub(mpc::realref(x), y, mpc::realref(mz), r_re);
+    let re = match re.cmp(&0) {
+        Ordering::Less => 2,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
+    };
+    let im = mpfr::ui_sub(mpc::imagref(x), 0, mpc::imagref(mz), r_im);
+    let im = match im.cmp(&0) {
+        Ordering::Less => 8,
+        Ordering::Equal => 0,
+        Ordering::Greater => 4,
+    };
+    re | im
+}
+
+unsafe fn div_si(x: *mut mpc::mpc_t,
+                 y: *const mpc::mpc_t,
+                 z: c_long,
+                 r: mpc::rnd_t)
+                 -> c_int {
+    let my = y as *mut _;
+    let (r_re, r_im) = rnd_re_im(r);
+    let re = mpfr::div_si(mpc::realref(x), mpc::realref(my), z, r_re);
+    let re = match re.cmp(&0) {
+        Ordering::Less => 2,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
+    };
+    let im = mpfr::div_si(mpc::imagref(x), mpc::imagref(my), z, r_im);
+    let im = match im.cmp(&0) {
+        Ordering::Less => 8,
+        Ordering::Equal => 0,
+        Ordering::Greater => 4,
+    };
+    re | im
+}
+
+unsafe fn si_div(x: *mut mpc::mpc_t,
+                 y: c_long,
+                 z: *const mpc::mpc_t,
+                 r: mpc::rnd_t)
+                 -> c_int {
+    let prec = mem::size_of::<c_long>() as u32 * 8;
+    let mut dividend = Complex::new((prec, prec));
+    mpc::set_si(dividend.inner_mut(), y, rraw2(NEAREST));
+    mpc::div(x, dividend.inner(), z, r)
+}
+
+arith_prim! {
+    Shl shl,
+    ShlRound shl_round,
+    ShlAssign shl_assign,
+    u32,
+    mpc::mul_2ui,
+    ShlHoldU32
+}
+arith_prim! {
+    Shr shr,
+    ShrRound shr_round,
+    ShrAssign shr_assign,
+    u32,
+    mpc::div_2ui,
+    ShrHoldU32
+}
+arith_prim! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    u32,
+    mpc::pow_ui,
+    PowHoldU32
+}
+arith_prim! {
+    Shl shl,
+    ShlRound shl_round,
+    ShlAssign shl_assign,
+    i32,
+    mpc::mul_2si,
+    ShlHoldI32
+}
+arith_prim! {
+    Shr shr,
+    ShrRound shr_round,
+    ShrAssign shr_assign,
+    i32,
+    mpc::div_2si,
+    ShrHoldI32
+}
+arith_prim! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    i32,
+    mpc::pow_si,
+    PowHoldI32
+}
+arith_prim! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    f64,
+    mpc::pow_d,
+    PowHoldF64
+}
+arith_prim! {
+    Pow pow,
+    PowRound pow_round,
+    PowAssign pow_assign,
+    f32,
+    pow_single,
+    PowHoldF32
+}
+
+unsafe fn pow_single(x: *mut mpc::mpc_t,
+                     y: *const mpc::mpc_t,
+                     z: f32,
+                     r: mpc::rnd_t)
+                     -> c_int {
+    mpc::pow_d(x, y, z as f64, r)
+}
 
 impl PartialEq for Complex {
     fn eq(&self, other: &Complex) -> bool {
@@ -2145,21 +2430,6 @@ impl Display for ParseComplexError {
     }
 }
 
-fn integer_inner(z: &Integer) -> &gmp::mpz_t {
-    let ptr = z as *const _ as *const gmp::mpz_t;
-    unsafe { &*ptr }
-}
-
-fn float_inner(f: &Float) -> &mpfr::mpfr_t {
-    let ptr = f as *const _ as *const mpfr::mpfr_t;
-    unsafe { &*ptr }
-}
-
-unsafe fn float_inner_mut(f: &mut Float) -> &mut mpfr::mpfr_t {
-    let ptr = f as *mut _ as *mut mpfr::mpfr_t;
-    &mut *ptr
-}
-
 fn rraw(round: Round) -> mpfr::rnd_t {
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
@@ -2193,11 +2463,97 @@ fn rraw2(round: Round2) -> mpc::rnd_t {
     }
 }
 
+fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
+    let re = match r & 0x0f {
+        0 => mpfr::rnd_t::RNDN,
+        1 => mpfr::rnd_t::RNDZ,
+        2 => mpfr::rnd_t::RNDU,
+        3 => mpfr::rnd_t::RNDD,
+        4 => mpfr::rnd_t::RNDA,
+        5 => mpfr::rnd_t::RNDF,
+        _ => mpfr::rnd_t::RNDNA,
+    };
+    let im = match r >> 4 {
+        0 => mpfr::rnd_t::RNDN,
+        1 => mpfr::rnd_t::RNDZ,
+        2 => mpfr::rnd_t::RNDU,
+        3 => mpfr::rnd_t::RNDD,
+        4 => mpfr::rnd_t::RNDA,
+        5 => mpfr::rnd_t::RNDF,
+        _ => mpfr::rnd_t::RNDNA,
+    };
+    (re, im)
+}
+
 fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     // ord == first + 4 * second
     let first = mpc::INEX_RE(ord).cmp(&0);
     let second = mpc::INEX_IM(ord).cmp(&0);
     (first, second)
+}
+
+trait Inner {
+    type Output;
+    fn inner(&self) -> &Self::Output;
+}
+
+trait InnerMut: Inner {
+    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
+}
+
+impl Inner for Complex {
+    type Output = mpc::mpc_t;
+    fn inner(&self) -> &mpc::mpc_t {
+        &self.inner
+    }
+}
+
+impl InnerMut for Complex {
+    unsafe fn inner_mut(&mut self) -> &mut mpc::mpc_t {
+        &mut self.inner
+    }
+}
+
+impl Inner for Float {
+    type Output = mpfr::mpfr_t;
+    fn inner(&self) -> &mpfr::mpfr_t {
+        let ptr = self as *const _ as *const mpfr::mpfr_t;
+        unsafe { &*ptr }
+    }
+}
+
+impl InnerMut for Float {
+    unsafe fn inner_mut(&mut self) -> &mut mpfr::mpfr_t {
+        let ptr = self as *mut _ as *mut mpfr::mpfr_t;
+        &mut *ptr
+    }
+}
+
+impl Inner for Integer {
+    type Output = gmp::mpz_t;
+    fn inner(&self) -> &gmp::mpz_t {
+        let ptr = self as *const _ as *const gmp::mpz_t;
+        unsafe { &*ptr }
+    }
+}
+
+enum OwnBorrow<'a, T>
+    where T: 'a
+{
+    Own(T),
+    Borrow(&'a T),
+}
+
+impl<'a, T> Inner for OwnBorrow<'a, T>
+    where T: Inner
+{
+    type Output = <T as Inner>::Output;
+    fn inner(&self) -> &Self::Output {
+        match *self {
+            OwnBorrow::Own(ref o) => o.inner(),
+            OwnBorrow::Borrow(b) => b.inner(),
+        }
+    }
 }
 
 #[cfg(test)]

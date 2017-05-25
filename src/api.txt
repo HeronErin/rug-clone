@@ -96,3 +96,114 @@ Integer, Rational, Float;
 assign!
     impl AssignRound<T> for Complex;
 Integer, Rational, Float, Special, Constant, u32, i32, f64, f32;
+
+impl Neg for Complex;
+impl NegAssign for Complex;
+impl Neg for &Complex; // Output = NegHold
+struct NegHold;
+impl AssignRound<NegHold> for Complex;
+
+arith_binary!
+    impl Imp<&T> for Complex;
+    impl ImpRound<&T> for Complex;
+    impl Imp<T> for Complex;
+    impl ImpRound<T> for Complex;
+    impl Imp<&T> for &Complex; // Output = Hold
+    impl ImpAssign<&T> for Complex
+    impl ImpAssign<T> for Complex;
+    struct Hold;
+    impl AssignRound<Hold> for Complex;
+
+arith_commut_complex!
+    arith_binary!<Complex>
+    impl Imp<Complex> for &Complex;
+    impl ImpRound<Complex> for &Complex
+Add, Mul;
+
+arith_noncommut_complex!
+    arith_binary!<Complex>
+    impl Imp<Complex> for &Complex;
+    impl ImpRound<Complex> for &Complex;
+    impl ImpFromAssign<&Complex> for Complex;
+    impl ImpFromAssign for Complex;
+Sub, Div, Pow;
+
+arith_forward!
+    arith_binary!
+    impl Imp<T> for &Complex; // Output = Hold
+Pow<Float>, Pow<Integer>;
+
+arith_commut!
+    arith_forward!
+    impl Imp<Complex> for &T;
+    impl ImpRound<Complex> for &T
+    impl Imp<Complex> for T;
+    impl ImpRound<Complex> for T;
+    impl Imp<&Complex> for &T; // Output = Hold
+    impl Imp<&Complex> for T; // Output = Hold
+Add<Float>, Mul<Float>;
+
+arith_non_commut!
+    arith_forward!
+    impl Imp<Complex> for &T;
+    impl ImpRound<Complex> for &T;
+    impl Imp<Complex> for T;
+    impl ImpRound<Complex> for T;
+    impl Imp<&Complex> for &T; // Output = HoldFrom
+    impl Imp<&Complex> for T; // Output = HoldFrom
+    impl ImpFromAssign<&T> for Complex;
+    impl ImpFromAssign<T> for Complex;
+    struct HoldFrom;
+    impl AssignRound<HoldFrom> for Complex;
+Sub<Float>, Div<Float>;
+
+arith_prim!
+    impl Imp<T> for Complex;
+    impl ImpRound<T> for Complex;
+    impl Imp<T> for &Complex; // Output = Hold
+    impl ImpAssign<T> for Complex;
+    struct Hold;
+    impl AssignRound<Hold> for Complex;
+Shl<u32>, Shr<u32>, Pow<u32>;
+Shl<i32>, Shr<i32>, Pow<i32>;
+Pow<f64>, Pow<f32>;
+
+arith_prim_commut!
+    arith_prim!
+    impl Imp<Complex> for T;
+    impl ImpRound<Complex> for T;
+    impl Imp<&Complex> for T; // Output = Hold
+Add<u32>, Mul<u32>;
+Add<i32>, Mul<i32>;
+
+arith_prim_noncommut!
+    arith_prim!
+    impl Imp<Complex> for T;
+    impl ImpRound<Complex> for T;
+    impl Imp<&Complex> for T; // Output = HoldFrom
+    impl ImpFromAssign<T> for Complex;
+    struct HoldFrom;
+    impl AssignRound<HoldFrom> for Complex;
+Sub<u32>, Div<u32>;
+Sub<i32>, Div<i32>;
+
+impl PartialEq for Complex;
+impl PartialEq<(T, U)> for Complex
+    where Float: PartialEq<T>, Float: PartialEq<U>;
+
+partial_eq!
+    impl PartialEq<T> for Complex;
+Integer, Rational, Float, u32, i32, f64, f32;
+
+impl Display for Complex;
+impl Debug for Complex;
+impl LowerExp for Complex;
+impl UpperExp for Complex;
+impl Binary for Complex;
+impl Octal for Complex;
+impl LowerHex for Complex;
+impl UpperHex for Complex;
+
+struct ParseComplexError derive(Clone, Debug, Eq, PartialEq);
+impl Error for ParseComplexError;
+impl Display for ParseComplexError;
