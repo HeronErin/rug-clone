@@ -603,9 +603,8 @@ math_op1! {
 impl Float {
     /// Sets `self` to the square root of `u`, rounding to the
     /// nearest.
-    pub fn assign_sqrt_u(&mut self, u: u32) -> &mut Float {
+    pub fn assign_sqrt_u(&mut self, u: u32) {
         self.assign_sqrt_u_round(u, Round::Nearest);
-        self
     }
 
     /// Sets `self` to the square root of `u`, applying the specified
@@ -1107,9 +1106,8 @@ math_op1! {
 
 impl Float {
     /// Sets `self` to the factorial of `u`, rounding to the nearest.
-    pub fn assign_factorial_u(&mut self, u: u32) -> &mut Float {
+    pub fn assign_factorial_u(&mut self, u: u32) {
         self.assign_factorial_u_round(u, Round::Nearest);
-        self
     }
 
     /// Sets `self` to the factorial of `u`, applying the specified
@@ -1281,9 +1279,8 @@ math_op1! {
 impl Float {
     /// Sets `self` to the value of the Riemann Zeta function on `u`,
     /// rounding to the nearest.
-    pub fn assign_zeta_u(&mut self, u: u32) -> &mut Float {
+    pub fn assign_zeta_u(&mut self, u: u32) {
         self.assign_zeta_u_round(u, Round::Nearest);
-        self
     }
 
     /// Sets `self` to the value of the Riemann Zeta function on `u`,
@@ -2295,9 +2292,7 @@ impl NegAssign for Float {
 }
 
 impl<'a> Neg for &'a Float {
-    /// A held negation operation.
     type Output = NegHold<'a>;
-    /// Creates a held negation operation.
     fn neg(self) -> NegHold<'a> {
         NegHold { val: self }
     }

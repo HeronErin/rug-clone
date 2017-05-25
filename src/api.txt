@@ -67,10 +67,18 @@ impl Drop for Float;
 impl Clone for Float;
 
 math_op1!
-    method(&mut self, T...) -> &mut Float;
-    method_set(&mut self, &Float, T...) -> &mut Float;
-    method_round(&mut self, T..., Round) -> Ordering;
-    method_set_round(&mut self, &Float, T..., Round) -> Ordering;
+    Float::method(&mut self, T...) -> &mut Float;
+    Float::method_round(&mut self, T..., Round) -> Ordering;
+    Float::method_hold(&self, T...) -> Hold;
+    struct Hold;
+    impl AssignRound<Hold> for Float;
+
+math_op2!
+    Float::method(&mut self, &Float) -> &mut Float;
+    Float::method_round(&mut self, &Float, Round) -> Ordering;
+    Float::method_hold(&self, &Float) -> Hold;
+    struct Hold;
+    impl AssignRound<Hold> for Float;
 
 math_op2!
     method(&mut self, &Float) -> &mut Float;
@@ -95,45 +103,45 @@ impl Float
     to_f64_round(&self, Round) -> f64;
     to_f32(&self) -> f32;
     to_f32_round(&self, Round) -> f32;
-    math_op1! square, sqrt;
-    set_sqrt_u(&mut self, u32) -> &mut Float;
-    set_sqrt_u_round(&mut self, u32, Round) -> Ordering;
-    math_op1! recip_sqrt, cbrt, root;
-    abs(&mut self) -> &mut Float;
-    set_abs(&mut self, &Float) -> &mut Float;
-    set_abs_round(&mut self, &Float, Round) -> Ordering;
-    recip(&mut self) -> &mut Float;
-    set_recip(&mut self, &Float) -> &mut Float;
-    recip_round(&mut self, Round) -> Ordering;
-    set_recip_round(&mut self, &Float, Round) -> Ordering;
-    math_op2! dim;
-    cmp_abs(&self, &Float) -> Option<Ordering>;
-    math_op1! ln, log2, log10, exp, exp2, exp10, cos, sin, tan;
-    sin_cos(&mut self, &Float);
-    set_sin_cos(&mut self, &mut Float, &Float);
-    sin_cos_round(&mut self, &Float, Round) -> (Ordering, Ordering);
-    set_sin_cos_round(&mut self, &mut Float, &Float, Round) -> (Ordering, Ordering);
-    math_op1! sec, csc, cot, acos, asin, atan;
-    math_op2! atan2;
-    math_op1! cosh, sinh, tanh;
-    sinh_cosh(&mut self, &Float);
-    set_sinh_cosh(&mut self, &mut Float, &Float);
-    sinh_cosh_round(&mut self, &Float, Round) -> (Ordering, Ordering);
-    set_sinh_cosh_round(&mut self, &mut Float, &Float, Round) -> (Ordering, Ordering);
-    math_op1! sech, csch, coth, acosh, asinh, atanh;
-    set_factorial_u(&mut self, u32) -> &mut Float;
-    set_factorial_u_round(&mut self, u32, Round) -> Ordering;
-    math_op1! ln_1p, exp_m1, eint, li2, gamma, ln_gamma;
-    lgamma(&mut self) -> Ordering;
-    set_lgamma(&mut self, &Float) -> Ordering;
-    lgamma_round(&mut self, Round) -> (Ordering, Ordering);
-    set_lgamma_round(&mut self, &Float, Round) -> (Ordering, Ordering);
-    math_op1! digamma, zeta;
-    set_zeta_u(&mut self, u32) -> &mut Float;
-    set_zeta_u_round(&mut self, u32, Round) -> Ordering;
-    math_op1! erf, erfc, j0, j1, jn, y0, y1, yn;
-    math_op2! agm, hypot;
-    math_op1! ai, ceil, floor, round, trunc;
+
+math_op1! square, sqrt;
+Float::assign_sqrt_u(&mut self, u32);
+Float::assign_sqrt_u_round(&mut self, u32, Round) -> Ordering;
+math_op1! recip_sqrt, cbrt, root, abs, recip;
+math_op2! dim;
+Float::cmp_abs(&self, &Float) -> Option<Ordering>;
+math_op1! ln, log2, log10, exp, exp2, exp10, cos, sin, tan;
+Float::sin_cos(&mut self, &mut Float);
+Float::sin_cos_round(&mut self, &mut Float, Round) -> (Ordering, Ordering);
+Float::cos_sin(&mut self, &mut Float);
+Float::cos_sin_round(&mut self, &mut Float, Round) -> (Ordering, Ordering);
+Float::assign_sin_cos(&mut self, &mut Float, &Float);
+Float::assign_sin_cos_round(&mut self, &mut Float, &Float, Round) -> (Ordering, Ordering);
+math_op1! sec, csc, cot, acos, asin, atan;
+math_op2! atan2;
+math_op1! cosh, sinh, tanh;
+Float::sinh_cosh(&mut self, &mut Float);
+Float::sinh_cosh_round(&mut self, &mut Float, Round) -> (Ordering, Ordering);
+Float::cosh_sinh(&mut self, &mut Float);
+Float::cosh_sinh_round(&mut self, &mut Float, Round) -> (Ordering, Ordering);
+Float::assign_sinh_cosh(&mut self, &mut Float, &Float);
+Float::assign_sinh_cosh_round(&mut self, &mut Float, &Float, Round) -> (Ordering, Ordering);
+math_op1! sech, csch, coth, acosh, asinh, atanh;
+Float::assign_factorial_u(&mut self, u32);
+Float::assign_factorial_u_round(&mut self, u32, Round) -> Ordering;
+math_op1! ln_1p, exp_m1, eint, li2, gamma, ln_gamma;
+Float::lgamma(&mut self) -> Ordering;
+Float::lgamma_round(&mut self, Round) -> (Ordering, Ordering);
+Float::assign_lgamma(&mut self, &Float) -> Ordering;
+Float::assign_lgamma_round(&mut self, &Float, Round) -> (Ordering, Ordering);
+math_op1! digamma, zeta;
+Float::assign_zeta_u(&mut self, u32);
+Float::assign_zeta_u_round(&mut self, u32, Round) -> Ordering;
+math_op1! erf, erfc, j0, j1, jn, y0, y1, yn;
+math_op2! agm, hypot;
+math_op1! ai, ceil, floor, round, trunc;
+
+impl Float
     is_integer(&self) -> bool;
     is_nan(&self) -> bool;
     is_infinite(&self) -> bool;
@@ -161,53 +169,41 @@ impl Float
     assign_str_radix_round(&mut self, &str, i32, Round) -> Result<Ordering, ParseFloatError>;
     valid_str_radix(&str, i32) -> Result<(), ParseFloatError>;
 
-impl From<(T, i32)> for Float where Float: From<(T, u32)>;
-impl FromRound<T, i32> for Float where Float: FromRound<T, u32, Round = Round, Ordering = Ordering>;
+impl From<(T, i32)> for Float
+    where Float: From<(T, u32)>;
+impl FromRound<T, i32> for Float
+    where Float: FromRound<T, u32, Round = Round, Ordering = Ordering>;
+impl From<(T, u32)> for Float
+    where Float: FromRound<(T, u32, Round = Round)>;
+impl FromRound<T, u32> for Float
+    where Float: AssignRound<T, Round = Round, Ordering = Ordering>;
+impl Assign<T> for Float
+    where Float: AssignRound<T, Round = Round, Ordering = Ordering>;
 
-assign_inter!
-    impl Assign<Inter> for Float;
-    impl AssignRound<Inter> for Float;
-
-from_borrow!
-    impl From<(&T, u32)> for Float;
-    impl FromRound<&T, u32> for Float;
-Integer, Rational, Float;
-
-from!
-    impl From<(T, u32)> for Float;
-    impl FromRound<T, u32> for Float;
-Constant, Special, Integer, Rational, Float, u32, i32, f64, f32;
-
-impl Assign<Constant> for Float;
 impl AssignRound<Constant> for Float;
-impl Assign<Special> for Float;
 impl AssignRound<Special> for Float;
 
 assign!
-    impl Assign<&T> for Float;
     impl AssignRound<&T> for Float;
-    impl Assign<T> for Float;
     impl AssignRound<T> for Float;
 Float, Integer, Rational;
 
 impl Neg for Float;
 impl NegAssign for Float;
-impl Neg for &Float; // Output = NegInter;
-struct NegInter;
-assign_inter! NegInter;
-from_borrow! NegInter;
+impl Neg for &Float; // Output = NegHold
+struct NegHold;
+impl AssignRound<NegHold> for Float;
 
 arith_binary!
     impl Imp<&T> for Float;
     impl ImpRound<&T> for Float;
     impl Imp<T> for Float;
     impl ImpRound<T> for Float;
-    impl Imp<&T> for &Float; // Output = Inter
+    impl Imp<&T> for &Float; // Output = Hold
     impl ImpAssign<&T> for Float
     impl ImpAssign<T> for Float;
-    struct Inter;
-    assign_inter! Inter;
-    from_borrow! Inter;
+    struct Hold;
+    impl AssignRound<Hold> for Float;
 
 arith_commut_float!
     arith_binary!<Float>
@@ -225,7 +221,7 @@ Sub, Div, Pow;
 
 arith_forward!
     arith_binary!
-    impl Imp<T> for &Float; // Output = Inter
+    impl Imp<T> for &Float; // Output = Hold
 PowInteger;
 
 arith_commut!
@@ -234,8 +230,8 @@ arith_commut!
     impl ImpRound<Float> for &T
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
-    impl Imp<&Float> for &T; // Output = Inter
-    impl Imp<&Float> for T; // Output = Inter
+    impl Imp<&Float> for &T; // Output = Hold
+    impl Imp<&Float> for T; // Output = Hold
 Add<Integer>, Mul<Integer>;
 Add<Rational>, Mul<Rational>;
 
@@ -245,24 +241,22 @@ arith_non_commut!
     impl ImpRound<Float> for &T;
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
-    impl Imp<&Float> for &T; // Output = InterFrom
-    impl Imp<&Float> for T; // Output = InterFrom
+    impl Imp<&Float> for &T; // Output = HoldFrom
+    impl Imp<&Float> for T; // Output = HoldFrom
     impl ImpFromAssign<&T> for Float;
     impl ImpFromAssign<T> for Float;
-    struct InterFrom;
-    assign_inter! InterFrom;
-    from_borrow! InterFrom;
+    struct HoldFrom;
+    impl AssignRound<HoldFrom> for Float;
 Sub<Integer>, Div<Integer>;
 Sub<Rational>, Div<Rational>;
 
 arith_prim!
     impl Imp<T> for Float;
     impl ImpRound<T> for Float;
-    impl Imp<T> for &Float; // Output = Inter
+    impl Imp<T> for &Float; // Output = Hold
     impl ImpAssign<T> for Float;
-    struct Inter;
-    assign_inter! Inter;
-    from_borrow! Inter;
+    struct Hold;
+    impl AssignRound<Hold> for Float;
 Shl<u32>, Shr<u32>;
 Shl<i32>, Shr<i32>, Pow<i32>;
 
@@ -270,21 +264,19 @@ arith_prim_commut!
     arith_prim!
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
-    impl Imp<&Float> for T; // Output = Inter;
+    impl Imp<&Float> for T; // Output = Hold
 
 arith_prim_noncommut!
     arith_prim!
     impl Imp<Float> for T;
     impl ImpRound<Float> for T;
-    impl Imp<&Float> for T; // Output = InterFrom;
+    impl Imp<&Float> for T; // Output = HoldFrom
     impl ImpFromAssign<T> for Float;
-    struct InterFrom;
-    assign_inter! InterFrom;
-    from_borrow! InterFrom;
+    struct HoldFrom;
+    impl AssignRound<HoldFrom> for Float;
 Pow<u32>;
 
 conv_ops!
-    impl Assign<T> for Float;
     impl AssignRound<T> for Float;
     arith_prim_commut! Add<T>, Mul<T>;
     arith_prim_noncommut! Sub<T>, Div<T>;
