@@ -2603,7 +2603,9 @@ impl NegAssign for Float {
 }
 
 impl<'a> Neg for &'a Float {
+    /// An intermediate value.
     type Output = NegInter<'a>;
+    /// Creates an intermediate value.
     fn neg(self) -> NegInter<'a> {
         NegInter { op: self }
     }
@@ -2668,7 +2670,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a $T> for &'a Float {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a $T) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
@@ -2822,7 +2826,9 @@ macro_rules! arith_forward {
         }
 
         impl<'a> $Imp<$T> for &'a Float {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: $T) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
@@ -2886,14 +2892,18 @@ macro_rules! arith_commut {
         }
 
         impl<'a> $Imp<&'a Float> for &'a $T {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Float) -> $Inter<'a> {
                 rhs.$method(self)
             }
         }
 
         impl<'a> $Imp<&'a Float> for $T {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Float) -> $Inter<'a> {
                 rhs.$method(self)
             }
@@ -2963,7 +2973,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for &'a $T {
+            /// An intermediate value.
             type Output = $InterFrom<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
                 $InterFrom {
                     lhs: OwnBorrow::Borrow(self),
@@ -2973,7 +2985,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
+            /// An intermediate value.
             type Output = $InterFrom<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
                 $InterFrom {
                     lhs: OwnBorrow::Own(self),
@@ -3254,7 +3268,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Float {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: $T) -> $Inter<'a> {
                 $Inter {
                     lhs: self,
@@ -3323,7 +3339,9 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
+            /// An intermediate value.
             type Output = $Inter<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Float) -> $Inter<'a> {
                 rhs.$method(self)
             }
@@ -3376,7 +3394,9 @@ macro_rules! arith_prim_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
+            /// An intermediate value.
             type Output = $InterFrom<'a>;
+            /// Creates an intermediate value.
             fn $method(self, rhs: &'a Float) -> $InterFrom<'a> {
                 $InterFrom {
                     lhs: self,
