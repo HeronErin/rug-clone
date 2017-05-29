@@ -33,6 +33,7 @@ use std::os::raw::{c_char, c_int, c_long, c_ulong};
 #[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
+use xgmp;
 
 /// An arbitrary-precision integer.
 ///
@@ -100,8 +101,117 @@ impl Clone for Integer {
     }
 }
 
+macro_rules! math_op1 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self $(, $param: $T)*) -> &mut Integer {
+            unsafe {
+                $func(self.inner_mut(), self.inner() $(, $param.into(),)*);
+            }
+            self
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
+            $Hold {
+                val: self,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! math_op1_2 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, other: &mut Integer $(, $param: $T)*) {
+            unsafe {
+                $func(self.inner_mut(), other.inner_mut(),
+                      self.inner() $(, $param.into())*);
+            }
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
+            $Hold {
+                val: self,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! math_op2 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, other: &Integer $(, $param: $T)*)
+                       -> &mut Integer {
+            unsafe {
+                $func(self.inner_mut(), self.inner(),
+                      other.inner() $(, $param.into(),)*);
+            }
+            self
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold<'a>(&'a self, other: &'a Integer $(, $param: $T)*)
+                                -> $Hold<'a> {
+            $Hold {
+                lhs: self,
+                rhs: other,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! math_op2_2 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, op: &mut Integer $(, $param: $T)*) {
+            unsafe {
+                $func(self.inner_mut(), op.inner_mut(),
+                      self.inner(), op.inner() $(, $param.into())*);
+            }
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold<'a>(&'a self, other: &'a Integer $(, $param: $T)*)
+                                -> $Hold<'a> {
+            $Hold {
+                lhs: self,
+                rhs: other,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
 impl Integer {
     /// Constructs a new arbitrary-precision integer with value 0.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::new();
+    /// assert!(i == 0);
+    /// ```
     pub fn new() -> Integer {
         unsafe {
             let mut inner: mpz_t = mem::uninitialized();
@@ -111,6 +221,17 @@ impl Integer {
     }
 
     /// Converts to a `u32` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(1234567890);
+    /// assert!(fits.to_u32() == Some(1234567890));
+    /// let neg = Integer::from(-1);
+    /// assert!(neg.to_u32() == None);
+    /// let large = "12345678901234567890".parse::<Integer>().unwrap();
+    /// assert!(large.to_u32() == None);
+    /// ```
     pub fn to_u32(&self) -> Option<u32> {
         if self.sign() != Ordering::Less && *self <= u32::MAX {
             Some(self.to_u32_wrapping())
@@ -119,7 +240,18 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u32`, wrapping if the value is too large.
+    /// Converts to a `u32`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(0x90abcdef_u32);
+    /// assert!(fits.to_u32_wrapping() == 0x90abcdef);
+    /// let neg = Integer::from(-1);
+    /// assert!(neg.to_u32_wrapping() == 0xffffffff);
+    /// let large = Integer::from_str_radix("1234567890abcdef", 16).unwrap();
+    /// assert!(large.to_u32_wrapping() == 0x90abcdef);
+    /// ```
     pub fn to_u32_wrapping(&self) -> u32 {
         let u = unsafe { gmp::mpz_get_ui(&self.inner) as u32 };
         if self.sign() == Ordering::Less {
@@ -130,6 +262,17 @@ impl Integer {
     }
 
     /// Converts to an `i32` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(-50);
+    /// assert!(fits.to_i32() == Some(-50));
+    /// let small = Integer::from(-123456789012345_i64);
+    /// assert!(small.to_i32() == None);
+    /// let large = Integer::from(123456789012345_u64);
+    /// assert!(large.to_u32() == None);
+    /// ```
     pub fn to_i32(&self) -> Option<i32> {
         if *self >= i32::MIN && *self <= i32::MAX {
             Some(self.to_i32_wrapping())
@@ -138,7 +281,18 @@ impl Integer {
         }
     }
 
-    /// Converts to an `i32`, wrapping if the value is too large.
+    /// Converts to an `i32`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(-0xabcdef_i32);
+    /// assert!(fits.to_i32_wrapping() == -0xabcdef);
+    /// let small = Integer::from(0x1_ffff_ffff_u64);
+    /// assert!(small.to_i32_wrapping() == -1);
+    /// let large = Integer::from_str_radix("1234567890abcdef", 16).unwrap();
+    /// assert!(large.to_i32_wrapping() == 0x90abcdef_u32 as i32);
+    /// ```
     pub fn to_i32_wrapping(&self) -> i32 {
         self.to_u32_wrapping() as i32
     }
@@ -170,6 +324,17 @@ impl Integer {
 
     /// Creates an `Integer` from an `f64` if it is finite, rounding
     /// towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f64;
+    /// let i = Integer::from_f64(1e20).unwrap();
+    /// assert!(i == "100000000000000000000".parse::<Integer>().unwrap());
+    /// let inf = Integer::from_f64(f64::INFINITY);
+    /// assert!(inf.is_none());
+    /// ```
     pub fn from_f64(val: f64) -> Option<Integer> {
         if val.is_finite() {
             let mut i = Integer::new();
@@ -181,24 +346,103 @@ impl Integer {
     }
 
     /// Converts to an `f64`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f64;
+    ///
+    /// // An `f64` has 53 bits of precision.
+    /// let exact = 0x1f_ffff_ffff_ffff_u64;
+    /// let i = Integer::from(exact);
+    /// assert!(i.to_f64() == exact as f64);
+    ///
+    /// // large has 56 ones
+    /// let large = 0xff_ffff_ffff_ffff_u64;
+    /// // trunc has 53 ones followed by 3 zeros
+    /// let trunc = 0xff_ffff_ffff_fff8_u64;
+    /// let j = Integer::from(large);
+    /// assert!(j.to_f64() == trunc as f64);
+    ///
+    /// let max = Integer::from_f64(f64::MAX).unwrap();
+    /// let plus_one = max + 1u32;
+    /// // plus_one is truncated to f64::MAX
+    /// assert!(plus_one.to_f64() == f64::MAX);
+    /// let times_two = plus_one * 2u32;
+    /// // times_two is too large
+    /// assert!(times_two.to_f64() == f64::INFINITY);
+    /// ```
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpz_get_d(&self.inner) }
     }
 
     /// Assigns from an `f32` if it is finite, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f32;
+    /// let mut i = Integer::new();
+    /// let ret = i.assign_f64(-12.7);
+    /// assert!(ret.is_ok());
+    /// assert!(i == -12);
+    /// let ret = i.assign_f32(f32::NAN);
+    /// assert!(ret.is_err());
+    /// assert!(i == -12);
+    /// ```
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val as f64)
     }
 
     /// Creates an `Integer` from an `f32` if it is finite, rounding
     /// towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f32;
+    /// let i = Integer::from_f32(-5.6).unwrap();
+    /// assert!(i == -5);
+    /// let neg_inf = Integer::from_f32(f32::NEG_INFINITY);
+    /// assert!(neg_inf.is_none());
+    /// ```
     pub fn from_f32(val: f32) -> Option<Integer> {
         Integer::from_f64(val as f64)
     }
 
     /// Converts to an `f32`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f32;
+    /// let min = Integer::from_f32(f32::MIN).unwrap();
+    /// let minus_one = min - 1u32;
+    /// // minus_one is truncated to f32::MIN
+    /// assert!(minus_one.to_f32() == f32::MIN);
+    /// let times_two = minus_one * 2u32;
+    /// // times_two is too small
+    /// assert!(times_two.to_f32() == f32::NEG_INFINITY);
+    /// ```
     pub fn to_f32(&self) -> f32 {
-        self.to_f64() as f32
+        let f = self.to_f64();
+        // f as f32 might round away from zero, so we need to clear
+        // the least significant bits of f if it is a finite number.
+        // We do not need to worry about subnormals, as f is an
+        // integer.
+        if f.is_finite() {
+            let u = unsafe { mem::transmute::<_, u64>(f) };
+            // f64 has 29 more significant bits than f32.
+            let trunc_u = u & (!0 << 29);
+            let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
+            trunc_f as f32
+        } else {
+            f as f32
+        }
     }
 
     /// Returns a string representation of `self` for the specified
@@ -227,7 +471,13 @@ impl Integer {
 
     /// Parses an `Integer`.
     ///
-    /// See the [corresponding assignment](#method.assign_str_radix).
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::from_str_radix("-ff", 16).unwrap();
+    /// assert!(i == -0xff);
+    /// ```
     ///
     /// # Panics
     ///
@@ -264,7 +514,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_str_radix("ff", 16).unwrap();
-    /// assert!(i == 255);
+    /// assert!(i == 0xff);
     /// ```
     ///
     /// # Panics
@@ -290,6 +540,18 @@ impl Integer {
     /// returns an error, the other functions will return the same
     /// error.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// assert!(Integer::valid_str_radix("123", 4).is_ok());
+    /// assert!(Integer::valid_str_radix("123xyz", 36).is_ok());
+    ///
+    /// let invalid_valid = Integer::valid_str_radix("123", 3);
+    /// let invalid_from = Integer::from_str_radix("123", 3);
+    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
@@ -301,12 +563,30 @@ impl Integer {
 
     /// Returns `true` if `self` is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::from(230);
+    /// assert!(i.is_divisible(&Integer::from(10)));
+    /// assert!(!i.is_divisible(&Integer::from(100)));
+    /// ```
     pub fn is_divisible(&self, divisor: &Integer) -> bool {
         unsafe { gmp::mpz_divisible_p(&self.inner, &divisor.inner) != 0 }
     }
 
     /// Returns `true` if `self` is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::from(230);
+    /// assert!(i.is_divisible_u(23));
+    /// assert!(!i.is_divisible_u(100));
+    /// ```
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
         unsafe { gmp::mpz_divisible_ui_p(&self.inner, divisor.into()) != 0 }
     }
@@ -314,6 +594,19 @@ impl Integer {
     /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
     /// is, if there exists a `q` such that `self == c + q * divisor`.
     /// Unlike other division functions, `divisor` can be zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let n = Integer::from(105);
+    /// let divisor = Integer::from(10);
+    /// assert!(n.is_congruent(&Integer::from(5), &divisor));
+    /// assert!(n.is_congruent(&Integer::from(25), &divisor));
+    /// assert!(!n.is_congruent(&Integer::from(7), &divisor));
+    /// // n is congruent to itself if divisor is 0
+    /// assert!(n.is_congruent(&n, &Integer::from(0)));
+    /// ```
     pub fn is_congruent(&self, c: &Integer, divisor: &Integer) -> bool {
         unsafe {
             gmp::mpz_congruent_p(&self.inner, &c.inner, &divisor.inner) != 0
@@ -323,6 +616,17 @@ impl Integer {
     /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
     /// is, if there exists a `q` such that `self == c + q * divisor`.
     /// Unlike other division functions, `divisor` can be zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let n = Integer::from(105);
+    /// assert!(n.is_congruent_u(3335, 10));
+    /// assert!(!n.is_congruent_u(107, 10));
+    /// // n is congruent to itself if divisor is 0
+    /// assert!(n.is_congruent_u(105, 0));
+    /// ```
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
         unsafe {
             gmp::mpz_congruent_ui_p(&self.inner, c.into(), divisor.into()) != 0
@@ -330,266 +634,314 @@ impl Integer {
     }
 
     /// Returns `true` if `self` is a perfect power.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// // 0 is 0 to the power of anything
+    /// let mut i = Integer::from(0);
+    /// assert!(i.is_perfect_power());
+    /// // 243 is 3 to the power of 5
+    /// i.assign(243);
+    /// assert!(i.is_perfect_power());
+    /// // 10 is not a perfect power
+    /// i.assign(10);
+    /// assert!(!i.is_perfect_power());
+    /// ```
     pub fn is_perfect_power(&self) -> bool {
         unsafe { gmp::mpz_perfect_power_p(&self.inner) != 0 }
     }
 
     /// Returns `true` if `self` is a perfect square.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// let mut i = Integer::from(1);
+    /// assert!(i.is_perfect_square());
+    /// i.assign(9);
+    /// assert!(i.is_perfect_square());
+    /// i.assign(15);
+    /// assert!(!i.is_perfect_square());
+    /// ```
     pub fn is_perfect_square(&self) -> bool {
         unsafe { gmp::mpz_perfect_square_p(&self.inner) != 0 }
     }
-}
 
-macro_rules! math_op1 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Integer {
-            $(#[$attr])*
-            pub fn $method(&mut self $(, $param: $T)*) -> &mut Integer {
-                unsafe {
-                    $func(self.inner_mut(), self.inner() $(, $param.into(),)*);
-                }
-                self
-            }
+    math_op2_2! {
+        /// Computes the quotient and remainder of `self` divided by
+        /// `op`.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `op` is zero.
+        fn div_rem;
+        /// Holds a computation of the quotient and remainder of a
+        /// division operation.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::{Assign, Integer};
+        /// let dividend = Integer::from(23);
+        /// let divisor = Integer::from(10);
+        /// let hold = dividend.div_rem_hold(&divisor);
+        /// let mut quotient = Integer::new();
+        /// let mut remainder = Integer::new();
+        /// (&mut quotient, &mut remainder).assign(hold);
+        /// assert!(quotient == 2);
+        /// assert!(remainder == 3);
+        /// ```
+        fn div_rem_hold -> DivRemHold;
+        xgmp::mpz_tdiv_qr_check_0
+    }
+    math_op1! {
+        /// Computes the absolute value of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(-100);
+        /// assert!(*i.abs() == 100);
+        /// assert!(i == 100);
+        /// ```
+        fn abs;
+        /// Holds a computation of the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let i = Integer::from(-100);
+        /// let hold = i.abs_hold();
+        /// let a = Integer::from(hold);
+        /// assert!(a == 100);
+        /// ```
+        fn abs_hold -> AbsHold;
+        gmp::mpz_abs
+    }
+    math_op2! {
+        /// Divides `self` by `other`. This is much faster than normal
+        /// division, but produces correct results only when the division
+        /// is exact.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(123450);
+        /// assert!(*i.div_exact(&Integer::from(10)) == 12345);
+        /// assert!(i == 12345);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_exact;
+        /// Holds a computation of an exact division.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let i = Integer::from(123450);
+        /// let divisor = Integer::from(10);
+        /// let hold = i.div_exact_hold(&divisor);
+        /// let q = Integer::from(hold);
+        /// assert!(q == 12345);
+        /// ```
+        fn div_exact_hold -> DivExactHold;
+        xgmp::mpz_divexact_check_0
+    }
+    math_op1! {
+        /// Computes the `n`th root of `self` and truncates the result.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(1004);
+        /// assert!(*i.root(3) == 10);
+        /// ```
+        fn root;
+        /// Holds a computation of the `n`th root of the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let i = Integer::from(1004);
+        /// assert!(Integer::from(i.root_hold(3)) == 10);
+        /// ```
+        fn root_hold -> RootHold;
+        gmp::mpz_root,
+        n: u32
+    }
+    math_op1_2! {
+        /// Computes the `n`th root of `self` and returns the truncated
+        /// root and the remainder. The remainder is `self` minus the
+        /// truncated root raised to the power of `n`. The remainder is
+        /// stored in `other`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(1004);
+        /// let mut rem = Integer::new();
+        /// i.root_rem(&mut rem, 3);
+        /// assert!(i == 10);
+        /// assert!(rem == 4);
+        /// ```
+        fn root_rem;
+        /// Holds a computation of the truncation and remainder of the
+        /// `n`th root of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::{Assign, Integer};
+        /// let i = Integer::from(1004);
+        /// let hold = Integer::root_rem_hold(&i, 3);
+        /// let mut root = Integer::new();
+        /// let mut rem = Integer::new();
+        /// (&mut root, &mut rem).assign(hold);
+        /// assert!(root == 10);
+        /// assert!(rem == 4);
+        /// ```
+        fn root_rem_hold -> RootRemHold;
+        gmp::mpz_rootrem,
+        n: u32
+    }
+    math_op1! {
+        /// Computes the square root and truncates the result.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(104);
+        /// assert!(*i.sqrt() == 10);
+        /// ```
+        fn sqrt;
+        /// Holds a computation of the square root.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let i = Integer::from(104);
+        /// assert!(Integer::from(i.sqrt_hold()) == 10);
+        /// ```
+        fn sqrt_hold -> SqrtHold;
+        gmp::mpz_sqrt
+    }
+    math_op1_2! {
+        /// Computes the square root of `self` and returns the truncated
+        /// root and the remainder. The remainder is `self` minus the
+        /// truncated root squared. The remainder is stored in `other`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(104);
+        /// let mut rem = Integer::new();
+        /// i.sqrt_rem(&mut rem);
+        /// assert!(i == 10);
+        /// assert!(rem == 4);
+        /// ```
+        fn sqrt_rem;
+        /// Holds a computation of the truncation and remainder of the
+        /// square root of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::{Assign, Integer};
+        /// let i = Integer::from(104);
+        /// let hold = Integer::sqrt_rem_hold(&i);
+        /// let mut root = Integer::new();
+        /// let mut rem = Integer::new();
+        /// (&mut root, &mut rem).assign(hold);
+        /// assert!(root == 10);
+        /// assert!(rem == 4);
+        /// ```
+        fn sqrt_rem_hold -> SqrtRemHold;
+        gmp::mpz_sqrtrem
+    }
+    math_op2! {
+        /// Finds the greatest common divisor. The result is always
+        /// positive except when both inputs are zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::{Assign, Integer};
+        /// let mut a = Integer::new();
+        /// let mut b = Integer::new();
+        /// a.gcd(&b);
+        /// // gcd of 0, 0 is 0
+        /// assert!(*a.gcd(&b) == 0);
+        /// b.assign(10);
+        /// // gcd of 0, 10 is 10
+        /// assert!(*a.gcd(&b) == 10);
+        /// b.assign(25);
+        /// // gcd of 10, 25 is 5
+        /// assert!(*a.gcd(&b) == 5);
+        /// ```
+        fn gcd;
+        /// Holds the computation of the greatest common divisor.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let a = Integer::from(100);
+        /// let b = Integer::from(125);
+        /// let hold = a.gcd_hold(&b);
+        /// // gcd of 100, 125 is 25
+        /// assert!(Integer::from(hold) == 25);
+        /// ```
+        fn gcd_hold -> GcdHold;
+        gmp::mpz_gcd
+    }
+    math_op2! {
+        /// Finds the least common multiple. The result is always positive
+        /// except when one or both inputs are zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::{Assign, Integer};
+        /// let mut a = Integer::from(10);
+        /// let mut b = Integer::from(25);
+        /// // lcm of 10, 25 is 50
+        /// assert!(*a.lcm(&b) == 50);
+        /// b.assign(0);
+        /// // lcm of 50, 0 is 0
+        /// assert!(*a.lcm(&b) == 0);
+        /// ```
+        fn lcm;
+        /// Holds the computation of the least common multiple.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let a = Integer::from(100);
+        /// let b = Integer::from(125);
+        /// let hold = a.lcm_hold(&b);
+        /// // lcm of 100, 125 is 500
+        /// assert!(Integer::from(hold) == 500);
+        /// ```
+        fn lcm_hold -> LcmHold;
+        gmp::mpz_lcm
+    }
 
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
-                $Hold {
-                    val: self,
-                    $($param: $param,)*
-                }
-            }
-        }
-
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            val: &'a Integer,
-            $($param: $T,)*
-        }
-
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, src: $Hold<'a>) {
-                unsafe {
-                    $func(self.inner_mut(),
-                          src.val.inner() $(, src.$param.into())*);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op2 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Integer {
-            $(#[$attr])*
-            pub fn $method(&mut self, other: &Integer $(, $param: $T)*)
-                           -> &mut Integer {
-                unsafe {
-                    $func(self.inner_mut(), self.inner(),
-                          other.inner() $(, $param.into(),)*);
-                }
-                self
-            }
-
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self, 
-                                    other: &'a Integer $(, $param: $T)*)
-                                    -> $Hold<'a> {
-                $Hold {
-                    lhs: self,
-                    rhs: other,
-                    $($param: $param,)*
-                }
-            }
-        }
-
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            lhs: &'a Integer,
-            rhs: &'a Integer,
-            $($param: $T,)*
-        }
-
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, src: $Hold<'a>) {
-                unsafe {
-                    $func(self.inner_mut(), src.lhs.inner(),
-                          src.rhs.inner() $(, src.$param.into())*);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op1_2 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_assign:meta])* fn $method_assign:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Integer {
-            $(#[$attr])*
-            pub fn $method(&mut self, other: &mut Integer $(, $param: $T)*) {
-                unsafe {
-                    $func(self.inner_mut(), other.inner_mut(),
-                          self.inner() $(, $param.into())*);
-                }
-            }
-
-            $(#[$attr_assign])*
-            pub fn $method_assign(&mut self, other: &mut Integer,
-                                  op: &Integer $(, $param: $T)*) {
-                unsafe {
-                    $func(self.inner_mut(), other.inner_mut(),
-                          op.inner() $(, $param.into())*);
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op2_2 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_assign:meta])* fn $method_assign:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Integer {
-            $(#[$attr])*
-            pub fn $method(&mut self, op: &mut Integer $(, $param: $T)*) {
-                unsafe {
-                    $func(self.inner_mut(), op.inner_mut(),
-                          self.inner(), op.inner() $(, $param.into())*);
-                }
-            }
-
-            $(#[$attr_assign])*
-            pub fn $method_assign(&mut self, other: &mut Integer, op1: &Integer,
-                                  op2: &Integer $(, $param: $T)*) {
-                unsafe {
-                    $func(self.inner_mut(), other.inner_mut(),
-                          op1.inner(), op2.inner() $(, $param.into())*);
-                }
-            }
-        }
-    };
-}
-
-math_op2_2! {
-    /// Computes the quotient and remainder of `self` divided by
-    /// `op`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `op` is zero.
-    fn div_rem;
-    /// Sets `self` and `other` to the quotient and remainder of
-    /// `op1` divided by `op2`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `op2` is zero.
-    fn assign_div_rem;
-    div_rem
-}
-unsafe fn div_rem(rop1: *mut gmp::mpz_t,
-                  rop2: *mut gmp::mpz_t,
-                  op1: *const gmp::mpz_t,
-                  op2: *const gmp::mpz_t) {
-    assert_ne!(gmp::mpz_sgn(op2), 0, "division by zero");
-    gmp::mpz_tdiv_qr(rop1, rop2, op1, op2);
-}
-
-math_op1! {
-    /// Computes the absolute value of `self`.
-    fn abs;
-    /// Holds a computation of the absolute value.
-    fn abs_hold -> AbsHold;
-    gmp::mpz_abs
-}
-math_op2! {
-    /// Divides `self` by `other`. This is much faster than normal
-    /// division, but produces correct results only when the division
-    /// is exact.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `divisor` is zero.
-    fn div_exact;
-    /// Holds a computation of an exact division.
-    fn div_exact_hold -> DivExactHold;
-    div_exact
-}
-unsafe fn div_exact(rop: *mut gmp::mpz_t,
-                    dividend: *const gmp::mpz_t,
-                    divisor: *const gmp::mpz_t) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_divexact(rop, dividend, divisor);
-}
-
-math_op1! {
-    /// Computes the `n`th root of `self` and truncates the result.
-    fn root;
-    /// Holds a computation of the `n`th root of the value.
-    fn root_hold -> RootHold;
-    gmp::mpz_root,
-    n: u32
-}
-math_op1_2! {
-    /// Computes the `n`th root of `self` and returns the truncated
-    /// root and the remainder. The remainder is `self` minus the
-    /// truncated root raised to the power of `n`. The remainder is
-    /// stored in `other`.
-    fn root_rem;
-    /// Sets `self` to the `n`th root of `op` and sets `other` to the
-    /// remainder. The remainder is `op` minus the truncated root
-    /// raised to the power of `n`.
-    fn assign_root_rem;
-    gmp::mpz_rootrem,
-    n: u32
-}
-math_op1! {
-    /// Computes the square root and truncates the result.
-    fn sqrt;
-    /// Holds a computation of the square root.
-    fn sqrt_hold -> SqrtHold;
-    gmp::mpz_sqrt
-}
-math_op1_2! {
-    /// Computes the square root of `self` and returns the truncated
-    /// root and the remainder. The remainder is `self` minus the
-    /// truncated root squared. The remainder is stored in `other`.
-    fn sqrt_rem;
-    /// Sets `self` to the square root of `op` and sets `other` to the
-    /// remainder. The remainder is `op` minus the truncated root
-    /// squared.
-    fn assign_sqrt_rem;
-    gmp::mpz_sqrtrem
-}
-math_op2! {
-    /// Finds the greatest common divisor. The result is always
-    /// positive except when both inputs are zero.
-    fn gcd;
-    /// Holds the computation of the greatest common divisor.
-    fn gcd_hold -> GcdHold;
-    gmp::mpz_gcd
-}
-math_op2! {
-    /// Finds the least common multiple. The result is always positive
-    /// except when one or both inputs are zero.
-    fn lcm;
-    /// Holds the computation of the least common multiple.
-    fn lcm_hold -> LcmHold;
-    gmp::mpz_lcm
-}
-impl Integer {
     /// Finds the inverse of `self` modulo `other` and returns `true`
     /// if an inverse exists.
     ///
@@ -612,28 +964,48 @@ impl Integer {
     ///
     /// Panics if `other` is zero.
     pub fn invert(&mut self, other: &Integer) -> bool {
-        assert_ne!(other.sign(), Ordering::Equal, "division by zero");
         unsafe {
-            gmp::mpz_invert(self.inner_mut(), self.inner(), other.inner()) != 0
+            xgmp::mpz_invert_check_0(self.inner_mut(),
+                                     self.inner(),
+                                     other.inner()) != 0
         }
     }
 
-    /// Sets `self` to the inverse of `op1` modulo `op2` and returns
-    /// `true` if an inverse exists.
+    /// Holds a computation of the inverse of `self` modulo `other`.
     ///
-    /// # Panics
+    /// # Examples
     ///
-    /// Panics if `op2` is zero.
-    pub fn assign_inverse(&mut self, op1: &Integer, op2: &Integer) -> bool {
-        assert_ne!(op2.sign(), Ordering::Equal, "division by zero");
-        unsafe {
-            gmp::mpz_invert(self.inner_mut(), op1.inner(), op2.inner()) != 0
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// let n = Integer::from(2);
+    /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
+    /// let (mut inv_4, mut exists_4) = (Integer::new(), false);
+    /// (&mut inv_4, &mut exists_4).assign(n.invert_hold(&Integer::from(4)));
+    /// assert!(!exists_4);
+    /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
+    /// let (mut inv_5, mut exists_5) = (Integer::new(), false);
+    /// (&mut inv_5, &mut exists_5).assign(n.invert_hold(&Integer::from(5)));
+    /// assert!(exists_5);
+    /// assert!(inv_5 == 3);
+    /// ```
+    pub fn invert_hold<'a>(&'a self, other: &'a Integer) -> InvertHold<'a> {
+        InvertHold {
+            lhs: self,
+            rhs: other,
         }
     }
-}
 
-impl Integer {
     /// Computes the factorial of `n`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+    /// i.assign_factorial(10);
+    /// assert!(i == 3628800);
+    /// ```
     pub fn assign_factorial(&mut self, n: u32) {
         unsafe {
             gmp::mpz_fac_ui(&mut self.inner, n.into());
@@ -641,6 +1013,16 @@ impl Integer {
     }
 
     /// Computes the double factorial of `n`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// // 10 * 8 * 6 * 4 * 2
+    /// i.assign_factorial_2(10);
+    /// assert!(i == 3840);
+    /// ```
     pub fn assign_factorial_2(&mut self, n: u32) {
         unsafe {
             gmp::mpz_2fac_ui(&mut self.inner, n.into());
@@ -648,6 +1030,16 @@ impl Integer {
     }
 
     /// Computes the `m`-multi factorial of `n`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// // 10 * 7 * 4 * 1
+    /// i.assign_factorial_m(10, 3);
+    /// assert!(i == 280);
+    /// ```
     pub fn assign_factorial_m(&mut self, n: u32, m: u32) {
         unsafe {
             gmp::mpz_mfac_uiui(&mut self.inner, n.into(), m.into());
@@ -655,24 +1047,60 @@ impl Integer {
     }
 
     /// Computes the primorial of `n`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// // 7 * 5 * 3 * 2
+    /// i.assign_primorial(10);
+    /// assert!(i == 210);
+    /// ```
     pub fn assign_primorial(&mut self, n: u32) {
         unsafe {
             gmp::mpz_primorial_ui(&mut self.inner, n.into());
         }
     }
-}
 
-math_op1! {
-    /// Computes the binomial coefficient `self` over `k`.
-    fn binomial;
-    /// Holds a computation of the binomial coefficient over `k`.
-    fn binomial_hold -> BinomialHold;
-    gmp::mpz_bin_ui,
-    k: u32
-}
+    math_op1! {
+        /// Computes the binomial coefficient `self` over `k`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// // 7 choose 2 is 21
+        /// let mut i = Integer::from(7);
+        /// assert!(*i.binomial(2) == 21);
+        /// ```
+        fn binomial;
+        /// Holds a computation of the binomial coefficient over `k`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// // 7 choose 2 is 21
+        /// let i = Integer::from(7);
+        /// assert!(Integer::from(i.binomial_hold(2)) == 21);
+        /// ```
+        fn binomial_hold -> BinomialHold;
+        gmp::mpz_bin_ui,
+        k: u32
+    }
 
-impl Integer {
     /// Computes the binomial coefficient `n` over `k`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// // 7 choose 2 is 21
+    /// let mut i = Integer::new();
+    /// i.assign_binomial_u(7, 2);
+    /// assert!(i == 21);
+    /// ```
     pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
         unsafe {
             gmp::mpz_bin_uiui(&mut self.inner, n.into(), k.into());
@@ -680,11 +1108,31 @@ impl Integer {
     }
 
     /// Compares the absolute values of `self` and `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::cmp::Ordering;
+    /// let a = Integer::from(-10);
+    /// let b = Integer::from(4);
+    /// assert!(a.cmp_abs(&b) == Ordering::Greater);
+    /// ```
     pub fn cmp_abs(&self, other: &Integer) -> Ordering {
         unsafe { gmp::mpz_cmpabs(&self.inner, &other.inner).cmp(&0) }
     }
 
     /// Returns the same result as self.cmp(0), but is faster.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::cmp::Ordering;
+    /// assert!(Integer::from(-5).sign() == Ordering::Less);
+    /// assert!(Integer::from(0).sign() == Ordering::Equal);
+    /// assert!(Integer::from(5).sign() == Ordering::Greater);
+    /// ```
     pub fn sign(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(&self.inner).cmp(&0) }
     }
@@ -776,6 +1224,16 @@ impl Integer {
 
     /// Sets the bit at location `index` to 1 if `val` is `true` or 0
     /// if `val` is `false`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// let mut i = Integer::from(-1);
+    /// assert!(*i.set_bit(0, false) == -2);
+    /// i.assign(0xff);
+    /// assert!(*i.set_bit(11, true) == 0x8ff);
+    /// ```
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Integer {
         unsafe {
             if val {
@@ -789,11 +1247,32 @@ impl Integer {
 
     /// Returns `true` if the bit at location `index` is 1 or `false`
     /// if the bit is 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::from(0b100101);
+    /// assert!(i.get_bit(0));
+    /// assert!(!i.get_bit(1));
+    /// assert!(i.get_bit(5));
+    /// let neg = Integer::from(-1);
+    /// assert!(neg.get_bit(1000));
+    /// ```
     pub fn get_bit(&self, index: u32) -> bool {
         unsafe { gmp::mpz_tstbit(&self.inner, index.into()) != 0 }
     }
 
     /// Toggles the bit at location `index`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::from(0b100101);
+    /// i.invert_bit(5);
+    /// assert!(i == 0b101);
+    /// ```
     pub fn invert_bit(&mut self, index: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_combit(&mut self.inner, index.into());
@@ -975,14 +1454,12 @@ macro_rules! from_borrow {
 }
 
 impl Assign for Integer {
-    /// Assigns from another `Integer`.
     fn assign(&mut self, mut other: Integer) {
         mem::swap(self, &mut other);
     }
 }
 
 impl<'a> Assign<&'a Integer> for Integer {
-    /// Assigns from another `Integer`.
     fn assign(&mut self, other: &'a Integer) {
         unsafe {
             gmp::mpz_set(&mut self.inner, &other.inner);
@@ -991,48 +1468,99 @@ impl<'a> Assign<&'a Integer> for Integer {
 }
 
 impl<'a> From<&'a Integer> for Integer {
-    /// Constructs an `Integer` from another `Integer`.
-    fn from(t: &Integer) -> Integer {
+    fn from(val: &Integer) -> Integer {
         unsafe {
             let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init_set(&mut inner, &t.inner);
+            gmp::mpz_init_set(&mut inner, &val.inner);
             Integer { inner: inner }
         }
     }
 }
 
 impl Assign<u32> for Integer {
-    /// Assigns from a `u32`.
     fn assign(&mut self, val: u32) {
         unsafe { gmp::mpz_set_ui(&mut self.inner, val.into()) }
     }
 }
 
 impl From<u32> for Integer {
-    /// Constructs an `Integer` from a `u32`.
-    fn from(t: u32) -> Integer {
+    fn from(val: u32) -> Integer {
         unsafe {
             let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init_set_ui(&mut inner, t.into());
+            gmp::mpz_init_set_ui(&mut inner, val.into());
             Integer { inner: inner }
         }
     }
 }
 
 impl Assign<i32> for Integer {
-    /// Assigns from an `i32`.
     fn assign(&mut self, val: i32) {
         unsafe { gmp::mpz_set_si(&mut self.inner, val.into()) }
     }
 }
 
 impl From<i32> for Integer {
-    /// Constructs an `Integer` from an `i32`.
-    fn from(t: i32) -> Integer {
+    fn from(val: i32) -> Integer {
         unsafe {
             let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init_set_si(&mut inner, t.into());
+            gmp::mpz_init_set_si(&mut inner, val.into());
             Integer { inner: inner }
+        }
+    }
+}
+
+impl Assign<u64> for Integer {
+    fn assign(&mut self, val: u64) {
+        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_ulong>() >= 8 {
+            unsafe { gmp::mpz_set_ui(&mut self.inner, val as c_ulong) }
+        } else {
+            self.assign((val >> 32) as u32);
+            *self <<= 32;
+            *self |= val as u32;
+        }
+    }
+}
+
+impl From<u64> for Integer {
+    fn from(val: u64) -> Integer {
+        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_ulong>() >= 8 {
+            unsafe {
+                let mut inner: mpz_t = mem::uninitialized();
+                gmp::mpz_init_set_ui(&mut inner, val as c_ulong);
+                Integer { inner: inner }
+            }
+        } else {
+            let i = Integer::from((val >> 32) as u32);
+            (i << 32) | (val as u32)
+        }
+    }
+}
+
+impl Assign<i64> for Integer {
+    fn assign(&mut self, val: i64) {
+        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_long>() >= 8 {
+            unsafe { gmp::mpz_set_si(&mut self.inner, val as c_long) }
+        } else {
+            self.assign((val >> 32) as i32);
+            *self <<= 32;
+            // cast lower half to u32, not to i32
+            *self |= val as u32;
+        }
+    }
+}
+
+impl From<i64> for Integer {
+    fn from(val: i64) -> Integer {
+        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_long>() >= 8 {
+            unsafe {
+                let mut inner: mpz_t = mem::uninitialized();
+                gmp::mpz_init_set_si(&mut inner, val as c_long);
+                Integer { inner: inner }
+            }
+        } else {
+            let i = Integer::from((val >> 32) as i32);
+            // cast lower half to u32, not to i32
+            (i << 32) | (val as u32)
         }
     }
 }
@@ -1181,44 +1709,37 @@ macro_rules! arith_noncommut {
 
 arith_unary! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegHold }
 arith_binary! { Add add, AddAssign add_assign, gmp::mpz_add, AddHold }
-arith_noncommut! { Sub sub,
-                   SubAssign sub_assign,
-                   SubFromAssign sub_from_assign,
-                   gmp::mpz_sub,
-                   SubHold }
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulHold }
-arith_noncommut! { Div div,
-                   DivAssign div_assign,
-                   DivFromAssign div_from_assign,
-                   mpz_tdiv_q,
-                   DivHold }
-arith_noncommut! { Rem rem,
-                   RemAssign rem_assign,
-                   RemFromAssign rem_from_assign,
-                   mpz_tdiv_r,
-                   RemHold }
-arith_unary! { Not not, NotAssign not_assign, gmp::mpz_com, NotHold }
-arith_binary! { BitAnd bitand,
-                BitAndAssign bitand_assign,
-                gmp::mpz_and,
-                BitAndHold }
-arith_binary! { BitOr bitor,
-                BitOrAssign bitor_assign,
-                gmp::mpz_ior,
-                BitOrHold }
-arith_binary! { BitXor bitxor,
-                BitXorAssign bitxor_assign,
-                gmp::mpz_xor,
-                BitXorHold }
-
-unsafe fn mpz_tdiv_q(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_tdiv_q(q, n, d);
+arith_noncommut! {
+    Sub sub,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    gmp::mpz_sub,
+    SubHold
 }
-
-unsafe fn mpz_tdiv_r(q: *mut mpz_t, n: *const mpz_t, d: *const mpz_t) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_tdiv_r(q, n, d);
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulHold }
+arith_noncommut! {
+    Div div,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    xgmp::mpz_tdiv_q_check_0,
+    DivHold
+}
+arith_noncommut! {
+    Rem rem,
+    RemAssign rem_assign,
+    RemFromAssign rem_from_assign,
+    xgmp::mpz_tdiv_r_check_0,
+    RemHold
+}
+arith_unary! { Not not, NotAssign not_assign, gmp::mpz_com, NotHold }
+arith_binary! {
+    BitAnd bitand, BitAndAssign bitand_assign, gmp::mpz_and, BitAndHold
+}
+arith_binary! {
+    BitOr bitor, BitOrAssign bitor_assign, gmp::mpz_ior, BitOrHold
+}
+arith_binary! {
+    BitXor bitxor, BitXorAssign bitxor_assign, gmp::mpz_xor, BitXorHold
 }
 
 macro_rules! arith_prim {
@@ -1365,434 +1886,125 @@ macro_rules! arith_prim_commut {
     };
 }
 
-arith_prim_commut! { Add add,
-                     AddAssign add_assign,
-                     u32,
-                     gmp::mpz_add_ui,
-                     AddHoldU32 }
-arith_prim_noncommut! { Sub sub,
-                        SubAssign sub_assign,
-                        SubFromAssign sub_from_assign,
-                        u32,
-                        gmp::mpz_sub_ui,
-                        gmp::mpz_ui_sub,
-                        SubHoldU32,
-                        SubFromHoldU32 }
-arith_prim_commut! { Mul mul,
-                     MulAssign mul_assign,
-                     u32,
-                     gmp::mpz_mul_ui,
-                     MulHoldU32 }
-arith_prim_noncommut! { Div div,
-                        DivAssign div_assign,
-                        DivFromAssign div_from_assign,
-                        u32,
-                        mpz_tdiv_q_ui,
-                        mpz_ui_tdiv_q,
-                        DivHoldU32,
-                        DivFromHoldU32 }
-arith_prim_noncommut! { Rem rem,
-                        RemAssign rem_assign,
-                        RemFromAssign rem_from_assign,
-                        u32,
-                        mpz_tdiv_r_ui,
-                        mpz_ui_tdiv_r,
-                        RemHoldU32,
-                        RemFromHoldU32 }
-arith_prim! { Shl shl,
-              ShlAssign shl_assign,
-              u32,
-              gmp::mpz_mul_2exp,
-              ShlHoldU32 }
-arith_prim! { Shr shr,
-              ShrAssign shr_assign,
-              u32,
-              gmp::mpz_fdiv_q_2exp,
-              ShrHoldU32 }
+arith_prim_commut! {
+    Add add, AddAssign add_assign, u32, gmp::mpz_add_ui, AddHoldU32
+}
+arith_prim_noncommut! {
+    Sub sub,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    u32,
+    gmp::mpz_sub_ui,
+    gmp::mpz_ui_sub,
+    SubHoldU32,
+    SubFromHoldU32
+}
+arith_prim_commut! {
+    Mul mul, MulAssign mul_assign, u32, gmp::mpz_mul_ui, MulHoldU32
+}
+arith_prim_noncommut! {
+    Div div,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    u32,
+    xgmp::mpz_tdiv_q_ui_check_0,
+    xgmp::mpz_ui_tdiv_q_check_0,
+    DivHoldU32,
+    DivFromHoldU32
+}
+arith_prim_noncommut! {
+    Rem rem,
+    RemAssign rem_assign,
+    RemFromAssign rem_from_assign,
+    u32,
+    xgmp::mpz_tdiv_r_ui_check_0,
+    xgmp::mpz_ui_tdiv_r_check_0,
+    RemHoldU32,
+    RemFromHoldU32
+}
+arith_prim! {
+    Shl shl, ShlAssign shl_assign, u32, gmp::mpz_mul_2exp, ShlHoldU32
+}
+arith_prim! {
+    Shr shr, ShrAssign shr_assign, u32, gmp::mpz_fdiv_q_2exp, ShrHoldU32
+}
 arith_prim! { Pow pow, PowAssign pow_assign, u32, gmp::mpz_pow_ui, PowHoldU32 }
-arith_prim_commut! { BitAnd bitand,
-                     BitAndAssign bitand_assign,
-                     u32,
-                     bitand_ui,
-                     BitAndHoldU32 }
-arith_prim_commut! { BitOr bitor,
-                     BitOrAssign bitor_assign,
-                     u32,
-                     bitor_ui,
-                     BitOrHoldU32 }
-arith_prim_commut! { BitXor bitxor,
-                     BitXorAssign bitxor_assign,
-                     u32,
-                     bitxor_ui,
-                     BitXorHoldU32 }
-
-arith_prim_commut! { Add add,
-                     AddAssign add_assign,
-                     i32,
-                     mpz_add_si,
-                     AddHoldI32 }
-arith_prim_noncommut! { Sub sub,
-                        SubAssign sub_assign,
-                        SubFromAssign sub_from_assign,
-                        i32,
-                        mpz_sub_si,
-                        mpz_si_sub,
-                        SubHoldI32,
-                        SubFromHoldI32 }
-arith_prim_commut! { Mul mul,
-                     MulAssign mul_assign,
-                     i32,
-                     gmp::mpz_mul_si,
-                     MulHoldI32 }
-arith_prim_noncommut! { Div div,
-                        DivAssign div_assign,
-                        DivFromAssign div_from_assign,
-                        i32,
-                        mpz_tdiv_q_si,
-                        mpz_si_tdiv_q,
-                        DivHoldI32,
-                        DivFromHoldI32 }
-arith_prim_noncommut! { Rem rem,
-                        RemAssign rem_assign,
-                        RemFromAssign rem_from_assign,
-                        i32,
-                        mpz_tdiv_r_si,
-                        mpz_si_tdiv_r,
-                        RemHoldI32,
-                        RemFromHoldI32 }
-arith_prim! { Shl shl, ShlAssign shl_assign, i32, mpz_lshift_si, ShlHoldI32 }
-arith_prim! { Shr shr, ShrAssign shr_assign, i32, mpz_rshift_si, ShrHoldI32 }
-arith_prim_commut! { BitAnd bitand,
-                     BitAndAssign bitand_assign,
-                     i32,
-                     bitand_si,
-                     BitAndHoldI32 }
-arith_prim_commut! { BitOr bitor,
-                     BitOrAssign bitor_assign,
-                     i32,
-                     bitor_si,
-                     BitOrHoldI32 }
-arith_prim_commut! { BitXor bitxor,
-                     BitXorAssign bitxor_assign,
-                     i32,
-                     bitxor_si,
-                     BitXorHoldI32 }
-
-unsafe fn mpz_tdiv_q_ui(q: *mut mpz_t, n: *const mpz_t, d: c_ulong) {
-    assert_ne!(d, 0, "division by zero");
-    gmp::mpz_tdiv_q_ui(q, n, d);
+arith_prim_commut! {
+    BitAnd bitand,
+    BitAndAssign bitand_assign,
+    u32,
+    xgmp::bitand_ui,
+    BitAndHoldU32
+}
+arith_prim_commut! {
+    BitOr bitor, BitOrAssign bitor_assign, u32, xgmp::bitor_ui, BitOrHoldU32
+}
+arith_prim_commut! {
+    BitXor bitxor,
+    BitXorAssign bitxor_assign,
+    u32,
+    xgmp::bitxor_ui,
+    BitXorHoldU32
 }
 
-unsafe fn mpz_ui_tdiv_q(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
-    let sgn_d = gmp::mpz_sgn(d);
-    assert_ne!(sgn_d, 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(d, n) > 0 {
-        gmp::mpz_set_ui(q, 0);
-    } else {
-        let ui = n / gmp::mpz_get_ui(d);
-        gmp::mpz_set_ui(q, ui);
-        if sgn_d < 0 {
-            gmp::mpz_neg(q, q);
-        }
-    }
+arith_prim_commut! {
+    Add add, AddAssign add_assign, i32, xgmp::mpz_add_si, AddHoldI32
 }
-
-unsafe fn mpz_tdiv_r_ui(q: *mut mpz_t, n: *const mpz_t, d: c_ulong) {
-    assert_ne!(d, 0, "division by zero");
-    gmp::mpz_tdiv_r_ui(q, n, d);
+arith_prim_noncommut! {
+    Sub sub,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    i32,
+    xgmp::mpz_sub_si,
+    xgmp::mpz_si_sub,
+    SubHoldI32,
+    SubFromHoldI32
 }
-
-unsafe fn mpz_ui_tdiv_r(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(d, n) > 0 {
-        gmp::mpz_set_ui(q, n);
-    } else {
-        let ui = n % gmp::mpz_get_ui(d);
-        gmp::mpz_set_ui(q, ui);
-    }
+arith_prim_commut! {
+    Mul mul, MulAssign mul_assign, i32, gmp::mpz_mul_si, MulHoldI32
 }
-
-unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = op2 as gmp::limb_t;
-    match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            (*rop).size = 0;
-        }
-        Ordering::Greater => {
-            *(*rop).d = *(*op1).d & lop2;
-            (*rop).size = if *(*rop).d == 0 { 0 } else { 1 }
-        }
-        Ordering::Less => {
-            *(*rop).d = (*(*op1).d).wrapping_neg() & lop2;
-            (*rop).size = if *(*rop).d == 0 { 0 } else { 1 }
-        }
-    }
+arith_prim_noncommut! {
+    Div div,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    i32,
+    xgmp::mpz_tdiv_q_si_check_0,
+    xgmp::mpz_si_tdiv_q_check_0,
+    DivHoldI32,
+    DivFromHoldI32
 }
-
-unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = op2 as gmp::limb_t;
-    match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            if op2 == 0 {
-                (*rop).size = 0;
-            } else {
-                *(*rop).d = lop2;
-                (*rop).size = 1;
-            }
-        }
-        Ordering::Greater => {
-            gmp::mpz_set(rop, op1);
-            *(*rop).d |= lop2;
-        }
-        Ordering::Less => {
-            gmp::mpz_com(rop, op1);
-            *(*rop).d &= !lop2;
-            if (*rop).size == 1 && *(*rop).d == 0 {
-                (*rop).size = 0;
-            }
-            gmp::mpz_com(rop, rop);
-        }
-    }
+arith_prim_noncommut! {
+    Rem rem,
+    RemAssign rem_assign,
+    RemFromAssign rem_from_assign,
+    i32,
+    xgmp::mpz_tdiv_r_si_check_0,
+    xgmp::mpz_si_tdiv_r_check_0,
+    RemHoldI32,
+    RemFromHoldI32
 }
-
-unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = op2 as gmp::limb_t;
-    match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            if op2 == 0 {
-                (*rop).size = 0;
-            } else {
-                *(*rop).d = lop2;
-                (*rop).size = 1;
-            }
-        }
-        Ordering::Greater => {
-            gmp::mpz_set(rop, op1);
-            *(*rop).d ^= lop2;
-            if (*rop).size == 1 && *(*rop).d == 0 {
-                (*rop).size = 0;
-            }
-        }
-        Ordering::Less => {
-            gmp::mpz_com(rop, op1);
-            if (*rop).size == 0 {
-                if lop2 != 0 {
-                    *(*rop).d = lop2;
-                    (*rop).size = 1;
-                }
-            } else {
-                *(*rop).d ^= lop2;
-                if (*rop).size == 1 && *(*rop).d == 0 {
-                    (*rop).size = 0;
-                }
-            }
-            gmp::mpz_com(rop, rop);
-        }
-    }
+arith_prim! {
+    Shl shl, ShlAssign shl_assign, i32, xgmp::mpz_lshift_si, ShlHoldI32
 }
-
-unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = if op2 >= 0 {
-        op2 as gmp::limb_t
-    } else {
-        !(!op2 as gmp::limb_t)
-    };
-    match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            (*rop).size = 0;
-        }
-        Ordering::Greater if op2 >= 0 => {
-            *(*rop).d = *(*op1).d & lop2;
-            (*rop).size = if *(*rop).d == 0 { 0 } else { 1 }
-        }
-        Ordering::Greater => {
-            gmp::mpz_set(rop, op1);
-            *(*rop).d &= lop2;
-            if (*rop).size == 1 && *(*rop).d == 0 {
-                (*rop).size = 0;
-            }
-        }
-        Ordering::Less if op2 >= 0 => {
-            *(*rop).d = (*(*op1).d).wrapping_neg() & lop2;
-            (*rop).size = if *(*rop).d == 0 { 0 } else { 1 }
-        }
-        Ordering::Less => {
-            gmp::mpz_com(rop, op1);
-            *(*rop).d |= !lop2;
-            if (*rop).size == 0 && !lop2 != 0 {
-                (*rop).size = 1;
-            }
-            gmp::mpz_com(rop, rop);
-        }
-    }
+arith_prim! {
+    Shr shr, ShrAssign shr_assign, i32, xgmp::mpz_rshift_si, ShrHoldI32
 }
-
-unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = if op2 >= 0 {
-        op2 as gmp::limb_t
-    } else {
-        !(!op2 as gmp::limb_t)
-    };
-    match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            gmp::mpz_set_si(rop, op2);
-        }
-        Ordering::Greater if op2 >= 0 => {
-            gmp::mpz_set(rop, op1);
-            *(*rop).d |= lop2;
-        }
-        Ordering::Greater => {
-            *(*rop).d = !(*(*op1).d) & !lop2;
-            (*rop).size = if *(*rop).d == 0 { 0 } else { 1 };
-            gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less if op2 >= 0 => {
-            gmp::mpz_com(rop, op1);
-            *(*rop).d &= !lop2;
-            if (*rop).size == 1 && *(*rop).d == 0 {
-                (*rop).size = 0;
-            }
-            gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less => {
-            *(*rop).d = (*(*op1).d).wrapping_sub(1) & !lop2;
-            (*rop).size = if *(*rop).d == 0 { 0 } else { 1 };
-            gmp::mpz_com(rop, rop);
-        }
-    }
+arith_prim_commut! {
+    BitAnd bitand,
+    BitAndAssign bitand_assign,
+    i32,
+    xgmp::bitand_si,
+    BitAndHoldI32
 }
-
-unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = if op2 >= 0 {
-        op2 as gmp::limb_t
-    } else {
-        !(!op2 as gmp::limb_t)
-    };
-    match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            gmp::mpz_set_si(rop, op2);
-        }
-        Ordering::Greater if op2 >= 0 => {
-            gmp::mpz_set(rop, op1);
-            *(*rop).d ^= lop2;
-            if (*rop).size == 1 && *(*rop).d == 0 {
-                (*rop).size = 0;
-            }
-        }
-        Ordering::Greater => {
-            gmp::mpz_set(rop, op1);
-            *(*rop).d ^= !lop2;
-            if (*rop).size == 1 && *(*rop).d == 0 {
-                (*rop).size = 0;
-            }
-            gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less if op2 >= 0 => {
-            gmp::mpz_com(rop, op1);
-            if (*rop).size == 0 {
-                if lop2 != 0 {
-                    *(*rop).d = lop2;
-                    (*rop).size = 1;
-                }
-            } else {
-                *(*rop).d ^= lop2;
-                if (*rop).size == 1 && *(*rop).d == 0 {
-                    (*rop).size = 0;
-                }
-            }
-            gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less => {
-            gmp::mpz_com(rop, op1);
-            if (*rop).size == 0 {
-                if !lop2 != 0 {
-                    *(*rop).d = !lop2;
-                    (*rop).size = 1;
-                }
-            } else {
-                *(*rop).d ^= !lop2;
-                if (*rop).size == 1 && *(*rop).d == 0 {
-                    (*rop).size = 0;
-                }
-            }
-        }
-    }
+arith_prim_commut! {
+    BitOr bitor, BitOrAssign bitor_assign, i32, xgmp::bitor_si, BitOrHoldI32
 }
-
-unsafe fn mpz_add_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_add_ui(rop, op1, op2 as c_ulong);
-    } else {
-        gmp::mpz_sub_ui(rop, op1, op2.wrapping_neg() as c_ulong);
-    }
-}
-
-unsafe fn mpz_sub_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_sub_ui(rop, op1, op2 as c_ulong);
-    } else {
-        gmp::mpz_add_ui(rop, op1, op2.wrapping_neg() as c_ulong);
-    }
-}
-
-unsafe fn mpz_si_sub(rop: *mut mpz_t, op1: c_long, op2: *const mpz_t) {
-    if op1 >= 0 {
-        gmp::mpz_ui_sub(rop, op1 as c_ulong, op2);
-    } else {
-        // is this the best we can do?
-        gmp::mpz_neg(rop, op2);
-        gmp::mpz_sub_ui(rop, rop, op1.wrapping_neg() as c_ulong);
-    }
-}
-
-unsafe fn mpz_tdiv_q_si(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
-    let neg = d < 0;
-    mpz_tdiv_q_ui(q, n, d.wrapping_abs() as c_ulong);
-    if neg {
-        gmp::mpz_neg(q, q);
-    }
-}
-
-unsafe fn mpz_si_tdiv_q(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
-    let neg = n < 0;
-    mpz_ui_tdiv_q(q, n.wrapping_abs() as c_ulong, d);
-    if neg {
-        gmp::mpz_neg(q, q);
-    }
-}
-
-unsafe fn mpz_tdiv_r_si(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
-    mpz_tdiv_r_ui(q, n, d.wrapping_abs() as c_ulong);
-}
-
-unsafe fn mpz_si_tdiv_r(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
-    let neg = n < 0;
-    mpz_ui_tdiv_r(q, n.wrapping_abs() as c_ulong, d);
-    if neg {
-        gmp::mpz_neg(q, q);
-    }
-}
-
-unsafe fn mpz_lshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_mul_2exp(rop, op1, op2 as c_ulong);
-    } else {
-        gmp::mpz_fdiv_q_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
-    }
-}
-
-unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_fdiv_q_2exp(rop, op1, op2 as c_ulong);
-    } else {
-        gmp::mpz_mul_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
-    }
+arith_prim_commut! {
+    BitXor bitxor,
+    BitXorAssign bitxor_assign,
+    i32,
+    xgmp::bitxor_si,
+    BitXorHoldI32
 }
 
 impl Eq for Integer {}
@@ -2042,6 +2254,174 @@ impl InnerMut for Integer {
     }
 }
 
+macro_rules! hold_math_op1 {
+    {
+        $(#[$attr_hold:meta])* struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            val: &'a Integer,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for Integer {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.val.inner() $(, src.$param.into())*);
+                }
+            }
+        }
+
+        from_borrow! { $Hold<'a> }
+    };
+}
+
+macro_rules! hold_math_op1_2 {
+    {
+        $(#[$attr_hold:meta])* struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            val: &'a Integer,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for (&'a mut Integer, &'a mut Integer) {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.0.inner_mut(), self.1.inner_mut(),
+                          src.val.inner() $(, src.$param.into())*);
+                }
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op2 {
+    {
+        $(#[$attr_hold:meta])* struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            lhs: &'a Integer,
+            rhs: &'a Integer,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for Integer {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.inner_mut(), src.lhs.inner(),
+                          src.rhs.inner() $(, src.$param.into())*);
+                }
+            }
+        }
+
+        from_borrow! { $Hold<'a> }
+    };
+}
+
+macro_rules! hold_math_op2_2 {
+    {
+        $(#[$attr_hold:meta])* struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            lhs: &'a Integer,
+            rhs: &'a Integer,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for (&'a mut Integer, &'a mut Integer) {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.0.inner_mut(), self.1.inner_mut(),
+                          src.lhs.inner(),
+                          src.rhs.inner() $(, src.$param.into())*);
+                }
+            }
+        }
+    };
+}
+
+hold_math_op2_2! {
+    /// Holds a computation of the quotient and remainder of a
+    /// division operation.
+    struct DivRemHold;
+    xgmp::mpz_tdiv_qr_check_0
+}
+hold_math_op1! {
+    /// Holds a computation of the absolute value.
+    struct AbsHold;
+    gmp::mpz_abs
+}
+hold_math_op2! {
+    /// Holds a computation of an exact division.
+    struct DivExactHold;
+    xgmp::mpz_divexact_check_0
+}
+hold_math_op1! {
+    /// Holds a computation of the `n`th root of the value.
+    struct RootHold;
+    gmp::mpz_root,
+    n: u32
+}
+hold_math_op1_2! {
+    /// Holds a computation of the truncation and remainder of the
+    /// `n`th root of the value.
+    struct RootRemHold;
+    gmp::mpz_rootrem,
+    n: u32
+}
+hold_math_op1! {
+    /// Holds a computation of the square root.
+    struct SqrtHold;
+    gmp::mpz_sqrt
+}
+hold_math_op1_2! {
+    /// Holds a computation of the truncation and remainder of the
+    /// square root of the value.
+    struct SqrtRemHold;
+    gmp::mpz_sqrtrem
+}
+hold_math_op2! {
+    /// Holds the computation of the greatest common divisor.
+    struct GcdHold;
+    gmp::mpz_gcd
+}
+hold_math_op2! {
+    struct LcmHold;
+    gmp::mpz_lcm
+}
+
+/// Holds the computation of an inverse.
+pub struct InvertHold<'a> {
+    lhs: &'a Integer,
+    rhs: &'a Integer,
+}
+
+impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
+    fn assign(&mut self, src: InvertHold<'a>) {
+        *self.1 = unsafe {
+            xgmp::mpz_invert_check_0(self.0.inner_mut(),
+                                     src.lhs.inner(),
+                                     src.rhs.inner())
+        } != 0;
+    }
+}
+
+hold_math_op1! {
+    /// Holds a computation of the binomial coefficient over `k`.
+    struct BinomialHold;
+    gmp::mpz_bin_ui,
+    k: u32
+}
+
 #[cfg(test)]
 mod tests {
     use gmp_mpfr_sys::gmp;
@@ -2251,6 +2631,13 @@ mod tests {
         i <<= 1000;
         assert!(i.to_f32() == f32::INFINITY);
         assert!(i.to_f64() == f64::INFINITY);
+        i.assign(-0xff_ffff);
+        assert!(i.to_f32() == -0xff_ffff as f32);
+        assert!(i.to_f64() == -0xff_ffff as f64);
+        i.assign(-0xfff_ffff);
+        println!("{:x}", (-i.to_f32()) as u32);
+        assert!(i.to_f32() == -0xff_ffff0 as f32);
+        assert!(i.to_f64() == -0xff_fffff as f64);
     }
 
     #[test]

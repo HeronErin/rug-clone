@@ -128,6 +128,7 @@ extern crate gmp_mpfr_sys;
 extern crate rand;
 
 mod integer;
+mod xgmp;
 
 pub use integer::{Integer, ParseIntegerError};
 
