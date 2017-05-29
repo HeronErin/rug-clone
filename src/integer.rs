@@ -116,7 +116,7 @@ macro_rules! math_op1 {
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
             $Hold {
                 val: self,
                 $($param: $param,)*
@@ -140,7 +140,7 @@ macro_rules! math_op1_2 {
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
             $Hold {
                 val: self,
                 $($param: $param,)*
@@ -1430,10 +1430,6 @@ fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseIntegerError> {
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;
-
-    /// Parses an `Integer`.
-    ///
-    /// See the [corresponding assignment](#method.assign_str).
     fn from_str(src: &str) -> Result<Integer, ParseIntegerError> {
         let mut i = Integer::new();
         i.assign_str(src)?;
@@ -1595,7 +1591,6 @@ macro_rules! arith_unary {
             }
         }
 
-        /// Holds an operation.
         pub struct $Hold<'a> {
             op: &'a Integer,
         }
@@ -1658,8 +1653,6 @@ macro_rules! arith_binary {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
         pub struct $Hold<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
@@ -1774,8 +1767,6 @@ macro_rules! arith_prim {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
         pub struct $Hold<'a> {
             lhs: &'a Integer,
             rhs: $T,
@@ -1836,8 +1827,6 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
         pub struct $HoldFrom<'a> {
             lhs: $T,
             rhs: &'a Integer,
@@ -2349,57 +2338,16 @@ macro_rules! hold_math_op2_2 {
     };
 }
 
-hold_math_op2_2! {
-    /// Holds a computation of the quotient and remainder of a
-    /// division operation.
-    struct DivRemHold;
-    xgmp::mpz_tdiv_qr_check_0
-}
-hold_math_op1! {
-    /// Holds a computation of the absolute value.
-    struct AbsHold;
-    gmp::mpz_abs
-}
-hold_math_op2! {
-    /// Holds a computation of an exact division.
-    struct DivExactHold;
-    xgmp::mpz_divexact_check_0
-}
-hold_math_op1! {
-    /// Holds a computation of the `n`th root of the value.
-    struct RootHold;
-    gmp::mpz_root,
-    n: u32
-}
-hold_math_op1_2! {
-    /// Holds a computation of the truncation and remainder of the
-    /// `n`th root of the value.
-    struct RootRemHold;
-    gmp::mpz_rootrem,
-    n: u32
-}
-hold_math_op1! {
-    /// Holds a computation of the square root.
-    struct SqrtHold;
-    gmp::mpz_sqrt
-}
-hold_math_op1_2! {
-    /// Holds a computation of the truncation and remainder of the
-    /// square root of the value.
-    struct SqrtRemHold;
-    gmp::mpz_sqrtrem
-}
-hold_math_op2! {
-    /// Holds the computation of the greatest common divisor.
-    struct GcdHold;
-    gmp::mpz_gcd
-}
-hold_math_op2! {
-    struct LcmHold;
-    gmp::mpz_lcm
-}
+hold_math_op2_2! { struct DivRemHold; xgmp::mpz_tdiv_qr_check_0 }
+hold_math_op1! { struct AbsHold; gmp::mpz_abs }
+hold_math_op2! { struct DivExactHold; xgmp::mpz_divexact_check_0 }
+hold_math_op1! { struct RootHold; gmp::mpz_root, n: u32 }
+hold_math_op1_2! { struct RootRemHold; gmp::mpz_rootrem, n: u32 }
+hold_math_op1! { struct SqrtHold; gmp::mpz_sqrt }
+hold_math_op1_2! { struct SqrtRemHold; gmp::mpz_sqrtrem }
+hold_math_op2! { struct GcdHold; gmp::mpz_gcd }
+hold_math_op2! { struct LcmHold; gmp::mpz_lcm }
 
-/// Holds the computation of an inverse.
 pub struct InvertHold<'a> {
     lhs: &'a Integer,
     rhs: &'a Integer,
@@ -2415,12 +2363,7 @@ impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
     }
 }
 
-hold_math_op1! {
-    /// Holds a computation of the binomial coefficient over `k`.
-    struct BinomialHold;
-    gmp::mpz_bin_ui,
-    k: u32
-}
+hold_math_op1! { struct BinomialHold; gmp::mpz_bin_ui, k: u32 }
 
 #[cfg(test)]
 mod tests {

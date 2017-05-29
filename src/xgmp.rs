@@ -128,7 +128,8 @@ pub unsafe fn mpz_si_tdiv_r_check_0(q: *mut mpz_t,
 
 pub unsafe fn mpz_invert_check_0(inv: *mut mpz_t,
                                  n: *const mpz_t,
-                                 m: *const mpz_t) -> c_int {
+                                 m: *const mpz_t)
+                                 -> c_int {
     assert_ne!(gmp::mpz_sgn(m), 0, "division by zero");
     gmp::mpz_invert(inv, n, m)
 }
