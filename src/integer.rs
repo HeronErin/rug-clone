@@ -102,7 +102,6 @@ impl Clone for Integer {
     }
 }
 
-
 /// A small integer that does not require any memory allocation.
 ///
 /// This can be useful when you have a `u32` or `i32` but need a
@@ -2971,14 +2970,14 @@ trait InnerMut: Inner {
 }
 
 impl Inner for Integer {
-    type Output = gmp::mpz_t;
-    fn inner(&self) -> &gmp::mpz_t {
+    type Output = mpz_t;
+    fn inner(&self) -> &mpz_t {
         &self.inner
     }
 }
 
 impl InnerMut for Integer {
-    unsafe fn inner_mut(&mut self) -> &mut gmp::mpz_t {
+    unsafe fn inner_mut(&mut self) -> &mut mpz_t {
         &mut self.inner
     }
 }
