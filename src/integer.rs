@@ -229,11 +229,11 @@ impl Integer {
     /// assert!(fits.to_u32() == Some(1234567890));
     /// let neg = Integer::from(-1);
     /// assert!(neg.to_u32() == None);
-    /// let large = "12345678901234567890".parse::<Integer>().unwrap();
+    /// let large = "123456789012345".parse::<Integer>().unwrap();
     /// assert!(large.to_u32() == None);
     /// ```
     pub fn to_u32(&self) -> Option<u32> {
-        if self.sign() != Ordering::Less && *self <= u32::MAX {
+        if unsafe { xgmp::mpz_fits_u32(&self.inner) } {
             Some(self.to_u32_wrapping())
         } else {
             None
@@ -271,10 +271,10 @@ impl Integer {
     /// let small = Integer::from(-123456789012345_i64);
     /// assert!(small.to_i32() == None);
     /// let large = Integer::from(123456789012345_u64);
-    /// assert!(large.to_u32() == None);
+    /// assert!(large.to_i32() == None);
     /// ```
     pub fn to_i32(&self) -> Option<i32> {
-        if *self >= i32::MIN && *self <= i32::MAX {
+        if unsafe { xgmp::mpz_fits_i32(&self.inner) } {
             Some(self.to_i32_wrapping())
         } else {
             None
@@ -295,6 +295,83 @@ impl Integer {
     /// ```
     pub fn to_i32_wrapping(&self) -> i32 {
         self.to_u32_wrapping() as i32
+    }
+
+    /// Converts to a `u64` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(123456789012345_u64);
+    /// assert!(fits.to_u64() == Some(123456789012345));
+    /// let neg = Integer::from(-1);
+    /// assert!(neg.to_u64() == None);
+    /// let large = "1234567890123456789012345".parse::<Integer>().unwrap();
+    /// assert!(large.to_u64() == None);
+    /// ```
+    pub fn to_u64(&self) -> Option<u64> {
+        if unsafe { xgmp::mpz_fits_u64(&self.inner) } {
+            Some(self.to_u64_wrapping())
+        } else {
+            None
+        }
+    }
+
+    /// Converts to a `u64`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(0x90abcdef_u64);
+    /// assert!(fits.to_u64_wrapping() == 0x90abcdef);
+    /// let neg = Integer::from(-1);
+    /// assert!(neg.to_u64_wrapping() == 0xffff_ffff_ffff_ffff);
+    /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
+    /// assert!(large.to_u64_wrapping() == 0x123456789abcdef0);
+    /// ```
+    pub fn to_u64_wrapping(&self) -> u64 {
+        let u = unsafe { xgmp::mpz_get_abs_u64(&self.inner) };
+        if self.sign() == Ordering::Less {
+            u.wrapping_neg()
+        } else {
+            u
+        }
+    }
+
+    /// Converts to an `i64` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(-50);
+    /// assert!(fits.to_i64() == Some(-50));
+    /// let small = Integer::from_str_radix("-fedcba9876543210", 16).unwrap();
+    /// assert!(small.to_i64() == None);
+    /// let large = Integer::from_str_radix("fedcba9876543210", 16).unwrap();
+    /// assert!(large.to_i64() == None);
+    /// ```
+    pub fn to_i64(&self) -> Option<i64> {
+        if unsafe { xgmp::mpz_fits_i64(&self.inner) } {
+            Some(self.to_i64_wrapping())
+        } else {
+            None
+        }
+    }
+
+    /// Converts to an `i64`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugint::Integer;
+    /// let fits = Integer::from(-0xabcdef);
+    /// assert!(fits.to_i64_wrapping() == -0xabcdef);
+    /// let small = Integer::from_str_radix("1ffffffffffffffff", 16).unwrap();
+    /// assert!(small.to_i64_wrapping() == -1);
+    /// let large = Integer::from_str_radix("f1234567890abcdef", 16).unwrap();
+    /// assert!(large.to_i64_wrapping() == 0x1234567890abcdef_i64);
+    /// ```
+    pub fn to_i64_wrapping(&self) -> i64 {
+        self.to_u64_wrapping() as i64
     }
 
     /// Assigns from an `f64` if it is finite, rounding towards zero.
@@ -2112,6 +2189,8 @@ macro_rules! cmp {
 
 cmp! { u32, gmp::mpz_cmp_ui }
 cmp! { i32, gmp::mpz_cmp_si }
+cmp! { u64, xgmp::mpz_cmp_u64 }
+cmp! { i64, xgmp::mpz_cmp_i64 }
 
 fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
@@ -2369,7 +2448,7 @@ hold_math_op1! { struct BinomialHold; gmp::mpz_bin_ui, k: u32 }
 mod tests {
     use gmp_mpfr_sys::gmp;
     use integer::*;
-    use std::{f32, f64, i32, u32};
+    use std::{f32, f64, i32, i64, u32, u64};
     use std::cmp::Ordering;
     use std::mem;
 
@@ -2531,27 +2610,75 @@ mod tests {
         let mut i = Integer::new();
         assert!(i.to_u32() == Some(0));
         assert!(i.to_i32() == Some(0));
+        assert!(i.to_u64() == Some(0));
+        assert!(i.to_i64() == Some(0));
         i -= 1;
         assert!(i.to_u32() == None);
         assert!(i.to_i32() == Some(-1));
+        assert!(i.to_u64() == None);
+        assert!(i.to_i64() == Some(-1));
+
         i.assign(i32::MIN);
         assert!(i.to_u32() == None);
         assert!(i.to_i32() == Some(i32::MIN));
+        assert!(i.to_u64() == None);
+        assert!(i.to_i64() == Some(i32::MIN as i64));
         i -= 1;
         assert!(i.to_u32() == None);
         assert!(i.to_i32() == None);
+        assert!(i.to_u64() == None);
+        assert!(i.to_i64() == Some(i32::MIN as i64 - 1));
         i.assign(i32::MAX);
         assert!(i.to_u32() == Some(i32::MAX as u32));
         assert!(i.to_i32() == Some(i32::MAX));
+        assert!(i.to_u64() == Some(i32::MAX as u64));
+        assert!(i.to_i64() == Some(i32::MAX as i64));
         i += 1;
         assert!(i.to_u32() == Some(i32::MAX as u32 + 1));
         assert!(i.to_i32() == None);
+        assert!(i.to_u64() == Some(i32::MAX as u64 + 1));
+        assert!(i.to_i64() == Some(i32::MAX as i64 + 1));
         i.assign(u32::MAX);
         assert!(i.to_u32() == Some(u32::MAX));
         assert!(i.to_i32() == None);
+        assert!(i.to_u64() == Some(u32::MAX as u64));
+        assert!(i.to_i64() == Some(u32::MAX as i64));
         i += 1;
         assert!(i.to_u32() == None);
         assert!(i.to_i32() == None);
+        assert!(i.to_u64() == Some(u32::MAX as u64 + 1));
+        assert!(i.to_i64() == Some(u32::MAX as i64 + 1));
+
+        i.assign(i64::MIN);
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        assert!(i.to_u64() == None);
+        assert!(i.to_i64() == Some(i64::MIN));
+        i -= 1;
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        assert!(i.to_u64() == None);
+        assert!(i.to_i64() == None);
+        i.assign(i64::MAX);
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        assert!(i.to_u64() == Some(i64::MAX as u64));
+        assert!(i.to_i64() == Some(i64::MAX));
+        i += 1;
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        assert!(i.to_u64() == Some(i64::MAX as u64 + 1));
+        assert!(i.to_i64() == None);
+        i.assign(u64::MAX);
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        assert!(i.to_u64() == Some(u64::MAX));
+        assert!(i.to_i64() == None);
+        i += 1;
+        assert!(i.to_u32() == None);
+        assert!(i.to_i32() == None);
+        assert!(i.to_u64() == None);
+        assert!(i.to_i64() == None);
     }
 
     #[test]
