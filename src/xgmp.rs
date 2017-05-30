@@ -409,7 +409,7 @@ pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
             0 => if op2 == 0 { 0 } else { -1 },
             neg if neg < 0 => -1,
             1 => {
-                match ((*(*op1).d) as u64).cmp(&(op2 as gmp::limb_t)) {
+                match (*(*op1).d).cmp(&(op2 as gmp::limb_t)) {
                     Ordering::Less => -1,
                     Ordering::Equal => 0,
                     Ordering::Greater => 1,
