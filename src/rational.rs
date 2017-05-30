@@ -28,6 +28,7 @@ use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int};
+use std::ptr;
 use std::str::FromStr;
 use xgmp;
 
@@ -84,6 +85,110 @@ impl Clone for Rational {
 
     fn clone_from(&mut self, source: &Rational) {
         self.assign(source);
+    }
+}
+
+/// A small rational that does not require any memory allocation.
+///
+/// This can be useful when you have a numerator and denominator that
+/// are `u32` or `i32` and you need a reference to an `Rational`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rugrat::{Rational, SmallRational};
+/// // `a` requires a heap allocation
+/// let mut a = Rational::from((100, 13));
+/// // `b` can reside on the stack
+/// let mut b = SmallRational::from((-100, 21));
+/// a /= b.get_ref();
+/// assert!(*a.numer() == -21);
+/// assert!(*a.denom() == 13);
+/// ```
+pub struct SmallRational {
+    inner: Mpq,
+    num: gmp::limb_t,
+    den: gmp::limb_t,
+}
+
+impl SmallRational {
+    /// Gets a `Rational` reference.
+    pub fn get_ref(&mut self) -> &Rational {
+        self.inner.num.d = &mut self.num;
+        self.inner.den.d = &mut self.den;
+        let ptr = (&self.inner) as *const _ as *const _;
+        unsafe { &*ptr }
+    }
+
+    fn new(neg: bool, num: gmp::limb_t, den: gmp::limb_t) -> SmallRational {
+        assert_ne!(den, 0, "division by zero");
+        let mut ret = SmallRational {
+            inner: Mpq {
+                num: gmp::mpz_t {
+                    size: if num == 0 {
+                        0
+                    } else if neg {
+                        -1
+                    } else {
+                        1
+                    },
+                    alloc: 1,
+                    d: ptr::null_mut(),
+                },
+                den: gmp::mpz_t {
+                    size: 1,
+                    alloc: 1,
+                    d: ptr::null_mut(),
+                },
+            },
+            num: num,
+            den: den,
+        };
+        ret.inner.num.d = &mut ret.num;
+        ret.inner.den.d = &mut ret.den;
+        unsafe {
+            gmp::mpq_canonicalize(&mut ret.inner as *mut _ as *mut _);
+        }
+        ret
+    }
+}
+
+struct Mpq {
+    num: gmp::mpz_t,
+    den: gmp::mpz_t,
+}
+
+impl From<(u32, u32)> for SmallRational {
+    fn from((num, den): (u32, u32)) -> SmallRational {
+        SmallRational::new(false, num as gmp::limb_t, den as gmp::limb_t)
+    }
+}
+
+impl From<(u32, i32)> for SmallRational {
+    fn from((num, den): (u32, i32)) -> SmallRational {
+        let den_neg = den < 0;
+        let den_mag = den.wrapping_abs() as u32;
+        SmallRational::new(den_neg, num as gmp::limb_t, den_mag as gmp::limb_t)
+    }
+}
+
+impl From<(i32, u32)> for SmallRational {
+    fn from((num, den): (i32, u32)) -> SmallRational {
+        let num_neg = num < 0;
+        let num_mag = num.wrapping_abs() as u32;
+        SmallRational::new(num_neg, num_mag as gmp::limb_t, den as gmp::limb_t)
+    }
+}
+
+impl From<(i32, i32)> for SmallRational {
+    fn from((num, den): (i32, i32)) -> SmallRational {
+        let num_neg = num < 0;
+        let num_mag = num.wrapping_abs() as u32;
+        let den_neg = den < 0;
+        let den_mag = den.wrapping_abs() as u32;
+        SmallRational::new(num_neg != den_neg,
+                           num_mag as gmp::limb_t,
+                           den_mag as gmp::limb_t)
     }
 }
 
@@ -861,41 +966,24 @@ cmp! {
 cmp! { u32, |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1).cmp(&0) } }
 cmp! { i32, |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1).cmp(&0) } }
 
-cmp! {
-    (u32, u32),
-    |r, t: &(u32, u32)| {
-        assert_ne!(t.1, 0, "division by zero");
-        unsafe { gmp::mpq_cmp_ui(r, t.0.into(), t.1.into()).cmp(&0) }
-    }
+macro_rules! cmp_frac {
+    { $Num:ty, $Den:ty } => {
+        cmp! {
+            ($Num, $Den),
+            |r, t: &($Num, $Den)| {
+                let mut small = SmallRational::from(*t);
+                unsafe {
+                    gmp::mpq_cmp(r, small.get_ref().inner()).cmp(&0)
+                }
+            }
+        }
+    };
 }
-cmp! {
-    (i32, u32),
-    |r, t: &(i32, u32)| {
-        let mut num = (t.0.wrapping_abs() as u32).into();
-        let mut den = t.1.into();
-        let limbs_rat = unsafe { single_limbs((&mut num, &mut den), t.0 < 0) };
-        unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
-    }
-}
-cmp! {
-    (u32, i32),
-    |r, t: &(u32, i32)| {
-        let mut num = t.0.into();
-        let mut den = (t.1.wrapping_abs() as u32).into();
-        let limbs_rat = unsafe { single_limbs((&mut num, &mut den), t.1 < 0) };
-        unsafe {gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
-    }
-}
-cmp! {
-    (i32, i32),
-    |r, t: &(i32, i32)| {
-        let mut num = (t.0.wrapping_abs() as u32).into();
-        let mut den = (t.1.wrapping_abs() as u32).into();
-        let neg = (t.0 < 0) != (t.1 < 0);
-        let limbs_rat = unsafe { single_limbs((&mut num, &mut den), neg) };
-        unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
-    }
-}
+
+cmp_frac! { u32, u32 }
+cmp_frac! { u32, i32 }
+cmp_frac! { i32, u32 }
+cmp_frac! { i32, i32 }
 
 fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
@@ -1028,34 +1116,6 @@ impl<'a> Drop for MutNumerDenom<'a> {
             mem::swap(rat_den, &mut *canon_den_ptr);
         }
     }
-}
-
-// The return struct has pointers to the given limbs, so no
-// deallocation must take place. This function panics if limbs.1 is 0,
-// so there is no need to check before calling it.
-unsafe fn single_limbs(limbs: (&mut gmp::limb_t, &mut gmp::limb_t),
-                       neg: bool)
-                       -> mpq_t {
-    assert_ne!(*limbs.1, 0, "division by zero");
-    let mut ret = mem::uninitialized();
-    *gmp::mpq_numref(&mut ret) = gmp::mpz_t {
-        alloc: 1,
-        d: limbs.0,
-        size: if *limbs.0 == 0 {
-            0
-        } else if neg {
-            -1
-        } else {
-            1
-        },
-    };
-    *gmp::mpq_denref(&mut ret) = gmp::mpz_t {
-        alloc: 1,
-        d: limbs.1,
-        size: 1,
-    };
-    gmp::mpq_canonicalize(&mut ret);
-    ret
 }
 
 trait Inner {
