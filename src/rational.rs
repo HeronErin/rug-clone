@@ -14,7 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use gmp_mpfr_sys::gmp;
+
+use gmp_mpfr_sys::gmp::{self, mpq_t};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use std::cmp::Ordering;
@@ -26,8 +27,9 @@ use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::{c_char, c_int, c_long, c_ulong};
+use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
+use xgmp;
 
 /// An arbitrary-precision rational number.
 ///
@@ -56,13 +58,13 @@ use std::str::FromStr;
 /// }
 /// ```
 pub struct Rational {
-    inner: gmp::mpq_t,
+    inner: mpq_t,
 }
 
 impl Drop for Rational {
     fn drop(&mut self) {
         unsafe {
-            gmp::mpq_clear(&mut self.inner);
+            gmp::mpq_clear(self.inner_mut());
         }
     }
 }
@@ -88,7 +90,7 @@ impl Clone for Rational {
 impl Rational {
     /// Constructs a new arbitrary-precision rational number with value 0.
     pub fn new() -> Rational {
-        let mut inner: gmp::mpq_t = unsafe { mem::uninitialized() };
+        let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
             gmp::mpq_init(&mut inner);
         }
@@ -99,7 +101,7 @@ impl Rational {
     fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             unsafe {
-                gmp::mpq_set_d(&mut self.inner, val);
+                gmp::mpq_set_d(self.inner_mut(), val);
             }
             Ok(())
         } else {
@@ -121,7 +123,7 @@ impl Rational {
 
     /// Converts `self` to an `f64`, rounding towards zero.
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpq_get_d(&self.inner) }
+        unsafe { gmp::mpq_get_d(self.inner()) }
     }
 
     /// Assigns from an `f32` if it is finite, losing no precision.
@@ -143,7 +145,7 @@ impl Rational {
     /// Borrows the numerator.
     pub fn numer(&self) -> &Integer {
         unsafe {
-            let ptr = gmp::mpq_numref(&self.inner as *const _ as *mut _);
+            let ptr = gmp::mpq_numref(self.inner() as *const _ as *mut _);
             &*(ptr as *const Integer)
         }
     }
@@ -151,7 +153,7 @@ impl Rational {
     /// Borrows the denominator.
     pub fn denom(&self) -> &Integer {
         unsafe {
-            let ptr = gmp::mpq_denref(&self.inner as *const _ as *mut _);
+            let ptr = gmp::mpq_denref(self.inner() as *const _ as *mut _);
             &*(ptr as *const Integer)
         }
     }
@@ -187,8 +189,8 @@ impl Rational {
     /// Panics if the denominator is zero when the borrow ends.
     pub fn as_mut_numer_denom(&mut self) -> MutNumerDenom {
         unsafe {
-            let numer_ptr = gmp::mpq_numref(&mut self.inner);
-            let denom_ptr = gmp::mpq_denref(&mut self.inner);
+            let numer_ptr = gmp::mpq_numref(self.inner_mut());
+            let denom_ptr = gmp::mpq_denref(self.inner_mut());
             MutNumerDenom(&mut *(numer_ptr as *mut Integer),
                           &mut *(denom_ptr as *mut Integer))
         }
@@ -212,7 +214,7 @@ impl Rational {
     /// Computes the absolute value of `self`
     pub fn abs(&mut self) -> &mut Rational {
         unsafe {
-            gmp::mpq_abs(&mut self.inner, &self.inner);
+            gmp::mpq_abs(self.inner_mut(), self.inner());
         }
         self
     }
@@ -220,7 +222,7 @@ impl Rational {
     /// Sets `self` to the absolute value of `val`
     pub fn setabs(&mut self, val: &Rational) -> &mut Rational {
         unsafe {
-            gmp::mpq_abs(&mut self.inner, &val.inner);
+            gmp::mpq_abs(self.inner_mut(), val.inner());
         }
         self
     }
@@ -233,7 +235,7 @@ impl Rational {
     pub fn recip(&mut self) -> &mut Rational {
         assert_ne!(self.sign(), Ordering::Equal, "division by zero");
         unsafe {
-            gmp::mpq_inv(&mut self.inner, &self.inner);
+            gmp::mpq_inv(self.inner_mut(), self.inner());
         }
         self
     }
@@ -246,7 +248,7 @@ impl Rational {
     pub fn set_recip(&mut self, val: &Rational) -> &mut Rational {
         assert_ne!(val.sign(), Ordering::Equal, "division by zero");
         unsafe {
-            gmp::mpq_inv(&mut self.inner, &val.inner);
+            gmp::mpq_inv(self.inner_mut(), val.inner());
         }
         self
     }
@@ -337,11 +339,11 @@ impl Rational {
         let s = check_str_radix(src, radix)?;
         let c_str = CString::new(s).unwrap();
         let err = unsafe {
-            gmp::mpq_set_str(&mut self.inner, c_str.as_ptr(), radix.into())
+            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), radix.into())
         };
         assert_eq!(err, 0);
         unsafe {
-            gmp::mpq_canonicalize(&mut self.inner);
+            gmp::mpq_canonicalize(self.inner_mut());
         }
         Ok(())
     }
@@ -417,10 +419,6 @@ fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseRationalError> {
 
 impl FromStr for Rational {
     type Err = ParseRationalError;
-
-    /// Parses a `Rational` number.
-    ///
-    /// See the [corresponding assignment](#method.assign_str).
     fn from_str(src: &str) -> Result<Rational, ParseRationalError> {
         let mut r = Rational::new();
         r.assign_str(src)?;
@@ -429,10 +427,8 @@ impl FromStr for Rational {
 }
 
 macro_rules! from_borrow {
-    { $d:expr, $T:ty } => {
+    { $T:ty } => {
         impl<'a> From<$T> for Rational {
-            /// Constructs a `Rational` number from
-            #[doc=$d]
             fn from(t: $T) -> Rational {
                 let mut ret = Rational::new();
                 ret.assign(t);
@@ -443,10 +439,8 @@ macro_rules! from_borrow {
 }
 
 macro_rules! from {
-    { $d:expr, $T:ty } => {
+    { $T:ty } => {
         impl From<$T> for Rational {
-            /// Constructs a `Rational` number from
-            #[doc=$d]
             fn from(t: $T) -> Rational {
                 let mut ret = Rational::new();
                 ret.assign(t);
@@ -456,7 +450,7 @@ macro_rules! from {
     };
 }
 
-from_borrow! { "another `Rational` number.", &'a Rational }
+from_borrow! { &'a Rational }
 
 impl From<Integer> for Rational {
     /// Constructs a `Rational` number from an `Integer`.
@@ -468,7 +462,7 @@ impl From<Integer> for Rational {
     }
 }
 
-from_borrow! { "an `Integer`.", &'a Integer }
+from_borrow! { &'a Integer }
 
 impl From<(Integer, Integer)> for Rational {
     /// Constructs a `Rational` number from a numerator `Integer` and
@@ -494,35 +488,24 @@ impl From<(Integer, Integer)> for Rational {
     }
 }
 
-from_borrow! { "a numerator `Integer` and denominator `Integer`.",
-                (&'a Integer, &'a Integer) }
+from_borrow! { (&'a Integer, &'a Integer) }
 
-from! { "a `u32`.", u32 }
-from! { "an `i32`.", i32 }
-from! { "a numerator `u32` and denominator `u32`.\n\n\
-         # Panics\n\n\
-         Panics if the denominator is zero.", (u32, u32) }
-from! { "a numerator `i32` and denominator `u32`.\n\n\
-         # Panics\n\n\
-         Panics if the denominator is zero.", (i32, u32) }
-from! { "a numerator `u32` and denominator `i32`.\n\n\
-         # Panics\n\n\
-         Panics if the denominator is zero.", (u32, i32) }
-from! { "a numerator `i32` and denominator `i32`.\n\n\
-         # Panics\n\n\
-         Panics if the denominator is zero.", (i32, i32) }
+from! { u32 }
+from! { i32 }
+from! { (u32, u32) }
+from! { (i32, u32) }
+from! { (u32, i32) }
+from! { (i32, i32) }
 
 impl<'a> Assign<&'a Rational> for Rational {
-    /// Assigns from another `Rational` number.
     fn assign(&mut self, other: &'a Rational) {
         unsafe {
-            gmp::mpq_set(&mut self.inner, &other.inner);
+            gmp::mpq_set(self.inner_mut(), other.inner());
         }
     }
 }
 
 impl Assign for Rational {
-    /// Assigns from another `Rational` number.
     fn assign(&mut self, mut other: Rational) {
         self.assign(&other);
         mem::swap(self, &mut other);
@@ -530,31 +513,31 @@ impl Assign for Rational {
 }
 
 impl<'a> Assign<&'a Integer> for Rational {
-    /// Assigns from an `Integer`.
     fn assign(&mut self, val: &'a Integer) {
         unsafe {
-            gmp::mpq_set_z(&mut self.inner, integer_inner(val));
+            gmp::mpq_set_z(self.inner_mut(), val.inner());
         }
     }
 }
 
 impl Assign<Integer> for Rational {
-    /// Assigns from an `Integer`.
     fn assign(&mut self, mut val: Integer) {
-        let numer =
-            unsafe { &mut *(gmp::mpq_numref(&mut self.inner) as *mut Integer) };
-        let denom =
-            unsafe { &mut *(gmp::mpq_numref(&mut self.inner) as *mut Integer) };
+        let numer = unsafe {
+            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut Integer)
+        };
+        let denom = unsafe {
+            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut Integer)
+        };
         mem::swap(numer, &mut val);
         denom.assign(1);
     }
 }
 
 macro_rules! assign_frac {
-    { $d:expr, $T1:ty, $T2:ty } => {
+    { $T1:ty, $T2:ty } => {
         impl Assign<($T1, $T2)> for Rational {
-            /// Assigns from
-            #[doc=$d]
+            /// Assigns to a `Rational` number from a numerator and
+            /// denominator.
             ///
             /// # Panics
             ///
@@ -568,15 +551,9 @@ macro_rules! assign_frac {
     };
 }
 
-assign_frac! { "a numerator `Integer` and a denominator `Integer`.",
-                Integer, Integer }
+assign_frac! { Integer, Integer }
 
 impl<'a> Assign<(&'a Integer, &'a Integer)> for Rational {
-    /// Assigns from a numerator `Integer` and a denominator `Integer`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the denominator is zero.
     fn assign(&mut self, (num, den): (&Integer, &Integer)) {
         let num_den = self.as_mut_numer_denom();
         num_den.0.assign(num);
@@ -585,35 +562,31 @@ impl<'a> Assign<(&'a Integer, &'a Integer)> for Rational {
 }
 
 impl Assign<u32> for Rational {
-    /// Assigns from a `u32`.
     fn assign(&mut self, val: u32) {
         self.assign((val, 1u32));
     }
 }
 
 impl Assign<i32> for Rational {
-    /// Assigns from an `i32`.
     fn assign(&mut self, val: i32) {
         self.assign((val, 1i32));
     }
 }
 
-assign_frac! { "a numerator `u32` and a denominator `u32`.", u32, u32 }
-assign_frac! { "a numerator `i32` and a denominator `u32`.", i32, u32 }
-assign_frac! { "a numerator `u32` and a denominator `i32`.", u32, i32 }
-assign_frac! { "a numerator `i32` and a denominator `i32`.", i32, i32 }
+assign_frac! { u32, u32 }
+assign_frac! { i32, u32 }
+assign_frac! { u32, i32 }
+assign_frac! { i32, i32 }
 
 impl<'a> Assign<&'a Rational> for Integer {
-    /// Assigns from a `Rational` number, rounding towards zero.
     fn assign(&mut self, val: &'a Rational) {
         unsafe {
-            gmp::mpz_set_q(integer_inner_mut(self), &val.inner);
+            gmp::mpz_set_q(self.inner_mut(), val.inner());
         }
     }
 }
 
 impl<'a> Assign<Rational> for Integer {
-    /// Assigns from a `Rational` number, rounding towards zero.
     fn assign(&mut self, val: Rational) {
         self.assign(&val);
     }
@@ -624,7 +597,7 @@ macro_rules! arith_binary {
         $Imp:ident $method:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Inter: ident
+        $Hold: ident
     } => {
         impl<'a> $Imp<&'a Rational> for Rational {
             type Output = Rational;
@@ -644,7 +617,7 @@ macro_rules! arith_binary {
         impl<'a> $ImpAssign<&'a Rational> for Rational {
             fn $method_assign(&mut self, op: &'a Rational) {
                 unsafe {
-                    $func(&mut self.inner, &self.inner, &op.inner);
+                    $func(self.inner_mut(), self.inner(), op.inner());
                 }
             }
         }
@@ -656,33 +629,29 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a Rational> for &'a Rational {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, rhs: &'a Rational) -> $Inter<'a> {
-                $Inter {
+            type Output = $Hold<'a>;
+            fn $method(self, rhs: &'a Rational) -> $Hold<'a> {
+                $Hold {
                     lhs: self,
                     rhs: rhs,
                 }
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        pub struct $Inter<'a> {
+        pub struct $Hold<'a> {
             lhs: &'a Rational,
             rhs: &'a Rational,
         }
 
-        impl<'a> Assign<$Inter<'a>> for Rational {
-            fn assign(&mut self, rhs: $Inter) {
+        impl<'a> Assign<$Hold<'a>> for Rational {
+            fn assign(&mut self, rhs: $Hold) {
                 unsafe {
-                    $func(&mut self.inner, &rhs.lhs.inner, &rhs.rhs.inner);
+                    $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.inner());
                 }
             }
         }
 
-        from_borrow! { "an intermediate value.", $Inter<'a> }
+        from_borrow! { $Hold<'a> }
     };
 }
 
@@ -692,17 +661,17 @@ macro_rules! arith_noncommut {
         $ImpAssign:ident $method_assign:ident,
         $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $Inter:ident
+        $Hold:ident
     } => {
         arith_binary! { $Imp $method,
                         $ImpAssign $method_assign,
                         $func,
-                        $Inter }
+                        $Hold }
 
         impl<'a> $ImpFromAssign<&'a Rational> for Rational {
             fn $method_from_assign(&mut self, lhs: &'a Rational) {
                 unsafe {
-                    $func(&mut self.inner, &lhs.inner, &self.inner);
+                    $func(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
         }
@@ -716,18 +685,22 @@ macro_rules! arith_noncommut {
     };
 }
 
-arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddInter }
-arith_noncommut! { Sub sub,
-                   SubAssign sub_assign,
-                   SubFromAssign sub_from_assign,
-                   gmp::mpq_sub,
-                   SubInter }
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulInter }
-arith_noncommut! { Div div,
-                   DivAssign div_assign,
-                   DivFromAssign div_from_assign,
-                   gmp::mpq_div,
-                   DivInter }
+arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddHold }
+arith_noncommut! {
+    Sub sub,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    gmp::mpq_sub,
+    SubHold
+}
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulHold }
+arith_noncommut! {
+    Div div,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    gmp::mpq_div,
+    DivHold
+}
 
 impl Neg for Rational {
     type Output = Rational;
@@ -740,42 +713,38 @@ impl Neg for Rational {
 impl NegAssign for Rational {
     fn neg_assign(&mut self) {
         unsafe {
-            gmp::mpq_neg(&mut self.inner, &self.inner);
+            gmp::mpq_neg(self.inner_mut(), self.inner());
         }
     }
 }
 
 impl<'a> Neg for &'a Rational {
-    /// An intermediate value.
-    type Output = NegInter<'a>;
-    /// Creates an intermediate value.
-    fn neg(self) -> NegInter<'a> {
-        NegInter { op: self }
+    type Output = NegHold<'a>;
+    fn neg(self) -> NegHold<'a> {
+        NegHold { op: self }
     }
 }
 
-/// This is actually private, this documentation should not be
-/// visible.
-pub struct NegInter<'a> {
+pub struct NegHold<'a> {
     op: &'a Rational,
 }
 
-impl<'a> Assign<NegInter<'a>> for Rational {
-    fn assign(&mut self, rhs: NegInter) {
+impl<'a> Assign<NegHold<'a>> for Rational {
+    fn assign(&mut self, rhs: NegHold) {
         unsafe {
-            gmp::mpq_neg(&mut self.inner, &rhs.op.inner);
+            gmp::mpq_neg(self.inner_mut(), rhs.op.inner());
         }
     }
 }
 
-from_borrow! { "an intermediate value.", NegInter<'a> }
+from_borrow! { NegHold<'a> }
 
 macro_rules! arith_prim {
     ($Imp:ident $method:ident,
      $ImpAssign:ident $method_assign:ident,
      $T:ty,
      $func:path,
-     $Inter:ident) => {
+     $Hold:ident) => {
         impl $Imp<$T> for Rational {
             type Output = Rational;
             fn $method(mut self, op: $T) -> Rational {
@@ -787,112 +756,65 @@ macro_rules! arith_prim {
         impl $ImpAssign<$T> for Rational {
             fn $method_assign(&mut self, op: $T) {
                 unsafe {
-                    $func(&mut self.inner, &self.inner, op.into());
+                    $func(self.inner_mut(), self.inner(), op.into());
                 }
             }
         }
 
         impl<'a> $Imp<$T> for &'a Rational {
-            /// An intermediate value.
-            type Output = $Inter<'a>;
-            /// Creates an intermediate value.
-            fn $method(self, op: $T) -> $Inter<'a> {
-                $Inter {
+            type Output = $Hold<'a>;
+            fn $method(self, op: $T) -> $Hold<'a> {
+                $Hold {
                     lhs: self,
                     rhs: op,
                 }
             }
         }
 
-        /// This is actually private, this documentation should not be
-        /// visible.
-        pub struct $Inter<'a> {
+        pub struct $Hold<'a> {
             lhs: &'a Rational,
             rhs: $T,
         }
 
-        impl<'a> Assign<$Inter<'a>> for Rational {
-            fn assign(&mut self, rhs: $Inter) {
+        impl<'a> Assign<$Hold<'a>> for Rational {
+            fn assign(&mut self, rhs: $Hold) {
                 unsafe {
-                    $func(&mut self.inner, &rhs.lhs.inner, rhs.rhs.into());
+                    $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.into());
                 }
             }
         }
 
-        from_borrow! { "an intermediate value.", $Inter<'a> }
+        from_borrow! { $Hold<'a> }
     };
 }
 
-arith_prim! { Shl shl,
-              ShlAssign shl_assign,
-              u32,
-              gmp::mpq_mul_2exp,
-              ShlInterU32 }
-arith_prim! { Shr shr,
-              ShrAssign shr_assign,
-              u32,
-              gmp::mpq_div_2exp,
-              ShrInterU32 }
-arith_prim! { Pow pow, PowAssign pow_assign, u32, mpq_pow_ui, PowInterU32 }
-arith_prim! { Shl shl, ShlAssign shl_assign, i32, mpq_mul_2exp_si, ShlInterI32 }
-arith_prim! { Shr shr, ShrAssign shr_assign, i32, mpq_div_2exp_si, ShrInterI32 }
-arith_prim! { Pow pow, PowAssign pow_assign, i32, mpq_pow_si, PowInterI32 }
-
-unsafe fn mpq_mul_2exp_si(rop: *mut gmp::mpq_t,
-                          op1: *const gmp::mpq_t,
-                          op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpq_mul_2exp(rop, op1, op2 as c_ulong);
-    } else {
-        gmp::mpq_div_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
-    }
+arith_prim! {
+    Shl shl, ShlAssign shl_assign, u32, gmp::mpq_mul_2exp, ShlHoldU32
 }
-
-unsafe fn mpq_div_2exp_si(rop: *mut gmp::mpq_t,
-                          op1: *const gmp::mpq_t,
-                          op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpq_div_2exp(rop, op1, op2 as c_ulong);
-    } else {
-        gmp::mpq_mul_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
-    }
+arith_prim! {
+    Shr shr, ShrAssign shr_assign, u32, gmp::mpq_div_2exp, ShrHoldU32
 }
-
-unsafe fn mpq_pow_ui(rop: *mut gmp::mpq_t,
-                     op1: *const gmp::mpq_t,
-                     op2: c_ulong) {
-    let rop_num = gmp::mpq_numref(rop);
-    let rop_den = gmp::mpq_denref(rop);
-    let op1_num = gmp::mpq_numref(op1 as *mut _) as *const _;
-    let op1_den = gmp::mpq_denref(op1 as *mut _) as *const _;
-    gmp::mpz_pow_ui(rop_num, op1_num, op2);
-    gmp::mpz_pow_ui(rop_den, op1_den, op2);
+arith_prim! { Pow pow, PowAssign pow_assign, u32, xgmp::mpq_pow_ui, PowHoldU32 }
+arith_prim! {
+    Shl shl, ShlAssign shl_assign, i32, xgmp::mpq_mul_2exp_si, ShlHoldI32
 }
-
-unsafe fn mpq_pow_si(rop: *mut gmp::mpq_t,
-                     op1: *const gmp::mpq_t,
-                     op2: c_long) {
-    if op2 < 0 {
-        assert_ne!(gmp::mpq_sgn(op1), 0, "division by zero");
-        gmp::mpq_inv(rop, op1);
-        mpq_pow_ui(rop, rop, op2.wrapping_neg() as c_ulong);
-    } else {
-        mpq_pow_ui(rop, op1, op2 as c_ulong);
-    };
+arith_prim! {
+    Shr shr, ShrAssign shr_assign, i32, xgmp::mpq_div_2exp_si, ShrHoldI32
 }
+arith_prim! { Pow pow, PowAssign pow_assign, i32, xgmp::mpq_pow_si, PowHoldI32 }
 
 impl Eq for Rational {}
 
 impl Ord for Rational {
     fn cmp(&self, other: &Rational) -> Ordering {
-        let ord = unsafe { gmp::mpq_cmp(&self.inner, &other.inner) };
+        let ord = unsafe { gmp::mpq_cmp(self.inner(), other.inner()) };
         ord.cmp(&0)
     }
 }
 
 impl PartialEq for Rational {
     fn eq(&self, other: &Rational) -> bool {
-        unsafe { gmp::mpq_equal(&self.inner, &other.inner) != 0 }
+        unsafe { gmp::mpq_equal(self.inner(), other.inner()) != 0 }
     }
 }
 
@@ -912,7 +834,7 @@ macro_rules! cmp {
 
         impl PartialOrd<$T> for Rational {
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                Some($eval(&self.inner, other))
+                Some($eval(self.inner(), other))
             }
         }
 
@@ -933,39 +855,53 @@ macro_rules! cmp {
     }
 }
 
-cmp! { Integer, |r, t| unsafe { gmp::mpq_cmp_z(r, integer_inner(t)).cmp(&0) } }
+cmp! {
+    Integer, |r, t: &Integer| unsafe { gmp::mpq_cmp_z(r, t.inner()).cmp(&0) }
+}
 cmp! { u32, |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1).cmp(&0) } }
 cmp! { i32, |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1).cmp(&0) } }
 
-cmp! { (u32, u32), |r, t: &(u32, u32)| {
-    assert_ne!(t.1, 0, "division by zero");
-    unsafe { gmp::mpq_cmp_ui(r, t.0.into(), t.1.into()).cmp(&0) }
-} }
-cmp! { (i32, u32), |r, t: &(i32, u32)| {
-    let mut num = (t.0.wrapping_abs() as u32).into();
-    let mut den = t.1.into();
-    let limbs_rat = unsafe { single_limbs((&mut num, &mut den), t.0 < 0) };
-    unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
-} }
-cmp! { (u32, i32), |r, t: &(u32, i32)| {
-    let mut num = t.0.into();
-    let mut den = (t.1.wrapping_abs() as u32).into();
-    let limbs_rat = unsafe { single_limbs((&mut num, &mut den), t.1 < 0) };
-    unsafe {gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
-} }
-cmp! { (i32, i32), |r, t: &(i32, i32)| {
-    let mut num = (t.0.wrapping_abs() as u32).into();
-    let mut den = (t.1.wrapping_abs() as u32).into();
-    let neg = (t.0 < 0) != (t.1 < 0);
-    let limbs_rat = unsafe { single_limbs((&mut num, &mut den), neg) };
-    unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
-} }
+cmp! {
+    (u32, u32),
+    |r, t: &(u32, u32)| {
+        assert_ne!(t.1, 0, "division by zero");
+        unsafe { gmp::mpq_cmp_ui(r, t.0.into(), t.1.into()).cmp(&0) }
+    }
+}
+cmp! {
+    (i32, u32),
+    |r, t: &(i32, u32)| {
+        let mut num = (t.0.wrapping_abs() as u32).into();
+        let mut den = t.1.into();
+        let limbs_rat = unsafe { single_limbs((&mut num, &mut den), t.0 < 0) };
+        unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
+    }
+}
+cmp! {
+    (u32, i32),
+    |r, t: &(u32, i32)| {
+        let mut num = t.0.into();
+        let mut den = (t.1.wrapping_abs() as u32).into();
+        let limbs_rat = unsafe { single_limbs((&mut num, &mut den), t.1 < 0) };
+        unsafe {gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
+    }
+}
+cmp! {
+    (i32, i32),
+    |r, t: &(i32, i32)| {
+        let mut num = (t.0.wrapping_abs() as u32).into();
+        let mut den = (t.1.wrapping_abs() as u32).into();
+        let neg = (t.0 < 0) != (t.1 < 0);
+        let limbs_rat = unsafe { single_limbs((&mut num, &mut den), neg) };
+        unsafe { gmp::mpq_cmp(r, &limbs_rat).cmp(&0) }
+    }
+}
 
 fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let (num, den) = r.as_numer_denom();
-    let n_size = unsafe { gmp::mpz_sizeinbase(integer_inner(num), radix) };
-    let d_size = unsafe { gmp::mpz_sizeinbase(integer_inner(den), radix) };
+    let n_size = unsafe { gmp::mpz_sizeinbase(num.inner(), radix) };
+    let d_size = unsafe { gmp::mpz_sizeinbase(den.inner(), radix) };
     // n_size + d_size + 3 for '-', '/' and nul
     let size = n_size.checked_add(d_size).unwrap().checked_add(3).unwrap();
     let mut buf = Vec::<u8>::with_capacity(size);
@@ -974,7 +910,7 @@ fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
         buf.set_len(size);
         gmp::mpq_get_str(buf.as_mut_ptr() as *mut c_char,
                          case_radix as c_int,
-                         &r.inner);
+                         r.inner());
         let nul_index = buf.iter().position(|&x| x == 0).unwrap();
         buf.set_len(nul_index);
         String::from_utf8_unchecked(buf)
@@ -1080,9 +1016,9 @@ impl<'a> Drop for MutNumerDenom<'a> {
     fn drop(&mut self) {
         assert_ne!(self.1.sign(), Ordering::Equal, "division by zero");
         unsafe {
-            let rat_num = integer_inner_mut(self.0);
-            let rat_den = integer_inner_mut(self.1);
-            let mut canon: gmp::mpq_t = mem::uninitialized();
+            let rat_num = self.0.inner_mut();
+            let rat_den = self.1.inner_mut();
+            let mut canon: mpq_t = mem::uninitialized();
             let canon_num_ptr = gmp::mpq_numref(&mut canon);
             let canon_den_ptr = gmp::mpq_denref(&mut canon);
             mem::swap(rat_num, &mut *canon_num_ptr);
@@ -1094,24 +1030,12 @@ impl<'a> Drop for MutNumerDenom<'a> {
     }
 }
 
-fn integer_inner(z: &Integer) -> &gmp::mpz_t {
-    let ptr = z as *const _ as *const gmp::mpz_t;
-    unsafe { &*ptr }
-}
-
-// This is unsafe as it returns a structure which can be used to break
-// the state of z.
-unsafe fn integer_inner_mut(z: &mut Integer) -> &mut gmp::mpz_t {
-    let ptr = z as *mut _ as *mut gmp::mpz_t;
-    &mut *ptr
-}
-
 // The return struct has pointers to the given limbs, so no
 // deallocation must take place. This function panics if limbs.1 is 0,
 // so there is no need to check before calling it.
 unsafe fn single_limbs(limbs: (&mut gmp::limb_t, &mut gmp::limb_t),
                        neg: bool)
-                       -> gmp::mpq_t {
+                       -> mpq_t {
     assert_ne!(*limbs.1, 0, "division by zero");
     let mut ret = mem::uninitialized();
     *gmp::mpq_numref(&mut ret) = gmp::mpz_t {
@@ -1132,6 +1056,43 @@ unsafe fn single_limbs(limbs: (&mut gmp::limb_t, &mut gmp::limb_t),
     };
     gmp::mpq_canonicalize(&mut ret);
     ret
+}
+
+trait Inner {
+    type Output;
+    fn inner(&self) -> &Self::Output;
+}
+
+trait InnerMut: Inner {
+    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
+}
+
+impl Inner for Rational {
+    type Output = mpq_t;
+    fn inner(&self) -> &mpq_t {
+        &self.inner
+    }
+}
+
+impl InnerMut for Rational {
+    unsafe fn inner_mut(&mut self) -> &mut mpq_t {
+        &mut self.inner
+    }
+}
+
+impl Inner for Integer {
+    type Output = gmp::mpz_t;
+    fn inner(&self) -> &gmp::mpz_t {
+        let ptr = self as *const _ as *const gmp::mpz_t;
+        unsafe { &*ptr }
+    }
+}
+
+impl InnerMut for Integer {
+    unsafe fn inner_mut(&mut self) -> &mut gmp::mpz_t {
+        let ptr = self as *mut _ as *mut gmp::mpz_t;
+        &mut *ptr
+    }
 }
 
 #[cfg(test)]

@@ -93,5 +93,6 @@ extern crate gmp_mpfr_sys;
 extern crate rugint;
 
 mod rational;
+mod xgmp;
 
 pub use rational::{MutNumerDenom, ParseRationalError, Rational};
