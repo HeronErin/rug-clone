@@ -2110,6 +2110,206 @@ arith_prim_commut! {
     BitXorHoldI32
 }
 
+macro_rules! op_mul {
+    {
+        $(#[$attr:meta])* impl $Imp:ident $method:ident;
+        $(#[$attr_assign:meta])* impl $ImpAssign:ident $method_assign:ident;
+        $Hold:ident, $rhs_method:ident, $func:path
+    } => {
+        impl<'a> $Imp<$Hold<'a>> for Integer {
+            type Output = Integer;
+            $(#[$attr])*
+            fn $method(mut self, rhs: $Hold) -> Integer {
+                self.$method_assign(rhs);
+                self
+            }
+        }
+
+        impl<'a> $ImpAssign<$Hold<'a>> for Integer  {
+            $(#[$attr_assign])*
+            fn $method_assign(&mut self, rhs: $Hold) {
+                unsafe {
+                    $func(self.inner_mut(),
+                          rhs.lhs.inner(), rhs.rhs.$rhs_method());
+                }
+            }
+        }
+    };
+}
+
+op_mul! {
+    /// Peforms multiplication and addition together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m1 = Integer::from(3);
+    /// let m2 = Integer::from(7);
+    /// let init = Integer::from(100);
+    /// let acc = init + &m1 * &m2;
+    /// assert!(acc == 121);
+    /// ```
+    impl Add add;
+    /// Peforms multiplication and addition together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m1 = Integer::from(3);
+    /// let m2 = Integer::from(7);
+    /// let mut acc = Integer::from(100);
+    /// acc += &m1 * &m2;
+    /// assert!(acc == 121);
+    /// ```
+    impl AddAssign add_assign;
+    MulHold, inner, gmp::mpz_addmul
+}
+
+op_mul! {
+    /// Peforms multiplication and addition together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let init = Integer::from(100);
+    /// let acc = init + &m * 7u32;
+    /// assert!(acc == 121);
+    /// ```
+    impl Add add;
+    /// Peforms multiplication and addition together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let mut acc = Integer::from(100);
+    /// acc += &m * 7u32;
+    /// assert!(acc == 121);
+    /// ```
+    impl AddAssign add_assign;
+    MulHoldU32, into, gmp::mpz_addmul_ui
+}
+
+op_mul! {
+    /// Peforms multiplication and addition together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let init = Integer::from(100);
+    /// let acc = init + &m * -7i32;
+    /// assert!(acc == 79);
+    /// ```
+    impl Add add;
+    /// Peforms multiplication and addition together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let mut acc = Integer::from(100);
+    /// acc += &m * -7i32;
+    /// assert!(acc == 79);
+    /// ```
+    impl AddAssign add_assign;
+    MulHoldI32, into, xgmp::mpz_addmul_si
+}
+
+
+op_mul! {
+    /// Peforms multiplication and subtraction together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m1 = Integer::from(3);
+    /// let m2 = Integer::from(7);
+    /// let init = Integer::from(100);
+    /// let acc = init - &m1 * &m2;
+    /// assert!(acc == 79);
+    /// ```
+    impl Sub sub;
+    /// Peforms multiplication and subtraction together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m1 = Integer::from(3);
+    /// let m2 = Integer::from(7);
+    /// let mut acc = Integer::from(100);
+    /// acc -= &m1 * &m2;
+    /// assert!(acc == 79);
+    /// ```
+    impl SubAssign sub_assign;
+    MulHold, inner, gmp::mpz_submul
+}
+
+op_mul! {
+    /// Peforms multiplication and subtraction together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let init = Integer::from(100);
+    /// let acc = init - &m * 7u32;
+    /// assert!(acc == 79);
+    /// ```
+    impl Sub sub;
+    /// Peforms multiplication and subtraction together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let mut acc = Integer::from(100);
+    /// acc -= &m * 7u32;
+    /// assert!(acc == 79);
+    /// ```
+    impl SubAssign sub_assign;
+    MulHoldU32, into, gmp::mpz_submul_ui
+}
+
+op_mul! {
+    /// Peforms multiplication and subtraction together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let init = Integer::from(100);
+    /// let acc = init - &m * -7i32;
+    /// assert!(acc == 121);
+    /// ```
+    impl Sub sub;
+    /// Peforms multiplication and subtraction together.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let m = Integer::from(3);
+    /// let mut acc = Integer::from(100);
+    /// acc -= &m * -7i32;
+    /// assert!(acc == 121);
+    /// ```
+    impl SubAssign sub_assign;
+    MulHoldI32, into, xgmp::mpz_submul_si
+}
+
 impl Eq for Integer {}
 
 impl Ord for Integer {

@@ -551,3 +551,19 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
         _ => unreachable!(),
     }
 }
+
+pub unsafe fn mpz_addmul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+    if op2 >= 0 {
+        gmp::mpz_addmul_ui(rop, op1, op2 as c_ulong)
+    } else {
+        gmp::mpz_submul_ui(rop, op1, op2.wrapping_neg() as c_ulong)
+    }
+}
+
+pub unsafe fn mpz_submul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+    if op2 >= 0 {
+        gmp::mpz_submul_ui(rop, op1, op2 as c_ulong)
+    } else {
+        gmp::mpz_addmul_ui(rop, op1, op2.wrapping_neg() as c_ulong)
+    }
+}
