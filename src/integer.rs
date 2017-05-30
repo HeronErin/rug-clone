@@ -1420,11 +1420,10 @@ impl Integer {
     /// use rugint::Integer;
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
-    ///     let bound = Integer::from(15);
-    ///     let mut random = bound.clone();
+    ///     let mut random = Integer::from(15);
     ///     random.random_below(&mut rng);
-    ///     println!("0 <= {} < {}", random, bound);
-    ///     assert!(random < bound);
+    ///     println!("0 <= {} < 15", random);
+    ///     assert!(random < 15);
     /// }
     /// ```
     ///
@@ -1471,6 +1470,36 @@ impl Integer {
                 return self;
             }
         }
+    }
+
+    #[cfg(feature = "random")]
+    /// Generates a non-negative random number below the given
+    /// boundary value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rand;
+    /// extern crate rugint;
+    /// use rugint::Integer;
+    /// fn main() {
+    ///     let mut rng = rand::thread_rng();
+    ///     let bound = Integer::from(15);
+    ///     let mut random = Integer::new();
+    ///     random.assign_random_below(&bound, &mut rng);
+    ///     println!("0 <= {} < {}", random, bound);
+    ///     assert!(random < bound);
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    pub fn assign_random_below<R: Rng>(&mut self,
+                                       bound: &Integer,
+                                       rng: &mut R) {
+        self.assign(bound);
+        self.random_below(rng);
     }
 }
 
