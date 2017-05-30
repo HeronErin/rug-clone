@@ -30,6 +30,7 @@ use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
+use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
@@ -98,6 +99,82 @@ impl Clone for Integer {
 
     fn clone_from(&mut self, source: &Integer) {
         self.assign(source);
+    }
+}
+
+
+/// A small integer that does not require any memory allocation.
+///
+/// This can be useful when you have a `u32` or `i32` but need a
+/// reference to an `Integer`.
+///
+/// If there are functions that take a `u32` or `i32` directly instead
+/// of an `Integer` reference, using them can still be faster than
+/// using a `SmallInteger`; the functions would still need to check
+/// for the size of an `Integer` obtained using `SmallInteger`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rugint::{Integer, SmallInteger};
+/// // `a` requires a heap allocation
+/// let mut a = Integer::from(250);
+/// // `b` can reside on the stack
+/// let mut b = SmallInteger::from(-100);
+/// a.lcm(b.get_ref());
+/// assert!(a == 500);
+/// // another computation:
+/// a.lcm(SmallInteger::from(30).get_ref());
+/// assert!(a == 1500);
+/// ```
+pub struct SmallInteger {
+    inner: mpz_t,
+    limb: gmp::limb_t,
+}
+
+impl From<u32> for SmallInteger {
+    fn from(val: u32) -> SmallInteger {
+        SmallInteger {
+            inner: mpz_t {
+                size: if val == 0 { 0 } else { 1 },
+                alloc: 1,
+                d: ptr::null_mut(),
+            },
+            limb: val.into(),
+        }
+    }
+}
+
+impl From<i32> for SmallInteger {
+    fn from(val: i32) -> SmallInteger {
+        let (sign, magnitude) = if val < 0 {
+            (true, val.wrapping_neg() as u32)
+        } else {
+            (false, val as u32)
+        };
+        SmallInteger {
+            inner: mpz_t {
+                size: if val == 0 {
+                    0
+                } else if sign {
+                    -1
+                } else {
+                    1
+                },
+                alloc: 1,
+                d: ptr::null_mut(),
+            },
+            limb: magnitude.into(),
+        }
+    }
+}
+
+impl SmallInteger {
+    /// Gets an `Integer` reference.
+    pub fn get_ref(&mut self) -> &Integer {
+        self.inner.d = &mut self.limb;
+        let ptr = (&self.inner) as *const _ as *const Integer;
+        unsafe { &*ptr }
     }
 }
 
@@ -197,6 +274,36 @@ macro_rules! math_op2_2 {
             $Hold {
                 lhs: self,
                 rhs: other,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! math_op3 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, op2: &Integer, op3: &Integer $(, $param: $T)*)
+                       -> &mut Integer {
+            unsafe {
+                $func(self.inner_mut(), self.inner(),
+                      op2.inner(), op3.inner() $(, $param.into(),)*);
+            }
+            self
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold<'a>(&'a self, op2: &'a Integer,
+                                op3: &'a Integer $(, $param: $T)*)
+                                -> $Hold<'a> {
+            $Hold {
+                op1: self,
+                op2: op2,
+                op3: op3,
                 $($param: $param,)*
             }
         }
@@ -414,9 +521,11 @@ impl Integer {
     /// ```
     pub fn from_f64(val: f64) -> Option<Integer> {
         if val.is_finite() {
-            let mut i = Integer::new();
-            i.assign_f64(val).unwrap();
-            Some(i)
+            unsafe {
+                let mut inner: mpz_t = mem::uninitialized();
+                gmp::mpz_init_set_d(&mut inner, val);
+                Some(Integer { inner: inner })
+            }
         } else {
             None
         }
@@ -651,6 +760,7 @@ impl Integer {
     /// let i = Integer::from(230);
     /// assert!(i.is_divisible(&Integer::from(10)));
     /// assert!(!i.is_divisible(&Integer::from(100)));
+    /// assert!(!i.is_divisible(&Integer::new()));
     /// ```
     pub fn is_divisible(&self, divisor: &Integer) -> bool {
         unsafe { gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0 }
@@ -666,9 +776,26 @@ impl Integer {
     /// let i = Integer::from(230);
     /// assert!(i.is_divisible_u(23));
     /// assert!(!i.is_divisible_u(100));
+    /// assert!(!i.is_divisible_u(0));
     /// ```
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
         unsafe { gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0 }
+    }
+
+    /// Returns `true` if `self` is divisible by two to the power of
+    /// `b`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::from(15 << 17);
+    /// assert!(i.is_divisible_2pow(16));
+    /// assert!(i.is_divisible_2pow(17));
+    /// assert!(!i.is_divisible_2pow(18));
+    /// ```
+    pub fn is_divisible_2pow(&self, b: u32) -> bool {
+        unsafe { gmp::mpz_divisible_2exp_p(self.inner(), b.into()) != 0 }
     }
 
     /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
@@ -710,6 +837,24 @@ impl Integer {
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
         unsafe {
             gmp::mpz_congruent_ui_p(self.inner(), c.into(), divisor.into()) != 0
+        }
+    }
+
+    /// Returns `true` if `self` is congruent to `c` modulo two to the
+    /// power of `b`, that is, if there exists a `q` such that `self
+    /// == c + q * 2 ^ b`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let n = Integer::from(13 << 17 | 21);
+    /// assert!(n.is_congruent_2pow(&Integer::from(7 << 17 | 21), 17));
+    /// assert!(!n.is_congruent_2pow(&Integer::from(13 << 17 | 22), 17));
+    /// ```
+    pub fn is_congruent_2pow(&self, c: &Integer, b: u32) -> bool {
+        unsafe {
+            gmp::mpz_congruent_2exp_p(self.inner(), c.inner(), b.into()) != 0
         }
     }
 
@@ -819,7 +964,7 @@ impl Integer {
         ///
         /// # Panics
         ///
-        /// Panics if `divisor` is zero.
+        /// Panics if `other` is zero.
         fn div_exact;
         /// Holds a computation of an exact division.
         ///
@@ -836,6 +981,124 @@ impl Integer {
         fn div_exact_hold -> DivExactHold;
         xgmp::mpz_divexact_check_0
     }
+    math_op1! {
+        /// Divides `self` by `divisor`. This is much faster than normal
+        /// division, but produces correct results only when the division
+        /// is exact.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(123450);
+        /// assert!(*i.div_exact_u(10) == 12345);
+        /// assert!(i == 12345);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_exact_u;
+        /// Holds a computation of an exact division.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let i = Integer::from(123450);
+        /// let hold = i.div_exact_u_hold(10);
+        /// let q = Integer::from(hold);
+        /// assert!(q == 12345);
+        /// ```
+        fn div_exact_u_hold -> DivExactUHold;
+        xgmp::mpz_divexact_ui_check_0,
+        divisor: u32
+    }
+    math_op3! {
+        /// Raises `self` to the power of `op2` modulo `op3`. If `op2`
+        /// is negative, then `self` must have an inverse modulo
+        /// `op3`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::{Assign, Integer};
+        ///
+        /// // 7 ^ 5 = 16807
+        /// let mut n = Integer::from(7);
+        /// let pow = Integer::from(5);
+        /// let m = Integer::from(1000);
+        /// assert!(*n.pow_mod(&pow, &m) == 807);
+        ///
+        /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
+        /// // 143 ^ 5 modulo 1000 = 943.
+        /// n.assign(7);
+        /// let neg_pow = Integer::from(-5);
+        /// assert!(*n.pow_mod(&neg_pow, &m) == 943);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `op2` is negative and `self` does not have an
+        /// inverse modulo `op3`.
+        fn pow_mod;
+        /// Holds the computation of raising to the power of `op2`
+        /// modulo `op3`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// // 7 ^ 5 = 16807
+        /// let base = Integer::from(7);
+        /// let pow = Integer::from(5);
+        /// let m = Integer::from(1000);
+        /// let hold = base.pow_mod_hold(&pow, &m);
+        /// assert!(Integer::from(hold) == 807);
+        /// ```
+        fn pow_mod_hold -> PowModHold;
+        xgmp::mpz_powm_check_inverse
+    }
+
+    /// Raises `base` to the power of `power`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// i.assign_u_pow_u(13, 12);
+    /// assert!(i == 13_u64.pow(12));
+    /// ```
+    pub fn assign_u_pow_u(&mut self, base: u32, power: u32) {
+        unsafe {
+            gmp::mpz_ui_pow_ui(self.inner_mut(), base.into(), power.into());
+        }
+    }
+
+    /// Raises `base` to the power of `power`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// i.assign_i_pow_u(-13, 12);
+    /// assert!(i == (-13_i64).pow(12));
+    /// i.assign_i_pow_u(-13, 13);
+    /// assert!(i == (-13_i64).pow(13));
+    /// ```
+    pub fn assign_i_pow_u(&mut self, base: i32, power: u32) {
+        if base >= 0 {
+            self.assign_u_pow_u(base as u32, power);
+        } else {
+            self.assign_u_pow_u(base.wrapping_neg() as u32, power);
+            if (power & 1) == 1 {
+                self.neg_assign();
+            }
+        }
+    }
+
     math_op1! {
         /// Computes the `n`th root of `self` and truncates the result.
         ///
@@ -1075,6 +1338,67 @@ impl Integer {
         }
     }
 
+    /// Calculates the Jacobi symbol (`self` / `other`).
+    pub fn jacobi(&self, other: &Integer) -> i32 {
+        unsafe { gmp::mpz_jacobi(self.inner(), other.inner()) as i32 }
+    }
+
+    /// Calculates the Legendre symbol (`self` / `other`).
+    pub fn legendre(&self, other: &Integer) -> i32 {
+        unsafe { gmp::mpz_legendre(self.inner(), other.inner()) as i32 }
+    }
+
+    /// Calculates the Jacobi symbol (`self` / `other`) with the
+    /// Kronecker extension.
+    pub fn kronecker(&self, other: &Integer) -> i32 {
+        unsafe { gmp::mpz_kronecker(self.inner(), other.inner()) as i32 }
+    }
+
+    /// Removes all occurrences of `factor` from `self`, and returns
+    /// the number of occurrences.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// i.assign_u_pow_u(13, 50);
+    /// i *= 1000;
+    /// let count = i.remove_factor(&Integer::from(13));
+    /// assert!(count == 50);
+    /// assert!(i == 1000);
+    /// ```
+    pub fn remove_factor(&mut self, factor: &Integer) -> u32 {
+        let cnt = unsafe {
+            gmp::mpz_remove(self.inner_mut(), self.inner(), factor.inner())
+        };
+        assert!(cnt as u32 as gmp::bitcnt_t == cnt, "overflow");
+        cnt as u32
+    }
+
+    /// Holds the computation of the removal of `factor`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// let mut i = Integer::new();
+    /// i.assign_u_pow_u(13, 50);
+    /// i *= 1000;
+    /// let (mut j, mut count) = (Integer::new(), 0);
+    /// (&mut j, &mut count).assign(i.remove_factor_hold(&Integer::from(13)));
+    /// assert!(count == 50);
+    /// assert!(j == 1000);
+    /// ```
+    pub fn remove_factor_hold<'a>(&'a self,
+                                  factor: &'a Integer)
+                                  -> RemoveFactorHold<'a> {
+        RemoveFactorHold {
+            lhs: self,
+            rhs: factor,
+        }
+    }
+
     /// Computes the factorial of `n`.
     ///
     /// # Examples
@@ -1184,6 +1508,103 @@ impl Integer {
     pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
         unsafe {
             gmp::mpz_bin_uiui(self.inner_mut(), n.into(), k.into());
+        }
+    }
+
+    /// Computes the Fibonacci number.
+    ///
+    /// This function is meant for an isolated number. If a sequence
+    /// of Fibonacci numbers is required, the first two values of the
+    /// sequence should be computed with `assign_fibonacci_2()`, then
+    /// iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// i.assign_fibonacci(12);
+    /// assert!(i == 144);
+    /// ```
+    pub fn assign_fibonacci(&mut self, n: u32) {
+        unsafe {
+            gmp::mpz_fib_ui(self.inner_mut(), n.into());
+        }
+    }
+
+    /// Computes a Fibonacci number, and the previous Fibonacci number.
+    ///
+    /// This function is meant to calculate isolated numbers. If a
+    /// sequence of Fibonacci numbers is required, the first two
+    /// values of the sequence should be computed with this function,
+    /// then iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// let mut j = Integer::new();
+    /// i.assign_fibonacci_2(&mut j, 12);
+    /// assert!(i == 144);
+    /// assert!(j == 89);
+    /// // Fibonacci number F[-1] is 1
+    /// i.assign_fibonacci_2(&mut j, 0);
+    /// assert!(i == 0);
+    /// assert!(j == 1);
+    /// ```
+    pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
+        unsafe {
+            gmp::mpz_fib2_ui(self.inner_mut(), previous.inner_mut(), n.into());
+        }
+    }
+
+    /// Computes the Lucas number.
+    ///
+    /// This function is meant for an isolated number. If a sequence
+    /// of Lucas numbers is required, the first two values of the
+    /// sequence should be computed with `assign_lucas_2()`, then
+    /// iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// i.assign_lucas(12);
+    /// assert!(i == 322);
+    /// ```
+    pub fn assign_lucas(&mut self, n: u32) {
+        unsafe {
+            gmp::mpz_lucnum_ui(self.inner_mut(), n.into());
+        }
+    }
+
+    /// Computes a Lucas number, and the previous Lucas number.
+    ///
+    /// This function is meant to calculate isolated numbers. If a
+    /// sequence of Lucas numbers is required, the first two values of
+    /// the sequence should be computed with this function, then
+    /// iterations should be used.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let mut i = Integer::new();
+    /// let mut j = Integer::new();
+    /// i.assign_lucas_2(&mut j, 12);
+    /// assert!(i == 322);
+    /// assert!(j == 199);
+    /// i.assign_lucas_2(&mut j, 0);
+    /// assert!(i == 2);
+    /// assert!(j == -1);
+    /// ```
+    pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
+        unsafe {
+            gmp::mpz_lucnum2_ui(self.inner_mut(),
+                                previous.inner_mut(),
+                                n.into());
         }
     }
 
@@ -2657,9 +3078,39 @@ macro_rules! hold_math_op2_2 {
     };
 }
 
+macro_rules! hold_math_op3 {
+    {
+        $(#[$attr_hold:meta])* struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        pub struct $Hold<'a> {
+            op1: &'a Integer,
+            op2: &'a Integer,
+            op3: &'a Integer,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for Integer {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.inner_mut(), src.op1.inner(), src.op2.inner(),
+                          src.op3.inner() $(, src.$param.into())*);
+                }
+            }
+        }
+
+        from_borrow! { $Hold<'a> }
+    };
+}
+
 hold_math_op2_2! { struct DivRemHold; xgmp::mpz_tdiv_qr_check_0 }
 hold_math_op1! { struct AbsHold; gmp::mpz_abs }
 hold_math_op2! { struct DivExactHold; xgmp::mpz_divexact_check_0 }
+hold_math_op1! {
+    struct DivExactUHold; xgmp::mpz_divexact_ui_check_0, divisor: u32
+}
+hold_math_op3! { struct PowModHold; xgmp::mpz_powm_check_inverse }
 hold_math_op1! { struct RootHold; gmp::mpz_root, n: u32 }
 hold_math_op1_2! { struct RootRemHold; gmp::mpz_rootrem, n: u32 }
 hold_math_op1! { struct SqrtHold; gmp::mpz_sqrt }
@@ -2679,6 +3130,23 @@ impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
                                      src.lhs.inner(),
                                      src.rhs.inner())
         } != 0;
+    }
+}
+
+pub struct RemoveFactorHold<'a> {
+    lhs: &'a Integer,
+    rhs: &'a Integer,
+}
+
+impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
+    fn assign(&mut self, src: RemoveFactorHold<'a>) {
+        let cnt = unsafe {
+            gmp::mpz_remove(self.0.inner_mut(),
+                            src.lhs.inner(),
+                            src.rhs.inner())
+        };
+        assert!(cnt as u32 as gmp::bitcnt_t == cnt, "overflow");
+        *self.1 = cnt as u32;
     }
 }
 

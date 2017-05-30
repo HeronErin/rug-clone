@@ -35,6 +35,13 @@ pub unsafe fn mpz_divexact_check_0(q: *mut mpz_t,
     gmp::mpz_divexact(q, dividend, divisor);
 }
 
+pub unsafe fn mpz_divexact_ui_check_0(q: *mut mpz_t,
+                                      dividend: *const mpz_t,
+                                      divisor: c_ulong) {
+    assert_ne!(divisor, 0, "division by zero");
+    gmp::mpz_divexact_ui(q, dividend, divisor);
+}
+
 pub unsafe fn mpz_tdiv_q_check_0(q: *mut mpz_t,
                                  dividend: *const mpz_t,
                                  divisor: *const mpz_t) {
@@ -133,6 +140,25 @@ pub unsafe fn mpz_invert_check_0(inv: *mut mpz_t,
                                  -> c_int {
     assert_ne!(gmp::mpz_sgn(m), 0, "division by zero");
     gmp::mpz_invert(inv, n, m)
+}
+
+pub unsafe fn mpz_powm_check_inverse(rop: *mut mpz_t,
+                                     base: *const mpz_t,
+                                     pow: *const mpz_t,
+                                     m: *const mpz_t) {
+    if (*pow).size < 0 {
+        let exists = mpz_invert_check_0(rop, base, m);
+        assert_ne!(exists, 0, "inverse does not exist");
+        let abs_pow = mpz_t {
+            alloc: (*pow).alloc,
+            size: -(*pow).size,
+            d: (*pow).d,
+        };
+        assert!(abs_pow.size > 0, "overflow");
+        gmp::mpz_powm(rop, rop, &abs_pow, m);
+    } else {
+        gmp::mpz_powm(rop, base, pow, m);
+    }
 }
 
 pub unsafe fn mpz_add_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {

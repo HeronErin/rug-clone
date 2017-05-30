@@ -130,7 +130,7 @@ extern crate rand;
 mod integer;
 mod xgmp;
 
-pub use integer::{Integer, ParseIntegerError};
+pub use integer::{Integer, ParseIntegerError, SmallInteger};
 
 /// Assigns to a number from another value.
 pub trait Assign<Rhs = Self> {
