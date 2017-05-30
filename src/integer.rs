@@ -508,10 +508,13 @@ impl Integer {
     pub fn to_f32(&self) -> f32 {
         let f = self.to_f64();
         // f as f32 might round away from zero, so we need to clear
-        // the least significant bits of f if it is a finite number.
-        // We do not need to worry about subnormals, as f is an
-        // integer.
-        if f.is_finite() {
+        // the least significant bits of f.
+        // * If f is a nan, we do NOT want to clear any mantissa bits,
+        //   as this may change f into +/- infinity.
+        // * If f is +/- infinity, the bits are already zero, so the
+        //   masking has no effect.
+        // * f is an integer, so it cannot be subnormal.
+        if !f.is_nan() {
             let u = unsafe { mem::transmute::<_, u64>(f) };
             // f64 has 29 more significant bits than f32.
             let trunc_u = u & (!0 << 29);
