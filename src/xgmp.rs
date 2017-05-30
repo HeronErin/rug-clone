@@ -394,7 +394,9 @@ pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
         0 => 0,
         -1 | 1 => op.limb(0) as u64,
         _ if gmp::LIMB_BITS >= 64 => op.limb(0) as u64,
-        _ if gmp::LIMB_BITS == 32 => op.limb(0) | ((op.limb(1) as u64) << 32),
+        _ if gmp::LIMB_BITS == 32 => {
+            op.limb(0) as u64 | ((op.limb(1) as u64) << 32)
+        }
         _ => unreachable!(),
     }
 }
