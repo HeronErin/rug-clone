@@ -88,112 +88,40 @@ impl Clone for Rational {
     }
 }
 
-/// A small rational that does not require any memory allocation.
-///
-/// This can be useful when you have a numerator and denominator that
-/// are `u32` or `i32` and you need a reference to an `Rational`.
-///
-/// # Examples
-///
-/// ```rust
-/// use rugrat::{Rational, SmallRational};
-/// // `a` requires a heap allocation
-/// let mut a = Rational::from((100, 13));
-/// // `b` can reside on the stack
-/// let mut b = SmallRational::from((-100, 21));
-/// a /= b.get_ref();
-/// assert!(*a.numer() == -21);
-/// assert!(*a.denom() == 13);
-/// ```
-pub struct SmallRational {
-    inner: Mpq,
-    num: gmp::limb_t,
-    den: gmp::limb_t,
-}
-
-impl SmallRational {
-    /// Gets a `Rational` reference.
-    pub fn get_ref(&mut self) -> &Rational {
-        self.inner.num.d = &mut self.num;
-        self.inner.den.d = &mut self.den;
-        let ptr = (&self.inner) as *const _ as *const _;
-        unsafe { &*ptr }
-    }
-
-    fn new(neg: bool, num: gmp::limb_t, den: gmp::limb_t) -> SmallRational {
-        assert_ne!(den, 0, "division by zero");
-        let mut ret = SmallRational {
-            inner: Mpq {
-                num: gmp::mpz_t {
-                    size: if num == 0 {
-                        0
-                    } else if neg {
-                        -1
-                    } else {
-                        1
-                    },
-                    alloc: 1,
-                    d: ptr::null_mut(),
-                },
-                den: gmp::mpz_t {
-                    size: 1,
-                    alloc: 1,
-                    d: ptr::null_mut(),
-                },
-            },
-            num: num,
-            den: den,
-        };
-        ret.inner.num.d = &mut ret.num;
-        ret.inner.den.d = &mut ret.den;
-        unsafe {
-            gmp::mpq_canonicalize(&mut ret.inner as *mut _ as *mut _);
+macro_rules! math_op1 {
+    {
+        $(#[$attr:meta])* fn $method:ident;
+        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self $(, $param: $T)*) -> &mut Rational {
+            unsafe {
+                $func(self.inner_mut(), self.inner() $(, $param.into(),)*);
+            }
+            self
         }
-        ret
-    }
-}
 
-struct Mpq {
-    num: gmp::mpz_t,
-    den: gmp::mpz_t,
-}
-
-impl From<(u32, u32)> for SmallRational {
-    fn from((num, den): (u32, u32)) -> SmallRational {
-        SmallRational::new(false, num as gmp::limb_t, den as gmp::limb_t)
-    }
-}
-
-impl From<(u32, i32)> for SmallRational {
-    fn from((num, den): (u32, i32)) -> SmallRational {
-        let den_neg = den < 0;
-        let den_mag = den.wrapping_abs() as u32;
-        SmallRational::new(den_neg, num as gmp::limb_t, den_mag as gmp::limb_t)
-    }
-}
-
-impl From<(i32, u32)> for SmallRational {
-    fn from((num, den): (i32, u32)) -> SmallRational {
-        let num_neg = num < 0;
-        let num_mag = num.wrapping_abs() as u32;
-        SmallRational::new(num_neg, num_mag as gmp::limb_t, den as gmp::limb_t)
-    }
-}
-
-impl From<(i32, i32)> for SmallRational {
-    fn from((num, den): (i32, i32)) -> SmallRational {
-        let num_neg = num < 0;
-        let num_mag = num.wrapping_abs() as u32;
-        let den_neg = den < 0;
-        let den_mag = den.wrapping_abs() as u32;
-        SmallRational::new(num_neg != den_neg,
-                           num_mag as gmp::limb_t,
-                           den_mag as gmp::limb_t)
-    }
+        $(#[$attr_hold])*
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+            $Hold {
+                val: self,
+                $($param: $param,)*
+            }
+        }
+    };
 }
 
 impl Rational {
-    /// Constructs a new arbitrary-precision rational number with value 0.
+    /// Constructs a new arbitrary-precision rational number with
+    /// value 0.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r = Rational::new();
+    /// assert!(r == 0);
+    /// ```
     pub fn new() -> Rational {
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
@@ -203,7 +131,20 @@ impl Rational {
     }
 
     /// Assigns from an `f64` if it is finite, losing no precision.
-    fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let mut r = Rational::new();
+    /// let ret = r.assign_f64(12.75);
+    /// assert!(ret.is_ok());
+    /// assert!(r == (1275, 100));
+    /// let ret = r.assign_f64(1.0 / 0.0);
+    /// assert!(ret.is_err());
+    /// assert!(r == (1275, 100));
+    /// ```
+    pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             unsafe {
                 gmp::mpq_set_d(self.inner_mut(), val);
@@ -216,6 +157,17 @@ impl Rational {
 
     /// Creates a `Rational` from an `f64` if it is finite, losing no
     /// precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// use std::f64;
+    /// let r = Rational::from_f64(-17125e-3).unwrap();
+    /// assert!(r == "-17125/1000".parse::<Rational>().unwrap());
+    /// let inf = Rational::from_f64(f64::INFINITY);
+    /// assert!(inf.is_none());
+    /// ```
     pub fn from_f64(val: f64) -> Option<Rational> {
         if val.is_finite() {
             let mut r = Rational::new();
@@ -226,28 +178,120 @@ impl Rational {
         }
     }
 
-    /// Converts `self` to an `f64`, rounding towards zero.
+    /// Converts to an `f64`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::{Rational, SmallRational};
+    /// use std::f64;
+    ///
+    /// // An `f64` has 53 bits of precision.
+    /// let exact = 0x1f_1234_5678_9aff_u64;
+    /// let den = 0x1000_u64;
+    /// let r = Rational::from((exact, den));
+    /// assert!(r.to_f64() == exact as f64 / den as f64);
+    ///
+    /// // large has 56 ones
+    /// let large = 0xff_1234_5678_9aff_u64;
+    /// // trunc has 53 ones followed by 3 zeros
+    /// let trunc = 0xff_1234_5678_9af8_u64;
+    /// let j = Rational::from((large, den));
+    /// assert!(j.to_f64() == trunc as f64 / den as f64);
+    ///
+    /// let max = Rational::from_f64(f64::MAX).unwrap();
+    /// let plus_small = max + SmallRational::from((7, 2)).get();
+    /// // plus_small is truncated to f64::MAX
+    /// assert!(plus_small.to_f64() == f64::MAX);
+    /// let times_three_two = plus_small * SmallRational::from((3, 2)).get();
+    /// // times_three_two is too large
+    /// assert!(times_three_two.to_f64() == f64::INFINITY);
+    /// ```
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpq_get_d(self.inner()) }
     }
 
     /// Assigns from an `f32` if it is finite, losing no precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// use std::f32;
+    /// let mut r = Rational::new();
+    /// let ret = r.assign_f32(12.75);
+    /// assert!(ret.is_ok());
+    /// assert!(r == (1275, 100));
+    /// let ret = r.assign_f32(f32::NAN);
+    /// assert!(ret.is_err());
+    /// assert!(r == (1275, 100));
+    /// ```
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val as f64)
     }
 
     /// Creates a `Rational` from an `f32` if it is finite, losing no
     /// precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// use std::f32;
+    /// let r = Rational::from_f32(-17125e-3).unwrap();
+    /// assert!(r == "-17125/1000".parse::<Rational>().unwrap());
+    /// let inf = Rational::from_f32(f32::INFINITY);
+    /// assert!(inf.is_none());
+    /// ```
     pub fn from_f32(val: f32) -> Option<Rational> {
         Rational::from_f64(val as f64)
     }
 
     /// Converts `self` to an `f32`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::{Rational, SmallRational};
+    /// use std::f32;
+    /// let min = Rational::from_f32(f32::MIN).unwrap();
+    /// let minus_small = min - SmallRational::from((7, 2)).get();
+    /// // minus_small is truncated to f32::MIN
+    /// assert!(minus_small.to_f32() == f32::MIN);
+    /// let times_three_two = minus_small * SmallRational::from((3, 2)).get();
+    /// // times_three_two is too small
+    /// assert!(times_three_two.to_f32() == f32::NEG_INFINITY);
+    /// ```
     pub fn to_f32(&self) -> f32 {
-        self.to_f64() as f32
+        let f = self.to_f64();
+        // f as f32 might round away from zero, so we need to clear
+        // the least significant bits of f.
+        // * If f is a nan, we do NOT want to clear any mantissa bits,
+        //   as this may change f into +/- infinity.
+        // * If f is +/- infinity, the bits are already zero, so the
+        //   masking has no effect.
+        // * If f is subnormal, f as f32 will be zero anyway.
+        if !f.is_nan() {
+            let u = unsafe { mem::transmute::<_, u64>(f) };
+            // f64 has 29 more significant bits than f32.
+            let trunc_u = u & (!0 << 29);
+            let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
+            trunc_f as f32
+        } else {
+            f as f32
+        }
     }
 
-    /// Borrows the numerator.
+    /// Borrows the numerator as an `Integer`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r = Rational::from((12, -20));
+    /// // r will be canonicalized to -3 / 5
+    /// assert!(*r.numer() == -3)
+    /// ```
     pub fn numer(&self) -> &Integer {
         unsafe {
             let ptr = gmp::mpq_numref(self.inner() as *const _ as *mut _);
@@ -255,7 +299,16 @@ impl Rational {
         }
     }
 
-    /// Borrows the denominator.
+    /// Borrows the denominator as an `Integer`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r = Rational::from((12, -20));
+    /// // r will be canonicalized to -3 / 5
+    /// assert!(*r.denom() == 5);
+    /// ```
     pub fn denom(&self) -> &Integer {
         unsafe {
             let ptr = gmp::mpq_denref(self.inner() as *const _ as *mut _);
@@ -263,7 +316,18 @@ impl Rational {
         }
     }
 
-    /// Borrows the numerator and denominator.
+    /// Borrows the numerator and denominator as `Integer`s.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r = Rational::from((12, -20));
+    /// // r will be canonicalized to -3 / 5
+    /// let (num, den) = r.as_numer_denom();
+    /// assert!(*num == -3);
+    /// assert!(*den == 5);
+    /// ```
     pub fn as_numer_denom(&self) -> (&Integer, &Integer) {
         (self.numer(), self.denom())
     }
@@ -301,8 +365,56 @@ impl Rational {
         }
     }
 
+    /// Borrows the numerator and denominator mutably without
+    /// canonicalizing aftwerwards.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not canonicalize the
+    /// rational number when the borrow ends. The rest of the library
+    /// assumes that `Rational` structures keep their numerators and
+    /// denominators canonicalized.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    ///
+    /// let mut r = Rational::from((3, 5));
+    /// {
+    ///     let (num, den) = unsafe {
+    ///         r.as_mut_numer_denom_no_canonicalization()
+    ///     };
+    ///     *num -= 7;
+    ///     *den += 2;
+    /// }
+    /// let num_den = r.as_numer_denom();
+    /// assert!(*num_den.0 == -4 && *num_den.1 == 7);
+    /// ```
+    pub unsafe fn as_mut_numer_denom_no_canonicalization
+        (&mut self)
+         -> (&mut Integer, &mut Integer) {
+
+        (&mut *(gmp::mpq_numref(self.inner_mut()) as *mut _),
+         &mut *(gmp::mpq_denref(self.inner_mut()) as *mut _))
+    }
+
     /// Converts `self` into numerator and denominator integers,
     /// consuming `self`.
+    ///
+    /// This function reuses the allocated memory and does not
+    /// allocate any new memory.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r = Rational::from((12, -20));
+    /// // r will be canonicalized to -3 / 5
+    /// let (num, den) = r.into_numer_denom();
+    /// assert!(num == -3);
+    /// assert!(den == 5);
+    /// ```
     pub fn into_numer_denom(mut self) -> (Integer, Integer) {
         let (mut numer, mut denom) = unsafe { mem::uninitialized() };
         {
@@ -316,46 +428,61 @@ impl Rational {
         (numer, denom)
     }
 
-    /// Computes the absolute value of `self`
-    pub fn abs(&mut self) -> &mut Rational {
-        unsafe {
-            gmp::mpq_abs(self.inner_mut(), self.inner());
-        }
-        self
+    math_op1! {
+        /// Computes the absolute value of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugrat::Rational;
+        /// let mut r = Rational::from((-100, 17));
+        /// assert!(*r.abs() == (100, 17));
+        /// assert!(r == (100, 17));
+        /// ```
+        fn abs;
+        /// Holds a computation of the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugrat::Rational;
+        /// let r = Rational::from((-100, 17));
+        /// let hold = r.abs_hold();
+        /// let abs = Rational::from(hold);
+        /// assert!(abs == (100, 17));
+        /// ```
+        fn abs_hold -> AbsHold;
+        gmp::mpq_abs
     }
-
-    /// Sets `self` to the absolute value of `val`
-    pub fn setabs(&mut self, val: &Rational) -> &mut Rational {
-        unsafe {
-            gmp::mpq_abs(self.inner_mut(), val.inner());
-        }
-        self
-    }
-
-    /// Computes the reciprocal of `self`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the value is zero.
-    pub fn recip(&mut self) -> &mut Rational {
-        assert_ne!(self.sign(), Ordering::Equal, "division by zero");
-        unsafe {
-            gmp::mpq_inv(self.inner_mut(), self.inner());
-        }
-        self
-    }
-
-    /// Sets `self` to the reciprocal of `val`.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the value is zero.
-    pub fn set_recip(&mut self, val: &Rational) -> &mut Rational {
-        assert_ne!(val.sign(), Ordering::Equal, "division by zero");
-        unsafe {
-            gmp::mpq_inv(self.inner_mut(), val.inner());
-        }
-        self
+    math_op1! {
+        /// Computes the reciprocal of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugrat::Rational;
+        /// let mut r = Rational::from((-100, 17));
+        /// assert!(*r.recip() == (-17, 100));
+        /// assert!(r == (-17, 100));
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is zero.
+        fn recip;
+        /// Holds a computation of the reciprocal.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugrat::Rational;
+        /// let r = Rational::from((-100, 17));
+        /// let hold = r.recip_hold();
+        /// let recip = Rational::from(hold);
+        /// assert!(recip == (-17, 100));
+        /// ```
+        fn recip_hold -> RecipHold;
+        xgmp::mpq_inv_check_0
     }
 
     /// Returns `Less` if `self` is less than zero,
@@ -390,7 +517,16 @@ impl Rational {
 
     /// Parses a `Rational` number.
     ///
-    /// See the [corresponding assignment](#method.assign_str_radix).
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r1 = Rational::from_str_radix("ff/a", 16).unwrap();
+    /// assert!(r1 == (255, 10));
+    /// let r2 = Rational::from_str_radix("+ff0/a0", 16).unwrap();
+    /// assert!(r2 == (0xff0, 0xa0));
+    /// assert!(*r2.numer() == 51 && *r2.denom() == 2);
+    /// ```
     ///
     /// # Panics
     ///
@@ -459,6 +595,18 @@ impl Rational {
     /// other function that parses a `Rational` number. If this method
     /// returns an error, the other functions will return the same
     /// error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// assert!(Rational::valid_str_radix("123/321", 4).is_ok());
+    /// assert!(Rational::valid_str_radix("123/xyz", 36).is_ok());
+    ///
+    /// let invalid_valid = Rational::valid_str_radix("1/123", 3);
+    /// let invalid_from = Rational::from_str_radix("1/123", 3);
+    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// ```
     ///
     /// # Panics
     ///
@@ -601,6 +749,10 @@ from! { (u32, u32) }
 from! { (i32, u32) }
 from! { (u32, i32) }
 from! { (i32, i32) }
+from! { (u64, u64) }
+from! { (i64, u64) }
+from! { (u64, i64) }
+from! { (i64, i64) }
 
 impl<'a> Assign<&'a Rational> for Rational {
     fn assign(&mut self, other: &'a Rational) {
@@ -641,12 +793,6 @@ impl Assign<Integer> for Rational {
 macro_rules! assign_frac {
     { $T1:ty, $T2:ty } => {
         impl Assign<($T1, $T2)> for Rational {
-            /// Assigns to a `Rational` number from a numerator and
-            /// denominator.
-            ///
-            /// # Panics
-            ///
-            /// Panics if the denominator is zero.
             fn assign(&mut self, (num, den): ($T1, $T2)) {
                 let num_den = self.as_mut_numer_denom();
                 num_den.0.assign(num);
@@ -682,6 +828,10 @@ assign_frac! { u32, u32 }
 assign_frac! { i32, u32 }
 assign_frac! { u32, i32 }
 assign_frac! { i32, i32 }
+assign_frac! { u64, u64 }
+assign_frac! { i64, u64 }
+assign_frac! { u64, i64 }
+assign_frac! { i64, i64 }
 
 impl<'a> Assign<&'a Rational> for Integer {
     fn assign(&mut self, val: &'a Rational) {
@@ -743,6 +893,7 @@ macro_rules! arith_binary {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             lhs: &'a Rational,
             rhs: &'a Rational,
@@ -830,6 +981,7 @@ impl<'a> Neg for &'a Rational {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct NegHold<'a> {
     op: &'a Rational,
 }
@@ -876,6 +1028,7 @@ macro_rules! arith_prim {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             lhs: &'a Rational,
             rhs: $T,
@@ -973,7 +1126,7 @@ macro_rules! cmp_frac {
             |r, t: &($Num, $Den)| {
                 let mut small = SmallRational::from(*t);
                 unsafe {
-                    gmp::mpq_cmp(r, small.get_ref().inner()).cmp(&0)
+                    gmp::mpq_cmp(r, small.get().inner()).cmp(&0)
                 }
             }
         }
@@ -1118,6 +1271,34 @@ impl<'a> Drop for MutNumerDenom<'a> {
     }
 }
 
+macro_rules! hold_math_op1 {
+    {
+        $(#[$attr_hold:meta])* struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            val: &'a Rational,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for Rational {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.val.inner() $(, src.$param.into())*);
+                }
+            }
+        }
+
+        from_borrow! { $Hold<'a> }
+    };
+}
+
+hold_math_op1! { struct AbsHold; gmp::mpq_abs }
+hold_math_op1! { struct RecipHold; xgmp::mpq_inv_check_0 }
+
 trait Inner {
     type Output;
     fn inner(&self) -> &Self::Output;
@@ -1152,6 +1333,288 @@ impl InnerMut for Integer {
     unsafe fn inner_mut(&mut self) -> &mut gmp::mpz_t {
         let ptr = self as *mut _ as *mut gmp::mpz_t;
         &mut *ptr
+    }
+}
+
+/// A small rational number that does not require any memory
+/// allocation.
+///
+/// This can be useful when you have a numerator and denominator that
+/// are `u32` or `i32` and you need a reference to a `Rational`.
+///
+/// Although no allocation is required, setting the value of a
+/// `SmallRational` does require some computation, as the numerator
+/// and denominator need to be canonicalized.
+///
+/// # Examples
+///
+/// ```rust
+/// use rugrat::{Rational, SmallRational};
+/// // `a` requires a heap allocation
+/// let mut a = Rational::from((100, 13));
+/// // `b` can reside on the stack
+/// let mut b = SmallRational::from((-100, 21));
+/// a /= b.get();
+/// assert!(*a.numer() == -21);
+/// assert!(*a.denom() == 13);
+/// ```
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct SmallRational {
+    num: gmp::mpz_t,
+    den: gmp::mpz_t,
+    num_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
+    den_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
+}
+
+const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
+
+impl Default for SmallRational {
+    fn default() -> SmallRational {
+        SmallRational::new()
+    }
+}
+
+impl SmallRational {
+    /// Creates a `SmallRational` with value 0.
+    pub fn new() -> SmallRational {
+        let mut ret = SmallRational {
+            num: gmp::mpz_t {
+                size: 0,
+                alloc: LIMBS_IN_SMALL_INTEGER as c_int,
+                d: ptr::null_mut(),
+            },
+            den: gmp::mpz_t {
+                size: 1,
+                alloc: LIMBS_IN_SMALL_INTEGER as c_int,
+                d: ptr::null_mut(),
+            },
+            num_limbs: [0; LIMBS_IN_SMALL_INTEGER],
+            den_limbs: [0; LIMBS_IN_SMALL_INTEGER],
+        };
+        ret.den_limbs[0] = 1;
+        ret
+    }
+
+    /// Borrows the `SmallRational` as a `Rational`.
+    pub fn get(&mut self) -> &Rational {
+        self.num.d = &mut self.num_limbs[0];
+        self.den.d = &mut self.den_limbs[0];
+        let ptr = (&self.num) as *const _ as *const _;
+        unsafe { &*ptr }
+    }
+
+    /// Creates a `SmallRational` from a 32-bit numerator and
+    /// denominator, assuming they are in canonical form.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because
+    ///
+    /// * it does not check that the denominator is not zero, and
+    ///
+    /// * it does not canonicalize the numerator and denominator.
+    ///
+    /// The rest of the library assumes that `SmallRational` and
+    /// `Rational` structures keep their numerators and denominators
+    /// canonicalized.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::SmallRational;
+    /// let mut from_unsafe = unsafe {
+    ///     SmallRational::from_canonicalized_32(true, 13, 10)
+    /// };
+    /// // from_safe is canonicalized to the same form as from_unsafe
+    /// let mut from_safe = SmallRational::from((130, -100));
+    /// let r_from_unsafe = from_unsafe.get();
+    /// let r_from_safe = from_safe.get();
+    /// assert!(r_from_unsafe.numer() == r_from_safe.numer());
+    /// assert!(r_from_unsafe.denom() == r_from_safe.denom());
+    /// ```
+    pub unsafe fn from_canonicalized_32(neg: bool,
+                                        num: u32,
+                                        den: u32)
+                                        -> SmallRational {
+        let mut ret = SmallRational::new();
+        if num != 0 {
+            ret.set_limbs_32(neg, num, den);
+        }
+        ret
+    }
+
+    /// Creates a `SmallRational` from a 64-bit numerator and
+    /// denominator, assuming they are in canonical form.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not canonicalize the
+    /// numerator and denominator. The rest of the library assumes
+    /// that `SmallRational` and `Rational` structures keep their
+    /// numerators and denominators canonicalized.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::SmallRational;
+    /// let mut from_unsafe = unsafe {
+    ///     SmallRational::from_canonicalized_64(true, 13, 10)
+    /// };
+    /// // from_safe is canonicalized to the same form as from_unsafe
+    ///
+    /// let mut from_safe = SmallRational::from((130, -100));
+    /// let r_from_unsafe = from_unsafe.get();
+    /// let r_from_safe = from_safe.get();
+    /// assert!(r_from_unsafe.numer() == r_from_safe.numer());
+    /// assert!(r_from_unsafe.denom() == r_from_safe.denom());
+    /// ```
+    pub unsafe fn from_canonicalized_64(neg: bool,
+                                        num: u64,
+                                        den: u64)
+                                        -> SmallRational {
+        let mut ret = SmallRational::new();
+        if num != 0 {
+            ret.set_limbs_64(neg, num, den);
+        }
+        ret
+    }
+
+    fn set_num_den_32(&mut self, neg: bool, num: u32, den: u32) {
+        assert_ne!(den, 0, "division by zero");
+        if num == 0 {
+            self.num.size = 0;
+            self.den.size = 1;
+            self.den_limbs[0] = 1;
+            return;
+        }
+        self.set_limbs_32(neg, num, den);
+        self.num.d = &mut self.num_limbs[0];
+        self.den.d = &mut self.den_limbs[0];
+        unsafe {
+            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
+        }
+    }
+
+    fn set_limbs_32(&mut self, neg: bool, num: u32, den: u32) {
+        self.num.size = if neg { -1 } else { 1 };
+        self.num_limbs[0] = num as gmp::limb_t;
+        self.den.size = 1;
+        self.den_limbs[0] = den as gmp::limb_t;
+    }
+
+    fn set_num_den_64(&mut self, neg: bool, num: u64, den: u64) {
+        assert_ne!(den, 0, "division by zero");
+        if num == 0 {
+            self.num.size = 0;
+            self.den.size = 1;
+            self.den_limbs[0] = 1;
+            return;
+        }
+        self.set_limbs_64(neg, num, den);
+        self.num.d = &mut self.num_limbs[0];
+        self.den.d = &mut self.den_limbs[0];
+        unsafe {
+            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
+        }
+    }
+
+    fn set_limbs_64(&mut self, neg: bool, num: u64, den: u64) {
+        match gmp::LIMB_BITS {
+            64 => {
+                self.num.size = if neg { -1 } else { 1 };
+                self.num_limbs[0] = num as gmp::limb_t;
+                self.den.size = 1;
+                self.den_limbs[0] = den as gmp::limb_t;
+            }
+            32 => {
+                if num <= 0xffff_ffff {
+                    self.num.size = if neg { -1 } else { 1 };
+                    self.num_limbs[0] = num as u32 as gmp::limb_t;
+                } else {
+                    self.num.size = if neg { -2 } else { 2 };
+                    self.num_limbs[0] = num as u32 as gmp::limb_t;
+                    self.num_limbs[1 + 0] = (num >> 32) as u32 as gmp::limb_t;
+                }
+                if den <= 0xffff_ffff {
+                    self.den.size = 1;
+                    self.den_limbs[0] = den as u32 as gmp::limb_t;
+                } else {
+                    self.den.size = 2;
+                    self.den_limbs[0] = den as u32 as gmp::limb_t;
+                    self.den_limbs[1 + 0] = (den >> 32) as u32 as gmp::limb_t;
+                }
+            }
+            _ => {
+                unreachable!();
+            }
+        }
+    }
+}
+
+impl<T> From<T> for SmallRational
+    where SmallRational: Assign<T>
+{
+    fn from(val: T) -> SmallRational {
+        let mut ret = SmallRational::new();
+        ret.assign(val);
+        ret
+    }
+}
+
+impl Assign<(u32, u32)> for SmallRational {
+    fn assign(&mut self, (num, den): (u32, u32)) {
+        self.set_num_den_32(false, num, den);
+    }
+}
+
+impl Assign<(u32, i32)> for SmallRational {
+    fn assign(&mut self, (num, den): (u32, i32)) {
+        self.set_num_den_32(den < 0, num, den.wrapping_abs() as u32);
+    }
+}
+
+impl Assign<(i32, u32)> for SmallRational {
+    fn assign(&mut self, (num, den): (i32, u32)) {
+        self.set_num_den_32(num < 0, num.wrapping_abs() as u32, den);
+    }
+}
+
+impl Assign<(i32, i32)> for SmallRational {
+    fn assign(&mut self, (num, den): (i32, i32)) {
+        let num_neg = num < 0;
+        let den_neg = den < 0;
+        self.set_num_den_32(num_neg != den_neg,
+                            num.wrapping_abs() as u32,
+                            den.wrapping_abs() as u32);
+    }
+}
+
+impl Assign<(u64, u64)> for SmallRational {
+    fn assign(&mut self, (num, den): (u64, u64)) {
+        self.set_num_den_64(false, num, den);
+    }
+}
+
+impl Assign<(u64, i64)> for SmallRational {
+    fn assign(&mut self, (num, den): (u64, i64)) {
+        self.set_num_den_64(den < 0, num, den.wrapping_abs() as u64);
+    }
+}
+
+impl Assign<(i64, u64)> for SmallRational {
+    fn assign(&mut self, (num, den): (i64, u64)) {
+        self.set_num_den_64(num < 0, num.wrapping_abs() as u64, den);
+    }
+}
+
+impl Assign<(i64, i64)> for SmallRational {
+    fn assign(&mut self, (num, den): (i64, i64)) {
+        let num_neg = num < 0;
+        let den_neg = den < 0;
+        self.set_num_den_64(num_neg != den_neg,
+                            num.wrapping_abs() as u64,
+                            den.wrapping_abs() as u64);
     }
 }
 
@@ -1190,7 +1653,14 @@ mod tests {
             for &d in &u {
                 if d != 0 {
                     let ans = 0.partial_cmp(&n);
+                    let mut x = SmallRational::from((n, d));
+                    println!("{}", x.get());
+                    println!("n {} d {} ans {:?}", n, d, ans);
+                    println!("zero {}", zero);
+                    println!("cmp() {:?}", zero.partial_cmp(&(n, d)));
+                    println!("repeat");
                     assert!(zero.partial_cmp(&(n, d)) == ans);
+                    println!("done");
                     assert!(zero.partial_cmp(&Rational::from((n, d))) == ans);
                 }
             }
