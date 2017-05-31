@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
@@ -25,11 +24,11 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::i32;
 use std::mem;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
-               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
+               Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int};
-use std::ptr;
 use std::str::FromStr;
+use std::sync::atomic::{AtomicPtr, Ordering as AtomicOrdering};
 use xgmp;
 
 /// An arbitrary-precision rational number.
@@ -200,10 +199,10 @@ impl Rational {
     /// assert!(j.to_f64() == trunc as f64 / den as f64);
     ///
     /// let max = Rational::from_f64(f64::MAX).unwrap();
-    /// let plus_small = max + SmallRational::from((7, 2)).get();
+    /// let plus_small = max + &*SmallRational::from((7, 2));
     /// // plus_small is truncated to f64::MAX
     /// assert!(plus_small.to_f64() == f64::MAX);
-    /// let times_three_two = plus_small * SmallRational::from((3, 2)).get();
+    /// let times_three_two = plus_small * &*SmallRational::from((3, 2));
     /// // times_three_two is too large
     /// assert!(times_three_two.to_f64() == f64::INFINITY);
     /// ```
@@ -255,10 +254,10 @@ impl Rational {
     /// use rugrat::{Rational, SmallRational};
     /// use std::f32;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
-    /// let minus_small = min - SmallRational::from((7, 2)).get();
+    /// let minus_small = min - &*SmallRational::from((7, 2));
     /// // minus_small is truncated to f32::MIN
     /// assert!(minus_small.to_f32() == f32::MIN);
-    /// let times_three_two = minus_small * SmallRational::from((3, 2)).get();
+    /// let times_three_two = minus_small * &*SmallRational::from((3, 2));
     /// // times_three_two is too small
     /// assert!(times_three_two.to_f32() == f32::NEG_INFINITY);
     /// ```
@@ -1124,10 +1123,8 @@ macro_rules! cmp_frac {
         cmp! {
             ($Num, $Den),
             |r, t: &($Num, $Den)| {
-                let mut small = SmallRational::from(*t);
-                unsafe {
-                    gmp::mpq_cmp(r, small.get().inner()).cmp(&0)
-                }
+                let small = SmallRational::from(*t);
+                unsafe { gmp::mpq_cmp(r, small.inner()).cmp(&0) }
             }
         }
     };
@@ -1340,11 +1337,15 @@ impl InnerMut for Integer {
 /// allocation.
 ///
 /// This can be useful when you have a numerator and denominator that
-/// are `u32` or `i32` and you need a reference to a `Rational`.
+/// are 32-bit or 64-bit integers and you need a reference to a
+/// `Rational`.
 ///
 /// Although no allocation is required, setting the value of a
 /// `SmallRational` does require some computation, as the numerator
 /// and denominator need to be canonicalized.
+///
+/// The `SmallRational` type can be coerced to a `Rational`, as it
+/// implements `Deref` with a `Rational` target.
 ///
 /// # Examples
 ///
@@ -1353,21 +1354,27 @@ impl InnerMut for Integer {
 /// // `a` requires a heap allocation
 /// let mut a = Rational::from((100, 13));
 /// // `b` can reside on the stack
-/// let mut b = SmallRational::from((-100, 21));
-/// a /= b.get();
+/// let b = SmallRational::from((-100, 21));
+/// a /= &*b;
 /// assert!(*a.numer() == -21);
 /// assert!(*a.denom() == 13);
 /// ```
-#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct SmallRational {
-    num: gmp::mpz_t,
-    den: gmp::mpz_t,
+    num: Mpz,
+    den: Mpz,
     num_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
     den_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
 }
 
 const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
+
+#[repr(C)]
+pub struct Mpz {
+    alloc: c_int,
+    size: c_int,
+    d: AtomicPtr<gmp::limb_t>,
+}
 
 impl Default for SmallRational {
     fn default() -> SmallRational {
@@ -1379,29 +1386,21 @@ impl SmallRational {
     /// Creates a `SmallRational` with value 0.
     pub fn new() -> SmallRational {
         let mut ret = SmallRational {
-            num: gmp::mpz_t {
+            num: Mpz {
                 size: 0,
                 alloc: LIMBS_IN_SMALL_INTEGER as c_int,
-                d: ptr::null_mut(),
+                d: Default::default(),
             },
-            den: gmp::mpz_t {
+            den: Mpz {
                 size: 1,
                 alloc: LIMBS_IN_SMALL_INTEGER as c_int,
-                d: ptr::null_mut(),
+                d: Default::default(),
             },
             num_limbs: [0; LIMBS_IN_SMALL_INTEGER],
             den_limbs: [0; LIMBS_IN_SMALL_INTEGER],
         };
         ret.den_limbs[0] = 1;
         ret
-    }
-
-    /// Borrows the `SmallRational` as a `Rational`.
-    pub fn get(&mut self) -> &Rational {
-        self.num.d = &mut self.num_limbs[0];
-        self.den.d = &mut self.den_limbs[0];
-        let ptr = (&self.num) as *const _ as *const _;
-        unsafe { &*ptr }
     }
 
     /// Creates a `SmallRational` from a 32-bit numerator and
@@ -1423,15 +1422,13 @@ impl SmallRational {
     ///
     /// ```rust
     /// use rugrat::SmallRational;
-    /// let mut from_unsafe = unsafe {
+    /// let from_unsafe = unsafe {
     ///     SmallRational::from_canonicalized_32(true, 13, 10)
     /// };
     /// // from_safe is canonicalized to the same form as from_unsafe
-    /// let mut from_safe = SmallRational::from((130, -100));
-    /// let r_from_unsafe = from_unsafe.get();
-    /// let r_from_safe = from_safe.get();
-    /// assert!(r_from_unsafe.numer() == r_from_safe.numer());
-    /// assert!(r_from_unsafe.denom() == r_from_safe.denom());
+    /// let from_safe = SmallRational::from((130, -100));
+    /// assert!(from_unsafe.numer() == from_safe.numer());
+    /// assert!(from_unsafe.denom() == from_safe.denom());
     /// ```
     pub unsafe fn from_canonicalized_32(neg: bool,
                                         num: u32,
@@ -1458,16 +1455,14 @@ impl SmallRational {
     ///
     /// ```rust
     /// use rugrat::SmallRational;
-    /// let mut from_unsafe = unsafe {
+    /// let from_unsafe = unsafe {
     ///     SmallRational::from_canonicalized_64(true, 13, 10)
     /// };
     /// // from_safe is canonicalized to the same form as from_unsafe
     ///
-    /// let mut from_safe = SmallRational::from((130, -100));
-    /// let r_from_unsafe = from_unsafe.get();
-    /// let r_from_safe = from_safe.get();
-    /// assert!(r_from_unsafe.numer() == r_from_safe.numer());
-    /// assert!(r_from_unsafe.denom() == r_from_safe.denom());
+    /// let from_safe = SmallRational::from((130, -100));
+    /// assert!(from_unsafe.numer() == from_safe.numer());
+    /// assert!(from_unsafe.denom() == from_safe.denom());
     /// ```
     pub unsafe fn from_canonicalized_64(neg: bool,
                                         num: u64,
@@ -1489,8 +1484,7 @@ impl SmallRational {
             return;
         }
         self.set_limbs_32(neg, num, den);
-        self.num.d = &mut self.num_limbs[0];
-        self.den.d = &mut self.den_limbs[0];
+        self.update_d();
         unsafe {
             gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
@@ -1512,8 +1506,7 @@ impl SmallRational {
             return;
         }
         self.set_limbs_64(neg, num, den);
-        self.num.d = &mut self.num_limbs[0];
-        self.den.d = &mut self.den_limbs[0];
+        self.update_d();
         unsafe {
             gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
@@ -1549,6 +1542,27 @@ impl SmallRational {
                 unreachable!();
             }
         }
+    }
+
+    fn update_d(&self) {
+        // Since this is borrowed, the limb won't move around, and we
+        // can set the d fields.
+        assert_eq!(mem::size_of::<AtomicPtr<gmp::limb_t>>(),
+                   mem::size_of::<*mut gmp::limb_t>());
+        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
+        let num_d = &self.num_limbs[0] as *const _ as *mut _;
+        self.num.d.store(num_d, AtomicOrdering::Relaxed);
+        let den_d = &self.den_limbs[0] as *const _ as *mut _;
+        self.den.d.store(den_d, AtomicOrdering::Relaxed);
+    }
+}
+
+impl Deref for SmallRational {
+    type Target = Rational;
+    fn deref(&self) -> &Rational {
+        self.update_d();
+        let ptr = (&self.num) as *const _ as *const _;
+        unsafe { &*ptr }
     }
 }
 
@@ -1653,8 +1667,8 @@ mod tests {
             for &d in &u {
                 if d != 0 {
                     let ans = 0.partial_cmp(&n);
-                    let mut x = SmallRational::from((n, d));
-                    println!("{}", x.get());
+                    let x = SmallRational::from((n, d));
+                    println!("{}", *x);
                     println!("n {} d {} ans {:?}", n, d, ans);
                     println!("zero {}", zero);
                     println!("cmp() {:?}", zero.partial_cmp(&(n, d)));
