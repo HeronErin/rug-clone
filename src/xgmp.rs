@@ -556,7 +556,7 @@ pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
             let mag1 = match (*op1).size {
                 0 => 0,
                 -1 | 1 => op1.limb(0) as u64,
-                -2 | 2 => (op1.limb(1) as u64) << 32 | op1.limb(0),
+                -2 | 2 => (op1.limb(1) as u64) << 32 | op1.limb(0) as u64,
                 _ => return if neg1 { -1 } else { 1 },
             };
             let ord = match (neg1, op2 < 0) {
