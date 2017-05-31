@@ -1545,11 +1545,8 @@ impl SmallRational {
     }
 
     fn update_d(&self) {
-        // Since this is borrowed, the limb won't move around, and we
+        // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        assert_eq!(mem::size_of::<AtomicPtr<gmp::limb_t>>(),
-                   mem::size_of::<*mut gmp::limb_t>());
-        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
         let num_d = &self.num_limbs[0] as *const _ as *mut _;
         self.num.d.store(num_d, AtomicOrdering::Relaxed);
         let den_d = &self.den_limbs[0] as *const _ as *mut _;
