@@ -27,13 +27,14 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
-               BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
-               Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+               BitXor, BitXorAssign, Deref, Div, DivAssign, Mul, MulAssign,
+               Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
+               SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
-use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
 use std::str::FromStr;
+use std::sync::atomic::{AtomicPtr, Ordering as AtomicOrdering};
 use xgmp;
 
 /// An arbitrary-precision integer.
@@ -3093,6 +3094,9 @@ hold_math_op1! { struct BinomialHold; gmp::mpz_bin_ui, k: u32 }
 /// using a `SmallInteger`; the functions would still need to check
 /// for the size of an `Integer` obtained using `SmallInteger`.
 ///
+/// The `SmallInteger` type can be coerced to an `Integer`, as it
+/// implements `Deref` with an `Integer` target.
+///
 /// # Examples
 ///
 /// ```rust
@@ -3100,38 +3104,52 @@ hold_math_op1! { struct BinomialHold; gmp::mpz_bin_ui, k: u32 }
 /// // `a` requires a heap allocation
 /// let mut a = Integer::from(250);
 /// // `b` can reside on the stack
-/// let mut b = SmallInteger::from(-100);
-/// a.lcm(b.get());
+/// let b = SmallInteger::from(-100);
+/// a.lcm(&b);
 /// assert!(a == 500);
 /// // another computation:
-/// a.lcm(SmallInteger::from(30).get());
+/// a.lcm(&SmallInteger::from(30));
 /// assert!(a == 1500);
 /// ```
-#[derive(Clone, Copy)]
 #[repr(C)]
 pub struct SmallInteger {
-    inner: mpz_t,
+    inner: Mpz,
     limb: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
 }
 
 const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
 
+#[repr(C)]
+pub struct Mpz {
+    alloc: c_int,
+    size: c_int,
+    d: AtomicPtr<gmp::limb_t>,
+}
+
 impl SmallInteger {
     /// Creates a `SmallInteger` with value 0.
     pub fn new() -> SmallInteger {
         SmallInteger {
-            inner: mpz_t {
+            inner: Mpz {
                 size: 0,
                 alloc: LIMBS_IN_SMALL_INTEGER as c_int,
-                d: ptr::null_mut(),
+                d: Default::default(),
             },
             limb: [0; LIMBS_IN_SMALL_INTEGER],
         }
     }
+}
 
-    /// Borrows the `SmallInteger` as an `Integer`.
-    pub fn get(&mut self) -> &Integer {
-        self.inner.d = &mut self.limb[0];
+impl Deref for SmallInteger {
+    type Target = Integer;
+    fn deref(&self) -> &Integer {
+        // Since this is borrowed, the limb won't move around, and we
+        // can set the d field.
+        assert_eq!(mem::size_of::<AtomicPtr<gmp::limb_t>>(),
+                   mem::size_of::<*mut gmp::limb_t>());
+        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
+        let d = &self.limb[0] as *const _ as *mut _;
+        self.inner.d.store(d, AtomicOrdering::Relaxed);
         let ptr = (&self.inner) as *const _ as *const _;
         unsafe { &*ptr }
     }
