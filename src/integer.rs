@@ -102,81 +102,6 @@ impl Clone for Integer {
     }
 }
 
-/// A small integer that does not require any memory allocation.
-///
-/// This can be useful when you have a `u32` or `i32` but need a
-/// reference to an `Integer`.
-///
-/// If there are functions that take a `u32` or `i32` directly instead
-/// of an `Integer` reference, using them can still be faster than
-/// using a `SmallInteger`; the functions would still need to check
-/// for the size of an `Integer` obtained using `SmallInteger`.
-///
-/// # Examples
-///
-/// ```rust
-/// use rugint::{Integer, SmallInteger};
-/// // `a` requires a heap allocation
-/// let mut a = Integer::from(250);
-/// // `b` can reside on the stack
-/// let mut b = SmallInteger::from(-100);
-/// a.lcm(b.get_ref());
-/// assert!(a == 500);
-/// // another computation:
-/// a.lcm(SmallInteger::from(30).get_ref());
-/// assert!(a == 1500);
-/// ```
-pub struct SmallInteger {
-    inner: mpz_t,
-    limb: gmp::limb_t,
-}
-
-impl From<u32> for SmallInteger {
-    fn from(val: u32) -> SmallInteger {
-        SmallInteger {
-            inner: mpz_t {
-                size: if val == 0 { 0 } else { 1 },
-                alloc: 1,
-                d: ptr::null_mut(),
-            },
-            limb: val.into(),
-        }
-    }
-}
-
-impl From<i32> for SmallInteger {
-    fn from(val: i32) -> SmallInteger {
-        let (sign, magnitude) = if val < 0 {
-            (true, val.wrapping_neg() as u32)
-        } else {
-            (false, val as u32)
-        };
-        SmallInteger {
-            inner: mpz_t {
-                size: if val == 0 {
-                    0
-                } else if sign {
-                    -1
-                } else {
-                    1
-                },
-                alloc: 1,
-                d: ptr::null_mut(),
-            },
-            limb: magnitude.into(),
-        }
-    }
-}
-
-impl SmallInteger {
-    /// Gets an `Integer` reference.
-    pub fn get_ref(&mut self) -> &Integer {
-        self.inner.d = &mut self.limb;
-        let ptr = (&self.inner) as *const _ as *const Integer;
-        unsafe { &*ptr }
-    }
-}
-
 macro_rules! math_op1 {
     {
         $(#[$attr:meta])* fn $method:ident;
@@ -359,7 +284,7 @@ impl Integer {
     /// assert!(large.to_u32_wrapping() == 0x90abcdef);
     /// ```
     pub fn to_u32_wrapping(&self) -> u32 {
-        let u = unsafe { gmp::mpz_get_ui(self.inner()) as u32 };
+        let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) };
         if self.sign() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -621,7 +546,7 @@ impl Integer {
         //   as this may change f into +/- infinity.
         // * If f is +/- infinity, the bits are already zero, so the
         //   masking has no effect.
-        // * f is an integer, so it cannot be subnormal.
+        // * If f is subnormal, f as f32 will be zero anyway.
         if !f.is_nan() {
             let u = unsafe { mem::transmute::<_, u64>(f) };
             // f64 has 29 more significant bits than f32.
@@ -941,8 +866,8 @@ impl Integer {
         /// use rugint::Integer;
         /// let i = Integer::from(-100);
         /// let hold = i.abs_hold();
-        /// let a = Integer::from(hold);
-        /// assert!(a == 100);
+        /// let abs = Integer::from(hold);
+        /// assert!(abs == 100);
         /// ```
         fn abs_hold -> AbsHold;
         gmp::mpz_abs
@@ -2010,7 +1935,9 @@ impl<'a> From<&'a Integer> for Integer {
 
 impl Assign<u32> for Integer {
     fn assign(&mut self, val: u32) {
-        unsafe { gmp::mpz_set_ui(self.inner_mut(), val.into()) }
+        unsafe {
+            xgmp::mpz_set_u32(self.inner_mut(), val);
+        }
     }
 }
 
@@ -2026,7 +1953,9 @@ impl From<u32> for Integer {
 
 impl Assign<i32> for Integer {
     fn assign(&mut self, val: i32) {
-        unsafe { gmp::mpz_set_si(self.inner_mut(), val.into()) }
+        unsafe {
+            xgmp::mpz_set_i32(self.inner_mut(), val);
+        }
     }
 }
 
@@ -2042,56 +1971,48 @@ impl From<i32> for Integer {
 
 impl Assign<u64> for Integer {
     fn assign(&mut self, val: u64) {
-        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_ulong>() >= 8 {
-            unsafe { gmp::mpz_set_ui(self.inner_mut(), val as c_ulong) }
-        } else {
-            self.assign((val >> 32) as u32);
-            *self <<= 32;
-            *self |= val as u32;
+        unsafe {
+            xgmp::mpz_set_u64(self.inner_mut(), val);
         }
     }
 }
 
 impl From<u64> for Integer {
     fn from(val: u64) -> Integer {
-        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_ulong>() >= 8 {
+        if mem::size_of::<c_ulong>() >= 8 {
             unsafe {
                 let mut inner: mpz_t = mem::uninitialized();
                 gmp::mpz_init_set_ui(&mut inner, val as c_ulong);
                 Integer { inner: inner }
             }
         } else {
-            let i = Integer::from((val >> 32) as u32);
-            (i << 32) | (val as u32)
+            let mut i = Integer::new();
+            i.assign(val);
+            i
         }
     }
 }
 
 impl Assign<i64> for Integer {
     fn assign(&mut self, val: i64) {
-        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_long>() >= 8 {
-            unsafe { gmp::mpz_set_si(self.inner_mut(), val as c_long) }
-        } else {
-            self.assign((val >> 32) as i32);
-            *self <<= 32;
-            // cast lower half to u32, not to i32
-            *self |= val as u32;
+        unsafe {
+            xgmp::mpz_set_i64(self.inner_mut(), val);
         }
     }
 }
 
 impl From<i64> for Integer {
     fn from(val: i64) -> Integer {
-        if gmp::NUMB_BITS >= 64 && mem::size_of::<c_long>() >= 8 {
+        if mem::size_of::<c_long>() >= 8 {
             unsafe {
                 let mut inner: mpz_t = mem::uninitialized();
                 gmp::mpz_init_set_si(&mut inner, val as c_long);
                 Integer { inner: inner }
             }
         } else {
-            let i = Integer::from((val >> 32) as i32);
-            // cast lower half to u32, not to i32
-            (i << 32) | (val as u32)
+            let mut i = Integer::new();
+            i.assign(val);
+            i
         }
     }
 }
@@ -2126,6 +2047,7 @@ macro_rules! arith_unary {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             op: &'a Integer,
         }
@@ -2188,6 +2110,7 @@ macro_rules! arith_binary {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
@@ -2302,6 +2225,7 @@ macro_rules! arith_prim {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             lhs: &'a Integer,
             rhs: $T,
@@ -2362,6 +2286,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $HoldFrom<'a> {
             lhs: $T,
             rhs: &'a Integer,
@@ -2847,8 +2772,8 @@ macro_rules! cmp {
     };
 }
 
-cmp! { u32, gmp::mpz_cmp_ui }
-cmp! { i32, gmp::mpz_cmp_si }
+cmp! { u32, xgmp::mpz_cmp_u32 }
+cmp! { i32, xgmp::mpz_cmp_i32 }
 cmp! { u64, xgmp::mpz_cmp_u64 }
 cmp! { i64, xgmp::mpz_cmp_i64 }
 
@@ -2988,6 +2913,7 @@ macro_rules! hold_math_op1 {
         $func:path $(, $param:ident: $T:ty)*
     } => {
         $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             val: &'a Integer,
             $($param: $T,)*
@@ -3012,6 +2938,7 @@ macro_rules! hold_math_op1_2 {
         $func:path $(, $param:ident: $T:ty)*
     } => {
         $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             val: &'a Integer,
             $($param: $T,)*
@@ -3034,6 +2961,7 @@ macro_rules! hold_math_op2 {
         $func:path $(, $param:ident: $T:ty)*
     } => {
         $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
@@ -3059,6 +2987,7 @@ macro_rules! hold_math_op2_2 {
         $func:path $(, $param:ident: $T:ty)*
     } => {
         $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
@@ -3083,6 +3012,7 @@ macro_rules! hold_math_op3 {
         $func:path $(, $param:ident: $T:ty)*
     } => {
         $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
         pub struct $Hold<'a> {
             op1: &'a Integer,
             op2: &'a Integer,
@@ -3117,6 +3047,7 @@ hold_math_op1_2! { struct SqrtRemHold; gmp::mpz_sqrtrem }
 hold_math_op2! { struct GcdHold; gmp::mpz_gcd }
 hold_math_op2! { struct LcmHold; gmp::mpz_lcm }
 
+#[derive(Clone, Copy)]
 pub struct InvertHold<'a> {
     lhs: &'a Integer,
     rhs: &'a Integer,
@@ -3132,6 +3063,7 @@ impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct RemoveFactorHold<'a> {
     lhs: &'a Integer,
     rhs: &'a Integer,
@@ -3150,6 +3082,129 @@ impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
 }
 
 hold_math_op1! { struct BinomialHold; gmp::mpz_bin_ui, k: u32 }
+
+/// A small integer that does not require any memory allocation.
+///
+/// This can be useful when you have a `u64`, `i64`, `u32` or `i32`
+/// but need a reference to an `Integer`.
+///
+/// If there are functions that take a `u32` or `i32` directly instead
+/// of an `Integer` reference, using them can still be faster than
+/// using a `SmallInteger`; the functions would still need to check
+/// for the size of an `Integer` obtained using `SmallInteger`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rugint::{Integer, SmallInteger};
+/// // `a` requires a heap allocation
+/// let mut a = Integer::from(250);
+/// // `b` can reside on the stack
+/// let mut b = SmallInteger::from(-100);
+/// a.lcm(b.get());
+/// assert!(a == 500);
+/// // another computation:
+/// a.lcm(SmallInteger::from(30).get());
+/// assert!(a == 1500);
+/// ```
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub struct SmallInteger {
+    inner: mpz_t,
+    limb: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
+}
+
+const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
+
+impl SmallInteger {
+    /// Creates a `SmallInteger` with value 0.
+    pub fn new() -> SmallInteger {
+        SmallInteger {
+            inner: mpz_t {
+                size: 0,
+                alloc: LIMBS_IN_SMALL_INTEGER as c_int,
+                d: ptr::null_mut(),
+            },
+            limb: [0; LIMBS_IN_SMALL_INTEGER],
+        }
+    }
+
+    /// Borrows the `SmallInteger` as an `Integer`.
+    pub fn get(&mut self) -> &Integer {
+        self.inner.d = &mut self.limb[0];
+        let ptr = (&self.inner) as *const _ as *const _;
+        unsafe { &*ptr }
+    }
+}
+
+impl<T> From<T> for SmallInteger
+    where SmallInteger: Assign<T>
+{
+    fn from(val: T) -> SmallInteger {
+        let mut ret = SmallInteger::new();
+        ret.assign(val);
+        ret
+    }
+}
+
+impl Assign<u32> for SmallInteger {
+    fn assign(&mut self, val: u32) {
+        if val == 0 {
+            self.inner.size = 0;
+        } else {
+            self.inner.size = 1;
+            self.limb[0] = val as gmp::limb_t;
+        }
+    }
+}
+
+impl Assign<i32> for SmallInteger {
+    fn assign(&mut self, val: i32) {
+        self.assign(val.wrapping_abs() as u32);
+        if val < 0 {
+            self.inner.size = -self.inner.size;
+        }
+    }
+}
+
+impl Assign<u64> for SmallInteger {
+    fn assign(&mut self, val: u64) {
+        match gmp::LIMB_BITS {
+            64 => {
+                if val == 0 {
+                    self.inner.size = 0;
+                } else {
+                    self.inner.size = 1;
+                    self.limb[0] = val as gmp::limb_t;
+                }
+            }
+            32 => {
+                if val == 0 {
+                    self.inner.size = 0;
+                } else if val <= 0xffff_ffff {
+                    self.inner.size = 1;
+                    self.limb[0] = val as u32 as gmp::limb_t;
+                } else {
+                    self.inner.size = 2;
+                    self.limb[0] = val as u32 as gmp::limb_t;
+                    self.limb[1 + 0] = (val >> 32) as u32 as gmp::limb_t;
+                }
+            }
+            _ => {
+                unreachable!();
+            }
+        }
+    }
+}
+
+impl Assign<i64> for SmallInteger {
+    fn assign(&mut self, val: i64) {
+        self.assign(val.wrapping_abs() as u64);
+        if val < 0 {
+            self.inner.size = -self.inner.size;
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -3470,10 +3525,12 @@ mod tests {
     }
 
     #[test]
-    fn check_no_nails() {
+    fn check_assumptions() {
         // we assume no nail bits when we use limbs
         assert!(gmp::NAIL_BITS == 0);
         assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
         assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+        // we assume that a limb has 32 or 64 bits.
+        assert!(gmp::NUMB_BITS == 32 || gmp::NUMB_BITS == 64);
     }
 }

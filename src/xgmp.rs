@@ -415,103 +415,196 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     }
 }
 
+pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
+    match gmp::LIMB_BITS {
+        64 => {
+            if u == 0 {
+                (*rop).size = 0;
+            } else {
+                (*rop).size = 1;
+                *rop.limb_mut(0) = u as gmp::limb_t;
+            }
+        }
+        32 => {
+            if u == 0 {
+                (*rop).size = 0;
+            } else if u <= 0xffff_ffff {
+                (*rop).size = 1;
+                *rop.limb_mut(0) = u as gmp::limb_t;
+            } else {
+                gmp::_mpz_realloc(rop, 2);
+                (*rop).size = 2;
+                *rop.limb_mut(0) = u as u32 as gmp::limb_t;
+                *rop.limb_mut(1) = (u >> 32) as u32 as gmp::limb_t;
+            }
+        }
+        _ => {
+            unreachable!();
+        }
+    }
+}
+
+pub unsafe fn mpz_set_i64(rop: *mut mpz_t, i: i64) {
+    mpz_set_u64(rop, i.wrapping_abs() as u64);
+    if i < 0 {
+        (*rop).size = -(*rop).size;
+    }
+}
+
+pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
+    match gmp::LIMB_BITS {
+        64 | 32 => {
+            if u == 0 {
+                (*rop).size = 0;
+            } else {
+                (*rop).size = 1;
+                *rop.limb_mut(0) = u as gmp::limb_t;
+            }
+        }
+        _ => {
+            unreachable!();
+        }
+    }
+}
+
+pub unsafe fn mpz_set_i32(rop: *mut mpz_t, i: i32) {
+    mpz_set_u32(rop, i.wrapping_abs() as u32);
+    if i < 0 {
+        (*rop).size = -(*rop).size;
+    }
+}
+
 pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
-    match (*op).size {
-        0 => 0,
-        -1 | 1 => op.limb(0) as u64,
-        _ if gmp::LIMB_BITS >= 64 => op.limb(0) as u64,
-        _ if gmp::LIMB_BITS == 32 => {
-            op.limb(0) as u64 | ((op.limb(1) as u64) << 32)
+    match gmp::LIMB_BITS {
+        64 => {
+            match (*op).size {
+                0 => 0,
+                _ => op.limb(0) as u64,
+            }
+        }
+        32 => {
+            match (*op).size {
+                0 => 0,
+                -1 | 1 => op.limb(0) as u64,
+                _ => (op.limb(1) as u64) << 32 | op.limb(0) as u64,
+            }
+        }
+        _ => {
+            unreachable!();
+        }
+    }
+}
+
+pub unsafe fn mpz_get_abs_u32(op: *const mpz_t) -> u32 {
+    match gmp::LIMB_BITS {
+        64 | 32 => {
+            match (*op).size {
+                0 => 0,
+                _ => op.limb(0) as u32,
+            }
+        }
+        _ => {
+            unreachable!();
+        }
+    }
+}
+
+pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
+    match gmp::LIMB_BITS {
+        64 => {
+            match (*op1).size {
+                0 => if op2 == 0 { 0 } else { -1 },
+                size if size < 0 => -1,
+                1 => op1.limb(0).cmp(&(op2 as gmp::limb_t)).to_c_int(),
+                _ => 1,
+            }
+        }
+        32 => {
+            let op1_u = match (*op1).size {
+                0 => return if op2 == 0 { 0 } else { -1 },
+                size if size < 0 => return -1,
+                1 => op1.limb(0) as u64,
+                2 => (op1.limb(1) as u64) << 32 | op1.limb(0) as u64,
+                _ => return 1,
+            };
+            op1_u.cmp(&op2).to_c_int()
         }
         _ => unreachable!(),
     }
 }
 
-pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
-    if gmp::LIMB_BITS >= 64 {
-        match (*op1).size {
-            0 => if op2 == 0 { 0 } else { -1 },
-            neg if neg < 0 => -1,
-            1 => {
-                match op1.limb(0).cmp(&(op2 as gmp::limb_t)) {
-                    Ordering::Less => -1,
-                    Ordering::Equal => 0,
-                    Ordering::Greater => 1,
+pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
+    let neg1 = (*op1).size < 0;
+    match gmp::LIMB_BITS {
+        64 => {
+            match (*op1).size {
+                0 => 0.cmp(&op2).to_c_int(),
+                -1 | 1 => {
+                    let mag1 = op1.limb(0);
+                    let mag2 = op2.wrapping_abs() as u64 as gmp::limb_t;
+                    match (neg1, op2 < 0) {
+                        (false, false) => mag1.cmp(&mag2).to_c_int(),
+                        (false, true) => 1,
+                        (true, false) => -1,
+                        (true, true) => mag2.cmp(&mag1).to_c_int(),
+                    }
                 }
+                _ => if neg1 { -1 } else { 1 },
             }
-            _ => 1,
         }
-    } else if gmp::LIMB_BITS == 32 {
-        let val = match (*op1).size {
-            0 => return if op2 == 0 { 0 } else { -1 },
-            neg if neg < 0 => return -1,
-            1 => op1.limb(0) as u64,
-            2 => op1.limb(0) as u64 | ((op1.limb(1) as u64) << 32),
-            _ => return 1,
-        };
-        match val.cmp(&op2) {
-            Ordering::Less => -1,
-            Ordering::Equal => 0,
-            Ordering::Greater => 1,
+        32 => {
+            let mag1 = match (*op1).size {
+                0 => 0,
+                -1 | 1 => op1.limb(0) as u64,
+                -2 | 2 => (op1.limb(1) as u64) << 32 | op1.limb(0),
+                _ => return if neg1 { -1 } else { 1 },
+            };
+            let ord = match (neg1, op2 < 0) {
+                (false, false) => mag1.cmp(&(op2 as u64)),
+                (false, true) => Ordering::Greater,
+                (true, false) => Ordering::Less,
+                (true, true) => (op2.wrapping_neg() as u64).cmp(&mag1),
+            };
+            ord.to_c_int()
         }
-    } else {
-        unreachable!()
+        _ => unreachable!(),
     }
 }
 
-pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
-    let ord = if gmp::LIMB_BITS >= 64 {
-        match (*op1).size {
-            0 => 0.cmp(&op2),
-            size @ -1 | size @ 1 => {
-                let mag = op1.limb(0);
-                if size < 0 {
-                    if op2 >= 0 {
-                        return -1;
+pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
+    match gmp::LIMB_BITS {
+        64 | 32 => {
+            match (*op1).size {
+                0 => if op2 == 0 { 0 } else { -1 },
+                size if size < 0 => -1,
+                1 => op1.limb(0).cmp(&(op2 as gmp::limb_t)).to_c_int(),
+                _ => 1,
+            }
+        }
+        _ => unreachable!(),
+    }
+}
+
+pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
+    let neg1 = (*op1).size < 0;
+    match gmp::LIMB_BITS {
+        64 | 32 => {
+            match (*op1).size {
+                0 => 0.cmp(&op2).to_c_int(),
+                -1 | 1 => {
+                    let mag1 = op1.limb(0);
+                    let mag2 = op2.wrapping_abs() as u32 as gmp::limb_t;
+                    match (neg1, op2 < 0) {
+                        (false, false) => mag1.cmp(&mag2).to_c_int(),
+                        (false, true) => 1,
+                        (true, false) => -1,
+                        (true, true) => mag2.cmp(&mag1).to_c_int(),
                     }
-                    // both are negative
-                    (op2.wrapping_neg() as u64 as gmp::limb_t).cmp(&mag)
-                } else {
-                    if op2 < 0 {
-                        return 1;
-                    }
-                    // both are positive
-                    mag.cmp(&(op2 as gmp::limb_t))
                 }
+                _ => if neg1 { -1 } else { 1 },
             }
-            neg if neg < 0 => return -1,
-            _ => return 1,
         }
-    } else if gmp::LIMB_BITS == 32 {
-        let (sign, mag) = match (*op1).size {
-            0 => (false, 0),
-            size @ -1 | size @ 1 => (size < 0, op1.limb(0) as u64),
-            size @ -2 | size @ 2 => {
-                (size < 0, op1.limb(0) as u64 | ((op1.limb(1) as u64) << 32))
-            }
-            neg if neg < 0 => return -1,
-            _ => return 1,
-        };
-        if sign {
-            if op2 >= 0 {
-                return -1;
-            }
-            // both are negative
-            (op2.wrapping_neg() as u64).cmp(&mag)
-        } else {
-            if op2 < 0 {
-                return 1;
-            }
-            // both are positive
-            mag.cmp(&(op2 as u64))
-        }
-    } else {
-        unreachable!()
-    };
-    match ord {
-        Ordering::Less => -1,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
+        _ => unreachable!(),
     }
 }
 
@@ -612,5 +705,18 @@ trait LimbMut {
 impl LimbMut for *mut mpz_t {
     unsafe fn limb_mut(self, index: c_int) -> *mut gmp::limb_t {
         (*self).d.offset(index as isize)
+    }
+}
+
+trait ToCInt {
+    fn to_c_int(self) -> c_int;
+}
+impl ToCInt for Ordering {
+    fn to_c_int(self) -> c_int {
+        match self {
+            Ordering::Less => -1,
+            Ordering::Equal => 0,
+            Ordering::Greater => 1,
+        }
     }
 }
