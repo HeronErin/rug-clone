@@ -3145,9 +3145,6 @@ impl Deref for SmallInteger {
     fn deref(&self) -> &Integer {
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
-        assert_eq!(mem::size_of::<AtomicPtr<gmp::limb_t>>(),
-                   mem::size_of::<*mut gmp::limb_t>());
-        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
         let d = &self.limb[0] as *const _ as *mut _;
         self.inner.d.store(d, AtomicOrdering::Relaxed);
         let ptr = (&self.inner) as *const _ as *const _;
