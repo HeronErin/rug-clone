@@ -3087,6 +3087,7 @@ impl InnerMut for Integer {
     }
 }
 
+#[repr(C)]
 /// A small integer that does not require any memory allocation.
 ///
 /// This can be useful when you have a `u64`, `i64`, `u32` or `i32`
@@ -3114,10 +3115,9 @@ impl InnerMut for Integer {
 /// a.lcm(&SmallInteger::from(30));
 /// assert!(a == 1500);
 /// ```
-#[repr(C)]
 pub struct SmallInteger {
     inner: Mpz,
-    limb: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
+    limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
 }
 
 const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
@@ -3144,16 +3144,16 @@ impl SmallInteger {
                 alloc: LIMBS_IN_SMALL_INTEGER as c_int,
                 d: Default::default(),
             },
-            limb: [0; LIMBS_IN_SMALL_INTEGER],
+            limbs: [0; LIMBS_IN_SMALL_INTEGER],
         }
     }
 
     fn update_d(&self) {
         // sanity check
         assert!(mem::size_of::<Mpz>() == mem::size_of::<mpz_t>());
-        // Since this is borrowed, the limb won't move around, and we
+        // Since this is borrowed, the limbs won't move around, and we
         // can set the d field.
-        let d = &self.limb[0] as *const _ as *mut _;
+        let d = &self.limbs[0] as *const _ as *mut _;
         self.inner.d.store(d, AtomicOrdering::Relaxed);
     }
 }
@@ -3201,7 +3201,7 @@ impl Assign<u32> for SmallInteger {
             self.inner.size = 0;
         } else {
             self.inner.size = 1;
-            self.limb[0] = val as gmp::limb_t;
+            self.limbs[0] = val as gmp::limb_t;
         }
     }
 }
@@ -3214,7 +3214,7 @@ impl Assign<u64> for SmallInteger {
                     self.inner.size = 0;
                 } else {
                     self.inner.size = 1;
-                    self.limb[0] = val as gmp::limb_t;
+                    self.limbs[0] = val as gmp::limb_t;
                 }
             }
             32 => {
@@ -3222,11 +3222,11 @@ impl Assign<u64> for SmallInteger {
                     self.inner.size = 0;
                 } else if val <= 0xffff_ffff {
                     self.inner.size = 1;
-                    self.limb[0] = val as u32 as gmp::limb_t;
+                    self.limbs[0] = val as u32 as gmp::limb_t;
                 } else {
                     self.inner.size = 2;
-                    self.limb[0] = val as u32 as gmp::limb_t;
-                    self.limb[1 + 0] = (val >> 32) as u32 as gmp::limb_t;
+                    self.limbs[0] = val as u32 as gmp::limb_t;
+                    self.limbs[1 + 0] = (val >> 32) as u32 as gmp::limb_t;
                 }
             }
             _ => {
