@@ -113,4 +113,4 @@ extern crate rugflo;
 
 mod complex;
 
-pub use complex::{Complex, ParseComplexError, SmallComplex};
+pub use complex::{Complex, ParseComplexError, Prec, SmallComplex};

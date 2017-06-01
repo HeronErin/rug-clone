@@ -41,6 +41,54 @@ use std::sync::atomic::{AtomicPtr, Ordering as AtomicOrdering};
 type Round2 = (Round, Round);
 const NEAREST: Round2 = (Round::Nearest, Round::Nearest);
 
+/// The `Prec` trait is used to specify the precision of the real and
+/// imaginary parts of a `Complex` number.
+pub trait Prec {
+    /// Returs the precision for the real and imaginary parts.
+    fn prec(self) -> (u32, u32);
+}
+
+impl Prec for i32 {
+    fn prec(self) -> (u32, u32) {
+        assert!(self >= 0, "negative precision");
+        (self as u32, self as u32)
+    }
+}
+
+impl Prec for u32 {
+    fn prec(self) -> (u32, u32) {
+        (self, self)
+    }
+}
+
+impl Prec for (i32, i32) {
+    fn prec(self) -> (u32, u32) {
+        assert!(self.0 >= 0, "negative precision");
+        assert!(self.1 >= 0, "negative precision");
+        (self.0 as u32, self.1 as u32)
+    }
+}
+
+impl Prec for (i32, u32) {
+    fn prec(self) -> (u32, u32) {
+        assert!(self.0 >= 0, "negative precision");
+        (self.0 as u32, self.1)
+    }
+}
+
+impl Prec for (u32, i32) {
+    fn prec(self) -> (u32, u32) {
+        assert!(self.1 >= 0, "negative precision");
+        (self.0, self.1 as u32)
+    }
+}
+
+impl Prec for (u32, u32) {
+    fn prec(self) -> (u32, u32) {
+        self
+    }
+}
+
 type Ordering2 = (Ordering, Ordering);
 
 /// A multi-precision complex number.
@@ -69,14 +117,6 @@ pub struct Complex {
     inner: mpc::mpc_t,
 }
 
-impl Drop for Complex {
-    fn drop(&mut self) {
-        unsafe {
-            mpc::clear(self.inner_mut());
-        }
-    }
-}
-
 impl Clone for Complex {
     fn clone(&self) -> Complex {
         let prec = self.prec();
@@ -90,23 +130,40 @@ impl Clone for Complex {
     }
 }
 
+impl Drop for Complex {
+    fn drop(&mut self) {
+        unsafe {
+            mpc::clear(self.inner_mut());
+        }
+    }
+}
+
 impl Complex {
     /// Create a new complex number with the specified precisions for
     /// the real and imaginary parts and with value 0.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let r1 = Complex::new(32);
+    /// assert!(r1.prec() == (32, 32));
+    /// let r2 = Complex::new((32_i32, 64_u32));
+    /// assert!(r2.prec() == (32, 64));
+    /// ```
+    ///
     /// # Panics
     ///
-    /// Panics if `prec.0` or `prec.1` is out of the allowed range.
-    pub fn new(prec: (u32, u32)) -> Complex {
-        assert!(prec.0 >= rugflo::prec_min() && prec.0 <= rugflo::prec_max() &&
-                prec.1 >= rugflo::prec_min() &&
-                prec.1 <= rugflo::prec_max(),
+    /// Panics if the precision is out of the allowed range.
+    pub fn new<P: Prec>(prec: P) -> Complex {
+        let p = prec.prec();
+        assert!(p.0 >= rugflo::prec_min() && p.0 <= rugflo::prec_max() &&
+                p.1 >= rugflo::prec_min() &&
+                p.1 <= rugflo::prec_max(),
                 "precision out of range");
         unsafe {
             let mut inner: mpc::mpc_t = mem::uninitialized();
-            mpc::init3(&mut inner,
-                       prec.0 as mpfr::prec_t,
-                       prec.1 as mpfr::prec_t);
+            mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
             let real = mpc::realref(&mut inner);
             let imag = mpc::imagref(&mut inner);
             mpfr::set_zero(real, 0);
@@ -116,35 +173,290 @@ impl Complex {
     }
 
     /// Returns the precision of the real and imaginary parts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let r = Complex::new((24_i32, 53_u32));
+    /// assert!(r.prec() == (24, 53));
+    /// ```
     pub fn prec(&self) -> (u32, u32) {
         (self.real().prec(), self.imag().prec())
     }
 
-    /// Sets the precision of the real and imaginary parts exactly,
-    /// rounding to the nearest.
+    /// Sets the precision of the real and imaginary parts, rounding
+    /// to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let mut r = Complex::from(((4.875, 4.625), 6));
+    /// assert!(r == (4.875, 4.625));
+    /// r.set_prec(4);
+    /// assert!(r == (5.0, 4.5));
+    /// ```
     ///
     /// # Panics
     ///
-    /// Panics if `prec.0` or `prec.1` is out of the allowed range.
-    pub fn set_prec(&mut self, prec: (u32, u32)) {
-        let (real, imag) = self.as_mut_real_imag();
-        real.set_prec(prec.0);
-        imag.set_prec(prec.1);
+    /// Panics if the precision is out of the allowed range.
+    pub fn set_prec<P: Prec>(&mut self, prec: P) {
+        self.set_prec_round(prec, NEAREST);
     }
 
-    /// Sets the precision of the real and imaginary parts exactly,
-    /// applying the specified rounding method.
+    /// Sets the precision of the real and imaginary parts, applying
+    /// the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugcom;
+    /// extern crate rugflo;
+    /// use rugcom::Complex;
+    /// use rugflo::Round;
+    /// use std::cmp::Ordering;
+    ///
+    /// fn main() {
+    ///     let mut r = Complex::from(((4.875, 4.625), 6));
+    ///     assert!(r == (4.875, 4.625));
+    ///     let dir = r.set_prec_round(4, (Round::Down, Round::Up));
+    ///     assert!(r == (4.5, 5.0));
+    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
+    /// }
+    /// ```
     ///
     /// # Panics
     ///
-    /// Panics if `prec.0` or `prec.1` is out of the allowed range.
-    pub fn set_prec_round(&mut self,
-                          prec: (u32, u32),
-                          round: Round2)
-                          -> Ordering2 {
+    /// Panics if the precision is out of the allowed range.
+    pub fn set_prec_round<P: Prec>(&mut self,
+                                   prec: P,
+                                   round: Round2)
+                                   -> Ordering2 {
+        let p = prec.prec();
         let (real, imag) = self.as_mut_real_imag();
-        (real.set_prec_round(prec.0, round.0),
-         imag.set_prec_round(prec.1, round.1))
+        (real.set_prec_round(p.0, round.0), imag.set_prec_round(p.1, round.1))
+    }
+
+    /// Parses a `Complex` number with the specified precision,
+    /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c = Complex::from_str("(12.5e2 2.5e-1)", 53).unwrap();
+    /// assert!(*c.real() == 12.5e2);
+    /// assert!(*c.imag() == 2.5e-1);
+    /// let bad = Complex::from_str("bad", 53);
+    /// assert!(bad.is_err());
+    /// ```
+    pub fn from_str<P: Prec>(src: &str,
+                             prec: P)
+                             -> Result<Complex, ParseComplexError> {
+        let mut val = Complex::new(prec);
+        val.assign_str(src)?;
+        Ok(val)
+    }
+
+    /// Parses a `Complex` number with the specified precision,
+    /// applying the specified rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// extern crate rugcom;
+    /// extern crate rugflo;
+    /// use rugcom::Complex;
+    /// use rugflo::Round;
+    /// use std::cmp::Ordering;
+    ///
+    /// fn main() {
+    ///     let round = (Round::Down, Round::Up);
+    ///     let res = Complex::from_str_round("(14.1 14.2)", 4, round);
+    ///     let (c, dir) = res.unwrap();
+    ///     assert!(*c.real() == 14);
+    ///     assert!(*c.imag() == 15);
+    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
+    /// }
+    /// ```
+    pub fn from_str_round<P: Prec>
+        (src: &str,
+         prec: P,
+         round: Round2)
+         -> Result<(Complex, Ordering2), ParseComplexError> {
+        let mut val = Complex::new(prec);
+        let ord = val.assign_str_round(src, round)?;
+        Ok((val, ord))
+    }
+
+    /// Parses a `Complex` number with the specified radix and
+    /// precision, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c = Complex::from_str_radix("f.f", 16, 53).unwrap();
+    /// assert!(*c.real() == 15.9375);
+    /// assert!(*c.imag() == 0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix<P: Prec>(src: &str,
+                                   radix: i32,
+                                   prec: P)
+                                   -> Result<Complex, ParseComplexError> {
+        let mut val = Complex::new(prec);
+        val.assign_str_radix(src, radix)?;
+        Ok(val)
+    }
+
+    /// Parses a `Complex` number with the specified radix and
+    /// precision, applying the specified rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// extern crate rugcom;
+    /// extern crate rugflo;
+    /// use rugcom::Complex;
+    /// use rugflo::Round;
+    /// use std::cmp::Ordering;
+    ///
+    /// fn main() {
+    ///     let round = (Round::Nearest, Round::Nearest);
+    ///     let res = Complex::from_str_radix_round("(c.c c.1)", 16, 4, round);
+    ///     let (c, dir) = res.unwrap();
+    ///     assert!(*c.real() == 13);
+    ///     assert!(*c.imag() == 12);
+    ///     assert!(dir == (Ordering::Greater, Ordering::Less));
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix_round<P: Prec>
+        (src: &str,
+         radix: i32,
+         prec: P,
+         round: Round2)
+         -> Result<(Complex, Ordering2), ParseComplexError> {
+        let mut val = Complex::new(prec);
+        let ord = val.assign_str_radix_round(src, radix, round)?;
+        Ok((val, ord))
+    }
+
+    /// Checks if a `Complex` number can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses a `Complex` number. If this method
+    /// returns an error, the other functions will return the same
+    /// error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// assert!(Complex::valid_str_radix("(123 321)", 4).is_ok());
+    /// assert!(Complex::valid_str_radix("(123 xyz)", 36).is_ok());
+    ///
+    /// let invalid_valid = Complex::valid_str_radix("(0 3)", 3);
+    /// let invalid_from = Complex::from_str_radix("(0 3)", 3, 53);
+    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseComplexError> {
+        check_str_radix(src, radix).map(|_| ())
+    }
+
+    /// Returns a string representation of `self` for the specified
+    /// `radix` rounding to the nearest.
+    ///
+    /// The exponent is encoded in decimal. If the number of digits is
+    /// not specified, the output string will have enough precision
+    /// such that reading it again will give the exact same number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c1 = Complex::from((0, 53));
+    /// assert_eq!(c1.to_string_radix(10, None), "(0.0 0.0)");
+    /// let c2 = Complex::from(((15, 5), 12));
+    /// assert_eq!(c2.to_string_radix(16, None), "(f.000@0 5.000@0)");
+    /// let c3 = Complex::from(((10, -4), 53));
+    /// assert_eq!(c3.to_string_radix(10, Some(3)), "(1.00e1 -4.00e0)");
+    /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00e0)");
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn to_string_radix(&self,
+                           radix: i32,
+                           num_digits: Option<usize>)
+                           -> String {
+        self.to_string_radix_round(radix, num_digits, NEAREST)
+    }
+
+    /// Returns a string representation of `self` for the specified
+    /// `radix` applying the specified rounding method.
+    ///
+    /// The exponent is encoded in decimal. If the number of digits is
+    /// not specified, the output string will have enough precision
+    /// such that reading it again will give the exact same number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugcom;
+    /// extern crate rugflo;
+    /// use rugcom::Complex;
+    /// use rugflo::Round;
+    ///
+    /// fn main() {
+    ///     let c = Complex::from((10.4, 10));
+    ///     let down = (Round::Down, Round::Down);
+    ///     let nearest = (Round::Nearest, Round::Nearest);
+    ///     let up = (Round::Up, Round::Up);
+    ///     let nd = c.to_string_radix_round(10, None, down);
+    ///     assert_eq!(nd, "(1.0406e1 0.0)");
+    ///     let nu = c.to_string_radix_round(10, None, up);
+    ///     assert_eq!(nu, "(1.0407e1 0.0)");
+    ///     let sd = c.to_string_radix_round(10, Some(2), down);
+    ///     assert_eq!(sd, "(1.0e1 0.0)");
+    ///     let sn = c.to_string_radix_round(10, Some(2), nearest);
+    ///     assert_eq!(sn, "(1.0e1 0.0)");
+    ///     let su = c.to_string_radix_round(10, Some(2), up);
+    ///     assert_eq!(su, "(1.1e1 0.0)");
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn to_string_radix_round(&self,
+                                 radix: i32,
+                                 num_digits: Option<usize>,
+                                 round: Round2)
+                                 -> String {
+        let mut buf = String::from("(");
+        buf += &self.real()
+                    .to_string_radix_round(radix, num_digits, round.0);
+        buf.push(' ');
+        buf += &self.imag()
+                    .to_string_radix_round(radix, num_digits, round.0);
+        buf.push(')');
+        buf
     }
 
     /// Borrows the real part.
@@ -168,10 +480,10 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
     /// extern crate rugcom;
-    /// use rugint::Assign;
+    /// extern crate rugint;
     /// use rugcom::Complex;
+    /// use rugint::Assign;
     ///
     /// fn main() {
     ///     let mut c = Complex::from(((1, 2), (53, 53)));
@@ -344,10 +656,10 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugflo;
     /// extern crate rugcom;
-    /// use rugflo::{Float, Special};
+    /// extern crate rugflo;
     /// use rugcom::Complex;
+    /// use rugflo::{Float, Special};
     ///
     /// fn main() {
     ///     let c1 = Complex::from(((30, 40), (53, 53)));
@@ -381,12 +693,12 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugflo;
     /// extern crate rugcom;
-    /// use rugint::Assign;
-    /// use rugflo::{Float, Special};
+    /// extern crate rugflo;
+    /// extern crate rugint;
     /// use rugcom::Complex;
+    /// use rugflo::{Float, Special};
+    /// use rugint::Assign;
     /// use std::f64;
     ///
     /// fn main() {
@@ -788,110 +1100,6 @@ impl Complex {
          imag.assign_random_cont_round(rng, round.1))
     }
 
-    /// Returns a string representation of `self` for the specified
-    /// `radix` rounding to the nearest.
-    ///
-    /// The exponent is encoded in decimal. The output string will have
-    /// enough precision such that reading it again will give the exact
-    /// same number.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix(&self,
-                           radix: i32,
-                           num_digits: Option<usize>)
-                           -> String {
-        self.to_string_radix_round(radix, num_digits, NEAREST)
-    }
-
-    /// Returns a string representation of `self` for the specified
-    /// `radix` applying the specified rounding method.
-    ///
-    /// The exponent is encoded in decimal. The output string will have
-    /// enough precision such that reading it again will give the exact
-    /// same number.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix_round(&self,
-                                 radix: i32,
-                                 num_digits: Option<usize>,
-                                 round: Round2)
-                                 -> String {
-        let mut buf = String::from("(");
-        buf += &self.real()
-                    .to_string_radix_round(radix, num_digits, round.0);
-        buf.push(' ');
-        buf += &self.imag()
-                    .to_string_radix_round(radix, num_digits, round.0);
-        buf.push(')');
-        buf
-    }
-
-    /// Parses a `Complex` number with the specified precision,
-    /// rounding to the nearest.
-    ///
-    /// See the [corresponding assignment](#method.assign_str).
-    pub fn from_str(src: &str,
-                    prec: (u32, u32))
-                    -> Result<Complex, ParseComplexError> {
-        let mut val = Complex::new(prec);
-        val.assign_str(src)?;
-        Ok(val)
-    }
-
-    /// Parses a `Complex` number with the specified radix and
-    /// precision, rounding to the nearest.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_radix).
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str,
-                          radix: i32,
-                          prec: (u32, u32))
-                          -> Result<Complex, ParseComplexError> {
-        let mut val = Complex::new(prec);
-        val.assign_str_radix(src, radix)?;
-        Ok(val)
-    }
-
-    /// Parses a `Complex` number with the specified precision,
-    /// applying the specified rounding.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_round).
-    pub fn from_str_round
-        (src: &str,
-         prec: (u32, u32),
-         round: Round2)
-         -> Result<(Complex, Ordering2), ParseComplexError> {
-        let mut val = Complex::new(prec);
-        let ord = val.assign_str_round(src, round)?;
-        Ok((val, ord))
-    }
-
-    /// Parses a `Complex` number with the specified radix and
-    /// precision, applying the specified rounding.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_radix_round).
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix_round
-        (src: &str,
-         radix: i32,
-         prec: (u32, u32),
-         round: Round2)
-         -> Result<(Complex, Ordering2), ParseComplexError> {
-        let mut val = Complex::new(prec);
-        let ord = val.assign_str_radix_round(src, radix, round)?;
-        Ok((val, ord))
-    }
-
     /// Parses a `Complex` number from a string, rounding to the
     /// nearest.
     ///
@@ -939,10 +1147,10 @@ impl Complex {
     /// Examples
     ///
     /// ```rust
-    /// extern crate rugflo;
     /// extern crate rugcom;
-    /// use rugflo::Round;
+    /// extern crate rugflo;
     /// use rugcom::Complex;
+    /// use rugflo::Round;
     /// use std::cmp::Ordering;
     ///
     /// fn main() {
@@ -967,10 +1175,10 @@ impl Complex {
     /// Examples
     ///
     /// ```rust
-    /// extern crate rugflo;
     /// extern crate rugcom;
-    /// use rugflo::Round;
+    /// extern crate rugflo;
     /// use rugcom::Complex;
+    /// use rugflo::Round;
     /// use std::cmp::Ordering;
     ///
     /// fn main() {
@@ -1009,22 +1217,6 @@ impl Complex {
                 Ok((real_ord, imag_ord))
             }
         }
-    }
-
-    /// Checks if a `Complex` number can be parsed.
-    ///
-    /// If this method does not return an error, neither will any
-    /// other function that parses a `Complex` number. If this method
-    /// returns an error, the other functions will return the same
-    /// error.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn valid_str_radix(src: &str,
-                           radix: i32)
-                           -> Result<(), ParseComplexError> {
-        check_str_radix(src, radix).map(|_| ())
     }
 }
 
@@ -1084,111 +1276,20 @@ impl From<(Float, Float)> for Complex {
     }
 }
 
-impl<T> From<(T, (i32, i32))> for Complex
-    where Complex: From<(T, (u32, u32))>
+impl<T, P: Prec> From<(T, P)> for Complex
+    where Complex: FromRound<T, P, Round = Round2>
 {
-    fn from((t, prec): (T, (i32, i32))) -> Complex {
-        assert!(prec.0 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        assert!(prec.1 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        Complex::from((t, (prec.0 as u32, prec.1 as u32)))
-    }
-}
-
-impl<T> FromRound<T, (i32, i32)> for Complex
-    where Complex: FromRound<T,
-                             (u32, u32),
-                             Round = Round2,
-                             Ordering = Ordering2>
-{
-    type Round = Round2;
-    type Ordering = Ordering2;
-    fn from_round(t: T,
-                  prec: (i32, i32),
-                  round: Round2)
-                  -> (Complex, Ordering2) {
-        assert!(prec.0 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        assert!(prec.1 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        Complex::from_round(t, (prec.0 as u32, prec.1 as u32), round)
-    }
-}
-
-impl<T> From<(T, (i32, u32))> for Complex
-    where Complex: From<(T, (u32, u32))>
-{
-    fn from((t, prec): (T, (i32, u32))) -> Complex {
-        assert!(prec.0 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        Complex::from((t, (prec.0 as u32, prec.1)))
-    }
-}
-
-impl<T> FromRound<T, (i32, u32)> for Complex
-    where Complex: FromRound<T,
-                             (u32, u32),
-                             Round = Round2,
-                             Ordering = Ordering2>
-{
-    type Round = Round2;
-    type Ordering = Ordering2;
-    fn from_round(t: T,
-                  prec: (i32, u32),
-                  round: Round2)
-                  -> (Complex, Ordering2) {
-        assert!(prec.0 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        Complex::from_round(t, (prec.0 as u32, prec.1), round)
-    }
-}
-
-impl<T> From<(T, (u32, i32))> for Complex
-    where Complex: From<(T, (u32, u32))>
-{
-    fn from((t, prec): (T, (u32, i32))) -> Complex {
-        assert!(prec.1 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        Complex::from((t, (prec.0, prec.1 as u32)))
-    }
-}
-
-impl<T> FromRound<T, (u32, i32)> for Complex
-    where Complex: FromRound<T,
-                             (u32, u32),
-                             Round = Round2,
-                             Ordering = Ordering2>
-{
-    type Round = Round2;
-    type Ordering = Ordering2;
-    fn from_round(t: T,
-                  prec: (u32, i32),
-                  round: Round2)
-                  -> (Complex, Ordering2) {
-        assert!(prec.1 >= rugflo::prec_min() as i32,
-                "precision out of range");
-        Complex::from_round(t, (prec.0, prec.1 as u32), round)
-    }
-}
-
-impl<T> From<(T, (u32, u32))> for Complex
-    where Complex: FromRound<T, (u32, u32), Round = Round2>
-{
-    fn from((t, prec): (T, (u32, u32))) -> Complex {
+    fn from((t, prec): (T, P)) -> Complex {
         Complex::from_round(t, prec, NEAREST).0
     }
 }
 
-impl<T> FromRound<T, (u32, u32)> for Complex
+impl<T, P: Prec> FromRound<T, P> for Complex
     where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
 {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn from_round(t: T,
-                  prec: (u32, u32),
-                  round: Round2)
-                  -> (Complex, Ordering2) {
+    fn from_round(t: T, prec: P, round: Round2) -> (Complex, Ordering2) {
         let mut ret = Complex::new(prec);
         let ord = ret.assign_round(t, round);
         (ret, ord)
