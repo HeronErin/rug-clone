@@ -222,15 +222,16 @@ macro_rules! hold_math_op1_2 {
         }
 
         impl<'a> Assign<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
-            fn assign(&mut self, other: $Hold<'a>) {
-                self.assign_round(other, NEAREST);
+            fn assign(&mut self, src: $Hold<'a>) {
+                self.assign_round(src, NEAREST);
             }
         }
 
         impl<'a> AssignRound<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
             type Round = Round2;
             type Ordering = (Ordering2, Ordering2);
-            fn assign_round(&mut self, src: $Hold<'a>) {
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round2)
+                            -> (Ordering2, Ordering2) {
                 let ord = unsafe {
                     $func(self.0.inner_mut(), self.1.inner_mut(),
                           src.hold_self.inner(), $(src.$param.into(),)*
@@ -563,6 +564,125 @@ impl Complex {
         buf
     }
 
+    /// Parses a `Complex` number from a string, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let mut c = Complex::new(53);
+    /// c.assign_str("(12.5e2 2.5e-1)").unwrap();
+    /// assert!(*c.real() == 12.5e2);
+    /// assert!(*c.imag() == 2.5e-1);
+    /// let ret = c.assign_str("bad");
+    /// assert!(ret.is_err());
+    /// ```
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseComplexError> {
+        self.assign_str_radix(src, 10)
+    }
+
+    /// Parses a `Complex` number from a string, applying the specified
+    /// rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// extern crate rugcom;
+    /// extern crate rugflo;
+    /// use rugcom::Complex;
+    /// use rugflo::Round;
+    /// use std::cmp::Ordering;
+    ///
+    /// fn main() {
+    ///     let mut c = Complex::new((4, 4));
+    ///     let round = (Round::Down, Round::Up);
+    ///     let dir = c.assign_str_round("(14.1 14.2)", round).unwrap();
+    ///     assert!(*c.real() == 14);
+    ///     assert!(*c.imag() == 15);
+    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
+    /// }
+    /// ```
+    pub fn assign_str_round(&mut self,
+                            src: &str,
+                            round: Round2)
+                            -> Result<Ordering2, ParseComplexError> {
+        self.assign_str_radix_round(src, 10, round)
+    }
+
+    /// Parses a `Complex` number from a string with the specified
+    /// radix, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let mut c = Complex::new(53);
+    /// c.assign_str_radix("f.f", 16).unwrap();
+    /// assert!(*c.real() == 15.9375);
+    /// assert!(*c.imag() == 0);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn assign_str_radix(&mut self,
+                            src: &str,
+                            radix: i32)
+                            -> Result<(), ParseComplexError> {
+        self.assign_str_radix_round(src, radix, NEAREST).map(|_| ())
+    }
+
+    /// Parses a `Complex` number from a string with the specified
+    /// radix, applying the specified rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// extern crate rugcom;
+    /// extern crate rugflo;
+    /// use rugcom::Complex;
+    /// use rugflo::Round;
+    /// use std::cmp::Ordering;
+    ///
+    /// fn main() {
+    ///     let mut c = Complex::new((4, 4));
+    ///     let round = (Round::Nearest, Round::Nearest);
+    ///     let dir = c.assign_str_radix_round("(c.c c.1)", 16, round).unwrap();
+    ///     assert!(*c.real() == 13);
+    ///     assert!(*c.imag() == 12);
+    ///     assert!(dir == (Ordering::Greater, Ordering::Less));
+    /// }
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn assign_str_radix_round(&mut self,
+                                  src: &str,
+                                  radix: i32,
+                                  round: Round2)
+                                  -> Result<Ordering2, ParseComplexError> {
+        match check_str_radix(src, radix)? {
+            PossibleFromStr::Real(r) => {
+                let real_ord = self.mut_real()
+                    .assign_str_radix_round(r, radix, round.0)
+                    .unwrap();
+                self.mut_imag().assign(Special::Zero);
+                Ok((real_ord, Ordering::Equal))
+            }
+            PossibleFromStr::Complex(r, i) => {
+                let real_ord = self.mut_real()
+                    .assign_str_radix_round(r, radix, round.0)
+                    .unwrap();
+                let imag_ord = self.mut_imag()
+                    .assign_str_radix_round(i, radix, round.1)
+                    .unwrap();
+                Ok((real_ord, imag_ord))
+            }
+        }
+    }
+
     /// Borrows the real part as a `Float`.
     ///
     /// # Examples
@@ -879,84 +999,23 @@ impl Complex {
         fn cos_hold -> CosHold;
         mpc::cos
     }
-
-    /// Computes the sine and cosine of `self`, rounding to the
-    /// nearest. The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
-    pub fn sin_cos(&mut self, cos: &mut Complex) {
-        self.sin_cos_round(cos, NEAREST);
+    math_op1_2! {
+        /// Computes the sine and cosine of `self`, rounding to the
+        /// nearest.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sin_cos(cos);
+        /// Computes the sine and cosine of `self`, applying the
+        /// specified rounding methods.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sin_cos_round;
+        /// Holds a computation of the sine and cosine.
+        fn sin_cos_hold -> SinCosHold;
+        mpc::sin_cos
     }
-
-    /// Computes the sine and cosine of `self`, applying the specified
-    /// rounding methods. The sine is stored in `self` and keeps its
-    /// precision, while the cosine is stored in `buf` keeping its
-    /// precision.
-    pub fn sin_cos_round(&mut self,
-                         cos: &mut Complex,
-                         round: Round2)
-                         -> (Ordering2, Ordering2) {
-        let ord = unsafe {
-            mpc::sin_cos(self.inner_mut(),
-                         cos.inner_mut(),
-                         self.inner(),
-                         rraw2(round),
-                         rraw2(round))
-        };
-        (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
-    }
-
-    /// Computes the cosine and sine of `self`, rounding to the
-    /// nearest. The cosine is stored in `self` and keeps its
-    /// precision, while the sine is stored in `sin` keeping its
-    /// precision.
-    pub fn cos_sin(&mut self, sin: &mut Complex) {
-        self.cos_sin_round(sin, NEAREST);
-    }
-
-    /// Computes the cosine and sine of `self`, applying the specified
-    /// rounding methods. The cosine is stored in `self` and keeps its
-    /// precision, while the sine is stored in `sin` keeping its
-    /// precision.
-    pub fn cos_sin_round(&mut self,
-                         sin: &mut Complex,
-                         round: Round2)
-                         -> (Ordering2, Ordering2) {
-        let ord = unsafe {
-            mpc::sin_cos(sin.inner_mut(),
-                         self.inner_mut(),
-                         self.inner(),
-                         rraw2(round),
-                         rraw2(round))
-        };
-        (ordering2(mpc::INEX2(ord)), ordering2(mpc::INEX1(ord)))
-    }
-
-    /// Computes the sine and cosine of `val`, rounding to the
-    /// nearest. The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
-    pub fn assign_sin_cos(&mut self, cos: &mut Complex, val: &Complex) {
-        self.assign_sin_cos_round(cos, val, NEAREST);
-    }
-
-    /// Computes the sine and cosine of `val`, applying the specified
-    /// rounding method. The sine is stored in `self` and keeps its
-    /// precision, while the cosine is stored in `cos` keeping its
-    /// precision.
-    pub fn assign_sin_cos_round(&mut self,
-                                cos: &mut Complex,
-                                val: &Complex,
-                                round: Round2)
-                                -> (Ordering2, Ordering2) {
-        let ord = unsafe {
-            mpc::sin_cos(self.inner_mut(),
-                         cos.inner_mut(),
-                         val.inner(),
-                         rraw2(round),
-                         rraw2(round))
-        };
-        (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
-    }
-
     math_op1! {
         /// Computes the tangent, rounding to the nearest.
         fn tan();
@@ -1118,125 +1177,6 @@ impl Complex {
         let (real, imag) = self.as_mut_real_imag();
         (real.assign_random_cont_round(rng, round.0),
          imag.assign_random_cont_round(rng, round.1))
-    }
-
-    /// Parses a `Complex` number from a string, rounding to the
-    /// nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugcom::Complex;
-    /// let mut c = Complex::new(53);
-    /// c.assign_str("(12.5e2 2.5e-1)").unwrap();
-    /// assert!(*c.real() == 12.5e2);
-    /// assert!(*c.imag() == 2.5e-1);
-    /// let ret = c.assign_str("bad");
-    /// assert!(ret.is_err());
-    /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseComplexError> {
-        self.assign_str_radix(src, 10)
-    }
-
-    /// Parses a `Complex` number from a string with the specified
-    /// radix, rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugcom::Complex;
-    /// let mut c = Complex::new(53);
-    /// c.assign_str_radix("f.f", 16).unwrap();
-    /// assert!(*c.real() == 15.9375);
-    /// assert!(*c.imag() == 0);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix(&mut self,
-                            src: &str,
-                            radix: i32)
-                            -> Result<(), ParseComplexError> {
-        self.assign_str_radix_round(src, radix, NEAREST).map(|_| ())
-    }
-
-    /// Parses a `Complex` number from a string, applying the specified
-    /// rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
-    /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let mut c = Complex::new((4, 4));
-    ///     let round = (Round::Down, Round::Up);
-    ///     let dir = c.assign_str_round("(14.1 14.2)", round).unwrap();
-    ///     assert!(*c.real() == 14);
-    ///     assert!(*c.imag() == 15);
-    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
-    /// }
-    /// ```
-    pub fn assign_str_round(&mut self,
-                            src: &str,
-                            round: Round2)
-                            -> Result<Ordering2, ParseComplexError> {
-        self.assign_str_radix_round(src, 10, round)
-    }
-
-    /// Parses a `Complex` number from a string with the specified
-    /// radix, applying the specified rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
-    /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let mut c = Complex::new((4, 4));
-    ///     let round = (Round::Nearest, Round::Nearest);
-    ///     let dir = c.assign_str_radix_round("(c.c c.1)", 16, round).unwrap();
-    ///     assert!(*c.real() == 13);
-    ///     assert!(*c.imag() == 12);
-    ///     assert!(dir == (Ordering::Greater, Ordering::Less));
-    /// }
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix_round(&mut self,
-                                  src: &str,
-                                  radix: i32,
-                                  round: Round2)
-                                  -> Result<Ordering2, ParseComplexError> {
-        match check_str_radix(src, radix)? {
-            PossibleFromStr::Real(r) => {
-                let real_ord = self.mut_real()
-                    .assign_str_radix_round(r, radix, round.0)
-                    .unwrap();
-                self.mut_imag().assign(Special::Zero);
-                Ok((real_ord, Ordering::Equal))
-            }
-            PossibleFromStr::Complex(r, i) => {
-                let real_ord = self.mut_real()
-                    .assign_str_radix_round(r, radix, round.0)
-                    .unwrap();
-                let imag_ord = self.mut_imag()
-                    .assign_str_radix_round(i, radix, round.1)
-                    .unwrap();
-                Ok((real_ord, imag_ord))
-            }
-        }
     }
 }
 
@@ -1508,7 +1448,7 @@ hold_math_op1! { struct Log10Hold {}; mpc::log10 }
 hold_math_op1! { struct ExpHold {}; mpc::exp }
 hold_math_op1! { struct SinHold {}; mpc::sin }
 hold_math_op1! { struct CosHold {}; mpc::cos }
-/////// SinCosHold
+hold_math_op1_2! { struct SinCosHold {}; mpc::sin_cos }
 hold_math_op1! { struct TanHold {}; mpc::tan }
 hold_math_op1! { struct SinhHold {}; mpc::sinh }
 hold_math_op1! { struct CoshHold {}; mpc::cosh }
