@@ -132,8 +132,8 @@ macro_rules! math_op1 {
 macro_rules! hold_math_op1 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
     } => {
         $(#[$attr_hold])*
         #[derive(Clone, Copy)]
@@ -184,8 +184,8 @@ macro_rules! math_op1_2 {
 macro_rules! hold_math_op1_2 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
     } => {
         $(#[$attr_hold])*
         #[derive(Clone, Copy)]
@@ -238,8 +238,8 @@ macro_rules! math_op2 {
 macro_rules! hold_math_op2 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident };
-        $func:path $(, $param:ident: $T:ty)*
+        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty)* };
+        $func:path
     } => {
         $(#[$attr_hold])*
         #[derive(Clone, Copy)]
@@ -293,8 +293,8 @@ macro_rules! math_op2_2 {
 macro_rules! hold_math_op2_2 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident };
-        $func:path $(, $param:ident: $T:ty)*
+        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty)* };
+        $func:path
     } => {
         $(#[$attr_hold])*
         #[derive(Clone, Copy)]
@@ -352,8 +352,8 @@ macro_rules! math_op3 {
 macro_rules! hold_math_op3 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op2:ident, $op3:ident };
-        $func:path $(, $param:ident: $T:ty)*
+        struct $Hold:ident { $op2:ident, $op3:ident $(, $param:ident: $T:ty)* };
+        $func:path
     } => {
         $(#[$attr_hold])*
         #[derive(Clone, Copy)]
@@ -2201,19 +2201,19 @@ impl Assign<u64> for Integer {
     }
 }
 
-hold_math_op1! { struct AbsHold; gmp::mpz_abs }
+hold_math_op1! { struct AbsHold {}; gmp::mpz_abs }
 hold_math_op2_2! { struct DivRemHold { divisor }; xgmp::mpz_tdiv_qr_check_0 }
 hold_math_op2! { struct DivExactHold { divisor }; xgmp::mpz_divexact_check_0 }
 hold_math_op1! {
-    struct DivExactUHold; xgmp::mpz_divexact_ui_check_0, divisor: u32
+    struct DivExactUHold { divisor: u32 }; xgmp::mpz_divexact_ui_check_0
 }
 hold_math_op3! {
     struct PowModHold { power, modulo }; xgmp::mpz_powm_check_inverse
 }
-hold_math_op1! { struct RootHold; gmp::mpz_root, n: u32 }
-hold_math_op1_2! { struct RootRemHold; gmp::mpz_rootrem, n: u32 }
-hold_math_op1! { struct SqrtHold; gmp::mpz_sqrt }
-hold_math_op1_2! { struct SqrtRemHold; gmp::mpz_sqrtrem }
+hold_math_op1! { struct RootHold { n: u32 }; gmp::mpz_root }
+hold_math_op1_2! { struct RootRemHold { n: u32 }; gmp::mpz_rootrem }
+hold_math_op1! { struct SqrtHold {}; gmp::mpz_sqrt }
+hold_math_op1_2! { struct SqrtRemHold {}; gmp::mpz_sqrtrem }
 hold_math_op2! { struct GcdHold { other }; gmp::mpz_gcd }
 hold_math_op2! { struct LcmHold { other }; gmp::mpz_lcm }
 
@@ -2251,7 +2251,7 @@ impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
     }
 }
 
-hold_math_op1! { struct BinomialHold; gmp::mpz_bin_ui, k: u32 }
+hold_math_op1! { struct BinomialHold { k: u32 }; gmp::mpz_bin_ui }
 
 macro_rules! arith_unary {
     {
