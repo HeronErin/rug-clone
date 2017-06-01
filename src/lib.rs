@@ -112,7 +112,7 @@
 //! [gmp home]: https://gmplib.org/
 //! [gmp]:      https://tspiteri.gitlab.io/gmp-mpfr/gmp/
 //! [gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
-//! [integer]:  https://tspiteri.gitlab.io/gmp-mpfr/rugint/struct.Integer.html
+//! [integer]:  struct.Integer.html
 //! [lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
 //! [rugcom]:   https://tspiteri.gitlab.io/gmp-mpfr/rugcom/
 //! [rugflo]:   https://tspiteri.gitlab.io/gmp-mpfr/rugflo/
