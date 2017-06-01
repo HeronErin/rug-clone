@@ -32,7 +32,7 @@ pub unsafe fn recip(rop: *mut mpc_t,
                     op: *const mpc_t,
                     rnd: mpc::rnd_t)
                     -> c_int {
-    mpc::ui_div(rop, 1, op, rnd)
+    ui_div(rop, 1, op, rnd)
 }
 
 pub unsafe fn ui_sub(x: *mut mpc_t,
@@ -42,19 +42,8 @@ pub unsafe fn ui_sub(x: *mut mpc_t,
                      -> c_int {
     let mz = z as *mut _;
     let (r_re, r_im) = rnd_re_im(r);
-    let re = mpfr::ui_sub(mpc::realref(x), y, mpc::realref(mz), r_re);
-    let re = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    let im = mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im);
-    let im = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    re | im
+    ord_ord(mpfr::ui_sub(mpc::realref(x), y, mpc::realref(mz), r_re),
+            mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im))
 }
 
 pub unsafe fn add_si(x: *mut mpc_t,
@@ -88,19 +77,8 @@ pub unsafe fn si_sub(x: *mut mpc_t,
                      -> c_int {
     let mz = z as *mut _;
     let (r_re, r_im) = rnd_re_im(r);
-    let re = mpfr::si_sub(mpc::realref(x), y, mpc::realref(mz), r_re);
-    let re = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    let im = mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im);
-    let im = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    re | im
+    ord_ord(mpfr::si_sub(mpc::realref(x), y, mpc::realref(mz), r_re),
+            mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im))
 }
 
 pub unsafe fn div_si(x: *mut mpc_t,
@@ -110,23 +88,21 @@ pub unsafe fn div_si(x: *mut mpc_t,
                      -> c_int {
     let my = y as *mut _;
     let (r_re, r_im) = rnd_re_im(r);
-    let re = mpfr::div_si(mpc::realref(x), mpc::realref(my), z, r_re);
-    let re = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    let im = mpfr::div_si(mpc::imagref(x), mpc::imagref(my), z, r_im);
-    let im = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    re | im
+    ord_ord(mpfr::div_si(mpc::realref(x), mpc::realref(my), z, r_re),
+            mpfr::div_si(mpc::imagref(x), mpc::imagref(my), z, r_im))
 }
 
 pub unsafe fn si_div(x: *mut mpc_t,
                      y: c_long,
+                     z: *const mpc_t,
+                     r: mpc::rnd_t)
+                     -> c_int {
+    let dividend = SmallComplex::from(y);
+    mpc::div(x, dividend.inner(), z, r)
+}
+
+pub unsafe fn ui_div(x: *mut mpc_t,
+                     y: c_ulong,
                      z: *const mpc_t,
                      r: mpc::rnd_t)
                      -> c_int {
@@ -162,6 +138,20 @@ fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
         _ => mpfr::rnd_t::RNDNA,
     };
     (re, im)
+}
+
+fn ord_ord(re: c_int, im: c_int) -> c_int {
+    let r = match re.cmp(&0) {
+        Ordering::Less => 2,
+        Ordering::Equal => 0,
+        Ordering::Greater => 1,
+    };
+    let i = match im.cmp(&0) {
+        Ordering::Less => 8,
+        Ordering::Equal => 0,
+        Ordering::Greater => 4,
+    };
+    r | i
 }
 
 trait Inner {

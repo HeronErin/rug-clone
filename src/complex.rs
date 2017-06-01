@@ -2234,7 +2234,7 @@ arith_prim_noncommut! {
     DivFromAssign div_from_assign,
     u32,
     mpc::div_ui,
-    mpc::ui_div,
+    xmpc::ui_div,
     DivHoldU32,
     DivFromHoldU32
 }
