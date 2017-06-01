@@ -61,14 +61,6 @@ pub struct Rational {
     inner: mpq_t,
 }
 
-impl Drop for Rational {
-    fn drop(&mut self) {
-        unsafe {
-            gmp::mpq_clear(self.inner_mut());
-        }
-    }
-}
-
 impl Default for Rational {
     fn default() -> Rational {
         Rational::new()
@@ -87,11 +79,21 @@ impl Clone for Rational {
     }
 }
 
+impl Drop for Rational {
+    fn drop(&mut self) {
+        unsafe {
+            gmp::mpq_clear(self.inner_mut());
+        }
+    }
+}
+
 macro_rules! math_op1 {
     {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_hold:meta])*
+        fn $method_hold:ident -> $Hold:ident;
+        $func:path
     } => {
         $(#[$attr])*
         pub fn $method(&mut self $(, $param: $T)*) -> &mut Rational {
@@ -104,8 +106,34 @@ macro_rules! math_op1 {
         $(#[$attr_hold])*
         pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
             $Hold {
-                val: self,
+                hold_self: self,
                 $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op1 {
+    {
+        $(#[$attr_hold:meta])*
+        struct $Hold:ident;
+        $func:path $(, $param:ident: $T:ty)*
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            hold_self: &'a Rational,
+            $($param: $T,)*
+        }
+
+        from_borrow! { $Hold<'a> }
+
+        impl<'a> Assign<$Hold<'a>> for Rational {
+            fn assign(&mut self, src: $Hold<'a>) {
+                unsafe {
+                    $func(self.inner_mut(),
+                          src.hold_self.inner() $(, src.$param.into())*);
+                }
             }
         }
     };
@@ -129,29 +157,21 @@ impl Rational {
         Rational { inner: inner }
     }
 
-    /// Assigns from an `f64` if it is finite, losing no precision.
+    /// Creates a `Rational` from an `f32` if it is finite, losing no
+    /// precision.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rugrat::Rational;
-    /// let mut r = Rational::new();
-    /// let ret = r.assign_f64(12.75);
-    /// assert!(ret.is_ok());
-    /// assert!(r == (1275, 100));
-    /// let ret = r.assign_f64(1.0 / 0.0);
-    /// assert!(ret.is_err());
-    /// assert!(r == (1275, 100));
+    /// use std::f32;
+    /// let r = Rational::from_f32(-17125e-3).unwrap();
+    /// assert!(r == "-17125/1000".parse::<Rational>().unwrap());
+    /// let inf = Rational::from_f32(f32::INFINITY);
+    /// assert!(inf.is_none());
     /// ```
-    pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
-        if val.is_finite() {
-            unsafe {
-                gmp::mpq_set_d(self.inner_mut(), val);
-            }
-            Ok(())
-        } else {
-            Err(())
-        }
+    pub fn from_f32(val: f32) -> Option<Rational> {
+        Rational::from_f64(val as f64)
     }
 
     /// Creates a `Rational` from an `f64` if it is finite, losing no
@@ -174,6 +194,93 @@ impl Rational {
             Some(r)
         } else {
             None
+        }
+    }
+
+    /// Parses a `Rational` number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r1 = Rational::from_str_radix("ff/a", 16).unwrap();
+    /// assert!(r1 == (255, 10));
+    /// let r2 = Rational::from_str_radix("+ff0/a0", 16).unwrap();
+    /// assert!(r2 == (0xff0, 0xa0));
+    /// assert!(*r2.numer() == 51 && *r2.denom() == 2);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix(src: &str,
+                          radix: i32)
+                          -> Result<Rational, ParseRationalError> {
+        let mut r = Rational::new();
+        r.assign_str_radix(src, radix)?;
+        Ok(r)
+    }
+
+    /// Checks if a `Rational` number can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses a `Rational` number. If this method
+    /// returns an error, the other functions will return the same
+    /// error.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// assert!(Rational::valid_str_radix("123/321", 4).is_ok());
+    /// assert!(Rational::valid_str_radix("123/xyz", 36).is_ok());
+    ///
+    /// let invalid_valid = Rational::valid_str_radix("1/123", 3);
+    /// let invalid_from = Rational::from_str_radix("1/123", 3);
+    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseRationalError> {
+        check_str_radix(src, radix).map(|_| ())
+    }
+
+    /// Converts `self` to an `f32`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::{Rational, SmallRational};
+    /// use std::f32;
+    /// let min = Rational::from_f32(f32::MIN).unwrap();
+    /// let minus_small = min - &*SmallRational::from((7, 2));
+    /// // minus_small is truncated to f32::MIN
+    /// assert!(minus_small.to_f32() == f32::MIN);
+    /// let times_three_two = minus_small * &*SmallRational::from((3, 2));
+    /// // times_three_two is too small
+    /// assert!(times_three_two.to_f32() == f32::NEG_INFINITY);
+    /// ```
+    pub fn to_f32(&self) -> f32 {
+        let f = self.to_f64();
+        // f as f32 might round away from zero, so we need to clear
+        // the least significant bits of f.
+        // * If f is a nan, we do NOT want to clear any mantissa bits,
+        //   as this may change f into +/- infinity.
+        // * If f is +/- infinity, the bits are already zero, so the
+        //   masking has no effect.
+        // * If f is subnormal, f as f32 will be zero anyway.
+        if !f.is_nan() {
+            let u = unsafe { mem::transmute::<_, u64>(f) };
+            // f64 has 29 more significant bits than f32.
+            let trunc_u = u & (!0 << 29);
+            let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
+            trunc_f as f32
+        } else {
+            f as f32
         }
     }
 
@@ -210,6 +317,29 @@ impl Rational {
         unsafe { gmp::mpq_get_d(self.inner()) }
     }
 
+    /// Returns a string representation of `self` for the specified
+    /// `radix`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let r1 = Rational::from(0);
+    /// assert!(r1.to_string_radix(10) == "0");
+    /// let r2 = Rational::from((15, 5));
+    /// assert!(r2.to_string_radix(10) == "3");
+    /// let r3 = Rational::from((10, -6));
+    /// assert!(r3.to_string_radix(10) == "-5/3");
+    /// assert!(r3.to_string_radix(5) == "-10/3");
+    /// ```
+    ///
+    /// #Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn to_string_radix(&self, radix: i32) -> String {
+        make_string(self, radix, false)
+    }
+
     /// Assigns from an `f32` if it is finite, losing no precision.
     ///
     /// # Examples
@@ -229,56 +359,79 @@ impl Rational {
         self.assign_f64(val as f64)
     }
 
-    /// Creates a `Rational` from an `f32` if it is finite, losing no
-    /// precision.
+    /// Assigns from an `f64` if it is finite, losing no precision.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rugrat::Rational;
-    /// use std::f32;
-    /// let r = Rational::from_f32(-17125e-3).unwrap();
-    /// assert!(r == "-17125/1000".parse::<Rational>().unwrap());
-    /// let inf = Rational::from_f32(f32::INFINITY);
-    /// assert!(inf.is_none());
+    /// let mut r = Rational::new();
+    /// let ret = r.assign_f64(12.75);
+    /// assert!(ret.is_ok());
+    /// assert!(r == (1275, 100));
+    /// let ret = r.assign_f64(1.0 / 0.0);
+    /// assert!(ret.is_err());
+    /// assert!(r == (1275, 100));
     /// ```
-    pub fn from_f32(val: f32) -> Option<Rational> {
-        Rational::from_f64(val as f64)
+    pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
+        if val.is_finite() {
+            unsafe {
+                gmp::mpq_set_d(self.inner_mut(), val);
+            }
+            Ok(())
+        } else {
+            Err(())
+        }
     }
 
-    /// Converts `self` to an `f32`, rounding towards zero.
+    /// Parses a `Rational` number from a string.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::{Rational, SmallRational};
-    /// use std::f32;
-    /// let min = Rational::from_f32(f32::MIN).unwrap();
-    /// let minus_small = min - &*SmallRational::from((7, 2));
-    /// // minus_small is truncated to f32::MIN
-    /// assert!(minus_small.to_f32() == f32::MIN);
-    /// let times_three_two = minus_small * &*SmallRational::from((3, 2));
-    /// // times_three_two is too small
-    /// assert!(times_three_two.to_f32() == f32::NEG_INFINITY);
+    /// use rugrat::Rational;
+    /// let mut r = Rational::new();
+    /// let ret = r.assign_str("1/0");
+    /// assert!(ret.is_err());
+    /// r.assign_str("-24/2").unwrap();
+    /// assert!(*r.numer() == -12);
+    /// assert!(*r.denom() == 1);
     /// ```
-    pub fn to_f32(&self) -> f32 {
-        let f = self.to_f64();
-        // f as f32 might round away from zero, so we need to clear
-        // the least significant bits of f.
-        // * If f is a nan, we do NOT want to clear any mantissa bits,
-        //   as this may change f into +/- infinity.
-        // * If f is +/- infinity, the bits are already zero, so the
-        //   masking has no effect.
-        // * If f is subnormal, f as f32 will be zero anyway.
-        if !f.is_nan() {
-            let u = unsafe { mem::transmute::<_, u64>(f) };
-            // f64 has 29 more significant bits than f32.
-            let trunc_u = u & (!0 << 29);
-            let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
-            trunc_f as f32
-        } else {
-            f as f32
+    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
+        self.assign_str_radix(src, 10)
+    }
+
+    /// Parses a `Rational` number from a string with the specified
+    /// radix.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let mut r = Rational::new();
+    /// r.assign_str_radix("ff/a", 16).unwrap();
+    /// assert!(r == (255, 10));
+    /// r.assign_str_radix("+ff0/a0", 16).unwrap();
+    /// assert!(r == (255, 10));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn assign_str_radix(&mut self,
+                            src: &str,
+                            radix: i32)
+                            -> Result<(), ParseRationalError> {
+        let s = check_str_radix(src, radix)?;
+        let c_str = CString::new(s).unwrap();
+        let err = unsafe {
+            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), radix.into())
+        };
+        assert_eq!(err, 0);
+        unsafe {
+            gmp::mpq_canonicalize(self.inner_mut());
         }
+        Ok(())
     }
 
     /// Borrows the numerator as an `Integer`.
@@ -427,6 +580,13 @@ impl Rational {
         (numer, denom)
     }
 
+    /// Returns `Less` if `self` is less than zero,
+    /// `Greater` if `self` is greater than zero,
+    /// or `Equal` if `self` is equal to zero.
+    pub fn sign(&self) -> Ordering {
+        self.numer().sign()
+    }
+
     math_op1! {
         /// Computes the absolute value of `self`.
         ///
@@ -438,7 +598,7 @@ impl Rational {
         /// assert!(*r.abs() == (100, 17));
         /// assert!(r == (100, 17));
         /// ```
-        fn abs;
+        fn abs();
         /// Holds a computation of the absolute value.
         ///
         /// # Examples
@@ -468,7 +628,7 @@ impl Rational {
         /// # Panics
         ///
         /// Panics if the value is zero.
-        fn recip;
+        fn recip();
         /// Holds a computation of the reciprocal.
         ///
         /// # Examples
@@ -482,138 +642,6 @@ impl Rational {
         /// ```
         fn recip_hold -> RecipHold;
         xgmp::mpq_inv_check_0
-    }
-
-    /// Returns `Less` if `self` is less than zero,
-    /// `Greater` if `self` is greater than zero,
-    /// or `Equal` if `self` is equal to zero.
-    pub fn sign(&self) -> Ordering {
-        self.numer().sign()
-    }
-
-    /// Returns a string representation of `self` for the specified
-    /// `radix`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugrat::Rational;
-    /// let r1 = Rational::from(0);
-    /// assert!(r1.to_string_radix(10) == "0");
-    /// let r2 = Rational::from((15, 5));
-    /// assert!(r2.to_string_radix(10) == "3");
-    /// let r3 = Rational::from((10, -6));
-    /// assert!(r3.to_string_radix(10) == "-5/3");
-    /// assert!(r3.to_string_radix(5) == "-10/3");
-    /// ```
-    ///
-    /// #Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix(&self, radix: i32) -> String {
-        make_string(self, radix, false)
-    }
-
-    /// Parses a `Rational` number.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugrat::Rational;
-    /// let r1 = Rational::from_str_radix("ff/a", 16).unwrap();
-    /// assert!(r1 == (255, 10));
-    /// let r2 = Rational::from_str_radix("+ff0/a0", 16).unwrap();
-    /// assert!(r2 == (0xff0, 0xa0));
-    /// assert!(*r2.numer() == 51 && *r2.denom() == 2);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str,
-                          radix: i32)
-                          -> Result<Rational, ParseRationalError> {
-        let mut r = Rational::new();
-        r.assign_str_radix(src, radix)?;
-        Ok(r)
-    }
-
-    /// Parses a `Rational` number from a string.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugrat::Rational;
-    /// let mut r = Rational::new();
-    /// let ret = r.assign_str("1/0");
-    /// assert!(ret.is_err());
-    /// r.assign_str("-24/2").unwrap();
-    /// assert!(*r.numer() == -12);
-    /// assert!(*r.denom() == 1);
-    /// ```
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
-        self.assign_str_radix(src, 10)
-    }
-
-    /// Parses a `Rational` number from a string with the specified
-    /// radix.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugrat::Rational;
-    /// let mut r = Rational::new();
-    /// r.assign_str_radix("ff/a", 16).unwrap();
-    /// assert!(r == (255, 10));
-    /// r.assign_str_radix("+ff0/a0", 16).unwrap();
-    /// assert!(r == (255, 10));
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix(&mut self,
-                            src: &str,
-                            radix: i32)
-                            -> Result<(), ParseRationalError> {
-        let s = check_str_radix(src, radix)?;
-        let c_str = CString::new(s).unwrap();
-        let err = unsafe {
-            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), radix.into())
-        };
-        assert_eq!(err, 0);
-        unsafe {
-            gmp::mpq_canonicalize(self.inner_mut());
-        }
-        Ok(())
-    }
-
-    /// Checks if a `Rational` number can be parsed.
-    ///
-    /// If this method does not return an error, neither will any
-    /// other function that parses a `Rational` number. If this method
-    /// returns an error, the other functions will return the same
-    /// error.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugrat::Rational;
-    /// assert!(Rational::valid_str_radix("123/321", 4).is_ok());
-    /// assert!(Rational::valid_str_radix("123/xyz", 36).is_ok());
-    ///
-    /// let invalid_valid = Rational::valid_str_radix("1/123", 3);
-    /// let invalid_from = Rational::from_str_radix("1/123", 3);
-    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn valid_str_radix(src: &str,
-                           radix: i32)
-                           -> Result<(), ParseRationalError> {
-        check_str_radix(src, radix).map(|_| ())
     }
 }
 
@@ -667,15 +695,6 @@ fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseRationalError> {
         return Err(Error { kind: Kind::DenomZero });
     }
     Ok(skip_plus)
-}
-
-impl FromStr for Rational {
-    type Err = ParseRationalError;
-    fn from_str(src: &str) -> Result<Rational, ParseRationalError> {
-        let mut r = Rational::new();
-        r.assign_str(src)?;
-        Ok(r)
-    }
 }
 
 macro_rules! from_borrow {
@@ -742,22 +761,61 @@ impl From<(Integer, Integer)> for Rational {
 
 from_borrow! { (&'a Integer, &'a Integer) }
 
-from! { u32 }
 from! { i32 }
-from! { (u32, u32) }
-from! { (i32, u32) }
-from! { (u32, i32) }
+from! { i64 }
+from! { u32 }
+from! { u64 }
 from! { (i32, i32) }
-from! { (u64, u64) }
-from! { (i64, u64) }
-from! { (u64, i64) }
 from! { (i64, i64) }
+from! { (i32, u32) }
+from! { (i64, u64) }
+from! { (u32, i32) }
+from! { (u64, i64) }
+from! { (u32, u32) }
+from! { (u64, u64) }
 
-impl<'a> Assign<&'a Rational> for Rational {
-    fn assign(&mut self, other: &'a Rational) {
-        unsafe {
-            gmp::mpq_set(self.inner_mut(), other.inner());
-        }
+impl FromStr for Rational {
+    type Err = ParseRationalError;
+    fn from_str(src: &str) -> Result<Rational, ParseRationalError> {
+        let mut r = Rational::new();
+        r.assign_str(src)?;
+        Ok(r)
+    }
+}
+
+impl Display for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "")
+    }
+}
+
+impl Debug for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "")
+    }
+}
+
+impl Binary for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 2, false, "0b")
+    }
+}
+
+impl Octal for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 8, false, "0o")
+    }
+}
+
+impl LowerHex for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, false, "0x")
+    }
+}
+
+impl UpperHex for Rational {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, true, "0x")
     }
 }
 
@@ -768,10 +826,10 @@ impl Assign for Rational {
     }
 }
 
-impl<'a> Assign<&'a Integer> for Rational {
-    fn assign(&mut self, val: &'a Integer) {
+impl<'a> Assign<&'a Rational> for Rational {
+    fn assign(&mut self, other: &'a Rational) {
         unsafe {
-            gmp::mpq_set_z(self.inner_mut(), val.inner());
+            gmp::mpq_set(self.inner_mut(), other.inner());
         }
     }
 }
@@ -786,6 +844,14 @@ impl Assign<Integer> for Rational {
         };
         mem::swap(numer, &mut val);
         denom.assign(1);
+    }
+}
+
+impl<'a> Assign<&'a Integer> for Rational {
+    fn assign(&mut self, val: &'a Integer) {
+        unsafe {
+            gmp::mpq_set_z(self.inner_mut(), val.inner());
+        }
     }
 }
 
@@ -811,38 +877,53 @@ impl<'a> Assign<(&'a Integer, &'a Integer)> for Rational {
     }
 }
 
+impl Assign<i32> for Rational {
+    fn assign(&mut self, val: i32) {
+        self.assign((val, 1u32));
+    }
+}
+
+impl Assign<i64> for Rational {
+    fn assign(&mut self, val: i64) {
+        self.assign((val, 1u64));
+    }
+}
+
 impl Assign<u32> for Rational {
     fn assign(&mut self, val: u32) {
         self.assign((val, 1u32));
     }
 }
 
-impl Assign<i32> for Rational {
-    fn assign(&mut self, val: i32) {
-        self.assign((val, 1i32));
+impl Assign<u64> for Rational {
+    fn assign(&mut self, val: u64) {
+        self.assign((val, 1u64));
     }
 }
 
-assign_frac! { u32, u32 }
-assign_frac! { i32, u32 }
-assign_frac! { u32, i32 }
 assign_frac! { i32, i32 }
-assign_frac! { u64, u64 }
-assign_frac! { i64, u64 }
-assign_frac! { u64, i64 }
 assign_frac! { i64, i64 }
+assign_frac! { i32, u32 }
+assign_frac! { i64, u64 }
+assign_frac! { u32, i32 }
+assign_frac! { u64, i64 }
+assign_frac! { u32, u32 }
+assign_frac! { u64, u64 }
+
+hold_math_op1! { struct AbsHold; gmp::mpq_abs }
+hold_math_op1! { struct RecipHold; xgmp::mpq_inv_check_0 }
+
+impl<'a> Assign<Rational> for Integer {
+    fn assign(&mut self, val: Rational) {
+        self.assign(&val);
+    }
+}
 
 impl<'a> Assign<&'a Rational> for Integer {
     fn assign(&mut self, val: &'a Rational) {
         unsafe {
             gmp::mpz_set_q(self.inner_mut(), val.inner());
         }
-    }
-}
-
-impl<'a> Assign<Rational> for Integer {
-    fn assign(&mut self, val: Rational) {
-        self.assign(&val);
     }
 }
 
@@ -853,6 +934,13 @@ macro_rules! arith_binary {
         $func:path,
         $Hold: ident
     } => {
+        impl $Imp<Rational> for Rational {
+            type Output = Rational;
+            fn $method(self, op: Rational) -> Rational {
+                self.$method(&op)
+            }
+        }
+
         impl<'a> $Imp<&'a Rational> for Rational {
             type Output = Rational;
             fn $method(mut self, op: &'a Rational) -> Rational {
@@ -861,10 +949,9 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $Imp<Rational> for Rational {
-            type Output = Rational;
-            fn $method(self, op: Rational) -> Rational {
-                self.$method(&op)
+        impl $ImpAssign<Rational> for Rational {
+            fn $method_assign(&mut self, op: Rational) {
+                self.add_assign(&op);
             }
         }
 
@@ -873,12 +960,6 @@ macro_rules! arith_binary {
                 unsafe {
                     $func(self.inner_mut(), self.inner(), op.inner());
                 }
-            }
-        }
-
-        impl $ImpAssign<Rational> for Rational {
-            fn $method_assign(&mut self, op: Rational) {
-                self.add_assign(&op);
             }
         }
 
@@ -898,6 +979,8 @@ macro_rules! arith_binary {
             rhs: &'a Rational,
         }
 
+        from_borrow! { $Hold<'a> }
+
         impl<'a> Assign<$Hold<'a>> for Rational {
             fn assign(&mut self, rhs: $Hold) {
                 unsafe {
@@ -905,8 +988,6 @@ macro_rules! arith_binary {
                 }
             }
         }
-
-        from_borrow! { $Hold<'a> }
     };
 }
 
@@ -918,17 +999,8 @@ macro_rules! arith_noncommut {
         $func:path,
         $Hold:ident
     } => {
-        arith_binary! { $Imp $method,
-                        $ImpAssign $method_assign,
-                        $func,
-                        $Hold }
-
-        impl<'a> $ImpFromAssign<&'a Rational> for Rational {
-            fn $method_from_assign(&mut self, lhs: &'a Rational) {
-                unsafe {
-                    $func(self.inner_mut(), lhs.inner(), self.inner());
-                }
-            }
+        arith_binary! {
+            $Imp $method, $ImpAssign $method_assign, $func, $Hold
         }
 
         impl $ImpFromAssign<Rational> for Rational {
@@ -937,25 +1009,16 @@ macro_rules! arith_noncommut {
             }
         }
 
+        impl<'a> $ImpFromAssign<&'a Rational> for Rational {
+            fn $method_from_assign(&mut self, lhs: &'a Rational) {
+                unsafe {
+                    $func(self.inner_mut(), lhs.inner(), self.inner());
+                }
+            }
+        }
     };
 }
 
-arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddHold }
-arith_noncommut! {
-    Sub sub,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    gmp::mpq_sub,
-    SubHold
-}
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulHold }
-arith_noncommut! {
-    Div div,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    gmp::mpq_div,
-    DivHold
-}
 
 impl Neg for Rational {
     type Output = Rational;
@@ -985,6 +1048,8 @@ pub struct NegHold<'a> {
     op: &'a Rational,
 }
 
+from_borrow! { NegHold<'a> }
+
 impl<'a> Assign<NegHold<'a>> for Rational {
     fn assign(&mut self, rhs: NegHold) {
         unsafe {
@@ -993,7 +1058,22 @@ impl<'a> Assign<NegHold<'a>> for Rational {
     }
 }
 
-from_borrow! { NegHold<'a> }
+arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddHold }
+arith_noncommut! {
+    Sub sub,
+    SubAssign sub_assign,
+    SubFromAssign sub_from_assign,
+    gmp::mpq_sub,
+    SubHold
+}
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulHold }
+arith_noncommut! {
+    Div div,
+    DivAssign div_assign,
+    DivFromAssign div_from_assign,
+    gmp::mpq_div,
+    DivHold
+}
 
 macro_rules! arith_prim {
     ($Imp:ident $method:ident,
@@ -1033,6 +1113,8 @@ macro_rules! arith_prim {
             rhs: $T,
         }
 
+        from_borrow! { $Hold<'a> }
+
         impl<'a> Assign<$Hold<'a>> for Rational {
             fn assign(&mut self, rhs: $Hold) {
                 unsafe {
@@ -1040,10 +1122,16 @@ macro_rules! arith_prim {
                 }
             }
         }
-
-        from_borrow! { $Hold<'a> }
     };
 }
+
+arith_prim! {
+    Shl shl, ShlAssign shl_assign, i32, xgmp::mpq_mul_2exp_si, ShlHoldI32
+}
+arith_prim! {
+    Shr shr, ShrAssign shr_assign, i32, xgmp::mpq_div_2exp_si, ShrHoldI32
+}
+arith_prim! { Pow pow, PowAssign pow_assign, i32, xgmp::mpq_pow_si, PowHoldI32 }
 
 arith_prim! {
     Shl shl, ShlAssign shl_assign, u32, gmp::mpq_mul_2exp, ShlHoldU32
@@ -1052,13 +1140,6 @@ arith_prim! {
     Shr shr, ShrAssign shr_assign, u32, gmp::mpq_div_2exp, ShrHoldU32
 }
 arith_prim! { Pow pow, PowAssign pow_assign, u32, xgmp::mpq_pow_ui, PowHoldU32 }
-arith_prim! {
-    Shl shl, ShlAssign shl_assign, i32, xgmp::mpq_mul_2exp_si, ShlHoldI32
-}
-arith_prim! {
-    Shr shr, ShrAssign shr_assign, i32, xgmp::mpq_div_2exp_si, ShrHoldI32
-}
-arith_prim! { Pow pow, PowAssign pow_assign, i32, xgmp::mpq_pow_si, PowHoldI32 }
 
 impl Eq for Rational {}
 
@@ -1082,16 +1163,10 @@ impl PartialOrd for Rational {
 }
 
 macro_rules! cmp {
-    { $T:ty, $eval:expr } => {
+    { $T:ty, $eq:expr, $cmp:expr } => {
         impl PartialEq<$T> for Rational {
             fn eq(&self, other: &$T) -> bool {
-                self.partial_cmp(other) == Some(Ordering::Equal)
-            }
-        }
-
-        impl PartialOrd<$T> for Rational {
-            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                Some($eval(self.inner(), other))
+                $eq(self.inner(), other)
             }
         }
 
@@ -1101,39 +1176,60 @@ macro_rules! cmp {
             }
         }
 
+        impl PartialOrd<$T> for Rational {
+            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
+                Some($cmp(self.inner(), other))
+            }
+        }
+
         impl PartialOrd<Rational> for $T {
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-                match other.partial_cmp(self) {
-                    Some(x) => Some(x.reverse()),
-                    None => None,
-                }
+                other.partial_cmp(self).map(Ordering::reverse)
             }
         }
     }
 }
 
 cmp! {
-    Integer, |r, t: &Integer| unsafe { gmp::mpq_cmp_z(r, t.inner()).cmp(&0) }
+    Integer,
+    |r, t: &Integer| unsafe { gmp::mpq_cmp_z(r, t.inner()) } == 0,
+    |r, t: &Integer| unsafe { gmp::mpq_cmp_z(r, t.inner()) }.cmp(&0)
 }
-cmp! { u32, |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1).cmp(&0) } }
-cmp! { i32, |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1).cmp(&0) } }
+cmp! {
+    i32,
+    |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1) } == 0,
+    |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1) }.cmp(&0)
+}
+cmp! {
+    u32,
+    |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1) } == 0,
+    |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1) }.cmp(&0)
+}
 
-macro_rules! cmp_frac {
-    { $Num:ty, $Den:ty } => {
+macro_rules! cmp_small_rat {
+    { $T:ty } => {
         cmp! {
-            ($Num, $Den),
-            |r, t: &($Num, $Den)| {
-                let small = SmallRational::from(*t);
-                unsafe { gmp::mpq_cmp(r, small.inner()).cmp(&0) }
-            }
+            $T,
+            |r, t: &$T| unsafe {
+                gmp::mpq_equal(r, SmallRational::from(*t).inner())
+            } != 0,
+            |r, t: &$T| unsafe {
+                gmp::mpq_cmp(r, SmallRational::from(*t).inner())
+            }.cmp(&0)
         }
     };
 }
 
-cmp_frac! { u32, u32 }
-cmp_frac! { u32, i32 }
-cmp_frac! { i32, u32 }
-cmp_frac! { i32, i32 }
+cmp_small_rat! { i64 }
+cmp_small_rat! { u64 }
+cmp_small_rat! { (i32, i32) }
+cmp_small_rat! { (i64, i64) }
+cmp_small_rat! { (i32, u32) }
+cmp_small_rat! { (i64, u64) }
+cmp_small_rat! { (u32, i32) }
+cmp_small_rat! { (u64, i64) }
+cmp_small_rat! { (u32, u32) }
+cmp_small_rat! { (u64, u64) }
 
 fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
@@ -1168,42 +1264,6 @@ fn fmt_radix(r: &Rational,
         (false, &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
-}
-
-impl Display for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
-    }
-}
-
-impl Debug for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
-    }
-}
-
-impl Binary for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b")
-    }
-}
-
-impl Octal for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o")
-    }
-}
-
-impl LowerHex for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x")
-    }
-}
-
-impl UpperHex for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x")
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1267,34 +1327,6 @@ impl<'a> Drop for MutNumerDenom<'a> {
         }
     }
 }
-
-macro_rules! hold_math_op1 {
-    {
-        $(#[$attr_hold:meta])* struct $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        $(#[$attr_hold])*
-        #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            val: &'a Rational,
-            $($param: $T,)*
-        }
-
-        impl<'a> Assign<$Hold<'a>> for Rational {
-            fn assign(&mut self, src: $Hold<'a>) {
-                unsafe {
-                    $func(self.inner_mut(),
-                          src.val.inner() $(, src.$param.into())*);
-                }
-            }
-        }
-
-        from_borrow! { $Hold<'a> }
-    };
-}
-
-hold_math_op1! { struct AbsHold; gmp::mpq_abs }
-hold_math_op1! { struct RecipHold; xgmp::mpq_inv_check_0 }
 
 trait Inner {
     type Output;
@@ -1446,10 +1478,15 @@ impl SmallRational {
     ///
     /// # Safety
     ///
-    /// This function is unsafe because it does not canonicalize the
-    /// numerator and denominator. The rest of the library assumes
-    /// that `SmallRational` and `Rational` structures keep their
-    /// numerators and denominators canonicalized.
+    /// This function is unsafe because
+    ///
+    /// * it does not check that the denominator is not zero, and
+    ///
+    /// * it does not canonicalize the numerator and denominator.
+    ///
+    /// The rest of the library assumes that `SmallRational` and
+    /// `Rational` structures keep their numerators and denominators
+    /// canonicalized.
     ///
     /// # Examples
     ///
@@ -1483,14 +1520,16 @@ impl SmallRational {
             self.den_limbs[0] = 1;
             return;
         }
-        self.set_limbs_32(neg, num, den);
+        unsafe {
+            self.set_limbs_32(neg, num, den);
+        }
         self.update_d();
         unsafe {
             gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
     }
 
-    fn set_limbs_32(&mut self, neg: bool, num: u32, den: u32) {
+    unsafe fn set_limbs_32(&mut self, neg: bool, num: u32, den: u32) {
         self.num.size = if neg { -1 } else { 1 };
         self.num_limbs[0] = num as gmp::limb_t;
         self.den.size = 1;
@@ -1505,14 +1544,16 @@ impl SmallRational {
             self.den_limbs[0] = 1;
             return;
         }
-        self.set_limbs_64(neg, num, den);
+        unsafe {
+            self.set_limbs_64(neg, num, den);
+        }
         self.update_d();
         unsafe {
             gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
     }
 
-    fn set_limbs_64(&mut self, neg: bool, num: u64, den: u64) {
+    unsafe fn set_limbs_64(&mut self, neg: bool, num: u64, den: u64) {
         match gmp::LIMB_BITS {
             64 => {
                 self.num.size = if neg { -1 } else { 1 };
@@ -1545,6 +1586,8 @@ impl SmallRational {
     }
 
     fn update_d(&self) {
+        // sanity check
+        assert!(mem::size_of::<Mpz>() == mem::size_of::<gmp::mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
         let num_d = &self.num_limbs[0] as *const _ as *mut _;
@@ -1573,21 +1616,35 @@ impl<T> From<T> for SmallRational
     }
 }
 
-impl Assign<(u32, u32)> for SmallRational {
-    fn assign(&mut self, (num, den): (u32, u32)) {
-        self.set_num_den_32(false, num, den);
+impl Assign<i32> for SmallRational {
+    fn assign(&mut self, num: i32) {
+        unsafe {
+            self.set_limbs_32(num < 0, num.wrapping_abs() as u32, 1);
+        }
     }
 }
 
-impl Assign<(u32, i32)> for SmallRational {
-    fn assign(&mut self, (num, den): (u32, i32)) {
-        self.set_num_den_32(den < 0, num, den.wrapping_abs() as u32);
+impl Assign<i64> for SmallRational {
+    fn assign(&mut self, num: i64) {
+        unsafe {
+            self.set_limbs_64(num < 0, num.wrapping_abs() as u64, 1);
+        }
     }
 }
 
-impl Assign<(i32, u32)> for SmallRational {
-    fn assign(&mut self, (num, den): (i32, u32)) {
-        self.set_num_den_32(num < 0, num.wrapping_abs() as u32, den);
+impl Assign<u32> for SmallRational {
+    fn assign(&mut self, num: u32) {
+        unsafe {
+            self.set_limbs_32(false, num, 1);
+        }
+    }
+}
+
+impl Assign<u64> for SmallRational {
+    fn assign(&mut self, num: u64) {
+        unsafe {
+            self.set_limbs_64(false, num, 1);
+        }
     }
 }
 
@@ -1601,15 +1658,19 @@ impl Assign<(i32, i32)> for SmallRational {
     }
 }
 
-impl Assign<(u64, u64)> for SmallRational {
-    fn assign(&mut self, (num, den): (u64, u64)) {
-        self.set_num_den_64(false, num, den);
+impl Assign<(i64, i64)> for SmallRational {
+    fn assign(&mut self, (num, den): (i64, i64)) {
+        let num_neg = num < 0;
+        let den_neg = den < 0;
+        self.set_num_den_64(num_neg != den_neg,
+                            num.wrapping_abs() as u64,
+                            den.wrapping_abs() as u64);
     }
 }
 
-impl Assign<(u64, i64)> for SmallRational {
-    fn assign(&mut self, (num, den): (u64, i64)) {
-        self.set_num_den_64(den < 0, num, den.wrapping_abs() as u64);
+impl Assign<(i32, u32)> for SmallRational {
+    fn assign(&mut self, (num, den): (i32, u32)) {
+        self.set_num_den_32(num < 0, num.wrapping_abs() as u32, den);
     }
 }
 
@@ -1619,13 +1680,27 @@ impl Assign<(i64, u64)> for SmallRational {
     }
 }
 
-impl Assign<(i64, i64)> for SmallRational {
-    fn assign(&mut self, (num, den): (i64, i64)) {
-        let num_neg = num < 0;
-        let den_neg = den < 0;
-        self.set_num_den_64(num_neg != den_neg,
-                            num.wrapping_abs() as u64,
-                            den.wrapping_abs() as u64);
+impl Assign<(u32, i32)> for SmallRational {
+    fn assign(&mut self, (num, den): (u32, i32)) {
+        self.set_num_den_32(den < 0, num, den.wrapping_abs() as u32);
+    }
+}
+
+impl Assign<(u64, i64)> for SmallRational {
+    fn assign(&mut self, (num, den): (u64, i64)) {
+        self.set_num_den_64(den < 0, num, den.wrapping_abs() as u64);
+    }
+}
+
+impl Assign<(u32, u32)> for SmallRational {
+    fn assign(&mut self, (num, den): (u32, u32)) {
+        self.set_num_den_32(false, num, den);
+    }
+}
+
+impl Assign<(u64, u64)> for SmallRational {
+    fn assign(&mut self, (num, den): (u64, u64)) {
+        self.set_num_den_64(false, num, den);
     }
 }
 
