@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use gmp_mpfr_sys::gmp;
-use gmp_mpfr_sys::mpc;
+use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "random")]
 use rand::Rng;
@@ -34,9 +34,10 @@ use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
                Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
-use std::os::raw::{c_int, c_long, c_ulong};
+use std::os::raw::c_int;
 use std::ptr;
 use std::sync::atomic::{AtomicPtr, Ordering as AtomicOrdering};
+use xmpc;
 
 type Round2 = (Round, Round);
 const NEAREST: Round2 = (Round::Nearest, Round::Nearest);
@@ -85,7 +86,7 @@ type Ordering2 = (Ordering, Ordering);
 /// and trying to use it will start a panic.
 
 pub struct Complex {
-    inner: mpc::mpc_t,
+    inner: mpc_t,
 }
 
 impl Clone for Complex {
@@ -267,7 +268,7 @@ impl Complex {
                 p.1 <= rugflo::prec_max(),
                 "precision out of range");
         unsafe {
-            let mut inner: mpc::mpc_t = mem::uninitialized();
+            let mut inner: mpc_t = mem::uninitialized();
             mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
             let real = mpc::realref(&mut inner);
             let imag = mpc::imagref(&mut inner);
@@ -932,7 +933,7 @@ impl Complex {
         fn mul_i_round;
         /// Holds the multiplicateion of the complex number by *i*.
         fn mul_i_hold -> MulIHold;
-        mul_i
+        xmpc::mul_i
     }
     math_op1! {
         /// Computes the reciprocal, rounding to the nearest.
@@ -942,7 +943,7 @@ impl Complex {
         fn recip_round;
         /// Holds the computation of the reciprocal.
         fn recip_hold -> RecipHold;
-        recip
+        xmpc::recip
     }
 
     /// Holds the computation of the norm, that is the square of the
@@ -1425,8 +1426,8 @@ impl<'a> AssignRound<ArgHold<'a>> for Float {
     }
 }
 
-hold_math_op1! { struct MulIHold { negative: bool }; mul_i }
-hold_math_op1! { struct RecipHold {}; recip }
+hold_math_op1! { struct MulIHold { negative: bool }; xmpc::mul_i }
+hold_math_op1! { struct RecipHold {}; xmpc::recip }
 
 pub struct NormHold<'a> {
     hold_self: &'a Complex,
@@ -1460,20 +1461,6 @@ hold_math_op1! { struct AsinhHold {}; mpc::asinh }
 hold_math_op1! { struct AcoshHold {}; mpc::acosh }
 hold_math_op1! { struct AtanhHold {}; mpc::atanh }
 
-unsafe fn mul_i(rop: *mut mpc::mpc_t,
-                op: *const mpc::mpc_t,
-                neg: bool,
-                rnd: mpc::rnd_t)
-                -> c_int {
-    mpc::mul_i(rop, op, if neg { -1 } else { 0 }, rnd)
-}
-unsafe fn recip(rop: *mut mpc::mpc_t,
-                op: *const mpc::mpc_t,
-                rnd: mpc::rnd_t)
-                -> c_int {
-    mpc::ui_div(rop, 1, op, rnd)
-}
-
 impl Neg for Complex {
     type Output = Complex;
     fn neg(mut self) -> Complex {
@@ -1497,7 +1484,6 @@ impl<'a> Neg for &'a Complex {
     }
 }
 
-/// Holds a negation.
 pub struct NegHold<'a> {
     val: &'a Complex,
 }
@@ -2229,7 +2215,7 @@ arith_prim_noncommut! {
     SubFromAssign sub_from_assign,
     u32,
     mpc::sub_ui,
-    ui_sub,
+    xmpc::ui_sub,
     SubHoldU32,
     SubFromHoldU32
 }
@@ -2257,7 +2243,7 @@ arith_prim_commut! {
     AddRound add_round,
     AddAssign add_assign,
     i32,
-    add_si,
+    xmpc::add_si,
     AddHoldI32
 }
 arith_prim_noncommut! {
@@ -2266,8 +2252,8 @@ arith_prim_noncommut! {
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     i32,
-    sub_si,
-    si_sub,
+    xmpc::sub_si,
+    xmpc::si_sub,
     SubHoldI32,
     SubFromHoldI32
 }
@@ -2285,113 +2271,10 @@ arith_prim_noncommut! {
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     i32,
-    div_si,
-    si_div,
+    xmpc::div_si,
+    xmpc::si_div,
     DivHoldI32,
     DivFromHoldI32
-}
-
-unsafe fn ui_sub(x: *mut mpc::mpc_t,
-                 y: c_ulong,
-                 z: *const mpc::mpc_t,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    let mz = z as *mut _;
-    let (r_re, r_im) = rnd_re_im(r);
-    let re = mpfr::ui_sub(mpc::realref(x), y, mpc::realref(mz), r_re);
-    let re = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    // TODO: ui_neg
-    let im = mpfr::ui_sub(mpc::imagref(x), 0, mpc::imagref(mz), r_im);
-    let im = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    re | im
-}
-
-unsafe fn add_si(x: *mut mpc::mpc_t,
-                 y: *const mpc::mpc_t,
-                 z: c_long,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    if z < 0 {
-        mpc::sub_ui(x, y, z.wrapping_neg() as c_ulong, r)
-    } else {
-        mpc::add_ui(x, y, z as c_ulong, r)
-    }
-}
-
-unsafe fn sub_si(x: *mut mpc::mpc_t,
-                 y: *const mpc::mpc_t,
-                 z: c_long,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    if z < 0 {
-        mpc::add_ui(x, y, z.wrapping_neg() as c_ulong, r)
-    } else {
-        mpc::sub_ui(x, y, z as c_ulong, r)
-    }
-}
-
-unsafe fn si_sub(x: *mut mpc::mpc_t,
-                 y: c_long,
-                 z: *const mpc::mpc_t,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    let mz = z as *mut _;
-    let (r_re, r_im) = rnd_re_im(r);
-    let re = mpfr::si_sub(mpc::realref(x), y, mpc::realref(mz), r_re);
-    let re = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    // TODO: ui_neg
-    let im = mpfr::ui_sub(mpc::imagref(x), 0, mpc::imagref(mz), r_im);
-    let im = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    re | im
-}
-
-unsafe fn div_si(x: *mut mpc::mpc_t,
-                 y: *const mpc::mpc_t,
-                 z: c_long,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    let my = y as *mut _;
-    let (r_re, r_im) = rnd_re_im(r);
-    let re = mpfr::div_si(mpc::realref(x), mpc::realref(my), z, r_re);
-    let re = match re.cmp(&0) {
-        Ordering::Less => 2,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    };
-    let im = mpfr::div_si(mpc::imagref(x), mpc::imagref(my), z, r_im);
-    let im = match im.cmp(&0) {
-        Ordering::Less => 8,
-        Ordering::Equal => 0,
-        Ordering::Greater => 4,
-    };
-    re | im
-}
-
-unsafe fn si_div(x: *mut mpc::mpc_t,
-                 y: c_long,
-                 z: *const mpc::mpc_t,
-                 r: mpc::rnd_t)
-                 -> c_int {
-    let prec = mem::size_of::<c_long>() as u32 * 8;
-    let mut dividend = Complex::new((prec, prec));
-    mpc::set_si(dividend.inner_mut(), y, rraw2(NEAREST));
-    mpc::div(x, dividend.inner(), z, r)
 }
 
 arith_prim! {
@@ -2455,16 +2338,8 @@ arith_prim! {
     PowRound pow_round,
     PowAssign pow_assign,
     f32,
-    pow_single,
+    xmpc::pow_single,
     PowHoldF32
-}
-
-unsafe fn pow_single(x: *mut mpc::mpc_t,
-                     y: *const mpc::mpc_t,
-                     z: f32,
-                     r: mpc::rnd_t)
-                     -> c_int {
-    mpc::pow_d(x, y, z as f64, r)
 }
 
 impl PartialEq for Complex {
@@ -2615,28 +2490,6 @@ fn rraw2(round: Round2) -> mpc::rnd_t {
     }
 }
 
-fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
-    let re = match r & 0x0f {
-        0 => mpfr::rnd_t::RNDN,
-        1 => mpfr::rnd_t::RNDZ,
-        2 => mpfr::rnd_t::RNDU,
-        3 => mpfr::rnd_t::RNDD,
-        4 => mpfr::rnd_t::RNDA,
-        5 => mpfr::rnd_t::RNDF,
-        _ => mpfr::rnd_t::RNDNA,
-    };
-    let im = match r >> 4 {
-        0 => mpfr::rnd_t::RNDN,
-        1 => mpfr::rnd_t::RNDZ,
-        2 => mpfr::rnd_t::RNDU,
-        3 => mpfr::rnd_t::RNDD,
-        4 => mpfr::rnd_t::RNDA,
-        5 => mpfr::rnd_t::RNDF,
-        _ => mpfr::rnd_t::RNDNA,
-    };
-    (re, im)
-}
-
 fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     // ord == first + 4 * second
     let first = mpc::INEX_RE(ord).cmp(&0);
@@ -2654,14 +2507,14 @@ trait InnerMut: Inner {
 }
 
 impl Inner for Complex {
-    type Output = mpc::mpc_t;
-    fn inner(&self) -> &mpc::mpc_t {
+    type Output = mpc_t;
+    fn inner(&self) -> &mpc_t {
         &self.inner
     }
 }
 
 impl InnerMut for Complex {
-    unsafe fn inner_mut(&mut self) -> &mut mpc::mpc_t {
+    unsafe fn inner_mut(&mut self) -> &mut mpc_t {
         &mut self.inner
     }
 }
