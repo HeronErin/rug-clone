@@ -90,7 +90,7 @@
 //! default-features = false
 //! ```
 //!
-//! [complex]:  https://tspiteri.gitlab.io/gmp-mpfr/rugcom/struct.Complex.html
+//! [complex]:  struct.Complex.html
 //! [gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
 //! [lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
 //! [mpc home]: http://www.multiprecision.org/
@@ -113,4 +113,4 @@ extern crate rugflo;
 
 mod complex;
 
-pub use complex::{Complex, ParseComplexError};
+pub use complex::{Complex, ParseComplexError, SmallComplex};
