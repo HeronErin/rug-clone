@@ -116,8 +116,8 @@ macro_rules! math_op1 {
 macro_rules! hold_math_op1 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
     } => {
         $(#[$attr_hold])*
         #[derive(Clone, Copy)]
@@ -247,6 +247,54 @@ impl Rational {
                            radix: i32)
                            -> Result<(), ParseRationalError> {
         check_str_radix(src, radix).map(|_| ())
+    }
+
+
+    /// Converts `self` to an `Integer`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::Rational;
+    /// let pos = Rational::from((139, 10));
+    /// let posi = pos.to_integer();
+    /// assert_eq!(posi, 13);
+    /// let neg = Rational::from((-139, 10));
+    /// let negi = neg.to_integer();
+    /// assert_eq!(negi, -13);
+    /// ```
+    pub fn to_integer(&self) -> Integer {
+        let mut i = Integer::new();
+        self.copy_to_integer(&mut i);
+        i
+    }
+
+    /// Converts `self` to an `Integer` inside `i`, rounding towards
+    /// zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::Integer;
+    /// use rugrat::Rational;
+    ///
+    /// fn main() {
+    ///     let mut i = Integer::new();
+    ///     assert_eq!(i, 0);
+    ///     let pos = Rational::from((139, 10));
+    ///     pos.copy_to_integer(&mut i);
+    ///     assert_eq!(i, 13);
+    ///     let neg = Rational::from((-139, 10));
+    ///     neg.copy_to_integer(&mut i);
+    ///     assert_eq!(i, -13);
+    /// }
+    /// ```
+    pub fn copy_to_integer(&self, i: &mut Integer) {
+        unsafe {
+            gmp::mpz_set_q(i.inner_mut(), self.inner());
+        }
     }
 
     /// Converts `self` to an `f32`, rounding towards zero.
@@ -834,19 +882,6 @@ impl<'a> Assign<&'a Rational> for Rational {
     }
 }
 
-impl Assign<Integer> for Rational {
-    fn assign(&mut self, mut val: Integer) {
-        let numer = unsafe {
-            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut Integer)
-        };
-        let denom = unsafe {
-            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut Integer)
-        };
-        mem::swap(numer, &mut val);
-        denom.assign(1);
-    }
-}
-
 impl<'a> Assign<&'a Integer> for Rational {
     fn assign(&mut self, val: &'a Integer) {
         unsafe {
@@ -855,77 +890,40 @@ impl<'a> Assign<&'a Integer> for Rational {
     }
 }
 
-macro_rules! assign_frac {
-    { $T1:ty, $T2:ty } => {
-        impl Assign<($T1, $T2)> for Rational {
-            fn assign(&mut self, (num, den): ($T1, $T2)) {
-                let num_den = self.as_mut_numer_denom();
-                num_den.0.assign(num);
-                num_den.1.assign(den);
+macro_rules! assign {
+    { $T:ty } => {
+        impl Assign<$T> for Rational {
+            fn assign(&mut self, t: $T) {
+                // no need to canonicalize, as denominator will be 1.
+                let num_den = unsafe {
+                    self.as_mut_numer_denom_no_canonicalization()
+                };
+                num_den.0.assign(t);
+                num_den.1.assign(1);
             }
         }
     };
 }
 
-assign_frac! { Integer, Integer }
+assign!{ Integer }
+assign!{ i32 }
+assign!{ i64 }
+assign!{ u32 }
+assign!{ u64 }
 
-impl<'a> Assign<(&'a Integer, &'a Integer)> for Rational {
-    fn assign(&mut self, (num, den): (&Integer, &Integer)) {
+impl<T, U> Assign<(T, U)> for Rational
+    where Integer: Assign<T>,
+          Integer: Assign<U>
+{
+    fn assign(&mut self, (num, den): (T, U)) {
         let num_den = self.as_mut_numer_denom();
         num_den.0.assign(num);
         num_den.1.assign(den);
     }
 }
 
-impl Assign<i32> for Rational {
-    fn assign(&mut self, val: i32) {
-        self.assign((val, 1u32));
-    }
-}
-
-impl Assign<i64> for Rational {
-    fn assign(&mut self, val: i64) {
-        self.assign((val, 1u64));
-    }
-}
-
-impl Assign<u32> for Rational {
-    fn assign(&mut self, val: u32) {
-        self.assign((val, 1u32));
-    }
-}
-
-impl Assign<u64> for Rational {
-    fn assign(&mut self, val: u64) {
-        self.assign((val, 1u64));
-    }
-}
-
-assign_frac! { i32, i32 }
-assign_frac! { i64, i64 }
-assign_frac! { i32, u32 }
-assign_frac! { i64, u64 }
-assign_frac! { u32, i32 }
-assign_frac! { u64, i64 }
-assign_frac! { u32, u32 }
-assign_frac! { u64, u64 }
-
-hold_math_op1! { struct AbsHold; gmp::mpq_abs }
-hold_math_op1! { struct RecipHold; xgmp::mpq_inv_check_0 }
-
-impl<'a> Assign<Rational> for Integer {
-    fn assign(&mut self, val: Rational) {
-        self.assign(&val);
-    }
-}
-
-impl<'a> Assign<&'a Rational> for Integer {
-    fn assign(&mut self, val: &'a Rational) {
-        unsafe {
-            gmp::mpz_set_q(self.inner_mut(), val.inner());
-        }
-    }
-}
+hold_math_op1! { struct AbsHold {}; gmp::mpq_abs }
+hold_math_op1! { struct RecipHold {}; xgmp::mpq_inv_check_0 }
 
 macro_rules! arith_binary {
     {
