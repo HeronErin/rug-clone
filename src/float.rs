@@ -25,7 +25,7 @@ use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
 use rugrat::Rational;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
-use std::cmp::{self, Ordering};
+use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
@@ -40,6 +40,7 @@ use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
 use std::sync::atomic::{AtomicPtr, Ordering as AtomicOrdering};
+use xmpfr;
 
 /// Returns the minimum value for the exponent.
 pub fn exp_min() -> i32 {
@@ -373,7 +374,7 @@ macro_rules! math_op2 {
         }
 
         $(#[$attr_round])*
-        pub fn $method_round(&mut self, $op: &Float, 
+        pub fn $method_round(&mut self, $op: &Float,
                              $($param: $T,)* round: Round)
                              -> Ordering {
             unsafe {
@@ -1074,7 +1075,7 @@ impl Float {
         fn recip_round;
         /// Hold a computation of the reciprocal.
         fn recip_hold -> RecipHold;
-        recip
+        xmpfr::recip
     }
     math_op2! {
         /// Computes the positive difference between `self` and
@@ -1591,7 +1592,7 @@ impl Float {
         /// Hold a computation of the first kind Bessel function of order
         /// `n`.
         fn jn_hold -> JnHold;
-        jn
+        xmpfr::jn
     }
     math_op1! {
         /// Computes the value of the second kind Bessel function of order
@@ -1627,7 +1628,7 @@ impl Float {
         /// Hold a computation of the second kind Bessel function of order
         /// `n`.
         fn yn_hold -> YnHold;
-        yn
+        xmpfr::yn
     }
     math_op2! {
         /// Computes the arithmetic-geometric mean of `self` and `other`,
@@ -2218,7 +2219,7 @@ hold_math_op1! { struct RecipSqrtHold {}; mpfr::rec_sqrt }
 hold_math_op1! { struct CbrtHold {}; mpfr::cbrt }
 hold_math_op1! { struct RootHold { k: u32 }; mpfr::root }
 hold_math_op1! { struct AbsHold {}; mpfr::abs }
-hold_math_op1! { struct RecipHold {}; recip }
+hold_math_op1! { struct RecipHold {}; xmpfr::recip }
 hold_math_op2! { struct DimHold { other }; mpfr::dim }
 hold_math_op1! { struct LnHold {}; mpfr::log }
 hold_math_op1! { struct Log2Hold {}; mpfr::log2 }
@@ -2271,10 +2272,13 @@ impl<'a> AssignRound<LGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
         let ord = unsafe {
-            mpfr::lgamma(self.0.inner_mut(), sign_ptr,
-                         src.hold_self.inner(), rraw(round))
+                mpfr::lgamma(self.0.inner_mut(),
+                             sign_ptr,
+                             src.hold_self.inner(),
+                             rraw(round))
 
-        }                    .cmp(&0);
+            }
+            .cmp(&0);
         *self.1 = if sign < 0 {
             Ordering::Less
         } else {
@@ -2290,10 +2294,10 @@ hold_math_op1! { struct ErfHold {}; mpfr::erf }
 hold_math_op1! { struct ErfcHold {}; mpfr::erfc }
 hold_math_op1! { struct J0Hold {}; mpfr::j0 }
 hold_math_op1! { struct J1Hold {}; mpfr::j1 }
-hold_math_op1! { struct JnHold { n: i32 }; jn }
+hold_math_op1! { struct JnHold { n: i32 }; xmpfr::jn }
 hold_math_op1! { struct Y0Hold {}; mpfr::y0 }
 hold_math_op1! { struct Y1Hold {}; mpfr::y1 }
-hold_math_op1! { struct YnHold { n: i32 }; yn }
+hold_math_op1! { struct YnHold { n: i32 }; xmpfr::yn }
 hold_math_op2! { struct AgmHold { other }; mpfr::agm }
 hold_math_op2! { struct HypotHold { other }; mpfr::hypot }
 hold_math_op1! { struct AiHold {}; mpfr::ai }
@@ -2821,7 +2825,7 @@ arith_noncommut! {
     DivFromAssign div_from_assign,
     Integer,
     mpfr::div_z,
-    z_div,
+    xmpfr::z_div,
     DivHoldInteger,
     DivFromHoldInteger
 }
@@ -2849,7 +2853,7 @@ arith_noncommut! {
     SubFromAssign sub_from_assign,
     Rational,
     mpfr::sub_q,
-    q_sub,
+    xmpfr::q_sub,
     SubHoldRational,
     SubFromHoldRational
 }
@@ -2868,7 +2872,7 @@ arith_noncommut! {
     DivFromAssign div_from_assign,
     Rational,
     mpfr::div_q,
-    q_div,
+    xmpfr::q_div,
     DivHoldRational,
     DivFromHoldRational
 }
@@ -3177,13 +3181,13 @@ impl AssignRound<u64> for Float {
 }
 
 conv_ops! {
-    (f32, set_single),
-    (AddHoldF32 add_single,
-     SubHoldF32 sub_single,
-     SubFromHoldF32 single_sub),
-    (MulHoldF32 mul_single,
-     DivHoldF32 div_single,
-     DivFromHoldF32 single_div)
+    (f32, xmpfr::set_single),
+    (AddHoldF32 xmpfr::add_single,
+     SubHoldF32 xmpfr::sub_single,
+     SubFromHoldF32 xmpfr::single_sub),
+    (MulHoldF32 xmpfr::mul_single,
+     DivHoldF32 xmpfr::div_single,
+     DivFromHoldF32 xmpfr::single_div)
 }
 conv_ops! {
     (f64, mpfr::set_d),
@@ -4052,163 +4056,3 @@ mod tests {
         assert!(unsafe { mpfr::custom_get_size(64) } == 8);
     }
 }
-
-unsafe fn recip(rop: *mut mpfr_t,
-                op: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    mpfr::ui_div(rop, 1, op, rnd)
-}
-
-unsafe fn jn(rop: *mut mpfr_t,
-             op: *const mpfr_t,
-             n: i32,
-             rnd: mpfr::rnd_t)
-             -> c_int {
-    mpfr::jn(rop, n.into(), op, rnd)
-}
-
-unsafe fn yn(rop: *mut mpfr_t,
-             op: *const mpfr_t,
-             n: i32,
-             rnd: mpfr::rnd_t)
-             -> c_int {
-    mpfr::yn(rop, n.into(), op, rnd)
-}
-
-unsafe fn z_div(r: *mut mpfr_t,
-                lhs: *const gmp::mpz_t,
-                rhs: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    divf_mulz_divz(r, rhs, Some(lhs), None, rnd)
-}
-
-unsafe fn q_sub(r: *mut mpfr_t,
-                lhs: *const gmp::mpq_t,
-                rhs: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    let ret = -mpfr::sub_q(r, rhs, lhs, rnd);
-    if mpfr::zero_p(r) == 0 {
-        mpfr::neg(r, r, rnd);
-    }
-    ret
-}
-
-unsafe fn q_div(r: *mut mpfr_t,
-                lhs: *const gmp::mpq_t,
-                rhs: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    let lhs_num = gmp::mpq_numref(lhs as *mut _) as *const _;
-    let lhs_den = gmp::mpq_denref(lhs as *mut _) as *const _;
-    divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
-}
-
-// mul and div must must form a canonical rational, except that div
-// can be negative
-unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
-                         f: *const mpfr_t,
-                         mul: Option<*const gmp::mpz_t>,
-                         div: Option<*const gmp::mpz_t>,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
-    let mul_size = mul.map(|i| (*i).size);
-    let div_size = div.map(|i| (*i).size);
-    if mul_size == Some(0) {
-        mpfr::ui_div(rop, 0, f, rnd);
-        if let Some(s) = div_size {
-            if s < 0 {
-                (*rop).sign = -(*rop).sign;
-            }
-        }
-        return 0;
-    }
-    if div_size == Some(0) {
-        mpfr::mul_ui(rop, f, 0, rnd);
-        mpfr::ui_div(rop, 1, rop, rnd);
-        if let Some(s) = mul_size {
-            if s < 0 {
-                (*rop).sign = -(*rop).sign;
-            }
-        }
-        return 0;
-    }
-
-    let mut denom_buf: Float;
-    let denom = if let Some(div) = div {
-        let mut prec = (*f).prec as u32;
-        assert_eq!(prec as mpfr::prec_t, (*f).prec, "overflow");
-        let bits = gmp::mpz_sizeinbase(div, 2);
-        assert!(bits < u32::MAX as usize, "overflow");
-        prec = prec.checked_add(bits as u32).expect("overflow");
-        denom_buf = Float::new(prec);
-        mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
-        denom_buf.inner() as *const _
-    } else {
-        f
-    };
-    if let Some(mul) = mul {
-        let bits = gmp::mpz_sizeinbase(mul, 2);
-        assert!(bits <= u32::MAX as usize, "overflow");
-        let mut buf = Float::new(cmp::max(prec_min(), bits as u32));
-        mpfr::set_z(buf.inner_mut(), mul, rnd);
-        mpfr::div(rop, buf.inner(), denom, rnd)
-    } else {
-        mpfr::ui_div(rop, 1, denom, rnd)
-    }
-}
-
-unsafe fn set_single(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::set_d(rop, op as f64, rnd)
-}
-
-unsafe fn add_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::add_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn sub_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::sub_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn single_sub(rop: *mut mpfr_t,
-                     op1: f32,
-                     op2: *const mpfr_t,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::d_sub(rop, op1 as f64, op2, rnd)
-}
-
-unsafe fn mul_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::mul_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn div_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::div_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn single_div(rop: *mut mpfr_t,
-                     op1: f32,
-                     op2: *const mpfr_t,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::d_div(rop, op1 as f64, op2, rnd)
-}
-

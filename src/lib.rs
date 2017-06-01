@@ -111,6 +111,7 @@ extern crate rugint;
 extern crate rugrat;
 
 mod float;
+mod xmpfr;
 
 pub use float::{Constant, Float, ParseFloatError, Round, SmallFloat, Special,
                 exp_max, exp_min, prec_max, prec_min};
