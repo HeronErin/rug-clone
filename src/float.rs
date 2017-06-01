@@ -204,14 +204,6 @@ pub struct Float {
     inner: mpfr_t,
 }
 
-impl Drop for Float {
-    fn drop(&mut self) {
-        unsafe {
-            mpfr::clear(self.inner_mut());
-        }
-    }
-}
-
 impl Clone for Float {
     fn clone(&self) -> Float {
         let mut ret = Float::new(self.prec());
@@ -223,6 +215,211 @@ impl Clone for Float {
         self.set_prec(source.prec());
         self.assign(source);
     }
+}
+
+impl Drop for Float {
+    fn drop(&mut self) {
+        unsafe {
+            mpfr::clear(self.inner_mut());
+        }
+    }
+}
+
+macro_rules! math_op1 {
+    {
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_hold:meta])*
+        fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self $(, $param: $T)*) -> &mut Float {
+            self.$method_round($($param,)* Round::Nearest);
+            self
+        }
+
+        $(#[$attr_round])*
+        pub fn $method_round(&mut self, $($param: $T,)* round: Round)
+                             -> Ordering {
+            unsafe {
+                $func(self.inner_mut(), self.inner(),
+                      $($param.into(),)* rraw(round))
+            }.cmp(&0)
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+            $Hold {
+                hold_self: self,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op1 {
+    {
+        $(#[$attr_hold:meta])*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            hold_self: &'a Float,
+            $($param: $T,)*
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(), src.hold_self.inner(),
+                          $(src.$param.into(),)* rraw(round))
+                }.cmp(&0)
+            }
+        }
+    };
+}
+
+macro_rules! math_op1_2 {
+    {
+        $(#[$attr:meta])*
+        fn $method:ident($rop:ident $(, $param:ident: $T:ty)*);
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_hold:meta])*
+        fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, $rop: &mut Float $(, $param: $T)*) {
+            self.$method_round($rop, $($param,)* Round::Nearest);
+        }
+
+        $(#[$attr_round])*
+        pub fn $method_round(&mut self, $rop: &mut Float,
+                             $($param: $T,)* round: Round)
+                             -> (Ordering, Ordering) {
+            ordering2(unsafe {
+                $func(self.inner_mut(), $rop.inner_mut(),
+                      self.inner(), $($param.into(),)* rraw(round))
+            })
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+            $Hold {
+                hold_self: self,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op1_2 {
+    {
+        $(#[$attr_hold:meta])*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            hold_self: &'a Float,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for (&'a mut Float, &'a mut Float) {
+            fn assign(&mut self, src: $Hold<'a>) {
+                self.assign_round(src, Round::Nearest);
+            }
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for (&'a mut Float, &'a mut Float) {
+            type Round = Round;
+            type Ordering = (Ordering, Ordering);
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
+                            -> (Ordering, Ordering) {
+                ordering2(unsafe {
+                    $func(self.0.inner_mut(), self.1.inner_mut(),
+                          src.hold_self.inner(),
+                          $(src.$param.into(),)* rraw(round))
+                })
+            }
+        }
+    };
+}
+
+macro_rules! math_op2 {
+    {
+        $(#[$attr:meta])*
+        fn $method:ident($op:ident $(, $param:ident: $T:ty)*);
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_hold:meta])*
+        fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, $op: &Float $(, $param: $T)*) -> &mut Float {
+            self.$method_round($op, $($param.into(),)* Round::Nearest);
+            self
+        }
+
+        $(#[$attr_round])*
+        pub fn $method_round(&mut self, $op: &Float, 
+                             $($param: $T,)* round: Round)
+                             -> Ordering {
+            unsafe {
+                $func(self.inner_mut(), self.inner(),
+                      $op.inner(), $($param.into(),)* rraw(round))
+            }.cmp(&0)
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold<'a>(&'a self, $op: &'a Float $(, $param: $T)*)
+                                -> $Hold<'a> {
+            $Hold {
+                hold_self: self,
+                $op: $op,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op2 {
+    {
+        $(#[$attr_hold:meta])*
+        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty)* };
+        $func:path
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            hold_self: &'a Float,
+            $op: &'a Float,
+            $($param: $T,)*
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Float {
+            type Round = Round;
+            type Ordering = Ordering;
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
+                            -> Ordering {
+                unsafe {
+                    $func(self.inner_mut(), src.hold_self.inner(),
+                          src.$op.inner(), $(src.$param.into(),)* rraw(round))
+                }.cmp(&0)
+            }
+        }
+    };
 }
 
 impl Float {
@@ -248,7 +445,7 @@ impl Float {
         unsafe { mpfr::get_prec(self.inner()) as u32 }
     }
 
-    /// Sets the precision of `self` exactly, rounding to the nearest.
+    /// Sets the precision of `self`, rounding to the nearest.
     ///
     /// # Panics
     ///
@@ -257,7 +454,7 @@ impl Float {
         self.set_prec_round(prec, Round::Nearest);
     }
 
-    /// Sets the precision of `self` exactly, applying the specified
+    /// Sets the precision of `self`, applying the specified
     /// rounding method.
     ///
     /// # Panics
@@ -272,6 +469,80 @@ impl Float {
                              rraw(round))
                     .cmp(&0)
         }
+    }
+
+    /// Parses a `Float` with the specified precision, rounding to the
+    /// nearest.
+    ///
+    /// See the [corresponding assignment](#method.assign_str).
+    pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
+        let mut f = Float::new(prec);
+        f.assign_str(src)?;
+        Ok(f)
+    }
+
+    /// Parses a `Float` with the specified precision, applying the
+    /// specified rounding.
+    ///
+    /// See the [corresponding assignment](#method.assign_str_round).
+    pub fn from_str_round(src: &str,
+                          prec: u32,
+                          round: Round)
+                          -> Result<(Float, Ordering), ParseFloatError> {
+        let mut f = Float::new(prec);
+        let ord = f.assign_str_round(src, round)?;
+        Ok((f, ord))
+    }
+
+    /// Parses a `Float` with the specified radix and precision,
+    /// rounding to the nearest.
+    ///
+    /// See the [corresponding assignment](#method.assign_str_radix).
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix(src: &str,
+                          radix: i32,
+                          prec: u32)
+                          -> Result<Float, ParseFloatError> {
+        let mut f = Float::new(prec);
+        f.assign_str_radix(src, radix)?;
+        Ok(f)
+    }
+
+    /// Parses a `Float` with the specified radix and precision,
+    /// applying the specified rounding.
+    ///
+    /// See the [corresponding assignment](#method.assign_str_radix_round).
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn from_str_radix_round
+        (src: &str,
+         radix: i32,
+         prec: u32,
+         round: Round)
+         -> Result<(Float, Ordering), ParseFloatError> {
+        let mut f = Float::new(prec);
+        let ord = f.assign_str_radix_round(src, radix, round)?;
+        Ok((f, ord))
+    }
+
+    /// Checks if a `Float` can be parsed.
+    ///
+    /// If this method does not return an error, neither will any
+    /// other function that parses a `Float`. If this method returns
+    /// an error, the other functions will return the same error.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn valid_str_radix(src: &str,
+                           radix: i32)
+                           -> Result<(), ParseFloatError> {
+        check_str_radix(src, radix, false).map(|_| ())
     }
 
     /// Converts to an integer, rounding to the nearest.
@@ -384,32 +655,6 @@ impl Float {
             .map(|(num, exp)| Rational::from(num) << exp)
     }
 
-    /// Converts to a `u32`, rounding to the nearest.
-    ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
-    pub fn to_u32_saturating(&self) -> Option<u32> {
-        self.to_u32_saturating_round(Round::Nearest)
-    }
-
-    /// Converts to a `u32`, applying the specified rounding method.
-    ///
-    /// If the value is too small or too large for the target type,
-    /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
-    pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
-        if self.is_nan() {
-            return None;
-        }
-        let u = unsafe { mpfr::get_ui(self.inner(), rraw(round)) };
-        if u >= u32::MAX as c_ulong {
-            Some(u32::MAX)
-        } else {
-            Some(u as u32)
-        }
-    }
-
     /// Converts to an `i32`, rounding to the nearest.
     ///
     /// If the value is too small or too large for the target type,
@@ -438,20 +683,30 @@ impl Float {
         }
     }
 
-    /// Converts to an `f64`, rounding to the nearest.
+    /// Converts to a `u32`, rounding to the nearest.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
-    pub fn to_f64(&self) -> f64 {
-        self.to_f64_round(Round::Nearest)
+    /// If the value is a NaN, `None` is returned.
+    pub fn to_u32_saturating(&self) -> Option<u32> {
+        self.to_u32_saturating_round(Round::Nearest)
     }
 
-    /// Converts to an `f64`, applying the specified rounding method.
+    /// Converts to a `u32`, applying the specified rounding method.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
-    pub fn to_f64_round(&self, round: Round) -> f64 {
-        unsafe { mpfr::get_d(self.inner(), rraw(round)) }
+    /// If the value is a NaN, `None` is returned.
+    pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
+        if self.is_nan() {
+            return None;
+        }
+        let u = unsafe { mpfr::get_ui(self.inner(), rraw(round)) };
+        if u >= u32::MAX as c_ulong {
+            Some(u32::MAX)
+        } else {
+            Some(u as u32)
+        }
     }
 
     /// Converts to an `f32`, rounding to the nearest.
@@ -470,91 +725,20 @@ impl Float {
         self.to_f64_round(round) as f32
     }
 
-    /// Returns `true` if `self` is an integer.
-    pub fn is_integer(&self) -> bool {
-        unsafe { mpfr::integer_p(self.inner()) != 0 }
+    /// Converts to an `f64`, rounding to the nearest.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    pub fn to_f64(&self) -> f64 {
+        self.to_f64_round(Round::Nearest)
     }
 
-    /// Returns `true` if `self` is not a number.
-    pub fn is_nan(&self) -> bool {
-        unsafe { mpfr::nan_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is plus or minus infinity.
-    pub fn is_infinite(&self) -> bool {
-        unsafe { mpfr::inf_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is a finite number,
-    /// that is neither NaN nor infinity.
-    pub fn is_finite(&self) -> bool {
-        unsafe { mpfr::number_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is plus or minus zero.
-    pub fn is_zero(&self) -> bool {
-        unsafe { mpfr::zero_p(self.inner()) != 0 }
-    }
-
-    /// Returns `true` if `self` is a normal number, that is neither
-    /// NaN, nor infinity, nor zero. Note that `Float` cannot be
-    /// subnormal.
-    pub fn is_normal(&self) -> bool {
-        unsafe { mpfr::regular_p(self.inner()) != 0 }
-    }
-
-    /// Returns `Less` if `self` is less than zero,
-    /// `Greater` if `self` is greater than zero,
-    /// or `Equal` if `self` is equal to zero.
-    pub fn sign(&self) -> Option<Ordering> {
-        if self.is_nan() {
-            None
-        } else {
-            Some(unsafe { mpfr::sgn(self.inner()).cmp(&0) })
-        }
-    }
-
-    /// Returns the exponent of `self` if `self` is a normal number,
-    /// otherwise `None`.
-    /// The significand is assumed to be in the range [0.5,1).
-    pub fn get_exp(&self) -> Option<i32> {
-        if self.is_normal() {
-            let e = unsafe { mpfr::get_exp(self.inner()) };
-            assert!(e <= i32::MAX as mpfr::exp_t, "overflow");
-            Some(e as i32)
-        } else {
-            None
-        }
-    }
-
-    /// Returns the sign bit, that is `true` if the number is negative.
-    pub fn get_sign(&self) -> bool {
-        unsafe { mpfr::signbit(self.inner()) != 0 }
-    }
-
-    /// Emulate subnormal numbers, rounding to the nearest. This
-    /// method has no effect if the value is not in the subnormal
-    /// range.
-    pub fn subnormalize(&mut self) -> &mut Float {
-        self.subnormalize_round(Ordering::Equal, Round::Nearest);
-        self
-    }
-
-    /// Emulate subnormal numbers, applying the specified rounding
-    /// method. This method simply propagates `prev_rounding` if the
-    /// value is not in the subnormal range.
-    pub fn subnormalize_round(&mut self,
-                              prev_rounding: Ordering,
-                              round: Round)
-                              -> Ordering {
-        let prev = match prev_rounding {
-            Ordering::Less => -1,
-            Ordering::Equal => 0,
-            Ordering::Greater => 1,
-        };
-        unsafe {
-            mpfr::subnormalize(self.inner_mut(), prev, rraw(round)).cmp(&0)
-        }
+    /// Converts to an `f64`, applying the specified rounding method.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    pub fn to_f64_round(&self, round: Round) -> f64 {
+        unsafe { mpfr::get_d(self.inner(), rraw(round)) }
     }
 
     /// Returns a string representation of `self` for the specified
@@ -606,65 +790,6 @@ impl Float {
         make_string(self, radix, num_digits, round, false)
     }
 
-    /// Parses a `Float` with the specified precision, rounding to the
-    /// nearest.
-    ///
-    /// See the [corresponding assignment](#method.assign_str).
-    pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
-        let mut f = Float::new(prec);
-        f.assign_str(src)?;
-        Ok(f)
-    }
-
-    /// Parses a `Float` with the specified radix and precision,
-    /// rounding to the nearest.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_radix).
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str,
-                          radix: i32,
-                          prec: u32)
-                          -> Result<Float, ParseFloatError> {
-        let mut f = Float::new(prec);
-        f.assign_str_radix(src, radix)?;
-        Ok(f)
-    }
-
-    /// Parses a `Float` with the specified precision, applying the
-    /// specified rounding.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_round).
-    pub fn from_str_round(src: &str,
-                          prec: u32,
-                          round: Round)
-                          -> Result<(Float, Ordering), ParseFloatError> {
-        let mut f = Float::new(prec);
-        let ord = f.assign_str_round(src, round)?;
-        Ok((f, ord))
-    }
-
-    /// Parses a `Float` with the specified radix and precision,
-    /// applying the specified rounding.
-    ///
-    /// See the [corresponding assignment](#method.assign_str_radix_round).
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix_round
-        (src: &str,
-         radix: i32,
-         prec: u32,
-         round: Round)
-         -> Result<(Float, Ordering), ParseFloatError> {
-        let mut f = Float::new(prec);
-        let ord = f.assign_str_radix_round(src, radix, round)?;
-        Ok((f, ord))
-    }
-
     /// Parses a `Float` from a string, rounding to the nearest.
     ///
     /// # Examples
@@ -679,6 +804,26 @@ impl Float {
     /// ```
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
         self.assign_str_radix(src, 10)
+    }
+
+    /// Parses a `Float` from a string, applying the specified
+    /// rounding.
+    ///
+    /// Examples
+    ///
+    /// ```rust
+    /// use rugflo::{Float, Round};
+    /// use std::cmp::Ordering;
+    /// let mut f = Float::new(4);
+    /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
+    /// assert!(f == 14);
+    /// assert!(dir == Ordering::Less);
+    /// ```
+    pub fn assign_str_round(&mut self,
+                            src: &str,
+                            round: Round)
+                            -> Result<Ordering, ParseFloatError> {
+        self.assign_str_radix_round(src, 10, round)
     }
 
     /// Parses a `Float` from a string with the specified radix,
@@ -702,26 +847,6 @@ impl Float {
                             -> Result<(), ParseFloatError> {
         self.assign_str_radix_round(src, radix, Round::Nearest)
             .map(|_| ())
-    }
-
-    /// Parses a `Float` from a string, applying the specified
-    /// rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rugflo::{Float, Round};
-    /// use std::cmp::Ordering;
-    /// let mut f = Float::new(4);
-    /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
-    /// assert!(f == 14);
-    /// assert!(dir == Ordering::Less);
-    /// ```
-    pub fn assign_str_round(&mut self,
-                            src: &str,
-                            round: Round)
-                            -> Result<Ordering, ParseFloatError> {
-        self.assign_str_radix_round(src, 10, round)
     }
 
     /// Parses a `Float` from a string with the specified radix,
@@ -770,153 +895,124 @@ impl Float {
         Ok(ord)
     }
 
-    /// Checks if a `Float` can be parsed.
-    ///
-    /// If this method does not return an error, neither will any
-    /// other function that parses a `Float`. If this method returns
-    /// an error, the other functions will return the same error.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn valid_str_radix(src: &str,
-                           radix: i32)
-                           -> Result<(), ParseFloatError> {
-        check_str_radix(src, radix, false).map(|_| ())
+    /// Returns `true` if `self` is an integer.
+    pub fn is_integer(&self) -> bool {
+        unsafe { mpfr::integer_p(self.inner()) != 0 }
     }
-}
 
-macro_rules! math_op1 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_round:meta])* fn $method_round:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Float {
-            $(#[$attr])*
-            pub fn $method(&mut self $(, $param: $T)*) -> &mut Float {
-                self.$method_round($($param,)* Round::Nearest);
-                self
-            }
+    /// Returns `true` if `self` is not a number.
+    pub fn is_nan(&self) -> bool {
+        unsafe { mpfr::nan_p(self.inner()) != 0 }
+    }
 
-            $(#[$attr_round])*
-            pub fn $method_round(&mut self, $($param: $T,)* round: Round)
-                                 -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          $($param.into(),)* rraw(round))
-                }.cmp(&0)
-            }
+    /// Returns `true` if `self` is plus or minus infinity.
+    pub fn is_infinite(&self) -> bool {
+        unsafe { mpfr::inf_p(self.inner()) != 0 }
+    }
 
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
-                $Hold {
-                    val: self,
-                    $($param: $param,)*
-                }
+    /// Returns `true` if `self` is a finite number,
+    /// that is neither NaN nor infinity.
+    pub fn is_finite(&self) -> bool {
+        unsafe { mpfr::number_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is plus or minus zero.
+    pub fn is_zero(&self) -> bool {
+        unsafe { mpfr::zero_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is a normal number, that is neither
+    /// NaN, nor infinity, nor zero. Note that `Float` cannot be
+    /// subnormal.
+    pub fn is_normal(&self) -> bool {
+        unsafe { mpfr::regular_p(self.inner()) != 0 }
+    }
+
+    /// Returns `Less` if `self` is less than zero,
+    /// `Greater` if `self` is greater than zero,
+    /// or `Equal` if `self` is equal to zero.
+    pub fn sign(&self) -> Option<Ordering> {
+        if self.is_nan() {
+            None
+        } else {
+            Some(unsafe { mpfr::sgn(self.inner()).cmp(&0) })
+        }
+    }
+
+    /// Compares the absolute values of `self` and `other`.
+    pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
+        unsafe {
+            match mpfr::unordered_p(self.inner(), other.inner()) {
+                0 => Some(mpfr::cmpabs(self.inner(), other.inner()).cmp(&0)),
+                _ => None,
             }
         }
+    }
 
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            val: &'a Float,
-            $($param: $T,)*
+    /// Returns the exponent of `self` if `self` is a normal number,
+    /// otherwise `None`.
+    /// The significand is assumed to be in the range [0.5,1).
+    pub fn get_exp(&self) -> Option<i32> {
+        if self.is_normal() {
+            let e = unsafe { mpfr::get_exp(self.inner()) };
+            assert!(e <= i32::MAX as mpfr::exp_t, "overflow");
+            Some(e as i32)
+        } else {
+            None
         }
+    }
 
-        impl<'a> AssignRound<$Hold<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
-                            -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          src.val.inner(),
-                          $(src.$param.into(),)* rraw(round))
-                }.cmp(&0)
-            }
+    /// Returns the sign bit, that is `true` if the number is negative.
+    pub fn get_sign(&self) -> bool {
+        unsafe { mpfr::signbit(self.inner()) != 0 }
+    }
+
+    /// Emulate subnormal numbers, rounding to the nearest. This
+    /// method has no effect if the value is not in the subnormal
+    /// range.
+    pub fn subnormalize(&mut self) -> &mut Float {
+        self.subnormalize_round(Ordering::Equal, Round::Nearest);
+        self
+    }
+
+    /// Emulate subnormal numbers, applying the specified rounding
+    /// method. This method simply propagates `prev_rounding` if the
+    /// value is not in the subnormal range.
+    pub fn subnormalize_round(&mut self,
+                              prev_rounding: Ordering,
+                              round: Round)
+                              -> Ordering {
+        let prev = match prev_rounding {
+            Ordering::Less => -1,
+            Ordering::Equal => 0,
+            Ordering::Greater => 1,
+        };
+        unsafe {
+            mpfr::subnormalize(self.inner_mut(), prev, rraw(round)).cmp(&0)
         }
-    };
-}
+    }
 
-macro_rules! math_op2 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_round:meta])* fn $method_round:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path
-    } => {
-        impl Float {
-            $(#[$attr])*
-            pub fn $method(&mut self, rhs: &Float) -> &mut Float {
-                self.$method_round(rhs, Round::Nearest);
-                self
-            }
 
-            $(#[$attr_round])*
-            pub fn $method_round(&mut self, rhs: &Float, round: Round)
-                                 -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          rhs.inner(),
-                          rraw(round))
-                }.cmp(&0)
-            }
+    math_op1! {
+        /// Computes the square, rounding to the nearest.
+        fn square();
+        /// Computes the square, applying the specified rounding method.
+        fn square_round;
+        /// Hold a computation of the square.
+        fn square_hold -> SquareHold;
+        mpfr::sqr
+    }
+    math_op1! {
+        /// Computes the square root, rounding to the nearest.
+        fn sqrt();
+        /// Computes the square root, applying the specified rounding
+        /// method.
+        fn sqrt_round;
+        /// Hold a computation of the square root.
+        fn sqrt_hold -> SqrtHold;
+        mpfr::sqrt
+    }
 
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self, rhs: &'a Float) -> $Hold<'a> {
-                $Hold {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            lhs: &'a Float,
-            rhs: &'a Float,
-        }
-
-        impl<'a> AssignRound<$Hold<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round)
-                            -> Ordering {
-                unsafe {
-                    $func(self.inner_mut(),
-                          src.lhs.inner(),
-                          src.rhs.inner(),
-                          rraw(round))
-                }.cmp(&0)
-            }
-        }
-    };
-}
-
-math_op1! {
-    /// Computes the square, rounding to the nearest.
-    fn square;
-    /// Computes the square, applying the specified rounding method.
-    fn square_round;
-    /// Hold a computation of the square.
-    fn square_hold -> SquareHold;
-    mpfr::sqr
-}
-math_op1! {
-    /// Computes the square root, rounding to the nearest.
-    fn sqrt;
-    /// Computes the square root, applying the specified rounding
-    /// method.
-    fn sqrt_round;
-    /// Hold a computation of the square root.
-    fn sqrt_hold -> SqrtHold;
-    mpfr::sqrt
-}
-
-impl Float {
     /// Sets `self` to the square root of `u`, rounding to the
     /// nearest.
     pub fn assign_sqrt_u(&mut self, u: u32) {
@@ -929,500 +1025,358 @@ impl Float {
         unsafe { mpfr::sqrt_ui(self.inner_mut(), u.into(), rraw(round)) }
             .cmp(&0)
     }
-}
 
-math_op1! {
-    /// Computes the reciprocal square root, rounding to the nearest.
-    fn recip_sqrt;
-    /// Computes the reciprocal square root, applying the specified
-    /// rounding method.
-    fn recip_sqrt_round;
-    /// Hold a computation of the reciprocal square root.
-    fn recip_sqrt_hold -> RecipSqrtHold;
-    mpfr::rec_sqrt
-}
-math_op1! {
-    /// Computes the cube root, rounding to the nearest.
-    fn cbrt;
-    /// Computes the cube root, applying the specified rounding
-    /// method.
-    fn cbrt_round;
-    /// Hold a computation of the cube root.
-    fn cbrt_hold -> CbrtHold;
-    mpfr::cbrt
-}
-math_op1! {
-    /// Computes the `k`th root, rounding to the nearest.
-    fn root;
-    /// Computes the `k`th root, applying the specified rounding
-    /// method.
-    fn root_round;
-    /// Hold a computation of the `k`th root.
-    fn root_hold -> RootHold;
-    mpfr::root,
-    k: u32
-}
-math_op1! {
-    /// Computes the absolute value, rounding to the nearest.
-    fn abs;
-    /// Computes the absolute value, applying the specified rounding
-    /// method.
-    fn abs_round;
-    /// Hold a computation of the absolute value.
-    fn abs_hold -> AbsHold;
-    mpfr::abs
-}
-math_op1! {
-    /// Computes the reciprocal, rounding to the nearest.
-    fn recip;
-    /// Computes the reciprocal, applying the specified rounding
-    /// method.
-    fn recip_round;
-    /// Hold a computation of the reciprocal.
-    fn recip_hold -> RecipHold;
-    recip
-}
-
-unsafe fn recip(rop: *mut mpfr_t,
-                op: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    mpfr::ui_div(rop, 1, op, rnd)
-}
-
-math_op2! {
-    /// Computes the positive difference between `self` and `rhs`,
-    /// rounding to the nearest.
-    fn dim;
-    /// Computes the positive difference between `self` and `rhs`,
-    /// applying the specified rounding method.
-    fn dim_round;
-    /// Hold a computation of the positive difference.
-    fn dim_hold -> DimHold;
-    mpfr::dim
-}
-
-impl Float {
-    /// Compares the absolute values of `self` and `other`.
-    pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
-        unsafe {
-            match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(mpfr::cmpabs(self.inner(), other.inner()).cmp(&0)),
-                _ => None,
-            }
-        }
+    math_op1! {
+        /// Computes the reciprocal square root, rounding to the nearest.
+        fn recip_sqrt();
+        /// Computes the reciprocal square root, applying the specified
+        /// rounding method.
+        fn recip_sqrt_round;
+        /// Hold a computation of the reciprocal square root.
+        fn recip_sqrt_hold -> RecipSqrtHold;
+        mpfr::rec_sqrt
     }
-}
-
-math_op1! {
-    /// Computes the natural logarithm, rounding to the nearest.
-    fn ln;
-    /// Computes the natural logarithm, applying the specified
-    /// rounding method.
-    fn ln_round;
-    /// Hold a computation of the natural logarithm.
-    fn ln_hold -> LnHold;
-    mpfr::log
-}
-math_op1! {
-    /// Computes the logarithm to base 2, rounding to the nearest.
-    fn log2;
-    /// Computes the logarithm to base 2, applying the specified
-    /// rounding method.
-    fn log2_round;
-    /// Hold a computation of the logarithm to base 2.
-    fn log2_hold -> Log2Hold;
-    mpfr::log2
-}
-math_op1! {
-    /// Computes the logarithm to base 10, rounding to the nearest.
-    fn log10;
-    /// Computes the logarithm to base 10, applying the specified
-    /// rounding method.
-    fn log10_round;
-    /// Hold a computation of the logarithm to base 10.
-    fn log10_hold -> Log10Hold;
-    mpfr::log10
-}
-math_op1! {
-    /// Computes the exponential, rounding to the nearest.
-    fn exp;
-    /// Computes the exponential, applying the specified rounding
-    /// method.
-    fn exp_round;
-    /// Hold a computation of the exponential.
-    fn exp_hold -> ExpHold;
-    mpfr::exp
-}
-math_op1! {
-    /// Computes 2 to the power of `self`, rounding to the nearest.
-    fn exp2;
-    /// Computes 2 to the power of `self`, applying the specified
-    /// rounding method.
-    fn exp2_round;
-    /// Hold a computation of 2 to power of the value.
-    fn exp2_hold -> Exp2Hold;
-    mpfr::exp2
-}
-math_op1! {
-    /// Computes 10 to the power of `self`, rounding to the nearest.
-    fn exp10;
-    /// Computes 10 to the power of `self`, applying the specified
-    /// rounding method.
-    fn exp10_round;
-    /// Hold a computation of 10 to the power of the value.
-    fn exp10_hold -> Exp10Hold;
-    mpfr::exp10
-}
-math_op1! {
-    /// Computes the cosine, rounding to the nearest.
-    fn cos;
-    /// Computes the cosine, applying the specified rounding method.
-    fn cos_round;
-    /// Hold a computation of the cosine.
-    fn cos_hold -> CosHold;
-    mpfr::cos
-}
-math_op1! {
-    /// Computes the sine, rounding to the nearest.
-    fn sin;
-    /// Computes the sine, applying the specified rounding method.
-    fn sin_round;
-    /// Hold a computation of the sine.
-    fn sin_hold -> SinHold;
-    mpfr::sin
-}
-math_op1! {
-    /// Computes the tangent, rounding to the nearest.
-    fn tan;
-    /// Computes the tangent, applying the specified rounding method.
-    fn tan_round;
-    /// Hold a computation of the tangent.
-    fn tan_hold -> TanHold;
-    mpfr::tan
-}
-
-impl Float {
-    /// Computes the sine and cosine of `self`, rounding to the
-    /// nearest. The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
-    pub fn sin_cos(&mut self, cos: &mut Float) {
-        self.sin_cos_round(cos, Round::Nearest);
+    math_op1! {
+        /// Computes the cube root, rounding to the nearest.
+        fn cbrt();
+        /// Computes the cube root, applying the specified rounding
+        /// method.
+        fn cbrt_round;
+        /// Hold a computation of the cube root.
+        fn cbrt_hold -> CbrtHold;
+        mpfr::cbrt
     }
-
-    /// Computes the sine and cosine of `self`, applying the specified
-    /// rounding method. The sine is stored in `self` and keeps its
-    /// precision, while the cosine is stored in `cos` keeping its
-    /// precision.
-    pub fn sin_cos_round(&mut self,
-                         cos: &mut Float,
-                         round: Round)
-                         -> (Ordering, Ordering) {
-        ordering2(unsafe {
-                      mpfr::sin_cos(self.inner_mut(),
-                                    cos.inner_mut(),
-                                    self.inner(),
-                                    rraw(round))
-                  })
+    math_op1! {
+        /// Computes the `k`th root, rounding to the nearest.
+        fn root(k: u32);
+        /// Computes the `k`th root, applying the specified rounding
+        /// method.
+        fn root_round;
+        /// Hold a computation of the `k`th root.
+        fn root_hold -> RootHold;
+        mpfr::root
     }
-
-    /// Computes the cosine and sine of `self`, rounding to the
-    /// nearest. The cosine is stored in `self` and keeps its
-    /// precision, while the sine is stored in `sin` keeping its
-    /// precision.
-    pub fn cos_sin(&mut self, sin: &mut Float) {
-        self.cos_sin_round(sin, Round::Nearest);
+    math_op1! {
+        /// Computes the absolute value, rounding to the nearest.
+        fn abs();
+        /// Computes the absolute value, applying the specified rounding
+        /// method.
+        fn abs_round;
+        /// Hold a computation of the absolute value.
+        fn abs_hold -> AbsHold;
+        mpfr::abs
     }
-
-    /// Computes the cosine and sine of `self`, applying the specified
-    /// rounding method. The cosine is stored in `self` and keeps its
-    /// precision, while the sine is stored in `sin` keeping its
-    /// precision.
-    pub fn cos_sin_round(&mut self,
-                         sin: &mut Float,
-                         round: Round)
-                         -> (Ordering, Ordering) {
-        let ord = ordering2(unsafe {
-                                mpfr::sin_cos(sin.inner_mut(),
-                                              self.inner_mut(),
-                                              self.inner(),
-                                              rraw(round))
-                            });
-        (ord.1, ord.0)
+    math_op1! {
+        /// Computes the reciprocal, rounding to the nearest.
+        fn recip();
+        /// Computes the reciprocal, applying the specified rounding
+        /// method.
+        fn recip_round;
+        /// Hold a computation of the reciprocal.
+        fn recip_hold -> RecipHold;
+        recip
     }
-
-    /// Computes the sine and cosine of `val`, rounding to the
-    /// nearest. The sine is stored in `self` and keeps its precision,
-    /// while the cosine is stored in `cos` keeping its precision.
-    pub fn assign_sin_cos(&mut self, cos: &mut Float, val: &Float) {
-        self.assign_sin_cos_round(cos, val, Round::Nearest);
+    math_op2! {
+        /// Computes the positive difference between `self` and
+        /// `other`, rounding to the nearest.
+        fn dim(other);
+        /// Computes the positive difference between `self` and
+        /// `other`, applying the specified rounding method.
+        fn dim_round;
+        /// Hold a computation of the positive difference.
+        fn dim_hold -> DimHold;
+        mpfr::dim
     }
-
-    /// Computes the sine and cosine of `val`, applying the specified
-    /// rounding method. The sine is stored in `self` and keeps its
-    /// precision, while the cosine is stored in `cos` keeping its
-    /// precision.
-    pub fn assign_sin_cos_round(&mut self,
-                                cos: &mut Float,
-                                val: &Float,
-                                round: Round)
-                                -> (Ordering, Ordering) {
-        ordering2(unsafe {
-                      mpfr::sin_cos(self.inner_mut(),
-                                    cos.inner_mut(),
-                                    val.inner(),
-                                    rraw(round))
-                  })
+    math_op1! {
+        /// Computes the natural logarithm, rounding to the nearest.
+        fn ln();
+        /// Computes the natural logarithm, applying the specified
+        /// rounding method.
+        fn ln_round;
+        /// Hold a computation of the natural logarithm.
+        fn ln_hold -> LnHold;
+        mpfr::log
     }
-}
-
-math_op1! {
-    /// Computes the secant, rounding to the nearest.
-    fn sec;
-    /// Computes the secant, applying the specified rounding method.
-    fn sec_round;
-    /// Hold a computation of the secant.
-    fn sec_hold -> SecHold;
-    mpfr::sec
-}
-math_op1! {
-    /// Computes the cosecant, rounding to the nearest.
-    fn csc;
-    /// Computes the cosecant, applying the specified rounding method.
-    fn csc_round;
-    /// Hold a computation of the cosecant.
-    fn csc_hold -> CscHold;
-    mpfr::csc
-}
-math_op1! {
-    /// Computes the cotangent, rounding to the nearest.
-    fn cot;
-    /// Computes the cotangent, applying the specified rounding
-    /// method.
-    fn cot_round;
-    /// Hold a computation of the cotangent.
-    fn cot_hold -> CotHold;
-    mpfr::cot
-}
-math_op1! {
-    /// Computes the arc-cosine, rounding to the nearest.
-    fn acos;
-    /// Computes the arc-cosine, applying the specified rounding
-    /// method.
-    fn acos_round;
-    /// Hold a computation of the arc-cosine.
-    fn acos_hold -> AcosHold;
-    mpfr::acos
-}
-math_op1! {
-    /// Computes the arc-sine, rounding to the nearest.
-    fn asin;
-    /// Computes the arc-sine, applying the specified rounding method.
-    fn asin_round;
-    /// Hold a computation of the arc-sine.
-    fn asin_hold -> AsinHold;
-    mpfr::asin
-}
-math_op1! {
-    /// Computes the arc-tangent, rounding to the nearest.
-    fn atan;
-    /// Computes the arc-tangent, applying the specified rounding
-    /// method.
-    fn atan_round;
-    /// Hold a computation of the arc-tangent.
-    fn atan_hold -> AtanHold;
-    mpfr::atan
-}
-math_op2! {
-    /// Computes the arc-tangent2 of `self` and `other`, rounding to
-    /// the nearest.
-    ///
-    /// This is similar to the arc-tangent of `self / other`, except
-    /// in the cases when either `self` or `other` or both are zero or
-    /// infinity.
-    fn atan2;
-    /// Computes the arc-tangent2 of `self` and `other`, applying the
-    /// specified rounding method.
-    ///
-    /// This is similar to the arc-tangent of `self / other`, except
-    /// in the cases when either `self` or `other` or both are zero or
-    /// infinity.
-    fn atan2_round;
-    /// Hold a computation of the arc-tangent.
-    fn atan2_hold -> Atan2Hold;
-    mpfr::atan2
-}
-math_op1! {
-    /// Computes the hyperbolic cosine, rounding to the nearest.
-    fn cosh;
-    /// Computes the hyperbolic cosine, applying the specified
-    /// rounding method.
-    fn cosh_round;
-    /// Hold a computation of the hyperbolic cosine.
-    fn cosh_hold -> CoshHold;
-    mpfr::cosh
-}
-math_op1! {
-    /// Computes the hyperbolic sine, rounding to the nearest.
-    fn sinh;
-    /// Computes the hyperbolic sine, applying the specified rounding
-    /// method.
-    fn sinh_round;
-    /// Hold a computation of the hyperbolic sine.
-    fn sinh_hold -> SinhHold;
-    mpfr::sinh
-}
-math_op1! {
-    /// Computes the hyperbolic tangent, rounding to the nearest.
-    fn tanh;
-    /// Computes the hyperbolic tangent, applying the specified
-    /// rounding method.
-    fn tanh_round;
-    /// Hold a computation of the hyperbolic tangent.
-    fn tanh_hold -> TanhHold;
-    mpfr::tanh
-}
-
-impl Float {
-    /// Computes the hyperbolic sine and cosine of `self`, rounding to
-    /// the nearest. The sine is stored in `self` and keeps its
-    /// precision, while the cosine is stored in `cos` keeping its
-    /// precision.
-    pub fn sinh_cosh(&mut self, cos: &mut Float) {
-        self.sinh_cosh_round(cos, Round::Nearest);
+    math_op1! {
+        /// Computes the logarithm to base 2, rounding to the nearest.
+        fn log2();
+        /// Computes the logarithm to base 2, applying the specified
+        /// rounding method.
+        fn log2_round;
+        /// Hold a computation of the logarithm to base 2.
+        fn log2_hold -> Log2Hold;
+        mpfr::log2
+    }
+    math_op1! {
+        /// Computes the logarithm to base 10, rounding to the nearest.
+        fn log10();
+        /// Computes the logarithm to base 10, applying the specified
+        /// rounding method.
+        fn log10_round;
+        /// Hold a computation of the logarithm to base 10.
+        fn log10_hold -> Log10Hold;
+        mpfr::log10
+    }
+    math_op1! {
+        /// Computes the exponential, rounding to the nearest.
+        fn exp();
+        /// Computes the exponential, applying the specified rounding
+        /// method.
+        fn exp_round;
+        /// Hold a computation of the exponential.
+        fn exp_hold -> ExpHold;
+        mpfr::exp
+    }
+    math_op1! {
+        /// Computes 2 to the power of `self`, rounding to the nearest.
+        fn exp2();
+        /// Computes 2 to the power of `self`, applying the specified
+        /// rounding method.
+        fn exp2_round;
+        /// Hold a computation of 2 to power of the value.
+        fn exp2_hold -> Exp2Hold;
+        mpfr::exp2
+    }
+    math_op1! {
+        /// Computes 10 to the power of `self`, rounding to the nearest.
+        fn exp10();
+        /// Computes 10 to the power of `self`, applying the specified
+        /// rounding method.
+        fn exp10_round;
+        /// Hold a computation of 10 to the power of the value.
+        fn exp10_hold -> Exp10Hold;
+        mpfr::exp10
+    }
+    math_op1! {
+        /// Computes the sine, rounding to the nearest.
+        fn sin();
+        /// Computes the sine, applying the specified rounding method.
+        fn sin_round;
+        /// Hold a computation of the sine.
+        fn sin_hold -> SinHold;
+        mpfr::sin
+    }
+    math_op1! {
+        /// Computes the cosine, rounding to the nearest.
+        fn cos();
+        /// Computes the cosine, applying the specified rounding method.
+        fn cos_round;
+        /// Hold a computation of the cosine.
+        fn cos_hold -> CosHold;
+        mpfr::cos
+    }
+    math_op1! {
+        /// Computes the tangent, rounding to the nearest.
+        fn tan();
+        /// Computes the tangent, applying the specified rounding method.
+        fn tan_round;
+        /// Hold a computation of the tangent.
+        fn tan_hold -> TanHold;
+        mpfr::tan
+    }
+    math_op1_2! {
+        /// Computes the sine and cosine of `self`, rounding to the
+        /// nearest.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sin_cos(cos);
+        /// Computes the sine and cosine of `self`, applying the specified
+        /// rounding method.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sin_cos_round;
+        /// Holds a computation of the sine and cosine.
+        fn sin_cos_hold -> SinCosHold;
+        mpfr::sin_cos
+    }
+    math_op1! {
+        /// Computes the secant, rounding to the nearest.
+        fn sec();
+        /// Computes the secant, applying the specified rounding method.
+        fn sec_round;
+        /// Hold a computation of the secant.
+        fn sec_hold -> SecHold;
+        mpfr::sec
+    }
+    math_op1! {
+        /// Computes the cosecant, rounding to the nearest.
+        fn csc();
+        /// Computes the cosecant, applying the specified rounding method.
+        fn csc_round;
+        /// Hold a computation of the cosecant.
+        fn csc_hold -> CscHold;
+        mpfr::csc
+    }
+    math_op1! {
+        /// Computes the cotangent, rounding to the nearest.
+        fn cot();
+        /// Computes the cotangent, applying the specified rounding
+        /// method.
+        fn cot_round;
+        /// Hold a computation of the cotangent.
+        fn cot_hold -> CotHold;
+        mpfr::cot
+    }
+    math_op1! {
+        /// Computes the arc-cosine, rounding to the nearest.
+        fn acos();
+        /// Computes the arc-cosine, applying the specified rounding
+        /// method.
+        fn acos_round;
+        /// Hold a computation of the arc-cosine.
+        fn acos_hold -> AcosHold;
+        mpfr::acos
+    }
+    math_op1! {
+        /// Computes the arc-sine, rounding to the nearest.
+        fn asin();
+        /// Computes the arc-sine, applying the specified rounding method.
+        fn asin_round;
+        /// Hold a computation of the arc-sine.
+        fn asin_hold -> AsinHold;
+        mpfr::asin
+    }
+    math_op1! {
+        /// Computes the arc-tangent, rounding to the nearest.
+        fn atan();
+        /// Computes the arc-tangent, applying the specified rounding
+        /// method.
+        fn atan_round;
+        /// Hold a computation of the arc-tangent.
+        fn atan_hold -> AtanHold;
+        mpfr::atan
+    }
+    math_op2! {
+        /// Computes the arc-tangent2 of `self` and `other`, rounding to
+        /// the nearest.
+        ///
+        /// This is similar to the arc-tangent of `self / other`, except
+        /// in the cases when either `self` or `other` or both are zero or
+        /// infinity.
+        fn atan2(other);
+        /// Computes the arc-tangent2 of `self` and `other`, applying the
+        /// specified rounding method.
+        ///
+        /// This is similar to the arc-tangent of `self / other`, except
+        /// in the cases when either `self` or `other` or both are zero or
+        /// infinity.
+        fn atan2_round;
+        /// Hold a computation of the arc-tangent.
+        fn atan2_hold -> Atan2Hold;
+        mpfr::atan2
+    }
+    math_op1! {
+        /// Computes the hyperbolic sine, rounding to the nearest.
+        fn sinh();
+        /// Computes the hyperbolic sine, applying the specified rounding
+        /// method.
+        fn sinh_round;
+        /// Hold a computation of the hyperbolic sine.
+        fn sinh_hold -> SinhHold;
+        mpfr::sinh
+    }
+    math_op1! {
+        /// Computes the hyperbolic cosine, rounding to the nearest.
+        fn cosh();
+        /// Computes the hyperbolic cosine, applying the specified
+        /// rounding method.
+        fn cosh_round;
+        /// Hold a computation of the hyperbolic cosine.
+        fn cosh_hold -> CoshHold;
+        mpfr::cosh
+    }
+    math_op1! {
+        /// Computes the hyperbolic tangent, rounding to the nearest.
+        fn tanh();
+        /// Computes the hyperbolic tangent, applying the specified
+        /// rounding method.
+        fn tanh_round;
+        /// Hold a computation of the hyperbolic tangent.
+        fn tanh_hold -> TanhHold;
+        mpfr::tanh
+    }
+    math_op1_2! {
+        /// Computes the hyperbolic sine and cosine of `self`,
+        /// rounding to the nearest.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sinh_cosh(cos);
+        /// Computes the hyperbolic sine and cosine of `self`,
+        /// applying the specified rounding method.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sinh_cosh_round;
+        /// Holds a computation of the hyperbolic sine and cosine.
+        fn sinh_cosh_hold -> SinhCoshHold;
+        mpfr::sinh_cosh
+    }
+    math_op1! {
+        /// Computes the hyperbolic secant, rounding to the nearest.
+        fn sech();
+        /// Computes the hyperbolic secant, applying the specified
+        /// rounding method.
+        fn sech_round;
+        /// Hold a computation of the hyperbolic secant.
+        fn sech_hold -> SechHold;
+        mpfr::sech
+    }
+    math_op1! {
+        /// Computes the hyperbolic cosecant, rounding to the nearest.
+        fn csch();
+        /// Computes the hyperbolic cosecant, applying the specified
+        /// rounding method.
+        fn csch_round;
+        /// Hold a computation of the hyperbolic cosecant.
+        fn csch_hold -> CschHold;
+        mpfr::csch
+    }
+    math_op1! {
+        /// Computes the hyperbolic cotangent, rounding to the nearest.
+        fn coth();
+        /// Computes the hyperbolic cotangent, applying the specified
+        /// rounding method.
+        fn coth_round;
+        /// Hold a computation of the hyperbolic cotangent.
+        fn coth_hold -> CothHold;
+        mpfr::coth
+    }
+    math_op1! {
+        /// Computes the inverse hyperbolic cosine, rounding to the
+        /// nearest.
+        fn acosh();
+        /// Computes the inverse hyperbolic cosine, applying the specified
+        /// rounding method.
+        fn acosh_round;
+        /// Hold a computation of the inverse hyperbolic cosine
+        fn acosh_hold -> AcoshHold;
+        mpfr::acosh
+    }
+    math_op1! {
+        /// Computes the inverse hyperbolic sine, rounding to the nearest.
+        fn asinh();
+        /// Computes the inverse hyperbolic sine, applying the specified
+        /// rounding method.
+        fn asinh_round;
+        /// Hold a computation of the inverse hyperbolic sine.
+        fn asinh_hold -> AsinhHold;
+        mpfr::asinh
+    }
+    math_op1! {
+        /// Computes the inverse hyperbolic tangent, rounding to the
+        /// nearest.
+        fn atanh();
+        /// Computes the inverse hyperbolic tangent, applying the
+        /// specified rounding method.
+        fn atanh_round;
+        /// Hold a computation of the inverse hyperbolic tangent.
+        fn atanh_hold -> AtanhHold;
+        mpfr::atanh
     }
 
-    /// Computes the hyperbolic sine and cosine of `self`, applying
-    /// the specified rounding method. The sine is stored in `self`
-    /// and keeps its precision, while the cosine is stored in `cos`
-    /// keeping its precision.
-    pub fn sinh_cosh_round(&mut self,
-                           cos: &mut Float,
-                           round: Round)
-                           -> (Ordering, Ordering) {
-        ordering2(unsafe {
-                      mpfr::sinh_cosh(self.inner_mut(),
-                                      cos.inner_mut(),
-                                      self.inner(),
-                                      rraw(round))
-                  })
-    }
-
-    /// Computes the hyperbolic cosine and sine of `self`, rounding to
-    /// the nearest. The cosine is stored in `self` and keeps its
-    /// precision, while the sine is stored in `sin` keeping its
-    /// precision.
-    pub fn cosh_sinh(&mut self, sin: &mut Float) {
-        self.cosh_sinh_round(sin, Round::Nearest);
-    }
-
-    /// Computes the hyperbolic cosine and sine of `self`, applying
-    /// the specified rounding method. The cosine is stored in `self`
-    /// and keeps its precision, while the sine is stored in `sin`
-    /// keeping its precision.
-    pub fn cosh_sinh_round(&mut self,
-                           sin: &mut Float,
-                           round: Round)
-                           -> (Ordering, Ordering) {
-        let ord = ordering2(unsafe {
-                                mpfr::sinh_cosh(sin.inner_mut(),
-                                                self.inner_mut(),
-                                                self.inner(),
-                                                rraw(round))
-                            });
-        (ord.1, ord.0)
-    }
-
-    /// Computes the hyperbolic sine and cosine of `val`, rounding to
-    /// the nearest. The sine is stored in `self` and keeps its
-    /// precision, while the cosine is stored in `cos` keeping its
-    /// precision.
-    pub fn assign_sinh_cosh(&mut self, cos: &mut Float, val: &Float) {
-        self.assign_sinh_cosh_round(cos, val, Round::Nearest);
-    }
-
-    /// Computes the hyperbolic sine and cosine of `val`, applying the
-    /// specified rounding method. The sine is stored in `self` and
-    /// keeps its precision, while the cosine is stored in `cos`
-    /// keeping its precision.
-    pub fn assign_sinh_cosh_round(&mut self,
-                                  cos: &mut Float,
-                                  val: &Float,
-                                  round: Round)
-                                  -> (Ordering, Ordering) {
-        ordering2(unsafe {
-                      mpfr::sinh_cosh(self.inner_mut(),
-                                      cos.inner_mut(),
-                                      val.inner(),
-                                      rraw(round))
-                  })
-    }
-}
-
-math_op1! {
-    /// Computes the hyperbolic secant, rounding to the nearest.
-    fn sech;
-    /// Computes the hyperbolic secant, applying the specified
-    /// rounding method.
-    fn sech_round;
-    /// Hold a computation of the hyperbolic secant.
-    fn sech_hold -> SechHold;
-    mpfr::sech
-}
-math_op1! {
-    /// Computes the hyperbolic cosecant, rounding to the nearest.
-    fn csch;
-    /// Computes the hyperbolic cosecant, applying the specified
-    /// rounding method.
-    fn csch_round;
-    /// Hold a computation of the hyperbolic cosecant.
-    fn csch_hold -> CschHold;
-    mpfr::csch
-}
-math_op1! {
-    /// Computes the hyperbolic cotangent, rounding to the nearest.
-    fn coth;
-    /// Computes the hyperbolic cotangent, applying the specified
-    /// rounding method.
-    fn coth_round;
-    /// Hold a computation of the hyperbolic cotangent.
-    fn coth_hold -> CothHold;
-    mpfr::coth
-}
-math_op1! {
-    /// Computes the inverse hyperbolic cosine, rounding to the
-    /// nearest.
-    fn acosh;
-    /// Computes the inverse hyperbolic cosine, applying the specified
-    /// rounding method.
-    fn acosh_round;
-    /// Hold a computation of the inverse hyperbolic cosine
-    fn acosh_hold -> AcoshHold;
-    mpfr::acosh
-}
-math_op1! {
-    /// Computes the inverse hyperbolic sine, rounding to the nearest.
-    fn asinh;
-    /// Computes the inverse hyperbolic sine, applying the specified
-    /// rounding method.
-    fn asinh_round;
-    /// Hold a computation of the inverse hyperbolic sine.
-    fn asinh_hold -> AsinhHold;
-    mpfr::asinh
-}
-math_op1! {
-    /// Computes the inverse hyperbolic tangent, rounding to the
-    /// nearest.
-    fn atanh;
-    /// Computes the inverse hyperbolic tangent, applying the
-    /// specified rounding method.
-    fn atanh_round;
-    /// Hold a computation of the inverse hyperbolic tangent.
-    fn atanh_hold -> AtanhHold;
-    mpfr::atanh
-}
-
-impl Float {
     /// Sets `self` to the factorial of `u`, rounding to the nearest.
     pub fn assign_factorial_u(&mut self, u: u32) {
         self.assign_factorial_u_round(u, Round::Nearest);
@@ -1436,82 +1390,81 @@ impl Float {
                                     -> Ordering {
         unsafe { mpfr::fac_ui(self.inner_mut(), u.into(), rraw(round)).cmp(&0) }
     }
-}
 
-math_op1! {
-    /// Computes the natural logarithm of one plus `self`, rounding to
-    /// the nearest.
-    fn ln_1p;
-    /// Computes the natural logarithm of one plus `self`, applying
-    /// the specified rounding method.
-    fn ln_1p_round;
-    /// Hold a computation of the natural logorithm of one plus the
-    /// value.
-    fn ln_1p_hold -> Ln1pHold;
-    mpfr::log1p
-}
-math_op1! {
-    /// Subtracts one from the exponential of `self`, rounding to the
-    /// nearest.
-    fn exp_m1;
-    /// Subtracts one from the exponential of `self`, applying the
-    /// specified rounding method.
-    fn exp_m1_round;
-    /// Hold a computation of one less than the exponential of the
-    /// value.
-    fn exp_m1_hold -> ExpM1Hold;
-    mpfr::expm1
-}
-math_op1! {
-    /// Computes the exponential integral, rounding to the nearest.
-    fn eint;
-    /// Computes the exponential integral, applying the specified
-    /// rounding method.
-    fn eint_round;
-    /// Hold a computation of the exponential integral.
-    fn eint_hold -> EintHold;
-    mpfr::eint
-}
-math_op1! {
-    /// Computes the real part of the dilogarithm of `self`, rounding
-    /// to the nearest.
-    fn li2;
-    /// Computes the real part of the dilogarithm of `self`, applying
-    /// the specified rounding method.
-    fn li2_round;
-    /// Hold a computation of the real part of the dilogarithm of the
-    /// value.
-    fn li2_hold -> Li2Hold;
-    mpfr::li2
-}
-math_op1! {
-    /// Computes the value of the Gamma function on `self`, rounding
-    /// to the nearest.
-    fn gamma;
-    /// Computes the value of the Gamma function on `self`, applying
-    /// the specified rounding method.
-    fn gamma_round;
-    /// Hold a computation of the Gamma function on the value.
-    fn gamma_hold -> GammaHold;
-    mpfr::gamma
-}
-math_op1! {
-    /// Computes the logarithm of the Gamma function on `self`,
-    /// rounding to the nearest.
-    fn ln_gamma;
-    /// Computes the logarithm of the Gamma function on `self`,
-    /// applying the specified rounding method.
-    fn ln_gamma_round;
-    /// Hold a computation of the logarithm of the Gamma function on
-    /// the value.
-    fn ln_gamma_hold -> LnGammaHold;
-    mpfr::lngamma
-}
+    math_op1! {
+        /// Computes the natural logarithm of one plus `self`, rounding to
+        /// the nearest.
+        fn ln_1p();
+        /// Computes the natural logarithm of one plus `self`, applying
+        /// the specified rounding method.
+        fn ln_1p_round;
+        /// Hold a computation of the natural logorithm of one plus the
+        /// value.
+        fn ln_1p_hold -> Ln1pHold;
+        mpfr::log1p
+    }
+    math_op1! {
+        /// Subtracts one from the exponential of `self`, rounding to the
+        /// nearest.
+        fn exp_m1();
+        /// Subtracts one from the exponential of `self`, applying the
+        /// specified rounding method.
+        fn exp_m1_round;
+        /// Hold a computation of one less than the exponential of the
+        /// value.
+        fn exp_m1_hold -> ExpM1Hold;
+        mpfr::expm1
+    }
+    math_op1! {
+        /// Computes the exponential integral, rounding to the nearest.
+        fn eint();
+        /// Computes the exponential integral, applying the specified
+        /// rounding method.
+        fn eint_round;
+        /// Hold a computation of the exponential integral.
+        fn eint_hold -> EintHold;
+        mpfr::eint
+    }
+    math_op1! {
+        /// Computes the real part of the dilogarithm of `self`, rounding
+        /// to the nearest.
+        fn li2();
+        /// Computes the real part of the dilogarithm of `self`, applying
+        /// the specified rounding method.
+        fn li2_round;
+        /// Hold a computation of the real part of the dilogarithm of the
+        /// value.
+        fn li2_hold -> Li2Hold;
+        mpfr::li2
+    }
+    math_op1! {
+        /// Computes the value of the Gamma function on `self`, rounding
+        /// to the nearest.
+        fn gamma();
+        /// Computes the value of the Gamma function on `self`, applying
+        /// the specified rounding method.
+        fn gamma_round;
+        /// Hold a computation of the Gamma function on the value.
+        fn gamma_hold -> GammaHold;
+        mpfr::gamma
+    }
+    math_op1! {
+        /// Computes the logarithm of the Gamma function on `self`,
+        /// rounding to the nearest.
+        fn ln_gamma();
+        /// Computes the logarithm of the Gamma function on `self`,
+        /// applying the specified rounding method.
+        fn ln_gamma_round;
+        /// Hold a computation of the logarithm of the Gamma function on
+        /// the value.
+        fn ln_gamma_hold -> LnGammaHold;
+        mpfr::lngamma
+    }
 
-impl Float {
     /// Computes the logarithm of the absolute value of the Gamma
-    /// function on `self`, rounding to the nearest. Returns
-    /// `Ordering::Less` if the Gamma function is negative, or
+    /// function on `self`, rounding to the nearest.
+    ///
+    /// Returns `Ordering::Less` if the Gamma function is negative, or
     /// `Ordering::Greater` if the Gamma function is positive.
     pub fn lgamma(&mut self) -> Ordering {
         self.lgamma_round(Round::Nearest).0
@@ -1519,6 +1472,7 @@ impl Float {
 
     /// Computes the logarithm of the absolute value of the Gamma
     /// function on `self`, applying the specified rounding method.
+    ///
     /// The returned tuple contains:
     ///
     /// 1. The logarithm of the absolute value of the Gamma function.
@@ -1538,63 +1492,35 @@ impl Float {
         (sign_ord, ord)
     }
 
-    /// Sets `self` to the logarithm of the absolute value of the
-    /// Gamma function on `val`, rounding to the nearest. Returns
-    /// `Ordering::Less` if the Gamma function is negative, or
-    /// `Ordering::Greater` if the Gamma function is positive.
-    pub fn assign_lgamma(&mut self, val: &Float) -> Ordering {
-        self.assign_lgamma_round(val, Round::Nearest).0
+    /// Holds the computation of the logarithm of the absolute value of the
+    /// Gamma function on `val`.
+    pub fn lgamma_hold(&self) -> LGammaHold {
+        LGammaHold { hold_self: self }
     }
 
-    /// Sets `self` to the logarithm of the absolute value of the
-    /// Gamma function on `val`, applying the specified rounding
-    /// method. The returned tuple contains:
-    ///
-    /// 1. The logarithm of the absolute value of the Gamma function.
-    /// 2. The rounding direction.
-    pub fn assign_lgamma_round(&mut self,
-                               val: &Float,
-                               round: Round)
-                               -> (Ordering, Ordering) {
-        let mut sign: c_int = 0;
-        let sign_ptr = &mut sign as *mut c_int;
-        let ord = unsafe {
-            mpfr::lgamma(self.inner_mut(), sign_ptr, val.inner(), rraw(round))
-                .cmp(&0)
-        };
-        let sign_ord = if sign < 0 {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        };
-        (sign_ord, ord)
+    math_op1! {
+        /// Computes the value of the Digamma function on `self`, rounding
+        /// to the nearest.
+        fn digamma();
+        /// Computes the value of the Digamma function on `self`, applying
+        /// the specified rounding method.
+        fn digamma_round;
+        /// Hold a computation of the Digamma function on the value.
+        fn digamma_hold -> DigammaHold;
+        mpfr::digamma
     }
-}
+    math_op1! {
+        /// Computes the value of the Riemann Zeta function on `self`,
+        /// rounding to the nearest.
+        fn zeta();
+        /// Computes the value of the Riemann Zeta function on `self`,
+        /// applying the specified rounding method.
+        fn zeta_round;
+        /// Hold a computation of the Riemann Zeta function on the value.
+        fn zeta_hold -> ZetaHold;
+        mpfr::zeta
+    }
 
-math_op1! {
-    /// Computes the value of the Digamma function on `self`, rounding
-    /// to the nearest.
-    fn digamma;
-    /// Computes the value of the Digamma function on `self`, applying
-    /// the specified rounding method.
-    fn digamma_round;
-    /// Hold a computation of the Digamma function on the value.
-    fn digamma_hold -> DigammaHold;
-    mpfr::digamma
-}
-math_op1! {
-    /// Computes the value of the Riemann Zeta function on `self`,
-    /// rounding to the nearest.
-    fn zeta;
-    /// Computes the value of the Riemann Zeta function on `self`,
-    /// applying the specified rounding method.
-    fn zeta_round;
-    /// Hold a computation of the Riemann Zeta function on the value.
-    fn zeta_hold -> ZetaHold;
-    mpfr::zeta
-}
-
-impl Float {
     /// Sets `self` to the value of the Riemann Zeta function on `u`,
     /// rounding to the nearest.
     pub fn assign_zeta_u(&mut self, u: u32) {
@@ -1608,192 +1534,188 @@ impl Float {
             mpfr::zeta_ui(self.inner_mut(), u.into(), rraw(round)).cmp(&0)
         }
     }
-}
 
-math_op1! {
-    /// Computes the value of the error function, rounding to the
-    /// nearest.
-    fn erf;
-    /// Computes the value of the error function, applying the
-    /// specified rounding method.
-    fn erf_round;
-    /// Hold a computation of the error function.
-    fn erf_hold -> ErfHold;
-    mpfr::erf
-}
-math_op1! {
-    /// Computes the value of the complementary error function,
-    /// rounding to the nearest.
-    fn erfc;
-    /// Computes the value of the complementary error function,
-    /// applying the specified rounding method.
-    fn erfc_round;
-    /// Hold a computation of the complementary error function.
-    fn erfc_hold -> ErfcHold;
-    mpfr::erfc
-}
-math_op1! {
-    /// Computes the value of the first kind Bessel function of order
-    /// 0, rounding to the nearest.
-    fn j0;
-    /// Computes the value of the first kind Bessel function of order
-    /// 0, applying the specified rounding method.
-    fn j0_round;
-    /// Hold a computation of the first kind Bessel function of order
-    /// 0.
-    fn j0_hold -> J0Hold;
-    mpfr::j0
-}
-math_op1! {
-    /// Computes the value of the first kind Bessel function of order
-    /// 1, rounding to the nearest.
-    fn j1;
-    /// Computes the value of the first kind Bessel function of order
-    /// 1, applying the specified rounding method.
-    fn j1_round;
-    /// Hold a computation of the first kind Bessel function of order
-    /// 1.
-    fn j1_hold -> J1Hold;
-    mpfr::j1
-}
-math_op1! {
-    /// Computes the value of the first kind Bessel function of order
-    /// `n`, rounding to the nearest.
-    fn jn;
-    /// Computes the value of the first kind Bessel function of order
-    /// `n`, applying the specified rounding method.
-    fn jn_round;
-    /// Hold a computation of the first kind Bessel function of order
-    /// `n`.
-    fn jn_hold -> JnHold;
-    jn,
-    n: i32
-}
-math_op1! {
-    /// Computes the value of the second kind Bessel function of order
-    /// 0, rounding to the nearest.
-    fn y0;
-    /// Computes the value of the second kind Bessel function of order
-    /// 0, applying the specified rounding method.
-    fn y0_round;
-    /// Hold a computation of the second kind Bessel function of order
-    /// 0.
-    fn y0_hold -> Y0Hold;
-    mpfr::y0
-}
-math_op1! {
-    /// Computes the value of the second kind Bessel function of order
-    /// 1, rounding to the nearest.
-    fn y1;
-    /// Computes the value of the second kind Bessel function of order
-    /// 1, applying the specified rounding method.
-    fn y1_round;
-    /// Hold a computation of the second kind Bessel function of order
-    /// 1.
-    fn y1_hold -> Y1Hold;
-    mpfr::y1
-}
-math_op1! {
-    /// Computes the value of the second kind Bessel function of order
-    /// `n`, rounding to the nearest.
-    fn yn;
-    /// Computes the value of the second kind Bessel function of order
-    /// `n`, applying the specified rounding method.
-    fn yn_round;
-    /// Hold a computation of the second kind Bessel function of order
-    /// `n`.
-    fn yn_hold -> YnHold;
-    yn,
-    n: i32
-}
-math_op2! {
-    /// Computes the arithmetic-geometric mean of `self` and `other`,
-    /// rounding to the nearest.
-    fn agm;
-    /// Computes the arithmetic-geometric mean of `self` and `other`,
-    /// applying the specified rounding method.
-    fn agm_round;
-    /// Hold a computation of the arithmetic-geometric mean.
-    fn agm_hold -> AgmHold;
-    mpfr::agm
-}
-math_op2! {
-    /// Computes the Euclidean norm of `self` and `other`, rounding to
-    /// the nearest.
-    fn hypot;
-    /// Computes the Euclidean norm of `self` and `other`, applying
-    /// the specified rounding method.
-    fn hypot_round;
-    /// Hold a computation of the Euclidean norm.
-    fn hypot_hold -> HypotHold;
-    mpfr::hypot
-}
-math_op1! {
-    /// Computes the value of the Airy function Ai on `self`, rounding
-    /// to the nearest.
-    fn ai;
-    /// Computes the value of the Airy function Ai on `self`, applying
-    /// the specified rounding method.
-    fn ai_round;
-    /// Hold a computation of the Airy function Ai on the value.
-    fn ai_hold -> AiHold;
-    mpfr::ai
-}
-math_op1! {
-    /// Rounds up to the next higher integer, then rounds to the
-    /// nearest. This function performs double rounding.
-    fn ceil;
-    /// Rounds up to the next higher integer, then applies the
-    /// specified rounding method. This function performs double
-    /// rounding.
-    fn ceil_round;
-    /// Hold a rounding to the next higher integer with double
-    /// rounding.
-    fn ceil_hold -> CeilHold;
-    mpfr::rint_ceil
-}
-math_op1! {
-    /// Rounds down to the next lower integer, then rounds to the
-    /// nearest. This function performs double rounding.
-    fn floor;
-    /// Rounds down to the next lower integer, then applies the
-    /// specified rounding method. This function performs double
-    /// rounding.
-    fn floor_round;
-    /// Hold a rounding to the next lower integer with double
-    /// rounding.
-    fn floor_hold -> FloorHold;
-    mpfr::rint_floor
-}
-math_op1! {
-    /// Rounds to the nearest integer, rounding half-way cases away
-    /// from zero, then rounds to the nearest representable value.
-    /// This function performs double rounding.
-    fn round;
-    /// Rounds to the nearest integer, rounding half-way cases away
-    /// from zero, then applies the specified rounding method to get a
-    /// representable value. This function performs double rounding.
-    fn round_round;
-    /// Hold a rounding to the nearest integer, rounding half-way
-    /// cases away from zero, with double rounding.
-    fn round_hold -> RoundHold;
-    mpfr::rint_round
-}
-math_op1! {
-    /// Rounds to the next integer towards zero, then rounds to the
-    /// nearest. This function performs double rounding.
-    fn trunc;
-    /// Rounds to the next integer towards zero, then applies the
-    /// specified rounding method. This function performs double
-    /// rounding.
-    fn trunc_round;
-    /// Hold a rounding to the next integer towards zero with double
-    /// roundign.
-    fn trunc_hold -> TruncHold;
-    mpfr::rint_trunc
-}
+    math_op1! {
+        /// Computes the value of the error function, rounding to the
+        /// nearest.
+        fn erf();
+        /// Computes the value of the error function, applying the
+        /// specified rounding method.
+        fn erf_round;
+        /// Hold a computation of the error function.
+        fn erf_hold -> ErfHold;
+        mpfr::erf
+    }
+    math_op1! {
+        /// Computes the value of the complementary error function,
+        /// rounding to the nearest.
+        fn erfc();
+        /// Computes the value of the complementary error function,
+        /// applying the specified rounding method.
+        fn erfc_round;
+        /// Hold a computation of the complementary error function.
+        fn erfc_hold -> ErfcHold;
+        mpfr::erfc
+    }
+    math_op1! {
+        /// Computes the value of the first kind Bessel function of order
+        /// 0, rounding to the nearest.
+        fn j0();
+        /// Computes the value of the first kind Bessel function of order
+        /// 0, applying the specified rounding method.
+        fn j0_round;
+        /// Hold a computation of the first kind Bessel function of order
+        /// 0.
+        fn j0_hold -> J0Hold;
+        mpfr::j0
+    }
+    math_op1! {
+        /// Computes the value of the first kind Bessel function of order
+        /// 1, rounding to the nearest.
+        fn j1();
+        /// Computes the value of the first kind Bessel function of order
+        /// 1, applying the specified rounding method.
+        fn j1_round;
+        /// Hold a computation of the first kind Bessel function of order
+        /// 1.
+        fn j1_hold -> J1Hold;
+        mpfr::j1
+    }
+    math_op1! {
+        /// Computes the value of the first kind Bessel function of order
+        /// `n`, rounding to the nearest.
+        fn jn(n: i32);
+        /// Computes the value of the first kind Bessel function of order
+        /// `n`, applying the specified rounding method.
+        fn jn_round;
+        /// Hold a computation of the first kind Bessel function of order
+        /// `n`.
+        fn jn_hold -> JnHold;
+        jn
+    }
+    math_op1! {
+        /// Computes the value of the second kind Bessel function of order
+        /// 0, rounding to the nearest.
+        fn y0();
+        /// Computes the value of the second kind Bessel function of order
+        /// 0, applying the specified rounding method.
+        fn y0_round;
+        /// Hold a computation of the second kind Bessel function of order
+        /// 0.
+        fn y0_hold -> Y0Hold;
+        mpfr::y0
+    }
+    math_op1! {
+        /// Computes the value of the second kind Bessel function of order
+        /// 1, rounding to the nearest.
+        fn y1();
+        /// Computes the value of the second kind Bessel function of order
+        /// 1, applying the specified rounding method.
+        fn y1_round;
+        /// Hold a computation of the second kind Bessel function of order
+        /// 1.
+        fn y1_hold -> Y1Hold;
+        mpfr::y1
+    }
+    math_op1! {
+        /// Computes the value of the second kind Bessel function of order
+        /// `n`, rounding to the nearest.
+        fn yn(n: i32);
+        /// Computes the value of the second kind Bessel function of order
+        /// `n`, applying the specified rounding method.
+        fn yn_round;
+        /// Hold a computation of the second kind Bessel function of order
+        /// `n`.
+        fn yn_hold -> YnHold;
+        yn
+    }
+    math_op2! {
+        /// Computes the arithmetic-geometric mean of `self` and `other`,
+        /// rounding to the nearest.
+        fn agm(other);
+        /// Computes the arithmetic-geometric mean of `self` and `other`,
+        /// applying the specified rounding method.
+        fn agm_round;
+        /// Hold a computation of the arithmetic-geometric mean.
+        fn agm_hold -> AgmHold;
+        mpfr::agm
+    }
+    math_op2! {
+        /// Computes the Euclidean norm of `self` and `other`, rounding to
+        /// the nearest.
+        fn hypot(other);
+        /// Computes the Euclidean norm of `self` and `other`, applying
+        /// the specified rounding method.
+        fn hypot_round;
+        /// Hold a computation of the Euclidean norm.
+        fn hypot_hold -> HypotHold;
+        mpfr::hypot
+    }
+    math_op1! {
+        /// Computes the value of the Airy function Ai on `self`, rounding
+        /// to the nearest.
+        fn ai();
+        /// Computes the value of the Airy function Ai on `self`, applying
+        /// the specified rounding method.
+        fn ai_round;
+        /// Hold a computation of the Airy function Ai on the value.
+        fn ai_hold -> AiHold;
+        mpfr::ai
+    }
+    math_op1! {
+        /// Rounds up to the next higher integer, then rounds to the
+        /// nearest. This function performs double rounding.
+        fn ceil();
+        /// Rounds up to the next higher integer, then applies the
+        /// specified rounding method. This function performs double
+        /// rounding.
+        fn ceil_round;
+        /// Hold a rounding to the next higher integer with double
+        /// rounding.
+        fn ceil_hold -> CeilHold;
+        mpfr::rint_ceil
+    }
+    math_op1! {
+        /// Rounds down to the next lower integer, then rounds to the
+        /// nearest. This function performs double rounding.
+        fn floor();
+        /// Rounds down to the next lower integer, then applies the
+        /// specified rounding method. This function performs double
+        /// rounding.
+        fn floor_round;
+        /// Hold a rounding to the next lower integer with double
+        /// rounding.
+        fn floor_hold -> FloorHold;
+        mpfr::rint_floor
+    }
+    math_op1! {
+        /// Rounds to the nearest integer, rounding half-way cases away
+        /// from zero, then rounds to the nearest representable value.
+        /// This function performs double rounding.
+        fn round();
+        /// Rounds to the nearest integer, rounding half-way cases away
+        /// from zero, then applies the specified rounding method to get a
+        /// representable value. This function performs double rounding.
+        fn round_round;
+        /// Hold a rounding to the nearest integer, rounding half-way
+        /// cases away from zero, with double rounding.
+        fn round_hold -> RoundHold;
+        mpfr::rint_round
+    }
+    math_op1! {
+        /// Rounds to the next integer towards zero, then rounds to the
+        /// nearest. This function performs double rounding.
+        fn trunc();
+        /// Rounds to the next integer towards zero, then applies the
+        /// specified rounding method. This function performs double
+        /// rounding.
+        fn trunc_round;
+        /// Hold a rounding to the next integer towards zero with double
+        /// roundign.
+        fn trunc_hold -> TruncHold;
+        mpfr::rint_trunc
+    }
 
-impl Float {
     #[cfg(feature = "random")]
     /// Generates a random number in the range `0 <= n < 1`.
     ///
@@ -2148,22 +2070,6 @@ fn check_str_radix(src: &str,
     }
 }
 
-unsafe fn jn(rop: *mut mpfr_t,
-             op: *const mpfr_t,
-             n: i32,
-             rnd: mpfr::rnd_t)
-             -> c_int {
-    mpfr::jn(rop, n.into(), op, rnd)
-}
-
-unsafe fn yn(rop: *mut mpfr_t,
-             op: *const mpfr_t,
-             n: i32,
-             rnd: mpfr::rnd_t)
-             -> c_int {
-    mpfr::yn(rop, n.into(), op, rnd)
-}
-
 impl<T> From<(T, u32)> for Float
     where Float: FromRound<T, u32, Round = Round>
 {
@@ -2181,6 +2087,54 @@ impl<T> FromRound<T, u32> for Float
         let mut ret = Float::new(prec);
         let ord = ret.assign_round(t, round);
         (ret, ord)
+    }
+}
+
+impl Display for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
+    }
+}
+
+impl Debug for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", true)
+    }
+}
+
+impl LowerExp for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
+    }
+}
+
+impl UpperExp for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, true, "", false)
+    }
+}
+
+impl Binary for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 2, false, "0b", false)
+    }
+}
+
+impl Octal for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 8, false, "0o", false)
+    }
+}
+
+impl LowerHex for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, false, "0x", false)
+    }
+}
+
+impl UpperHex for Float {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, true, "0x", false)
     }
 }
 
@@ -2257,6 +2211,96 @@ macro_rules! assign {
 assign! { Float, mpfr::set }
 assign! { Integer, mpfr::set_z }
 assign! { Rational, mpfr::set_q }
+
+hold_math_op1! { struct SquareHold {}; mpfr::sqr }
+hold_math_op1! { struct SqrtHold {}; mpfr::sqrt }
+hold_math_op1! { struct RecipSqrtHold {}; mpfr::rec_sqrt }
+hold_math_op1! { struct CbrtHold {}; mpfr::cbrt }
+hold_math_op1! { struct RootHold { k: u32 }; mpfr::root }
+hold_math_op1! { struct AbsHold {}; mpfr::abs }
+hold_math_op1! { struct RecipHold {}; recip }
+hold_math_op2! { struct DimHold { other }; mpfr::dim }
+hold_math_op1! { struct LnHold {}; mpfr::log }
+hold_math_op1! { struct Log2Hold {}; mpfr::log2 }
+hold_math_op1! { struct Log10Hold {}; mpfr::log10 }
+hold_math_op1! { struct ExpHold {}; mpfr::exp }
+hold_math_op1! { struct Exp2Hold {}; mpfr::exp2 }
+hold_math_op1! { struct Exp10Hold {}; mpfr::exp10 }
+hold_math_op1! { struct SinHold {}; mpfr::sin }
+hold_math_op1! { struct CosHold {}; mpfr::cos }
+hold_math_op1! { struct TanHold {}; mpfr::tan }
+hold_math_op1_2! { struct SinCosHold {}; mpfr::sin_cos }
+hold_math_op1! { struct SecHold {}; mpfr::sec }
+hold_math_op1! { struct CscHold {}; mpfr::csc }
+hold_math_op1! { struct CotHold {}; mpfr::cot }
+hold_math_op1! { struct AcosHold {}; mpfr::acos }
+hold_math_op1! { struct AsinHold {}; mpfr::asin }
+hold_math_op1! { struct AtanHold {}; mpfr::atan }
+hold_math_op2! { struct Atan2Hold { other }; mpfr::atan2 }
+hold_math_op1! { struct CoshHold {}; mpfr::cosh }
+hold_math_op1! { struct SinhHold {}; mpfr::sinh }
+hold_math_op1! { struct TanhHold {}; mpfr::tanh }
+hold_math_op1_2! { struct SinhCoshHold {}; mpfr::sinh_cosh }
+hold_math_op1! { struct SechHold {}; mpfr::sech }
+hold_math_op1! { struct CschHold {}; mpfr::csch }
+hold_math_op1! { struct CothHold {}; mpfr::coth }
+hold_math_op1! { struct AcoshHold {}; mpfr::acosh }
+hold_math_op1! { struct AsinhHold {}; mpfr::asinh }
+hold_math_op1! { struct AtanhHold {}; mpfr::atanh }
+hold_math_op1! { struct Ln1pHold {}; mpfr::log1p }
+hold_math_op1! { struct ExpM1Hold {}; mpfr::expm1 }
+hold_math_op1! { struct EintHold {}; mpfr::eint }
+hold_math_op1! { struct Li2Hold {}; mpfr::li2 }
+hold_math_op1! { struct GammaHold {}; mpfr::gamma }
+hold_math_op1! { struct LnGammaHold {}; mpfr::lngamma }
+
+pub struct LGammaHold<'a> {
+    hold_self: &'a Float,
+}
+
+impl<'a> Assign<LGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
+    fn assign(&mut self, src: LGammaHold<'a>) {
+        self.assign_round(src, Round::Nearest);
+    }
+}
+
+impl<'a> AssignRound<LGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: LGammaHold<'a>, round: Round) -> Ordering {
+        let mut sign: c_int = 0;
+        let sign_ptr = &mut sign as *mut c_int;
+        let ord = unsafe {
+            mpfr::lgamma(self.0.inner_mut(), sign_ptr,
+                         src.hold_self.inner(), rraw(round))
+
+        }                    .cmp(&0);
+        *self.1 = if sign < 0 {
+            Ordering::Less
+        } else {
+            Ordering::Greater
+        };
+        ord
+    }
+}
+
+hold_math_op1! { struct DigammaHold {}; mpfr::digamma }
+hold_math_op1! { struct ZetaHold {}; mpfr::zeta }
+hold_math_op1! { struct ErfHold {}; mpfr::erf }
+hold_math_op1! { struct ErfcHold {}; mpfr::erfc }
+hold_math_op1! { struct J0Hold {}; mpfr::j0 }
+hold_math_op1! { struct J1Hold {}; mpfr::j1 }
+hold_math_op1! { struct JnHold { n: i32 }; jn }
+hold_math_op1! { struct Y0Hold {}; mpfr::y0 }
+hold_math_op1! { struct Y1Hold {}; mpfr::y1 }
+hold_math_op1! { struct YnHold { n: i32 }; yn }
+hold_math_op2! { struct AgmHold { other }; mpfr::agm }
+hold_math_op2! { struct HypotHold { other }; mpfr::hypot }
+hold_math_op1! { struct AiHold {}; mpfr::ai }
+hold_math_op1! { struct CeilHold {}; mpfr::rint_ceil }
+hold_math_op1! { struct FloorHold {}; mpfr::rint_floor }
+hold_math_op1! { struct RoundHold {}; mpfr::rint_round }
+hold_math_op1! { struct TruncHold {}; mpfr::rint_trunc }
 
 impl Neg for Float {
     type Output = Float;
@@ -2371,7 +2415,6 @@ macro_rules! arith_binary {
             }
         }
 
-        /// Holds an operation.
         pub struct $Hold<'a> {
             lhs: &'a Float,
             rhs: OwnBorrow<'a, $T>,
@@ -2684,7 +2727,6 @@ macro_rules! arith_noncommut {
             }
         }
 
-        /// Holds an operation.
         pub struct $HoldFrom<'a> {
             lhs: OwnBorrow<'a, $T>,
             rhs: &'a Float,
@@ -2831,90 +2873,6 @@ arith_noncommut! {
     DivFromHoldRational
 }
 
-unsafe fn z_div(r: *mut mpfr_t,
-                lhs: *const gmp::mpz_t,
-                rhs: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    divf_mulz_divz(r, rhs, Some(lhs), None, rnd)
-}
-
-unsafe fn q_sub(r: *mut mpfr_t,
-                lhs: *const gmp::mpq_t,
-                rhs: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    let ret = -mpfr::sub_q(r, rhs, lhs, rnd);
-    if mpfr::zero_p(r) == 0 {
-        mpfr::neg(r, r, rnd);
-    }
-    ret
-}
-
-unsafe fn q_div(r: *mut mpfr_t,
-                lhs: *const gmp::mpq_t,
-                rhs: *const mpfr_t,
-                rnd: mpfr::rnd_t)
-                -> c_int {
-    let lhs_num = gmp::mpq_numref(lhs as *mut _) as *const _;
-    let lhs_den = gmp::mpq_denref(lhs as *mut _) as *const _;
-    divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
-}
-
-// mul and div must must form a canonical rational, except that div
-// can be negative
-unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
-                         f: *const mpfr_t,
-                         mul: Option<*const gmp::mpz_t>,
-                         div: Option<*const gmp::mpz_t>,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
-    let mul_size = mul.map(|i| (*i).size);
-    let div_size = div.map(|i| (*i).size);
-    if mul_size == Some(0) {
-        mpfr::ui_div(rop, 0, f, rnd);
-        if let Some(s) = div_size {
-            if s < 0 {
-                (*rop).sign = -(*rop).sign;
-            }
-        }
-        return 0;
-    }
-    if div_size == Some(0) {
-        mpfr::mul_ui(rop, f, 0, rnd);
-        mpfr::ui_div(rop, 1, rop, rnd);
-        if let Some(s) = mul_size {
-            if s < 0 {
-                (*rop).sign = -(*rop).sign;
-            }
-        }
-        return 0;
-    }
-
-    let mut denom_buf: Float;
-    let denom = if let Some(div) = div {
-        let mut prec = (*f).prec as u32;
-        assert_eq!(prec as mpfr::prec_t, (*f).prec, "overflow");
-        let bits = gmp::mpz_sizeinbase(div, 2);
-        assert!(bits < u32::MAX as usize, "overflow");
-        prec = prec.checked_add(bits as u32).expect("overflow");
-        denom_buf = Float::new(prec);
-        mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
-        denom_buf.inner() as *const _
-    } else {
-        f
-    };
-    if let Some(mul) = mul {
-        let bits = gmp::mpz_sizeinbase(mul, 2);
-        assert!(bits <= u32::MAX as usize, "overflow");
-        let mut buf = Float::new(cmp::max(prec_min(), bits as u32));
-        mpfr::set_z(buf.inner_mut(), mul, rnd);
-        mpfr::div(rop, buf.inner(), denom, rnd)
-    } else {
-        mpfr::ui_div(rop, 1, denom, rnd)
-    }
-}
-
 macro_rules! arith_prim {
     {
         $Imp:ident $method:ident,
@@ -2968,7 +2926,6 @@ macro_rules! arith_prim {
             }
         }
 
-        /// Holds an operation.
         pub struct $Hold<'a> {
             lhs: &'a Float,
             rhs: $T,
@@ -3290,58 +3247,6 @@ arith_prim!{
     PowHoldI32
 }
 
-unsafe fn set_single(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::set_d(rop, op as f64, rnd)
-}
-
-unsafe fn add_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::add_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn sub_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::sub_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn single_sub(rop: *mut mpfr_t,
-                     op1: f32,
-                     op2: *const mpfr_t,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::d_sub(rop, op1 as f64, op2, rnd)
-}
-
-unsafe fn mul_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::mul_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn div_single(rop: *mut mpfr_t,
-                     op1: *const mpfr_t,
-                     op2: f32,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::div_d(rop, op1, op2 as f64, rnd)
-}
-
-unsafe fn single_div(rop: *mut mpfr_t,
-                     op1: f32,
-                     op2: *const mpfr_t,
-                     rnd: mpfr::rnd_t)
-                     -> c_int {
-    mpfr::d_div(rop, op1 as f64, op2, rnd)
-}
-
 impl PartialEq for Float {
     fn eq(&self, other: &Float) -> bool {
         unsafe { mpfr::equal_p(self.inner(), other.inner()) != 0 }
@@ -3524,54 +3429,6 @@ fn fmt_radix(flt: &Float,
         (show_neg_zero && flt.is_zero() && flt.get_sign(), &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
-}
-
-impl Display for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
-    }
-}
-
-impl Debug for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", true)
-    }
-}
-
-impl LowerExp for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
-    }
-}
-
-impl UpperExp for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, true, "", false)
-    }
-}
-
-impl Binary for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b", false)
-    }
-}
-
-impl Octal for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o", false)
-    }
-}
-
-impl LowerHex for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x", false)
-    }
-}
-
-impl UpperHex for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x", false)
-    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -4195,3 +4052,163 @@ mod tests {
         assert!(unsafe { mpfr::custom_get_size(64) } == 8);
     }
 }
+
+unsafe fn recip(rop: *mut mpfr_t,
+                op: *const mpfr_t,
+                rnd: mpfr::rnd_t)
+                -> c_int {
+    mpfr::ui_div(rop, 1, op, rnd)
+}
+
+unsafe fn jn(rop: *mut mpfr_t,
+             op: *const mpfr_t,
+             n: i32,
+             rnd: mpfr::rnd_t)
+             -> c_int {
+    mpfr::jn(rop, n.into(), op, rnd)
+}
+
+unsafe fn yn(rop: *mut mpfr_t,
+             op: *const mpfr_t,
+             n: i32,
+             rnd: mpfr::rnd_t)
+             -> c_int {
+    mpfr::yn(rop, n.into(), op, rnd)
+}
+
+unsafe fn z_div(r: *mut mpfr_t,
+                lhs: *const gmp::mpz_t,
+                rhs: *const mpfr_t,
+                rnd: mpfr::rnd_t)
+                -> c_int {
+    divf_mulz_divz(r, rhs, Some(lhs), None, rnd)
+}
+
+unsafe fn q_sub(r: *mut mpfr_t,
+                lhs: *const gmp::mpq_t,
+                rhs: *const mpfr_t,
+                rnd: mpfr::rnd_t)
+                -> c_int {
+    let ret = -mpfr::sub_q(r, rhs, lhs, rnd);
+    if mpfr::zero_p(r) == 0 {
+        mpfr::neg(r, r, rnd);
+    }
+    ret
+}
+
+unsafe fn q_div(r: *mut mpfr_t,
+                lhs: *const gmp::mpq_t,
+                rhs: *const mpfr_t,
+                rnd: mpfr::rnd_t)
+                -> c_int {
+    let lhs_num = gmp::mpq_numref(lhs as *mut _) as *const _;
+    let lhs_den = gmp::mpq_denref(lhs as *mut _) as *const _;
+    divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
+}
+
+// mul and div must must form a canonical rational, except that div
+// can be negative
+unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
+                         f: *const mpfr_t,
+                         mul: Option<*const gmp::mpz_t>,
+                         div: Option<*const gmp::mpz_t>,
+                         rnd: mpfr::rnd_t)
+                         -> c_int {
+    let mul_size = mul.map(|i| (*i).size);
+    let div_size = div.map(|i| (*i).size);
+    if mul_size == Some(0) {
+        mpfr::ui_div(rop, 0, f, rnd);
+        if let Some(s) = div_size {
+            if s < 0 {
+                (*rop).sign = -(*rop).sign;
+            }
+        }
+        return 0;
+    }
+    if div_size == Some(0) {
+        mpfr::mul_ui(rop, f, 0, rnd);
+        mpfr::ui_div(rop, 1, rop, rnd);
+        if let Some(s) = mul_size {
+            if s < 0 {
+                (*rop).sign = -(*rop).sign;
+            }
+        }
+        return 0;
+    }
+
+    let mut denom_buf: Float;
+    let denom = if let Some(div) = div {
+        let mut prec = (*f).prec as u32;
+        assert_eq!(prec as mpfr::prec_t, (*f).prec, "overflow");
+        let bits = gmp::mpz_sizeinbase(div, 2);
+        assert!(bits < u32::MAX as usize, "overflow");
+        prec = prec.checked_add(bits as u32).expect("overflow");
+        denom_buf = Float::new(prec);
+        mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
+        denom_buf.inner() as *const _
+    } else {
+        f
+    };
+    if let Some(mul) = mul {
+        let bits = gmp::mpz_sizeinbase(mul, 2);
+        assert!(bits <= u32::MAX as usize, "overflow");
+        let mut buf = Float::new(cmp::max(prec_min(), bits as u32));
+        mpfr::set_z(buf.inner_mut(), mul, rnd);
+        mpfr::div(rop, buf.inner(), denom, rnd)
+    } else {
+        mpfr::ui_div(rop, 1, denom, rnd)
+    }
+}
+
+unsafe fn set_single(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
+    mpfr::set_d(rop, op as f64, rnd)
+}
+
+unsafe fn add_single(rop: *mut mpfr_t,
+                     op1: *const mpfr_t,
+                     op2: f32,
+                     rnd: mpfr::rnd_t)
+                     -> c_int {
+    mpfr::add_d(rop, op1, op2 as f64, rnd)
+}
+
+unsafe fn sub_single(rop: *mut mpfr_t,
+                     op1: *const mpfr_t,
+                     op2: f32,
+                     rnd: mpfr::rnd_t)
+                     -> c_int {
+    mpfr::sub_d(rop, op1, op2 as f64, rnd)
+}
+
+unsafe fn single_sub(rop: *mut mpfr_t,
+                     op1: f32,
+                     op2: *const mpfr_t,
+                     rnd: mpfr::rnd_t)
+                     -> c_int {
+    mpfr::d_sub(rop, op1 as f64, op2, rnd)
+}
+
+unsafe fn mul_single(rop: *mut mpfr_t,
+                     op1: *const mpfr_t,
+                     op2: f32,
+                     rnd: mpfr::rnd_t)
+                     -> c_int {
+    mpfr::mul_d(rop, op1, op2 as f64, rnd)
+}
+
+unsafe fn div_single(rop: *mut mpfr_t,
+                     op1: *const mpfr_t,
+                     op2: f32,
+                     rnd: mpfr::rnd_t)
+                     -> c_int {
+    mpfr::div_d(rop, op1, op2 as f64, rnd)
+}
+
+unsafe fn single_div(rop: *mut mpfr_t,
+                     op1: f32,
+                     op2: *const mpfr_t,
+                     rnd: mpfr::rnd_t)
+                     -> c_int {
+    mpfr::d_div(rop, op1 as f64, op2, rnd)
+}
+
