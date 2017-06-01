@@ -1468,7 +1468,7 @@ impl SmallRational {
                                         -> SmallRational {
         let mut ret = SmallRational::new();
         if num != 0 {
-            ret.set_limbs_32(neg, num, den);
+            ret.assign_canonicalized_32(neg, num, den);
         }
         ret
     }
@@ -1507,53 +1507,81 @@ impl SmallRational {
                                         -> SmallRational {
         let mut ret = SmallRational::new();
         if num != 0 {
-            ret.set_limbs_64(neg, num, den);
+            ret.assign_canonicalized_64(neg, num, den);
         }
         ret
     }
 
-    fn set_num_den_32(&mut self, neg: bool, num: u32, den: u32) {
-        assert_ne!(den, 0, "division by zero");
-        if num == 0 {
-            self.num.size = 0;
-            self.den.size = 1;
-            self.den_limbs[0] = 1;
-            return;
-        }
-        unsafe {
-            self.set_limbs_32(neg, num, den);
-        }
-        self.update_d();
-        unsafe {
-            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
-        }
-    }
-
-    unsafe fn set_limbs_32(&mut self, neg: bool, num: u32, den: u32) {
+    /// Sets a `SmallRational` to a 32-bit numerator and denominator,
+    /// assuming they are in canonical form.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because
+    ///
+    /// * it does not check that the denominator is not zero, and
+    ///
+    /// * it does not canonicalize the numerator and denominator.
+    ///
+    /// The rest of the library assumes that `SmallRational` and
+    /// `Rational` structures keep their numerators and denominators
+    /// canonicalized.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::SmallRational;
+    /// let mut from_unsafe = SmallRational::new();
+    /// unsafe {
+    ///     from_unsafe.assign_canonicalized_32(true, 13, 10)
+    /// };
+    /// // from_safe is canonicalized to the same form as from_unsafe
+    /// let from_safe = SmallRational::from((130, -100));
+    /// assert!(from_unsafe.numer() == from_safe.numer());
+    /// assert!(from_unsafe.denom() == from_safe.denom());
+    /// ```
+    pub unsafe fn assign_canonicalized_32(&mut self,
+                                          neg: bool,
+                                          num: u32,
+                                          den: u32) {
         self.num.size = if neg { -1 } else { 1 };
         self.num_limbs[0] = num as gmp::limb_t;
         self.den.size = 1;
         self.den_limbs[0] = den as gmp::limb_t;
     }
 
-    fn set_num_den_64(&mut self, neg: bool, num: u64, den: u64) {
-        assert_ne!(den, 0, "division by zero");
-        if num == 0 {
-            self.num.size = 0;
-            self.den.size = 1;
-            self.den_limbs[0] = 1;
-            return;
-        }
-        unsafe {
-            self.set_limbs_64(neg, num, den);
-        }
-        self.update_d();
-        unsafe {
-            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
-        }
-    }
-
-    unsafe fn set_limbs_64(&mut self, neg: bool, num: u64, den: u64) {
+    /// Sets a `SmallRational` to a 64-bit numerator and denominator,
+    /// assuming they are in canonical form.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because
+    ///
+    /// * it does not check that the denominator is not zero, and
+    ///
+    /// * it does not canonicalize the numerator and denominator.
+    ///
+    /// The rest of the library assumes that `SmallRational` and
+    /// `Rational` structures keep their numerators and denominators
+    /// canonicalized.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugrat::SmallRational;
+    /// let mut from_unsafe = SmallRational::new();
+    /// unsafe {
+    ///     from_unsafe.assign_canonicalized_64(true, 13, 10)
+    /// };
+    /// // from_safe is canonicalized to the same form as from_unsafe
+    /// let from_safe = SmallRational::from((130, -100));
+    /// assert!(from_unsafe.numer() == from_safe.numer());
+    /// assert!(from_unsafe.denom() == from_safe.denom());
+    /// ```
+    pub unsafe fn assign_canonicalized_64(&mut self,
+                                          neg: bool,
+                                          num: u64,
+                                          den: u64) {
         match gmp::LIMB_BITS {
             64 => {
                 self.num.size = if neg { -1 } else { 1 };
@@ -1582,6 +1610,40 @@ impl SmallRational {
             _ => {
                 unreachable!();
             }
+        }
+    }
+
+    fn set_num_den_32(&mut self, neg: bool, num: u32, den: u32) {
+        assert_ne!(den, 0, "division by zero");
+        if num == 0 {
+            self.num.size = 0;
+            self.den.size = 1;
+            self.den_limbs[0] = 1;
+            return;
+        }
+        unsafe {
+            self.assign_canonicalized_32(neg, num, den);
+        }
+        self.update_d();
+        unsafe {
+            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
+        }
+    }
+
+    fn set_num_den_64(&mut self, neg: bool, num: u64, den: u64) {
+        assert_ne!(den, 0, "division by zero");
+        if num == 0 {
+            self.num.size = 0;
+            self.den.size = 1;
+            self.den_limbs[0] = 1;
+            return;
+        }
+        unsafe {
+            self.assign_canonicalized_64(neg, num, den);
+        }
+        self.update_d();
+        unsafe {
+            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
     }
 
@@ -1619,7 +1681,7 @@ impl<T> From<T> for SmallRational
 impl Assign<i32> for SmallRational {
     fn assign(&mut self, num: i32) {
         unsafe {
-            self.set_limbs_32(num < 0, num.wrapping_abs() as u32, 1);
+            self.assign_canonicalized_32(num < 0, num.wrapping_abs() as u32, 1);
         }
     }
 }
@@ -1627,7 +1689,7 @@ impl Assign<i32> for SmallRational {
 impl Assign<i64> for SmallRational {
     fn assign(&mut self, num: i64) {
         unsafe {
-            self.set_limbs_64(num < 0, num.wrapping_abs() as u64, 1);
+            self.assign_canonicalized_64(num < 0, num.wrapping_abs() as u64, 1);
         }
     }
 }
@@ -1635,7 +1697,7 @@ impl Assign<i64> for SmallRational {
 impl Assign<u32> for SmallRational {
     fn assign(&mut self, num: u32) {
         unsafe {
-            self.set_limbs_32(false, num, 1);
+            self.assign_canonicalized_32(false, num, 1);
         }
     }
 }
@@ -1643,7 +1705,7 @@ impl Assign<u32> for SmallRational {
 impl Assign<u64> for SmallRational {
     fn assign(&mut self, num: u64) {
         unsafe {
-            self.set_limbs_64(false, num, 1);
+            self.assign_canonicalized_64(false, num, 1);
         }
     }
 }
