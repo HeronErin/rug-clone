@@ -2307,6 +2307,13 @@ macro_rules! arith_binary {
         $func:path,
         $Hold:ident
     } => {
+        impl $Imp<Integer> for Integer {
+            type Output = Integer;
+            fn $method(self, op: Integer) -> Integer {
+                self.$method(&op)
+            }
+        }
+
         impl<'a> $Imp<&'a Integer> for Integer {
             type Output = Integer;
             fn $method(mut self, op: &'a Integer) -> Integer {
@@ -2315,10 +2322,9 @@ macro_rules! arith_binary {
             }
         }
 
-        impl $Imp<Integer> for Integer {
-            type Output = Integer;
-            fn $method(self, op: Integer) -> Integer {
-                self.$method(&op)
+        impl $ImpAssign<Integer> for Integer {
+            fn $method_assign(&mut self, op: Integer) {
+                self.$method_assign(&op);
             }
         }
 
@@ -2327,12 +2333,6 @@ macro_rules! arith_binary {
                 unsafe {
                     $func(self.inner_mut(), self.inner(), op.inner());
                 }
-            }
-        }
-
-        impl $ImpAssign<Integer> for Integer {
-            fn $method_assign(&mut self, op: Integer) {
-                self.$method_assign(&op);
             }
         }
 
@@ -2372,17 +2372,8 @@ macro_rules! arith_noncommut {
         $func:path,
         $Hold:ident
     } => {
-        arith_binary! { $Imp $method,
-                         $ImpAssign $method_assign,
-                         $func,
-                         $Hold }
-
-        impl<'a> $ImpFromAssign<&'a Integer> for Integer {
-            fn $method_from_assign(&mut self, lhs: &'a Integer) {
-                unsafe {
-                    $func(self.inner_mut(), lhs.inner(), self.inner());
-                }
-            }
+        arith_binary! {
+            $Imp $method, $ImpAssign $method_assign, $func, $Hold
         }
 
         impl $ImpFromAssign<Integer> for Integer {
@@ -2391,6 +2382,13 @@ macro_rules! arith_noncommut {
             }
         }
 
+        impl<'a> $ImpFromAssign<&'a Integer> for Integer {
+            fn $method_from_assign(&mut self, lhs: &'a Integer) {
+                unsafe {
+                    $func(self.inner_mut(), lhs.inner(), self.inner());
+                }
+            }
+        }
     };
 }
 
@@ -2489,11 +2487,7 @@ macro_rules! arith_prim_noncommut {
      $Hold:ident,
      $HoldFrom:ident) => {
         arith_prim! {
-            $Imp $method,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
-            $Hold
+            $Imp $method, $ImpAssign $method_assign, $T, $func, $Hold
         }
 
         impl $Imp<Integer> for $T {
@@ -2549,11 +2543,7 @@ macro_rules! arith_prim_commut {
      $func:path,
      $Hold:ident) => {
         arith_prim! {
-            $Imp $method,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
-            $Hold
+            $Imp $method, $ImpAssign $method_assign, $T, $func, $Hold
         }
 
         impl $Imp<Integer> for $T {
@@ -2937,10 +2927,7 @@ macro_rules! cmp {
 
         impl PartialOrd<Integer> for $T {
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-                match other.partial_cmp(self) {
-                    Some(x) => Some(x.reverse()),
-                    None => None,
-                }
+                other.partial_cmp(self).map(Ordering::reverse)
             }
         }
     };
@@ -2973,10 +2960,7 @@ impl PartialOrd<f32> for Integer {
 
 impl PartialOrd<Integer> for f32 {
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        match other.partial_cmp(self) {
-            None => None,
-            Some(x) => Some(x.reverse()),
-        }
+        other.partial_cmp(self).map(Ordering::reverse)
     }
 }
 
@@ -3005,10 +2989,7 @@ impl PartialOrd<f64> for Integer {
 
 impl PartialOrd<Integer> for f64 {
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        match other.partial_cmp(self) {
-            None => None,
-            Some(x) => Some(x.reverse()),
-        }
+        other.partial_cmp(self).map(Ordering::reverse)
     }
 }
 
@@ -3148,6 +3129,12 @@ pub struct Mpz {
     d: AtomicPtr<gmp::limb_t>,
 }
 
+impl Default for SmallInteger {
+    fn default() -> SmallInteger {
+        SmallInteger::new()
+    }
+}
+
 impl SmallInteger {
     /// Creates a `SmallInteger` with value 0.
     pub fn new() -> SmallInteger {
@@ -3160,15 +3147,21 @@ impl SmallInteger {
             limb: [0; LIMBS_IN_SMALL_INTEGER],
         }
     }
+
+    fn update_d(&self) {
+        // sanity check
+        assert!(mem::size_of::<Mpz>() == mem::size_of::<mpz_t>());
+        // Since this is borrowed, the limb won't move around, and we
+        // can set the d field.
+        let d = &self.limb[0] as *const _ as *mut _;
+        self.inner.d.store(d, AtomicOrdering::Relaxed);
+    }
 }
 
 impl Deref for SmallInteger {
     type Target = Integer;
     fn deref(&self) -> &Integer {
-        // Since this is borrowed, the limb won't move around, and we
-        // can set the d field.
-        let d = &self.limb[0] as *const _ as *mut _;
-        self.inner.d.store(d, AtomicOrdering::Relaxed);
+        self.update_d();
         let ptr = (&self.inner) as *const _ as *const _;
         unsafe { &*ptr }
     }
@@ -3184,6 +3177,24 @@ impl<T> From<T> for SmallInteger
     }
 }
 
+impl Assign<i32> for SmallInteger {
+    fn assign(&mut self, val: i32) {
+        self.assign(val.wrapping_abs() as u32);
+        if val < 0 {
+            self.inner.size = -self.inner.size;
+        }
+    }
+}
+
+impl Assign<i64> for SmallInteger {
+    fn assign(&mut self, val: i64) {
+        self.assign(val.wrapping_abs() as u64);
+        if val < 0 {
+            self.inner.size = -self.inner.size;
+        }
+    }
+}
+
 impl Assign<u32> for SmallInteger {
     fn assign(&mut self, val: u32) {
         if val == 0 {
@@ -3191,15 +3202,6 @@ impl Assign<u32> for SmallInteger {
         } else {
             self.inner.size = 1;
             self.limb[0] = val as gmp::limb_t;
-        }
-    }
-}
-
-impl Assign<i32> for SmallInteger {
-    fn assign(&mut self, val: i32) {
-        self.assign(val.wrapping_abs() as u32);
-        if val < 0 {
-            self.inner.size = -self.inner.size;
         }
     }
 }
@@ -3230,15 +3232,6 @@ impl Assign<u64> for SmallInteger {
             _ => {
                 unreachable!();
             }
-        }
-    }
-}
-
-impl Assign<i64> for SmallInteger {
-    fn assign(&mut self, val: i64) {
-        self.assign(val.wrapping_abs() as u64);
-        if val < 0 {
-            self.inner.size = -self.inner.size;
         }
     }
 }
