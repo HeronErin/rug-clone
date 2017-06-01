@@ -90,7 +90,7 @@
 //! default-features = false
 //! ```
 //!
-//! [float]:     https://tspiteri.gitlab.io/gmp-mpfr/rugflo/struct.Float.html
+//! [float]:     struct.Float.html
 //! [gpl]:       https://www.gnu.org/licenses/gpl-3.0.html
 //! [lgpl]:      https://www.gnu.org/licenses/lgpl-3.0.en.html
 //! [mpfr home]: http://www.mpfr.org/
@@ -112,8 +112,8 @@ extern crate rugrat;
 
 mod float;
 
-pub use float::{Constant, Float, ParseFloatError, Round, Special, exp_max,
-                exp_min, prec_max, prec_min};
+pub use float::{Constant, Float, ParseFloatError, Round, SmallFloat, Special,
+                exp_max, exp_min, prec_max, prec_min};
 
 /// Assigns to a number from another value, applying the specified
 /// rounding method.
