@@ -109,6 +109,139 @@ impl Drop for Complex {
     }
 }
 
+macro_rules! math_op1 {
+    {
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_hold:meta])*
+        fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self $(, $param: $T)*) -> &mut Complex {
+            self.$method_round($($param,)* NEAREST);
+            self
+        }
+
+        $(#[$attr_round])*
+        pub fn $method_round(&mut self, $($param: $T,)* round: Round2)
+                             -> Ordering2 {
+            ordering2(unsafe {
+                $func(self.inner_mut(), self.inner(),
+                      $($param.into(),)* rraw2(round))
+            })
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+            $Hold {
+                hold_self: self,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op1 {
+    {
+        $(#[$attr_hold:meta])*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            hold_self: &'a Complex,
+            $($param: $T,)*
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, src: $Hold<'a>, round: Round2)
+                            -> Ordering2 {
+                ordering2(unsafe {
+                    $func(self.inner_mut(), src.hold_self.inner(),
+                          $(src.$param.into(),)* rraw2(round))
+                })
+            }
+        }
+    };
+}
+
+macro_rules! math_op1_2 {
+    {
+        $(#[$attr:meta])*
+        fn $method:ident($rop:ident $(, $param:ident: $T:ty)*);
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_hold:meta])*
+        fn $method_hold:ident -> $Hold:ident;
+        $func:path
+    } => {
+        $(#[$attr])*
+        pub fn $method(&mut self, $rop: &mut Complex $(, $param: $T)*) {
+            self.$method_round($rop, $($param,)* NEAREST);
+        }
+
+        $(#[$attr_round])*
+        pub fn $method_round(&mut self, $rop: &mut Complex,
+                             $($param: $T,)* round: Round2)
+                             -> (Ordering2, Ordering2) {
+            let ord = unsafe {
+                $func(self.inner_mut(), $rop.inner_mut(),
+                      self.inner(), $($param.into(),)*
+                      rraw2(round), rraw2(round))
+            };
+            (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
+        }
+
+        $(#[$attr_hold])*
+        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+            $Hold {
+                hold_self: self,
+                $($param: $param,)*
+            }
+        }
+    };
+}
+
+macro_rules! hold_math_op1_2 {
+    {
+        $(#[$attr_hold:meta])*
+        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $func:path
+    } => {
+        $(#[$attr_hold])*
+        #[derive(Clone, Copy)]
+        pub struct $Hold<'a> {
+            hold_self: &'a Complex,
+            $($param: $T,)*
+        }
+
+        impl<'a> Assign<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
+            fn assign(&mut self, other: $Hold<'a>) {
+                self.assign_round(other, NEAREST);
+            }
+        }
+
+        impl<'a> AssignRound<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
+            type Round = Round2;
+            type Ordering = (Ordering2, Ordering2);
+            fn assign_round(&mut self, src: $Hold<'a>) {
+                let ord = unsafe {
+                    $func(self.0.inner_mut(), self.1.inner_mut(),
+                          src.hold_self.inner(), $(src.$param.into(),)*
+                          rraw2(round), rraw2(round))
+                };
+                (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
+            }
+        }
+    };
+}
+
 impl Complex {
     /// Create a new complex number with the specified precisions for
     /// the real and imaginary parts and with value 0.
@@ -430,7 +563,15 @@ impl Complex {
         buf
     }
 
-    /// Borrows the real part.
+    /// Borrows the real part as a `Float`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// assert!(*c.real() == 12.5)
+    /// ```
     pub fn real(&self) -> &Float {
         unsafe {
             let ptr = mpc::realref(self.inner() as *const _ as *mut _);
@@ -438,7 +579,14 @@ impl Complex {
         }
     }
 
-    /// Borrows the imaginary part.
+    /// Borrows the imaginary part as a `Float`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// assert!(*c.imag() == -20.75)
     pub fn imag(&self) -> &Float {
         unsafe {
             let ptr = mpc::imagref(self.inner() as *const _ as *mut _);
@@ -451,18 +599,11 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugint;
     /// use rugcom::Complex;
-    /// use rugint::Assign;
-    ///
-    /// fn main() {
-    ///     let mut c = Complex::from(((1, 2), (53, 53)));
-    ///     assert!(c == (1, 2));
-    ///     c.mut_real().assign(12.5);
-    ///     *c.mut_imag() += 12;
-    ///     assert!(c == (12.5, 14));
-    /// }
+    /// let mut c = Complex::from(((12.5, -20.75), 53));
+    /// assert_eq!(c, (12.5, -20.75));
+    /// *c.mut_real() /= 2;
+    /// assert_eq!(c, (6.25, -20.75));
     /// ```
     pub fn mut_real(&mut self) -> &mut Float {
         unsafe {
@@ -473,7 +614,15 @@ impl Complex {
 
     /// Borrows the imaginary part mutably.
     ///
-    /// See the example for [`mut_real()`](#method.mut_real).
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let mut c = Complex::from(((12.5, -20.75), 53));
+    /// assert_eq!(c, (12.5, -20.75));
+    /// *c.mut_imag() *= 4;
+    /// assert_eq!(c, (12.5, -83));
+    /// ```
     pub fn mut_imag(&mut self) -> &mut Float {
         unsafe {
             let ptr = mpc::imagref(self.inner_mut());
@@ -482,6 +631,17 @@ impl Complex {
     }
 
     /// Borrows the real and imaginary parts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// assert_eq!(c, (12.5, -20.75));
+    /// let (re, im) = c.as_real_imag();
+    /// assert_eq!(*re, 12.5);
+    /// assert_eq!(*im, -20.75);
+    /// ```
     pub fn as_real_imag(&self) -> (&Float, &Float) {
         (self.real(), self.imag())
     }
@@ -493,15 +653,14 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     ///
-    /// let mut c = Complex::from(((1, 2), (53, 53)));
+    /// let mut c = Complex::from(((12.5, -20.75), 53));
     /// {
-    ///     let mut real_imag = c.as_mut_real_imag();
-    ///     *real_imag.0 += 3;
-    ///     *real_imag.1 += 4;
+    ///     let (real, imag) = c.as_mut_real_imag();
+    ///     *real /= 2;
+    ///     *imag *= 4;
     ///     // borrow ends here
     /// }
-    /// let (real, imag) = c.as_real_imag();
-    /// assert!(*real == 4 && *imag == 6);
+    /// assert_eq!(c, (6.25, -83));
     /// ```
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
@@ -513,6 +672,17 @@ impl Complex {
 
     /// Converts `self` into real and imaginary `Float` values,
     /// consuming `self`.
+    ///
+    /// This function reuses the allocated memory and does not
+    /// allocate any new memory.
+    ///
+    /// ```rust
+    /// use rugcom::Complex;
+    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// let (real, imag) = c.into_real_imag();
+    /// assert!(real == 12.5);
+    /// assert!(imag == -20.75);
+    /// ```
     pub fn into_real_imag(mut self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
         unsafe {
@@ -523,105 +693,49 @@ impl Complex {
         mem::forget(self);
         (real, imag)
     }
-}
 
-macro_rules! math_op1 {
-    {
-        $(#[$attr:meta])* fn $method:ident;
-        $(#[$attr_round:meta])* fn $method_round:ident;
-        $(#[$attr_hold:meta])* fn $method_hold:ident -> $Hold:ident;
-        $func:path $(, $param:ident: $T:ty)*
-    } => {
-        impl Complex {
-            $(#[$attr])*
-            pub fn $method(&mut self $(, $param: $T)*) -> &mut Complex {
-                self.$method_round($($param,)* NEAREST);
-                self
-            }
+    math_op1! {
+        /// Computes a projection onto the Riemann sphere, rounding to
+        /// the nearest.
+        fn proj();
+        /// Computes a projection onto the Riemann sphere, applying
+        /// the specified rounding method.
+        fn proj_round;
+        /// Holds a computation of the projection onto the Riemann
+        /// sphere.
+        fn proj_hold -> ProjHold;
+        mpc::proj
+    }
+    math_op1! {
+        /// Computes the square, rounding to the nearest.
+        fn square();
+        /// Computes the square, applying the specified rounding method.
+        fn square_round;
+        /// Holds the computation of the square.
+        fn square_hold -> SquareHold;
+        mpc::sqr
+    }
+    math_op1! {
+        /// Computes the square root, rounding to the nearest.
+        fn sqrt();
+        /// Computes the square root, applying the specified rounding
+        /// method.
+        fn sqrt_round;
+        /// Holds the computation of the square root.
+        fn sqrt_hold -> SqrtHold;
+        mpc::sqrt
+    }
+    math_op1! {
+        /// Computes the complex conjugate, rounding to the nearest.
+        fn conjugate();
+        /// Computes the complex conjugate, applying the specified
+        /// rounding method.
+        fn conjugate_round;
+        /// Holds the computation of the complex conjugate.
+        fn conjugate_hold -> ConjugateHold;
+        mpc::conj
+    }
 
-            $(#[$attr_round])*
-            pub fn $method_round(&mut self, $($param: $T,)* round: Round2)
-                                 -> Ordering2 {
-                ordering2(unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          $($param.into(),)* rraw2(round))
-                })
-            }
-
-            $(#[$attr_hold])*
-            pub fn $method_hold<'a>(&'a self $(, $param: $T)*) -> $Hold<'a> {
-                $Hold {
-                    val: self,
-                    $($param: $param,)*
-                }
-            }
-        }
-
-        $(#[$attr_hold])*
-        pub struct $Hold<'a> {
-            val: &'a Complex,
-            $($param: $T,)*
-        }
-
-        impl<'a> AssignRound<$Hold<'a>> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round2)
-                            -> Ordering2 {
-                ordering2(unsafe {
-                    $func(self.inner_mut(),
-                          src.val.inner(),
-                          $(src.$param.into(),)* rraw2(round))
-                })
-            }
-        }
-    };
-}
-
-math_op1! {
-    /// Computes a projection onto the Riemann sphere, rounding to the
-    /// nearest.
-    fn proj;
-    /// Computes a projection onto the Riemann sphere, applying the
-    /// specified rounding method.
-    fn proj_round;
-    /// Holds a computation of the projection onto the Riemann sphere.
-    fn proj_hold -> ProjHold;
-    mpc::proj
-}
-math_op1! {
-    /// Computes the square, rounding to the nearest.
-    fn square;
-    /// Computes the square, applying the specified rounding method.
-    fn square_round;
-    /// Holds the computation of the square.
-    fn square_hold -> SquareHold;
-    mpc::sqr
-}
-math_op1! {
-    /// Computes the square root, rounding to the nearest.
-    fn sqrt;
-    /// Computes the square root, applying the specified rounding
-    /// method.
-    fn sqrt_round;
-    /// Holds the computation of the square root.
-    fn sqrt_hold -> SqrtHold;
-    mpc::sqrt
-}
-math_op1! {
-    /// Computes the complex conjugate, rounding to the nearest.
-    fn conjugate;
-    /// Computes the complex conjugate, applying the specified
-    /// rounding method.
-    fn conjugate_round;
-    /// Holds the computation of the complex conjugate.
-    fn conjugate_hold -> ConjugateHold;
-    mpc::conj
-}
-
-impl Complex {
     /// Holds the computation of the absolute value.
     ///
     /// # Examples
@@ -633,33 +747,17 @@ impl Complex {
     /// use rugflo::{Float, Special};
     ///
     /// fn main() {
-    ///     let c1 = Complex::from(((30, 40), (53, 53)));
+    ///     let c1 = Complex::from(((30, 40), 53));
     ///     assert!(Float::from((c1.abs_hold(), 53)) == 50);
-    ///     let c2 = Complex::from(((12, Special::Infinity), (53, 53)));
+    ///     let c2 = Complex::from(((12, Special::Infinity), 53));
     ///     assert!(Float::from((c2.abs_hold(), 53)).is_infinite());
     /// }
     /// ```
     pub fn abs_hold<'a>(&'a self) -> AbsHold<'a> {
-        AbsHold { val: self }
+        AbsHold { hold_self: self }
     }
-}
 
-/// Holds the computation of the absolute value.
-pub struct AbsHold<'a> {
-    val: &'a Complex,
-}
-
-impl<'a> AssignRound<AbsHold<'a>> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    fn assign_round(&mut self, src: AbsHold<'a>, round: Round) -> Ordering {
-        unsafe { mpc::abs(self.inner_mut(), src.val.inner(), rraw(round)) }
-            .cmp(&0)
-    }
-}
-
-impl Complex {
-    /// Computes the argument, rounding to the nearest.
+    /// Holds the computation the argument.
     ///
     /// # Examples
     ///
@@ -675,19 +773,19 @@ impl Complex {
     /// fn main() {
     ///     // f has precision 53, just like f64, so PI constants match.
     ///     let mut arg = Float::new(53);
-    ///     let c_pos = Complex::from((1, (53, 53)));
+    ///     let c_pos = Complex::from((1, 53));
     ///     arg.assign(c_pos.arg_hold());
     ///     assert!(arg.is_zero());
-    ///     let c_neg = Complex::from((-1.3, (53, 53)));
+    ///     let c_neg = Complex::from((-1.3, 53));
     ///     arg.assign(c_neg.arg_hold());
     ///     assert!(arg == f64::consts::PI);
-    ///     let c_pi_4 = Complex::from(((1.333, 1.333), (53, 53)));
+    ///     let c_pi_4 = Complex::from(((1.333, 1.333), 53));
     ///     arg.assign(c_pi_4.arg_hold());
     ///     assert!(arg == f64::consts::FRAC_PI_4);
 
     ///     // Special values are handled like atan2 in IEEE 754-2008.
     ///     // Examples for real, imag set to plus, minus zero below:
-    ///     let mut zero = Complex::new((53, 53));
+    ///     let mut zero = Complex::new(53);
     ///     zero.assign((Special::Zero, Special::Zero));
     ///     arg.assign(zero.arg_hold());
     ///     assert!(arg.is_zero() && !arg.get_sign());
@@ -703,132 +801,85 @@ impl Complex {
     /// }
     /// ```
     pub fn arg_hold<'a>(&'a self) -> ArgHold<'a> {
-        ArgHold { val: self }
+        ArgHold { hold_self: self }
     }
-}
 
-/// Holds the computation of the argument.
-pub struct ArgHold<'a> {
-    val: &'a Complex,
-}
-
-impl<'a> AssignRound<ArgHold<'a>> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    fn assign_round(&mut self, src: ArgHold<'a>, round: Round) -> Ordering {
-        unsafe { mpc::arg(self.inner_mut(), src.val.inner(), rraw(round)) }
-            .cmp(&0)
+    math_op1! {
+        /// Multiplies the complex number by *i*, rounding to the nearest.
+        fn mul_i(negative: bool);
+        /// Multiplies the complex number by *i*, applying the specified
+        /// rounding method.
+        fn mul_i_round;
+        /// Holds the multiplicateion of the complex number by *i*.
+        fn mul_i_hold -> MulIHold;
+        mul_i
     }
-}
+    math_op1! {
+        /// Computes the reciprocal, rounding to the nearest.
+        fn recip();
+        /// Computes the reciprocal, applying the specified rounding
+        /// method.
+        fn recip_round;
+        /// Holds the computation of the reciprocal.
+        fn recip_hold -> RecipHold;
+        recip
+    }
 
-math_op1! {
-    /// Multiplies the complex number by *i*, rounding to the nearest.
-    fn mul_i;
-    /// Multiplies the complex number by *i*, applying the specified
-    /// rounding method.
-    fn mul_i_round;
-    /// Holds the multiplicateion of the complex number by *i*.
-    fn mul_i_hold -> MulIHold;
-    mul_i,
-    negative: bool
-}
-unsafe fn mul_i(rop: *mut mpc::mpc_t,
-                op: *const mpc::mpc_t,
-                neg: bool,
-                rnd: mpc::rnd_t)
-                -> c_int {
-    mpc::mul_i(rop, op, if neg { -1 } else { 0 }, rnd)
-}
-
-math_op1! {
-    /// Computes the reciprocal, rounding to the nearest.
-    fn recip;
-    /// Computes the reciprocal, applying the specified rounding
-    /// method.
-    fn recip_round;
-    /// Holds the computation of the reciprocal.
-    fn recip_hold -> RecipHold;
-    recip
-}
-unsafe fn recip(rop: *mut mpc::mpc_t,
-                op: *const mpc::mpc_t,
-                rnd: mpc::rnd_t)
-                -> c_int {
-    mpc::ui_div(rop, 1, op, rnd)
-}
-
-impl Complex {
-    /// Computes the norm, that is the square of the absolute value,
-    /// rounding to the nearest.
+    /// Holds the computation of the norm, that is the square of the
+    /// absolute value.
     pub fn norm_hold<'a>(&'a self) -> NormHold<'a> {
-        NormHold { val: self }
+        NormHold { hold_self: self }
     }
-}
 
-/// Holds the computation of the norm.
-pub struct NormHold<'a> {
-    val: &'a Complex,
-}
-
-impl<'a> AssignRound<NormHold<'a>> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    fn assign_round(&mut self, src: NormHold<'a>, round: Round) -> Ordering {
-        unsafe { mpc::norm(self.inner_mut(), src.val.inner(), rraw(round)) }
-            .cmp(&0)
+    math_op1! {
+        /// Computes the natural logarithm, rounding to the nearest.
+        fn ln();
+        /// Computes the natural logarithm, applying the specified
+        /// rounding method.
+        fn ln_round;
+        /// Holds the computation of the natural logarithm;
+        fn ln_hold -> LnHold;
+        mpc::log
     }
-}
+    math_op1! {
+        /// Computes the logarithm to base 10, rounding to the nearest.
+        fn log10();
+        /// Computes the logarithm to base 10, applying the specified
+        /// rounding method.
+        fn log10_round;
+        /// Holds the compuration of the logarithm to base 10.
+        fn log10_hold -> Log10Hold;
+        mpc::log10
+    }
+    math_op1! {
+        /// Computes the exponential, rounding to the nearest.
+        fn exp();
+        /// Computes the exponential, applying the specified rounding
+        /// method.
+        fn exp_round;
+        /// Holds the computation of the exponential.
+        fn exp_hold -> ExpHold;
+        mpc::exp
+    }
+    math_op1! {
+        /// Computes the sine, rounding to the nearest.
+        fn sin();
+        /// Computes the sine, applying the specified rounding method.
+        fn sin_round;
+        /// Holds the computation of the sine.
+        fn sin_hold -> SinHold;
+        mpc::sin
+    }
+    math_op1! {
+        /// Computes the cosine, rounding to the nearest.
+        fn cos();
+        /// Computes the cosine, applying the specified rounding method.
+        fn cos_round;
+        /// Holds the computation of the cosine.
+        fn cos_hold -> CosHold;
+        mpc::cos
+    }
 
-math_op1! {
-    /// Computes the natural logarithm, rounding to the nearest.
-    fn ln;
-    /// Computes the natural logarithm, applying the specified
-    /// rounding method.
-    fn ln_round;
-    /// Holds the computation of the natural logarithm;
-    fn ln_hold -> LnHold;
-    mpc::log
-}
-math_op1! {
-    /// Computes the logarithm to base 10, rounding to the nearest.
-    fn log10;
-    /// Computes the logarithm to base 10, applying the specified
-    /// rounding method.
-    fn log10_round;
-    /// Holds the compuration of the logarithm to base 10.
-    fn log10_hold -> Log10Hold;
-    mpc::log10
-}
-math_op1! {
-    /// Computes the exponential, rounding to the nearest.
-    fn exp;
-    /// Computes the exponential, applying the specified rounding
-    /// method.
-    fn exp_round;
-    /// Holds the computation of the exponential.
-    fn exp_hold -> ExpHold;
-    mpc::exp
-}
-math_op1! {
-    /// Computes the sine, rounding to the nearest.
-    fn sin;
-    /// Computes the sine, applying the specified rounding method.
-    fn sin_round;
-    /// Holds the computation of the sine.
-    fn sin_hold -> SinHold;
-    mpc::sin
-}
-math_op1! {
-    /// Computes the cosine, rounding to the nearest.
-    fn cos;
-    /// Computes the cosine, applying the specified rounding method.
-    fn cos_round;
-    /// Holds the computation of the cosine.
-    fn cos_hold -> CosHold;
-    mpc::cos
-}
-
-impl Complex {
     /// Computes the sine and cosine of `self`, rounding to the
     /// nearest. The sine is stored in `self` and keeps its precision,
     /// while the cosine is stored in `cos` keeping its precision.
@@ -905,111 +956,109 @@ impl Complex {
         };
         (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
     }
-}
 
-math_op1! {
-    /// Computes the tangent, rounding to the nearest.
-    fn tan;
-    /// Computes the tangent, applying the specified rounding method.
-    fn tan_round;
-    /// Holds the computation of the tangent.
-    fn tan_hold -> TanHold;
-    mpc::tan
-}
-math_op1! {
-    /// Computes the hyperbolic sine, rounding to the nearest.
-    fn sinh;
-    /// Computes the hyperbolic sine, applying the specified rounding
-    /// method.
-    fn sinh_round;
-    /// Holds the computation of the hyperbolic sine.
-    fn sinh_hold -> SinhHold;
-    mpc::sinh
-}
-math_op1! {
-    /// Computes the hyperbolic cosine, rounding to the nearest.
-    fn cosh;
-    /// Computes the hyperbolic cosine, applying the specified rounding
-    /// method.
-    fn cosh_round;
-    /// Holds the computation of the hyperbolic cosine.
-    fn cosh_hold -> CoshHold;
-    mpc::cosh
-}
-math_op1! {
-    /// Computes the hyperbolic tangent, rounding to the nearest.
-    fn tanh;
-    /// Computes the hyperbolic tangent, applying the specified
-    /// rounding method.
-    fn tanh_round;
-    /// Holds the computation of the hyperbolic tangent.
-    fn tanh_hold -> TanhHold;
-    mpc::tanh
-}
-math_op1! {
-    /// Computes the inverse sine, rounding to the nearest.
-    fn asin;
-    /// Computes the inverse sine, applying the specified rounding
-    /// method.
-    fn asin_round;
-    /// Holds the computation of the inverse sine.
-    fn asin_hold -> AsinHold;
-    mpc::asin
-}
-math_op1! {
-    /// Computes the inverse cosine, rounding to the nearest.
-    fn acos;
-    /// Computes the inverse cosine, applying the specified rounding
-    /// method.
-    fn acos_round;
-    /// Holds the computation of the inverse cosine.
-    fn acos_hold -> AcosHold;
-    mpc::acos
-}
-math_op1! {
-    /// Computes the inverse tangent, rounding to the nearest.
-    fn atan;
-    /// Computes the inverse tangent, applying the specified rounding
-    /// method.
-    fn atan_round;
-    /// Holds the computation of the inverse tangent.
-    fn atan_hold -> AtanHold;
-    mpc::atan
-}
-math_op1! {
-    /// Computes the inverse hyperbolic sine, rounding to the nearest.
-    fn asinh;
-    /// Computes the inverse hyperbolic sine, applying the specified
-    /// rounding method.
-    fn asinh_round;
-    /// Holds the computation of the inverse hyperboic sine.
-    fn asinh_hold -> AsinhHold;
-    mpc::asinh
-}
-math_op1! {
-    /// Computes the inverse hyperbolic cosine, rounding to the
-    /// nearest.
-    fn acosh;
-    /// Computes the inverse hyperbolic cosine, applying the specified
-    /// rounding method.
-    fn acosh_round;
-    /// Holds the computation of the inverse hyperbolic cosine.
-    fn acosh_hold -> AcoshHold;
-    mpc::acosh
-}
-math_op1! {
-    /// Computes the inverse hyperbolic tangent, rounding to the
-    /// nearest.
-    fn atanh;
-    /// Computes the inverse hyperbolic tangent, applying the
-    /// specified rounding method.
-    fn atanh_round;
-    /// Holds the computation of the inverse hyperbolic tangent.
-    fn atanh_hold -> AtanhHold;
-    mpc::atanh
-}
+    math_op1! {
+        /// Computes the tangent, rounding to the nearest.
+        fn tan();
+        /// Computes the tangent, applying the specified rounding method.
+        fn tan_round;
+        /// Holds the computation of the tangent.
+        fn tan_hold -> TanHold;
+        mpc::tan
+    }
+    math_op1! {
+        /// Computes the hyperbolic sine, rounding to the nearest.
+        fn sinh();
+        /// Computes the hyperbolic sine, applying the specified rounding
+        /// method.
+        fn sinh_round;
+        /// Holds the computation of the hyperbolic sine.
+        fn sinh_hold -> SinhHold;
+        mpc::sinh
+    }
+    math_op1! {
+        /// Computes the hyperbolic cosine, rounding to the nearest.
+        fn cosh();
+        /// Computes the hyperbolic cosine, applying the specified rounding
+        /// method.
+        fn cosh_round;
+        /// Holds the computation of the hyperbolic cosine.
+        fn cosh_hold -> CoshHold;
+        mpc::cosh
+    }
+    math_op1! {
+        /// Computes the hyperbolic tangent, rounding to the nearest.
+        fn tanh();
+        /// Computes the hyperbolic tangent, applying the specified
+        /// rounding method.
+        fn tanh_round;
+        /// Holds the computation of the hyperbolic tangent.
+        fn tanh_hold -> TanhHold;
+        mpc::tanh
+    }
+    math_op1! {
+        /// Computes the inverse sine, rounding to the nearest.
+        fn asin();
+        /// Computes the inverse sine, applying the specified rounding
+        /// method.
+        fn asin_round;
+        /// Holds the computation of the inverse sine.
+        fn asin_hold -> AsinHold;
+        mpc::asin
+    }
+    math_op1! {
+        /// Computes the inverse cosine, rounding to the nearest.
+        fn acos();
+        /// Computes the inverse cosine, applying the specified rounding
+        /// method.
+        fn acos_round;
+        /// Holds the computation of the inverse cosine.
+        fn acos_hold -> AcosHold;
+        mpc::acos
+    }
+    math_op1! {
+        /// Computes the inverse tangent, rounding to the nearest.
+        fn atan();
+        /// Computes the inverse tangent, applying the specified rounding
+        /// method.
+        fn atan_round;
+        /// Holds the computation of the inverse tangent.
+        fn atan_hold -> AtanHold;
+        mpc::atan
+    }
+    math_op1! {
+        /// Computes the inverse hyperbolic sine, rounding to the nearest.
+        fn asinh();
+        /// Computes the inverse hyperbolic sine, applying the specified
+        /// rounding method.
+        fn asinh_round;
+        /// Holds the computation of the inverse hyperboic sine.
+        fn asinh_hold -> AsinhHold;
+        mpc::asinh
+    }
+    math_op1! {
+        /// Computes the inverse hyperbolic cosine, rounding to the
+        /// nearest.
+        fn acosh();
+        /// Computes the inverse hyperbolic cosine, applying the specified
+        /// rounding method.
+        fn acosh_round;
+        /// Holds the computation of the inverse hyperbolic cosine.
+        fn acosh_hold -> AcoshHold;
+        mpc::acosh
+    }
+    math_op1! {
+        /// Computes the inverse hyperbolic tangent, rounding to the
+        /// nearest.
+        fn atanh();
+        /// Computes the inverse hyperbolic tangent, applying the
+        /// specified rounding method.
+        fn atanh_round;
+        /// Holds the computation of the inverse hyperbolic tangent.
+        fn atanh_hold -> AtanhHold;
+        mpc::atanh
+    }
 
-impl Complex {
     #[cfg(feature = "random")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
@@ -1078,7 +1127,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rugcom::Complex;
-    /// let mut c = Complex::new((53, 53));
+    /// let mut c = Complex::new(53);
     /// c.assign_str("(12.5e2 2.5e-1)").unwrap();
     /// assert!(*c.real() == 12.5e2);
     /// assert!(*c.imag() == 2.5e-1);
@@ -1096,7 +1145,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rugcom::Complex;
-    /// let mut c = Complex::new((53, 53));
+    /// let mut c = Complex::new(53);
     /// c.assign_str_radix("f.f", 16).unwrap();
     /// assert!(*c.real() == 15.9375);
     /// assert!(*c.imag() == 0);
@@ -1267,6 +1316,54 @@ impl<T, P: Prec> FromRound<T, P> for Complex
     }
 }
 
+impl Display for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
+    }
+}
+
+impl Debug for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", true)
+    }
+}
+
+impl LowerExp for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, false, "", false)
+    }
+}
+
+impl UpperExp for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 10, true, "", false)
+    }
+}
+
+impl Binary for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 2, false, "0b", false)
+    }
+}
+
+impl Octal for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 8, false, "0o", false)
+    }
+}
+
+impl LowerHex for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, false, "0x", false)
+    }
+}
+
+impl UpperHex for Complex {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        fmt_radix(self, f, 16, true, "0x", false)
+    }
+}
+
 impl<T> Assign<T> for Complex
     where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
 {
@@ -1275,25 +1372,69 @@ impl<T> Assign<T> for Complex
     }
 }
 
-impl<'a> AssignRound<&'a Complex> for Complex {
-    type Round = Round2;
-    type Ordering = Ordering2;
-
-    fn assign_round(&mut self, other: &Complex, round: Round2) -> Ordering2 {
-        let ord =
-            unsafe { mpc::set(self.inner_mut(), other.inner(), rraw2(round)) };
-        ordering2(ord)
-    }
-}
-
 impl AssignRound<Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
-
     fn assign_round(&mut self, other: Complex, round: Round2) -> Ordering2 {
         self.assign_round(&other, round)
     }
 }
+
+impl<'a> AssignRound<&'a Complex> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn assign_round(&mut self, other: &Complex, round: Round2) -> Ordering2 {
+        ordering2(unsafe {
+                      mpc::set(self.inner_mut(), other.inner(), rraw2(round))
+                  })
+    }
+}
+
+macro_rules! assign_ref {
+    { $T:ty } => {
+        impl<'a> AssignRound<&'a $T> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, other: &'a $T, round: Round2)
+                            -> Ordering2 {
+                let (real, imag) = self.as_mut_real_imag();
+                let ord1 = real.assign_round(other, round.0);
+                let ord2 = imag.assign_round(0, round.1);
+                (ord1, ord2)
+            }
+        }
+    };
+}
+
+macro_rules! assign {
+    { $T:ty } => {
+        impl AssignRound<$T> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            fn assign_round(&mut self, other: $T, round: Round2) -> Ordering2 {
+                let (real, imag) = self.as_mut_real_imag();
+                let ord1 = real.assign_round(other, round.0);
+                let ord2 = imag.assign_round(0, round.1);
+                (ord1, ord2)
+            }
+        }
+    };
+}
+
+assign_ref! { Integer }
+assign_ref! { Rational }
+assign_ref! { Float }
+assign! { Integer }
+assign! { Rational }
+assign! { Float }
+assign! { Special }
+assign! { Constant }
+assign! { i32 }
+assign! { i64 }
+assign! { u32 }
+assign! { u64 }
+assign! { f32 }
+assign! { f64 }
 
 impl<T, U> AssignRound<(T, U)> for Complex
     where Float: AssignRound<T, Round = Round, Ordering = Ordering>,
@@ -1309,44 +1450,89 @@ impl<T, U> AssignRound<(T, U)> for Complex
     }
 }
 
-macro_rules! assign_ref {
-    { $($T:ty)* } => {
-        $(
-            impl<'a> AssignRound<&'a $T> for Complex {
-                type Round = Round2;
-                type Ordering = Ordering2;
-                fn assign_round(&mut self, other: &'a $T, round: Round2)
-                                -> Ordering2 {
-                    let (real, imag) = self.as_mut_real_imag();
-                    let ord1 = real.assign_round(other, round.0);
-                    let ord2 = imag.assign_round(0, round.1);
-                    (ord1, ord2)
-                }
-            }
-        )*
-    };
+hold_math_op1! { struct ProjHold {}; mpc::proj }
+hold_math_op1! { struct SquareHold {}; mpc::sqr }
+hold_math_op1! { struct SqrtHold {}; mpc::sqrt }
+hold_math_op1! { struct ConjugateHold {}; mpc::conj }
+
+pub struct AbsHold<'a> {
+    hold_self: &'a Complex,
 }
 
-macro_rules! assign {
-    { $($T:ty)* } => {
-        $(
-            impl AssignRound<$T> for Complex {
-                type Round = Round2;
-                type Ordering = Ordering2;
-                fn assign_round(&mut self, other: $T, round: Round2)
-                                -> Ordering2 {
-                    let (real, imag) = self.as_mut_real_imag();
-                    let ord1 = real.assign_round(other, round.0);
-                    let ord2 = imag.assign_round(0, round.1);
-                    (ord1, ord2)
-                }
+impl<'a> AssignRound<AbsHold<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: AbsHold<'a>, round: Round) -> Ordering {
+        unsafe {
+                mpc::abs(self.inner_mut(), src.hold_self.inner(), rraw(round))
             }
-        )*
-    };
+            .cmp(&0)
+    }
 }
 
-assign_ref! { Integer Rational Float }
-assign! { Integer Rational Float Special Constant u32 i32 f64 f32 }
+pub struct ArgHold<'a> {
+    hold_self: &'a Complex,
+}
+
+impl<'a> AssignRound<ArgHold<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: ArgHold<'a>, round: Round) -> Ordering {
+        unsafe {
+                mpc::arg(self.inner_mut(), src.hold_self.inner(), rraw(round))
+            }
+            .cmp(&0)
+    }
+}
+
+hold_math_op1! { struct MulIHold { negative: bool }; mul_i }
+hold_math_op1! { struct RecipHold {}; recip }
+
+pub struct NormHold<'a> {
+    hold_self: &'a Complex,
+}
+
+impl<'a> AssignRound<NormHold<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: NormHold<'a>, round: Round) -> Ordering {
+        unsafe {
+                mpc::norm(self.inner_mut(), src.hold_self.inner(), rraw(round))
+            }
+            .cmp(&0)
+    }
+}
+
+hold_math_op1! { struct LnHold {}; mpc::log }
+hold_math_op1! { struct Log10Hold {}; mpc::log10 }
+hold_math_op1! { struct ExpHold {}; mpc::exp }
+hold_math_op1! { struct SinHold {}; mpc::sin }
+hold_math_op1! { struct CosHold {}; mpc::cos }
+/////// SinCosHold
+hold_math_op1! { struct TanHold {}; mpc::tan }
+hold_math_op1! { struct SinhHold {}; mpc::sinh }
+hold_math_op1! { struct CoshHold {}; mpc::cosh }
+hold_math_op1! { struct TanhHold {}; mpc::tanh }
+hold_math_op1! { struct AsinHold {}; mpc::asin }
+hold_math_op1! { struct AcosHold {}; mpc::acos }
+hold_math_op1! { struct AtanHold {}; mpc::atan }
+hold_math_op1! { struct AsinhHold {}; mpc::asinh }
+hold_math_op1! { struct AcoshHold {}; mpc::acosh }
+hold_math_op1! { struct AtanhHold {}; mpc::atanh }
+
+unsafe fn mul_i(rop: *mut mpc::mpc_t,
+                op: *const mpc::mpc_t,
+                neg: bool,
+                rnd: mpc::rnd_t)
+                -> c_int {
+    mpc::mul_i(rop, op, if neg { -1 } else { 0 }, rnd)
+}
+unsafe fn recip(rop: *mut mpc::mpc_t,
+                op: *const mpc::mpc_t,
+                rnd: mpc::rnd_t)
+                -> c_int {
+    mpc::ui_div(rop, 1, op, rnd)
+}
 
 impl Neg for Complex {
     type Output = Complex;
@@ -2420,55 +2606,6 @@ fn fmt_float(buf: &mut String,
     buf.push_str(if s.starts_with('-') { &s[1..] } else { &s });
 }
 
-impl Display for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
-    }
-}
-
-impl Debug for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", true)
-    }
-}
-
-impl LowerExp for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
-    }
-}
-
-impl UpperExp for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, true, "", false)
-    }
-}
-
-impl Binary for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b", false)
-    }
-}
-
-impl Octal for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o", false)
-    }
-}
-
-impl LowerHex for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x", false)
-    }
-}
-
-impl UpperHex for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x", false)
-    }
-}
-
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// An error which can be returned when parsing a `Complex` number.
 pub struct ParseComplexError {
@@ -2647,7 +2784,7 @@ impl<'a, T> Inner for OwnBorrow<'a, T>
 /// ```rust
 /// use rugcom::{Complex, SmallComplex};
 /// // `a` requires a heap allocation
-/// let mut a = Complex::from(((1, 2), (53, 53)));
+/// let mut a = Complex::from(((1, 2), 53));
 /// // `b` can reside on the stack
 /// let b = SmallComplex::from((-10f64, -20.5f64));
 /// a += &*b;
