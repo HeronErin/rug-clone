@@ -218,7 +218,7 @@ macro_rules! math_op2 {
                        -> &mut Integer {
             unsafe {
                 $func(self.inner_mut(), self.inner(),
-                      $op.inner() $(, $param.into(),)*);
+                      $op.inner() $(, $param.into())*);
             }
             self
         }
