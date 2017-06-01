@@ -2164,26 +2164,6 @@ unsafe fn yn(rop: *mut mpfr_t,
     mpfr::yn(rop, n.into(), op, rnd)
 }
 
-impl<T> From<(T, i32)> for Float
-    where Float: From<(T, u32)>
-{
-    fn from((t, prec): (T, i32)) -> Float {
-        assert!(prec >= prec_min() as i32, "precision out of range");
-        Float::from((t, prec as u32))
-    }
-}
-
-impl<T> FromRound<T, i32> for Float
-    where Float: FromRound<T, u32, Round = Round, Ordering = Ordering>
-{
-    type Round = Round;
-    type Ordering = Ordering;
-    fn from_round(t: T, prec: i32, round: Round) -> (Float, Ordering) {
-        assert!(prec >= prec_min() as i32, "precision out of range");
-        Float::from_round(t, prec as u32, round)
-    }
-}
-
 impl<T> From<(T, u32)> for Float
     where Float: FromRound<T, u32, Round = Round>
 {
@@ -3202,6 +3182,25 @@ macro_rules! conv_ops {
 }
 
 conv_ops! {
+    (i32, mpfr::set_si),
+    (AddHoldI32 mpfr::add_si,
+     SubHoldI32 mpfr::sub_si,
+     SubFromHoldI32 mpfr::si_sub),
+    (MulHoldI32 mpfr::mul_si,
+     DivHoldI32 mpfr::div_si,
+     DivFromHoldI32 mpfr::si_div)
+}
+
+impl AssignRound<i64> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, other: i64, round: Round) -> Ordering {
+        let small = SmallFloat::from(other);
+        self.assign_round(&*small, round)
+    }
+}
+
+conv_ops! {
     (u32, mpfr::set_ui),
     (AddHoldU32 mpfr::add_ui,
      SubHoldU32 mpfr::sub_ui,
@@ -3210,14 +3209,24 @@ conv_ops! {
      DivHoldU32 mpfr::div_ui,
      DivFromHoldU32 mpfr::ui_div)
 }
+
+impl AssignRound<u64> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, other: u64, round: Round) -> Ordering {
+        let small = SmallFloat::from(other);
+        self.assign_round(&*small, round)
+    }
+}
+
 conv_ops! {
-    (i32, mpfr::set_si),
-    (AddHoldI32 mpfr::add_si,
-     SubHoldI32 mpfr::sub_si,
-     SubFromHoldI32 mpfr::si_sub),
-    (MulHoldI32 mpfr::mul_si,
-     DivHoldI32 mpfr::div_si,
-     DivFromHoldI32 mpfr::si_div)
+    (f32, set_single),
+    (AddHoldF32 add_single,
+     SubHoldF32 sub_single,
+     SubFromHoldF32 single_sub),
+    (MulHoldF32 mul_single,
+     DivHoldF32 div_single,
+     DivFromHoldF32 single_div)
 }
 conv_ops! {
     (f64, mpfr::set_d),
@@ -3227,15 +3236,6 @@ conv_ops! {
     (MulHoldF64 mpfr::mul_d,
      DivHoldF64 mpfr::div_d,
      DivFromHoldF64 mpfr::d_div)
-}
-conv_ops! {
-    (f32, set_single),
-    (AddHoldF32 add_single,
-     SubHoldF32 sub_single,
-     SubFromHoldF32 single_sub),
-    (MulHoldF32 mul_single,
-     DivHoldF32 div_single,
-     DivFromHoldF32 single_div)
 }
 
 arith_prim! {
