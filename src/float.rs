@@ -3722,7 +3722,7 @@ impl<'a, T> Inner for OwnBorrow<'a, T>
 /// ```
 pub struct SmallFloat {
     inner: Mpfr,
-    limb: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+    limbs: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
 }
 
 const LIMBS_IN_SMALL_FLOAT: usize = 64 / gmp::LIMB_BITS as usize;
@@ -3745,13 +3745,16 @@ impl SmallFloat {
     /// Creates a `SmallFloat` with value 0.
     pub fn new() -> SmallFloat {
         unsafe {
-            let mut ret: SmallFloat = mem::uninitialized();
-            mpfr::custom_init(&mut ret.limb[0] as *mut _ as *mut _, 64);
+            let mut ret = SmallFloat {
+                inner: mem::uninitialized(),
+                limbs: [0; LIMBS_IN_SMALL_FLOAT],
+            };
+            mpfr::custom_init(&mut ret.limbs[0] as *mut _ as *mut _, 64);
             mpfr::custom_init_set(&mut ret.inner as *mut _ as *mut _,
                                   mpfr::ZERO_KIND,
                                   0,
                                   64,
-                                  &mut ret.limb[0] as *mut _ as *mut _);
+                                  &mut ret.limbs[0] as *mut _ as *mut _);
             ret
         }
     }
@@ -3761,7 +3764,7 @@ impl SmallFloat {
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr_t>());
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
-        let d = &self.limb[0] as *const _ as *mut _;
+        let d = &self.limbs[0] as *const _ as *mut _;
         self.inner.d.store(d, AtomicOrdering::Relaxed);
     }
 }
@@ -3814,7 +3817,7 @@ impl Assign<i64> for SmallFloat {
 impl Assign<u32> for SmallFloat {
     fn assign(&mut self, val: u32) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limb[0] as *mut _ as *mut _;
+        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
             mpfr::custom_init(limb_ptr, 32);
         }
@@ -3828,7 +3831,7 @@ impl Assign<u32> for SmallFloat {
         match gmp::LIMB_BITS {
             64 | 32 => {
                 let limb_leading = leading + gmp::LIMB_BITS as u32 - 32;
-                self.limb[0] = (val as gmp::limb_t) << limb_leading;
+                self.limbs[0] = (val as gmp::limb_t) << limb_leading;
             }
             _ => unreachable!(),
         }
@@ -3845,7 +3848,7 @@ impl Assign<u32> for SmallFloat {
 impl Assign<u64> for SmallFloat {
     fn assign(&mut self, val: u64) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limb[0] as *mut _ as *mut _;
+        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
             mpfr::custom_init(limb_ptr, 64);
         }
@@ -3858,12 +3861,12 @@ impl Assign<u64> for SmallFloat {
         let leading = val.leading_zeros();
         match gmp::LIMB_BITS {
             64 => {
-                self.limb[0] = (val as gmp::limb_t) << leading;
+                self.limbs[0] = (val as gmp::limb_t) << leading;
             }
             32 => {
                 let sval = val << leading;
-                self.limb[0] = sval as u32 as gmp::limb_t;
-                self.limb[1 + 0] = (sval >> 32) as u32 as gmp::limb_t;
+                self.limbs[0] = sval as u32 as gmp::limb_t;
+                self.limbs[1 + 0] = (sval >> 32) as u32 as gmp::limb_t;
             }
             _ => unreachable!(),
         }
@@ -3880,7 +3883,7 @@ impl Assign<u64> for SmallFloat {
 impl Assign<f32> for SmallFloat {
     fn assign(&mut self, val: f32) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limb[0] as *mut _ as *mut _;
+        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
             mpfr::custom_init(limb_ptr, 24);
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
@@ -3892,7 +3895,7 @@ impl Assign<f32> for SmallFloat {
 impl Assign<f64> for SmallFloat {
     fn assign(&mut self, val: f64) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limb[0] as *mut _ as *mut _;
+        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
             mpfr::custom_init(limb_ptr, 53);
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 53, limb_ptr);
