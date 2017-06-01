@@ -48,38 +48,9 @@ pub trait Prec {
     fn prec(self) -> (u32, u32);
 }
 
-impl Prec for i32 {
-    fn prec(self) -> (u32, u32) {
-        assert!(self >= 0, "negative precision");
-        (self as u32, self as u32)
-    }
-}
-
 impl Prec for u32 {
     fn prec(self) -> (u32, u32) {
         (self, self)
-    }
-}
-
-impl Prec for (i32, i32) {
-    fn prec(self) -> (u32, u32) {
-        assert!(self.0 >= 0, "negative precision");
-        assert!(self.1 >= 0, "negative precision");
-        (self.0 as u32, self.1 as u32)
-    }
-}
-
-impl Prec for (i32, u32) {
-    fn prec(self) -> (u32, u32) {
-        assert!(self.0 >= 0, "negative precision");
-        (self.0 as u32, self.1)
-    }
-}
-
-impl Prec for (u32, i32) {
-    fn prec(self) -> (u32, u32) {
-        assert!(self.1 >= 0, "negative precision");
-        (self.0, self.1 as u32)
     }
 }
 
@@ -148,7 +119,7 @@ impl Complex {
     /// use rugcom::Complex;
     /// let r1 = Complex::new(32);
     /// assert!(r1.prec() == (32, 32));
-    /// let r2 = Complex::new((32_i32, 64_u32));
+    /// let r2 = Complex::new((32, 64));
     /// assert!(r2.prec() == (32, 64));
     /// ```
     ///
@@ -178,7 +149,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rugcom::Complex;
-    /// let r = Complex::new((24_i32, 53_u32));
+    /// let r = Complex::new((24, 53));
     /// assert!(r.prec() == (24, 53));
     /// ```
     pub fn prec(&self) -> (u32, u32) {
