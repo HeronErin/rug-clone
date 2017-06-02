@@ -100,9 +100,9 @@ pub enum Round {
     /// // 28 is 11100 in binary
     /// let mut f4 = Float::new(4);
     /// f4.assign_round(25, Round::Nearest);
-    /// assert!(f4 == 24);
+    /// assert_eq!(f4, 24);
     /// f4.assign_round(27, Round::Nearest);
-    /// assert!(f4 == 28);
+    /// assert_eq!(f4, 28);
     /// ```
     Nearest,
     /// Round towards zero.
@@ -137,10 +137,10 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 /// let euler = Float::from((Constant::Euler, 53));
 /// let catalan = Float::from((Constant::Catalan, 53));
 ///
-/// assert!(log2.to_string_radix(10, Some(5)) == "6.9315e-1");
-/// assert!(pi.to_string_radix(10, Some(5)) == "3.1416e0");
-/// assert!(euler.to_string_radix(10, Some(5)) == "5.7722e-1");
-/// assert!(catalan.to_string_radix(10, Some(5)) == "9.1597e-1");
+/// assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
+/// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416e0");
+/// assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
+/// assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
 /// ```
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Constant {
@@ -583,12 +583,12 @@ impl Float {
     ///     // Since the precision is 16 bits, this becomes
     ///     // 1101_0000_0000_0000 times two to the power of -12
     ///     let (int, exp) = float.to_integer_exp().unwrap();
-    ///     assert!(int == 0b1101_0000_0000_0000);
-    ///     assert!(exp == -13);
+    ///     assert_eq!(int, 0b1101_0000_0000_0000);
+    ///     assert_eq!(exp, -13);
     ///
     ///     float.assign(0);
     ///     let (zero, _) = float.to_integer_exp().unwrap();
-    ///     assert!(zero == 0);
+    ///     assert_eq!(zero, 0);
     ///
     ///     float.assign(Special::Infinity);
     ///     assert!(float.to_integer_exp().is_none());
@@ -621,17 +621,17 @@ impl Float {
     ///     // Consider the number 123,456,789 / 10,000,000,000.
     ///     let res = Float::from_str_round("0.0123456789", 35, Round::Down);
     ///     let (f, f_rounding) = res.unwrap();
-    ///     assert!(f_rounding == Ordering::Less);
+    ///     assert_eq!(f_rounding, Ordering::Less);
     ///     let r = Rational::from_str("123456789/10000000000").unwrap();
     ///     // Set fr to the value of f exactly.
     ///     let fr = f.to_rational().unwrap();
     ///     // Since f == fr and f was rounded down, r != fr.
-    ///     assert!(r != fr);
+    ///     assert_ne!(r, fr);
     ///     let res = Float::from_round(&fr, 35, Round::Down);
     ///     let (frf, frf_rounding) = res;
-    ///     assert!(frf_rounding == Ordering::Equal);
-    ///     assert!(frf == f);
-    ///     assert!(format!("{:.9}", frf) == "1.23456789e-2");
+    ///     assert_eq!(frf_rounding, Ordering::Equal);
+    ///     assert_eq!(frf, f);
+    ///     assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
     /// }
     /// ```
     ///
@@ -646,10 +646,10 @@ impl Float {
     /// let small_f = Float::from((-0.125, 16));
     /// let small_r = small_f.to_rational().unwrap();
     ///
-    /// assert!(*large_r.numer() == 13);
-    /// assert!(*large_r.denom() == 2);
-    /// assert!(*small_r.numer() == -1);
-    /// assert!(*small_r.denom() == 8);
+    /// assert_eq!(*large_r.numer(), 13);
+    /// assert_eq!(*large_r.denom(), 2);
+    /// assert_eq!(*small_r.numer(), -1);
+    /// assert_eq!(*small_r.denom(), 8);
     /// ```
     pub fn to_rational(&self) -> Option<Rational> {
         self.to_integer_exp()
@@ -754,13 +754,13 @@ impl Float {
     /// ```rust
     /// use rugflo::{Float, Special};
     /// let neg_inf = Float::from((Special::MinusInfinity, 53));
-    /// assert!(neg_inf.to_string_radix(10, None) == "-inf");
-    /// assert!(neg_inf.to_string_radix(16, None) == "-@inf@");
+    /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
+    /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
     /// let fifteen = Float::from((15, 8));
-    /// assert!(fifteen.to_string_radix(10, None) == "1.500e1");
-    /// assert!(fifteen.to_string_radix(16, None) == "f.00@0");
-    /// assert!(fifteen.to_string_radix(10, Some(2)) == "1.5e1");
-    /// assert!(fifteen.to_string_radix(16, Some(4)) == "f.000@0");
+    /// assert_eq!(fifteen.to_string_radix(10, None), "1.500e1");
+    /// assert_eq!(fifteen.to_string_radix(16, None), "f.00@0");
+    /// assert_eq!(fifteen.to_string_radix(10, Some(2)), "1.5e1");
+    /// assert_eq!(fifteen.to_string_radix(16, Some(4)), "f.000@0");
     /// ```
     ///
     /// # Panics
@@ -799,7 +799,7 @@ impl Float {
     /// use rugflo::Float;
     /// let mut f = Float::new(53);
     /// f.assign_str("12.5e2").unwrap();
-    /// assert!(f == 12.5e2);
+    /// assert_eq!(f, 12.5e2);
     /// let ret = f.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
@@ -817,8 +817,8 @@ impl Float {
     /// use std::cmp::Ordering;
     /// let mut f = Float::new(4);
     /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
-    /// assert!(f == 14);
-    /// assert!(dir == Ordering::Less);
+    /// assert_eq!(f, 14);
+    /// assert_eq!(dir, Ordering::Less);
     /// ```
     pub fn assign_str_round(&mut self,
                             src: &str,
@@ -836,7 +836,7 @@ impl Float {
     /// use rugflo::Float;
     /// let mut f = Float::new(53);
     /// f.assign_str_radix("f.f", 16).unwrap();
-    /// assert!(f == 15.9375);
+    /// assert_eq!(f, 15.9375);
     /// ```
     ///
     /// # Panics
@@ -860,8 +860,8 @@ impl Float {
     /// use std::cmp::Ordering;
     /// let mut f = Float::new(4);
     /// let dir = f.assign_str_radix_round("e.c", 16, Round::Up).unwrap();
-    /// assert!(f == 15);
-    /// assert!(dir == Ordering::Greater);
+    /// assert_eq!(f, 15);
+    /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
     /// # Panics
@@ -1862,7 +1862,7 @@ impl Float {
     ///     let mut f = Float::new(2);
     ///     let dir = f.assign_random_cont_round(&mut rng, Round::Nearest);
     ///     // We cannot have an exact value without rounding.
-    ///     assert!(dir != Ordering::Equal);
+    ///     assert_ne!(dir, Ordering::Equal);
     ///     // The significand is either 0b10 or 0b11
     ///     //           10          11
     ///     assert!(f == 1.0 || f == 0.75 ||
@@ -3576,10 +3576,10 @@ impl<'a, T> Inner for OwnBorrow<'a, T>
 /// // `b` can reside on the stack
 /// let b = SmallFloat::from(-100f64);
 /// a += &*b;
-/// assert!(a == 150);
+/// assert_eq!(a, 150);
 /// // another computation:
 /// a *= &*b;
-/// assert!(a == -15000);
+/// assert_eq!(a, -15000);
 /// ```
 pub struct SmallFloat {
     inner: Mpfr,
@@ -3792,60 +3792,60 @@ mod tests {
         let pi = -15_i32;
         let ps = 31.625_f32;
         let pd = -1.5_f64;
-        assert!(Float::from((-&lhs, 53)) == -lhs.clone());
-        assert!(Float::from((&lhs + &rhs, 53)) == lhs.clone() + &rhs);
-        assert!(Float::from((&lhs - &rhs, 53)) == lhs.clone() - &rhs);
-        assert!(Float::from((&lhs * &rhs, 53)) == lhs.clone() * &rhs);
-        assert!(Float::from((&lhs / &rhs, 53)) == lhs.clone() / &rhs);
-        assert!(Float::from(((&lhs).pow(&rhs), 53)) == lhs.clone().pow(&rhs));
+        assert_eq!(Float::from((-&lhs, 53)), -lhs.clone());
+        assert_eq!(Float::from((&lhs + &rhs, 53)), lhs.clone() + &rhs);
+        assert_eq!(Float::from((&lhs - &rhs, 53)), lhs.clone() - &rhs);
+        assert_eq!(Float::from((&lhs * &rhs, 53)), lhs.clone() * &rhs);
+        assert_eq!(Float::from((&lhs / &rhs, 53)), lhs.clone() / &rhs);
+        assert_eq!(Float::from(((&lhs).pow(&rhs), 53)), lhs.clone().pow(&rhs));
 
-        assert!(Float::from((&lhs + pu, 53)) == lhs.clone() + pu);
-        assert!(Float::from((&lhs - pu, 53)) == lhs.clone() - pu);
-        assert!(Float::from((&lhs * pu, 53)) == lhs.clone() * pu);
-        assert!(Float::from((&lhs / pu, 53)) == lhs.clone() / pu);
-        assert!(Float::from((&lhs << pu, 53)) == lhs.clone() << pu);
-        assert!(Float::from((&lhs >> pu, 53)) == lhs.clone() >> pu);
-        assert!(Float::from(((&lhs).pow(pu), 53)) == lhs.clone().pow(pu));
+        assert_eq!(Float::from((&lhs + pu, 53)), lhs.clone() + pu);
+        assert_eq!(Float::from((&lhs - pu, 53)), lhs.clone() - pu);
+        assert_eq!(Float::from((&lhs * pu, 53)), lhs.clone() * pu);
+        assert_eq!(Float::from((&lhs / pu, 53)), lhs.clone() / pu);
+        assert_eq!(Float::from((&lhs << pu, 53)), lhs.clone() << pu);
+        assert_eq!(Float::from((&lhs >> pu, 53)), lhs.clone() >> pu);
+        assert_eq!(Float::from(((&lhs).pow(pu), 53)), lhs.clone().pow(pu));
 
-        assert!(Float::from((pu + &lhs, 53)) == pu + lhs.clone());
-        assert!(Float::from((pu - &lhs, 53)) == pu - lhs.clone());
-        assert!(Float::from((pu * &lhs, 53)) == pu * lhs.clone());
-        assert!(Float::from((pu / &lhs, 53)) == pu / lhs.clone());
-        assert!(Float::from((Pow::pow(pu, &lhs), 53)) ==
-                Pow::pow(pu, lhs.clone()));
+        assert_eq!(Float::from((pu + &lhs, 53)), pu + lhs.clone());
+        assert_eq!(Float::from((pu - &lhs, 53)), pu - lhs.clone());
+        assert_eq!(Float::from((pu * &lhs, 53)), pu * lhs.clone());
+        assert_eq!(Float::from((pu / &lhs, 53)), pu / lhs.clone());
+        assert_eq!(Float::from((Pow::pow(pu, &lhs), 53)),
+                   Pow::pow(pu, lhs.clone()));
 
-        assert!(Float::from((&lhs + pi, 53)) == lhs.clone() + pi);
-        assert!(Float::from((&lhs - pi, 53)) == lhs.clone() - pi);
-        assert!(Float::from((&lhs * pi, 53)) == lhs.clone() * pi);
-        assert!(Float::from((&lhs / pi, 53)) == lhs.clone() / pi);
-        assert!(Float::from((&lhs << pi, 53)) == lhs.clone() << pi);
-        assert!(Float::from((&lhs >> pi, 53)) == lhs.clone() >> pi);
-        assert!(Float::from(((&lhs).pow(pi), 53)) == lhs.clone().pow(pi));
+        assert_eq!(Float::from((&lhs + pi, 53)), lhs.clone() + pi);
+        assert_eq!(Float::from((&lhs - pi, 53)), lhs.clone() - pi);
+        assert_eq!(Float::from((&lhs * pi, 53)), lhs.clone() * pi);
+        assert_eq!(Float::from((&lhs / pi, 53)), lhs.clone() / pi);
+        assert_eq!(Float::from((&lhs << pi, 53)), lhs.clone() << pi);
+        assert_eq!(Float::from((&lhs >> pi, 53)), lhs.clone() >> pi);
+        assert_eq!(Float::from(((&lhs).pow(pi), 53)), lhs.clone().pow(pi));
 
-        assert!(Float::from((pi + &lhs, 53)) == pi + lhs.clone());
-        assert!(Float::from((pi - &lhs, 53)) == pi - lhs.clone());
-        assert!(Float::from((pi * &lhs, 53)) == pi * lhs.clone());
-        assert!(Float::from((pi / &lhs, 53)) == pi / lhs.clone());
+        assert_eq!(Float::from((pi + &lhs, 53)), pi + lhs.clone());
+        assert_eq!(Float::from((pi - &lhs, 53)), pi - lhs.clone());
+        assert_eq!(Float::from((pi * &lhs, 53)), pi * lhs.clone());
+        assert_eq!(Float::from((pi / &lhs, 53)), pi / lhs.clone());
 
-        assert!(Float::from((&lhs + ps, 53)) == lhs.clone() + ps);
-        assert!(Float::from((&lhs - ps, 53)) == lhs.clone() - ps);
-        assert!(Float::from((&lhs * ps, 53)) == lhs.clone() * ps);
-        assert!(Float::from((&lhs / ps, 53)) == lhs.clone() / ps);
+        assert_eq!(Float::from((&lhs + ps, 53)), lhs.clone() + ps);
+        assert_eq!(Float::from((&lhs - ps, 53)), lhs.clone() - ps);
+        assert_eq!(Float::from((&lhs * ps, 53)), lhs.clone() * ps);
+        assert_eq!(Float::from((&lhs / ps, 53)), lhs.clone() / ps);
 
-        assert!(Float::from((ps + &lhs, 53)) == ps + lhs.clone());
-        assert!(Float::from((ps - &lhs, 53)) == ps - lhs.clone());
-        assert!(Float::from((ps * &lhs, 53)) == ps * lhs.clone());
-        assert!(Float::from((ps / &lhs, 53)) == ps / lhs.clone());
+        assert_eq!(Float::from((ps + &lhs, 53)), ps + lhs.clone());
+        assert_eq!(Float::from((ps - &lhs, 53)), ps - lhs.clone());
+        assert_eq!(Float::from((ps * &lhs, 53)), ps * lhs.clone());
+        assert_eq!(Float::from((ps / &lhs, 53)), ps / lhs.clone());
 
-        assert!(Float::from((&lhs + pd, 53)) == lhs.clone() + pd);
-        assert!(Float::from((&lhs - pd, 53)) == lhs.clone() - pd);
-        assert!(Float::from((&lhs * pd, 53)) == lhs.clone() * pd);
-        assert!(Float::from((&lhs / pd, 53)) == lhs.clone() / pd);
+        assert_eq!(Float::from((&lhs + pd, 53)), lhs.clone() + pd);
+        assert_eq!(Float::from((&lhs - pd, 53)), lhs.clone() - pd);
+        assert_eq!(Float::from((&lhs * pd, 53)), lhs.clone() * pd);
+        assert_eq!(Float::from((&lhs / pd, 53)), lhs.clone() / pd);
 
-        assert!(Float::from((pd + &lhs, 53)) == pd + lhs.clone());
-        assert!(Float::from((pd - &lhs, 53)) == pd - lhs.clone());
-        assert!(Float::from((pd * &lhs, 53)) == pd * lhs.clone());
-        assert!(Float::from((pd / &lhs, 53)) == pd / lhs.clone());
+        assert_eq!(Float::from((pd + &lhs, 53)), pd + lhs.clone());
+        assert_eq!(Float::from((pd - &lhs, 53)), pd - lhs.clone());
+        assert_eq!(Float::from((pd * &lhs, 53)), pd * lhs.clone());
+        assert_eq!(Float::from((pd / &lhs, 53)), pd / lhs.clone());
     }
 
     #[test]
@@ -4015,44 +4015,44 @@ mod tests {
                             ("-abc.def@3", 16, -0xabcdef as f64),
                             ("1e1023", 2, 2.0f64.powi(1023))];
         for &(s, radix, f) in good_strings.into_iter() {
-            assert!(Float::from_str_radix(s, radix, 53).unwrap() == f);
+            assert_eq!(Float::from_str_radix(s, radix, 53).unwrap(), f);
         }
     }
 
     #[test]
     fn check_formatting() {
         let mut f = Float::from((Special::Zero, 53));
-        assert!(format!("{}", f) == "0.0");
-        assert!(format!("{:?}", f) == "0.0");
-        assert!(format!("{:+?}", f) == "+0.0");
+        assert_eq!(format!("{}", f), "0.0");
+        assert_eq!(format!("{:?}", f), "0.0");
+        assert_eq!(format!("{:+?}", f), "+0.0");
         f.assign(Special::MinusZero);
-        assert!(format!("{}", f) == "0.0");
-        assert!(format!("{:?}", f) == "-0.0");
-        assert!(format!("{:+?}", f) == "-0.0");
+        assert_eq!(format!("{}", f), "0.0");
+        assert_eq!(format!("{:?}", f), "-0.0");
+        assert_eq!(format!("{:+?}", f), "-0.0");
         f.assign(-27);
-        assert!(format!("{:.2}", f) == "-2.7e1");
-        assert!(format!("{:.4?}", f) == "-2.700e1");
-        assert!(format!("{:.4e}", f) == "-2.700e1");
-        assert!(format!("{:.4E}", f) == "-2.700E1");
-        assert!(format!("{:.8b}", f) == "-1.1011000e4");
-        assert!(format!("{:.3b}", f) == "-1.11e4");
-        assert!(format!("{:#.8b}", f) == "-0b1.1011000e4");
-        assert!(format!("{:.2o}", f) == "-3.3e1");
-        assert!(format!("{:#.2o}", f) == "-0o3.3e1");
-        assert!(format!("{:.2x}", f) == "-1.b@1");
-        assert!(format!("{:.2X}", f) == "-1.B@1");
-        assert!(format!("{:12.1x}", f) == "      -1.b@1");
-        assert!(format!("{:012.3X}", f) == "-000001.B0@1");
-        assert!(format!("{:#012.2x}", f) == "-0x00001.b@1");
-        assert!(format!("{:#12.2X}", f) == "    -0x1.B@1");
+        assert_eq!(format!("{:.2}", f), "-2.7e1");
+        assert_eq!(format!("{:.4?}", f), "-2.700e1");
+        assert_eq!(format!("{:.4e}", f), "-2.700e1");
+        assert_eq!(format!("{:.4E}", f), "-2.700E1");
+        assert_eq!(format!("{:.8b}", f), "-1.1011000e4");
+        assert_eq!(format!("{:.3b}", f), "-1.11e4");
+        assert_eq!(format!("{:#.8b}", f), "-0b1.1011000e4");
+        assert_eq!(format!("{:.2o}", f), "-3.3e1");
+        assert_eq!(format!("{:#.2o}", f), "-0o3.3e1");
+        assert_eq!(format!("{:.2x}", f), "-1.b@1");
+        assert_eq!(format!("{:.2X}", f), "-1.B@1");
+        assert_eq!(format!("{:12.1x}", f), "      -1.b@1");
+        assert_eq!(format!("{:012.3X}", f), "-000001.B0@1");
+        assert_eq!(format!("{:#012.2x}", f), "-0x00001.b@1");
+        assert_eq!(format!("{:#12.2X}", f), "    -0x1.B@1");
     }
 
     #[test]
     fn check_assumptions() {
         // we assume no nail bits when we use limbs
-        assert!(gmp::NAIL_BITS == 0);
-        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
-        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
-        assert!(unsafe { mpfr::custom_get_size(64) } == 8);
+        assert_eq!(gmp::NAIL_BITS, 0);
+        assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
+        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(unsafe { mpfr::custom_get_size(64) }, 8);
     }
 }

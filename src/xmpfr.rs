@@ -60,7 +60,7 @@ pub unsafe fn q_sub(r: *mut mpfr_t,
     let flip_rnd = match rnd {
         mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
         mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
-        unchanged => unchanged
+        unchanged => unchanged,
     };
     let flip_ret = -mpfr::sub_q(r, rhs, lhs, flip_rnd);
     if mpfr::zero_p(r) == 0 {
