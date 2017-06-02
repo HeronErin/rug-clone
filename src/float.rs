@@ -1184,12 +1184,12 @@ impl Float {
     math_op2! {
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
-        fn dim(other);
+        fn abs_diff(other);
         /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
-        fn dim_round;
+        fn abs_diff_round;
         /// Hold a computation of the positive difference.
-        fn dim_hold -> DimHold;
+        fn abs_diff_hold -> AbsDiffHold;
         mpfr::dim
     }
     math_op1! {
@@ -1293,6 +1293,26 @@ impl Float {
         /// while the cosine is stored in `cos` keeping its precision.
         fn sin_cos_round;
         /// Holds a computation of the sine and cosine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// extern crate rugflo;
+        /// extern crate rugint;
+        /// use rugflo::Float;
+        /// use rugint::Assign;
+        ///
+        /// fn main() {
+        ///     // sin(0.5) = 0.47943, cos(0.5) = 0.87758
+        ///     let angle = Float::from((0.5, 53));
+        ///     let hold = angle.sin_cos_hold();
+        ///     // use only 10 bits of precision here to
+        ///     // make comparison easier
+        ///     let (mut sin, mut cos) = (Float::new(10), Float::new(10));
+        ///     (&mut sin, &mut cos).assign(hold);
+        ///     assert_eq!(sin, Float::from((0.47943, 10)));
+        ///     assert_eq!(cos, Float::from((0.87748, 10)));
+        /// }
         fn sin_cos_hold -> SinCosHold;
         mpfr::sin_cos
     }
@@ -1416,6 +1436,26 @@ impl Float {
         /// while the cosine is stored in `cos` keeping its precision.
         fn sinh_cosh_round;
         /// Holds a computation of the hyperbolic sine and cosine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// extern crate rugflo;
+        /// extern crate rugint;
+        /// use rugflo::Float;
+        /// use rugint::Assign;
+        ///
+        /// fn main() {
+        ///     // sinh(0.5) = 0.52110, cosh(0.5) = 1.1276
+        ///     let angle = Float::from((0.5, 53));
+        ///     let hold = angle.sinh_cosh_hold();
+        ///     // use only 10 bits of precision here to
+        ///     // make comparison easier
+        ///     let (mut sinh, mut cosh) = (Float::new(10), Float::new(10));
+        ///     (&mut sinh, &mut cosh).assign(hold);
+        ///     assert_eq!(sinh, Float::from((0.52110, 10)));
+        ///     assert_eq!(cosh, Float::from((1.1276, 10)));
+        /// }
         fn sinh_cosh_hold -> SinhCoshHold;
         mpfr::sinh_cosh
     }
@@ -2447,7 +2487,7 @@ hold_math_op1! { struct CbrtHold {}; mpfr::cbrt }
 hold_math_op1! { struct RootHold { k: u32 }; mpfr::root }
 hold_math_op1! { struct AbsHold {}; mpfr::abs }
 hold_math_op1! { struct RecipHold {}; xmpfr::recip }
-hold_math_op2! { struct DimHold { other }; mpfr::dim }
+hold_math_op2! { struct AbsDiffHold { other }; mpfr::dim }
 hold_math_op1! { struct LnHold {}; mpfr::log }
 hold_math_op1! { struct Log2Hold {}; mpfr::log2 }
 hold_math_op1! { struct Log10Hold {}; mpfr::log10 }
