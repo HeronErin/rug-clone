@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {AddRound, AssignRound, DivRound, FromRound, MulRound, PowRound, ShlRound,
-     ShrRound, SmallFloat, SubRound};
+     ShrRound, SubRound};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "random")]
@@ -3457,15 +3457,9 @@ impl AssignRound<i64> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, other: i64, round: Round) -> Ordering {
-        if mem::size_of::<c_long>() >= 64 {
-            let mpfr_ret = unsafe {
-                mpfr::set_si(self.inner_mut(), other as c_long, rraw(round))
-            };
-            mpfr_ret.cmp(&0)
-        } else {
-            let small = SmallFloat::from(other);
-            self.assign_round(&*small, round)
-        }
+        let mpfr_ret =
+            unsafe { xmpfr::set_i64(self.inner_mut(), other, rraw(round)) };
+        mpfr_ret.cmp(&0)
     }
 }
 
@@ -3483,15 +3477,9 @@ impl AssignRound<u64> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, other: u64, round: Round) -> Ordering {
-        if mem::size_of::<c_ulong>() >= 64 {
-            let mpfr_ret = unsafe {
-                mpfr::set_ui(self.inner_mut(), other as c_ulong, rraw(round))
-            };
-            mpfr_ret.cmp(&0)
-        } else {
-            let small = SmallFloat::from(other);
-            self.assign_round(&*small, round)
-        }
+        let mpfr_ret =
+            unsafe { xmpfr::set_u64(self.inner_mut(), other, rraw(round)) };
+        mpfr_ret.cmp(&0)
     }
 }
 

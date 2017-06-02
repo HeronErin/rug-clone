@@ -14,12 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Float;
+use {Float, SmallFloat};
 use float;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::cmp;
-use std::os::raw::c_int;
+use std::mem;
+use std::os::raw::{c_int, c_long, c_ulong};
 use std::u32;
 
 pub unsafe fn recip(
@@ -198,6 +199,24 @@ pub unsafe fn single_div(
     rnd: mpfr::rnd_t,
 ) -> c_int {
     mpfr::d_div(rop, op1 as f64, op2, rnd)
+}
+
+pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
+    if mem::size_of::<c_long>() >= 64 {
+        mpfr::set_si(rop, val as c_long, rnd)
+    } else {
+        let small = SmallFloat::from(val);
+        mpfr::set(rop, (*small).inner(), rnd)
+    }
+}
+
+pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
+    if mem::size_of::<c_ulong>() >= 64 {
+        mpfr::set_ui(rop, val as c_ulong, rnd)
+    } else {
+        let small = SmallFloat::from(val);
+        mpfr::set(rop, (*small).inner(), rnd)
+    }
 }
 
 trait Inner {
