@@ -932,7 +932,7 @@ impl Complex {
     ///     assert!(Float::from((c2.abs_hold(), 53)).is_infinite());
     /// }
     /// ```
-    pub fn abs_hold<'a>(&'a self) -> AbsHold<'a> {
+    pub fn abs_hold(&self) -> AbsHold {
         AbsHold { hold_self: self }
     }
 
@@ -979,7 +979,7 @@ impl Complex {
     ///     assert_eq!(arg, -f64::consts::PI);
     /// }
     /// ```
-    pub fn arg_hold<'a>(&'a self) -> ArgHold<'a> {
+    pub fn arg_hold(&self) -> ArgHold {
         ArgHold { hold_self: self }
     }
 
@@ -1006,7 +1006,7 @@ impl Complex {
 
     /// Holds the computation of the norm, that is the square of the
     /// absolute value.
-    pub fn norm_hold<'a>(&'a self) -> NormHold<'a> {
+    pub fn norm_hold(&self) -> NormHold {
         NormHold { hold_self: self }
     }
 
