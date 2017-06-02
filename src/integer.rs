@@ -112,15 +112,25 @@ macro_rules! math_op1 {
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self $(, $param: $T)*) -> &mut Integer {
+        pub fn $method(
+            &mut self,
+            $($param: $T,)*
+        ) -> &mut Integer {
             unsafe {
-                $func(self.inner_mut(), self.inner() $(, $param.into())*);
+                $func(
+                    self.inner_mut(),
+                    self.inner(),
+                    $($param.into(),)*
+                );
             }
             self
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+        pub fn $method_hold(
+            &self,
+            $($param: $T,)*
+        ) -> $Hold {
             $Hold {
                 hold_self: self,
                 $($param: $param,)*
@@ -147,8 +157,11 @@ macro_rules! hold_math_op1 {
         impl<'a> Assign<$Hold<'a>> for Integer {
             fn assign(&mut self, src: $Hold<'a>) {
                 unsafe {
-                    $func(self.inner_mut(),
-                          src.hold_self.inner() $(, src.$param.into())*);
+                    $func(
+                        self.inner_mut(),
+                        src.hold_self.inner(),
+                        $(src.$param.into(),)*
+                    );
                 }
             }
         }
@@ -158,21 +171,32 @@ macro_rules! hold_math_op1 {
 macro_rules! math_op1_2 {
     {
         $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty)*);
+        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_hold:meta])*
         fn $method_hold:ident -> $Hold:ident;
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self, $rop: &mut Integer $(, $param: $T)*) {
+        pub fn $method(
+            &mut self,
+            $rop: &mut Integer,
+            $($param: $T,)*
+        ) {
             unsafe {
-                $func(self.inner_mut(), $rop.inner_mut(),
-                      self.inner() $(, $param.into())*);
+                $func(
+                    self.inner_mut(),
+                    $rop.inner_mut(),
+                    self.inner(),
+                    $($param.into(),)*
+                );
             }
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+        pub fn $method_hold(
+            &self,
+            $($param: $T,)*
+        ) -> $Hold {
             $Hold {
                 hold_self: self,
                 $($param: $param,)*
@@ -197,8 +221,12 @@ macro_rules! hold_math_op1_2 {
         impl<'a> Assign<$Hold<'a>> for (&'a mut Integer, &'a mut Integer) {
             fn assign(&mut self, src: $Hold<'a>) {
                 unsafe {
-                    $func(self.0.inner_mut(), self.1.inner_mut(),
-                          src.hold_self.inner() $(, src.$param.into())*);
+                    $func(
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        src.hold_self.inner(),
+                        $(src.$param.into(),)*
+                    );
                 }
             }
         }
@@ -208,24 +236,34 @@ macro_rules! hold_math_op1_2 {
 macro_rules! math_op2 {
     {
         $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty)*);
+        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_hold:meta])*
         fn $method_hold:ident -> $Hold:ident;
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self, $op: &Integer $(, $param: $T)*)
-                       -> &mut Integer {
+        pub fn $method(
+            &mut self,
+            $op: &Integer,
+            $($param: $T,)*
+        ) -> &mut Integer {
             unsafe {
-                $func(self.inner_mut(), self.inner(),
-                      $op.inner() $(, $param.into())*);
+                $func(
+                    self.inner_mut(),
+                    self.inner(),
+                    $op.inner(),
+                    $($param.into(),)*
+                );
             }
             self
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold<'a>(&'a self, $op: &'a Integer $(, $param: $T)*)
-                                -> $Hold<'a> {
+        pub fn $method_hold<'a>(
+            &'a self,
+            $op: &'a Integer,
+            $($param: $T,)*
+        ) -> $Hold<'a> {
             $Hold {
                 hold_self: self,
                 $op: $op,
@@ -238,7 +276,7 @@ macro_rules! math_op2 {
 macro_rules! hold_math_op2 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty)* };
+        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty),* };
         $func:path
     } => {
         $(#[$attr_hold])*
@@ -254,8 +292,12 @@ macro_rules! hold_math_op2 {
         impl<'a> Assign<$Hold<'a>> for Integer {
             fn assign(&mut self, src: $Hold<'a>) {
                 unsafe {
-                    $func(self.inner_mut(), src.hold_self.inner(),
-                          src.$op.inner() $(, src.$param.into())*);
+                    $func(
+                        self.inner_mut(),
+                        src.hold_self.inner(),
+                        src.$op.inner(),
+                        $(src.$param.into(),)*
+                    );
                 }
             }
         }
@@ -265,22 +307,34 @@ macro_rules! hold_math_op2 {
 macro_rules! math_op2_2 {
     {
         $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty)*);
+        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_hold:meta])*
         fn $method_hold:ident -> $Hold:ident;
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self, $op: &mut Integer $(, $param: $T)*) {
+        pub fn $method(
+            &mut self,
+            $op: &mut Integer,
+            $($param: $T,)*
+        ) {
             unsafe {
-                $func(self.inner_mut(), $op.inner_mut(),
-                      self.inner(), $op.inner() $(, $param.into())*);
+                $func(
+                    self.inner_mut(),
+                    $op.inner_mut(),
+                    self.inner(),
+                    $op.inner(),
+                    $($param.into(),)*
+                );
             }
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold<'a>(&'a self, $op: &'a Integer $(, $param: $T)*)
-                                -> $Hold<'a> {
+        pub fn $method_hold<'a>(
+            &'a self,
+            $op: &'a Integer,
+            $($param: $T,)*
+        ) -> $Hold<'a> {
             $Hold {
                 hold_self: self,
                 $op: $op,
@@ -293,7 +347,7 @@ macro_rules! math_op2_2 {
 macro_rules! hold_math_op2_2 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty)* };
+        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty),* };
         $func:path
     } => {
         $(#[$attr_hold])*
@@ -307,9 +361,13 @@ macro_rules! hold_math_op2_2 {
         impl<'a> Assign<$Hold<'a>> for (&'a mut Integer, &'a mut Integer) {
             fn assign(&mut self, src: $Hold<'a>) {
                 unsafe {
-                    $func(self.0.inner_mut(), self.1.inner_mut(),
-                          src.hold_self.inner(),
-                          src.$op.inner() $(, src.$param.into())*);
+                    $func(
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        src.hold_self.inner(),
+                        src.$op.inner(),
+                        $(src.$param.into(),)*
+                    );
                 }
             }
         }
@@ -319,26 +377,37 @@ macro_rules! hold_math_op2_2 {
 macro_rules! math_op3 {
     {
         $(#[$attr:meta])*
-        fn $method:ident($op2:ident, $op3:ident $(, $param:ident: $T:ty)*);
+        fn $method:ident($op2:ident, $op3:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_hold:meta])*
         fn $method_hold:ident -> $Hold:ident;
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self, $op2: &Integer,
-                       $op3: &Integer $(, $param: $T)*)
-                       -> &mut Integer {
+        pub fn $method(
+            &mut self,
+            $op2: &Integer,
+            $op3: &Integer,
+            $($param: $T,)*
+        ) -> &mut Integer {
             unsafe {
-                $func(self.inner_mut(), self.inner(),
-                      $op2.inner(), $op3.inner() $(, $param.into(),)*);
+                $func(
+                    self.inner_mut(),
+                    self.inner(),
+                    $op2.inner(),
+                    $op3.inner(),
+                    $($param.into(),)*
+                );
             }
             self
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold<'a>(&'a self, $op2: &'a Integer,
-                                $op3: &'a Integer $(, $param: $T)*)
-                                -> $Hold<'a> {
+        pub fn $method_hold<'a>(
+            &'a self,
+            $op2: &'a Integer,
+            $op3: &'a Integer,
+            $($param: $T,)*
+        ) -> $Hold<'a> {
             $Hold {
                 hold_self: self,
                 $op2: $op2,
@@ -352,7 +421,9 @@ macro_rules! math_op3 {
 macro_rules! hold_math_op3 {
     {
         $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op2:ident, $op3:ident $(, $param:ident: $T:ty)* };
+        struct $Hold:ident {
+            $op2:ident, $op3:ident $(, $param:ident: $T:ty),*
+        };
         $func:path
     } => {
         $(#[$attr_hold])*
@@ -369,9 +440,13 @@ macro_rules! hold_math_op3 {
         impl<'a> Assign<$Hold<'a>> for Integer {
             fn assign(&mut self, src: $Hold<'a>) {
                 unsafe {
-                    $func(self.inner_mut(),
-                          src.hold_self.inner(), src.$op2.inner(),
-                          src.$op3.inner() $(, src.$param.into())*);
+                    $func(
+                        self.inner_mut(),
+                        src.hold_self.inner(),
+                        src.$op2.inner(),
+                        src.$op3.inner(),
+                        $(src.$param.into(),)*
+                    );
                 }
             }
         }
@@ -450,9 +525,10 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix(src: &str,
-                          radix: i32)
-                          -> Result<Integer, ParseIntegerError> {
+    pub fn from_str_radix(
+        src: &str,
+        radix: i32,
+    ) -> Result<Integer, ParseIntegerError> {
         let mut i = Integer::new();
         i.assign_str_radix(src, radix)?;
         Ok(i)
@@ -480,9 +556,10 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn valid_str_radix(src: &str,
-                           radix: i32)
-                           -> Result<(), ParseIntegerError> {
+    pub fn valid_str_radix(
+        src: &str,
+        radix: i32,
+    ) -> Result<(), ParseIntegerError> {
         check_str_radix(src, radix).map(|_| ())
     }
 
@@ -805,10 +882,11 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix(&mut self,
-                            src: &str,
-                            radix: i32)
-                            -> Result<(), ParseIntegerError> {
+    pub fn assign_str_radix(
+        &mut self,
+        src: &str,
+        radix: i32,
+    ) -> Result<(), ParseIntegerError> {
         let s = check_str_radix(src, radix)?;
         let c_str = CString::new(s).unwrap();
         let err = unsafe {
@@ -1135,9 +1213,9 @@ impl Integer {
     /// assert_eq!(Integer::from(-13).hamming_dist(&i), Some(2));
     /// ```
     pub fn hamming_dist(&self, other: &Integer) -> Option<u32> {
-        bitcount_to_u32(unsafe {
-                            gmp::mpz_hamdist(self.inner(), other.inner())
-                        })
+        bitcount_to_u32(
+            unsafe { gmp::mpz_hamdist(self.inner(), other.inner()) },
+        )
     }
 
     math_op1! {
@@ -1282,9 +1360,11 @@ impl Integer {
     /// Panics if `other` is zero.
     pub fn invert(&mut self, modulo: &Integer) -> bool {
         unsafe {
-            xgmp::mpz_invert_check_0(self.inner_mut(),
-                                     self.inner(),
-                                     modulo.inner()) != 0
+            xgmp::mpz_invert_check_0(
+                self.inner_mut(),
+                self.inner(),
+                modulo.inner(),
+            ) != 0
         }
     }
 
@@ -1639,9 +1719,10 @@ impl Integer {
     /// assert_eq!(count, 50);
     /// assert_eq!(j, 1000);
     /// ```
-    pub fn remove_factor_hold<'a>(&'a self,
-                                  factor: &'a Integer)
-                                  -> RemoveFactorHold<'a> {
+    pub fn remove_factor_hold<'a>(
+        &'a self,
+        factor: &'a Integer,
+    ) -> RemoveFactorHold<'a> {
         RemoveFactorHold {
             hold_self: self,
             factor: factor,
@@ -1850,9 +1931,11 @@ impl Integer {
     /// ```
     pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
         unsafe {
-            gmp::mpz_lucnum2_ui(self.inner_mut(),
-                                previous.inner_mut(),
-                                n.into());
+            gmp::mpz_lucnum2_ui(
+                self.inner_mut(),
+                previous.inner_mut(),
+                n.into(),
+            );
         }
     }
     #[cfg(feature = "random")]
@@ -1884,8 +1967,8 @@ impl Integer {
         let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs = whole_limbs +
-                          ((extra_bits + limb_bits - 1) / limb_bits) as usize;
+        let total_limbs =
+            whole_limbs + ((extra_bits + limb_bits - 1) / limb_bits) as usize;
         let limbs = unsafe {
             if (self.inner().alloc as usize) < total_limbs {
                 gmp::_mpz_realloc(self.inner_mut(), total_limbs as c_long);
@@ -1938,8 +2021,8 @@ impl Integer {
         let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs = whole_limbs +
-                          ((extra_bits + limb_bits - 1) / limb_bits) as usize;
+        let total_limbs =
+            whole_limbs + ((extra_bits + limb_bits - 1) / limb_bits) as usize;
         let limbs =
             unsafe { slice::from_raw_parts_mut(self.inner().d, total_limbs) };
         // if the random number is >= bound, restart
@@ -1997,9 +2080,11 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the boundary value is less than or equal to zero.
-    pub fn assign_random_below<R: Rng>(&mut self,
-                                       bound: &Integer,
-                                       rng: &mut R) {
+    pub fn assign_random_below<R: Rng>(
+        &mut self,
+        bound: &Integer,
+        rng: &mut R,
+    ) {
         self.assign(bound);
         self.random_below(rng);
     }
@@ -2226,9 +2311,11 @@ pub struct InvertHold<'a> {
 impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
     fn assign(&mut self, src: InvertHold<'a>) {
         *self.1 = unsafe {
-            xgmp::mpz_invert_check_0(self.0.inner_mut(),
-                                     src.hold_self.inner(),
-                                     src.modulo.inner())
+            xgmp::mpz_invert_check_0(
+                self.0.inner_mut(),
+                src.hold_self.inner(),
+                src.modulo.inner(),
+            )
         } != 0;
     }
 }
@@ -2242,9 +2329,11 @@ pub struct RemoveFactorHold<'a> {
 impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
     fn assign(&mut self, src: RemoveFactorHold<'a>) {
         let cnt = unsafe {
-            gmp::mpz_remove(self.0.inner_mut(),
-                            src.hold_self.inner(),
-                            src.factor.inner())
+            gmp::mpz_remove(
+                self.0.inner_mut(),
+                src.hold_self.inner(),
+                src.factor.inner(),
+            )
         };
         assert_eq!(cnt as u32 as gmp::bitcnt_t, cnt, "overflow");
         *self.1 = cnt as u32;
@@ -2428,11 +2517,13 @@ arith_binary! {
 }
 
 macro_rules! arith_prim {
-    ($Imp:ident $method:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $T:ty,
-     $func:path,
-     $Hold:ident) => {
+    {
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    }=> {
         impl $Imp<$T> for Integer {
             type Output = Integer;
             fn $method(mut self, op: $T) -> Integer {
@@ -2478,14 +2569,16 @@ macro_rules! arith_prim {
 }
 
 macro_rules! arith_prim_noncommut {
-    ($Imp:ident $method:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $ImpFromAssign:ident $method_from_assign:ident,
-     $T:ty,
-     $func:path,
-     $func_from:path,
-     $Hold:ident,
-     $HoldFrom:ident) => {
+    {
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $ImpFromAssign:ident $method_from_assign:ident,
+        $T:ty,
+        $func:path,
+        $func_from:path,
+        $Hold:ident,
+        $HoldFrom:ident
+    } => {
         arith_prim! {
             $Imp $method, $ImpAssign $method_assign, $T, $func, $Hold
         }
@@ -2537,11 +2630,13 @@ macro_rules! arith_prim_noncommut {
 }
 
 macro_rules! arith_prim_commut {
-    ($Imp:ident $method:ident,
-     $ImpAssign:ident $method_assign:ident,
-     $T:ty,
-     $func:path,
-     $Hold:ident) => {
+    {
+        $Imp:ident $method:ident,
+        $ImpAssign:ident $method_assign:ident,
+        $T:ty,
+        $func:path,
+        $Hold:ident
+    } => {
         arith_prim! {
             $Imp $method, $ImpAssign $method_assign, $T, $func, $Hold
         }
@@ -2702,8 +2797,11 @@ macro_rules! op_mul {
             $(#[$attr_assign])*
             fn $method_assign(&mut self, rhs: $Hold) {
                 unsafe {
-                    $func(self.inner_mut(),
-                          rhs.lhs.inner(), rhs.rhs.$rhs_method());
+                    $func(
+                        self.inner_mut(),
+                        rhs.lhs.inner(),
+                        rhs.rhs.$rhs_method()
+                    );
                 }
             }
         }
@@ -3002,21 +3100,24 @@ fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
     let case_radix = if to_upper { -radix } else { radix };
     unsafe {
         buf.set_len(size);
-        gmp::mpz_get_str(buf.as_mut_ptr() as *mut c_char,
-                         case_radix as c_int,
-                         i.inner());
+        gmp::mpz_get_str(
+            buf.as_mut_ptr() as *mut c_char,
+            case_radix as c_int,
+            i.inner(),
+        );
         let nul_index = buf.iter().position(|&x| x == 0).unwrap();
         buf.set_len(nul_index);
         String::from_utf8_unchecked(buf)
     }
 }
 
-fn fmt_radix(i: &Integer,
-             f: &mut Formatter,
-             radix: i32,
-             to_upper: bool,
-             prefix: &str)
-             -> fmt::Result {
+fn fmt_radix(
+    i: &Integer,
+    f: &mut Formatter,
+    radix: i32,
+    to_upper: bool,
+    prefix: &str,
+) -> fmt::Result {
     let s = make_string(i, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
@@ -3168,7 +3269,8 @@ impl Deref for SmallInteger {
 }
 
 impl<T> From<T> for SmallInteger
-    where SmallInteger: Assign<T>
+where
+    SmallInteger: Assign<T>,
 {
     fn from(val: T) -> SmallInteger {
         let mut ret = SmallInteger::new();
@@ -3512,26 +3614,30 @@ mod tests {
         i -= 1;
         assert_eq!(i.significant_bits(), 129);
 
-        let bad_strings = [(" 1", None),
-                           ("+-3", None),
-                           ("-+3", None),
-                           ("++3", None),
-                           ("--3", None),
-                           ("0+3", None),
-                           ("0 ", None),
-                           ("", None),
-                           ("80", Some(8)),
-                           ("0xf", Some(16)),
-                           ("9", Some(9))];
+        let bad_strings = [
+            (" 1", None),
+            ("+-3", None),
+            ("-+3", None),
+            ("++3", None),
+            ("--3", None),
+            ("0+3", None),
+            ("0 ", None),
+            ("", None),
+            ("80", Some(8)),
+            ("0xf", Some(16)),
+            ("9", Some(9)),
+        ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(Integer::valid_str_radix(s, radix.unwrap_or(10)).is_err());
         }
-        let good_strings = [("0", 10, 0),
-                            ("+0", 16, 0),
-                            ("-0", 2, 0),
-                            ("99", 10, 99),
-                            ("+Cc", 16, 0xcc),
-                            ("-77", 8, -0o77)];
+        let good_strings = [
+            ("0", 10, 0),
+            ("+0", 16, 0),
+            ("-0", 2, 0),
+            ("99", 10, 99),
+            ("+Cc", 16, 0xcc),
+            ("-77", 8, -0o77),
+        ];
         for &(s, radix, i) in good_strings.into_iter() {
             assert_eq!(Integer::from_str_radix(s, radix).unwrap(), i);
         }

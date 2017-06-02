@@ -20,52 +20,66 @@ use std::cmp::Ordering;
 use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 
-pub unsafe fn mpz_tdiv_qr_check_0(q: *mut mpz_t,
-                                  r: *mut mpz_t,
-                                  dividend: *const mpz_t,
-                                  divisor: *const mpz_t) {
+pub unsafe fn mpz_tdiv_qr_check_0(
+    q: *mut mpz_t,
+    r: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     gmp::mpz_tdiv_qr(q, r, dividend, divisor);
 }
 
-pub unsafe fn mpz_divexact_check_0(q: *mut mpz_t,
-                                   dividend: *const mpz_t,
-                                   divisor: *const mpz_t) {
+pub unsafe fn mpz_divexact_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     gmp::mpz_divexact(q, dividend, divisor);
 }
 
-pub unsafe fn mpz_divexact_ui_check_0(q: *mut mpz_t,
-                                      dividend: *const mpz_t,
-                                      divisor: c_ulong) {
+pub unsafe fn mpz_divexact_ui_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: c_ulong,
+) {
     assert_ne!(divisor, 0, "division by zero");
     gmp::mpz_divexact_ui(q, dividend, divisor);
 }
 
-pub unsafe fn mpz_tdiv_q_check_0(q: *mut mpz_t,
-                                 dividend: *const mpz_t,
-                                 divisor: *const mpz_t) {
+pub unsafe fn mpz_tdiv_q_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     gmp::mpz_tdiv_q(q, dividend, divisor);
 }
 
-pub unsafe fn mpz_tdiv_r_check_0(q: *mut mpz_t,
-                                 dividend: *const mpz_t,
-                                 divisor: *const mpz_t) {
+pub unsafe fn mpz_tdiv_r_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     gmp::mpz_tdiv_r(q, dividend, divisor);
 }
 
-pub unsafe fn mpz_tdiv_q_ui_check_0(q: *mut mpz_t,
-                                    dividend: *const mpz_t,
-                                    divisor: c_ulong) {
+pub unsafe fn mpz_tdiv_q_ui_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: c_ulong,
+) {
     assert_ne!(divisor, 0, "division by zero");
     gmp::mpz_tdiv_q_ui(q, dividend, divisor);
 }
 
-pub unsafe fn mpz_ui_tdiv_q_check_0(q: *mut mpz_t,
-                                    dividend: c_ulong,
-                                    divisor: *const mpz_t) {
+pub unsafe fn mpz_ui_tdiv_q_check_0(
+    q: *mut mpz_t,
+    dividend: c_ulong,
+    divisor: *const mpz_t,
+) {
     let sgn_divisor = gmp::mpz_sgn(divisor);
     assert_ne!(sgn_divisor, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(divisor, dividend) > 0 {
@@ -79,16 +93,20 @@ pub unsafe fn mpz_ui_tdiv_q_check_0(q: *mut mpz_t,
     }
 }
 
-pub unsafe fn mpz_tdiv_r_ui_check_0(q: *mut mpz_t,
-                                    dividend: *const mpz_t,
-                                    divisor: c_ulong) {
+pub unsafe fn mpz_tdiv_r_ui_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: c_ulong,
+) {
     assert_ne!(divisor, 0, "division by zero");
     gmp::mpz_tdiv_r_ui(q, dividend, divisor);
 }
 
-pub unsafe fn mpz_ui_tdiv_r_check_0(q: *mut mpz_t,
-                                    dividend: c_ulong,
-                                    divisor: *const mpz_t) {
+pub unsafe fn mpz_ui_tdiv_r_check_0(
+    q: *mut mpz_t,
+    dividend: c_ulong,
+    divisor: *const mpz_t,
+) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     if gmp::mpz_cmpabs_ui(divisor, dividend) > 0 {
         gmp::mpz_set_ui(q, dividend);
@@ -98,9 +116,11 @@ pub unsafe fn mpz_ui_tdiv_r_check_0(q: *mut mpz_t,
     }
 }
 
-pub unsafe fn mpz_tdiv_q_si_check_0(q: *mut mpz_t,
-                                    dividend: *const mpz_t,
-                                    divisor: c_long) {
+pub unsafe fn mpz_tdiv_q_si_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: c_long,
+) {
     let neg = divisor < 0;
     mpz_tdiv_q_ui_check_0(q, dividend, divisor.wrapping_abs() as c_ulong);
     if neg {
@@ -108,9 +128,11 @@ pub unsafe fn mpz_tdiv_q_si_check_0(q: *mut mpz_t,
     }
 }
 
-pub unsafe fn mpz_si_tdiv_q_check_0(q: *mut mpz_t,
-                                    dividend: c_long,
-                                    divisor: *const mpz_t) {
+pub unsafe fn mpz_si_tdiv_q_check_0(
+    q: *mut mpz_t,
+    dividend: c_long,
+    divisor: *const mpz_t,
+) {
     let neg = dividend < 0;
     mpz_ui_tdiv_q_check_0(q, dividend.wrapping_abs() as c_ulong, divisor);
     if neg {
@@ -118,15 +140,19 @@ pub unsafe fn mpz_si_tdiv_q_check_0(q: *mut mpz_t,
     }
 }
 
-pub unsafe fn mpz_tdiv_r_si_check_0(q: *mut mpz_t,
-                                    dividend: *const mpz_t,
-                                    divisor: c_long) {
+pub unsafe fn mpz_tdiv_r_si_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: c_long,
+) {
     mpz_tdiv_r_ui_check_0(q, dividend, divisor.wrapping_abs() as c_ulong);
 }
 
-pub unsafe fn mpz_si_tdiv_r_check_0(q: *mut mpz_t,
-                                    dividend: c_long,
-                                    divisor: *const mpz_t) {
+pub unsafe fn mpz_si_tdiv_r_check_0(
+    q: *mut mpz_t,
+    dividend: c_long,
+    divisor: *const mpz_t,
+) {
     let neg = dividend < 0;
     mpz_ui_tdiv_r_check_0(q, dividend.wrapping_abs() as c_ulong, divisor);
     if neg {
@@ -134,18 +160,21 @@ pub unsafe fn mpz_si_tdiv_r_check_0(q: *mut mpz_t,
     }
 }
 
-pub unsafe fn mpz_invert_check_0(inv: *mut mpz_t,
-                                 n: *const mpz_t,
-                                 m: *const mpz_t)
-                                 -> c_int {
+pub unsafe fn mpz_invert_check_0(
+    inv: *mut mpz_t,
+    n: *const mpz_t,
+    m: *const mpz_t,
+) -> c_int {
     assert_ne!(gmp::mpz_sgn(m), 0, "division by zero");
     gmp::mpz_invert(inv, n, m)
 }
 
-pub unsafe fn mpz_powm_check_inverse(rop: *mut mpz_t,
-                                     base: *const mpz_t,
-                                     pow: *const mpz_t,
-                                     m: *const mpz_t) {
+pub unsafe fn mpz_powm_check_inverse(
+    rop: *mut mpz_t,
+    base: *const mpz_t,
+    pow: *const mpz_t,
+    m: *const mpz_t,
+) {
     if (*pow).size < 0 {
         let exists = mpz_invert_check_0(rop, base, m);
         assert_ne!(exists, 0, "inverse does not exist");
@@ -659,7 +688,8 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
         }
         -2 if gmp::LIMB_BITS == 32 => {
             op.limb(1) < i32::MIN as u32 as gmp::limb_t ||
-            (op.limb(1) == i32::MIN as u32 as gmp::limb_t && op.limb(0) == 0)
+                (op.limb(1) == i32::MIN as u32 as gmp::limb_t &&
+                     op.limb(0) == 0)
         }
         _ if gmp::LIMB_BITS >= 32 => false,
         _ => unreachable!(),
