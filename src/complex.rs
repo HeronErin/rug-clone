@@ -1072,6 +1072,27 @@ impl Complex {
         /// while the cosine is stored in `cos` keeping its precision.
         fn sin_cos_round;
         /// Holds a computation of the sine and cosine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// extern crate rugcom;
+        /// extern crate rugint;
+        /// use rugcom::Complex;
+        /// use rugint::Assign;
+        ///
+        /// fn main() {
+        ///     // sin(0.5 + 0.2i) = 0.48905 + 0.17669i
+        ///     // cos(0.5 + 0.2i) = 0.89519 - 0.096526i
+        ///     let angle = Complex::from(((0.5, 0.2), 53));
+        ///     let hold = angle.sin_cos_hold();
+        ///     // use only 10 bits of precision here to
+        ///     // make comparison easier
+        ///     let (mut sin, mut cos) = (Complex::new(10), Complex::new(10));
+        ///     (&mut sin, &mut cos).assign(hold);
+        ///     assert_eq!(sin, Complex::from(((0.48905, 0.17669), 10)));
+        ///     assert_eq!(cos, Complex::from(((0.89519, -0.096526), 10)));
+        /// }
         fn sin_cos_hold -> SinCosHold;
         mpc::sin_cos
     }
