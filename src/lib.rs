@@ -128,9 +128,11 @@ extern crate gmp_mpfr_sys;
 extern crate rand;
 
 mod integer;
+mod small_integer;
 mod xgmp;
 
-pub use integer::{Integer, ParseIntegerError, SmallInteger};
+pub use integer::{Integer, ParseIntegerError};
+pub use small_integer::SmallInteger;
 
 /// Assigns to a number from another value.
 pub trait Assign<Rhs = Self> {
