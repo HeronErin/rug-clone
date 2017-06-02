@@ -69,7 +69,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rugflo = "0.2.2"
+//! rugflo = "0.3.0"
 //! ```
 //!
 //! The `rugflo` crate depends on the low-level bindings in the
@@ -86,7 +86,7 @@
 //!
 //! ```toml
 //! [dependencies.rugflo]
-//! version = "0.2.2"
+//! version = "0.3.0"
 //! default-features = false
 //! ```
 //!

@@ -171,7 +171,7 @@ macro_rules! assign_u_single_limb {
                             mpfr::ZERO_KIND,
                             0,
                             $bits,
-                            limb_ptr
+                            limb_ptr,
                         );
                     }
                     return;

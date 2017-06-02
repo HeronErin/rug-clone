@@ -16,7 +16,7 @@
 
 [package]
 name = "rugflo"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Multiple-precision floating-point numbers based on GNU MPFR"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugflo/"
@@ -41,10 +41,10 @@ version = "0.3"
 optional = true
 
 [dependencies.rugint]
-version = "0.2.2"
+version = "0.3.0"
 default-features = false
 path = "../rugint"
 
 [dependencies.rugrat]
-version = "0.2.2"
+version = "0.3.0"
 path = "../rugrat"
