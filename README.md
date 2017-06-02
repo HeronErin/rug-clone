@@ -38,7 +38,7 @@ use rugcom::Complex;
 
 fn main() {
     // Create complex number with 16 bits of precision.
-    let mut com = Complex::new((16, 16));
+    let mut com = Complex::new(16);
     // Assign the complex value 1.5 + 3.5i
     com.assign((1.5, 3.5));
     assert!(*com.real() == 1.5);
@@ -53,7 +53,7 @@ root and add `rugcom` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rugcom = "0.2.2"
+rugcom = "0.3.0"
 ```
 
 The `rugcom` crate depends on the low-level bindings in the
@@ -70,7 +70,7 @@ this to `Cargo.toml`:
 
 ```toml
 [dependencies.rugcom]
-version = "0.2.2"
+version = "0.3.0"
 default-features = false
 ```
 
