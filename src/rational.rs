@@ -51,10 +51,10 @@ use xgmp;
 /// fn main() {
 ///     let r = Rational::from((-12, 15));
 ///     let (num, den) = r.into_numer_denom();
-///     assert!(num == -4);
-///     assert!(den == 5);
+///     assert_eq!(num, -4);
+///     assert_eq!(den, 5);
 ///     let one = Rational::from((num, Integer::from(-4)));
-///     assert!(one == 1);
+///     assert_eq!(one, 1);
 /// }
 /// ```
 pub struct Rational {
@@ -147,7 +147,7 @@ impl Rational {
     /// ```rust
     /// use rugrat::Rational;
     /// let r = Rational::new();
-    /// assert!(r == 0);
+    /// assert_eq!(r, 0);
     /// ```
     pub fn new() -> Rational {
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
@@ -166,7 +166,7 @@ impl Rational {
     /// use rugrat::Rational;
     /// use std::f32;
     /// let r = Rational::from_f32(-17125e-3).unwrap();
-    /// assert!(r == "-17125/1000".parse::<Rational>().unwrap());
+    /// assert_eq!(r, "-17125/1000".parse::<Rational>().unwrap());
     /// let inf = Rational::from_f32(f32::INFINITY);
     /// assert!(inf.is_none());
     /// ```
@@ -183,7 +183,7 @@ impl Rational {
     /// use rugrat::Rational;
     /// use std::f64;
     /// let r = Rational::from_f64(-17125e-3).unwrap();
-    /// assert!(r == "-17125/1000".parse::<Rational>().unwrap());
+    /// assert_eq!(r, "-17125/1000".parse::<Rational>().unwrap());
     /// let inf = Rational::from_f64(f64::INFINITY);
     /// assert!(inf.is_none());
     /// ```
@@ -204,10 +204,11 @@ impl Rational {
     /// ```rust
     /// use rugrat::Rational;
     /// let r1 = Rational::from_str_radix("ff/a", 16).unwrap();
-    /// assert!(r1 == (255, 10));
+    /// assert_eq!(r1, (255, 10));
     /// let r2 = Rational::from_str_radix("+ff0/a0", 16).unwrap();
-    /// assert!(r2 == (0xff0, 0xa0));
-    /// assert!(*r2.numer() == 51 && *r2.denom() == 2);
+    /// assert_eq!(r2, (0xff0, 0xa0));
+    /// assert_eq!(*r2.numer(), 51);
+    /// assert_eq!(*r2.denom(), 2);
     /// ```
     ///
     /// # Panics
@@ -237,7 +238,7 @@ impl Rational {
     ///
     /// let invalid_valid = Rational::valid_str_radix("1/123", 3);
     /// let invalid_from = Rational::from_str_radix("1/123", 3);
-    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// assert_eq!(invalid_valid.unwrap_err(), invalid_from.unwrap_err());
     /// ```
     ///
     /// # Panics
@@ -307,10 +308,10 @@ impl Rational {
     /// let min = Rational::from_f32(f32::MIN).unwrap();
     /// let minus_small = min - &*SmallRational::from((7, 2));
     /// // minus_small is truncated to f32::MIN
-    /// assert!(minus_small.to_f32() == f32::MIN);
+    /// assert_eq!(minus_small.to_f32(), f32::MIN);
     /// let times_three_two = minus_small * &*SmallRational::from((3, 2));
     /// // times_three_two is too small
-    /// assert!(times_three_two.to_f32() == f32::NEG_INFINITY);
+    /// assert_eq!(times_three_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     pub fn to_f32(&self) -> f32 {
         let f = self.to_f64();
@@ -344,22 +345,22 @@ impl Rational {
     /// let exact = 0x1f_1234_5678_9aff_u64;
     /// let den = 0x1000_u64;
     /// let r = Rational::from((exact, den));
-    /// assert!(r.to_f64() == exact as f64 / den as f64);
+    /// assert_eq!(r.to_f64(), exact as f64 / den as f64);
     ///
     /// // large has 56 ones
     /// let large = 0xff_1234_5678_9aff_u64;
     /// // trunc has 53 ones followed by 3 zeros
     /// let trunc = 0xff_1234_5678_9af8_u64;
     /// let j = Rational::from((large, den));
-    /// assert!(j.to_f64() == trunc as f64 / den as f64);
+    /// assert_eq!(j.to_f64(), trunc as f64 / den as f64);
     ///
     /// let max = Rational::from_f64(f64::MAX).unwrap();
     /// let plus_small = max + &*SmallRational::from((7, 2));
     /// // plus_small is truncated to f64::MAX
-    /// assert!(plus_small.to_f64() == f64::MAX);
+    /// assert_eq!(plus_small.to_f64(), f64::MAX);
     /// let times_three_two = plus_small * &*SmallRational::from((3, 2));
     /// // times_three_two is too large
-    /// assert!(times_three_two.to_f64() == f64::INFINITY);
+    /// assert_eq!(times_three_two.to_f64(), f64::INFINITY);
     /// ```
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpq_get_d(self.inner()) }
@@ -373,12 +374,12 @@ impl Rational {
     /// ```rust
     /// use rugrat::Rational;
     /// let r1 = Rational::from(0);
-    /// assert!(r1.to_string_radix(10) == "0");
+    /// assert_eq!(r1.to_string_radix(10), "0");
     /// let r2 = Rational::from((15, 5));
-    /// assert!(r2.to_string_radix(10) == "3");
+    /// assert_eq!(r2.to_string_radix(10), "3");
     /// let r3 = Rational::from((10, -6));
-    /// assert!(r3.to_string_radix(10) == "-5/3");
-    /// assert!(r3.to_string_radix(5) == "-10/3");
+    /// assert_eq!(r3.to_string_radix(10), "-5/3");
+    /// assert_eq!(r3.to_string_radix(5), "-10/3");
     /// ```
     ///
     /// #Panics
@@ -398,10 +399,10 @@ impl Rational {
     /// let mut r = Rational::new();
     /// let ret = r.assign_f32(12.75);
     /// assert!(ret.is_ok());
-    /// assert!(r == (1275, 100));
+    /// assert_eq!(r, (1275, 100));
     /// let ret = r.assign_f32(f32::NAN);
     /// assert!(ret.is_err());
-    /// assert!(r == (1275, 100));
+    /// assert_eq!(r, (1275, 100));
     /// ```
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val as f64)
@@ -416,10 +417,10 @@ impl Rational {
     /// let mut r = Rational::new();
     /// let ret = r.assign_f64(12.75);
     /// assert!(ret.is_ok());
-    /// assert!(r == (1275, 100));
+    /// assert_eq!(r, (1275, 100));
     /// let ret = r.assign_f64(1.0 / 0.0);
     /// assert!(ret.is_err());
-    /// assert!(r == (1275, 100));
+    /// assert_eq!(r, (1275, 100));
     /// ```
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
@@ -442,8 +443,8 @@ impl Rational {
     /// let ret = r.assign_str("1/0");
     /// assert!(ret.is_err());
     /// r.assign_str("-24/2").unwrap();
-    /// assert!(*r.numer() == -12);
-    /// assert!(*r.denom() == 1);
+    /// assert_eq!(*r.numer(), -12);
+    /// assert_eq!(*r.denom(), 1);
     /// ```
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
         self.assign_str_radix(src, 10)
@@ -458,9 +459,9 @@ impl Rational {
     /// use rugrat::Rational;
     /// let mut r = Rational::new();
     /// r.assign_str_radix("ff/a", 16).unwrap();
-    /// assert!(r == (255, 10));
+    /// assert_eq!(r, (255, 10));
     /// r.assign_str_radix("+ff0/a0", 16).unwrap();
-    /// assert!(r == (255, 10));
+    /// assert_eq!(r, (255, 10));
     /// ```
     ///
     /// # Panics
@@ -490,7 +491,7 @@ impl Rational {
     /// use rugrat::Rational;
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
-    /// assert!(*r.numer() == -3)
+    /// assert_eq!(*r.numer(), -3)
     /// ```
     pub fn numer(&self) -> &Integer {
         unsafe {
@@ -507,7 +508,7 @@ impl Rational {
     /// use rugrat::Rational;
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
-    /// assert!(*r.denom() == 5);
+    /// assert_eq!(*r.denom(), 5);
     /// ```
     pub fn denom(&self) -> &Integer {
         unsafe {
@@ -525,8 +526,8 @@ impl Rational {
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
     /// let (num, den) = r.as_numer_denom();
-    /// assert!(*num == -3);
-    /// assert!(*den == 5);
+    /// assert_eq!(*num, -3);
+    /// assert_eq!(*den, 5);
     /// ```
     pub fn as_numer_denom(&self) -> (&Integer, &Integer) {
         (self.numer(), self.denom())
@@ -550,7 +551,8 @@ impl Rational {
     ///     // borrow ends here
     /// }
     /// let num_den = r.as_numer_denom();
-    /// assert!(*num_den.0 == 1 && *num_den.1 == 2);
+    /// assert_eq!(*num_den.0, 1);
+    /// assert_eq!(*num_den.1, 2);
     /// ```
     ///
     /// # Panics
@@ -589,7 +591,8 @@ impl Rational {
     ///     *den += 2;
     /// }
     /// let num_den = r.as_numer_denom();
-    /// assert!(*num_den.0 == -4 && *num_den.1 == 7);
+    /// assert_eq!(*num_den.0, -4);
+    /// assert_eq!(*num_den.1, 7);
     /// ```
     pub unsafe fn as_mut_numer_denom_no_canonicalization
         (&mut self)
@@ -612,8 +615,8 @@ impl Rational {
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
     /// let (num, den) = r.into_numer_denom();
-    /// assert!(num == -3);
-    /// assert!(den == 5);
+    /// assert_eq!(num, -3);
+    /// assert_eq!(den, 5);
     /// ```
     pub fn into_numer_denom(mut self) -> (Integer, Integer) {
         let (mut numer, mut denom) = unsafe { mem::uninitialized() };
@@ -643,8 +646,8 @@ impl Rational {
         /// ```rust
         /// use rugrat::Rational;
         /// let mut r = Rational::from((-100, 17));
-        /// assert!(*r.abs() == (100, 17));
-        /// assert!(r == (100, 17));
+        /// assert_eq!(*r.abs(), (100, 17));
+        /// assert_eq!(r, (100, 17));
         /// ```
         fn abs();
         /// Holds a computation of the absolute value.
@@ -656,7 +659,7 @@ impl Rational {
         /// let r = Rational::from((-100, 17));
         /// let hold = r.abs_hold();
         /// let abs = Rational::from(hold);
-        /// assert!(abs == (100, 17));
+        /// assert_eq!(abs, (100, 17));
         /// ```
         fn abs_hold -> AbsHold;
         gmp::mpq_abs
@@ -669,8 +672,8 @@ impl Rational {
         /// ```rust
         /// use rugrat::Rational;
         /// let mut r = Rational::from((-100, 17));
-        /// assert!(*r.recip() == (-17, 100));
-        /// assert!(r == (-17, 100));
+        /// assert_eq!(*r.recip(), (-17, 100));
+        /// assert_eq!(r, (-17, 100));
         /// ```
         ///
         /// # Panics
@@ -686,7 +689,7 @@ impl Rational {
         /// let r = Rational::from((-100, 17));
         /// let hold = r.recip_hold();
         /// let recip = Rational::from(hold);
-        /// assert!(recip == (-17, 100));
+        /// assert_eq!(recip, (-17, 100));
         /// ```
         fn recip_hold -> RecipHold;
         xgmp::mpq_inv_check_0
@@ -1386,8 +1389,8 @@ impl InnerMut for Integer {
 /// // `b` can reside on the stack
 /// let b = SmallRational::from((-100, 21));
 /// a /= &*b;
-/// assert!(*a.numer() == -21);
-/// assert!(*a.denom() == 13);
+/// assert_eq!(*a.numer(), -21);
+/// assert_eq!(*a.denom(), 13);
 /// ```
 #[repr(C)]
 pub struct SmallRational {
@@ -1457,8 +1460,8 @@ impl SmallRational {
     /// };
     /// // from_safe is canonicalized to the same form as from_unsafe
     /// let from_safe = SmallRational::from((130, -100));
-    /// assert!(from_unsafe.numer() == from_safe.numer());
-    /// assert!(from_unsafe.denom() == from_safe.denom());
+    /// assert_eq!(from_unsafe.numer(), from_safe.numer());
+    /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
     pub unsafe fn from_canonicalized_32(neg: bool,
                                         num: u32,
@@ -1496,8 +1499,8 @@ impl SmallRational {
     /// // from_safe is canonicalized to the same form as from_unsafe
     ///
     /// let from_safe = SmallRational::from((130, -100));
-    /// assert!(from_unsafe.numer() == from_safe.numer());
-    /// assert!(from_unsafe.denom() == from_safe.denom());
+    /// assert_eq!(from_unsafe.numer(), from_safe.numer());
+    /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
     pub unsafe fn from_canonicalized_64(neg: bool,
                                         num: u64,
@@ -1535,8 +1538,8 @@ impl SmallRational {
     /// };
     /// // from_safe is canonicalized to the same form as from_unsafe
     /// let from_safe = SmallRational::from((130, -100));
-    /// assert!(from_unsafe.numer() == from_safe.numer());
-    /// assert!(from_unsafe.denom() == from_safe.denom());
+    /// assert_eq!(from_unsafe.numer(), from_safe.numer());
+    /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
     pub unsafe fn assign_canonicalized_32(&mut self,
                                           neg: bool,
@@ -1573,8 +1576,8 @@ impl SmallRational {
     /// };
     /// // from_safe is canonicalized to the same form as from_unsafe
     /// let from_safe = SmallRational::from((130, -100));
-    /// assert!(from_unsafe.numer() == from_safe.numer());
-    /// assert!(from_unsafe.denom() == from_safe.denom());
+    /// assert_eq!(from_unsafe.numer(), from_safe.numer());
+    /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
     pub unsafe fn assign_canonicalized_64(&mut self,
                                           neg: bool,
@@ -1647,7 +1650,7 @@ impl SmallRational {
 
     fn update_d(&self) {
         // sanity check
-        assert!(mem::size_of::<Mpz>() == mem::size_of::<gmp::mpz_t>());
+        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
         let num_d = &self.num_limbs[0] as *const _ as *mut _;
@@ -1775,19 +1778,19 @@ mod tests {
         let rhs = Rational::from((15, 101));
         let pu = 30_u32;
         let pi = -15_i32;
-        assert!(Rational::from(-&lhs) == -lhs.clone());
-        assert!(Rational::from(&lhs + &rhs) == lhs.clone() + &rhs);
-        assert!(Rational::from(&lhs - &rhs) == lhs.clone() - &rhs);
-        assert!(Rational::from(&lhs * &rhs) == lhs.clone() * &rhs);
-        assert!(Rational::from(&lhs / &rhs) == lhs.clone() / &rhs);
+        assert_eq!(Rational::from(-&lhs), -lhs.clone());
+        assert_eq!(Rational::from(&lhs + &rhs), lhs.clone() + &rhs);
+        assert_eq!(Rational::from(&lhs - &rhs), lhs.clone() - &rhs);
+        assert_eq!(Rational::from(&lhs * &rhs), lhs.clone() * &rhs);
+        assert_eq!(Rational::from(&lhs / &rhs), lhs.clone() / &rhs);
 
-        assert!(Rational::from(&lhs << pu) == lhs.clone() << pu);
-        assert!(Rational::from(&lhs >> pu) == lhs.clone() >> pu);
-        assert!(Rational::from((&lhs).pow(pu)) == lhs.clone().pow(pu));
+        assert_eq!(Rational::from(&lhs << pu), lhs.clone() << pu);
+        assert_eq!(Rational::from(&lhs >> pu), lhs.clone() >> pu);
+        assert_eq!(Rational::from((&lhs).pow(pu)), lhs.clone().pow(pu));
 
-        assert!(Rational::from(&lhs << pi) == lhs.clone() << pi);
-        assert!(Rational::from(&lhs >> pi) == lhs.clone() >> pi);
-        assert!(Rational::from((&lhs).pow(pi)) == lhs.clone().pow(pi));
+        assert_eq!(Rational::from(&lhs << pi), lhs.clone() << pi);
+        assert_eq!(Rational::from(&lhs >> pi), lhs.clone() >> pi);
+        assert_eq!(Rational::from((&lhs).pow(pi)), lhs.clone().pow(pi));
     }
 
     #[test]
@@ -1805,9 +1808,9 @@ mod tests {
                     println!("zero {}", zero);
                     println!("cmp() {:?}", zero.partial_cmp(&(n, d)));
                     println!("repeat");
-                    assert!(zero.partial_cmp(&(n, d)) == ans);
+                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
                     println!("done");
-                    assert!(zero.partial_cmp(&Rational::from((n, d))) == ans);
+                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
                 }
             }
             for &d in &s {
@@ -1816,8 +1819,8 @@ mod tests {
                     if d < 0 {
                         ans = ans.map(Ordering::reverse);
                     }
-                    assert!(zero.partial_cmp(&(n, d)) == ans);
-                    assert!(zero.partial_cmp(&Rational::from((n, d))) == ans);
+                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
+                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
                 }
             }
         }
@@ -1825,8 +1828,8 @@ mod tests {
             for &d in &u {
                 if d != 0 {
                     let ans = 0.partial_cmp(&n);
-                    assert!(zero.partial_cmp(&(n, d)) == ans);
-                    assert!(zero.partial_cmp(&Rational::from((n, d))) == ans);
+                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
+                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
                 }
             }
             for &d in &s {
@@ -1835,8 +1838,8 @@ mod tests {
                     if d < 0 {
                         ans = ans.map(Ordering::reverse);
                     }
-                    assert!(zero.partial_cmp(&(n, d)) == ans);
-                    assert!(zero.partial_cmp(&Rational::from((n, d))) == ans);
+                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
+                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
                 }
             }
         }
@@ -1867,33 +1870,33 @@ mod tests {
                             ("-77/2", 8, -0o77, 2)];
         for &(s, radix, n, d) in good_strings.into_iter() {
             let r = Rational::from_str_radix(s, radix).unwrap();
-            assert!(*r.numer() == n);
-            assert!(*r.denom() == d);
+            assert_eq!(*r.numer(), n);
+            assert_eq!(*r.denom(), d);
         }
     }
 
     #[test]
     fn check_formatting() {
         let r = Rational::from((-11, 15));
-        assert!(format!("{}", r) == "-11/15");
-        assert!(format!("{:?}", r) == "-11/15");
-        assert!(format!("{:b}", r) == "-1011/1111");
-        assert!(format!("{:#b}", r) == "-0b1011/1111");
-        assert!(format!("{:o}", r) == "-13/17");
-        assert!(format!("{:#o}", r) == "-0o13/17");
-        assert!(format!("{:x}", r) == "-b/f");
-        assert!(format!("{:X}", r) == "-B/F");
-        assert!(format!("{:8x}", r) == "    -b/f");
-        assert!(format!("{:08X}", r) == "-0000B/F");
-        assert!(format!("{:#08x}", r) == "-0x00b/f");
-        assert!(format!("{:#8X}", r) == "  -0xB/F");
+        assert_eq!(format!("{}", r), "-11/15");
+        assert_eq!(format!("{:?}", r), "-11/15");
+        assert_eq!(format!("{:b}", r), "-1011/1111");
+        assert_eq!(format!("{:#b}", r), "-0b1011/1111");
+        assert_eq!(format!("{:o}", r), "-13/17");
+        assert_eq!(format!("{:#o}", r), "-0o13/17");
+        assert_eq!(format!("{:x}", r), "-b/f");
+        assert_eq!(format!("{:X}", r), "-B/F");
+        assert_eq!(format!("{:8x}", r), "    -b/f");
+        assert_eq!(format!("{:08X}", r), "-0000B/F");
+        assert_eq!(format!("{:#08x}", r), "-0x00b/f");
+        assert_eq!(format!("{:#8X}", r), "  -0xB/F");
     }
 
     #[test]
     fn check_no_nails() {
         // we assume no nail bits when we use limbs
-        assert!(gmp::NAIL_BITS == 0);
-        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
-        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(gmp::NAIL_BITS, 0);
+        assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
+        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
     }
 }

@@ -52,11 +52,11 @@
 //! fn main() {
 //!     // Create a rational number, -22 / 4 = -11 / 2.
 //!     let rat = Rational::from((-22, 4));
-//!     assert!(rat == (-44, 8));
-//!     assert!(rat.to_f32() == -5.5);
+//!     assert_eq!(rat, (-44, 8));
+//!     assert_eq!(rat.to_f32(), -5.5);
 //!     // The numerator and denominator are stored in canonical form.
-//!     assert!(*rat.numer() == -11);
-//!     assert!(*rat.denom() == 2);
+//!     assert_eq!(*rat.numer(), -11);
+//!     assert_eq!(*rat.denom(), 2);
 //! }
 //! ```
 //!
