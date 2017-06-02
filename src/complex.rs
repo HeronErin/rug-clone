@@ -253,9 +253,9 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let r1 = Complex::new(32);
-    /// assert!(r1.prec() == (32, 32));
+    /// assert_eq!(r1.prec(), (32, 32));
     /// let r2 = Complex::new((32, 64));
-    /// assert!(r2.prec() == (32, 64));
+    /// assert_eq!(r2.prec(), (32, 64));
     /// ```
     ///
     /// # Panics
@@ -285,7 +285,7 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let r = Complex::new((24, 53));
-    /// assert!(r.prec() == (24, 53));
+    /// assert_eq!(r.prec(), (24, 53));
     /// ```
     pub fn prec(&self) -> (u32, u32) {
         (self.real().prec(), self.imag().prec())
@@ -299,9 +299,9 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let mut r = Complex::from(((4.875, 4.625), 6));
-    /// assert!(r == (4.875, 4.625));
+    /// assert_eq!(r, (4.875, 4.625));
     /// r.set_prec(4);
-    /// assert!(r == (5.0, 4.5));
+    /// assert_eq!(r, (5.0, 4.5));
     /// ```
     ///
     /// # Panics
@@ -325,10 +325,10 @@ impl Complex {
     ///
     /// fn main() {
     ///     let mut r = Complex::from(((4.875, 4.625), 6));
-    ///     assert!(r == (4.875, 4.625));
+    ///     assert_eq!(r, (4.875, 4.625));
     ///     let dir = r.set_prec_round(4, (Round::Down, Round::Up));
-    ///     assert!(r == (4.5, 5.0));
-    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
+    ///     assert_eq!(r, (4.5, 5.0));
+    ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// }
     /// ```
     ///
@@ -352,8 +352,8 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let c = Complex::from_str("(12.5e2 2.5e-1)", 53).unwrap();
-    /// assert!(*c.real() == 12.5e2);
-    /// assert!(*c.imag() == 2.5e-1);
+    /// assert_eq!(*c.real(), 12.5e2);
+    /// assert_eq!(*c.imag(), 2.5e-1);
     /// let bad = Complex::from_str("bad", 53);
     /// assert!(bad.is_err());
     /// ```
@@ -381,9 +381,9 @@ impl Complex {
     ///     let round = (Round::Down, Round::Up);
     ///     let res = Complex::from_str_round("(14.1 14.2)", 4, round);
     ///     let (c, dir) = res.unwrap();
-    ///     assert!(*c.real() == 14);
-    ///     assert!(*c.imag() == 15);
-    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
+    ///     assert_eq!(*c.real(), 14);
+    ///     assert_eq!(*c.imag(), 15);
+    ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// }
     /// ```
     pub fn from_str_round<P: Prec>
@@ -404,8 +404,8 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let c = Complex::from_str_radix("f.f", 16, 53).unwrap();
-    /// assert!(*c.real() == 15.9375);
-    /// assert!(*c.imag() == 0);
+    /// assert_eq!(*c.real(), 15.9375);
+    /// assert_eq!(*c.imag(), 0);
     /// ```
     ///
     /// # Panics
@@ -436,9 +436,9 @@ impl Complex {
     ///     let round = (Round::Nearest, Round::Nearest);
     ///     let res = Complex::from_str_radix_round("(c.c c.1)", 16, 4, round);
     ///     let (c, dir) = res.unwrap();
-    ///     assert!(*c.real() == 13);
-    ///     assert!(*c.imag() == 12);
-    ///     assert!(dir == (Ordering::Greater, Ordering::Less));
+    ///     assert_eq!(*c.real(), 13);
+    ///     assert_eq!(*c.imag(), 12);
+    ///     assert_eq!(dir, (Ordering::Greater, Ordering::Less));
     /// }
     /// ```
     ///
@@ -472,7 +472,7 @@ impl Complex {
     ///
     /// let invalid_valid = Complex::valid_str_radix("(0 3)", 3);
     /// let invalid_from = Complex::from_str_radix("(0 3)", 3, 53);
-    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// assert_eq!(invalid_valid.unwrap_err(), invalid_from.unwrap_err());
     /// ```
     ///
     /// # Panics
@@ -574,8 +574,8 @@ impl Complex {
     /// use rugcom::Complex;
     /// let mut c = Complex::new(53);
     /// c.assign_str("(12.5e2 2.5e-1)").unwrap();
-    /// assert!(*c.real() == 12.5e2);
-    /// assert!(*c.imag() == 2.5e-1);
+    /// assert_eq!(*c.real(), 12.5e2);
+    /// assert_eq!(*c.imag(), 2.5e-1);
     /// let ret = c.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
@@ -599,9 +599,9 @@ impl Complex {
     ///     let mut c = Complex::new((4, 4));
     ///     let round = (Round::Down, Round::Up);
     ///     let dir = c.assign_str_round("(14.1 14.2)", round).unwrap();
-    ///     assert!(*c.real() == 14);
-    ///     assert!(*c.imag() == 15);
-    ///     assert!(dir == (Ordering::Less, Ordering::Greater));
+    ///     assert_eq!(*c.real(), 14);
+    ///     assert_eq!(*c.imag(), 15);
+    ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// }
     /// ```
     pub fn assign_str_round(&mut self,
@@ -620,8 +620,8 @@ impl Complex {
     /// use rugcom::Complex;
     /// let mut c = Complex::new(53);
     /// c.assign_str_radix("f.f", 16).unwrap();
-    /// assert!(*c.real() == 15.9375);
-    /// assert!(*c.imag() == 0);
+    /// assert_eq!(*c.real(), 15.9375);
+    /// assert_eq!(*c.imag(), 0);
     /// ```
     ///
     /// # Panics
@@ -650,9 +650,9 @@ impl Complex {
     ///     let mut c = Complex::new((4, 4));
     ///     let round = (Round::Nearest, Round::Nearest);
     ///     let dir = c.assign_str_radix_round("(c.c c.1)", 16, round).unwrap();
-    ///     assert!(*c.real() == 13);
-    ///     assert!(*c.imag() == 12);
-    ///     assert!(dir == (Ordering::Greater, Ordering::Less));
+    ///     assert_eq!(*c.real(), 13);
+    ///     assert_eq!(*c.imag(), 12);
+    ///     assert_eq!(dir, (Ordering::Greater, Ordering::Less));
     /// }
     /// ```
     ///
@@ -691,7 +691,7 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
-    /// assert!(*c.real() == 12.5)
+    /// assert_eq!(*c.real(), 12.5)
     /// ```
     pub fn real(&self) -> &Float {
         unsafe {
@@ -707,7 +707,7 @@ impl Complex {
     /// ```rust
     /// use rugcom::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
-    /// assert!(*c.imag() == -20.75)
+    /// assert_eq!(*c.imag(), -20.75)
     pub fn imag(&self) -> &Float {
         unsafe {
             let ptr = mpc::imagref(self.inner() as *const _ as *mut _);
@@ -801,8 +801,8 @@ impl Complex {
     /// use rugcom::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// let (real, imag) = c.into_real_imag();
-    /// assert!(real == 12.5);
-    /// assert!(imag == -20.75);
+    /// assert_eq!(real, 12.5);
+    /// assert_eq!(imag, -20.75);
     /// ```
     pub fn into_real_imag(mut self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
@@ -869,7 +869,7 @@ impl Complex {
     ///
     /// fn main() {
     ///     let c1 = Complex::from(((30, 40), 53));
-    ///     assert!(Float::from((c1.abs_hold(), 53)) == 50);
+    ///     assert_eq!(Float::from((c1.abs_hold(), 53)), 50);
     ///     let c2 = Complex::from(((12, Special::Infinity), 53));
     ///     assert!(Float::from((c2.abs_hold(), 53)).is_infinite());
     /// }
@@ -899,10 +899,10 @@ impl Complex {
     ///     assert!(arg.is_zero());
     ///     let c_neg = Complex::from((-1.3, 53));
     ///     arg.assign(c_neg.arg_hold());
-    ///     assert!(arg == f64::consts::PI);
+    ///     assert_eq!(arg, f64::consts::PI);
     ///     let c_pi_4 = Complex::from(((1.333, 1.333), 53));
     ///     arg.assign(c_pi_4.arg_hold());
-    ///     assert!(arg == f64::consts::FRAC_PI_4);
+    ///     assert_eq!(arg, f64::consts::FRAC_PI_4);
 
     ///     // Special values are handled like atan2 in IEEE 754-2008.
     ///     // Examples for real, imag set to plus, minus zero below:
@@ -915,10 +915,10 @@ impl Complex {
     ///     assert!(arg.is_zero() && arg.get_sign());
     ///     zero.assign((Special::MinusZero, Special::Zero));
     ///     arg.assign(zero.arg_hold());
-    ///     assert!(arg == f64::consts::PI);
+    ///     assert_eq!(arg, f64::consts::PI);
     ///     zero.assign((Special::MinusZero, Special::MinusZero));
     ///     arg.assign(zero.arg_hold());
-    ///     assert!(arg == -f64::consts::PI);
+    ///     assert_eq!(arg, -f64::consts::PI);
     /// }
     /// ```
     pub fn arg_hold<'a>(&'a self) -> ArgHold<'a> {
@@ -2581,8 +2581,8 @@ impl<'a, T> Inner for OwnBorrow<'a, T>
 /// // `b` can reside on the stack
 /// let b = SmallComplex::from((-10f64, -20.5f64));
 /// a += &*b;
-/// assert!(*a.real() == -9);
-/// assert!(*a.imag() == -18.5);
+/// assert_eq!(*a.real(), -9);
+/// assert_eq!(*a.imag(), -18.5);
 /// ```
 pub struct SmallComplex {
     re: Mpfr,
@@ -2853,57 +2853,57 @@ mod tests {
         let pi = -15_i32;
         let ps = 31.625_f32;
         let pd = -1.5_f64;
-        assert!(Complex::from((-&lhs, prec)) == -lhs.clone());
-        assert!(Complex::from((&lhs + &rhs, prec)) == lhs.clone() + &rhs);
-        assert!(Complex::from((&lhs - &rhs, prec)) == lhs.clone() - &rhs);
-        assert!(Complex::from((&lhs * &rhs, prec)) == lhs.clone() * &rhs);
-        assert!(Complex::from((&lhs / &rhs, prec)) == lhs.clone() / &rhs);
-        assert!(Complex::from(((&lhs).pow(&rhs), prec)) ==
-                lhs.clone().pow(&rhs));
+        assert_eq!(Complex::from((-&lhs, prec)), -lhs.clone());
+        assert_eq!(Complex::from((&lhs + &rhs, prec)), lhs.clone() + &rhs);
+        assert_eq!(Complex::from((&lhs - &rhs, prec)), lhs.clone() - &rhs);
+        assert_eq!(Complex::from((&lhs * &rhs, prec)), lhs.clone() * &rhs);
+        assert_eq!(Complex::from((&lhs / &rhs, prec)), lhs.clone() / &rhs);
+        assert_eq!(Complex::from(((&lhs).pow(&rhs), prec)),
+                   lhs.clone().pow(&rhs));
 
-        assert!(Complex::from((&lhs + pu, prec)) == lhs.clone() + pu);
-        assert!(Complex::from((&lhs - pu, prec)) == lhs.clone() - pu);
-        assert!(Complex::from((&lhs * pu, prec)) == lhs.clone() * pu);
-        assert!(Complex::from((&lhs / pu, prec)) == lhs.clone() / pu);
-        assert!(Complex::from((&lhs << pu, prec)) == lhs.clone() << pu);
-        assert!(Complex::from((&lhs >> pu, prec)) == lhs.clone() >> pu);
-        assert!(Complex::from(((&lhs).pow(pu), prec)) == lhs.clone().pow(pu));
+        assert_eq!(Complex::from((&lhs + pu, prec)), lhs.clone() + pu);
+        assert_eq!(Complex::from((&lhs - pu, prec)), lhs.clone() - pu);
+        assert_eq!(Complex::from((&lhs * pu, prec)), lhs.clone() * pu);
+        assert_eq!(Complex::from((&lhs / pu, prec)), lhs.clone() / pu);
+        assert_eq!(Complex::from((&lhs << pu, prec)), lhs.clone() << pu);
+        assert_eq!(Complex::from((&lhs >> pu, prec)), lhs.clone() >> pu);
+        assert_eq!(Complex::from(((&lhs).pow(pu), prec)), lhs.clone().pow(pu));
 
-        assert!(Complex::from((pu + &lhs, prec)) == pu + lhs.clone());
-        assert!(Complex::from((pu - &lhs, prec)) == pu - lhs.clone());
-        assert!(Complex::from((pu * &lhs, prec)) == pu * lhs.clone());
-        assert!(Complex::from((pu / &lhs, prec)) == pu / lhs.clone());
+        assert_eq!(Complex::from((pu + &lhs, prec)), pu + lhs.clone());
+        assert_eq!(Complex::from((pu - &lhs, prec)), pu - lhs.clone());
+        assert_eq!(Complex::from((pu * &lhs, prec)), pu * lhs.clone());
+        assert_eq!(Complex::from((pu / &lhs, prec)), pu / lhs.clone());
 
-        assert!(Complex::from((&lhs + pi, prec)) == lhs.clone() + pi);
-        assert!(Complex::from((&lhs - pi, prec)) == lhs.clone() - pi);
-        assert!(Complex::from((&lhs * pi, prec)) == lhs.clone() * pi);
-        assert!(Complex::from((&lhs / pi, prec)) == lhs.clone() / pi);
-        assert!(Complex::from((&lhs << pi, prec)) == lhs.clone() << pi);
-        assert!(Complex::from((&lhs >> pi, prec)) == lhs.clone() >> pi);
-        assert!(Complex::from(((&lhs).pow(pi), prec)) == lhs.clone().pow(pi));
+        assert_eq!(Complex::from((&lhs + pi, prec)), lhs.clone() + pi);
+        assert_eq!(Complex::from((&lhs - pi, prec)), lhs.clone() - pi);
+        assert_eq!(Complex::from((&lhs * pi, prec)), lhs.clone() * pi);
+        assert_eq!(Complex::from((&lhs / pi, prec)), lhs.clone() / pi);
+        assert_eq!(Complex::from((&lhs << pi, prec)), lhs.clone() << pi);
+        assert_eq!(Complex::from((&lhs >> pi, prec)), lhs.clone() >> pi);
+        assert_eq!(Complex::from(((&lhs).pow(pi), prec)), lhs.clone().pow(pi));
 
-        assert!(Complex::from((pi + &lhs, prec)) == pi + lhs.clone());
-        assert!(Complex::from((pi - &lhs, prec)) == pi - lhs.clone());
-        assert!(Complex::from((pi * &lhs, prec)) == pi * lhs.clone());
-        assert!(Complex::from((pi / &lhs, prec)) == pi / lhs.clone());
+        assert_eq!(Complex::from((pi + &lhs, prec)), pi + lhs.clone());
+        assert_eq!(Complex::from((pi - &lhs, prec)), pi - lhs.clone());
+        assert_eq!(Complex::from((pi * &lhs, prec)), pi * lhs.clone());
+        assert_eq!(Complex::from((pi / &lhs, prec)), pi / lhs.clone());
 
-        assert!(Complex::from(((&lhs).pow(ps), prec)) == lhs.clone().pow(ps));
-        assert!(Complex::from(((&lhs).pow(pd), prec)) == lhs.clone().pow(pd));
+        assert_eq!(Complex::from(((&lhs).pow(ps), prec)), lhs.clone().pow(ps));
+        assert_eq!(Complex::from(((&lhs).pow(pd), prec)), lhs.clone().pow(pd));
     }
 
     #[test]
     fn check_from_str() {
         let mut c = Complex::new((53, 53));
         c.assign_str("(+0 -0)").unwrap();
-        assert!(c == (0, 0));
+        assert_eq!(c, (0, 0));
         assert!(!c.real().get_sign());
         assert!(c.imag().get_sign());
         c.assign_str("(5 6)").unwrap();
-        assert!(c == (5, 6));
+        assert_eq!(c, (5, 6));
         c.assign_str_radix("(50 60)", 8).unwrap();
-        assert!(c == (0o50, 0o60));
+        assert_eq!(c, (0o50, 0o60));
         c.assign_str_radix("33", 16).unwrap();
-        assert!(c == (0x33, 0));
+        assert_eq!(c, (0x33, 0));
 
         let bad_strings = [("(0,0)", None),
                            ("(0 0 )", None),
@@ -2923,8 +2923,8 @@ mod tests {
              ("(+0e99 1.)", 2, 0.0, 1.0),
              ("-9.9e1", 10, -99.0, 0.0)];
         for &(s, radix, r, i) in good_strings.into_iter() {
-            assert!(Complex::from_str_radix(s, radix, (53, 53)).unwrap() ==
-                    (r, i));
+            assert_eq!(Complex::from_str_radix(s, radix, (53, 53)).unwrap(),
+                       (r, i));
         }
     }
 
@@ -2933,31 +2933,31 @@ mod tests {
     fn check_formatting() {
         let mut c = Complex::new((53, 53));
         c.assign((Special::Zero, Special::MinusZero));
-        assert!(format!("{}", c) == "(0.0 0.0)");
-        assert!(format!("{:?}", c) == "(0.0 -0.0)");
-        assert!(format!("{:+}", c) == "(+0.0 -0.0)");
+        assert_eq!(format!("{}", c), "(0.0 0.0)");
+        assert_eq!(format!("{:?}", c), "(0.0 -0.0)");
+        assert_eq!(format!("{:+}", c), "(+0.0 -0.0)");
         c.assign((2.7, f64::NEG_INFINITY));
-        assert!(format!("{:.2}", c) == "(2.7e0 -inf)");
-        assert!(format!("{:+.8}", c) == "(+2.7000000e0 -inf)");
-        assert!(format!("{:.4e}", c) == "(2.700e0 -inf)");
-        assert!(format!("{:.4E}", c) == "(2.700E0 -inf)");
-        assert!(format!("{:16.2}", c) == "    (2.7e0 -inf)");
+        assert_eq!(format!("{:.2}", c), "(2.7e0 -inf)");
+        assert_eq!(format!("{:+.8}", c), "(+2.7000000e0 -inf)");
+        assert_eq!(format!("{:.4e}", c), "(2.700e0 -inf)");
+        assert_eq!(format!("{:.4E}", c), "(2.700E0 -inf)");
+        assert_eq!(format!("{:16.2}", c), "    (2.7e0 -inf)");
         c.assign((3.5, 11));
-        assert!(format!("{:.4b}", c) == "(1.110e1 1.011e3)");
-        assert!(format!("{:#.4b}", c) == "(0b1.110e1 0b1.011e3)");
-        assert!(format!("{:.4o}", c) == "(3.400e0 1.300e1)");
-        assert!(format!("{:#.4o}", c) == "(0o3.400e0 0o1.300e1)");
-        assert!(format!("{:.2x}", c) == "(3.8@0 b.0@0)");
-        assert!(format!("{:#.2x}", c) == "(0x3.8@0 0xb.0@0)");
-        assert!(format!("{:.2X}", c) == "(3.8@0 B.0@0)");
-        assert!(format!("{:#.2X}", c) == "(0x3.8@0 0xB.0@0)");
+        assert_eq!(format!("{:.4b}", c), "(1.110e1 1.011e3)");
+        assert_eq!(format!("{:#.4b}", c), "(0b1.110e1 0b1.011e3)");
+        assert_eq!(format!("{:.4o}", c), "(3.400e0 1.300e1)");
+        assert_eq!(format!("{:#.4o}", c), "(0o3.400e0 0o1.300e1)");
+        assert_eq!(format!("{:.2x}", c), "(3.8@0 b.0@0)");
+        assert_eq!(format!("{:#.2x}", c), "(0x3.8@0 0xb.0@0)");
+        assert_eq!(format!("{:.2X}", c), "(3.8@0 B.0@0)");
+        assert_eq!(format!("{:#.2X}", c), "(0x3.8@0 0xB.0@0)");
     }
 
     #[test]
     fn check_no_nails() {
         // we assume no nail bits when we use limbs
-        assert!(gmp::NAIL_BITS == 0);
-        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
-        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(gmp::NAIL_BITS, 0);
+        assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
+        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
     }
 }

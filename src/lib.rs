@@ -57,8 +57,8 @@
 //!     let mut com = Complex::new((16, 16));
 //!     // Assign the complex value 1.5 + 3.5i
 //!     com.assign((1.5, 3.5));
-//!     assert!(*com.real() == 1.5);
-//!     assert!(*com.imag() == 3.5);
+//!     assert_eq!(*com.real(), 1.5);
+//!     assert_eq!(*com.imag(), 3.5);
 //! }
 //! ```
 //!
