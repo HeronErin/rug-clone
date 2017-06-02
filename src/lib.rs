@@ -130,17 +130,19 @@ pub trait AssignRound<Rhs = Self> {
 /// Construct `Self` via a conversion with a specified precision,
 /// applying the specified rounding method.
 pub trait FromRound<Val, Prec>
-    where Self: Sized
+where
+    Self: Sized,
 {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
     /// Performs the conversion.
-    fn from_round(val: Val,
-                  prec: Prec,
-                  round: Self::Round)
-                  -> (Self, Self::Ordering);
+    fn from_round(
+        val: Val,
+        prec: Prec,
+        round: Self::Round,
+    ) -> (Self, Self::Ordering);
 }
 
 /// Provides addition with a specified rounding method.
@@ -152,10 +154,11 @@ pub trait AddRound<Rhs = Self> {
     /// The resulting type after the addition.
     type Output;
     /// Performs the addition.
-    fn add_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn add_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides subtraction with a specified rounding method.
@@ -167,10 +170,11 @@ pub trait SubRound<Rhs = Self> {
     /// The resulting type after the subtraction.
     type Output;
     /// Performs the subtraction.
-    fn sub_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn sub_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides multiplication with a specified rounding method.
@@ -182,10 +186,11 @@ pub trait MulRound<Rhs = Self> {
     /// The resulting type after the multiplication.
     type Output;
     /// Performs the multiplication.
-    fn mul_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn mul_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides division with a specified rounding method.
@@ -197,10 +202,11 @@ pub trait DivRound<Rhs = Self> {
     /// The resulting type after the division.
     type Output;
     /// Performs the division.
-    fn div_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn div_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides the left shift operation with a specified rounding
@@ -213,10 +219,11 @@ pub trait ShlRound<Rhs> {
     /// The resulting type after the left shift operation.
     type Output;
     /// Performs the left shift operation.
-    fn shl_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn shl_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides the right shift operation with a specified rounding
@@ -229,10 +236,11 @@ pub trait ShrRound<Rhs> {
     /// The resulting type after the right shift operation.
     type Output;
     /// Performs the right shift operation.
-    fn shr_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn shr_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }
 
 /// Provides the power operation inside `self` with a specified
@@ -245,8 +253,9 @@ pub trait PowRound<Rhs> {
     /// The resulting type after the power operation.
     type Output;
     /// Performs the power operation.
-    fn pow_round(self,
-                 rhs: Rhs,
-                 round: Self::Round)
-                 -> (Self::Output, Self::Ordering);
+    fn pow_round(
+        self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> (Self::Output, Self::Ordering);
 }

@@ -21,42 +21,47 @@ use std::cmp;
 use std::os::raw::c_int;
 use std::u32;
 
-pub unsafe fn recip(rop: *mut mpfr_t,
-                    op: *const mpfr_t,
-                    rnd: mpfr::rnd_t)
-                    -> c_int {
+pub unsafe fn recip(
+    rop: *mut mpfr_t,
+    op: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::ui_div(rop, 1, op, rnd)
 }
 
-pub unsafe fn jn(rop: *mut mpfr_t,
-                 op: *const mpfr_t,
-                 n: i32,
-                 rnd: mpfr::rnd_t)
-                 -> c_int {
+pub unsafe fn jn(
+    rop: *mut mpfr_t,
+    op: *const mpfr_t,
+    n: i32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::jn(rop, n.into(), op, rnd)
 }
 
-pub unsafe fn yn(rop: *mut mpfr_t,
-                 op: *const mpfr_t,
-                 n: i32,
-                 rnd: mpfr::rnd_t)
-                 -> c_int {
+pub unsafe fn yn(
+    rop: *mut mpfr_t,
+    op: *const mpfr_t,
+    n: i32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::yn(rop, n.into(), op, rnd)
 }
 
-pub unsafe fn z_div(r: *mut mpfr_t,
-                    lhs: *const gmp::mpz_t,
-                    rhs: *const mpfr_t,
-                    rnd: mpfr::rnd_t)
-                    -> c_int {
+pub unsafe fn z_div(
+    r: *mut mpfr_t,
+    lhs: *const gmp::mpz_t,
+    rhs: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     divf_mulz_divz(r, rhs, Some(lhs), None, rnd)
 }
 
-pub unsafe fn q_sub(r: *mut mpfr_t,
-                    lhs: *const gmp::mpq_t,
-                    rhs: *const mpfr_t,
-                    rnd: mpfr::rnd_t)
-                    -> c_int {
+pub unsafe fn q_sub(
+    r: *mut mpfr_t,
+    lhs: *const gmp::mpq_t,
+    rhs: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     let flip_rnd = match rnd {
         mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
         mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
@@ -70,11 +75,12 @@ pub unsafe fn q_sub(r: *mut mpfr_t,
     -flip_ret
 }
 
-pub unsafe fn q_div(r: *mut mpfr_t,
-                    lhs: *const gmp::mpq_t,
-                    rhs: *const mpfr_t,
-                    rnd: mpfr::rnd_t)
-                    -> c_int {
+pub unsafe fn q_div(
+    r: *mut mpfr_t,
+    lhs: *const gmp::mpq_t,
+    rhs: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     let lhs_num = gmp::mpq_numref(lhs as *mut _) as *const _;
     let lhs_den = gmp::mpq_denref(lhs as *mut _) as *const _;
     divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
@@ -82,12 +88,13 @@ pub unsafe fn q_div(r: *mut mpfr_t,
 
 // mul and div must must form a canonical rational, except that div
 // can be negative
-unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
-                         f: *const mpfr_t,
-                         mul: Option<*const gmp::mpz_t>,
-                         div: Option<*const gmp::mpz_t>,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+unsafe fn divf_mulz_divz(
+    rop: *mut mpfr_t,
+    f: *const mpfr_t,
+    mul: Option<*const gmp::mpz_t>,
+    div: Option<*const gmp::mpz_t>,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     let mul_size = mul.map(|i| (*i).size);
     let div_size = div.map(|i| (*i).size);
     if mul_size == Some(0) {
@@ -138,51 +145,57 @@ pub unsafe fn set_single(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::set_d(rop, op as f64, rnd)
 }
 
-pub unsafe fn add_single(rop: *mut mpfr_t,
-                         op1: *const mpfr_t,
-                         op2: f32,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+pub unsafe fn add_single(
+    rop: *mut mpfr_t,
+    op1: *const mpfr_t,
+    op2: f32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::add_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn sub_single(rop: *mut mpfr_t,
-                         op1: *const mpfr_t,
-                         op2: f32,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+pub unsafe fn sub_single(
+    rop: *mut mpfr_t,
+    op1: *const mpfr_t,
+    op2: f32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::sub_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn single_sub(rop: *mut mpfr_t,
-                         op1: f32,
-                         op2: *const mpfr_t,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+pub unsafe fn single_sub(
+    rop: *mut mpfr_t,
+    op1: f32,
+    op2: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::d_sub(rop, op1 as f64, op2, rnd)
 }
 
-pub unsafe fn mul_single(rop: *mut mpfr_t,
-                         op1: *const mpfr_t,
-                         op2: f32,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+pub unsafe fn mul_single(
+    rop: *mut mpfr_t,
+    op1: *const mpfr_t,
+    op2: f32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::mul_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn div_single(rop: *mut mpfr_t,
-                         op1: *const mpfr_t,
-                         op2: f32,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+pub unsafe fn div_single(
+    rop: *mut mpfr_t,
+    op1: *const mpfr_t,
+    op2: f32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::div_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn single_div(rop: *mut mpfr_t,
-                         op1: f32,
-                         op2: *const mpfr_t,
-                         rnd: mpfr::rnd_t)
-                         -> c_int {
+pub unsafe fn single_div(
+    rop: *mut mpfr_t,
+    op1: f32,
+    op2: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
     mpfr::d_div(rop, op1 as f64, op2, rnd)
 }
 
