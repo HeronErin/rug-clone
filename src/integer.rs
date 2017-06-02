@@ -57,11 +57,11 @@ use xgmp;
 /// let mut i = Integer::from(1);
 /// i = i << 1000;
 /// // i is now 1000000... (1000 zeros)
-/// assert!(i.significant_bits() == 1001);
-/// assert!(i.find_one(0) == Some(1000));
+/// assert_eq!(i.significant_bits(), 1001);
+/// assert_eq!(i.find_one(0), Some(1000));
 /// i -= 1;
 /// // i is now 111111... (1000 ones)
-/// assert!(i.count_ones() == Some(1000));
+/// assert_eq!(i.count_ones(), Some(1000));
 ///
 /// let a = Integer::from(0xf00d);
 /// let all_ones_xor_a = Integer::from(-1) ^ &a;
@@ -69,9 +69,9 @@ use xgmp;
 /// let complement_a = !a;
 /// // now a has been moved, so this would cause an error:
 /// // assert!(a > 0);
-/// assert!(all_ones_xor_a == complement_a);
-/// assert!(complement_a == -0xf00e);
-/// assert!(format!("{:x}", complement_a) == "-f00e");
+/// assert_eq!(all_ones_xor_a, complement_a);
+/// assert_eq!(complement_a, -0xf00e);
+/// assert_eq!(format!("{:x}", complement_a), "-f00e");
 /// ```
 pub struct Integer {
     inner: mpz_t,
@@ -385,7 +385,7 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let i = Integer::new();
-    /// assert!(i == 0);
+    /// assert_eq!(i, 0);
     /// ```
     pub fn new() -> Integer {
         unsafe {
@@ -404,7 +404,7 @@ impl Integer {
     /// use rugint::Integer;
     /// use std::f32;
     /// let i = Integer::from_f32(-5.6).unwrap();
-    /// assert!(i == -5);
+    /// assert_eq!(i, -5);
     /// let neg_inf = Integer::from_f32(f32::NEG_INFINITY);
     /// assert!(neg_inf.is_none());
     /// ```
@@ -421,7 +421,7 @@ impl Integer {
     /// use rugint::Integer;
     /// use std::f64;
     /// let i = Integer::from_f64(1e20).unwrap();
-    /// assert!(i == "100000000000000000000".parse::<Integer>().unwrap());
+    /// assert_eq!(i, "100000000000000000000".parse::<Integer>().unwrap());
     /// let inf = Integer::from_f64(f64::INFINITY);
     /// assert!(inf.is_none());
     /// ```
@@ -444,7 +444,7 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let i = Integer::from_str_radix("-ff", 16).unwrap();
-    /// assert!(i == -0xff);
+    /// assert_eq!(i, -0xff);
     /// ```
     ///
     /// # Panics
@@ -474,7 +474,7 @@ impl Integer {
     ///
     /// let invalid_valid = Integer::valid_str_radix("123", 3);
     /// let invalid_from = Integer::from_str_radix("123", 3);
-    /// assert!(invalid_valid.unwrap_err() == invalid_from.unwrap_err());
+    /// assert_eq!(invalid_valid.unwrap_err(), invalid_from.unwrap_err());
     /// ```
     ///
     /// # Panics
@@ -492,11 +492,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(-50);
-    /// assert!(fits.to_i32() == Some(-50));
+    /// assert_eq!(fits.to_i32(), Some(-50));
     /// let small = Integer::from(-123456789012345_i64);
-    /// assert!(small.to_i32() == None);
+    /// assert_eq!(small.to_i32(), None);
     /// let large = Integer::from(123456789012345_u64);
-    /// assert!(large.to_i32() == None);
+    /// assert_eq!(large.to_i32(), None);
     /// ```
     pub fn to_i32(&self) -> Option<i32> {
         if unsafe { xgmp::mpz_fits_i32(self.inner()) } {
@@ -512,11 +512,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(-50);
-    /// assert!(fits.to_i64() == Some(-50));
+    /// assert_eq!(fits.to_i64(), Some(-50));
     /// let small = Integer::from_str_radix("-fedcba9876543210", 16).unwrap();
-    /// assert!(small.to_i64() == None);
+    /// assert_eq!(small.to_i64(), None);
     /// let large = Integer::from_str_radix("fedcba9876543210", 16).unwrap();
-    /// assert!(large.to_i64() == None);
+    /// assert_eq!(large.to_i64(), None);
     /// ```
     pub fn to_i64(&self) -> Option<i64> {
         if unsafe { xgmp::mpz_fits_i64(self.inner()) } {
@@ -532,11 +532,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(1234567890);
-    /// assert!(fits.to_u32() == Some(1234567890));
+    /// assert_eq!(fits.to_u32(), Some(1234567890));
     /// let neg = Integer::from(-1);
-    /// assert!(neg.to_u32() == None);
+    /// assert_eq!(neg.to_u32(), None);
     /// let large = "123456789012345".parse::<Integer>().unwrap();
-    /// assert!(large.to_u32() == None);
+    /// assert_eq!(large.to_u32(), None);
     /// ```
     pub fn to_u32(&self) -> Option<u32> {
         if unsafe { xgmp::mpz_fits_u32(self.inner()) } {
@@ -552,11 +552,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(123456789012345_u64);
-    /// assert!(fits.to_u64() == Some(123456789012345));
+    /// assert_eq!(fits.to_u64(), Some(123456789012345));
     /// let neg = Integer::from(-1);
-    /// assert!(neg.to_u64() == None);
+    /// assert_eq!(neg.to_u64(), None);
     /// let large = "1234567890123456789012345".parse::<Integer>().unwrap();
-    /// assert!(large.to_u64() == None);
+    /// assert_eq!(large.to_u64(), None);
     /// ```
     pub fn to_u64(&self) -> Option<u64> {
         if unsafe { xgmp::mpz_fits_u64(self.inner()) } {
@@ -576,10 +576,10 @@ impl Integer {
     /// let min = Integer::from_f32(f32::MIN).unwrap();
     /// let minus_one = min - 1u32;
     /// // minus_one is truncated to f32::MIN
-    /// assert!(minus_one.to_f32() == f32::MIN);
+    /// assert_eq!(minus_one.to_f32(), f32::MIN);
     /// let times_two = minus_one * 2u32;
     /// // times_two is too small
-    /// assert!(times_two.to_f32() == f32::NEG_INFINITY);
+    /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
     /// ```
     pub fn to_f32(&self) -> f32 {
         let f = self.to_f64();
@@ -612,22 +612,22 @@ impl Integer {
     /// // An `f64` has 53 bits of precision.
     /// let exact = 0x1f_ffff_ffff_ffff_u64;
     /// let i = Integer::from(exact);
-    /// assert!(i.to_f64() == exact as f64);
+    /// assert_eq!(i.to_f64(), exact as f64);
     ///
     /// // large has 56 ones
     /// let large = 0xff_ffff_ffff_ffff_u64;
     /// // trunc has 53 ones followed by 3 zeros
     /// let trunc = 0xff_ffff_ffff_fff8_u64;
     /// let j = Integer::from(large);
-    /// assert!(j.to_f64() == trunc as f64);
+    /// assert_eq!(j.to_f64(), trunc as f64);
     ///
     /// let max = Integer::from_f64(f64::MAX).unwrap();
     /// let plus_one = max + 1u32;
     /// // plus_one is truncated to f64::MAX
-    /// assert!(plus_one.to_f64() == f64::MAX);
+    /// assert_eq!(plus_one.to_f64(), f64::MAX);
     /// let times_two = plus_one * 2u32;
     /// // times_two is too large
-    /// assert!(times_two.to_f64() == f64::INFINITY);
+    /// assert_eq!(times_two.to_f64(), f64::INFINITY);
     /// ```
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpz_get_d(self.inner()) }
@@ -639,11 +639,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(-0xabcdef_i32);
-    /// assert!(fits.to_i32_wrapping() == -0xabcdef);
+    /// assert_eq!(fits.to_i32_wrapping(), -0xabcdef);
     /// let small = Integer::from(0x1_ffff_ffff_u64);
-    /// assert!(small.to_i32_wrapping() == -1);
+    /// assert_eq!(small.to_i32_wrapping(), -1);
     /// let large = Integer::from_str_radix("1234567890abcdef", 16).unwrap();
-    /// assert!(large.to_i32_wrapping() == 0x90abcdef_u32 as i32);
+    /// assert_eq!(large.to_i32_wrapping(), 0x90abcdef_u32 as i32);
     /// ```
     pub fn to_i32_wrapping(&self) -> i32 {
         self.to_u32_wrapping() as i32
@@ -655,11 +655,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(-0xabcdef);
-    /// assert!(fits.to_i64_wrapping() == -0xabcdef);
+    /// assert_eq!(fits.to_i64_wrapping(), -0xabcdef);
     /// let small = Integer::from_str_radix("1ffffffffffffffff", 16).unwrap();
-    /// assert!(small.to_i64_wrapping() == -1);
+    /// assert_eq!(small.to_i64_wrapping(), -1);
     /// let large = Integer::from_str_radix("f1234567890abcdef", 16).unwrap();
-    /// assert!(large.to_i64_wrapping() == 0x1234567890abcdef_i64);
+    /// assert_eq!(large.to_i64_wrapping(), 0x1234567890abcdef_i64);
     /// ```
     pub fn to_i64_wrapping(&self) -> i64 {
         self.to_u64_wrapping() as i64
@@ -671,11 +671,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(0x90abcdef_u32);
-    /// assert!(fits.to_u32_wrapping() == 0x90abcdef);
+    /// assert_eq!(fits.to_u32_wrapping(), 0x90abcdef);
     /// let neg = Integer::from(-1);
-    /// assert!(neg.to_u32_wrapping() == 0xffffffff);
+    /// assert_eq!(neg.to_u32_wrapping(), 0xffffffff);
     /// let large = Integer::from_str_radix("1234567890abcdef", 16).unwrap();
-    /// assert!(large.to_u32_wrapping() == 0x90abcdef);
+    /// assert_eq!(large.to_u32_wrapping(), 0x90abcdef);
     /// ```
     pub fn to_u32_wrapping(&self) -> u32 {
         let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) };
@@ -692,11 +692,11 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let fits = Integer::from(0x90abcdef_u64);
-    /// assert!(fits.to_u64_wrapping() == 0x90abcdef);
+    /// assert_eq!(fits.to_u64_wrapping(), 0x90abcdef);
     /// let neg = Integer::from(-1);
-    /// assert!(neg.to_u64_wrapping() == 0xffff_ffff_ffff_ffff);
+    /// assert_eq!(neg.to_u64_wrapping(), 0xffff_ffff_ffff_ffff);
     /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
-    /// assert!(large.to_u64_wrapping() == 0x123456789abcdef0);
+    /// assert_eq!(large.to_u64_wrapping(), 0x123456789abcdef0);
     /// ```
     pub fn to_u64_wrapping(&self) -> u64 {
         let u = unsafe { xgmp::mpz_get_abs_u64(self.inner()) };
@@ -715,13 +715,13 @@ impl Integer {
     /// ```rust
     /// use rugint::{Assign, Integer};
     /// let mut i = Integer::new();
-    /// assert!(i.to_string_radix(10) == "0");
+    /// assert_eq!(i.to_string_radix(10), "0");
     /// i.assign(-10);
-    /// assert!(i.to_string_radix(16) == "-a");
+    /// assert_eq!(i.to_string_radix(16), "-a");
     /// i.assign(0x1234cdef);
-    /// assert!(i.to_string_radix(4) == "102031030313233");
+    /// assert_eq!(i.to_string_radix(4), "102031030313233");
     /// i.assign_str_radix("1234567890aAbBcCdDeEfF", 16).unwrap();
-    /// assert!(i.to_string_radix(16) == "1234567890aabbccddeeff");
+    /// assert_eq!(i.to_string_radix(16), "1234567890aabbccddeeff");
     /// ```
     ///
     /// # Panics
@@ -741,10 +741,10 @@ impl Integer {
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(-12.7);
     /// assert!(ret.is_ok());
-    /// assert!(i == -12);
+    /// assert_eq!(i, -12);
     /// let ret = i.assign_f32(f32::NAN);
     /// assert!(ret.is_err());
-    /// assert!(i == -12);
+    /// assert_eq!(i, -12);
     /// ```
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val as f64)
@@ -759,10 +759,10 @@ impl Integer {
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(12.7);
     /// assert!(ret.is_ok());
-    /// assert!(i == 12);
+    /// assert_eq!(i, 12);
     /// let ret = i.assign_f64(1.0 / 0.0);
     /// assert!(ret.is_err());
-    /// assert!(i == 12);
+    /// assert_eq!(i, 12);
     /// ```
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
@@ -783,7 +783,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_str("123").unwrap();
-    /// assert!(i == 123);
+    /// assert_eq!(i, 123);
     /// let ret = i.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
@@ -799,7 +799,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_str_radix("ff", 16).unwrap();
-    /// assert!(i == 0xff);
+    /// assert_eq!(i, 0xff);
     /// ```
     ///
     /// # Panics
@@ -970,9 +970,9 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// use std::cmp::Ordering;
-    /// assert!(Integer::from(-5).sign() == Ordering::Less);
-    /// assert!(Integer::from(0).sign() == Ordering::Equal);
-    /// assert!(Integer::from(5).sign() == Ordering::Greater);
+    /// assert_eq!(Integer::from(-5).sign(), Ordering::Less);
+    /// assert_eq!(Integer::from(0).sign(), Ordering::Equal);
+    /// assert_eq!(Integer::from(5).sign(), Ordering::Greater);
     /// ```
     pub fn sign(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
@@ -987,7 +987,7 @@ impl Integer {
     /// use std::cmp::Ordering;
     /// let a = Integer::from(-10);
     /// let b = Integer::from(4);
-    /// assert!(a.cmp_abs(&b) == Ordering::Greater);
+    /// assert_eq!(a.cmp_abs(&b), Ordering::Greater);
     /// ```
     pub fn cmp_abs(&self, other: &Integer) -> Ordering {
         unsafe { gmp::mpz_cmpabs(self.inner(), other.inner()).cmp(&0) }
@@ -1002,13 +1002,13 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     ///
-    /// assert!(Integer::from(0).significant_bits() == 0);
-    /// assert!(Integer::from(1).significant_bits() == 1);
-    /// assert!(Integer::from(-1).significant_bits() == 1);
-    /// assert!(Integer::from(4).significant_bits() == 3);
-    /// assert!(Integer::from(-4).significant_bits() == 3);
-    /// assert!(Integer::from(7).significant_bits() == 3);
-    /// assert!(Integer::from(-7).significant_bits() == 3);
+    /// assert_eq!(Integer::from(0).significant_bits(), 0);
+    /// assert_eq!(Integer::from(1).significant_bits(), 1);
+    /// assert_eq!(Integer::from(-1).significant_bits(), 1);
+    /// assert_eq!(Integer::from(4).significant_bits(), 3);
+    /// assert_eq!(Integer::from(-4).significant_bits(), 3);
+    /// assert_eq!(Integer::from(7).significant_bits(), 3);
+    /// assert_eq!(Integer::from(-7).significant_bits(), 3);
     /// ```
     pub fn significant_bits(&self) -> u32 {
         let bits = unsafe { gmp::mpz_sizeinbase(self.inner(), 2) };
@@ -1029,9 +1029,9 @@ impl Integer {
     ///
     /// ```rust
     /// use rugint::Integer;
-    /// assert!(Integer::from(0).count_ones() == Some(0));
-    /// assert!(Integer::from(15).count_ones() == Some(4));
-    /// assert!(Integer::from(-1).count_ones() == None);
+    /// assert_eq!(Integer::from(0).count_ones(), Some(0));
+    /// assert_eq!(Integer::from(15).count_ones(), Some(4));
+    /// assert_eq!(Integer::from(-1).count_ones(), None);
     /// ```
     pub fn count_ones(&self) -> Option<u32> {
         bitcount_to_u32(unsafe { gmp::mpz_popcount(self.inner()) })
@@ -1043,10 +1043,10 @@ impl Integer {
     ///
     /// ```rust
     /// use rugint::Integer;
-    /// assert!(Integer::from(-2).find_zero(0) == Some(0));
-    /// assert!(Integer::from(-2).find_zero(1) == None);
-    /// assert!(Integer::from(15).find_zero(0) == Some(4));
-    /// assert!(Integer::from(15).find_zero(20) == Some(20));
+    /// assert_eq!(Integer::from(-2).find_zero(0), Some(0));
+    /// assert_eq!(Integer::from(-2).find_zero(1), None);
+    /// assert_eq!(Integer::from(15).find_zero(0), Some(4));
+    /// assert_eq!(Integer::from(15).find_zero(20), Some(20));
     pub fn find_zero(&self, start: u32) -> Option<u32> {
         bitcount_to_u32(unsafe { gmp::mpz_scan0(self.inner(), start.into()) })
     }
@@ -1056,10 +1056,10 @@ impl Integer {
     ///
     /// ```rust
     /// use rugint::Integer;
-    /// assert!(Integer::from(1).find_one(0) == Some(0));
-    /// assert!(Integer::from(1).find_one(1) == None);
-    /// assert!(Integer::from(-16).find_one(0) == Some(4));
-    /// assert!(Integer::from(-16).find_one(20) == Some(20));
+    /// assert_eq!(Integer::from(1).find_one(0), Some(0));
+    /// assert_eq!(Integer::from(1).find_one(1), None);
+    /// assert_eq!(Integer::from(-16).find_one(0), Some(4));
+    /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
     pub fn find_one(&self, start: u32) -> Option<u32> {
         bitcount_to_u32(unsafe { gmp::mpz_scan1(self.inner(), start.into()) })
     }
@@ -1072,9 +1072,9 @@ impl Integer {
     /// ```rust
     /// use rugint::{Assign, Integer};
     /// let mut i = Integer::from(-1);
-    /// assert!(*i.set_bit(0, false) == -2);
+    /// assert_eq!(*i.set_bit(0, false), -2);
     /// i.assign(0xff);
-    /// assert!(*i.set_bit(11, true) == 0x8ff);
+    /// assert_eq!(*i.set_bit(11, true), 0x8ff);
     /// ```
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Integer {
         unsafe {
@@ -1113,7 +1113,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::from(0b100101);
     /// i.invert_bit(5);
-    /// assert!(i == 0b101);
+    /// assert_eq!(i, 0b101);
     /// ```
     pub fn invert_bit(&mut self, index: u32) -> &mut Integer {
         unsafe {
@@ -1130,9 +1130,9 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let i = Integer::from(-1);
-    /// assert!(Integer::from(0).hamming_dist(&i) == None);
-    /// assert!(Integer::from(-1).hamming_dist(&i) == Some(0));
-    /// assert!(Integer::from(-13).hamming_dist(&i) == Some(2));
+    /// assert_eq!(Integer::from(0).hamming_dist(&i), None);
+    /// assert_eq!(Integer::from(-1).hamming_dist(&i), Some(0));
+    /// assert_eq!(Integer::from(-13).hamming_dist(&i), Some(2));
     /// ```
     pub fn hamming_dist(&self, other: &Integer) -> Option<u32> {
         bitcount_to_u32(unsafe {
@@ -1148,8 +1148,8 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let mut i = Integer::from(-100);
-        /// assert!(*i.abs() == 100);
-        /// assert!(i == 100);
+        /// assert_eq!(*i.abs(), 100);
+        /// assert_eq!(i, 100);
         /// ```
         fn abs();
         /// Holds a computation of the absolute value.
@@ -1161,7 +1161,7 @@ impl Integer {
         /// let i = Integer::from(-100);
         /// let hold = i.abs_hold();
         /// let abs = Integer::from(hold);
-        /// assert!(abs == 100);
+        /// assert_eq!(abs, 100);
         /// ```
         fn abs_hold -> AbsHold;
         gmp::mpz_abs
@@ -1187,8 +1187,8 @@ impl Integer {
         /// let mut quotient = Integer::new();
         /// let mut remainder = Integer::new();
         /// (&mut quotient, &mut remainder).assign(hold);
-        /// assert!(quotient == 2);
-        /// assert!(remainder == 3);
+        /// assert_eq!(quotient, 2);
+        /// assert_eq!(remainder, 3);
         /// ```
         fn div_rem_hold -> DivRemHold;
         xgmp::mpz_tdiv_qr_check_0
@@ -1203,8 +1203,8 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let mut i = Integer::from(123450);
-        /// assert!(*i.div_exact(&Integer::from(10)) == 12345);
-        /// assert!(i == 12345);
+        /// assert_eq!(*i.div_exact(&Integer::from(10)), 12345);
+        /// assert_eq!(i, 12345);
         /// ```
         ///
         /// # Panics
@@ -1221,7 +1221,7 @@ impl Integer {
         /// let divisor = Integer::from(10);
         /// let hold = i.div_exact_hold(&divisor);
         /// let q = Integer::from(hold);
-        /// assert!(q == 12345);
+        /// assert_eq!(q, 12345);
         /// ```
         fn div_exact_hold -> DivExactHold;
         xgmp::mpz_divexact_check_0
@@ -1236,8 +1236,8 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let mut i = Integer::from(123450);
-        /// assert!(*i.div_exact_u(10) == 12345);
-        /// assert!(i == 12345);
+        /// assert_eq!(*i.div_exact_u(10), 12345);
+        /// assert_eq!(i, 12345);
         /// ```
         ///
         /// # Panics
@@ -1253,7 +1253,7 @@ impl Integer {
         /// let i = Integer::from(123450);
         /// let hold = i.div_exact_u_hold(10);
         /// let q = Integer::from(hold);
-        /// assert!(q == 12345);
+        /// assert_eq!(q, 12345);
         /// ```
         fn div_exact_u_hold -> DivExactUHold;
         xgmp::mpz_divexact_ui_check_0
@@ -1270,11 +1270,11 @@ impl Integer {
     /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
     /// let exists_4 = n.invert(&Integer::from(4));
     /// assert!(!exists_4);
-    /// assert!(n == 2);
+    /// assert_eq!(n, 2);
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
     /// let exists_5 = n.invert(&Integer::from(5));
     /// assert!(exists_5);
-    /// assert!(n == 3);
+    /// assert_eq!(n, 3);
     /// ```
     ///
     /// # Panics
@@ -1303,7 +1303,7 @@ impl Integer {
     /// let (mut inv_5, mut exists_5) = (Integer::new(), false);
     /// (&mut inv_5, &mut exists_5).assign(n.invert_hold(&Integer::from(5)));
     /// assert!(exists_5);
-    /// assert!(inv_5 == 3);
+    /// assert_eq!(inv_5, 3);
     /// ```
     pub fn invert_hold<'a>(&'a self, modulo: &'a Integer) -> InvertHold<'a> {
         InvertHold {
@@ -1326,13 +1326,13 @@ impl Integer {
         /// let mut n = Integer::from(7);
         /// let pow = Integer::from(5);
         /// let m = Integer::from(1000);
-        /// assert!(*n.pow_mod(&pow, &m) == 807);
+        /// assert_eq!(*n.pow_mod(&pow, &m), 807);
         ///
         /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
         /// // 143 ^ 5 modulo 1000 = 943.
         /// n.assign(7);
         /// let neg_pow = Integer::from(-5);
-        /// assert!(*n.pow_mod(&neg_pow, &m) == 943);
+        /// assert_eq!(*n.pow_mod(&neg_pow, &m), 943);
         /// ```
         ///
         /// # Panics
@@ -1352,7 +1352,7 @@ impl Integer {
         /// let pow = Integer::from(5);
         /// let m = Integer::from(1000);
         /// let hold = base.pow_mod_hold(&pow, &m);
-        /// assert!(Integer::from(hold) == 807);
+        /// assert_eq!(Integer::from(hold), 807);
         /// ```
         fn pow_mod_hold -> PowModHold;
         xgmp::mpz_powm_check_inverse
@@ -1366,7 +1366,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_u_pow_u(13, 12);
-    /// assert!(i == 13_u64.pow(12));
+    /// assert_eq!(i, 13_u64.pow(12));
     /// ```
     pub fn assign_u_pow_u(&mut self, base: u32, power: u32) {
         unsafe {
@@ -1382,9 +1382,9 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_i_pow_u(-13, 12);
-    /// assert!(i == (-13_i64).pow(12));
+    /// assert_eq!(i, (-13_i64).pow(12));
     /// i.assign_i_pow_u(-13, 13);
-    /// assert!(i == (-13_i64).pow(13));
+    /// assert_eq!(i, (-13_i64).pow(13));
     /// ```
     pub fn assign_i_pow_u(&mut self, base: i32, power: u32) {
         if base >= 0 {
@@ -1405,7 +1405,7 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let mut i = Integer::from(1004);
-        /// assert!(*i.root(3) == 10);
+        /// assert_eq!(*i.root(3), 10);
         /// ```
         fn root(n: u32);
         /// Holds a computation of the `n`th root of the value.
@@ -1415,7 +1415,7 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let i = Integer::from(1004);
-        /// assert!(Integer::from(i.root_hold(3)) == 10);
+        /// assert_eq!(Integer::from(i.root_hold(3)), 10);
         /// ```
         fn root_hold -> RootHold;
         gmp::mpz_root
@@ -1434,8 +1434,8 @@ impl Integer {
         /// let mut i = Integer::from(1004);
         /// let mut rem = Integer::new();
         /// i.root_rem(&mut rem, 3);
-        /// assert!(i == 10);
-        /// assert!(rem == 4);
+        /// assert_eq!(i, 10);
+        /// assert_eq!(rem, 4);
         /// ```
         fn root_rem(remainder, n: u32);
         /// Holds a computation of the truncation and remainder of the
@@ -1450,8 +1450,8 @@ impl Integer {
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
         /// (&mut root, &mut rem).assign(hold);
-        /// assert!(root == 10);
-        /// assert!(rem == 4);
+        /// assert_eq!(root, 10);
+        /// assert_eq!(rem, 4);
         /// ```
         fn root_rem_hold -> RootRemHold;
         gmp::mpz_rootrem
@@ -1464,7 +1464,7 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let mut i = Integer::from(104);
-        /// assert!(*i.sqrt() == 10);
+        /// assert_eq!(*i.sqrt(), 10);
         /// ```
         fn sqrt();
         /// Holds a computation of the square root.
@@ -1474,7 +1474,7 @@ impl Integer {
         /// ```rust
         /// use rugint::Integer;
         /// let i = Integer::from(104);
-        /// assert!(Integer::from(i.sqrt_hold()) == 10);
+        /// assert_eq!(Integer::from(i.sqrt_hold()), 10);
         /// ```
         fn sqrt_hold -> SqrtHold;
         gmp::mpz_sqrt
@@ -1492,8 +1492,8 @@ impl Integer {
         /// let mut i = Integer::from(104);
         /// let mut rem = Integer::new();
         /// i.sqrt_rem(&mut rem);
-        /// assert!(i == 10);
-        /// assert!(rem == 4);
+        /// assert_eq!(i, 10);
+        /// assert_eq!(rem, 4);
         /// ```
         fn sqrt_rem(remainder);
         /// Holds a computation of the truncation and remainder of the
@@ -1508,8 +1508,8 @@ impl Integer {
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
         /// (&mut root, &mut rem).assign(hold);
-        /// assert!(root == 10);
-        /// assert!(rem == 4);
+        /// assert_eq!(root, 10);
+        /// assert_eq!(rem, 4);
         /// ```
         fn sqrt_rem_hold -> SqrtRemHold;
         gmp::mpz_sqrtrem
@@ -1528,13 +1528,13 @@ impl Integer {
         /// let mut b = Integer::new();
         /// a.gcd(&b);
         /// // gcd of 0, 0 is 0
-        /// assert!(*a.gcd(&b) == 0);
+        /// assert_eq!(*a.gcd(&b), 0);
         /// b.assign(10);
         /// // gcd of 0, 10 is 10
-        /// assert!(*a.gcd(&b) == 10);
+        /// assert_eq!(*a.gcd(&b), 10);
         /// b.assign(25);
         /// // gcd of 10, 25 is 5
-        /// assert!(*a.gcd(&b) == 5);
+        /// assert_eq!(*a.gcd(&b), 5);
         /// ```
         fn gcd(other);
         /// Holds the computation of the greatest common divisor.
@@ -1547,7 +1547,7 @@ impl Integer {
         /// let b = Integer::from(125);
         /// let hold = a.gcd_hold(&b);
         /// // gcd of 100, 125 is 25
-        /// assert!(Integer::from(hold) == 25);
+        /// assert_eq!(Integer::from(hold), 25);
         /// ```
         fn gcd_hold -> GcdHold;
         gmp::mpz_gcd
@@ -1565,10 +1565,10 @@ impl Integer {
         /// let mut a = Integer::from(10);
         /// let mut b = Integer::from(25);
         /// // lcm of 10, 25 is 50
-        /// assert!(*a.lcm(&b) == 50);
+        /// assert_eq!(*a.lcm(&b), 50);
         /// b.assign(0);
         /// // lcm of 50, 0 is 0
-        /// assert!(*a.lcm(&b) == 0);
+        /// assert_eq!(*a.lcm(&b), 0);
         /// ```
         fn lcm(other);
         /// Holds the computation of the least common multiple.
@@ -1581,7 +1581,7 @@ impl Integer {
         /// let b = Integer::from(125);
         /// let hold = a.lcm_hold(&b);
         /// // lcm of 100, 125 is 500
-        /// assert!(Integer::from(hold) == 500);
+        /// assert_eq!(Integer::from(hold), 500);
         /// ```
         fn lcm_hold -> LcmHold;
         gmp::mpz_lcm
@@ -1614,14 +1614,14 @@ impl Integer {
     /// i.assign_u_pow_u(13, 50);
     /// i *= 1000;
     /// let count = i.remove_factor(&Integer::from(13));
-    /// assert!(count == 50);
-    /// assert!(i == 1000);
+    /// assert_eq!(count, 50);
+    /// assert_eq!(i, 1000);
     /// ```
     pub fn remove_factor(&mut self, factor: &Integer) -> u32 {
         let cnt = unsafe {
             gmp::mpz_remove(self.inner_mut(), self.inner(), factor.inner())
         };
-        assert!(cnt as u32 as gmp::bitcnt_t == cnt, "overflow");
+        assert_eq!(cnt as u32 as gmp::bitcnt_t, cnt, "overflow");
         cnt as u32
     }
 
@@ -1636,8 +1636,8 @@ impl Integer {
     /// i *= 1000;
     /// let (mut j, mut count) = (Integer::new(), 0);
     /// (&mut j, &mut count).assign(i.remove_factor_hold(&Integer::from(13)));
-    /// assert!(count == 50);
-    /// assert!(j == 1000);
+    /// assert_eq!(count, 50);
+    /// assert_eq!(j, 1000);
     /// ```
     pub fn remove_factor_hold<'a>(&'a self,
                                   factor: &'a Integer)
@@ -1657,7 +1657,7 @@ impl Integer {
     /// let mut i = Integer::new();
     /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
     /// i.assign_factorial(10);
-    /// assert!(i == 3628800);
+    /// assert_eq!(i, 3628800);
     /// ```
     pub fn assign_factorial(&mut self, n: u32) {
         unsafe {
@@ -1674,7 +1674,7 @@ impl Integer {
     /// let mut i = Integer::new();
     /// // 10 * 8 * 6 * 4 * 2
     /// i.assign_factorial_2(10);
-    /// assert!(i == 3840);
+    /// assert_eq!(i, 3840);
     /// ```
     pub fn assign_factorial_2(&mut self, n: u32) {
         unsafe {
@@ -1691,7 +1691,7 @@ impl Integer {
     /// let mut i = Integer::new();
     /// // 10 * 7 * 4 * 1
     /// i.assign_factorial_m(10, 3);
-    /// assert!(i == 280);
+    /// assert_eq!(i, 280);
     /// ```
     pub fn assign_factorial_m(&mut self, n: u32, m: u32) {
         unsafe {
@@ -1708,7 +1708,7 @@ impl Integer {
     /// let mut i = Integer::new();
     /// // 7 * 5 * 3 * 2
     /// i.assign_primorial(10);
-    /// assert!(i == 210);
+    /// assert_eq!(i, 210);
     /// ```
     pub fn assign_primorial(&mut self, n: u32) {
         unsafe {
@@ -1725,7 +1725,7 @@ impl Integer {
         /// use rugint::Integer;
         /// // 7 choose 2 is 21
         /// let mut i = Integer::from(7);
-        /// assert!(*i.binomial(2) == 21);
+        /// assert_eq!(*i.binomial(2), 21);
         /// ```
         fn binomial(k: u32);
         /// Holds a computation of the binomial coefficient over `k`.
@@ -1736,7 +1736,7 @@ impl Integer {
         /// use rugint::Integer;
         /// // 7 choose 2 is 21
         /// let i = Integer::from(7);
-        /// assert!(Integer::from(i.binomial_hold(2)) == 21);
+        /// assert_eq!(Integer::from(i.binomial_hold(2)), 21);
         /// ```
         fn binomial_hold -> BinomialHold;
         gmp::mpz_bin_ui
@@ -1751,7 +1751,7 @@ impl Integer {
     /// // 7 choose 2 is 21
     /// let mut i = Integer::new();
     /// i.assign_binomial_u(7, 2);
-    /// assert!(i == 21);
+    /// assert_eq!(i, 21);
     /// ```
     pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
         unsafe {
@@ -1772,7 +1772,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_fibonacci(12);
-    /// assert!(i == 144);
+    /// assert_eq!(i, 144);
     /// ```
     pub fn assign_fibonacci(&mut self, n: u32) {
         unsafe {
@@ -1794,12 +1794,12 @@ impl Integer {
     /// let mut i = Integer::new();
     /// let mut j = Integer::new();
     /// i.assign_fibonacci_2(&mut j, 12);
-    /// assert!(i == 144);
-    /// assert!(j == 89);
+    /// assert_eq!(i, 144);
+    /// assert_eq!(j, 89);
     /// // Fibonacci number F[-1] is 1
     /// i.assign_fibonacci_2(&mut j, 0);
-    /// assert!(i == 0);
-    /// assert!(j == 1);
+    /// assert_eq!(i, 0);
+    /// assert_eq!(j, 1);
     /// ```
     pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
         unsafe {
@@ -1820,7 +1820,7 @@ impl Integer {
     /// use rugint::Integer;
     /// let mut i = Integer::new();
     /// i.assign_lucas(12);
-    /// assert!(i == 322);
+    /// assert_eq!(i, 322);
     /// ```
     pub fn assign_lucas(&mut self, n: u32) {
         unsafe {
@@ -1842,11 +1842,11 @@ impl Integer {
     /// let mut i = Integer::new();
     /// let mut j = Integer::new();
     /// i.assign_lucas_2(&mut j, 12);
-    /// assert!(i == 322);
-    /// assert!(j == 199);
+    /// assert_eq!(i, 322);
+    /// assert_eq!(j, 199);
     /// i.assign_lucas_2(&mut j, 0);
-    /// assert!(i == 2);
-    /// assert!(j == -1);
+    /// assert_eq!(i, 2);
+    /// assert_eq!(j, -1);
     /// ```
     pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
         unsafe {
@@ -1869,7 +1869,7 @@ impl Integer {
     ///     let mut rng = rand::thread_rng();
     ///     let mut i = Integer::new();
     ///     i.assign_random_bits(0, &mut rng);
-    ///     assert!(i == 0);
+    ///     assert_eq!(i, 0);
     ///     i.assign_random_bits(80, &mut rng);
     ///     assert!(i.significant_bits() <= 80);
     /// }
@@ -2246,7 +2246,7 @@ impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
                             src.hold_self.inner(),
                             src.factor.inner())
         };
-        assert!(cnt as u32 as gmp::bitcnt_t == cnt, "overflow");
+        assert_eq!(cnt as u32 as gmp::bitcnt_t, cnt, "overflow");
         *self.1 = cnt as u32;
     }
 }
@@ -2721,7 +2721,7 @@ op_mul! {
     /// let m2 = Integer::from(7);
     /// let init = Integer::from(100);
     /// let acc = init + &m1 * &m2;
-    /// assert!(acc == 121);
+    /// assert_eq!(acc, 121);
     /// ```
     impl Add add;
     /// Peforms multiplication and addition together.
@@ -2734,7 +2734,7 @@ op_mul! {
     /// let m2 = Integer::from(7);
     /// let mut acc = Integer::from(100);
     /// acc += &m1 * &m2;
-    /// assert!(acc == 121);
+    /// assert_eq!(acc, 121);
     /// ```
     impl AddAssign add_assign;
     MulHold, inner, gmp::mpz_addmul
@@ -2750,7 +2750,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init + &m * 7u32;
-    /// assert!(acc == 121);
+    /// assert_eq!(acc, 121);
     /// ```
     impl Add add;
     /// Peforms multiplication and addition together.
@@ -2762,7 +2762,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc += &m * 7u32;
-    /// assert!(acc == 121);
+    /// assert_eq!(acc, 121);
     /// ```
     impl AddAssign add_assign;
     MulHoldU32, into, gmp::mpz_addmul_ui
@@ -2778,7 +2778,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init + &m * -7i32;
-    /// assert!(acc == 79);
+    /// assert_eq!(acc, 79);
     /// ```
     impl Add add;
     /// Peforms multiplication and addition together.
@@ -2790,7 +2790,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc += &m * -7i32;
-    /// assert!(acc == 79);
+    /// assert_eq!(acc, 79);
     /// ```
     impl AddAssign add_assign;
     MulHoldI32, into, xgmp::mpz_addmul_si
@@ -2808,7 +2808,7 @@ op_mul! {
     /// let m2 = Integer::from(7);
     /// let init = Integer::from(100);
     /// let acc = init - &m1 * &m2;
-    /// assert!(acc == 79);
+    /// assert_eq!(acc, 79);
     /// ```
     impl Sub sub;
     /// Peforms multiplication and subtraction together.
@@ -2821,7 +2821,7 @@ op_mul! {
     /// let m2 = Integer::from(7);
     /// let mut acc = Integer::from(100);
     /// acc -= &m1 * &m2;
-    /// assert!(acc == 79);
+    /// assert_eq!(acc, 79);
     /// ```
     impl SubAssign sub_assign;
     MulHold, inner, gmp::mpz_submul
@@ -2837,7 +2837,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init - &m * 7u32;
-    /// assert!(acc == 79);
+    /// assert_eq!(acc, 79);
     /// ```
     impl Sub sub;
     /// Peforms multiplication and subtraction together.
@@ -2849,7 +2849,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc -= &m * 7u32;
-    /// assert!(acc == 79);
+    /// assert_eq!(acc, 79);
     /// ```
     impl SubAssign sub_assign;
     MulHoldU32, into, gmp::mpz_submul_ui
@@ -2865,7 +2865,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init - &m * -7i32;
-    /// assert!(acc == 121);
+    /// assert_eq!(acc, 121);
     /// ```
     impl Sub sub;
     /// Peforms multiplication and subtraction together.
@@ -2877,7 +2877,7 @@ op_mul! {
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc -= &m * -7i32;
-    /// assert!(acc == 121);
+    /// assert_eq!(acc, 121);
     /// ```
     impl SubAssign sub_assign;
     MulHoldI32, into, xgmp::mpz_submul_si
@@ -3110,10 +3110,10 @@ impl InnerMut for Integer {
 /// // `b` can reside on the stack
 /// let b = SmallInteger::from(-100);
 /// a.lcm(&b);
-/// assert!(a == 500);
+/// assert_eq!(a, 500);
 /// // another computation:
 /// a.lcm(&SmallInteger::from(30));
-/// assert!(a == 1500);
+/// assert_eq!(a, 1500);
 /// ```
 pub struct SmallInteger {
     inner: Mpz,
@@ -3150,7 +3150,7 @@ impl SmallInteger {
 
     fn update_d(&self) {
         // sanity check
-        assert!(mem::size_of::<Mpz>() == mem::size_of::<mpz_t>());
+        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d field.
         let d = &self.limbs[0] as *const _ as *mut _;
@@ -3255,26 +3255,26 @@ mod tests {
                 .chain(s.iter().map(|&x| Integer::from(x)))
                 .chain(u.iter().map(|&x| Integer::from(x)));
             for b in against {
-                assert!(b.clone() + op == b.clone() + &iop);
-                assert!(b.clone() - op == b.clone() - &iop);
-                assert!(b.clone() * op == b.clone() * &iop);
+                assert_eq!(b.clone() + op, b.clone() + &iop);
+                assert_eq!(b.clone() - op, b.clone() - &iop);
+                assert_eq!(b.clone() * op, b.clone() * &iop);
                 if op != 0 {
-                    assert!(b.clone() / op == b.clone() / &iop);
-                    assert!(b.clone() % op == b.clone() % &iop);
+                    assert_eq!(b.clone() / op, b.clone() / &iop);
+                    assert_eq!(b.clone() % op, b.clone() % &iop);
                 }
-                assert!(b.clone() & op == b.clone() & &iop);
-                assert!(b.clone() | op == b.clone() | &iop);
-                assert!(b.clone() ^ op == b.clone() ^ &iop);
-                assert!(op + b.clone() == iop.clone() + &b);
-                assert!(op - b.clone() == iop.clone() - &b);
-                assert!(op * b.clone() == iop.clone() * &b);
+                assert_eq!(b.clone() & op, b.clone() & &iop);
+                assert_eq!(b.clone() | op, b.clone() | &iop);
+                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
+                assert_eq!(op + b.clone(), iop.clone() + &b);
+                assert_eq!(op - b.clone(), iop.clone() - &b);
+                assert_eq!(op * b.clone(), iop.clone() * &b);
                 if b.sign() != Ordering::Equal {
-                    assert!(op / b.clone() == iop.clone() / &b);
-                    assert!(op % b.clone() == iop.clone() % &b);
+                    assert_eq!(op / b.clone(), iop.clone() / &b);
+                    assert_eq!(op % b.clone(), iop.clone() % &b);
                 }
-                assert!(op & b.clone() == iop.clone() & &b);
-                assert!(op | b.clone() == iop.clone() | &b);
-                assert!(op ^ b.clone() == iop.clone() ^ &b);
+                assert_eq!(op & b.clone(), iop.clone() & &b);
+                assert_eq!(op | b.clone(), iop.clone() | &b);
+                assert_eq!(op ^ b.clone(), iop.clone() ^ &b);
             }
         }
         for &op in &s {
@@ -3283,26 +3283,26 @@ mod tests {
                 .chain(s.iter().map(|&x| Integer::from(x)))
                 .chain(u.iter().map(|&x| Integer::from(x)));
             for b in against {
-                assert!(b.clone() + op == b.clone() + &iop);
-                assert!(b.clone() - op == b.clone() - &iop);
-                assert!(b.clone() * op == b.clone() * &iop);
+                assert_eq!(b.clone() + op, b.clone() + &iop);
+                assert_eq!(b.clone() - op, b.clone() - &iop);
+                assert_eq!(b.clone() * op, b.clone() * &iop);
                 if op != 0 {
-                    assert!(b.clone() / op == b.clone() / &iop);
-                    assert!(b.clone() % op == b.clone() % &iop);
+                    assert_eq!(b.clone() / op, b.clone() / &iop);
+                    assert_eq!(b.clone() % op, b.clone() % &iop);
                 }
-                assert!(b.clone() & op == b.clone() & &iop);
-                assert!(b.clone() | op == b.clone() | &iop);
-                assert!(b.clone() ^ op == b.clone() ^ &iop);
-                assert!(op + b.clone() == iop.clone() + &b);
-                assert!(op - b.clone() == iop.clone() - &b);
-                assert!(op * b.clone() == iop.clone() * &b);
+                assert_eq!(b.clone() & op, b.clone() & &iop);
+                assert_eq!(b.clone() | op, b.clone() | &iop);
+                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
+                assert_eq!(op + b.clone(), iop.clone() + &b);
+                assert_eq!(op - b.clone(), iop.clone() - &b);
+                assert_eq!(op * b.clone(), iop.clone() * &b);
                 if b.sign() != Ordering::Equal {
-                    assert!(op / b.clone() == iop.clone() / &b);
-                    assert!(op % b.clone() == iop.clone() % &b);
+                    assert_eq!(op / b.clone(), iop.clone() / &b);
+                    assert_eq!(op % b.clone(), iop.clone() % &b);
                 }
-                assert!(op & b.clone() == iop.clone() & &b);
-                assert!(op | b.clone() == iop.clone() | &b);
-                assert!(op ^ b.clone() == iop.clone() ^ &b);
+                assert_eq!(op & b.clone(), iop.clone() & &b);
+                assert_eq!(op | b.clone(), iop.clone() | &b);
+                assert_eq!(op ^ b.clone(), iop.clone() ^ &b);
             }
         }
     }
@@ -3313,204 +3313,204 @@ mod tests {
         let rhs = Integer::from(0x0f0f);
         let pu = 30_u32;
         let pi = -15_i32;
-        assert!(Integer::from(-&lhs) == -lhs.clone());
-        assert!(Integer::from(&lhs + &rhs) == lhs.clone() + &rhs);
-        assert!(Integer::from(&lhs - &rhs) == lhs.clone() - &rhs);
-        assert!(Integer::from(&lhs * &rhs) == lhs.clone() * &rhs);
-        assert!(Integer::from(&lhs / &rhs) == lhs.clone() / &rhs);
-        assert!(Integer::from(&lhs % &rhs) == lhs.clone() % &rhs);
-        assert!(Integer::from(!&lhs) == !lhs.clone());
-        assert!(Integer::from(&lhs & &rhs) == lhs.clone() & &rhs);
-        assert!(Integer::from(&lhs | &rhs) == lhs.clone() | &rhs);
-        assert!(Integer::from(&lhs ^ &rhs) == lhs.clone() ^ &rhs);
+        assert_eq!(Integer::from(-&lhs), -lhs.clone());
+        assert_eq!(Integer::from(&lhs + &rhs), lhs.clone() + &rhs);
+        assert_eq!(Integer::from(&lhs - &rhs), lhs.clone() - &rhs);
+        assert_eq!(Integer::from(&lhs * &rhs), lhs.clone() * &rhs);
+        assert_eq!(Integer::from(&lhs / &rhs), lhs.clone() / &rhs);
+        assert_eq!(Integer::from(&lhs % &rhs), lhs.clone() % &rhs);
+        assert_eq!(Integer::from(!&lhs), !lhs.clone());
+        assert_eq!(Integer::from(&lhs & &rhs), lhs.clone() & &rhs);
+        assert_eq!(Integer::from(&lhs | &rhs), lhs.clone() | &rhs);
+        assert_eq!(Integer::from(&lhs ^ &rhs), lhs.clone() ^ &rhs);
 
-        assert!(Integer::from(&lhs + pu) == lhs.clone() + pu);
-        assert!(Integer::from(&lhs - pu) == lhs.clone() - pu);
-        assert!(Integer::from(&lhs * pu) == lhs.clone() * pu);
-        assert!(Integer::from(&lhs / pu) == lhs.clone() / pu);
-        assert!(Integer::from(&lhs % pu) == lhs.clone() % pu);
-        assert!(Integer::from(&lhs & pu) == lhs.clone() & pu);
-        assert!(Integer::from(&lhs | pu) == lhs.clone() | pu);
-        assert!(Integer::from(&lhs ^ pu) == lhs.clone() ^ pu);
-        assert!(Integer::from(&lhs << pu) == lhs.clone() << pu);
-        assert!(Integer::from(&lhs >> pu) == lhs.clone() >> pu);
-        assert!(Integer::from((&lhs).pow(pu)) == lhs.clone().pow(pu));
+        assert_eq!(Integer::from(&lhs + pu), lhs.clone() + pu);
+        assert_eq!(Integer::from(&lhs - pu), lhs.clone() - pu);
+        assert_eq!(Integer::from(&lhs * pu), lhs.clone() * pu);
+        assert_eq!(Integer::from(&lhs / pu), lhs.clone() / pu);
+        assert_eq!(Integer::from(&lhs % pu), lhs.clone() % pu);
+        assert_eq!(Integer::from(&lhs & pu), lhs.clone() & pu);
+        assert_eq!(Integer::from(&lhs | pu), lhs.clone() | pu);
+        assert_eq!(Integer::from(&lhs ^ pu), lhs.clone() ^ pu);
+        assert_eq!(Integer::from(&lhs << pu), lhs.clone() << pu);
+        assert_eq!(Integer::from(&lhs >> pu), lhs.clone() >> pu);
+        assert_eq!(Integer::from((&lhs).pow(pu)), lhs.clone().pow(pu));
 
-        assert!(Integer::from(&lhs + pi) == lhs.clone() + pi);
-        assert!(Integer::from(&lhs - pi) == lhs.clone() - pi);
-        assert!(Integer::from(&lhs * pi) == lhs.clone() * pi);
-        assert!(Integer::from(&lhs / pi) == lhs.clone() / pi);
-        assert!(Integer::from(&lhs % pi) == lhs.clone() % pi);
-        assert!(Integer::from(&lhs & pi) == lhs.clone() & pi);
-        assert!(Integer::from(&lhs | pi) == lhs.clone() | pi);
-        assert!(Integer::from(&lhs ^ pi) == lhs.clone() ^ pi);
-        assert!(Integer::from(&lhs << pi) == lhs.clone() << pi);
-        assert!(Integer::from(&lhs >> pi) == lhs.clone() >> pi);
+        assert_eq!(Integer::from(&lhs + pi), lhs.clone() + pi);
+        assert_eq!(Integer::from(&lhs - pi), lhs.clone() - pi);
+        assert_eq!(Integer::from(&lhs * pi), lhs.clone() * pi);
+        assert_eq!(Integer::from(&lhs / pi), lhs.clone() / pi);
+        assert_eq!(Integer::from(&lhs % pi), lhs.clone() % pi);
+        assert_eq!(Integer::from(&lhs & pi), lhs.clone() & pi);
+        assert_eq!(Integer::from(&lhs | pi), lhs.clone() | pi);
+        assert_eq!(Integer::from(&lhs ^ pi), lhs.clone() ^ pi);
+        assert_eq!(Integer::from(&lhs << pi), lhs.clone() << pi);
+        assert_eq!(Integer::from(&lhs >> pi), lhs.clone() >> pi);
 
-        assert!(Integer::from(pu + &lhs) == pu + lhs.clone());
-        assert!(Integer::from(pu - &lhs) == pu - lhs.clone());
-        assert!(Integer::from(pu * &lhs) == pu * lhs.clone());
-        assert!(Integer::from(pu / &lhs) == pu / lhs.clone());
-        assert!(Integer::from(pu % &lhs) == pu % lhs.clone());
-        assert!(Integer::from(pu & &lhs) == pu & lhs.clone());
-        assert!(Integer::from(pu | &lhs) == pu | lhs.clone());
-        assert!(Integer::from(pu ^ &lhs) == pu ^ lhs.clone());
+        assert_eq!(Integer::from(pu + &lhs), pu + lhs.clone());
+        assert_eq!(Integer::from(pu - &lhs), pu - lhs.clone());
+        assert_eq!(Integer::from(pu * &lhs), pu * lhs.clone());
+        assert_eq!(Integer::from(pu / &lhs), pu / lhs.clone());
+        assert_eq!(Integer::from(pu % &lhs), pu % lhs.clone());
+        assert_eq!(Integer::from(pu & &lhs), pu & lhs.clone());
+        assert_eq!(Integer::from(pu | &lhs), pu | lhs.clone());
+        assert_eq!(Integer::from(pu ^ &lhs), pu ^ lhs.clone());
 
-        assert!(Integer::from(pi + &lhs) == pi + lhs.clone());
-        assert!(Integer::from(pi - &lhs) == pi - lhs.clone());
-        assert!(Integer::from(pi * &lhs) == pi * lhs.clone());
-        assert!(Integer::from(pi / &lhs) == pi / lhs.clone());
-        assert!(Integer::from(pi % &lhs) == pi % lhs.clone());
-        assert!(Integer::from(pi & &lhs) == pi & lhs.clone());
-        assert!(Integer::from(pi | &lhs) == pi | lhs.clone());
-        assert!(Integer::from(pi ^ &lhs) == pi ^ lhs.clone());
+        assert_eq!(Integer::from(pi + &lhs), pi + lhs.clone());
+        assert_eq!(Integer::from(pi - &lhs), pi - lhs.clone());
+        assert_eq!(Integer::from(pi * &lhs), pi * lhs.clone());
+        assert_eq!(Integer::from(pi / &lhs), pi / lhs.clone());
+        assert_eq!(Integer::from(pi % &lhs), pi % lhs.clone());
+        assert_eq!(Integer::from(pi & &lhs), pi & lhs.clone());
+        assert_eq!(Integer::from(pi | &lhs), pi | lhs.clone());
+        assert_eq!(Integer::from(pi ^ &lhs), pi ^ lhs.clone());
     }
 
     #[test]
     fn check_shift_u_s() {
         let pos: Integer = Integer::from(11) << 100;
         let neg: Integer = Integer::from(-33) << 50;
-        assert!(pos.clone() << 10 == pos.clone() >> -10);
-        assert!(pos.clone() << 10 == Integer::from(11) << 110);
-        assert!(pos.clone() << -100 == pos.clone() >> 100);
-        assert!(pos.clone() << -100 == 11);
-        assert!(neg.clone() << 10 == neg.clone() >> -10);
-        assert!(neg.clone() << 10 == Integer::from(-33) << 60);
-        assert!(neg.clone() << -100 == neg.clone() >> 100);
-        assert!(neg.clone() << -100 == -1);
+        assert_eq!(pos.clone() << 10, pos.clone() >> -10);
+        assert_eq!(pos.clone() << 10, Integer::from(11) << 110);
+        assert_eq!(pos.clone() << -100, pos.clone() >> 100);
+        assert_eq!(pos.clone() << -100, 11);
+        assert_eq!(neg.clone() << 10, neg.clone() >> -10);
+        assert_eq!(neg.clone() << 10, Integer::from(-33) << 60);
+        assert_eq!(neg.clone() << -100, neg.clone() >> 100);
+        assert_eq!(neg.clone() << -100, -1);
     }
 
     #[test]
     fn check_int_conversions() {
         let mut i = Integer::from(-1);
-        assert!(i.to_u32_wrapping() == u32::MAX);
-        assert!(i.to_i32_wrapping() == -1);
+        assert_eq!(i.to_u32_wrapping(), u32::MAX);
+        assert_eq!(i.to_i32_wrapping(), -1);
         i.assign(0xff000000u32);
         i <<= 4;
-        assert!(i.to_u32_wrapping() == 0xf0000000u32);
-        assert!(i.to_i32_wrapping() == 0xf0000000u32 as i32);
+        assert_eq!(i.to_u32_wrapping(), 0xf0000000u32);
+        assert_eq!(i.to_i32_wrapping(), 0xf0000000u32 as i32);
         i = i.clone() << 32 | i;
-        assert!(i.to_u32_wrapping() == 0xf0000000u32);
-        assert!(i.to_i32_wrapping() == 0xf0000000u32 as i32);
+        assert_eq!(i.to_u32_wrapping(), 0xf0000000u32);
+        assert_eq!(i.to_i32_wrapping(), 0xf0000000u32 as i32);
         i.neg_assign();
-        assert!(i.to_u32_wrapping() == 0x10000000u32);
-        assert!(i.to_i32_wrapping() == 0x10000000i32);
+        assert_eq!(i.to_u32_wrapping(), 0x10000000u32);
+        assert_eq!(i.to_i32_wrapping(), 0x10000000i32);
     }
 
     #[test]
     fn check_option_conversion() {
         let mut i = Integer::new();
-        assert!(i.to_u32() == Some(0));
-        assert!(i.to_i32() == Some(0));
-        assert!(i.to_u64() == Some(0));
-        assert!(i.to_i64() == Some(0));
+        assert_eq!(i.to_u32(), Some(0));
+        assert_eq!(i.to_i32(), Some(0));
+        assert_eq!(i.to_u64(), Some(0));
+        assert_eq!(i.to_i64(), Some(0));
         i -= 1;
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == Some(-1));
-        assert!(i.to_u64() == None);
-        assert!(i.to_i64() == Some(-1));
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), Some(-1));
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), Some(-1));
 
         i.assign(i32::MIN);
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == Some(i32::MIN));
-        assert!(i.to_u64() == None);
-        assert!(i.to_i64() == Some(i32::MIN as i64));
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), Some(i32::MIN));
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), Some(i32::MIN as i64));
         i -= 1;
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == None);
-        assert!(i.to_i64() == Some(i32::MIN as i64 - 1));
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), Some(i32::MIN as i64 - 1));
         i.assign(i32::MAX);
-        assert!(i.to_u32() == Some(i32::MAX as u32));
-        assert!(i.to_i32() == Some(i32::MAX));
-        assert!(i.to_u64() == Some(i32::MAX as u64));
-        assert!(i.to_i64() == Some(i32::MAX as i64));
+        assert_eq!(i.to_u32(), Some(i32::MAX as u32));
+        assert_eq!(i.to_i32(), Some(i32::MAX));
+        assert_eq!(i.to_u64(), Some(i32::MAX as u64));
+        assert_eq!(i.to_i64(), Some(i32::MAX as i64));
         i += 1;
-        assert!(i.to_u32() == Some(i32::MAX as u32 + 1));
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == Some(i32::MAX as u64 + 1));
-        assert!(i.to_i64() == Some(i32::MAX as i64 + 1));
+        assert_eq!(i.to_u32(), Some(i32::MAX as u32 + 1));
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), Some(i32::MAX as u64 + 1));
+        assert_eq!(i.to_i64(), Some(i32::MAX as i64 + 1));
         i.assign(u32::MAX);
-        assert!(i.to_u32() == Some(u32::MAX));
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == Some(u32::MAX as u64));
-        assert!(i.to_i64() == Some(u32::MAX as i64));
+        assert_eq!(i.to_u32(), Some(u32::MAX));
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), Some(u32::MAX as u64));
+        assert_eq!(i.to_i64(), Some(u32::MAX as i64));
         i += 1;
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == Some(u32::MAX as u64 + 1));
-        assert!(i.to_i64() == Some(u32::MAX as i64 + 1));
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), Some(u32::MAX as u64 + 1));
+        assert_eq!(i.to_i64(), Some(u32::MAX as i64 + 1));
 
         i.assign(i64::MIN);
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == None);
-        assert!(i.to_i64() == Some(i64::MIN));
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), Some(i64::MIN));
         i -= 1;
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == None);
-        assert!(i.to_i64() == None);
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
         i.assign(i64::MAX);
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == Some(i64::MAX as u64));
-        assert!(i.to_i64() == Some(i64::MAX));
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), Some(i64::MAX as u64));
+        assert_eq!(i.to_i64(), Some(i64::MAX));
         i += 1;
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == Some(i64::MAX as u64 + 1));
-        assert!(i.to_i64() == None);
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), Some(i64::MAX as u64 + 1));
+        assert_eq!(i.to_i64(), None);
         i.assign(u64::MAX);
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == Some(u64::MAX));
-        assert!(i.to_i64() == None);
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), Some(u64::MAX));
+        assert_eq!(i.to_i64(), None);
         i += 1;
-        assert!(i.to_u32() == None);
-        assert!(i.to_i32() == None);
-        assert!(i.to_u64() == None);
-        assert!(i.to_i64() == None);
+        assert_eq!(i.to_u32(), None);
+        assert_eq!(i.to_i32(), None);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
     }
 
     #[test]
     fn check_float_conversions() {
         let mut i = Integer::from(0);
-        assert!(i.to_f32() == 0.0);
-        assert!(i.to_f64() == 0.0);
+        assert_eq!(i.to_f32(), 0.0);
+        assert_eq!(i.to_f64(), 0.0);
         i.assign(0xff);
-        assert!(i.to_f32() == 255.0);
-        assert!(i.to_f64() == 255.0);
+        assert_eq!(i.to_f32(), 255.0);
+        assert_eq!(i.to_f64(), 255.0);
         i <<= 80;
-        assert!(i.to_f32() == 255.0 * 2f32.powi(80));
-        assert!(i.to_f64() == 255.0 * 2f64.powi(80));
+        assert_eq!(i.to_f32(), 255.0 * 2f32.powi(80));
+        assert_eq!(i.to_f64(), 255.0 * 2f64.powi(80));
         i = i.clone() << 30 | i;
-        assert!(i.to_f32() == 255.0 * 2f32.powi(110));
-        assert!(i.to_f64() == 255.0 * (2f64.powi(80) + 2f64.powi(110)));
+        assert_eq!(i.to_f32(), 255.0 * 2f32.powi(110));
+        assert_eq!(i.to_f64(), 255.0 * (2f64.powi(80) + 2f64.powi(110)));
         i <<= 100;
-        assert!(i.to_f32() == f32::INFINITY);
-        assert!(i.to_f64() == 255.0 * (2f64.powi(180) + 2f64.powi(210)));
+        assert_eq!(i.to_f32(), f32::INFINITY);
+        assert_eq!(i.to_f64(), 255.0 * (2f64.powi(180) + 2f64.powi(210)));
         i <<= 1000;
-        assert!(i.to_f32() == f32::INFINITY);
-        assert!(i.to_f64() == f64::INFINITY);
+        assert_eq!(i.to_f32(), f32::INFINITY);
+        assert_eq!(i.to_f64(), f64::INFINITY);
         i.assign(-0xff_ffff);
-        assert!(i.to_f32() == -0xff_ffff as f32);
-        assert!(i.to_f64() == -0xff_ffff as f64);
+        assert_eq!(i.to_f32(), -0xff_ffff as f32);
+        assert_eq!(i.to_f64(), -0xff_ffff as f64);
         i.assign(-0xfff_ffff);
         println!("{:x}", (-i.to_f32()) as u32);
-        assert!(i.to_f32() == -0xff_ffff0 as f32);
-        assert!(i.to_f64() == -0xff_fffff as f64);
+        assert_eq!(i.to_f32(), -0xff_ffff0 as f32);
+        assert_eq!(i.to_f64(), -0xff_fffff as f64);
     }
 
     #[test]
     fn check_from_str() {
         let mut i: Integer = "+134".parse().unwrap();
-        assert!(i == 134);
+        assert_eq!(i, 134);
         i.assign_str_radix("-ffFFffffFfFfffffffffffffffffffff", 16)
             .unwrap();
-        assert!(i.significant_bits() == 128);
+        assert_eq!(i.significant_bits(), 128);
         i -= 1;
-        assert!(i.significant_bits() == 129);
+        assert_eq!(i.significant_bits(), 129);
 
         let bad_strings = [(" 1", None),
                            ("+-3", None),
@@ -3533,33 +3533,33 @@ mod tests {
                             ("+Cc", 16, 0xcc),
                             ("-77", 8, -0o77)];
         for &(s, radix, i) in good_strings.into_iter() {
-            assert!(Integer::from_str_radix(s, radix).unwrap() == i);
+            assert_eq!(Integer::from_str_radix(s, radix).unwrap(), i);
         }
     }
 
     #[test]
     fn check_formatting() {
         let i = Integer::from((-11));
-        assert!(format!("{}", i) == "-11");
-        assert!(format!("{:?}", i) == "-11");
-        assert!(format!("{:b}", i) == "-1011");
-        assert!(format!("{:#b}", i) == "-0b1011");
-        assert!(format!("{:o}", i) == "-13");
-        assert!(format!("{:#o}", i) == "-0o13");
-        assert!(format!("{:x}", i) == "-b");
-        assert!(format!("{:X}", i) == "-B");
-        assert!(format!("{:8x}", i) == "      -b");
-        assert!(format!("{:08X}", i) == "-000000B");
-        assert!(format!("{:#08x}", i) == "-0x0000b");
-        assert!(format!("{:#8X}", i) == "    -0xB");
+        assert_eq!(format!("{}", i), "-11");
+        assert_eq!(format!("{:?}", i), "-11");
+        assert_eq!(format!("{:b}", i), "-1011");
+        assert_eq!(format!("{:#b}", i), "-0b1011");
+        assert_eq!(format!("{:o}", i), "-13");
+        assert_eq!(format!("{:#o}", i), "-0o13");
+        assert_eq!(format!("{:x}", i), "-b");
+        assert_eq!(format!("{:X}", i), "-B");
+        assert_eq!(format!("{:8x}", i), "      -b");
+        assert_eq!(format!("{:08X}", i), "-000000B");
+        assert_eq!(format!("{:#08x}", i), "-0x0000b");
+        assert_eq!(format!("{:#8X}", i), "    -0xB");
     }
 
     #[test]
     fn check_assumptions() {
         // we assume no nail bits when we use limbs
-        assert!(gmp::NAIL_BITS == 0);
-        assert!(gmp::NUMB_BITS == gmp::LIMB_BITS);
-        assert!(gmp::NUMB_BITS as usize == 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(gmp::NAIL_BITS, 0);
+        assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
+        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
         // we assume that a limb has 32 or 64 bits.
         assert!(gmp::NUMB_BITS == 32 || gmp::NUMB_BITS == 64);
     }

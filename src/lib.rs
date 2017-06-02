@@ -56,11 +56,11 @@
 //! fn main() {
 //!     // Create an integer initialized as zero.
 //!     let mut int = Integer::new();
-//!     assert!(int == 0);
-//!     assert!(int.to_u32() == Some(0));
+//!     assert_eq!(int, 0);
+//!     assert_eq!(int.to_u32(), Some(0));
 //!     int.assign(14);
-//!     assert!(int == 14);
-//!     assert!(int.to_i32() == Some(14));
+//!     assert_eq!(int, 14);
+//!     assert_eq!(int.to_i32(), Some(14));
 //! }
 //! ```
 //!
@@ -71,9 +71,9 @@
 //! use rugint::Integer;
 //! let mut a = Integer::from(0xc);
 //! a = (a << 80) + 0xffee;
-//! assert!(a.to_string_radix(16) == "c0000000000000000ffee");
-//! //                                 ^   ^   ^   ^   ^
-//! //                                80  64  48  32  16
+//! assert_eq!(a.to_string_radix(16), "c0000000000000000ffee");
+//! //                                  ^   ^   ^   ^   ^
+//! //                                 80  64  48  32  16
 //! ```
 //!
 //! Note that in the above example, there is only one allocation. The
@@ -162,7 +162,7 @@ pub trait NotAssign {
 /// let mut rhs = Integer::from(10);
 /// rhs.sub_from_assign(100);
 /// // rhs = 100 - 10
-/// assert!(rhs == 90);
+/// assert_eq!(rhs, 90);
 /// ```
 pub trait SubFromAssign<Lhs = Self> {
     /// Peforms the subtraction.
@@ -182,7 +182,7 @@ pub trait SubFromAssign<Lhs = Self> {
 /// let mut rhs = Integer::from(5);
 /// rhs.div_from_assign(lhs);
 /// // rhs = 50 / 5
-/// assert!(rhs == 10);
+/// assert_eq!(rhs, 10);
 /// ```
 pub trait DivFromAssign<Lhs = Self> {
     /// Peforms the division.
@@ -202,7 +202,7 @@ pub trait DivFromAssign<Lhs = Self> {
 /// let mut rhs = Integer::from(2);
 /// rhs.rem_from_assign(&lhs);
 /// // rhs = 17 / 2
-/// assert!(rhs == 1);
+/// assert_eq!(rhs, 1);
 /// ```
 pub trait RemFromAssign<Lhs = Self> {
     /// Peforms the remainder operation.
