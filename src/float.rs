@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {AddRound, AssignRound, DivRound, FromRound, MulRound, PowRound, ShlRound,
-     ShrRound, SubRound};
+     ShrRound, SmallFloat, SubRound};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "random")]
@@ -31,15 +31,14 @@ use std::ffi::{CStr, CString};
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::mem;
-use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
-               Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
+               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 #[cfg(feature = "random")]
 use std::os::raw::c_uint;
 use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
-use std::sync::atomic::{AtomicPtr, Ordering as AtomicOrdering};
 use xmpfr;
 
 /// Returns the minimum value for the exponent.
@@ -1575,8 +1574,46 @@ impl Float {
     ///
     /// Returns `Ordering::Less` if the Gamma function is negative, or
     /// `Ordering::Greater` if the Gamma function is positive.
-    pub fn lgamma(&mut self) -> Ordering {
-        self.lgamma_round(Round::Nearest).0
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugflo;
+    /// use rugflo::{Constant, Float};
+    /// use rugint::Assign;
+    /// use std::cmp::Ordering;
+    /// fn main() {
+    ///     let mut f;
+    ///     let mut check = Float::new(53);
+    ///
+    ///     // gamma of 1/2 is sqrt(pi)
+    ///     f = Float::from((Constant::Pi, 64));
+    ///     f.sqrt().ln();
+    ///     let lgamma_1_2 = f;
+    ///
+    ///     f = Float::from((0.5, 53));
+    ///     // gamma of 1/2 is positive
+    ///     assert_eq!(f.ln_abs_gamma(), Ordering::Greater);
+    ///     // check is correct to 53 significant bits
+    ///     check.assign(&lgamma_1_2);
+    ///     assert_eq!(f, check);
+    ///
+    ///     // gamma of -1/2 is -2 * sqrt(pi)
+    ///     f = Float::from((Constant::Pi, 64)) * 4;
+    ///     f.sqrt().ln();
+    ///     let lgamma_neg_1_2 = f;
+    ///
+    ///     f = Float::from((-0.5, 53));
+    ///     // gamma of -1/2 is negative
+    ///     assert_eq!(f.ln_abs_gamma(), Ordering::Less);
+    ///     // check is correct to 53 significant bits
+    ///     check.assign(&lgamma_neg_1_2);
+    ///     assert_eq!(f, check);
+    /// }
+    /// ```
+    pub fn ln_abs_gamma(&mut self) -> Ordering {
+        self.ln_abs_gamma_round(Round::Nearest).0
     }
 
     /// Computes the logarithm of the absolute value of the Gamma
@@ -1586,7 +1623,31 @@ impl Float {
     ///
     /// 1. The logarithm of the absolute value of the Gamma function.
     /// 2. The rounding direction.
-    pub fn lgamma_round(&mut self, round: Round) -> (Ordering, Ordering) {
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::{AssignRound, Constant, Float, Round};
+    /// use std::cmp::Ordering;
+    ///
+    /// let mut f: Float;
+    /// let mut check = Float::new(53);
+    ///
+    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// f = Float::from((Constant::Pi, 64)) * 4;
+    /// f.sqrt().ln();
+    /// let lgamma_neg_1_2 = f;
+    ///
+    /// f = Float::from((-0.5, 53));
+    /// let (sign, dir) = f.ln_abs_gamma_round(Round::Nearest);
+    /// // gamma of -1/2 is negative
+    /// assert_eq!(sign, Ordering::Less);
+    /// // check is correct to 53 significant bits
+    /// let check_dir = check.assign_round(&lgamma_neg_1_2, Round::Nearest);
+    /// assert_eq!(f, check);
+    /// assert_eq!(dir, check_dir);
+    /// ```
+    pub fn ln_abs_gamma_round(&mut self, round: Round) -> (Ordering, Ordering) {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
         let mpfr_ret = unsafe {
@@ -1602,8 +1663,50 @@ impl Float {
 
     /// Holds the computation of the logarithm of the absolute value of the
     /// Gamma function on `val`.
-    pub fn lgamma_hold(&self) -> LGammaHold {
-        LGammaHold { hold_self: self }
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugflo;
+    /// use rugflo::{AssignRound, Constant, Float, Round};
+    /// use rugint::Assign;
+    /// use std::cmp::Ordering;
+    /// fn main() {
+    ///     let mut f: Float;
+    ///     let mut check = Float::new(53);
+    ///
+    ///     // gamma of -1/2 is -2 * sqrt(pi)
+    ///     f = Float::from((Constant::Pi, 64)) * 4;
+    ///     f.sqrt().ln();
+    ///     let lgamma_neg_1_2 = f;
+    ///
+    ///     let neg_1_2 = Float::from((-0.5, 53));
+    ///     f = Float::new(53);
+    ///     let mut sign = Ordering::Equal;
+    ///
+    ///     // Assign rounds to the nearest
+    ///     let hold = neg_1_2.ln_abs_gamma_hold();
+    ///     (&mut f, &mut sign).assign(hold);
+    ///     // gamma of -1/2 is negative
+    ///     assert_eq!(sign, Ordering::Less);
+    ///     // check is correct to 53 significant bits
+    ///     check.assign(&lgamma_neg_1_2);
+    ///     assert_eq!(f, check);
+    ///
+    ///     // AssignRound returns the rounding direction
+    ///     let hold = neg_1_2.ln_abs_gamma_hold();
+    ///     let dir = (&mut f, &mut sign).assign_round(hold, Round::Nearest);
+    ///     // gamma of -1/2 is negative
+    ///     assert_eq!(sign, Ordering::Less);
+    ///     // check is correct to 53 significant bits
+    ///     let check_dir = check.assign_round(&lgamma_neg_1_2, Round::Nearest);
+    ///     assert_eq!(f, check);
+    ///     assert_eq!(dir, check_dir);
+    /// }
+    /// ```
+    pub fn ln_abs_gamma_hold(&self) -> LnAbsGammaHold {
+        LnAbsGammaHold { hold_self: self }
     }
 
     math_op1! {
@@ -2379,20 +2482,24 @@ hold_math_op1! { struct Li2Hold {}; mpfr::li2 }
 hold_math_op1! { struct GammaHold {}; mpfr::gamma }
 hold_math_op1! { struct LnGammaHold {}; mpfr::lngamma }
 
-pub struct LGammaHold<'a> {
+pub struct LnAbsGammaHold<'a> {
     hold_self: &'a Float,
 }
 
-impl<'a> Assign<LGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
-    fn assign(&mut self, src: LGammaHold<'a>) {
+impl<'a> Assign<LnAbsGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
+    fn assign(&mut self, src: LnAbsGammaHold<'a>) {
         self.assign_round(src, Round::Nearest);
     }
 }
 
-impl<'a> AssignRound<LGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
+impl<'a> AssignRound<LnAbsGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: LGammaHold<'a>, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: LnAbsGammaHold<'a>,
+        round: Round,
+    ) -> Ordering {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
         let mpfr_ret = unsafe {
@@ -3727,235 +3834,6 @@ where
         match *self {
             OwnBorrow::Own(ref o) => o.inner(),
             OwnBorrow::Borrow(b) => b.inner(),
-        }
-    }
-}
-
-#[repr(C)]
-/// A small float that does not require any memory allocation.
-///
-/// This can be useful when you have an `i32`, `i64`, `u32`, `u64`,
-/// `f32` or `f64` but need a reference to a `Float`.
-///
-/// The `SmallFloat` will have a precision according to the type of
-/// the primitive used to initialize it.
-///
-/// * `i32`, `u32`: the `SmallFloat` will have 32 bits of precision.
-///
-/// * `i64`, `u64`: the `SmallFloat` will have 64 bits of precision.
-///
-/// * `f32`: the `SmallFloat` will have 24 bits of precision.
-///
-/// * `f64`: the `SmallFloat` will have 53 bits of precision.
-///
-/// The `SmallFloat` type can be coerced to a `Float`, as it
-/// implements `Deref` with a `Float` target.
-///
-/// # Examples
-///
-/// ```rust
-/// use rugflo::{Float, SmallFloat};
-/// // `a` requires a heap allocation, has 53-bit precision
-/// let mut a = Float::from((250, 53));
-/// // `b` can reside on the stack
-/// let b = SmallFloat::from(-100f64);
-/// a += &*b;
-/// assert_eq!(a, 150);
-/// // another computation:
-/// a *= &*b;
-/// assert_eq!(a, -15000);
-/// ```
-pub struct SmallFloat {
-    inner: Mpfr,
-    limbs: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-}
-
-const LIMBS_IN_SMALL_FLOAT: usize = 64 / gmp::LIMB_BITS as usize;
-
-#[repr(C)]
-pub struct Mpfr {
-    prec: mpfr::prec_t,
-    sign: c_int,
-    exp: mpfr::exp_t,
-    d: AtomicPtr<gmp::limb_t>,
-}
-
-impl Default for SmallFloat {
-    fn default() -> SmallFloat {
-        SmallFloat::new()
-    }
-}
-
-impl SmallFloat {
-    /// Creates a `SmallFloat` with value 0.
-    pub fn new() -> SmallFloat {
-        unsafe {
-            let mut ret = SmallFloat {
-                inner: mem::uninitialized(),
-                limbs: [0; LIMBS_IN_SMALL_FLOAT],
-            };
-            mpfr::custom_init(&mut ret.limbs[0] as *mut _ as *mut _, 64);
-            mpfr::custom_init_set(
-                &mut ret.inner as *mut _ as *mut _,
-                mpfr::ZERO_KIND,
-                0,
-                64,
-                &mut ret.limbs[0] as *mut _ as *mut _,
-            );
-            ret
-        }
-    }
-
-    fn update_d(&self) {
-        // sanity check
-        assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr_t>());
-        // Since this is borrowed, the limb won't move around, and we
-        // can set the d field.
-        let d = &self.limbs[0] as *const _ as *mut _;
-        self.inner.d.store(d, AtomicOrdering::Relaxed);
-    }
-}
-
-impl Deref for SmallFloat {
-    type Target = Float;
-    fn deref(&self) -> &Float {
-        self.update_d();
-        let ptr = (&self.inner) as *const _ as *const _;
-        unsafe { &*ptr }
-    }
-}
-
-impl<T> From<T> for SmallFloat
-where
-    SmallFloat: Assign<T>,
-{
-    fn from(val: T) -> SmallFloat {
-        let mut ret = SmallFloat::new();
-        ret.assign(val);
-        ret
-    }
-}
-
-impl Assign<i32> for SmallFloat {
-    fn assign(&mut self, val: i32) {
-        self.assign(val.wrapping_abs() as u32);
-        if val < 0 {
-            unsafe {
-                mpfr::neg(
-                    &mut self.inner as *mut _ as *mut _,
-                    &self.inner as *const _ as *const _,
-                    rraw(Round::Nearest),
-                );
-            }
-        }
-    }
-}
-
-impl Assign<i64> for SmallFloat {
-    fn assign(&mut self, val: i64) {
-        self.assign(val.wrapping_abs() as u64);
-        if val < 0 {
-            unsafe {
-                mpfr::neg(
-                    &mut self.inner as *mut _ as *mut _,
-                    &self.inner as *const _ as *const _,
-                    rraw(Round::Nearest),
-                );
-            }
-        }
-    }
-}
-
-impl Assign<u32> for SmallFloat {
-    fn assign(&mut self, val: u32) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
-        unsafe {
-            mpfr::custom_init(limb_ptr, 32);
-        }
-        if val == 0 {
-            unsafe {
-                mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 32, limb_ptr);
-            }
-            return;
-        }
-        let leading = val.leading_zeros();
-        match gmp::LIMB_BITS {
-            64 | 32 => {
-                let limb_leading = leading + gmp::LIMB_BITS as u32 - 32;
-                self.limbs[0] = (val as gmp::limb_t) << limb_leading;
-            }
-            _ => unreachable!(),
-        }
-        unsafe {
-            mpfr::custom_init_set(
-                ptr,
-                mpfr::REGULAR_KIND,
-                (32 - leading) as _,
-                32,
-                limb_ptr,
-            );
-        }
-    }
-}
-
-impl Assign<u64> for SmallFloat {
-    fn assign(&mut self, val: u64) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
-        unsafe {
-            mpfr::custom_init(limb_ptr, 64);
-        }
-        if val == 0 {
-            unsafe {
-                mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 64, limb_ptr);
-            }
-            return;
-        }
-        let leading = val.leading_zeros();
-        match gmp::LIMB_BITS {
-            64 => {
-                self.limbs[0] = (val as gmp::limb_t) << leading;
-            }
-            32 => {
-                let sval = val << leading;
-                self.limbs[0] = sval as u32 as gmp::limb_t;
-                self.limbs[1 + 0] = (sval >> 32) as u32 as gmp::limb_t;
-            }
-            _ => unreachable!(),
-        }
-        unsafe {
-            mpfr::custom_init_set(
-                ptr,
-                mpfr::REGULAR_KIND,
-                (64 - leading) as _,
-                64,
-                limb_ptr,
-            );
-        }
-    }
-}
-
-impl Assign<f32> for SmallFloat {
-    fn assign(&mut self, val: f32) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
-        unsafe {
-            mpfr::custom_init(limb_ptr, 24);
-            mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
-            mpfr::set_d(ptr, val as f64, rraw(Round::Nearest));
-        }
-    }
-}
-
-impl Assign<f64> for SmallFloat {
-    fn assign(&mut self, val: f64) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
-        unsafe {
-            mpfr::custom_init(limb_ptr, 53);
-            mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 53, limb_ptr);
-            mpfr::set_d(ptr, val as f64, rraw(Round::Nearest));
         }
     }
 }

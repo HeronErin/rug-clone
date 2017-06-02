@@ -111,10 +111,12 @@ extern crate rugint;
 extern crate rugrat;
 
 mod float;
+mod small_float;
 mod xmpfr;
 
-pub use float::{Constant, Float, ParseFloatError, Round, SmallFloat, Special,
-                exp_max, exp_min, prec_max, prec_min};
+pub use float::{Constant, Float, ParseFloatError, Round, Special, exp_max,
+                exp_min, prec_max, prec_min};
+pub use small_float::SmallFloat;
 
 /// Assigns to a number from another value, applying the specified
 /// rounding method.
