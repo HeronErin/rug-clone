@@ -20,37 +20,43 @@ use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 
-pub unsafe fn mul_i(rop: *mut mpc_t,
-                    op: *const mpc_t,
-                    neg: bool,
-                    rnd: mpc::rnd_t)
-                    -> c_int {
+pub unsafe fn mul_i(
+    rop: *mut mpc_t,
+    op: *const mpc_t,
+    neg: bool,
+    rnd: mpc::rnd_t,
+) -> c_int {
     mpc::mul_i(rop, op, if neg { -1 } else { 0 }, rnd)
 }
 
-pub unsafe fn recip(rop: *mut mpc_t,
-                    op: *const mpc_t,
-                    rnd: mpc::rnd_t)
-                    -> c_int {
+pub unsafe fn recip(
+    rop: *mut mpc_t,
+    op: *const mpc_t,
+    rnd: mpc::rnd_t,
+) -> c_int {
     ui_div(rop, 1, op, rnd)
 }
 
-pub unsafe fn ui_sub(x: *mut mpc_t,
-                     y: c_ulong,
-                     z: *const mpc_t,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn ui_sub(
+    x: *mut mpc_t,
+    y: c_ulong,
+    z: *const mpc_t,
+    r: mpc::rnd_t,
+) -> c_int {
     let mz = z as *mut _;
     let (r_re, r_im) = rnd_re_im(r);
-    ord_ord(mpfr::ui_sub(mpc::realref(x), y, mpc::realref(mz), r_re),
-            mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im))
+    ord_ord(
+        mpfr::ui_sub(mpc::realref(x), y, mpc::realref(mz), r_re),
+        mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im),
+    )
 }
 
-pub unsafe fn add_si(x: *mut mpc_t,
-                     y: *const mpc_t,
-                     z: c_long,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn add_si(
+    x: *mut mpc_t,
+    y: *const mpc_t,
+    z: c_long,
+    r: mpc::rnd_t,
+) -> c_int {
     if z < 0 {
         mpc::sub_ui(x, y, z.wrapping_neg() as c_ulong, r)
     } else {
@@ -58,11 +64,12 @@ pub unsafe fn add_si(x: *mut mpc_t,
     }
 }
 
-pub unsafe fn sub_si(x: *mut mpc_t,
-                     y: *const mpc_t,
-                     z: c_long,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn sub_si(
+    x: *mut mpc_t,
+    y: *const mpc_t,
+    z: c_long,
+    r: mpc::rnd_t,
+) -> c_int {
     if z < 0 {
         mpc::add_ui(x, y, z.wrapping_neg() as c_ulong, r)
     } else {
@@ -70,51 +77,60 @@ pub unsafe fn sub_si(x: *mut mpc_t,
     }
 }
 
-pub unsafe fn si_sub(x: *mut mpc_t,
-                     y: c_long,
-                     z: *const mpc_t,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn si_sub(
+    x: *mut mpc_t,
+    y: c_long,
+    z: *const mpc_t,
+    r: mpc::rnd_t,
+) -> c_int {
     let mz = z as *mut _;
     let (r_re, r_im) = rnd_re_im(r);
-    ord_ord(mpfr::si_sub(mpc::realref(x), y, mpc::realref(mz), r_re),
-            mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im))
+    ord_ord(
+        mpfr::si_sub(mpc::realref(x), y, mpc::realref(mz), r_re),
+        mpfr::neg(mpc::imagref(x), mpc::imagref(mz), r_im),
+    )
 }
 
-pub unsafe fn div_si(x: *mut mpc_t,
-                     y: *const mpc_t,
-                     z: c_long,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn div_si(
+    x: *mut mpc_t,
+    y: *const mpc_t,
+    z: c_long,
+    r: mpc::rnd_t,
+) -> c_int {
     let my = y as *mut _;
     let (r_re, r_im) = rnd_re_im(r);
-    ord_ord(mpfr::div_si(mpc::realref(x), mpc::realref(my), z, r_re),
-            mpfr::div_si(mpc::imagref(x), mpc::imagref(my), z, r_im))
+    ord_ord(
+        mpfr::div_si(mpc::realref(x), mpc::realref(my), z, r_re),
+        mpfr::div_si(mpc::imagref(x), mpc::imagref(my), z, r_im),
+    )
 }
 
-pub unsafe fn si_div(x: *mut mpc_t,
-                     y: c_long,
-                     z: *const mpc_t,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn si_div(
+    x: *mut mpc_t,
+    y: c_long,
+    z: *const mpc_t,
+    r: mpc::rnd_t,
+) -> c_int {
     let dividend = SmallComplex::from(y);
     mpc::div(x, dividend.inner(), z, r)
 }
 
-pub unsafe fn ui_div(x: *mut mpc_t,
-                     y: c_ulong,
-                     z: *const mpc_t,
-                     r: mpc::rnd_t)
-                     -> c_int {
+pub unsafe fn ui_div(
+    x: *mut mpc_t,
+    y: c_ulong,
+    z: *const mpc_t,
+    r: mpc::rnd_t,
+) -> c_int {
     let dividend = SmallComplex::from(y);
     mpc::div(x, dividend.inner(), z, r)
 }
 
-pub unsafe fn pow_single(x: *mut mpc_t,
-                         y: *const mpc_t,
-                         z: f32,
-                         r: mpc::rnd_t)
-                         -> c_int {
+pub unsafe fn pow_single(
+    x: *mut mpc_t,
+    y: *const mpc_t,
+    z: f32,
+    r: mpc::rnd_t,
+) -> c_int {
     mpc::pow_d(x, y, z as f64, r)
 }
 

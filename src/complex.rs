@@ -121,18 +121,29 @@ macro_rules! math_op1 {
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self $(, $param: $T)*) -> &mut Complex {
+        pub fn $method(
+            &mut self,
+            $($param: $T,)*
+        ) -> &mut Complex {
             self.$method_round($($param,)* NEAREST);
             self
         }
 
         $(#[$attr_round])*
-        pub fn $method_round(&mut self, $($param: $T,)* round: Round2)
-                             -> Ordering2 {
-            ordering2(unsafe {
-                $func(self.inner_mut(), self.inner(),
-                      $($param.into(),)* rraw2(round))
-            })
+        pub fn $method_round(
+            &mut self,
+            $($param: $T,)*
+            round: Round2,
+        ) -> Ordering2 {
+            let mpc_ret = unsafe {
+                $func(
+                    self.inner_mut(),
+                    self.inner(),
+                    $($param.into(),)*
+                    rraw2(round),
+                )
+            };
+            ordering2(mpc_ret)
         }
 
         $(#[$attr_hold])*
@@ -161,12 +172,20 @@ macro_rules! hold_math_op1 {
         impl<'a> AssignRound<$Hold<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round2)
-                            -> Ordering2 {
-                ordering2(unsafe {
-                    $func(self.inner_mut(), src.hold_self.inner(),
-                          $(src.$param.into(),)* rraw2(round))
-                })
+            fn assign_round(
+                &mut self,
+                src: $Hold<'a>,
+                round: Round2,
+            ) -> Ordering2 {
+                let mpc_ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.hold_self.inner(),
+                        $(src.$param.into(),)*
+                        rraw2(round),
+                    )
+                };
+                ordering2(mpc_ret)
             }
         }
     };
@@ -183,24 +202,43 @@ macro_rules! math_op1_2 {
         $func:path
     } => {
         $(#[$attr])*
-        pub fn $method(&mut self, $rop: &mut Complex $(, $param: $T)*) {
-            self.$method_round($rop, $($param,)* NEAREST);
+        pub fn $method(
+            &mut self,
+            $rop: &mut Complex,
+            $($param: $T,)*
+        ) {
+            self.$method_round(
+                $rop,
+                $($param,)*
+                NEAREST,
+            );
         }
 
         $(#[$attr_round])*
-        pub fn $method_round(&mut self, $rop: &mut Complex,
-                             $($param: $T,)* round: Round2)
-                             -> (Ordering2, Ordering2) {
-            let ord = unsafe {
-                $func(self.inner_mut(), $rop.inner_mut(),
-                      self.inner(), $($param.into(),)*
-                      rraw2(round), rraw2(round))
+        pub fn $method_round(
+            &mut self,
+            $rop: &mut Complex,
+            $($param: $T,)*
+            round: Round2,
+        ) -> (Ordering2, Ordering2) {
+            let mpc_ret = unsafe {
+                $func(
+                    self.inner_mut(),
+                    $rop.inner_mut(),
+                    self.inner(),
+                    $($param.into(),)*
+                    rraw2(round),
+                    rraw2(round),
+                )
             };
-            (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
+            (ordering2(mpc::INEX1(mpc_ret)), ordering2(mpc::INEX2(mpc_ret)))
         }
 
         $(#[$attr_hold])*
-        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
+        pub fn $method_hold(
+            &self,
+            $($param: $T,)*
+        ) -> $Hold {
             $Hold {
                 hold_self: self,
                 $($param: $param,)*
@@ -231,14 +269,22 @@ macro_rules! hold_math_op1_2 {
         impl<'a> AssignRound<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
             type Round = Round2;
             type Ordering = (Ordering2, Ordering2);
-            fn assign_round(&mut self, src: $Hold<'a>, round: Round2)
-                            -> (Ordering2, Ordering2) {
-                let ord = unsafe {
-                    $func(self.0.inner_mut(), self.1.inner_mut(),
-                          src.hold_self.inner(), $(src.$param.into(),)*
-                          rraw2(round), rraw2(round))
+            fn assign_round(
+                &mut self,
+                src: $Hold<'a>,
+                round: Round2,
+            ) -> (Ordering2, Ordering2) {
+                let mpc_ret = unsafe {
+                    $func(
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        src.hold_self.inner(),
+                        $(src.$param.into(),)*
+                        rraw2(round),
+                        rraw2(round),
+                    )
                 };
-                (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
+                (ordering2(mpc::INEX1(mpc_ret)), ordering2(mpc::INEX2(mpc_ret)))
             }
         }
     };
@@ -263,10 +309,12 @@ impl Complex {
     /// Panics if the precision is out of the allowed range.
     pub fn new<P: Prec>(prec: P) -> Complex {
         let p = prec.prec();
-        assert!(p.0 >= rugflo::prec_min() && p.0 <= rugflo::prec_max() &&
+        assert!(
+            p.0 >= rugflo::prec_min() && p.0 <= rugflo::prec_max() &&
                 p.1 >= rugflo::prec_min() &&
                 p.1 <= rugflo::prec_max(),
-                "precision out of range");
+            "precision out of range"
+        );
         unsafe {
             let mut inner: mpc_t = mem::uninitialized();
             mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
@@ -335,10 +383,11 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if the precision is out of the allowed range.
-    pub fn set_prec_round<P: Prec>(&mut self,
-                                   prec: P,
-                                   round: Round2)
-                                   -> Ordering2 {
+    pub fn set_prec_round<P: Prec>(
+        &mut self,
+        prec: P,
+        round: Round2,
+    ) -> Ordering2 {
         let p = prec.prec();
         let (real, imag) = self.as_mut_real_imag();
         (real.set_prec_round(p.0, round.0), imag.set_prec_round(p.1, round.1))
@@ -357,9 +406,10 @@ impl Complex {
     /// let bad = Complex::from_str("bad", 53);
     /// assert!(bad.is_err());
     /// ```
-    pub fn from_str<P: Prec>(src: &str,
-                             prec: P)
-                             -> Result<Complex, ParseComplexError> {
+    pub fn from_str<P: Prec>(
+        src: &str,
+        prec: P,
+    ) -> Result<Complex, ParseComplexError> {
         let mut val = Complex::new(prec);
         val.assign_str(src)?;
         Ok(val)
@@ -387,10 +437,11 @@ impl Complex {
     /// }
     /// ```
     pub fn from_str_round<P: Prec>
-        (src: &str,
-         prec: P,
-         round: Round2)
-         -> Result<(Complex, Ordering2), ParseComplexError> {
+        (
+        src: &str,
+        prec: P,
+        round: Round2,
+    ) -> Result<(Complex, Ordering2), ParseComplexError> {
         let mut val = Complex::new(prec);
         let ord = val.assign_str_round(src, round)?;
         Ok((val, ord))
@@ -411,10 +462,11 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix<P: Prec>(src: &str,
-                                   radix: i32,
-                                   prec: P)
-                                   -> Result<Complex, ParseComplexError> {
+    pub fn from_str_radix<P: Prec>(
+        src: &str,
+        radix: i32,
+        prec: P,
+    ) -> Result<Complex, ParseComplexError> {
         let mut val = Complex::new(prec);
         val.assign_str_radix(src, radix)?;
         Ok(val)
@@ -446,11 +498,12 @@ impl Complex {
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn from_str_radix_round<P: Prec>
-        (src: &str,
-         radix: i32,
-         prec: P,
-         round: Round2)
-         -> Result<(Complex, Ordering2), ParseComplexError> {
+        (
+        src: &str,
+        radix: i32,
+        prec: P,
+        round: Round2,
+    ) -> Result<(Complex, Ordering2), ParseComplexError> {
         let mut val = Complex::new(prec);
         let ord = val.assign_str_radix_round(src, radix, round)?;
         Ok((val, ord))
@@ -478,9 +531,10 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn valid_str_radix(src: &str,
-                           radix: i32)
-                           -> Result<(), ParseComplexError> {
+    pub fn valid_str_radix(
+        src: &str,
+        radix: i32,
+    ) -> Result<(), ParseComplexError> {
         check_str_radix(src, radix).map(|_| ())
     }
 
@@ -507,10 +561,11 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix(&self,
-                           radix: i32,
-                           num_digits: Option<usize>)
-                           -> String {
+    pub fn to_string_radix(
+        &self,
+        radix: i32,
+        num_digits: Option<usize>,
+    ) -> String {
         self.to_string_radix_round(radix, num_digits, NEAREST)
     }
 
@@ -550,11 +605,12 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn to_string_radix_round(&self,
-                                 radix: i32,
-                                 num_digits: Option<usize>,
-                                 round: Round2)
-                                 -> String {
+    pub fn to_string_radix_round(
+        &self,
+        radix: i32,
+        num_digits: Option<usize>,
+        round: Round2,
+    ) -> String {
         let mut buf = String::from("(");
         buf += &self.real()
                     .to_string_radix_round(radix, num_digits, round.0);
@@ -604,10 +660,11 @@ impl Complex {
     ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// }
     /// ```
-    pub fn assign_str_round(&mut self,
-                            src: &str,
-                            round: Round2)
-                            -> Result<Ordering2, ParseComplexError> {
+    pub fn assign_str_round(
+        &mut self,
+        src: &str,
+        round: Round2,
+    ) -> Result<Ordering2, ParseComplexError> {
         self.assign_str_radix_round(src, 10, round)
     }
 
@@ -627,10 +684,11 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix(&mut self,
-                            src: &str,
-                            radix: i32)
-                            -> Result<(), ParseComplexError> {
+    pub fn assign_str_radix(
+        &mut self,
+        src: &str,
+        radix: i32,
+    ) -> Result<(), ParseComplexError> {
         self.assign_str_radix_round(src, radix, NEAREST).map(|_| ())
     }
 
@@ -659,11 +717,12 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn assign_str_radix_round(&mut self,
-                                  src: &str,
-                                  radix: i32,
-                                  round: Round2)
-                                  -> Result<Ordering2, ParseComplexError> {
+    pub fn assign_str_radix_round(
+        &mut self,
+        src: &str,
+        radix: i32,
+        round: Round2,
+    ) -> Result<Ordering2, ParseComplexError> {
         match check_str_radix(src, radix)? {
             PossibleFromStr::Real(r) => {
                 let real_ord = self.mut_real()
@@ -1139,10 +1198,11 @@ impl Complex {
     /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
     /// on the real part, and the same with `round.1` on the
     /// imaginary part.
-    pub fn assign_random_bits_round<R: Rng>(&mut self,
-                                            rng: &mut R,
-                                            round: Round2)
-                                            -> Ordering2 {
+    pub fn assign_random_bits_round<R: Rng>(
+        &mut self,
+        rng: &mut R,
+        round: Round2,
+    ) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
         (real.assign_random_bits_round(rng, round.0),
          imag.assign_random_bits_round(rng, round.1))
@@ -1171,10 +1231,11 @@ impl Complex {
     /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
     /// on the real part, and the same with `round.1` on the
     /// imaginary part.
-    pub fn assign_random_cont_round<R: Rng>(&mut self,
-                                            rng: &mut R,
-                                            round: Round2)
-                                            -> Ordering2 {
+    pub fn assign_random_cont_round<R: Rng>(
+        &mut self,
+        rng: &mut R,
+        round: Round2,
+    ) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
         (real.assign_random_cont_round(rng, round.0),
          imag.assign_random_cont_round(rng, round.1))
@@ -1186,9 +1247,10 @@ enum PossibleFromStr<'a> {
     Complex(&'a str, &'a str),
 }
 
-fn check_str_radix(src: &str,
-                   radix: i32)
-                   -> Result<PossibleFromStr, ParseComplexError> {
+fn check_str_radix(
+    src: &str,
+    radix: i32,
+) -> Result<PossibleFromStr, ParseComplexError> {
     use self::ParseComplexError as Error;
     use self::ParseErrorKind as Kind;
 
@@ -1238,7 +1300,10 @@ impl From<(Float, Float)> for Complex {
 }
 
 impl<T, P: Prec> From<(T, P)> for Complex
-    where Complex: FromRound<T, P, Round = Round2>
+where
+    Complex: FromRound<T,
+                       P,
+                       Round = Round2>,
 {
     fn from((t, prec): (T, P)) -> Complex {
         Complex::from_round(t, prec, NEAREST).0
@@ -1306,7 +1371,10 @@ impl UpperHex for Complex {
 }
 
 impl<T> Assign<T> for Complex
-    where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
+where
+    Complex: AssignRound<T,
+                         Round = Round2,
+                         Ordering = Ordering2>,
 {
     fn assign(&mut self, other: T) {
         self.assign_round(other, NEAREST);
@@ -1325,9 +1393,9 @@ impl<'a> AssignRound<&'a Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     fn assign_round(&mut self, other: &Complex, round: Round2) -> Ordering2 {
-        ordering2(unsafe {
-                      mpc::set(self.inner_mut(), other.inner(), rraw2(round))
-                  })
+        let mpc_ret =
+            unsafe { mpc::set(self.inner_mut(), other.inner(), rraw2(round)) };
+        ordering2(mpc_ret)
     }
 }
 
@@ -1336,8 +1404,11 @@ macro_rules! assign_ref {
         impl<'a> AssignRound<&'a $T> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
-            fn assign_round(&mut self, other: &'a $T, round: Round2)
-                            -> Ordering2 {
+            fn assign_round(
+                &mut self,
+                other: &'a $T,
+                round: Round2,
+            ) -> Ordering2 {
                 let (real, imag) = self.as_mut_real_imag();
                 let ord1 = real.assign_round(other, round.0);
                 let ord2 = imag.assign_round(0, round.1);
@@ -1378,8 +1449,9 @@ assign! { f32 }
 assign! { f64 }
 
 impl<T, U> AssignRound<(T, U)> for Complex
-    where Float: AssignRound<T, Round = Round, Ordering = Ordering>,
-          Float: AssignRound<U, Round = Round, Ordering = Ordering>
+where
+    Float: AssignRound<T, Round = Round, Ordering = Ordering>,
+    Float: AssignRound<U, Round = Round, Ordering = Ordering>,
 {
     type Round = Round2;
     type Ordering = Ordering2;
@@ -1404,10 +1476,10 @@ impl<'a> AssignRound<AbsHold<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: AbsHold<'a>, round: Round) -> Ordering {
-        unsafe {
-                mpc::abs(self.inner_mut(), src.hold_self.inner(), rraw(round))
-            }
-            .cmp(&0)
+        let mpc_ret = unsafe {
+            mpc::abs(self.inner_mut(), src.hold_self.inner(), rraw(round))
+        };
+        mpc_ret.cmp(&0)
     }
 }
 
@@ -1419,10 +1491,10 @@ impl<'a> AssignRound<ArgHold<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: ArgHold<'a>, round: Round) -> Ordering {
-        unsafe {
-                mpc::arg(self.inner_mut(), src.hold_self.inner(), rraw(round))
-            }
-            .cmp(&0)
+        let mpc_ret = unsafe {
+            mpc::arg(self.inner_mut(), src.hold_self.inner(), rraw(round))
+        };
+        mpc_ret.cmp(&0)
     }
 }
 
@@ -1437,10 +1509,10 @@ impl<'a> AssignRound<NormHold<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, src: NormHold<'a>, round: Round) -> Ordering {
-        unsafe {
-                mpc::norm(self.inner_mut(), src.hold_self.inner(), rraw(round))
-            }
-            .cmp(&0)
+        let mpc_ret = unsafe {
+            mpc::norm(self.inner_mut(), src.hold_self.inner(), rraw(round))
+        };
+        mpc_ret.cmp(&0)
     }
 }
 
@@ -1492,9 +1564,10 @@ impl<'a> AssignRound<NegHold<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     fn assign_round(&mut self, src: NegHold<'a>, round: Round2) -> Ordering2 {
-        ordering2(unsafe {
-                      mpc::neg(self.inner_mut(), src.val.inner(), rraw2(round))
-                  })
+        let mpc_ret = unsafe {
+            mpc::neg(self.inner_mut(), src.val.inner(), rraw2(round))
+        };
+        ordering2(mpc_ret)
     }
 }
 
@@ -1518,15 +1591,20 @@ macro_rules! arith_binary {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(mut self, rhs: &'a $T, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = ordering2(unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          rhs.inner(),
-                          rraw2(round))
-                });
-                (self, ord)
+            fn $method_round(
+                mut self,
+                rhs: &'a $T,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
+                let mpc_ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        self.inner(),
+                        rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                (self, ordering2(mpc_ret))
             }
         }
 
@@ -1541,8 +1619,11 @@ macro_rules! arith_binary {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, rhs: $T, round: Round2)
-                             -> (Complex, Ordering2) {
+            fn $method_round(
+                self,
+                rhs: $T,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
                 self.$method_round(&rhs, round)
             }
         }
@@ -1560,10 +1641,12 @@ macro_rules! arith_binary {
         impl<'a> $ImpAssign<&'a $T> for Complex {
             fn $method_assign(&mut self, rhs: &'a $T) {
                 unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          rhs.inner(),
-                          rraw2(NEAREST));
+                    $func(
+                        self.inner_mut(),
+                        self.inner(),
+                        rhs.inner(),
+                        rraw2(NEAREST),
+                    );
                 }
             }
         }
@@ -1584,12 +1667,15 @@ macro_rules! arith_binary {
             type Round = Round2;
             type Ordering = Ordering2;
             fn assign_round(&mut self, src: $Hold, round: Round2) -> Ordering2 {
-                ordering2(unsafe {
-                    $func(self.inner_mut(),
-                          src.lhs.inner(),
-                          src.rhs.inner(),
-                          rraw2(round))
-                })
+                let mpc_ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                ordering2(mpc_ret)
             }
         }
     };
@@ -1623,8 +1709,11 @@ macro_rules! arith_commut_complex {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
+            fn $method_round(
+                self,
+                rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
                 rhs.$method_round(self, round)
             }
         }
@@ -1660,25 +1749,32 @@ macro_rules! arith_noncommut_complex {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, mut rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = ordering2(unsafe {
-                    $func(rhs.inner_mut(),
-                          self.inner(),
-                          rhs.inner(),
-                          rraw2(round))
-                });
-                (rhs, ord)
+            fn $method_round(
+                self,
+                mut rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
+                let mpc_ret = unsafe {
+                    $func(
+                        rhs.inner_mut(),
+                        self.inner(),
+                        rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                (rhs, ordering2(mpc_ret))
             }
         }
 
         impl<'a> $ImpFromAssign<&'a Complex> for Complex {
             fn $method_from_assign(&mut self, lhs: &Complex) {
                 unsafe {
-                    $func(self.inner_mut(),
-                          lhs.inner(),
-                          self.inner(),
-                          rraw2(NEAREST));
+                    $func(
+                        self.inner_mut(),
+                        lhs.inner(),
+                        self.inner(),
+                        rraw2(NEAREST),
+                    );
                 }
             }
         }
@@ -1750,8 +1846,10 @@ macro_rules! arith_commut {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
+            fn $method_round(self,
+                             rhs: Complex,
+                             round: Round2,
+            ) -> (Complex, Ordering2) {
                 rhs.$method_round(self, round)
             }
         }
@@ -1767,8 +1865,11 @@ macro_rules! arith_commut {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
+            fn $method_round(
+                self,
+                rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
                 rhs.$method_round(self, round)
             }
         }
@@ -1821,15 +1922,20 @@ macro_rules! arith_noncommut {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, mut rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = ordering2(unsafe {
-                    $func_from(rhs.inner_mut(),
-                               self.inner(),
-                               rhs.inner(),
-                               rraw2(round))
-                });
-                (rhs, ord)
+            fn $method_round(
+                self,
+                mut rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
+                let mpc_ret = unsafe {
+                    $func_from(
+                        rhs.inner_mut(),
+                        self.inner(),
+                        rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                (rhs, ordering2(mpc_ret))
             }
         }
 
@@ -1844,8 +1950,11 @@ macro_rules! arith_noncommut {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
+            fn $method_round(
+                self,
+                rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
                 (&self).$method_round(rhs, round)
             }
         }
@@ -1873,10 +1982,12 @@ macro_rules! arith_noncommut {
         impl<'a> $ImpFromAssign<&'a $T> for Complex {
             fn $method_from_assign(&mut self, lhs: &'a $T) {
                 unsafe {
-                    $func_from(self.inner_mut(),
-                               lhs.inner(),
-                               self.inner(),
-                               rraw2(NEAREST));
+                    $func_from(
+                        self.inner_mut(),
+                        lhs.inner(),
+                        self.inner(),
+                        rraw2(NEAREST),
+                    );
                 }
             }
         }
@@ -1896,14 +2007,20 @@ macro_rules! arith_noncommut {
         impl<'a> AssignRound<$HoldFrom<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
-            fn assign_round(&mut self, src: $HoldFrom, round: Round2)
-                            -> Ordering2 {
-                ordering2(unsafe {
-                    $func_from(self.inner_mut(),
-                               src.lhs.inner(),
-                               src.rhs.inner(),
-                               rraw2(round))
-                })
+            fn assign_round(
+                &mut self,
+                src: $HoldFrom,
+                round: Round2,
+            ) -> Ordering2 {
+                let mpc_ret = unsafe {
+                    $func_from(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                ordering2(mpc_ret)
             }
         }
     };
@@ -2015,15 +2132,20 @@ macro_rules! arith_prim {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(mut self, rhs: $T, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = ordering2(unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          rhs.into(),
-                          rraw2(round))
-                });
-                (self, ord)
+            fn $method_round(
+                mut self,
+                rhs: $T,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
+                let mpc_ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        self.inner(),
+                        rhs.into(),
+                        rraw2(round),
+                    )
+                };
+                (self, ordering2(mpc_ret))
             }
         }
 
@@ -2040,10 +2162,12 @@ macro_rules! arith_prim {
         impl $ImpAssign<$T> for Complex {
             fn $method_assign(&mut self, rhs: $T) {
                 unsafe {
-                    $func(self.inner_mut(),
-                          self.inner(),
-                          rhs.into(),
-                          rraw2(NEAREST));
+                    $func(
+                        self.inner_mut(),
+                        self.inner(),
+                        rhs.into(),
+                        rraw2(NEAREST),
+                    );
                 }
             }
         }
@@ -2058,12 +2182,15 @@ macro_rules! arith_prim {
             type Round = Round2;
             type Ordering = Ordering2;
             fn assign_round(&mut self, src: $Hold, round: Round2) -> Ordering2 {
-                ordering2(unsafe {
-                    $func(self.inner_mut(),
-                          src.lhs.inner(),
-                          src.rhs.into(),
-                          rraw2(round))
-                })
+                let mpc_ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs.into(),
+                        rraw2(round),
+                    )
+                };
+                ordering2(mpc_ret)
             }
         }
     };
@@ -2098,8 +2225,11 @@ macro_rules! arith_prim_commut {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
+            fn $method_round(
+                self,
+                rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
                 rhs.$method_round(self, round)
             }
         }
@@ -2145,15 +2275,20 @@ macro_rules! arith_prim_noncommut {
             type Round = Round2;
             type Ordering = Ordering2;
             type Output = Complex;
-            fn $method_round(self, mut rhs: Complex, round: Round2)
-                             -> (Complex, Ordering2) {
-                let ord = ordering2(unsafe {
-                    $func_from(rhs.inner_mut(),
-                               self.into(),
-                               rhs.inner(),
-                               rraw2(round))
-                });
-                (rhs, ord)
+            fn $method_round(
+                self,
+                mut rhs: Complex,
+                round: Round2,
+            ) -> (Complex, Ordering2) {
+                let mpc_ret = unsafe {
+                    $func_from(
+                        rhs.inner_mut(),
+                        self.into(),
+                        rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                (rhs, ordering2(mpc_ret))
             }
         }
 
@@ -2170,10 +2305,12 @@ macro_rules! arith_prim_noncommut {
         impl $ImpFromAssign<$T> for Complex {
             fn $method_from_assign(&mut self, lhs: $T) {
                 unsafe {
-                    $func_from(self.inner_mut(),
-                               lhs.into(),
-                               self.inner(),
-                               rraw2(NEAREST));
+                    $func_from(
+                        self.inner_mut(),
+                        lhs.into(),
+                        self.inner(),
+                        rraw2(NEAREST),
+                    );
                 }
             }
         }
@@ -2187,14 +2324,20 @@ macro_rules! arith_prim_noncommut {
         impl<'a> AssignRound<$HoldFrom<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
-            fn assign_round(&mut self, src: $HoldFrom, round: Round2)
-                            -> Ordering2 {
-                ordering2(unsafe {
-                    $func_from(self.inner_mut(),
-                               src.lhs.into(),
-                               src.rhs.inner(),
-                               rraw2(round))
-                })
+            fn assign_round
+                (&mut self,
+                 src: $HoldFrom,
+                 round: Round2,
+                ) -> Ordering2 {
+                let mpc_ret = unsafe {
+                    $func_from(
+                        self.inner_mut(),
+                        src.lhs.into(),
+                        src.rhs.inner(),
+                        rraw2(round),
+                    )
+                };
+                ordering2(mpc_ret)
             }
         }
     };
@@ -2349,8 +2492,9 @@ impl PartialEq for Complex {
 }
 
 impl<T, U> PartialEq<(T, U)> for Complex
-    where Float: PartialEq<T>,
-          Float: PartialEq<U>
+where
+    Float: PartialEq<T>,
+    Float: PartialEq<U>,
 {
     fn eq(&self, other: &(T, U)) -> bool {
         self.real().eq(&other.0) && self.imag().eq(&other.1)
@@ -2371,13 +2515,14 @@ macro_rules! partial_eq {
 
 partial_eq! { Integer Rational Float u32 i32 f64 f32 }
 
-fn fmt_radix(c: &Complex,
-             fmt: &mut Formatter,
-             radix: i32,
-             to_upper: bool,
-             prefix: &str,
-             show_neg_zero: bool)
-             -> fmt::Result {
+fn fmt_radix(
+    c: &Complex,
+    fmt: &mut Formatter,
+    radix: i32,
+    to_upper: bool,
+    prefix: &str,
+    show_neg_zero: bool,
+) -> fmt::Result {
     let (real, imag) = c.as_real_imag();
     let mut buf = String::from("(");
     fmt_float(&mut buf, real, fmt, radix, to_upper, prefix, show_neg_zero);
@@ -2397,17 +2542,20 @@ fn fmt_radix(c: &Complex,
     fmt.write_str(&buf)
 }
 
-fn fmt_float(buf: &mut String,
-             flt: &Float,
-             fmt: &mut Formatter,
-             radix: i32,
-             to_upper: bool,
-             prefix: &str,
-             show_neg_zero: bool) {
+fn fmt_float(
+    buf: &mut String,
+    flt: &Float,
+    fmt: &mut Formatter,
+    radix: i32,
+    to_upper: bool,
+    prefix: &str,
+    show_neg_zero: bool,
+) {
     let show_neg_zero = show_neg_zero || fmt.sign_plus();
     let mut s = flt.to_string_radix(radix, fmt.precision());
-    if s.starts_with('-') ||
-       (show_neg_zero && flt.is_zero() && flt.get_sign()) {
+    let minus = s.starts_with('-') ||
+        (show_neg_zero && flt.is_zero() && flt.get_sign());
+    if minus {
         buf.push('-');
     } else if fmt.sign_plus() {
         buf.push('+');
@@ -2543,14 +2691,16 @@ impl Inner for Integer {
 }
 
 enum OwnBorrow<'a, T>
-    where T: 'a
+where
+    T: 'a,
 {
     Own(T),
     Borrow(&'a T),
 }
 
 impl<'a, T> Inner for OwnBorrow<'a, T>
-    where T: Inner
+where
+    T: Inner,
 {
     type Output = <T as Inner>::Output;
     fn inner(&self) -> &Self::Output {
@@ -2618,17 +2768,21 @@ impl SmallComplex {
                 im_limbs: [0; LIMBS_IN_SMALL_FLOAT],
             };
             mpfr::custom_init(&mut ret.re_limbs[0] as *mut _ as *mut _, 64);
-            mpfr::custom_init_set(&mut ret.re as *mut _ as *mut _,
-                                  mpfr::ZERO_KIND,
-                                  0,
-                                  64,
-                                  &mut ret.re_limbs[0] as *mut _ as *mut _);
+            mpfr::custom_init_set(
+                &mut ret.re as *mut _ as *mut _,
+                mpfr::ZERO_KIND,
+                0,
+                64,
+                &mut ret.re_limbs[0] as *mut _ as *mut _,
+            );
             mpfr::custom_init(&mut ret.im_limbs[0] as *mut _ as *mut _, 64);
-            mpfr::custom_init_set(&mut ret.im as *mut _ as *mut _,
-                                  mpfr::ZERO_KIND,
-                                  0,
-                                  64,
-                                  &mut ret.im_limbs[0] as *mut _ as *mut _);
+            mpfr::custom_init_set(
+                &mut ret.im as *mut _ as *mut _,
+                mpfr::ZERO_KIND,
+                0,
+                64,
+                &mut ret.im_limbs[0] as *mut _ as *mut _,
+            );
             ret
         }
     }
@@ -2655,7 +2809,8 @@ impl Deref for SmallComplex {
 }
 
 impl<T> From<T> for SmallComplex
-    where SmallComplex: Assign<T>
+where
+    SmallComplex: Assign<T>,
 {
     fn from(val: T) -> SmallComplex {
         let mut ret = SmallComplex::new();
@@ -2665,45 +2820,57 @@ impl<T> From<T> for SmallComplex
 }
 
 trait SetPart<T> {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                t: T);
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        t: T,
+    );
 }
 
 impl SetPart<i32> for Mpfr {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: i32) {
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        val: i32,
+    ) {
         self.set_part(limbs, val.wrapping_abs() as u32);
         if val < 0 {
             unsafe {
-                mpfr::neg(self as *mut _ as *mut _,
-                          self as *const _ as *const _,
-                          rraw(Round::Nearest));
+                mpfr::neg(
+                    self as *mut _ as *mut _,
+                    self as *const _ as *const _,
+                    rraw(Round::Nearest),
+                );
             }
         }
     }
 }
 
 impl SetPart<i64> for Mpfr {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: i64) {
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        val: i64,
+    ) {
         self.set_part(limbs, val.wrapping_abs() as u64);
         if val < 0 {
             unsafe {
-                mpfr::neg(self as *mut _ as *mut _,
-                          self as *const _ as *const _,
-                          rraw(Round::Nearest));
+                mpfr::neg(
+                    self as *mut _ as *mut _,
+                    self as *const _ as *const _,
+                    rraw(Round::Nearest),
+                );
             }
         }
     }
 }
 
 impl SetPart<u32> for Mpfr {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: u32) {
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        val: u32,
+    ) {
         let ptr = self as *mut _ as *mut _;
         let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
         unsafe {
@@ -2724,19 +2891,23 @@ impl SetPart<u32> for Mpfr {
             _ => unreachable!(),
         }
         unsafe {
-            mpfr::custom_init_set(ptr,
-                                  mpfr::REGULAR_KIND,
-                                  (32 - leading) as _,
-                                  32,
-                                  limb_ptr);
+            mpfr::custom_init_set(
+                ptr,
+                mpfr::REGULAR_KIND,
+                (32 - leading) as _,
+                32,
+                limb_ptr,
+            );
         }
     }
 }
 
 impl SetPart<u64> for Mpfr {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: u64) {
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        val: u64,
+    ) {
         let ptr = self as *mut _ as *mut _;
         let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
         unsafe {
@@ -2761,19 +2932,23 @@ impl SetPart<u64> for Mpfr {
             _ => unreachable!(),
         }
         unsafe {
-            mpfr::custom_init_set(ptr,
-                                  mpfr::REGULAR_KIND,
-                                  (64 - leading) as _,
-                                  64,
-                                  limb_ptr);
+            mpfr::custom_init_set(
+                ptr,
+                mpfr::REGULAR_KIND,
+                (64 - leading) as _,
+                64,
+                limb_ptr,
+            );
         }
     }
 }
 
 impl SetPart<f32> for Mpfr {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: f32) {
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        val: f32,
+    ) {
         let ptr = self as *mut _ as *mut _;
         let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
         unsafe {
@@ -2785,9 +2960,11 @@ impl SetPart<f32> for Mpfr {
 }
 
 impl SetPart<f64> for Mpfr {
-    fn set_part(&mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: f64) {
+    fn set_part(
+        &mut self,
+        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+        val: f64,
+    ) {
         let ptr = self as *mut _ as *mut _;
         let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
         unsafe {
@@ -2858,8 +3035,10 @@ mod tests {
         assert_eq!(Complex::from((&lhs - &rhs, prec)), lhs.clone() - &rhs);
         assert_eq!(Complex::from((&lhs * &rhs, prec)), lhs.clone() * &rhs);
         assert_eq!(Complex::from((&lhs / &rhs, prec)), lhs.clone() / &rhs);
-        assert_eq!(Complex::from(((&lhs).pow(&rhs), prec)),
-                   lhs.clone().pow(&rhs));
+        assert_eq!(
+            Complex::from(((&lhs).pow(&rhs), prec)),
+            lhs.clone().pow(&rhs)
+        );
 
         assert_eq!(Complex::from((&lhs + pu, prec)), lhs.clone() + pu);
         assert_eq!(Complex::from((&lhs - pu, prec)), lhs.clone() - pu);
@@ -2905,26 +3084,32 @@ mod tests {
         c.assign_str_radix("33", 16).unwrap();
         assert_eq!(c, (0x33, 0));
 
-        let bad_strings = [("(0,0)", None),
-                           ("(0 0 )", None),
-                           ("( 0 0)", None),
-                           ("( 0)", None),
-                           ("(0 )", None),
-                           (" ( 2)", None),
-                           ("+(1 1)", None),
-                           ("-(1. 1.)", None),
-                           ("(1 1@1a(", Some(16)),
-                           ("(8 9)", Some(9))];
+        let bad_strings = [
+            ("(0,0)", None),
+            ("(0 0 )", None),
+            ("( 0 0)", None),
+            ("( 0)", None),
+            ("(0 )", None),
+            (" ( 2)", None),
+            ("+(1 1)", None),
+            ("-(1. 1.)", None),
+            ("(1 1@1a(", Some(16)),
+            ("(8 9)", Some(9)),
+        ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(Complex::valid_str_radix(s, radix.unwrap_or(10)).is_err());
         }
         let good_strings =
-            [("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
-             ("(+0e99 1.)", 2, 0.0, 1.0),
-             ("-9.9e1", 10, -99.0, 0.0)];
+            [
+                ("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
+                ("(+0e99 1.)", 2, 0.0, 1.0),
+                ("-9.9e1", 10, -99.0, 0.0),
+            ];
         for &(s, radix, r, i) in good_strings.into_iter() {
-            assert_eq!(Complex::from_str_radix(s, radix, (53, 53)).unwrap(),
-                       (r, i));
+            assert_eq!(
+                Complex::from_str_radix(s, radix, (53, 53)).unwrap(),
+                (r, i)
+            );
         }
     }
 
