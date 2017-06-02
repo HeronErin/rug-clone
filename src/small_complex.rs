@@ -29,8 +29,21 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// allocation.
 ///
 /// This can be useful when you have real and imaginary numbers that
-/// are 32-bit or 64-bit integers or floats and you need a reference
-/// to a `Complex`.
+/// are primitive integers or floats and you need a reference to a
+/// `Complex`. The `SmallComplex` will have a precision according to
+/// the type of the primitive used to set its value.
+///
+/// * `i8`, `u8`: the `SmallComplex` will have eight bits of precision.
+///
+/// * `i16`, `u16`: the `SmallComplex` will have 16 bits of precision.
+///
+/// * `i32`, `u32`: the `SmallComplex` will have 32 bits of precision.
+///
+/// * `i64`, `u64`: the `SmallComplex` will have 64 bits of precision.
+///
+/// * `f32`: the `SmallComplex` will have 24 bits of precision.
+///
+/// * `f64`: the `SmallComplex` will have 53 bits of precision.
 ///
 /// The `SmallComplex` type can be coerced to a `Complex`, as it
 /// implements `Deref` with a `Complex` target.
@@ -140,80 +153,80 @@ trait SetPart<T> {
     );
 }
 
-impl SetPart<i32> for Mpfr {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        val: i32,
-    ) {
-        self.set_part(limbs, val.wrapping_abs() as u32);
-        if val < 0 {
-            unsafe {
-                mpfr::neg(
-                    self as *mut _ as *mut _,
-                    self as *const _ as *const _,
-                    rraw(Round::Nearest),
-                );
+macro_rules! set_part_i {
+    { $I:ty => $U:ty } => {
+        impl SetPart<$I> for Mpfr {
+            fn set_part(
+                &mut self,
+                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+                val: $I,
+            ) {
+                self.set_part(limbs, val.wrapping_abs() as $U);
+                if val < 0 {
+                    unsafe {
+                        mpfr::neg(
+                            self as *mut _ as *mut _,
+                            self as *const _ as *const _,
+                            rraw(Round::Nearest),
+                        );
+                    }
+                }
             }
         }
-    }
+    };
 }
 
-impl SetPart<i64> for Mpfr {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        val: i64,
-    ) {
-        self.set_part(limbs, val.wrapping_abs() as u64);
-        if val < 0 {
-            unsafe {
-                mpfr::neg(
-                    self as *mut _ as *mut _,
-                    self as *const _ as *const _,
-                    rraw(Round::Nearest),
-                );
-            }
-        }
-    }
-}
+set_part_i! { i8 => u8 }
+set_part_i! { i16 => u16 }
+set_part_i! { i32 => u32 }
+set_part_i! { i64 => u64 }
 
-impl SetPart<u32> for Mpfr {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        val: u32,
-    ) {
-        let ptr = self as *mut _ as *mut _;
-        let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
-        unsafe {
-            mpfr::custom_init(limb_ptr, 32);
-        }
-        if val == 0 {
-            unsafe {
-                mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 32, limb_ptr);
-            }
-            return;
-        }
-        let leading = val.leading_zeros();
-        match gmp::LIMB_BITS {
-            64 | 32 => {
-                let limb_leading = leading + gmp::LIMB_BITS as u32 - 32;
+macro_rules! set_part_u_single_limb {
+    { $U:ty => $bits:expr } => {
+        impl SetPart<$U> for Mpfr {
+            fn set_part(
+                &mut self,
+                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+                val: $U,
+            ) {
+                let ptr = self as *mut _ as *mut _;
+                let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
+                unsafe {
+                    mpfr::custom_init(limb_ptr, $bits);
+                }
+                if val == 0 {
+                    unsafe {
+                        mpfr::custom_init_set(
+                            ptr,
+                            mpfr::ZERO_KIND,
+                            0,
+                            $bits,
+                            limb_ptr,
+                        );
+                    }
+                    return;
+                }
+                let leading = val.leading_zeros();
+                assert!(gmp::LIMB_BITS == 64 || gmp::LIMB_BITS == 32);
+                let limb_leading = leading + gmp::LIMB_BITS as u32 - $bits;
                 limbs[0] = (val as gmp::limb_t) << limb_leading;
+                unsafe {
+                    mpfr::custom_init_set(
+                        ptr,
+                        mpfr::REGULAR_KIND,
+                        ($bits - leading) as _,
+                        $bits,
+                        limb_ptr,
+                    );
+                }
             }
-            _ => unreachable!(),
         }
-        unsafe {
-            mpfr::custom_init_set(
-                ptr,
-                mpfr::REGULAR_KIND,
-                (32 - leading) as _,
-                32,
-                limb_ptr,
-            );
-        }
-    }
+    };
 }
+
+set_part_u_single_limb! { u8 => 8 }
+set_part_u_single_limb! { u16 => 16 }
+set_part_u_single_limb! { u32 => 32 }
 
 impl SetPart<u64> for Mpfr {
     fn set_part(
@@ -309,16 +322,28 @@ macro_rules! small_assign_re_im {
     };
 }
 
+small_assign_re! { i8 }
+small_assign_re! { i16 }
 small_assign_re! { i32 }
 small_assign_re! { i64 }
+small_assign_re! { u8 }
+small_assign_re! { u16 }
 small_assign_re! { u32 }
 small_assign_re! { u64 }
+small_assign_re_im! { i8, i8 }
+small_assign_re_im! { i16, i16 }
 small_assign_re_im! { i32, i32 }
 small_assign_re_im! { i64, i64 }
+small_assign_re_im! { i8, u8 }
+small_assign_re_im! { i16, u16 }
 small_assign_re_im! { i32, u32 }
 small_assign_re_im! { i64, u64 }
+small_assign_re_im! { u8, i8 }
+small_assign_re_im! { u16, i16 }
 small_assign_re_im! { u32, i32 }
 small_assign_re_im! { u64, i64 }
+small_assign_re_im! { u8, u8 }
+small_assign_re_im! { u16, u16 }
 small_assign_re_im! { u32, u32 }
 small_assign_re_im! { u64, u64 }
 
