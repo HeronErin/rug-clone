@@ -112,6 +112,8 @@ extern crate rugrat;
 extern crate rugflo;
 
 mod complex;
+mod small_complex;
 mod xmpc;
 
-pub use complex::{Complex, ParseComplexError, Prec, SmallComplex};
+pub use complex::{Complex, ParseComplexError, Prec};
+pub use small_complex::SmallComplex;
