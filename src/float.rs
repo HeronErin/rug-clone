@@ -3457,8 +3457,15 @@ impl AssignRound<i64> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, other: i64, round: Round) -> Ordering {
-        let small = SmallFloat::from(other);
-        self.assign_round(&*small, round)
+        if mem::size_of::<c_long>() >= 64 {
+            let mpfr_ret = unsafe {
+                mpfr::set_si(self.inner_mut(), other as c_long, rraw(round))
+            };
+            mpfr_ret.cmp(&0)
+        } else {
+            let small = SmallFloat::from(other);
+            self.assign_round(&*small, round)
+        }
     }
 }
 
@@ -3476,8 +3483,15 @@ impl AssignRound<u64> for Float {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(&mut self, other: u64, round: Round) -> Ordering {
-        let small = SmallFloat::from(other);
-        self.assign_round(&*small, round)
+        if mem::size_of::<c_ulong>() >= 64 {
+            let mpfr_ret = unsafe {
+                mpfr::set_ui(self.inner_mut(), other as c_ulong, rraw(round))
+            };
+            mpfr_ret.cmp(&0)
+        } else {
+            let small = SmallFloat::from(other);
+            self.assign_round(&*small, round)
+        }
     }
 }
 
