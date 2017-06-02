@@ -3561,8 +3561,19 @@ impl<'a, T> Inner for OwnBorrow<'a, T>
 #[repr(C)]
 /// A small float that does not require any memory allocation.
 ///
-/// This can be useful when you have an `i32`, `i64`, `u32, `u64`,
+/// This can be useful when you have an `i32`, `i64`, `u32`, `u64`,
 /// `f32` or `f64` but need a reference to a `Float`.
+///
+/// The `SmallFloat` will have a precision according to the type of
+/// the primitive used to initialize it.
+///
+/// * `i32`, `u32`: the `SmallFloat` will have 32 bits of precision.
+///
+/// * `i64`, `u64`: the `SmallFloat` will have 64 bits of precision.
+///
+/// * `f32`: the `SmallFloat` will have 24 bits of precision.
+///
+/// * `f64`: the `SmallFloat` will have 53 bits of precision.
 ///
 /// The `SmallFloat` type can be coerced to a `Float`, as it
 /// implements `Deref` with a `Float` target.
@@ -3571,8 +3582,8 @@ impl<'a, T> Inner for OwnBorrow<'a, T>
 ///
 /// ```rust
 /// use rugflo::{Float, SmallFloat};
-/// // `a` requires a heap allocation
-/// let mut a = Float::from((250, 32));
+/// // `a` requires a heap allocation, has 53-bit precision
+/// let mut a = Float::from((250, 53));
 /// // `b` can reside on the stack
 /// let b = SmallFloat::from(-100f64);
 /// a += &*b;

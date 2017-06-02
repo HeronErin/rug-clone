@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use float::{Float, prec_min};
+use float::{self, Float};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::cmp;
@@ -126,7 +126,7 @@ unsafe fn divf_mulz_divz(rop: *mut mpfr_t,
     if let Some(mul) = mul {
         let bits = gmp::mpz_sizeinbase(mul, 2);
         assert!(bits <= u32::MAX as usize, "overflow");
-        let mut buf = Float::new(cmp::max(prec_min(), bits as u32));
+        let mut buf = Float::new(cmp::max(float::prec_min(), bits as u32));
         mpfr::set_z(buf.inner_mut(), mul, rnd);
         mpfr::div(rop, buf.inner(), denom, rnd)
     } else {
