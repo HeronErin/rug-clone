@@ -826,6 +826,33 @@ impl Rational {
     pub fn trunc_hold(&self) -> TruncHold {
         TruncHold { hold_self: self }
     }
+
+    math_op1! {
+        /// Returns the fractional part of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugrat::Rational;
+        /// // -100/17 = -5 15/17
+        /// let mut r = Rational::from((-100, 17));
+        /// assert_eq!(*r.fract(), (-15, 17));
+        /// ```
+        fn fract();
+        /// Holds the computation of the fractional part of a number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugrat::Rational;
+        /// let r = Rational::from((-100, 17));
+        /// let hold = r.fract_hold();
+        /// let fract = Rational::from(hold);
+        /// assert_eq!(fract, (-15, 17));
+        /// ```
+        fn fract_hold -> FractHold;
+        xgmp::mpq_fract
+    }
 }
 
 fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseRationalError> {
@@ -1107,6 +1134,8 @@ impl<'a> Assign<TruncHold<'a>> for Integer {
         }
     }
 }
+
+hold_math_op1! { struct FractHold {}; xgmp::mpq_fract }
 
 macro_rules! arith_binary {
     {

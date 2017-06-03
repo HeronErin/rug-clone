@@ -99,7 +99,8 @@ pub unsafe fn mpq_round(rop: *mut gmp::mpz_t, op: *const mpq_t) {
         gmp::mpz_set(rop, numref);
     } else {
         // The remainder cannot be larger than the divisor, but we
-        // allocate an extra limb because we have to multiply by 2.
+        // allocate an extra limb because the GMP docs say we should,
+        // and we have to multiply by 2.
         let bits = ((*denref).size.abs() + 1) * gmp::LIMB_BITS;
         let mut rem: gmp::mpz_t = mem::uninitialized();
         gmp::mpz_init2(&mut rem, bits as gmp::bitcnt_t);
@@ -126,4 +127,13 @@ pub unsafe fn mpq_trunc(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     } else {
         gmp::mpz_tdiv_q(rop, numref, denref);
     }
+}
+
+pub unsafe fn mpq_fract(rop: *mut mpq_t, op: *const mpq_t) {
+    let rnumref = gmp::mpq_numref(rop);
+    let rdenref = gmp::mpq_denref(rop);
+    let numref = gmp::mpq_numref(op as *mut _) as *const _;
+    let denref = gmp::mpq_denref(op as *mut _) as *const _;
+    gmp::mpz_tdiv_r(rnumref, numref, denref);
+    gmp::mpz_set(rdenref, denref);
 }
