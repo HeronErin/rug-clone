@@ -2505,6 +2505,55 @@ arith_prim! {
     PowHoldF32
 }
 
+impl<'a> Add<MulHold<'a>> for Complex {
+    type Output = Complex;
+    /// Peforms multiplication and addition together, with only one
+    /// rounding operation to the nearest.
+    fn add(self, rhs: MulHold) -> Complex {
+        self.add_round(rhs, NEAREST).0
+    }
+}
+
+impl<'a> AddRound<MulHold<'a>> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+    type Output = Complex;
+    /// Peforms multiplication and addition together with only one
+    /// rounding operation as specified.
+    fn add_round(
+        mut self,
+        rhs: MulHold,
+        round: Round2,
+    ) -> (Complex, Ordering2) {
+        let mpc_ret = unsafe {
+            mpc::fma(
+                self.inner_mut(),
+                rhs.lhs.inner(),
+                rhs.rhs.inner(),
+                self.inner(),
+                rraw2(round),
+            )
+        };
+        (self, ordering2(mpc_ret))
+    }
+}
+
+impl<'a> AddAssign<MulHold<'a>> for Complex {
+    /// Peforms multiplication and addition together, with only one
+    /// rounding operation to the nearest.
+    fn add_assign(&mut self, rhs: MulHold) {
+        unsafe {
+            mpc::fma(
+                self.inner_mut(),
+                rhs.lhs.inner(),
+                rhs.rhs.inner(),
+                self.inner(),
+                rraw2(NEAREST),
+            );
+        }
+    }
+}
+
 impl PartialEq for Complex {
     fn eq(&self, other: &Complex) -> bool {
         self.real().eq(other.real()) && self.imag().eq(other.imag())
