@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {AddRound, AssignRound, DivRound, FromRound, MulRound, PowRound, ShlRound,
-     ShrRound, SubRound};
+     ShrRound, SmallFloat, SubRound};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "random")]
@@ -834,6 +834,89 @@ impl Float {
     /// the minimum or maximum value allowed is returned.
     pub fn to_f64_round(&self, round: Round) -> f64 {
         unsafe { mpfr::get_d(self.inner(), rraw(round)) }
+    }
+
+
+    /// Converts to an `f32` and an exponent, rounding to the nearest.
+    ///
+    /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::Float;
+    /// let zero = Float::new(64);
+    /// let (d0, exp0) = zero.to_f32_exp();
+    /// assert_eq!((d0, exp0), (0.0, 0));
+    /// let three_eighths = Float::from((0.375, 64));
+    /// let (d3_8, exp3_8) = three_eighths.to_f32_exp();
+    /// assert_eq!((d3_8, exp3_8), (0.75, -1));
+    /// ```
+    pub fn to_f32_exp(&self) -> (f32, i32) {
+        self.to_f32_exp_round(Round::Nearest)
+    }
+
+    /// Converts to an `f32` and an exponent, applying the specified
+    /// rounding method.
+    ///
+    /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::{Float, Round};
+    /// let frac_10_3 = Float::from((10, 64)) / 3u32;
+    /// let (f_down, exp_down) = frac_10_3.to_f32_exp_round(Round::Down);
+    /// assert_eq!((f_down, exp_down), (0.8333333, 2));
+    /// let (f_up, exp_up) = frac_10_3.to_f32_exp_round(Round::Up);
+    /// assert_eq!((f_up, exp_up), (0.8333334, 2));
+    /// ```
+    pub fn to_f32_exp_round(&self, round: Round) -> (f32, i32) {
+        let sf = SmallFloat::from((0.0f32));
+        assert!(sf.prec() == 24);
+        // since we won't change precision, we can mutate the Float
+        let mut_sf = unsafe {
+            let ptr: *mut Float = &*sf as *const Float as *mut Float;
+            &mut *ptr
+        };
+        let mut exp: c_long = 0;
+        let f = unsafe {
+            mpfr::set(mut_sf.inner_mut(), self.inner(), rraw(round));
+            mpfr::get_d_2exp(&mut exp, mut_sf.inner(), rraw(round))
+        };
+        assert_eq!(exp as i32 as c_long, exp, "overflow");
+        (f as f32, exp as i32)
+    }
+
+    /// Converts to an `f64` and an exponent, rounding to the nearest.
+    ///
+    /// The returned `f64` is in the range 0.5 ≤ *x* < 1.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    pub fn to_f64_exp(&self) -> (f64, i32) {
+        self.to_f64_exp_round(Round::Nearest)
+    }
+
+    /// Converts to an `f64` and an exponent, applying the specified
+    /// rounding method.
+    ///
+    /// The returned `f64` is in the range 0.5 ≤ *x* < 1.
+    ///
+    /// If the value is too small or too large for the target type,
+    /// the minimum or maximum value allowed is returned.
+    pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
+        let mut exp: c_long = 0;
+        let f =
+            unsafe { mpfr::get_d_2exp(&mut exp, self.inner(), rraw(round)) };
+        assert_eq!(exp as i32 as c_long, exp, "overflow");
+        (f, exp as i32)
     }
 
     /// Returns a string representation of `self` for the specified
