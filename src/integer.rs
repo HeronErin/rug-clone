@@ -740,73 +740,6 @@ impl Integer {
         }
     }
 
-    /// Converts to an `f32`, rounding towards zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugint::Integer;
-    /// use std::f32;
-    /// let min = Integer::from_f32(f32::MIN).unwrap();
-    /// let minus_one = min - 1u32;
-    /// // minus_one is truncated to f32::MIN
-    /// assert_eq!(minus_one.to_f32(), f32::MIN);
-    /// let times_two = minus_one * 2u32;
-    /// // times_two is too small
-    /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
-    /// ```
-    pub fn to_f32(&self) -> f32 {
-        let f = self.to_f64();
-        // f as f32 might round away from zero, so we need to clear
-        // the least significant bits of f.
-        // * If f is a nan, we do NOT want to clear any mantissa bits,
-        //   as this may change f into +/- infinity.
-        // * If f is +/- infinity, the bits are already zero, so the
-        //   masking has no effect.
-        // * If f is subnormal, f as f32 will be zero anyway.
-        if !f.is_nan() {
-            let u = unsafe { mem::transmute::<_, u64>(f) };
-            // f64 has 29 more significant bits than f32.
-            let trunc_u = u & (!0 << 29);
-            let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
-            trunc_f as f32
-        } else {
-            f as f32
-        }
-    }
-
-    /// Converts to an `f64`, rounding towards zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rugint::Integer;
-    /// use std::f64;
-    ///
-    /// // An `f64` has 53 bits of precision.
-    /// let exact = 0x1f_ffff_ffff_ffff_u64;
-    /// let i = Integer::from(exact);
-    /// assert_eq!(i.to_f64(), exact as f64);
-    ///
-    /// // large has 56 ones
-    /// let large = 0xff_ffff_ffff_ffff_u64;
-    /// // trunc has 53 ones followed by 3 zeros
-    /// let trunc = 0xff_ffff_ffff_fff8_u64;
-    /// let j = Integer::from(large);
-    /// assert_eq!(j.to_f64(), trunc as f64);
-    ///
-    /// let max = Integer::from_f64(f64::MAX).unwrap();
-    /// let plus_one = max + 1u32;
-    /// // plus_one is truncated to f64::MAX
-    /// assert_eq!(plus_one.to_f64(), f64::MAX);
-    /// let times_two = plus_one * 2u32;
-    /// // times_two is too large
-    /// assert_eq!(times_two.to_f64(), f64::INFINITY);
-    /// ```
-    pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpz_get_d(self.inner()) }
-    }
-
     /// Converts to an `i32`, wrapping if the value does not fit.
     ///
     /// # Examples
@@ -879,6 +812,100 @@ impl Integer {
         } else {
             u
         }
+    }
+
+    /// Converts to an `f32`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f32;
+    /// let min = Integer::from_f32(f32::MIN).unwrap();
+    /// let minus_one = min - 1u32;
+    /// // minus_one is truncated to f32::MIN
+    /// assert_eq!(minus_one.to_f32(), f32::MIN);
+    /// let times_two = minus_one * 2u32;
+    /// // times_two is too small
+    /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
+    /// ```
+    pub fn to_f32(&self) -> f32 {
+        trunc_f64_to_f32(self.to_f64())
+    }
+
+    /// Converts to an `f64`, rounding towards zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// use std::f64;
+    ///
+    /// // An `f64` has 53 bits of precision.
+    /// let exact = 0x1f_ffff_ffff_ffff_u64;
+    /// let i = Integer::from(exact);
+    /// assert_eq!(i.to_f64(), exact as f64);
+    ///
+    /// // large has 56 ones
+    /// let large = 0xff_ffff_ffff_ffff_u64;
+    /// // trunc has 53 ones followed by 3 zeros
+    /// let trunc = 0xff_ffff_ffff_fff8_u64;
+    /// let j = Integer::from(large);
+    /// assert_eq!(j.to_f64(), trunc as f64);
+    ///
+    /// let max = Integer::from_f64(f64::MAX).unwrap();
+    /// let plus_one = max + 1u32;
+    /// // plus_one is truncated to f64::MAX
+    /// assert_eq!(plus_one.to_f64(), f64::MAX);
+    /// let times_two = plus_one * 2u32;
+    /// // times_two is too large
+    /// assert_eq!(times_two.to_f64(), f64::INFINITY);
+    /// ```
+    pub fn to_f64(&self) -> f64 {
+        unsafe { gmp::mpz_get_d(self.inner()) }
+    }
+
+    /// Converts to an `f32` and an exponent, rounding towards zero.
+    ///
+    /// The returned `f32` is in the range 0.5 <= x < 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let zero = Integer::new();
+    /// let (d0, exp0) = zero.to_f32_exp();
+    /// assert_eq!((d0, exp0), (0.0, 0));
+    /// let fifteen = Integer::from(15);
+    /// let (d15, exp15) = fifteen.to_f32_exp();
+    /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
+    /// ```
+    pub fn to_f32_exp(&self) -> (f32, u32) {
+        let (f, exp) = self.to_f64_exp();
+        let trunc_f = trunc_f64_to_f32(f);
+        (trunc_f, exp)
+    }
+
+    /// Converts to an `f64` and an exponent, rounding towards zero.
+    ///
+    /// The returned `f64` is in the range 0.5 <= x < 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let zero = Integer::new();
+    /// let (d0, exp0) = zero.to_f64_exp();
+    /// assert_eq!((d0, exp0), (0.0, 0));
+    /// let fifteen = Integer::from(15);
+    /// let (d15, exp15) = fifteen.to_f64_exp();
+    /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
+    /// ```
+    pub fn to_f64_exp(&self) -> (f64, u32) {
+        let mut exp: c_long = 0;
+        let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.inner()) };
+        assert_eq!(exp as u32 as c_long, exp, "overflow");
+        (f, exp as u32)
     }
 
     /// Returns a string representation of `self` for the specified
@@ -3282,6 +3309,25 @@ impl Inner for Integer {
 impl InnerMut for Integer {
     unsafe fn inner_mut(&mut self) -> &mut mpz_t {
         &mut self.inner
+    }
+}
+
+fn trunc_f64_to_f32(f: f64) -> f32 {
+    // f as f32 might round away from zero, so we need to clear
+    // the least significant bits of f.
+    // * If f is a nan, we do NOT want to clear any mantissa bits,
+    //   as this may change f into +/- infinity.
+    // * If f is +/- infinity, the bits are already zero, so the
+    //   masking has no effect.
+    // * If f is subnormal, f as f32 will be zero anyway.
+    if !f.is_nan() {
+        let u = unsafe { mem::transmute::<_, u64>(f) };
+        // f64 has 29 more significant bits than f32.
+        let trunc_u = u & (!0 << 29);
+        let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
+        trunc_f as f32
+    } else {
+        f as f32
     }
 }
 
