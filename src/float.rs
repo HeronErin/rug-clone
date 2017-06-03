@@ -3677,6 +3677,51 @@ arith_prim!{
     PowHoldI32
 }
 
+impl<'a> Add<MulHold<'a>> for Float {
+    type Output = Float;
+    /// Peforms multiplication and addition together, with only one
+    /// rounding operation to the nearest.
+    fn add(self, rhs: MulHold) -> Float {
+        self.add_round(rhs, Round::Nearest).0
+    }
+}
+
+impl<'a> AddRound<MulHold<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    type Output = Float;
+    /// Peforms multiplication and addition together with only one
+    /// rounding operation as specified.
+    fn add_round(mut self, rhs: MulHold, round: Round) -> (Float, Ordering) {
+        let mpfr_ret = unsafe {
+            mpfr::fma(
+                self.inner_mut(),
+                rhs.lhs.inner(),
+                rhs.rhs.inner(),
+                self.inner(),
+                rraw(round),
+            )
+        };
+        (self, mpfr_ret.cmp(&0))
+    }
+}
+
+impl<'a> AddAssign<MulHold<'a>> for Float {
+    /// Peforms multiplication and addition together, with only one
+    /// rounding operation to the nearest.
+    fn add_assign(&mut self, rhs: MulHold) {
+        unsafe {
+            mpfr::fma(
+                self.inner_mut(),
+                rhs.lhs.inner(),
+                rhs.rhs.inner(),
+                self.inner(),
+                rraw(Round::Nearest),
+            );
+        }
+    }
+}
+
 impl PartialEq for Float {
     fn eq(&self, other: &Float) -> bool {
         unsafe { mpfr::equal_p(self.inner(), other.inner()) != 0 }
