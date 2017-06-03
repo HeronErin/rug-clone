@@ -867,7 +867,7 @@ impl Integer {
 
     /// Converts to an `f32` and an exponent, rounding towards zero.
     ///
-    /// The returned `f32` is in the range 0.5 <= x < 1.
+    /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
     ///
     /// # Examples
     ///
@@ -888,7 +888,7 @@ impl Integer {
 
     /// Converts to an `f64` and an exponent, rounding towards zero.
     ///
-    /// The returned `f64` is in the range 0.5 <= x < 1.
+    /// The returned `f64` is in the range 0.5 ≤ *x* < 1.
     ///
     /// # Examples
     ///
