@@ -712,6 +712,120 @@ impl Rational {
         fn recip_hold -> RecipHold;
         xgmp::mpq_inv_check_0
     }
+
+    /// Holds the computation of the ceil function.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::{Assign, Integer};
+    /// use rugrat::SmallRational;
+    ///
+    /// fn main() {
+    ///     let mut ceil = Integer::new();
+    ///     ceil.assign(SmallRational::from(-1).ceil_hold());
+    ///     assert_eq!(ceil, -1);
+    ///     ceil.assign(SmallRational::from((-1, 2)).ceil_hold());
+    ///     assert_eq!(ceil, 0);
+    ///     ceil.assign(SmallRational::from(0).ceil_hold());
+    ///     assert_eq!(ceil, 0);
+    ///     ceil.assign(SmallRational::from((1, 2)).ceil_hold());
+    ///     assert_eq!(ceil, 1);
+    ///     ceil.assign(SmallRational::from(1).ceil_hold());
+    ///     assert_eq!(ceil, 1);
+    /// }
+    /// ```
+    pub fn ceil_hold(&self) -> CeilHold {
+        CeilHold { hold_self: self }
+    }
+
+    /// Holds the computation of the floor function.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::{Assign, Integer};
+    /// use rugrat::SmallRational;
+    ///
+    /// fn main() {
+    ///     let mut floor = Integer::new();
+    ///     floor.assign(SmallRational::from(-1).floor_hold());
+    ///     assert_eq!(floor, -1);
+    ///     floor.assign(SmallRational::from((-1, 2)).floor_hold());
+    ///     assert_eq!(floor, -1);
+    ///     floor.assign(SmallRational::from(0).floor_hold());
+    ///     assert_eq!(floor, 0);
+    ///     floor.assign(SmallRational::from((1, 2)).floor_hold());
+    ///     assert_eq!(floor, 0);
+    ///     floor.assign(SmallRational::from(1).floor_hold());
+    ///     assert_eq!(floor, 1);
+    /// }
+    /// ```
+    pub fn floor_hold(&self) -> FloorHold {
+        FloorHold { hold_self: self }
+    }
+
+    /// Holds the computation of the rounding function. When the
+    /// number lies exactly between two integers, it is rounded away
+    /// from zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::{Assign, Integer};
+    /// use rugrat::SmallRational;
+    ///
+    /// fn main() {
+    ///     let mut round = Integer::new();
+    ///     round.assign(SmallRational::from((-17, 10)).round_hold());
+    ///     assert_eq!(round, -2);
+    ///     round.assign(SmallRational::from((-15, 10)).round_hold());
+    ///     assert_eq!(round, -2);
+    ///     round.assign(SmallRational::from((-13, 10)).round_hold());
+    ///     assert_eq!(round, -1);
+    ///     round.assign(SmallRational::from((13, 10)).round_hold());
+    ///     assert_eq!(round, 1);
+    ///     round.assign(SmallRational::from((15, 10)).round_hold());
+    ///     assert_eq!(round, 2);
+    ///     round.assign(SmallRational::from((17, 10)).round_hold());
+    ///     assert_eq!(round, 2);
+    /// }
+    /// ```
+    pub fn round_hold(&self) -> RoundHold {
+        RoundHold { hold_self: self }
+    }
+
+    /// Holds the computation of the truncation function.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::{Assign, Integer};
+    /// use rugrat::SmallRational;
+    ///
+    /// fn main() {
+    ///     let mut trunc = Integer::new();
+    ///     trunc.assign(SmallRational::from((-21, 10)).trunc_hold());
+    ///     assert_eq!(trunc, -2);
+    ///     trunc.assign(SmallRational::from((-17, 10)).trunc_hold());
+    ///     assert_eq!(trunc, -1);
+    ///     trunc.assign(SmallRational::from((13, 10)).trunc_hold());
+    ///     assert_eq!(trunc, 1);
+    ///     trunc.assign(SmallRational::from((19, 10)).trunc_hold());
+    ///     assert_eq!(trunc, 1);
+    /// }
+    /// ```
+    pub fn trunc_hold(&self) -> TruncHold {
+        TruncHold { hold_self: self }
+    }
 }
 
 fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseRationalError> {
@@ -945,6 +1059,54 @@ where
 
 hold_math_op1! { struct AbsHold {}; gmp::mpq_abs }
 hold_math_op1! { struct RecipHold {}; xgmp::mpq_inv_check_0 }
+
+pub struct CeilHold<'a> {
+    hold_self: &'a Rational,
+}
+
+impl<'a> Assign<CeilHold<'a>> for Integer {
+    fn assign(&mut self, src: CeilHold<'a>) {
+        unsafe {
+            xgmp::mpq_ceil(self.inner_mut(), src.hold_self.inner());
+        }
+    }
+}
+
+pub struct FloorHold<'a> {
+    hold_self: &'a Rational,
+}
+
+impl<'a> Assign<FloorHold<'a>> for Integer {
+    fn assign(&mut self, src: FloorHold<'a>) {
+        unsafe {
+            xgmp::mpq_floor(self.inner_mut(), src.hold_self.inner());
+        }
+    }
+}
+
+pub struct RoundHold<'a> {
+    hold_self: &'a Rational,
+}
+
+impl<'a> Assign<RoundHold<'a>> for Integer {
+    fn assign(&mut self, src: RoundHold<'a>) {
+        unsafe {
+            xgmp::mpq_round(self.inner_mut(), src.hold_self.inner());
+        }
+    }
+}
+
+pub struct TruncHold<'a> {
+    hold_self: &'a Rational,
+}
+
+impl<'a> Assign<TruncHold<'a>> for Integer {
+    fn assign(&mut self, src: TruncHold<'a>) {
+        unsafe {
+            xgmp::mpq_trunc(self.inner_mut(), src.hold_self.inner());
+        }
+    }
+}
 
 macro_rules! arith_binary {
     {
