@@ -468,6 +468,105 @@ impl Integer {
         }
     }
 
+
+    /// Constructs a new arbitrary-precision integer with at least the
+    /// specified capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::with_capacity(137);
+    /// assert!(i.capacity() >= 137);
+    /// ```
+    pub fn with_capacity(bits: usize) -> Integer {
+        assert_eq!(bits as gmp::bitcnt_t as usize, bits, "overflow");
+        unsafe {
+            let mut inner: mpz_t = mem::uninitialized();
+            gmp::mpz_init2(&mut inner, bits as gmp::bitcnt_t);
+            Integer { inner: inner }
+        }
+    }
+
+
+    /// Returns the capacity in bits that can be stored without reallocating.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// let i = Integer::with_capacity(137);
+    /// assert!(i.capacity() >= 137);
+    /// ```
+    pub fn capacity(&self) -> usize {
+        let limbs = self.inner().alloc;
+        let bits = limbs as usize * gmp::LIMB_BITS as usize;
+        assert_eq!(
+            limbs,
+            (bits / gmp::LIMB_BITS as usize) as c_int,
+            "overflow"
+        );
+        bits
+    }
+
+    /// Reserves capacity for at least `additional` more bits in the
+    /// `Integer`. If the integer already has enough excess capacity,
+    /// this function does nothing.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// // 0x2000_0000 needs 30 bits.
+    /// let mut i = Integer::from(0x2000_0000);
+    /// i.reserve(34);
+    /// let capacity = i.capacity();
+    /// assert!(capacity >= 64);
+    /// i.reserve(34);
+    /// assert!(i.capacity() == capacity);
+    /// i.reserve(35);
+    /// assert!(i.capacity() >= 65);
+    /// ```
+    pub fn reserve(&mut self, additional: usize) {
+        if additional == 0 {
+            return;
+        }
+        let used_bits = if self.inner().size == 0 {
+            0
+        } else {
+            unsafe { gmp::mpz_sizeinbase(self.inner(), 2) }
+        };
+        let req_bits = used_bits.checked_add(additional).expect("overflow");
+        assert_eq!(req_bits as gmp::bitcnt_t as usize, req_bits, "overflow");
+        unsafe {
+            gmp::mpz_realloc2(self.inner_mut(), req_bits as gmp::bitcnt_t);
+        }
+    }
+
+    /// Reserves capacity for at least `additional` more bits in the
+    /// `Integer`. If the integer already has enough excess capacity,
+    /// this function does nothing.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// // let i be 100 bits wide
+    /// let mut i = Integer::from_str_radix("fffff12345678901234567890", 16)
+    ///     .unwrap();
+    /// assert!(i.capacity() >= 100);
+    /// i >>= 80;
+    /// i.shrink_to_fit();
+    /// assert!(i.capacity() >= 20);
+    /// ```
+    pub fn shrink_to_fit(&mut self) {
+        let used_bits = unsafe { gmp::mpz_sizeinbase(self.inner(), 2) };
+        assert_eq!(used_bits as gmp::bitcnt_t as usize, used_bits, "overflow");
+        unsafe {
+            gmp::mpz_realloc2(self.inner_mut(), used_bits as gmp::bitcnt_t);
+        }
+    }
+
     /// Creates an `Integer` from an `f32` if it is finite, rounding
     /// towards zero.
     ///
