@@ -1020,6 +1020,16 @@ impl Integer {
         Ok(())
     }
 
+    /// Returns `true` if `self` is even.
+    pub fn is_even(&self) -> bool {
+        unsafe { gmp::mpz_even_p(self.inner()) != 0 }
+    }
+
+    /// Returns `true` if `self` is even.
+    pub fn is_odd(&self) -> bool {
+        unsafe { gmp::mpz_odd_p(self.inner()) != 0 }
+    }
+
     /// Returns `true` if `self` is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
     ///
@@ -1744,6 +1754,41 @@ impl Integer {
         fn sqrt_rem_hold -> SqrtRemHold;
         gmp::mpz_sqrtrem
     }
+
+    /// Determines wheter `self` is prime using some trial divisions,
+    /// then `reps` Miller-Rabin probabilistic primality tests.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Integer, IsPrime};
+    /// let no = Integer::from(163 * 4003);
+    /// assert_eq!(no.is_probably_prime(15), IsPrime::No);
+    /// let yes = Integer::from(21_751);
+    /// assert_eq!(yes.is_probably_prime(15), IsPrime::Yes);
+    /// // 817_504_243 is actually a prime.
+    /// let probably = Integer::from(817_504_243);
+    /// assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
+    /// ```
+    pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
+        let p = unsafe { gmp::mpz_probab_prime_p(self.inner(), reps as c_int) };
+        match p {
+            0 => IsPrime::No,
+            1 => IsPrime::Probably,
+            2 => IsPrime::Yes,
+            _ => unreachable!(),
+        }
+    }
+
+    math_op1! {
+        /// Identifies primes using a probabilistic algorithm; the
+        /// chance of a composite passing will be extremely small.
+        fn next_prime();
+        /// Identifies primes using a probabilistic algorithm; the
+        /// chance of a composite passing will be extremely small.
+        fn next_prime_hold -> NextPrimeHold;
+        gmp::mpz_nextprime
+    }
     math_op2! {
         /// Finds the greatest common divisor.
         ///
@@ -2450,6 +2495,7 @@ hold_math_op1! { struct RootHold { n: u32 }; gmp::mpz_root }
 hold_math_op1_2! { struct RootRemHold { n: u32 }; gmp::mpz_rootrem }
 hold_math_op1! { struct SqrtHold {}; gmp::mpz_sqrt }
 hold_math_op1_2! { struct SqrtRemHold {}; gmp::mpz_sqrtrem }
+hold_math_op1! { struct NextPrimeHold {}; gmp::mpz_nextprime }
 hold_math_op2! { struct GcdHold { other }; gmp::mpz_gcd }
 hold_math_op2! { struct LcmHold { other }; gmp::mpz_lcm }
 
@@ -3304,6 +3350,17 @@ impl Display for ParseIntegerError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+/// Whether a number is prime.
+pub enum IsPrime {
+    /// The number is definitely not prime.
+    No,
+    /// The number is probably prime.
+    Probably,
+    /// The number is definitely prime.
+    Yes,
 }
 
 fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
