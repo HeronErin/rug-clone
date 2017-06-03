@@ -1368,6 +1368,32 @@ impl Integer {
         fn abs_hold -> AbsHold;
         gmp::mpz_abs
     }
+    math_op1! {
+        /// Masks to keep the `n` least significant bits only.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut i = Integer::from(-1);
+        /// assert_eq!(*i.keep_bits(8), 0xff);
+        /// ```
+        fn keep_bits(n: u32);
+        /// Holds a mask operation to keep the `n` least significant
+        /// bits only.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let i = Integer::from(-1);
+        /// let hold = i.keep_bits_hold(8);
+        /// let eight_bits = Integer::from(hold);
+        /// assert_eq!(eight_bits, 0xff);
+        /// ```
+        fn keep_bits_hold -> KeepBitsHold;
+        gmp::mpz_fdiv_r_2exp
+    }
     math_op2_2! {
         /// Divides `self` by `divisor` and stores the quotient in
         /// `self` and the remainder in `divisor`.
@@ -2411,6 +2437,7 @@ impl Assign<u64> for Integer {
 }
 
 hold_math_op1! { struct AbsHold {}; gmp::mpz_abs }
+hold_math_op1! { struct KeepBitsHold { n: u32 }; gmp::mpz_fdiv_r_2exp }
 hold_math_op2_2! { struct DivRemHold { divisor }; xgmp::mpz_tdiv_qr_check_0 }
 hold_math_op2! { struct DivExactHold { divisor }; xgmp::mpz_divexact_check_0 }
 hold_math_op1! {
