@@ -1997,57 +1997,92 @@ impl Float {
         mpfr::ai
     }
     math_op1! {
-        /// Rounds up to the next higher integer, then rounds to the
-        /// nearest. This function performs double rounding.
+        /// Rounds up to the next higher integer.
         fn ceil();
-        /// Rounds up to the next higher integer, then applies the
-        /// specified rounding method. This function performs double
-        /// rounding.
+        /// Rounds up to the next higher integer.
         fn ceil_round;
-        /// Hold a rounding to the next higher integer with double
-        /// rounding.
+        /// Hold a rounding to the next higher integer. The result may
+        /// be rounded again when assigned to the target.
         fn ceil_hold -> CeilHold;
         mpfr::rint_ceil
     }
     math_op1! {
-        /// Rounds down to the next lower integer, then rounds to the
-        /// nearest. This function performs double rounding.
+        /// Rounds down to the next lower integer.
         fn floor();
-        /// Rounds down to the next lower integer, then applies the
-        /// specified rounding method. This function performs double
+        /// Rounds down to the next lower integer.
         /// rounding.
         fn floor_round;
-        /// Hold a rounding to the next lower integer with double
-        /// rounding.
+        /// Hold a rounding to the next lower integer. The result may
+        /// be rounded again when assigned to the target.
         fn floor_hold -> FloorHold;
         mpfr::rint_floor
     }
     math_op1! {
-        /// Rounds to the nearest integer, rounding half-way cases away
-        /// from zero, then rounds to the nearest representable value.
-        /// This function performs double rounding.
+        /// Rounds to the nearest integer, rounding half-way cases
+        /// away from zero.
         fn round();
-        /// Rounds to the nearest integer, rounding half-way cases away
-        /// from zero, then applies the specified rounding method to get a
-        /// representable value. This function performs double rounding.
+        /// Rounds to the nearest integer, rounding half-way cases
+        /// away from zero.
         fn round_round;
         /// Hold a rounding to the nearest integer, rounding half-way
-        /// cases away from zero, with double rounding.
+        /// cases away from zero. The result may be rounded again
+        /// when assigned to the target.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugflo::{AssignRound, Float, Round};
+        /// let f = Float::from((6.5, 53));
+        /// // 6.5 (binary 110.1) can be rounded to 7 (binary 111)
+        /// let hold = f.round_hold();
+        /// // use only 2 bits of precision in destination
+        /// let mut dst = Float::new(2);
+        /// // 7 (binary 111) is rounded to 8 (binary 1000) by
+        /// // round-even rule in order to store in 2-bit Float, even
+        /// // though 6 (binary 110) is closer to original 6.5).
+        /// dst.assign_round(hold, Round::Nearest);
+        /// assert_eq!(dst, 8);
+        /// ```
         fn round_hold -> RoundHold;
         mpfr::rint_round
     }
     math_op1! {
-        /// Rounds to the next integer towards zero, then rounds to the
-        /// nearest. This function performs double rounding.
+        /// Rounds to the next integer towards zero.
         fn trunc();
-        /// Rounds to the next integer towards zero, then applies the
-        /// specified rounding method. This function performs double
-        /// rounding.
+        /// Rounds to the next integer towards zero.
         fn trunc_round;
-        /// Hold a rounding to the next integer towards zero with double
-        /// roundign.
+        /// Hold a rounding to the next integer towards zero. The
+        /// result may be rounded again when assigned to the target.
         fn trunc_hold -> TruncHold;
         mpfr::rint_trunc
+    }
+    math_op1! {
+        /// Gets the fractional part of the number.
+        fn fract();
+        /// Gets the fractional part of the number.
+        fn fract_round;
+        /// Gets the fractional part of the number.
+        fn fract_hold -> FractHold;
+        mpfr::frac
+    }
+    math_op1_2! {
+        /// Gets the integer and fractional parts of the number,
+        /// rounding to the nearest.
+        ///
+        /// The integer part is stored in `self` and keeps its
+        /// precision, while the fractional part is stored in `fract`
+        /// keeping its precision.
+        fn trunc_fract(fract);
+        /// Gets the integer and fractional parts of the number,
+        /// applying the specified rounding method.
+        ///
+        /// The integer part is stored in `self` and keeps its
+        /// precision, while the fractional part is stored in `fract`
+        /// keeping its precision.
+        fn trunc_fract_round;
+        /// Gets the integer and fractional parts of the number.
+        fn trunc_fract_hold -> TruncFractHold;
+        mpfr::modf
     }
 
     #[cfg(feature = "random")]
@@ -2659,6 +2694,8 @@ hold_math_op1! { struct CeilHold {}; mpfr::rint_ceil }
 hold_math_op1! { struct FloorHold {}; mpfr::rint_floor }
 hold_math_op1! { struct RoundHold {}; mpfr::rint_round }
 hold_math_op1! { struct TruncHold {}; mpfr::rint_trunc }
+hold_math_op1! { struct FractHold {}; mpfr::frac }
+hold_math_op1_2! { struct TruncFractHold {}; mpfr::modf }
 
 impl Neg for Float {
     type Output = Float;
