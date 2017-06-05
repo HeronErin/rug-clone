@@ -753,7 +753,7 @@ impl Complex {
     /// ```
     pub fn real(&self) -> &Float {
         unsafe {
-            let ptr = mpc::realref(self.inner() as *const _ as *mut _);
+            let ptr = mpc::realref_const(self.inner());
             &*(ptr as *const Float)
         }
     }
@@ -768,7 +768,7 @@ impl Complex {
     /// assert_eq!(*c.imag(), -20.75)
     pub fn imag(&self) -> &Float {
         unsafe {
-            let ptr = mpc::imagref(self.inner() as *const _ as *mut _);
+            let ptr = mpc::imagref_const(self.inner());
             &*(ptr as *const Float)
         }
     }
