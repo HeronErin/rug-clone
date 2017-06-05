@@ -3363,6 +3363,9 @@ pub enum IsPrime {
     Yes,
 }
 
+unsafe impl Send for Integer {}
+unsafe impl Sync for Integer {}
+
 fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     let max: gmp::bitcnt_t = !0;
     if bits == max {
