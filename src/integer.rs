@@ -105,8 +105,8 @@ macro_rules! math_op1 {
     {
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -124,40 +124,40 @@ macro_rules! math_op1 {
             self
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(
+        $(#[$attr_ref])*
+        pub fn $method_ref(
             &self,
             $($param: $T,)*
-        ) -> $Hold {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1 {
+macro_rules! ref_math_op1 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Integer,
+        pub struct $Ref<'a> {
+            ref_self: &'a Integer,
             $($param: $T,)*
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for Integer {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
                         self.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -170,8 +170,8 @@ macro_rules! math_op1_2 {
     {
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -190,39 +190,39 @@ macro_rules! math_op1_2 {
             }
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(
+        $(#[$attr_ref])*
+        pub fn $method_ref(
             &self,
             $($param: $T,)*
-        ) -> $Hold {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1_2 {
+macro_rules! ref_math_op1_2 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Integer,
+        pub struct $Ref<'a> {
+            ref_self: &'a Integer,
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Hold<'a>> for (&'a mut Integer, &'a mut Integer) {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for (&'a mut Integer, &'a mut Integer) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
                         self.0.inner_mut(),
                         self.1.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -235,8 +235,8 @@ macro_rules! math_op2 {
     {
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -256,14 +256,14 @@ macro_rules! math_op2 {
             self
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold<'a>(
+        $(#[$attr_ref])*
+        pub fn $method_ref<'a>(
             &'a self,
             $op: &'a Integer,
             $($param: $T,)*
-        ) -> $Hold<'a> {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref<'a> {
+            $Ref {
+                ref_self: self,
                 $op: $op,
                 $($param: $param,)*
             }
@@ -271,28 +271,28 @@ macro_rules! math_op2 {
     };
 }
 
-macro_rules! hold_math_op2 {
+macro_rules! ref_math_op2 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Integer,
+        pub struct $Ref<'a> {
+            ref_self: &'a Integer,
             $op: &'a Integer,
             $($param: $T,)*
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for Integer {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
                         self.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         src.$op.inner(),
                         $(src.$param.into(),)*
                     );
@@ -306,8 +306,8 @@ macro_rules! math_op2_2 {
     {
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -327,14 +327,14 @@ macro_rules! math_op2_2 {
             }
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold<'a>(
+        $(#[$attr_ref])*
+        pub fn $method_ref<'a>(
             &'a self,
             $op: &'a Integer,
             $($param: $T,)*
-        ) -> $Hold<'a> {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref<'a> {
+            $Ref {
+                ref_self: self,
                 $op: $op,
                 $($param: $param,)*
             }
@@ -342,107 +342,28 @@ macro_rules! math_op2_2 {
     };
 }
 
-macro_rules! hold_math_op2_2 {
+macro_rules! ref_math_op2_2 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Integer,
+        pub struct $Ref<'a> {
+            ref_self: &'a Integer,
             $op: &'a Integer,
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Hold<'a>> for (&'a mut Integer, &'a mut Integer) {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for (&'a mut Integer, &'a mut Integer) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
                         self.0.inner_mut(),
                         self.1.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         src.$op.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op3 {
-    {
-        $(#[$attr:meta])*
-        fn $method:ident($op2:ident, $op3:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
-        $func:path
-    } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op2: &Integer,
-            $op3: &Integer,
-            $($param: $T,)*
-        ) -> &mut Integer {
-            unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $op2.inner(),
-                    $op3.inner(),
-                    $($param.into(),)*
-                );
-            }
-            self
-        }
-
-        $(#[$attr_hold])*
-        pub fn $method_hold<'a>(
-            &'a self,
-            $op2: &'a Integer,
-            $op3: &'a Integer,
-            $($param: $T,)*
-        ) -> $Hold<'a> {
-            $Hold {
-                hold_self: self,
-                $op2: $op2,
-                $op3: $op3,
-                $($param: $param,)*
-            }
-        }
-    };
-}
-
-macro_rules! hold_math_op3 {
-    {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident {
-            $op2:ident, $op3:ident $(, $param:ident: $T:ty),*
-        };
-        $func:path
-    } => {
-        $(#[$attr_hold])*
-        #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Integer,
-            $op2: &'a Integer,
-            $op3: &'a Integer,
-            $($param: $T,)*
-        }
-
-        from_borrow! { $Hold<'a> }
-
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, src: $Hold<'a>) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.hold_self.inner(),
-                        src.$op2.inner(),
-                        src.$op3.inner(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -1324,10 +1245,10 @@ impl Integer {
     /// ```rust
     /// use rugint::Integer;
     /// let mut i = Integer::from(0b100101);
-    /// i.invert_bit(5);
+    /// i.toggle_bit(5);
     /// assert_eq!(i, 0b101);
     /// ```
-    pub fn invert_bit(&mut self, index: u32) -> &mut Integer {
+    pub fn toggle_bit(&mut self, index: u32) -> &mut Integer {
         unsafe {
             gmp::mpz_combit(self.inner_mut(), index.into());
         }
@@ -1353,7 +1274,7 @@ impl Integer {
     }
 
     math_op1! {
-        /// Computes the absolute value of `self`.
+        /// Computes the absolute value.
         ///
         /// # Examples
         ///
@@ -1364,22 +1285,23 @@ impl Integer {
         /// assert_eq!(i, 100);
         /// ```
         fn abs();
-        /// Holds a computation of the absolute value.
+        /// Computes the absolute value.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
         /// let i = Integer::from(-100);
-        /// let hold = i.abs_hold();
-        /// let abs = Integer::from(hold);
+        /// let r = i.abs_ref();
+        /// let abs = Integer::from(r);
         /// assert_eq!(abs, 100);
+        /// assert_eq!(i, -100);
         /// ```
-        fn abs_hold -> AbsHold;
+        fn abs_ref -> AbsRef;
         gmp::mpz_abs
     }
     math_op1! {
-        /// Masks to keep the `n` least significant bits only.
+        /// Keeps the `n` least significant bits only.
         ///
         /// # Examples
         ///
@@ -1389,31 +1311,41 @@ impl Integer {
         /// assert_eq!(*i.keep_bits(8), 0xff);
         /// ```
         fn keep_bits(n: u32);
-        /// Holds a mask operation to keep the `n` least significant
-        /// bits only.
+        /// Keeps the `n` least significant bits only.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
         /// let i = Integer::from(-1);
-        /// let hold = i.keep_bits_hold(8);
-        /// let eight_bits = Integer::from(hold);
+        /// let r = i.keep_bits_ref(8);
+        /// let eight_bits = Integer::from(r);
         /// assert_eq!(eight_bits, 0xff);
         /// ```
-        fn keep_bits_hold -> KeepBitsHold;
+        fn keep_bits_ref -> KeepBitsRef;
         gmp::mpz_fdiv_r_2exp
     }
     math_op2_2! {
-        /// Divides `self` by `divisor` and stores the quotient in
-        /// `self` and the remainder in `divisor`.
+        /// Performs a division and stores the quotient in `self` and
+        /// the remainder in `divisor`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rugint::Integer;
+        /// let mut quotient = Integer::from(23);
+        /// let mut rem = Integer::from(10);
+        /// quotient.div_rem(&mut rem);
+        /// assert_eq!(quotient, 2);
+        /// assert_eq!(rem, 3);
+        /// ```
         ///
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
         fn div_rem(divisor);
-        /// Holds a computation of the quotient and remainder of a
-        /// division operation.
+        /// Performs a division and returns the quotient and
+        /// remainder.
         ///
         /// # Examples
         ///
@@ -1421,91 +1353,92 @@ impl Integer {
         /// use rugint::{Assign, Integer};
         /// let dividend = Integer::from(23);
         /// let divisor = Integer::from(10);
-        /// let hold = dividend.div_rem_hold(&divisor);
-        /// let mut quotient = Integer::new();
-        /// let mut remainder = Integer::new();
-        /// (&mut quotient, &mut remainder).assign(hold);
+        /// let r = dividend.div_rem_ref(&divisor);
+        /// let (mut quotient, mut rem) = (Integer::new(), Integer::new());
+        /// (&mut quotient, &mut rem).assign(r);
         /// assert_eq!(quotient, 2);
-        /// assert_eq!(remainder, 3);
+        /// assert_eq!(rem, 3);
         /// ```
-        fn div_rem_hold -> DivRemHold;
+        fn div_rem_ref -> DivRemRef;
         xgmp::mpz_tdiv_qr_check_0
     }
     math_op2! {
-        /// Divides `self` by `divisor`. This is much faster than normal
-        /// division, but produces correct results only when the division
-        /// is exact.
+        /// Performs an exact division. This is much faster than
+        /// normal division, but produces correct results only when
+        /// the division is exact.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
-        /// let mut i = Integer::from(123450);
-        /// assert_eq!(*i.div_exact(&Integer::from(10)), 12345);
-        /// assert_eq!(i, 12345);
+        /// let mut i = Integer::from(12345 * 54321);
+        /// assert_eq!(*i.div_exact(&Integer::from(12345)), 54321);
+        /// assert_eq!(i, 54321);
         /// ```
         ///
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
         fn div_exact(divisor);
-        /// Holds a computation of an exact division.
+        /// Performs an exact division. This is much faster than
+        /// normal division, but produces correct results only when
+        /// the division is exact.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
-        /// let i = Integer::from(123450);
-        /// let divisor = Integer::from(10);
-        /// let hold = i.div_exact_hold(&divisor);
-        /// let q = Integer::from(hold);
-        /// assert_eq!(q, 12345);
+        /// let i = Integer::from(12345 * 54321);
+        /// let divisor = Integer::from(12345);
+        /// let r = i.div_exact_ref(&divisor);
+        /// let q = Integer::from(r);
+        /// assert_eq!(q, 54321);
         /// ```
-        fn div_exact_hold -> DivExactHold;
+        fn div_exact_ref -> DivExactRef;
         xgmp::mpz_divexact_check_0
     }
     math_op1! {
-        /// Divides `self` by `divisor`. This is much faster than normal
-        /// division, but produces correct results only when the division
-        /// is exact.
+        /// Performs an exact division. This is much faster than
+        /// normal division, but produces correct results only when
+        /// the division is exact.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
-        /// let mut i = Integer::from(123450);
-        /// assert_eq!(*i.div_exact_u(10), 12345);
-        /// assert_eq!(i, 12345);
+        /// let mut i = Integer::from(12345 * 54321);
+        /// assert_eq!(*i.div_exact_u(12345), 54321);
         /// ```
         ///
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
         fn div_exact_u(divisor: u32);
-        /// Holds a computation of an exact division.
+        /// Performs an exact division. This is much faster than
+        /// normal division, but produces correct results only when
+        /// the division is exact.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
-        /// let i = Integer::from(123450);
-        /// let hold = i.div_exact_u_hold(10);
-        /// let q = Integer::from(hold);
-        /// assert_eq!(q, 12345);
+        /// let i = Integer::from(12345 * 54321);
+        /// let r = i.div_exact_u_ref(12345);
+        /// assert_eq!(Integer::from(r), 54321);
         /// ```
-        fn div_exact_u_hold -> DivExactUHold;
+        fn div_exact_u_ref -> DivExactURef;
         xgmp::mpz_divexact_ui_check_0
     }
 
-    /// Finds the inverse of `self` modulo `modulo` and returns `true`
-    /// if an inverse exists.
+    /// Finds the inverse modulo `modulo` and returns `true` if an
+    /// inverse exists.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rugint::Integer;
     /// let mut n = Integer::from(2);
-    /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
+    /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
     /// let exists_4 = n.invert(&Integer::from(4));
     /// assert!(!exists_4);
     /// assert_eq!(n, 2);
@@ -1517,7 +1450,7 @@ impl Integer {
     ///
     /// # Panics
     ///
-    /// Panics if `other` is zero.
+    /// Panics if `modulo` is zero.
     pub fn invert(&mut self, modulo: &Integer) -> bool {
         unsafe {
             xgmp::mpz_invert_check_0(
@@ -1528,7 +1461,7 @@ impl Integer {
         }
     }
 
-    /// Holds a computation of the inverse of `self` modulo `modulo`.
+    /// Finds the inverse modulo `modulo` if an inverse exists.
     ///
     /// # Examples
     ///
@@ -1537,65 +1470,102 @@ impl Integer {
     /// let n = Integer::from(2);
     /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
     /// let (mut inv_4, mut exists_4) = (Integer::new(), false);
-    /// (&mut inv_4, &mut exists_4).assign(n.invert_hold(&Integer::from(4)));
+    /// (&mut inv_4, &mut exists_4).assign(n.invert_ref(&Integer::from(4)));
     /// assert!(!exists_4);
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
     /// let (mut inv_5, mut exists_5) = (Integer::new(), false);
-    /// (&mut inv_5, &mut exists_5).assign(n.invert_hold(&Integer::from(5)));
+    /// (&mut inv_5, &mut exists_5).assign(n.invert_ref(&Integer::from(5)));
     /// assert!(exists_5);
     /// assert_eq!(inv_5, 3);
     /// ```
-    pub fn invert_hold<'a>(&'a self, modulo: &'a Integer) -> InvertHold<'a> {
-        InvertHold {
-            hold_self: self,
+    pub fn invert_ref<'a>(&'a self, modulo: &'a Integer) -> InvertRef<'a> {
+        InvertRef {
+            ref_self: self,
             modulo: modulo,
         }
     }
 
-    math_op3! {
-        /// Raises `self` to the power of `power` modulo `modulo`. If
-        /// `power` is negative, then `self` must have an inverse
-        /// modulo `modulo`.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rugint::{Assign, Integer};
-        ///
-        /// // 7 ^ 5 = 16807
-        /// let mut n = Integer::from(7);
-        /// let pow = Integer::from(5);
-        /// let m = Integer::from(1000);
-        /// assert_eq!(*n.pow_mod(&pow, &m), 807);
-        ///
-        /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
-        /// // 143 ^ 5 modulo 1000 = 943.
-        /// n.assign(7);
-        /// let neg_pow = Integer::from(-5);
-        /// assert_eq!(*n.pow_mod(&neg_pow, &m), 943);
-        /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `pow` is negative and `self` does not have an
-        /// inverse modulo `m`.
-        fn pow_mod(power, modulo);
-        /// Holds the computation of raising to the power of `power`
-        /// modulo `modulo`.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rugint::Integer;
-        /// // 7 ^ 5 = 16807
-        /// let base = Integer::from(7);
-        /// let pow = Integer::from(5);
-        /// let m = Integer::from(1000);
-        /// let hold = base.pow_mod_hold(&pow, &m);
-        /// assert_eq!(Integer::from(hold), 807);
-        /// ```
-        fn pow_mod_hold -> PowModHold;
-        xgmp::mpz_powm_check_inverse
+    /// Raises a number to the power of `power` modulo `modulo` and
+    /// return `true` if an answer exists.
+    ///
+    /// If `power` is negative, then the number must have an inverse
+    /// modulo `modulo` for an answer to exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    ///
+    /// // 7 ^ 5 = 16807
+    /// let mut n = Integer::from(7);
+    /// let pow = Integer::from(5);
+    /// let m = Integer::from(1000);
+    /// assert!(n.pow_mod(&pow, &m));
+    /// assert_eq!(n, 807);
+    ///
+    /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
+    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// n.assign(7);
+    /// let neg_pow = Integer::from(-5);
+    /// assert!(n.pow_mod(&neg_pow, &m));
+    /// assert_eq!(n, 943);
+    /// ```
+    pub fn pow_mod(&mut self, power: &Integer, modulo: &Integer) -> bool {
+        let abs_pow;
+        let pow_inner = if power.sign() == Ordering::Less {
+            if !(self.invert(modulo)) {
+                return false;
+            }
+            abs_pow = mpz_t {
+                alloc: power.inner().alloc,
+                size: power.inner().size.checked_neg().expect("overflow"),
+                d: power.inner().d,
+            };
+            &abs_pow
+        } else {
+            power.inner()
+        };
+        unsafe {
+            gmp::mpz_powm(
+                self.inner_mut(),
+                self.inner(),
+                pow_inner,
+                modulo.inner(),
+            );
+        }
+        true
+    }
+
+    /// Raises a number to the power of `power` modulo `modulo` and
+    /// return `true` if an answer exists.
+    ///
+    /// If `power` is negative, then the number must have an inverse
+    /// modulo `modulo` for an answer to exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::{Assign, Integer};
+    /// // 7 ^ 5 = 16807
+    /// let base = Integer::from(7);
+    /// let pow = Integer::from(5);
+    /// let m = Integer::from(1000);
+    /// let r = base.pow_mod_ref(&pow, &m);
+    /// let (mut ans, mut exists) = (Integer::new(), false);
+    /// (&mut ans, &mut exists).assign(r);
+    /// assert!(exists);
+    /// assert_eq!(ans, 807);
+    /// ```
+    pub fn pow_mod_ref<'a>(
+        &'a self,
+        power: &'a Integer,
+        modulo: &'a Integer,
+    ) -> PowModRef<'a> {
+        PowModRef {
+            ref_self: self,
+            power: power,
+            modulo: modulo,
+        }
     }
 
     /// Raises `base` to the power of `power`.
@@ -1638,7 +1608,7 @@ impl Integer {
     }
 
     math_op1! {
-        /// Computes the `n`th root of `self` and truncates the result.
+        /// Computes the `n`th root and truncates the result.
         ///
         /// # Examples
         ///
@@ -1648,24 +1618,24 @@ impl Integer {
         /// assert_eq!(*i.root(3), 10);
         /// ```
         fn root(n: u32);
-        /// Holds a computation of the `n`th root of the value.
+        /// Computes the `n`th root and truncates the result.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
         /// let i = Integer::from(1004);
-        /// assert_eq!(Integer::from(i.root_hold(3)), 10);
+        /// assert_eq!(Integer::from(i.root_ref(3)), 10);
         /// ```
-        fn root_hold -> RootHold;
+        fn root_ref -> RootRef;
         gmp::mpz_root
     }
     math_op1_2! {
-        /// Computes the `n`th root of `self` and returns the truncated
-        /// root and the remainder.
+        /// Computes the `n`th root and returns the truncated root and
+        /// the remainder.
         ///
-        /// The remainder is `self` minus the truncated root raised to
-        /// the power of `n`.
+        /// The remainder is the original number minus the truncated
+        /// root raised to the power of `n`.
         ///
         /// # Examples
         ///
@@ -1678,22 +1648,25 @@ impl Integer {
         /// assert_eq!(rem, 4);
         /// ```
         fn root_rem(remainder, n: u32);
-        /// Holds a computation of the truncation and remainder of the
-        /// `n`th root of `self`.
+        /// Computes the `n`th root and returns the truncated root and
+        /// the remainder.
+        ///
+        /// The remainder is the original number minus the truncated
+        /// root raised to the power of `n`.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::{Assign, Integer};
         /// let i = Integer::from(1004);
-        /// let hold = Integer::root_rem_hold(&i, 3);
+        /// let r = Integer::root_rem_ref(&i, 3);
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
-        /// (&mut root, &mut rem).assign(hold);
+        /// (&mut root, &mut rem).assign(r);
         /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        fn root_rem_hold -> RootRemHold;
+        fn root_rem_ref -> RootRemRef;
         gmp::mpz_rootrem
     }
     math_op1! {
@@ -1707,23 +1680,21 @@ impl Integer {
         /// assert_eq!(*i.sqrt(), 10);
         /// ```
         fn sqrt();
-        /// Holds a computation of the square root.
+        /// Computes the square root and truncates the result.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::Integer;
         /// let i = Integer::from(104);
-        /// assert_eq!(Integer::from(i.sqrt_hold()), 10);
+        /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
         /// ```
-        fn sqrt_hold -> SqrtHold;
+        fn sqrt_ref -> SqrtRef;
         gmp::mpz_sqrt
     }
     math_op1_2! {
-        /// Computes the square root of `self` and returns the truncated
-        /// root and the remainder.
-        ///
-        /// The remainder is `self` minus the truncated root squared.
+        /// Computes the square root and the remainder. The remainder
+        /// is the original number minus the truncated root squared.
         ///
         /// # Examples
         ///
@@ -1736,27 +1707,28 @@ impl Integer {
         /// assert_eq!(rem, 4);
         /// ```
         fn sqrt_rem(remainder);
-        /// Holds a computation of the truncation and remainder of the
-        /// square root of `self`.
+        /// Computes the square root and the remainder. The remainder
+        /// is the original number minus the truncated root squared.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugint::{Assign, Integer};
         /// let i = Integer::from(104);
-        /// let hold = Integer::sqrt_rem_hold(&i);
+        /// let r = Integer::sqrt_rem_ref(&i);
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
-        /// (&mut root, &mut rem).assign(hold);
+        /// (&mut root, &mut rem).assign(r);
         /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        fn sqrt_rem_hold -> SqrtRemHold;
+        fn sqrt_rem_ref -> SqrtRemRef;
         gmp::mpz_sqrtrem
     }
 
-    /// Determines wheter `self` is prime using some trial divisions,
-    /// then `reps` Miller-Rabin probabilistic primality tests.
+    /// Determines wheter a number is prime using some trial
+    /// divisions, then `reps` Miller-Rabin probabilistic primality
+    /// tests.
     ///
     /// # Examples
     ///
@@ -1786,7 +1758,7 @@ impl Integer {
         fn next_prime();
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
-        fn next_prime_hold -> NextPrimeHold;
+        fn next_prime_ref -> NextPrimeRef;
         gmp::mpz_nextprime
     }
     math_op2! {
@@ -1812,7 +1784,7 @@ impl Integer {
         /// assert_eq!(*a.gcd(&b), 5);
         /// ```
         fn gcd(other);
-        /// Holds the computation of the greatest common divisor.
+        /// Finds the greatest common divisor.
         ///
         /// # Examples
         ///
@@ -1820,11 +1792,11 @@ impl Integer {
         /// use rugint::Integer;
         /// let a = Integer::from(100);
         /// let b = Integer::from(125);
-        /// let hold = a.gcd_hold(&b);
+        /// let r = a.gcd_ref(&b);
         /// // gcd of 100, 125 is 25
-        /// assert_eq!(Integer::from(hold), 25);
+        /// assert_eq!(Integer::from(r), 25);
         /// ```
-        fn gcd_hold -> GcdHold;
+        fn gcd_ref -> GcdRef;
         gmp::mpz_gcd
     }
     math_op2! {
@@ -1846,7 +1818,7 @@ impl Integer {
         /// assert_eq!(*a.lcm(&b), 0);
         /// ```
         fn lcm(other);
-        /// Holds the computation of the least common multiple.
+        /// Finds the least common multiple.
         ///
         /// # Examples
         ///
@@ -1854,11 +1826,11 @@ impl Integer {
         /// use rugint::Integer;
         /// let a = Integer::from(100);
         /// let b = Integer::from(125);
-        /// let hold = a.lcm_hold(&b);
+        /// let r = a.lcm_ref(&b);
         /// // lcm of 100, 125 is 500
-        /// assert_eq!(Integer::from(hold), 500);
+        /// assert_eq!(Integer::from(r), 500);
         /// ```
-        fn lcm_hold -> LcmHold;
+        fn lcm_ref -> LcmRef;
         gmp::mpz_lcm
     }
 
@@ -1878,8 +1850,8 @@ impl Integer {
         unsafe { gmp::mpz_kronecker(self.inner(), n.inner()) as i32 }
     }
 
-    /// Removes all occurrences of `factor` from `self`, and returns
-    /// the number of occurrences.
+    /// Removes all occurrences of `factor`, and returns the number of
+    /// occurrences removed.
     ///
     /// # Examples
     ///
@@ -1900,7 +1872,8 @@ impl Integer {
         cnt as u32
     }
 
-    /// Holds the computation of the removal of `factor`.
+    /// Removes all occurrences of `factor`, and counts the number of
+    /// occurrences removed.
     ///
     /// # Examples
     ///
@@ -1910,16 +1883,16 @@ impl Integer {
     /// i.assign_u_pow_u(13, 50);
     /// i *= 1000;
     /// let (mut j, mut count) = (Integer::new(), 0);
-    /// (&mut j, &mut count).assign(i.remove_factor_hold(&Integer::from(13)));
+    /// (&mut j, &mut count).assign(i.remove_factor_ref(&Integer::from(13)));
     /// assert_eq!(count, 50);
     /// assert_eq!(j, 1000);
     /// ```
-    pub fn remove_factor_hold<'a>(
+    pub fn remove_factor_ref<'a>(
         &'a self,
         factor: &'a Integer,
-    ) -> RemoveFactorHold<'a> {
-        RemoveFactorHold {
-            hold_self: self,
+    ) -> RemoveFactorRef<'a> {
+        RemoveFactorRef {
+            ref_self: self,
             factor: factor,
         }
     }
@@ -1993,7 +1966,7 @@ impl Integer {
     }
 
     math_op1! {
-        /// Computes the binomial coefficient `self` over `k`.
+        /// Computes the binomial coefficient over `k`.
         ///
         /// # Examples
         ///
@@ -2004,7 +1977,7 @@ impl Integer {
         /// assert_eq!(*i.binomial(2), 21);
         /// ```
         fn binomial(k: u32);
-        /// Holds a computation of the binomial coefficient over `k`.
+        /// Computes the binomial coefficient over `k`.
         ///
         /// # Examples
         ///
@@ -2012,9 +1985,9 @@ impl Integer {
         /// use rugint::Integer;
         /// // 7 choose 2 is 21
         /// let i = Integer::from(7);
-        /// assert_eq!(Integer::from(i.binomial_hold(2)), 21);
+        /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
         /// ```
-        fn binomial_hold -> BinomialHold;
+        fn binomial_ref -> BinomialRef;
         gmp::mpz_bin_ui
     }
 
@@ -2481,36 +2454,70 @@ impl Assign<u64> for Integer {
     }
 }
 
-hold_math_op1! { struct AbsHold {}; gmp::mpz_abs }
-hold_math_op1! { struct KeepBitsHold { n: u32 }; gmp::mpz_fdiv_r_2exp }
-hold_math_op2_2! { struct DivRemHold { divisor }; xgmp::mpz_tdiv_qr_check_0 }
-hold_math_op2! { struct DivExactHold { divisor }; xgmp::mpz_divexact_check_0 }
-hold_math_op1! {
-    struct DivExactUHold { divisor: u32 }; xgmp::mpz_divexact_ui_check_0
+ref_math_op1! { struct AbsRef {}; gmp::mpz_abs }
+ref_math_op1! { struct KeepBitsRef { n: u32 }; gmp::mpz_fdiv_r_2exp }
+ref_math_op2_2! { struct DivRemRef { divisor }; xgmp::mpz_tdiv_qr_check_0 }
+ref_math_op2! { struct DivExactRef { divisor }; xgmp::mpz_divexact_check_0 }
+ref_math_op1! {
+    struct DivExactURef { divisor: u32 }; xgmp::mpz_divexact_ui_check_0
 }
-hold_math_op3! {
-    struct PowModHold { power, modulo }; xgmp::mpz_powm_check_inverse
-}
-hold_math_op1! { struct RootHold { n: u32 }; gmp::mpz_root }
-hold_math_op1_2! { struct RootRemHold { n: u32 }; gmp::mpz_rootrem }
-hold_math_op1! { struct SqrtHold {}; gmp::mpz_sqrt }
-hold_math_op1_2! { struct SqrtRemHold {}; gmp::mpz_sqrtrem }
-hold_math_op1! { struct NextPrimeHold {}; gmp::mpz_nextprime }
-hold_math_op2! { struct GcdHold { other }; gmp::mpz_gcd }
-hold_math_op2! { struct LcmHold { other }; gmp::mpz_lcm }
 
 #[derive(Clone, Copy)]
-pub struct InvertHold<'a> {
-    hold_self: &'a Integer,
+pub struct PowModRef<'a> {
+    ref_self: &'a Integer,
+    power: &'a Integer,
     modulo: &'a Integer,
 }
 
-impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
-    fn assign(&mut self, src: InvertHold<'a>) {
+impl<'a> Assign<PowModRef<'a>> for (&'a mut Integer, &'a mut bool) {
+    fn assign(&mut self, src: PowModRef<'a>) {
+        let abs_pow;
+        let pow_inner = if src.power.sign() == Ordering::Less {
+            if !(self.0.invert(src.modulo)) {
+                *self.1 = false;
+                return;
+            }
+            abs_pow = mpz_t {
+                alloc: src.power.inner().alloc,
+                size: src.power.inner().size.checked_neg().expect("overflow"),
+                d: src.power.inner().d,
+            };
+            &abs_pow
+        } else {
+            src.power.inner()
+        };
+        unsafe {
+            gmp::mpz_powm(
+                self.0.inner_mut(),
+                src.ref_self.inner(),
+                pow_inner,
+                src.modulo.inner(),
+            );
+        }
+        *self.1 = true;
+    }
+}
+
+ref_math_op1! { struct RootRef { n: u32 }; gmp::mpz_root }
+ref_math_op1_2! { struct RootRemRef { n: u32 }; gmp::mpz_rootrem }
+ref_math_op1! { struct SqrtRef {}; gmp::mpz_sqrt }
+ref_math_op1_2! { struct SqrtRemRef {}; gmp::mpz_sqrtrem }
+ref_math_op1! { struct NextPrimeRef {}; gmp::mpz_nextprime }
+ref_math_op2! { struct GcdRef { other }; gmp::mpz_gcd }
+ref_math_op2! { struct LcmRef { other }; gmp::mpz_lcm }
+
+#[derive(Clone, Copy)]
+pub struct InvertRef<'a> {
+    ref_self: &'a Integer,
+    modulo: &'a Integer,
+}
+
+impl<'a> Assign<InvertRef<'a>> for (&'a mut Integer, &'a mut bool) {
+    fn assign(&mut self, src: InvertRef<'a>) {
         *self.1 = unsafe {
             xgmp::mpz_invert_check_0(
                 self.0.inner_mut(),
-                src.hold_self.inner(),
+                src.ref_self.inner(),
                 src.modulo.inner(),
             )
         } != 0;
@@ -2518,17 +2525,17 @@ impl<'a> Assign<InvertHold<'a>> for (&'a mut Integer, &'a mut bool) {
 }
 
 #[derive(Clone, Copy)]
-pub struct RemoveFactorHold<'a> {
-    hold_self: &'a Integer,
+pub struct RemoveFactorRef<'a> {
+    ref_self: &'a Integer,
     factor: &'a Integer,
 }
 
-impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
-    fn assign(&mut self, src: RemoveFactorHold<'a>) {
+impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {
+    fn assign(&mut self, src: RemoveFactorRef<'a>) {
         let cnt = unsafe {
             gmp::mpz_remove(
                 self.0.inner_mut(),
-                src.hold_self.inner(),
+                src.ref_self.inner(),
                 src.factor.inner(),
             )
         };
@@ -2537,14 +2544,14 @@ impl<'a> Assign<RemoveFactorHold<'a>> for (&'a mut Integer, &'a mut u32) {
     }
 }
 
-hold_math_op1! { struct BinomialHold { k: u32 }; gmp::mpz_bin_ui }
+ref_math_op1! { struct BinomialRef { k: u32 }; gmp::mpz_bin_ui }
 
 macro_rules! arith_unary {
     {
         $Imp:ident $method:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         impl $Imp for Integer {
             type Output = Integer;
@@ -2563,21 +2570,21 @@ macro_rules! arith_unary {
         }
 
         impl<'a> $Imp for &'a Integer {
-            type Output = $Hold<'a>;
-            fn $method(self) -> $Hold<'a> {
-                $Hold { op: self }
+            type Output = $Ref<'a>;
+            fn $method(self) -> $Ref<'a> {
+                $Ref { op: self }
             }
         }
 
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             op: &'a Integer,
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, rhs: $Hold) {
+        impl<'a> Assign<$Ref<'a>> for Integer {
+            fn assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(self.inner_mut(), rhs.op.inner());
                 }
@@ -2591,7 +2598,7 @@ macro_rules! arith_binary {
         $Imp:ident $method:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         impl $Imp<Integer> for Integer {
             type Output = Integer;
@@ -2623,9 +2630,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a Integer> for &'a Integer {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Integer) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Integer) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -2633,15 +2640,15 @@ macro_rules! arith_binary {
         }
 
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Integer,
             rhs: &'a Integer,
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, rhs: $Hold) {
+        impl<'a> Assign<$Ref<'a>> for Integer {
+            fn assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.inner());
                 }
@@ -2656,10 +2663,10 @@ macro_rules! arith_noncommut {
         $ImpAssign:ident $method_assign:ident,
         $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
-            $Imp $method, $ImpAssign $method_assign, $func, $Hold
+            $Imp $method, $ImpAssign $method_assign, $func, $Ref
         }
 
         impl $ImpFromAssign<Integer> for Integer {
@@ -2678,39 +2685,39 @@ macro_rules! arith_noncommut {
     };
 }
 
-arith_unary! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegHold }
-arith_binary! { Add add, AddAssign add_assign, gmp::mpz_add, AddHold }
+arith_unary! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegRef }
+arith_binary! { Add add, AddAssign add_assign, gmp::mpz_add, AddRef }
 arith_noncommut! {
     Sub sub,
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     gmp::mpz_sub,
-    SubHold
+    SubRef
 }
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulHold }
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulRef }
 arith_noncommut! {
     Div div,
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     xgmp::mpz_tdiv_q_check_0,
-    DivHold
+    DivRef
 }
 arith_noncommut! {
     Rem rem,
     RemAssign rem_assign,
     RemFromAssign rem_from_assign,
     xgmp::mpz_tdiv_r_check_0,
-    RemHold
+    RemRef
 }
-arith_unary! { Not not, NotAssign not_assign, gmp::mpz_com, NotHold }
+arith_unary! { Not not, NotAssign not_assign, gmp::mpz_com, NotRef }
 arith_binary! {
-    BitAnd bitand, BitAndAssign bitand_assign, gmp::mpz_and, BitAndHold
-}
-arith_binary! {
-    BitOr bitor, BitOrAssign bitor_assign, gmp::mpz_ior, BitOrHold
+    BitAnd bitand, BitAndAssign bitand_assign, gmp::mpz_and, BitAndRef
 }
 arith_binary! {
-    BitXor bitxor, BitXorAssign bitxor_assign, gmp::mpz_xor, BitXorHold
+    BitOr bitor, BitOrAssign bitor_assign, gmp::mpz_ior, BitOrRef
+}
+arith_binary! {
+    BitXor bitxor, BitXorAssign bitxor_assign, gmp::mpz_xor, BitXorRef
 }
 
 macro_rules! arith_prim {
@@ -2719,7 +2726,7 @@ macro_rules! arith_prim {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     }=> {
         impl $Imp<$T> for Integer {
             type Output = Integer;
@@ -2738,9 +2745,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Integer {
-            type Output = $Hold<'a>;
-            fn $method(self, op: $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, op: $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: op,
                 }
@@ -2748,15 +2755,15 @@ macro_rules! arith_prim {
         }
 
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Integer,
             rhs: $T,
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Integer {
-            fn assign(&mut self, rhs: $Hold) {
+        impl<'a> Assign<$Ref<'a>> for Integer {
+            fn assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.into());
                 }
@@ -2773,11 +2780,11 @@ macro_rules! arith_prim_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Hold:ident,
-        $HoldFrom:ident
+        $Ref:ident,
+        $RefFrom:ident
     } => {
         arith_prim! {
-            $Imp $method, $ImpAssign $method_assign, $T, $func, $Hold
+            $Imp $method, $ImpAssign $method_assign, $T, $func, $Ref
         }
 
         impl $Imp<Integer> for $T {
@@ -2797,9 +2804,9 @@ macro_rules! arith_prim_noncommut {
         }
 
         impl<'a> $Imp<&'a Integer> for $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, op: &'a Integer) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, op: &'a Integer) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: self,
                     rhs: op,
                 }
@@ -2807,15 +2814,15 @@ macro_rules! arith_prim_noncommut {
         }
 
         #[derive(Clone, Copy)]
-        pub struct $HoldFrom<'a> {
+        pub struct $RefFrom<'a> {
             lhs: $T,
             rhs: &'a Integer,
         }
 
-        from_borrow! { $HoldFrom<'a> }
+        from_borrow! { $RefFrom<'a> }
 
-        impl<'a> Assign<$HoldFrom<'a>> for Integer {
-            fn assign(&mut self, rhs: $HoldFrom) {
+        impl<'a> Assign<$RefFrom<'a>> for Integer {
+            fn assign(&mut self, rhs: $RefFrom) {
                 unsafe {
                     $func_from(self.inner_mut(),
                                rhs.lhs.into(),
@@ -2832,10 +2839,10 @@ macro_rules! arith_prim_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_prim! {
-            $Imp $method, $ImpAssign $method_assign, $T, $func, $Hold
+            $Imp $method, $ImpAssign $method_assign, $T, $func, $Ref
         }
 
         impl $Imp<Integer> for $T {
@@ -2846,8 +2853,8 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $Imp<&'a Integer> for $T {
-            type Output = $Hold<'a>;
-            fn $method(self, op: &'a Integer) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, op: &'a Integer) -> $Ref<'a> {
                 op.$method(self)
             }
         }
@@ -2855,7 +2862,7 @@ macro_rules! arith_prim_commut {
 }
 
 arith_prim_commut! {
-    Add add, AddAssign add_assign, i32, xgmp::mpz_add_si, AddHoldI32
+    Add add, AddAssign add_assign, i32, xgmp::mpz_add_si, AddRefI32
 }
 arith_prim_noncommut! {
     Sub sub,
@@ -2864,11 +2871,11 @@ arith_prim_noncommut! {
     i32,
     xgmp::mpz_sub_si,
     xgmp::mpz_si_sub,
-    SubHoldI32,
-    SubFromHoldI32
+    SubRefI32,
+    SubFromRefI32
 }
 arith_prim_commut! {
-    Mul mul, MulAssign mul_assign, i32, gmp::mpz_mul_si, MulHoldI32
+    Mul mul, MulAssign mul_assign, i32, gmp::mpz_mul_si, MulRefI32
 }
 arith_prim_noncommut! {
     Div div,
@@ -2877,8 +2884,8 @@ arith_prim_noncommut! {
     i32,
     xgmp::mpz_tdiv_q_si_check_0,
     xgmp::mpz_si_tdiv_q_check_0,
-    DivHoldI32,
-    DivFromHoldI32
+    DivRefI32,
+    DivFromRefI32
 }
 arith_prim_noncommut! {
     Rem rem,
@@ -2887,35 +2894,35 @@ arith_prim_noncommut! {
     i32,
     xgmp::mpz_tdiv_r_si_check_0,
     xgmp::mpz_si_tdiv_r_check_0,
-    RemHoldI32,
-    RemFromHoldI32
+    RemRefI32,
+    RemFromRefI32
 }
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, i32, xgmp::mpz_lshift_si, ShlHoldI32
+    Shl shl, ShlAssign shl_assign, i32, xgmp::mpz_lshift_si, ShlRefI32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, i32, xgmp::mpz_rshift_si, ShrHoldI32
+    Shr shr, ShrAssign shr_assign, i32, xgmp::mpz_rshift_si, ShrRefI32
 }
 arith_prim_commut! {
     BitAnd bitand,
     BitAndAssign bitand_assign,
     i32,
     xgmp::bitand_si,
-    BitAndHoldI32
+    BitAndRefI32
 }
 arith_prim_commut! {
-    BitOr bitor, BitOrAssign bitor_assign, i32, xgmp::bitor_si, BitOrHoldI32
+    BitOr bitor, BitOrAssign bitor_assign, i32, xgmp::bitor_si, BitOrRefI32
 }
 arith_prim_commut! {
     BitXor bitxor,
     BitXorAssign bitxor_assign,
     i32,
     xgmp::bitxor_si,
-    BitXorHoldI32
+    BitXorRefI32
 }
 
 arith_prim_commut! {
-    Add add, AddAssign add_assign, u32, gmp::mpz_add_ui, AddHoldU32
+    Add add, AddAssign add_assign, u32, gmp::mpz_add_ui, AddRefU32
 }
 arith_prim_noncommut! {
     Sub sub,
@@ -2924,11 +2931,11 @@ arith_prim_noncommut! {
     u32,
     gmp::mpz_sub_ui,
     gmp::mpz_ui_sub,
-    SubHoldU32,
-    SubFromHoldU32
+    SubRefU32,
+    SubFromRefU32
 }
 arith_prim_commut! {
-    Mul mul, MulAssign mul_assign, u32, gmp::mpz_mul_ui, MulHoldU32
+    Mul mul, MulAssign mul_assign, u32, gmp::mpz_mul_ui, MulRefU32
 }
 arith_prim_noncommut! {
     Div div,
@@ -2937,8 +2944,8 @@ arith_prim_noncommut! {
     u32,
     xgmp::mpz_tdiv_q_ui_check_0,
     xgmp::mpz_ui_tdiv_q_check_0,
-    DivHoldU32,
-    DivFromHoldU32
+    DivRefU32,
+    DivFromRefU32
 }
 arith_prim_noncommut! {
     Rem rem,
@@ -2947,52 +2954,52 @@ arith_prim_noncommut! {
     u32,
     xgmp::mpz_tdiv_r_ui_check_0,
     xgmp::mpz_ui_tdiv_r_check_0,
-    RemHoldU32,
-    RemFromHoldU32
+    RemRefU32,
+    RemFromRefU32
 }
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, u32, gmp::mpz_mul_2exp, ShlHoldU32
+    Shl shl, ShlAssign shl_assign, u32, gmp::mpz_mul_2exp, ShlRefU32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, u32, gmp::mpz_fdiv_q_2exp, ShrHoldU32
+    Shr shr, ShrAssign shr_assign, u32, gmp::mpz_fdiv_q_2exp, ShrRefU32
 }
-arith_prim! { Pow pow, PowAssign pow_assign, u32, gmp::mpz_pow_ui, PowHoldU32 }
+arith_prim! { Pow pow, PowAssign pow_assign, u32, gmp::mpz_pow_ui, PowRefU32 }
 arith_prim_commut! {
     BitAnd bitand,
     BitAndAssign bitand_assign,
     u32,
     xgmp::bitand_ui,
-    BitAndHoldU32
+    BitAndRefU32
 }
 arith_prim_commut! {
-    BitOr bitor, BitOrAssign bitor_assign, u32, xgmp::bitor_ui, BitOrHoldU32
+    BitOr bitor, BitOrAssign bitor_assign, u32, xgmp::bitor_ui, BitOrRefU32
 }
 arith_prim_commut! {
     BitXor bitxor,
     BitXorAssign bitxor_assign,
     u32,
     xgmp::bitxor_ui,
-    BitXorHoldU32
+    BitXorRefU32
 }
 
 macro_rules! op_mul {
     {
         $(#[$attr:meta])* impl $Imp:ident $method:ident;
         $(#[$attr_assign:meta])* impl $ImpAssign:ident $method_assign:ident;
-        $Hold:ident, $rhs_method:ident, $func:path
+        $Ref:ident, $rhs_method:ident, $func:path
     } => {
-        impl<'a> $Imp<$Hold<'a>> for Integer {
+        impl<'a> $Imp<$Ref<'a>> for Integer {
             type Output = Integer;
             $(#[$attr])*
-            fn $method(mut self, rhs: $Hold) -> Integer {
+            fn $method(mut self, rhs: $Ref) -> Integer {
                 self.$method_assign(rhs);
                 self
             }
         }
 
-        impl<'a> $ImpAssign<$Hold<'a>> for Integer  {
+        impl<'a> $ImpAssign<$Ref<'a>> for Integer  {
             $(#[$attr_assign])*
-            fn $method_assign(&mut self, rhs: $Hold) {
+            fn $method_assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(
                         self.inner_mut(),
@@ -3032,7 +3039,7 @@ op_mul! {
     /// assert_eq!(acc, 121);
     /// ```
     impl AddAssign add_assign;
-    MulHold, inner, gmp::mpz_addmul
+    MulRef, inner, gmp::mpz_addmul
 }
 
 op_mul! {
@@ -3060,7 +3067,7 @@ op_mul! {
     /// assert_eq!(acc, 121);
     /// ```
     impl AddAssign add_assign;
-    MulHoldU32, into, gmp::mpz_addmul_ui
+    MulRefU32, into, gmp::mpz_addmul_ui
 }
 
 op_mul! {
@@ -3088,7 +3095,7 @@ op_mul! {
     /// assert_eq!(acc, 79);
     /// ```
     impl AddAssign add_assign;
-    MulHoldI32, into, xgmp::mpz_addmul_si
+    MulRefI32, into, xgmp::mpz_addmul_si
 }
 
 
@@ -3119,7 +3126,7 @@ op_mul! {
     /// assert_eq!(acc, 79);
     /// ```
     impl SubAssign sub_assign;
-    MulHold, inner, gmp::mpz_submul
+    MulRef, inner, gmp::mpz_submul
 }
 
 op_mul! {
@@ -3147,7 +3154,7 @@ op_mul! {
     /// assert_eq!(acc, 79);
     /// ```
     impl SubAssign sub_assign;
-    MulHoldU32, into, gmp::mpz_submul_ui
+    MulRefU32, into, gmp::mpz_submul_ui
 }
 
 op_mul! {
@@ -3175,7 +3182,7 @@ op_mul! {
     /// assert_eq!(acc, 121);
     /// ```
     impl SubAssign sub_assign;
-    MulHoldI32, into, xgmp::mpz_submul_si
+    MulRefI32, into, xgmp::mpz_submul_si
 }
 
 impl Eq for Integer {}

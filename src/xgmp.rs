@@ -169,27 +169,6 @@ pub unsafe fn mpz_invert_check_0(
     gmp::mpz_invert(inv, n, m)
 }
 
-pub unsafe fn mpz_powm_check_inverse(
-    rop: *mut mpz_t,
-    base: *const mpz_t,
-    pow: *const mpz_t,
-    m: *const mpz_t,
-) {
-    if (*pow).size < 0 {
-        let exists = mpz_invert_check_0(rop, base, m);
-        assert_ne!(exists, 0, "inverse does not exist");
-        let abs_pow = mpz_t {
-            alloc: (*pow).alloc,
-            size: -(*pow).size,
-            d: (*pow).d,
-        };
-        assert!(abs_pow.size > 0, "overflow");
-        gmp::mpz_powm(rop, rop, &abs_pow, m);
-    } else {
-        gmp::mpz_powm(rop, base, pow, m);
-    }
-}
-
 pub unsafe fn mpz_add_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     if op2 >= 0 {
         gmp::mpz_add_ui(rop, op1, op2 as c_ulong);
