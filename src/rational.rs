@@ -1610,6 +1610,9 @@ impl<'a> Drop for MutNumerDenom<'a> {
     }
 }
 
+unsafe impl Send for Rational {}
+unsafe impl Sync for Rational {}
+
 trait Inner {
     type Output;
     fn inner(&self) -> &Self::Output;
