@@ -3370,9 +3370,8 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     let max: gmp::bitcnt_t = !0;
     if bits == max {
         None
-    } else if bits > u32::MAX as gmp::bitcnt_t {
-        panic!("overflow")
     } else {
+        assert_eq!(bits as u32 as gmp::bitcnt_t, bits, "overflow");
         Some(bits as u32)
     }
 }
