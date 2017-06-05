@@ -18,7 +18,7 @@
 name = "rugrat"
 version = "0.3.0"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
-description = "Arbitrary-precision rational numbers based on GMP"
+description = "Arbitrary-precision big rational numbers based on GMP"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugrat/"
 repository = "https://gitlab.com/tspiteri/rugrat"
 readme = "README.md"

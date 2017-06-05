@@ -91,8 +91,8 @@ macro_rules! math_op1 {
     {
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -110,40 +110,40 @@ macro_rules! math_op1 {
             self
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(
+        $(#[$attr_ref])*
+        pub fn $method_ref(
             &self,
             $($param: $T,)*
-        ) -> $Hold {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1 {
+macro_rules! ref_math_op1 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Rational,
+        pub struct $Ref<'a> {
+            ref_self: &'a Rational,
             $($param: $T,)*
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Rational {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for Rational {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
                         self.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -266,7 +266,7 @@ impl Rational {
     }
 
 
-    /// Converts `self` to an `Integer`, rounding towards zero.
+    /// Converts to an `Integer`, rounding towards zero.
     ///
     /// # Examples
     ///
@@ -285,8 +285,7 @@ impl Rational {
         i
     }
 
-    /// Converts `self` to an `Integer` inside `i`, rounding towards
-    /// zero.
+    /// Converts to an `Integer` inside `i`, rounding towards zero.
     ///
     /// # Examples
     ///
@@ -313,7 +312,7 @@ impl Rational {
         }
     }
 
-    /// Converts `self` to an `f32`, rounding towards zero.
+    /// Converts to an `f32`, rounding towards zero.
     ///
     /// # Examples
     ///
@@ -381,8 +380,7 @@ impl Rational {
         unsafe { gmp::mpq_get_d(self.inner()) }
     }
 
-    /// Returns a string representation of `self` for the specified
-    /// `radix`.
+    /// Returns a string representation for the specified `radix`.
     ///
     /// # Examples
     ///
@@ -619,8 +617,7 @@ impl Rational {
          &mut *(gmp::mpq_denref(self.inner_mut()) as *mut _))
     }
 
-    /// Converts `self` into numerator and denominator integers,
-    /// consuming `self`.
+    /// Converts into numerator and denominator integers.
     ///
     /// This function reuses the allocated memory and does not
     /// allocate any new memory.
@@ -648,15 +645,14 @@ impl Rational {
         (numer, denom)
     }
 
-    /// Returns `Less` if `self` is less than zero,
-    /// `Greater` if `self` is greater than zero,
-    /// or `Equal` if `self` is equal to zero.
+    /// Returns `Less` if the number is less than zero, `Greater` if
+    /// it is greater than zero, or `Equal` if it is equal to zero.
     pub fn sign(&self) -> Ordering {
         self.numer().sign()
     }
 
     math_op1! {
-        /// Computes the absolute value of `self`.
+        /// Computes the absolute value.
         ///
         /// # Examples
         ///
@@ -667,22 +663,22 @@ impl Rational {
         /// assert_eq!(r, (100, 17));
         /// ```
         fn abs();
-        /// Holds a computation of the absolute value.
+        /// Computes the absolute value.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugrat::Rational;
         /// let r = Rational::from((-100, 17));
-        /// let hold = r.abs_hold();
-        /// let abs = Rational::from(hold);
+        /// let rr = r.abs_ref();
+        /// let abs = Rational::from(rr);
         /// assert_eq!(abs, (100, 17));
         /// ```
-        fn abs_hold -> AbsHold;
+        fn abs_ref -> AbsRef;
         gmp::mpq_abs
     }
     math_op1! {
-        /// Computes the reciprocal of `self`.
+        /// Computes the reciprocal.
         ///
         /// # Examples
         ///
@@ -697,22 +693,22 @@ impl Rational {
         ///
         /// Panics if the value is zero.
         fn recip();
-        /// Holds a computation of the reciprocal.
+        /// Computes the reciprocal.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugrat::Rational;
         /// let r = Rational::from((-100, 17));
-        /// let hold = r.recip_hold();
-        /// let recip = Rational::from(hold);
+        /// let rr = r.recip_ref();
+        /// let recip = Rational::from(rr);
         /// assert_eq!(recip, (-17, 100));
         /// ```
-        fn recip_hold -> RecipHold;
+        fn recip_ref -> RecipRef;
         xgmp::mpq_inv_check_0
     }
 
-    /// Holds the computation of the ceil function.
+    /// Rounds the number upwards (towards plus infinity).
     ///
     /// # Examples
     ///
@@ -724,23 +720,23 @@ impl Rational {
     ///
     /// fn main() {
     ///     let mut ceil = Integer::new();
-    ///     ceil.assign(SmallRational::from(-1).ceil_hold());
+    ///     ceil.assign(SmallRational::from(-1).ceil_ref());
     ///     assert_eq!(ceil, -1);
-    ///     ceil.assign(SmallRational::from((-1, 2)).ceil_hold());
+    ///     ceil.assign(SmallRational::from((-1, 2)).ceil_ref());
     ///     assert_eq!(ceil, 0);
-    ///     ceil.assign(SmallRational::from(0).ceil_hold());
+    ///     ceil.assign(SmallRational::from(0).ceil_ref());
     ///     assert_eq!(ceil, 0);
-    ///     ceil.assign(SmallRational::from((1, 2)).ceil_hold());
+    ///     ceil.assign(SmallRational::from((1, 2)).ceil_ref());
     ///     assert_eq!(ceil, 1);
-    ///     ceil.assign(SmallRational::from(1).ceil_hold());
+    ///     ceil.assign(SmallRational::from(1).ceil_ref());
     ///     assert_eq!(ceil, 1);
     /// }
     /// ```
-    pub fn ceil_hold(&self) -> CeilHold {
-        CeilHold { hold_self: self }
+    pub fn ceil_ref(&self) -> CeilRef {
+        CeilRef { ref_self: self }
     }
 
-    /// Holds the computation of the floor function.
+    /// Rounds the number downwards (towards minus infinity).
     ///
     /// # Examples
     ///
@@ -752,25 +748,24 @@ impl Rational {
     ///
     /// fn main() {
     ///     let mut floor = Integer::new();
-    ///     floor.assign(SmallRational::from(-1).floor_hold());
+    ///     floor.assign(SmallRational::from(-1).floor_ref());
     ///     assert_eq!(floor, -1);
-    ///     floor.assign(SmallRational::from((-1, 2)).floor_hold());
+    ///     floor.assign(SmallRational::from((-1, 2)).floor_ref());
     ///     assert_eq!(floor, -1);
-    ///     floor.assign(SmallRational::from(0).floor_hold());
+    ///     floor.assign(SmallRational::from(0).floor_ref());
     ///     assert_eq!(floor, 0);
-    ///     floor.assign(SmallRational::from((1, 2)).floor_hold());
+    ///     floor.assign(SmallRational::from((1, 2)).floor_ref());
     ///     assert_eq!(floor, 0);
-    ///     floor.assign(SmallRational::from(1).floor_hold());
+    ///     floor.assign(SmallRational::from(1).floor_ref());
     ///     assert_eq!(floor, 1);
     /// }
     /// ```
-    pub fn floor_hold(&self) -> FloorHold {
-        FloorHold { hold_self: self }
+    pub fn floor_ref(&self) -> FloorRef {
+        FloorRef { ref_self: self }
     }
 
-    /// Holds the computation of the rounding function. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
+    /// Rounds the number to the nearest integer. When the number lies
+    /// exactly between two integers, it is rounded away from zero.
     ///
     /// # Examples
     ///
@@ -782,25 +777,25 @@ impl Rational {
     ///
     /// fn main() {
     ///     let mut round = Integer::new();
-    ///     round.assign(SmallRational::from((-17, 10)).round_hold());
+    ///     round.assign(SmallRational::from((-17, 10)).round_ref());
     ///     assert_eq!(round, -2);
-    ///     round.assign(SmallRational::from((-15, 10)).round_hold());
+    ///     round.assign(SmallRational::from((-15, 10)).round_ref());
     ///     assert_eq!(round, -2);
-    ///     round.assign(SmallRational::from((-13, 10)).round_hold());
+    ///     round.assign(SmallRational::from((-13, 10)).round_ref());
     ///     assert_eq!(round, -1);
-    ///     round.assign(SmallRational::from((13, 10)).round_hold());
+    ///     round.assign(SmallRational::from((13, 10)).round_ref());
     ///     assert_eq!(round, 1);
-    ///     round.assign(SmallRational::from((15, 10)).round_hold());
+    ///     round.assign(SmallRational::from((15, 10)).round_ref());
     ///     assert_eq!(round, 2);
-    ///     round.assign(SmallRational::from((17, 10)).round_hold());
+    ///     round.assign(SmallRational::from((17, 10)).round_ref());
     ///     assert_eq!(round, 2);
     /// }
     /// ```
-    pub fn round_hold(&self) -> RoundHold {
-        RoundHold { hold_self: self }
+    pub fn round_ref(&self) -> RoundRef {
+        RoundRef { ref_self: self }
     }
 
-    /// Holds the computation of the truncation function.
+    /// Rounds the number towards zero.
     ///
     /// # Examples
     ///
@@ -812,22 +807,22 @@ impl Rational {
     ///
     /// fn main() {
     ///     let mut trunc = Integer::new();
-    ///     trunc.assign(SmallRational::from((-21, 10)).trunc_hold());
+    ///     trunc.assign(SmallRational::from((-21, 10)).trunc_ref());
     ///     assert_eq!(trunc, -2);
-    ///     trunc.assign(SmallRational::from((-17, 10)).trunc_hold());
+    ///     trunc.assign(SmallRational::from((-17, 10)).trunc_ref());
     ///     assert_eq!(trunc, -1);
-    ///     trunc.assign(SmallRational::from((13, 10)).trunc_hold());
+    ///     trunc.assign(SmallRational::from((13, 10)).trunc_ref());
     ///     assert_eq!(trunc, 1);
-    ///     trunc.assign(SmallRational::from((19, 10)).trunc_hold());
+    ///     trunc.assign(SmallRational::from((19, 10)).trunc_ref());
     ///     assert_eq!(trunc, 1);
     /// }
     /// ```
-    pub fn trunc_hold(&self) -> TruncHold {
-        TruncHold { hold_self: self }
+    pub fn trunc_ref(&self) -> TruncRef {
+        TruncRef { ref_self: self }
     }
 
     math_op1! {
-        /// Returns the fractional part of `self`.
+        /// Computes the fractional part of the number.
         ///
         /// # Examples
         ///
@@ -838,22 +833,22 @@ impl Rational {
         /// assert_eq!(*r.fract(), (-15, 17));
         /// ```
         fn fract();
-        /// Holds the computation of the fractional part of a number.
+        /// Computes the fractional part of the number.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rugrat::Rational;
         /// let r = Rational::from((-100, 17));
-        /// let hold = r.fract_hold();
-        /// let fract = Rational::from(hold);
+        /// let rr = r.fract_ref();
+        /// let fract = Rational::from(rr);
         /// assert_eq!(fract, (-15, 17));
         /// ```
-        fn fract_hold -> FractHold;
+        fn fract_ref -> FractRef;
         xgmp::mpq_fract
     }
 
-    /// Returns the fractional and truncated parts of `self`.
+    /// Computes the fractional and truncated parts of the number.
     ///
     /// # Examples
     ///
@@ -881,8 +876,7 @@ impl Rational {
         }
     }
 
-    /// Holds the computation of the fractional and truncated parts of
-    /// a number.
+    /// Computes the fractional and truncated parts of the number.
     ///
     /// # Examples
     ///
@@ -894,15 +888,15 @@ impl Rational {
     /// fn main() {
     ///     // -100/17 = -5 15/17
     ///     let r = Rational::from((-100, 17));
-    ///     let hold = r.fract_trunc_hold();
+    ///     let rr = r.fract_trunc_ref();
     ///     let (mut proper, mut whole) = (Rational::new(), Integer::new());
-    ///     (&mut proper, &mut whole).assign(hold);
+    ///     (&mut proper, &mut whole).assign(rr);
     ///     assert_eq!(whole, -5);
     ///     assert_eq!(proper, (-15, 17));
     /// }
     /// ```
-    pub fn fract_trunc_hold(&self) -> FractTruncHold {
-        FractTruncHold { hold_self: self }
+    pub fn fract_trunc_ref(&self) -> FractTruncRef {
+        FractTruncRef { ref_self: self }
     }
 }
 
@@ -1135,70 +1129,70 @@ where
     }
 }
 
-hold_math_op1! { struct AbsHold {}; gmp::mpq_abs }
-hold_math_op1! { struct RecipHold {}; xgmp::mpq_inv_check_0 }
+ref_math_op1! { struct AbsRef {}; gmp::mpq_abs }
+ref_math_op1! { struct RecipRef {}; xgmp::mpq_inv_check_0 }
 
-pub struct CeilHold<'a> {
-    hold_self: &'a Rational,
+pub struct CeilRef<'a> {
+    ref_self: &'a Rational,
 }
 
-impl<'a> Assign<CeilHold<'a>> for Integer {
-    fn assign(&mut self, src: CeilHold<'a>) {
+impl<'a> Assign<CeilRef<'a>> for Integer {
+    fn assign(&mut self, src: CeilRef<'a>) {
         unsafe {
-            xgmp::mpq_ceil(self.inner_mut(), src.hold_self.inner());
+            xgmp::mpq_ceil(self.inner_mut(), src.ref_self.inner());
         }
     }
 }
 
-pub struct FloorHold<'a> {
-    hold_self: &'a Rational,
+pub struct FloorRef<'a> {
+    ref_self: &'a Rational,
 }
 
-impl<'a> Assign<FloorHold<'a>> for Integer {
-    fn assign(&mut self, src: FloorHold<'a>) {
+impl<'a> Assign<FloorRef<'a>> for Integer {
+    fn assign(&mut self, src: FloorRef<'a>) {
         unsafe {
-            xgmp::mpq_floor(self.inner_mut(), src.hold_self.inner());
+            xgmp::mpq_floor(self.inner_mut(), src.ref_self.inner());
         }
     }
 }
 
-pub struct RoundHold<'a> {
-    hold_self: &'a Rational,
+pub struct RoundRef<'a> {
+    ref_self: &'a Rational,
 }
 
-impl<'a> Assign<RoundHold<'a>> for Integer {
-    fn assign(&mut self, src: RoundHold<'a>) {
+impl<'a> Assign<RoundRef<'a>> for Integer {
+    fn assign(&mut self, src: RoundRef<'a>) {
         unsafe {
-            xgmp::mpq_round(self.inner_mut(), src.hold_self.inner());
+            xgmp::mpq_round(self.inner_mut(), src.ref_self.inner());
         }
     }
 }
 
-pub struct TruncHold<'a> {
-    hold_self: &'a Rational,
+pub struct TruncRef<'a> {
+    ref_self: &'a Rational,
 }
 
-impl<'a> Assign<TruncHold<'a>> for Integer {
-    fn assign(&mut self, src: TruncHold<'a>) {
+impl<'a> Assign<TruncRef<'a>> for Integer {
+    fn assign(&mut self, src: TruncRef<'a>) {
         unsafe {
-            xgmp::mpq_trunc(self.inner_mut(), src.hold_self.inner());
+            xgmp::mpq_trunc(self.inner_mut(), src.ref_self.inner());
         }
     }
 }
 
-hold_math_op1! { struct FractHold {}; xgmp::mpq_fract }
+ref_math_op1! { struct FractRef {}; xgmp::mpq_fract }
 
-pub struct FractTruncHold<'a> {
-    hold_self: &'a Rational,
+pub struct FractTruncRef<'a> {
+    ref_self: &'a Rational,
 }
 
-impl<'a> Assign<FractTruncHold<'a>> for (&'a mut Rational, &'a mut Integer) {
-    fn assign(&mut self, src: FractTruncHold<'a>) {
+impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
+    fn assign(&mut self, src: FractTruncRef<'a>) {
         unsafe {
             xgmp::mpq_fract_trunc(
                 self.0.inner_mut(),
                 self.1.inner_mut(),
-                src.hold_self.inner(),
+                src.ref_self.inner(),
             );
         }
     }
@@ -1209,7 +1203,7 @@ macro_rules! arith_binary {
         $Imp:ident $method:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Hold: ident
+        $Ref: ident
     } => {
         impl $Imp<Rational> for Rational {
             type Output = Rational;
@@ -1241,9 +1235,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a Rational> for &'a Rational {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Rational) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Rational) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -1251,15 +1245,15 @@ macro_rules! arith_binary {
         }
 
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Rational,
             rhs: &'a Rational,
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Rational {
-            fn assign(&mut self, rhs: $Hold) {
+        impl<'a> Assign<$Ref<'a>> for Rational {
+            fn assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.inner());
                 }
@@ -1274,10 +1268,10 @@ macro_rules! arith_noncommut {
         $ImpAssign:ident $method_assign:ident,
         $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
-            $Imp $method, $ImpAssign $method_assign, $func, $Hold
+            $Imp $method, $ImpAssign $method_assign, $func, $Ref
         }
 
         impl $ImpFromAssign<Rational> for Rational {
@@ -1314,42 +1308,42 @@ impl NegAssign for Rational {
 }
 
 impl<'a> Neg for &'a Rational {
-    type Output = NegHold<'a>;
-    fn neg(self) -> NegHold<'a> {
-        NegHold { op: self }
+    type Output = NegRef<'a>;
+    fn neg(self) -> NegRef<'a> {
+        NegRef { op: self }
     }
 }
 
 #[derive(Clone, Copy)]
-pub struct NegHold<'a> {
+pub struct NegRef<'a> {
     op: &'a Rational,
 }
 
-from_borrow! { NegHold<'a> }
+from_borrow! { NegRef<'a> }
 
-impl<'a> Assign<NegHold<'a>> for Rational {
-    fn assign(&mut self, rhs: NegHold) {
+impl<'a> Assign<NegRef<'a>> for Rational {
+    fn assign(&mut self, rhs: NegRef) {
         unsafe {
             gmp::mpq_neg(self.inner_mut(), rhs.op.inner());
         }
     }
 }
 
-arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddHold }
+arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddRef }
 arith_noncommut! {
     Sub sub,
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     gmp::mpq_sub,
-    SubHold
+    SubRef
 }
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulHold }
+arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulRef }
 arith_noncommut! {
     Div div,
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     gmp::mpq_div,
-    DivHold
+    DivRef
 }
 
 macro_rules! arith_prim {
@@ -1358,7 +1352,7 @@ macro_rules! arith_prim {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         impl $Imp<$T> for Rational {
             type Output = Rational;
@@ -1377,9 +1371,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Rational {
-            type Output = $Hold<'a>;
-            fn $method(self, op: $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, op: $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: op,
                 }
@@ -1387,15 +1381,15 @@ macro_rules! arith_prim {
         }
 
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Rational,
             rhs: $T,
         }
 
-        from_borrow! { $Hold<'a> }
+        from_borrow! { $Ref<'a> }
 
-        impl<'a> Assign<$Hold<'a>> for Rational {
-            fn assign(&mut self, rhs: $Hold) {
+        impl<'a> Assign<$Ref<'a>> for Rational {
+            fn assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.into());
                 }
@@ -1405,20 +1399,20 @@ macro_rules! arith_prim {
 }
 
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, i32, xgmp::mpq_mul_2exp_si, ShlHoldI32
+    Shl shl, ShlAssign shl_assign, i32, xgmp::mpq_mul_2exp_si, ShlRefI32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, i32, xgmp::mpq_div_2exp_si, ShrHoldI32
+    Shr shr, ShrAssign shr_assign, i32, xgmp::mpq_div_2exp_si, ShrRefI32
 }
-arith_prim! { Pow pow, PowAssign pow_assign, i32, xgmp::mpq_pow_si, PowHoldI32 }
+arith_prim! { Pow pow, PowAssign pow_assign, i32, xgmp::mpq_pow_si, PowRefI32 }
 
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, u32, gmp::mpq_mul_2exp, ShlHoldU32
+    Shl shl, ShlAssign shl_assign, u32, gmp::mpq_mul_2exp, ShlRefU32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, u32, gmp::mpq_div_2exp, ShrHoldU32
+    Shr shr, ShrAssign shr_assign, u32, gmp::mpq_div_2exp, ShrRefU32
 }
-arith_prim! { Pow pow, PowAssign pow_assign, u32, xgmp::mpq_pow_ui, PowHoldU32 }
+arith_prim! { Pow pow, PowAssign pow_assign, u32, xgmp::mpq_pow_ui, PowRefU32 }
 
 impl Eq for Rational {}
 
