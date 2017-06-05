@@ -605,12 +605,11 @@ impl Rational {
     ///     let (num, den) = unsafe {
     ///         r.as_mut_numer_denom_no_canonicalization()
     ///     };
-    ///     *num -= 7;
-    ///     *den += 2;
+    ///     // Add one to r by adding den to num. Since num and den
+    ///     // are relatively prime, r remains canonicalized.
+    ///     *num += &*den;
     /// }
-    /// let num_den = r.as_numer_denom();
-    /// assert_eq!(*num_den.0, -4);
-    /// assert_eq!(*num_den.1, 7);
+    /// assert_eq!(r, (8, 5));
     /// ```
     pub unsafe fn as_mut_numer_denom_no_canonicalization
         (&mut self)
