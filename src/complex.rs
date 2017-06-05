@@ -115,8 +115,8 @@ macro_rules! math_op1 {
         fn $method:ident($($param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -145,41 +145,41 @@ macro_rules! math_op1 {
             ordering2(mpc_ret)
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(&self $(, $param: $T)*) -> $Hold {
-            $Hold {
-                hold_self: self,
+        $(#[$attr_ref])*
+        pub fn $method_ref(&self $(, $param: $T)*) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1 {
+macro_rules! ref_math_op1 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Complex,
+        pub struct $Ref<'a> {
+            ref_self: &'a Complex,
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Complex {
+        impl<'a> AssignRound<$Ref<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
             fn assign_round(
                 &mut self,
-                src: $Hold<'a>,
+                src: $Ref<'a>,
                 round: Round2,
             ) -> Ordering2 {
                 let mpc_ret = unsafe {
                     $func(
                         self.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                         rraw2(round),
                     )
@@ -196,8 +196,8 @@ macro_rules! math_op1_2 {
         fn $method:ident($rop:ident $(, $param:ident: $T:ty)*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -233,51 +233,51 @@ macro_rules! math_op1_2 {
             (ordering2(mpc::INEX1(mpc_ret)), ordering2(mpc::INEX2(mpc_ret)))
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(
+        $(#[$attr_ref])*
+        pub fn $method_ref(
             &self,
             $($param: $T,)*
-        ) -> $Hold {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1_2 {
+macro_rules! ref_math_op1_2 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Complex,
+        pub struct $Ref<'a> {
+            ref_self: &'a Complex,
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for (&'a mut Complex, &'a mut Complex) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 self.assign_round(src, NEAREST);
             }
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for (&'a mut Complex, &'a mut Complex) {
+        impl<'a> AssignRound<$Ref<'a>> for (&'a mut Complex, &'a mut Complex) {
             type Round = Round2;
             type Ordering = (Ordering2, Ordering2);
             fn assign_round(
                 &mut self,
-                src: $Hold<'a>,
+                src: $Ref<'a>,
                 round: Round2,
             ) -> (Ordering2, Ordering2) {
                 let mpc_ret = unsafe {
                     $func(
                         self.0.inner_mut(),
                         self.1.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                         rraw2(round),
                         rraw2(round),
@@ -880,9 +880,9 @@ impl Complex {
         /// Computes a projection onto the Riemann sphere, applying
         /// the specified rounding method.
         fn proj_round;
-        /// Holds a computation of the projection onto the Riemann
+        /// Computes the projection onto the Riemann
         /// sphere.
-        fn proj_hold -> ProjHold;
+        fn proj_ref -> ProjRef;
         mpc::proj
     }
     math_op1! {
@@ -890,8 +890,8 @@ impl Complex {
         fn square();
         /// Computes the square, applying the specified rounding method.
         fn square_round;
-        /// Holds the computation of the square.
-        fn square_hold -> SquareHold;
+        /// Computes the square.
+        fn square_ref -> SquareRef;
         mpc::sqr
     }
     math_op1! {
@@ -900,8 +900,8 @@ impl Complex {
         /// Computes the square root, applying the specified rounding
         /// method.
         fn sqrt_round;
-        /// Holds the computation of the square root.
-        fn sqrt_hold -> SqrtHold;
+        /// Computes the square root.
+        fn sqrt_ref -> SqrtRef;
         mpc::sqrt
     }
     math_op1! {
@@ -910,12 +910,12 @@ impl Complex {
         /// Computes the complex conjugate, applying the specified
         /// rounding method.
         fn conjugate_round;
-        /// Holds the computation of the complex conjugate.
-        fn conjugate_hold -> ConjugateHold;
+        /// Computes the complex conjugate.
+        fn conjugate_ref -> ConjugateRef;
         mpc::conj
     }
 
-    /// Holds the computation of the absolute value.
+    /// Computes the absolute value.
     ///
     /// # Examples
     ///
@@ -927,16 +927,16 @@ impl Complex {
     ///
     /// fn main() {
     ///     let c1 = Complex::from(((30, 40), 53));
-    ///     assert_eq!(Float::from((c1.abs_hold(), 53)), 50);
+    ///     assert_eq!(Float::from((c1.abs_ref(), 53)), 50);
     ///     let c2 = Complex::from(((12, Special::Infinity), 53));
-    ///     assert!(Float::from((c2.abs_hold(), 53)).is_infinite());
+    ///     assert!(Float::from((c2.abs_ref(), 53)).is_infinite());
     /// }
     /// ```
-    pub fn abs_hold(&self) -> AbsHold {
-        AbsHold { hold_self: self }
+    pub fn abs_ref(&self) -> AbsRef {
+        AbsRef { ref_self: self }
     }
 
-    /// Holds the computation the argument.
+    /// Computes the argument.
     ///
     /// # Examples
     ///
@@ -953,34 +953,34 @@ impl Complex {
     ///     // f has precision 53, just like f64, so PI constants match.
     ///     let mut arg = Float::new(53);
     ///     let c_pos = Complex::from((1, 53));
-    ///     arg.assign(c_pos.arg_hold());
+    ///     arg.assign(c_pos.arg_ref());
     ///     assert!(arg.is_zero());
     ///     let c_neg = Complex::from((-1.3, 53));
-    ///     arg.assign(c_neg.arg_hold());
+    ///     arg.assign(c_neg.arg_ref());
     ///     assert_eq!(arg, f64::consts::PI);
     ///     let c_pi_4 = Complex::from(((1.333, 1.333), 53));
-    ///     arg.assign(c_pi_4.arg_hold());
+    ///     arg.assign(c_pi_4.arg_ref());
     ///     assert_eq!(arg, f64::consts::FRAC_PI_4);
 
     ///     // Special values are handled like atan2 in IEEE 754-2008.
     ///     // Examples for real, imag set to plus, minus zero below:
     ///     let mut zero = Complex::new(53);
     ///     zero.assign((Special::Zero, Special::Zero));
-    ///     arg.assign(zero.arg_hold());
+    ///     arg.assign(zero.arg_ref());
     ///     assert!(arg.is_zero() && !arg.get_sign());
     ///     zero.assign((Special::Zero, Special::MinusZero));
-    ///     arg.assign(zero.arg_hold());
+    ///     arg.assign(zero.arg_ref());
     ///     assert!(arg.is_zero() && arg.get_sign());
     ///     zero.assign((Special::MinusZero, Special::Zero));
-    ///     arg.assign(zero.arg_hold());
+    ///     arg.assign(zero.arg_ref());
     ///     assert_eq!(arg, f64::consts::PI);
     ///     zero.assign((Special::MinusZero, Special::MinusZero));
-    ///     arg.assign(zero.arg_hold());
+    ///     arg.assign(zero.arg_ref());
     ///     assert_eq!(arg, -f64::consts::PI);
     /// }
     /// ```
-    pub fn arg_hold(&self) -> ArgHold {
-        ArgHold { hold_self: self }
+    pub fn arg_ref(&self) -> ArgRef {
+        ArgRef { ref_self: self }
     }
 
     math_op1! {
@@ -989,8 +989,8 @@ impl Complex {
         /// Multiplies the complex number by *i*, applying the specified
         /// rounding method.
         fn mul_i_round;
-        /// Holds the multiplicateion of the complex number by *i*.
-        fn mul_i_hold -> MulIHold;
+        /// Multiplies the complex number by *i*.
+        fn mul_i_ref -> MulIRef;
         xmpc::mul_i
     }
     math_op1! {
@@ -999,15 +999,14 @@ impl Complex {
         /// Computes the reciprocal, applying the specified rounding
         /// method.
         fn recip_round;
-        /// Holds the computation of the reciprocal.
-        fn recip_hold -> RecipHold;
+        /// Computes the reciprocal.
+        fn recip_ref -> RecipRef;
         xmpc::recip
     }
 
-    /// Holds the computation of the norm, that is the square of the
-    /// absolute value.
-    pub fn norm_hold(&self) -> NormHold {
-        NormHold { hold_self: self }
+    /// Computes the norm, that is the square of the absolute value.
+    pub fn norm_ref(&self) -> NormRef {
+        NormRef { ref_self: self }
     }
 
     math_op1! {
@@ -1016,8 +1015,8 @@ impl Complex {
         /// Computes the natural logarithm, applying the specified
         /// rounding method.
         fn ln_round;
-        /// Holds the computation of the natural logarithm;
-        fn ln_hold -> LnHold;
+        /// Computes the natural logarithm;
+        fn ln_ref -> LnRef;
         mpc::log
     }
     math_op1! {
@@ -1026,8 +1025,8 @@ impl Complex {
         /// Computes the logarithm to base 10, applying the specified
         /// rounding method.
         fn log10_round;
-        /// Holds the compuration of the logarithm to base 10.
-        fn log10_hold -> Log10Hold;
+        /// Computes the logarithm to base 10.
+        fn log10_ref -> Log10Ref;
         mpc::log10
     }
     math_op1! {
@@ -1036,8 +1035,8 @@ impl Complex {
         /// Computes the exponential, applying the specified rounding
         /// method.
         fn exp_round;
-        /// Holds the computation of the exponential.
-        fn exp_hold -> ExpHold;
+        /// Computes the exponential.
+        fn exp_ref -> ExpRef;
         mpc::exp
     }
     math_op1! {
@@ -1045,8 +1044,8 @@ impl Complex {
         fn sin();
         /// Computes the sine, applying the specified rounding method.
         fn sin_round;
-        /// Holds the computation of the sine.
-        fn sin_hold -> SinHold;
+        /// Computes the sine.
+        fn sin_ref -> SinRef;
         mpc::sin
     }
     math_op1! {
@@ -1054,8 +1053,8 @@ impl Complex {
         fn cos();
         /// Computes the cosine, applying the specified rounding method.
         fn cos_round;
-        /// Holds the computation of the cosine.
-        fn cos_hold -> CosHold;
+        /// Computes the cosine.
+        fn cos_ref -> CosRef;
         mpc::cos
     }
     math_op1_2! {
@@ -1071,7 +1070,7 @@ impl Complex {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         fn sin_cos_round;
-        /// Holds a computation of the sine and cosine.
+        /// Computes the sine and cosine.
         ///
         /// # Examples
         ///
@@ -1085,15 +1084,15 @@ impl Complex {
         ///     // sin(0.5 + 0.2i) = 0.48905 + 0.17669i
         ///     // cos(0.5 + 0.2i) = 0.89519 - 0.096526i
         ///     let angle = Complex::from(((0.5, 0.2), 53));
-        ///     let hold = angle.sin_cos_hold();
+        ///     let r = angle.sin_cos_ref();
         ///     // use only 10 bits of precision here to
         ///     // make comparison easier
         ///     let (mut sin, mut cos) = (Complex::new(10), Complex::new(10));
-        ///     (&mut sin, &mut cos).assign(hold);
+        ///     (&mut sin, &mut cos).assign(r);
         ///     assert_eq!(sin, Complex::from(((0.48905, 0.17669), 10)));
         ///     assert_eq!(cos, Complex::from(((0.89519, -0.096526), 10)));
         /// }
-        fn sin_cos_hold -> SinCosHold;
+        fn sin_cos_ref -> SinCosRef;
         mpc::sin_cos
     }
     math_op1! {
@@ -1101,8 +1100,8 @@ impl Complex {
         fn tan();
         /// Computes the tangent, applying the specified rounding method.
         fn tan_round;
-        /// Holds the computation of the tangent.
-        fn tan_hold -> TanHold;
+        /// Computes the tangent.
+        fn tan_ref -> TanRef;
         mpc::tan
     }
     math_op1! {
@@ -1111,8 +1110,8 @@ impl Complex {
         /// Computes the hyperbolic sine, applying the specified rounding
         /// method.
         fn sinh_round;
-        /// Holds the computation of the hyperbolic sine.
-        fn sinh_hold -> SinhHold;
+        /// Computes the hyperbolic sine.
+        fn sinh_ref -> SinhRef;
         mpc::sinh
     }
     math_op1! {
@@ -1121,8 +1120,8 @@ impl Complex {
         /// Computes the hyperbolic cosine, applying the specified rounding
         /// method.
         fn cosh_round;
-        /// Holds the computation of the hyperbolic cosine.
-        fn cosh_hold -> CoshHold;
+        /// Computes the hyperbolic cosine.
+        fn cosh_ref -> CoshRef;
         mpc::cosh
     }
     math_op1! {
@@ -1131,8 +1130,8 @@ impl Complex {
         /// Computes the hyperbolic tangent, applying the specified
         /// rounding method.
         fn tanh_round;
-        /// Holds the computation of the hyperbolic tangent.
-        fn tanh_hold -> TanhHold;
+        /// Computes the hyperbolic tangent.
+        fn tanh_ref -> TanhRef;
         mpc::tanh
     }
     math_op1! {
@@ -1141,8 +1140,8 @@ impl Complex {
         /// Computes the inverse sine, applying the specified rounding
         /// method.
         fn asin_round;
-        /// Holds the computation of the inverse sine.
-        fn asin_hold -> AsinHold;
+        /// Computes the inverse sine.
+        fn asin_ref -> AsinRef;
         mpc::asin
     }
     math_op1! {
@@ -1151,8 +1150,8 @@ impl Complex {
         /// Computes the inverse cosine, applying the specified rounding
         /// method.
         fn acos_round;
-        /// Holds the computation of the inverse cosine.
-        fn acos_hold -> AcosHold;
+        /// Computes the inverse cosine.
+        fn acos_ref -> AcosRef;
         mpc::acos
     }
     math_op1! {
@@ -1161,8 +1160,8 @@ impl Complex {
         /// Computes the inverse tangent, applying the specified rounding
         /// method.
         fn atan_round;
-        /// Holds the computation of the inverse tangent.
-        fn atan_hold -> AtanHold;
+        /// Computes the inverse tangent.
+        fn atan_ref -> AtanRef;
         mpc::atan
     }
     math_op1! {
@@ -1171,8 +1170,8 @@ impl Complex {
         /// Computes the inverse hyperbolic sine, applying the specified
         /// rounding method.
         fn asinh_round;
-        /// Holds the computation of the inverse hyperboic sine.
-        fn asinh_hold -> AsinhHold;
+        /// Computes the inverse hyperboic sine.
+        fn asinh_ref -> AsinhRef;
         mpc::asinh
     }
     math_op1! {
@@ -1182,8 +1181,8 @@ impl Complex {
         /// Computes the inverse hyperbolic cosine, applying the specified
         /// rounding method.
         fn acosh_round;
-        /// Holds the computation of the inverse hyperbolic cosine.
-        fn acosh_hold -> AcoshHold;
+        /// Computes the inverse hyperbolic cosine.
+        fn acosh_ref -> AcoshRef;
         mpc::acosh
     }
     math_op1! {
@@ -1193,8 +1192,8 @@ impl Complex {
         /// Computes the inverse hyperbolic tangent, applying the
         /// specified rounding method.
         fn atanh_round;
-        /// Holds the computation of the inverse hyperbolic tangent.
-        fn atanh_hold -> AtanhHold;
+        /// Computes the inverse hyperbolic tangent.
+        fn atanh_ref -> AtanhRef;
         mpc::atanh
     }
 
@@ -1483,75 +1482,75 @@ where
     }
 }
 
-hold_math_op1! { struct ProjHold {}; mpc::proj }
-hold_math_op1! { struct SquareHold {}; mpc::sqr }
-hold_math_op1! { struct SqrtHold {}; mpc::sqrt }
-hold_math_op1! { struct ConjugateHold {}; mpc::conj }
+ref_math_op1! { struct ProjRef {}; mpc::proj }
+ref_math_op1! { struct SquareRef {}; mpc::sqr }
+ref_math_op1! { struct SqrtRef {}; mpc::sqrt }
+ref_math_op1! { struct ConjugateRef {}; mpc::conj }
 
-pub struct AbsHold<'a> {
-    hold_self: &'a Complex,
+pub struct AbsRef<'a> {
+    ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<AbsHold<'a>> for Float {
+impl<'a> AssignRound<AbsRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: AbsHold<'a>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: AbsRef<'a>, round: Round) -> Ordering {
         let mpc_ret = unsafe {
-            mpc::abs(self.inner_mut(), src.hold_self.inner(), rraw(round))
+            mpc::abs(self.inner_mut(), src.ref_self.inner(), rraw(round))
         };
         mpc_ret.cmp(&0)
     }
 }
 
-pub struct ArgHold<'a> {
-    hold_self: &'a Complex,
+pub struct ArgRef<'a> {
+    ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<ArgHold<'a>> for Float {
+impl<'a> AssignRound<ArgRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: ArgHold<'a>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: ArgRef<'a>, round: Round) -> Ordering {
         let mpc_ret = unsafe {
-            mpc::arg(self.inner_mut(), src.hold_self.inner(), rraw(round))
+            mpc::arg(self.inner_mut(), src.ref_self.inner(), rraw(round))
         };
         mpc_ret.cmp(&0)
     }
 }
 
-hold_math_op1! { struct MulIHold { negative: bool }; xmpc::mul_i }
-hold_math_op1! { struct RecipHold {}; xmpc::recip }
+ref_math_op1! { struct MulIRef { negative: bool }; xmpc::mul_i }
+ref_math_op1! { struct RecipRef {}; xmpc::recip }
 
-pub struct NormHold<'a> {
-    hold_self: &'a Complex,
+pub struct NormRef<'a> {
+    ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<NormHold<'a>> for Float {
+impl<'a> AssignRound<NormRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: NormHold<'a>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: NormRef<'a>, round: Round) -> Ordering {
         let mpc_ret = unsafe {
-            mpc::norm(self.inner_mut(), src.hold_self.inner(), rraw(round))
+            mpc::norm(self.inner_mut(), src.ref_self.inner(), rraw(round))
         };
         mpc_ret.cmp(&0)
     }
 }
 
-hold_math_op1! { struct LnHold {}; mpc::log }
-hold_math_op1! { struct Log10Hold {}; mpc::log10 }
-hold_math_op1! { struct ExpHold {}; mpc::exp }
-hold_math_op1! { struct SinHold {}; mpc::sin }
-hold_math_op1! { struct CosHold {}; mpc::cos }
-hold_math_op1_2! { struct SinCosHold {}; mpc::sin_cos }
-hold_math_op1! { struct TanHold {}; mpc::tan }
-hold_math_op1! { struct SinhHold {}; mpc::sinh }
-hold_math_op1! { struct CoshHold {}; mpc::cosh }
-hold_math_op1! { struct TanhHold {}; mpc::tanh }
-hold_math_op1! { struct AsinHold {}; mpc::asin }
-hold_math_op1! { struct AcosHold {}; mpc::acos }
-hold_math_op1! { struct AtanHold {}; mpc::atan }
-hold_math_op1! { struct AsinhHold {}; mpc::asinh }
-hold_math_op1! { struct AcoshHold {}; mpc::acosh }
-hold_math_op1! { struct AtanhHold {}; mpc::atanh }
+ref_math_op1! { struct LnRef {}; mpc::log }
+ref_math_op1! { struct Log10Ref {}; mpc::log10 }
+ref_math_op1! { struct ExpRef {}; mpc::exp }
+ref_math_op1! { struct SinRef {}; mpc::sin }
+ref_math_op1! { struct CosRef {}; mpc::cos }
+ref_math_op1_2! { struct SinCosRef {}; mpc::sin_cos }
+ref_math_op1! { struct TanRef {}; mpc::tan }
+ref_math_op1! { struct SinhRef {}; mpc::sinh }
+ref_math_op1! { struct CoshRef {}; mpc::cosh }
+ref_math_op1! { struct TanhRef {}; mpc::tanh }
+ref_math_op1! { struct AsinRef {}; mpc::asin }
+ref_math_op1! { struct AcosRef {}; mpc::acos }
+ref_math_op1! { struct AtanRef {}; mpc::atan }
+ref_math_op1! { struct AsinhRef {}; mpc::asinh }
+ref_math_op1! { struct AcoshRef {}; mpc::acosh }
+ref_math_op1! { struct AtanhRef {}; mpc::atanh }
 
 impl Neg for Complex {
     type Output = Complex;
@@ -1570,20 +1569,20 @@ impl NegAssign for Complex {
 }
 
 impl<'a> Neg for &'a Complex {
-    type Output = NegHold<'a>;
-    fn neg(self) -> NegHold<'a> {
-        NegHold { val: self }
+    type Output = NegRef<'a>;
+    fn neg(self) -> NegRef<'a> {
+        NegRef { val: self }
     }
 }
 
-pub struct NegHold<'a> {
+pub struct NegRef<'a> {
     val: &'a Complex,
 }
 
-impl<'a> AssignRound<NegHold<'a>> for Complex {
+impl<'a> AssignRound<NegRef<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn assign_round(&mut self, src: NegHold<'a>, round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, src: NegRef<'a>, round: Round2) -> Ordering2 {
         let mpc_ret = unsafe {
             mpc::neg(self.inner_mut(), src.val.inner(), rraw2(round))
         };
@@ -1598,7 +1597,7 @@ macro_rules! arith_binary {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         impl<'a> $Imp<&'a $T> for Complex {
             type Output = Complex;
@@ -1649,9 +1648,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a $T> for &'a Complex {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: OwnBorrow::Borrow(rhs),
                 }
@@ -1677,16 +1676,15 @@ macro_rules! arith_binary {
             }
         }
 
-        /// Holds an operation.
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Complex,
             rhs: OwnBorrow<'a, $T>,
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Complex {
+        impl<'a> AssignRound<$Ref<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
-            fn assign_round(&mut self, src: $Hold, round: Round2) -> Ordering2 {
+            fn assign_round(&mut self, src: $Ref, round: Round2) -> Ordering2 {
                 let mpc_ret = unsafe {
                     $func(
                         self.inner_mut(),
@@ -1707,7 +1705,7 @@ macro_rules! arith_commut_complex {
         $ImpRound:ident $method_round:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -1715,7 +1713,7 @@ macro_rules! arith_commut_complex {
             $ImpAssign $method_assign,
             Complex,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Complex> for &'a Complex {
@@ -1747,7 +1745,7 @@ macro_rules! arith_noncommut_complex {
         $ImpAssign:ident $method_assign:ident,
         $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -1755,7 +1753,7 @@ macro_rules! arith_noncommut_complex {
             $ImpAssign $method_assign,
             Complex,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Complex> for &'a Complex {
@@ -1814,7 +1812,7 @@ macro_rules! arith_forward {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -1822,13 +1820,13 @@ macro_rules! arith_forward {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<$T> for &'a Complex {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: OwnBorrow::Own(rhs),
                 }
@@ -1844,7 +1842,7 @@ macro_rules! arith_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_forward! {
             $Imp $method,
@@ -1852,7 +1850,7 @@ macro_rules! arith_commut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Complex> for &'a $T {
@@ -1895,15 +1893,15 @@ macro_rules! arith_commut {
         }
 
         impl<'a> $Imp<&'a Complex> for &'a $T {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Complex) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Complex) -> $Ref<'a> {
                 rhs.$method(self)
             }
         }
 
         impl<'a> $Imp<&'a Complex> for $T {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Complex) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Complex) -> $Ref<'a> {
                 rhs.$method(self)
             }
         }
@@ -1919,8 +1917,8 @@ macro_rules! arith_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Hold:ident,
-        $HoldFrom:ident
+        $Ref:ident,
+        $RefFrom:ident
     } => {
         arith_forward! {
             $Imp $method,
@@ -1928,7 +1926,7 @@ macro_rules! arith_noncommut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Complex> for &'a $T {
@@ -1980,9 +1978,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Complex> for &'a $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, rhs: &'a Complex) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, rhs: &'a Complex) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: OwnBorrow::Borrow(self),
                     rhs: rhs,
                 }
@@ -1990,9 +1988,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Complex> for $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, rhs: &'a Complex) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, rhs: &'a Complex) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: OwnBorrow::Own(self),
                     rhs: rhs,
                 }
@@ -2018,18 +2016,17 @@ macro_rules! arith_noncommut {
             }
         }
 
-        /// Holds an operation.
-        pub struct $HoldFrom<'a> {
+        pub struct $RefFrom<'a> {
             lhs: OwnBorrow<'a, $T>,
             rhs: &'a Complex,
         }
 
-        impl<'a> AssignRound<$HoldFrom<'a>> for Complex {
+        impl<'a> AssignRound<$RefFrom<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
             fn assign_round(
                 &mut self,
-                src: $HoldFrom,
+                src: $RefFrom,
                 round: Round2,
             ) -> Ordering2 {
                 let mpc_ret = unsafe {
@@ -2047,7 +2044,7 @@ macro_rules! arith_noncommut {
 }
 
 arith_commut_complex! {
-    Add add, AddRound add_round, AddAssign add_assign, mpc::add, AddHold
+    Add add, AddRound add_round, AddAssign add_assign, mpc::add, AddRef
 }
 arith_noncommut_complex! {
     Sub sub,
@@ -2055,10 +2052,10 @@ arith_noncommut_complex! {
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     mpc::sub,
-    SubHold
+    SubRef
 }
 arith_commut_complex! {
-    Mul mul, MulRound mul_round, MulAssign mul_assign, mpc::mul, MulHold
+    Mul mul, MulRound mul_round, MulAssign mul_assign, mpc::mul, MulRef
 }
 arith_noncommut_complex! {
     Div div,
@@ -2066,7 +2063,7 @@ arith_noncommut_complex! {
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     mpc::div,
-    DivHold
+    DivRef
 }
 arith_noncommut_complex! {
     Pow pow,
@@ -2074,7 +2071,7 @@ arith_noncommut_complex! {
     PowAssign pow_assign,
     PowFromAssign pow_from_assign,
     mpc::pow,
-    PowHold
+    PowRef
 }
 
 arith_commut! {
@@ -2083,7 +2080,7 @@ arith_commut! {
     AddAssign add_assign,
     Float,
     mpc::add_fr,
-    AddHoldFloat
+    AddRefFloat
 }
 arith_noncommut! {
     Sub sub,
@@ -2093,8 +2090,8 @@ arith_noncommut! {
     Float,
     mpc::sub_fr,
     mpc::fr_sub,
-    SubHoldFloat,
-    SubFromHoldFloat
+    SubRefFloat,
+    SubFromRefFloat
 }
 arith_commut! {
     Mul mul,
@@ -2102,7 +2099,7 @@ arith_commut! {
     MulAssign mul_assign,
     Float,
     mpc::mul_fr,
-    MulHoldFloat
+    MulRefFloat
 }
 arith_noncommut! {
     Div div,
@@ -2112,8 +2109,8 @@ arith_noncommut! {
     Float,
     mpc::div_fr,
     mpc::fr_div,
-    DivHoldFloat,
-    DivFromHoldFloat
+    DivRefFloat,
+    DivFromRefFloat
 }
 arith_forward! {
     Pow pow,
@@ -2121,7 +2118,7 @@ arith_forward! {
     PowAssign pow_assign,
     Float,
     mpc::pow_fr,
-    PowHoldFloat
+    PowRefFloat
 }
 arith_forward! {
     Pow pow,
@@ -2129,7 +2126,7 @@ arith_forward! {
     PowAssign pow_assign,
     Integer,
     mpc::pow_z,
-    PowHoldInteger
+    PowRefInteger
 }
 
 macro_rules! arith_prim {
@@ -2139,7 +2136,7 @@ macro_rules! arith_prim {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         impl $Imp<$T> for Complex {
             type Output = Complex;
@@ -2170,9 +2167,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Complex {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -2192,16 +2189,15 @@ macro_rules! arith_prim {
             }
         }
 
-        /// Holds an operation.
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Complex,
             rhs: $T,
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Complex {
+        impl<'a> AssignRound<$Ref<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
-            fn assign_round(&mut self, src: $Hold, round: Round2) -> Ordering2 {
+            fn assign_round(&mut self, src: $Ref, round: Round2) -> Ordering2 {
                 let mpc_ret = unsafe {
                     $func(
                         self.inner_mut(),
@@ -2223,7 +2219,7 @@ macro_rules! arith_prim_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     }=> {
         arith_prim! {
             $Imp $method,
@@ -2231,7 +2227,7 @@ macro_rules! arith_prim_commut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl $Imp<Complex> for $T {
@@ -2255,8 +2251,8 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $Imp<&'a Complex> for $T {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Complex) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Complex) -> $Ref<'a> {
                 rhs.$method(self)
             }
         }
@@ -2272,8 +2268,8 @@ macro_rules! arith_prim_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Hold:ident,
-        $HoldFrom:ident
+        $Ref:ident,
+        $RefFrom:ident
     } => {
         arith_prim! {
             $Imp $method,
@@ -2281,7 +2277,7 @@ macro_rules! arith_prim_noncommut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl $Imp<Complex> for $T {
@@ -2313,9 +2309,9 @@ macro_rules! arith_prim_noncommut {
         }
 
         impl<'a> $Imp<&'a Complex> for $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, rhs: &'a Complex) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, rhs: &'a Complex) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -2335,18 +2331,17 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        /// Holds an operation.
-        pub struct $HoldFrom<'a> {
+        pub struct $RefFrom<'a> {
             lhs: $T,
             rhs: &'a Complex,
         }
 
-        impl<'a> AssignRound<$HoldFrom<'a>> for Complex {
+        impl<'a> AssignRound<$RefFrom<'a>> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
             fn assign_round
                 (&mut self,
-                 src: $HoldFrom,
+                 src: $RefFrom,
                  round: Round2,
                 ) -> Ordering2 {
                 let mpc_ret = unsafe {
@@ -2369,7 +2364,7 @@ arith_prim_commut! {
     AddAssign add_assign,
     u32,
     mpc::add_ui,
-    AddHoldU32
+    AddRefU32
 }
 arith_prim_noncommut! {
     Sub sub,
@@ -2379,8 +2374,8 @@ arith_prim_noncommut! {
     u32,
     mpc::sub_ui,
     xmpc::ui_sub,
-    SubHoldU32,
-    SubFromHoldU32
+    SubRefU32,
+    SubFromRefU32
 }
 arith_prim_commut! {
     Mul mul,
@@ -2388,7 +2383,7 @@ arith_prim_commut! {
     MulAssign mul_assign,
     u32,
     mpc::mul_ui,
-    MulHoldU32
+    MulRefU32
 }
 arith_prim_noncommut! {
     Div div,
@@ -2398,8 +2393,8 @@ arith_prim_noncommut! {
     u32,
     mpc::div_ui,
     xmpc::ui_div,
-    DivHoldU32,
-    DivFromHoldU32
+    DivRefU32,
+    DivFromRefU32
 }
 arith_prim_commut! {
     Add add,
@@ -2407,7 +2402,7 @@ arith_prim_commut! {
     AddAssign add_assign,
     i32,
     xmpc::add_si,
-    AddHoldI32
+    AddRefI32
 }
 arith_prim_noncommut! {
     Sub sub,
@@ -2417,8 +2412,8 @@ arith_prim_noncommut! {
     i32,
     xmpc::sub_si,
     xmpc::si_sub,
-    SubHoldI32,
-    SubFromHoldI32
+    SubRefI32,
+    SubFromRefI32
 }
 arith_prim_commut! {
     Mul mul,
@@ -2426,7 +2421,7 @@ arith_prim_commut! {
     MulAssign mul_assign,
     i32,
     mpc::mul_si,
-    MulHoldI32
+    MulRefI32
 }
 arith_prim_noncommut! {
     Div div,
@@ -2436,8 +2431,8 @@ arith_prim_noncommut! {
     i32,
     xmpc::div_si,
     xmpc::si_div,
-    DivHoldI32,
-    DivFromHoldI32
+    DivRefI32,
+    DivFromRefI32
 }
 
 arith_prim! {
@@ -2446,7 +2441,7 @@ arith_prim! {
     ShlAssign shl_assign,
     u32,
     mpc::mul_2ui,
-    ShlHoldU32
+    ShlRefU32
 }
 arith_prim! {
     Shr shr,
@@ -2454,7 +2449,7 @@ arith_prim! {
     ShrAssign shr_assign,
     u32,
     mpc::div_2ui,
-    ShrHoldU32
+    ShrRefU32
 }
 arith_prim! {
     Pow pow,
@@ -2462,7 +2457,7 @@ arith_prim! {
     PowAssign pow_assign,
     u32,
     mpc::pow_ui,
-    PowHoldU32
+    PowRefU32
 }
 arith_prim! {
     Shl shl,
@@ -2470,7 +2465,7 @@ arith_prim! {
     ShlAssign shl_assign,
     i32,
     mpc::mul_2si,
-    ShlHoldI32
+    ShlRefI32
 }
 arith_prim! {
     Shr shr,
@@ -2478,7 +2473,7 @@ arith_prim! {
     ShrAssign shr_assign,
     i32,
     mpc::div_2si,
-    ShrHoldI32
+    ShrRefI32
 }
 arith_prim! {
     Pow pow,
@@ -2486,7 +2481,7 @@ arith_prim! {
     PowAssign pow_assign,
     i32,
     mpc::pow_si,
-    PowHoldI32
+    PowRefI32
 }
 arith_prim! {
     Pow pow,
@@ -2494,7 +2489,7 @@ arith_prim! {
     PowAssign pow_assign,
     f64,
     mpc::pow_d,
-    PowHoldF64
+    PowRefF64
 }
 arith_prim! {
     Pow pow,
@@ -2502,29 +2497,25 @@ arith_prim! {
     PowAssign pow_assign,
     f32,
     xmpc::pow_single,
-    PowHoldF32
+    PowRefF32
 }
 
-impl<'a> Add<MulHold<'a>> for Complex {
+impl<'a> Add<MulRef<'a>> for Complex {
     type Output = Complex;
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
-    fn add(self, rhs: MulHold) -> Complex {
+    fn add(self, rhs: MulRef) -> Complex {
         self.add_round(rhs, NEAREST).0
     }
 }
 
-impl<'a> AddRound<MulHold<'a>> for Complex {
+impl<'a> AddRound<MulRef<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     type Output = Complex;
     /// Peforms multiplication and addition together with only one
     /// rounding operation as specified.
-    fn add_round(
-        mut self,
-        rhs: MulHold,
-        round: Round2,
-    ) -> (Complex, Ordering2) {
+    fn add_round(mut self, rhs: MulRef, round: Round2) -> (Complex, Ordering2) {
         let mpc_ret = unsafe {
             mpc::fma(
                 self.inner_mut(),
@@ -2538,10 +2529,10 @@ impl<'a> AddRound<MulHold<'a>> for Complex {
     }
 }
 
-impl<'a> AddAssign<MulHold<'a>> for Complex {
+impl<'a> AddAssign<MulRef<'a>> for Complex {
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
-    fn add_assign(&mut self, rhs: MulHold) {
+    fn add_assign(&mut self, rhs: MulRef) {
         unsafe {
             mpc::fma(
                 self.inner_mut(),
