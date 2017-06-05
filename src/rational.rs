@@ -852,6 +852,58 @@ impl Rational {
         fn fract_hold -> FractHold;
         xgmp::mpq_fract
     }
+
+    /// Returns the fractional and truncated parts of `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::Integer;
+    /// use rugrat::Rational;
+    /// fn main() {
+    ///     // -100/17 = -5 15/17
+    ///     let mut r = Rational::from((-100, 17));
+    ///     let mut whole = Integer::new();
+    ///     r.fract_trunc(&mut whole);
+    ///     assert_eq!(whole, -5);
+    ///     assert_eq!(r, (-15, 17));
+    /// }
+    /// ```
+    pub fn fract_trunc(&mut self, trunc: &mut Integer) {
+        unsafe {
+            xgmp::mpq_fract_trunc(
+                self.inner_mut(),
+                trunc.inner_mut(),
+                self.inner(),
+            );
+        }
+    }
+
+    /// Holds the computation of the fractional and truncated parts of
+    /// a number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate rugint;
+    /// extern crate rugrat;
+    /// use rugint::{Assign, Integer};
+    /// use rugrat::Rational;
+    /// fn main() {
+    ///     // -100/17 = -5 15/17
+    ///     let r = Rational::from((-100, 17));
+    ///     let hold = r.fract_trunc_hold();
+    ///     let (mut proper, mut whole) = (Rational::new(), Integer::new());
+    ///     (&mut proper, &mut whole).assign(hold);
+    ///     assert_eq!(whole, -5);
+    ///     assert_eq!(proper, (-15, 17));
+    /// }
+    /// ```
+    pub fn fract_trunc_hold(&self) -> FractTruncHold {
+        FractTruncHold { hold_self: self }
+    }
 }
 
 fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseRationalError> {
@@ -1135,6 +1187,22 @@ impl<'a> Assign<TruncHold<'a>> for Integer {
 }
 
 hold_math_op1! { struct FractHold {}; xgmp::mpq_fract }
+
+pub struct FractTruncHold<'a> {
+    hold_self: &'a Rational,
+}
+
+impl<'a> Assign<FractTruncHold<'a>> for (&'a mut Rational, &'a mut Integer) {
+    fn assign(&mut self, src: FractTruncHold<'a>) {
+        unsafe {
+            xgmp::mpq_fract_trunc(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                src.hold_self.inner(),
+            );
+        }
+    }
+}
 
 macro_rules! arith_binary {
     {

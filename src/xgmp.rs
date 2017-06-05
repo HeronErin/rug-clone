@@ -122,18 +122,27 @@ pub unsafe fn mpq_round(rop: *mut gmp::mpz_t, op: *const mpq_t) {
 pub unsafe fn mpq_trunc(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     let numref = gmp::mpq_numref(op as *mut _) as *const _;
     let denref = gmp::mpq_denref(op as *mut _) as *const _;
-    if gmp::mpz_cmp_ui(denref, 1) == 0 {
-        gmp::mpz_set(rop, numref);
-    } else {
-        gmp::mpz_tdiv_q(rop, numref, denref);
-    }
+    gmp::mpz_tdiv_q(rop, numref, denref);
 }
 
 pub unsafe fn mpq_fract(rop: *mut mpq_t, op: *const mpq_t) {
-    let rnumref = gmp::mpq_numref(rop);
-    let rdenref = gmp::mpq_denref(rop);
+    let r_numref = gmp::mpq_numref(rop);
+    let r_denref = gmp::mpq_denref(rop);
     let numref = gmp::mpq_numref(op as *mut _) as *const _;
     let denref = gmp::mpq_denref(op as *mut _) as *const _;
-    gmp::mpz_tdiv_r(rnumref, numref, denref);
-    gmp::mpz_set(rdenref, denref);
+    gmp::mpz_tdiv_r(r_numref, numref, denref);
+    gmp::mpz_set(r_denref, denref);
+}
+
+pub unsafe fn mpq_fract_trunc(
+    fop: *mut mpq_t,
+    top: *mut gmp::mpz_t,
+    op: *const mpq_t,
+) {
+    let f_numref = gmp::mpq_numref(fop);
+    let f_denref = gmp::mpq_denref(fop);
+    let numref = gmp::mpq_numref(op as *mut _) as *const _;
+    let denref = gmp::mpq_denref(op as *mut _) as *const _;
+    gmp::mpz_tdiv_qr(top, f_numref, numref, denref);
+    gmp::mpz_set(f_denref, denref);
 }
