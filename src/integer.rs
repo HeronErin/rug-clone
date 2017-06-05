@@ -829,8 +829,8 @@ impl Integer {
         (f, exp as u32)
     }
 
-    /// Returns a string representation of `self` for the specified
-    /// `radix`.
+    /// Returns a string representation of the number for the
+    /// specified `radix`.
     ///
     /// # Examples
     ///
@@ -941,17 +941,31 @@ impl Integer {
         Ok(())
     }
 
-    /// Returns `true` if `self` is even.
+    /// Returns `true` if the number is even.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// assert!(!Integer::from(13).is_even());
+    /// assert!(Integer::from(14).is_even());
+    /// ```
     pub fn is_even(&self) -> bool {
         unsafe { gmp::mpz_even_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is even.
+    /// Returns `true` if the number is odd.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// assert!(Integer::from(13).is_odd());
+    /// assert!(!Integer::from(14).is_odd());
+    /// ```
     pub fn is_odd(&self) -> bool {
         unsafe { gmp::mpz_odd_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is divisible by `divisor`. Unlike
+    /// Returns `true` if the number is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
     ///
     /// # Examples
@@ -967,7 +981,7 @@ impl Integer {
         unsafe { gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is divisible by `divisor`. Unlike
+    /// Returns `true` if the number is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
     ///
     /// # Examples
@@ -983,8 +997,8 @@ impl Integer {
         unsafe { gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0 }
     }
 
-    /// Returns `true` if `self` is divisible by two to the power of
-    /// `b`.
+    /// Returns `true` if the number is divisible by two to the power
+    /// of `b`.
     ///
     /// # Examples
     ///
@@ -999,9 +1013,10 @@ impl Integer {
         unsafe { gmp::mpz_divisible_2exp_p(self.inner(), b.into()) != 0 }
     }
 
-    /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
-    /// is, if there exists a `q` such that `self == c + q * divisor`.
-    /// Unlike other division functions, `divisor` can be zero.
+    /// Returns `true` if the number is congruent to `c` modulo
+    /// `divisor`, that is, if there exists a `q` such that
+    /// `self == c + q * divisor`. Unlike other division functions,
+    /// `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1021,9 +1036,10 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if `self` is congruent to `c` modulo `divisor`, that
-    /// is, if there exists a `q` such that `self == c + q * divisor`.
-    /// Unlike other division functions, `divisor` can be zero.
+    /// Returns `true` if the number is congruent to `c` modulo
+    /// `divisor`, that is, if there exists a `q` such that
+    /// `self == c + q * divisor`. Unlike other division functions,
+    /// `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1041,9 +1057,9 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if `self` is congruent to `c` modulo two to the
-    /// power of `b`, that is, if there exists a `q` such that `self
-    /// == c + q * 2 ^ b`.
+    /// Returns `true` if the number is congruent to `c` modulo two to
+    /// the power of `b`, that is, if there exists a `q` such that
+    /// `self == c + q * 2 ^ b`.
     ///
     /// # Examples
     ///
@@ -1059,7 +1075,7 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if `self` is a perfect power.
+    /// Returns `true` if the number is a perfect power.
     ///
     /// # Examples
     ///
@@ -1079,7 +1095,7 @@ impl Integer {
         unsafe { gmp::mpz_perfect_power_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is a perfect square.
+    /// Returns `true` if the number is a perfect square.
     ///
     /// # Examples
     ///
@@ -1111,7 +1127,7 @@ impl Integer {
         unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
     }
 
-    /// Compares the absolute values of `self` and `other`.
+    /// Compares the absolute values.
     ///
     /// # Examples
     ///
@@ -1120,6 +1136,7 @@ impl Integer {
     /// use std::cmp::Ordering;
     /// let a = Integer::from(-10);
     /// let b = Integer::from(4);
+    /// assert_eq!(a.cmp(&b), Ordering::Less);
     /// assert_eq!(a.cmp_abs(&b), Ordering::Greater);
     /// ```
     pub fn cmp_abs(&self, other: &Integer) -> Ordering {
@@ -1128,7 +1145,7 @@ impl Integer {
 
 
     /// Returns the number of bits required to represent the absolute
-    /// value of `self`.
+    /// value.
     ///
     /// # Examples
     ///
@@ -1156,7 +1173,7 @@ impl Integer {
         }
     }
 
-    /// Returns the number of ones in `self` if the value >= 0.
+    /// Returns the number of one bits if the value >= 0.
     ///
     /// # Examples
     ///
@@ -1255,8 +1272,8 @@ impl Integer {
         self
     }
 
-    /// Retuns the Hamming distance between `self` and `other` if they
-    /// have the same sign.
+    /// Retuns the Hamming distance if the two numbers have the same
+    /// sign.
     ///
     /// # Examples
     ///
