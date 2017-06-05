@@ -2674,6 +2674,9 @@ impl Display for ParseComplexError {
     }
 }
 
+unsafe impl Send for Complex {}
+unsafe impl Sync for Complex {}
+
 fn rraw(round: Round) -> mpfr::rnd_t {
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
