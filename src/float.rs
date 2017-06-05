@@ -3958,6 +3958,9 @@ impl Display for ParseFloatError {
     }
 }
 
+unsafe impl Send for Float {}
+unsafe impl Sync for Float {}
+
 fn lcase_in(a: &str, bs: &[&str]) -> bool {
     'next_b: for b in bs {
         if a.len() != b.len() {
