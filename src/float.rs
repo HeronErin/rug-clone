@@ -234,8 +234,8 @@ macro_rules! math_op1 {
         fn $method:ident($($param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -267,44 +267,44 @@ macro_rules! math_op1 {
             mpfr_ret.cmp(&0)
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(
+        $(#[$attr_ref])*
+        pub fn $method_ref(
             &self,
             $($param: $T),*
-        ) -> $Hold {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1 {
+macro_rules! ref_math_op1 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Float,
+        pub struct $Ref<'a> {
+            ref_self: &'a Float,
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Float {
+        impl<'a> AssignRound<$Ref<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
             fn assign_round(
                 &mut self,
-                src: $Hold<'a>,
+                src: $Ref<'a>,
                 round: Round,
             ) -> Ordering {
                 let mpfr_ret = unsafe {
                     $func(
                         self.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                         rraw(round),
                     )
@@ -321,8 +321,8 @@ macro_rules! math_op1_2 {
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -357,51 +357,51 @@ macro_rules! math_op1_2 {
             ordering2(mpfr_ret)
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold(
+        $(#[$attr_ref])*
+        pub fn $method_ref(
             &self,
             $($param: $T,)*
-        ) -> $Hold {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref {
+            $Ref {
+                ref_self: self,
                 $($param: $param,)*
             }
         }
     };
 }
 
-macro_rules! hold_math_op1_2 {
+macro_rules! ref_math_op1_2 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $($param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Float,
+        pub struct $Ref<'a> {
+            ref_self: &'a Float,
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Hold<'a>> for (&'a mut Float, &'a mut Float) {
-            fn assign(&mut self, src: $Hold<'a>) {
+        impl<'a> Assign<$Ref<'a>> for (&'a mut Float, &'a mut Float) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 self.assign_round(src, Round::Nearest);
             }
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for (&'a mut Float, &'a mut Float) {
+        impl<'a> AssignRound<$Ref<'a>> for (&'a mut Float, &'a mut Float) {
             type Round = Round;
             type Ordering = (Ordering, Ordering);
             fn assign_round(
                 &mut self,
-                src: $Hold<'a>,
+                src: $Ref<'a>,
                 round: Round,
             ) -> (Ordering, Ordering) {
                 let mpfr_ret = unsafe {
                     $func(
                         self.0.inner_mut(),
                         self.1.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         $(src.$param.into(),)*
                         rraw(round),
                     )
@@ -418,8 +418,8 @@ macro_rules! math_op2 {
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
-        $(#[$attr_hold:meta])*
-        fn $method_hold:ident -> $Hold:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
         $func:path
     } => {
         $(#[$attr])*
@@ -455,14 +455,14 @@ macro_rules! math_op2 {
             mpfr_ret.cmp(&0)
         }
 
-        $(#[$attr_hold])*
-        pub fn $method_hold<'a>(
+        $(#[$attr_ref])*
+        pub fn $method_ref<'a>(
             &'a self,
             $op: &'a Float,
             $($param: $T,)*
-        ) -> $Hold<'a> {
-            $Hold {
-                hold_self: self,
+        ) -> $Ref<'a> {
+            $Ref {
+                ref_self: self,
                 $op: $op,
                 $($param: $param,)*
             }
@@ -470,32 +470,32 @@ macro_rules! math_op2 {
     };
 }
 
-macro_rules! hold_math_op2 {
+macro_rules! ref_math_op2 {
     {
-        $(#[$attr_hold:meta])*
-        struct $Hold:ident { $op:ident $(, $param:ident: $T:ty),* };
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* };
         $func:path
     } => {
-        $(#[$attr_hold])*
+        $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Hold<'a> {
-            hold_self: &'a Float,
+        pub struct $Ref<'a> {
+            ref_self: &'a Float,
             $op: &'a Float,
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Float {
+        impl<'a> AssignRound<$Ref<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
             fn assign_round(
                 &mut self,
-                src: $Hold<'a>,
+                src: $Ref<'a>,
                 round: Round,
             ) -> Ordering {
                 let mpfr_ret = unsafe {
                     $func(
                         self.inner_mut(),
-                        src.hold_self.inner(),
+                        src.ref_self.inner(),
                         src.$op.inner(),
                         $(src.$param.into(),)*
                         rraw(round),
@@ -532,7 +532,7 @@ impl Float {
         unsafe { mpfr::get_prec(self.inner()) as u32 }
     }
 
-    /// Sets the precision of `self`, rounding to the nearest.
+    /// Sets the precision, rounding to the nearest.
     ///
     /// # Panics
     ///
@@ -541,8 +541,7 @@ impl Float {
         self.set_prec_round(prec, Round::Nearest);
     }
 
-    /// Sets the precision of `self`, applying the specified
-    /// rounding method.
+    /// Sets the precision, applying the specified rounding method.
     ///
     /// # Panics
     ///
@@ -1185,8 +1184,8 @@ impl Float {
         fn square();
         /// Computes the square, applying the specified rounding method.
         fn square_round;
-        /// Hold a computation of the square.
-        fn square_hold -> SquareHold;
+        /// Compuets the square.
+        fn square_ref -> SquareRef;
         mpfr::sqr
     }
     math_op1! {
@@ -1195,8 +1194,8 @@ impl Float {
         /// Computes the square root, applying the specified rounding
         /// method.
         fn sqrt_round;
-        /// Hold a computation of the square root.
-        fn sqrt_hold -> SqrtHold;
+        /// Computes the square root.
+        fn sqrt_ref -> SqrtRef;
         mpfr::sqrt
     }
 
@@ -1220,8 +1219,8 @@ impl Float {
         /// Computes the reciprocal square root, applying the specified
         /// rounding method.
         fn recip_sqrt_round;
-        /// Hold a computation of the reciprocal square root.
-        fn recip_sqrt_hold -> RecipSqrtHold;
+        /// Computes the reciprocal square root.
+        fn recip_sqrt_ref -> RecipSqrtRef;
         mpfr::rec_sqrt
     }
     math_op1! {
@@ -1230,8 +1229,8 @@ impl Float {
         /// Computes the cube root, applying the specified rounding
         /// method.
         fn cbrt_round;
-        /// Hold a computation of the cube root.
-        fn cbrt_hold -> CbrtHold;
+        /// Computes the cube root.
+        fn cbrt_ref -> CbrtRef;
         mpfr::cbrt
     }
     math_op1! {
@@ -1240,8 +1239,8 @@ impl Float {
         /// Computes the `k`th root, applying the specified rounding
         /// method.
         fn root_round;
-        /// Hold a computation of the `k`th root.
-        fn root_hold -> RootHold;
+        /// Computes the `k`th root.
+        fn root_ref -> RootRef;
         mpfr::root
     }
     math_op1! {
@@ -1250,8 +1249,8 @@ impl Float {
         /// Computes the absolute value, applying the specified rounding
         /// method.
         fn abs_round;
-        /// Hold a computation of the absolute value.
-        fn abs_hold -> AbsHold;
+        /// Computes the absolute value.
+        fn abs_ref -> AbsRef;
         mpfr::abs
     }
     math_op1! {
@@ -1260,8 +1259,8 @@ impl Float {
         /// Computes the reciprocal, applying the specified rounding
         /// method.
         fn recip_round;
-        /// Hold a computation of the reciprocal.
-        fn recip_hold -> RecipHold;
+        /// Computes the reciprocal.
+        fn recip_ref -> RecipRef;
         xmpfr::recip
     }
     math_op2! {
@@ -1271,8 +1270,8 @@ impl Float {
         /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
         fn abs_diff_round;
-        /// Hold a computation of the positive difference.
-        fn abs_diff_hold -> AbsDiffHold;
+        /// Computes the positive difference.
+        fn abs_diff_ref -> AbsDiffRef;
         mpfr::dim
     }
     math_op1! {
@@ -1281,8 +1280,8 @@ impl Float {
         /// Computes the natural logarithm, applying the specified
         /// rounding method.
         fn ln_round;
-        /// Hold a computation of the natural logarithm.
-        fn ln_hold -> LnHold;
+        /// Computes the natural logarithm.
+        fn ln_ref -> LnRef;
         mpfr::log
     }
     math_op1! {
@@ -1291,8 +1290,8 @@ impl Float {
         /// Computes the logarithm to base 2, applying the specified
         /// rounding method.
         fn log2_round;
-        /// Hold a computation of the logarithm to base 2.
-        fn log2_hold -> Log2Hold;
+        /// Computes the logarithm to base 2.
+        fn log2_ref -> Log2Ref;
         mpfr::log2
     }
     math_op1! {
@@ -1301,8 +1300,8 @@ impl Float {
         /// Computes the logarithm to base 10, applying the specified
         /// rounding method.
         fn log10_round;
-        /// Hold a computation of the logarithm to base 10.
-        fn log10_hold -> Log10Hold;
+        /// Computes the logarithm to base 10.
+        fn log10_ref -> Log10Ref;
         mpfr::log10
     }
     math_op1! {
@@ -1311,8 +1310,8 @@ impl Float {
         /// Computes the exponential, applying the specified rounding
         /// method.
         fn exp_round;
-        /// Hold a computation of the exponential.
-        fn exp_hold -> ExpHold;
+        /// Computes the exponential.
+        fn exp_ref -> ExpRef;
         mpfr::exp
     }
     math_op1! {
@@ -1321,8 +1320,8 @@ impl Float {
         /// Computes 2 to the power of `self`, applying the specified
         /// rounding method.
         fn exp2_round;
-        /// Hold a computation of 2 to power of the value.
-        fn exp2_hold -> Exp2Hold;
+        /// Computes 2 to the power of the value.
+        fn exp2_ref -> Exp2Ref;
         mpfr::exp2
     }
     math_op1! {
@@ -1331,8 +1330,8 @@ impl Float {
         /// Computes 10 to the power of `self`, applying the specified
         /// rounding method.
         fn exp10_round;
-        /// Hold a computation of 10 to the power of the value.
-        fn exp10_hold -> Exp10Hold;
+        /// Computes 10 to the power of the value.
+        fn exp10_ref -> Exp10Ref;
         mpfr::exp10
     }
     math_op1! {
@@ -1340,8 +1339,8 @@ impl Float {
         fn sin();
         /// Computes the sine, applying the specified rounding method.
         fn sin_round;
-        /// Hold a computation of the sine.
-        fn sin_hold -> SinHold;
+        /// Computes the sine.
+        fn sin_ref -> SinRef;
         mpfr::sin
     }
     math_op1! {
@@ -1349,8 +1348,8 @@ impl Float {
         fn cos();
         /// Computes the cosine, applying the specified rounding method.
         fn cos_round;
-        /// Hold a computation of the cosine.
-        fn cos_hold -> CosHold;
+        /// Computes the cosine.
+        fn cos_ref -> CosRef;
         mpfr::cos
     }
     math_op1! {
@@ -1358,8 +1357,8 @@ impl Float {
         fn tan();
         /// Computes the tangent, applying the specified rounding method.
         fn tan_round;
-        /// Hold a computation of the tangent.
-        fn tan_hold -> TanHold;
+        /// Computes the tangent.
+        fn tan_ref -> TanRef;
         mpfr::tan
     }
     math_op1_2! {
@@ -1375,7 +1374,7 @@ impl Float {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         fn sin_cos_round;
-        /// Holds a computation of the sine and cosine.
+        /// Computes the sine and cosine.
         ///
         /// # Examples
         ///
@@ -1388,15 +1387,15 @@ impl Float {
         /// fn main() {
         ///     // sin(0.5) = 0.47943, cos(0.5) = 0.87758
         ///     let angle = Float::from((0.5, 53));
-        ///     let hold = angle.sin_cos_hold();
+        ///     let r = angle.sin_cos_ref();
         ///     // use only 10 bits of precision here to
         ///     // make comparison easier
         ///     let (mut sin, mut cos) = (Float::new(10), Float::new(10));
-        ///     (&mut sin, &mut cos).assign(hold);
+        ///     (&mut sin, &mut cos).assign(r);
         ///     assert_eq!(sin, Float::from((0.47943, 10)));
         ///     assert_eq!(cos, Float::from((0.87748, 10)));
         /// }
-        fn sin_cos_hold -> SinCosHold;
+        fn sin_cos_ref -> SinCosRef;
         mpfr::sin_cos
     }
     math_op1! {
@@ -1404,8 +1403,8 @@ impl Float {
         fn sec();
         /// Computes the secant, applying the specified rounding method.
         fn sec_round;
-        /// Hold a computation of the secant.
-        fn sec_hold -> SecHold;
+        /// Computes the secant.
+        fn sec_ref -> SecRef;
         mpfr::sec
     }
     math_op1! {
@@ -1413,8 +1412,8 @@ impl Float {
         fn csc();
         /// Computes the cosecant, applying the specified rounding method.
         fn csc_round;
-        /// Hold a computation of the cosecant.
-        fn csc_hold -> CscHold;
+        /// Computes the cosecant.
+        fn csc_ref -> CscRef;
         mpfr::csc
     }
     math_op1! {
@@ -1423,8 +1422,8 @@ impl Float {
         /// Computes the cotangent, applying the specified rounding
         /// method.
         fn cot_round;
-        /// Hold a computation of the cotangent.
-        fn cot_hold -> CotHold;
+        /// Computes the cotangent.
+        fn cot_ref -> CotRef;
         mpfr::cot
     }
     math_op1! {
@@ -1433,8 +1432,8 @@ impl Float {
         /// Computes the arc-cosine, applying the specified rounding
         /// method.
         fn acos_round;
-        /// Hold a computation of the arc-cosine.
-        fn acos_hold -> AcosHold;
+        /// Computes the arc-cosine.
+        fn acos_ref -> AcosRef;
         mpfr::acos
     }
     math_op1! {
@@ -1442,8 +1441,8 @@ impl Float {
         fn asin();
         /// Computes the arc-sine, applying the specified rounding method.
         fn asin_round;
-        /// Hold a computation of the arc-sine.
-        fn asin_hold -> AsinHold;
+        /// Computes the arc-sine.
+        fn asin_ref -> AsinRef;
         mpfr::asin
     }
     math_op1! {
@@ -1452,8 +1451,8 @@ impl Float {
         /// Computes the arc-tangent, applying the specified rounding
         /// method.
         fn atan_round;
-        /// Hold a computation of the arc-tangent.
-        fn atan_hold -> AtanHold;
+        /// Computes the arc-tangent.
+        fn atan_ref -> AtanRef;
         mpfr::atan
     }
     math_op2! {
@@ -1471,8 +1470,8 @@ impl Float {
         /// in the cases when either `self` or `other` or both are zero or
         /// infinity.
         fn atan2_round;
-        /// Hold a computation of the arc-tangent.
-        fn atan2_hold -> Atan2Hold;
+        /// Computes the arc-tangent.
+        fn atan2_ref -> Atan2Ref;
         mpfr::atan2
     }
     math_op1! {
@@ -1481,8 +1480,8 @@ impl Float {
         /// Computes the hyperbolic sine, applying the specified rounding
         /// method.
         fn sinh_round;
-        /// Hold a computation of the hyperbolic sine.
-        fn sinh_hold -> SinhHold;
+        /// Computes the hyperbolic sine.
+        fn sinh_ref -> SinhRef;
         mpfr::sinh
     }
     math_op1! {
@@ -1491,8 +1490,8 @@ impl Float {
         /// Computes the hyperbolic cosine, applying the specified
         /// rounding method.
         fn cosh_round;
-        /// Hold a computation of the hyperbolic cosine.
-        fn cosh_hold -> CoshHold;
+        /// Computes the hyperbolic cosine.
+        fn cosh_ref -> CoshRef;
         mpfr::cosh
     }
     math_op1! {
@@ -1501,8 +1500,8 @@ impl Float {
         /// Computes the hyperbolic tangent, applying the specified
         /// rounding method.
         fn tanh_round;
-        /// Hold a computation of the hyperbolic tangent.
-        fn tanh_hold -> TanhHold;
+        /// Computes the hyperbolic tangent.
+        fn tanh_ref -> TanhRef;
         mpfr::tanh
     }
     math_op1_2! {
@@ -1518,7 +1517,7 @@ impl Float {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         fn sinh_cosh_round;
-        /// Holds a computation of the hyperbolic sine and cosine.
+        /// Computes the hyperbolic sine and cosine.
         ///
         /// # Examples
         ///
@@ -1531,15 +1530,15 @@ impl Float {
         /// fn main() {
         ///     // sinh(0.5) = 0.52110, cosh(0.5) = 1.1276
         ///     let angle = Float::from((0.5, 53));
-        ///     let hold = angle.sinh_cosh_hold();
+        ///     let r = angle.sinh_cosh_ref();
         ///     // use only 10 bits of precision here to
         ///     // make comparison easier
         ///     let (mut sinh, mut cosh) = (Float::new(10), Float::new(10));
-        ///     (&mut sinh, &mut cosh).assign(hold);
+        ///     (&mut sinh, &mut cosh).assign(r);
         ///     assert_eq!(sinh, Float::from((0.52110, 10)));
         ///     assert_eq!(cosh, Float::from((1.1276, 10)));
         /// }
-        fn sinh_cosh_hold -> SinhCoshHold;
+        fn sinh_cosh_ref -> SinhCoshRef;
         mpfr::sinh_cosh
     }
     math_op1! {
@@ -1548,8 +1547,8 @@ impl Float {
         /// Computes the hyperbolic secant, applying the specified
         /// rounding method.
         fn sech_round;
-        /// Hold a computation of the hyperbolic secant.
-        fn sech_hold -> SechHold;
+        /// Computes the hyperbolic secant.
+        fn sech_ref -> SechRef;
         mpfr::sech
     }
     math_op1! {
@@ -1558,8 +1557,8 @@ impl Float {
         /// Computes the hyperbolic cosecant, applying the specified
         /// rounding method.
         fn csch_round;
-        /// Hold a computation of the hyperbolic cosecant.
-        fn csch_hold -> CschHold;
+        /// Computes the hyperbolic cosecant.
+        fn csch_ref -> CschRef;
         mpfr::csch
     }
     math_op1! {
@@ -1568,8 +1567,8 @@ impl Float {
         /// Computes the hyperbolic cotangent, applying the specified
         /// rounding method.
         fn coth_round;
-        /// Hold a computation of the hyperbolic cotangent.
-        fn coth_hold -> CothHold;
+        /// Computes the hyperbolic cotangent.
+        fn coth_ref -> CothRef;
         mpfr::coth
     }
     math_op1! {
@@ -1579,8 +1578,8 @@ impl Float {
         /// Computes the inverse hyperbolic cosine, applying the specified
         /// rounding method.
         fn acosh_round;
-        /// Hold a computation of the inverse hyperbolic cosine
-        fn acosh_hold -> AcoshHold;
+        /// Computes the inverse hyperbolic cosine
+        fn acosh_ref -> AcoshRef;
         mpfr::acosh
     }
     math_op1! {
@@ -1589,8 +1588,8 @@ impl Float {
         /// Computes the inverse hyperbolic sine, applying the specified
         /// rounding method.
         fn asinh_round;
-        /// Hold a computation of the inverse hyperbolic sine.
-        fn asinh_hold -> AsinhHold;
+        /// Computes the inverse hyperbolic sine.
+        fn asinh_ref -> AsinhRef;
         mpfr::asinh
     }
     math_op1! {
@@ -1600,8 +1599,8 @@ impl Float {
         /// Computes the inverse hyperbolic tangent, applying the
         /// specified rounding method.
         fn atanh_round;
-        /// Hold a computation of the inverse hyperbolic tangent.
-        fn atanh_hold -> AtanhHold;
+        /// Computes the inverse hyperbolic tangent.
+        fn atanh_ref -> AtanhRef;
         mpfr::atanh
     }
 
@@ -1629,9 +1628,9 @@ impl Float {
         /// Computes the natural logarithm of one plus `self`, applying
         /// the specified rounding method.
         fn ln_1p_round;
-        /// Hold a computation of the natural logorithm of one plus the
+        /// Computes the natural logorithm of one plus the
         /// value.
-        fn ln_1p_hold -> Ln1pHold;
+        fn ln_1p_ref -> Ln1pRef;
         mpfr::log1p
     }
     math_op1! {
@@ -1641,9 +1640,9 @@ impl Float {
         /// Subtracts one from the exponential of `self`, applying the
         /// specified rounding method.
         fn exp_m1_round;
-        /// Hold a computation of one less than the exponential of the
+        /// Computes one less than the exponential of the
         /// value.
-        fn exp_m1_hold -> ExpM1Hold;
+        fn exp_m1_ref -> ExpM1Ref;
         mpfr::expm1
     }
     math_op1! {
@@ -1652,8 +1651,8 @@ impl Float {
         /// Computes the exponential integral, applying the specified
         /// rounding method.
         fn eint_round;
-        /// Hold a computation of the exponential integral.
-        fn eint_hold -> EintHold;
+        /// Computes the exponential integral.
+        fn eint_ref -> EintRef;
         mpfr::eint
     }
     math_op1! {
@@ -1663,9 +1662,9 @@ impl Float {
         /// Computes the real part of the dilogarithm of `self`, applying
         /// the specified rounding method.
         fn li2_round;
-        /// Hold a computation of the real part of the dilogarithm of the
+        /// Computes the real part of the dilogarithm of the
         /// value.
-        fn li2_hold -> Li2Hold;
+        fn li2_ref -> Li2Ref;
         mpfr::li2
     }
     math_op1! {
@@ -1675,8 +1674,8 @@ impl Float {
         /// Computes the value of the Gamma function on `self`, applying
         /// the specified rounding method.
         fn gamma_round;
-        /// Hold a computation of the Gamma function on the value.
-        fn gamma_hold -> GammaHold;
+        /// Computes the Gamma function on the value.
+        fn gamma_ref -> GammaRef;
         mpfr::gamma
     }
     math_op1! {
@@ -1686,9 +1685,9 @@ impl Float {
         /// Computes the logarithm of the Gamma function on `self`,
         /// applying the specified rounding method.
         fn ln_gamma_round;
-        /// Hold a computation of the logarithm of the Gamma function on
+        /// Computes the logarithm of the Gamma function on
         /// the value.
-        fn ln_gamma_hold -> LnGammaHold;
+        fn ln_gamma_ref -> LnGammaRef;
         mpfr::lngamma
     }
 
@@ -1784,8 +1783,8 @@ impl Float {
         (sign_ord, mpfr_ret.cmp(&0))
     }
 
-    /// Holds the computation of the logarithm of the absolute value of the
-    /// Gamma function on `val`.
+    /// Computes the logarithm of the absolute value of the Gamma
+    /// function on `val`.
     ///
     /// # Examples
     ///
@@ -1809,8 +1808,8 @@ impl Float {
     ///     let mut sign = Ordering::Equal;
     ///
     ///     // Assign rounds to the nearest
-    ///     let hold = neg_1_2.ln_abs_gamma_hold();
-    ///     (&mut f, &mut sign).assign(hold);
+    ///     let r = neg_1_2.ln_abs_gamma_ref();
+    ///     (&mut f, &mut sign).assign(r);
     ///     // gamma of -1/2 is negative
     ///     assert_eq!(sign, Ordering::Less);
     ///     // check is correct to 53 significant bits
@@ -1818,8 +1817,8 @@ impl Float {
     ///     assert_eq!(f, check);
     ///
     ///     // AssignRound returns the rounding direction
-    ///     let hold = neg_1_2.ln_abs_gamma_hold();
-    ///     let dir = (&mut f, &mut sign).assign_round(hold, Round::Nearest);
+    ///     let r = neg_1_2.ln_abs_gamma_ref();
+    ///     let dir = (&mut f, &mut sign).assign_round(r, Round::Nearest);
     ///     // gamma of -1/2 is negative
     ///     assert_eq!(sign, Ordering::Less);
     ///     // check is correct to 53 significant bits
@@ -1828,8 +1827,8 @@ impl Float {
     ///     assert_eq!(dir, check_dir);
     /// }
     /// ```
-    pub fn ln_abs_gamma_hold(&self) -> LnAbsGammaHold {
-        LnAbsGammaHold { hold_self: self }
+    pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaRef {
+        LnAbsGammaRef { ref_self: self }
     }
 
     math_op1! {
@@ -1839,8 +1838,8 @@ impl Float {
         /// Computes the value of the Digamma function on `self`, applying
         /// the specified rounding method.
         fn digamma_round;
-        /// Hold a computation of the Digamma function on the value.
-        fn digamma_hold -> DigammaHold;
+        /// Computes the Digamma function on the value.
+        fn digamma_ref -> DigammaRef;
         mpfr::digamma
     }
     math_op1! {
@@ -1850,8 +1849,8 @@ impl Float {
         /// Computes the value of the Riemann Zeta function on `self`,
         /// applying the specified rounding method.
         fn zeta_round;
-        /// Hold a computation of the Riemann Zeta function on the value.
-        fn zeta_hold -> ZetaHold;
+        /// Computes the Riemann Zeta function on the value.
+        fn zeta_ref -> ZetaRef;
         mpfr::zeta
     }
 
@@ -1876,8 +1875,8 @@ impl Float {
         /// Computes the value of the error function, applying the
         /// specified rounding method.
         fn erf_round;
-        /// Hold a computation of the error function.
-        fn erf_hold -> ErfHold;
+        /// Computes the error function.
+        fn erf_ref -> ErfRef;
         mpfr::erf
     }
     math_op1! {
@@ -1887,8 +1886,8 @@ impl Float {
         /// Computes the value of the complementary error function,
         /// applying the specified rounding method.
         fn erfc_round;
-        /// Hold a computation of the complementary error function.
-        fn erfc_hold -> ErfcHold;
+        /// Computes the complementary error function.
+        fn erfc_ref -> ErfcRef;
         mpfr::erfc
     }
     math_op1! {
@@ -1898,9 +1897,9 @@ impl Float {
         /// Computes the value of the first kind Bessel function of order
         /// 0, applying the specified rounding method.
         fn j0_round;
-        /// Hold a computation of the first kind Bessel function of order
+        /// Computes the first kind Bessel function of order
         /// 0.
-        fn j0_hold -> J0Hold;
+        fn j0_ref -> J0Ref;
         mpfr::j0
     }
     math_op1! {
@@ -1910,9 +1909,9 @@ impl Float {
         /// Computes the value of the first kind Bessel function of order
         /// 1, applying the specified rounding method.
         fn j1_round;
-        /// Hold a computation of the first kind Bessel function of order
+        /// Computes the first kind Bessel function of order
         /// 1.
-        fn j1_hold -> J1Hold;
+        fn j1_ref -> J1Ref;
         mpfr::j1
     }
     math_op1! {
@@ -1922,9 +1921,9 @@ impl Float {
         /// Computes the value of the first kind Bessel function of order
         /// `n`, applying the specified rounding method.
         fn jn_round;
-        /// Hold a computation of the first kind Bessel function of order
+        /// Computes the first kind Bessel function of order
         /// `n`.
-        fn jn_hold -> JnHold;
+        fn jn_ref -> JnRef;
         xmpfr::jn
     }
     math_op1! {
@@ -1934,9 +1933,9 @@ impl Float {
         /// Computes the value of the second kind Bessel function of order
         /// 0, applying the specified rounding method.
         fn y0_round;
-        /// Hold a computation of the second kind Bessel function of order
+        /// Computes the second kind Bessel function of order
         /// 0.
-        fn y0_hold -> Y0Hold;
+        fn y0_ref -> Y0Ref;
         mpfr::y0
     }
     math_op1! {
@@ -1946,9 +1945,9 @@ impl Float {
         /// Computes the value of the second kind Bessel function of order
         /// 1, applying the specified rounding method.
         fn y1_round;
-        /// Hold a computation of the second kind Bessel function of order
+        /// Computes the second kind Bessel function of order
         /// 1.
-        fn y1_hold -> Y1Hold;
+        fn y1_ref -> Y1Ref;
         mpfr::y1
     }
     math_op1! {
@@ -1958,9 +1957,9 @@ impl Float {
         /// Computes the value of the second kind Bessel function of order
         /// `n`, applying the specified rounding method.
         fn yn_round;
-        /// Hold a computation of the second kind Bessel function of order
+        /// Computes the second kind Bessel function of order
         /// `n`.
-        fn yn_hold -> YnHold;
+        fn yn_ref -> YnRef;
         xmpfr::yn
     }
     math_op2! {
@@ -1970,8 +1969,8 @@ impl Float {
         /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// applying the specified rounding method.
         fn agm_round;
-        /// Hold a computation of the arithmetic-geometric mean.
-        fn agm_hold -> AgmHold;
+        /// Computes the arithmetic-geometric mean.
+        fn agm_ref -> AgmRef;
         mpfr::agm
     }
     math_op2! {
@@ -1981,8 +1980,8 @@ impl Float {
         /// Computes the Euclidean norm of `self` and `other`, applying
         /// the specified rounding method.
         fn hypot_round;
-        /// Hold a computation of the Euclidean norm.
-        fn hypot_hold -> HypotHold;
+        /// Computes the Euclidean norm.
+        fn hypot_ref -> HypotRef;
         mpfr::hypot
     }
     math_op1! {
@@ -1992,8 +1991,8 @@ impl Float {
         /// Computes the value of the Airy function Ai on `self`, applying
         /// the specified rounding method.
         fn ai_round;
-        /// Hold a computation of the Airy function Ai on the value.
-        fn ai_hold -> AiHold;
+        /// Computes the Airy function Ai on the value.
+        fn ai_ref -> AiRef;
         mpfr::ai
     }
     math_op1! {
@@ -2001,20 +2000,19 @@ impl Float {
         fn ceil();
         /// Rounds up to the next higher integer.
         fn ceil_round;
-        /// Hold a rounding to the next higher integer. The result may
-        /// be rounded again when assigned to the target.
-        fn ceil_hold -> CeilHold;
+        /// Rounds up to the next higher integer. The result may be
+        /// rounded again when assigned to the target.
+        fn ceil_ref -> CeilRef;
         mpfr::rint_ceil
     }
     math_op1! {
         /// Rounds down to the next lower integer.
         fn floor();
         /// Rounds down to the next lower integer.
-        /// rounding.
         fn floor_round;
-        /// Hold a rounding to the next lower integer. The result may
-        /// be rounded again when assigned to the target.
-        fn floor_hold -> FloorHold;
+        /// Rounds down to the next lower integer. The result may be
+        /// rounded again when assigned to the target.
+        fn floor_ref -> FloorRef;
         mpfr::rint_floor
     }
     math_op1! {
@@ -2024,9 +2022,9 @@ impl Float {
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
         fn round_round;
-        /// Hold a rounding to the nearest integer, rounding half-way
-        /// cases away from zero. The result may be rounded again
-        /// when assigned to the target.
+        /// Rounds to the nearest integer, rounding half-way cases
+        /// away from zero. The result may be rounded again when
+        /// assigned to the target.
         ///
         /// # Examples
         ///
@@ -2034,16 +2032,16 @@ impl Float {
         /// use rugflo::{AssignRound, Float, Round};
         /// let f = Float::from((6.5, 53));
         /// // 6.5 (binary 110.1) can be rounded to 7 (binary 111)
-        /// let hold = f.round_hold();
+        /// let r = f.round_ref();
         /// // use only 2 bits of precision in destination
         /// let mut dst = Float::new(2);
         /// // 7 (binary 111) is rounded to 8 (binary 1000) by
         /// // round-even rule in order to store in 2-bit Float, even
         /// // though 6 (binary 110) is closer to original 6.5).
-        /// dst.assign_round(hold, Round::Nearest);
+        /// dst.assign_round(r, Round::Nearest);
         /// assert_eq!(dst, 8);
         /// ```
-        fn round_hold -> RoundHold;
+        fn round_ref -> RoundRef;
         mpfr::rint_round
     }
     math_op1! {
@@ -2051,9 +2049,9 @@ impl Float {
         fn trunc();
         /// Rounds to the next integer towards zero.
         fn trunc_round;
-        /// Hold a rounding to the next integer towards zero. The
-        /// result may be rounded again when assigned to the target.
-        fn trunc_hold -> TruncHold;
+        /// Rounds to the next integer towards zero. The result may be
+        /// rounded again when assigned to the target.
+        fn trunc_ref -> TruncRef;
         mpfr::rint_trunc
     }
     math_op1! {
@@ -2062,7 +2060,7 @@ impl Float {
         /// Gets the fractional part of the number.
         fn fract_round;
         /// Gets the fractional part of the number.
-        fn fract_hold -> FractHold;
+        fn fract_ref -> FractRef;
         mpfr::frac
     }
     math_op1_2! {
@@ -2081,7 +2079,7 @@ impl Float {
         /// keeping its precision.
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
-        fn trunc_fract_hold -> TruncFractHold;
+        fn trunc_fract_ref -> TruncFractRef;
         mpfr::modf
     }
 
@@ -2598,64 +2596,64 @@ assign! { Float, mpfr::set }
 assign! { Integer, mpfr::set_z }
 assign! { Rational, mpfr::set_q }
 
-hold_math_op1! { struct SquareHold {}; mpfr::sqr }
-hold_math_op1! { struct SqrtHold {}; mpfr::sqrt }
-hold_math_op1! { struct RecipSqrtHold {}; mpfr::rec_sqrt }
-hold_math_op1! { struct CbrtHold {}; mpfr::cbrt }
-hold_math_op1! { struct RootHold { k: u32 }; mpfr::root }
-hold_math_op1! { struct AbsHold {}; mpfr::abs }
-hold_math_op1! { struct RecipHold {}; xmpfr::recip }
-hold_math_op2! { struct AbsDiffHold { other }; mpfr::dim }
-hold_math_op1! { struct LnHold {}; mpfr::log }
-hold_math_op1! { struct Log2Hold {}; mpfr::log2 }
-hold_math_op1! { struct Log10Hold {}; mpfr::log10 }
-hold_math_op1! { struct ExpHold {}; mpfr::exp }
-hold_math_op1! { struct Exp2Hold {}; mpfr::exp2 }
-hold_math_op1! { struct Exp10Hold {}; mpfr::exp10 }
-hold_math_op1! { struct SinHold {}; mpfr::sin }
-hold_math_op1! { struct CosHold {}; mpfr::cos }
-hold_math_op1! { struct TanHold {}; mpfr::tan }
-hold_math_op1_2! { struct SinCosHold {}; mpfr::sin_cos }
-hold_math_op1! { struct SecHold {}; mpfr::sec }
-hold_math_op1! { struct CscHold {}; mpfr::csc }
-hold_math_op1! { struct CotHold {}; mpfr::cot }
-hold_math_op1! { struct AcosHold {}; mpfr::acos }
-hold_math_op1! { struct AsinHold {}; mpfr::asin }
-hold_math_op1! { struct AtanHold {}; mpfr::atan }
-hold_math_op2! { struct Atan2Hold { other }; mpfr::atan2 }
-hold_math_op1! { struct CoshHold {}; mpfr::cosh }
-hold_math_op1! { struct SinhHold {}; mpfr::sinh }
-hold_math_op1! { struct TanhHold {}; mpfr::tanh }
-hold_math_op1_2! { struct SinhCoshHold {}; mpfr::sinh_cosh }
-hold_math_op1! { struct SechHold {}; mpfr::sech }
-hold_math_op1! { struct CschHold {}; mpfr::csch }
-hold_math_op1! { struct CothHold {}; mpfr::coth }
-hold_math_op1! { struct AcoshHold {}; mpfr::acosh }
-hold_math_op1! { struct AsinhHold {}; mpfr::asinh }
-hold_math_op1! { struct AtanhHold {}; mpfr::atanh }
-hold_math_op1! { struct Ln1pHold {}; mpfr::log1p }
-hold_math_op1! { struct ExpM1Hold {}; mpfr::expm1 }
-hold_math_op1! { struct EintHold {}; mpfr::eint }
-hold_math_op1! { struct Li2Hold {}; mpfr::li2 }
-hold_math_op1! { struct GammaHold {}; mpfr::gamma }
-hold_math_op1! { struct LnGammaHold {}; mpfr::lngamma }
+ref_math_op1! { struct SquareRef {}; mpfr::sqr }
+ref_math_op1! { struct SqrtRef {}; mpfr::sqrt }
+ref_math_op1! { struct RecipSqrtRef {}; mpfr::rec_sqrt }
+ref_math_op1! { struct CbrtRef {}; mpfr::cbrt }
+ref_math_op1! { struct RootRef { k: u32 }; mpfr::root }
+ref_math_op1! { struct AbsRef {}; mpfr::abs }
+ref_math_op1! { struct RecipRef {}; xmpfr::recip }
+ref_math_op2! { struct AbsDiffRef { other }; mpfr::dim }
+ref_math_op1! { struct LnRef {}; mpfr::log }
+ref_math_op1! { struct Log2Ref {}; mpfr::log2 }
+ref_math_op1! { struct Log10Ref {}; mpfr::log10 }
+ref_math_op1! { struct ExpRef {}; mpfr::exp }
+ref_math_op1! { struct Exp2Ref {}; mpfr::exp2 }
+ref_math_op1! { struct Exp10Ref {}; mpfr::exp10 }
+ref_math_op1! { struct SinRef {}; mpfr::sin }
+ref_math_op1! { struct CosRef {}; mpfr::cos }
+ref_math_op1! { struct TanRef {}; mpfr::tan }
+ref_math_op1_2! { struct SinCosRef {}; mpfr::sin_cos }
+ref_math_op1! { struct SecRef {}; mpfr::sec }
+ref_math_op1! { struct CscRef {}; mpfr::csc }
+ref_math_op1! { struct CotRef {}; mpfr::cot }
+ref_math_op1! { struct AcosRef {}; mpfr::acos }
+ref_math_op1! { struct AsinRef {}; mpfr::asin }
+ref_math_op1! { struct AtanRef {}; mpfr::atan }
+ref_math_op2! { struct Atan2Ref { other }; mpfr::atan2 }
+ref_math_op1! { struct CoshRef {}; mpfr::cosh }
+ref_math_op1! { struct SinhRef {}; mpfr::sinh }
+ref_math_op1! { struct TanhRef {}; mpfr::tanh }
+ref_math_op1_2! { struct SinhCoshRef {}; mpfr::sinh_cosh }
+ref_math_op1! { struct SechRef {}; mpfr::sech }
+ref_math_op1! { struct CschRef {}; mpfr::csch }
+ref_math_op1! { struct CothRef {}; mpfr::coth }
+ref_math_op1! { struct AcoshRef {}; mpfr::acosh }
+ref_math_op1! { struct AsinhRef {}; mpfr::asinh }
+ref_math_op1! { struct AtanhRef {}; mpfr::atanh }
+ref_math_op1! { struct Ln1pRef {}; mpfr::log1p }
+ref_math_op1! { struct ExpM1Ref {}; mpfr::expm1 }
+ref_math_op1! { struct EintRef {}; mpfr::eint }
+ref_math_op1! { struct Li2Ref {}; mpfr::li2 }
+ref_math_op1! { struct GammaRef {}; mpfr::gamma }
+ref_math_op1! { struct LnGammaRef {}; mpfr::lngamma }
 
-pub struct LnAbsGammaHold<'a> {
-    hold_self: &'a Float,
+pub struct LnAbsGammaRef<'a> {
+    ref_self: &'a Float,
 }
 
-impl<'a> Assign<LnAbsGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
-    fn assign(&mut self, src: LnAbsGammaHold<'a>) {
+impl<'a> Assign<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
+    fn assign(&mut self, src: LnAbsGammaRef<'a>) {
         self.assign_round(src, Round::Nearest);
     }
 }
 
-impl<'a> AssignRound<LnAbsGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
+impl<'a> AssignRound<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
     type Round = Round;
     type Ordering = Ordering;
     fn assign_round(
         &mut self,
-        src: LnAbsGammaHold<'a>,
+        src: LnAbsGammaRef<'a>,
         round: Round,
     ) -> Ordering {
         let mut sign: c_int = 0;
@@ -2664,7 +2662,7 @@ impl<'a> AssignRound<LnAbsGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
             mpfr::lgamma(
                 self.0.inner_mut(),
                 sign_ptr,
-                src.hold_self.inner(),
+                src.ref_self.inner(),
                 rraw(round),
             )
         };
@@ -2677,25 +2675,25 @@ impl<'a> AssignRound<LnAbsGammaHold<'a>> for (&'a mut Float, &'a mut Ordering) {
     }
 }
 
-hold_math_op1! { struct DigammaHold {}; mpfr::digamma }
-hold_math_op1! { struct ZetaHold {}; mpfr::zeta }
-hold_math_op1! { struct ErfHold {}; mpfr::erf }
-hold_math_op1! { struct ErfcHold {}; mpfr::erfc }
-hold_math_op1! { struct J0Hold {}; mpfr::j0 }
-hold_math_op1! { struct J1Hold {}; mpfr::j1 }
-hold_math_op1! { struct JnHold { n: i32 }; xmpfr::jn }
-hold_math_op1! { struct Y0Hold {}; mpfr::y0 }
-hold_math_op1! { struct Y1Hold {}; mpfr::y1 }
-hold_math_op1! { struct YnHold { n: i32 }; xmpfr::yn }
-hold_math_op2! { struct AgmHold { other }; mpfr::agm }
-hold_math_op2! { struct HypotHold { other }; mpfr::hypot }
-hold_math_op1! { struct AiHold {}; mpfr::ai }
-hold_math_op1! { struct CeilHold {}; mpfr::rint_ceil }
-hold_math_op1! { struct FloorHold {}; mpfr::rint_floor }
-hold_math_op1! { struct RoundHold {}; mpfr::rint_round }
-hold_math_op1! { struct TruncHold {}; mpfr::rint_trunc }
-hold_math_op1! { struct FractHold {}; mpfr::frac }
-hold_math_op1_2! { struct TruncFractHold {}; mpfr::modf }
+ref_math_op1! { struct DigammaRef {}; mpfr::digamma }
+ref_math_op1! { struct ZetaRef {}; mpfr::zeta }
+ref_math_op1! { struct ErfRef {}; mpfr::erf }
+ref_math_op1! { struct ErfcRef {}; mpfr::erfc }
+ref_math_op1! { struct J0Ref {}; mpfr::j0 }
+ref_math_op1! { struct J1Ref {}; mpfr::j1 }
+ref_math_op1! { struct JnRef { n: i32 }; xmpfr::jn }
+ref_math_op1! { struct Y0Ref {}; mpfr::y0 }
+ref_math_op1! { struct Y1Ref {}; mpfr::y1 }
+ref_math_op1! { struct YnRef { n: i32 }; xmpfr::yn }
+ref_math_op2! { struct AgmRef { other }; mpfr::agm }
+ref_math_op2! { struct HypotRef { other }; mpfr::hypot }
+ref_math_op1! { struct AiRef {}; mpfr::ai }
+ref_math_op1! { struct CeilRef {}; mpfr::rint_ceil }
+ref_math_op1! { struct FloorRef {}; mpfr::rint_floor }
+ref_math_op1! { struct RoundRef {}; mpfr::rint_round }
+ref_math_op1! { struct TruncRef {}; mpfr::rint_trunc }
+ref_math_op1! { struct FractRef {}; mpfr::frac }
+ref_math_op1_2! { struct TruncFractRef {}; mpfr::modf }
 
 impl Neg for Float {
     type Output = Float;
@@ -2714,21 +2712,20 @@ impl NegAssign for Float {
 }
 
 impl<'a> Neg for &'a Float {
-    type Output = NegHold<'a>;
-    fn neg(self) -> NegHold<'a> {
-        NegHold { val: self }
+    type Output = NegRef<'a>;
+    fn neg(self) -> NegRef<'a> {
+        NegRef { val: self }
     }
 }
 
-/// Holds a negation.
-pub struct NegHold<'a> {
+pub struct NegRef<'a> {
     val: &'a Float,
 }
 
-impl<'a> AssignRound<NegHold<'a>> for Float {
+impl<'a> AssignRound<NegRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: NegHold<'a>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: NegRef<'a>, round: Round) -> Ordering {
         let mpfr_ret = unsafe {
             mpfr::neg(self.inner_mut(), src.val.inner(), rraw(round))
         };
@@ -2743,7 +2740,7 @@ macro_rules! arith_binary {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         impl<'a> $Imp<&'a $T> for Float {
             type Output = Float;
@@ -2790,9 +2787,9 @@ macro_rules! arith_binary {
         }
 
         impl<'a> $Imp<&'a $T> for &'a Float {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: OwnBorrow::Borrow(rhs),
                 }
@@ -2818,15 +2815,15 @@ macro_rules! arith_binary {
             }
         }
 
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Float,
             rhs: OwnBorrow<'a, $T>,
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Float {
+        impl<'a> AssignRound<$Ref<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Hold, round: Round) -> Ordering {
+            fn assign_round(&mut self, src: $Ref, round: Round) -> Ordering {
                 let mpfr_ret = unsafe {
                     $func(
                         self.inner_mut(),
@@ -2847,7 +2844,7 @@ macro_rules! arith_commut_float {
         $ImpRound:ident $method_round:ident,
         $ImpAssign:ident $method_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -2855,7 +2852,7 @@ macro_rules! arith_commut_float {
             $ImpAssign $method_assign,
             Float,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Float> for &'a Float {
@@ -2887,7 +2884,7 @@ macro_rules! arith_noncommut_float {
         $ImpAssign:ident $method_assign:ident,
         $ImpFromAssign:ident $method_from_assign:ident,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -2895,7 +2892,7 @@ macro_rules! arith_noncommut_float {
             $ImpAssign $method_assign,
             Float,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Float> for &'a Float {
@@ -2954,7 +2951,7 @@ macro_rules! arith_forward {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_binary! {
             $Imp $method,
@@ -2962,13 +2959,13 @@ macro_rules! arith_forward {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<$T> for &'a Float {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: OwnBorrow::Own(rhs),
                 }
@@ -2984,7 +2981,7 @@ macro_rules! arith_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     } => {
         arith_forward! {
             $Imp $method,
@@ -2992,7 +2989,7 @@ macro_rules! arith_commut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Float> for &'a $T {
@@ -3036,15 +3033,15 @@ macro_rules! arith_commut {
         }
 
         impl<'a> $Imp<&'a Float> for &'a $T {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Float) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Float) -> $Ref<'a> {
                 rhs.$method(self)
             }
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Float) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Float) -> $Ref<'a> {
                 rhs.$method(self)
             }
         }
@@ -3060,8 +3057,8 @@ macro_rules! arith_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Hold:ident,
-        $HoldFrom:ident
+        $Ref:ident,
+        $RefFrom:ident
     } => {
         arith_forward! {
             $Imp $method,
@@ -3069,7 +3066,7 @@ macro_rules! arith_noncommut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl<'a> $Imp<Float> for &'a $T {
@@ -3121,9 +3118,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for &'a $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, rhs: &'a Float) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: OwnBorrow::Borrow(self),
                     rhs: rhs,
                 }
@@ -3131,9 +3128,9 @@ macro_rules! arith_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, rhs: &'a Float) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: OwnBorrow::Own(self),
                     rhs: rhs,
                 }
@@ -3159,17 +3156,17 @@ macro_rules! arith_noncommut {
             }
         }
 
-        pub struct $HoldFrom<'a> {
+        pub struct $RefFrom<'a> {
             lhs: OwnBorrow<'a, $T>,
             rhs: &'a Float,
         }
 
-        impl<'a> AssignRound<$HoldFrom<'a>> for Float {
+        impl<'a> AssignRound<$RefFrom<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
             fn assign_round(
                 &mut self,
-                src: $HoldFrom,
+                src: $RefFrom,
                 round: Round,
             ) -> Ordering {
                 let mpfr_ret = unsafe {
@@ -3191,7 +3188,7 @@ arith_commut_float! {
     AddRound add_round,
     AddAssign add_assign,
     mpfr::add,
-    AddHold
+    AddRef
 }
 arith_noncommut_float! {
     Sub sub,
@@ -3199,14 +3196,14 @@ arith_noncommut_float! {
     SubAssign sub_assign,
     SubFromAssign sub_from_assign,
     mpfr::sub,
-    SubHold
+    SubRef
 }
 arith_commut_float! {
     Mul mul,
     MulRound mul_round,
     MulAssign mul_assign,
     mpfr::mul,
-    MulHold
+    MulRef
 }
 arith_noncommut_float! {
     Div div,
@@ -3214,7 +3211,7 @@ arith_noncommut_float! {
     DivAssign div_assign,
     DivFromAssign div_from_assign,
     mpfr::div,
-    DivHold
+    DivRef
 }
 arith_noncommut_float! {
     Pow pow,
@@ -3222,7 +3219,7 @@ arith_noncommut_float! {
     PowAssign pow_assign,
     PowFromAssign pow_from_assign,
     mpfr::pow,
-    PowHold
+    PowRef
 }
 
 arith_commut! {
@@ -3231,7 +3228,7 @@ arith_commut! {
     AddAssign add_assign,
     Integer,
     mpfr::add_z,
-    AddHoldInteger
+    AddRefInteger
 }
 arith_noncommut! {
     Sub sub,
@@ -3241,8 +3238,8 @@ arith_noncommut! {
     Integer,
     mpfr::sub_z,
     mpfr::z_sub,
-    SubHoldInteger,
-    SubFromHoldInteger
+    SubRefInteger,
+    SubFromRefInteger
 }
 arith_commut! {
     Mul mul,
@@ -3250,7 +3247,7 @@ arith_commut! {
     MulAssign mul_assign,
     Integer,
     mpfr::mul_z,
-    MulHoldInteger
+    MulRefInteger
 }
 arith_noncommut! {
     Div div,
@@ -3260,8 +3257,8 @@ arith_noncommut! {
     Integer,
     mpfr::div_z,
     xmpfr::z_div,
-    DivHoldInteger,
-    DivFromHoldInteger
+    DivRefInteger,
+    DivFromRefInteger
 }
 arith_forward! {
     Pow pow,
@@ -3269,7 +3266,7 @@ arith_forward! {
     PowAssign pow_assign,
     Integer,
     mpfr::pow_z,
-    PowHoldInteger
+    PowRefInteger
 }
 
 arith_commut! {
@@ -3278,7 +3275,7 @@ arith_commut! {
     AddAssign add_assign,
     Rational,
     mpfr::add_q,
-    AddHoldRational
+    AddRefRational
 }
 arith_noncommut! {
     Sub sub,
@@ -3288,8 +3285,8 @@ arith_noncommut! {
     Rational,
     mpfr::sub_q,
     xmpfr::q_sub,
-    SubHoldRational,
-    SubFromHoldRational
+    SubRefRational,
+    SubFromRefRational
 }
 arith_commut! {
     Mul mul,
@@ -3297,7 +3294,7 @@ arith_commut! {
     MulAssign mul_assign,
     Rational,
     mpfr::mul_q,
-    MulHoldRational
+    MulRefRational
 }
 arith_noncommut! {
     Div div,
@@ -3307,8 +3304,8 @@ arith_noncommut! {
     Rational,
     mpfr::div_q,
     xmpfr::q_div,
-    DivHoldRational,
-    DivFromHoldRational
+    DivRefRational,
+    DivFromRefRational
 }
 
 macro_rules! arith_prim {
@@ -3318,7 +3315,7 @@ macro_rules! arith_prim {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     }=> {
         impl $Imp<$T> for Float {
             type Output = Float;
@@ -3349,9 +3346,9 @@ macro_rules! arith_prim {
         }
 
         impl<'a> $Imp<$T> for &'a Float {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: $T) -> $Hold<'a> {
-                $Hold {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: $T) -> $Ref<'a> {
+                $Ref {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -3371,15 +3368,15 @@ macro_rules! arith_prim {
             }
         }
 
-        pub struct $Hold<'a> {
+        pub struct $Ref<'a> {
             lhs: &'a Float,
             rhs: $T,
         }
 
-        impl<'a> AssignRound<$Hold<'a>> for Float {
+        impl<'a> AssignRound<$Ref<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Hold, round: Round) -> Ordering {
+            fn assign_round(&mut self, src: $Ref, round: Round) -> Ordering {
                 let mpfr_ret = unsafe {
                     $func(
                         self.inner_mut(),
@@ -3401,7 +3398,7 @@ macro_rules! arith_prim_commut {
         $ImpAssign:ident $method_assign:ident,
         $T:ty,
         $func:path,
-        $Hold:ident
+        $Ref:ident
     }=> {
         arith_prim! {
             $Imp $method,
@@ -3409,7 +3406,7 @@ macro_rules! arith_prim_commut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl $Imp<Float> for $T {
@@ -3433,8 +3430,8 @@ macro_rules! arith_prim_commut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            type Output = $Hold<'a>;
-            fn $method(self, rhs: &'a Float) -> $Hold<'a> {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: &'a Float) -> $Ref<'a> {
                 rhs.$method(self)
             }
         }
@@ -3450,8 +3447,8 @@ macro_rules! arith_prim_noncommut {
         $T:ty,
         $func:path,
         $func_from:path,
-        $Hold:ident,
-        $HoldFrom:ident
+        $Ref:ident,
+        $RefFrom:ident
     } => {
         arith_prim! {
             $Imp $method,
@@ -3459,7 +3456,7 @@ macro_rules! arith_prim_noncommut {
             $ImpAssign $method_assign,
             $T,
             $func,
-            $Hold
+            $Ref
         }
 
         impl $Imp<Float> for $T {
@@ -3491,9 +3488,9 @@ macro_rules! arith_prim_noncommut {
         }
 
         impl<'a> $Imp<&'a Float> for $T {
-            type Output = $HoldFrom<'a>;
-            fn $method(self, rhs: &'a Float) -> $HoldFrom<'a> {
-                $HoldFrom {
+            type Output = $RefFrom<'a>;
+            fn $method(self, rhs: &'a Float) -> $RefFrom<'a> {
+                $RefFrom {
                     lhs: self,
                     rhs: rhs,
                 }
@@ -3513,18 +3510,17 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        /// Holds an operation.
-        pub struct $HoldFrom<'a> {
+        pub struct $RefFrom<'a> {
             lhs: $T,
             rhs: &'a Float,
         }
 
-        impl<'a> AssignRound<$HoldFrom<'a>> for Float {
+        impl<'a> AssignRound<$RefFrom<'a>> for Float {
             type Round = Round;
             type Ordering = Ordering;
             fn assign_round(
                 &mut self,
-                src: $HoldFrom,
+                src: $RefFrom,
                 round: Round,
             ) -> Ordering {
                 let mpfr_ret = unsafe {
@@ -3544,12 +3540,12 @@ macro_rules! arith_prim_noncommut {
 macro_rules! conv_ops {
     {
         ($T:ty, $set:path),
-        ($AddHold:ident $add:path,
-         $SubHold:ident $sub:path,
-         $SubFromHold:ident $sub_from:path),
-        ($MulHold:ident $mul:path,
-         $DivHold:ident $div: path,
-         $DivFromHold:ident $div_from:path)
+        ($AddRef:ident $add:path,
+         $SubRef:ident $sub:path,
+         $SubFromRef:ident $sub_from:path),
+        ($MulRef:ident $mul:path,
+         $DivRef:ident $div: path,
+         $DivFromRef:ident $div_from:path)
     } => {
         impl AssignRound<$T> for Float {
             type Round = Round;
@@ -3568,7 +3564,7 @@ macro_rules! conv_ops {
             AddAssign add_assign,
             $T,
             $add,
-            $AddHold
+            $AddRef
         }
         arith_prim_noncommut! {
             Sub sub,
@@ -3578,8 +3574,8 @@ macro_rules! conv_ops {
             $T,
             $sub,
             $sub_from,
-            $SubHold,
-            $SubFromHold
+            $SubRef,
+            $SubFromRef
         }
         arith_prim_commut! {
             Mul mul,
@@ -3587,7 +3583,7 @@ macro_rules! conv_ops {
             MulAssign mul_assign,
             $T,
             $mul,
-            $MulHold
+            $MulRef
         }
         arith_prim_noncommut! {
             Div div,
@@ -3597,20 +3593,20 @@ macro_rules! conv_ops {
             $T,
             $div,
             $div_from,
-            $DivHold,
-            $DivFromHold
+            $DivRef,
+            $DivFromRef
         }
     }
 }
 
 conv_ops! {
     (i32, mpfr::set_si),
-    (AddHoldI32 mpfr::add_si,
-     SubHoldI32 mpfr::sub_si,
-     SubFromHoldI32 mpfr::si_sub),
-    (MulHoldI32 mpfr::mul_si,
-     DivHoldI32 mpfr::div_si,
-     DivFromHoldI32 mpfr::si_div)
+    (AddRefI32 mpfr::add_si,
+     SubRefI32 mpfr::sub_si,
+     SubFromRefI32 mpfr::si_sub),
+    (MulRefI32 mpfr::mul_si,
+     DivRefI32 mpfr::div_si,
+     DivFromRefI32 mpfr::si_div)
 }
 
 impl AssignRound<i64> for Float {
@@ -3625,12 +3621,12 @@ impl AssignRound<i64> for Float {
 
 conv_ops! {
     (u32, mpfr::set_ui),
-    (AddHoldU32 mpfr::add_ui,
-     SubHoldU32 mpfr::sub_ui,
-     SubFromHoldU32 mpfr::ui_sub),
-    (MulHoldU32 mpfr::mul_ui,
-     DivHoldU32 mpfr::div_ui,
-     DivFromHoldU32 mpfr::ui_div)
+    (AddRefU32 mpfr::add_ui,
+     SubRefU32 mpfr::sub_ui,
+     SubFromRefU32 mpfr::ui_sub),
+    (MulRefU32 mpfr::mul_ui,
+     DivRefU32 mpfr::div_ui,
+     DivFromRefU32 mpfr::ui_div)
 }
 
 impl AssignRound<u64> for Float {
@@ -3645,21 +3641,21 @@ impl AssignRound<u64> for Float {
 
 conv_ops! {
     (f32, xmpfr::set_single),
-    (AddHoldF32 xmpfr::add_single,
-     SubHoldF32 xmpfr::sub_single,
-     SubFromHoldF32 xmpfr::single_sub),
-    (MulHoldF32 xmpfr::mul_single,
-     DivHoldF32 xmpfr::div_single,
-     DivFromHoldF32 xmpfr::single_div)
+    (AddRefF32 xmpfr::add_single,
+     SubRefF32 xmpfr::sub_single,
+     SubFromRefF32 xmpfr::single_sub),
+    (MulRefF32 xmpfr::mul_single,
+     DivRefF32 xmpfr::div_single,
+     DivFromRefF32 xmpfr::single_div)
 }
 conv_ops! {
     (f64, mpfr::set_d),
-    (AddHoldF64 mpfr::add_d,
-     SubHoldF64 mpfr::sub_d,
-     SubFromHoldF64 mpfr::d_sub),
-    (MulHoldF64 mpfr::mul_d,
-     DivHoldF64 mpfr::div_d,
-     DivFromHoldF64 mpfr::d_div)
+    (AddRefF64 mpfr::add_d,
+     SubRefF64 mpfr::sub_d,
+     SubFromRefF64 mpfr::d_sub),
+    (MulRefF64 mpfr::mul_d,
+     DivRefF64 mpfr::div_d,
+     DivFromRefF64 mpfr::d_div)
 }
 
 arith_prim! {
@@ -3668,7 +3664,7 @@ arith_prim! {
     ShlAssign shl_assign,
     u32,
     mpfr::mul_2ui,
-    ShlHoldU32
+    ShlRefU32
 }
 arith_prim! {
     Shr shr,
@@ -3676,7 +3672,7 @@ arith_prim! {
     ShrAssign shr_assign,
     u32,
     mpfr::div_2ui,
-    ShrHoldU32
+    ShrRefU32
 }
 arith_prim_noncommut!{
     Pow pow,
@@ -3686,8 +3682,8 @@ arith_prim_noncommut!{
     u32,
     mpfr::pow_ui,
     mpfr::ui_pow,
-    PowHoldU32,
-    PowFromHoldU32
+    PowRefU32,
+    PowFromRefU32
 }
 arith_prim! {
     Shl shl,
@@ -3695,7 +3691,7 @@ arith_prim! {
     ShlAssign shl_assign,
     i32,
     mpfr::mul_2si,
-    ShlHoldI32
+    ShlRefI32
 }
 arith_prim! {
     Shr shr,
@@ -3703,7 +3699,7 @@ arith_prim! {
     ShrAssign shr_assign,
     i32,
     mpfr::div_2si,
-    ShrHoldI32
+    ShrRefI32
 }
 arith_prim!{
     Pow pow,
@@ -3711,25 +3707,25 @@ arith_prim!{
     PowAssign pow_assign,
     i32,
     mpfr::pow_si,
-    PowHoldI32
+    PowRefI32
 }
 
-impl<'a> Add<MulHold<'a>> for Float {
+impl<'a> Add<MulRef<'a>> for Float {
     type Output = Float;
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
-    fn add(self, rhs: MulHold) -> Float {
+    fn add(self, rhs: MulRef) -> Float {
         self.add_round(rhs, Round::Nearest).0
     }
 }
 
-impl<'a> AddRound<MulHold<'a>> for Float {
+impl<'a> AddRound<MulRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     type Output = Float;
     /// Peforms multiplication and addition together with only one
     /// rounding operation as specified.
-    fn add_round(mut self, rhs: MulHold, round: Round) -> (Float, Ordering) {
+    fn add_round(mut self, rhs: MulRef, round: Round) -> (Float, Ordering) {
         let mpfr_ret = unsafe {
             mpfr::fma(
                 self.inner_mut(),
@@ -3743,10 +3739,10 @@ impl<'a> AddRound<MulHold<'a>> for Float {
     }
 }
 
-impl<'a> AddAssign<MulHold<'a>> for Float {
+impl<'a> AddAssign<MulRef<'a>> for Float {
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
-    fn add_assign(&mut self, rhs: MulHold) {
+    fn add_assign(&mut self, rhs: MulRef) {
         unsafe {
             mpfr::fma(
                 self.inner_mut(),
