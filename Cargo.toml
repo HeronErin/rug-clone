@@ -27,7 +27,7 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [dependencies.gmp-mpfr-sys]
-version = "1.0"
+version = "1.0.3"
 default-features = false
 path = "../gmp-mpfr-sys"
 
