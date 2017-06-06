@@ -877,8 +877,8 @@ impl Float {
     /// assert_eq!((f_up, exp_up), (0.8333334, 2));
     /// ```
     pub fn to_f32_exp_round(&self, round: Round) -> (f32, i32) {
-        let sf = SmallFloat::from((0.0f32));
-        assert!(sf.prec() == 24);
+        let sf = SmallFloat::from(0.0f32);
+        assert_eq!(sf.prec(), 24);
         // since we won't change precision, we can mutate the Float
         let mut_sf = unsafe {
             let ptr: *mut Float = &*sf as *const Float as *mut Float;
