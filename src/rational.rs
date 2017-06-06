@@ -509,7 +509,7 @@ impl Rational {
     /// ```
     pub fn numer(&self) -> &Integer {
         unsafe {
-            let ptr = gmp::mpq_numref(self.inner() as *const _ as *mut _);
+            let ptr = gmp::mpq_numref_const(self.inner());
             &*(ptr as *const Integer)
         }
     }
@@ -526,7 +526,7 @@ impl Rational {
     /// ```
     pub fn denom(&self) -> &Integer {
         unsafe {
-            let ptr = gmp::mpq_denref(self.inner() as *const _ as *mut _);
+            let ptr = gmp::mpq_denref_const(self.inner());
             &*(ptr as *const Integer)
         }
     }
