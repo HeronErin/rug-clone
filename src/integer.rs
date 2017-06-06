@@ -946,8 +946,9 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// assert!(!Integer::from(13).is_even());
-    /// assert!(Integer::from(14).is_even());
+    /// use rugint::Integer;
+    /// assert!(!(Integer::from(13).is_even()));
+    /// assert!(Integer::from(-14).is_even());
     /// ```
     pub fn is_even(&self) -> bool {
         unsafe { gmp::mpz_even_p(self.inner()) != 0 }
@@ -958,8 +959,9 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// use rugint::Integer;
     /// assert!(Integer::from(13).is_odd());
-    /// assert!(!Integer::from(14).is_odd());
+    /// assert!(!Integer::from(-14).is_odd());
     /// ```
     pub fn is_odd(&self) -> bool {
         unsafe { gmp::mpz_odd_p(self.inner()) != 0 }
@@ -1676,7 +1678,7 @@ impl Integer {
         /// ```rust
         /// use rugint::{Assign, Integer};
         /// let i = Integer::from(1004);
-        /// let r = Integer::root_rem_ref(&i, 3);
+        /// let r = i.root_rem_ref(3);
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
         /// (&mut root, &mut rem).assign(r);
@@ -1732,7 +1734,7 @@ impl Integer {
         /// ```rust
         /// use rugint::{Assign, Integer};
         /// let i = Integer::from(104);
-        /// let r = Integer::sqrt_rem_ref(&i);
+        /// let r = i.sqrt_rem_ref();
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
         /// (&mut root, &mut rem).assign(r);
