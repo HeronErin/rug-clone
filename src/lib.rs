@@ -96,5 +96,5 @@ mod rational;
 mod small_rational;
 mod xgmp;
 
-pub use rational::{MutNumerDenom, ParseRationalError, Rational};
+pub use rational::{MutNumerDenom, ParseRationalError, Rational, ValidRational};
 pub use small_rational::SmallRational;

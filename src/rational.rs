@@ -20,7 +20,7 @@ use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              SubFromAssign};
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CString;
+use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::i32;
@@ -243,16 +243,31 @@ impl Rational {
     /// returns an error, the other functions will return the same
     /// error.
     ///
+    /// The string must contain a numerator, and may contain a
+    /// denominator; the numberator and denominator are separated with
+    /// a `'/'`. The numerator can start with an optional minus or
+    /// plus sign.
+    ///
+    /// Both the numerator and denominator can also contain
+    /// underscores, although they cannot start with an underscore.
+    /// Whitespace is not allowed anywhere in the string, including in
+    /// the beginning and end and around the `'/'`.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rugrat::Rational;
-    /// assert!(Rational::valid_str_radix("123/321", 4).is_ok());
-    /// assert!(Rational::valid_str_radix("123/xyz", 36).is_ok());
     ///
-    /// let invalid_valid = Rational::valid_str_radix("1/123", 3);
-    /// let invalid_from = Rational::from_str_radix("1/123", 3);
-    /// assert_eq!(invalid_valid.unwrap_err(), invalid_from.unwrap_err());
+    /// let valid1 = Rational::valid_str_radix("12/23", 4);
+    /// let r1 = Rational::from(valid1.unwrap());
+    /// assert_eq!(r1, (2 + 4 * 1, 3 + 4 * 2));
+    /// let valid2 = Rational::valid_str_radix("12/yz", 36);
+    /// let r2 = Rational::from(valid2.unwrap());
+    /// assert_eq!(r2, (2 + 36 * 1, 35 + 36 * 34));
+    ///
+    /// let invalid = Rational::valid_str_radix("12 / 23", 4);
+    /// let invalid_f = Rational::from_str_radix("12 / 23", 4);
+    /// assert_eq!(invalid.unwrap_err(), invalid_f.unwrap_err());
     /// ```
     ///
     /// # Panics
@@ -261,10 +276,67 @@ impl Rational {
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
-    ) -> Result<(), ParseRationalError> {
-        check_str_radix(src, radix).map(|_| ())
-    }
+    ) -> Result<ValidRational, ParseRationalError> {
+        use self::ParseRationalError as Error;
+        use self::ParseErrorKind as Kind;
 
+        assert!(radix >= 2 && radix <= 36, "radix out of range");
+        let (skip_plus, chars) = if src.starts_with('+') {
+            (&src[1..], src[1..].chars())
+        } else if src.starts_with('-') {
+            (src, src[1..].chars())
+        } else {
+            (src, src.chars())
+        };
+        let mut got_digit = false;
+        let mut denom = false;
+        let mut denom_non_zero = false;
+        let mut underscores = false;
+        for c in chars {
+            if c == '_' && got_digit {
+                underscores = true;
+                continue;
+            }
+            if c == '/' {
+                if denom {
+                    return Err(Error { kind: Kind::TooManySlashes });
+                }
+                if !got_digit {
+                    return Err(Error { kind: Kind::NumerNoDigits });
+                }
+                got_digit = false;
+                denom = true;
+                continue;
+            }
+            let digit_value = match c {
+                '0'...'9' => c as i32 - '0' as i32,
+                'a'...'z' => c as i32 - 'a' as i32 + 10,
+                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+                _ => Err(Error { kind: Kind::InvalidDigit })?,
+            };
+            if digit_value >= radix {
+                return Err(Error { kind: Kind::InvalidDigit });
+            }
+            got_digit = true;
+            if denom && digit_value > 0 {
+                denom_non_zero = true;
+            }
+        }
+        if !got_digit && denom {
+            return Err(Error { kind: Kind::DenomNoDigits });
+        } else if !got_digit {
+            return Err(Error { kind: Kind::NoDigits });
+        }
+        if denom && !denom_non_zero {
+            return Err(Error { kind: Kind::DenomZero });
+        }
+        let v = ValidRational {
+            string: skip_plus,
+            radix: radix,
+            underscores: underscores,
+        };
+        Ok(v)
+    }
 
     /// Converts to an `Integer`, rounding towards zero.
     ///
@@ -485,15 +557,7 @@ impl Rational {
         src: &str,
         radix: i32,
     ) -> Result<(), ParseRationalError> {
-        let s = check_str_radix(src, radix)?;
-        let c_str = CString::new(s).unwrap();
-        let err = unsafe {
-            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), radix.into())
-        };
-        assert_eq!(err, 0);
-        unsafe {
-            gmp::mpq_canonicalize(self.inner_mut());
-        }
+        self.assign(Rational::valid_str_radix(src, radix)?);
         Ok(())
     }
 
@@ -898,58 +962,6 @@ impl Rational {
     pub fn fract_trunc_ref(&self) -> FractTruncRef {
         FractTruncRef { ref_self: self }
     }
-}
-
-fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseRationalError> {
-    use self::ParseRationalError as Error;
-    use self::ParseErrorKind as Kind;
-
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let (skip_plus, chars) = if src.starts_with('+') {
-        (&src[1..], src[1..].chars())
-    } else if src.starts_with('-') {
-        (src, src[1..].chars())
-    } else {
-        (src, src.chars())
-    };
-    let mut got_digit = false;
-    let mut denom = false;
-    let mut denom_non_zero = false;
-    for c in chars {
-        if c == '/' {
-            if denom {
-                return Err(Error { kind: Kind::TooManySlashes });
-            }
-            if !got_digit {
-                return Err(Error { kind: Kind::NumerNoDigits });
-            }
-            got_digit = false;
-            denom = true;
-            continue;
-        }
-        let digit_value = match c {
-            '0'...'9' => c as i32 - '0' as i32,
-            'a'...'z' => c as i32 - 'a' as i32 + 10,
-            'A'...'Z' => c as i32 - 'A' as i32 + 10,
-            _ => Err(Error { kind: Kind::InvalidDigit })?,
-        };
-        if digit_value >= radix {
-            return Err(Error { kind: Kind::InvalidDigit });
-        }
-        got_digit = true;
-        if denom && digit_value > 0 {
-            denom_non_zero = true;
-        }
-    }
-    if !got_digit && denom {
-        return Err(Error { kind: Kind::DenomNoDigits });
-    } else if !got_digit {
-        return Err(Error { kind: Kind::NoDigits });
-    }
-    if denom && !denom_non_zero {
-        return Err(Error { kind: Kind::DenomZero });
-    }
-    Ok(skip_plus)
 }
 
 macro_rules! from_borrow {
@@ -1540,6 +1552,43 @@ fn fmt_radix(
         (false, &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
+}
+
+/// A validated string that can always be converted to a `Rational`.
+///
+/// See the [`Rational::valid_str_radix()`]
+/// (struct.Rational.html#method.valid_str_radix) method.
+#[derive(Clone, Debug)]
+pub struct ValidRational<'a> {
+    string: &'a str,
+    radix: i32,
+    underscores: bool,
+}
+
+from_borrow! { ValidRational<'a> }
+
+impl<'a> Assign<ValidRational<'a>> for Rational {
+    fn assign(&mut self, rhs: ValidRational) {
+        let mut v = Vec::<u8>::with_capacity(rhs.string.len() + 1);
+        if rhs.underscores {
+            for b in rhs.string.as_bytes() {
+                if *b != b'_' {
+                    v.push(*b);
+                }
+            }
+        } else {
+            v.extend_from_slice(rhs.string.as_bytes());
+        }
+        v.push(0);
+        let err = unsafe {
+            let c_str = CStr::from_bytes_with_nul_unchecked(&v);
+            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), rhs.radix.into())
+        };
+        assert_eq!(err, 0);
+        unsafe {
+            gmp::mpq_canonicalize(self.inner_mut());
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
