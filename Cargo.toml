@@ -16,7 +16,7 @@
 
 [package]
 name = "rugint"
-version = "0.3.0"
+version = "0.4.0-alpha"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision big integers based on GMP"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugint/"
