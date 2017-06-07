@@ -51,7 +51,7 @@ root and add `rugrat` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rugrat = "0.3.0"
+rugrat = "0.4.0"
 ```
 
 The `rugrat` crate depends on the low-level bindings in the
