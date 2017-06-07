@@ -69,7 +69,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rugcom = "0.3.0"
+//! rugcom = "0.4.0"
 //! ```
 //!
 //! The `rugcom` crate depends on the low-level bindings in the
@@ -86,7 +86,7 @@
 //!
 //! ```toml
 //! [dependencies.rugcom]
-//! version = "0.3.0"
+//! version = "0.4.0"
 //! default-features = false
 //! ```
 //!

@@ -16,7 +16,7 @@
 
 [package]
 name = "rugcom"
-version = "0.3.0"
+version = "0.4.0-alpha"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Multiple-precision big complex numbers based on GNU MPC"
 documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugcom/"
@@ -41,15 +41,15 @@ version = "0.3"
 optional = true
 
 [dependencies.rugint]
-version = "0.3.0"
+version = "0.4.0-alpha"
 default-features = false
 path = "../rugint"
 
 [dependencies.rugrat]
-version = "0.3.0"
+version = "0.4.0-alpha"
 path = "../rugrat"
 
 [dependencies.rugflo]
-version = "0.3.0"
+version = "0.4.0-alpha"
 default-features = false
 path = "../rugflo"
