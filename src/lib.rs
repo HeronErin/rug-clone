@@ -115,5 +115,5 @@ mod complex;
 mod small_complex;
 mod xmpc;
 
-pub use complex::{Complex, ParseComplexError, Prec};
+pub use complex::{Complex, ParseComplexError, Prec, ValidComplex};
 pub use small_complex::SmallComplex;

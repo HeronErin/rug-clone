@@ -20,8 +20,8 @@ use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "random")]
 use rand::Rng;
 use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float,
-             FromRound, MulRound, PowRound, Round, ShlRound, ShrRound,
-             Special, SubRound};
+             FromRound, MulRound, ParseFloatError, PowRound, Round, ShlRound,
+             ShrRound, Special, SubRound, ValidFloat};
 use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
              PowFromAssign, SubFromAssign};
 use rugrat::Rational;
@@ -519,12 +519,17 @@ impl Complex {
     ///
     /// ```rust
     /// use rugcom::Complex;
-    /// assert!(Complex::valid_str_radix("(123 321)", 4).is_ok());
-    /// assert!(Complex::valid_str_radix("(123 xyz)", 36).is_ok());
     ///
-    /// let invalid_valid = Complex::valid_str_radix("(0 3)", 3);
-    /// let invalid_from = Complex::from_str_radix("(0 3)", 3, 53);
-    /// assert_eq!(invalid_valid.unwrap_err(), invalid_from.unwrap_err());
+    /// let valid1 = Complex::valid_str_radix("(1.2e-1 2.3e+2)", 4);
+    /// let c1 = Complex::from((valid1.unwrap(), 53));
+    /// assert_eq!(c1, (0.25 * (1.0 + 0.25 * 2.0), 4.0 * (3.0 + 4.0 * 2.0)));
+    /// let valid2 = Complex::valid_str_radix("(12 yz)", 36);
+    /// let c2 = Complex::from((valid2.unwrap(), 53));
+    /// assert_eq!(c2, (2.0 + 36.0 * 1.0, 35.0 + 36.0 * 34.0));
+    ///
+    /// let invalid = Complex::valid_str_radix("(0, 0)", 3);
+    /// let invalid_f = Complex::from_str_radix("(0, 0)", 3, 53);
+    /// assert_eq!(invalid.unwrap_err(), invalid_f.unwrap_err());
     /// ```
     ///
     /// # Panics
@@ -533,8 +538,34 @@ impl Complex {
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
-    ) -> Result<(), ParseComplexError> {
-        check_str_radix(src, radix).map(|_| ())
+    ) -> Result<ValidComplex, ParseComplexError> {
+        use self::ParseComplexError as Error;
+        use self::ParseErrorKind as Kind;
+
+        let p = if src.starts_with('(') {
+            let space =
+                src.find(' ').ok_or(Error { kind: Kind::MissingSpace })?;
+            let real_str = &src[1..space];
+            let re =
+                Float::valid_str_radix(real_str, radix)
+                    .map_err(|e| Error { kind: Kind::InvalidRealFloat(e) })?;
+            let rest = &src[space + 1..];
+            let close = rest.find(')')
+                .ok_or(Error { kind: Kind::MissingClose })?;
+            let imag_str = &rest[0..close];
+            let im =
+                Float::valid_str_radix(imag_str, radix)
+                    .map_err(|e| Error { kind: Kind::InvalidImagFloat(e) })?;
+            if close != rest.len() - 1 {
+                return Err(Error { kind: Kind::CloseNotLast });
+            }
+            ValidPoss::Complex(re, im)
+        } else {
+            let re = Float::valid_str_radix(src, radix)
+                .map_err(|e| Error { kind: Kind::InvalidFloat(e) })?;
+            ValidPoss::Real(re)
+        };
+        Ok(ValidComplex { poss: p })
     }
 
     /// Returns a string representation of `self` for the specified
@@ -722,24 +753,7 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        match check_str_radix(src, radix)? {
-            PossibleFromStr::Real(r) => {
-                let real_ord = self.mut_real()
-                    .assign_str_radix_round(r, radix, round.0)
-                    .unwrap();
-                self.mut_imag().assign(Special::Zero);
-                Ok((real_ord, Ordering::Equal))
-            }
-            PossibleFromStr::Complex(r, i) => {
-                let real_ord = self.mut_real()
-                    .assign_str_radix_round(r, radix, round.0)
-                    .unwrap();
-                let imag_ord = self.mut_imag()
-                    .assign_str_radix_round(i, radix, round.1)
-                    .unwrap();
-                Ok((real_ord, imag_ord))
-            }
-        }
+        Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
     }
 
     /// Borrows the real part as a `Float`.
@@ -1261,43 +1275,6 @@ impl Complex {
     }
 }
 
-enum PossibleFromStr<'a> {
-    Real(&'a str),
-    Complex(&'a str, &'a str),
-}
-
-fn check_str_radix(
-    src: &str,
-    radix: i32,
-) -> Result<PossibleFromStr, ParseComplexError> {
-    use self::ParseComplexError as Error;
-    use self::ParseErrorKind as Kind;
-
-    if src.starts_with('(') {
-        let space = src.find(' ').ok_or(Error { kind: Kind::MissingSpace })?;
-        let real_str = &src[1..space];
-        if Float::valid_str_radix(real_str, radix).is_err() {
-            return Err(Error { kind: Kind::InvalidRealFloat });
-        }
-        let real_rest = &src[space + 1..];
-        let close = real_rest
-            .find(')')
-            .ok_or(Error { kind: Kind::MissingClose })?;
-        let imag_str = &real_rest[0..close];
-        if Float::valid_str_radix(imag_str, radix).is_err() {
-            return Err(Error { kind: Kind::InvalidImagFloat });
-        }
-        if close != real_rest.len() - 1 {
-            return Err(Error { kind: Kind::CloseNotLast });
-        }
-        Ok(PossibleFromStr::Complex(real_str, imag_str))
-    } else {
-        if Float::valid_str_radix(src, radix).is_err() {
-            return Err(Error { kind: Kind::InvalidFloat });
-        }
-        Ok(PossibleFromStr::Real(src))
-    }
-}
 
 impl From<(Float, Float)> for Complex {
     /// Constructs a `Complex` number from a real `Float` and
@@ -2629,17 +2606,51 @@ fn fmt_float(
     buf.push_str(if s.starts_with('-') { &s[1..] } else { &s });
 }
 
+/// A validated string that can always be converted to a `Complex`.
+///
+/// See the [`Complex::valid_str_radix()`]
+/// (struct.Complex.html#method.valid_str_radix) method.
+#[derive(Clone, Debug)]
+pub struct ValidComplex<'a> {
+    poss: ValidPoss<'a>,
+}
+
+#[derive(Clone, Debug)]
+enum ValidPoss<'a> {
+    Real(ValidFloat<'a>),
+    Complex(ValidFloat<'a>, ValidFloat<'a>),
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// An error which can be returned when parsing a `Complex` number.
 pub struct ParseComplexError {
     kind: ParseErrorKind,
 }
 
+impl<'a> AssignRound<ValidComplex<'a>> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn assign_round(&mut self, rhs: ValidComplex, round: Round2) -> Ordering2 {
+        match rhs.poss {
+            ValidPoss::Real(re) => {
+                let real_ord = self.mut_real().assign_round(re, round.0);
+                self.mut_imag().assign(Special::Zero);
+                (real_ord, Ordering::Equal)
+            }
+            ValidPoss::Complex(re, im) => {
+                let real_ord = self.mut_real().assign_round(re, round.0);
+                let imag_ord = self.mut_imag().assign_round(im, round.1);
+                (real_ord, imag_ord)
+            }
+        }
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 enum ParseErrorKind {
-    InvalidFloat,
-    InvalidRealFloat,
-    InvalidImagFloat,
+    InvalidFloat(ParseFloatError),
+    InvalidRealFloat(ParseFloatError),
+    InvalidImagFloat(ParseFloatError),
     MissingSpace,
     MissingClose,
     CloseNotLast,
@@ -2649,9 +2660,11 @@ impl Error for ParseComplexError {
     fn description(&self) -> &str {
         use self::ParseErrorKind::*;
         match self.kind {
-            InvalidFloat => "string is not a valid float",
-            InvalidRealFloat => "real part of string is not a valid float",
-            InvalidImagFloat => "imaginary part of string is not a valid float",
+            InvalidFloat(_) => "string is not a valid float",
+            InvalidRealFloat(_) => "real part of string is not a valid float",
+            InvalidImagFloat(_) => {
+                "imaginary part of string is not a valid float"
+            }
             MissingSpace => "string has no space after opening bracket",
             MissingClose => "string has no closing bracket",
             CloseNotLast => "string has more characters after closing bracket",
