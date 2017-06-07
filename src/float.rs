@@ -27,7 +27,7 @@ use std::{i32, u32};
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::mem;
@@ -629,14 +629,136 @@ impl Float {
     /// other function that parses a `Float`. If this method returns
     /// an error, the other functions will return the same error.
     ///
+    /// The string can start with an optional minus or plus sign. It
+    /// can also contain underscores following numberic digits.
+    /// Whitespace is not allowed anywhere in the string, including in
+    /// the beginning and end.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugflo::Float;
+    ///
+    /// let valid1 = Float::valid_str_radix("12.23e-4", 4);
+    /// let f1 = Float::from((valid1.unwrap(), 53));
+    /// assert_eq!(f1, (2.0 + 4.0 * 1.0 + 0.25 * (2.0 + 0.25 * 3.0)) / 256.0);
+    /// let valid2 = Float::valid_str_radix("12.yz@2", 36);
+    /// let f2 = Float::from((valid2.unwrap(), 53));
+    /// assert_eq!(f2, 35 + 36 * (34 + 36 * (2 + 36 * 1)));
+    ///
+    /// let invalid = Float::valid_str_radix("ffe-2", 16);
+    /// let invalid_f = Float::from_str_radix("ffe-2", 16, 53);
+    /// assert_eq!(invalid.unwrap_err(), invalid_f.unwrap_err());
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
-    ) -> Result<(), ParseFloatError> {
-        check_str_radix(src, radix, false).map(|_| ())
+    ) -> Result<ValidFloat, ParseFloatError> {
+        use self::ParseFloatError as Error;
+        use self::ParseErrorKind as Kind;
+
+        let mut v = ValidFloat {
+            poss: ValidPoss::Special(Special::Nan),
+            radix: radix,
+            underscore_or_plus: false,
+        };
+        assert!(radix >= 2 && radix <= 36, "radix out of range");
+        let (inf10, neg_inf10, nan10) =
+            (&["inf", "+inf", "infinity", "+infinity"],
+             &["-inf", "-infinity"],
+             &["nan", "+nan", "-nan"]);
+        let (inf, neg_inf, nan) =
+            (&["@inf@", "+@inf@", "@infinity@", "+@infinity@"],
+             &["-@inf@", "-@infinity@"],
+             &["@nan@", "+@nan@", "-@nan@"]);
+        if (radix <= 10 && lcase_in(src, inf10)) || lcase_in(src, inf) {
+            v.poss = ValidPoss::Special(Special::Infinity);
+            return Ok(v);
+        }
+        if (radix <= 10 && lcase_in(src, neg_inf10)) || lcase_in(src, neg_inf) {
+            v.poss = ValidPoss::Special(Special::MinusInfinity);
+            return Ok(v);
+        }
+        if (radix <= 10 && lcase_in(src, nan10)) || lcase_in(src, nan) {
+            v.poss = ValidPoss::Special(Special::Nan);
+            return Ok(v);
+        }
+
+        let mut chars = src.chars();
+        let starts_with_plus = src.starts_with('+');
+        if starts_with_plus || src.starts_with('-') {
+            chars.next();
+        }
+        let mut got_digit = false;
+        let mut got_point = false;
+        let mut exp = false;
+        let mut fresh_point = false;
+        let mut fresh_exp = false;
+        for c in chars {
+            if c == '_' && got_digit && !fresh_point && !fresh_exp {
+                v.underscore_or_plus = true;
+                continue;
+            }
+            if fresh_exp {
+                fresh_exp = false;
+                if c == '-' {
+                    continue;
+                }
+                if c == '+' {
+                    v.underscore_or_plus = true;
+                    continue;
+                }
+            }
+            if c == '.' {
+                if exp {
+                    return Err(Error { kind: Kind::PointInExp });
+                }
+                if got_point {
+                    return Err(Error { kind: Kind::TooManyPoints });
+                }
+                got_point = true;
+                fresh_point = true;
+                continue;
+            }
+            if (radix <= 10 && (c == 'e' || c == 'E')) || c == '@' {
+                if exp {
+                    return Err(Error { kind: Kind::TooManyExp });
+                }
+                if !got_digit {
+                    return Err(Error { kind: Kind::SignifNoDigits });
+                }
+                got_digit = false;
+                exp = true;
+                fresh_exp = true;
+                continue;
+            }
+            let digit_value = match c {
+                '0'...'9' => c as i32 - '0' as i32,
+                'a'...'z' => c as i32 - 'a' as i32 + 10,
+                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+                _ => Err(Error { kind: Kind::InvalidDigit })?,
+            };
+            if (!exp && digit_value >= radix) || (exp && digit_value >= 10) {
+                return Err(Error { kind: Kind::InvalidDigit });
+            }
+            got_digit = true;
+            fresh_point = false;
+        }
+        if !got_digit && exp {
+            return Err(Error { kind: Kind::ExpNoDigits });
+        } else if !got_digit {
+            return Err(Error { kind: Kind::NoDigits });
+        }
+        v.poss = if starts_with_plus {
+            ValidPoss::Str(&src[1..])
+        } else {
+            ValidPoss::Str(src)
+        };
+        Ok(v)
     }
 
     /// Converts to an integer, rounding to the nearest.
@@ -1026,8 +1148,8 @@ impl Float {
         src: &str,
         radix: i32,
     ) -> Result<(), ParseFloatError> {
-        self.assign_str_radix_round(src, radix, Round::Nearest)
-            .map(|_| ())
+        self.assign_str_radix_round(src, radix, Round::Nearest)?;
+        Ok(())
     }
 
     /// Parses a `Float` from a string with the specified radix,
@@ -1053,30 +1175,7 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-
-        let c_str = match check_str_radix(src, radix, true)? {
-            PossibleFromStr::Owned(s) => CString::new(s).unwrap(),
-            PossibleFromStr::Borrowed(s) => CString::new(s).unwrap(),
-            PossibleFromStr::Special(s) => {
-                self.assign(s);
-                return Ok(Ordering::Equal);
-            }
-        };
-        let mut c_str_end: *const c_char = ptr::null();
-        let mpfr_ret = unsafe {
-            mpfr::strtofr(
-                self.inner_mut(),
-                c_str.as_ptr(),
-                &mut c_str_end as *mut _ as *mut *mut c_char,
-                radix as c_int,
-                rraw(round),
-            )
-        };
-        let nul = c_str.as_bytes_with_nul().last().unwrap() as *const _ as
-            *const c_char;
-        assert_eq!(c_str_end, nul);
-        Ok(mpfr_ret.cmp(&0))
-
+        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
     }
 
     /// Returns `true` if `self` is an integer.
@@ -2331,115 +2430,6 @@ impl Float {
             *self.inner.d = val;
         }
         None
-    }
-}
-
-enum PossibleFromStr<'a> {
-    Owned(String),
-    Borrowed(&'a str),
-    Special(Special),
-}
-
-// If will_use_returned is false, do not allocate as the result will
-// be discarded anyway.
-fn check_str_radix(
-    src: &str,
-    radix: i32,
-    will_use_returned: bool,
-) -> Result<PossibleFromStr, ParseFloatError> {
-    use self::ParseFloatError as Error;
-    use self::ParseErrorKind as Kind;
-
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let (inf10, neg_inf10, nan10) = (&["inf", "+inf", "infinity", "+infinity"],
-                                     &["-inf", "-infinity"],
-                                     &["nan", "+nan", "-nan"]);
-    let (inf, neg_inf, nan) =
-        (&["@inf@", "+@inf@", "@infinity@", "+@infinity@"],
-         &["-@inf@", "-@infinity@"],
-         &["@nan@", "+@nan@", "-@nan@"]);
-    if (radix <= 10 && lcase_in(src, inf10)) || lcase_in(src, inf) {
-        return Ok(PossibleFromStr::Special(Special::Infinity));
-    }
-    if (radix <= 10 && lcase_in(src, neg_inf10)) || lcase_in(src, neg_inf) {
-        return Ok(PossibleFromStr::Special(Special::MinusInfinity));
-    }
-    if (radix <= 10 && lcase_in(src, nan10)) || lcase_in(src, nan) {
-        return Ok(PossibleFromStr::Special(Special::Nan));
-    }
-
-    let mut char_indices = src.char_indices();
-    let starts_with_plus = src.starts_with('+');
-    if starts_with_plus || src.starts_with('-') {
-        char_indices.next();
-    }
-    let mut got_digit = false;
-    let mut got_point = false;
-    let mut exp = false;
-    let mut fresh_exp = false;
-    let mut buf = None;
-    for (pos, c) in char_indices {
-        if fresh_exp {
-            fresh_exp = false;
-            if c == '-' {
-                continue;
-            }
-            if c == '+' {
-                if will_use_returned {
-                    // CString should use extra byte for nul.
-                    let mut s = String::with_capacity(src.len());
-                    let begin_index = if starts_with_plus { 1 } else { 0 };
-                    s.push_str(&src[begin_index..pos]);
-                    s.push_str(&src[pos + 1..]);
-                    buf = Some(s);
-                }
-                continue;
-            }
-        }
-        if c == '.' {
-            if exp {
-                return Err(Error { kind: Kind::PointInExp });
-            }
-            if got_point {
-                return Err(Error { kind: Kind::TooManyPoints });
-            }
-            got_point = true;
-            continue;
-        }
-        if (radix <= 10 && (c == 'e' || c == 'E')) || c == '@' {
-            if exp {
-                return Err(Error { kind: Kind::TooManyExp });
-            }
-            if !got_digit {
-                return Err(Error { kind: Kind::SignifNoDigits });
-            }
-            got_digit = false;
-            exp = true;
-            fresh_exp = true;
-            continue;
-        }
-        let digit_value = match c {
-            '0'...'9' => c as i32 - '0' as i32,
-            'a'...'z' => c as i32 - 'a' as i32 + 10,
-            'A'...'Z' => c as i32 - 'A' as i32 + 10,
-            _ => Err(Error { kind: Kind::InvalidDigit })?,
-        };
-        if (!exp && digit_value >= radix) || (exp && digit_value >= 10) {
-            return Err(Error { kind: Kind::InvalidDigit });
-        }
-        got_digit = true;
-    }
-    if !got_digit && exp {
-        return Err(Error { kind: Kind::ExpNoDigits });
-    } else if !got_digit {
-        return Err(Error { kind: Kind::NoDigits });
-    }
-    if let Some(buf) = buf {
-        Ok(PossibleFromStr::Owned(buf))
-    } else if starts_with_plus {
-        Ok(PossibleFromStr::Borrowed(&src[1..]))
-    } else {
-        Ok(PossibleFromStr::Borrowed(src))
     }
 }
 
@@ -3914,6 +3904,62 @@ fn fmt_radix(
         (show_neg_zero && flt.is_zero() && flt.get_sign(), &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
+}
+
+/// A validated string that can always be converted to a `Float`.
+///
+/// See the [`Float::valid_str_radix()`]
+/// (struct.Float.html#method.valid_str_radix) method.
+#[derive(Clone, Debug)]
+pub struct ValidFloat<'a> {
+    poss: ValidPoss<'a>,
+    radix: i32,
+    underscore_or_plus: bool,
+}
+
+#[derive(Clone, Debug)]
+enum ValidPoss<'a> {
+    Str(&'a str),
+    Special(Special),
+}
+
+impl<'a> AssignRound<ValidFloat<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, rhs: ValidFloat, round: Round) -> Ordering {
+        let bytes = match rhs.poss {
+            ValidPoss::Special(s) => {
+                self.assign(s);
+                return Ordering::Equal;
+            }
+            ValidPoss::Str(s) => s.as_bytes(),
+        };
+        let mut v = Vec::<u8>::with_capacity(bytes.len() + 1);
+        if rhs.underscore_or_plus {
+            for b in bytes {
+                if *b != b'_' && *b != b'+' {
+                    v.push(*b);
+                }
+            }
+        } else {
+            v.extend_from_slice(bytes);
+        }
+        v.push(0);
+        let mut c_str_end: *const c_char = ptr::null();
+        let mpfr_ret = unsafe {
+            let c_str = CStr::from_bytes_with_nul_unchecked(&v);
+            mpfr::strtofr(
+                self.inner_mut(),
+                c_str.as_ptr(),
+                &mut c_str_end as *mut _ as *mut *mut c_char,
+                rhs.radix as c_int,
+                rraw(round),
+            )
+        };
+        let nul = v.last().unwrap() as *const _ as *const c_char;
+        assert_eq!(c_str_end, nul);
+        mpfr_ret.cmp(&0)
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
