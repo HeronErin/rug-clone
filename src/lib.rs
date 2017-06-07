@@ -131,7 +131,7 @@ mod integer;
 mod small_integer;
 mod xgmp;
 
-pub use integer::{Integer, IsPrime, ParseIntegerError};
+pub use integer::{Integer, IsPrime, ParseIntegerError, ValidInteger};
 pub use small_integer::SmallInteger;
 
 /// Assigns to a number from another value.

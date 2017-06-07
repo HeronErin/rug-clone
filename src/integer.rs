@@ -22,7 +22,7 @@ use rand::Rng;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CString;
+use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::mem;
@@ -70,6 +70,17 @@ use xgmp;
 /// assert_eq!(all_ones_xor_a, complement_a);
 /// assert_eq!(complement_a, -0xf00e);
 /// assert_eq!(format!("{:x}", complement_a), "-f00e");
+/// ```
+///
+/// To initialize a very large `Integer`, you can parse a string
+/// literal. Underscores are allowed in the string literal.
+///
+/// ```rust
+/// use rugint::Integer;
+/// let i1 = "999_999_999_999_999_999_999_999".parse::<Integer>().unwrap();
+/// assert_eq!(i1.significant_bits(), 80);
+/// let i2 = Integer::from_str_radix("1_ffff_ffff_ffff_ffff_ffff", 16).unwrap();
+/// assert_eq!(i2.count_ones(), Some(81));
 /// ```
 pub struct Integer {
     inner: mpz_t,
@@ -530,7 +541,7 @@ impl Integer {
         }
     }
 
-    /// Parses an `Integer`.
+    /// Parses an `Integer` using the given radix.
     ///
     /// # Examples
     ///
@@ -559,16 +570,26 @@ impl Integer {
     /// returns an error, the other functions will return the same
     /// error.
     ///
+    /// The string can start with an optional minus or plus sign. It
+    /// can also contain underscores, although the number cannot start
+    /// with an underscore. Whitespace is not allowed anywhere in the
+    /// string, including in the beginning and end.
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rugint::Integer;
-    /// assert!(Integer::valid_str_radix("123", 4).is_ok());
-    /// assert!(Integer::valid_str_radix("123xyz", 36).is_ok());
     ///
-    /// let invalid_valid = Integer::valid_str_radix("123", 3);
-    /// let invalid_from = Integer::from_str_radix("123", 3);
-    /// assert_eq!(invalid_valid.unwrap_err(), invalid_from.unwrap_err());
+    /// let valid1 = Integer::valid_str_radix("1223", 4);
+    /// let i1 = Integer::from(valid1.unwrap());
+    /// assert_eq!(i1, 3 + 4 * (2 + 4 * (2 + 4 * 1)));
+    /// let valid2 = Integer::valid_str_radix("12yz", 36);
+    /// let i2 = Integer::from(valid2.unwrap());
+    /// assert_eq!(i2, 35 + 36 * (34 + 36 * (2 + 36 * 1)));
+    ///
+    /// let invalid = Integer::valid_str_radix("123", 3);
+    /// let invalid_f = Integer::from_str_radix("123", 3);
+    /// assert_eq!(invalid.unwrap_err(), invalid_f.unwrap_err());
     /// ```
     ///
     /// # Panics
@@ -577,8 +598,45 @@ impl Integer {
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
-    ) -> Result<(), ParseIntegerError> {
-        check_str_radix(src, radix).map(|_| ())
+    ) -> Result<ValidInteger, ParseIntegerError> {
+        use self::ParseIntegerError as Error;
+        use self::ParseErrorKind as Kind;
+
+        assert!(radix >= 2 && radix <= 36, "radix out of range");
+        let (skip_plus, chars) = if src.starts_with('+') {
+            (&src[1..], src[1..].chars())
+        } else if src.starts_with('-') {
+            (src, src[1..].chars())
+        } else {
+            (src, src.chars())
+        };
+        let mut got_digit = false;
+        let mut underscores = false;
+        for c in chars {
+            if c == '_' && got_digit {
+                underscores = true;
+                continue;
+            }
+            let digit_value = match c {
+                '0'...'9' => c as i32 - '0' as i32,
+                'a'...'z' => c as i32 - 'a' as i32 + 10,
+                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+                _ => return Err(Error { kind: Kind::InvalidDigit }),
+            };
+            if digit_value >= radix {
+                return Err(Error { kind: Kind::InvalidDigit });
+            }
+            got_digit = true;
+        }
+        if !got_digit {
+            return Err(Error { kind: Kind::NoDigits });
+        }
+        let v = ValidInteger {
+            string: skip_plus,
+            radix: radix,
+            underscores: underscores,
+        };
+        Ok(v)
     }
 
     /// Converts to an `i32` if the value fits.
@@ -932,12 +990,7 @@ impl Integer {
         src: &str,
         radix: i32,
     ) -> Result<(), ParseIntegerError> {
-        let s = check_str_radix(src, radix)?;
-        let c_str = CString::new(s).unwrap();
-        let err = unsafe {
-            gmp::mpz_set_str(self.inner_mut(), c_str.as_ptr(), radix.into())
-        };
-        assert_eq!(err, 0);
+        self.assign(Integer::valid_str_radix(src, radix)?);
         Ok(())
     }
 
@@ -1022,6 +1075,7 @@ impl Integer {
     ///
     /// # Examples
     ///
+
     /// ```rust
     /// use rugint::Integer;
     /// let n = Integer::from(105);
@@ -2277,37 +2331,6 @@ impl Integer {
     }
 }
 
-fn check_str_radix(src: &str, radix: i32) -> Result<&str, ParseIntegerError> {
-    use self::ParseIntegerError as Error;
-    use self::ParseErrorKind as Kind;
-
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let (skip_plus, chars) = if src.starts_with('+') {
-        (&src[1..], src[1..].chars())
-    } else if src.starts_with('-') {
-        (src, src[1..].chars())
-    } else {
-        (src, src.chars())
-    };
-    let mut got_digit = false;
-    for c in chars {
-        let digit_value = match c {
-            '0'...'9' => c as i32 - '0' as i32,
-            'a'...'z' => c as i32 - 'a' as i32 + 10,
-            'A'...'Z' => c as i32 - 'A' as i32 + 10,
-            _ => return Err(Error { kind: Kind::InvalidDigit }),
-        };
-        if digit_value >= radix {
-            return Err(Error { kind: Kind::InvalidDigit });
-        }
-        got_digit = true;
-    }
-    if !got_digit {
-        return Err(Error { kind: Kind::NoDigits });
-    }
-    Ok(skip_plus)
-}
-
 macro_rules! from_borrow {
     { $T:ty } => {
         impl<'a> From<$T> for Integer {
@@ -3350,6 +3373,40 @@ fn fmt_radix(
     f.pad_integral(!neg, prefix, buf)
 }
 
+/// A validated string that can always be converted to an `Integer`.
+///
+/// See the [`Integer::valid_str_radix()`]
+/// (struct.Integer.html#method.valid_str_radix) method.
+#[derive(Clone, Debug)]
+pub struct ValidInteger<'a> {
+    string: &'a str,
+    radix: i32,
+    underscores: bool,
+}
+
+from_borrow! { ValidInteger<'a> }
+
+impl<'a> Assign<ValidInteger<'a>> for Integer {
+    fn assign(&mut self, rhs: ValidInteger) {
+        let mut v = Vec::<u8>::with_capacity(rhs.string.len() + 1);
+        if rhs.underscores {
+            for b in rhs.string.as_bytes() {
+                if *b != b'_' {
+                    v.push(*b);
+                }
+            }
+        } else {
+            v.extend_from_slice(rhs.string.as_bytes());
+        }
+        v.push(0);
+        let err = unsafe {
+            let c_str = CStr::from_bytes_with_nul_unchecked(&v);
+            gmp::mpz_set_str(self.inner_mut(), c_str.as_ptr(), rhs.radix.into())
+        };
+        assert_eq!(err, 0);
+    }
+}
+
 #[derive(Clone, Debug, Eq, PartialEq)]
 /// An error which can be returned when parsing an `Integer`.
 pub struct ParseIntegerError {
@@ -3720,6 +3777,8 @@ mod tests {
         assert_eq!(i.significant_bits(), 129);
 
         let bad_strings = [
+            ("1\0", None),
+            ("_1", None),
             (" 1", None),
             ("+-3", None),
             ("-+3", None),
@@ -3739,6 +3798,7 @@ mod tests {
             ("0", 10, 0),
             ("+0", 16, 0),
             ("-0", 2, 0),
+            ("12__", 10, 12),
             ("99", 10, 99),
             ("+Cc", 16, 0xcc),
             ("-77", 8, -0o77),
