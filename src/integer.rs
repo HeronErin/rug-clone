@@ -1243,6 +1243,22 @@ impl Integer {
         bitcount_to_u32(unsafe { gmp::mpz_popcount(self.inner()) })
     }
 
+    /// Returns the number of zero bits if the value < 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rugint::Integer;
+    /// assert_eq!(Integer::from(0).count_zeros(), None);
+    /// assert_eq!(Integer::from(1).count_zeros(), None);
+    /// assert_eq!(Integer::from(-1).count_zeros(), Some(0));
+    /// assert_eq!(Integer::from(-2).count_zeros(), Some(1));
+    /// assert_eq!(Integer::from(-7).count_zeros(), Some(2));
+    /// assert_eq!(Integer::from(-8).count_zeros(), Some(3));
+    /// ```
+    pub fn count_zeros(&self) -> Option<u32> {
+        bitcount_to_u32(unsafe { xgmp::mpz_zerocount(self.inner()) })
+    }
 
     /// Returns the location of the first zero, starting at `start`.
     /// If the bit at location `start` is zero, returns `start`.

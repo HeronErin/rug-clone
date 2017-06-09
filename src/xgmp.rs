@@ -18,7 +18,7 @@ use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i32, i64, u32, u64};
 use std::cmp::Ordering;
 use std::mem;
-use std::os::raw::{c_int, c_long, c_ulong};
+use std::os::raw::{c_int, c_long, c_uint, c_ulong};
 
 pub unsafe fn mpz_tdiv_qr_check_0(
     q: *mut mpz_t,
@@ -688,6 +688,17 @@ pub unsafe fn mpz_submul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
         gmp::mpz_submul_ui(rop, op1, op2 as c_ulong)
     } else {
         gmp::mpz_addmul_ui(rop, op1, op2.wrapping_neg() as c_ulong)
+    }
+}
+
+pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
+    if (*op).size >= 0 {
+        c_ulong::max_value()
+    } else {
+        let abs_size = (*op).size.wrapping_abs() as c_uint;
+        let abs_popcount = gmp::mpn_popcount((*op).d, abs_size as gmp::size_t);
+        let first_one = gmp::mpn_scan1((*op).d, 0);
+        abs_popcount + first_one - 1
     }
 }
 
