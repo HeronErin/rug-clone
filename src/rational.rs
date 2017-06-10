@@ -248,8 +248,6 @@ impl Rational {
     /// a `'/'`. The numerator can start with an optional minus or
     /// plus sign.
     ///
-    /// Both the numerator and denominator can also contain
-    /// underscores, although they cannot start with an underscore.
     /// Whitespace is not allowed anywhere in the string, including in
     /// the beginning and end and around the `'/'`.
     ///
@@ -281,23 +279,17 @@ impl Rational {
         use self::ParseErrorKind as Kind;
 
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let (skip_plus, chars) = if src.starts_with('+') {
-            (&src[1..], src[1..].chars())
-        } else if src.starts_with('-') {
-            (src, src[1..].chars())
-        } else {
-            (src, src.chars())
+        let bytes = src.as_bytes();
+        let (skip_plus, iter) = match bytes.get(0) {
+            Some(&b'+') => (&bytes[1..], bytes[1..].iter()),
+            Some(&b'-') => (bytes, bytes[1..].iter()),
+            _ => (bytes, bytes.iter()),
         };
         let mut got_digit = false;
         let mut denom = false;
         let mut denom_non_zero = false;
-        let mut underscores = false;
-        for c in chars {
-            if c == '_' && got_digit {
-                underscores = true;
-                continue;
-            }
-            if c == '/' {
+        for b in iter {
+            if *b == b'/' {
                 if denom {
                     return Err(Error { kind: Kind::TooManySlashes });
                 }
@@ -308,13 +300,13 @@ impl Rational {
                 denom = true;
                 continue;
             }
-            let digit_value = match c {
-                '0'...'9' => c as i32 - '0' as i32,
-                'a'...'z' => c as i32 - 'a' as i32 + 10,
-                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+            let digit_value = match *b {
+                b'0'...b'9' => *b - b'0',
+                b'a'...b'z' => *b - b'a' + 10,
+                b'A'...b'Z' => *b - b'A' + 10,
                 _ => Err(Error { kind: Kind::InvalidDigit })?,
             };
-            if digit_value >= radix {
+            if digit_value >= radix as u8 {
                 return Err(Error { kind: Kind::InvalidDigit });
             }
             got_digit = true;
@@ -331,9 +323,8 @@ impl Rational {
             return Err(Error { kind: Kind::DenomZero });
         }
         let v = ValidRational {
-            string: skip_plus,
+            bytes: skip_plus,
             radix: radix,
-            underscores: underscores,
         };
         Ok(v)
     }
@@ -1560,25 +1551,16 @@ fn fmt_radix(
 /// (struct.Rational.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidRational<'a> {
-    string: &'a str,
+    bytes: &'a [u8],
     radix: i32,
-    underscores: bool,
 }
 
 from_borrow! { ValidRational<'a> }
 
 impl<'a> Assign<ValidRational<'a>> for Rational {
     fn assign(&mut self, rhs: ValidRational) {
-        let mut v = Vec::<u8>::with_capacity(rhs.string.len() + 1);
-        if rhs.underscores {
-            for b in rhs.string.as_bytes() {
-                if *b != b'_' {
-                    v.push(*b);
-                }
-            }
-        } else {
-            v.extend_from_slice(rhs.string.as_bytes());
-        }
+        let mut v = Vec::<u8>::with_capacity(rhs.bytes.len() + 1);
+        v.extend_from_slice(rhs.bytes);
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
