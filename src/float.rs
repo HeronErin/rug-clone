@@ -629,8 +629,7 @@ impl Float {
     /// other function that parses a `Float`. If this method returns
     /// an error, the other functions will return the same error.
     ///
-    /// The string can start with an optional minus or plus sign. It
-    /// can also contain underscores following numberic digits.
+    /// The string can start with an optional minus or plus sign.
     /// Whitespace is not allowed anywhere in the string, including in
     /// the beginning and end.
     ///
@@ -664,56 +663,59 @@ impl Float {
         let mut v = ValidFloat {
             poss: ValidPoss::Special(Special::Nan),
             radix: radix,
-            underscore_or_plus: false,
+            exp_plus: None,
         };
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let (inf10, neg_inf10, nan10) =
-            (&["inf", "+inf", "infinity", "+infinity"],
-             &["-inf", "-infinity"],
-             &["nan", "+nan", "-nan"]);
-        let (inf, neg_inf, nan) =
-            (&["@inf@", "+@inf@", "@infinity@", "+@infinity@"],
-             &["-@inf@", "-@infinity@"],
-             &["@nan@", "+@nan@", "-@nan@"]);
-        if (radix <= 10 && lcase_in(src, inf10)) || lcase_in(src, inf) {
+        let bytes = src.as_bytes();
+        let (inf10, neg_inf10, nan10): (&[&[u8]], &[&[u8]], &[&[u8]]) =
+            (&[b"inf", b"+inf", b"infinity", b"+infinity"],
+             &[b"-inf", b"-infinity"],
+             &[b"nan", b"+nan", b"-nan"]);
+        let (inf, neg_inf, nan): (&[&[u8]], &[&[u8]], &[&[u8]]) =
+            (&[b"@inf@", b"+@inf@", b"@infinity@", b"+@infinity@"],
+             &[b"-@inf@", b"-@infinity@"],
+             &[b"@nan@", b"+@nan@", b"-@nan@"]);
+        if (radix <= 10 && lcase_in(bytes, inf10)) || lcase_in(bytes, inf) {
             v.poss = ValidPoss::Special(Special::Infinity);
             return Ok(v);
         }
-        if (radix <= 10 && lcase_in(src, neg_inf10)) || lcase_in(src, neg_inf) {
+        if (radix <= 10 && lcase_in(bytes, neg_inf10)) ||
+            lcase_in(bytes, neg_inf)
+        {
             v.poss = ValidPoss::Special(Special::MinusInfinity);
             return Ok(v);
         }
-        if (radix <= 10 && lcase_in(src, nan10)) || lcase_in(src, nan) {
+        if (radix <= 10 && lcase_in(bytes, nan10)) || lcase_in(bytes, nan) {
             v.poss = ValidPoss::Special(Special::Nan);
             return Ok(v);
         }
 
-        let mut chars = src.chars();
-        let starts_with_plus = src.starts_with('+');
-        if starts_with_plus || src.starts_with('-') {
-            chars.next();
+        let mut iter = bytes.iter();
+        let starts_with_plus = bytes.starts_with(&[b'+']);
+        let starts_with_minus = bytes.starts_with(&[b'-']);
+        if starts_with_plus || starts_with_minus {
+            iter.next();
         }
         let mut got_digit = false;
         let mut got_point = false;
         let mut exp = false;
-        let mut fresh_point = false;
         let mut fresh_exp = false;
-        for c in chars {
-            if c == '_' && got_digit && !fresh_point && !fresh_exp {
-                v.underscore_or_plus = true;
-                continue;
-            }
+        for (i, b) in iter.enumerate() {
             if fresh_exp {
                 fresh_exp = false;
-                if c == '-' {
+                if *b == b'-' {
                     continue;
                 }
-                if c == '+' {
-                    v.underscore_or_plus = true;
+                if *b == b'+' {
+                    v.exp_plus = if starts_with_minus {
+                        Some(i + 1)
+                    } else {
+                        Some(i)
+                    };
                     continue;
                 }
             }
-            if c == '.' {
+            if *b == b'.' {
                 if exp {
                     return Err(Error { kind: Kind::PointInExp });
                 }
@@ -721,10 +723,9 @@ impl Float {
                     return Err(Error { kind: Kind::TooManyPoints });
                 }
                 got_point = true;
-                fresh_point = true;
                 continue;
             }
-            if (radix <= 10 && (c == 'e' || c == 'E')) || c == '@' {
+            if (radix <= 10 && (*b == b'e' || *b == b'E')) || *b == b'@' {
                 if exp {
                     return Err(Error { kind: Kind::TooManyExp });
                 }
@@ -736,17 +737,16 @@ impl Float {
                 fresh_exp = true;
                 continue;
             }
-            let digit_value = match c {
-                '0'...'9' => c as i32 - '0' as i32,
-                'a'...'z' => c as i32 - 'a' as i32 + 10,
-                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+            let digit = match *b {
+                b'0'...b'9' => *b - b'0',
+                b'a'...b'z' => *b - b'a' + 10,
+                b'A'...b'Z' => *b - b'A' + 10,
                 _ => Err(Error { kind: Kind::InvalidDigit })?,
             };
-            if (!exp && digit_value >= radix) || (exp && digit_value >= 10) {
+            if (!exp && digit >= radix as u8) || (exp && digit >= 10) {
                 return Err(Error { kind: Kind::InvalidDigit });
             }
             got_digit = true;
-            fresh_point = false;
         }
         if !got_digit && exp {
             return Err(Error { kind: Kind::ExpNoDigits });
@@ -754,9 +754,9 @@ impl Float {
             return Err(Error { kind: Kind::NoDigits });
         }
         v.poss = if starts_with_plus {
-            ValidPoss::Str(&src[1..])
+            ValidPoss::Bytes(&bytes[1..])
         } else {
-            ValidPoss::Str(src)
+            ValidPoss::Bytes(bytes)
         };
         Ok(v)
     }
@@ -3914,12 +3914,12 @@ fn fmt_radix(
 pub struct ValidFloat<'a> {
     poss: ValidPoss<'a>,
     radix: i32,
-    underscore_or_plus: bool,
+    exp_plus: Option<usize>,
 }
 
 #[derive(Clone, Debug)]
 enum ValidPoss<'a> {
-    Str(&'a str),
+    Bytes(&'a [u8]),
     Special(Special),
 }
 
@@ -3932,15 +3932,12 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
                 self.assign(s);
                 return Ordering::Equal;
             }
-            ValidPoss::Str(s) => s.as_bytes(),
+            ValidPoss::Bytes(b) => b,
         };
         let mut v = Vec::<u8>::with_capacity(bytes.len() + 1);
-        if rhs.underscore_or_plus {
-            for b in bytes {
-                if *b != b'_' && *b != b'+' {
-                    v.push(*b);
-                }
-            }
+        if let Some(exp_plus) = rhs.exp_plus {
+            v.extend_from_slice(&bytes[0..exp_plus]);
+            v.extend_from_slice(&bytes[exp_plus + 1..]);
         } else {
             v.extend_from_slice(bytes);
         }
@@ -4003,14 +4000,20 @@ impl Display for ParseFloatError {
 unsafe impl Send for Float {}
 unsafe impl Sync for Float {}
 
-fn lcase_in(a: &str, bs: &[&str]) -> bool {
+fn lcase_ascii(byte: &u8) -> u8 {
+    if b'A' <= *byte && *byte <= b'Z' {
+        *byte - b'A' + b'a'
+    } else {
+        *byte
+    }
+}
+
+fn lcase_in(a: &[u8], bs: &[&[u8]]) -> bool {
     'next_b: for b in bs {
         if a.len() != b.len() {
             continue 'next_b;
         }
-        let acs = a.chars().map(|c| c.to_ascii_lowercase());
-        let bcs = b.chars().map(|c| c.to_ascii_lowercase());
-        for (ac, bc) in acs.zip(bcs) {
+        for (ac, &bc) in a.iter().map(lcase_ascii).zip(b.iter()) {
             if ac != bc {
                 continue 'next_b;
             }
