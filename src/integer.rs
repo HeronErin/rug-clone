@@ -73,14 +73,14 @@ use xgmp;
 /// ```
 ///
 /// To initialize a very large `Integer`, you can parse a string
-/// literal. Underscores are allowed in the string literal.
+/// literal.
 ///
 /// ```rust
 /// use rugint::Integer;
-/// let i1 = "999_999_999_999_999_999_999_999".parse::<Integer>().unwrap();
-/// assert_eq!(i1.significant_bits(), 80);
-/// let i2 = Integer::from_str_radix("1_ffff_ffff_ffff_ffff_ffff", 16).unwrap();
-/// assert_eq!(i2.count_ones(), Some(81));
+/// let i1 = "1234567890123456789012345".parse::<Integer>().unwrap();
+/// assert_eq!(i1.significant_bits(), 81);
+/// let i2 = Integer::from_str_radix("1ffff0000ffff0000ffff", 16).unwrap();
+/// assert_eq!(i2.count_ones(), Some(49));
 /// ```
 pub struct Integer {
     inner: mpz_t,
@@ -570,10 +570,9 @@ impl Integer {
     /// returns an error, the other functions will return the same
     /// error.
     ///
-    /// The string can start with an optional minus or plus sign. It
-    /// can also contain underscores, although the number cannot start
-    /// with an underscore. Whitespace is not allowed anywhere in the
-    /// string, including in the beginning and end.
+    /// The string can start with an optional minus or plus sign.
+    /// Whitespace is not allowed anywhere in the string, including in
+    /// the beginning and end.
     ///
     /// # Examples
     ///
@@ -603,27 +602,21 @@ impl Integer {
         use self::ParseErrorKind as Kind;
 
         assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let (skip_plus, chars) = if src.starts_with('+') {
-            (&src[1..], src[1..].chars())
-        } else if src.starts_with('-') {
-            (src, src[1..].chars())
-        } else {
-            (src, src.chars())
+        let bytes = src.as_bytes();
+        let (skip_plus, iter) = match bytes.get(0) {
+            Some(&b'+') => (&bytes[1..], bytes[1..].iter()),
+            Some(&b'-') => (bytes, bytes[1..].iter()),
+            _ => (bytes, bytes.iter()),
         };
         let mut got_digit = false;
-        let mut underscores = false;
-        for c in chars {
-            if c == '_' && got_digit {
-                underscores = true;
-                continue;
-            }
-            let digit_value = match c {
-                '0'...'9' => c as i32 - '0' as i32,
-                'a'...'z' => c as i32 - 'a' as i32 + 10,
-                'A'...'Z' => c as i32 - 'A' as i32 + 10,
+        for b in iter {
+            let digit_value = match *b {
+                b'0'...b'9' => *b - b'0',
+                b'a'...b'z' => *b - b'a' + 10,
+                b'A'...b'Z' => *b - b'A' + 10,
                 _ => return Err(Error { kind: Kind::InvalidDigit }),
             };
-            if digit_value >= radix {
+            if digit_value >= radix as u8 {
                 return Err(Error { kind: Kind::InvalidDigit });
             }
             got_digit = true;
@@ -632,9 +625,8 @@ impl Integer {
             return Err(Error { kind: Kind::NoDigits });
         }
         let v = ValidInteger {
-            string: skip_plus,
+            bytes: skip_plus,
             radix: radix,
-            underscores: underscores,
         };
         Ok(v)
     }
@@ -3395,25 +3387,16 @@ fn fmt_radix(
 /// (struct.Integer.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidInteger<'a> {
-    string: &'a str,
+    bytes: &'a [u8],
     radix: i32,
-    underscores: bool,
 }
 
 from_borrow! { ValidInteger<'a> }
 
 impl<'a> Assign<ValidInteger<'a>> for Integer {
     fn assign(&mut self, rhs: ValidInteger) {
-        let mut v = Vec::<u8>::with_capacity(rhs.string.len() + 1);
-        if rhs.underscores {
-            for b in rhs.string.as_bytes() {
-                if *b != b'_' {
-                    v.push(*b);
-                }
-            }
-        } else {
-            v.extend_from_slice(rhs.string.as_bytes());
-        }
+        let mut v = Vec::<u8>::with_capacity(rhs.bytes.len() + 1);
+        v.extend_from_slice(rhs.bytes);
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
@@ -3794,7 +3777,7 @@ mod tests {
 
         let bad_strings = [
             ("1\0", None),
-            ("_1", None),
+            ("1_2", None),
             (" 1", None),
             ("+-3", None),
             ("-+3", None),
@@ -3814,7 +3797,6 @@ mod tests {
             ("0", 10, 0),
             ("+0", 16, 0),
             ("-0", 2, 0),
-            ("12__", 10, 12),
             ("99", 10, 99),
             ("+Cc", 16, 0xcc),
             ("-77", 8, -0o77),
