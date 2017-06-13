@@ -117,277 +117,6 @@ impl Drop for Integer {
     }
 }
 
-macro_rules! math_op1 {
-    {
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
-        $func:path
-    } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $($param: $T,)*
-        ) -> &mut Integer {
-            unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $($param.into(),)*
-                );
-            }
-            self
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Ref {
-            $Ref {
-                ref_self: self,
-                $($param: $param,)*
-            }
-        }
-    };
-}
-
-macro_rules! ref_math_op1 {
-    {
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* };
-        $func:path
-    } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Integer,
-            $($param: $T,)*
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Integer {
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op1_2 {
-    {
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
-        $func:path
-    } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $rop: &mut Integer,
-            $($param: $T,)*
-        ) {
-            unsafe {
-                $func(
-                    self.inner_mut(),
-                    $rop.inner_mut(),
-                    self.inner(),
-                    $($param.into(),)*
-                );
-            }
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Ref {
-            $Ref {
-                ref_self: self,
-                $($param: $param,)*
-            }
-        }
-    };
-}
-
-macro_rules! ref_math_op1_2 {
-    {
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* };
-        $func:path
-    } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Integer,
-            $($param: $T,)*
-        }
-
-        impl<'a> Assign<$Ref<'a>> for (&'a mut Integer, &'a mut Integer) {
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op2 {
-    {
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
-        $func:path
-    } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op: &Integer,
-            $($param: $T,)*
-        ) -> &mut Integer {
-            unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
-                    $($param.into(),)*
-                );
-            }
-            self
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Integer,
-            $($param: $T,)*
-        ) -> $Ref<'a> {
-            $Ref {
-                ref_self: self,
-                $op: $op,
-                $($param: $param,)*
-            }
-        }
-    };
-}
-
-macro_rules! ref_math_op2 {
-    {
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* };
-        $func:path
-    } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Integer,
-            $op: &'a Integer,
-            $($param: $T,)*
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Integer {
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-    };
-}
-
-macro_rules! math_op2_2 {
-    {
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
-        $func:path
-    } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op: &mut Integer,
-            $($param: $T,)*
-        ) {
-            unsafe {
-                $func(
-                    self.inner_mut(),
-                    $op.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
-                    $($param.into(),)*
-                );
-            }
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Integer,
-            $($param: $T,)*
-        ) -> $Ref<'a> {
-            $Ref {
-                ref_self: self,
-                $op: $op,
-                $($param: $param,)*
-            }
-        }
-    };
-}
-
-macro_rules! ref_math_op2_2 {
-    {
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* };
-        $func:path
-    } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Integer,
-            $op: &'a Integer,
-            $($param: $T,)*
-        }
-
-        impl<'a> Assign<$Ref<'a>> for (&'a mut Integer, &'a mut Integer) {
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-    };
-}
-
 impl Integer {
     /// Constructs a new arbitrary-precision integer with value 0.
     ///
@@ -1360,6 +1089,8 @@ impl Integer {
     }
 
     math_op1! {
+        Integer;
+        gmp::mpz_abs;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -1384,9 +1115,10 @@ impl Integer {
         /// assert_eq!(i, -100);
         /// ```
         fn abs_ref -> AbsRef;
-        gmp::mpz_abs
     }
     math_op1! {
+        Integer;
+        gmp::mpz_fdiv_r_2exp;
         /// Keeps the `n` least significant bits only.
         ///
         /// # Examples
@@ -1409,9 +1141,10 @@ impl Integer {
         /// assert_eq!(eight_bits, 0xff);
         /// ```
         fn keep_bits_ref -> KeepBitsRef;
-        gmp::mpz_fdiv_r_2exp
     }
     math_op2_2! {
+        Integer;
+        xgmp::mpz_tdiv_qr_check_0;
         /// Performs a division and stores the quotient in `self` and
         /// the remainder in `divisor`.
         ///
@@ -1446,9 +1179,10 @@ impl Integer {
         /// assert_eq!(rem, 3);
         /// ```
         fn div_rem_ref -> DivRemRef;
-        xgmp::mpz_tdiv_qr_check_0
     }
     math_op2! {
+        Integer;
+        xgmp::mpz_divexact_check_0;
         /// Performs an exact division. This is much faster than
         /// normal division, but produces correct results only when
         /// the division is exact.
@@ -1481,9 +1215,10 @@ impl Integer {
         /// assert_eq!(q, 54321);
         /// ```
         fn div_exact_ref -> DivExactRef;
-        xgmp::mpz_divexact_check_0
     }
     math_op1! {
+        Integer;
+        xgmp::mpz_divexact_ui_check_0;
         /// Performs an exact division. This is much faster than
         /// normal division, but produces correct results only when
         /// the division is exact.
@@ -1513,7 +1248,6 @@ impl Integer {
         /// assert_eq!(Integer::from(r), 54321);
         /// ```
         fn div_exact_u_ref -> DivExactURef;
-        xgmp::mpz_divexact_ui_check_0
     }
 
     /// Finds the inverse modulo `modulo` and returns `true` if an
@@ -1694,6 +1428,8 @@ impl Integer {
     }
 
     math_op1! {
+        Integer;
+        gmp::mpz_root;
         /// Computes the `n`th root and truncates the result.
         ///
         /// # Examples
@@ -1714,9 +1450,10 @@ impl Integer {
         /// assert_eq!(Integer::from(i.root_ref(3)), 10);
         /// ```
         fn root_ref -> RootRef;
-        gmp::mpz_root
     }
     math_op1_2! {
+        Integer;
+        gmp::mpz_rootrem;
         /// Computes the `n`th root and returns the truncated root and
         /// the remainder.
         ///
@@ -1753,9 +1490,10 @@ impl Integer {
         /// assert_eq!(rem, 4);
         /// ```
         fn root_rem_ref -> RootRemRef;
-        gmp::mpz_rootrem
     }
     math_op1! {
+        Integer;
+        gmp::mpz_sqrt;
         /// Computes the square root and truncates the result.
         ///
         /// # Examples
@@ -1776,9 +1514,10 @@ impl Integer {
         /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
         /// ```
         fn sqrt_ref -> SqrtRef;
-        gmp::mpz_sqrt
     }
     math_op1_2! {
+        Integer;
+        gmp::mpz_sqrtrem;
         /// Computes the square root and the remainder. The remainder
         /// is the original number minus the truncated root squared.
         ///
@@ -1809,7 +1548,6 @@ impl Integer {
         /// assert_eq!(rem, 4);
         /// ```
         fn sqrt_rem_ref -> SqrtRemRef;
-        gmp::mpz_sqrtrem
     }
 
     /// Determines wheter a number is prime using some trial
@@ -1839,15 +1577,18 @@ impl Integer {
     }
 
     math_op1! {
+        Integer;
+        gmp::mpz_nextprime;
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         fn next_prime();
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         fn next_prime_ref -> NextPrimeRef;
-        gmp::mpz_nextprime
     }
     math_op2! {
+        Integer;
+        gmp::mpz_gcd;
         /// Finds the greatest common divisor.
         ///
         /// The result is always positive except when both inputs are
@@ -1883,9 +1624,10 @@ impl Integer {
         /// assert_eq!(Integer::from(r), 25);
         /// ```
         fn gcd_ref -> GcdRef;
-        gmp::mpz_gcd
     }
     math_op2! {
+        Integer;
+        gmp::mpz_lcm;
         /// Finds the least common multiple.
         ///
         /// The result is always positive except when one or both
@@ -1917,7 +1659,6 @@ impl Integer {
         /// assert_eq!(Integer::from(r), 500);
         /// ```
         fn lcm_ref -> LcmRef;
-        gmp::mpz_lcm
     }
 
     /// Calculates the Jacobi symbol (`self`/`n`).
@@ -2052,6 +1793,8 @@ impl Integer {
     }
 
     math_op1! {
+        Integer;
+        gmp::mpz_bin_ui;
         /// Computes the binomial coefficient over `k`.
         ///
         /// # Examples
@@ -2074,7 +1817,6 @@ impl Integer {
         /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
         /// ```
         fn binomial_ref -> BinomialRef;
-        gmp::mpz_bin_ui
     }
 
     /// Computes the binomial coefficient `n` over `k`.
@@ -2344,18 +2086,6 @@ impl Integer {
     }
 }
 
-macro_rules! from_borrow {
-    { $T:ty } => {
-        impl<'a> From<$T> for Integer {
-            fn from(t: $T) -> Integer {
-                let mut ret = Integer::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    };
-}
-
 impl<'a> From<&'a Integer> for Integer {
     fn from(val: &Integer) -> Integer {
         unsafe {
@@ -2509,12 +2239,16 @@ impl Assign<u64> for Integer {
     }
 }
 
-ref_math_op1! { struct AbsRef {}; gmp::mpz_abs }
-ref_math_op1! { struct KeepBitsRef { n: u32 }; gmp::mpz_fdiv_r_2exp }
-ref_math_op2_2! { struct DivRemRef { divisor }; xgmp::mpz_tdiv_qr_check_0 }
-ref_math_op2! { struct DivExactRef { divisor }; xgmp::mpz_divexact_check_0 }
+ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
+ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
+ref_math_op2_2! {
+    Integer; xgmp::mpz_tdiv_qr_check_0; struct DivRemRef { divisor }
+}
+ref_math_op2! {
+    Integer; xgmp::mpz_divexact_check_0; struct DivExactRef { divisor }
+}
 ref_math_op1! {
-    struct DivExactURef { divisor: u32 }; xgmp::mpz_divexact_ui_check_0
+    Integer; xgmp::mpz_divexact_ui_check_0; struct DivExactURef { divisor: u32 }
 }
 
 #[derive(Clone, Copy)]
@@ -2553,13 +2287,13 @@ impl<'a> Assign<PowModRef<'a>> for (&'a mut Integer, &'a mut bool) {
     }
 }
 
-ref_math_op1! { struct RootRef { n: u32 }; gmp::mpz_root }
-ref_math_op1_2! { struct RootRemRef { n: u32 }; gmp::mpz_rootrem }
-ref_math_op1! { struct SqrtRef {}; gmp::mpz_sqrt }
-ref_math_op1_2! { struct SqrtRemRef {}; gmp::mpz_sqrtrem }
-ref_math_op1! { struct NextPrimeRef {}; gmp::mpz_nextprime }
-ref_math_op2! { struct GcdRef { other }; gmp::mpz_gcd }
-ref_math_op2! { struct LcmRef { other }; gmp::mpz_lcm }
+ref_math_op1! { Integer; gmp::mpz_root; struct RootRef { n: u32 } }
+ref_math_op1_2! { Integer; gmp::mpz_rootrem; struct RootRemRef { n: u32 } }
+ref_math_op1! { Integer; gmp::mpz_sqrt; struct SqrtRef {} }
+ref_math_op1_2! { Integer; gmp::mpz_sqrtrem; struct SqrtRemRef {} }
+ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeRef {} }
+ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdRef { other } }
+ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
 
 #[derive(Clone, Copy)]
 pub struct InvertRef<'a> {
@@ -2599,441 +2333,180 @@ impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {
     }
 }
 
-ref_math_op1! { struct BinomialRef { k: u32 }; gmp::mpz_bin_ui }
+ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialRef { k: u32 } }
 
-macro_rules! arith_unary {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $func:path,
-        $Ref:ident
-    } => {
-        impl $Imp for Integer {
-            type Output = Integer;
-            fn $method(mut self) -> Integer {
-                self.$method_assign();
-                self
-            }
-        }
-
-        impl $ImpAssign for Integer {
-            fn $method_assign(&mut self) {
-                unsafe {
-                    $func(self.inner_mut(), self.inner());
-                }
-            }
-        }
-
-        impl<'a> $Imp for &'a Integer {
-            type Output = $Ref<'a>;
-            fn $method(self) -> $Ref<'a> {
-                $Ref { op: self }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            op: &'a Integer,
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Integer {
-            fn assign(&mut self, rhs: $Ref) {
-                unsafe {
-                    $func(self.inner_mut(), rhs.op.inner());
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_binary {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $func:path,
-        $Ref:ident
-    } => {
-        impl $Imp<Integer> for Integer {
-            type Output = Integer;
-            fn $method(self, op: Integer) -> Integer {
-                self.$method(&op)
-            }
-        }
-
-        impl<'a> $Imp<&'a Integer> for Integer {
-            type Output = Integer;
-            fn $method(mut self, op: &'a Integer) -> Integer {
-                $ImpAssign::<&'a Integer>::$method_assign(&mut self, op);
-                self
-            }
-        }
-
-        impl $ImpAssign<Integer> for Integer {
-            fn $method_assign(&mut self, op: Integer) {
-                self.$method_assign(&op);
-            }
-        }
-
-        impl<'a> $ImpAssign<&'a Integer> for Integer {
-            fn $method_assign(&mut self, op: &'a Integer) {
-                unsafe {
-                    $func(self.inner_mut(), self.inner(), op.inner());
-                }
-            }
-        }
-
-        impl<'a> $Imp<&'a Integer> for &'a Integer {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a Integer) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            lhs: &'a Integer,
-            rhs: &'a Integer,
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Integer {
-            fn assign(&mut self, rhs: $Ref) {
-                unsafe {
-                    $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.inner());
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_noncommut {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $ImpFromAssign:ident $method_from_assign:ident,
-        $func:path,
-        $Ref:ident
-    } => {
-        arith_binary! {
-            $Imp $method, $ImpAssign $method_assign, $func, $Ref
-        }
-
-        impl $ImpFromAssign<Integer> for Integer {
-            fn $method_from_assign(&mut self, lhs: Integer) {
-                self.$method_from_assign(&lhs);
-            }
-        }
-
-        impl<'a> $ImpFromAssign<&'a Integer> for Integer {
-            fn $method_from_assign(&mut self, lhs: &'a Integer) {
-                unsafe {
-                    $func(self.inner_mut(), lhs.inner(), self.inner());
-                }
-            }
-        }
-    };
-}
-
-arith_unary! { Neg neg, NegAssign neg_assign, gmp::mpz_neg, NegRef }
-arith_binary! { Add add, AddAssign add_assign, gmp::mpz_add, AddRef }
+arith_unary! { Integer; gmp::mpz_neg; Neg neg; NegAssign neg_assign; NegRef }
+arith_binary! { Integer; gmp::mpz_add; Add add; AddAssign add_assign; AddRef }
 arith_noncommut! {
-    Sub sub,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    gmp::mpz_sub,
+    Integer;
+    gmp::mpz_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
     SubRef
 }
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpz_mul, MulRef }
+arith_binary! { Integer; gmp::mpz_mul; Mul mul; MulAssign mul_assign; MulRef }
 arith_noncommut! {
-    Div div,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    xgmp::mpz_tdiv_q_check_0,
+    Integer;
+    xgmp::mpz_tdiv_q_check_0;
+    Div div;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
     DivRef
 }
 arith_noncommut! {
-    Rem rem,
-    RemAssign rem_assign,
-    RemFromAssign rem_from_assign,
-    xgmp::mpz_tdiv_r_check_0,
+    Integer;
+    xgmp::mpz_tdiv_r_check_0;
+    Rem rem;
+    RemAssign rem_assign;
+    RemFromAssign rem_from_assign;
     RemRef
 }
-arith_unary! { Not not, NotAssign not_assign, gmp::mpz_com, NotRef }
+arith_unary! { Integer; gmp::mpz_com; Not not; NotAssign not_assign; NotRef }
 arith_binary! {
-    BitAnd bitand, BitAndAssign bitand_assign, gmp::mpz_and, BitAndRef
-}
-arith_binary! {
-    BitOr bitor, BitOrAssign bitor_assign, gmp::mpz_ior, BitOrRef
+    Integer; gmp::mpz_and; BitAnd bitand; BitAndAssign bitand_assign; BitAndRef
 }
 arith_binary! {
-    BitXor bitxor, BitXorAssign bitxor_assign, gmp::mpz_xor, BitXorRef
+    Integer; gmp::mpz_ior; BitOr bitor; BitOrAssign bitor_assign; BitOrRef
 }
-
-macro_rules! arith_prim {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
-        $Ref:ident
-    }=> {
-        impl $Imp<$T> for Integer {
-            type Output = Integer;
-            fn $method(mut self, op: $T) -> Integer {
-                self.$method_assign(op);
-                self
-            }
-        }
-
-        impl $ImpAssign<$T> for Integer {
-            fn $method_assign(&mut self, op: $T) {
-                unsafe {
-                    $func(self.inner_mut(), self.inner(), op.into());
-                }
-            }
-        }
-
-        impl<'a> $Imp<$T> for &'a Integer {
-            type Output = $Ref<'a>;
-            fn $method(self, op: $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: op,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            lhs: &'a Integer,
-            rhs: $T,
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Integer {
-            fn assign(&mut self, rhs: $Ref) {
-                unsafe {
-                    $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.into());
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_prim_noncommut {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $ImpFromAssign:ident $method_from_assign:ident,
-        $T:ty,
-        $func:path,
-        $func_from:path,
-        $Ref:ident,
-        $RefFrom:ident
-    } => {
-        arith_prim! {
-            $Imp $method, $ImpAssign $method_assign, $T, $func, $Ref
-        }
-
-        impl $Imp<Integer> for $T {
-            type Output = Integer;
-            fn $method(self, mut op: Integer) -> Integer {
-                op.$method_from_assign(self);
-                op
-            }
-        }
-
-        impl $ImpFromAssign<$T> for Integer {
-            fn $method_from_assign(&mut self, lhs: $T) {
-                unsafe {
-                    $func_from(self.inner_mut(), lhs.into(), self.inner());
-                }
-            }
-        }
-
-        impl<'a> $Imp<&'a Integer> for $T {
-            type Output = $RefFrom<'a>;
-            fn $method(self, op: &'a Integer) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: self,
-                    rhs: op,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $RefFrom<'a> {
-            lhs: $T,
-            rhs: &'a Integer,
-        }
-
-        from_borrow! { $RefFrom<'a> }
-
-        impl<'a> Assign<$RefFrom<'a>> for Integer {
-            fn assign(&mut self, rhs: $RefFrom) {
-                unsafe {
-                    $func_from(self.inner_mut(),
-                               rhs.lhs.into(),
-                               rhs.rhs.inner());
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_prim_commut {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
-        $Ref:ident
-    } => {
-        arith_prim! {
-            $Imp $method, $ImpAssign $method_assign, $T, $func, $Ref
-        }
-
-        impl $Imp<Integer> for $T {
-            type Output = Integer;
-            fn $method(self, op: Integer) -> Integer {
-                op.$method(self)
-            }
-        }
-
-        impl<'a> $Imp<&'a Integer> for $T {
-            type Output = $Ref<'a>;
-            fn $method(self, op: &'a Integer) -> $Ref<'a> {
-                op.$method(self)
-            }
-        }
-    };
+arith_binary! {
+    Integer; gmp::mpz_xor; BitXor bitxor; BitXorAssign bitxor_assign; BitXorRef
 }
 
 arith_prim_commut! {
-    Add add, AddAssign add_assign, i32, xgmp::mpz_add_si, AddRefI32
+    Integer; xgmp::mpz_add_si; Add add; AddAssign add_assign; i32; AddRefI32
 }
 arith_prim_noncommut! {
-    Sub sub,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    i32,
-    xgmp::mpz_sub_si,
-    xgmp::mpz_si_sub,
-    SubRefI32,
-    SubFromRefI32
+    Integer;
+    xgmp::mpz_sub_si;
+    xgmp::mpz_si_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
+    i32;
+    SubRefI32 SubFromRefI32
 }
 arith_prim_commut! {
-    Mul mul, MulAssign mul_assign, i32, gmp::mpz_mul_si, MulRefI32
+    Integer; gmp::mpz_mul_si; Mul mul; MulAssign mul_assign; i32; MulRefI32
 }
 arith_prim_noncommut! {
-    Div div,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    i32,
-    xgmp::mpz_tdiv_q_si_check_0,
-    xgmp::mpz_si_tdiv_q_check_0,
-    DivRefI32,
-    DivFromRefI32
+    Integer;
+    xgmp::mpz_tdiv_q_si_check_0;
+    xgmp::mpz_si_tdiv_q_check_0;
+    Div div;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
+    i32;
+    DivRefI32 DivFromRefI32
 }
 arith_prim_noncommut! {
-    Rem rem,
-    RemAssign rem_assign,
-    RemFromAssign rem_from_assign,
-    i32,
-    xgmp::mpz_tdiv_r_si_check_0,
-    xgmp::mpz_si_tdiv_r_check_0,
-    RemRefI32,
-    RemFromRefI32
+    Integer;
+    xgmp::mpz_tdiv_r_si_check_0;
+    xgmp::mpz_si_tdiv_r_check_0;
+    Rem rem;
+    RemAssign rem_assign;
+    RemFromAssign rem_from_assign;
+    i32;
+    RemRefI32 RemFromRefI32
 }
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, i32, xgmp::mpz_lshift_si, ShlRefI32
+    Integer; xgmp::mpz_lshift_si; Shl shl; ShlAssign shl_assign; i32; ShlRefI32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, i32, xgmp::mpz_rshift_si, ShrRefI32
+    Integer; xgmp::mpz_rshift_si; Shr shr; ShrAssign shr_assign; i32; ShrRefI32
 }
 arith_prim_commut! {
-    BitAnd bitand,
-    BitAndAssign bitand_assign,
-    i32,
-    xgmp::bitand_si,
+    Integer;
+    xgmp::bitand_si;
+    BitAnd bitand;
+    BitAndAssign bitand_assign;
+    i32;
     BitAndRefI32
 }
 arith_prim_commut! {
-    BitOr bitor, BitOrAssign bitor_assign, i32, xgmp::bitor_si, BitOrRefI32
+    Integer;
+    xgmp::bitor_si;
+    BitOr bitor;
+    BitOrAssign bitor_assign;
+    i32;
+    BitOrRefI32
 }
 arith_prim_commut! {
-    BitXor bitxor,
-    BitXorAssign bitxor_assign,
-    i32,
-    xgmp::bitxor_si,
+    Integer;
+    xgmp::bitxor_si;
+    BitXor bitxor;
+    BitXorAssign bitxor_assign;
+    i32;
     BitXorRefI32
 }
 
 arith_prim_commut! {
-    Add add, AddAssign add_assign, u32, gmp::mpz_add_ui, AddRefU32
+    Integer; gmp::mpz_add_ui; Add add; AddAssign add_assign; u32; AddRefU32
 }
 arith_prim_noncommut! {
-    Sub sub,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    u32,
-    gmp::mpz_sub_ui,
-    gmp::mpz_ui_sub,
-    SubRefU32,
-    SubFromRefU32
+    Integer;
+    gmp::mpz_sub_ui;
+    gmp::mpz_ui_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
+    u32;
+    SubRefU32 SubFromRefU32
 }
 arith_prim_commut! {
-    Mul mul, MulAssign mul_assign, u32, gmp::mpz_mul_ui, MulRefU32
+    Integer; gmp::mpz_mul_ui; Mul mul; MulAssign mul_assign; u32; MulRefU32
 }
 arith_prim_noncommut! {
-    Div div,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    u32,
-    xgmp::mpz_tdiv_q_ui_check_0,
-    xgmp::mpz_ui_tdiv_q_check_0,
-    DivRefU32,
-    DivFromRefU32
+    Integer;
+    xgmp::mpz_tdiv_q_ui_check_0;
+    xgmp::mpz_ui_tdiv_q_check_0;
+    Div div;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
+    u32;
+    DivRefU32 DivFromRefU32
 }
 arith_prim_noncommut! {
-    Rem rem,
-    RemAssign rem_assign,
-    RemFromAssign rem_from_assign,
-    u32,
-    xgmp::mpz_tdiv_r_ui_check_0,
-    xgmp::mpz_ui_tdiv_r_check_0,
-    RemRefU32,
-    RemFromRefU32
+    Integer;
+    xgmp::mpz_tdiv_r_ui_check_0;
+    xgmp::mpz_ui_tdiv_r_check_0;
+    Rem rem;
+    RemAssign rem_assign;
+    RemFromAssign rem_from_assign;
+    u32;
+    RemRefU32 RemFromRefU32
 }
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, u32, gmp::mpz_mul_2exp, ShlRefU32
+    Integer; gmp::mpz_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlRefU32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, u32, gmp::mpz_fdiv_q_2exp, ShrRefU32
+    Integer; gmp::mpz_fdiv_q_2exp; Shr shr; ShrAssign shr_assign; u32; ShrRefU32
 }
-arith_prim! { Pow pow, PowAssign pow_assign, u32, gmp::mpz_pow_ui, PowRefU32 }
+arith_prim! {
+    Integer; gmp::mpz_pow_ui; Pow pow; PowAssign pow_assign; u32; PowRefU32
+}
 arith_prim_commut! {
-    BitAnd bitand,
-    BitAndAssign bitand_assign,
-    u32,
-    xgmp::bitand_ui,
+    Integer;
+    xgmp::bitand_ui;
+    BitAnd bitand;
+    BitAndAssign bitand_assign;
+    u32;
     BitAndRefU32
 }
 arith_prim_commut! {
-    BitOr bitor, BitOrAssign bitor_assign, u32, xgmp::bitor_ui, BitOrRefU32
+    Integer;
+    xgmp::bitor_ui;
+    BitOr bitor;
+    BitOrAssign bitor_assign;
+    u32;
+    BitOrRefU32
 }
 arith_prim_commut! {
-    BitXor bitxor,
-    BitXorAssign bitxor_assign,
-    u32,
-    xgmp::bitxor_ui,
+    Integer;
+    xgmp::bitxor_ui;
+    BitXor bitxor;
+    BitXorAssign bitxor_assign;
+    u32;
     BitXorRefU32
 }
 
@@ -3396,7 +2869,7 @@ pub struct ValidInteger<'a> {
     radix: i32,
 }
 
-from_borrow! { ValidInteger<'a> }
+from_borrow! { ValidInteger<'a> => Integer }
 
 impl<'a> Assign<ValidInteger<'a>> for Integer {
     fn assign(&mut self, rhs: ValidInteger) {

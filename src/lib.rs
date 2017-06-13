@@ -23,12 +23,14 @@ extern crate gmp_mpfr_sys;
 #[cfg(feature = "rand")]
 extern crate rand;
 
+#[macro_use]
+mod macros;
+mod inner;
+
 mod integer;
 mod rational;
 mod complex;
 mod float;
-
-mod inner;
 
 pub use complex::{Complex, ParseComplexError, Prec, SmallComplex, ValidComplex};
 pub use float::{Constant, Float, ParseFloatError, Round, SmallFloat, Special,

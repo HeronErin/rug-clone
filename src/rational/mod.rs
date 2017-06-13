@@ -83,71 +83,6 @@ impl Drop for Rational {
     }
 }
 
-macro_rules! math_op1 {
-    {
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
-        $func:path
-    } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $($param: $T,)*
-        ) -> &mut Rational {
-            unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $($param.into(),)*
-                );
-            }
-            self
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Ref {
-            $Ref {
-                ref_self: self,
-                $($param: $param,)*
-            }
-        }
-    };
-}
-
-macro_rules! ref_math_op1 {
-    {
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* };
-        $func:path
-    } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Rational,
-            $($param: $T,)*
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Rational {
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-    };
-}
-
 impl Rational {
     /// Constructs a new arbitrary-precision rational number with
     /// value 0.
@@ -697,6 +632,8 @@ impl Rational {
     }
 
     math_op1! {
+        Rational;
+        gmp::mpq_abs;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -720,9 +657,10 @@ impl Rational {
         /// assert_eq!(abs, (100, 17));
         /// ```
         fn abs_ref -> AbsRef;
-        gmp::mpq_abs
     }
     math_op1! {
+        Rational;
+        xgmp::mpq_inv_check_0;
         /// Computes the reciprocal.
         ///
         /// # Examples
@@ -750,7 +688,6 @@ impl Rational {
         /// assert_eq!(recip, (-17, 100));
         /// ```
         fn recip_ref -> RecipRef;
-        xgmp::mpq_inv_check_0
     }
 
     /// Rounds the number upwards (towards plus infinity).
@@ -843,6 +780,8 @@ impl Rational {
     }
 
     math_op1! {
+        Rational;
+        xgmp::mpq_fract;
         /// Computes the fractional part of the number.
         ///
         /// # Examples
@@ -866,7 +805,6 @@ impl Rational {
         /// assert_eq!(fract, (-15, 17));
         /// ```
         fn fract_ref -> FractRef;
-        xgmp::mpq_fract
     }
 
     /// Computes the fractional and truncated parts of the number.
@@ -911,31 +849,7 @@ impl Rational {
     }
 }
 
-macro_rules! from_borrow {
-    { $T:ty } => {
-        impl<'a> From<$T> for Rational {
-            fn from(t: $T) -> Rational {
-                let mut ret = Rational::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    };
-}
-
-macro_rules! from {
-    { $T:ty } => {
-        impl From<$T> for Rational {
-            fn from(t: $T) -> Rational {
-                let mut ret = Rational::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    };
-}
-
-from_borrow! { &'a Rational }
+from_borrow! { &'a Rational => Rational }
 
 impl From<Integer> for Rational {
     /// Constructs a `Rational` number from an `Integer`.
@@ -947,7 +861,7 @@ impl From<Integer> for Rational {
     }
 }
 
-from_borrow! { &'a Integer }
+from_borrow! { &'a Integer => Rational }
 
 impl From<(Integer, Integer)> for Rational {
     /// Constructs a `Rational` number from a numerator `Integer` and
@@ -973,20 +887,20 @@ impl From<(Integer, Integer)> for Rational {
     }
 }
 
-from_borrow! { (&'a Integer, &'a Integer) }
+from_borrow! { (&'a Integer, &'a Integer) => Rational }
 
-from! { i32 }
-from! { i64 }
-from! { u32 }
-from! { u64 }
-from! { (i32, i32) }
-from! { (i64, i64) }
-from! { (i32, u32) }
-from! { (i64, u64) }
-from! { (u32, i32) }
-from! { (u64, i64) }
-from! { (u32, u32) }
-from! { (u64, u64) }
+from! { i32 => Rational }
+from! { i64 => Rational }
+from! { u32 => Rational }
+from! { u64 => Rational }
+from! { (i32, i32) => Rational }
+from! { (i64, i64) => Rational }
+from! { (i32, u32) => Rational }
+from! { (i64, u64) => Rational }
+from! { (u32, i32) => Rational }
+from! { (u64, i64) => Rational }
+from! { (u32, u32) => Rational }
+from! { (u64, u64) => Rational }
 
 impl FromStr for Rational {
     type Err = ParseRationalError;
@@ -1088,8 +1002,8 @@ where
     }
 }
 
-ref_math_op1! { struct AbsRef {}; gmp::mpq_abs }
-ref_math_op1! { struct RecipRef {}; xgmp::mpq_inv_check_0 }
+ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
+ref_math_op1! { Rational; xgmp::mpq_inv_check_0; struct RecipRef {} }
 
 pub struct CeilRef<'a> {
     ref_self: &'a Rational,
@@ -1139,7 +1053,7 @@ impl<'a> Assign<TruncRef<'a>> for Integer {
     }
 }
 
-ref_math_op1! { struct FractRef {}; xgmp::mpq_fract }
+ref_math_op1! { Rational; xgmp::mpq_fract; struct FractRef {} }
 
 pub struct FractTruncRef<'a> {
     ref_self: &'a Rational,
@@ -1157,221 +1071,55 @@ impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
     }
 }
 
-macro_rules! arith_binary {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $func:path,
-        $Ref: ident
-    } => {
-        impl $Imp<Rational> for Rational {
-            type Output = Rational;
-            fn $method(self, op: Rational) -> Rational {
-                self.$method(&op)
-            }
-        }
-
-        impl<'a> $Imp<&'a Rational> for Rational {
-            type Output = Rational;
-            fn $method(mut self, op: &'a Rational) -> Rational {
-                self.$method_assign(op);
-                self
-            }
-        }
-
-        impl $ImpAssign<Rational> for Rational {
-            fn $method_assign(&mut self, op: Rational) {
-                self.add_assign(&op);
-            }
-        }
-
-        impl<'a> $ImpAssign<&'a Rational> for Rational {
-            fn $method_assign(&mut self, op: &'a Rational) {
-                unsafe {
-                    $func(self.inner_mut(), self.inner(), op.inner());
-                }
-            }
-        }
-
-        impl<'a> $Imp<&'a Rational> for &'a Rational {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a Rational) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            lhs: &'a Rational,
-            rhs: &'a Rational,
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Rational {
-            fn assign(&mut self, rhs: $Ref) {
-                unsafe {
-                    $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.inner());
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_noncommut {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $ImpFromAssign:ident $method_from_assign:ident,
-        $func:path,
-        $Ref:ident
-    } => {
-        arith_binary! {
-            $Imp $method, $ImpAssign $method_assign, $func, $Ref
-        }
-
-        impl $ImpFromAssign<Rational> for Rational {
-            fn $method_from_assign(&mut self, lhs: Rational) {
-                self.$method_from_assign(&lhs);
-            }
-        }
-
-        impl<'a> $ImpFromAssign<&'a Rational> for Rational {
-            fn $method_from_assign(&mut self, lhs: &'a Rational) {
-                unsafe {
-                    $func(self.inner_mut(), lhs.inner(), self.inner());
-                }
-            }
-        }
-    };
-}
-
-
-impl Neg for Rational {
-    type Output = Rational;
-    fn neg(mut self) -> Rational {
-        self.neg_assign();
-        self
-    }
-}
-
-impl NegAssign for Rational {
-    fn neg_assign(&mut self) {
-        unsafe {
-            gmp::mpq_neg(self.inner_mut(), self.inner());
-        }
-    }
-}
-
-impl<'a> Neg for &'a Rational {
-    type Output = NegRef<'a>;
-    fn neg(self) -> NegRef<'a> {
-        NegRef { op: self }
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct NegRef<'a> {
-    op: &'a Rational,
-}
-
-from_borrow! { NegRef<'a> }
-
-impl<'a> Assign<NegRef<'a>> for Rational {
-    fn assign(&mut self, rhs: NegRef) {
-        unsafe {
-            gmp::mpq_neg(self.inner_mut(), rhs.op.inner());
-        }
-    }
-}
-
-arith_binary! { Add add, AddAssign add_assign, gmp::mpq_add, AddRef }
+arith_unary! { Rational; gmp::mpq_neg; Neg neg; NegAssign neg_assign; NegRef }
+arith_binary! { Rational; gmp::mpq_add; Add add; AddAssign add_assign; AddRef }
 arith_noncommut! {
-    Sub sub,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    gmp::mpq_sub,
+    Rational;
+    gmp::mpq_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
     SubRef
 }
-arith_binary! { Mul mul, MulAssign mul_assign, gmp::mpq_mul, MulRef }
+arith_binary! { Rational; gmp::mpq_mul; Mul mul; MulAssign mul_assign; MulRef }
 arith_noncommut! {
-    Div div,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    gmp::mpq_div,
+    Rational;
+    gmp::mpq_div;
+    Div div;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
     DivRef
 }
 
-macro_rules! arith_prim {
-    {
-        $Imp:ident $method:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
-        $Ref:ident
-    } => {
-        impl $Imp<$T> for Rational {
-            type Output = Rational;
-            fn $method(mut self, op: $T) -> Rational {
-                self.$method_assign(op);
-                self
-            }
-        }
-
-        impl $ImpAssign<$T> for Rational {
-            fn $method_assign(&mut self, op: $T) {
-                unsafe {
-                    $func(self.inner_mut(), self.inner(), op.into());
-                }
-            }
-        }
-
-        impl<'a> $Imp<$T> for &'a Rational {
-            type Output = $Ref<'a>;
-            fn $method(self, op: $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: op,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            lhs: &'a Rational,
-            rhs: $T,
-        }
-
-        from_borrow! { $Ref<'a> }
-
-        impl<'a> Assign<$Ref<'a>> for Rational {
-            fn assign(&mut self, rhs: $Ref) {
-                unsafe {
-                    $func(self.inner_mut(), rhs.lhs.inner(), rhs.rhs.into());
-                }
-            }
-        }
-    };
+arith_prim! {
+    Rational;
+    xgmp::mpq_mul_2exp_si;
+    Shl shl;
+    ShlAssign shl_assign;
+    i32;
+    ShlRefI32
+}
+arith_prim! {
+    Rational;
+    xgmp::mpq_div_2exp_si;
+    Shr shr;
+    ShrAssign shr_assign;
+    i32;
+    ShrRefI32
+}
+arith_prim! {
+    Rational; xgmp::mpq_pow_si; Pow pow; PowAssign pow_assign; i32; PowRefI32
 }
 
 arith_prim! {
-    Shl shl, ShlAssign shl_assign, i32, xgmp::mpq_mul_2exp_si, ShlRefI32
+    Rational; gmp::mpq_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlRefU32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, i32, xgmp::mpq_div_2exp_si, ShrRefI32
-}
-arith_prim! { Pow pow, PowAssign pow_assign, i32, xgmp::mpq_pow_si, PowRefI32 }
-
-arith_prim! {
-    Shl shl, ShlAssign shl_assign, u32, gmp::mpq_mul_2exp, ShlRefU32
+    Rational; gmp::mpq_div_2exp; Shr shr; ShrAssign shr_assign; u32; ShrRefU32
 }
 arith_prim! {
-    Shr shr, ShrAssign shr_assign, u32, gmp::mpq_div_2exp, ShrRefU32
+    Rational; xgmp::mpq_pow_ui; Pow pow; PowAssign pow_assign; u32; PowRefU32
 }
-arith_prim! { Pow pow, PowAssign pow_assign, u32, xgmp::mpq_pow_ui, PowRefU32 }
 
 impl Eq for Rational {}
 
@@ -1511,7 +1259,7 @@ pub struct ValidRational<'a> {
     radix: i32,
 }
 
-from_borrow! { ValidRational<'a> }
+from_borrow! { ValidRational<'a> => Rational }
 
 impl<'a> Assign<ValidRational<'a>> for Rational {
     fn assign(&mut self, rhs: ValidRational) {
