@@ -1,0 +1,40 @@
+# Copyright © 2016–2017 University of Malta
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License and a copy of the GNU General Public License along with this
+# program. If not, see <http://www.gnu.org/licenses/>.
+
+[package]
+name = "rugint"
+version = "0.4.0-alpha"
+authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
+description = "Arbitrary-precision big integers based on GMP"
+documentation = "https://tspiteri.gitlab.io/gmp-mpfr/rugint/"
+repository = "https://gitlab.com/tspiteri/rugint"
+readme = "README.md"
+keywords = ["gmp", "mathematics", "numerics"]
+categories = ["api-bindings", "science"]
+license = "LGPL-3.0+"
+
+[features]
+default = ["random"]
+random = ["rand"]
+
+[dependencies.gmp-mpfr-sys]
+version = "1.0.3"
+default-features = false
+path = "../gmp-mpfr-sys"
+
+[dependencies.rand]
+version = "0.3"
+optional = true
