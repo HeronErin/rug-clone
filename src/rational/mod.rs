@@ -21,6 +21,7 @@ pub use self::small_rational::SmallRational;
 
 use {Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign, SubFromAssign};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
+use inner::{Inner, InnerMut};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
@@ -1593,15 +1594,6 @@ impl<'a> Drop for MutNumerDenom<'a> {
 unsafe impl Send for Rational {}
 unsafe impl Sync for Rational {}
 
-trait Inner {
-    type Output;
-    fn inner(&self) -> &Self::Output;
-}
-
-trait InnerMut: Inner {
-    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
-}
-
 impl Inner for Rational {
     type Output = mpq_t;
     fn inner(&self) -> &mpq_t {
@@ -1612,21 +1604,6 @@ impl Inner for Rational {
 impl InnerMut for Rational {
     unsafe fn inner_mut(&mut self) -> &mut mpq_t {
         &mut self.inner
-    }
-}
-
-impl Inner for Integer {
-    type Output = gmp::mpz_t;
-    fn inner(&self) -> &gmp::mpz_t {
-        let ptr = self as *const _ as *const gmp::mpz_t;
-        unsafe { &*ptr }
-    }
-}
-
-impl InnerMut for Integer {
-    unsafe fn inner_mut(&mut self) -> &mut gmp::mpz_t {
-        let ptr = self as *mut _ as *mut gmp::mpz_t;
-        &mut *ptr
     }
 }
 

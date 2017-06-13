@@ -23,9 +23,9 @@ use {AddRound, Assign, AssignRound, Constant, DivFromAssign, DivRound, Float,
      FromRound, Integer, MulRound, NegAssign, ParseFloatError, Pow, PowAssign,
      PowFromAssign, PowRound, Rational, Round, ShlRound, ShrRound, Special,
      SubFromAssign, SubRound, ValidFloat, float};
-use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
+use inner::{Inner, InnerMut, OwnBorrow};
 #[cfg(feature = "random")]
 use rand::Rng;
 use std::ascii::AsciiExt;
@@ -2668,15 +2668,6 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     (first, second)
 }
 
-trait Inner {
-    type Output;
-    fn inner(&self) -> &Self::Output;
-}
-
-trait InnerMut: Inner {
-    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
-}
-
 impl Inner for Complex {
     type Output = mpc_t;
     fn inner(&self) -> &mpc_t {
@@ -2690,53 +2681,10 @@ impl InnerMut for Complex {
     }
 }
 
-impl Inner for Float {
-    type Output = mpfr::mpfr_t;
-    fn inner(&self) -> &mpfr::mpfr_t {
-        let ptr = self as *const _ as *const mpfr::mpfr_t;
-        unsafe { &*ptr }
-    }
-}
-
-impl InnerMut for Float {
-    unsafe fn inner_mut(&mut self) -> &mut mpfr::mpfr_t {
-        let ptr = self as *mut _ as *mut mpfr::mpfr_t;
-        &mut *ptr
-    }
-}
-
-impl Inner for Integer {
-    type Output = gmp::mpz_t;
-    fn inner(&self) -> &gmp::mpz_t {
-        let ptr = self as *const _ as *const gmp::mpz_t;
-        unsafe { &*ptr }
-    }
-}
-
-enum OwnBorrow<'a, T>
-where
-    T: 'a,
-{
-    Own(T),
-    Borrow(&'a T),
-}
-
-impl<'a, T> Inner for OwnBorrow<'a, T>
-where
-    T: Inner,
-{
-    type Output = <T as Inner>::Output;
-    fn inner(&self) -> &Self::Output {
-        match *self {
-            OwnBorrow::Own(ref o) => o.inner(),
-            OwnBorrow::Borrow(b) => b.inner(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gmp_mpfr_sys::gmp;
     use std::f64;
 
     #[test]

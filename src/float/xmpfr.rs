@@ -17,6 +17,7 @@
 use {Float, SmallFloat, float};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
+use inner::{Inner, InnerMut};
 use std::cmp;
 use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
@@ -215,29 +216,5 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
     } else {
         let small = SmallFloat::from(val);
         mpfr::set(rop, (*small).inner(), rnd)
-    }
-}
-
-trait Inner {
-    type Output;
-    fn inner(&self) -> &Self::Output;
-}
-
-trait InnerMut: Inner {
-    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
-}
-
-impl Inner for Float {
-    type Output = mpfr_t;
-    fn inner(&self) -> &mpfr_t {
-        let ptr = self as *const _ as *const _;
-        unsafe { &*ptr }
-    }
-}
-
-impl InnerMut for Float {
-    unsafe fn inner_mut(&mut self) -> &mut mpfr_t {
-        let ptr = self as *mut _ as *mut _;
-        &mut *ptr
     }
 }

@@ -22,8 +22,8 @@ pub use self::small_float::SmallFloat;
 use {AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
      Integer, MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
      Rational, ShlRound, ShrRound, SubFromAssign, SubRound};
-use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
+use inner::{Inner, InnerMut, OwnBorrow};
 #[cfg(feature = "random")]
 use rand::Rng;
 use std::{i32, u32};
@@ -3996,15 +3996,6 @@ fn char_to_upper_if(c: char, to_upper: bool) -> char {
     if to_upper { c.to_ascii_uppercase() } else { c }
 }
 
-trait Inner {
-    type Output;
-    fn inner(&self) -> &Self::Output;
-}
-
-trait InnerMut: Inner {
-    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
-}
-
 impl Inner for Float {
     type Output = mpfr_t;
     fn inner(&self) -> &mpfr_t {
@@ -4018,53 +4009,10 @@ impl InnerMut for Float {
     }
 }
 
-impl Inner for Integer {
-    type Output = gmp::mpz_t;
-    fn inner(&self) -> &gmp::mpz_t {
-        let ptr = self as *const _ as *const gmp::mpz_t;
-        unsafe { &*ptr }
-    }
-}
-
-impl InnerMut for Integer {
-    unsafe fn inner_mut(&mut self) -> &mut gmp::mpz_t {
-        let ptr = self as *mut _ as *mut gmp::mpz_t;
-        &mut *ptr
-    }
-}
-
-impl Inner for Rational {
-    type Output = gmp::mpq_t;
-    fn inner(&self) -> &gmp::mpq_t {
-        let ptr = self as *const _ as *const gmp::mpq_t;
-        unsafe { &*ptr }
-    }
-}
-
-enum OwnBorrow<'a, T>
-where
-    T: 'a,
-{
-    Own(T),
-    Borrow(&'a T),
-}
-
-impl<'a, T> Inner for OwnBorrow<'a, T>
-where
-    T: Inner,
-{
-    type Output = <T as Inner>::Output;
-    fn inner(&self) -> &Self::Output {
-        match *self {
-            OwnBorrow::Own(ref o) => o.inner(),
-            OwnBorrow::Borrow(b) => b.inner(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use gmp_mpfr_sys::gmp;
     use std::{f32, f64};
     use std::str::FromStr;
 

@@ -14,9 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Complex, SmallComplex};
+use SmallComplex;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
+use inner::Inner;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 
@@ -168,17 +169,4 @@ fn ord_ord(re: c_int, im: c_int) -> c_int {
         Ordering::Greater => 4,
     };
     r | i
-}
-
-trait Inner {
-    type Output;
-    fn inner(&self) -> &Self::Output;
-}
-
-impl Inner for Complex {
-    type Output = mpc_t;
-    fn inner(&self) -> &mpc_t {
-        let ptr = self as *const _ as *const _;
-        unsafe { &*ptr }
-    }
 }

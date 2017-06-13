@@ -22,6 +22,7 @@ pub use self::small_integer::SmallInteger;
 use {Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
      RemFromAssign, SubFromAssign};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
+use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
 use rand::Rng;
 use std::{i32, u32};
@@ -3460,15 +3461,6 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
         assert_eq!(bits as u32 as gmp::bitcnt_t, bits, "overflow");
         Some(bits as u32)
     }
-}
-
-trait Inner {
-    type Output;
-    fn inner(&self) -> &Self::Output;
-}
-
-trait InnerMut: Inner {
-    unsafe fn inner_mut(&mut self) -> &mut Self::Output;
 }
 
 impl Inner for Integer {
