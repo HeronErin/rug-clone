@@ -16,13 +16,13 @@
 
 use {AddRound, AssignRound, DivRound, FromRound, MulRound, PowRound, ShlRound,
      ShrRound, SmallFloat, SubRound};
+use {Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign, PowFromAssign,
+     SubFromAssign};
+use Rational;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "random")]
 use rand::Rng;
-use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
-             PowFromAssign, SubFromAssign};
-use rugrat::Rational;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -39,7 +39,7 @@ use std::os::raw::c_uint;
 use std::ptr;
 #[cfg(feature = "random")]
 use std::slice;
-use xmpfr;
+use float::xmpfr;
 
 /// Returns the minimum value for the exponent.
 pub fn exp_min() -> i32 {
@@ -94,7 +94,7 @@ pub enum Round {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::{AssignRound, Float, Round};
+    /// use rug::{AssignRound, Float, Round};
     /// // 24 is 11000 in binary
     /// // 25 is 11001 in binary
     /// // 26 is 11010 in binary
@@ -132,7 +132,7 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 /// # Examples
 ///
 /// ```rust
-/// use rugflo::{Constant, Float};
+/// use rug::{Constant, Float};
 ///
 /// let log2 = Float::from((Constant::Log2, 53));
 /// let pi = Float::from((Constant::Pi, 53));
@@ -636,7 +636,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::Float;
+    /// use rug::Float;
     ///
     /// let valid1 = Float::valid_str_radix("12.23e-4", 4);
     /// let f1 = Float::from((valid1.unwrap(), 53));
@@ -787,27 +787,21 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugflo;
-    /// use rugint::Assign;
-    /// use rugflo::{Float, Special};
+    /// use rug::{Assign, Float, Special};
+    /// let mut float = Float::from((6.5, 16));
+    /// // 6.5 in binary is 110.1
+    /// // Since the precision is 16 bits, this becomes
+    /// // 1101_0000_0000_0000 times two to the power of -12
+    /// let (int, exp) = float.to_integer_exp().unwrap();
+    /// assert_eq!(int, 0b1101_0000_0000_0000);
+    /// assert_eq!(exp, -13);
     ///
-    /// fn main() {
-    ///     let mut float = Float::from((6.5, 16));
-    ///     // 6.5 in binary is 110.1
-    ///     // Since the precision is 16 bits, this becomes
-    ///     // 1101_0000_0000_0000 times two to the power of -12
-    ///     let (int, exp) = float.to_integer_exp().unwrap();
-    ///     assert_eq!(int, 0b1101_0000_0000_0000);
-    ///     assert_eq!(exp, -13);
+    /// float.assign(0);
+    /// let (zero, _) = float.to_integer_exp().unwrap();
+    /// assert_eq!(zero, 0);
     ///
-    ///     float.assign(0);
-    ///     let (zero, _) = float.to_integer_exp().unwrap();
-    ///     assert_eq!(zero, 0);
-    ///
-    ///     float.assign(Special::Infinity);
-    ///     assert!(float.to_integer_exp().is_none());
-    /// }
+    /// float.assign(Special::Infinity);
+    /// assert!(float.to_integer_exp().is_none());
     /// ```
     pub fn to_integer_exp(&self) -> Option<(Integer, i32)> {
         if !self.is_finite() {
@@ -825,36 +819,31 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugrat;
-    /// extern crate rugflo;
-    /// use rugrat::Rational;
-    /// use rugflo::{Float, FromRound, Round};
+    /// use rug::{Float, FromRound, Rational, Round};
     /// use std::str::FromStr;
     /// use std::cmp::Ordering;
     ///
-    /// fn main() {
-    ///     // Consider the number 123,456,789 / 10,000,000,000.
-    ///     let res = Float::from_str_round("0.0123456789", 35, Round::Down);
-    ///     let (f, f_rounding) = res.unwrap();
-    ///     assert_eq!(f_rounding, Ordering::Less);
-    ///     let r = Rational::from_str("123456789/10000000000").unwrap();
-    ///     // Set fr to the value of f exactly.
-    ///     let fr = f.to_rational().unwrap();
-    ///     // Since f == fr and f was rounded down, r != fr.
-    ///     assert_ne!(r, fr);
-    ///     let res = Float::from_round(&fr, 35, Round::Down);
-    ///     let (frf, frf_rounding) = res;
-    ///     assert_eq!(frf_rounding, Ordering::Equal);
-    ///     assert_eq!(frf, f);
-    ///     assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
-    /// }
+    /// // Consider the number 123,456,789 / 10,000,000,000.
+    /// let res = Float::from_str_round("0.0123456789", 35, Round::Down);
+    /// let (f, f_rounding) = res.unwrap();
+    /// assert_eq!(f_rounding, Ordering::Less);
+    /// let r = Rational::from_str("123456789/10000000000").unwrap();
+    /// // Set fr to the value of f exactly.
+    /// let fr = f.to_rational().unwrap();
+    /// // Since f == fr and f was rounded down, r != fr.
+    /// assert_ne!(r, fr);
+    /// let res = Float::from_round(&fr, 35, Round::Down);
+    /// let (frf, frf_rounding) = res;
+    /// assert_eq!(frf_rounding, Ordering::Equal);
+    /// assert_eq!(frf, f);
+    /// assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
     /// ```
     ///
     /// In the following example, the `Float` values can be
     /// represented exactly.
     ///
     /// ```rust
-    /// use rugflo::Float;
+    /// use rug::Float;
     ///
     /// let large_f = Float::from((6.5, 16));
     /// let large_r = large_f.to_rational().unwrap();
@@ -968,7 +957,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::Float;
+    /// use rug::Float;
     /// let zero = Float::new(64);
     /// let (d0, exp0) = zero.to_f32_exp();
     /// assert_eq!((d0, exp0), (0.0, 0));
@@ -991,7 +980,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::{Float, Round};
+    /// use rug::{Float, Round};
     /// let frac_10_3 = Float::from((10, 64)) / 3u32;
     /// let (f_down, exp_down) = frac_10_3.to_f32_exp_round(Round::Down);
     /// assert_eq!((f_down, exp_down), (0.8333333, 2));
@@ -1050,7 +1039,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::{Float, Special};
+    /// use rug::{Float, Special};
     /// let neg_inf = Float::from((Special::MinusInfinity, 53));
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
@@ -1096,7 +1085,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::Float;
+    /// use rug::Float;
     /// let mut f = Float::new(53);
     /// f.assign_str("12.5e2").unwrap();
     /// assert_eq!(f, 12.5e2);
@@ -1113,7 +1102,7 @@ impl Float {
     /// Examples
     ///
     /// ```rust
-    /// use rugflo::{Float, Round};
+    /// use rug::{Float, Round};
     /// use std::cmp::Ordering;
     /// let mut f = Float::new(4);
     /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
@@ -1134,7 +1123,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::Float;
+    /// use rug::Float;
     /// let mut f = Float::new(53);
     /// f.assign_str_radix("f.f", 16).unwrap();
     /// assert_eq!(f, 15.9375);
@@ -1158,7 +1147,7 @@ impl Float {
     /// Examples
     ///
     /// ```rust
-    /// use rugflo::{Float, Round};
+    /// use rug::{Float, Round};
     /// use std::cmp::Ordering;
     /// let mut f = Float::new(4);
     /// let dir = f.assign_str_radix_round("e.c", 16, Round::Up).unwrap();
@@ -1478,22 +1467,16 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// extern crate rugflo;
-        /// extern crate rugint;
-        /// use rugflo::Float;
-        /// use rugint::Assign;
-        ///
-        /// fn main() {
-        ///     // sin(0.5) = 0.47943, cos(0.5) = 0.87758
-        ///     let angle = Float::from((0.5, 53));
-        ///     let r = angle.sin_cos_ref();
-        ///     // use only 10 bits of precision here to
-        ///     // make comparison easier
-        ///     let (mut sin, mut cos) = (Float::new(10), Float::new(10));
-        ///     (&mut sin, &mut cos).assign(r);
-        ///     assert_eq!(sin, Float::from((0.47943, 10)));
-        ///     assert_eq!(cos, Float::from((0.87748, 10)));
-        /// }
+        /// use rug::{Assign, Float};
+        /// // sin(0.5) = 0.47943, cos(0.5) = 0.87758
+        /// let angle = Float::from((0.5, 53));
+        /// let r = angle.sin_cos_ref();
+        /// // use only 10 bits of precision here to
+        /// // make comparison easier
+        /// let (mut sin, mut cos) = (Float::new(10), Float::new(10));
+        /// (&mut sin, &mut cos).assign(r);
+        /// assert_eq!(sin, Float::from((0.47943, 10)));
+        /// assert_eq!(cos, Float::from((0.87748, 10)));
         fn sin_cos_ref -> SinCosRef;
         mpfr::sin_cos
     }
@@ -1621,22 +1604,16 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// extern crate rugflo;
-        /// extern crate rugint;
-        /// use rugflo::Float;
-        /// use rugint::Assign;
-        ///
-        /// fn main() {
-        ///     // sinh(0.5) = 0.52110, cosh(0.5) = 1.1276
-        ///     let angle = Float::from((0.5, 53));
-        ///     let r = angle.sinh_cosh_ref();
-        ///     // use only 10 bits of precision here to
-        ///     // make comparison easier
-        ///     let (mut sinh, mut cosh) = (Float::new(10), Float::new(10));
-        ///     (&mut sinh, &mut cosh).assign(r);
-        ///     assert_eq!(sinh, Float::from((0.52110, 10)));
-        ///     assert_eq!(cosh, Float::from((1.1276, 10)));
-        /// }
+        /// use rug::{Assign, Float};
+        /// // sinh(0.5) = 0.52110, cosh(0.5) = 1.1276
+        /// let angle = Float::from((0.5, 53));
+        /// let r = angle.sinh_cosh_ref();
+        /// // use only 10 bits of precision here to
+        /// // make comparison easier
+        /// let (mut sinh, mut cosh) = (Float::new(10), Float::new(10));
+        /// (&mut sinh, &mut cosh).assign(r);
+        /// assert_eq!(sinh, Float::from((0.52110, 10)));
+        /// assert_eq!(cosh, Float::from((1.1276, 10)));
         fn sinh_cosh_ref -> SinhCoshRef;
         mpfr::sinh_cosh
     }
@@ -1799,39 +1776,34 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugflo;
-    /// use rugflo::{Constant, Float};
-    /// use rugint::Assign;
+    /// use rug::{Assign, Constant, Float};
     /// use std::cmp::Ordering;
-    /// fn main() {
-    ///     let mut f;
-    ///     let mut check = Float::new(53);
+    /// let mut f;
+    /// let mut check = Float::new(53);
     ///
-    ///     // gamma of 1/2 is sqrt(pi)
-    ///     f = Float::from((Constant::Pi, 64));
-    ///     f.sqrt().ln();
-    ///     let lgamma_1_2 = f;
+    /// // gamma of 1/2 is sqrt(pi)
+    /// f = Float::from((Constant::Pi, 64));
+    /// f.sqrt().ln();
+    /// let lgamma_1_2 = f;
     ///
-    ///     f = Float::from((0.5, 53));
-    ///     // gamma of 1/2 is positive
-    ///     assert_eq!(f.ln_abs_gamma(), Ordering::Greater);
-    ///     // check is correct to 53 significant bits
-    ///     check.assign(&lgamma_1_2);
-    ///     assert_eq!(f, check);
+    /// f = Float::from((0.5, 53));
+    /// // gamma of 1/2 is positive
+    /// assert_eq!(f.ln_abs_gamma(), Ordering::Greater);
+    /// // check is correct to 53 significant bits
+    /// check.assign(&lgamma_1_2);
+    /// assert_eq!(f, check);
     ///
-    ///     // gamma of -1/2 is -2 * sqrt(pi)
-    ///     f = Float::from((Constant::Pi, 64)) * 4;
-    ///     f.sqrt().ln();
-    ///     let lgamma_neg_1_2 = f;
+    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// f = Float::from((Constant::Pi, 64)) * 4;
+    /// f.sqrt().ln();
+    /// let lgamma_neg_1_2 = f;
     ///
-    ///     f = Float::from((-0.5, 53));
-    ///     // gamma of -1/2 is negative
-    ///     assert_eq!(f.ln_abs_gamma(), Ordering::Less);
-    ///     // check is correct to 53 significant bits
-    ///     check.assign(&lgamma_neg_1_2);
-    ///     assert_eq!(f, check);
-    /// }
+    /// f = Float::from((-0.5, 53));
+    /// // gamma of -1/2 is negative
+    /// assert_eq!(f.ln_abs_gamma(), Ordering::Less);
+    /// // check is correct to 53 significant bits
+    /// check.assign(&lgamma_neg_1_2);
+    /// assert_eq!(f, check);
     /// ```
     pub fn ln_abs_gamma(&mut self) -> Ordering {
         self.ln_abs_gamma_round(Round::Nearest).0
@@ -1848,7 +1820,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rugflo::{AssignRound, Constant, Float, Round};
+    /// use rug::{AssignRound, Constant, Float, Round};
     /// use std::cmp::Ordering;
     ///
     /// let mut f: Float;
@@ -1888,43 +1860,38 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugflo;
-    /// use rugflo::{AssignRound, Constant, Float, Round};
-    /// use rugint::Assign;
+    /// use rug::{Assign, AssignRound, Constant, Float, Round};
     /// use std::cmp::Ordering;
-    /// fn main() {
-    ///     let mut f: Float;
-    ///     let mut check = Float::new(53);
+    /// let mut f: Float;
+    /// let mut check = Float::new(53);
     ///
-    ///     // gamma of -1/2 is -2 * sqrt(pi)
-    ///     f = Float::from((Constant::Pi, 64)) * 4;
-    ///     f.sqrt().ln();
-    ///     let lgamma_neg_1_2 = f;
+    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// f = Float::from((Constant::Pi, 64)) * 4;
+    /// f.sqrt().ln();
+    /// let lgamma_neg_1_2 = f;
     ///
-    ///     let neg_1_2 = Float::from((-0.5, 53));
-    ///     f = Float::new(53);
-    ///     let mut sign = Ordering::Equal;
+    /// let neg_1_2 = Float::from((-0.5, 53));
+    /// f = Float::new(53);
+    /// let mut sign = Ordering::Equal;
     ///
-    ///     // Assign rounds to the nearest
-    ///     let r = neg_1_2.ln_abs_gamma_ref();
-    ///     (&mut f, &mut sign).assign(r);
-    ///     // gamma of -1/2 is negative
-    ///     assert_eq!(sign, Ordering::Less);
-    ///     // check is correct to 53 significant bits
-    ///     check.assign(&lgamma_neg_1_2);
-    ///     assert_eq!(f, check);
+    /// // Assign rounds to the nearest
+    /// let r = neg_1_2.ln_abs_gamma_ref();
+    /// (&mut f, &mut sign).assign(r);
+    /// // gamma of -1/2 is negative
+    /// assert_eq!(sign, Ordering::Less);
+    /// // check is correct to 53 significant bits
+    /// check.assign(&lgamma_neg_1_2);
+    /// assert_eq!(f, check);
     ///
-    ///     // AssignRound returns the rounding direction
-    ///     let r = neg_1_2.ln_abs_gamma_ref();
-    ///     let dir = (&mut f, &mut sign).assign_round(r, Round::Nearest);
-    ///     // gamma of -1/2 is negative
-    ///     assert_eq!(sign, Ordering::Less);
-    ///     // check is correct to 53 significant bits
-    ///     let check_dir = check.assign_round(&lgamma_neg_1_2, Round::Nearest);
-    ///     assert_eq!(f, check);
-    ///     assert_eq!(dir, check_dir);
-    /// }
+    /// // AssignRound returns the rounding direction
+    /// let r = neg_1_2.ln_abs_gamma_ref();
+    /// let dir = (&mut f, &mut sign).assign_round(r, Round::Nearest);
+    /// // gamma of -1/2 is negative
+    /// assert_eq!(sign, Ordering::Less);
+    /// // check is correct to 53 significant bits
+    /// let check_dir = check.assign_round(&lgamma_neg_1_2, Round::Nearest);
+    /// assert_eq!(f, check);
+    /// assert_eq!(dir, check_dir);
     /// ```
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaRef {
         LnAbsGammaRef { ref_self: self }
@@ -2128,7 +2095,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rugflo::{AssignRound, Float, Round};
+        /// use rug::{AssignRound, Float, Round};
         /// let f = Float::from((6.5, 53));
         /// // 6.5 (binary 110.1) can be rounded to 7 (binary 111)
         /// let r = f.round_ref();
@@ -2205,15 +2172,15 @@ impl Float {
     /// In all the normal cases, the result will be exact. However, if
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
-    /// `rugflo::exp_min()`; in this case, rounding is applied and
+    /// `rug::exp_min()`; in this case, rounding is applied and
     /// the rounding direction is returned.
     ///
     /// # Examples
     ///
     /// ```rust
     /// extern crate rand;
-    /// extern crate rugflo;
-    /// use rugflo::{Float, Round};
+    /// extern crate rug;
+    /// use rug::{Float, Round};
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
     ///     let mut f = Float::new(2);
@@ -2322,8 +2289,8 @@ impl Float {
     ///
     /// ```rust
     /// extern crate rand;
-    /// extern crate rugflo;
-    /// use rugflo::{Float, Round};
+    /// extern crate rug;
+    /// use rug::{Float, Round};
     /// use std::cmp::Ordering;
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
@@ -4095,7 +4062,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use float::*;
+    use ::*;
+    use super::*;
     use std::{f32, f64};
     use std::str::FromStr;
 

@@ -14,10 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use {Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign, SubFromAssign};
 use SmallRational;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
-             SubFromAssign};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
@@ -29,7 +28,7 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
-use xgmp;
+use rational::xgmp;
 
 /// An arbitrary-precision rational number.
 ///
@@ -42,20 +41,13 @@ use xgmp;
 /// # Examples
 ///
 /// ```rust
-/// extern crate rugint;
-/// extern crate rugrat;
-///
-/// use rugint::Integer;
-/// use rugrat::Rational;
-///
-/// fn main() {
-///     let r = Rational::from((-12, 15));
-///     let (num, den) = r.into_numer_denom();
-///     assert_eq!(num, -4);
-///     assert_eq!(den, 5);
-///     let one = Rational::from((num, Integer::from(-4)));
-///     assert_eq!(one, 1);
-/// }
+/// use rug::{Integer, Rational};
+/// let r = Rational::from((-12, 15));
+/// let (num, den) = r.into_numer_denom();
+/// assert_eq!(num, -4);
+/// assert_eq!(den, 5);
+/// let one = Rational::from((num, Integer::from(-4)));
+/// assert_eq!(one, 1);
 /// ```
 pub struct Rational {
     inner: mpq_t,
@@ -158,7 +150,7 @@ impl Rational {
     ///
     /// # Examples
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r = Rational::new();
     /// assert_eq!(r, 0);
     /// ```
@@ -176,7 +168,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// use std::f32;
     /// let r = Rational::from_f32(-17125e-3).unwrap();
     /// assert_eq!(r, "-17125/1000".parse::<Rational>().unwrap());
@@ -193,7 +185,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// use std::f64;
     /// let r = Rational::from_f64(-17125e-3).unwrap();
     /// assert_eq!(r, "-17125/1000".parse::<Rational>().unwrap());
@@ -215,7 +207,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r1 = Rational::from_str_radix("ff/a", 16).unwrap();
     /// assert_eq!(r1, (255, 10));
     /// let r2 = Rational::from_str_radix("+ff0/a0", 16).unwrap();
@@ -254,7 +246,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     ///
     /// let valid1 = Rational::valid_str_radix("12/23", 4);
     /// let r1 = Rational::from(valid1.unwrap());
@@ -334,7 +326,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let pos = Rational::from((139, 10));
     /// let posi = pos.to_integer();
     /// assert_eq!(posi, 13);
@@ -353,21 +345,15 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::Integer;
-    /// use rugrat::Rational;
-    ///
-    /// fn main() {
-    ///     let mut i = Integer::new();
-    ///     assert_eq!(i, 0);
-    ///     let pos = Rational::from((139, 10));
-    ///     pos.copy_to_integer(&mut i);
-    ///     assert_eq!(i, 13);
-    ///     let neg = Rational::from((-139, 10));
-    ///     neg.copy_to_integer(&mut i);
-    ///     assert_eq!(i, -13);
-    /// }
+    /// use rug::{Integer, Rational};
+    /// let mut i = Integer::new();
+    /// assert_eq!(i, 0);
+    /// let pos = Rational::from((139, 10));
+    /// pos.copy_to_integer(&mut i);
+    /// assert_eq!(i, 13);
+    /// let neg = Rational::from((-139, 10));
+    /// neg.copy_to_integer(&mut i);
+    /// assert_eq!(i, -13);
     /// ```
     pub fn copy_to_integer(&self, i: &mut Integer) {
         unsafe {
@@ -380,7 +366,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::{Rational, SmallRational};
+    /// use rug::{Rational, SmallRational};
     /// use std::f32;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
     /// let minus_small = min - &*SmallRational::from((7, 2));
@@ -415,7 +401,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::{Rational, SmallRational};
+    /// use rug::{Rational, SmallRational};
     /// use std::f64;
     ///
     /// // An `f64` has 53 bits of precision.
@@ -448,7 +434,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r1 = Rational::from(0);
     /// assert_eq!(r1.to_string_radix(10), "0");
     /// let r2 = Rational::from((15, 5));
@@ -470,7 +456,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// use std::f32;
     /// let mut r = Rational::new();
     /// let ret = r.assign_f32(12.75);
@@ -489,7 +475,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let mut r = Rational::new();
     /// let ret = r.assign_f64(12.75);
     /// assert!(ret.is_ok());
@@ -514,7 +500,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let mut r = Rational::new();
     /// let ret = r.assign_str("1/0");
     /// assert!(ret.is_err());
@@ -532,7 +518,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let mut r = Rational::new();
     /// r.assign_str_radix("ff/a", 16).unwrap();
     /// assert_eq!(r, (255, 10));
@@ -557,7 +543,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
     /// assert_eq!(*r.numer(), -3)
@@ -574,7 +560,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
     /// assert_eq!(*r.denom(), 5);
@@ -591,7 +577,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
     /// let (num, den) = r.as_numer_denom();
@@ -609,7 +595,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     ///
     /// let mut r = Rational::from((3, 5));
     /// {
@@ -651,7 +637,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     ///
     /// let mut r = Rational::from((3, 5));
     /// {
@@ -680,7 +666,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::Rational;
+    /// use rug::Rational;
     /// let r = Rational::from((12, -20));
     /// // r will be canonicalized to -3 / 5
     /// let (num, den) = r.into_numer_denom();
@@ -712,7 +698,7 @@ impl Rational {
         /// # Examples
         ///
         /// ```rust
-        /// use rugrat::Rational;
+        /// use rug::Rational;
         /// let mut r = Rational::from((-100, 17));
         /// assert_eq!(*r.abs(), (100, 17));
         /// assert_eq!(r, (100, 17));
@@ -723,7 +709,7 @@ impl Rational {
         /// # Examples
         ///
         /// ```rust
-        /// use rugrat::Rational;
+        /// use rug::Rational;
         /// let r = Rational::from((-100, 17));
         /// let rr = r.abs_ref();
         /// let abs = Rational::from(rr);
@@ -738,7 +724,7 @@ impl Rational {
         /// # Examples
         ///
         /// ```rust
-        /// use rugrat::Rational;
+        /// use rug::Rational;
         /// let mut r = Rational::from((-100, 17));
         /// assert_eq!(*r.recip(), (-17, 100));
         /// assert_eq!(r, (-17, 100));
@@ -753,7 +739,7 @@ impl Rational {
         /// # Examples
         ///
         /// ```rust
-        /// use rugrat::Rational;
+        /// use rug::Rational;
         /// let r = Rational::from((-100, 17));
         /// let rr = r.recip_ref();
         /// let recip = Rational::from(rr);
@@ -768,24 +754,18 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::{Assign, Integer};
-    /// use rugrat::SmallRational;
-    ///
-    /// fn main() {
-    ///     let mut ceil = Integer::new();
-    ///     ceil.assign(SmallRational::from(-1).ceil_ref());
-    ///     assert_eq!(ceil, -1);
-    ///     ceil.assign(SmallRational::from((-1, 2)).ceil_ref());
-    ///     assert_eq!(ceil, 0);
-    ///     ceil.assign(SmallRational::from(0).ceil_ref());
-    ///     assert_eq!(ceil, 0);
-    ///     ceil.assign(SmallRational::from((1, 2)).ceil_ref());
-    ///     assert_eq!(ceil, 1);
-    ///     ceil.assign(SmallRational::from(1).ceil_ref());
-    ///     assert_eq!(ceil, 1);
-    /// }
+    /// use rug::{Assign, Integer, SmallRational};
+    /// let mut ceil = Integer::new();
+    /// ceil.assign(SmallRational::from(-1).ceil_ref());
+    /// assert_eq!(ceil, -1);
+    /// ceil.assign(SmallRational::from((-1, 2)).ceil_ref());
+    /// assert_eq!(ceil, 0);
+    /// ceil.assign(SmallRational::from(0).ceil_ref());
+    /// assert_eq!(ceil, 0);
+    /// ceil.assign(SmallRational::from((1, 2)).ceil_ref());
+    /// assert_eq!(ceil, 1);
+    /// ceil.assign(SmallRational::from(1).ceil_ref());
+    /// assert_eq!(ceil, 1);
     /// ```
     pub fn ceil_ref(&self) -> CeilRef {
         CeilRef { ref_self: self }
@@ -796,24 +776,18 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::{Assign, Integer};
-    /// use rugrat::SmallRational;
-    ///
-    /// fn main() {
-    ///     let mut floor = Integer::new();
-    ///     floor.assign(SmallRational::from(-1).floor_ref());
-    ///     assert_eq!(floor, -1);
-    ///     floor.assign(SmallRational::from((-1, 2)).floor_ref());
-    ///     assert_eq!(floor, -1);
-    ///     floor.assign(SmallRational::from(0).floor_ref());
-    ///     assert_eq!(floor, 0);
-    ///     floor.assign(SmallRational::from((1, 2)).floor_ref());
-    ///     assert_eq!(floor, 0);
-    ///     floor.assign(SmallRational::from(1).floor_ref());
-    ///     assert_eq!(floor, 1);
-    /// }
+    /// use rug::{Assign, Integer, SmallRational};
+    /// let mut floor = Integer::new();
+    /// floor.assign(SmallRational::from(-1).floor_ref());
+    /// assert_eq!(floor, -1);
+    /// floor.assign(SmallRational::from((-1, 2)).floor_ref());
+    /// assert_eq!(floor, -1);
+    /// floor.assign(SmallRational::from(0).floor_ref());
+    /// assert_eq!(floor, 0);
+    /// floor.assign(SmallRational::from((1, 2)).floor_ref());
+    /// assert_eq!(floor, 0);
+    /// floor.assign(SmallRational::from(1).floor_ref());
+    /// assert_eq!(floor, 1);
     /// ```
     pub fn floor_ref(&self) -> FloorRef {
         FloorRef { ref_self: self }
@@ -825,26 +799,20 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::{Assign, Integer};
-    /// use rugrat::SmallRational;
-    ///
-    /// fn main() {
-    ///     let mut round = Integer::new();
-    ///     round.assign(SmallRational::from((-17, 10)).round_ref());
-    ///     assert_eq!(round, -2);
-    ///     round.assign(SmallRational::from((-15, 10)).round_ref());
-    ///     assert_eq!(round, -2);
-    ///     round.assign(SmallRational::from((-13, 10)).round_ref());
-    ///     assert_eq!(round, -1);
-    ///     round.assign(SmallRational::from((13, 10)).round_ref());
-    ///     assert_eq!(round, 1);
-    ///     round.assign(SmallRational::from((15, 10)).round_ref());
-    ///     assert_eq!(round, 2);
-    ///     round.assign(SmallRational::from((17, 10)).round_ref());
-    ///     assert_eq!(round, 2);
-    /// }
+    /// use rug::{Assign, Integer, SmallRational};
+    /// let mut round = Integer::new();
+    /// round.assign(SmallRational::from((-17, 10)).round_ref());
+    /// assert_eq!(round, -2);
+    /// round.assign(SmallRational::from((-15, 10)).round_ref());
+    /// assert_eq!(round, -2);
+    /// round.assign(SmallRational::from((-13, 10)).round_ref());
+    /// assert_eq!(round, -1);
+    /// round.assign(SmallRational::from((13, 10)).round_ref());
+    /// assert_eq!(round, 1);
+    /// round.assign(SmallRational::from((15, 10)).round_ref());
+    /// assert_eq!(round, 2);
+    /// round.assign(SmallRational::from((17, 10)).round_ref());
+    /// assert_eq!(round, 2);
     /// ```
     pub fn round_ref(&self) -> RoundRef {
         RoundRef { ref_self: self }
@@ -855,22 +823,16 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::{Assign, Integer};
-    /// use rugrat::SmallRational;
-    ///
-    /// fn main() {
-    ///     let mut trunc = Integer::new();
-    ///     trunc.assign(SmallRational::from((-21, 10)).trunc_ref());
-    ///     assert_eq!(trunc, -2);
-    ///     trunc.assign(SmallRational::from((-17, 10)).trunc_ref());
-    ///     assert_eq!(trunc, -1);
-    ///     trunc.assign(SmallRational::from((13, 10)).trunc_ref());
-    ///     assert_eq!(trunc, 1);
-    ///     trunc.assign(SmallRational::from((19, 10)).trunc_ref());
-    ///     assert_eq!(trunc, 1);
-    /// }
+    /// use rug::{Assign, Integer, SmallRational};
+    /// let mut trunc = Integer::new();
+    /// trunc.assign(SmallRational::from((-21, 10)).trunc_ref());
+    /// assert_eq!(trunc, -2);
+    /// trunc.assign(SmallRational::from((-17, 10)).trunc_ref());
+    /// assert_eq!(trunc, -1);
+    /// trunc.assign(SmallRational::from((13, 10)).trunc_ref());
+    /// assert_eq!(trunc, 1);
+    /// trunc.assign(SmallRational::from((19, 10)).trunc_ref());
+    /// assert_eq!(trunc, 1);
     /// ```
     pub fn trunc_ref(&self) -> TruncRef {
         TruncRef { ref_self: self }
@@ -882,7 +844,7 @@ impl Rational {
         /// # Examples
         ///
         /// ```rust
-        /// use rugrat::Rational;
+        /// use rug::Rational;
         /// // -100/17 = -5 15/17
         /// let mut r = Rational::from((-100, 17));
         /// assert_eq!(*r.fract(), (-15, 17));
@@ -893,7 +855,7 @@ impl Rational {
         /// # Examples
         ///
         /// ```rust
-        /// use rugrat::Rational;
+        /// use rug::Rational;
         /// let r = Rational::from((-100, 17));
         /// let rr = r.fract_ref();
         /// let fract = Rational::from(rr);
@@ -908,18 +870,13 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::Integer;
-    /// use rugrat::Rational;
-    /// fn main() {
-    ///     // -100/17 = -5 15/17
-    ///     let mut r = Rational::from((-100, 17));
-    ///     let mut whole = Integer::new();
-    ///     r.fract_trunc(&mut whole);
-    ///     assert_eq!(whole, -5);
-    ///     assert_eq!(r, (-15, 17));
-    /// }
+    /// use rug::{Integer, Rational};
+    /// // -100/17 = -5 15/17
+    /// let mut r = Rational::from((-100, 17));
+    /// let mut whole = Integer::new();
+    /// r.fract_trunc(&mut whole);
+    /// assert_eq!(whole, -5);
+    /// assert_eq!(r, (-15, 17));
     /// ```
     pub fn fract_trunc(&mut self, trunc: &mut Integer) {
         unsafe {
@@ -936,19 +893,14 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugint;
-    /// extern crate rugrat;
-    /// use rugint::{Assign, Integer};
-    /// use rugrat::Rational;
-    /// fn main() {
-    ///     // -100/17 = -5 15/17
-    ///     let r = Rational::from((-100, 17));
-    ///     let rr = r.fract_trunc_ref();
-    ///     let (mut proper, mut whole) = (Rational::new(), Integer::new());
-    ///     (&mut proper, &mut whole).assign(rr);
-    ///     assert_eq!(whole, -5);
-    ///     assert_eq!(proper, (-15, 17));
-    /// }
+    /// use rug::{Assign, Integer, Rational};
+    /// // -100/17 = -5 15/17
+    /// let r = Rational::from((-100, 17));
+    /// let rr = r.fract_trunc_ref();
+    /// let (mut proper, mut whole) = (Rational::new(), Integer::new());
+    /// (&mut proper, &mut whole).assign(rr);
+    /// assert_eq!(whole, -5);
+    /// assert_eq!(proper, (-15, 17));
     /// ```
     pub fn fract_trunc_ref(&self) -> FractTruncRef {
         FractTruncRef { ref_self: self }
@@ -1677,7 +1629,7 @@ impl InnerMut for Integer {
 
 #[cfg(test)]
 mod tests {
-    use rational::*;
+    use rational::rational::*;
     use std::{i32, u32};
 
     #[test]

@@ -14,9 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use Assign;
 use Rational;
 use gmp_mpfr_sys::gmp;
-use rugint::Assign;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
@@ -39,7 +39,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// # Examples
 ///
 /// ```rust
-/// use rugrat::{Rational, SmallRational};
+/// use rug::{Rational, SmallRational};
 /// // `a` requires a heap allocation
 /// let mut a = Rational::from((100, 13));
 /// // `b` can reside on the stack
@@ -110,7 +110,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::SmallRational;
+    /// use rug::SmallRational;
     /// let from_unsafe = unsafe {
     ///     SmallRational::from_canonicalized_32(true, 13, 10)
     /// };
@@ -149,7 +149,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::SmallRational;
+    /// use rug::SmallRational;
     /// let from_unsafe = unsafe {
     ///     SmallRational::from_canonicalized_64(true, 13, 10)
     /// };
@@ -189,7 +189,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::SmallRational;
+    /// use rug::SmallRational;
     /// let mut from_unsafe = SmallRational::new();
     /// unsafe {
     ///     from_unsafe.assign_canonicalized_32(true, 13, 10)
@@ -229,7 +229,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rugrat::SmallRational;
+    /// use rug::SmallRational;
     /// let mut from_unsafe = SmallRational::new();
     /// unsafe {
     ///     from_unsafe.assign_canonicalized_64(true, 13, 10)

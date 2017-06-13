@@ -38,7 +38,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// # Examples
 ///
 /// ```rust
-/// use rugint::{Integer, SmallInteger};
+/// use rug::{Integer, SmallInteger};
 /// // `a` requires a heap allocation
 /// let mut a = Integer::from(250);
 /// // `b` can reside on the stack

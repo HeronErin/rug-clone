@@ -17,7 +17,7 @@
 use {Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
      RemFromAssign, SubFromAssign};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-#[cfg(feature = "random")]
+#[cfg(feature = "rand")]
 use rand::Rng;
 use std::{i32, u32};
 use std::cmp::Ordering;
@@ -30,10 +30,10 @@ use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
-#[cfg(feature = "random")]
+#[cfg(feature = "rand")]
 use std::slice;
 use std::str::FromStr;
-use xgmp;
+use integer::xgmp;
 
 /// An arbitrary-precision integer.
 ///
@@ -50,7 +50,7 @@ use xgmp;
 /// # Examples
 ///
 /// ```rust
-/// use rugint::Integer;
+/// use rug::Integer;
 ///
 /// let mut i = Integer::from(1);
 /// i = i << 1000;
@@ -76,7 +76,7 @@ use xgmp;
 /// literal.
 ///
 /// ```rust
-/// use rugint::Integer;
+/// use rug::Integer;
 /// let i1 = "1234567890123456789012345".parse::<Integer>().unwrap();
 /// assert_eq!(i1.significant_bits(), 81);
 /// let i2 = Integer::from_str_radix("1ffff0000ffff0000ffff", 16).unwrap();
@@ -388,7 +388,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::new();
     /// assert_eq!(i, 0);
     /// ```
@@ -407,7 +407,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::with_capacity(137);
     /// assert!(i.capacity() >= 137);
     /// ```
@@ -426,7 +426,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::with_capacity(137);
     /// assert!(i.capacity() >= 137);
     /// ```
@@ -448,7 +448,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// // 0x2000_0000 needs 30 bits.
     /// let mut i = Integer::from(0x2000_0000);
     /// i.reserve(34);
@@ -482,7 +482,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// // let i be 100 bits wide
     /// let mut i = Integer::from_str_radix("fffff12345678901234567890", 16)
     ///     .unwrap();
@@ -505,7 +505,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::f32;
     /// let i = Integer::from_f32(-5.6).unwrap();
     /// assert_eq!(i, -5);
@@ -522,7 +522,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::f64;
     /// let i = Integer::from_f64(1e20).unwrap();
     /// assert_eq!(i, "100000000000000000000".parse::<Integer>().unwrap());
@@ -546,7 +546,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::from_str_radix("-ff", 16).unwrap();
     /// assert_eq!(i, -0xff);
     /// ```
@@ -577,7 +577,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     ///
     /// let valid1 = Integer::valid_str_radix("1223", 4);
     /// let i1 = Integer::from(valid1.unwrap());
@@ -635,7 +635,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(-50);
     /// assert_eq!(fits.to_i32(), Some(-50));
     /// let small = Integer::from(-123456789012345_i64);
@@ -655,7 +655,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(-50);
     /// assert_eq!(fits.to_i64(), Some(-50));
     /// let small = Integer::from_str_radix("-fedcba9876543210", 16).unwrap();
@@ -675,7 +675,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(1234567890);
     /// assert_eq!(fits.to_u32(), Some(1234567890));
     /// let neg = Integer::from(-1);
@@ -695,7 +695,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(123456789012345_u64);
     /// assert_eq!(fits.to_u64(), Some(123456789012345));
     /// let neg = Integer::from(-1);
@@ -715,7 +715,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(-0xabcdef_i32);
     /// assert_eq!(fits.to_i32_wrapping(), -0xabcdef);
     /// let small = Integer::from(0x1_ffff_ffff_u64);
@@ -731,7 +731,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(-0xabcdef);
     /// assert_eq!(fits.to_i64_wrapping(), -0xabcdef);
     /// let small = Integer::from_str_radix("1ffffffffffffffff", 16).unwrap();
@@ -747,7 +747,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(0x90abcdef_u32);
     /// assert_eq!(fits.to_u32_wrapping(), 0x90abcdef);
     /// let neg = Integer::from(-1);
@@ -768,7 +768,7 @@ impl Integer {
     ///
     /// # Examples
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let fits = Integer::from(0x90abcdef_u64);
     /// assert_eq!(fits.to_u64_wrapping(), 0x90abcdef);
     /// let neg = Integer::from(-1);
@@ -790,7 +790,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::f32;
     /// let min = Integer::from_f32(f32::MIN).unwrap();
     /// let minus_one = min - 1u32;
@@ -809,7 +809,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::f64;
     ///
     /// // An `f64` has 53 bits of precision.
@@ -843,7 +843,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let zero = Integer::new();
     /// let (d0, exp0) = zero.to_f32_exp();
     /// assert_eq!((d0, exp0), (0.0, 0));
@@ -864,7 +864,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let zero = Integer::new();
     /// let (d0, exp0) = zero.to_f64_exp();
     /// assert_eq!((d0, exp0), (0.0, 0));
@@ -885,7 +885,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// let mut i = Integer::new();
     /// assert_eq!(i.to_string_radix(10), "0");
     /// i.assign(-10);
@@ -908,7 +908,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::f32;
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(-12.7);
@@ -927,7 +927,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// let ret = i.assign_f64(12.7);
     /// assert!(ret.is_ok());
@@ -952,7 +952,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_str("123").unwrap();
     /// assert_eq!(i, 123);
@@ -968,7 +968,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_str_radix("ff", 16).unwrap();
     /// assert_eq!(i, 0xff);
@@ -991,7 +991,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// assert!(!(Integer::from(13).is_even()));
     /// assert!(Integer::from(-14).is_even());
     /// ```
@@ -1004,7 +1004,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// assert!(Integer::from(13).is_odd());
     /// assert!(!Integer::from(-14).is_odd());
     /// ```
@@ -1018,7 +1018,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::from(230);
     /// assert!(i.is_divisible(&Integer::from(10)));
     /// assert!(!i.is_divisible(&Integer::from(100)));
@@ -1034,7 +1034,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::from(230);
     /// assert!(i.is_divisible_u(23));
     /// assert!(!i.is_divisible_u(100));
@@ -1050,7 +1050,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::from(15 << 17);
     /// assert!(i.is_divisible_2pow(16));
     /// assert!(i.is_divisible_2pow(17));
@@ -1069,7 +1069,7 @@ impl Integer {
     ///
 
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let n = Integer::from(105);
     /// let divisor = Integer::from(10);
     /// assert!(n.is_congruent(&Integer::from(5), &divisor));
@@ -1092,7 +1092,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let n = Integer::from(105);
     /// assert!(n.is_congruent_u(3335, 10));
     /// assert!(!n.is_congruent_u(107, 10));
@@ -1112,7 +1112,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let n = Integer::from(13 << 17 | 21);
     /// assert!(n.is_congruent_2pow(&Integer::from(7 << 17 | 21), 17));
     /// assert!(!n.is_congruent_2pow(&Integer::from(13 << 17 | 22), 17));
@@ -1128,7 +1128,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// // 0 is 0 to the power of anything
     /// let mut i = Integer::from(0);
     /// assert!(i.is_perfect_power());
@@ -1148,7 +1148,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// let mut i = Integer::from(1);
     /// assert!(i.is_perfect_square());
     /// i.assign(9);
@@ -1165,7 +1165,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::cmp::Ordering;
     /// assert_eq!(Integer::from(-5).sign(), Ordering::Less);
     /// assert_eq!(Integer::from(0).sign(), Ordering::Equal);
@@ -1180,7 +1180,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// use std::cmp::Ordering;
     /// let a = Integer::from(-10);
     /// let b = Integer::from(4);
@@ -1198,7 +1198,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     ///
     /// assert_eq!(Integer::from(0).significant_bits(), 0);
     /// assert_eq!(Integer::from(1).significant_bits(), 1);
@@ -1226,7 +1226,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// assert_eq!(Integer::from(0).count_ones(), Some(0));
     /// assert_eq!(Integer::from(15).count_ones(), Some(4));
     /// assert_eq!(Integer::from(-1).count_ones(), None);
@@ -1240,7 +1240,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// assert_eq!(Integer::from(0).count_zeros(), None);
     /// assert_eq!(Integer::from(1).count_zeros(), None);
     /// assert_eq!(Integer::from(-1).count_zeros(), Some(0));
@@ -1256,7 +1256,7 @@ impl Integer {
     /// If the bit at location `start` is zero, returns `start`.
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// assert_eq!(Integer::from(-2).find_zero(0), Some(0));
     /// assert_eq!(Integer::from(-2).find_zero(1), None);
     /// assert_eq!(Integer::from(15).find_zero(0), Some(4));
@@ -1269,7 +1269,7 @@ impl Integer {
     /// If the bit at location `start` is one, returns `start`.
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// assert_eq!(Integer::from(1).find_one(0), Some(0));
     /// assert_eq!(Integer::from(1).find_one(1), None);
     /// assert_eq!(Integer::from(-16).find_one(0), Some(4));
@@ -1284,7 +1284,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// let mut i = Integer::from(-1);
     /// assert_eq!(*i.set_bit(0, false), -2);
     /// i.assign(0xff);
@@ -1307,7 +1307,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::from(0b100101);
     /// assert!(i.get_bit(0));
     /// assert!(!i.get_bit(1));
@@ -1324,7 +1324,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::from(0b100101);
     /// i.toggle_bit(5);
     /// assert_eq!(i, 0b101);
@@ -1342,7 +1342,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let i = Integer::from(-1);
     /// assert_eq!(Integer::from(0).hamming_dist(&i), None);
     /// assert_eq!(Integer::from(-1).hamming_dist(&i), Some(0));
@@ -1360,7 +1360,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(-100);
         /// assert_eq!(*i.abs(), 100);
         /// assert_eq!(i, 100);
@@ -1371,7 +1371,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let i = Integer::from(-100);
         /// let r = i.abs_ref();
         /// let abs = Integer::from(r);
@@ -1387,7 +1387,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(-1);
         /// assert_eq!(*i.keep_bits(8), 0xff);
         /// ```
@@ -1397,7 +1397,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let i = Integer::from(-1);
         /// let r = i.keep_bits_ref(8);
         /// let eight_bits = Integer::from(r);
@@ -1413,7 +1413,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut quotient = Integer::from(23);
         /// let mut rem = Integer::from(10);
         /// quotient.div_rem(&mut rem);
@@ -1431,7 +1431,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::{Assign, Integer};
+        /// use rug::{Assign, Integer};
         /// let dividend = Integer::from(23);
         /// let divisor = Integer::from(10);
         /// let r = dividend.div_rem_ref(&divisor);
@@ -1451,7 +1451,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(12345 * 54321);
         /// assert_eq!(*i.div_exact(&Integer::from(12345)), 54321);
         /// assert_eq!(i, 54321);
@@ -1468,7 +1468,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let i = Integer::from(12345 * 54321);
         /// let divisor = Integer::from(12345);
         /// let r = i.div_exact_ref(&divisor);
@@ -1486,7 +1486,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(12345 * 54321);
         /// assert_eq!(*i.div_exact_u(12345), 54321);
         /// ```
@@ -1502,7 +1502,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let i = Integer::from(12345 * 54321);
         /// let r = i.div_exact_u_ref(12345);
         /// assert_eq!(Integer::from(r), 54321);
@@ -1517,7 +1517,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut n = Integer::from(2);
     /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
     /// let exists_4 = n.invert(&Integer::from(4));
@@ -1547,7 +1547,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// let n = Integer::from(2);
     /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
     /// let (mut inv_4, mut exists_4) = (Integer::new(), false);
@@ -1575,7 +1575,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     ///
     /// // 7 ^ 5 = 16807
     /// let mut n = Integer::from(7);
@@ -1626,7 +1626,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// // 7 ^ 5 = 16807
     /// let base = Integer::from(7);
     /// let pow = Integer::from(5);
@@ -1654,7 +1654,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_u_pow_u(13, 12);
     /// assert_eq!(i, 13_u64.pow(12));
@@ -1670,7 +1670,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_i_pow_u(-13, 12);
     /// assert_eq!(i, (-13_i64).pow(12));
@@ -1694,7 +1694,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(1004);
         /// assert_eq!(*i.root(3), 10);
         /// ```
@@ -1704,7 +1704,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let i = Integer::from(1004);
         /// assert_eq!(Integer::from(i.root_ref(3)), 10);
         /// ```
@@ -1721,7 +1721,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(1004);
         /// let mut rem = Integer::new();
         /// i.root_rem(&mut rem, 3);
@@ -1738,7 +1738,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::{Assign, Integer};
+        /// use rug::{Assign, Integer};
         /// let i = Integer::from(1004);
         /// let r = i.root_rem_ref(3);
         /// let mut root = Integer::new();
@@ -1756,7 +1756,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(104);
         /// assert_eq!(*i.sqrt(), 10);
         /// ```
@@ -1766,7 +1766,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let i = Integer::from(104);
         /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
         /// ```
@@ -1780,7 +1780,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let mut i = Integer::from(104);
         /// let mut rem = Integer::new();
         /// i.sqrt_rem(&mut rem);
@@ -1794,7 +1794,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::{Assign, Integer};
+        /// use rug::{Assign, Integer};
         /// let i = Integer::from(104);
         /// let r = i.sqrt_rem_ref();
         /// let mut root = Integer::new();
@@ -1814,7 +1814,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Integer, IsPrime};
+    /// use rug::{Integer, IsPrime};
     /// let no = Integer::from(163 * 4003);
     /// assert_eq!(no.is_probably_prime(15), IsPrime::No);
     /// let yes = Integer::from(21_751);
@@ -1851,7 +1851,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::{Assign, Integer};
+        /// use rug::{Assign, Integer};
         /// let mut a = Integer::new();
         /// let mut b = Integer::new();
         /// a.gcd(&b);
@@ -1870,7 +1870,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let a = Integer::from(100);
         /// let b = Integer::from(125);
         /// let r = a.gcd_ref(&b);
@@ -1889,7 +1889,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::{Assign, Integer};
+        /// use rug::{Assign, Integer};
         /// let mut a = Integer::from(10);
         /// let mut b = Integer::from(25);
         /// // lcm of 10, 25 is 50
@@ -1904,7 +1904,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// let a = Integer::from(100);
         /// let b = Integer::from(125);
         /// let r = a.lcm_ref(&b);
@@ -1937,7 +1937,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_u_pow_u(13, 50);
     /// i *= 1000;
@@ -1959,7 +1959,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::{Assign, Integer};
+    /// use rug::{Assign, Integer};
     /// let mut i = Integer::new();
     /// i.assign_u_pow_u(13, 50);
     /// i *= 1000;
@@ -1983,7 +1983,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
     /// i.assign_factorial(10);
@@ -2000,7 +2000,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// // 10 * 8 * 6 * 4 * 2
     /// i.assign_factorial_2(10);
@@ -2017,7 +2017,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// // 10 * 7 * 4 * 1
     /// i.assign_factorial_m(10, 3);
@@ -2034,7 +2034,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// // 7 * 5 * 3 * 2
     /// i.assign_primorial(10);
@@ -2052,7 +2052,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// // 7 choose 2 is 21
         /// let mut i = Integer::from(7);
         /// assert_eq!(*i.binomial(2), 21);
@@ -2063,7 +2063,7 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rugint::Integer;
+        /// use rug::Integer;
         /// // 7 choose 2 is 21
         /// let i = Integer::from(7);
         /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
@@ -2077,7 +2077,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// // 7 choose 2 is 21
     /// let mut i = Integer::new();
     /// i.assign_binomial_u(7, 2);
@@ -2099,7 +2099,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_fibonacci(12);
     /// assert_eq!(i, 144);
@@ -2120,7 +2120,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// let mut j = Integer::new();
     /// i.assign_fibonacci_2(&mut j, 12);
@@ -2147,7 +2147,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// i.assign_lucas(12);
     /// assert_eq!(i, 322);
@@ -2168,7 +2168,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let mut i = Integer::new();
     /// let mut j = Integer::new();
     /// i.assign_lucas_2(&mut j, 12);
@@ -2187,7 +2187,7 @@ impl Integer {
             );
         }
     }
-    #[cfg(feature = "random")]
+    #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
@@ -2195,8 +2195,8 @@ impl Integer {
     ///
     /// ```rust
     /// extern crate rand;
-    /// extern crate rugint;
-    /// use rugint::Integer;
+    /// extern crate rug;
+    /// use rug::Integer;
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
     ///     let mut i = Integer::new();
@@ -2240,7 +2240,7 @@ impl Integer {
         }
     }
 
-    #[cfg(feature = "random")]
+    #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
@@ -2248,8 +2248,8 @@ impl Integer {
     ///
     /// ```rust
     /// extern crate rand;
-    /// extern crate rugint;
-    /// use rugint::Integer;
+    /// extern crate rug;
+    /// use rug::Integer;
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
     ///     let mut random = Integer::from(15);
@@ -2306,7 +2306,7 @@ impl Integer {
         }
     }
 
-    #[cfg(feature = "random")]
+    #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
@@ -2314,8 +2314,8 @@ impl Integer {
     ///
     /// ```rust
     /// extern crate rand;
-    /// extern crate rugint;
-    /// use rugint::Integer;
+    /// extern crate rug;
+    /// use rug::Integer;
     /// fn main() {
     ///     let mut rng = rand::thread_rng();
     ///     let bound = Integer::from(15);
@@ -3068,7 +3068,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m1 = Integer::from(3);
     /// let m2 = Integer::from(7);
     /// let init = Integer::from(100);
@@ -3081,7 +3081,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m1 = Integer::from(3);
     /// let m2 = Integer::from(7);
     /// let mut acc = Integer::from(100);
@@ -3098,7 +3098,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init + &m * 7u32;
@@ -3110,7 +3110,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc += &m * 7u32;
@@ -3126,7 +3126,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init + &m * -7i32;
@@ -3138,7 +3138,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc += &m * -7i32;
@@ -3155,7 +3155,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m1 = Integer::from(3);
     /// let m2 = Integer::from(7);
     /// let init = Integer::from(100);
@@ -3168,7 +3168,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m1 = Integer::from(3);
     /// let m2 = Integer::from(7);
     /// let mut acc = Integer::from(100);
@@ -3185,7 +3185,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init - &m * 7u32;
@@ -3197,7 +3197,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc -= &m * 7u32;
@@ -3213,7 +3213,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let init = Integer::from(100);
     /// let acc = init - &m * -7i32;
@@ -3225,7 +3225,7 @@ op_mul! {
     /// # Examples
     ///
     /// ```rust
-    /// use rugint::Integer;
+    /// use rug::Integer;
     /// let m = Integer::from(3);
     /// let mut acc = Integer::from(100);
     /// acc -= &m * -7i32;
@@ -3501,8 +3501,9 @@ fn trunc_f64_to_f32(f: f64) -> f32 {
 
 #[cfg(test)]
 mod tests {
+    use ::*;
+    use super::*;
     use gmp_mpfr_sys::gmp;
-    use integer::*;
     use std::{f32, f64, i32, i64, u32, u64};
     use std::cmp::Ordering;
     use std::mem;

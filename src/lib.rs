@@ -14,109 +14,124 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! # Arbitrary-precision floating-point numbers
-//!
-//! The `rugflo` crate provides arbitrary-precision floating-point
-//! numbers using the [GNU MPFR Library][mpfr home], a library for
-//! multiple-precision floating-point computations. It is one of a
-//! group of four crates:
-//!
-//! * [`rugint`][rugint] provides arbitrary-precision integers based
-//!   on GMP.
-//! * [`rugrat`][rugrat] provides arbitrary-precision rational number
-//!   based on GMP.
-//! * [`rugflo`][rugflo] provides arbitrary-precision floating-point
-//!   numbers based on MPFR.
-//! * [`rugcom`][rugcom] provides arbitrary-precision complex numbers
-//!   based on MPC.
-//!
-//! This crate is free software: you can redistribute it and/or modify
-//! it under the terms of the GNU Lesser General Public License as
-//! published by the Free Software Foundation, either version 3 of the
-//! License, or (at your option) any later version. See the full text
-//! of the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
-//!
-//! ## Basic use
-//!
-//! Apart from this documentation, it can be helpful to refer to the
-//! documentation of the [MPFR][mpfr] library.
-//!
-//! The crate provides the [`Float`][float] type, which provides an
-//! arbitrary-precision floating-point number with correct rounding.
-//!
-//! ## Examples
-//!
-//! ```rust
-//! extern crate rugflo;
-//! use rugflo::Float;
-//!
-//! fn main() {
-//!     // Create a floating-point number with 53 bits of precision.
-//!     // (An f64 has 53 bits of precision too.)
-//!     let flo53 = Float::from((0xff00ff, 53));
-//!     assert_eq!(flo53.to_f64(), 0xff00ff as f64);
-//!     // Create a floating-point number with only 16 bits of precision.
-//!     let flo16 = Float::from((0xff00ff, 16));
-//!     // Now the number is rounded.
-//!     assert_eq!(flo16.to_f64(), 0xff0100 as f64);
-//! }
-//! ```
-//!
-//! ## Usage
-//!
-//! To use `rugflo` in your crate, add `extern crate rugflo;` to the
-//! crate root and add `rugflo` as a dependency in `Cargo.toml`:
-//!
-//! ```toml
-//! [dependencies]
-//! rugflo = "0.4.0"
-//! ```
-//!
-//! The `rugflo` crate depends on the low-level bindings in the
-//! `gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
-//! macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
-//! [documentation][sys] for some details.
-//!
-//! ### Optional feature
-//!
-//! The `rugflo` crate has an optional feature `random` to enable
-//! random number generation. The `random` feature introduces a
-//! dependency on the `rand` crate. The feature is enabled by default;
-//! to disable it add this to `Cargo.toml`:
-//!
-//! ```toml
-//! [dependencies.rugflo]
-//! version = "0.4.0"
-//! default-features = false
-//! ```
-//!
-//! [float]:     struct.Float.html
-//! [gpl]:       https://www.gnu.org/licenses/gpl-3.0.html
-//! [lgpl]:      https://www.gnu.org/licenses/lgpl-3.0.en.html
-//! [mpfr home]: http://www.mpfr.org/
-//! [mpfr]:      https://tspiteri.gitlab.io/gmp-mpfr/mpfr/
-//! [rugcom]:    https://tspiteri.gitlab.io/gmp-mpfr/rugcom/
-//! [rugflo]:    https://tspiteri.gitlab.io/gmp-mpfr/rugflo/
-//! [rugint]:    https://tspiteri.gitlab.io/gmp-mpfr/rugint/
-//! [rugrat]:    https://tspiteri.gitlab.io/gmp-mpfr/rugrat/
-//! [sys]:       https://tspiteri.gitlab.io/gmp-mpfr/gmp_mpfr_sys/
+//! Crate `rug`.
 
 #![warn(missing_docs)]
 #![doc(test(attr(deny(warnings))))]
 
 extern crate gmp_mpfr_sys;
-#[cfg(feature = "random")]
+#[cfg(feature = "rand")]
 extern crate rand;
-extern crate rugint;
-extern crate rugrat;
 
+mod integer;
+mod rational;
 mod float;
-mod small_float;
-mod xmpfr;
+mod complex;
 
-pub use float::{Constant, Float, ParseFloatError, Round, Special, ValidFloat,
-                exp_max, exp_min, prec_max, prec_min};
-pub use small_float::SmallFloat;
+pub use integer::*;
+pub use rational::*;
+pub use float::*;
+pub use complex::*;
+
+/// Assigns to a number from another value.
+pub trait Assign<Rhs = Self> {
+    /// Peforms the assignement.
+    fn assign(&mut self, rhs: Rhs);
+}
+
+/// Negates the value inside `self`.
+pub trait NegAssign {
+    /// Peforms the negation.
+    fn neg_assign(&mut self);
+}
+
+/// Peforms a bitwise complement of the value inside `self`.
+pub trait NotAssign {
+    /// Peforms the complement.
+    fn not_assign(&mut self);
+}
+
+/// Subtract and assigns the result to the rhs operand.
+///
+/// `rhs.sub_from_assign(lhs)` has the same effect as
+/// `rhs = lhs - rhs`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{Integer, SubFromAssign};
+/// let mut rhs = Integer::from(10);
+/// rhs.sub_from_assign(100);
+/// // rhs = 100 - 10
+/// assert_eq!(rhs, 90);
+/// ```
+pub trait SubFromAssign<Lhs = Self> {
+    /// Peforms the subtraction.
+    fn sub_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Divide and assign the result to the rhs operand.
+///
+/// `rhs.div_from_assign(lhs)` has the same effect as
+/// `rhs = lhs / rhs`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{DivFromAssign, Integer};
+/// let lhs = Integer::from(50);
+/// let mut rhs = Integer::from(5);
+/// rhs.div_from_assign(lhs);
+/// // rhs = 50 / 5
+/// assert_eq!(rhs, 10);
+/// ```
+pub trait DivFromAssign<Lhs = Self> {
+    /// Peforms the division.
+    fn div_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Compute the remainder and assign the result to the rhs operand.
+///
+/// `rhs.rem_from_assign(lhs)` has the same effect as
+/// `rhs = lhs % rhs`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{Integer, RemFromAssign};
+/// let lhs = Integer::from(17);
+/// let mut rhs = Integer::from(2);
+/// rhs.rem_from_assign(&lhs);
+/// // rhs = 17 / 2
+/// assert_eq!(rhs, 1);
+/// ```
+pub trait RemFromAssign<Lhs = Self> {
+    /// Peforms the remainder operation.
+    fn rem_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Provides the power operation.
+pub trait Pow<Rhs> {
+    /// The resulting type after the power operation.
+    type Output;
+    /// Performs the power operation.
+    fn pow(self, rhs: Rhs) -> Self::Output;
+}
+
+/// Provides the power operation inside `self`.
+pub trait PowAssign<Rhs> {
+    /// Peforms the power operation.
+    fn pow_assign(&mut self, rhs: Rhs);
+}
+
+/// Calculate the power and assign the result to the rhs operand.
+///
+/// `rhs.pow_from_assign(lhs)` has the same effect as
+/// `rhs = lhs.pow(rhs)`.
+pub trait PowFromAssign<Lhs = Self> {
+    /// Peforms the power operation.
+    fn pow_from_assign(&mut self, lhs: Lhs);
+}
 
 /// Assigns to a number from another value, applying the specified
 /// rounding method.

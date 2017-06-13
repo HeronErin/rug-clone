@@ -14,17 +14,19 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use {AddRound, AssignRound, Constant, DivRound, Float, FromRound, MulRound,
+     ParseFloatError, PowRound, Round, ShlRound, ShrRound, Special, SubRound,
+     ValidFloat};
+use {Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign, PowFromAssign,
+     SubFromAssign};
+use Rational;
+use complex::xmpc;
+use float;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 #[cfg(feature = "random")]
 use rand::Rng;
-use rugflo::{self, AddRound, AssignRound, Constant, DivRound, Float,
-             FromRound, MulRound, ParseFloatError, PowRound, Round, ShlRound,
-             ShrRound, Special, SubRound, ValidFloat};
-use rugint::{Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign,
-             PowFromAssign, SubFromAssign};
-use rugrat::Rational;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
@@ -36,7 +38,6 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
 use std::ptr;
-use xmpc;
 
 type Round2 = (Round, Round);
 const NEAREST: Round2 = (Round::Nearest, Round::Nearest);
@@ -296,7 +297,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let r1 = Complex::new(32);
     /// assert_eq!(r1.prec(), (32, 32));
     /// let r2 = Complex::new((32, 64));
@@ -309,9 +310,9 @@ impl Complex {
     pub fn new<P: Prec>(prec: P) -> Complex {
         let p = prec.prec();
         assert!(
-            p.0 >= rugflo::prec_min() && p.0 <= rugflo::prec_max() &&
-                p.1 >= rugflo::prec_min() &&
-                p.1 <= rugflo::prec_max(),
+            p.0 >= float::prec_min() && p.0 <= float::prec_max() &&
+                p.1 >= float::prec_min() &&
+                p.1 <= float::prec_max(),
             "precision out of range"
         );
         unsafe {
@@ -330,7 +331,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let r = Complex::new((24, 53));
     /// assert_eq!(r.prec(), (24, 53));
     /// ```
@@ -344,7 +345,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let mut r = Complex::from(((4.875, 4.625), 6));
     /// assert_eq!(r, (4.875, 4.625));
     /// r.set_prec(4);
@@ -364,19 +365,13 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
+    /// use rug::{Complex, Round};
     /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let mut r = Complex::from(((4.875, 4.625), 6));
-    ///     assert_eq!(r, (4.875, 4.625));
-    ///     let dir = r.set_prec_round(4, (Round::Down, Round::Up));
-    ///     assert_eq!(r, (4.5, 5.0));
-    ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-    /// }
+    /// let mut r = Complex::from(((4.875, 4.625), 6));
+    /// assert_eq!(r, (4.875, 4.625));
+    /// let dir = r.set_prec_round(4, (Round::Down, Round::Up));
+    /// assert_eq!(r, (4.5, 5.0));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
     ///
     /// # Panics
@@ -398,7 +393,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c = Complex::from_str("(12.5e2 2.5e-1)", 53).unwrap();
     /// assert_eq!(*c.real(), 12.5e2);
     /// assert_eq!(*c.imag(), 2.5e-1);
@@ -420,20 +415,14 @@ impl Complex {
     /// Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
+    /// use rug::{Complex, Round};
     /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let round = (Round::Down, Round::Up);
-    ///     let res = Complex::from_str_round("(14.1 14.2)", 4, round);
-    ///     let (c, dir) = res.unwrap();
-    ///     assert_eq!(*c.real(), 14);
-    ///     assert_eq!(*c.imag(), 15);
-    ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-    /// }
+    /// let round = (Round::Down, Round::Up);
+    /// let res = Complex::from_str_round("(14.1 14.2)", 4, round);
+    /// let (c, dir) = res.unwrap();
+    /// assert_eq!(*c.real(), 14);
+    /// assert_eq!(*c.imag(), 15);
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
     pub fn from_str_round<P: Prec>
         (
@@ -452,7 +441,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c = Complex::from_str_radix("f.f", 16, 53).unwrap();
     /// assert_eq!(*c.real(), 15.9375);
     /// assert_eq!(*c.imag(), 0);
@@ -477,20 +466,14 @@ impl Complex {
     /// Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
+    /// use rug::{Complex, Round};
     /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let round = (Round::Nearest, Round::Nearest);
-    ///     let res = Complex::from_str_radix_round("(c.c c.1)", 16, 4, round);
-    ///     let (c, dir) = res.unwrap();
-    ///     assert_eq!(*c.real(), 13);
-    ///     assert_eq!(*c.imag(), 12);
-    ///     assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-    /// }
+    /// let round = (Round::Nearest, Round::Nearest);
+    /// let res = Complex::from_str_radix_round("(c.c c.1)", 16, 4, round);
+    /// let (c, dir) = res.unwrap();
+    /// assert_eq!(*c.real(), 13);
+    /// assert_eq!(*c.imag(), 12);
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
     /// ```
     ///
     /// # Panics
@@ -518,7 +501,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     ///
     /// let valid1 = Complex::valid_str_radix("(1.2e-1 2.3e+2)", 4);
     /// let c1 = Complex::from((valid1.unwrap(), 53));
@@ -578,7 +561,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c1 = Complex::from((0, 53));
     /// assert_eq!(c1.to_string_radix(10, None), "(0.0 0.0)");
     /// let c2 = Complex::from(((15, 5), 12));
@@ -609,27 +592,21 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
-    ///
-    /// fn main() {
-    ///     let c = Complex::from((10.4, 10));
-    ///     let down = (Round::Down, Round::Down);
-    ///     let nearest = (Round::Nearest, Round::Nearest);
-    ///     let up = (Round::Up, Round::Up);
-    ///     let nd = c.to_string_radix_round(10, None, down);
-    ///     assert_eq!(nd, "(1.0406e1 0.0)");
-    ///     let nu = c.to_string_radix_round(10, None, up);
-    ///     assert_eq!(nu, "(1.0407e1 0.0)");
-    ///     let sd = c.to_string_radix_round(10, Some(2), down);
-    ///     assert_eq!(sd, "(1.0e1 0.0)");
-    ///     let sn = c.to_string_radix_round(10, Some(2), nearest);
-    ///     assert_eq!(sn, "(1.0e1 0.0)");
-    ///     let su = c.to_string_radix_round(10, Some(2), up);
-    ///     assert_eq!(su, "(1.1e1 0.0)");
-    /// }
+    /// use rug::{Complex, Round};
+    /// let c = Complex::from((10.4, 10));
+    /// let down = (Round::Down, Round::Down);
+    /// let nearest = (Round::Nearest, Round::Nearest);
+    /// let up = (Round::Up, Round::Up);
+    /// let nd = c.to_string_radix_round(10, None, down);
+    /// assert_eq!(nd, "(1.0406e1 0.0)");
+    /// let nu = c.to_string_radix_round(10, None, up);
+    /// assert_eq!(nu, "(1.0407e1 0.0)");
+    /// let sd = c.to_string_radix_round(10, Some(2), down);
+    /// assert_eq!(sd, "(1.0e1 0.0)");
+    /// let sn = c.to_string_radix_round(10, Some(2), nearest);
+    /// assert_eq!(sn, "(1.0e1 0.0)");
+    /// let su = c.to_string_radix_round(10, Some(2), up);
+    /// assert_eq!(su, "(1.1e1 0.0)");
     /// ```
     ///
     /// # Panics
@@ -657,7 +634,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let mut c = Complex::new(53);
     /// c.assign_str("(12.5e2 2.5e-1)").unwrap();
     /// assert_eq!(*c.real(), 12.5e2);
@@ -675,20 +652,14 @@ impl Complex {
     /// Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
+    /// use rug::{Complex, Round};
     /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let mut c = Complex::new((4, 4));
-    ///     let round = (Round::Down, Round::Up);
-    ///     let dir = c.assign_str_round("(14.1 14.2)", round).unwrap();
-    ///     assert_eq!(*c.real(), 14);
-    ///     assert_eq!(*c.imag(), 15);
-    ///     assert_eq!(dir, (Ordering::Less, Ordering::Greater));
-    /// }
+    /// let mut c = Complex::new((4, 4));
+    /// let round = (Round::Down, Round::Up);
+    /// let dir = c.assign_str_round("(14.1 14.2)", round).unwrap();
+    /// assert_eq!(*c.real(), 14);
+    /// assert_eq!(*c.imag(), 15);
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
     pub fn assign_str_round(
         &mut self,
@@ -704,7 +675,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let mut c = Complex::new(53);
     /// c.assign_str_radix("f.f", 16).unwrap();
     /// assert_eq!(*c.real(), 15.9375);
@@ -728,20 +699,14 @@ impl Complex {
     /// Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::Round;
+    /// use rug::{Complex, Round};
     /// use std::cmp::Ordering;
-    ///
-    /// fn main() {
-    ///     let mut c = Complex::new((4, 4));
-    ///     let round = (Round::Nearest, Round::Nearest);
-    ///     let dir = c.assign_str_radix_round("(c.c c.1)", 16, round).unwrap();
-    ///     assert_eq!(*c.real(), 13);
-    ///     assert_eq!(*c.imag(), 12);
-    ///     assert_eq!(dir, (Ordering::Greater, Ordering::Less));
-    /// }
+    /// let mut c = Complex::new((4, 4));
+    /// let round = (Round::Nearest, Round::Nearest);
+    /// let dir = c.assign_str_radix_round("(c.c c.1)", 16, round).unwrap();
+    /// assert_eq!(*c.real(), 13);
+    /// assert_eq!(*c.imag(), 12);
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
     /// ```
     ///
     /// # Panics
@@ -761,7 +726,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(*c.real(), 12.5)
     /// ```
@@ -777,7 +742,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(*c.imag(), -20.75)
     pub fn imag(&self) -> &Float {
@@ -792,7 +757,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let mut c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(c, (12.5, -20.75));
     /// *c.mut_real() /= 2;
@@ -810,7 +775,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let mut c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(c, (12.5, -20.75));
     /// *c.mut_imag() *= 4;
@@ -828,7 +793,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(c, (12.5, -20.75));
     /// let (re, im) = c.as_real_imag();
@@ -844,7 +809,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     ///
     /// let mut c = Complex::from(((12.5, -20.75), 53));
     /// {
@@ -870,7 +835,7 @@ impl Complex {
     /// allocate any new memory.
     ///
     /// ```rust
-    /// use rugcom::Complex;
+    /// use rug::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// let (real, imag) = c.into_real_imag();
     /// assert_eq!(real, 12.5);
@@ -934,17 +899,12 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// use rugcom::Complex;
-    /// use rugflo::{Float, Special};
+    /// use rug::{Complex, Float, Special};
     ///
-    /// fn main() {
-    ///     let c1 = Complex::from(((30, 40), 53));
-    ///     assert_eq!(Float::from((c1.abs_ref(), 53)), 50);
-    ///     let c2 = Complex::from(((12, Special::Infinity), 53));
-    ///     assert!(Float::from((c2.abs_ref(), 53)).is_infinite());
-    /// }
+    /// let c1 = Complex::from(((30, 40), 53));
+    /// assert_eq!(Float::from((c1.abs_ref(), 53)), 50);
+    /// let c2 = Complex::from(((12, Special::Infinity), 53));
+    /// assert!(Float::from((c2.abs_ref(), 53)).is_infinite());
     /// ```
     pub fn abs_ref(&self) -> AbsRef {
         AbsRef { ref_self: self }
@@ -955,43 +915,35 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rugcom;
-    /// extern crate rugflo;
-    /// extern crate rugint;
-    /// use rugcom::Complex;
-    /// use rugflo::{Float, Special};
-    /// use rugint::Assign;
+    /// use rug::{Assign, Complex, Float, Special};
     /// use std::f64;
+    /// // f has precision 53, just like f64, so PI constants match.
+    /// let mut arg = Float::new(53);
+    /// let c_pos = Complex::from((1, 53));
+    /// arg.assign(c_pos.arg_ref());
+    /// assert!(arg.is_zero());
+    /// let c_neg = Complex::from((-1.3, 53));
+    /// arg.assign(c_neg.arg_ref());
+    /// assert_eq!(arg, f64::consts::PI);
+    /// let c_pi_4 = Complex::from(((1.333, 1.333), 53));
+    /// arg.assign(c_pi_4.arg_ref());
+    /// assert_eq!(arg, f64::consts::FRAC_PI_4);
     ///
-    /// fn main() {
-    ///     // f has precision 53, just like f64, so PI constants match.
-    ///     let mut arg = Float::new(53);
-    ///     let c_pos = Complex::from((1, 53));
-    ///     arg.assign(c_pos.arg_ref());
-    ///     assert!(arg.is_zero());
-    ///     let c_neg = Complex::from((-1.3, 53));
-    ///     arg.assign(c_neg.arg_ref());
-    ///     assert_eq!(arg, f64::consts::PI);
-    ///     let c_pi_4 = Complex::from(((1.333, 1.333), 53));
-    ///     arg.assign(c_pi_4.arg_ref());
-    ///     assert_eq!(arg, f64::consts::FRAC_PI_4);
-
-    ///     // Special values are handled like atan2 in IEEE 754-2008.
-    ///     // Examples for real, imag set to plus, minus zero below:
-    ///     let mut zero = Complex::new(53);
-    ///     zero.assign((Special::Zero, Special::Zero));
-    ///     arg.assign(zero.arg_ref());
-    ///     assert!(arg.is_zero() && !arg.get_sign());
-    ///     zero.assign((Special::Zero, Special::MinusZero));
-    ///     arg.assign(zero.arg_ref());
-    ///     assert!(arg.is_zero() && arg.get_sign());
-    ///     zero.assign((Special::MinusZero, Special::Zero));
-    ///     arg.assign(zero.arg_ref());
-    ///     assert_eq!(arg, f64::consts::PI);
-    ///     zero.assign((Special::MinusZero, Special::MinusZero));
-    ///     arg.assign(zero.arg_ref());
-    ///     assert_eq!(arg, -f64::consts::PI);
-    /// }
+    /// // Special values are handled like atan2 in IEEE 754-2008.
+    /// // Examples for real, imag set to plus, minus zero below:
+    /// let mut zero = Complex::new(53);
+    /// zero.assign((Special::Zero, Special::Zero));
+    /// arg.assign(zero.arg_ref());
+    /// assert!(arg.is_zero() && !arg.get_sign());
+    /// zero.assign((Special::Zero, Special::MinusZero));
+    /// arg.assign(zero.arg_ref());
+    /// assert!(arg.is_zero() && arg.get_sign());
+    /// zero.assign((Special::MinusZero, Special::Zero));
+    /// arg.assign(zero.arg_ref());
+    /// assert_eq!(arg, f64::consts::PI);
+    /// zero.assign((Special::MinusZero, Special::MinusZero));
+    /// arg.assign(zero.arg_ref());
+    /// assert_eq!(arg, -f64::consts::PI);
     /// ```
     pub fn arg_ref(&self) -> ArgRef {
         ArgRef { ref_self: self }
@@ -1089,23 +1041,17 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// extern crate rugcom;
-        /// extern crate rugint;
-        /// use rugcom::Complex;
-        /// use rugint::Assign;
-        ///
-        /// fn main() {
-        ///     // sin(0.5 + 0.2i) = 0.48905 + 0.17669i
-        ///     // cos(0.5 + 0.2i) = 0.89519 - 0.096526i
-        ///     let angle = Complex::from(((0.5, 0.2), 53));
-        ///     let r = angle.sin_cos_ref();
-        ///     // use only 10 bits of precision here to
-        ///     // make comparison easier
-        ///     let (mut sin, mut cos) = (Complex::new(10), Complex::new(10));
-        ///     (&mut sin, &mut cos).assign(r);
-        ///     assert_eq!(sin, Complex::from(((0.48905, 0.17669), 10)));
-        ///     assert_eq!(cos, Complex::from(((0.89519, -0.096526), 10)));
-        /// }
+        /// use rug::{Assign, Complex};
+        /// // sin(0.5 + 0.2i) = 0.48905 + 0.17669i
+        /// // cos(0.5 + 0.2i) = 0.89519 - 0.096526i
+        /// let angle = Complex::from(((0.5, 0.2), 53));
+        /// let r = angle.sin_cos_ref();
+        /// // use only 10 bits of precision here to
+        /// // make comparison easier
+        /// let (mut sin, mut cos) = (Complex::new(10), Complex::new(10));
+        /// (&mut sin, &mut cos).assign(r);
+        /// assert_eq!(sin, Complex::from(((0.48905, 0.17669), 10)));
+        /// assert_eq!(cos, Complex::from(((0.89519, -0.096526), 10)));
         fn sin_cos_ref -> SinCosRef;
         mpc::sin_cos
     }
@@ -2789,7 +2735,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use complex::*;
+    use ::*;
+    use super::*;
     use std::f64;
 
     #[test]

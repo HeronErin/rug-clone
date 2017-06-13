@@ -15,9 +15,9 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Float, Round};
+use Assign;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use rugint::Assign;
 use std::{i32, u32};
 use std::mem;
 use std::ops::Deref;
@@ -49,7 +49,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// # Examples
 ///
 /// ```rust
-/// use rugflo::{Float, SmallFloat};
+/// use rug::{Float, SmallFloat};
 /// // `a` requires a heap allocation, has 53-bit precision
 /// let mut a = Float::from((250, 53));
 /// // `b` can reside on the stack

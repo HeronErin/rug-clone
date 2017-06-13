@@ -17,8 +17,8 @@
 use Complex;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
-use rugflo::Round;
-use rugint::Assign;
+use Round;
+use Assign;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
@@ -51,7 +51,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// # Examples
 ///
 /// ```rust
-/// use rugcom::{Complex, SmallComplex};
+/// use rug::{Complex, SmallComplex};
 /// // `a` requires a heap allocation
 /// let mut a = Complex::from(((1, 2), 53));
 /// // `b` can reside on the stack
