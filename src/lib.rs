@@ -23,15 +23,18 @@ extern crate gmp_mpfr_sys;
 #[cfg(feature = "rand")]
 extern crate rand;
 
+mod complex;
+mod float;
 mod integer;
 mod rational;
-mod float;
-mod complex;
 
-pub use integer::*;
-pub use rational::*;
-pub use float::*;
-pub use complex::*;
+pub use complex::{Complex, ParseComplexError, Prec, SmallComplex, ValidComplex};
+pub use float::{Constant, Float, ParseFloatError, Round, SmallFloat, Special,
+                ValidFloat, exp_max, exp_min, prec_max, prec_min};
+pub use integer::{Integer, IsPrime, ParseIntegerError, SmallInteger,
+                  ValidInteger};
+pub use rational::{MutNumerDenom, ParseRationalError, Rational, SmallRational,
+                   ValidRational};
 
 /// Assigns to a number from another value.
 pub trait Assign<Rhs = Self> {
