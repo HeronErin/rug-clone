@@ -1,0 +1,6 @@
+[package]
+name = "rug"
+version = "0.1.0"
+authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
+
+[dependencies]
