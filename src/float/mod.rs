@@ -119,6 +119,12 @@ pub enum Round {
     AwayFromZero,
 }
 
+impl Default for Round {
+    fn default() -> Round {
+        Round::Nearest
+    }
+}
+
 fn rraw(round: Round) -> mpfr::rnd_t {
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
@@ -173,21 +179,25 @@ pub enum Special {
     Nan,
 }
 
-fn ordering2(ord: i32) -> (Ordering, Ordering) {
+fn ordering1(ord: c_int) -> Ordering {
+    ord.cmp(&0)
+}
+
+fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     // ord == first + 4 * second
-    let first = match ord % 4 {
-        0 => Ordering::Equal,
-        1 => Ordering::Greater,
-        2 => Ordering::Less,
+    let first = match ord & 3 {
+        2 => -1,
+        0 => 0,
+        1 => 1,
         _ => unreachable!(),
     };
-    let second = match ord / 4 {
-        0 => Ordering::Equal,
-        1 => Ordering::Greater,
-        2 => Ordering::Less,
+    let second = match ord >> 2 {
+        2 => -1,
+        0 => 0,
+        1 => 1,
         _ => unreachable!(),
     };
-    (first, second)
+    (ordering1(first), ordering1(second))
 }
 
 /// A multi-precision floating-point number.
@@ -230,283 +240,118 @@ impl Drop for Float {
     }
 }
 
-macro_rules! math_op1 {
+macro_rules! math_op1_float {
     {
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-        $func:path
     } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $($param: $T,)*
-        ) -> &mut Float {
-            self.$method_round(
-                $($param,)*
-                Round::Nearest,
-            );
-            self
+        math_op1_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $(#[$attr])*
+            fn $method($($param: $T),*);
+            $(#[$attr_round])*
+            fn $method_round;
+            $(#[$attr_ref])*
+            fn $method_ref -> $Ref;
         }
-
-        $(#[$attr_round])*
-        pub fn $method_round(
-            &mut self,
-            $($param: $T,)*
-            round: Round,
-        ) -> Ordering {
-            let mpfr_ret = unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $($param.into(),)*
-                    rraw(round),
-                )
-            };
-            mpfr_ret.cmp(&0)
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T),*
-        ) -> $Ref {
-            $Ref {
-                ref_self: self,
-                $($param: $param,)*
-            }
-        }
-    };
+    }
 }
 
-macro_rules! ref_math_op1 {
+macro_rules! ref_math_op1_float {
     {
+        $func:path;
         $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* };
-        $func:path
+        struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Float,
-            $($param: $T,)*
+        ref_math_op1_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $(#[$attr_ref])*
+            struct $Ref { $($param: $T),* }
         }
-
-        impl<'a> AssignRound<$Ref<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
-                round: Round,
-            ) -> Ordering {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
-                        rraw(round),
-                    )
-                };
-                mpfr_ret.cmp(&0)
-            }
-        }
-    };
+    }
 }
 
-macro_rules! math_op1_2 {
+macro_rules! math_op1_2_float {
     {
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-        $func:path
     } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $rop: &mut Float,
-            $($param: $T),*
-        ) {
-            self.$method_round(
-                $rop,
-                $($param,)*
-                Round::Nearest,
-            );
+        math_op1_2_round! {
+            Float, Round => (Ordering, Ordering);
+            $func, rraw => ordering2;
+            $(#[$attr])*
+            fn $method($rop $(, $param: $T)*);
+            $(#[$attr_round])*
+            fn $method_round;
+            $(#[$attr_ref])*
+            fn $method_ref -> $Ref;
         }
-
-        $(#[$attr_round])*
-        pub fn $method_round(
-            &mut self,
-            $rop: &mut Float,
-            $($param: $T,)*
-            round: Round,
-        ) -> (Ordering, Ordering) {
-            let mpfr_ret = unsafe {
-                $func(
-                    self.inner_mut(),
-                    $rop.inner_mut(),
-                    self.inner(),
-                    $($param.into(),)*
-                    rraw(round),
-                )
-            };
-            ordering2(mpfr_ret)
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Ref {
-            $Ref {
-                ref_self: self,
-                $($param: $param,)*
-            }
-        }
-    };
+    }
 }
 
-macro_rules! ref_math_op1_2 {
+macro_rules! ref_math_op1_2_float {
     {
+        $func:path;
         $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* };
-        $func:path
+        struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Float,
-            $($param: $T,)*
+        ref_math_op1_2_round! {
+            Float, Round => (Ordering, Ordering);
+            $func, rraw => ordering2;
+            $(#[$attr_ref])*
+            struct $Ref { $($param: $T),* }
         }
-
-        impl<'a> Assign<$Ref<'a>> for (&'a mut Float, &'a mut Float) {
-            fn assign(&mut self, src: $Ref<'a>) {
-                self.assign_round(src, Round::Nearest);
-            }
-        }
-
-        impl<'a> AssignRound<$Ref<'a>> for (&'a mut Float, &'a mut Float) {
-            type Round = Round;
-            type Ordering = (Ordering, Ordering);
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
-                round: Round,
-            ) -> (Ordering, Ordering) {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
-                        rraw(round),
-                    )
-                };
-                ordering2(mpfr_ret)
-            }
-        }
-    };
+    }
 }
 
-macro_rules! math_op2 {
+macro_rules! math_op2_float {
     {
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-        $func:path
     } => {
-        $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op: &Float,
-            $($param: $T,)*
-        ) -> &mut Float {
-            self.$method_round(
-                $op,
-                $($param.into(),)*
-                Round::Nearest,
-            );
-            self
+        math_op2_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $(#[$attr])*
+            fn $method($op $(, $param: $T)*);
+            $(#[$attr_round])*
+            fn $method_round;
+            $(#[$attr_ref])*
+            fn $method_ref -> $Ref;
         }
-
-        $(#[$attr_round])*
-        pub fn $method_round(
-            &mut self,
-            $op: &Float,
-            $($param: $T,)*
-            round: Round,
-        ) -> Ordering {
-            let mpfr_ret = unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
-                    $($param.into(),)*
-                    rraw(round),
-                )
-            };
-            mpfr_ret.cmp(&0)
-        }
-
-        $(#[$attr_ref])*
-        pub fn $method_ref<'a>(
-            &'a self,
-            $op: &'a Float,
-            $($param: $T,)*
-        ) -> $Ref<'a> {
-            $Ref {
-                ref_self: self,
-                $op: $op,
-                $($param: $param,)*
-            }
-        }
-    };
+    }
 }
 
-macro_rules! ref_math_op2 {
+macro_rules! ref_math_op2_float {
     {
+        $func:path;
         $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* };
-        $func:path
+        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
     } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a Float,
-            $op: &'a Float,
-            $($param: $T,)*
+        ref_math_op2_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $(#[$attr_ref])*
+            struct $Ref { $op $(, $param: $T)* }
         }
-
-        impl<'a> AssignRound<$Ref<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
-                round: Round,
-            ) -> Ordering {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                        $(src.$param.into(),)*
-                        rraw(round),
-                    )
-                };
-                mpfr_ret.cmp(&0)
-            }
-        }
-    };
+    }
 }
 
 impl Float {
@@ -1269,16 +1114,17 @@ impl Float {
     }
 
 
-    math_op1! {
+    math_op1_float! {
+        mpfr::sqr;
         /// Computes the square, rounding to the nearest.
         fn square();
         /// Computes the square, applying the specified rounding method.
         fn square_round;
         /// Compuets the square.
         fn square_ref -> SquareRef;
-        mpfr::sqr
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::sqrt;
         /// Computes the square root, rounding to the nearest.
         fn sqrt();
         /// Computes the square root, applying the specified rounding
@@ -1286,7 +1132,6 @@ impl Float {
         fn sqrt_round;
         /// Computes the square root.
         fn sqrt_ref -> SqrtRef;
-        mpfr::sqrt
     }
 
     /// Sets `self` to the square root of `u`, rounding to the
@@ -1303,7 +1148,8 @@ impl Float {
         mpfr_ret.cmp(&0)
     }
 
-    math_op1! {
+    math_op1_float! {
+        mpfr::rec_sqrt;
         /// Computes the reciprocal square root, rounding to the nearest.
         fn recip_sqrt();
         /// Computes the reciprocal square root, applying the specified
@@ -1311,9 +1157,9 @@ impl Float {
         fn recip_sqrt_round;
         /// Computes the reciprocal square root.
         fn recip_sqrt_ref -> RecipSqrtRef;
-        mpfr::rec_sqrt
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::cbrt;
         /// Computes the cube root, rounding to the nearest.
         fn cbrt();
         /// Computes the cube root, applying the specified rounding
@@ -1321,9 +1167,9 @@ impl Float {
         fn cbrt_round;
         /// Computes the cube root.
         fn cbrt_ref -> CbrtRef;
-        mpfr::cbrt
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::root;
         /// Computes the `k`th root, rounding to the nearest.
         fn root(k: u32);
         /// Computes the `k`th root, applying the specified rounding
@@ -1331,9 +1177,9 @@ impl Float {
         fn root_round;
         /// Computes the `k`th root.
         fn root_ref -> RootRef;
-        mpfr::root
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::abs;
         /// Computes the absolute value, rounding to the nearest.
         fn abs();
         /// Computes the absolute value, applying the specified rounding
@@ -1341,9 +1187,9 @@ impl Float {
         fn abs_round;
         /// Computes the absolute value.
         fn abs_ref -> AbsRef;
-        mpfr::abs
     }
-    math_op1! {
+    math_op1_float! {
+        xmpfr::recip;
         /// Computes the reciprocal, rounding to the nearest.
         fn recip();
         /// Computes the reciprocal, applying the specified rounding
@@ -1351,9 +1197,9 @@ impl Float {
         fn recip_round;
         /// Computes the reciprocal.
         fn recip_ref -> RecipRef;
-        xmpfr::recip
     }
-    math_op2! {
+    math_op2_float! {
+        mpfr::dim;
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
         fn abs_diff(other);
@@ -1362,9 +1208,9 @@ impl Float {
         fn abs_diff_round;
         /// Computes the positive difference.
         fn abs_diff_ref -> AbsDiffRef;
-        mpfr::dim
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::log;
         /// Computes the natural logarithm, rounding to the nearest.
         fn ln();
         /// Computes the natural logarithm, applying the specified
@@ -1372,9 +1218,9 @@ impl Float {
         fn ln_round;
         /// Computes the natural logarithm.
         fn ln_ref -> LnRef;
-        mpfr::log
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::log2;
         /// Computes the logarithm to base 2, rounding to the nearest.
         fn log2();
         /// Computes the logarithm to base 2, applying the specified
@@ -1382,9 +1228,9 @@ impl Float {
         fn log2_round;
         /// Computes the logarithm to base 2.
         fn log2_ref -> Log2Ref;
-        mpfr::log2
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::log10;
         /// Computes the logarithm to base 10, rounding to the nearest.
         fn log10();
         /// Computes the logarithm to base 10, applying the specified
@@ -1392,9 +1238,9 @@ impl Float {
         fn log10_round;
         /// Computes the logarithm to base 10.
         fn log10_ref -> Log10Ref;
-        mpfr::log10
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::exp;
         /// Computes the exponential, rounding to the nearest.
         fn exp();
         /// Computes the exponential, applying the specified rounding
@@ -1402,9 +1248,9 @@ impl Float {
         fn exp_round;
         /// Computes the exponential.
         fn exp_ref -> ExpRef;
-        mpfr::exp
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::exp2;
         /// Computes 2 to the power of `self`, rounding to the nearest.
         fn exp2();
         /// Computes 2 to the power of `self`, applying the specified
@@ -1412,9 +1258,9 @@ impl Float {
         fn exp2_round;
         /// Computes 2 to the power of the value.
         fn exp2_ref -> Exp2Ref;
-        mpfr::exp2
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::exp10;
         /// Computes 10 to the power of `self`, rounding to the nearest.
         fn exp10();
         /// Computes 10 to the power of `self`, applying the specified
@@ -1422,36 +1268,36 @@ impl Float {
         fn exp10_round;
         /// Computes 10 to the power of the value.
         fn exp10_ref -> Exp10Ref;
-        mpfr::exp10
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::sin;
         /// Computes the sine, rounding to the nearest.
         fn sin();
         /// Computes the sine, applying the specified rounding method.
         fn sin_round;
         /// Computes the sine.
         fn sin_ref -> SinRef;
-        mpfr::sin
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::cos;
         /// Computes the cosine, rounding to the nearest.
         fn cos();
         /// Computes the cosine, applying the specified rounding method.
         fn cos_round;
         /// Computes the cosine.
         fn cos_ref -> CosRef;
-        mpfr::cos
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::tan;
         /// Computes the tangent, rounding to the nearest.
         fn tan();
         /// Computes the tangent, applying the specified rounding method.
         fn tan_round;
         /// Computes the tangent.
         fn tan_ref -> TanRef;
-        mpfr::tan
     }
-    math_op1_2! {
+    math_op1_2_float! {
+        mpfr::sin_cos;
         /// Computes the sine and cosine of `self`, rounding to the
         /// nearest.
         ///
@@ -1480,27 +1326,27 @@ impl Float {
         /// assert_eq!(sin, Float::from((0.47943, 10)));
         /// assert_eq!(cos, Float::from((0.87748, 10)));
         fn sin_cos_ref -> SinCosRef;
-        mpfr::sin_cos
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::sec;
         /// Computes the secant, rounding to the nearest.
         fn sec();
         /// Computes the secant, applying the specified rounding method.
         fn sec_round;
         /// Computes the secant.
         fn sec_ref -> SecRef;
-        mpfr::sec
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::csc;
         /// Computes the cosecant, rounding to the nearest.
         fn csc();
         /// Computes the cosecant, applying the specified rounding method.
         fn csc_round;
         /// Computes the cosecant.
         fn csc_ref -> CscRef;
-        mpfr::csc
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::cot;
         /// Computes the cotangent, rounding to the nearest.
         fn cot();
         /// Computes the cotangent, applying the specified rounding
@@ -1508,9 +1354,9 @@ impl Float {
         fn cot_round;
         /// Computes the cotangent.
         fn cot_ref -> CotRef;
-        mpfr::cot
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::acos;
         /// Computes the arc-cosine, rounding to the nearest.
         fn acos();
         /// Computes the arc-cosine, applying the specified rounding
@@ -1518,18 +1364,18 @@ impl Float {
         fn acos_round;
         /// Computes the arc-cosine.
         fn acos_ref -> AcosRef;
-        mpfr::acos
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::asin;
         /// Computes the arc-sine, rounding to the nearest.
         fn asin();
         /// Computes the arc-sine, applying the specified rounding method.
         fn asin_round;
         /// Computes the arc-sine.
         fn asin_ref -> AsinRef;
-        mpfr::asin
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::atan;
         /// Computes the arc-tangent, rounding to the nearest.
         fn atan();
         /// Computes the arc-tangent, applying the specified rounding
@@ -1537,9 +1383,9 @@ impl Float {
         fn atan_round;
         /// Computes the arc-tangent.
         fn atan_ref -> AtanRef;
-        mpfr::atan
     }
-    math_op2! {
+    math_op2_float! {
+        mpfr::atan2;
         /// Computes the arc-tangent2 of `self` and `other`, rounding to
         /// the nearest.
         ///
@@ -1556,9 +1402,9 @@ impl Float {
         fn atan2_round;
         /// Computes the arc-tangent.
         fn atan2_ref -> Atan2Ref;
-        mpfr::atan2
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::sinh;
         /// Computes the hyperbolic sine, rounding to the nearest.
         fn sinh();
         /// Computes the hyperbolic sine, applying the specified rounding
@@ -1566,9 +1412,9 @@ impl Float {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         fn sinh_ref -> SinhRef;
-        mpfr::sinh
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::cosh;
         /// Computes the hyperbolic cosine, rounding to the nearest.
         fn cosh();
         /// Computes the hyperbolic cosine, applying the specified
@@ -1576,9 +1422,9 @@ impl Float {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         fn cosh_ref -> CoshRef;
-        mpfr::cosh
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::tanh;
         /// Computes the hyperbolic tangent, rounding to the nearest.
         fn tanh();
         /// Computes the hyperbolic tangent, applying the specified
@@ -1586,9 +1432,9 @@ impl Float {
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         fn tanh_ref -> TanhRef;
-        mpfr::tanh
     }
-    math_op1_2! {
+    math_op1_2_float! {
+        mpfr::sinh_cosh;
         /// Computes the hyperbolic sine and cosine of `self`,
         /// rounding to the nearest.
         ///
@@ -1617,9 +1463,9 @@ impl Float {
         /// assert_eq!(sinh, Float::from((0.52110, 10)));
         /// assert_eq!(cosh, Float::from((1.1276, 10)));
         fn sinh_cosh_ref -> SinhCoshRef;
-        mpfr::sinh_cosh
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::sech;
         /// Computes the hyperbolic secant, rounding to the nearest.
         fn sech();
         /// Computes the hyperbolic secant, applying the specified
@@ -1627,9 +1473,9 @@ impl Float {
         fn sech_round;
         /// Computes the hyperbolic secant.
         fn sech_ref -> SechRef;
-        mpfr::sech
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::csch;
         /// Computes the hyperbolic cosecant, rounding to the nearest.
         fn csch();
         /// Computes the hyperbolic cosecant, applying the specified
@@ -1637,9 +1483,9 @@ impl Float {
         fn csch_round;
         /// Computes the hyperbolic cosecant.
         fn csch_ref -> CschRef;
-        mpfr::csch
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::coth;
         /// Computes the hyperbolic cotangent, rounding to the nearest.
         fn coth();
         /// Computes the hyperbolic cotangent, applying the specified
@@ -1647,9 +1493,9 @@ impl Float {
         fn coth_round;
         /// Computes the hyperbolic cotangent.
         fn coth_ref -> CothRef;
-        mpfr::coth
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::acosh;
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
         fn acosh();
@@ -1658,9 +1504,9 @@ impl Float {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine
         fn acosh_ref -> AcoshRef;
-        mpfr::acosh
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::asinh;
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
         fn asinh();
         /// Computes the inverse hyperbolic sine, applying the specified
@@ -1668,9 +1514,9 @@ impl Float {
         fn asinh_round;
         /// Computes the inverse hyperbolic sine.
         fn asinh_ref -> AsinhRef;
-        mpfr::asinh
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::atanh;
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
         fn atanh();
@@ -1679,7 +1525,6 @@ impl Float {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         fn atanh_ref -> AtanhRef;
-        mpfr::atanh
     }
 
     /// Sets `self` to the factorial of `u`, rounding to the nearest.
@@ -1699,7 +1544,8 @@ impl Float {
         mpfr_ret.cmp(&0)
     }
 
-    math_op1! {
+    math_op1_float! {
+        mpfr::log1p;
         /// Computes the natural logarithm of one plus `self`, rounding to
         /// the nearest.
         fn ln_1p();
@@ -1709,9 +1555,9 @@ impl Float {
         /// Computes the natural logorithm of one plus the
         /// value.
         fn ln_1p_ref -> Ln1pRef;
-        mpfr::log1p
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::expm1;
         /// Subtracts one from the exponential of `self`, rounding to the
         /// nearest.
         fn exp_m1();
@@ -1721,9 +1567,9 @@ impl Float {
         /// Computes one less than the exponential of the
         /// value.
         fn exp_m1_ref -> ExpM1Ref;
-        mpfr::expm1
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::eint;
         /// Computes the exponential integral, rounding to the nearest.
         fn eint();
         /// Computes the exponential integral, applying the specified
@@ -1731,9 +1577,9 @@ impl Float {
         fn eint_round;
         /// Computes the exponential integral.
         fn eint_ref -> EintRef;
-        mpfr::eint
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::li2;
         /// Computes the real part of the dilogarithm of `self`, rounding
         /// to the nearest.
         fn li2();
@@ -1743,9 +1589,9 @@ impl Float {
         /// Computes the real part of the dilogarithm of the
         /// value.
         fn li2_ref -> Li2Ref;
-        mpfr::li2
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::gamma;
         /// Computes the value of the Gamma function on `self`, rounding
         /// to the nearest.
         fn gamma();
@@ -1754,9 +1600,9 @@ impl Float {
         fn gamma_round;
         /// Computes the Gamma function on the value.
         fn gamma_ref -> GammaRef;
-        mpfr::gamma
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::lngamma;
         /// Computes the logarithm of the Gamma function on `self`,
         /// rounding to the nearest.
         fn ln_gamma();
@@ -1766,7 +1612,6 @@ impl Float {
         /// Computes the logarithm of the Gamma function on
         /// the value.
         fn ln_gamma_ref -> LnGammaRef;
-        mpfr::lngamma
     }
 
     /// Computes the logarithm of the absolute value of the Gamma
@@ -1899,7 +1744,8 @@ impl Float {
         LnAbsGammaRef { ref_self: self }
     }
 
-    math_op1! {
+    math_op1_float! {
+        mpfr::digamma;
         /// Computes the value of the Digamma function on `self`, rounding
         /// to the nearest.
         fn digamma();
@@ -1908,9 +1754,9 @@ impl Float {
         fn digamma_round;
         /// Computes the Digamma function on the value.
         fn digamma_ref -> DigammaRef;
-        mpfr::digamma
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::zeta;
         /// Computes the value of the Riemann Zeta function on `self`,
         /// rounding to the nearest.
         fn zeta();
@@ -1919,7 +1765,6 @@ impl Float {
         fn zeta_round;
         /// Computes the Riemann Zeta function on the value.
         fn zeta_ref -> ZetaRef;
-        mpfr::zeta
     }
 
     /// Sets `self` to the value of the Riemann Zeta function on `u`,
@@ -1936,7 +1781,8 @@ impl Float {
         mpfr_ret.cmp(&0)
     }
 
-    math_op1! {
+    math_op1_float! {
+        mpfr::erf;
         /// Computes the value of the error function, rounding to the
         /// nearest.
         fn erf();
@@ -1945,9 +1791,9 @@ impl Float {
         fn erf_round;
         /// Computes the error function.
         fn erf_ref -> ErfRef;
-        mpfr::erf
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::erfc;
         /// Computes the value of the complementary error function,
         /// rounding to the nearest.
         fn erfc();
@@ -1956,81 +1802,75 @@ impl Float {
         fn erfc_round;
         /// Computes the complementary error function.
         fn erfc_ref -> ErfcRef;
-        mpfr::erfc
     }
-    math_op1! {
-        /// Computes the value of the first kind Bessel function of order
-        /// 0, rounding to the nearest.
+    math_op1_float! {
+        mpfr::j0;
+        /// Computes the value of the first kind Bessel function of
+        /// order 0, rounding to the nearest.
         fn j0();
-        /// Computes the value of the first kind Bessel function of order
-        /// 0, applying the specified rounding method.
+        /// Computes the value of the first kind Bessel function of
+        /// order 0, applying the specified rounding method.
         fn j0_round;
-        /// Computes the first kind Bessel function of order
-        /// 0.
+        /// Computes the first kind Bessel function of order 0.
         fn j0_ref -> J0Ref;
-        mpfr::j0
     }
-    math_op1! {
-        /// Computes the value of the first kind Bessel function of order
-        /// 1, rounding to the nearest.
+    math_op1_float! {
+        mpfr::j1;
+        /// Computes the value of the first kind Bessel function of
+        /// order 1, rounding to the nearest.
         fn j1();
-        /// Computes the value of the first kind Bessel function of order
-        /// 1, applying the specified rounding method.
+        /// Computes the value of the first kind Bessel function of
+        /// order 1, applying the specified rounding method.
         fn j1_round;
-        /// Computes the first kind Bessel function of order
-        /// 1.
+        /// Computes the first kind Bessel function of order 1.
         fn j1_ref -> J1Ref;
-        mpfr::j1
     }
-    math_op1! {
-        /// Computes the value of the first kind Bessel function of order
-        /// `n`, rounding to the nearest.
+    math_op1_float! {
+        xmpfr::jn;
+        /// Computes the value of the first kind Bessel function of
+        /// order `n`, rounding to the nearest.
         fn jn(n: i32);
-        /// Computes the value of the first kind Bessel function of order
-        /// `n`, applying the specified rounding method.
+        /// Computes the value of the first kind Bessel function of
+        /// order `n`, applying the specified rounding method.
         fn jn_round;
-        /// Computes the first kind Bessel function of order
-        /// `n`.
+        /// Computes the first kind Bessel function of order `n`.
         fn jn_ref -> JnRef;
-        xmpfr::jn
     }
-    math_op1! {
-        /// Computes the value of the second kind Bessel function of order
-        /// 0, rounding to the nearest.
+    math_op1_float! {
+        mpfr::y0;
+        /// Computes the value of the second kind Bessel function of
+        /// order 0, rounding to the nearest.
         fn y0();
-        /// Computes the value of the second kind Bessel function of order
-        /// 0, applying the specified rounding method.
+        /// Computes the value of the second kind Bessel function of
+        /// order 0, applying the specified rounding method.
         fn y0_round;
-        /// Computes the second kind Bessel function of order
-        /// 0.
+        /// Computes the second kind Bessel function of order 0.
         fn y0_ref -> Y0Ref;
-        mpfr::y0
     }
-    math_op1! {
-        /// Computes the value of the second kind Bessel function of order
-        /// 1, rounding to the nearest.
+    math_op1_float! {
+        mpfr::y1;
+        /// Computes the value of the second kind Bessel function of
+        /// order 1, rounding to the nearest.
         fn y1();
-        /// Computes the value of the second kind Bessel function of order
-        /// 1, applying the specified rounding method.
+        /// Computes the value of the second kind Bessel function of
+        /// order 1, applying the specified rounding method.
         fn y1_round;
-        /// Computes the second kind Bessel function of order
-        /// 1.
+        /// Computes the second kind Bessel function of order 1.
         fn y1_ref -> Y1Ref;
-        mpfr::y1
     }
-    math_op1! {
-        /// Computes the value of the second kind Bessel function of order
-        /// `n`, rounding to the nearest.
+    math_op1_float! {
+        xmpfr::yn;
+        /// Computes the value of the second kind Bessel function of
+        /// order `n`, rounding to the nearest.
         fn yn(n: i32);
-        /// Computes the value of the second kind Bessel function of order
-        /// `n`, applying the specified rounding method.
+        /// Computes the value of the second kind Bessel function of
+        /// order `n`, applying the specified rounding method.
         fn yn_round;
-        /// Computes the second kind Bessel function of order
-        /// `n`.
+        /// Computes the second kind Bessel function of order `n`.
         fn yn_ref -> YnRef;
-        xmpfr::yn
     }
-    math_op2! {
+    math_op2_float! {
+        mpfr::agm;
         /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// rounding to the nearest.
         fn agm(other);
@@ -2039,9 +1879,9 @@ impl Float {
         fn agm_round;
         /// Computes the arithmetic-geometric mean.
         fn agm_ref -> AgmRef;
-        mpfr::agm
     }
-    math_op2! {
+    math_op2_float! {
+        mpfr::hypot;
         /// Computes the Euclidean norm of `self` and `other`, rounding to
         /// the nearest.
         fn hypot(other);
@@ -2050,9 +1890,9 @@ impl Float {
         fn hypot_round;
         /// Computes the Euclidean norm.
         fn hypot_ref -> HypotRef;
-        mpfr::hypot
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::ai;
         /// Computes the value of the Airy function Ai on `self`, rounding
         /// to the nearest.
         fn ai();
@@ -2061,9 +1901,9 @@ impl Float {
         fn ai_round;
         /// Computes the Airy function Ai on the value.
         fn ai_ref -> AiRef;
-        mpfr::ai
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::rint_ceil;
         /// Rounds up to the next higher integer.
         fn ceil();
         /// Rounds up to the next higher integer.
@@ -2071,9 +1911,9 @@ impl Float {
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
         fn ceil_ref -> CeilRef;
-        mpfr::rint_ceil
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::rint_floor;
         /// Rounds down to the next lower integer.
         fn floor();
         /// Rounds down to the next lower integer.
@@ -2081,9 +1921,9 @@ impl Float {
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
         fn floor_ref -> FloorRef;
-        mpfr::rint_floor
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::rint_round;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
         fn round();
@@ -2110,9 +1950,9 @@ impl Float {
         /// assert_eq!(dst, 8);
         /// ```
         fn round_ref -> RoundRef;
-        mpfr::rint_round
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::rint_trunc;
         /// Rounds to the next integer towards zero.
         fn trunc();
         /// Rounds to the next integer towards zero.
@@ -2120,18 +1960,18 @@ impl Float {
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
         fn trunc_ref -> TruncRef;
-        mpfr::rint_trunc
     }
-    math_op1! {
+    math_op1_float! {
+        mpfr::frac;
         /// Gets the fractional part of the number.
         fn fract();
         /// Gets the fractional part of the number.
         fn fract_round;
         /// Gets the fractional part of the number.
         fn fract_ref -> FractRef;
-        mpfr::frac
     }
-    math_op1_2! {
+    math_op1_2_float! {
+        mpfr::modf;
         /// Gets the integer and fractional parts of the number,
         /// rounding to the nearest.
         ///
@@ -2148,7 +1988,6 @@ impl Float {
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
         fn trunc_fract_ref -> TruncFractRef;
-        mpfr::modf
     }
 
     #[cfg(feature = "random")]
@@ -2555,47 +2394,47 @@ assign! { Float, mpfr::set }
 assign! { Integer, mpfr::set_z }
 assign! { Rational, mpfr::set_q }
 
-ref_math_op1! { struct SquareRef {}; mpfr::sqr }
-ref_math_op1! { struct SqrtRef {}; mpfr::sqrt }
-ref_math_op1! { struct RecipSqrtRef {}; mpfr::rec_sqrt }
-ref_math_op1! { struct CbrtRef {}; mpfr::cbrt }
-ref_math_op1! { struct RootRef { k: u32 }; mpfr::root }
-ref_math_op1! { struct AbsRef {}; mpfr::abs }
-ref_math_op1! { struct RecipRef {}; xmpfr::recip }
-ref_math_op2! { struct AbsDiffRef { other }; mpfr::dim }
-ref_math_op1! { struct LnRef {}; mpfr::log }
-ref_math_op1! { struct Log2Ref {}; mpfr::log2 }
-ref_math_op1! { struct Log10Ref {}; mpfr::log10 }
-ref_math_op1! { struct ExpRef {}; mpfr::exp }
-ref_math_op1! { struct Exp2Ref {}; mpfr::exp2 }
-ref_math_op1! { struct Exp10Ref {}; mpfr::exp10 }
-ref_math_op1! { struct SinRef {}; mpfr::sin }
-ref_math_op1! { struct CosRef {}; mpfr::cos }
-ref_math_op1! { struct TanRef {}; mpfr::tan }
-ref_math_op1_2! { struct SinCosRef {}; mpfr::sin_cos }
-ref_math_op1! { struct SecRef {}; mpfr::sec }
-ref_math_op1! { struct CscRef {}; mpfr::csc }
-ref_math_op1! { struct CotRef {}; mpfr::cot }
-ref_math_op1! { struct AcosRef {}; mpfr::acos }
-ref_math_op1! { struct AsinRef {}; mpfr::asin }
-ref_math_op1! { struct AtanRef {}; mpfr::atan }
-ref_math_op2! { struct Atan2Ref { other }; mpfr::atan2 }
-ref_math_op1! { struct CoshRef {}; mpfr::cosh }
-ref_math_op1! { struct SinhRef {}; mpfr::sinh }
-ref_math_op1! { struct TanhRef {}; mpfr::tanh }
-ref_math_op1_2! { struct SinhCoshRef {}; mpfr::sinh_cosh }
-ref_math_op1! { struct SechRef {}; mpfr::sech }
-ref_math_op1! { struct CschRef {}; mpfr::csch }
-ref_math_op1! { struct CothRef {}; mpfr::coth }
-ref_math_op1! { struct AcoshRef {}; mpfr::acosh }
-ref_math_op1! { struct AsinhRef {}; mpfr::asinh }
-ref_math_op1! { struct AtanhRef {}; mpfr::atanh }
-ref_math_op1! { struct Ln1pRef {}; mpfr::log1p }
-ref_math_op1! { struct ExpM1Ref {}; mpfr::expm1 }
-ref_math_op1! { struct EintRef {}; mpfr::eint }
-ref_math_op1! { struct Li2Ref {}; mpfr::li2 }
-ref_math_op1! { struct GammaRef {}; mpfr::gamma }
-ref_math_op1! { struct LnGammaRef {}; mpfr::lngamma }
+ref_math_op1_float! { mpfr::sqr; struct SquareRef {} }
+ref_math_op1_float! { mpfr::sqrt; struct SqrtRef {} }
+ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtRef {} }
+ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
+ref_math_op1_float! { mpfr::root; struct RootRef { k: u32 } }
+ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
+ref_math_op1_float! { xmpfr::recip; struct RecipRef {} }
+ref_math_op2_float! { mpfr::dim; struct AbsDiffRef { other } }
+ref_math_op1_float! { mpfr::log; struct LnRef {} }
+ref_math_op1_float! { mpfr::log2; struct Log2Ref {} }
+ref_math_op1_float! { mpfr::log10; struct Log10Ref {} }
+ref_math_op1_float! { mpfr::exp; struct ExpRef {} }
+ref_math_op1_float! { mpfr::exp2; struct Exp2Ref {} }
+ref_math_op1_float! { mpfr::exp10; struct Exp10Ref {} }
+ref_math_op1_float! { mpfr::sin; struct SinRef {} }
+ref_math_op1_float! { mpfr::cos; struct CosRef {} }
+ref_math_op1_float! { mpfr::tan; struct TanRef {} }
+ref_math_op1_2_float! { mpfr::sin_cos; struct SinCosRef {} }
+ref_math_op1_float! { mpfr::sec; struct SecRef {} }
+ref_math_op1_float! { mpfr::csc; struct CscRef {} }
+ref_math_op1_float! { mpfr::cot; struct CotRef {} }
+ref_math_op1_float! { mpfr::acos; struct AcosRef {} }
+ref_math_op1_float! { mpfr::asin; struct AsinRef {} }
+ref_math_op1_float! { mpfr::atan; struct AtanRef {} }
+ref_math_op2_float! { mpfr::atan2; struct Atan2Ref { other } }
+ref_math_op1_float! { mpfr::cosh; struct CoshRef {} }
+ref_math_op1_float! { mpfr::sinh; struct SinhRef {} }
+ref_math_op1_float! { mpfr::tanh; struct TanhRef {} }
+ref_math_op1_2_float! { mpfr::sinh_cosh; struct SinhCoshRef {} }
+ref_math_op1_float! { mpfr::sech; struct SechRef {} }
+ref_math_op1_float! { mpfr::csch; struct CschRef {} }
+ref_math_op1_float! { mpfr::coth; struct CothRef {} }
+ref_math_op1_float! { mpfr::acosh; struct AcoshRef {} }
+ref_math_op1_float! { mpfr::asinh; struct AsinhRef {} }
+ref_math_op1_float! { mpfr::atanh; struct AtanhRef {} }
+ref_math_op1_float! { mpfr::log1p; struct Ln1pRef {} }
+ref_math_op1_float! { mpfr::expm1; struct ExpM1Ref {} }
+ref_math_op1_float! { mpfr::eint; struct EintRef {} }
+ref_math_op1_float! { mpfr::li2; struct Li2Ref {} }
+ref_math_op1_float! { mpfr::gamma; struct GammaRef {} }
+ref_math_op1_float! { mpfr::lngamma; struct LnGammaRef {} }
 
 pub struct LnAbsGammaRef<'a> {
     ref_self: &'a Float,
@@ -2634,25 +2473,25 @@ impl<'a> AssignRound<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
     }
 }
 
-ref_math_op1! { struct DigammaRef {}; mpfr::digamma }
-ref_math_op1! { struct ZetaRef {}; mpfr::zeta }
-ref_math_op1! { struct ErfRef {}; mpfr::erf }
-ref_math_op1! { struct ErfcRef {}; mpfr::erfc }
-ref_math_op1! { struct J0Ref {}; mpfr::j0 }
-ref_math_op1! { struct J1Ref {}; mpfr::j1 }
-ref_math_op1! { struct JnRef { n: i32 }; xmpfr::jn }
-ref_math_op1! { struct Y0Ref {}; mpfr::y0 }
-ref_math_op1! { struct Y1Ref {}; mpfr::y1 }
-ref_math_op1! { struct YnRef { n: i32 }; xmpfr::yn }
-ref_math_op2! { struct AgmRef { other }; mpfr::agm }
-ref_math_op2! { struct HypotRef { other }; mpfr::hypot }
-ref_math_op1! { struct AiRef {}; mpfr::ai }
-ref_math_op1! { struct CeilRef {}; mpfr::rint_ceil }
-ref_math_op1! { struct FloorRef {}; mpfr::rint_floor }
-ref_math_op1! { struct RoundRef {}; mpfr::rint_round }
-ref_math_op1! { struct TruncRef {}; mpfr::rint_trunc }
-ref_math_op1! { struct FractRef {}; mpfr::frac }
-ref_math_op1_2! { struct TruncFractRef {}; mpfr::modf }
+ref_math_op1_float! { mpfr::digamma; struct DigammaRef {} }
+ref_math_op1_float! { mpfr::zeta; struct ZetaRef {} }
+ref_math_op1_float! { mpfr::erf; struct ErfRef {} }
+ref_math_op1_float! { mpfr::erfc; struct ErfcRef {} }
+ref_math_op1_float! { mpfr::j0; struct J0Ref {} }
+ref_math_op1_float! { mpfr::j1; struct J1Ref {} }
+ref_math_op1_float! { xmpfr::jn; struct JnRef { n: i32 } }
+ref_math_op1_float! { mpfr::y0; struct Y0Ref {} }
+ref_math_op1_float! { mpfr::y1; struct Y1Ref {} }
+ref_math_op1_float! { xmpfr::yn; struct YnRef { n: i32 } }
+ref_math_op2_float! { mpfr::agm; struct AgmRef { other } }
+ref_math_op2_float! { mpfr::hypot; struct HypotRef { other } }
+ref_math_op1_float! { mpfr::ai; struct AiRef {} }
+ref_math_op1_float! { mpfr::rint_ceil; struct CeilRef {} }
+ref_math_op1_float! { mpfr::rint_floor; struct FloorRef {} }
+ref_math_op1_float! { mpfr::rint_round; struct RoundRef {} }
+ref_math_op1_float! { mpfr::rint_trunc; struct TruncRef {} }
+ref_math_op1_float! { mpfr::frac; struct FractRef {} }
+ref_math_op1_2_float! { mpfr::modf; struct TruncFractRef {} }
 
 impl Neg for Float {
     type Output = Float;
@@ -2692,808 +2531,312 @@ impl<'a> AssignRound<NegRef<'a>> for Float {
     }
 }
 
-macro_rules! arith_binary {
+macro_rules! arith_binary_float {
     {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
         $Ref:ident
     } => {
-        impl<'a> $Imp<&'a $T> for Float {
-            type Output = Float;
-            fn $method(self, rhs: &'a $T) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
+        arith_binary_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $T;
+            $Ref
         }
+    }
+}
 
-        impl<'a> $ImpRound<&'a $T> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                mut self,
-                rhs: &'a $T,
-                round: Round,
-            ) -> (Float, Ordering) {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        self.inner(),
-                        rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                (self, mpfr_ret.cmp(&0))
-            }
+macro_rules! arith_commut_self_float {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $Ref:ident
+    } => {
+        arith_commut_self_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $Ref
         }
+    }
+}
 
-        impl $Imp<$T> for Float {
-            type Output = Float;
-            fn $method(self, rhs: $T) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
+macro_rules! arith_noncommut_self_float {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
+        $Ref:ident
+    } => {
+        arith_noncommut_self_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $ImpFromAssign $method_from_assign;
+            $Ref
         }
+    }
+}
 
-        impl $ImpRound<$T> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(self, rhs: $T, round: Round) -> (Float, Ordering) {
-                self.$method_round(&rhs, round)
-            }
+macro_rules! arith_forward_float {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        arith_forward_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $T;
+            $Ref
         }
-
-        impl<'a> $Imp<&'a $T> for &'a Float {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: OwnBorrow::Borrow(rhs),
-                }
-            }
-        }
-
-        impl<'a> $ImpAssign<&'a $T> for Float {
-            fn $method_assign(&mut self, rhs: &'a $T) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        self.inner(),
-                        rhs.inner(),
-                        rraw(Round::Nearest),
-                    );
-                }
-            }
-        }
-
-        impl $ImpAssign<$T> for Float {
-            fn $method_assign(&mut self, rhs: $T) {
-                self.$method_assign(&rhs);
-            }
-        }
-
-        pub struct $Ref<'a> {
-            lhs: &'a Float,
-            rhs: OwnBorrow<'a, $T>,
-        }
-
-        impl<'a> AssignRound<$Ref<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Ref, round: Round) -> Ordering {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                mpfr_ret.cmp(&0)
-            }
-        }
-    };
+    }
 }
 
 macro_rules! arith_commut_float {
     {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $func:path,
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
         $Ref:ident
     } => {
-        arith_binary! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            Float,
-            $func,
+        arith_commut_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $T;
             $Ref
-        }
-
-        impl<'a> $Imp<Float> for &'a Float {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl<'a> $ImpRound<Float> for &'a Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                rhs.$method_round(self, round)
-            }
         }
     }
 }
 
 macro_rules! arith_noncommut_float {
     {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $ImpFromAssign:ident $method_from_assign:ident,
-        $func:path,
-        $Ref:ident
+        $func:path, $func_from:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
+        $T:ty;
+        $Ref:ident $RefFrom:ident
     } => {
-        arith_binary! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            Float,
-            $func,
-            $Ref
-        }
-
-        impl<'a> $Imp<Float> for &'a Float {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl<'a> $ImpRound<Float> for &'a Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                mut rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                let mpfr_ret = unsafe {
-                    $func(
-                        rhs.inner_mut(),
-                        self.inner(),
-                        rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                (rhs, mpfr_ret.cmp(&0))
-            }
-        }
-
-        impl<'a> $ImpFromAssign<&'a Float> for Float {
-            fn $method_from_assign(&mut self, lhs: &Float) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        lhs.inner(),
-                        self.inner(),
-                        rraw(Round::Nearest),
-                    );
-                }
-            }
-        }
-
-        impl $ImpFromAssign for Float {
-            fn $method_from_assign(&mut self, lhs: Float) {
-                self.$method_from_assign(&lhs);
-            }
+        arith_noncommut_round! {
+            Float, Round => Ordering;
+            $func, $func_from, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $ImpFromAssign $method_from_assign;
+            $T;
+            $Ref $RefFrom
         }
     }
 }
 
-macro_rules! arith_forward {
-    {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
-        $Ref:ident
-    } => {
-        arith_binary! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
-            $Ref
-        }
-
-        impl<'a> $Imp<$T> for &'a Float {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: OwnBorrow::Own(rhs),
-                }
-            }
-        }
-    };
-}
-
-macro_rules! arith_commut {
-    {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
-        $Ref:ident
-    } => {
-        arith_forward! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
-            $Ref
-        }
-
-        impl<'a> $Imp<Float> for &'a $T {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl<'a> $ImpRound<Float> for &'a $T {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                rhs.$method_round(self, round)
-            }
-        }
-
-        impl $Imp<Float> for $T {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl $ImpRound<Float> for $T {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                rhs.$method_round(self, round)
-            }
-        }
-
-        impl<'a> $Imp<&'a Float> for &'a $T {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a Float) -> $Ref<'a> {
-                rhs.$method(self)
-            }
-        }
-
-        impl<'a> $Imp<&'a Float> for $T {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a Float) -> $Ref<'a> {
-                rhs.$method(self)
-            }
-        }
-    };
-}
-
-macro_rules! arith_noncommut {
-    {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $ImpFromAssign:ident $method_from_assign:ident,
-        $T:ty,
-        $func:path,
-        $func_from:path,
-        $Ref:ident,
-        $RefFrom:ident
-    } => {
-        arith_forward! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
-            $Ref
-        }
-
-        impl<'a> $Imp<Float> for &'a $T {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl<'a> $ImpRound<Float> for &'a $T {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                mut rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                let mpfr_ret = unsafe {
-                    $func_from(
-                        rhs.inner_mut(),
-                        self.inner(),
-                        rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                (rhs, mpfr_ret.cmp(&0))
-            }
-        }
-
-        impl $Imp<Float> for $T {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl $ImpRound<Float> for $T {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                (&self).$method_round(rhs, round)
-            }
-        }
-
-        impl<'a> $Imp<&'a Float> for &'a $T {
-            type Output = $RefFrom<'a>;
-            fn $method(self, rhs: &'a Float) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: OwnBorrow::Borrow(self),
-                    rhs: rhs,
-                }
-            }
-        }
-
-        impl<'a> $Imp<&'a Float> for $T {
-            type Output = $RefFrom<'a>;
-            fn $method(self, rhs: &'a Float) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: OwnBorrow::Own(self),
-                    rhs: rhs,
-                }
-            }
-        }
-
-        impl<'a> $ImpFromAssign<&'a $T> for Float {
-            fn $method_from_assign(&mut self, lhs: &'a $T) {
-                unsafe {
-                    $func_from(
-                        self.inner_mut(),
-                        lhs.inner(),
-                        self.inner(),
-                        rraw(Round::Nearest),
-                    );
-                }
-            }
-        }
-
-        impl $ImpFromAssign<$T> for Float {
-            fn $method_from_assign(&mut self, lhs: $T) {
-                self.$method_from_assign(&lhs);
-            }
-        }
-
-        pub struct $RefFrom<'a> {
-            lhs: OwnBorrow<'a, $T>,
-            rhs: &'a Float,
-        }
-
-        impl<'a> AssignRound<$RefFrom<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(
-                &mut self,
-                src: $RefFrom,
-                round: Round,
-            ) -> Ordering {
-                let mpfr_ret = unsafe {
-                    $func_from(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                mpfr_ret.cmp(&0)
-            }
-        }
-    };
-}
-
-arith_commut_float! {
-    Add add,
-    AddRound add_round,
-    AddAssign add_assign,
-    mpfr::add,
+arith_commut_self_float! {
+    mpfr::add;
+    Add add;
+    AddRound add_round;
+    AddAssign add_assign;
     AddRef
 }
-arith_noncommut_float! {
-    Sub sub,
-    SubRound sub_round,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    mpfr::sub,
+arith_noncommut_self_float! {
+    mpfr::sub;
+    Sub sub;
+    SubRound sub_round;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
     SubRef
 }
-arith_commut_float! {
-    Mul mul,
-    MulRound mul_round,
-    MulAssign mul_assign,
-    mpfr::mul,
+arith_commut_self_float! {
+    mpfr::mul;
+    Mul mul;
+    MulRound mul_round;
+    MulAssign mul_assign;
     MulRef
 }
-arith_noncommut_float! {
-    Div div,
-    DivRound div_round,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    mpfr::div,
+arith_noncommut_self_float! {
+    mpfr::div;
+    Div div;
+    DivRound div_round;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
     DivRef
 }
-arith_noncommut_float! {
-    Pow pow,
-    PowRound pow_round,
-    PowAssign pow_assign,
-    PowFromAssign pow_from_assign,
-    mpfr::pow,
+arith_noncommut_self_float! {
+    mpfr::pow;
+    Pow pow;
+    PowRound pow_round;
+    PowAssign pow_assign;
+    PowFromAssign pow_from_assign;
     PowRef
 }
 
-arith_commut! {
-    Add add,
-    AddRound add_round,
-    AddAssign add_assign,
-    Integer,
-    mpfr::add_z,
+arith_commut_float! {
+    mpfr::add_z;
+    Add add;
+    AddRound add_round;
+    AddAssign add_assign;
+    Integer;
     AddRefInteger
 }
-arith_noncommut! {
-    Sub sub,
-    SubRound sub_round,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    Integer,
-    mpfr::sub_z,
-    mpfr::z_sub,
-    SubRefInteger,
-    SubFromRefInteger
+arith_noncommut_float! {
+    mpfr::sub_z, mpfr::z_sub;
+    Sub sub;
+    SubRound sub_round;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
+    Integer;
+    SubRefInteger SubFromRefInteger
 }
-arith_commut! {
-    Mul mul,
-    MulRound mul_round,
-    MulAssign mul_assign,
-    Integer,
-    mpfr::mul_z,
+arith_commut_float! {
+    mpfr::mul_z;
+    Mul mul;
+    MulRound mul_round;
+    MulAssign mul_assign;
+    Integer;
     MulRefInteger
 }
-arith_noncommut! {
-    Div div,
-    DivRound div_round,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    Integer,
-    mpfr::div_z,
-    xmpfr::z_div,
-    DivRefInteger,
-    DivFromRefInteger
+arith_noncommut_float! {
+    mpfr::div_z, xmpfr::z_div;
+    Div div;
+    DivRound div_round;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
+    Integer;
+    DivRefInteger DivFromRefInteger
 }
-arith_forward! {
-    Pow pow,
-    PowRound pow_round,
-    PowAssign pow_assign,
-    Integer,
-    mpfr::pow_z,
+arith_forward_float! {
+    mpfr::pow_z;
+    Pow pow;
+    PowRound pow_round;
+    PowAssign pow_assign;
+    Integer;
     PowRefInteger
 }
 
-arith_commut! {
-    Add add,
-    AddRound add_round,
-    AddAssign add_assign,
-    Rational,
-    mpfr::add_q,
+arith_commut_float! {
+    mpfr::add_q;
+    Add add;
+    AddRound add_round;
+    AddAssign add_assign;
+    Rational;
     AddRefRational
 }
-arith_noncommut! {
-    Sub sub,
-    SubRound sub_round,
-    SubAssign sub_assign,
-    SubFromAssign sub_from_assign,
-    Rational,
-    mpfr::sub_q,
-    xmpfr::q_sub,
-    SubRefRational,
-    SubFromRefRational
+arith_noncommut_float! {
+    mpfr::sub_q, xmpfr::q_sub;
+    Sub sub;
+    SubRound sub_round;
+    SubAssign sub_assign;
+    SubFromAssign sub_from_assign;
+    Rational;
+    SubRefRational SubFromRefRational
 }
-arith_commut! {
-    Mul mul,
-    MulRound mul_round,
-    MulAssign mul_assign,
-    Rational,
-    mpfr::mul_q,
+arith_commut_float! {
+    mpfr::mul_q;
+    Mul mul;
+    MulRound mul_round;
+    MulAssign mul_assign;
+    Rational;
     MulRefRational
 }
-arith_noncommut! {
-    Div div,
-    DivRound div_round,
-    DivAssign div_assign,
-    DivFromAssign div_from_assign,
-    Rational,
-    mpfr::div_q,
-    xmpfr::q_div,
-    DivRefRational,
-    DivFromRefRational
+arith_noncommut_float! {
+    mpfr::div_q, xmpfr::q_div;
+    Div div;
+    DivRound div_round;
+    DivAssign div_assign;
+    DivFromAssign div_from_assign;
+    Rational;
+    DivRefRational DivFromRefRational
 }
 
-macro_rules! arith_prim {
+macro_rules! arith_prim_float {
     {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
         $Ref:ident
-    }=> {
-        impl $Imp<$T> for Float {
-            type Output = Float;
-            fn $method(self, rhs: $T) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl $ImpRound<$T> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                mut self,
-                rhs: $T,
-                round: Round,
-            ) -> (Float, Ordering) {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        self.inner(),
-                        rhs.into(),
-                        rraw(round),
-                    )
-                };
-                (self, mpfr_ret.cmp(&0))
-            }
-        }
-
-        impl<'a> $Imp<$T> for &'a Float {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        impl $ImpAssign<$T> for Float {
-            fn $method_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        self.inner(),
-                        rhs.into(),
-                        rraw(Round::Nearest),
-                    );
-                }
-            }
-        }
-
-        pub struct $Ref<'a> {
-            lhs: &'a Float,
-            rhs: $T,
-        }
-
-        impl<'a> AssignRound<$Ref<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(&mut self, src: $Ref, round: Round) -> Ordering {
-                let mpfr_ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.into(),
-                        rraw(round),
-                    )
-                };
-                mpfr_ret.cmp(&0)
-            }
-        }
-    };
-}
-
-macro_rules! arith_prim_commut {
-    {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $T:ty,
-        $func:path,
-        $Ref:ident
-    }=> {
-        arith_prim! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
-            $Ref
-        }
-
-        impl $Imp<Float> for $T {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
-        }
-
-        impl $ImpRound<Float> for $T {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                rhs.$method_round(self, round)
-            }
-        }
-
-        impl<'a> $Imp<&'a Float> for $T {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a Float) -> $Ref<'a> {
-                rhs.$method(self)
-            }
-        }
-    };
-}
-
-macro_rules! arith_prim_noncommut {
-    {
-        $Imp:ident $method:ident,
-        $ImpRound:ident $method_round:ident,
-        $ImpAssign:ident $method_assign:ident,
-        $ImpFromAssign:ident $method_from_assign:ident,
-        $T:ty,
-        $func:path,
-        $func_from:path,
-        $Ref:ident,
-        $RefFrom:ident
     } => {
-        arith_prim! {
-            $Imp $method,
-            $ImpRound $method_round,
-            $ImpAssign $method_assign,
-            $T,
-            $func,
+        arith_prim_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $T;
             $Ref
         }
+    }
+}
 
-        impl $Imp<Float> for $T {
-            type Output = Float;
-            fn $method(self, rhs: Float) -> Float {
-                self.$method_round(rhs, Round::Nearest).0
-            }
+macro_rules! arith_prim_commut_float {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        arith_prim_commut_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $T;
+            $Ref
         }
+    }
+}
 
-        impl $ImpRound<Float> for $T {
-            type Round = Round;
-            type Ordering = Ordering;
-            type Output = Float;
-            fn $method_round(
-                self,
-                mut rhs: Float,
-                round: Round,
-            ) -> (Float, Ordering) {
-                let mpfr_ret = unsafe {
-                    $func_from(
-                        rhs.inner_mut(),
-                        self.into(),
-                        rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                (rhs, mpfr_ret.cmp(&0))
-            }
+macro_rules! arith_prim_noncommut_float {
+    {
+        $func:path, $func_from:path;
+        $Imp:ident $method:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
+        $T:ty;
+        $Ref:ident $RefFrom:ident
+    } => {
+        arith_prim_noncommut_round! {
+            Float, Round => Ordering;
+            $func, $func_from, rraw => ordering1;
+            $Imp $method;
+            $ImpRound $method_round;
+            $ImpAssign $method_assign;
+            $ImpFromAssign $method_from_assign;
+            $T;
+            $Ref $RefFrom
         }
-
-        impl<'a> $Imp<&'a Float> for $T {
-            type Output = $RefFrom<'a>;
-            fn $method(self, rhs: &'a Float) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        impl $ImpFromAssign<$T> for Float {
-            fn $method_from_assign(&mut self, lhs: $T) {
-                unsafe {
-                    $func_from(
-                        self.inner_mut(),
-                        lhs.into(),
-                        self.inner(),
-                        rraw(Round::Nearest),
-                    );
-                }
-            }
-        }
-
-        pub struct $RefFrom<'a> {
-            lhs: $T,
-            rhs: &'a Float,
-        }
-
-        impl<'a> AssignRound<$RefFrom<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            fn assign_round(
-                &mut self,
-                src: $RefFrom,
-                round: Round,
-            ) -> Ordering {
-                let mpfr_ret = unsafe {
-                    $func_from(
-                        self.inner_mut(),
-                        src.lhs.into(),
-                        src.rhs.inner(),
-                        rraw(round),
-                    )
-                };
-                mpfr_ret.cmp(&0)
-            }
-        }
-    };
+    }
 }
 
 macro_rules! conv_ops {
@@ -3517,43 +2860,39 @@ macro_rules! conv_ops {
             }
         }
 
-        arith_prim_commut! {
-            Add add,
-            AddRound add_round,
-            AddAssign add_assign,
-            $T,
-            $add,
+        arith_prim_commut_float! {
+            $add;
+            Add add;
+            AddRound add_round;
+            AddAssign add_assign;
+            $T;
             $AddRef
         }
-        arith_prim_noncommut! {
-            Sub sub,
-            SubRound sub_round,
-            SubAssign sub_assign,
-            SubFromAssign sub_from_assign,
-            $T,
-            $sub,
-            $sub_from,
-            $SubRef,
-            $SubFromRef
+        arith_prim_noncommut_float! {
+            $sub, $sub_from;
+            Sub sub;
+            SubRound sub_round;
+            SubAssign sub_assign;
+            SubFromAssign sub_from_assign;
+            $T;
+            $SubRef $SubFromRef
         }
-        arith_prim_commut! {
-            Mul mul,
-            MulRound mul_round,
-            MulAssign mul_assign,
-            $T,
-            $mul,
+        arith_prim_commut_float! {
+            $mul;
+            Mul mul;
+            MulRound mul_round;
+            MulAssign mul_assign;
+            $T;
             $MulRef
         }
-        arith_prim_noncommut! {
-            Div div,
-            DivRound div_round,
-            DivAssign div_assign,
-            DivFromAssign div_from_assign,
-            $T,
-            $div,
-            $div_from,
-            $DivRef,
-            $DivFromRef
+        arith_prim_noncommut_float! {
+            $div, $div_from;
+            Div div;
+            DivRound div_round;
+            DivAssign div_assign;
+            DivFromAssign div_from_assign;
+            $T;
+            $DivRef $DivFromRef
         }
     }
 }
@@ -3617,55 +2956,53 @@ conv_ops! {
      DivFromRefF64 mpfr::d_div)
 }
 
-arith_prim! {
-    Shl shl,
-    ShlRound shl_round,
-    ShlAssign shl_assign,
-    u32,
-    mpfr::mul_2ui,
+arith_prim_float! {
+    mpfr::mul_2ui;
+    Shl shl;
+    ShlRound shl_round;
+    ShlAssign shl_assign;
+    u32;
     ShlRefU32
 }
-arith_prim! {
-    Shr shr,
-    ShrRound shr_round,
-    ShrAssign shr_assign,
-    u32,
-    mpfr::div_2ui,
+arith_prim_float! {
+    mpfr::div_2ui;
+    Shr shr;
+    ShrRound shr_round;
+    ShrAssign shr_assign;
+    u32;
     ShrRefU32
 }
-arith_prim_noncommut!{
-    Pow pow,
-    PowRound pow_round,
-    PowAssign pow_assign,
-    PowFromAssign pow_from_assign,
-    u32,
-    mpfr::pow_ui,
-    mpfr::ui_pow,
-    PowRefU32,
-    PowFromRefU32
+arith_prim_noncommut_float!{
+    mpfr::pow_ui, mpfr::ui_pow;
+    Pow pow;
+    PowRound pow_round;
+    PowAssign pow_assign;
+    PowFromAssign pow_from_assign;
+    u32;
+    PowRefU32 PowFromRefU32
 }
-arith_prim! {
-    Shl shl,
-    ShlRound shl_round,
-    ShlAssign shl_assign,
-    i32,
-    mpfr::mul_2si,
+arith_prim_float! {
+    mpfr::mul_2si;
+    Shl shl;
+    ShlRound shl_round;
+    ShlAssign shl_assign;
+    i32;
     ShlRefI32
 }
-arith_prim! {
-    Shr shr,
-    ShrRound shr_round,
-    ShrAssign shr_assign,
-    i32,
-    mpfr::div_2si,
+arith_prim_float! {
+    mpfr::div_2si;
+    Shr shr;
+    ShrRound shr_round;
+    ShrAssign shr_assign;
+    i32;
     ShrRefI32
 }
-arith_prim!{
-    Pow pow,
-    PowRound pow_round,
-    PowAssign pow_assign,
-    i32,
-    mpfr::pow_si,
+arith_prim_float!{
+    mpfr::pow_si;
+    Pow pow;
+    PowRound pow_round;
+    PowAssign pow_assign;
+    i32;
     PowRefI32
 }
 
