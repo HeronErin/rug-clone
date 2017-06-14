@@ -23,11 +23,7 @@ pub unsafe fn mpq_inv_check_0(rop: *mut mpq_t, op: *const mpq_t) {
     gmp::mpq_inv(rop, op);
 }
 
-pub unsafe fn mpq_mul_2exp_si(
-    rop: *mut mpq_t,
-    op1: *const mpq_t,
-    op2: c_long,
-) {
+pub unsafe fn mpq_mul_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     if op2 >= 0 {
         gmp::mpq_mul_2exp(rop, op1, op2 as c_ulong);
     } else {
@@ -35,11 +31,7 @@ pub unsafe fn mpq_mul_2exp_si(
     }
 }
 
-pub unsafe fn mpq_div_2exp_si(
-    rop: *mut mpq_t,
-    op1: *const mpq_t,
-    op2: c_long,
-) {
+pub unsafe fn mpq_div_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     if op2 >= 0 {
         gmp::mpq_div_2exp(rop, op1, op2 as c_ulong);
     } else {

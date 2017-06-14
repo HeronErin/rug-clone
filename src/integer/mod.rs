@@ -1963,8 +1963,8 @@ impl Integer {
         let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs =
-            whole_limbs + ((extra_bits + limb_bits - 1) / limb_bits) as usize;
+        let total_limbs = whole_limbs +
+            ((extra_bits + limb_bits - 1) / limb_bits) as usize;
         let limbs = unsafe {
             if (self.inner().alloc as usize) < total_limbs {
                 gmp::_mpz_realloc(self.inner_mut(), total_limbs as c_long);
@@ -2017,8 +2017,8 @@ impl Integer {
         let extra_bits = bits % limb_bits;
         // Avoid conditions and overflow, equivalent to:
         // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs =
-            whole_limbs + ((extra_bits + limb_bits - 1) / limb_bits) as usize;
+        let total_limbs = whole_limbs +
+            ((extra_bits + limb_bits - 1) / limb_bits) as usize;
         let limbs =
             unsafe { slice::from_raw_parts_mut(self.inner().d, total_limbs) };
         // if the random number is >= bound, restart

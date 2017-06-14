@@ -207,8 +207,7 @@ impl Complex {
         let p = prec.prec();
         assert!(
             p.0 >= float::prec_min() && p.0 <= float::prec_max() &&
-                p.1 >= float::prec_min() &&
-                p.1 <= float::prec_max(),
+                p.1 >= float::prec_min() && p.1 <= float::prec_max(),
             "precision out of range"
         );
         unsafe {
@@ -280,7 +279,10 @@ impl Complex {
     ) -> Ordering2 {
         let p = prec.prec();
         let (real, imag) = self.as_mut_real_imag();
-        (real.set_prec_round(p.0, round.0), imag.set_prec_round(p.1, round.1))
+        (
+            real.set_prec_round(p.0, round.0),
+            imag.set_prec_round(p.1, round.1),
+        )
     }
 
     /// Parses a `Complex` number with the specified precision,
@@ -425,23 +427,24 @@ impl Complex {
             let space =
                 src.find(' ').ok_or(Error { kind: Kind::MissingSpace })?;
             let real_str = &src[1..space];
-            let re =
-                Float::valid_str_radix(real_str, radix)
-                    .map_err(|e| Error { kind: Kind::InvalidRealFloat(e) })?;
+            let re = Float::valid_str_radix(real_str, radix).map_err(|e| {
+                Error { kind: Kind::InvalidRealFloat(e) }
+            })?;
             let rest = &src[space + 1..];
-            let close = rest.find(')')
-                .ok_or(Error { kind: Kind::MissingClose })?;
+            let close =
+                rest.find(')').ok_or(Error { kind: Kind::MissingClose })?;
             let imag_str = &rest[0..close];
-            let im =
-                Float::valid_str_radix(imag_str, radix)
-                    .map_err(|e| Error { kind: Kind::InvalidImagFloat(e) })?;
+            let im = Float::valid_str_radix(imag_str, radix).map_err(|e| {
+                Error { kind: Kind::InvalidImagFloat(e) }
+            })?;
             if close != rest.len() - 1 {
                 return Err(Error { kind: Kind::CloseNotLast });
             }
             ValidPoss::Complex(re, im)
         } else {
-            let re = Float::valid_str_radix(src, radix)
-                .map_err(|e| Error { kind: Kind::InvalidFloat(e) })?;
+            let re = Float::valid_str_radix(src, radix).map_err(|e| {
+                Error { kind: Kind::InvalidFloat(e) }
+            })?;
             ValidPoss::Real(re)
         };
         Ok(ValidComplex { poss: p })
@@ -515,11 +518,17 @@ impl Complex {
         round: Round2,
     ) -> String {
         let mut buf = String::from("(");
-        buf += &self.real()
-                    .to_string_radix_round(radix, num_digits, round.0);
+        buf += &self.real().to_string_radix_round(
+            radix,
+            num_digits,
+            round.0,
+        );
         buf.push(' ');
-        buf += &self.imag()
-                    .to_string_radix_round(radix, num_digits, round.0);
+        buf += &self.imag().to_string_radix_round(
+            radix,
+            num_digits,
+            round.0,
+        );
         buf.push(')');
         buf
     }
@@ -615,7 +624,10 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(
+            Complex::valid_str_radix(src, radix)?,
+            round,
+        ))
     }
 
     /// Borrows the real part as a `Float`.
@@ -721,7 +733,10 @@ impl Complex {
         unsafe {
             let real_ptr = mpc::realref(self.inner_mut());
             let imag_ptr = mpc::imagref(self.inner_mut());
-            (&mut *(real_ptr as *mut Float), &mut *(imag_ptr as *mut Float))
+            (
+                &mut *(real_ptr as *mut Float),
+                &mut *(imag_ptr as *mut Float),
+            )
         }
     }
 
@@ -1080,8 +1095,10 @@ impl Complex {
         round: Round2,
     ) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
-        (real.assign_random_bits_round(rng, round.0),
-         imag.assign_random_bits_round(rng, round.1))
+        (
+            real.assign_random_bits_round(rng, round.0),
+            imag.assign_random_bits_round(rng, round.1),
+        )
     }
 
     #[cfg(feature = "random")]
@@ -1113,8 +1130,10 @@ impl Complex {
         round: Round2,
     ) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
-        (real.assign_random_cont_round(rng, round.0),
-         imag.assign_random_cont_round(rng, round.1))
+        (
+            real.assign_random_cont_round(rng, round.0),
+            imag.assign_random_cont_round(rng, round.1),
+        )
     }
 }
 
@@ -1150,7 +1169,12 @@ where
 }
 
 impl<T, P: Prec> FromRound<T, P> for Complex
-    where Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>
+where
+    Complex: AssignRound<
+        T,
+        Round = Round2,
+        Ordering = Ordering2,
+    >,
 {
     type Round = Round2;
     type Ordering = Ordering2;
@@ -1211,9 +1235,11 @@ impl UpperHex for Complex {
 
 impl<T> Assign<T> for Complex
 where
-    Complex: AssignRound<T,
-                         Round = Round2,
-                         Ordering = Ordering2>,
+    Complex: AssignRound<
+        T,
+        Round = Round2,
+        Ordering = Ordering2,
+    >,
 {
     fn assign(&mut self, other: T) {
         self.assign_round(other, Default::default());
@@ -1289,8 +1315,16 @@ assign! { f64 }
 
 impl<T, U> AssignRound<(T, U)> for Complex
 where
-    Float: AssignRound<T, Round = Round, Ordering = Ordering>,
-    Float: AssignRound<U, Round = Round, Ordering = Ordering>,
+    Float: AssignRound<
+        T,
+        Round = Round,
+        Ordering = Ordering,
+    >,
+    Float: AssignRound<
+        U,
+        Round = Round,
+        Ordering = Ordering,
+    >,
 {
     type Round = Round2;
     type Ordering = Ordering2;

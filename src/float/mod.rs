@@ -514,14 +514,16 @@ impl Float {
         };
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let bytes = src.as_bytes();
-        let (inf10, neg_inf10, nan10): (&[&[u8]], &[&[u8]], &[&[u8]]) =
-            (&[b"inf", b"+inf", b"infinity", b"+infinity"],
-             &[b"-inf", b"-infinity"],
-             &[b"nan", b"+nan", b"-nan"]);
-        let (inf, neg_inf, nan): (&[&[u8]], &[&[u8]], &[&[u8]]) =
-            (&[b"@inf@", b"+@inf@", b"@infinity@", b"+@infinity@"],
-             &[b"-@inf@", b"-@infinity@"],
-             &[b"@nan@", b"+@nan@", b"-@nan@"]);
+        let (inf10, neg_inf10, nan10): (&[&[u8]], &[&[u8]], &[&[u8]]) = (
+            &[b"inf", b"+inf", b"infinity", b"+infinity"],
+            &[b"-inf", b"-infinity"],
+            &[b"nan", b"+nan", b"-nan"],
+        );
+        let (inf, neg_inf, nan): (&[&[u8]], &[&[u8]], &[&[u8]]) = (
+            &[b"@inf@", b"+@inf@", b"@infinity@", b"+@infinity@"],
+            &[b"-@inf@", b"-@infinity@"],
+            &[b"@nan@", b"+@nan@", b"-@nan@"],
+        );
         if (radix <= 10 && lcase_in(bytes, inf10)) || lcase_in(bytes, inf) {
             v.poss = ValidPoss::Special(Special::Infinity);
             return Ok(v);
@@ -703,8 +705,9 @@ impl Float {
     /// assert_eq!(*small_r.denom(), 8);
     /// ```
     pub fn to_rational(&self) -> Option<Rational> {
-        self.to_integer_exp()
-            .map(|(num, exp)| Rational::from(num) << exp)
+        self.to_integer_exp().map(
+            |(num, exp)| Rational::from(num) << exp,
+        )
     }
 
     /// Converts to an `i32`, rounding to the nearest.
@@ -1011,7 +1014,10 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(
+            Float::valid_str_radix(src, radix)?,
+            round,
+        ))
     }
 
     /// Returns `true` if `self` is an integer.
@@ -2252,9 +2258,11 @@ where
 
 impl<T> FromRound<T, u32> for Float
 where
-    Float: AssignRound<T,
-                       Round = Round,
-                       Ordering = Ordering>,
+    Float: AssignRound<
+        T,
+        Round = Round,
+        Ordering = Ordering,
+    >,
 {
     type Round = Round;
     type Ordering = Ordering;
@@ -3138,11 +3146,11 @@ fn make_string(
     }
     if f.is_infinite() {
         return match (radix > 10, f.get_sign()) {
-                   (false, false) => "inf".to_string(),
-                   (false, true) => "-inf".to_string(),
-                   (true, false) => "@inf@".to_string(),
-                   (true, true) => "-@inf@".to_string(),
-               };
+            (false, false) => "inf".to_string(),
+            (false, true) => "-inf".to_string(),
+            (true, false) => "@inf@".to_string(),
+            (true, true) => "-@inf@".to_string(),
+        };
     }
     if f.is_nan() {
         let s = if radix <= 10 { "NaN" } else { "@NaN@" };
@@ -3185,7 +3193,7 @@ fn make_string(
             char_to_upper_if('e', to_upper)
         } else {
             '@'
-        }
+        },
     );
     let exp = exp.checked_sub(1).expect("overflow");
     let _ = write!(buf, "{}", exp);
