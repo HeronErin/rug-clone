@@ -24,25 +24,15 @@ macro_rules! math_op1 {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $($param: $T,)*
-        ) -> &mut $Big {
+        pub fn $method(&mut self, $($param: $T),*) -> &mut $Big {
             unsafe {
-                $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $($param.into(),)*
-                );
+                $func(self.inner_mut(), self.inner(), $($param.into()),*);
             }
             self
         }
 
         $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Ref {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
                 $($param: $param,)*
@@ -91,11 +81,7 @@ macro_rules! math_op1_2 {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $rop: &mut $Big,
-            $($param: $T,)*
-        ) {
+        pub fn $method(&mut self, $rop: &mut $Big, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -158,11 +144,7 @@ macro_rules! math_op2 {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op: &$Big,
-            $($param: $T,)*
-        ) -> &mut $Big {
+        pub fn $method(&mut self, $op: &$Big, $($param: $T),*) -> &mut $Big {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -231,11 +213,7 @@ macro_rules! math_op2_2 {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op: &mut $Big,
-            $($param: $T,)*
-        ) {
+        pub fn $method(&mut self, $op: &mut $Big, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -615,14 +593,8 @@ macro_rules! math_op1_round {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $($param: $T,)*
-        ) -> &mut $Big {
-            self.$method_round(
-                $($param,)*
-                Default::default(),
-            );
+        pub fn $method(&mut self, $($param: $T),*) -> &mut $Big {
+            self.$method_round($($param,)* Default::default());
             self
         }
 
@@ -644,10 +616,7 @@ macro_rules! math_op1_round {
         }
 
         $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T),*
-        ) -> $Ref {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
                 $($param: $param,)*
@@ -704,16 +673,8 @@ macro_rules! math_op1_2_round {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $rop: &mut $Big,
-            $($param: $T),*
-        ) {
-            self.$method_round(
-                $rop,
-                $($param,)*
-                Default::default(),
-            );
+        pub fn $method(&mut self, $rop: &mut $Big, $($param: $T),*) {
+            self.$method_round($rop, $($param,)* Default::default());
         }
 
         $(#[$attr_round])*
@@ -736,10 +697,7 @@ macro_rules! math_op1_2_round {
         }
 
         $(#[$attr_ref])*
-        pub fn $method_ref(
-            &self,
-            $($param: $T,)*
-        ) -> $Ref {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
                 $($param: $param,)*
@@ -803,16 +761,8 @@ macro_rules! math_op2_round {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
-        pub fn $method(
-            &mut self,
-            $op: &$Big,
-            $($param: $T,)*
-        ) -> &mut $Big {
-            self.$method_round(
-                $op,
-                $($param.into(),)*
-                Default::default(),
-            );
+        pub fn $method(&mut self, $op: &$Big, $($param: $T),*) -> &mut $Big {
+            self.$method_round($op, $($param.into(),)* Default::default());
             self
         }
 
@@ -940,7 +890,7 @@ macro_rules! arith_binary_round {
             fn $method_round(
                 self,
                 rhs: $T,
-                round: $Round
+                round: $Round,
             ) -> ($Big, $Ordering) {
                 self.$method_round(&rhs, round)
             }
@@ -1009,7 +959,7 @@ macro_rules! arith_binary_round {
             fn assign_round(
                 &mut self,
                 src: $RefOwn,
-                round: $Round
+                round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
