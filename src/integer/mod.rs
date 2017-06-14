@@ -1142,6 +1142,36 @@ impl Integer {
         /// ```
         fn keep_bits_ref -> KeepBitsRef;
     }
+    math_op1! {
+        Integer;
+        xgmp::mpz_next_pow_of_two;
+        /// Finds the next power of two, or 1 if the number ≤ 0.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
+        /// let mut i = Integer::from(-3);
+        /// assert_eq!(*i.next_power_of_two(), 1);
+        /// i.assign(4);
+        /// assert_eq!(*i.next_power_of_two(), 4);
+        /// i.assign(7);
+        /// assert_eq!(*i.next_power_of_two(), 8);
+        /// ```
+        fn next_power_of_two();
+        /// Finds the next power of two, or 1 if the number ≤ 0.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(53);
+        /// let r = i.next_power_of_two_ref();
+        /// let next = Integer::from(r);
+        /// assert_eq!(next, 64);
+        /// ```
+        fn next_power_of_two_ref -> NextPowerTwoRef;
+    }
     math_op2_2! {
         Integer;
         xgmp::mpz_tdiv_qr_check_0;
@@ -2241,6 +2271,7 @@ impl Assign<u64> for Integer {
 
 ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
+ref_math_op1! { Integer; xgmp::mpz_next_pow_of_two; struct NextPowerTwoRef {} }
 ref_math_op2_2! {
     Integer; xgmp::mpz_tdiv_qr_check_0; struct DivRemRef { divisor }
 }

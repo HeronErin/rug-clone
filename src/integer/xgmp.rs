@@ -702,6 +702,29 @@ pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     }
 }
 
+pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
+    let size = (*op).size;
+    if size <= 0 {
+        gmp::mpz_set_ui(rop, 1);
+        return;
+    }
+    assert_eq!(size as gmp::size_t as c_int, size, "overflow");
+    let significant_u = gmp::mpn_sizeinbase((*op).d, size as gmp::size_t, 2);
+    let significant = significant_u as gmp::bitcnt_t;
+    assert_eq!(significant_u as usize, significant_u, "overflow");
+    let first_one = gmp::mpn_scan1((*op).d, 0);
+    let bit = if significant - 1 == first_one {
+        if rop as *const mpz_t == op {
+            return;
+        }
+        first_one
+    } else {
+        significant
+    };
+    gmp::mpz_set_ui(rop, 0);
+    gmp::mpz_setbit(rop, bit);
+}
+
 trait Limb {
     unsafe fn limb(self, index: c_int) -> gmp::limb_t;
 }
