@@ -27,10 +27,10 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [features]
-default = ["rat", "flo", "com", "rand"]
-rat = []
-flo = ["rat", "gmp-mpfr-sys/mpfr"]
-com = ["rat", "flo", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
+default = ["rational", "float", "complex", "rand"]
+rational = []
+float = ["rational", "gmp-mpfr-sys/mpfr"]
+complex = ["rational", "float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
 
 [dependencies.gmp-mpfr-sys]
 version = "1.0.3"

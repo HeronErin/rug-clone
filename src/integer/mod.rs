@@ -19,10 +19,10 @@ mod xgmp;
 
 pub use self::small_integer::SmallInteger;
 
-use {Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
-     RemFromAssign, SubFromAssign};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
+use ops::{Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
+          RemFromAssign, SubFromAssign};
 #[cfg(feature = "rand")]
 use rand::Rng;
 use std::{i32, u32};

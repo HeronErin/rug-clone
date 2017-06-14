@@ -19,9 +19,10 @@ mod xgmp;
 
 pub use self::small_rational::SmallRational;
 
-use {Assign, DivFromAssign, Integer, NegAssign, Pow, PowAssign, SubFromAssign};
+use Integer;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
+use ops::{Assign, DivFromAssign, NegAssign, Pow, PowAssign, SubFromAssign};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;

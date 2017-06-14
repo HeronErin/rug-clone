@@ -22,24 +22,3 @@ pub trait Inner {
 pub trait InnerMut: Inner {
     unsafe fn inner_mut(&mut self) -> &mut Self::Output;
 }
-
-pub enum OwnBorrow<'a, T>
-where
-    T: 'a,
-{
-    Own(T),
-    Borrow(&'a T),
-}
-
-impl<'a, T> Inner for OwnBorrow<'a, T>
-where
-    T: Inner,
-{
-    type Output = <T as Inner>::Output;
-    fn inner(&self) -> &Self::Output {
-        match *self {
-            OwnBorrow::Own(ref o) => o.inner(),
-            OwnBorrow::Borrow(b) => b.inner(),
-        }
-    }
-}

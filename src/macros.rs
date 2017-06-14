@@ -896,7 +896,7 @@ macro_rules! arith_binary_round {
         $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
         $T:ty;
-        $Ref:ident
+        $Ref:ident $RefOwn:ident
     } => {
         impl<'a> $Imp<&'a $T> for $Big {
             type Output = $Big;
@@ -951,7 +951,7 @@ macro_rules! arith_binary_round {
             fn $method(self, rhs: &'a $T) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: OwnBorrow::Borrow(rhs),
+                    rhs: rhs,
                 }
             }
         }
@@ -975,15 +975,42 @@ macro_rules! arith_binary_round {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
-            rhs: OwnBorrow<'a, $T>,
+            rhs: &'a $T,
         }
 
         impl<'a> AssignRound<$Ref<'a>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             fn assign_round(&mut self, src: $Ref, round: $Round) -> $Ordering {
+                let ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs.inner(),
+                        $raw_round(round),
+                    )
+                };
+                $ord(ret)
+            }
+        }
+
+        #[derive(Clone)]
+        pub struct $RefOwn<'a> {
+            lhs: &'a $Big,
+            rhs: $T,
+        }
+
+        impl<'a> AssignRound<$RefOwn<'a>> for $Big {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            fn assign_round(
+                &mut self,
+                src: $RefOwn,
+                round: $Round
+            ) -> $Ordering {
                 let ret = unsafe {
                     $func(
                         self.inner_mut(),
@@ -1005,7 +1032,7 @@ macro_rules! arith_commut_self_round {
         $Imp:ident $method:ident;
         $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
-        $Ref:ident
+        $Ref:ident $RefOwn:ident
     } => {
         arith_binary_round! {
             $Big, $Round => $Ordering;
@@ -1014,7 +1041,7 @@ macro_rules! arith_commut_self_round {
             $ImpRound $method_round;
             $ImpAssign $method_assign;
             $Big;
-            $Ref
+            $Ref $RefOwn
         }
 
         impl<'a> $Imp<$Big> for &'a $Big {
@@ -1047,7 +1074,7 @@ macro_rules! arith_noncommut_self_round {
         $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
         $ImpFromAssign:ident $method_from_assign:ident;
-        $Ref:ident
+        $Ref:ident $RefOwn:ident
     } => {
         arith_binary_round! {
             $Big, $Round => $Ordering;
@@ -1056,7 +1083,7 @@ macro_rules! arith_noncommut_self_round {
             $ImpRound $method_round;
             $ImpAssign $method_assign;
             $Big;
-            $Ref
+            $Ref $RefOwn
         }
 
         impl<'a> $Imp<$Big> for &'a $Big {
@@ -1116,7 +1143,7 @@ macro_rules! arith_forward_round {
         $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
         $T:ty;
-        $Ref:ident
+        $Ref:ident $RefOwn:ident
     } => {
         arith_binary_round! {
             $Big, $Round => $Ordering;
@@ -1125,15 +1152,15 @@ macro_rules! arith_forward_round {
             $ImpRound $method_round;
             $ImpAssign $method_assign;
             $T;
-            $Ref
+            $Ref $RefOwn
         }
 
         impl<'a> $Imp<$T> for &'a $Big {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: $T) -> $Ref<'a> {
-                $Ref {
+            type Output = $RefOwn<'a>;
+            fn $method(self, rhs: $T) -> $RefOwn<'a> {
+                $RefOwn {
                     lhs: self,
-                    rhs: OwnBorrow::Own(rhs),
+                    rhs: rhs,
                 }
             }
         }
@@ -1148,7 +1175,7 @@ macro_rules! arith_commut_round {
         $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
         $T:ty;
-        $Ref:ident
+        $Ref:ident $RefOwn:ident
     } => {
         arith_forward_round! {
             $Big, $Round => $Ordering;
@@ -1157,7 +1184,7 @@ macro_rules! arith_commut_round {
             $ImpRound $method_round;
             $ImpAssign $method_assign;
             $T;
-            $Ref
+            $Ref $RefOwn
         }
 
         impl<'a> $Imp<$Big> for &'a $T {
@@ -1208,8 +1235,8 @@ macro_rules! arith_commut_round {
         }
 
         impl<'a> $Imp<&'a $Big> for $T {
-            type Output = $Ref<'a>;
-            fn $method(self, rhs: &'a $Big) -> $Ref<'a> {
+            type Output = $RefOwn<'a>;
+            fn $method(self, rhs: &'a $Big) -> $RefOwn<'a> {
                 rhs.$method(self)
             }
         }
@@ -1225,7 +1252,7 @@ macro_rules! arith_noncommut_round {
         $ImpAssign:ident $method_assign:ident;
         $ImpFromAssign:ident $method_from_assign:ident;
         $T:ty;
-        $Ref:ident $RefFrom:ident
+        $Ref:ident $RefOwn:ident $RefFrom:ident $RefFromOwn:ident
     } => {
         arith_forward_round! {
             $Big, $Round => $Ordering;
@@ -1234,7 +1261,7 @@ macro_rules! arith_noncommut_round {
             $ImpRound $method_round;
             $ImpAssign $method_assign;
             $T;
-            $Ref
+            $Ref $RefOwn
         }
 
         impl<'a> $Imp<$Big> for &'a $T {
@@ -1289,17 +1316,17 @@ macro_rules! arith_noncommut_round {
             type Output = $RefFrom<'a>;
             fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
                 $RefFrom {
-                    lhs: OwnBorrow::Borrow(self),
+                    lhs: self,
                     rhs: rhs,
                 }
             }
         }
 
         impl<'a> $Imp<&'a $Big> for $T {
-            type Output = $RefFrom<'a>;
-            fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: OwnBorrow::Own(self),
+            type Output = $RefFromOwn<'a>;
+            fn $method(self, rhs: &'a $Big) -> $RefFromOwn<'a> {
+                $RefFromOwn {
+                    lhs: self,
                     rhs: rhs,
                 }
             }
@@ -1324,8 +1351,9 @@ macro_rules! arith_noncommut_round {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $RefFrom<'a> {
-            lhs: OwnBorrow<'a, $T>,
+            lhs: &'a $T,
             rhs: &'a $Big,
         }
 
@@ -1335,6 +1363,32 @@ macro_rules! arith_noncommut_round {
             fn assign_round(
                 &mut self,
                 src: $RefFrom,
+                round: $Round,
+            ) -> $Ordering {
+                let ret = unsafe {
+                    $func_from(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs.inner(),
+                        $raw_round(round),
+                    )
+                };
+                $ord(ret)
+            }
+        }
+
+        #[derive(Clone)]
+        pub struct $RefFromOwn<'a> {
+            lhs: $T,
+            rhs: &'a $Big,
+        }
+
+        impl<'a> AssignRound<$RefFromOwn<'a>> for $Big {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            fn assign_round(
+                &mut self,
+                src: $RefFromOwn,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
@@ -1412,6 +1466,7 @@ macro_rules! arith_prim_round {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: $T,
@@ -1556,6 +1611,7 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
+        #[derive(Clone, Copy)]
         pub struct $RefFrom<'a> {
             lhs: $T,
             rhs: &'a $Big,
