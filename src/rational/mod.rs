@@ -550,6 +550,29 @@ impl Rational {
     /// assert_eq!(*num_den.1, 2);
     /// ```
     ///
+    /// If the mutable value is leaked, the denominator is lost when
+    /// the borrow ends.
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// use std::mem;
+    ///
+    /// let mut r = Rational::from((3, 5));
+    /// {
+    ///     let mut num_den = r.as_mut_numer_denom();
+    ///     // try change r from 3/5 to 4/8
+    ///     *num_den.num() += 1;
+    ///     *num_den.den() += 3;
+    ///     // forget num_den, so no canonicalization takes place
+    ///     mem::forget(num_den)
+    ///     // borrow ends here, but nothing happens
+    /// }
+    /// // because of the leak, 4/8 has become 4/1
+    /// let num_den = r.as_numer_denom();
+    /// assert_eq!(*num_den.0, 4);
+    /// assert_eq!(*num_den.1, 1);
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if the denominator is zero when the borrow ends.
