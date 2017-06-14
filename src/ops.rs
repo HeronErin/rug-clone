@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! `ops` module.
+//! TODO: document mod `ops`
 
 /// Assigns to a number from another value.
 pub trait Assign<Rhs = Self> {

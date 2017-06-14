@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! `rand` module.
+//! TODO: document mod `rand`
 
 use Integer;
 use gmp_mpfr_sys::gmp::{self, randstate_t};

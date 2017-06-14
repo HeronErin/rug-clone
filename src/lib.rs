@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! Crate `rug`.
+//! TODO: document crate `rug`
 
 #![warn(missing_docs)]
 #![doc(test(attr(deny(warnings))))]
@@ -28,22 +28,19 @@ mod inner;
 pub mod ops;
 pub mod rand;
 
-mod integer;
+pub mod integer;
 #[cfg(feature = "rational")]
-mod rational;
+pub mod rational;
 #[cfg(feature = "float")]
-mod float;
+pub mod float;
 #[cfg(feature = "complex")]
-mod complex;
+pub mod complex;
 
 #[cfg(feature = "complex")]
-pub use complex::{Complex, ParseComplexError, Prec, SmallComplex, ValidComplex};
+pub use complex::Complex;
 #[cfg(feature = "float")]
-pub use float::{Constant, Float, ParseFloatError, Round, SmallFloat, Special,
-                ValidFloat, exp_max, exp_min, prec_max, prec_min};
-pub use integer::{Integer, IsPrime, ParseIntegerError, SmallInteger,
-                  ValidInteger};
+pub use float::Float;
+pub use integer::Integer;
 pub use ops::{Assign, AssignRound, FromRound};
 #[cfg(feature = "rational")]
-pub use rational::{MutNumerDenom, ParseRationalError, Rational, SmallRational,
-                   ValidRational};
+pub use rational::Rational;

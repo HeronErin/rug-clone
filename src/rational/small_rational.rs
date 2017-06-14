@@ -38,7 +38,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// # Examples
 ///
 /// ```rust
-/// use rug::{Rational, SmallRational};
+/// use rug::Rational;
+/// use rug::rational::SmallRational;
 /// // `a` requires a heap allocation
 /// let mut a = Rational::from((100, 13));
 /// // `b` can reside on the stack
@@ -109,7 +110,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::SmallRational;
+    /// use rug::rational::SmallRational;
     /// let from_unsafe = unsafe {
     ///     SmallRational::from_canonicalized_32(true, 13, 10)
     /// };
@@ -148,7 +149,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::SmallRational;
+    /// use rug::rational::SmallRational;
     /// let from_unsafe = unsafe {
     ///     SmallRational::from_canonicalized_64(true, 13, 10)
     /// };
@@ -188,7 +189,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::SmallRational;
+    /// use rug::rational::SmallRational;
     /// let mut from_unsafe = SmallRational::new();
     /// unsafe {
     ///     from_unsafe.assign_canonicalized_32(true, 13, 10)
@@ -228,7 +229,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::SmallRational;
+    /// use rug::rational::SmallRational;
     /// let mut from_unsafe = SmallRational::new();
     /// unsafe {
     ///     from_unsafe.assign_canonicalized_64(true, 13, 10)

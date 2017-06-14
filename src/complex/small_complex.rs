@@ -14,7 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Complex, Round};
+use super::Complex;
+use Assign;
+use float::Round;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::mem;
@@ -49,7 +51,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// # Examples
 ///
 /// ```rust
-/// use rug::{Complex, SmallComplex};
+/// use rug::Complex;
+/// use rug::complex::SmallComplex;
 /// // `a` requires a heap allocation
 /// let mut a = Complex::from(((1, 2), 53));
 /// // `b` can reside on the stack
