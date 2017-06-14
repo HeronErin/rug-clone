@@ -541,8 +541,8 @@ impl Rational {
     /// {
     ///     let mut num_den = r.as_mut_numer_denom();
     ///     // change r from 3/5 to 4/8, which is equal to 1/2
-    ///     *num_den.0 += 1;
-    ///     *num_den.1 += 3;
+    ///     *num_den.num() += 1;
+    ///     *num_den.den() += 3;
     ///     // borrow ends here
     /// }
     /// let num_den = r.as_numer_denom();
@@ -554,13 +554,19 @@ impl Rational {
     ///
     /// Panics if the denominator is zero when the borrow ends.
     pub fn as_mut_numer_denom(&mut self) -> MutNumerDenom {
+        // We swap in a denominator of 1 so that if the
+        // `MutNumerDenom` is leaked, we don't end up with an
+        // uncanonicalized rational number.
         unsafe {
             let numer_ptr = gmp::mpq_numref(self.inner_mut());
             let denom_ptr = gmp::mpq_denref(self.inner_mut());
-            MutNumerDenom(
-                &mut *(numer_ptr as *mut Integer),
-                &mut *(denom_ptr as *mut Integer),
-            )
+            let mut acting_denom = Integer::from(1);
+            mem::swap(acting_denom.inner_mut(), &mut *denom_ptr);
+            MutNumerDenom {
+                num: &mut *(numer_ptr as *mut Integer),
+                den_place: &mut *(denom_ptr as *mut Integer),
+                den_actual: acting_denom,
+            }
         }
     }
 
@@ -619,9 +625,9 @@ impl Rational {
     pub fn into_numer_denom(mut self) -> (Integer, Integer) {
         let (mut numer, mut denom) = unsafe { mem::uninitialized() };
         {
-            let self_numer_denom = self.as_mut_numer_denom();
-            mem::swap(&mut numer, self_numer_denom.0);
-            mem::swap(&mut denom, self_numer_denom.1);
+            let mut self_numer_denom = self.as_mut_numer_denom();
+            mem::swap(&mut numer, self_numer_denom.num());
+            mem::swap(&mut denom, self_numer_denom.den());
             // do not canonicalize uninitialized values
             mem::forget(self_numer_denom);
         }
@@ -881,9 +887,9 @@ impl From<(Integer, Integer)> for Rational {
         assert_ne!(den.sign(), Ordering::Equal, "division by zero");
         let mut dst: Rational = unsafe { mem::uninitialized() };
         {
-            let num_den = dst.as_mut_numer_denom();
-            mem::swap(&mut num, num_den.0);
-            mem::swap(&mut den, num_den.1);
+            let mut num_den = dst.as_mut_numer_denom();
+            mem::swap(&mut num, num_den.num());
+            mem::swap(&mut den, num_den.den());
         }
         mem::forget(num);
         mem::forget(den);
@@ -1000,9 +1006,9 @@ where
     Integer: Assign<U>,
 {
     fn assign(&mut self, (num, den): (T, U)) {
-        let num_den = self.as_mut_numer_denom();
-        num_den.0.assign(num);
-        num_den.1.assign(den);
+        let mut num_den = self.as_mut_numer_denom();
+        num_den.num().assign(num);
+        num_den.den().assign(den);
     }
 }
 
@@ -1323,14 +1329,37 @@ impl Display for ParseRationalError {
 /// The `Rational` number is canonicalized when the borrow ends. See
 /// the [`Rational::as_mut_numer_denom()`]
 /// (struct.Rational.html#method.as_mut_numer_denom) method.
-pub struct MutNumerDenom<'a>(pub &'a mut Integer, pub &'a mut Integer);
+pub struct MutNumerDenom<'a> {
+    num: &'a mut Integer,
+    den_place: &'a mut Integer,
+    den_actual: Integer,
+}
+
+impl<'a> MutNumerDenom<'a> {
+    /// Gets the mutable numerator.
+    pub fn num(&mut self) -> &mut Integer {
+        self.num
+    }
+    /// Gets the mutable denominator.
+    pub fn den(&mut self) -> &mut Integer {
+        &mut self.den_actual
+    }
+    /// Gets the mutable numerator and denominator.
+    pub fn num_den(&mut self) -> (&mut Integer, &mut Integer) {
+        (self.num, &mut self.den_actual)
+    }
+}
 
 impl<'a> Drop for MutNumerDenom<'a> {
     fn drop(&mut self) {
-        assert_ne!(self.1.sign(), Ordering::Equal, "division by zero");
+        assert_ne!(self.den_actual.sign(), Ordering::Equal, "division by zero");
         unsafe {
-            let rat_num = self.0.inner_mut();
-            let rat_den = self.1.inner_mut();
+            // We can finally place the actual denominator in its
+            // proper place inside the rational number.
+            mem::swap(&mut self.den_actual, self.den_place);
+
+            let rat_num = self.num.inner_mut();
+            let rat_den = self.den_place.inner_mut();
             let mut canon: mpq_t = mem::uninitialized();
             let canon_num_ptr = gmp::mpq_numref(&mut canon);
             let canon_den_ptr = gmp::mpq_denref(&mut canon);
