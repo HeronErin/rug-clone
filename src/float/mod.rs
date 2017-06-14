@@ -25,8 +25,7 @@ use inner::{Inner, InnerMut};
 use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
           ShlRound, ShrRound, SubFromAssign, SubRound};
-#[cfg(feature = "random")]
-use rand::Rng;
+use rand::Random;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -38,11 +37,7 @@ use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
-#[cfg(feature = "random")]
-use std::os::raw::c_uint;
 use std::ptr;
-#[cfg(feature = "random")]
-use std::slice;
 
 /// Returns the minimum value for the exponent.
 pub fn exp_min() -> i32 {
@@ -1997,17 +1992,6 @@ impl Float {
         fn trunc_fract_ref -> TruncFractRef;
     }
 
-    #[cfg(feature = "random")]
-    /// Generates a random number in the range `0 <= n < 1`.
-    ///
-    /// This is equivalent to calling
-    /// [`assign_random_bits_round(rng, Round::Nearest)`]
-    /// (#method.assign_random_bits_round).
-    pub fn assign_random_bits<R: Rng>(&mut self, rng: &mut R) {
-        self.assign_random_bits_round(rng, Round::Nearest);
-    }
-
-    #[cfg(feature = "random")]
     /// Generates a random number in the range `0 <= n < 1`.
     ///
     /// This is equivalent to generating a random integer in the range
@@ -2020,95 +2004,25 @@ impl Float {
     /// In all the normal cases, the result will be exact. However, if
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
-    /// `rug::exp_min()`; in this case, rounding is applied and
-    /// the rounding direction is returned.
+    /// `rug::exp_min()`; in this case, the number is set to Nan and
+    /// an error is returned.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rand;
-    /// extern crate rug;
-    /// use rug::{Float, Round};
-    /// fn main() {
-    ///     let mut rng = rand::thread_rng();
-    ///     let mut f = Float::new(2);
-    ///     f.assign_random_bits_round(&mut rng, Round::Nearest);
-    ///     assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
-    ///     println!("0.0 <= {} < 1.0", f);
-    /// }
+    /// use rug::Float;
+    /// use rug::rand::Random;
+    /// let mut rand = Random::new();
+    /// let mut f = Float::new(2);
+    /// f.assign_random_bits(&mut rand).unwrap();
+    /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
+    /// println!("0.0 <= {} < 1.0", f);
     /// ```
-    pub fn assign_random_bits_round<R: Rng>(
-        &mut self,
-        rng: &mut R,
-        round: Round,
-    ) -> Ordering {
-        let limb_bits = gmp::LIMB_BITS as usize;
-        let bits = self.inner.prec as usize;
-        let whole_limbs = bits / limb_bits;
-        let extra_bits = bits % limb_bits;
-        // Avoid conditions and overflow, equivalent to:
-        // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs = whole_limbs +
-            (extra_bits + limb_bits - 1) / limb_bits;
-        let limbs =
-            unsafe { slice::from_raw_parts_mut(self.inner.d, total_limbs) };
-        let mut lead_zeros = total_limbs * limb_bits;
-        for (i, limb) in limbs.iter_mut().enumerate() {
-            let mut val: gmp::limb_t = rng.gen();
-            if i == 0 && extra_bits > 0 {
-                let all_ones: gmp::limb_t = !0;
-                val &= all_ones << (limb_bits - extra_bits);
-            }
-            if val != 0 {
-                lead_zeros = (total_limbs - 1 - i) * limb_bits +
-                    val.leading_zeros() as usize;
-            }
-            *limb = val;
-        }
-        let zero_limbs = lead_zeros / limb_bits as usize;
-        if zero_limbs == total_limbs {
-            unsafe {
-                mpfr::set_zero(self.inner_mut(), 0);
-            }
-            return Ordering::Equal;
-        }
-        let zero_bits = (lead_zeros % limb_bits) as c_uint;
-        let err = unsafe {
-            mpfr::set_exp(self.inner_mut(), -(lead_zeros as mpfr::exp_t))
-        };
-        if err != 0 {
-            // This is extremely unlikely, we can be inefficient.
-            // Firs set MSB, then subtract by 0.5
-            let high_one: gmp::limb_t = 1 << (limb_bits - 1);
-            limbs[total_limbs - 1] |= high_one;
-            let mpfr_ret = unsafe {
-                mpfr::set_exp(self.inner_mut(), 0);
-                mpfr::sub_d(self.inner_mut(), self.inner(), 0.5, rraw(round))
-            };
-            return mpfr_ret.cmp(&0);
-        }
-        if zero_bits > 0 {
-            let ptr_offset = zero_limbs as isize;
-            unsafe {
-                gmp::mpn_lshift(
-                    self.inner.d.offset(ptr_offset),
-                    self.inner.d,
-                    (total_limbs - zero_limbs) as gmp::size_t,
-                    zero_bits,
-                );
-            }
-        } else if zero_limbs > 0 {
-            for i in (zero_limbs..total_limbs).rev() {
-                limbs[i] = limbs[i - zero_limbs];
-            }
-        }
-        for limb in limbs.iter_mut().take(zero_limbs) {
-            *limb = 0;
-        }
-        Ordering::Equal
+    pub fn assign_random_bits(&mut self, rng: &mut Random) -> Result<(), ()> {
+        let err = unsafe { mpfr::urandomb(self.inner_mut(), rng.inner_mut()) };
+        if err != 0 { Err(()) } else { Ok(()) }
     }
 
-    #[cfg(feature = "random")]
     /// Generates a random number in the continuous range
     /// `0 <= n < 1`, and rounds to the nearest.
     ///
@@ -2116,11 +2030,10 @@ impl Float {
     /// This is equivalent to calling
     /// [`assign_random_cont_round(rng, Round::Nearest)`]
     /// (#method.assign_random_cont_round).
-    pub fn assign_random_cont<R: Rng>(&mut self, rng: &mut R) {
+    pub fn assign_random_cont(&mut self, rng: &mut Random) {
         self.assign_random_cont_round(rng, Round::Nearest);
     }
 
-    #[cfg(feature = "random")]
     /// Generates a random number in the continous range
     /// `0 <= n < 1` and applies the specified rounding method.
     ///
@@ -2136,115 +2049,56 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rand;
-    /// extern crate rug;
     /// use rug::{Float, Round};
+    /// use rug::rand::Random;
     /// use std::cmp::Ordering;
-    /// fn main() {
-    ///     let mut rng = rand::thread_rng();
-    ///     let mut f = Float::new(2);
-    ///     let dir = f.assign_random_cont_round(&mut rng, Round::Nearest);
-    ///     // We cannot have an exact value without rounding.
-    ///     assert_ne!(dir, Ordering::Equal);
-    ///     // The significand is either 0b10 or 0b11
-    ///     //           10          11
-    ///     assert!(f == 1.0 || f == 0.75 ||
-    ///             f == 0.5 || f == 0.375 ||
-    ///             f == 0.25 || f <= 0.1875);
-    ///     // If the result is 1.0, rounding was up.
-    ///     assert!(f != 1.0 || dir == Ordering::Greater);
-    /// }
+    /// let mut rand = Random::new();
+    /// let mut f = Float::new(2);
+    /// let dir = f.assign_random_cont_round(&mut rand, Round::Nearest);
+    /// // We cannot have an exact value without rounding.
+    /// assert_ne!(dir, Ordering::Equal);
+    /// // The significand is either 0b10 or 0b11
+    /// //           10          11
+    /// assert!(f == 1.0 || f == 0.75 ||
+    ///         f == 0.5 || f == 0.375 ||
+    ///         f == 0.25 || f <= 0.1875);
+    /// // If the result is 1.0, rounding was up.
+    /// assert!(f != 1.0 || dir == Ordering::Greater);
     /// ```
-    pub fn assign_random_cont_round<R: Rng>(
+    pub fn assign_random_cont_round(
         &mut self,
-        rng: &mut R,
+        rng: &mut Random,
         round: Round,
     ) -> Ordering {
-        let limb_bits = gmp::LIMB_BITS as usize;
-        let bits = self.inner.prec as usize;
-        let total_limbs = (bits + limb_bits - 1) / limb_bits;
-        let limbs =
-            unsafe { slice::from_raw_parts_mut(self.inner.d, total_limbs) };
-        // If exp is too small, random_cont_first_limb will
-        // have the result.
-        if let Some(ret) = self.random_cont_first_limb(bits, rng, round) {
-            return ret;
-        }
-        for limb in limbs.iter_mut().skip(1) {
-            *limb = rng.gen();
-        }
-        let high_one: gmp::limb_t = 1 << (limb_bits - 1);
-        let spare_bit = (limbs[total_limbs - 1] & high_one) != 0;
-        limbs[total_limbs - 1] |= high_one;
-        let down = match round {
-            Round::Down | Round::Zero => true,
-            Round::Up | Round::AwayFromZero => false,
-            Round::Nearest => spare_bit,
+        let ret = unsafe {
+            mpfr::urandom(self.inner_mut(), rng.inner_mut(), rraw(round))
         };
-        if down {
-            return Ordering::Less;
-        }
-        unsafe {
-            mpfr::nextabove(self.inner_mut());
-        }
-        Ordering::Greater
+        ordering1(ret)
     }
 
-    #[cfg(feature = "random")]
-    fn random_cont_first_limb<R: Rng>(
+    /// Generates two random numbers according to a standard normal
+    /// Gaussian distribution.
+    ///
+    /// If `other` is `None`, only one value is generated.
+    pub fn assign_random_gaussian_round(
         &mut self,
-        bits: usize,
-        rng: &mut R,
+        other: Option<&mut Float>,
+        rng: &mut Random,
         round: Round,
-    ) -> Option<Ordering> {
-        let limb_bits = gmp::LIMB_BITS as usize;
-        let mut exp: i32 = 0;
-        let mut val: gmp::limb_t;
-        let mut zeros;
-        loop {
-            val = rng.gen();
-            zeros = val.leading_zeros() as i32;
-            // if exp too small, return ~0
-            if exp < exp_min() + zeros {
-                unsafe {
-                    mpfr::set_zero(self.inner_mut(), 0);
-                }
-                let down = match round {
-                    Round::Down | Round::Zero => true,
-                    Round::Up | Round::AwayFromZero => false,
-                    Round::Nearest => {
-                        exp + 1 < exp_min() + zeros ||
-                            (zeros as usize == limb_bits && rng.gen::<bool>())
-                    }
-                };
-                if down {
-                    return Some(Ordering::Less);
-                }
-                unsafe {
-                    mpfr::nextabove(self.inner_mut());
-                }
-                return Some(Ordering::Greater);
-            }
-            exp -= zeros;
-            if val != 0 {
-                unsafe {
-                    mpfr::set_exp(self.inner_mut(), exp.into());
-                }
-                break;
-            }
-        }
-        // increment zero to ignore msb, which we know is one
-        zeros += 1;
-        // fill the least significant limb
-        let bits_in_lsl = (bits - 1) % limb_bits + 1;
-        if limb_bits < bits_in_lsl + zeros as usize {
-            val = rng.gen();
-        }
-        val <<= limb_bits - bits_in_lsl;
-        unsafe {
-            *self.inner.d = val;
-        }
-        None
+    ) -> (Ordering, Ordering) {
+        let second_ptr = match other {
+            Some(r) => unsafe { r.inner_mut() },
+            None => ptr::null_mut(),
+        };
+        let ret = unsafe {
+            mpfr::grandom(
+                self.inner_mut(),
+                second_ptr,
+                rng.inner_mut(),
+                rraw(round),
+            )
+        };
+        ordering2(ret)
     }
 }
 

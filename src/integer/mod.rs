@@ -18,13 +18,12 @@ mod small_integer;
 mod xgmp;
 
 pub use self::small_integer::SmallInteger;
-
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
 use ops::{Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
           RemFromAssign, SubFromAssign};
-#[cfg(feature = "rand")]
-use rand::Rng;
+
+use rand::Random;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;
@@ -36,8 +35,6 @@ use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
-#[cfg(feature = "rand")]
-use std::slice;
 use std::str::FromStr;
 
 /// An arbitrary-precision integer.
@@ -1964,153 +1961,74 @@ impl Integer {
             );
         }
     }
-    #[cfg(feature = "rand")]
+
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rand;
-    /// extern crate rug;
     /// use rug::Integer;
-    /// fn main() {
-    ///     let mut rng = rand::thread_rng();
-    ///     let mut i = Integer::new();
-    ///     i.assign_random_bits(0, &mut rng);
-    ///     assert_eq!(i, 0);
-    ///     i.assign_random_bits(80, &mut rng);
-    ///     assert!(i.significant_bits() <= 80);
-    /// }
+    /// use rug::rand::Random;
+    /// let mut rand = Random::new();
+    /// let mut i = Integer::new();
+    /// i.assign_random_bits(0, &mut rand);
+    /// assert_eq!(i, 0);
+    /// i.assign_random_bits(80, &mut rand);
+    /// assert!(i.significant_bits() <= 80);
     /// ```
-    pub fn assign_random_bits<R: Rng>(&mut self, bits: u32, rng: &mut R) {
-        self.assign(0);
-        if bits == 0 {
-            return;
-        }
-        let limb_bits = gmp::LIMB_BITS as u32;
-        let whole_limbs = (bits / limb_bits) as usize;
-        let extra_bits = bits % limb_bits;
-        // Avoid conditions and overflow, equivalent to:
-        // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs = whole_limbs +
-            ((extra_bits + limb_bits - 1) / limb_bits) as usize;
-        let limbs = unsafe {
-            if (self.inner().alloc as usize) < total_limbs {
-                gmp::_mpz_realloc(self.inner_mut(), total_limbs as c_long);
-            }
-            slice::from_raw_parts_mut(self.inner().d, total_limbs)
-        };
-        let mut limbs_used: c_int = 0;
-        for (i, limb) in limbs.iter_mut().enumerate() {
-            let mut val: gmp::limb_t = rng.gen();
-            if i == whole_limbs {
-                val &= ((1 as gmp::limb_t) << extra_bits) - 1;
-            }
-            if val != 0 {
-                limbs_used = i as c_int + 1;
-            }
-            *limb = val;
-        }
+    pub fn assign_random_bits(&mut self, bits: u32, rng: &mut Random) {
         unsafe {
-            self.inner_mut().size = limbs_used;
+            gmp::mpz_urandomb(self.inner_mut(), rng.inner_mut(), bits.into());
         }
     }
 
-    #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rand;
-    /// extern crate rug;
     /// use rug::Integer;
-    /// fn main() {
-    ///     let mut rng = rand::thread_rng();
-    ///     let mut random = Integer::from(15);
-    ///     random.random_below(&mut rng);
-    ///     println!("0 <= {} < 15", random);
-    ///     assert!(random < 15);
-    /// }
+    /// use rug::rand::Random;
+    /// let mut rand = Random::new();
+    /// let mut i = Integer::from(15);
+    /// i.random_below(&mut rand);
+    /// println!("0 <= {} < 15", i);
+    /// assert!(i < 15);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if the boundary value is less than or equal to zero.
-    pub fn random_below<R: Rng>(&mut self, rng: &mut R) -> &mut Integer {
+    pub fn random_below(&mut self, rng: &mut Random) -> &mut Integer {
         assert_eq!(self.sign(), Ordering::Greater, "cannot be below zero");
-        let bits = self.significant_bits();
-        let limb_bits = gmp::LIMB_BITS as u32;
-        let whole_limbs = (bits / limb_bits) as usize;
-        let extra_bits = bits % limb_bits;
-        // Avoid conditions and overflow, equivalent to:
-        // let total_limbs = whole_limbs + if extra_bits == 0 { 0 } else { 1 };
-        let total_limbs = whole_limbs +
-            ((extra_bits + limb_bits - 1) / limb_bits) as usize;
-        let limbs =
-            unsafe { slice::from_raw_parts_mut(self.inner().d, total_limbs) };
-        // if the random number is >= bound, restart
-        'restart: loop {
-            let mut limbs_used: c_int = 0;
-            let mut still_equal = true;
-            'next_limb: for i in (0..total_limbs).rev() {
-                let mut val: gmp::limb_t = rng.gen();
-                if i == whole_limbs {
-                    val &= ((1 as gmp::limb_t) << extra_bits) - 1;
-                }
-                if limbs_used == 0 && val != 0 {
-                    limbs_used = i as c_int + 1;
-                }
-                if still_equal {
-                    if val > limbs[i] {
-                        continue 'restart;
-                    }
-                    if val == limbs[i] {
-                        continue 'next_limb;
-                    }
-                    still_equal = false;
-                }
-                limbs[i] = val;
-            }
-            if !still_equal {
-                unsafe {
-                    self.inner_mut().size = limbs_used;
-                }
-                return self;
-            }
+        unsafe {
+            gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
         }
+        self
     }
 
-    #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// extern crate rand;
-    /// extern crate rug;
     /// use rug::Integer;
-    /// fn main() {
-    ///     let mut rng = rand::thread_rng();
-    ///     let bound = Integer::from(15);
-    ///     let mut random = Integer::new();
-    ///     random.assign_random_below(&bound, &mut rng);
-    ///     println!("0 <= {} < {}", random, bound);
-    ///     assert!(random < bound);
-    /// }
+    /// use rug::rand::Random;
+    /// let mut rand = Random::new();
+    /// let bound = Integer::from(15);
+    /// let mut i = Integer::new();
+    /// i.assign_random_below(&bound, &mut rand);
+    /// println!("0 <= {} < {}", i, bound);
+    /// assert!(i < bound);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if the boundary value is less than or equal to zero.
-    pub fn assign_random_below<R: Rng>(
-        &mut self,
-        bound: &Integer,
-        rng: &mut R,
-    ) {
+    pub fn assign_random_below(&mut self, bound: &Integer, rng: &mut Random) {
         self.assign(bound);
         self.random_below(rng);
     }

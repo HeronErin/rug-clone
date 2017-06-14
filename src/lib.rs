@@ -20,14 +20,13 @@
 #![doc(test(attr(deny(warnings))))]
 
 extern crate gmp_mpfr_sys;
-#[cfg(feature = "rand")]
-extern crate rand;
 
 #[macro_use]
 mod macros;
 mod inner;
 
 pub mod ops;
+pub mod rand;
 
 mod integer;
 #[cfg(feature = "rational")]

@@ -27,8 +27,7 @@ use inner::{Inner, InnerMut};
 use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
           ShlRound, ShrRound, SubFromAssign, SubRound};
-#[cfg(feature = "random")]
-use rand::Rng;
+use rand::Random;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
@@ -1070,39 +1069,18 @@ impl Complex {
         fn atanh_ref -> AtanhRef;
     }
 
-    #[cfg(feature = "random")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
     ///
-    /// This is equivalent to calling
-    /// [`assign_random_bits_round(rng, (Round::Nearest, Round::Nearest))`]
-    /// (#method.assign_random_bits_round).
-    pub fn assign_random_bits<R: Rng>(&mut self, rng: &mut R) {
-        self.assign_random_bits_round(rng, Default::default());
-    }
-
-    #[cfg(feature = "random")]
-    /// Generates a random complex number with both the real and
-    /// imaginary parts in the range `0 <= n < 1`.
-    ///
-    /// This is equivalent to calling
-    /// [`assign_random_bits_round(rng, round.0)`]
-    /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
-    /// on the real part, and the same with `round.1` on the
-    /// imaginary part.
-    pub fn assign_random_bits_round<R: Rng>(
-        &mut self,
-        rng: &mut R,
-        round: Round2,
-    ) -> Ordering2 {
+    /// This is equivalent to calling [`assign_random_bits(rng)`]
+    /// (../rugflo/struct.Float.html#method.assign_random_bits) on the
+    /// real part, and the same on the imaginary part.
+    pub fn assign_random_bits(&mut self, rng: &mut Random) -> Result<(), ()> {
         let (real, imag) = self.as_mut_real_imag();
-        (
-            real.assign_random_bits_round(rng, round.0),
-            imag.assign_random_bits_round(rng, round.1),
-        )
+        real.assign_random_bits(rng)?;
+        imag.assign_random_bits(rng)
     }
 
-    #[cfg(feature = "random")]
     /// Generates a random complex number, rounding to the nearest.
     ///
     /// Both the real and imaginary parts are in the continuous range
@@ -1110,11 +1088,10 @@ impl Complex {
     /// Calling this method is equivalent to calling
     /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
     /// (#method.assign_random_cont_round).
-    pub fn assign_random_cont<R: Rng>(&mut self, rng: &mut R) {
+    pub fn assign_random_cont(&mut self, rng: &mut Random) {
         self.assign_random_cont_round(rng, Default::default());
     }
 
-    #[cfg(feature = "random")]
     /// Generates a random complex number, applying the specified
     /// rounding method.
     ///
@@ -1125,9 +1102,9 @@ impl Complex {
     /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
     /// on the real part, and the same with `round.1` on the
     /// imaginary part.
-    pub fn assign_random_cont_round<R: Rng>(
+    pub fn assign_random_cont_round(
         &mut self,
-        rng: &mut R,
+        rng: &mut Random,
         round: Round2,
     ) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();

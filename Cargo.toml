@@ -27,7 +27,7 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
 [features]
-default = ["rational", "float", "complex", "rand"]
+default = ["rational", "float", "complex"]
 rational = []
 float = ["rational", "gmp-mpfr-sys/mpfr"]
 complex = ["rational", "float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
@@ -36,7 +36,3 @@ complex = ["rational", "float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
 version = "1.0.3"
 default-features = false
 path = "../gmp-mpfr-sys"
-
-[dependencies.rand]
-version = "0.3"
-optional = true
