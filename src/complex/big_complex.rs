@@ -321,8 +321,7 @@ impl Complex {
     /// assert_eq!(*c.imag(), 15);
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
-    pub fn from_str_round<P: Prec>
-        (
+    pub fn from_str_round<P: Prec>(
         src: &str,
         prec: P,
         round: Round2,
@@ -377,8 +376,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix_round<P: Prec>
-        (
+    pub fn from_str_radix_round<P: Prec>(
         src: &str,
         radix: i32,
         prec: P,
@@ -1142,9 +1140,7 @@ impl From<(Float, Float)> for Complex {
 
 impl<T, P: Prec> From<(T, P)> for Complex
 where
-    Complex: FromRound<T,
-                       P,
-                       Round = Round2>,
+    Complex: FromRound<T, P, Round = Round2>,
 {
     fn from((t, prec): (T, P)) -> Complex {
         Complex::from_round(t, prec, Default::default()).0

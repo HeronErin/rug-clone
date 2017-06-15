@@ -454,8 +454,7 @@ impl Float {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn from_str_radix_round
-        (
+    pub fn from_str_radix_round(
         src: &str,
         radix: i32,
         prec: u32,
@@ -2186,9 +2185,7 @@ impl UpperHex for Float {
 
 impl<T> Assign<T> for Float
 where
-    Float: AssignRound<T,
-                       Round = Round,
-                       Ordering = Ordering>,
+    Float: AssignRound<T, Round = Round, Ordering = Ordering>,
 {
     fn assign(&mut self, other: T) {
         self.assign_round(other, Round::Nearest);
@@ -3030,13 +3027,11 @@ fn make_string(
     unsafe {
         mpfr::free_str(s);
     }
-    buf.push(
-        if radix <= 10 {
-            char_to_upper_if('e', to_upper)
-        } else {
-            '@'
-        },
-    );
+    buf.push(if radix <= 10 {
+        char_to_upper_if('e', to_upper)
+    } else {
+        '@'
+    });
     let exp = exp.checked_sub(1).expect("overflow");
     let _ = write!(buf, "{}", exp);
     buf

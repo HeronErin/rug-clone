@@ -618,8 +618,7 @@ impl Rational {
     /// }
     /// assert_eq!(r, (8, 5));
     /// ```
-    pub unsafe fn as_mut_numer_denom_no_canonicalization
-        (
+    pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
 

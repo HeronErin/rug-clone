@@ -668,7 +668,7 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
         -2 if gmp::LIMB_BITS == 32 => {
             op.limb(1) < i32::MIN as u32 as gmp::limb_t ||
                 (op.limb(1) == i32::MIN as u32 as gmp::limb_t &&
-                     op.limb(0) == 0)
+                    op.limb(0) == 0)
         }
         _ if gmp::LIMB_BITS >= 32 => false,
         _ => unreachable!(),
