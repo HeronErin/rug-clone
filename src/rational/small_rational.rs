@@ -271,7 +271,7 @@ impl SmallRational {
                 }
             }
             _ => {
-                unreachable!();
+                unimplemented!();
             }
         }
     }

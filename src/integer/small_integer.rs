@@ -166,7 +166,7 @@ impl Assign<u64> for SmallInteger {
                 }
             }
             _ => {
-                unreachable!();
+                unimplemented!();
             }
         }
     }

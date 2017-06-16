@@ -222,7 +222,7 @@ impl Assign<u64> for SmallFloat {
                 self.limbs[0] = sval as u32 as gmp::limb_t;
                 self.limbs[1 + 0] = (sval >> 32) as u32 as gmp::limb_t;
             }
-            _ => unreachable!(),
+            _ => unimplemented!(),
         }
         unsafe {
             mpfr::custom_init_set(

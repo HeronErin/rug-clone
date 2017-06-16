@@ -256,7 +256,7 @@ impl SetPart<u64> for Mpfr {
                 limbs[0] = sval as u32 as gmp::limb_t;
                 limbs[1 + 0] = (sval >> 32) as u32 as gmp::limb_t;
             }
-            _ => unreachable!(),
+            _ => unimplemented!(),
         }
         unsafe {
             mpfr::custom_init_set(

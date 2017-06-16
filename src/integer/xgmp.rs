@@ -447,7 +447,7 @@ pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
             }
         }
         _ => {
-            unreachable!();
+            unimplemented!();
         }
     }
 }
@@ -470,7 +470,7 @@ pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
             }
         }
         _ => {
-            unreachable!();
+            unimplemented!();
         }
     }
 }
@@ -498,7 +498,7 @@ pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
             }
         }
         _ => {
-            unreachable!();
+            unimplemented!();
         }
     }
 }
@@ -512,7 +512,7 @@ pub unsafe fn mpz_get_abs_u32(op: *const mpz_t) -> u32 {
             }
         }
         _ => {
-            unreachable!();
+            unimplemented!();
         }
     }
 }
@@ -537,7 +537,7 @@ pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
             };
             op1_u.cmp(&op2).to_c_int()
         }
-        _ => unreachable!(),
+        _ => unimplemented!(),
     }
 }
 
@@ -575,7 +575,7 @@ pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
             };
             ord.to_c_int()
         }
-        _ => unreachable!(),
+        _ => unimplemented!(),
     }
 }
 
@@ -589,7 +589,7 @@ pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
                 _ => 1,
             }
         }
-        _ => unreachable!(),
+        _ => unimplemented!(),
     }
 }
 
@@ -612,7 +612,7 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
                 _ => if neg1 { -1 } else { 1 },
             }
         }
-        _ => unreachable!(),
+        _ => unimplemented!(),
     }
 }
 
