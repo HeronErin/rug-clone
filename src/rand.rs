@@ -209,16 +209,43 @@ unsafe extern "C" fn gen_get(
     limb: *mut gmp::limb_t,
     bits: c_ulong,
 ) {
+    use self::gmp::limb_t;
     let s_ptr = s as *mut MpRandState;
     let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
     match gmp::LIMB_BITS {
-        64 => {}
-        32 => {}
-        _ => unreachable!(),
-    }
-    // TODO: placeholder
-    if bits > 0 {
-        *limb = ((*r_ptr).gen() & !(!0 << bits)) as gmp::limb_t;
+        64 => {
+            let (limbs, rest) = (bits / 64, bits % 64);
+            assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
+            let limbs = limbs as isize;
+            for i in 0..limbs {
+                *(limb.offset(i)) = (*r_ptr).gen() as limb_t |
+                    ((*r_ptr).gen() as limb_t) << 32;
+            }
+            if rest >= 32 {
+                let mut n = (*r_ptr).gen() as limb_t;
+                if rest > 32 {
+                    let mask = !(!0 << (rest - 32));
+                    n |= (((*r_ptr).gen() & mask) as limb_t) << 32;
+                }
+                *(limb.offset(limbs)) = n;
+            } else if rest > 0 {
+                let mask = !(!0 << rest);
+                *(limb.offset(limbs)) = ((*r_ptr).gen() & mask) as limb_t;
+            }
+        }
+        32 => {
+            let (limbs, rest) = (bits / 32, bits % 32);
+            assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
+            let limbs = limbs as isize;
+            for i in 0..limbs {
+                *(limb.offset(i)) = (*r_ptr).gen() as limb_t;
+            }
+            if rest > 0 {
+                let mask = !(!0 << rest);
+                *(limb.offset(limbs)) = ((*r_ptr).gen() & mask) as limb_t;
+            }
+        }
+        _ => unimplemented!(),
     }
 }
 
