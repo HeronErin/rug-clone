@@ -22,7 +22,7 @@ use integer::Integer;
 use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
           ShlRound, ShrRound, SubFromAssign, SubRound};
-use rand::Random;
+use rand::RandState;
 use rational::Rational;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
@@ -2017,14 +2017,17 @@ impl Float {
     ///
     /// ```rust
     /// use rug::Float;
-    /// use rug::rand::Random;
-    /// let mut rand = Random::new();
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
     /// let mut f = Float::new(2);
     /// f.assign_random_bits(&mut rand).unwrap();
     /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
     /// println!("0.0 <= {} < 1.0", f);
     /// ```
-    pub fn assign_random_bits(&mut self, rng: &mut Random) -> Result<(), ()> {
+    pub fn assign_random_bits(
+        &mut self,
+        rng: &mut RandState,
+    ) -> Result<(), ()> {
         let err = unsafe { mpfr::urandomb(self.inner_mut(), rng.inner_mut()) };
         if err != 0 { Err(()) } else { Ok(()) }
     }
@@ -2036,7 +2039,7 @@ impl Float {
     /// This is equivalent to calling
     /// [`assign_random_cont_round(rng, Round::Nearest)`]
     /// (#method.assign_random_cont_round).
-    pub fn assign_random_cont(&mut self, rng: &mut Random) {
+    pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         self.assign_random_cont_round(rng, Round::Nearest);
     }
 
@@ -2057,9 +2060,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::rand::Random;
+    /// use rug::rand::RandState;
     /// use std::cmp::Ordering;
-    /// let mut rand = Random::new();
+    /// let mut rand = RandState::new();
     /// let mut f = Float::new(2);
     /// let dir = f.assign_random_cont_round(&mut rand, Round::Nearest);
     /// // We cannot have an exact value without rounding.
@@ -2074,7 +2077,7 @@ impl Float {
     /// ```
     pub fn assign_random_cont_round(
         &mut self,
-        rng: &mut Random,
+        rng: &mut RandState,
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
@@ -2090,7 +2093,7 @@ impl Float {
     pub fn assign_random_gaussian_round(
         &mut self,
         other: Option<&mut Float>,
-        rng: &mut Random,
+        rng: &mut RandState,
         round: Round,
     ) -> (Ordering, Ordering) {
         let second_ptr = match other {

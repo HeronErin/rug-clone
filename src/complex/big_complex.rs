@@ -23,7 +23,7 @@ use integer::Integer;
 use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
           ShlRound, ShrRound, SubFromAssign, SubRound};
-use rand::Random;
+use rand::RandState;
 use rational::Rational;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -1078,7 +1078,10 @@ impl Complex {
     /// This is equivalent to calling [`assign_random_bits(rng)`]
     /// (../rugflo/struct.Float.html#method.assign_random_bits) on the
     /// real part, and the same on the imaginary part.
-    pub fn assign_random_bits(&mut self, rng: &mut Random) -> Result<(), ()> {
+    pub fn assign_random_bits(
+        &mut self,
+        rng: &mut RandState,
+    ) -> Result<(), ()> {
         let (real, imag) = self.as_mut_real_imag();
         real.assign_random_bits(rng)?;
         imag.assign_random_bits(rng)
@@ -1091,7 +1094,7 @@ impl Complex {
     /// Calling this method is equivalent to calling
     /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
     /// (#method.assign_random_cont_round).
-    pub fn assign_random_cont(&mut self, rng: &mut Random) {
+    pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         self.assign_random_cont_round(rng, Default::default());
     }
 
@@ -1107,7 +1110,7 @@ impl Complex {
     /// imaginary part.
     pub fn assign_random_cont_round(
         &mut self,
-        rng: &mut Random,
+        rng: &mut RandState,
         round: Round2,
     ) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();

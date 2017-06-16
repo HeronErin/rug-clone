@@ -19,7 +19,7 @@ use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
 use ops::{Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
           RemFromAssign, SubFromAssign};
-use rand::Random;
+use rand::RandState;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;
@@ -1966,15 +1966,15 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// use rug::rand::Random;
-    /// let mut rand = Random::new();
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
     /// let mut i = Integer::new();
     /// i.assign_random_bits(0, &mut rand);
     /// assert_eq!(i, 0);
     /// i.assign_random_bits(80, &mut rand);
     /// assert!(i.significant_bits() <= 80);
     /// ```
-    pub fn assign_random_bits(&mut self, bits: u32, rng: &mut Random) {
+    pub fn assign_random_bits(&mut self, bits: u32, rng: &mut RandState) {
         unsafe {
             gmp::mpz_urandomb(self.inner_mut(), rng.inner_mut(), bits.into());
         }
@@ -1987,8 +1987,8 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// use rug::rand::Random;
-    /// let mut rand = Random::new();
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
     /// let mut i = Integer::from(15);
     /// i.random_below(&mut rand);
     /// println!("0 <= {} < 15", i);
@@ -1998,7 +1998,7 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the boundary value is less than or equal to zero.
-    pub fn random_below(&mut self, rng: &mut Random) -> &mut Integer {
+    pub fn random_below(&mut self, rng: &mut RandState) -> &mut Integer {
         assert_eq!(self.sign(), Ordering::Greater, "cannot be below zero");
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
@@ -2013,8 +2013,8 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// use rug::rand::Random;
-    /// let mut rand = Random::new();
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
     /// let bound = Integer::from(15);
     /// let mut i = Integer::new();
     /// i.assign_random_below(&bound, &mut rand);
@@ -2025,7 +2025,11 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the boundary value is less than or equal to zero.
-    pub fn assign_random_below(&mut self, bound: &Integer, rng: &mut Random) {
+    pub fn assign_random_below(
+        &mut self,
+        bound: &Integer,
+        rng: &mut RandState,
+    ) {
         self.assign(bound);
         self.random_below(rng);
     }
