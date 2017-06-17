@@ -150,11 +150,12 @@ impl<'a> RandState<'a> {
         T: 'c + RandGen,
     {
         let b = Box::new(custom as &mut RandGen);
+        let r_ptr = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
                 alloc: 0,
                 size: 0,
-                d: Box::into_raw(b) as *mut gmp::limb_t,
+                d: r_ptr as *mut gmp::limb_t,
             },
             _alg: RandAlg::_DEFAULT,
             _algdata: &CUSTOM_FUNCS as *const _ as *mut _,
@@ -344,7 +345,7 @@ unsafe extern "C" fn custom_get(
 unsafe extern "C" fn custom_clear(s: *mut randstate_t) {
     let s_ptr = s as *mut MpRandState;
     let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
-    drop(Box::from_raw(*r_ptr));
+    drop(Box::from_raw(r_ptr));
 }
 
 unsafe extern "C" fn custom_iset(
