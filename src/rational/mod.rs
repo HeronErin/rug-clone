@@ -28,7 +28,7 @@ pub use self::small_rational::SmallRational;
 mod tests {
     use gmp_mpfr_sys::gmp;
     use ops::Pow;
-    use rational::{Rational, SmallRational};
+    use rational::Rational;
     use std::{i32, u32};
     use std::cmp::Ordering;
     use std::mem;
@@ -63,14 +63,7 @@ mod tests {
             for &d in &u {
                 if d != 0 {
                     let ans = 0.partial_cmp(&n);
-                    let x = SmallRational::from((n, d));
-                    println!("{}", *x);
-                    println!("n {} d {} ans {:?}", n, d, ans);
-                    println!("zero {}", zero);
-                    println!("cmp() {:?}", zero.partial_cmp(&(n, d)));
-                    println!("repeat");
                     assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    println!("done");
                     assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
                 }
             }
