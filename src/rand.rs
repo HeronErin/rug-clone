@@ -302,25 +302,27 @@ unsafe extern "C" fn custom_get(
 ) {
     let s_ptr = s as *mut MpRandState;
     let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
-    let gen = || (*r_ptr).gen() as gmp::limb_t;
+    let gen = || (*r_ptr).gen();
     match gmp::LIMB_BITS {
         64 => {
             let (limbs, rest) = (bits / 64, bits % 64);
             assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
             let limbs = limbs as isize;
             for i in 0..limbs {
-                *(limb.offset(i)) = gen() | gen() << 32;
+                let n = (gen() as u64) | (gen() as u64) << 32;
+                *(limb.offset(i)) = n as gmp::limb_t;
             }
             if rest >= 32 {
-                let mut n = gen();
+                let mut n = gen() as u64;
                 if rest > 32 {
                     let mask = !(!0 << (rest - 32));
-                    n |= (gen() & mask) << 32;
+                    n |= ((gen() & mask) as u64) << 32;
                 }
-                *(limb.offset(limbs)) = n;
+                *(limb.offset(limbs)) = n as gmp::limb_t;
             } else if rest > 0 {
                 let mask = !(!0 << rest);
-                *(limb.offset(limbs)) = gen() & mask;
+                let n = (gen() & mask) as u64;
+                *(limb.offset(limbs)) = n as gmp::limb_t;
             }
         }
         32 => {
@@ -328,11 +330,11 @@ unsafe extern "C" fn custom_get(
             assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
             let limbs = limbs as isize;
             for i in 0..limbs {
-                *(limb.offset(i)) = gen();
+                *(limb.offset(i)) = gen() as gmp::limb_t;
             }
             if rest > 0 {
                 let mask = !(!0 << rest);
-                *(limb.offset(limbs)) = gen() & mask;
+                *(limb.offset(limbs)) = (gen() & mask) as gmp::limb_t;
             }
         }
         _ => unimplemented!(),
