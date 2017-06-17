@@ -56,6 +56,9 @@ impl<'a> Drop for RandState<'a> {
     }
 }
 
+unsafe impl<'a> Send for RandState<'a> {}
+unsafe impl<'a> Sync for RandState<'a> {}
+
 impl<'a> RandState<'a> {
     /// Creates a new random generator with a compromise between speed
     /// and randomness.
@@ -195,7 +198,7 @@ impl<'a> RandState<'a> {
 }
 
 /// Generates a random number.
-pub trait RandGen {
+pub trait RandGen: Send + Sync {
     /// Gets a random 32-bit unsigned integer.
     fn gen(&mut self) -> u32;
 
@@ -209,21 +212,22 @@ pub trait RandGen {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Assign, Integer};
     /// use rug::rand::{RandGen, RandState};
-    /// use std::ptr;
-    /// struct Seed { ptr: *const Integer };
+    /// struct Seed { inner: Integer };
     /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
-    ///     fn seed(&mut self, seed: &Integer) { self.ptr = seed; }
+    ///     fn gen(&mut self) -> u32 { self.inner.to_u32_wrapping() }
+    ///     fn seed(&mut self, seed: &Integer) {
+    ///         self.inner.assign(seed);
+    ///     }
     /// }
-    /// let mut seed = Seed { ptr: ptr::null() };
-    /// let i = Integer::new();
+    /// let mut seed = Seed { inner: Integer::from(12) };
+    /// let i = Integer::from(12345);
     /// {
     ///     let mut rand = RandState::new_custom(&mut seed);
     ///     rand.seed(&i);
     /// }
-    /// assert_eq!(seed.ptr, &i)
+    /// assert_eq!(seed.inner, i);
     /// ```
     ///
     /// If you use unsafe code, you can pass a reference to anything,
@@ -249,7 +253,7 @@ pub trait RandGen {
     ///     let mut rand = RandState::new_custom(&mut seed);
     ///     rand.seed(ir);
     /// }
-    /// assert_eq!(seed.num, i)
+    /// assert_eq!(seed.num, i);
     /// ```
     fn seed(&mut self, seed: &Integer) {
         let _ = seed;
