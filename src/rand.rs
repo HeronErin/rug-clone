@@ -126,7 +126,7 @@ impl<'a> RandState<'a> {
     /// Creates a new custom random generator.
     ///
     /// This `RandState` is borrowing mutably, so unlike other
-    /// instances of `RandState`, it cannot be clone; an attempted
+    /// instances of `RandState`, it cannot be cloned; an attempted
     /// clone will result in a panic.
     ///
     /// # Examples
