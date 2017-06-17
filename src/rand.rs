@@ -21,7 +21,7 @@ use inner::{Inner, InnerMut};
 use integer::Integer;
 use std::marker::PhantomData;
 use std::mem;
-use std::os::raw::{c_int, c_ulong, c_void};
+use std::os::raw::{c_ulong, c_void};
 
 /// The state of a random number generator.
 pub struct RandState<'a> {
@@ -51,16 +51,9 @@ impl<'a> Clone for RandState<'a> {
 impl<'a> Drop for RandState<'a> {
     fn drop(&mut self) {
         unsafe {
-            self.inner_mut();
             gmp::randclear(self.inner_mut());
         }
     }
-}
-
-/// Generates a random number.
-pub trait RandGen {
-    /// Gets a random 32-bit unsigned integer.
-    fn gen(&mut self) -> u32;
 }
 
 impl<'a> RandState<'a> {
@@ -129,8 +122,9 @@ impl<'a> RandState<'a> {
 
     /// Creates a new custom random generator.
     ///
-    /// A `RandState` state created with this function cannot be cloned;
-    /// an attempted clone will result in a panic.
+    /// This `RandState` is borrowing mutably, so unlike other
+    /// instances of `RandState`, it cannot be clone; an attempted
+    /// clone will result in a panic.
     ///
     /// # Examples
     ///
@@ -139,7 +133,7 @@ impl<'a> RandState<'a> {
     /// use rug::rand::{RandGen, RandState};
     /// struct Seed;
     /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 { 0xffff }
+    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
     /// }
     /// let mut seed = Seed;
     /// let mut rand = RandState::new_custom(&mut seed);
@@ -152,30 +146,121 @@ impl<'a> RandState<'a> {
     where
         T: 'c + RandGen,
     {
-        let b = Box::<&mut RandGen>::new(custom);
+        let b = Box::new(custom as &mut RandGen);
         let inner = MpRandState {
-            seed: Mpz {
-                _alloc: 0,
-                _size: 0,
+            seed: gmp::mpz_t {
+                alloc: 0,
+                size: 0,
                 d: Box::into_raw(b) as *mut gmp::limb_t,
             },
             _alg: RandAlg::_DEFAULT,
-            _algdata: &FUNCS as *const _ as *mut _,
+            _algdata: &CUSTOM_FUNCS as *const _ as *mut _,
         };
         RandState {
             inner: unsafe { mem::transmute(inner) },
             phantom: PhantomData,
         }
     }
+
+    /// Seeds the random generator.
+    pub fn seed(&mut self, seed: &Integer) {
+        unsafe {
+            gmp::randseed(self.inner_mut(), seed.inner());
+        }
+    }
+
+    /// Generates a random number with the specified number of bits.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `bits` is greater than 32.
+    pub fn bits(&mut self, bits: u32) -> u32 {
+        assert!(bits <= 32, "bits out of range");
+        unsafe { gmp::urandomb_ui(self.inner_mut(), bits.into()) as u32 }
+    }
+
+    /// Generates a random number below the given boundary value.
+    ///
+    /// This function can never return the maximum 32-bit value; in
+    /// order to generate a 32-bit random value that covers the whole
+    /// range, use the [`bits()`](#method.bits) with `bits` set to 32.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is zero.
+    pub fn below(&mut self, bound: u32) -> u32 {
+        assert_ne!(bound, 0, "cannot be below zero");
+        unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
+    }
 }
 
-#[repr(C)]
-struct Mpz {
-    _alloc: c_int,
-    _size: c_int,
-    d: *mut gmp::limb_t,
+/// Generates a random number.
+pub trait RandGen {
+    /// Gets a random 32-bit unsigned integer.
+    fn gen(&mut self) -> u32;
+
+    /// Seeds the random number generator.
+    ///
+    /// The default implementation of this function does nothing.
+    ///
+    /// Note that the `RandState::seed()` method will pass its seed
+    /// parameter exactly to this function without using it otherwise.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::rand::{RandGen, RandState};
+    /// use std::ptr;
+    /// struct Seed { ptr: *const Integer };
+    /// impl RandGen for Seed {
+    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
+    ///     fn seed(&mut self, seed: &Integer) { self.ptr = seed; }
+    /// }
+    /// let mut seed = Seed { ptr: ptr::null() };
+    /// let i = Integer::new();
+    /// {
+    ///     let mut rand = RandState::new_custom(&mut seed);
+    ///     rand.seed(&i);
+    /// }
+    /// assert_eq!(seed.ptr, &i)
+    /// ```
+    ///
+    /// If you use unsafe code, you can pass a reference to anything,
+    /// or even an `isize` or `usize`, to the seeding function.
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::rand::{RandGen, RandState};
+    /// struct Seed { num: isize };
+    /// impl RandGen for Seed {
+    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
+    ///     fn seed(&mut self, seed: &Integer) {
+    ///         // cast seed to pointer, then to isize
+    ///         self.num = seed as *const _ as isize;
+    ///     }
+    /// }
+    /// let mut seed = Seed { num: 15 };
+    /// let i = -12345_isize;
+    /// {
+    ///     let i_ptr = i as *const Integer;
+    ///     // unsafe code to cast i from isize to &Integer
+    ///     let ir = unsafe { &*i_ptr };
+    ///     let mut rand = RandState::new_custom(&mut seed);
+    ///     rand.seed(ir);
+    /// }
+    /// assert_eq!(seed.num, i)
+    /// ```
+    fn seed(&mut self, seed: &Integer) {
+        let _ = seed;
+    }
 }
 
+// The contents of gmp::randstate_t are not available because the
+// internal details of gmp_randstate_t are not documented by GMP. So
+// we duplcate them here. The structure of function pointers
+// gmp_randfnptr_t is only inside gmp-impl.h and is not available
+// externally, so we duplicate it here as well.
 #[repr(C)]
 enum RandAlg {
     _DEFAULT = 0,
@@ -183,7 +268,7 @@ enum RandAlg {
 
 #[repr(C)]
 struct MpRandState {
-    seed: Mpz,
+    seed: gmp::mpz_t,
     _alg: RandAlg,
     _algdata: *mut c_void,
 }
@@ -200,37 +285,38 @@ struct Funcs {
     _iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
 }
 
-unsafe extern "C" fn gen_seed(_s: *mut randstate_t, _seed: *const gmp::mpz_t) {
-    unreachable!();
+unsafe extern "C" fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+    let s_ptr = s as *mut MpRandState;
+    let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+    (*r_ptr).seed(&(*(seed as *const Integer)));
 }
 
-unsafe extern "C" fn gen_get(
+unsafe extern "C" fn custom_get(
     s: *mut randstate_t,
     limb: *mut gmp::limb_t,
     bits: c_ulong,
 ) {
-    use self::gmp::limb_t;
     let s_ptr = s as *mut MpRandState;
     let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+    let gen = || (*r_ptr).gen() as gmp::limb_t;
     match gmp::LIMB_BITS {
         64 => {
             let (limbs, rest) = (bits / 64, bits % 64);
             assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
             let limbs = limbs as isize;
             for i in 0..limbs {
-                *(limb.offset(i)) = (*r_ptr).gen() as limb_t |
-                    ((*r_ptr).gen() as limb_t) << 32;
+                *(limb.offset(i)) = gen() | gen() << 32;
             }
             if rest >= 32 {
-                let mut n = (*r_ptr).gen() as limb_t;
+                let mut n = gen();
                 if rest > 32 {
                     let mask = !(!0 << (rest - 32));
-                    n |= (((*r_ptr).gen() & mask) as limb_t) << 32;
+                    n |= (gen() & mask) << 32;
                 }
                 *(limb.offset(limbs)) = n;
             } else if rest > 0 {
                 let mask = !(!0 << rest);
-                *(limb.offset(limbs)) = ((*r_ptr).gen() & mask) as limb_t;
+                *(limb.offset(limbs)) = gen() & mask;
             }
         }
         32 => {
@@ -238,32 +324,35 @@ unsafe extern "C" fn gen_get(
             assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
             let limbs = limbs as isize;
             for i in 0..limbs {
-                *(limb.offset(i)) = (*r_ptr).gen() as limb_t;
+                *(limb.offset(i)) = gen();
             }
             if rest > 0 {
                 let mask = !(!0 << rest);
-                *(limb.offset(limbs)) = ((*r_ptr).gen() & mask) as limb_t;
+                *(limb.offset(limbs)) = gen() & mask;
             }
         }
         _ => unimplemented!(),
     }
 }
 
-unsafe extern "C" fn gen_clear(s: *mut randstate_t) {
+unsafe extern "C" fn custom_clear(s: *mut randstate_t) {
     let s_ptr = s as *mut MpRandState;
     let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
     drop(Box::from_raw(*r_ptr));
 }
 
-unsafe extern "C" fn gen_iset(_s: *mut randstate_t, _src: *const randstate_t) {
+unsafe extern "C" fn custom_iset(
+    _s: *mut randstate_t,
+    _src: *const randstate_t,
+) {
     panic!("cannot clone custom Rand");
 }
 
-const FUNCS: Funcs = Funcs {
-    _seed: Some(gen_seed),
-    _get: Some(gen_get),
-    _clear: Some(gen_clear),
-    _iset: Some(gen_iset),
+const CUSTOM_FUNCS: Funcs = Funcs {
+    _seed: Some(custom_seed),
+    _get: Some(custom_get),
+    _clear: Some(custom_clear),
+    _iset: Some(custom_iset),
 };
 
 impl<'a> Inner for RandState<'a> {
