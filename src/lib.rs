@@ -121,7 +121,8 @@
 //! [sys]:       https://tspiteri.gitlab.io/rug/gmp_mpfr_sys/index.html
 
 #![warn(missing_docs)]
-#![doc(test(attr(deny(warnings))))]
+#![doc(html_root_url = "https://tspiteri.gitlab.io/rug/rug/",
+       test(attr(deny(warnings))))]
 
 extern crate gmp_mpfr_sys;
 
