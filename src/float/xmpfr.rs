@@ -59,6 +59,7 @@ pub unsafe fn z_div(
     divf_mulz_divz(r, rhs, Some(lhs), None, rnd)
 }
 
+#[cfg(feature = "rational")]
 pub unsafe fn q_sub(
     r: *mut mpfr_t,
     lhs: *const gmp::mpq_t,
@@ -78,6 +79,7 @@ pub unsafe fn q_sub(
     -flip_ret
 }
 
+#[cfg(feature = "rational")]
 pub unsafe fn q_div(
     r: *mut mpfr_t,
     lhs: *const gmp::mpq_t,

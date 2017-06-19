@@ -24,6 +24,7 @@ use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
           ShlRound, ShrRound, SubFromAssign, SubRound};
 use rand::RandState;
+#[cfg(feature = "rational")]
 use rational::Rational;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -1281,9 +1282,11 @@ macro_rules! assign {
 }
 
 assign_ref! { Integer }
+#[cfg(feature = "rational")]
 assign_ref! { Rational }
 assign_ref! { Float }
 assign! { Integer }
+#[cfg(feature = "rational")]
 assign! { Rational }
 assign! { Float }
 assign! { Special }
@@ -1882,18 +1885,23 @@ where
 }
 
 macro_rules! partial_eq {
-    { $($T:ty)* } => {
-        $(
-            impl PartialEq<$T> for Complex {
-                fn eq(&self, other: &$T) -> bool {
-                    self.real().eq(other) && self.imag().is_zero()
-                }
+    { $T:ty } => {
+        impl PartialEq<$T> for Complex {
+            fn eq(&self, other: &$T) -> bool {
+                self.real().eq(other) && self.imag().is_zero()
             }
-        )*
-    };
+        }
+    }
 }
 
-partial_eq! { Integer Rational Float u32 i32 f64 f32 }
+partial_eq! { Integer }
+#[cfg(feature = "rational")]
+partial_eq! { Rational }
+partial_eq! { Float }
+partial_eq! { u32 }
+partial_eq! { i32 }
+partial_eq! { f64 }
+partial_eq! { f32 }
 
 fn fmt_radix(
     c: &Complex,

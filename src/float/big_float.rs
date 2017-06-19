@@ -23,6 +23,7 @@ use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
           ShlRound, ShrRound, SubFromAssign, SubRound};
 use rand::RandState;
+#[cfg(feature = "rational")]
 use rational::Rational;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
@@ -655,6 +656,7 @@ impl Float {
         Some((i, exp))
     }
 
+    #[cfg(feature = "rational")]
     /// If `self` is a [finite number](#method.is_finite), returns a
     /// `Rational` number preserving all the precision of the value.
     ///
@@ -2263,6 +2265,7 @@ macro_rules! assign {
 
 assign! { Float, mpfr::set }
 assign! { Integer, mpfr::set_z }
+#[cfg(feature = "rational")]
 assign! { Rational, mpfr::set_q }
 
 ref_math_op1_float! { mpfr::sqr; struct SquareRef {} }
@@ -2589,6 +2592,7 @@ arith_forward_float! {
     PowRefInteger PowRefIntegerOwn
 }
 
+#[cfg(feature = "rational")]
 arith_commut_float! {
     mpfr::add_q;
     Add add;
@@ -2597,6 +2601,7 @@ arith_commut_float! {
     Rational;
     AddRefRational AddRefRationalOwn
 }
+#[cfg(feature = "rational")]
 arith_noncommut_float! {
     mpfr::sub_q, xmpfr::q_sub;
     Sub sub;
@@ -2606,6 +2611,7 @@ arith_noncommut_float! {
     Rational;
     SubRefRational SubFromRefRational SubRefRationalOwn SubFromRefRationalOwn
 }
+#[cfg(feature = "rational")]
 arith_commut_float! {
     mpfr::mul_q;
     Mul mul;
@@ -2614,6 +2620,7 @@ arith_commut_float! {
     Rational;
     MulRefRational MulRefRationalOwn
 }
+#[cfg(feature = "rational")]
 arith_noncommut_float! {
     mpfr::div_q, xmpfr::q_div;
     Div div;
@@ -2968,6 +2975,7 @@ macro_rules! cmp {
 }
 
 cmp! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.inner()) } }
+#[cfg(feature = "rational")]
 cmp! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.inner()) } }
 cmp! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
 cmp! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }

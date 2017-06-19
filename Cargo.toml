@@ -29,8 +29,8 @@ license = "LGPL-3.0+"
 [features]
 default = ["rational", "float", "complex"]
 rational = []
-float = ["rational", "gmp-mpfr-sys/mpfr"]
-complex = ["rational", "float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
+float = ["gmp-mpfr-sys/mpfr"]
+complex = ["float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
 
 [dependencies.gmp-mpfr-sys]
 version = "1.0.3"

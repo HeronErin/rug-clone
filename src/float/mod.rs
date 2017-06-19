@@ -30,6 +30,7 @@ mod tests {
     use gmp_mpfr_sys::{gmp, mpfr};
     use integer::Integer;
     use ops::{Assign, Pow};
+    #[cfg(feature = "rational")]
     use rational::Rational;
     use std::{f32, f64, i32, u32};
     use std::mem;
@@ -138,6 +139,7 @@ mod tests {
             Integer::from_str("-1000000000000").unwrap(),
             Integer::from_str("1000000000000").unwrap(),
         ];
+        #[cfg(feature = "rational")]
         let q = [
             Rational::from(0),
             Rational::from(1),
@@ -188,6 +190,7 @@ mod tests {
                 assert!(same(zz.clone() / ff.clone(), zf.clone() / ff));
             }
         }
+        #[cfg(feature = "rational")]
         for qq in &q {
             let qf = Float::from((qq, check_prec));
             for ff in &f {
