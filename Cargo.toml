@@ -22,7 +22,7 @@ description = "Arbitrary-precision big numbers based on GMP, MPFR and MPC"
 documentation = "https://tspiteri.gitlab.io/rug/rug/"
 repository = "https://gitlab.com/tspiteri/rug"
 readme = "README.md"
-keywords = ["gmp", "mathematics", "numerics"]
+keywords = ["gmp", "mpfr", "mpc", "mathematics", "numerics"]
 categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
