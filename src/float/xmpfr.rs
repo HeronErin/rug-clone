@@ -221,3 +221,23 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
         mpfr::set(rop, (*small).inner(), rnd)
     }
 }
+
+pub unsafe fn pow_double(
+    rop: *mut mpfr_t,
+    op1: *const mpfr_t,
+    op2: f64,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let small = SmallFloat::from(op2);
+    mpfr::pow(rop, op1, (*small).inner(), rnd)
+}
+
+pub unsafe fn pow_single(
+    rop: *mut mpfr_t,
+    op1: *const mpfr_t,
+    op2: f32,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let small = SmallFloat::from(op2);
+    mpfr::pow(rop, op1, (*small).inner(), rnd)
+}

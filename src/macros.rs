@@ -1440,6 +1440,77 @@ macro_rules! arith_prim_round {
     }
 }
 
+macro_rules! arith_prim_shift_round {
+    {
+        $Big:ty, $Round:ty => $Ordering:ty;
+        $func:path, $raw_round:path => $ord:path;
+        $Imp:ident $method:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        impl $Imp<$T> for $Big {
+            type Output = $Big;
+            fn $method(mut self, rhs: $T) -> $Big {
+                unsafe {
+                    $func(
+                        self.inner_mut(),
+                        self.inner(),
+                        rhs.into(),
+                        $raw_round(Default::default()),
+                    );
+                }
+                self
+            }
+        }
+
+        impl<'a> $Imp<$T> for &'a $Big {
+            type Output = $Ref<'a>;
+            fn $method(self, rhs: $T) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        impl $ImpAssign<$T> for $Big {
+            fn $method_assign(&mut self, rhs: $T) {
+                unsafe {
+                    $func(
+                        self.inner_mut(),
+                        self.inner(),
+                        rhs.into(),
+                        $raw_round(Default::default()),
+                    );
+                }
+            }
+        }
+
+        #[derive(Clone, Copy)]
+        pub struct $Ref<'a> {
+            lhs: &'a $Big,
+            rhs: $T,
+        }
+
+        impl<'a> AssignRound<$Ref<'a>> for $Big {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            fn assign_round(&mut self, src: $Ref, round: $Round) -> $Ordering {
+                let ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs.into(),
+                        $raw_round(round),
+                    )
+                };
+                $ord(ret)
+            }
+        }
+    }
+}
+
 macro_rules! arith_prim_commut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;

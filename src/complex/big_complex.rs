@@ -22,7 +22,7 @@ use inner::{Inner, InnerMut};
 use integer::Integer;
 use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
-          ShlRound, ShrRound, SubFromAssign, SubRound};
+          SubFromAssign, SubRound};
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -1122,7 +1122,6 @@ impl Complex {
     }
 }
 
-
 impl From<(Float, Float)> for Complex {
     /// Constructs a `Complex` number from a real `Float` and
     /// imaginary `Float`.
@@ -1645,6 +1644,25 @@ macro_rules! arith_prim_complex {
     }
 }
 
+macro_rules! arith_prim_shift_complex {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        arith_prim_shift_round! {
+            Complex, Round2 => Ordering2;
+            $func, rraw2 => ordering2;
+            $Imp $method;
+            $ImpAssign $method_assign;
+            $T;
+            $Ref
+        }
+    }
+}
+
 macro_rules! arith_prim_commut_complex {
     {
         $func:path;
@@ -1758,18 +1776,16 @@ arith_prim_noncommut_complex! {
     DivRefI32 DivFromRefI32
 }
 
-arith_prim_complex! {
+arith_prim_shift_complex! {
     mpc::mul_2ui;
     Shl shl;
-    ShlRound shl_round;
     ShlAssign shl_assign;
     u32;
     ShlRefU32
 }
-arith_prim_complex! {
+arith_prim_shift_complex! {
     mpc::div_2ui;
     Shr shr;
-    ShrRound shr_round;
     ShrAssign shr_assign;
     u32;
     ShrRefU32
@@ -1782,18 +1798,16 @@ arith_prim_complex! {
     u32;
     PowRefU32
 }
-arith_prim_complex! {
+arith_prim_shift_complex! {
     mpc::mul_2si;
     Shl shl;
-    ShlRound shl_round;
     ShlAssign shl_assign;
     i32;
     ShlRefI32
 }
-arith_prim_complex! {
+arith_prim_shift_complex! {
     mpc::div_2si;
     Shr shr;
-    ShrRound shr_round;
     ShrAssign shr_assign;
     i32;
     ShrRefI32

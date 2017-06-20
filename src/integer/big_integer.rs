@@ -127,7 +127,6 @@ impl Integer {
         }
     }
 
-
     /// Constructs a new arbitrary-precision integer with at least the
     /// specified capacity.
     ///
@@ -146,7 +145,6 @@ impl Integer {
             Integer { inner: inner }
         }
     }
-
 
     /// Returns the capacity in bits that can be stored without reallocating.
     ///
@@ -917,7 +915,6 @@ impl Integer {
     pub fn cmp_abs(&self, other: &Integer) -> Ordering {
         unsafe { gmp::mpz_cmpabs(self.inner(), other.inner()).cmp(&0) }
     }
-
 
     /// Returns the number of bits required to represent the absolute
     /// value.
@@ -2569,7 +2566,6 @@ op_mul! {
     impl AddAssign add_assign;
     MulRefI32, into, xgmp::mpz_addmul_si
 }
-
 
 op_mul! {
     /// Peforms multiplication and subtraction together.

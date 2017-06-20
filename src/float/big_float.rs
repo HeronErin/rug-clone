@@ -21,7 +21,7 @@ use inner::{Inner, InnerMut};
 use integer::Integer;
 use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
-          ShlRound, ShrRound, SubFromAssign, SubRound};
+          SubFromAssign, SubRound};
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -792,7 +792,6 @@ impl Float {
         unsafe { mpfr::get_d(self.inner(), rraw(round)) }
     }
 
-
     /// Converts to an `f32` and an exponent, rounding to the nearest.
     ///
     /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
@@ -1118,7 +1117,6 @@ impl Float {
             unsafe { mpfr::subnormalize(self.inner_mut(), prev, rraw(round)) };
         mpfr_ret.cmp(&0)
     }
-
 
     math_op1_float! {
         mpfr::sqr;
@@ -2652,6 +2650,25 @@ macro_rules! arith_prim_float {
     }
 }
 
+macro_rules! arith_prim_shift_float {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        arith_prim_shift_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $Imp $method;
+            $ImpAssign $method_assign;
+            $T;
+            $Ref
+        }
+    }
+}
+
 macro_rules! arith_prim_commut_float {
     {
         $func:path;
@@ -2813,18 +2830,16 @@ conv_ops! {
      DivFromRefF64 mpfr::d_div)
 }
 
-arith_prim_float! {
+arith_prim_shift_float! {
     mpfr::mul_2ui;
     Shl shl;
-    ShlRound shl_round;
     ShlAssign shl_assign;
     u32;
     ShlRefU32
 }
-arith_prim_float! {
+arith_prim_shift_float! {
     mpfr::div_2ui;
     Shr shr;
-    ShrRound shr_round;
     ShrAssign shr_assign;
     u32;
     ShrRefU32
@@ -2838,18 +2853,16 @@ arith_prim_noncommut_float!{
     u32;
     PowRefU32 PowFromRefU32
 }
-arith_prim_float! {
+arith_prim_shift_float! {
     mpfr::mul_2si;
     Shl shl;
-    ShlRound shl_round;
     ShlAssign shl_assign;
     i32;
     ShlRefI32
 }
-arith_prim_float! {
+arith_prim_shift_float! {
     mpfr::div_2si;
     Shr shr;
-    ShrRound shr_round;
     ShrAssign shr_assign;
     i32;
     ShrRefI32
@@ -2861,6 +2874,22 @@ arith_prim_float!{
     PowAssign pow_assign;
     i32;
     PowRefI32
+}
+arith_prim_float!{
+    xmpfr::pow_double;
+    Pow pow;
+    PowRound pow_round;
+    PowAssign pow_assign;
+    f64;
+    PowRefF64
+}
+arith_prim_float!{
+    xmpfr::pow_single;
+    Pow pow;
+    PowRound pow_round;
+    PowAssign pow_assign;
+    f32;
+    PowRefF32
 }
 
 impl<'a> Add<MulRef<'a>> for Float {
