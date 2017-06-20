@@ -40,12 +40,42 @@ use std::str::FromStr;
 /// you can mix `Integer` and primitive integer types; the result will
 /// be an `Integer`.
 ///
-/// Internally the integer is not stored using two's-complement
+/// Internally the integer is not stored using two’s-complement
 /// representation, however, for bitwise operations and shifts, the
-/// functionality is the same as if the representation was using two's
+/// functionality is the same as if the representation was using two’s
 /// complement.
 ///
 /// # Examples
+///
+/// ```rust
+/// use rug::{Assign, Integer};
+/// // Create an integer initialized as zero.
+/// let mut int = Integer::new();
+/// assert_eq!(int, 0);
+/// assert_eq!(int.to_u32(), Some(0));
+/// int.assign(-14);
+/// assert_eq!(int, -14);
+/// assert_eq!(int.to_u32(), None);
+/// assert_eq!(int.to_i32(), Some(-14));
+/// ```
+///
+/// Arithmetic operations with mixed arbitrary and primitive types are
+/// allowed. Note that in the following example, there is only one
+/// allocation. The `Integer` instance is moved into the shift
+/// operation so that the result can be stored in the same instance,
+/// then that result is similarly consumed by the addition operation.
+///
+/// ```rust
+/// use rug::Integer;
+/// let mut a = Integer::from(0xc);
+/// a = (a << 80) + 0xffee;
+/// assert_eq!(a.to_string_radix(16), "c0000000000000000ffee");
+/// //                                  ^   ^   ^   ^   ^
+/// //                                 80  64  48  32  16
+/// ```
+///
+/// Bitwise operations on `Integer` values behave as if the value uses
+/// two’s-complement representation.
 ///
 /// ```rust
 /// use rug::Integer;
@@ -70,15 +100,45 @@ use std::str::FromStr;
 /// assert_eq!(format!("{:x}", complement_a), "-f00e");
 /// ```
 ///
-/// To initialize a very large `Integer`, you can parse a string
-/// literal.
+/// To initialize a very large `Integer`, you can parse a string.
 ///
 /// ```rust
 /// use rug::Integer;
-/// let i1 = "1234567890123456789012345".parse::<Integer>().unwrap();
-/// assert_eq!(i1.significant_bits(), 81);
-/// let i2 = Integer::from_str_radix("1ffff0000ffff0000ffff", 16).unwrap();
-/// assert_eq!(i2.count_ones(), Some(49));
+/// let s1 = "123456789012345678901234567890";
+/// let i1 = s1.parse::<Integer>().unwrap();
+/// assert_eq!(i1.significant_bits(), 97);
+/// let s2 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
+/// let i2 = Integer::from_str_radix(s2, 16).unwrap();
+/// assert_eq!(i2.significant_bits(), 160);
+/// assert_eq!(i2.count_ones(), Some(80));
+/// ```
+///
+/// Operations on two borrowed `Integer` values result in an
+/// intermediate value that has to be assigned to a new `Integer`
+/// value.
+///
+/// ```rust
+/// use rug::Integer;
+/// let a = Integer::from(10);
+/// let b = Integer::from(3);
+/// let a_b_ref = &a + &b;
+/// let a_b = Integer::from(a_b_ref);
+/// assert_eq!(a_b, 13);
+/// ```
+///
+/// The `Integer` type supports various functions. Most functions have
+/// two versions: one that changes the operand in place, and one that
+/// borrows the operand.
+///
+/// ```rust
+/// use rug::Integer;
+/// let mut a = Integer::from(-15);
+/// // abs_ref() borrows the value
+/// let abs1 = Integer::from(a.abs_ref());
+/// assert_eq!(abs1, 15);
+/// // abs() changes the value in place
+/// a.abs();
+/// assert_eq!(a, 15);
 /// ```
 pub struct Integer {
     inner: mpz_t,

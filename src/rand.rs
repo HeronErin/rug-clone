@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! TODO: document mod `rand`
+//! Random number generation.
 
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use inner::{Inner, InnerMut};
@@ -86,7 +86,7 @@ impl<'a> RandState<'a> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm *X* = (*a* × *X* + *c) mod 2<sup>*bits*</sup>.
+    /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>*bits*</sup>.
     pub fn new_linear_congruential(
         a: &Integer,
         c: u32,
@@ -106,9 +106,11 @@ impl<'a> RandState<'a> {
     /// algorithm like
     /// [`new_linear_congruential()`](#method.new_linear_congruential).
     ///
-    /// *a*, *c* and *bits* are selected from a table such that *size*
-    /// bits of each *X* will be used, that is 2<sup>*bits*</sup> ≥
-    /// *size*.
+    /// *a*, *c* and *bits* are selected from a table such that at
+    /// least *size* bits of each *X* will be used, that is
+    /// 2<sup>*bits*</sup> ≥ *size*. The table only has values for a
+    /// size of up to 256 bits; `None` will be returned if the
+    /// requested size is larger.
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
             let mut inner = mem::uninitialized();
@@ -126,8 +128,8 @@ impl<'a> RandState<'a> {
     /// Creates a new custom random generator.
     ///
     /// This `RandState` is borrowing mutably, so unlike other
-    /// instances of `RandState`, it cannot be cloned; an attempted
-    /// clone will result in a panic.
+    /// instances of `RandState`, it cannot be cloned; attempting to
+    /// clone will panic.
     ///
     /// # Examples
     ///
@@ -198,7 +200,8 @@ impl<'a> RandState<'a> {
     }
 }
 
-/// Generates a random number.
+/// Custom random number generator to be used with
+/// [`RandState`](struct.RandState.html).
 pub trait RandGen: Send + Sync {
     /// Gets a random 32-bit unsigned integer.
     fn gen(&mut self) -> u32;

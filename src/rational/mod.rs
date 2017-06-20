@@ -14,7 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! TODO: document mod `rational`
+//! Arbitrary-precision rational numbers.
+//!
+//! This module provides arbitrary-precision rational numbers of type
+//! `Rational`.
 
 mod big_rational;
 mod small_rational;

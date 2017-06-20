@@ -8,7 +8,7 @@ fi
 export GMP_MPFR_SYS_CDOC=$PWD/target/doc
 # use nightly to support cargo:rerun-if-env-changed
 cargo +nightly doc -p gmp-mpfr-sys -p rug
-# clear variable so that next gen.sh run reruns doc generation
+# clear variable so that next run reruns doc generation
 unset GMP_MPFR_SYS_CDOC
 cargo +nightly check -p gmp-mpfr-sys
 rustdoc +nightly doc-src/index.md --markdown-no-toc --output target/doc \

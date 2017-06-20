@@ -10,10 +10,10 @@ with arbitrary precision and correct rounding. Its main features are:
 * multi-precision [complex numbers][rug comp] with correct rounding.
 	
 The `rug` crate depends on the low-level bindings in the
-`gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
-macOS, but may need some work on Windows. See the
-[`gmp-mpfr-sys` documentation][sys] for some details. The
-`gmp-mpfr-sys` crate provides RUST FFI bindings for:
+[`gmp-mpfr-sys`][sys] crate. This should be transparent on GNU/Linux
+and macOS, but may need some work on Windows. See the crate's
+[documentation][sys] for some details. The `gmp-mpfr-sys` crate
+provides RUST FFI bindings for:
 
 * the [GNU Multiple Precision Arithmetic Library][gmp home] (GMP),
 * the [GNU MPFR Library][mpfr home], a library for multiple-precision

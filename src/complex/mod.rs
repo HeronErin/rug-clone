@@ -14,7 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! TODO: document mod `complex`
+//! Multi-precision complex numbers with correct rounding.
+//!
+//! This module provides complex numbers with arbitrarily large
+//! precision, and with correct rounding. The rounding method of the
+//! required operations can be specified, and the direction of the
+//! rounding is returned.
 
 mod big_complex;
 mod small_complex;

@@ -81,8 +81,7 @@ type Ordering2 = (Ordering, Ordering);
 /// # Note on `Round::AwayFromZero`
 ///
 /// For `Complex` numbers, `Round::AwayFromZero` is not implemented,
-/// and trying to use it will start a panic.
-
+/// and trying to use it will panic.
 pub struct Complex {
     inner: mpc_t,
 }

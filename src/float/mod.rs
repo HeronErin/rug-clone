@@ -14,7 +14,36 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! TODO: document mod `float`
+//! Multi-precision floating-point numbers with correct rounding.
+//!
+//! This module provides floating-point numbers with arbitrarily large
+//! precision, and with correct rounding. The rounding method of the
+//! required operations can be specified, and the direction of the
+//! rounding is returned.
+//!
+//! # Examples
+//!
+//! ```rust
+//! use rug::Float;
+//! use rug::float::Round;
+//! use rug::ops::DivRound;
+//! use std::cmp::Ordering;
+//! // A precision of 32 significant bits is specified here.
+//! // (The primitive `f32` has a precision of 24 and
+//! // `f64` has a precision of 53.)
+//! let two = Float::from((2.0, 32));
+//! let (two_thirds_down, dir) = two.div_round(3.0, Round::Down);
+//! // since we rounded down, direction is Ordering::Less
+//! assert_eq!(dir, Ordering::Less);
+//! // two was consumed, so create a new two
+//! let two = Float::from((2.0, 32));
+//! let (two_thirds_up, dir) = two.div_round(3.0, Round::Up);
+//! // since we rounded up, direction is Ordering::Greater
+//! assert_eq!(dir, Ordering::Greater);
+//! let diff_expected = 2.0_f64.powi(-32);
+//! let diff = two_thirds_up - two_thirds_down;
+//! assert_eq!(diff, diff_expected);
+//! ```
 
 mod big_float;
 mod small_float;

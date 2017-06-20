@@ -43,13 +43,15 @@ use std::str::FromStr;
 /// # Examples
 ///
 /// ```rust
-/// use rug::{Integer, Rational};
+/// use rug::Rational;
 /// let r = Rational::from((-12, 15));
+/// let recip = Rational::from(r.recip_ref());
+/// assert_eq!(recip, (-5, 4));
+/// assert_eq!(recip.to_f32(), -1.25);
+/// // The numerator and denominator are stored in canonical form.
 /// let (num, den) = r.into_numer_denom();
 /// assert_eq!(num, -4);
 /// assert_eq!(den, 5);
-/// let one = Rational::from((num, Integer::from(-4)));
-/// assert_eq!(one, 1);
 /// ```
 pub struct Rational {
     inner: mpq_t,
