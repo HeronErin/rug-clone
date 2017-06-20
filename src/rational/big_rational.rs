@@ -58,24 +58,28 @@ pub struct Rational {
 }
 
 impl Default for Rational {
+    #[inline]
     fn default() -> Rational {
         Rational::new()
     }
 }
 
 impl Clone for Rational {
+    #[inline]
     fn clone(&self) -> Rational {
         let mut ret = Rational::new();
         ret.assign(self);
         ret
     }
 
+    #[inline]
     fn clone_from(&mut self, source: &Rational) {
         self.assign(source);
     }
 }
 
 impl Drop for Rational {
+    #[inline]
     fn drop(&mut self) {
         unsafe {
             gmp::mpq_clear(self.inner_mut());
@@ -93,6 +97,7 @@ impl Rational {
     /// let r = Rational::new();
     /// assert_eq!(r, 0);
     /// ```
+    #[inline]
     pub fn new() -> Rational {
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
@@ -114,6 +119,7 @@ impl Rational {
     /// let inf = Rational::from_f32(f32::INFINITY);
     /// assert!(inf.is_none());
     /// ```
+    #[inline]
     pub fn from_f32(val: f32) -> Option<Rational> {
         Rational::from_f64(val as f64)
     }
@@ -131,6 +137,7 @@ impl Rational {
     /// let inf = Rational::from_f64(f64::INFINITY);
     /// assert!(inf.is_none());
     /// ```
+    #[inline]
     pub fn from_f64(val: f64) -> Option<Rational> {
         if val.is_finite() {
             let mut r = Rational::new();
@@ -158,6 +165,7 @@ impl Rational {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn from_str_radix(
         src: &str,
         radix: i32,
@@ -273,6 +281,7 @@ impl Rational {
     /// let negi = neg.to_integer();
     /// assert_eq!(negi, -13);
     /// ```
+    #[inline]
     pub fn to_integer(&self) -> Integer {
         let mut i = Integer::new();
         self.copy_to_integer(&mut i);
@@ -294,6 +303,7 @@ impl Rational {
     /// neg.copy_to_integer(&mut i);
     /// assert_eq!(i, -13);
     /// ```
+    #[inline]
     pub fn copy_to_integer(&self, i: &mut Integer) {
         unsafe {
             gmp::mpz_set_q(i.inner_mut(), self.inner());
@@ -316,6 +326,7 @@ impl Rational {
     /// // times_three_two is too small
     /// assert_eq!(times_three_two.to_f32(), f32::NEG_INFINITY);
     /// ```
+    #[inline]
     pub fn to_f32(&self) -> f32 {
         let f = self.to_f64();
         // f as f32 might round away from zero, so we need to clear
@@ -366,6 +377,7 @@ impl Rational {
     /// // times_three_two is too large
     /// assert_eq!(times_three_two.to_f64(), f64::INFINITY);
     /// ```
+    #[inline]
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpq_get_d(self.inner()) }
     }
@@ -388,6 +400,7 @@ impl Rational {
     /// #Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
         make_string(self, radix, false)
     }
@@ -407,6 +420,7 @@ impl Rational {
     /// assert!(ret.is_err());
     /// assert_eq!(r, (1275, 100));
     /// ```
+    #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val as f64)
     }
@@ -425,6 +439,7 @@ impl Rational {
     /// assert!(ret.is_err());
     /// assert_eq!(r, (1275, 100));
     /// ```
+    #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             unsafe {
@@ -449,6 +464,7 @@ impl Rational {
     /// assert_eq!(*r.numer(), -12);
     /// assert_eq!(*r.denom(), 1);
     /// ```
+    #[inline]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
         self.assign_str_radix(src, 10)
     }
@@ -470,6 +486,7 @@ impl Rational {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
@@ -489,6 +506,7 @@ impl Rational {
     /// // r will be canonicalized to -3 / 5
     /// assert_eq!(*r.numer(), -3)
     /// ```
+    #[inline]
     pub fn numer(&self) -> &Integer {
         unsafe {
             let ptr = gmp::mpq_numref_const(self.inner());
@@ -506,6 +524,7 @@ impl Rational {
     /// // r will be canonicalized to -3 / 5
     /// assert_eq!(*r.denom(), 5);
     /// ```
+    #[inline]
     pub fn denom(&self) -> &Integer {
         unsafe {
             let ptr = gmp::mpq_denref_const(self.inner());
@@ -525,6 +544,7 @@ impl Rational {
     /// assert_eq!(*num, -3);
     /// assert_eq!(*den, 5);
     /// ```
+    #[inline]
     pub fn as_numer_denom(&self) -> (&Integer, &Integer) {
         (self.numer(), self.denom())
     }
@@ -620,6 +640,7 @@ impl Rational {
     /// }
     /// assert_eq!(r, (8, 5));
     /// ```
+    #[inline]
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
@@ -645,6 +666,7 @@ impl Rational {
     /// assert_eq!(num, -3);
     /// assert_eq!(den, 5);
     /// ```
+    #[inline]
     pub fn into_numer_denom(mut self) -> (Integer, Integer) {
         let (mut numer, mut denom) = unsafe { mem::uninitialized() };
         {
@@ -660,6 +682,7 @@ impl Rational {
 
     /// Returns `Less` if the number is less than zero, `Greater` if
     /// it is greater than zero, or `Equal` if it is equal to zero.
+    #[inline]
     pub fn sign(&self) -> Ordering {
         self.numer().sign()
     }
@@ -742,6 +765,7 @@ impl Rational {
     /// ceil.assign(SmallRational::from(1).ceil_ref());
     /// assert_eq!(ceil, 1);
     /// ```
+    #[inline]
     pub fn ceil_ref(&self) -> CeilRef {
         CeilRef { ref_self: self }
     }
@@ -765,6 +789,7 @@ impl Rational {
     /// floor.assign(SmallRational::from(1).floor_ref());
     /// assert_eq!(floor, 1);
     /// ```
+    #[inline]
     pub fn floor_ref(&self) -> FloorRef {
         FloorRef { ref_self: self }
     }
@@ -791,6 +816,7 @@ impl Rational {
     /// round.assign(SmallRational::from((17, 10)).round_ref());
     /// assert_eq!(round, 2);
     /// ```
+    #[inline]
     pub fn round_ref(&self) -> RoundRef {
         RoundRef { ref_self: self }
     }
@@ -812,6 +838,7 @@ impl Rational {
     /// trunc.assign(SmallRational::from((19, 10)).trunc_ref());
     /// assert_eq!(trunc, 1);
     /// ```
+    #[inline]
     pub fn trunc_ref(&self) -> TruncRef {
         TruncRef { ref_self: self }
     }
@@ -857,6 +884,7 @@ impl Rational {
     /// assert_eq!(whole, -5);
     /// assert_eq!(r, (-15, 17));
     /// ```
+    #[inline]
     pub fn fract_trunc(&mut self, trunc: &mut Integer) {
         unsafe {
             xgmp::mpq_fract_trunc(
@@ -881,6 +909,7 @@ impl Rational {
     /// assert_eq!(whole, -5);
     /// assert_eq!(proper, (-15, 17));
     /// ```
+    #[inline]
     pub fn fract_trunc_ref(&self) -> FractTruncRef {
         FractTruncRef { ref_self: self }
     }
@@ -893,6 +922,7 @@ impl From<Integer> for Rational {
     ///
     /// This constructor allocates one new `Integer` and reuses the
     /// allocation for `val`.
+    #[inline]
     fn from(val: Integer) -> Rational {
         Rational::from((val, 1.into()))
     }
@@ -910,6 +940,7 @@ impl From<(Integer, Integer)> for Rational {
     /// # Panics
     ///
     /// Panics if the denominator is zero.
+    #[inline]
     fn from((mut num, mut den): (Integer, Integer)) -> Rational {
         assert_ne!(den.sign(), Ordering::Equal, "division by zero");
         let mut dst: Rational = unsafe { mem::uninitialized() };
@@ -929,6 +960,7 @@ from_borrow! { (&'a Integer, &'a Integer) => Rational }
 macro_rules! from {
     { $Src:ty => $Dst:ty } => {
         impl From<$Src> for $Dst {
+            #[inline]
             fn from(t: $Src) -> $Dst {
                 let mut ret = <$Dst>::new();
                 ret.assign(t);
@@ -953,6 +985,7 @@ from! { (u64, u64) => Rational }
 
 impl FromStr for Rational {
     type Err = ParseRationalError;
+    #[inline]
     fn from_str(src: &str) -> Result<Rational, ParseRationalError> {
         let mut r = Rational::new();
         r.assign_str(src)?;
@@ -961,42 +994,49 @@ impl FromStr for Rational {
 }
 
 impl Display for Rational {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Rational {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Binary for Rational {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Rational {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Rational {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Rational {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x")
     }
 }
 
 impl Assign for Rational {
+    #[inline]
     fn assign(&mut self, mut other: Rational) {
         self.assign(&other);
         mem::swap(self, &mut other);
@@ -1004,6 +1044,7 @@ impl Assign for Rational {
 }
 
 impl<'a> Assign<&'a Rational> for Rational {
+    #[inline]
     fn assign(&mut self, other: &'a Rational) {
         unsafe {
             gmp::mpq_set(self.inner_mut(), other.inner());
@@ -1012,6 +1053,7 @@ impl<'a> Assign<&'a Rational> for Rational {
 }
 
 impl<'a> Assign<&'a Integer> for Rational {
+    #[inline]
     fn assign(&mut self, val: &'a Integer) {
         unsafe {
             gmp::mpq_set_z(self.inner_mut(), val.inner());
@@ -1022,6 +1064,7 @@ impl<'a> Assign<&'a Integer> for Rational {
 macro_rules! assign {
     { $T:ty } => {
         impl Assign<$T> for Rational {
+            #[inline]
             fn assign(&mut self, t: $T) {
                 // no need to canonicalize, as denominator will be 1.
                 let num_den =
@@ -1044,6 +1087,7 @@ where
     Integer: Assign<T>,
     Integer: Assign<U>,
 {
+    #[inline]
     fn assign(&mut self, (num, den): (T, U)) {
         let mut num_den = self.as_mut_numer_denom();
         num_den.num().assign(num);
@@ -1059,6 +1103,7 @@ pub struct CeilRef<'a> {
 }
 
 impl<'a> Assign<CeilRef<'a>> for Integer {
+    #[inline]
     fn assign(&mut self, src: CeilRef<'a>) {
         unsafe {
             xgmp::mpq_ceil(self.inner_mut(), src.ref_self.inner());
@@ -1071,6 +1116,7 @@ pub struct FloorRef<'a> {
 }
 
 impl<'a> Assign<FloorRef<'a>> for Integer {
+    #[inline]
     fn assign(&mut self, src: FloorRef<'a>) {
         unsafe {
             xgmp::mpq_floor(self.inner_mut(), src.ref_self.inner());
@@ -1083,6 +1129,7 @@ pub struct RoundRef<'a> {
 }
 
 impl<'a> Assign<RoundRef<'a>> for Integer {
+    #[inline]
     fn assign(&mut self, src: RoundRef<'a>) {
         unsafe {
             xgmp::mpq_round(self.inner_mut(), src.ref_self.inner());
@@ -1095,6 +1142,7 @@ pub struct TruncRef<'a> {
 }
 
 impl<'a> Assign<TruncRef<'a>> for Integer {
+    #[inline]
     fn assign(&mut self, src: TruncRef<'a>) {
         unsafe {
             xgmp::mpq_trunc(self.inner_mut(), src.ref_self.inner());
@@ -1109,6 +1157,7 @@ pub struct FractTruncRef<'a> {
 }
 
 impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
+    #[inline]
     fn assign(&mut self, src: FractTruncRef<'a>) {
         unsafe {
             xgmp::mpq_fract_trunc(
@@ -1173,6 +1222,7 @@ arith_prim! {
 impl Eq for Rational {}
 
 impl Ord for Rational {
+    #[inline]
     fn cmp(&self, other: &Rational) -> Ordering {
         let ord = unsafe { gmp::mpq_cmp(self.inner(), other.inner()) };
         ord.cmp(&0)
@@ -1180,12 +1230,14 @@ impl Ord for Rational {
 }
 
 impl PartialEq for Rational {
+    #[inline]
     fn eq(&self, other: &Rational) -> bool {
         unsafe { gmp::mpq_equal(self.inner(), other.inner()) != 0 }
     }
 }
 
 impl PartialOrd for Rational {
+    #[inline]
     fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
         Some(self.cmp(other))
     }
@@ -1194,24 +1246,28 @@ impl PartialOrd for Rational {
 macro_rules! cmp {
     { $T:ty, $eq:expr, $cmp:expr } => {
         impl PartialEq<$T> for Rational {
+            #[inline]
             fn eq(&self, other: &$T) -> bool {
                 $eq(self.inner(), other)
             }
         }
 
         impl PartialEq<Rational> for $T {
+            #[inline]
             fn eq(&self, other: &Rational) -> bool {
                 other.eq(self)
             }
         }
 
         impl PartialOrd<$T> for Rational {
+            #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 Some($cmp(self.inner(), other))
             }
         }
 
         impl PartialOrd<Rational> for $T {
+            #[inline]
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
                 other.partial_cmp(self).map(Ordering::reverse)
             }
@@ -1311,6 +1367,7 @@ pub struct ValidRational<'a> {
 from_borrow! { ValidRational<'a> => Rational }
 
 impl<'a> Assign<ValidRational<'a>> for Rational {
+    #[inline]
     fn assign(&mut self, rhs: ValidRational) {
         let mut v = Vec::<u8>::with_capacity(rhs.bytes.len() + 1);
         v.extend_from_slice(rhs.bytes);
@@ -1357,6 +1414,7 @@ impl Error for ParseRationalError {
 }
 
 impl Display for ParseRationalError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -1376,20 +1434,24 @@ pub struct MutNumerDenom<'a> {
 
 impl<'a> MutNumerDenom<'a> {
     /// Gets the mutable numerator.
+    #[inline]
     pub fn num(&mut self) -> &mut Integer {
         self.num
     }
     /// Gets the mutable denominator.
+    #[inline]
     pub fn den(&mut self) -> &mut Integer {
         &mut self.den_actual
     }
     /// Gets the mutable numerator and denominator.
+    #[inline]
     pub fn num_den(&mut self) -> (&mut Integer, &mut Integer) {
         (self.num, &mut self.den_actual)
     }
 }
 
 impl<'a> Drop for MutNumerDenom<'a> {
+    #[inline]
     fn drop(&mut self) {
         assert_ne!(self.den_actual.sign(), Ordering::Equal, "division by zero");
         unsafe {
@@ -1416,12 +1478,14 @@ unsafe impl Sync for Rational {}
 
 impl Inner for Rational {
     type Output = mpq_t;
+    #[inline]
     fn inner(&self) -> &mpq_t {
         &self.inner
     }
 }
 
 impl InnerMut for Rational {
+    #[inline]
     unsafe fn inner_mut(&mut self) -> &mut mpq_t {
         &mut self.inner
     }

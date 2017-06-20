@@ -65,6 +65,7 @@ pub struct Mpz {
 }
 
 impl Default for SmallInteger {
+    #[inline]
     fn default() -> SmallInteger {
         SmallInteger::new()
     }
@@ -72,6 +73,7 @@ impl Default for SmallInteger {
 
 impl SmallInteger {
     /// Creates a `SmallInteger` with value 0.
+    #[inline]
     pub fn new() -> SmallInteger {
         SmallInteger {
             inner: Mpz {
@@ -95,6 +97,7 @@ impl SmallInteger {
 
 impl Deref for SmallInteger {
     type Target = Integer;
+    #[inline]
     fn deref(&self) -> &Integer {
         self.update_d();
         let ptr = (&self.inner) as *const _ as *const _;
@@ -106,6 +109,7 @@ impl<T> From<T> for SmallInteger
 where
     SmallInteger: Assign<T>,
 {
+    #[inline]
     fn from(val: T) -> SmallInteger {
         let mut ret = SmallInteger::new();
         ret.assign(val);
@@ -114,6 +118,7 @@ where
 }
 
 impl Assign<i32> for SmallInteger {
+    #[inline]
     fn assign(&mut self, val: i32) {
         self.assign(val.wrapping_abs() as u32);
         if val < 0 {
@@ -123,6 +128,7 @@ impl Assign<i32> for SmallInteger {
 }
 
 impl Assign<i64> for SmallInteger {
+    #[inline]
     fn assign(&mut self, val: i64) {
         self.assign(val.wrapping_abs() as u64);
         if val < 0 {
@@ -132,6 +138,7 @@ impl Assign<i64> for SmallInteger {
 }
 
 impl Assign<u32> for SmallInteger {
+    #[inline]
     fn assign(&mut self, val: u32) {
         if val == 0 {
             self.inner.size = 0;
@@ -143,6 +150,7 @@ impl Assign<u32> for SmallInteger {
 }
 
 impl Assign<u64> for SmallInteger {
+    #[inline]
     fn assign(&mut self, val: u64) {
         match gmp::LIMB_BITS {
             64 => {

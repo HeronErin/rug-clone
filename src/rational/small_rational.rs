@@ -66,6 +66,7 @@ pub struct Mpz {
 }
 
 impl Default for SmallRational {
+    #[inline]
     fn default() -> SmallRational {
         SmallRational::new()
     }
@@ -73,6 +74,7 @@ impl Default for SmallRational {
 
 impl SmallRational {
     /// Creates a `SmallRational` with value 0.
+    #[inline]
     pub fn new() -> SmallRational {
         let mut ret = SmallRational {
             num: Mpz {
@@ -119,6 +121,7 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
+    #[inline]
     pub unsafe fn from_canonicalized_32(
         neg: bool,
         num: u32,
@@ -159,6 +162,7 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
+    #[inline]
     pub unsafe fn from_canonicalized_64(
         neg: bool,
         num: u64,
@@ -199,6 +203,7 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
+    #[inline]
     pub unsafe fn assign_canonicalized_32(
         &mut self,
         neg: bool,
@@ -239,6 +244,7 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
+    #[inline]
     pub unsafe fn assign_canonicalized_64(
         &mut self,
         neg: bool,
@@ -276,6 +282,7 @@ impl SmallRational {
         }
     }
 
+    #[inline]
     fn set_num_den_32(&mut self, neg: bool, num: u32, den: u32) {
         assert_ne!(den, 0, "division by zero");
         if num == 0 {
@@ -293,6 +300,7 @@ impl SmallRational {
         }
     }
 
+    #[inline]
     fn set_num_den_64(&mut self, neg: bool, num: u64, den: u64) {
         assert_ne!(den, 0, "division by zero");
         if num == 0 {
@@ -310,6 +318,7 @@ impl SmallRational {
         }
     }
 
+    #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
@@ -324,6 +333,7 @@ impl SmallRational {
 
 impl Deref for SmallRational {
     type Target = Rational;
+    #[inline]
     fn deref(&self) -> &Rational {
         self.update_d();
         let ptr = (&self.num) as *const _ as *const _;
@@ -335,6 +345,7 @@ impl<T> From<T> for SmallRational
 where
     SmallRational: Assign<T>,
 {
+    #[inline]
     fn from(val: T) -> SmallRational {
         let mut ret = SmallRational::new();
         ret.assign(val);
@@ -343,6 +354,7 @@ where
 }
 
 impl Assign<i32> for SmallRational {
+    #[inline]
     fn assign(&mut self, num: i32) {
         unsafe {
             self.assign_canonicalized_32(num < 0, num.wrapping_abs() as u32, 1);
@@ -351,6 +363,7 @@ impl Assign<i32> for SmallRational {
 }
 
 impl Assign<i64> for SmallRational {
+    #[inline]
     fn assign(&mut self, num: i64) {
         unsafe {
             self.assign_canonicalized_64(num < 0, num.wrapping_abs() as u64, 1);
@@ -359,6 +372,7 @@ impl Assign<i64> for SmallRational {
 }
 
 impl Assign<u32> for SmallRational {
+    #[inline]
     fn assign(&mut self, num: u32) {
         unsafe {
             self.assign_canonicalized_32(false, num, 1);
@@ -367,6 +381,7 @@ impl Assign<u32> for SmallRational {
 }
 
 impl Assign<u64> for SmallRational {
+    #[inline]
     fn assign(&mut self, num: u64) {
         unsafe {
             self.assign_canonicalized_64(false, num, 1);
@@ -375,6 +390,7 @@ impl Assign<u64> for SmallRational {
 }
 
 impl Assign<(i32, i32)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (i32, i32)) {
         let num_neg = num < 0;
         let den_neg = den < 0;
@@ -387,6 +403,7 @@ impl Assign<(i32, i32)> for SmallRational {
 }
 
 impl Assign<(i64, i64)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (i64, i64)) {
         let num_neg = num < 0;
         let den_neg = den < 0;
@@ -399,36 +416,42 @@ impl Assign<(i64, i64)> for SmallRational {
 }
 
 impl Assign<(i32, u32)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (i32, u32)) {
         self.set_num_den_32(num < 0, num.wrapping_abs() as u32, den);
     }
 }
 
 impl Assign<(i64, u64)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (i64, u64)) {
         self.set_num_den_64(num < 0, num.wrapping_abs() as u64, den);
     }
 }
 
 impl Assign<(u32, i32)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (u32, i32)) {
         self.set_num_den_32(den < 0, num, den.wrapping_abs() as u32);
     }
 }
 
 impl Assign<(u64, i64)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (u64, i64)) {
         self.set_num_den_64(den < 0, num, den.wrapping_abs() as u64);
     }
 }
 
 impl Assign<(u32, u32)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (u32, u32)) {
         self.set_num_den_32(false, num, den);
     }
 }
 
 impl Assign<(u64, u64)> for SmallRational {
+    #[inline]
     fn assign(&mut self, (num, den): (u64, u64)) {
         self.set_num_den_64(false, num, den);
     }

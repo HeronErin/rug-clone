@@ -30,12 +30,14 @@ pub struct RandState<'a> {
 }
 
 impl<'a> Default for RandState<'a> {
+    #[inline]
     fn default() -> RandState<'a> {
         RandState::new()
     }
 }
 
 impl<'a> Clone for RandState<'a> {
+    #[inline]
     fn clone(&self) -> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
@@ -49,6 +51,7 @@ impl<'a> Clone for RandState<'a> {
 }
 
 impl<'a> Drop for RandState<'a> {
+    #[inline]
     fn drop(&mut self) {
         unsafe {
             gmp::randclear(self.inner_mut());
@@ -62,6 +65,7 @@ unsafe impl<'a> Sync for RandState<'a> {}
 impl<'a> RandState<'a> {
     /// Creates a new random generator with a compromise between speed
     /// and randomness.
+    #[inline]
     pub fn new() -> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
@@ -169,6 +173,7 @@ impl<'a> RandState<'a> {
     }
 
     /// Seeds the random generator.
+    #[inline]
     pub fn seed(&mut self, seed: &Integer) {
         unsafe {
             gmp::randseed(self.inner_mut(), seed.inner());
@@ -180,6 +185,7 @@ impl<'a> RandState<'a> {
     /// # Panics
     ///
     /// Panics if `bits` is greater than 32.
+    #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
         assert!(bits <= 32, "bits out of range");
         unsafe { gmp::urandomb_ui(self.inner_mut(), bits.into()) as u32 }
@@ -194,6 +200,7 @@ impl<'a> RandState<'a> {
     /// # Panics
     ///
     /// Panics if the boundary value is zero.
+    #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
         unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
@@ -259,9 +266,8 @@ pub trait RandGen: Send + Sync {
     /// }
     /// assert_eq!(seed.num, i);
     /// ```
-    fn seed(&mut self, seed: &Integer) {
-        let _ = seed;
-    }
+    #[inline]
+    fn seed(&mut self, _seed: &Integer) {}
 }
 
 // The contents of gmp::randstate_t are not available because the
@@ -367,12 +373,14 @@ const CUSTOM_FUNCS: Funcs = Funcs {
 
 impl<'a> Inner for RandState<'a> {
     type Output = randstate_t;
+    #[inline]
     fn inner(&self) -> &randstate_t {
         &self.inner
     }
 }
 
 impl<'a> InnerMut for RandState<'a> {
+    #[inline]
     unsafe fn inner_mut(&mut self) -> &mut randstate_t {
         &mut self.inner
     }

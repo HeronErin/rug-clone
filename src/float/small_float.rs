@@ -77,6 +77,7 @@ pub struct Mpfr {
 }
 
 impl Default for SmallFloat {
+    #[inline]
     fn default() -> SmallFloat {
         SmallFloat::new()
     }
@@ -84,6 +85,7 @@ impl Default for SmallFloat {
 
 impl SmallFloat {
     /// Creates a `SmallFloat` with value 0.
+    #[inline]
     pub fn new() -> SmallFloat {
         unsafe {
             let mut ret = SmallFloat {
@@ -114,6 +116,7 @@ impl SmallFloat {
 
 impl Deref for SmallFloat {
     type Target = Float;
+    #[inline]
     fn deref(&self) -> &Float {
         self.update_d();
         let ptr = (&self.inner) as *const _ as *const _;
@@ -125,6 +128,7 @@ impl<T> From<T> for SmallFloat
 where
     SmallFloat: Assign<T>,
 {
+    #[inline]
     fn from(val: T) -> SmallFloat {
         let mut ret = SmallFloat::new();
         ret.assign(val);
@@ -135,6 +139,7 @@ where
 macro_rules! assign_i {
     { $I:ty => $U:ty } => {
         impl Assign<$I> for SmallFloat {
+            #[inline]
             fn assign(&mut self, val: $I) {
                 self.assign(val.wrapping_abs() as $U);
                 if val < 0 {
@@ -159,6 +164,7 @@ assign_i! { i64 => u64 }
 macro_rules! assign_u_single_limb {
     { $U:ty => $bits:expr } => {
         impl Assign<$U> for SmallFloat {
+            #[inline]
             fn assign(&mut self, val: $U) {
                 let ptr = &mut self.inner as *mut _ as *mut _;
                 let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
@@ -200,6 +206,7 @@ assign_u_single_limb! { u16 => 16 }
 assign_u_single_limb! { u32 => 32 }
 
 impl Assign<u64> for SmallFloat {
+    #[inline]
     fn assign(&mut self, val: u64) {
         let ptr = &mut self.inner as *mut _ as *mut _;
         let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
@@ -237,6 +244,7 @@ impl Assign<u64> for SmallFloat {
 }
 
 impl Assign<f32> for SmallFloat {
+    #[inline]
     fn assign(&mut self, val: f32) {
         let ptr = &mut self.inner as *mut _ as *mut _;
         let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
@@ -249,6 +257,7 @@ impl Assign<f32> for SmallFloat {
 }
 
 impl Assign<f64> for SmallFloat {
+    #[inline]
     fn assign(&mut self, val: f64) {
         let ptr = &mut self.inner as *mut _ as *mut _;
         let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
@@ -260,6 +269,7 @@ impl Assign<f64> for SmallFloat {
     }
 }
 
+#[inline]
 fn rraw(round: Round) -> mpfr::rnd_t {
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,

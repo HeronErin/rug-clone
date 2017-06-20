@@ -48,12 +48,14 @@ pub trait Prec {
 }
 
 impl Prec for u32 {
+    #[inline]
     fn prec(self) -> (u32, u32) {
         (self, self)
     }
 }
 
 impl Prec for (u32, u32) {
+    #[inline]
     fn prec(self) -> (u32, u32) {
         self
     }
@@ -87,6 +89,7 @@ pub struct Complex {
 }
 
 impl Clone for Complex {
+    #[inline]
     fn clone(&self) -> Complex {
         let prec = self.prec();
         let mut ret = Complex::new(prec);
@@ -94,12 +97,14 @@ impl Clone for Complex {
         ret
     }
 
+    #[inline]
     fn clone_from(&mut self, source: &Complex) {
         self.assign(source);
     }
 }
 
 impl Drop for Complex {
+    #[inline]
     fn drop(&mut self) {
         unsafe {
             mpc::clear(self.inner_mut());
@@ -200,6 +205,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if the precision is out of the allowed range.
+    #[inline]
     pub fn new<P: Prec>(prec: P) -> Complex {
         let p = prec.prec();
         assert!(
@@ -211,9 +217,9 @@ impl Complex {
             let mut inner: mpc_t = mem::uninitialized();
             mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
             let real = mpc::realref(&mut inner);
+            mpfr::set_ui(real, 0);
             let imag = mpc::imagref(&mut inner);
-            mpfr::set_zero(real, 0);
-            mpfr::set_zero(imag, 0);
+            mpfr::set_ui(imag, 0);
             Complex { inner: inner }
         }
     }
@@ -227,6 +233,7 @@ impl Complex {
     /// let r = Complex::new((24, 53));
     /// assert_eq!(r.prec(), (24, 53));
     /// ```
+    #[inline]
     pub fn prec(&self) -> (u32, u32) {
         (self.real().prec(), self.imag().prec())
     }
@@ -247,6 +254,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if the precision is out of the allowed range.
+    #[inline]
     pub fn set_prec<P: Prec>(&mut self, prec: P) {
         self.set_prec_round(prec, Default::default());
     }
@@ -270,6 +278,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if the precision is out of the allowed range.
+    #[inline]
     pub fn set_prec_round<P: Prec>(
         &mut self,
         prec: P,
@@ -296,6 +305,7 @@ impl Complex {
     /// let bad = Complex::from_str("bad", 53);
     /// assert!(bad.is_err());
     /// ```
+    #[inline]
     pub fn from_str<P: Prec>(
         src: &str,
         prec: P,
@@ -321,6 +331,7 @@ impl Complex {
     /// assert_eq!(*c.imag(), 15);
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
+    #[inline]
     pub fn from_str_round<P: Prec>(
         src: &str,
         prec: P,
@@ -346,6 +357,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn from_str_radix<P: Prec>(
         src: &str,
         radix: i32,
@@ -376,6 +388,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn from_str_radix_round<P: Prec>(
         src: &str,
         radix: i32,
@@ -471,6 +484,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn to_string_radix(
         &self,
         radix: i32,
@@ -546,6 +560,7 @@ impl Complex {
     /// let ret = c.assign_str("bad");
     /// assert!(ret.is_err());
     /// ```
+    #[inline]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseComplexError> {
         self.assign_str_radix(src, 10)
     }
@@ -566,6 +581,7 @@ impl Complex {
     /// assert_eq!(*c.imag(), 15);
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
+    #[inline]
     pub fn assign_str_round(
         &mut self,
         src: &str,
@@ -590,6 +606,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
@@ -619,6 +636,7 @@ impl Complex {
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
     pub fn assign_str_radix_round(
         &mut self,
         src: &str,
@@ -640,6 +658,7 @@ impl Complex {
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(*c.real(), 12.5)
     /// ```
+    #[inline]
     pub fn real(&self) -> &Float {
         unsafe {
             let ptr = mpc::realref_const(self.inner());
@@ -655,6 +674,7 @@ impl Complex {
     /// use rug::Complex;
     /// let c = Complex::from(((12.5, -20.75), 53));
     /// assert_eq!(*c.imag(), -20.75)
+    #[inline]
     pub fn imag(&self) -> &Float {
         unsafe {
             let ptr = mpc::imagref_const(self.inner());
@@ -673,6 +693,7 @@ impl Complex {
     /// *c.mut_real() /= 2;
     /// assert_eq!(c, (6.25, -20.75));
     /// ```
+    #[inline]
     pub fn mut_real(&mut self) -> &mut Float {
         unsafe {
             let ptr = mpc::realref(self.inner_mut());
@@ -691,6 +712,7 @@ impl Complex {
     /// *c.mut_imag() *= 4;
     /// assert_eq!(c, (12.5, -83));
     /// ```
+    #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
         unsafe {
             let ptr = mpc::imagref(self.inner_mut());
@@ -710,6 +732,7 @@ impl Complex {
     /// assert_eq!(*re, 12.5);
     /// assert_eq!(*im, -20.75);
     /// ```
+    #[inline]
     pub fn as_real_imag(&self) -> (&Float, &Float) {
         (self.real(), self.imag())
     }
@@ -730,6 +753,7 @@ impl Complex {
     /// }
     /// assert_eq!(c, (6.25, -83));
     /// ```
+    #[inline]
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
             let real_ptr = mpc::realref(self.inner_mut());
@@ -754,6 +778,7 @@ impl Complex {
     /// assert_eq!(real, 12.5);
     /// assert_eq!(imag, -20.75);
     /// ```
+    #[inline]
     pub fn into_real_imag(mut self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
         unsafe {
@@ -820,6 +845,7 @@ impl Complex {
     /// let c2 = Complex::from(((12, Special::Infinity), 53));
     /// assert!(Float::from((c2.abs_ref(), 53)).is_infinite());
     /// ```
+    #[inline]
     pub fn abs_ref(&self) -> AbsRef {
         AbsRef { ref_self: self }
     }
@@ -860,6 +886,7 @@ impl Complex {
     /// arg.assign(zero.arg_ref());
     /// assert_eq!(arg, -f64::consts::PI);
     /// ```
+    #[inline]
     pub fn arg_ref(&self) -> ArgRef {
         ArgRef { ref_self: self }
     }
@@ -886,6 +913,7 @@ impl Complex {
     }
 
     /// Computes the norm, that is the square of the absolute value.
+    #[inline]
     pub fn norm_ref(&self) -> NormRef {
         NormRef { ref_self: self }
     }
@@ -1078,6 +1106,7 @@ impl Complex {
     /// This is equivalent to calling [`assign_random_bits(rng)`]
     /// (../rugflo/struct.Float.html#method.assign_random_bits) on the
     /// real part, and the same on the imaginary part.
+    #[inline]
     pub fn assign_random_bits(
         &mut self,
         rng: &mut RandState,
@@ -1094,6 +1123,7 @@ impl Complex {
     /// Calling this method is equivalent to calling
     /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
     /// (#method.assign_random_cont_round).
+    #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         self.assign_random_cont_round(rng, Default::default());
     }
@@ -1108,6 +1138,7 @@ impl Complex {
     /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
     /// on the real part, and the same with `round.1` on the
     /// imaginary part.
+    #[inline]
     pub fn assign_random_cont_round(
         &mut self,
         rng: &mut RandState,
@@ -1127,6 +1158,7 @@ impl From<(Float, Float)> for Complex {
     ///
     /// This constructor does not allocate, as it reuses the `Float`
     /// components.
+    #[inline]
     fn from((real, imag): (Float, Float)) -> Complex {
         let mut dst: Complex = unsafe { mem::uninitialized() };
         unsafe {
@@ -1144,6 +1176,7 @@ impl<T, P: Prec> From<(T, P)> for Complex
 where
     Complex: FromRound<T, P, Round = Round2>,
 {
+    #[inline]
     fn from((t, prec): (T, P)) -> Complex {
         Complex::from_round(t, prec, Default::default()).0
     }
@@ -1159,6 +1192,7 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn from_round(t: T, prec: P, round: Round2) -> (Complex, Ordering2) {
         let mut ret = Complex::new(prec);
         let ord = ret.assign_round(t, round);
@@ -1167,48 +1201,56 @@ where
 }
 
 impl Display for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "", false)
     }
 }
 
 impl Debug for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "", true)
     }
 }
 
 impl LowerExp for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "", false)
     }
 }
 
 impl UpperExp for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, true, "", false)
     }
 }
 
 impl Binary for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 2, false, "0b", false)
     }
 }
 
 impl Octal for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 8, false, "0o", false)
     }
 }
 
 impl LowerHex for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, false, "0x", false)
     }
 }
 
 impl UpperHex for Complex {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x", false)
     }
@@ -1222,6 +1264,7 @@ where
         Ordering = Ordering2,
     >,
 {
+    #[inline]
     fn assign(&mut self, other: T) {
         self.assign_round(other, Default::default());
     }
@@ -1230,6 +1273,7 @@ where
 impl AssignRound<Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn assign_round(&mut self, other: Complex, round: Round2) -> Ordering2 {
         self.assign_round(&other, round)
     }
@@ -1238,6 +1282,7 @@ impl AssignRound<Complex> for Complex {
 impl<'a> AssignRound<&'a Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn assign_round(&mut self, other: &Complex, round: Round2) -> Ordering2 {
         let mpc_ret =
             unsafe { mpc::set(self.inner_mut(), other.inner(), rraw2(round)) };
@@ -1250,6 +1295,7 @@ macro_rules! assign_ref {
         impl<'a> AssignRound<&'a $T> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
+            #[inline]
             fn assign_round(
                 &mut self,
                 other: &'a $T,
@@ -1269,6 +1315,7 @@ macro_rules! assign {
         impl AssignRound<$T> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
+            #[inline]
             fn assign_round(&mut self, other: $T, round: Round2) -> Ordering2 {
                 let (real, imag) = self.as_mut_real_imag();
                 let ord1 = real.assign_round(other, round.0);
@@ -1311,6 +1358,7 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn assign_round(&mut self, other: (T, U), round: Round2) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
         let ord1 = real.assign_round(other.0, round.0);
@@ -1331,6 +1379,7 @@ pub struct AbsRef<'a> {
 impl<'a> AssignRound<AbsRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn assign_round(&mut self, src: AbsRef<'a>, round: Round) -> Ordering {
         let mpc_ret = unsafe {
             mpc::abs(self.inner_mut(), src.ref_self.inner(), rraw(round))
@@ -1346,6 +1395,7 @@ pub struct ArgRef<'a> {
 impl<'a> AssignRound<ArgRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn assign_round(&mut self, src: ArgRef<'a>, round: Round) -> Ordering {
         let mpc_ret = unsafe {
             mpc::arg(self.inner_mut(), src.ref_self.inner(), rraw(round))
@@ -1364,6 +1414,7 @@ pub struct NormRef<'a> {
 impl<'a> AssignRound<NormRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
+    #[inline]
     fn assign_round(&mut self, src: NormRef<'a>, round: Round) -> Ordering {
         let mpc_ret = unsafe {
             mpc::norm(self.inner_mut(), src.ref_self.inner(), rraw(round))
@@ -1391,6 +1442,7 @@ ref_math_op1_complex! { mpc::atanh; struct AtanhRef {} }
 
 impl Neg for Complex {
     type Output = Complex;
+    #[inline]
     fn neg(mut self) -> Complex {
         self.neg_assign();
         self
@@ -1398,6 +1450,7 @@ impl Neg for Complex {
 }
 
 impl NegAssign for Complex {
+    #[inline]
     fn neg_assign(&mut self) {
         unsafe {
             mpc::neg(self.inner_mut(), self.inner(), rraw2(Default::default()));
@@ -1407,6 +1460,7 @@ impl NegAssign for Complex {
 
 impl<'a> Neg for &'a Complex {
     type Output = NegRef<'a>;
+    #[inline]
     fn neg(self) -> NegRef<'a> {
         NegRef { val: self }
     }
@@ -1419,6 +1473,7 @@ pub struct NegRef<'a> {
 impl<'a> AssignRound<NegRef<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn assign_round(&mut self, src: NegRef<'a>, round: Round2) -> Ordering2 {
         let mpc_ret = unsafe {
             mpc::neg(self.inner_mut(), src.val.inner(), rraw2(round))
@@ -1840,6 +1895,7 @@ impl<'a> Add<MulRef<'a>> for Complex {
     type Output = Complex;
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
+    #[inline]
     fn add(self, rhs: MulRef) -> Complex {
         self.add_round(rhs, Default::default()).0
     }
@@ -1851,6 +1907,7 @@ impl<'a> AddRound<MulRef<'a>> for Complex {
     type Output = Complex;
     /// Peforms multiplication and addition together with only one
     /// rounding operation as specified.
+    #[inline]
     fn add_round(mut self, rhs: MulRef, round: Round2) -> (Complex, Ordering2) {
         let mpc_ret = unsafe {
             mpc::fma(
@@ -1868,6 +1925,7 @@ impl<'a> AddRound<MulRef<'a>> for Complex {
 impl<'a> AddAssign<MulRef<'a>> for Complex {
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
+    #[inline]
     fn add_assign(&mut self, rhs: MulRef) {
         unsafe {
             mpc::fma(
@@ -1882,6 +1940,7 @@ impl<'a> AddAssign<MulRef<'a>> for Complex {
 }
 
 impl PartialEq for Complex {
+    #[inline]
     fn eq(&self, other: &Complex) -> bool {
         self.real().eq(other.real()) && self.imag().eq(other.imag())
     }
@@ -1892,6 +1951,7 @@ where
     Float: PartialEq<T>,
     Float: PartialEq<U>,
 {
+    #[inline]
     fn eq(&self, other: &(T, U)) -> bool {
         self.real().eq(&other.0) && self.imag().eq(&other.1)
     }
@@ -1900,6 +1960,7 @@ where
 macro_rules! partial_eq {
     { $T:ty } => {
         impl PartialEq<$T> for Complex {
+            #[inline]
             fn eq(&self, other: &$T) -> bool {
                 self.real().eq(other) && self.imag().is_zero()
             }
@@ -1994,6 +2055,7 @@ pub struct ParseComplexError {
 impl<'a> AssignRound<ValidComplex<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
+    #[inline]
     fn assign_round(&mut self, rhs: ValidComplex, round: Round2) -> Ordering2 {
         match rhs.poss {
             ValidPoss::Real(re) => {
@@ -2037,6 +2099,7 @@ impl Error for ParseComplexError {
 }
 
 impl Display for ParseComplexError {
+    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }
@@ -2045,6 +2108,7 @@ impl Display for ParseComplexError {
 unsafe impl Send for Complex {}
 unsafe impl Sync for Complex {}
 
+#[inline]
 fn rraw(round: Round) -> mpfr::rnd_t {
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
@@ -2055,6 +2119,7 @@ fn rraw(round: Round) -> mpfr::rnd_t {
     }
 }
 
+#[inline]
 fn rraw2(round: Round2) -> mpc::rnd_t {
     match (round.0, round.1) {
         (Round::Nearest, Round::Nearest) => mpc::RNDNN,
@@ -2078,6 +2143,7 @@ fn rraw2(round: Round2) -> mpc::rnd_t {
     }
 }
 
+#[inline]
 fn ordering2(ord: c_int) -> Ordering2 {
     // ord == first + 4 * second
     let first = mpc::INEX_RE(ord).cmp(&0);
@@ -2085,18 +2151,21 @@ fn ordering2(ord: c_int) -> Ordering2 {
     (first, second)
 }
 
+#[inline]
 fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
     (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
 }
 
 impl Inner for Complex {
     type Output = mpc_t;
+    #[inline]
     fn inner(&self) -> &mpc_t {
         &self.inner
     }
 }
 
 impl InnerMut for Complex {
+    #[inline]
     unsafe fn inner_mut(&mut self) -> &mut mpc_t {
         &mut self.inner
     }
