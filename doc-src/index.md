@@ -38,4 +38,5 @@ the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 [rug flo]:   https://tspiteri.gitlab.io/rug/rug/Float.html
 [rug int]:   https://tspiteri.gitlab.io/rug/rug/Integer.html
 [rug rat]:   https://tspiteri.gitlab.io/rug/rug/Rational.html
-[sys]:       https://tspiteri.gitlab.io/rug/gmp_mpfr_sys/
+[rug]:       https://tspiteri.gitlab.io/rug/rug/index.html
+[sys]:       https://tspiteri.gitlab.io/rug/gmp_mpfr_sys/index.html
