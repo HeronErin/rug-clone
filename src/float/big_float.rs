@@ -371,6 +371,13 @@ impl Float {
     /// Panics if `prec` is out of the allowed range.
     #[inline]
     pub fn new(prec: u32) -> Float {
+        let mut ret = Float::new_nan(prec);
+        ret.assign(Special::Zero);
+        ret
+    }
+
+    #[inline]
+    fn new_nan(prec: u32) -> Float {
         assert!(
             prec >= prec_min() && prec <= prec_max(),
             "precision out of range"
@@ -378,7 +385,6 @@ impl Float {
         unsafe {
             let mut inner: mpfr_t = mem::uninitialized();
             mpfr::init2(&mut inner, prec as mpfr::prec_t);
-            mpfr::set_ui(&mut inner, 0);
             Float { inner: inner }
         }
     }
@@ -426,7 +432,7 @@ impl Float {
     /// See the [corresponding assignment](#method.assign_str).
     #[inline]
     pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
-        let mut f = Float::new(prec);
+        let mut f = Float::new_nan(prec);
         f.assign_str(src)?;
         Ok(f)
     }
@@ -441,7 +447,7 @@ impl Float {
         prec: u32,
         round: Round,
     ) -> Result<(Float, Ordering), ParseFloatError> {
-        let mut f = Float::new(prec);
+        let mut f = Float::new_nan(prec);
         let ord = f.assign_str_round(src, round)?;
         Ok((f, ord))
     }
@@ -460,7 +466,7 @@ impl Float {
         radix: i32,
         prec: u32,
     ) -> Result<Float, ParseFloatError> {
-        let mut f = Float::new(prec);
+        let mut f = Float::new_nan(prec);
         f.assign_str_radix(src, radix)?;
         Ok(f)
     }
@@ -480,7 +486,7 @@ impl Float {
         prec: u32,
         round: Round,
     ) -> Result<(Float, Ordering), ParseFloatError> {
-        let mut f = Float::new(prec);
+        let mut f = Float::new_nan(prec);
         let ord = f.assign_str_radix_round(src, radix, round)?;
         Ok((f, ord))
     }
@@ -2200,7 +2206,7 @@ where
     type Ordering = Ordering;
     #[inline]
     fn from_round(t: T, prec: u32, round: Round) -> (Float, Ordering) {
-        let mut ret = Float::new(prec);
+        let mut ret = Float::new_nan(prec);
         let ord = ret.assign_round(t, round);
         (ret, ord)
     }
@@ -2301,11 +2307,30 @@ impl AssignRound<Special> for Float {
     #[inline]
     fn assign_round(&mut self, other: Special, _round: Round) -> Ordering {
         unsafe {
+            const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
+            const EXP_ZERO: c_long = 0 - EXP_MAX;
+            const EXP_INF: c_long = 2 - EXP_MAX;
             match other {
-                Special::Zero => mpfr::set_ui(self.inner_mut(), 0),
-                Special::MinusZero => mpfr::set_zero(self.inner_mut(), -1),
-                Special::Infinity => mpfr::set_inf(self.inner_mut(), 0),
-                Special::MinusInfinity => mpfr::set_inf(self.inner_mut(), -1),
+                Special::Zero => {
+                    let ptr = self.inner_mut();
+                    (*ptr).sign = 1;
+                    (*ptr).exp = EXP_ZERO;
+                }
+                Special::MinusZero => {
+                    let ptr = self.inner_mut();
+                    (*ptr).sign = -1;
+                    (*ptr).exp = EXP_ZERO;
+                }
+                Special::Infinity => {
+                    let ptr = self.inner_mut();
+                    (*ptr).sign = 1;
+                    (*ptr).exp = EXP_INF;
+                }
+                Special::MinusInfinity => {
+                    let ptr = self.inner_mut();
+                    (*ptr).sign = -1;
+                    (*ptr).exp = EXP_INF;
+                }
                 Special::Nan => mpfr::set_nan(self.inner_mut()),
             };
         }

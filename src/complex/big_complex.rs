@@ -189,6 +189,21 @@ macro_rules! ref_math_op1_2_complex {
 }
 
 impl Complex {
+    #[inline]
+    fn new_nan<P: Prec>(prec: P) -> Complex {
+        let p = prec.prec();
+        assert!(
+            p.0 >= float::prec_min() && p.0 <= float::prec_max() &&
+                p.1 >= float::prec_min() && p.1 <= float::prec_max(),
+            "precision out of range"
+        );
+        unsafe {
+            let mut inner: mpc_t = mem::uninitialized();
+            mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
+            Complex { inner: inner }
+        }
+    }
+
     /// Create a new complex number with the specified precisions for
     /// the real and imaginary parts and with value 0.
     ///
@@ -207,21 +222,10 @@ impl Complex {
     /// Panics if the precision is out of the allowed range.
     #[inline]
     pub fn new<P: Prec>(prec: P) -> Complex {
-        let p = prec.prec();
-        assert!(
-            p.0 >= float::prec_min() && p.0 <= float::prec_max() &&
-                p.1 >= float::prec_min() && p.1 <= float::prec_max(),
-            "precision out of range"
-        );
-        unsafe {
-            let mut inner: mpc_t = mem::uninitialized();
-            mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
-            let real = mpc::realref(&mut inner);
-            mpfr::set_ui(real, 0);
-            let imag = mpc::imagref(&mut inner);
-            mpfr::set_ui(imag, 0);
-            Complex { inner: inner }
-        }
+        let mut ret = Complex::new_nan(prec);
+        ret.mut_real().assign(Special::Zero);
+        ret.mut_imag().assign(Special::Zero);
+        ret
     }
 
     /// Returns the precision of the real and imaginary parts.
@@ -310,7 +314,7 @@ impl Complex {
         src: &str,
         prec: P,
     ) -> Result<Complex, ParseComplexError> {
-        let mut val = Complex::new(prec);
+        let mut val = Complex::new_nan(prec);
         val.assign_str(src)?;
         Ok(val)
     }
@@ -337,7 +341,7 @@ impl Complex {
         prec: P,
         round: Round2,
     ) -> Result<(Complex, Ordering2), ParseComplexError> {
-        let mut val = Complex::new(prec);
+        let mut val = Complex::new_nan(prec);
         let ord = val.assign_str_round(src, round)?;
         Ok((val, ord))
     }
@@ -363,7 +367,7 @@ impl Complex {
         radix: i32,
         prec: P,
     ) -> Result<Complex, ParseComplexError> {
-        let mut val = Complex::new(prec);
+        let mut val = Complex::new_nan(prec);
         val.assign_str_radix(src, radix)?;
         Ok(val)
     }
@@ -395,7 +399,7 @@ impl Complex {
         prec: P,
         round: Round2,
     ) -> Result<(Complex, Ordering2), ParseComplexError> {
-        let mut val = Complex::new(prec);
+        let mut val = Complex::new_nan(prec);
         let ord = val.assign_str_radix_round(src, radix, round)?;
         Ok((val, ord))
     }
@@ -1194,7 +1198,7 @@ where
     type Ordering = Ordering2;
     #[inline]
     fn from_round(t: T, prec: P, round: Round2) -> (Complex, Ordering2) {
-        let mut ret = Complex::new(prec);
+        let mut ret = Complex::new_nan(prec);
         let ord = ret.assign_round(t, round);
         (ret, ord)
     }
