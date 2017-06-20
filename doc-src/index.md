@@ -7,7 +7,7 @@ with arbitrary precision and correct rounding. Its main features are:
 * big [rational numbers][rug rat] with arbitrary precision,
 * multi-precision [floating-point numbers][rug flo] with correct
   rounding, and
-* multi-precision [complex numbers][rug comp] with correct rounding.
+* multi-precision [complex numbers][rug com] with correct rounding.
 	
 The `rug` crate depends on the low-level bindings in the
 [`gmp-mpfr-sys`][sys] crate. This should be transparent on GNU/Linux
@@ -34,9 +34,9 @@ the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 [lgpl]:      https://www.gnu.org/licenses/lgpl-3.0.en.html
 [mpc home]:  http://www.multiprecision.org/
 [mpfr home]: http://www.mpfr.org/
-[rug com]:   https://tspiteri.gitlab.io/rug/rug/Complex.html
-[rug flo]:   https://tspiteri.gitlab.io/rug/rug/Float.html
-[rug int]:   https://tspiteri.gitlab.io/rug/rug/Integer.html
-[rug rat]:   https://tspiteri.gitlab.io/rug/rug/Rational.html
+[rug com]:   https://tspiteri.gitlab.io/rug/rug/struct.Complex.html
+[rug flo]:   https://tspiteri.gitlab.io/rug/rug/struct.Float.html
+[rug int]:   https://tspiteri.gitlab.io/rug/rug/struct.Integer.html
+[rug rat]:   https://tspiteri.gitlab.io/rug/rug/struct.Rational.html
 [rug]:       https://tspiteri.gitlab.io/rug/rug/index.html
 [sys]:       https://tspiteri.gitlab.io/rug/gmp_mpfr_sys/index.html
