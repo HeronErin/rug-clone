@@ -58,9 +58,9 @@ for toolchain in "${toolchains[@]}"; do
 done
 
 # copy C libraries to some targets before clearing cache
-cargo +stable"$suffix" check
-cargo +stable"$suffix" check --release
-cargo +nightly"$suffix" check
-cargo +nightly"$suffix" check --release
+cargo +stable"$suffix" check -p gmp-mpfr-sys
+cargo +stable"$suffix" check --release -p gmp-mpfr-sys
+cargo +nightly"$suffix" check -p gmp-mpfr-sys
+cargo +nightly"$suffix" check --release -p gmp-mpfr-sys
 
 rm -r cache
