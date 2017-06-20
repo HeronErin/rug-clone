@@ -11,12 +11,12 @@ cargo +nightly doc -p gmp-mpfr-sys -p rug
 # clear variable so that next gen.sh run reruns doc generation
 unset GMP_MPFR_SYS_CDOC
 cargo +nightly check -p gmp-mpfr-sys
-rustdoc +nightly index.md --markdown-no-toc --output target/doc \
+rustdoc +nightly doc-src/index.md --markdown-no-toc --output target/doc \
 	--markdown-css normalize.css \
 	--markdown-css rustdoc.css \
 	--markdown-css main.css \
-	--html-before-content before-content.html \
-	--html-after-content after-content.html
+	--html-before-content doc-src/before-content.html \
+	--html-after-content doc-src/after-content.html
 if [ -e public ]; then
 	rm -r public
 fi
@@ -26,8 +26,8 @@ for l in gmp mpfr mpc; do
 	for f in public/$l/*.html; do
 		sed -i.rm~ \
 		    's/..\/dir\/index.html\|dir.html#Top/..\/index.html/g' "$f"
-		sed -i.rm~ -e '/<body/r before-content-c.html' "$f"
-		sed -n -i.rm~ -e '/<\/body>/r after-content.html' \
+		sed -i.rm~ -e '/<body/r doc-src/before-content-c.html' "$f"
+		sed -n -i.rm~ -e '/<\/body>/r doc-src/after-content.html' \
 		    -e 1x -e '2,${x;p}' -e '${x;p}' "$f"
 		sed -i.rm~ 's,\(class="crate\)\(">'$L'</a>\),\1 current\2,' "$f"
 		if [ $(basename $f) != index.html ]; then
