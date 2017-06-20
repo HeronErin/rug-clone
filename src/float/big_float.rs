@@ -2812,13 +2812,13 @@ impl AssignRound<u64> for Float {
 }
 
 conv_ops! {
-    (f32, xmpfr::set_single),
-    (AddRefF32 xmpfr::add_single,
-     SubRefF32 xmpfr::sub_single,
-     SubFromRefF32 xmpfr::single_sub),
-    (MulRefF32 xmpfr::mul_single,
-     DivRefF32 xmpfr::div_single,
-     DivFromRefF32 xmpfr::single_div)
+    (f32, xmpfr::set_f32),
+    (AddRefF32 xmpfr::add_f32,
+     SubRefF32 xmpfr::sub_f32,
+     SubFromRefF32 xmpfr::f32_sub),
+    (MulRefF32 xmpfr::mul_f32,
+     DivRefF32 xmpfr::div_f32,
+     DivFromRefF32 xmpfr::f32_div)
 }
 conv_ops! {
     (f64, mpfr::set_d),
@@ -2876,7 +2876,7 @@ arith_prim_float!{
     PowRefI32
 }
 arith_prim_float!{
-    xmpfr::pow_double;
+    xmpfr::pow_f64;
     Pow pow;
     PowRound pow_round;
     PowAssign pow_assign;
@@ -2884,7 +2884,7 @@ arith_prim_float!{
     PowRefF64
 }
 arith_prim_float!{
-    xmpfr::pow_single;
+    xmpfr::pow_f32;
     Pow pow;
     PowRound pow_round;
     PowAssign pow_assign;

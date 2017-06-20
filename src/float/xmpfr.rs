@@ -146,11 +146,11 @@ unsafe fn divf_mulz_divz(
     }
 }
 
-pub unsafe fn set_single(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::set_d(rop, op as f64, rnd)
 }
 
-pub unsafe fn add_single(
+pub unsafe fn add_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
     op2: f32,
@@ -159,7 +159,7 @@ pub unsafe fn add_single(
     mpfr::add_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn sub_single(
+pub unsafe fn sub_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
     op2: f32,
@@ -168,7 +168,7 @@ pub unsafe fn sub_single(
     mpfr::sub_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn single_sub(
+pub unsafe fn f32_sub(
     rop: *mut mpfr_t,
     op1: f32,
     op2: *const mpfr_t,
@@ -177,7 +177,7 @@ pub unsafe fn single_sub(
     mpfr::d_sub(rop, op1 as f64, op2, rnd)
 }
 
-pub unsafe fn mul_single(
+pub unsafe fn mul_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
     op2: f32,
@@ -186,7 +186,7 @@ pub unsafe fn mul_single(
     mpfr::mul_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn div_single(
+pub unsafe fn div_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
     op2: f32,
@@ -195,7 +195,7 @@ pub unsafe fn div_single(
     mpfr::div_d(rop, op1, op2 as f64, rnd)
 }
 
-pub unsafe fn single_div(
+pub unsafe fn f32_div(
     rop: *mut mpfr_t,
     op1: f32,
     op2: *const mpfr_t,
@@ -222,7 +222,7 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
     }
 }
 
-pub unsafe fn pow_double(
+pub unsafe fn pow_f64(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
     op2: f64,
@@ -232,7 +232,7 @@ pub unsafe fn pow_double(
     mpfr::pow(rop, op1, (*small).inner(), rnd)
 }
 
-pub unsafe fn pow_single(
+pub unsafe fn pow_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
     op2: f32,

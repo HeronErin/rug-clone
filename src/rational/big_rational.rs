@@ -924,6 +924,18 @@ impl From<(Integer, Integer)> for Rational {
 
 from_borrow! { (&'a Integer, &'a Integer) => Rational }
 
+macro_rules! from {
+    { $Src:ty => $Dst:ty } => {
+        impl From<$Src> for $Dst {
+            fn from(t: $Src) -> $Dst {
+                let mut ret = <$Dst>::new();
+                ret.assign(t);
+                ret
+            }
+        }
+    }
+}
+
 from! { i32 => Rational }
 from! { i64 => Rational }
 from! { u32 => Rational }

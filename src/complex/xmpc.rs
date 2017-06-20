@@ -126,7 +126,7 @@ pub unsafe fn ui_div(
     mpc::div(x, dividend.inner(), z, r)
 }
 
-pub unsafe fn pow_single(
+pub unsafe fn pow_f32(
     x: *mut mpc_t,
     y: *const mpc_t,
     z: f32,

@@ -283,18 +283,6 @@ macro_rules! from_borrow {
     }
 }
 
-macro_rules! from {
-    { $Src:ty => $Dst:ty } => {
-        impl From<$Src> for $Dst {
-            fn from(t: $Src) -> $Dst {
-                let mut ret = <$Dst>::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    }
-}
-
 macro_rules! arith_unary {
     {
         $Big:ty;
@@ -581,6 +569,7 @@ macro_rules! arith_prim_commut {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! math_op1_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -625,6 +614,7 @@ macro_rules! math_op1_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -661,6 +651,7 @@ macro_rules! ref_math_op1_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! math_op1_2_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -706,6 +697,7 @@ macro_rules! math_op1_2_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! ref_math_op1_2_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -749,6 +741,7 @@ macro_rules! ref_math_op1_2_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! math_op2_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -800,6 +793,7 @@ macro_rules! math_op2_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! ref_math_op2_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -838,6 +832,7 @@ macro_rules! ref_math_op2_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_binary_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -975,6 +970,7 @@ macro_rules! arith_binary_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_commut_self_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1016,6 +1012,7 @@ macro_rules! arith_commut_self_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_noncommut_self_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1085,6 +1082,7 @@ macro_rules! arith_noncommut_self_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_forward_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1117,6 +1115,7 @@ macro_rules! arith_forward_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_commut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1193,6 +1192,7 @@ macro_rules! arith_commut_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_noncommut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1355,6 +1355,7 @@ macro_rules! arith_noncommut_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_prim_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1440,6 +1441,7 @@ macro_rules! arith_prim_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_prim_shift_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1511,6 +1513,7 @@ macro_rules! arith_prim_shift_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_prim_commut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1560,6 +1563,7 @@ macro_rules! arith_prim_commut_round {
     }
 }
 
+#[cfg(feature = "float")]
 macro_rules! arith_prim_noncommut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;

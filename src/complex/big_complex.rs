@@ -1829,7 +1829,7 @@ arith_prim_complex! {
     PowRefF64
 }
 arith_prim_complex! {
-    xmpc::pow_single;
+    xmpc::pow_f32;
     Pow pow;
     PowRound pow_round;
     PowAssign pow_assign;
