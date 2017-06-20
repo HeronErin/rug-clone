@@ -16,7 +16,7 @@
 
 [package]
 name = "rug"
-version = "0.4.0-alpha"
+version = "0.4.0"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision big numbers based on GMP, MPFR and MPC"
 documentation = "https://tspiteri.gitlab.io/rug/rug/"
@@ -33,6 +33,6 @@ float = ["gmp-mpfr-sys/mpfr"]
 complex = ["float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
 
 [dependencies.gmp-mpfr-sys]
-version = "1.0.3"
+version = "1.0.4"
 default-features = false
 path = "../gmp-mpfr-sys"
