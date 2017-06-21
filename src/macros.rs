@@ -313,6 +313,15 @@ macro_rules! arith_unary {
             }
         }
 
+        impl<'m> $Imp for &'m mut $Big {
+            type Output = &'m mut $Big;
+            #[inline]
+            fn $method(self) -> &'m mut $Big {
+                self.$method_assign();
+                self
+            }
+        }
+
         impl $ImpAssign for $Big {
             #[inline]
             fn $method_assign(&mut self) {
@@ -369,6 +378,23 @@ macro_rules! arith_binary {
             #[inline]
             fn $method(mut self, op: &'a $Big) -> $Big {
                 $ImpAssign::<&'a $Big>::$method_assign(&mut self, op);
+                self
+            }
+        }
+
+        impl<'m> $Imp<$Big> for &'m mut $Big {
+            type Output = &'m mut $Big;
+            #[inline]
+            fn $method(self, op: $Big) -> &'m mut $Big {
+                self.$method(&op)
+            }
+        }
+
+        impl<'a, 'm> $Imp<&'a $Big> for &'m mut $Big {
+            type Output = &'m mut $Big;
+            #[inline]
+            fn $method(self, op: &'a $Big) -> &'m mut $Big {
+                $ImpAssign::<&'a $Big>::$method_assign(self, op);
                 self
             }
         }
@@ -458,11 +484,20 @@ macro_rules! arith_prim {
         $ImpAssign:ident $method_assign:ident;
         $T:ty;
         $Ref:ident
-    }=> {
+    } => {
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, op: $T) -> $Big {
+                self.$method_assign(op);
+                self
+            }
+        }
+
+        impl<'m> $Imp<$T> for &'m mut $Big {
+            type Output = &'m mut $Big;
+            #[inline]
+            fn $method(self, op: $T) -> &'m mut $Big {
                 self.$method_assign(op);
                 self
             }
@@ -530,6 +565,15 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
+        impl<'m> $Imp<&'m mut $Big> for $T {
+            type Output = &'m mut $Big;
+            #[inline]
+            fn $method(self, op: &'m mut $Big) -> &'m mut $Big {
+                op.$method_from_assign(self);
+                op
+            }
+        }
+
         impl $ImpFromAssign<$T> for $Big {
             #[inline]
             fn $method_from_assign(&mut self, lhs: $T) {
@@ -590,6 +634,14 @@ macro_rules! arith_prim_commut {
             type Output = $Big;
             #[inline]
             fn $method(self, op: $Big) -> $Big {
+                op.$method(self)
+            }
+        }
+
+        impl<'m> $Imp<&'m mut $Big> for $T {
+            type Output = &'m mut $Big;
+            #[inline]
+            fn $method(self, op: &'m mut $Big) -> &'m mut $Big {
                 op.$method(self)
             }
         }
