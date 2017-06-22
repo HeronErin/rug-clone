@@ -81,7 +81,7 @@
 //! macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
 //! [documentation][sys] for some details.
 //!
-//! ### Optional feature
+//! ### Optional features
 //!
 //! The `rug` crate has three optional features `rational`, `float`
 //! and `complex`. Integers are always included. The optional features
