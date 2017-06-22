@@ -146,6 +146,6 @@ pub use complex::Complex;
 #[cfg(feature = "float")]
 pub use float::Float;
 pub use integer::Integer;
-pub use ops::{Assign, AssignRound, FromRound};
+pub use ops::{Assign, AssignRound};
 #[cfg(feature = "rational")]
 pub use rational::Rational;

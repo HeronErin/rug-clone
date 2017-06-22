@@ -20,9 +20,9 @@ use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use integer::Integer;
-use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
-          MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
-          SubFromAssign, SubRound};
+use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, MulRound,
+          NegAssign, Pow, PowAssign, PowFromAssign, PowRound, SubFromAssign,
+          SubRound};
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -211,10 +211,12 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let r1 = Complex::new(32);
-    /// assert_eq!(r1.prec(), (32, 32));
-    /// let r2 = Complex::new((32, 64));
-    /// assert_eq!(r2.prec(), (32, 64));
+    /// let c1 = Complex::new(32);
+    /// assert_eq!(c1.prec(), (32, 32));
+    /// assert_eq!(c1, 0);
+    /// let c2 = Complex::new((32, 64));
+    /// assert_eq!(c2.prec(), (32, 64));
+    /// assert_eq!(c2, 0);
     /// ```
     ///
     /// # Panics
@@ -226,6 +228,70 @@ impl Complex {
         ret.mut_real().assign(Special::Zero);
         ret.mut_imag().assign(Special::Zero);
         ret
+    }
+
+    /// Create a new complex number with the specified precision and
+    /// with the given value, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c1 = Complex::with_val(53, (1.3f64, -12));
+    /// assert_eq!(c1.prec(), (53, 53));
+    /// assert_eq!(c1, (1.3f64, -12));
+    /// let c2 = Complex::with_val(53, 42.0);
+    /// assert_eq!(c2.prec(), (53, 53));
+    /// assert_eq!(c2, 42);
+    /// assert_eq!(c2, (42, 0));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
+    #[inline]
+    pub fn with_val<P: Prec, T>(prec: P, val: T) -> Complex
+    where
+        Complex: Assign<T>,
+    {
+        let mut ret = Complex::new_nan(prec);
+        ret.assign(val);
+        ret
+    }
+
+    /// Create a new floating-point number with the specified
+    /// precision and with the given value, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let round = (Round::Down, Round::Up);
+    /// let (c, dir) = Complex::with_val_round(4, (3.3, 2.3), round);
+    /// // 3.3 is rounded down to 3.25, 2.3 is rounded up to 2.5
+    /// assert_eq!(c.prec(), (4, 4));
+    /// assert_eq!(c, (3.25, 2.5));
+    /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
+    #[inline]
+    pub fn with_val_round<P: Prec, T>(
+        prec: P,
+        val: T,
+        round: Round2,
+    ) -> (Complex, Ordering2)
+    where
+        Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>,
+    {
+        let mut ret = Complex::new_nan(prec);
+        let ord = ret.assign_round(val, round);
+        (ret, ord)
     }
 
     /// Returns the precision of the real and imaginary parts.
@@ -249,7 +315,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let mut r = Complex::from(((4.875, 4.625), 6));
+    /// let mut r = Complex::with_val(6, (4.875, 4.625));
     /// assert_eq!(r, (4.875, 4.625));
     /// r.set_prec(4);
     /// assert_eq!(r, (5.0, 4.5));
@@ -272,7 +338,7 @@ impl Complex {
     /// use rug::Complex;
     /// use rug::float::Round;
     /// use std::cmp::Ordering;
-    /// let mut r = Complex::from(((4.875, 4.625), 6));
+    /// let mut r = Complex::with_val(6, (4.875, 4.625));
     /// assert_eq!(r, (4.875, 4.625));
     /// let dir = r.set_prec_round(4, (Round::Down, Round::Up));
     /// assert_eq!(r, (4.5, 5.0));
@@ -417,10 +483,10 @@ impl Complex {
     /// use rug::Complex;
     ///
     /// let valid1 = Complex::valid_str_radix("(1.2e-1 2.3e+2)", 4);
-    /// let c1 = Complex::from((valid1.unwrap(), 53));
+    /// let c1 = Complex::with_val(53, valid1.unwrap());
     /// assert_eq!(c1, (0.25 * (1.0 + 0.25 * 2.0), 4.0 * (3.0 + 4.0 * 2.0)));
     /// let valid2 = Complex::valid_str_radix("(12 yz)", 36);
-    /// let c2 = Complex::from((valid2.unwrap(), 53));
+    /// let c2 = Complex::with_val(53, valid2.unwrap());
     /// assert_eq!(c2, (2.0 + 36.0 * 1.0, 35.0 + 36.0 * 34.0));
     ///
     /// let invalid = Complex::valid_str_radix("(0, 0)", 3);
@@ -476,11 +542,11 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let c1 = Complex::from((0, 53));
+    /// let c1 = Complex::with_val(53, 0);
     /// assert_eq!(c1.to_string_radix(10, None), "(0.0 0.0)");
-    /// let c2 = Complex::from(((15, 5), 12));
+    /// let c2 = Complex::with_val(12, (15, 5));
     /// assert_eq!(c2.to_string_radix(16, None), "(f.000@0 5.000@0)");
-    /// let c3 = Complex::from(((10, -4), 53));
+    /// let c3 = Complex::with_val(53, (10, -4));
     /// assert_eq!(c3.to_string_radix(10, Some(3)), "(1.00e1 -4.00e0)");
     /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00e0)");
     /// ```
@@ -509,7 +575,7 @@ impl Complex {
     /// ```rust
     /// use rug::Complex;
     /// use rug::float::Round;
-    /// let c = Complex::from((10.4, 10));
+    /// let c = Complex::with_val(10, 10.4);
     /// let down = (Round::Down, Round::Down);
     /// let nearest = (Round::Nearest, Round::Nearest);
     /// let up = (Round::Up, Round::Up);
@@ -659,7 +725,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.real(), 12.5)
     /// ```
     #[inline]
@@ -676,7 +742,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.imag(), -20.75)
     #[inline]
     pub fn imag(&self) -> &Float {
@@ -692,7 +758,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let mut c = Complex::from(((12.5, -20.75), 53));
+    /// let mut c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(c, (12.5, -20.75));
     /// *c.mut_real() /= 2;
     /// assert_eq!(c, (6.25, -20.75));
@@ -711,7 +777,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let mut c = Complex::from(((12.5, -20.75), 53));
+    /// let mut c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(c, (12.5, -20.75));
     /// *c.mut_imag() *= 4;
     /// assert_eq!(c, (12.5, -83));
@@ -730,7 +796,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(c, (12.5, -20.75));
     /// let (re, im) = c.as_real_imag();
     /// assert_eq!(*re, 12.5);
@@ -748,7 +814,7 @@ impl Complex {
     /// ```rust
     /// use rug::Complex;
     ///
-    /// let mut c = Complex::from(((12.5, -20.75), 53));
+    /// let mut c = Complex::with_val(53, (12.5, -20.75));
     /// {
     ///     let (real, imag) = c.as_mut_real_imag();
     ///     *real /= 2;
@@ -777,7 +843,7 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// let c = Complex::from(((12.5, -20.75), 53));
+    /// let c = Complex::with_val(53, (12.5, -20.75));
     /// let (real, imag) = c.into_real_imag();
     /// assert_eq!(real, 12.5);
     /// assert_eq!(imag, -20.75);
@@ -844,10 +910,10 @@ impl Complex {
     /// use rug::{Complex, Float};
     /// use rug::float::Special;
     ///
-    /// let c1 = Complex::from(((30, 40), 53));
-    /// assert_eq!(Float::from((c1.abs_ref(), 53)), 50);
-    /// let c2 = Complex::from(((12, Special::Infinity), 53));
-    /// assert!(Float::from((c2.abs_ref(), 53)).is_infinite());
+    /// let c1 = Complex::with_val(53, (30, 40));
+    /// assert_eq!(Float::with_val(53, c1.abs_ref()), 50);
+    /// let c2 = Complex::with_val(53, (12, Special::Infinity));
+    /// assert!(Float::with_val(53, c2.abs_ref()).is_infinite());
     /// ```
     #[inline]
     pub fn abs_ref(&self) -> AbsRef {
@@ -864,13 +930,13 @@ impl Complex {
     /// use std::f64;
     /// // f has precision 53, just like f64, so PI constants match.
     /// let mut arg = Float::new(53);
-    /// let c_pos = Complex::from((1, 53));
+    /// let c_pos = Complex::with_val(53, 1);
     /// arg.assign(c_pos.arg_ref());
     /// assert!(arg.is_zero());
-    /// let c_neg = Complex::from((-1.3, 53));
+    /// let c_neg = Complex::with_val(53, -1.3);
     /// arg.assign(c_neg.arg_ref());
     /// assert_eq!(arg, f64::consts::PI);
-    /// let c_pi_4 = Complex::from(((1.333, 1.333), 53));
+    /// let c_pi_4 = Complex::with_val(53, (1.333, 1.333));
     /// arg.assign(c_pi_4.arg_ref());
     /// assert_eq!(arg, f64::consts::FRAC_PI_4);
     ///
@@ -992,14 +1058,14 @@ impl Complex {
         /// use rug::{Assign, Complex};
         /// // sin(0.5 + 0.2i) = 0.48905 + 0.17669i
         /// // cos(0.5 + 0.2i) = 0.89519 - 0.096526i
-        /// let angle = Complex::from(((0.5, 0.2), 53));
+        /// let angle = Complex::with_val(53, (0.5, 0.2));
         /// let r = angle.sin_cos_ref();
         /// // use only 10 bits of precision here to
         /// // make comparison easier
         /// let (mut sin, mut cos) = (Complex::new(10), Complex::new(10));
         /// (&mut sin, &mut cos).assign(r);
-        /// assert_eq!(sin, Complex::from(((0.48905, 0.17669), 10)));
-        /// assert_eq!(cos, Complex::from(((0.89519, -0.096526), 10)));
+        /// assert_eq!(sin, Complex::with_val(10, (0.48905, 0.17669)));
+        /// assert_eq!(cos, Complex::with_val(10, (0.89519, -0.096526)));
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_complex! {
@@ -1173,34 +1239,6 @@ impl From<(Float, Float)> for Complex {
         mem::forget(real);
         mem::forget(imag);
         dst
-    }
-}
-
-impl<T, P: Prec> From<(T, P)> for Complex
-where
-    Complex: FromRound<T, P, Round = Round2>,
-{
-    #[inline]
-    fn from((t, prec): (T, P)) -> Complex {
-        Complex::from_round(t, prec, Default::default()).0
-    }
-}
-
-impl<T, P: Prec> FromRound<T, P> for Complex
-where
-    Complex: AssignRound<
-        T,
-        Round = Round2,
-        Ordering = Ordering2,
-    >,
-{
-    type Round = Round2;
-    type Ordering = Ordering2;
-    #[inline]
-    fn from_round(t: T, prec: P, round: Round2) -> (Complex, Ordering2) {
-        let mut ret = Complex::new_nan(prec);
-        let ord = ret.assign_round(t, round);
-        (ret, ord)
     }
 }
 

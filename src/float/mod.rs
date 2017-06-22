@@ -31,12 +31,12 @@
 //! // A precision of 32 significant bits is specified here.
 //! // (The primitive `f32` has a precision of 24 and
 //! // `f64` has a precision of 53.)
-//! let two = Float::from((2.0, 32));
+//! let two = Float::with_val(32, 2.0);
 //! let (two_thirds_down, dir) = two.div_round(3.0, Round::Down);
 //! // since we rounded down, direction is Ordering::Less
 //! assert_eq!(dir, Ordering::Less);
 //! // two was consumed, so create a new two
-//! let two = Float::from((2.0, 32));
+//! let two = Float::with_val(32, 2.0);
 //! let (two_thirds_up, dir) = two.div_round(3.0, Round::Up);
 //! // since we rounded up, direction is Ordering::Greater
 //! assert_eq!(dir, Ordering::Greater);
@@ -75,73 +75,76 @@ mod tests {
         if a.prec() == b.prec() {
             return false;
         }
-        a == Float::from((b, a.prec()))
+        a == Float::with_val(a.prec(), b)
     }
 
     #[test]
     fn check_ref_op() {
-        let lhs = Float::from((12.25, 53));
-        let rhs = Float::from((-1.375, 53));
+        let lhs = Float::with_val(53, 12.25);
+        let rhs = Float::with_val(53, -1.375);
         let pu = 30_u32;
         let pi = -15_i32;
         let ps = 31.625_f32;
         let pd = -1.5_f64;
-        assert_eq!(Float::from((-&lhs, 53)), -lhs.clone());
-        assert_eq!(Float::from((&lhs + &rhs, 53)), lhs.clone() + &rhs);
-        assert_eq!(Float::from((&lhs - &rhs, 53)), lhs.clone() - &rhs);
-        assert_eq!(Float::from((&lhs * &rhs, 53)), lhs.clone() * &rhs);
-        assert_eq!(Float::from((&lhs / &rhs, 53)), lhs.clone() / &rhs);
-        assert_eq!(Float::from(((&lhs).pow(&rhs), 53)), lhs.clone().pow(&rhs));
-
-        assert_eq!(Float::from((&lhs + pu, 53)), lhs.clone() + pu);
-        assert_eq!(Float::from((&lhs - pu, 53)), lhs.clone() - pu);
-        assert_eq!(Float::from((&lhs * pu, 53)), lhs.clone() * pu);
-        assert_eq!(Float::from((&lhs / pu, 53)), lhs.clone() / pu);
-        assert_eq!(Float::from((&lhs << pu, 53)), lhs.clone() << pu);
-        assert_eq!(Float::from((&lhs >> pu, 53)), lhs.clone() >> pu);
-        assert_eq!(Float::from(((&lhs).pow(pu), 53)), lhs.clone().pow(pu));
-
-        assert_eq!(Float::from((pu + &lhs, 53)), pu + lhs.clone());
-        assert_eq!(Float::from((pu - &lhs, 53)), pu - lhs.clone());
-        assert_eq!(Float::from((pu * &lhs, 53)), pu * lhs.clone());
-        assert_eq!(Float::from((pu / &lhs, 53)), pu / lhs.clone());
+        assert_eq!(Float::with_val(53, -&lhs), -lhs.clone());
+        assert_eq!(Float::with_val(53, &lhs + &rhs), lhs.clone() + &rhs);
+        assert_eq!(Float::with_val(53, &lhs - &rhs), lhs.clone() - &rhs);
+        assert_eq!(Float::with_val(53, &lhs * &rhs), lhs.clone() * &rhs);
+        assert_eq!(Float::with_val(53, &lhs / &rhs), lhs.clone() / &rhs);
         assert_eq!(
-            Float::from((Pow::pow(pu, &lhs), 53)),
+            Float::with_val(53, (&lhs).pow(&rhs)),
+            lhs.clone().pow(&rhs)
+        );
+
+        assert_eq!(Float::with_val(53, &lhs + pu), lhs.clone() + pu);
+        assert_eq!(Float::with_val(53, &lhs - pu), lhs.clone() - pu);
+        assert_eq!(Float::with_val(53, &lhs * pu), lhs.clone() * pu);
+        assert_eq!(Float::with_val(53, &lhs / pu), lhs.clone() / pu);
+        assert_eq!(Float::with_val(53, &lhs << pu), lhs.clone() << pu);
+        assert_eq!(Float::with_val(53, &lhs >> pu), lhs.clone() >> pu);
+        assert_eq!(Float::with_val(53, (&lhs).pow(pu)), lhs.clone().pow(pu));
+
+        assert_eq!(Float::with_val(53, pu + &lhs), pu + lhs.clone());
+        assert_eq!(Float::with_val(53, pu - &lhs), pu - lhs.clone());
+        assert_eq!(Float::with_val(53, pu * &lhs), pu * lhs.clone());
+        assert_eq!(Float::with_val(53, pu / &lhs), pu / lhs.clone());
+        assert_eq!(
+            Float::with_val(53, Pow::pow(pu, &lhs)),
             Pow::pow(pu, lhs.clone())
         );
 
-        assert_eq!(Float::from((&lhs + pi, 53)), lhs.clone() + pi);
-        assert_eq!(Float::from((&lhs - pi, 53)), lhs.clone() - pi);
-        assert_eq!(Float::from((&lhs * pi, 53)), lhs.clone() * pi);
-        assert_eq!(Float::from((&lhs / pi, 53)), lhs.clone() / pi);
-        assert_eq!(Float::from((&lhs << pi, 53)), lhs.clone() << pi);
-        assert_eq!(Float::from((&lhs >> pi, 53)), lhs.clone() >> pi);
-        assert_eq!(Float::from(((&lhs).pow(pi), 53)), lhs.clone().pow(pi));
+        assert_eq!(Float::with_val(53, &lhs + pi), lhs.clone() + pi);
+        assert_eq!(Float::with_val(53, &lhs - pi), lhs.clone() - pi);
+        assert_eq!(Float::with_val(53, &lhs * pi), lhs.clone() * pi);
+        assert_eq!(Float::with_val(53, &lhs / pi), lhs.clone() / pi);
+        assert_eq!(Float::with_val(53, &lhs << pi), lhs.clone() << pi);
+        assert_eq!(Float::with_val(53, &lhs >> pi), lhs.clone() >> pi);
+        assert_eq!(Float::with_val(53, (&lhs).pow(pi)), lhs.clone().pow(pi));
 
-        assert_eq!(Float::from((pi + &lhs, 53)), pi + lhs.clone());
-        assert_eq!(Float::from((pi - &lhs, 53)), pi - lhs.clone());
-        assert_eq!(Float::from((pi * &lhs, 53)), pi * lhs.clone());
-        assert_eq!(Float::from((pi / &lhs, 53)), pi / lhs.clone());
+        assert_eq!(Float::with_val(53, pi + &lhs), pi + lhs.clone());
+        assert_eq!(Float::with_val(53, pi - &lhs), pi - lhs.clone());
+        assert_eq!(Float::with_val(53, pi * &lhs), pi * lhs.clone());
+        assert_eq!(Float::with_val(53, pi / &lhs), pi / lhs.clone());
 
-        assert_eq!(Float::from((&lhs + ps, 53)), lhs.clone() + ps);
-        assert_eq!(Float::from((&lhs - ps, 53)), lhs.clone() - ps);
-        assert_eq!(Float::from((&lhs * ps, 53)), lhs.clone() * ps);
-        assert_eq!(Float::from((&lhs / ps, 53)), lhs.clone() / ps);
+        assert_eq!(Float::with_val(53, &lhs + ps), lhs.clone() + ps);
+        assert_eq!(Float::with_val(53, &lhs - ps), lhs.clone() - ps);
+        assert_eq!(Float::with_val(53, &lhs * ps), lhs.clone() * ps);
+        assert_eq!(Float::with_val(53, &lhs / ps), lhs.clone() / ps);
 
-        assert_eq!(Float::from((ps + &lhs, 53)), ps + lhs.clone());
-        assert_eq!(Float::from((ps - &lhs, 53)), ps - lhs.clone());
-        assert_eq!(Float::from((ps * &lhs, 53)), ps * lhs.clone());
-        assert_eq!(Float::from((ps / &lhs, 53)), ps / lhs.clone());
+        assert_eq!(Float::with_val(53, ps + &lhs), ps + lhs.clone());
+        assert_eq!(Float::with_val(53, ps - &lhs), ps - lhs.clone());
+        assert_eq!(Float::with_val(53, ps * &lhs), ps * lhs.clone());
+        assert_eq!(Float::with_val(53, ps / &lhs), ps / lhs.clone());
 
-        assert_eq!(Float::from((&lhs + pd, 53)), lhs.clone() + pd);
-        assert_eq!(Float::from((&lhs - pd, 53)), lhs.clone() - pd);
-        assert_eq!(Float::from((&lhs * pd, 53)), lhs.clone() * pd);
-        assert_eq!(Float::from((&lhs / pd, 53)), lhs.clone() / pd);
+        assert_eq!(Float::with_val(53, &lhs + pd), lhs.clone() + pd);
+        assert_eq!(Float::with_val(53, &lhs - pd), lhs.clone() - pd);
+        assert_eq!(Float::with_val(53, &lhs * pd), lhs.clone() * pd);
+        assert_eq!(Float::with_val(53, &lhs / pd), lhs.clone() / pd);
 
-        assert_eq!(Float::from((pd + &lhs, 53)), pd + lhs.clone());
-        assert_eq!(Float::from((pd - &lhs, 53)), pd - lhs.clone());
-        assert_eq!(Float::from((pd * &lhs, 53)), pd * lhs.clone());
-        assert_eq!(Float::from((pd / &lhs, 53)), pd / lhs.clone());
+        assert_eq!(Float::with_val(53, pd + &lhs), pd + lhs.clone());
+        assert_eq!(Float::with_val(53, pd - &lhs), pd - lhs.clone());
+        assert_eq!(Float::with_val(53, pd * &lhs), pd * lhs.clone());
+        assert_eq!(Float::with_val(53, pd / &lhs), pd / lhs.clone());
     }
 
     #[test]
@@ -149,17 +152,17 @@ mod tests {
         let work_prec = 20;
         let check_prec = 100;
         let f = [
-            Float::from((Special::Zero, work_prec)),
-            Float::from((Special::MinusZero, work_prec)),
-            Float::from((Special::Infinity, work_prec)),
-            Float::from((Special::MinusInfinity, work_prec)),
-            Float::from((Special::Nan, work_prec)),
-            Float::from((1, work_prec)),
-            Float::from((-1, work_prec)),
-            Float::from((999999e100, work_prec)),
-            Float::from((999999e-100, work_prec)),
-            Float::from((-999999e100, work_prec)),
-            Float::from((-999999e-100, work_prec)),
+            Float::with_val(work_prec, Special::Zero),
+            Float::with_val(work_prec, Special::MinusZero),
+            Float::with_val(work_prec, Special::Infinity),
+            Float::with_val(work_prec, Special::MinusInfinity),
+            Float::with_val(work_prec, Special::Nan),
+            Float::with_val(work_prec, 1),
+            Float::with_val(work_prec, -1),
+            Float::with_val(work_prec, 999999e100),
+            Float::with_val(work_prec, 999999e-100),
+            Float::with_val(work_prec, -999999e100),
+            Float::with_val(work_prec, -999999e-100),
         ];
         let z = [
             Integer::from(0),
@@ -207,7 +210,7 @@ mod tests {
             12.0e30,
         ];
         for zz in &z {
-            let zf = Float::from((zz, check_prec));
+            let zf = Float::with_val(check_prec, zz);
             for ff in &f {
                 assert!(same(ff.clone() + zz, ff.clone() + &zf));
                 assert!(same(ff.clone() - zz, ff.clone() - &zf));
@@ -221,7 +224,7 @@ mod tests {
         }
         #[cfg(feature = "rational")]
         for qq in &q {
-            let qf = Float::from((qq, check_prec));
+            let qf = Float::with_val(check_prec, qq);
             for ff in &f {
                 assert!(same(ff.clone() + qq, ff.clone() + &qf));
                 assert!(same(ff.clone() - qq, ff.clone() - &qf));
@@ -234,7 +237,7 @@ mod tests {
             }
         }
         for uu in &u {
-            let uf = Float::from((*uu, check_prec));
+            let uf = Float::with_val(check_prec, *uu);
             for ff in &f {
                 assert!(same(ff.clone() + *uu, ff.clone() + &uf));
                 assert!(same(ff.clone() - *uu, ff.clone() - &uf));
@@ -247,7 +250,7 @@ mod tests {
             }
         }
         for ss in &s {
-            let sf = Float::from((*ss, check_prec));
+            let sf = Float::with_val(check_prec, *ss);
             for ff in &f {
                 assert!(same(ff.clone() + *ss, ff.clone() + &sf));
                 assert!(same(ff.clone() - *ss, ff.clone() - &sf));
@@ -260,7 +263,7 @@ mod tests {
             }
         }
         for oo in &double {
-            let of = Float::from((*oo, check_prec));
+            let of = Float::with_val(check_prec, *oo);
             for ff in &f {
                 assert!(same(ff.clone() + *oo, ff.clone() + &of));
                 assert!(same(ff.clone() - *oo, ff.clone() - &of));
@@ -273,7 +276,7 @@ mod tests {
             }
         }
         for oo in &single {
-            let of = Float::from((*oo, check_prec));
+            let of = Float::with_val(check_prec, *oo);
             for ff in &f {
                 assert!(same(ff.clone() + *oo, ff.clone() + &of));
                 assert!(same(ff.clone() - *oo, ff.clone() - &of));
@@ -335,7 +338,7 @@ mod tests {
 
     #[test]
     fn check_formatting() {
-        let mut f = Float::from((Special::Zero, 53));
+        let mut f = Float::with_val(53, Special::Zero);
         assert_eq!(format!("{}", f), "0.0");
         assert_eq!(format!("{:?}", f), "0.0");
         assert_eq!(format!("{:+?}", f), "+0.0");

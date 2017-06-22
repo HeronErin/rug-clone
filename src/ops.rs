@@ -177,7 +177,7 @@ pub trait PowFromAssign<Lhs = Self> {
     /// use rug::Float;
     /// use rug::ops::PowFromAssign;
     /// let lhs = 10;
-    /// let mut rhs = Float::from((5, 53));
+    /// let mut rhs = Float::with_val(53, 5);
     /// rhs.pow_from_assign(lhs);
     /// // rhs = 10 ** 5
     /// assert_eq!(rhs, 100_000);
@@ -217,39 +217,6 @@ pub trait AssignRound<Rhs = Self> {
     fn assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
-/// Constructs an element via a conversion with a specified precision,
-/// applying the specified rounding method.
-pub trait FromRound<Val, Prec>
-where
-    Self: Sized,
-{
-    /// The rounding method.
-    type Round;
-    /// The direction from rounding.
-    type Ordering;
-    /// Performs the conversion.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #[cfg(feature = "float")] {
-    /// use rug::{Float, FromRound};
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// // only four significant bits
-    /// let (f, dir) = Float::from_round(3.3, 4, Round::Nearest);
-    /// // 3.3 rounded down to 3.25
-    /// assert_eq!(f, 3.25);
-    /// assert_eq!(dir, Ordering::Less);
-    /// # }
-    /// ```
-    fn from_round(
-        val: Val,
-        prec: Prec,
-        round: Self::Round,
-    ) -> (Self, Self::Ordering);
-}
-
 /// Addition with a specified rounding method.
 pub trait AddRound<Rhs = Self> {
     /// The rounding method.
@@ -269,7 +236,7 @@ pub trait AddRound<Rhs = Self> {
     /// use rug::ops::AddRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::from((-3, 4));
+    /// let minus_three = Float::with_val(4, -3);
     /// let (f, dir) = minus_three.add_round(-0.3, Round::Nearest);
     /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
@@ -302,7 +269,7 @@ pub trait SubRound<Rhs = Self> {
     /// use rug::ops::SubRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::from((-3, 4));
+    /// let minus_three = Float::with_val(4, -3);
     /// let (f, dir) = minus_three.sub_round(0.3, Round::Nearest);
     /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
@@ -335,7 +302,7 @@ pub trait MulRound<Rhs = Self> {
     /// use rug::ops::MulRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::from((-3, 4));
+    /// let minus_three = Float::with_val(4, -3);
     /// let (f, dir) = minus_three.mul_round(13, Round::Nearest);
     /// // -39 rounded down to -40
     /// assert_eq!(f, -40);
@@ -368,7 +335,7 @@ pub trait DivRound<Rhs = Self> {
     /// use rug::ops::DivRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::from((-3, 4));
+    /// let minus_three = Float::with_val(4, -3);
     /// let (f, dir) = minus_three.div_round(5, Round::Nearest);
     /// // -0.6 rounded down to -0.625
     /// assert_eq!(f, -0.625);
@@ -401,7 +368,7 @@ pub trait PowRound<Rhs> {
     /// use rug::ops::PowRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::from((-3, 4));
+    /// let minus_three = Float::with_val(4, -3);
     /// let (f, dir) = minus_three.pow_round(5, Round::Nearest);
     /// // -243 rounded up to -240
     /// assert_eq!(f, -240);

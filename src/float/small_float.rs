@@ -32,15 +32,10 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// according to the type of the primitive used to set its value.
 ///
 /// * `i8`, `u8`: the `SmallFloat` will have eight bits of precision.
-///
 /// * `i16`, `u16`: the `SmallFloat` will have 16 bits of precision.
-///
 /// * `i32`, `u32`: the `SmallFloat` will have 32 bits of precision.
-///
 /// * `i64`, `u64`: the `SmallFloat` will have 64 bits of precision.
-///
 /// * `f32`: the `SmallFloat` will have 24 bits of precision.
-///
 /// * `f64`: the `SmallFloat` will have 53 bits of precision.
 ///
 /// The `SmallFloat` type can be coerced to a `Float`, as it
@@ -52,7 +47,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// use rug::Float;
 /// use rug::float::SmallFloat;
 /// // `a` requires a heap allocation, has 53-bit precision
-/// let mut a = Float::from((250, 53));
+/// let mut a = Float::with_val(53, 250);
 /// // `b` can reside on the stack
 /// let b = SmallFloat::from(-100f64);
 /// a += &*b;

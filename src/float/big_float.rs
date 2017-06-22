@@ -19,9 +19,9 @@ use super::xmpfr;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use integer::Integer;
-use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, FromRound,
-          MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowRound,
-          SubFromAssign, SubRound};
+use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, MulRound,
+          NegAssign, Pow, PowAssign, PowFromAssign, PowRound, SubFromAssign,
+          SubRound};
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -145,10 +145,10 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 /// use rug::Float;
 /// use rug::float::Constant;
 ///
-/// let log2 = Float::from((Constant::Log2, 53));
-/// let pi = Float::from((Constant::Pi, 53));
-/// let euler = Float::from((Constant::Euler, 53));
-/// let catalan = Float::from((Constant::Catalan, 53));
+/// let log2 = Float::with_val(53, Constant::Log2);
+/// let pi = Float::with_val(53, Constant::Pi);
+/// let euler = Float::with_val(53, Constant::Euler);
+/// let catalan = Float::with_val(53, Constant::Catalan);
 ///
 /// assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
 /// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416e0");
@@ -366,6 +366,15 @@ impl Float {
     /// Create a new floating-point number with the specified
     /// precision and with value 0.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::new(53);
+    /// assert_eq!(f.prec(), 53);
+    /// assert_eq!(f, 0);
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if `prec` is out of the allowed range.
@@ -374,6 +383,70 @@ impl Float {
         let mut ret = Float::new_nan(prec);
         ret.assign(Special::Zero);
         ret
+    }
+
+    /// Create a new floating-point number with the specified
+    /// precision and with the given value, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 1.3);
+    /// assert_eq!(f.prec(), 53);
+    /// assert_eq!(f, 1.3);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
+    #[inline]
+    pub fn with_val<T>(prec: u32, val: T) -> Float
+    where
+        Float: Assign<T>,
+    {
+        let mut ret = Float::new_nan(prec);
+        ret.assign(val);
+        ret
+    }
+
+    /// Create a new floating-point number with the specified
+    /// precision and with the given value, applying the specified
+    /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let (f1, dir) = Float::with_val_round(4, 3.3, Round::Nearest);
+    /// // 3.3 with precision 4 is rounded down to 3.25
+    /// assert_eq!(f1.prec(), 4);
+    /// assert_eq!(f1, 3.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// let (f2, dir) = Float::with_val_round(4, 3.3, Round::Up);
+    /// // 3.3 rounded up to 3.5
+    /// assert_eq!(f2.prec(), 4);
+    /// assert_eq!(f2, 3.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
+    #[inline]
+    pub fn with_val_round<T>(
+        prec: u32,
+        val: T,
+        round: Round,
+    ) -> (Float, Ordering)
+    where
+        Float: AssignRound<T, Round = Round, Ordering = Ordering>,
+    {
+        let mut ret = Float::new_nan(prec);
+        let ord = ret.assign_round(val, round);
+        (ret, ord)
     }
 
     #[inline]
@@ -507,10 +580,10 @@ impl Float {
     /// use rug::Float;
     ///
     /// let valid1 = Float::valid_str_radix("12.23e-4", 4);
-    /// let f1 = Float::from((valid1.unwrap(), 53));
+    /// let f1 = Float::with_val(53, valid1.unwrap());
     /// assert_eq!(f1, (2.0 + 4.0 * 1.0 + 0.25 * (2.0 + 0.25 * 3.0)) / 256.0);
     /// let valid2 = Float::valid_str_radix("12.yz@2", 36);
-    /// let f2 = Float::from((valid2.unwrap(), 53));
+    /// let f2 = Float::with_val(53, valid2.unwrap());
     /// assert_eq!(f2, 35 + 36 * (34 + 36 * (2 + 36 * 1)));
     ///
     /// let invalid = Float::valid_str_radix("ffe-2", 16);
@@ -658,7 +731,7 @@ impl Float {
     /// ```rust
     /// use rug::{Assign, Float};
     /// use rug::float::Special;
-    /// let mut float = Float::from((6.5, 16));
+    /// let mut float = Float::with_val(16, 6.5);
     /// // 6.5 in binary is 110.1
     /// // Since the precision is 16 bits, this becomes
     /// // 1101_0000_0000_0000 times two to the power of -12
@@ -691,7 +764,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Float, FromRound, Rational};
+    /// use rug::{Float, Rational};
     /// use rug::float::Round;
     /// use std::str::FromStr;
     /// use std::cmp::Ordering;
@@ -705,8 +778,7 @@ impl Float {
     /// let fr = f.to_rational().unwrap();
     /// // Since f == fr and f was rounded down, r != fr.
     /// assert_ne!(r, fr);
-    /// let res = Float::from_round(&fr, 35, Round::Down);
-    /// let (frf, frf_rounding) = res;
+    /// let (frf, frf_rounding) = Float::with_val_round(35, &fr, Round::Down);
     /// assert_eq!(frf_rounding, Ordering::Equal);
     /// assert_eq!(frf, f);
     /// assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
@@ -718,9 +790,9 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     ///
-    /// let large_f = Float::from((6.5, 16));
+    /// let large_f = Float::with_val(16, 6.5);
     /// let large_r = large_f.to_rational().unwrap();
-    /// let small_f = Float::from((-0.125, 16));
+    /// let small_f = Float::with_val(16, -0.125);
     /// let small_r = small_f.to_rational().unwrap();
     ///
     /// assert_eq!(*large_r.numer(), 13);
@@ -843,7 +915,7 @@ impl Float {
     /// let zero = Float::new(64);
     /// let (d0, exp0) = zero.to_f32_exp();
     /// assert_eq!((d0, exp0), (0.0, 0));
-    /// let three_eighths = Float::from((0.375, 64));
+    /// let three_eighths = Float::with_val(64, 0.375);
     /// let (d3_8, exp3_8) = three_eighths.to_f32_exp();
     /// assert_eq!((d3_8, exp3_8), (0.75, -1));
     /// ```
@@ -865,7 +937,7 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use rug::float::Round;
-    /// let frac_10_3 = Float::from((10, 64)) / 3u32;
+    /// let frac_10_3 = Float::with_val(64, 10) / 3u32;
     /// let (f_down, exp_down) = frac_10_3.to_f32_exp_round(Round::Down);
     /// assert_eq!((f_down, exp_down), (0.8333333, 2));
     /// let (f_up, exp_up) = frac_10_3.to_f32_exp_round(Round::Up);
@@ -928,10 +1000,10 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use rug::float::Special;
-    /// let neg_inf = Float::from((Special::MinusInfinity, 53));
+    /// let neg_inf = Float::with_val(53, Special::MinusInfinity);
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
-    /// let fifteen = Float::from((15, 8));
+    /// let fifteen = Float::with_val(8, 15);
     /// assert_eq!(fifteen.to_string_radix(10, None), "1.500e1");
     /// assert_eq!(fifteen.to_string_radix(16, None), "f.00@0");
     /// assert_eq!(fifteen.to_string_radix(10, Some(2)), "1.5e1");
@@ -1382,14 +1454,14 @@ impl Float {
         /// ```rust
         /// use rug::{Assign, Float};
         /// // sin(0.5) = 0.47943, cos(0.5) = 0.87758
-        /// let angle = Float::from((0.5, 53));
+        /// let angle = Float::with_val(53, 0.5);
         /// let r = angle.sin_cos_ref();
         /// // use only 10 bits of precision here to
         /// // make comparison easier
         /// let (mut sin, mut cos) = (Float::new(10), Float::new(10));
         /// (&mut sin, &mut cos).assign(r);
-        /// assert_eq!(sin, Float::from((0.47943, 10)));
-        /// assert_eq!(cos, Float::from((0.87748, 10)));
+        /// assert_eq!(sin, Float::with_val(10, 0.47943));
+        /// assert_eq!(cos, Float::with_val(10, 0.87748));
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_float! {
@@ -1519,14 +1591,14 @@ impl Float {
         /// ```rust
         /// use rug::{Assign, Float};
         /// // sinh(0.5) = 0.52110, cosh(0.5) = 1.1276
-        /// let angle = Float::from((0.5, 53));
+        /// let angle = Float::with_val(53, 0.5);
         /// let r = angle.sinh_cosh_ref();
         /// // use only 10 bits of precision here to
         /// // make comparison easier
         /// let (mut sinh, mut cosh) = (Float::new(10), Float::new(10));
         /// (&mut sinh, &mut cosh).assign(r);
-        /// assert_eq!(sinh, Float::from((0.52110, 10)));
-        /// assert_eq!(cosh, Float::from((1.1276, 10)));
+        /// assert_eq!(sinh, Float::with_val(10, 0.52110));
+        /// assert_eq!(cosh, Float::with_val(10, 1.1276));
         fn sinh_cosh_ref -> SinhCoshRef;
     }
     math_op1_float! {
@@ -1697,11 +1769,11 @@ impl Float {
     /// let mut check = Float::new(53);
     ///
     /// // gamma of 1/2 is sqrt(pi)
-    /// f = Float::from((Constant::Pi, 64));
+    /// f = Float::with_val(64, Constant::Pi);
     /// f.sqrt().ln();
     /// let lgamma_1_2 = f;
     ///
-    /// f = Float::from((0.5, 53));
+    /// f = Float::with_val(53, 0.5);
     /// // gamma of 1/2 is positive
     /// assert_eq!(f.ln_abs_gamma(), Ordering::Greater);
     /// // check is correct to 53 significant bits
@@ -1709,11 +1781,11 @@ impl Float {
     /// assert_eq!(f, check);
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
-    /// f = Float::from((Constant::Pi, 64)) * 4;
+    /// f = Float::with_val(64, Constant::Pi) * 4;
     /// f.sqrt().ln();
     /// let lgamma_neg_1_2 = f;
     ///
-    /// f = Float::from((-0.5, 53));
+    /// f = Float::with_val(53, -0.5);
     /// // gamma of -1/2 is negative
     /// assert_eq!(f.ln_abs_gamma(), Ordering::Less);
     /// // check is correct to 53 significant bits
@@ -1744,11 +1816,11 @@ impl Float {
     /// let mut check = Float::new(53);
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
-    /// f = Float::from((Constant::Pi, 64)) * 4;
+    /// f = Float::with_val(64, Constant::Pi) * 4;
     /// f.sqrt().ln();
     /// let lgamma_neg_1_2 = f;
     ///
-    /// f = Float::from((-0.5, 53));
+    /// f = Float::with_val(53, -0.5);
     /// let (sign, dir) = f.ln_abs_gamma_round(Round::Nearest);
     /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
@@ -1785,11 +1857,11 @@ impl Float {
     /// let mut check = Float::new(53);
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
-    /// f = Float::from((Constant::Pi, 64)) * 4;
+    /// f = Float::with_val(64, Constant::Pi) * 4;
     /// f.sqrt().ln();
     /// let lgamma_neg_1_2 = f;
     ///
-    /// let neg_1_2 = Float::from((-0.5, 53));
+    /// let neg_1_2 = Float::with_val(53, -0.5);
     /// f = Float::new(53);
     /// let mut sign = Ordering::Equal;
     ///
@@ -2014,7 +2086,7 @@ impl Float {
         /// ```rust
         /// use rug::{AssignRound, Float};
         /// use rug::float::Round;
-        /// let f = Float::from((6.5, 53));
+        /// let f = Float::with_val(53, 6.5);
         /// // 6.5 (binary 110.1) can be rounded to 7 (binary 111)
         /// let r = f.round_ref();
         /// // use only 2 bits of precision in destination
@@ -2181,34 +2253,6 @@ impl Float {
             )
         };
         ordering2(ret)
-    }
-}
-
-impl<T> From<(T, u32)> for Float
-where
-    Float: FromRound<T, u32, Round = Round>,
-{
-    #[inline]
-    fn from((t, prec): (T, u32)) -> Float {
-        Float::from_round(t, prec, Round::Nearest).0
-    }
-}
-
-impl<T> FromRound<T, u32> for Float
-where
-    Float: AssignRound<
-        T,
-        Round = Round,
-        Ordering = Ordering,
-    >,
-{
-    type Round = Round;
-    type Ordering = Ordering;
-    #[inline]
-    fn from_round(t: T, prec: u32, round: Round) -> (Float, Ordering) {
-        let mut ret = Float::new_nan(prec);
-        let ord = ret.assign_round(t, round);
-        (ret, ord)
     }
 }
 

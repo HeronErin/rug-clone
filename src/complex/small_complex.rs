@@ -54,7 +54,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// use rug::Complex;
 /// use rug::complex::SmallComplex;
 /// // `a` requires a heap allocation
-/// let mut a = Complex::from(((1, 2), 53));
+/// let mut a = Complex::with_val(53, (1, 2));
 /// // `b` can reside on the stack
 /// let b = SmallComplex::from((-10f64, -20.5f64));
 /// a += &*b;
