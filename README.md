@@ -91,16 +91,16 @@ Note that the the `complex` feature will enable the `float` feature,
 on which it depends.
 
 [gmp home]:  https://gmplib.org/
-[gmp]:       https://tspiteri.gitlab.io/rug/gmp/index.html
+[gmp]:       https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
 [gpl]:       https://www.gnu.org/licenses/gpl-3.0.html
 [lgpl]:      https://www.gnu.org/licenses/lgpl-3.0.en.html
 [mpc home]:  http://www.multiprecision.org/
-[mpc]:       https://tspiteri.gitlab.io/rug/mpc/index.html
+[mpc]:       https://tspiteri.gitlab.io/gmp-mpfr-sys/mpc/index.html
 [mpfr home]: http://www.mpfr.org/
-[mpfr]:      https://tspiteri.gitlab.io/rug/mpfr/index.html
-[rug com]:   https://tspiteri.gitlab.io/rug/rug/struct.Complex.html
-[rug flo]:   https://tspiteri.gitlab.io/rug/rug/struct.Float.html
-[rug int]:   https://tspiteri.gitlab.io/rug/rug/struct.Integer.html
-[rug rat]:   https://tspiteri.gitlab.io/rug/rug/struct.Rational.html
-[rug]:       https://tspiteri.gitlab.io/rug/rug/index.html
-[sys]:       https://tspiteri.gitlab.io/rug/gmp_mpfr_sys/index.html
+[mpfr]:      https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
+[rug com]:   https://docs.rs/rug/*/rug/struct.Complex.html
+[rug flo]:   https://docs.rs/rug/*/rug/struct.Float.html
+[rug int]:   https://docs.rs/rug/*/rug/struct.Integer.html
+[rug rat]:   https://docs.rs/rug/*/rug/struct.Rational.html
+[rug]:       https://docs.rs/rug/
+[sys]:       https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp_mpfr_sys/index.html
