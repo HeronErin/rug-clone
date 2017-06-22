@@ -21,14 +21,14 @@ by the Free Software Foundation, either version 3 of the License, or
 on the low-level bindings in the [`gmp-mpfr-sys`][sys] crate, which
 provides RUST FFI bindings for:
 
-* the [GNU Multiple Precision Arithmetic Library][gmp home] (GMP),
-* the [GNU MPFR Library][mpfr home], a library for multiple-precision
+* the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
+* the [GNU MPFR Library][mpfr], a library for multiple-precision
   floating-point computations, and
-* [GNU MPC][mpc home], a library for the arithmetic of complex numbers
-  with arbitrarily high precision.
+* [GNU MPC][mpc], a library for the arithmetic of complex numbers with
+  arbitrarily high precision.
 
-It can be helpful to refer to the documentation of the [GMP][gmp],
-[MPFR][mpfr] and [MPC][mpc] libraries.
+It can be helpful to refer to the documentation of the [GMP][gmp doc],
+[MPFR][mpfr doc] and [MPC][mpc doc] libraries.
 
 ## Examples
 
@@ -90,17 +90,17 @@ features = ["rational", "float"]
 Note that the the `complex` feature will enable the `float` feature,
 on which it depends.
 
-[gmp home]:  https://gmplib.org/
-[gmp]:       https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
-[gpl]:       https://www.gnu.org/licenses/gpl-3.0.html
-[lgpl]:      https://www.gnu.org/licenses/lgpl-3.0.en.html
-[mpc home]:  http://www.multiprecision.org/
-[mpc]:       https://tspiteri.gitlab.io/gmp-mpfr-sys/mpc/index.html
-[mpfr home]: http://www.mpfr.org/
-[mpfr]:      https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
-[rug com]:   https://docs.rs/rug/*/rug/struct.Complex.html
-[rug flo]:   https://docs.rs/rug/*/rug/struct.Float.html
-[rug int]:   https://docs.rs/rug/*/rug/struct.Integer.html
-[rug rat]:   https://docs.rs/rug/*/rug/struct.Rational.html
-[rug]:       https://docs.rs/rug/
-[sys]:       https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp_mpfr_sys/index.html
+[gmp doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
+[gmp]:      https://gmplib.org/
+[gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
+[lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
+[mpc doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/mpc/index.html
+[mpc]:      http://www.multiprecision.org/
+[mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
+[mpfr]:     http://www.mpfr.org/
+[rug com]:  https://docs.rs/rug/*/rug/struct.Complex.html
+[rug flo]:  https://docs.rs/rug/*/rug/struct.Float.html
+[rug int]:  https://docs.rs/rug/*/rug/struct.Integer.html
+[rug rat]:  https://docs.rs/rug/*/rug/struct.Rational.html
+[rug]:      https://docs.rs/rug/
+[sys]:      https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp_mpfr_sys/index.html
