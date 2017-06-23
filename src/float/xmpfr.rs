@@ -32,6 +32,7 @@ use std::os::raw::{c_int, c_long, c_ulong};
 #[cfg(feature = "integer")]
 use std::u32;
 
+#[inline]
 pub unsafe fn recip(
     rop: *mut mpfr_t,
     op: *const mpfr_t,
@@ -40,6 +41,7 @@ pub unsafe fn recip(
     mpfr::ui_div(rop, 1, op, rnd)
 }
 
+#[inline]
 pub unsafe fn jn(
     rop: *mut mpfr_t,
     op: *const mpfr_t,
@@ -49,6 +51,7 @@ pub unsafe fn jn(
     mpfr::jn(rop, n.into(), op, rnd)
 }
 
+#[inline]
 pub unsafe fn yn(
     rop: *mut mpfr_t,
     op: *const mpfr_t,
@@ -59,6 +62,7 @@ pub unsafe fn yn(
 }
 
 #[cfg(feature = "integer")]
+#[inline]
 pub unsafe fn z_div(
     r: *mut mpfr_t,
     lhs: *const gmp::mpz_t,
@@ -69,6 +73,7 @@ pub unsafe fn z_div(
 }
 
 #[cfg(feature = "rational")]
+#[inline]
 pub unsafe fn q_sub(
     r: *mut mpfr_t,
     lhs: *const gmp::mpq_t,
@@ -89,6 +94,7 @@ pub unsafe fn q_sub(
 }
 
 #[cfg(feature = "rational")]
+#[inline]
 pub unsafe fn q_div(
     r: *mut mpfr_t,
     lhs: *const gmp::mpq_t,
@@ -156,10 +162,12 @@ unsafe fn divf_mulz_divz(
     }
 }
 
+#[inline]
 pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::set_d(rop, op as f64, rnd)
 }
 
+#[inline]
 pub unsafe fn add_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
@@ -169,6 +177,7 @@ pub unsafe fn add_f32(
     mpfr::add_d(rop, op1, op2 as f64, rnd)
 }
 
+#[inline]
 pub unsafe fn sub_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
@@ -178,6 +187,7 @@ pub unsafe fn sub_f32(
     mpfr::sub_d(rop, op1, op2 as f64, rnd)
 }
 
+#[inline]
 pub unsafe fn f32_sub(
     rop: *mut mpfr_t,
     op1: f32,
@@ -187,6 +197,7 @@ pub unsafe fn f32_sub(
     mpfr::d_sub(rop, op1 as f64, op2, rnd)
 }
 
+#[inline]
 pub unsafe fn mul_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
@@ -196,6 +207,7 @@ pub unsafe fn mul_f32(
     mpfr::mul_d(rop, op1, op2 as f64, rnd)
 }
 
+#[inline]
 pub unsafe fn div_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
@@ -205,6 +217,7 @@ pub unsafe fn div_f32(
     mpfr::div_d(rop, op1, op2 as f64, rnd)
 }
 
+#[inline]
 pub unsafe fn f32_div(
     rop: *mut mpfr_t,
     op1: f32,
@@ -214,6 +227,7 @@ pub unsafe fn f32_div(
     mpfr::d_div(rop, op1 as f64, op2, rnd)
 }
 
+#[inline]
 pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
     if mem::size_of::<c_long>() >= 64 {
         mpfr::set_si(rop, val as c_long, rnd)
@@ -223,6 +237,7 @@ pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
     }
 }
 
+#[inline]
 pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
     if mem::size_of::<c_ulong>() >= 64 {
         mpfr::set_ui(rop, val as c_ulong, rnd)
@@ -232,6 +247,7 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
     }
 }
 
+#[inline]
 pub unsafe fn pow_f64(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
@@ -242,6 +258,7 @@ pub unsafe fn pow_f64(
     mpfr::pow(rop, op1, (*small).inner(), rnd)
 }
 
+#[inline]
 pub unsafe fn pow_f32(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,
@@ -252,6 +269,7 @@ pub unsafe fn pow_f32(
     mpfr::pow(rop, op1, (*small).inner(), rnd)
 }
 
+#[inline]
 pub unsafe fn si_pow(
     rop: *mut mpfr_t,
     op1: c_long,
@@ -262,6 +280,7 @@ pub unsafe fn si_pow(
     mpfr::pow(rop, (*small).inner(), op2, rnd)
 }
 
+#[inline]
 pub unsafe fn f32_pow(
     rop: *mut mpfr_t,
     op1: f32,
@@ -272,6 +291,7 @@ pub unsafe fn f32_pow(
     mpfr::pow(rop, (*small).inner(), op2, rnd)
 }
 
+#[inline]
 pub unsafe fn f64_pow(
     rop: *mut mpfr_t,
     op1: f64,

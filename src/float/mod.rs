@@ -43,6 +43,41 @@
 //! let diff = two_thirds_up - two_thirds_down;
 //! assert_eq!(diff, diff_expected);
 //! ```
+//!
+//! The following example is a translation of the [MPFR
+//! sample](http://www.mpfr.org/sample.html) found on the MPFR
+//! website. The program computes a lower bound on 1 + 1/1! + 1/2! + …
+//! + 1/100! using 200-bit precision. The program writes:
+//!
+//! `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
+//!
+//! ```rust
+//! extern crate rug;
+//! use rug::{AssignRound, Float};
+//! use rug::float::Round;
+//! use rug::ops::{AddRound, MulRound};
+//!
+//! fn main() {
+//!     let mut t = Float::with_val(200, 1.0);
+//!     let mut s = Float::with_val(200, 1.0);
+//!     let mut u = Float::new(200);
+//!     for i in 1..101_u32 {
+//!         // multiply t by i in place, round towards plus infinity
+//!         t.mul_round(i, Round::Up);
+//!         // set u to 1/t, round towards minus infinity
+//!         u.assign_round(t.recip_ref(), Round::Down);
+//!         // increase s by u in place, round towards minus infinity
+//!         s.add_round(&u, Round::Down);
+//!     }
+//!     // `None` means the number of printed digits depends on the precision
+//!     let sr = s.to_string_radix_round(10, None, Round::Down);
+//!     println!("Sum is {}", sr);
+//! #   assert_eq!(
+//! #       sr,
+//! #       "2.7182818284590452353602874713526624977572470936999595749669131"
+//! #   );
+//! }
+//! ```
 
 mod big_float;
 mod small_float;
@@ -318,7 +353,7 @@ mod tests {
             ("-+1", 10),
             ("infinit", 10),
             ("1@1a", 16),
-            ("9e0", 9),
+            ("9", 9),
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(Float::valid_str_radix(s, radix).is_err());

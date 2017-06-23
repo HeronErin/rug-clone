@@ -548,10 +548,10 @@ impl Complex {
     /// let c1 = Complex::with_val(53, 0);
     /// assert_eq!(c1.to_string_radix(10, None), "(0.0 0.0)");
     /// let c2 = Complex::with_val(12, (15, 5));
-    /// assert_eq!(c2.to_string_radix(16, None), "(f.000@0 5.000@0)");
+    /// assert_eq!(c2.to_string_radix(16, None), "(f.000 5.000)");
     /// let c3 = Complex::with_val(53, (10, -4));
-    /// assert_eq!(c3.to_string_radix(10, Some(3)), "(1.00e1 -4.00e0)");
-    /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00e0)");
+    /// assert_eq!(c3.to_string_radix(10, Some(3)), "(1.00e1 -4.00)");
+    /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00)");
     /// ```
     ///
     /// # Panics

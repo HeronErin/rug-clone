@@ -18,11 +18,13 @@ use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
 
+#[inline]
 pub unsafe fn mpq_inv_check_0(rop: *mut mpq_t, op: *const mpq_t) {
     assert_ne!(gmp::mpq_sgn(op), 0, "division by zero");
     gmp::mpq_inv(rop, op);
 }
 
+#[inline]
 pub unsafe fn mpq_mul_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     if op2 >= 0 {
         gmp::mpq_mul_2exp(rop, op1, op2 as c_ulong);
@@ -31,6 +33,7 @@ pub unsafe fn mpq_mul_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     }
 }
 
+#[inline]
 pub unsafe fn mpq_div_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     if op2 >= 0 {
         gmp::mpq_div_2exp(rop, op1, op2 as c_ulong);
@@ -39,6 +42,7 @@ pub unsafe fn mpq_div_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     }
 }
 
+#[inline]
 pub unsafe fn mpq_pow_ui(rop: *mut mpq_t, op1: *const mpq_t, op2: c_ulong) {
     let rop_num = gmp::mpq_numref(rop);
     let rop_den = gmp::mpq_denref(rop);
@@ -48,6 +52,7 @@ pub unsafe fn mpq_pow_ui(rop: *mut mpq_t, op1: *const mpq_t, op2: c_ulong) {
     gmp::mpz_pow_ui(rop_den, op1_den, op2);
 }
 
+#[inline]
 pub unsafe fn mpq_pow_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     if op2 < 0 {
         assert_ne!(gmp::mpq_sgn(op1), 0, "division by zero");
@@ -58,6 +63,7 @@ pub unsafe fn mpq_pow_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
     };
 }
 
+#[inline]
 pub unsafe fn mpq_ceil(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     let numref = gmp::mpq_numref(op as *mut _) as *const _;
     let denref = gmp::mpq_denref(op as *mut _) as *const _;
@@ -71,6 +77,7 @@ pub unsafe fn mpq_ceil(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     }
 }
 
+#[inline]
 pub unsafe fn mpq_floor(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     let numref = gmp::mpq_numref(op as *mut _) as *const _;
     let denref = gmp::mpq_denref(op as *mut _) as *const _;
@@ -84,6 +91,7 @@ pub unsafe fn mpq_floor(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     }
 }
 
+#[inline]
 pub unsafe fn mpq_round(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     let numref = gmp::mpq_numref(op as *mut _) as *const _;
     let denref = gmp::mpq_denref(op as *mut _) as *const _;
@@ -111,12 +119,14 @@ pub unsafe fn mpq_round(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     }
 }
 
+#[inline]
 pub unsafe fn mpq_trunc(rop: *mut gmp::mpz_t, op: *const mpq_t) {
     let numref = gmp::mpq_numref(op as *mut _) as *const _;
     let denref = gmp::mpq_denref(op as *mut _) as *const _;
     gmp::mpz_tdiv_q(rop, numref, denref);
 }
 
+#[inline]
 pub unsafe fn mpq_fract(rop: *mut mpq_t, op: *const mpq_t) {
     let r_numref = gmp::mpq_numref(rop);
     let r_denref = gmp::mpq_denref(rop);
@@ -126,6 +136,7 @@ pub unsafe fn mpq_fract(rop: *mut mpq_t, op: *const mpq_t) {
     gmp::mpz_set(r_denref, denref);
 }
 
+#[inline]
 pub unsafe fn mpq_fract_trunc(
     fop: *mut mpq_t,
     top: *mut gmp::mpz_t,

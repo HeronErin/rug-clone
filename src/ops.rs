@@ -815,6 +815,7 @@ pub trait PowFromRound<Lhs = Self> {
 macro_rules! from_assign {
     { $T:ty; $op:ident; $Imp:ident $method:ident } => {
         impl $Imp for $T {
+            #[inline]
             fn $method(&mut self, lhs: $T) {
                 *self = lhs.$op(*self);
             }
@@ -825,22 +826,26 @@ macro_rules! int_ops {
     { $($T:ty)* } => {
         $(
             impl Assign for $T {
+                #[inline]
                 fn assign(&mut self, src: $T) {
                     *self = src;
                 }
             }
             impl NotAssign for $T {
+                #[inline]
                 fn not_assign(&mut self) {
                     *self = !*self;
                 }
             }
             impl Pow<u32> for $T {
                 type Output = $T;
+                #[inline]
                 fn pow(self, rhs: u32) -> $T {
                     self.pow(rhs)
                 }
             }
             impl PowAssign<u32> for $T {
+                #[inline]
                 fn pow_assign(&mut self, rhs: u32) {
                     *self = self.pow(rhs);
                 }
@@ -860,6 +865,7 @@ macro_rules! int_neg {
     { $($T:ty)* } => {
         $(
             impl NegAssign for $T {
+                #[inline]
                 fn neg_assign(&mut self) {
                     *self = -*self;
                 }
@@ -871,28 +877,33 @@ macro_rules! float_ops {
     { $($T:ty)* } => {
         $(
             impl Assign for $T {
+                #[inline]
                 fn assign(&mut self, src: $T) {
                     *self = src;
                 }
             }
             impl Pow<i32> for $T {
                 type Output = $T;
+                #[inline]
                 fn pow(self, rhs: i32) -> $T {
                     self.powi(rhs)
                 }
             }
             impl PowAssign<i32> for $T {
+                #[inline]
                 fn pow_assign(&mut self, rhs: i32) {
                     *self = self.powi(rhs);
                 }
             }
             impl Pow for $T {
                 type Output = $T;
+                #[inline]
                 fn pow(self, rhs: $T) -> $T {
                     self.powf(rhs)
                 }
             }
             impl PowAssign for $T {
+                #[inline]
                 fn pow_assign(&mut self, rhs: $T) {
                     *self = self.powf(rhs);
                 }
@@ -912,11 +923,14 @@ int_ops!{ i8 i16 i32 i64 u8 u16 u32 u64 }
 int_neg!{ i8 i16 i32 i64 }
 from_assign! { u32; pow; PowFromAssign pow_from_assign }
 float_ops!{ f32 f64 }
+
 impl<'a> AddFromAssign<&'a str> for String {
+    #[inline]
     fn add_from_assign(&mut self, lhs: &str) {
         self.insert_str(0, lhs);
     }
 }
+
 impl<'a> AddFromAssign<&'a str> for Cow<'a, str> {
     fn add_from_assign(&mut self, lhs: &'a str) {
         if lhs.is_empty() {
@@ -937,6 +951,7 @@ impl<'a> AddFromAssign<&'a str> for Cow<'a, str> {
         }
     }
 }
+
 impl<'a> AddFromAssign<Cow<'a, str>> for Cow<'a, str> {
     fn add_from_assign(&mut self, lhs: Cow<'a, str>) {
         if lhs.is_empty() {

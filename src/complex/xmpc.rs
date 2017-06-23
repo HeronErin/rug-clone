@@ -21,6 +21,7 @@ use inner::Inner;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 
+#[inline]
 pub unsafe fn mul_i(
     rop: *mut mpc_t,
     op: *const mpc_t,
@@ -30,6 +31,7 @@ pub unsafe fn mul_i(
     mpc::mul_i(rop, op, if neg { -1 } else { 0 }, rnd)
 }
 
+#[inline]
 pub unsafe fn recip(
     rop: *mut mpc_t,
     op: *const mpc_t,
@@ -38,6 +40,7 @@ pub unsafe fn recip(
     ui_div(rop, 1, op, rnd)
 }
 
+#[inline]
 pub unsafe fn ui_sub(
     x: *mut mpc_t,
     y: c_ulong,
@@ -52,6 +55,7 @@ pub unsafe fn ui_sub(
     )
 }
 
+#[inline]
 pub unsafe fn add_si(
     x: *mut mpc_t,
     y: *const mpc_t,
@@ -65,6 +69,7 @@ pub unsafe fn add_si(
     }
 }
 
+#[inline]
 pub unsafe fn sub_si(
     x: *mut mpc_t,
     y: *const mpc_t,
@@ -78,6 +83,7 @@ pub unsafe fn sub_si(
     }
 }
 
+#[inline]
 pub unsafe fn si_sub(
     x: *mut mpc_t,
     y: c_long,
@@ -92,6 +98,7 @@ pub unsafe fn si_sub(
     )
 }
 
+#[inline]
 pub unsafe fn div_si(
     x: *mut mpc_t,
     y: *const mpc_t,
@@ -106,6 +113,7 @@ pub unsafe fn div_si(
     )
 }
 
+#[inline]
 pub unsafe fn si_div(
     x: *mut mpc_t,
     y: c_long,
@@ -116,6 +124,7 @@ pub unsafe fn si_div(
     mpc::div(x, dividend.inner(), z, r)
 }
 
+#[inline]
 pub unsafe fn ui_div(
     x: *mut mpc_t,
     y: c_ulong,
@@ -126,6 +135,7 @@ pub unsafe fn ui_div(
     mpc::div(x, dividend.inner(), z, r)
 }
 
+#[inline]
 pub unsafe fn pow_f32(
     x: *mut mpc_t,
     y: *const mpc_t,
@@ -135,6 +145,7 @@ pub unsafe fn pow_f32(
     mpc::pow_d(x, y, z as f64, r)
 }
 
+#[inline]
 fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
     let re = match r & 0x0f {
         0 => mpfr::rnd_t::RNDN,
@@ -157,6 +168,7 @@ fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
     (re, im)
 }
 
+#[inline]
 fn ord_ord(re: c_int, im: c_int) -> c_int {
     let r = match re.cmp(&0) {
         Ordering::Less => 2,

@@ -19,6 +19,9 @@ pub trait Inner {
     fn inner(&self) -> &Self::Output;
 }
 
+// inner_mut() is unsafe as it can be used to change the internal
+// state, e.g. Integer::inner_mut() will give an &mut gmp::mpz_t,
+// which can be used to modify the pointer inside.
 pub trait InnerMut: Inner {
     unsafe fn inner_mut(&mut self) -> &mut Self::Output;
 }

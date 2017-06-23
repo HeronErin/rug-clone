@@ -154,7 +154,7 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 /// let catalan = Float::with_val(53, Constant::Catalan);
 ///
 /// assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
-/// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416e0");
+/// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416");
 /// assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
 /// assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
 /// ```
@@ -1009,11 +1009,11 @@ impl Float {
     /// let neg_inf = Float::with_val(53, Special::MinusInfinity);
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
-    /// let fifteen = Float::with_val(8, 15);
-    /// assert_eq!(fifteen.to_string_radix(10, None), "1.500e1");
-    /// assert_eq!(fifteen.to_string_radix(16, None), "f.00@0");
-    /// assert_eq!(fifteen.to_string_radix(10, Some(2)), "1.5e1");
-    /// assert_eq!(fifteen.to_string_radix(16, Some(4)), "f.000@0");
+    /// let twentythree = Float::with_val(8, 23);
+    /// assert_eq!(twentythree.to_string_radix(10, None), "2.300e1");
+    /// assert_eq!(twentythree.to_string_radix(16, None), "1.70@1");
+    /// assert_eq!(twentythree.to_string_radix(10, Some(2)), "2.3e1");
+    /// assert_eq!(twentythree.to_string_radix(16, Some(4)), "1.700@1");
     /// ```
     ///
     /// # Panics
@@ -3257,13 +3257,15 @@ fn make_string(
     unsafe {
         mpfr::free_str(s);
     }
-    buf.push(if radix <= 10 {
-        char_to_upper_if('e', to_upper)
-    } else {
-        '@'
-    });
     let exp = exp.checked_sub(1).expect("overflow");
-    let _ = write!(buf, "{}", exp);
+    if exp != 0 {
+        buf.push(if radix <= 10 {
+            char_to_upper_if('e', to_upper)
+        } else {
+            '@'
+        });
+        let _ = write!(buf, "{}", exp);
+    }
     buf
 }
 
