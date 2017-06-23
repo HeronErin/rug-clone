@@ -199,9 +199,9 @@ impl Complex {
             "precision out of range"
         );
         unsafe {
-            let mut inner: mpc_t = mem::uninitialized();
-            mpc::init3(&mut inner, p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
-            Complex { inner: inner }
+            let mut c: Complex = mem::uninitialized();
+            mpc::init3(c.inner_mut(), p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
+            c
         }
     }
 

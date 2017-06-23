@@ -187,9 +187,9 @@ impl Integer {
     #[inline]
     pub fn new() -> Integer {
         unsafe {
-            let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init(&mut inner);
-            Integer { inner: inner }
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init(ret.inner_mut());
+            ret
         }
     }
 
@@ -207,9 +207,9 @@ impl Integer {
     pub fn with_capacity(bits: usize) -> Integer {
         assert_eq!(bits as gmp::bitcnt_t as usize, bits, "overflow");
         unsafe {
-            let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init2(&mut inner, bits as gmp::bitcnt_t);
-            Integer { inner: inner }
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init2(ret.inner_mut(), bits as gmp::bitcnt_t);
+            ret
         }
     }
 
@@ -327,9 +327,9 @@ impl Integer {
     pub fn from_f64(val: f64) -> Option<Integer> {
         if val.is_finite() {
             unsafe {
-                let mut inner: mpz_t = mem::uninitialized();
-                gmp::mpz_init_set_d(&mut inner, val);
-                Some(Integer { inner: inner })
+                let mut i: Integer = mem::uninitialized();
+                gmp::mpz_init_set_d(i.inner_mut(), val);
+                Some(i)
             }
         } else {
             None
@@ -2168,9 +2168,9 @@ impl<'a> From<&'a Integer> for Integer {
     #[inline]
     fn from(val: &Integer) -> Integer {
         unsafe {
-            let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init_set(&mut inner, val.inner());
-            Integer { inner: inner }
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init_set(ret.inner_mut(), val.inner());
+            ret
         }
     }
 }
@@ -2179,9 +2179,9 @@ impl From<i32> for Integer {
     #[inline]
     fn from(val: i32) -> Integer {
         unsafe {
-            let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init_set_si(&mut inner, val.into());
-            Integer { inner: inner }
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init_set_si(ret.inner_mut(), val.into());
+            ret
         }
     }
 }
@@ -2191,9 +2191,9 @@ impl From<i64> for Integer {
     fn from(val: i64) -> Integer {
         if mem::size_of::<c_long>() >= 8 {
             unsafe {
-                let mut inner: mpz_t = mem::uninitialized();
-                gmp::mpz_init_set_si(&mut inner, val as c_long);
-                Integer { inner: inner }
+                let mut ret: Integer = mem::uninitialized();
+                gmp::mpz_init_set_si(ret.inner_mut(), val as c_long);
+                ret
             }
         } else {
             let mut i = Integer::new();
@@ -2207,9 +2207,9 @@ impl From<u32> for Integer {
     #[inline]
     fn from(val: u32) -> Integer {
         unsafe {
-            let mut inner: mpz_t = mem::uninitialized();
-            gmp::mpz_init_set_ui(&mut inner, val.into());
-            Integer { inner: inner }
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init_set_ui(ret.inner_mut(), val.into());
+            ret
         }
     }
 }
@@ -2219,9 +2219,9 @@ impl From<u64> for Integer {
     fn from(val: u64) -> Integer {
         if mem::size_of::<c_ulong>() >= 8 {
             unsafe {
-                let mut inner: mpz_t = mem::uninitialized();
-                gmp::mpz_init_set_ui(&mut inner, val as c_ulong);
-                Integer { inner: inner }
+                let mut ret: Integer = mem::uninitialized();
+                gmp::mpz_init_set_ui(ret.inner_mut(), val as c_ulong);
+                ret
             }
         } else {
             let mut i = Integer::new();

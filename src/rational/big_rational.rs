@@ -100,11 +100,11 @@ impl Rational {
     /// ```
     #[inline]
     pub fn new() -> Rational {
-        let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
-            gmp::mpq_init(&mut inner);
+            let mut ret: Rational = mem::uninitialized();
+            gmp::mpq_init(ret.inner_mut());
+            ret
         }
-        Rational { inner: inner }
     }
 
     /// Creates a `Rational` from an `f32` if it is finite, losing no

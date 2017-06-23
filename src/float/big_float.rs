@@ -457,9 +457,9 @@ impl Float {
             "precision out of range"
         );
         unsafe {
-            let mut inner: mpfr_t = mem::uninitialized();
-            mpfr::init2(&mut inner, prec as mpfr::prec_t);
-            Float { inner: inner }
+            let mut ret: Float = mem::uninitialized();
+            mpfr::init2(ret.inner_mut(), prec as mpfr::prec_t);
+            ret
         }
     }
 
