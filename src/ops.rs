@@ -67,7 +67,7 @@ pub trait NotAssign {
     fn not_assign(&mut self);
 }
 
-/// Add and assign the result to the rhs operand.
+/// Compound addition and assignment to the rhs operand.
 ///
 /// `rhs.add_from_assign(lhs)` has the same effect as
 /// `rhs = lhs + rhs`.
@@ -87,7 +87,7 @@ pub trait AddFromAssign<Lhs = Self> {
     fn add_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Subtract and assign the result to the rhs operand.
+/// Compound subtraction and assignment to the rhs operand.
 ///
 /// `rhs.sub_from_assign(lhs)` has the same effect as
 /// `rhs = lhs - rhs`.
@@ -107,7 +107,7 @@ pub trait SubFromAssign<Lhs = Self> {
     fn sub_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Multiply and assign the result to the rhs operand.
+/// Compound multiplication and assignment to the rhs operand.
 ///
 /// `rhs.mul_from_assign(lhs)` has the same effect as
 /// `rhs = lhs * rhs`.
@@ -127,7 +127,7 @@ pub trait MulFromAssign<Lhs = Self> {
     fn mul_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Divide and assign the result to the rhs operand.
+/// Compound division and assignment to the rhs operand.
 ///
 /// `rhs.div_from_assign(lhs)` has the same effect as
 /// `rhs = lhs / rhs`.
@@ -147,7 +147,7 @@ pub trait DivFromAssign<Lhs = Self> {
     fn div_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Compute the remainder and assign the result to the rhs operand.
+/// Compound remainder operation and assignment to the rhs operand.
 ///
 /// `rhs.rem_from_assign(lhs)` has the same effect as
 /// `rhs = lhs % rhs`.
@@ -167,7 +167,7 @@ pub trait RemFromAssign<Lhs = Self> {
     fn rem_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Perform bitwise AND and assign the result to the rhs operand.
+/// Compound bitwise AND and assignment to the rhs operand.
 ///
 /// `rhs.bitand_from_assign(lhs)` has the same effect as
 /// `rhs = lhs & rhs`.
@@ -187,7 +187,7 @@ pub trait BitAndFromAssign<Lhs = Self> {
     fn bitand_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Perform bitwise OR and assign the result to the rhs operand.
+/// Compound bitwise OR and assignment to the rhs operand.
 ///
 /// `rhs.bitor_from_assign(lhs)` has the same effect as
 /// `rhs = lhs | rhs`.
@@ -207,7 +207,7 @@ pub trait BitOrFromAssign<Lhs = Self> {
     fn bitor_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Perform bitwise XOR and assign the result to the rhs operand.
+/// Compound bitwise XOR and assignment to the rhs operand.
 ///
 /// `rhs.bitxor_from_assign(lhs)` has the same effect as
 /// `rhs = lhs ^ rhs`.
@@ -228,7 +228,7 @@ pub trait BitXorFromAssign<Lhs = Self> {
 }
 
 /// The power operation.
-pub trait Pow<Rhs> {
+pub trait Pow<Rhs = Self> {
     /// The resulting type after the power operation.
     type Output;
     /// Performs the power operation.
@@ -246,7 +246,7 @@ pub trait Pow<Rhs> {
 }
 
 /// Compound power operation and assignment.
-pub trait PowAssign<Rhs> {
+pub trait PowAssign<Rhs = Self> {
     /// Peforms the power operation.
     ///
     /// # Examples
@@ -261,7 +261,7 @@ pub trait PowAssign<Rhs> {
     fn pow_assign(&mut self, rhs: Rhs);
 }
 
-/// Compute the power and assign the result to the rhs operand.
+/// Compound power operation and assignment to the rhs operand.
 ///
 /// `rhs.pow_from_assign(lhs)` has the same effect as
 /// `rhs = lhs.pow(rhs)`.
@@ -283,14 +283,13 @@ pub trait PowFromAssign<Lhs = Self> {
     fn pow_from_assign(&mut self, lhs: Lhs);
 }
 
-/// Assigns to a number from another value, applying the specified
-/// rounding method.
+/// Assignment with a specified rounding method.
 pub trait AssignRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
-    /// Peforms the assignment and rounding.
+    /// Peforms the assignment.
     ///
     /// # Examples
     ///
@@ -314,14 +313,12 @@ pub trait AssignRound<Rhs = Self> {
     fn assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
-/// Addition with a specified rounding method.
+/// Compound addition and assignment with a specified rounding method.
 pub trait AddRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
-    /// The resulting type after the addition.
-    type Output;
     /// Performs the addition.
     ///
     /// # Examples
@@ -333,28 +330,55 @@ pub trait AddRound<Rhs = Self> {
     /// use rug::ops::AddRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::with_val(4, -3);
-    /// let (f, dir) = minus_three.add_round(-0.3, Round::Nearest);
+    /// let mut f = Float::with_val(4, -3);
+    /// let dir = f.add_round(-0.3, Round::Nearest);
     /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn add_round(
-        self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> (Self::Output, Self::Ordering);
+    fn add_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
-/// Subtraction with a specified rounding method.
+/// Compound addition and assignment to the rhs operand with a
+/// specified rounding method.
+pub trait AddFromRound<Lhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the addition.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::AddFromRound;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, -0.3);
+    /// let dir = f.add_from_round(-3, Round::Nearest);
+    /// // -3.3 rounded up to -3.25
+    /// assert_eq!(f, -3.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn add_from_round(
+        &mut self,
+        lhs: Lhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
+}
+
+/// Compound subtraction and assignment with a specified rounding
+/// method.
 pub trait SubRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
-    /// The resulting type after the subtraction.
-    type Output;
     /// Performs the subtraction.
     ///
     /// # Examples
@@ -366,28 +390,55 @@ pub trait SubRound<Rhs = Self> {
     /// use rug::ops::SubRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::with_val(4, -3);
-    /// let (f, dir) = minus_three.sub_round(0.3, Round::Nearest);
+    /// let mut f = Float::with_val(4, -3);
+    /// let dir = f.sub_round(0.3, Round::Nearest);
     /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn sub_round(
-        self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> (Self::Output, Self::Ordering);
+    fn sub_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
-/// Multiplication with a specified rounding method.
+/// Compound subtraction and assignment to the rhs operand with a
+/// specified rounding method.
+pub trait SubFromRound<Lhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the subtraction.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::SubFromRound;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, 0.3);
+    /// let dir = f.sub_from_round(-3, Round::Nearest);
+    /// // -3.3 rounded up to -3.25
+    /// assert_eq!(f, -3.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn sub_from_round(
+        &mut self,
+        lhs: Lhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
+}
+
+/// Compound multiplication and assignment with a specified rounding
+/// method.
 pub trait MulRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
-    /// The resulting type after the multiplication.
-    type Output;
     /// Performs the multiplication.
     ///
     /// # Examples
@@ -399,28 +450,54 @@ pub trait MulRound<Rhs = Self> {
     /// use rug::ops::MulRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::with_val(4, -3);
-    /// let (f, dir) = minus_three.mul_round(13, Round::Nearest);
+    /// let mut f = Float::with_val(4, -3);
+    /// let dir = f.mul_round(13, Round::Nearest);
     /// // -39 rounded down to -40
     /// assert_eq!(f, -40);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn mul_round(
-        self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> (Self::Output, Self::Ordering);
+    fn mul_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
-/// Division with a specified rounding method.
+/// Compound multiplication and assignment to the rhs operand with a
+/// specified rounding method.
+pub trait MulFromRound<Lhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the multiplication.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::MulFromRound;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, 13);
+    /// let dir = f.mul_from_round(-3, Round::Nearest);
+    /// // -39 rounded down to -40
+    /// assert_eq!(f, -40);
+    /// assert_eq!(dir, Ordering::Less);
+    /// # }
+    /// ```
+    fn mul_from_round(
+        &mut self,
+        rhs: Lhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
+}
+
+/// Compound division and assignment with a specified rounding method.
 pub trait DivRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
-    /// The resulting type after the division.
-    type Output;
     /// Performs the division.
     ///
     /// # Examples
@@ -432,28 +509,55 @@ pub trait DivRound<Rhs = Self> {
     /// use rug::ops::DivRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::with_val(4, -3);
-    /// let (f, dir) = minus_three.div_round(5, Round::Nearest);
+    /// let mut f = Float::with_val(4, -3);
+    /// let dir = f.div_round(5, Round::Nearest);
     /// // -0.6 rounded down to -0.625
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn div_round(
-        self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> (Self::Output, Self::Ordering);
+    fn div_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
-/// The power operation with a specified rounding method.
-pub trait PowRound<Rhs> {
+/// Compound division and assignment to the rhs operand with a
+/// specified rounding method.
+pub trait DivFromRound<Lhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
     type Ordering;
-    /// The resulting type after the power operation.
-    type Output;
+    /// Performs the division.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::DivFromRound;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, 5);
+    /// let dir = f.div_from_round(-3, Round::Nearest);
+    /// // -0.6 rounded down to -0.625
+    /// assert_eq!(f, -0.625);
+    /// assert_eq!(dir, Ordering::Less);
+    /// # }
+    /// ```
+    fn div_from_round(
+        &mut self,
+        rhs: Lhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
+}
+
+/// Compound power operation and assignment with a specified rounding
+/// method.
+pub trait PowRound<Rhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
     /// Performs the power operation.
     ///
     /// # Examples
@@ -465,16 +569,44 @@ pub trait PowRound<Rhs> {
     /// use rug::ops::PowRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
-    /// let minus_three = Float::with_val(4, -3);
-    /// let (f, dir) = minus_three.pow_round(5, Round::Nearest);
+    /// let mut f = Float::with_val(4, -3);
+    /// let dir = f.pow_round(5, Round::Nearest);
     /// // -243 rounded up to -240
     /// assert_eq!(f, -240);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn pow_round(
-        self,
-        rhs: Rhs,
+    fn pow_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+}
+
+/// Compound power operation and assignment to the rhs operand with a
+/// specified rounding method.
+pub trait PowFromRound<Lhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the power operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::PowFromRound;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::with_val(4, 5);
+    /// let dir = f.pow_from_round(-3, Round::Nearest);
+    /// // -243 rounded up to -240
+    /// assert_eq!(f, -240);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn pow_from_round(
+        &mut self,
+        rhs: Lhs,
         round: Self::Round,
-    ) -> (Self::Output, Self::Ordering);
+    ) -> Self::Ordering;
 }

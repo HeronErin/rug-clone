@@ -241,3 +241,33 @@ pub unsafe fn pow_f32(
     let small = SmallFloat::from(op2);
     mpfr::pow(rop, op1, (*small).inner(), rnd)
 }
+
+pub unsafe fn si_pow(
+    rop: *mut mpfr_t,
+    op1: c_long,
+    op2: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let small = SmallFloat::from(op1);
+    mpfr::pow(rop, (*small).inner(), op2, rnd)
+}
+
+pub unsafe fn f32_pow(
+    rop: *mut mpfr_t,
+    op1: f32,
+    op2: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let small = SmallFloat::from(op1);
+    mpfr::pow(rop, (*small).inner(), op2, rnd)
+}
+
+pub unsafe fn f64_pow(
+    rop: *mut mpfr_t,
+    op1: f64,
+    op2: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let small = SmallFloat::from(op1);
+    mpfr::pow(rop, (*small).inner(), op2, rnd)
+}

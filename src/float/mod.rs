@@ -31,13 +31,12 @@
 //! // A precision of 32 significant bits is specified here.
 //! // (The primitive `f32` has a precision of 24 and
 //! // `f64` has a precision of 53.)
-//! let two = Float::with_val(32, 2.0);
-//! let (two_thirds_down, dir) = two.div_round(3.0, Round::Down);
+//! let mut two_thirds_down = Float::with_val(32, 2.0);
+//! let dir = two_thirds_down.div_round(3.0, Round::Down);
 //! // since we rounded down, direction is Ordering::Less
 //! assert_eq!(dir, Ordering::Less);
-//! // two was consumed, so create a new two
-//! let two = Float::with_val(32, 2.0);
-//! let (two_thirds_up, dir) = two.div_round(3.0, Round::Up);
+//! let mut two_thirds_up = Float::with_val(32, 2.0);
+//! let dir = two_thirds_up.div_round(3.0, Round::Up);
 //! // since we rounded up, direction is Ordering::Greater
 //! assert_eq!(dir, Ordering::Greater);
 //! let diff_expected = 2.0_f64.powi(-32);

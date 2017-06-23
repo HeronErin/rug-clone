@@ -19,9 +19,10 @@ use super::xmpfr;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use integer::Integer;
-use ops::{AddRound, Assign, AssignRound, DivFromAssign, DivRound, MulRound,
-          NegAssign, Pow, PowAssign, PowFromAssign, PowRound, SubFromAssign,
-          SubRound};
+use ops::{AddFromAssign, AddFromRound, AddRound, Assign, AssignRound,
+          DivFromAssign, DivFromRound, DivRound, MulFromAssign, MulFromRound,
+          MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowFromRound,
+          PowRound, SubFromAssign, SubFromRound, SubRound};
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -489,14 +490,14 @@ impl Float {
             prec >= prec_min() && prec <= prec_max(),
             "precision out of range"
         );
-        let mpfr_ret = unsafe {
+        let ret = unsafe {
             mpfr::prec_round(
                 self.inner_mut(),
                 prec as mpfr::prec_t,
                 rraw(round),
             )
         };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 
     /// Parses a `Float` with the specified precision, rounding to the
@@ -717,9 +718,9 @@ impl Float {
             return None;
         }
         let mut i = Integer::new();
-        let mpfr_ret =
+        let ret =
             unsafe { mpfr::get_z(i.inner_mut(), self.inner(), rraw(round)) };
-        Some((i, mpfr_ret.cmp(&0)))
+        Some((i, ordering1(ret)))
     }
 
     /// If `self` is a [finite number](#method.is_finite), returns an
@@ -1185,8 +1186,8 @@ impl Float {
         if self.is_nan() {
             None
         } else {
-            let mpfr_ret = unsafe { mpfr::sgn(self.inner()) };
-            Some(mpfr_ret.cmp(&0))
+            let ret = unsafe { mpfr::sgn(self.inner()) };
+            Some(ordering1(ret))
         }
     }
 
@@ -1195,7 +1196,7 @@ impl Float {
     pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
         unsafe {
             match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(mpfr::cmpabs(self.inner(), other.inner()).cmp(&0)),
+                0 => Some(ordering1(mpfr::cmpabs(self.inner(), other.inner()))),
                 _ => None,
             }
         }
@@ -1244,9 +1245,9 @@ impl Float {
             Ordering::Equal => 0,
             Ordering::Greater => 1,
         };
-        let mpfr_ret =
+        let ret =
             unsafe { mpfr::subnormalize(self.inner_mut(), prev, rraw(round)) };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 
     math_op1_float! {
@@ -1280,9 +1281,9 @@ impl Float {
     /// rounding method.
     #[inline]
     pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let mpfr_ret =
+        let ret =
             unsafe { mpfr::sqrt_ui(self.inner_mut(), u.into(), rraw(round)) };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 
     math_op1_float! {
@@ -1678,9 +1679,9 @@ impl Float {
         u: u32,
         round: Round,
     ) -> Ordering {
-        let mpfr_ret =
+        let ret =
             unsafe { mpfr::fac_ui(self.inner_mut(), u.into(), rraw(round)) };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 
     math_op1_float! {
@@ -1833,7 +1834,7 @@ impl Float {
     pub fn ln_abs_gamma_round(&mut self, round: Round) -> (Ordering, Ordering) {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
-        let mpfr_ret = unsafe {
+        let ret = unsafe {
             mpfr::lgamma(self.inner_mut(), sign_ptr, self.inner(), rraw(round))
         };
         let sign_ord = if sign < 0 {
@@ -1841,7 +1842,7 @@ impl Float {
         } else {
             Ordering::Greater
         };
-        (sign_ord, mpfr_ret.cmp(&0))
+        (sign_ord, ordering1(ret))
     }
 
     /// Computes the logarithm of the absolute value of the Gamma
@@ -1923,9 +1924,9 @@ impl Float {
     /// applying the specified rounding method.
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let mpfr_ret =
+        let ret =
             unsafe { mpfr::zeta_ui(self.inner_mut(), u.into(), rraw(round)) };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 
     math_op1_float! {
@@ -2327,7 +2328,7 @@ impl AssignRound<Constant> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, other: Constant, round: Round) -> Ordering {
-        let mpfr_ret = unsafe {
+        let ret = unsafe {
             match other {
                 Constant::Log2 => {
                     mpfr::const_log2(self.inner_mut(), rraw(round))
@@ -2341,7 +2342,7 @@ impl AssignRound<Constant> for Float {
                 }
             }
         };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 }
 
@@ -2393,10 +2394,10 @@ macro_rules! assign {
                 other: &'a $T,
                 round: Round
             ) -> Ordering {
-                let mpfr_ret = unsafe {
+                let ret = unsafe {
                     $func(self.inner_mut(), other.inner(), rraw(round))
                 };
-                mpfr_ret.cmp(&0)
+                ordering1(ret)
             }
         }
 
@@ -2480,7 +2481,7 @@ impl<'a> AssignRound<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
     ) -> Ordering {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
-        let mpfr_ret = unsafe {
+        let ret = unsafe {
             mpfr::lgamma(
                 self.0.inner_mut(),
                 sign_ptr,
@@ -2493,7 +2494,7 @@ impl<'a> AssignRound<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
         } else {
             Ordering::Greater
         };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 }
 
@@ -2552,49 +2553,32 @@ impl<'a> AssignRound<NegRef<'a>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: NegRef<'a>, round: Round) -> Ordering {
-        let mpfr_ret = unsafe {
+        let ret = unsafe {
             mpfr::neg(self.inner_mut(), src.val.inner(), rraw(round))
         };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 }
 
-macro_rules! arith_commut_self_float {
+macro_rules! arith_binary_self_float {
     {
         $func:path;
         $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
-        $Ref:ident $RefOwn:ident
-    } => {
-        arith_commut_self_round! {
-            Float, Round => Ordering;
-            $func, rraw => ordering1;
-            $Imp $method;
-            $ImpRound $method_round;
-            $ImpAssign $method_assign;
-            $Ref $RefOwn
-        }
-    }
-}
-
-macro_rules! arith_noncommut_self_float {
-    {
-        $func:path;
-        $Imp:ident $method:ident;
         $ImpRound:ident $method_round:ident;
-        $ImpAssign:ident $method_assign:ident;
         $ImpFromAssign:ident $method_from_assign:ident;
-        $Ref:ident $RefOwn:ident
+        $ImpFromRound:ident $method_from_round:ident;
+        $Ref:ident
     } => {
-        arith_noncommut_self_round! {
+        arith_binary_self_round! {
             Float, Round => Ordering;
             $func, rraw => ordering1;
             $Imp $method;
-            $ImpRound $method_round;
             $ImpAssign $method_assign;
+            $ImpRound $method_round;
             $ImpFromAssign $method_from_assign;
-            $Ref $RefOwn
+            $ImpFromRound $method_from_round;
+            $Ref
         }
     }
 }
@@ -2603,8 +2587,8 @@ macro_rules! arith_forward_float {
     {
         $func:path;
         $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpRound:ident $method_round:ident;
         $T:ty;
         $Ref:ident $RefOwn:ident
     } => {
@@ -2612,8 +2596,8 @@ macro_rules! arith_forward_float {
             Float, Round => Ordering;
             $func, rraw => ordering1;
             $Imp $method;
-            $ImpRound $method_round;
             $ImpAssign $method_assign;
+            $ImpRound $method_round;
             $T;
             $Ref $RefOwn
         }
@@ -2624,8 +2608,10 @@ macro_rules! arith_commut_float {
     {
         $func:path;
         $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefOwn:ident
     } => {
@@ -2633,8 +2619,10 @@ macro_rules! arith_commut_float {
             Float, Round => Ordering;
             $func, rraw => ordering1;
             $Imp $method;
-            $ImpRound $method_round;
             $ImpAssign $method_assign;
+            $ImpRound $method_round;
+            $ImpFromAssign $method_from_assign;
+            $ImpFromRound $method_from_round;
             $T;
             $Ref $RefOwn
         }
@@ -2645,9 +2633,10 @@ macro_rules! arith_noncommut_float {
     {
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpRound:ident $method_round:ident;
         $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefFrom:ident $RefOwn:ident $RefFromOwn:ident
     } => {
@@ -2655,93 +2644,107 @@ macro_rules! arith_noncommut_float {
             Float, Round => Ordering;
             $func, $func_from, rraw => ordering1;
             $Imp $method;
-            $ImpRound $method_round;
             $ImpAssign $method_assign;
+            $ImpRound $method_round;
             $ImpFromAssign $method_from_assign;
+            $ImpFromRound $method_from_round;
             $T;
             $Ref $RefFrom $RefOwn $RefFromOwn
         }
     }
 }
 
-arith_commut_self_float! {
+arith_binary_self_float! {
     mpfr::add;
     Add add;
-    AddRound add_round;
     AddAssign add_assign;
-    AddRef AddRefOwn
+    AddRound add_round;
+    AddFromAssign add_from_assign;
+    AddFromRound add_from_round;
+    AddRef
 }
-arith_noncommut_self_float! {
+arith_binary_self_float! {
     mpfr::sub;
     Sub sub;
-    SubRound sub_round;
     SubAssign sub_assign;
+    SubRound sub_round;
     SubFromAssign sub_from_assign;
-    SubRef SubRefOwn
+    SubFromRound sub_from_round;
+    SubRef
 }
-arith_commut_self_float! {
+arith_binary_self_float! {
     mpfr::mul;
     Mul mul;
-    MulRound mul_round;
     MulAssign mul_assign;
-    MulRef MulRefOwn
+    MulRound mul_round;
+    MulFromAssign mul_from_assign;
+    MulFromRound mul_from_round;
+    MulRef
 }
-arith_noncommut_self_float! {
+arith_binary_self_float! {
     mpfr::div;
     Div div;
-    DivRound div_round;
     DivAssign div_assign;
+    DivRound div_round;
     DivFromAssign div_from_assign;
-    DivRef DivRefOwn
+    DivFromRound div_from_round;
+    DivRef
 }
-arith_noncommut_self_float! {
+arith_binary_self_float! {
     mpfr::pow;
     Pow pow;
-    PowRound pow_round;
     PowAssign pow_assign;
+    PowRound pow_round;
     PowFromAssign pow_from_assign;
-    PowRef PowRefOwn
+    PowFromRound pow_from_round;
+    PowRef
 }
 
 arith_commut_float! {
     mpfr::add_z;
     Add add;
-    AddRound add_round;
     AddAssign add_assign;
+    AddRound add_round;
+    AddFromAssign add_from_assign;
+    AddFromRound add_from_round;
     Integer;
     AddRefInteger AddRefIntegerOwn
 }
 arith_noncommut_float! {
     mpfr::sub_z, mpfr::z_sub;
     Sub sub;
-    SubRound sub_round;
     SubAssign sub_assign;
+    SubRound sub_round;
     SubFromAssign sub_from_assign;
+    SubFromRound sub_from_round;
     Integer;
     SubRefInteger SubFromRefInteger SubRefIntegerOwn SubFromRefIntegerOwn
 }
 arith_commut_float! {
     mpfr::mul_z;
     Mul mul;
-    MulRound mul_round;
     MulAssign mul_assign;
+    MulRound mul_round;
+    MulFromAssign mul_from_assign;
+    MulFromRound mul_from_round;
     Integer;
     MulRefInteger MulRefIntegerOwn
 }
 arith_noncommut_float! {
     mpfr::div_z, xmpfr::z_div;
     Div div;
-    DivRound div_round;
     DivAssign div_assign;
+    DivRound div_round;
     DivFromAssign div_from_assign;
+    DivFromRound div_from_round;
     Integer;
     DivRefInteger DivFromRefInteger DivRefIntegerOwn DivFromRefIntegerOwn
 }
 arith_forward_float! {
     mpfr::pow_z;
     Pow pow;
-    PowRound pow_round;
     PowAssign pow_assign;
+    PowRound pow_round;
     Integer;
     PowRefInteger PowRefIntegerOwn
 }
@@ -2750,8 +2753,10 @@ arith_forward_float! {
 arith_commut_float! {
     mpfr::add_q;
     Add add;
-    AddRound add_round;
     AddAssign add_assign;
+    AddRound add_round;
+    AddFromAssign add_from_assign;
+    AddFromRound add_from_round;
     Rational;
     AddRefRational AddRefRationalOwn
 }
@@ -2759,9 +2764,10 @@ arith_commut_float! {
 arith_noncommut_float! {
     mpfr::sub_q, xmpfr::q_sub;
     Sub sub;
-    SubRound sub_round;
     SubAssign sub_assign;
+    SubRound sub_round;
     SubFromAssign sub_from_assign;
+    SubFromRound sub_from_round;
     Rational;
     SubRefRational SubFromRefRational SubRefRationalOwn SubFromRefRationalOwn
 }
@@ -2769,8 +2775,10 @@ arith_noncommut_float! {
 arith_commut_float! {
     mpfr::mul_q;
     Mul mul;
-    MulRound mul_round;
     MulAssign mul_assign;
+    MulRound mul_round;
+    MulFromAssign mul_from_assign;
+    MulFromRound mul_from_round;
     Rational;
     MulRefRational MulRefRationalOwn
 }
@@ -2778,35 +2786,15 @@ arith_commut_float! {
 arith_noncommut_float! {
     mpfr::div_q, xmpfr::q_div;
     Div div;
-    DivRound div_round;
     DivAssign div_assign;
+    DivRound div_round;
     DivFromAssign div_from_assign;
+    DivFromRound div_from_round;
     Rational;
     DivRefRational DivFromRefRational DivRefRationalOwn DivFromRefRationalOwn
 }
 
-macro_rules! arith_prim_float {
-    {
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $T:ty;
-        $Ref:ident
-    } => {
-        arith_prim_round! {
-            Float, Round => Ordering;
-            $func, rraw => ordering1;
-            $Imp $method;
-            $ImpRound $method_round;
-            $ImpAssign $method_assign;
-            $T;
-            $Ref
-        }
-    }
-}
-
-macro_rules! arith_prim_shift_float {
+macro_rules! arith_prim_exact_float {
     {
         $func:path;
         $Imp:ident $method:ident;
@@ -2814,7 +2802,7 @@ macro_rules! arith_prim_shift_float {
         $T:ty;
         $Ref:ident
     } => {
-        arith_prim_shift_round! {
+        arith_prim_exact_round! {
             Float, Round => Ordering;
             $func, rraw => ordering1;
             $Imp $method;
@@ -2829,8 +2817,10 @@ macro_rules! arith_prim_commut_float {
     {
         $func:path;
         $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpRound:ident $method_round:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident
     } => {
@@ -2838,8 +2828,10 @@ macro_rules! arith_prim_commut_float {
             Float, Round => Ordering;
             $func, rraw => ordering1;
             $Imp $method;
-            $ImpRound $method_round;
             $ImpAssign $method_assign;
+            $ImpRound $method_round;
+            $ImpFromAssign $method_from_assign;
+            $ImpFromRound $method_from_round;
             $T;
             $Ref
         }
@@ -2850,9 +2842,10 @@ macro_rules! arith_prim_noncommut_float {
     {
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
-        $ImpRound:ident $method_round:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpRound:ident $method_round:ident;
         $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefFrom:ident
     } => {
@@ -2860,9 +2853,10 @@ macro_rules! arith_prim_noncommut_float {
             Float, Round => Ordering;
             $func, $func_from, rraw => ordering1;
             $Imp $method;
-            $ImpRound $method_round;
             $ImpAssign $method_assign;
+            $ImpRound $method_round;
             $ImpFromAssign $method_from_assign;
+            $ImpFromRound $method_from_round;
             $T;
             $Ref $RefFrom
         }
@@ -2884,44 +2878,50 @@ macro_rules! conv_ops {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, val: $T, round: Round) -> Ordering {
-                let mpfr_ret = unsafe {
+                let ret = unsafe {
                     $set(self.inner_mut(), val.into(), rraw(round))
                 };
-                mpfr_ret.cmp(&0)
+                ordering1(ret)
             }
         }
 
         arith_prim_commut_float! {
             $add;
             Add add;
-            AddRound add_round;
             AddAssign add_assign;
+            AddRound add_round;
+            AddFromAssign add_from_assign;
+            AddFromRound add_from_round;
             $T;
             $AddRef
         }
         arith_prim_noncommut_float! {
             $sub, $sub_from;
             Sub sub;
-            SubRound sub_round;
             SubAssign sub_assign;
+            SubRound sub_round;
             SubFromAssign sub_from_assign;
+            SubFromRound sub_from_round;
             $T;
             $SubRef $SubFromRef
         }
         arith_prim_commut_float! {
             $mul;
             Mul mul;
-            MulRound mul_round;
             MulAssign mul_assign;
+            MulRound mul_round;
+            MulFromAssign mul_from_assign;
+            MulFromRound mul_from_round;
             $T;
             $MulRef
         }
         arith_prim_noncommut_float! {
             $div, $div_from;
             Div div;
-            DivRound div_round;
             DivAssign div_assign;
+            DivRound div_round;
             DivFromAssign div_from_assign;
+            DivFromRound div_from_round;
             $T;
             $DivRef $DivFromRef
         }
@@ -2943,9 +2943,9 @@ impl AssignRound<i64> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, other: i64, round: Round) -> Ordering {
-        let mpfr_ret =
+        let ret =
             unsafe { xmpfr::set_i64(self.inner_mut(), other, rraw(round)) };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 }
 
@@ -2964,9 +2964,9 @@ impl AssignRound<u64> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, other: u64, round: Round) -> Ordering {
-        let mpfr_ret =
+        let ret =
             unsafe { xmpfr::set_u64(self.inner_mut(), other, rraw(round)) };
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 }
 
@@ -2989,14 +2989,14 @@ conv_ops! {
      DivFromRefF64 mpfr::d_div)
 }
 
-arith_prim_shift_float! {
+arith_prim_exact_float! {
     mpfr::mul_2ui;
     Shl shl;
     ShlAssign shl_assign;
     u32;
     ShlRefU32
 }
-arith_prim_shift_float! {
+arith_prim_exact_float! {
     mpfr::div_2ui;
     Shr shr;
     ShrAssign shr_assign;
@@ -3006,49 +3006,56 @@ arith_prim_shift_float! {
 arith_prim_noncommut_float!{
     mpfr::pow_ui, mpfr::ui_pow;
     Pow pow;
-    PowRound pow_round;
     PowAssign pow_assign;
+    PowRound pow_round;
     PowFromAssign pow_from_assign;
+    PowFromRound pow_from_round;
     u32;
     PowRefU32 PowFromRefU32
 }
-arith_prim_shift_float! {
+arith_prim_exact_float! {
     mpfr::mul_2si;
     Shl shl;
     ShlAssign shl_assign;
     i32;
     ShlRefI32
 }
-arith_prim_shift_float! {
+arith_prim_exact_float! {
     mpfr::div_2si;
     Shr shr;
     ShrAssign shr_assign;
     i32;
     ShrRefI32
 }
-arith_prim_float!{
-    mpfr::pow_si;
+arith_prim_noncommut_float!{
+    mpfr::pow_si, xmpfr::si_pow;
     Pow pow;
-    PowRound pow_round;
     PowAssign pow_assign;
+    PowRound pow_round;
+    PowFromAssign pow_from_assign;
+    PowFromRound pow_from_round;
     i32;
-    PowRefI32
+    PowRefI32 PowFromRefI32
 }
-arith_prim_float!{
-    xmpfr::pow_f64;
+arith_prim_noncommut_float!{
+    xmpfr::pow_f64, xmpfr::f64_pow;
     Pow pow;
-    PowRound pow_round;
     PowAssign pow_assign;
+    PowRound pow_round;
+    PowFromAssign pow_from_assign;
+    PowFromRound pow_from_round;
     f64;
-    PowRefF64
+    PowRefF64 PowFromRefF64
 }
-arith_prim_float!{
-    xmpfr::pow_f32;
+arith_prim_noncommut_float!{
+    xmpfr::pow_f32, xmpfr::f32_pow;
     Pow pow;
-    PowRound pow_round;
     PowAssign pow_assign;
+    PowRound pow_round;
+    PowFromAssign pow_from_assign;
+    PowFromRound pow_from_round;
     f32;
-    PowRefF32
+    PowRefF32 PowFromRefF32
 }
 
 impl<'a> Add<MulRef<'a>> for Float {
@@ -3056,29 +3063,9 @@ impl<'a> Add<MulRef<'a>> for Float {
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
     #[inline]
-    fn add(self, rhs: MulRef) -> Float {
-        self.add_round(rhs, Round::Nearest).0
-    }
-}
-
-impl<'a> AddRound<MulRef<'a>> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    type Output = Float;
-    /// Peforms multiplication and addition together with only one
-    /// rounding operation as specified.
-    #[inline]
-    fn add_round(mut self, rhs: MulRef, round: Round) -> (Float, Ordering) {
-        let mpfr_ret = unsafe {
-            mpfr::fma(
-                self.inner_mut(),
-                rhs.lhs.inner(),
-                rhs.rhs.inner(),
-                self.inner(),
-                rraw(round),
-            )
-        };
-        (self, mpfr_ret.cmp(&0))
+    fn add(mut self, rhs: MulRef) -> Float {
+        self.add_assign(rhs);
+        self
     }
 }
 
@@ -3087,15 +3074,27 @@ impl<'a> AddAssign<MulRef<'a>> for Float {
     /// rounding operation to the nearest.
     #[inline]
     fn add_assign(&mut self, rhs: MulRef) {
-        unsafe {
+        self.add_round(rhs, Default::default());
+    }
+}
+
+impl<'a> AddRound<MulRef<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    /// Peforms multiplication and addition together with only one
+    /// rounding operation as specified.
+    #[inline]
+    fn add_round(&mut self, rhs: MulRef, round: Round) -> Ordering {
+        let ret = unsafe {
             mpfr::fma(
                 self.inner_mut(),
                 rhs.lhs.inner(),
                 rhs.rhs.inner(),
                 self.inner(),
-                rraw(Round::Nearest),
-            );
-        }
+                rraw(round),
+            )
+        };
+        ordering1(ret)
     }
 }
 
@@ -3113,7 +3112,7 @@ impl PartialOrd for Float {
     fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
         unsafe {
             match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(mpfr::cmp(self.inner(), other.inner()).cmp(&0)),
+                0 => Some(ordering1(mpfr::cmp(self.inner(), other.inner()))),
                 _ => None,
             }
         }
@@ -3155,7 +3154,7 @@ macro_rules! cmp {
                 if self.is_nan() {
                     return None;
                 }
-                Some($eval(self.inner(), other).cmp(&0))
+                Some(ordering1($eval(self.inner(), other)))
             }
         }
 
@@ -3306,7 +3305,7 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
         }
         v.push(0);
         let mut c_str_end: *const c_char = ptr::null();
-        let mpfr_ret = unsafe {
+        let ret = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
             mpfr::strtofr(
                 self.inner_mut(),
@@ -3318,7 +3317,7 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
         };
         let nul = v.last().unwrap() as *const _ as *const c_char;
         assert_eq!(c_str_end, nul);
-        mpfr_ret.cmp(&0)
+        ordering1(ret)
     }
 }
 
