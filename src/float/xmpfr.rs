@@ -14,14 +14,22 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+#[cfg(feature = "integer")]
 use Float;
-use float::{self, SmallFloat};
+#[cfg(feature = "integer")]
+use float;
+use float::SmallFloat;
+#[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use inner::{Inner, InnerMut};
+use inner::Inner;
+#[cfg(feature = "integer")]
+use inner::InnerMut;
+#[cfg(feature = "integer")]
 use std::cmp;
 use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
+#[cfg(feature = "integer")]
 use std::u32;
 
 pub unsafe fn recip(
@@ -50,6 +58,7 @@ pub unsafe fn yn(
     mpfr::yn(rop, n.into(), op, rnd)
 }
 
+#[cfg(feature = "integer")]
 pub unsafe fn z_div(
     r: *mut mpfr_t,
     lhs: *const gmp::mpz_t,
@@ -91,6 +100,7 @@ pub unsafe fn q_div(
     divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
 }
 
+#[cfg(feature = "integer")]
 // mul and div must must form a canonical rational, except that div
 // can be negative
 unsafe fn divf_mulz_divz(

@@ -50,9 +50,11 @@
 //!
 //! ```rust
 //! extern crate rug;
+//! # #[cfg(feature = "integer")]
 //! use rug::{Assign, Integer};
 //!
 //! fn main() {
+//! # #[cfg(feature = "integer")] {
 //!     // Create an integer initialized as zero.
 //!     let mut int = Integer::new();
 //!     assert_eq!(int, 0);
@@ -63,6 +65,7 @@
 //!     assert_eq!(int.significant_bits(), 160);
 //!     int = (int >> 128) - 1;
 //!     assert_eq!(int, 0xfffe_ffff_u32);
+//! # }
 //! }
 //! ```
 //!
@@ -83,15 +86,19 @@
 //!
 //! ### Optional features
 //!
-//! The `rug` crate has three optional features `rational`, `float`
-//! and `complex`. Integers are always included. The optional features
-//! are enabled by default; to disable them add this to `Cargo.toml`:
+//! The `rug` crate has five optional features `integer`, `rational`,
+//! `float`, `complex` and `rand`. The traits in `rug::ops` are always
+//! included. The optional features are enabled by default; to disable
+//! them add this to `Cargo.toml`:
 //!
 //! ```toml
 //! [dependencies.rug]
 //! version = "0.4.0"
 //! default-features = false
 //! ```
+//!
+//! If no optional features are selected, the `gmp-mpfr-sys` crate is
+//! not required and thus not enabled.
 //!
 //! To use features selectively, you can add this to `Cargo.toml`:
 //!
@@ -100,11 +107,13 @@
 //! version = "0.4.0"
 //! default-features = false
 //! # Pick which features to use
-//! features = ["rational", "float"]
+//! features = ["integer", "float", "rand"]
 //! ```
 //!
-//! Note that the the `complex` feature will enable the `float`
-//! feature, on which it depends.
+//! Note that both the `rational` feature and the `rand` feature
+//! depend on, and will enable, the `integer` feature. Similarly the
+//! `complex` feature depends on, and will enable, the `float`
+//! feature.
 //!
 //! [gmp doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
 //! [gmp]:      https://gmplib.org/
@@ -114,16 +123,17 @@
 //! [mpc]:      http://www.multiprecision.org/
 //! [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 //! [mpfr]:     http://www.mpfr.org/
-//! [rug com]:   struct.Complex.html
-//! [rug flo]:   struct.Float.html
-//! [rug int]:   struct.Integer.html
-//! [rug rat]:   struct.Rational.html
+//! [rug com]:  struct.Complex.html
+//! [rug flo]:  struct.Float.html
+//! [rug int]:  struct.Integer.html
+//! [rug rat]:  struct.Rational.html
 //! [sys]:      https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp_mpfr_sys/index.html
 
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/0.4.0/",
        test(attr(deny(warnings))))]
 
+#[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;
 
 #[macro_use]
@@ -131,8 +141,9 @@ mod macros;
 mod inner;
 
 pub mod ops;
+#[cfg(feature = "rand")]
 pub mod rand;
-
+#[cfg(feature = "integer")]
 pub mod integer;
 #[cfg(feature = "rational")]
 pub mod rational;
@@ -145,6 +156,7 @@ pub mod complex;
 pub use complex::Complex;
 #[cfg(feature = "float")]
 pub use float::Float;
+#[cfg(feature = "integer")]
 pub use integer::Integer;
 pub use ops::{Assign, AssignRound};
 #[cfg(feature = "rational")]

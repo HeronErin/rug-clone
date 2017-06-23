@@ -67,9 +67,10 @@ macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
 
 ### Optional features
 
-The `rug` crate has three optional features `rational`, `float` and
-`complex`. Integers are always included. The optional features are
-enabled by default; to disable them add this to `Cargo.toml`:
+The `rug` crate has five optional features `integer`, `rational`,
+`float`, `complex` and `rand`. The traits in `rug::ops` are always
+included. The optional features are enabled by default; to disable
+them add this to `Cargo.toml`:
 
 ```toml
 [dependencies.rug]
@@ -84,11 +85,12 @@ To use features selectively, you can add this to `Cargo.toml`:
 version = "0.4.0"
 default-features = false
 # Pick which features to use
-features = ["rational", "float"]
+features = ["integer", "float", "rand"]
 ```
 
-Note that the the `complex` feature will enable the `float` feature,
-on which it depends.
+Note that both the `rational` feature and the `rand` feature depend
+on, and will enable, the `integer` feature. Similarly the `complex`
+feature depends on, and will enable, the `float` feature.
 
 [gmp doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
 [gmp]:      https://gmplib.org/

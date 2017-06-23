@@ -19,7 +19,7 @@ if [[ "$1" == "-"* ]]; then
 fi
 
 if [ $# == 0 ]; then
-	toolchains=(stable beta nightly 1.17.0 1.16.0 1.15.1)
+	toolchains=(stable beta nightly 1.17.0 1.16.0)
 else
 	toolchains=("$@")
 fi
@@ -34,14 +34,19 @@ function print_eval {
 # For first toolchain and suffix, test without rational, float,
 # complex too. The default feature is complex, so no need to test it
 # here. First test the feature mpc so that we cache all C libraries.
-for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys/mpfr rational float; do
+for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys gmp-mpfr-sys/mpfr integer rational float complex rand; do
 	if [ -e target ]; then
 		rm -r target
+	fi
+	if [ "$features" == "" ]; then
+		gmp=""
+	else
+		gmp="-p gmp-mpfr-sys"
 	fi
 	for build in --release ""; do
 		print_eval cargo +${toolchains[0]}"$suffix" test $build \
 			   --no-default-features --features "$features" \
-			   -p gmp-mpfr-sys -p rug
+			   $gmp -p rug
 		rm -r target
 	done
 done

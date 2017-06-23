@@ -19,11 +19,13 @@ use float::{self, Constant, Float, ParseFloatError, Round, Special, ValidFloat};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
+#[cfg(feature = "integer")]
 use integer::Integer;
 use ops::{AddFromAssign, AddFromRound, AddRound, Assign, AssignRound,
           DivFromAssign, DivFromRound, DivRound, MulFromAssign, MulFromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowFromRound,
           PowRound, SubFromAssign, SubFromRound, SubRound};
+#[cfg(feature = "rand")]
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -1171,6 +1173,7 @@ impl Complex {
         fn atanh_ref -> AtanhRef;
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
     ///
@@ -1187,6 +1190,7 @@ impl Complex {
         imag.assign_random_bits(rng)
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random complex number, rounding to the nearest.
     ///
     /// Both the real and imaginary parts are in the continuous range
@@ -1199,6 +1203,7 @@ impl Complex {
         self.assign_random_cont_round(rng, Default::default());
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random complex number, applying the specified
     /// rounding method.
     ///
@@ -1369,10 +1374,12 @@ macro_rules! assign {
     };
 }
 
+#[cfg(feature = "integer")]
 assign_ref! { Integer }
 #[cfg(feature = "rational")]
 assign_ref! { Rational }
 assign_ref! { Float }
+#[cfg(feature = "integer")]
 assign! { Integer }
 #[cfg(feature = "rational")]
 assign! { Rational }
@@ -1713,6 +1720,7 @@ arith_forward_complex! {
     Float;
     PowRefFloat PowRefFloatOwn
 }
+#[cfg(feature = "integer")]
 arith_forward_complex! {
     mpc::pow_z;
     Pow pow;
@@ -2023,6 +2031,7 @@ macro_rules! partial_eq {
     }
 }
 
+#[cfg(feature = "integer")]
 partial_eq! { Integer }
 #[cfg(feature = "rational")]
 partial_eq! { Rational }

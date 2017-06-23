@@ -20,6 +20,7 @@ use inner::{Inner, InnerMut};
 use ops::{AddFromAssign, Assign, BitAndFromAssign, BitOrFromAssign,
           BitXorFromAssign, DivFromAssign, MulFromAssign, NegAssign,
           NotAssign, Pow, PowAssign, RemFromAssign, SubFromAssign};
+#[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
 use std::cmp::Ordering;
@@ -2085,6 +2086,7 @@ impl Integer {
         }
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
@@ -2107,6 +2109,7 @@ impl Integer {
         }
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
@@ -2134,6 +2137,7 @@ impl Integer {
         self
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///

@@ -18,11 +18,13 @@ use super::small_float::SmallFloat;
 use super::xmpfr;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
+#[cfg(feature = "integer")]
 use integer::Integer;
 use ops::{AddFromAssign, AddFromRound, AddRound, Assign, AssignRound,
           DivFromAssign, DivFromRound, DivRound, MulFromAssign, MulFromRound,
           MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowFromRound,
           PowRound, SubFromAssign, SubFromRound, SubRound};
+#[cfg(feature = "rand")]
 use rand::RandState;
 #[cfg(feature = "rational")]
 use rational::Rational;
@@ -702,12 +704,14 @@ impl Float {
         Ok(v)
     }
 
+    #[cfg(feature = "integer")]
     /// Converts to an integer, rounding to the nearest.
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
         self.to_integer_round(Round::Nearest).map(|x| x.0)
     }
 
+    #[cfg(feature = "integer")]
     /// Converts to an integer, applying the specified rounding method.
     #[inline]
     pub fn to_integer_round(
@@ -723,6 +727,7 @@ impl Float {
         Some((i, ordering1(ret)))
     }
 
+    #[cfg(feature = "integer")]
     /// If `self` is a [finite number](#method.is_finite), returns an
     /// integer and exponent such that `self` is exactly equal to the
     /// integer multiplied by two raised to the power of the exponent.
@@ -2139,6 +2144,7 @@ impl Float {
         fn trunc_fract_ref -> TruncFractRef;
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random number in the range `0 <= n < 1`.
     ///
     /// This is equivalent to generating a random integer in the range
@@ -2174,6 +2180,7 @@ impl Float {
         if err != 0 { Err(()) } else { Ok(()) }
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random number in the continuous range
     /// `0 <= n < 1`, and rounds to the nearest.
     ///
@@ -2186,6 +2193,7 @@ impl Float {
         self.assign_random_cont_round(rng, Round::Nearest);
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random number in the continous range
     /// `0 <= n < 1` and applies the specified rounding method.
     ///
@@ -2230,6 +2238,7 @@ impl Float {
         ordering1(ret)
     }
 
+    #[cfg(feature = "rand")]
     /// Generates two random numbers according to a standard normal
     /// Gaussian distribution.
     ///
@@ -2413,6 +2422,7 @@ macro_rules! assign {
 }
 
 assign! { Float, mpfr::set }
+#[cfg(feature = "integer")]
 assign! { Integer, mpfr::set_z }
 #[cfg(feature = "rational")]
 assign! { Rational, mpfr::set_q }
@@ -2700,6 +2710,7 @@ arith_binary_self_float! {
     PowRef
 }
 
+#[cfg(feature = "integer")]
 arith_commut_float! {
     mpfr::add_z;
     Add add;
@@ -2710,6 +2721,7 @@ arith_commut_float! {
     Integer;
     AddRefInteger AddRefIntegerOwn
 }
+#[cfg(feature = "integer")]
 arith_noncommut_float! {
     mpfr::sub_z, mpfr::z_sub;
     Sub sub;
@@ -2720,6 +2732,7 @@ arith_noncommut_float! {
     Integer;
     SubRefInteger SubFromRefInteger SubRefIntegerOwn SubFromRefIntegerOwn
 }
+#[cfg(feature = "integer")]
 arith_commut_float! {
     mpfr::mul_z;
     Mul mul;
@@ -2730,6 +2743,7 @@ arith_commut_float! {
     Integer;
     MulRefInteger MulRefIntegerOwn
 }
+#[cfg(feature = "integer")]
 arith_noncommut_float! {
     mpfr::div_z, xmpfr::z_div;
     Div div;
@@ -2740,6 +2754,7 @@ arith_noncommut_float! {
     Integer;
     DivRefInteger DivFromRefInteger DivRefIntegerOwn DivFromRefIntegerOwn
 }
+#[cfg(feature = "integer")]
 arith_forward_float! {
     mpfr::pow_z;
     Pow pow;
@@ -3174,6 +3189,7 @@ macro_rules! cmp {
     }
 }
 
+#[cfg(feature = "integer")]
 cmp! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.inner()) } }
 #[cfg(feature = "rational")]
 cmp! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.inner()) } }

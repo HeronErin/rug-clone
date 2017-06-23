@@ -56,12 +56,14 @@ pub use self::small_float::SmallFloat;
 mod tests {
     use float::{Float, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
+    #[cfg(feature = "integer")]
     use integer::Integer;
     use ops::{Assign, Pow};
     #[cfg(feature = "rational")]
     use rational::Rational;
     use std::{f32, f64, i32, u32};
     use std::mem;
+    #[cfg(feature = "integer")]
     use std::str::FromStr;
 
     fn same(a: Float, b: Float) -> bool {
@@ -163,6 +165,7 @@ mod tests {
             Float::with_val(work_prec, -999999e100),
             Float::with_val(work_prec, -999999e-100),
         ];
+        #[cfg(feature = "integer")]
         let z = [
             Integer::from(0),
             Integer::from(1),
@@ -208,6 +211,7 @@ mod tests {
             2.0,
             12.0e30,
         ];
+        #[cfg(feature = "integer")]
         for zz in &z {
             let zf = Float::with_val(check_prec, zz);
             for ff in &f {
