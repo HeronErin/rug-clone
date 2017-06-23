@@ -67,7 +67,27 @@ pub trait NotAssign {
     fn not_assign(&mut self);
 }
 
-/// Subtract and assigns the result to the rhs operand.
+/// Add and assign the result to the rhs operand.
+///
+/// `rhs.add_from_assign(lhs)` has the same effect as
+/// `rhs = lhs + rhs`.
+pub trait AddFromAssign<Lhs = Self> {
+    /// Peforms the addition.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::ops::AddFromAssign;
+    /// let mut rhs = Integer::from(10);
+    /// rhs.add_from_assign(100);
+    /// // rhs = 100 + 10
+    /// assert_eq!(rhs, 110);
+    /// ```
+    fn add_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Subtract and assign the result to the rhs operand.
 ///
 /// `rhs.sub_from_assign(lhs)` has the same effect as
 /// `rhs = lhs - rhs`.
@@ -87,6 +107,26 @@ pub trait SubFromAssign<Lhs = Self> {
     fn sub_from_assign(&mut self, lhs: Lhs);
 }
 
+/// Multiply and assign the result to the rhs operand.
+///
+/// `rhs.mul_from_assign(lhs)` has the same effect as
+/// `rhs = lhs * rhs`.
+pub trait MulFromAssign<Lhs = Self> {
+    /// Peforms the multiplication.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::ops::MulFromAssign;
+    /// let mut rhs = Integer::from(5);
+    /// rhs.mul_from_assign(50);
+    /// // rhs = 50 * 5
+    /// assert_eq!(rhs, 250);
+    /// ```
+    fn mul_from_assign(&mut self, lhs: Lhs);
+}
+
 /// Divide and assign the result to the rhs operand.
 ///
 /// `rhs.div_from_assign(lhs)` has the same effect as
@@ -99,9 +139,8 @@ pub trait DivFromAssign<Lhs = Self> {
     /// ```rust
     /// use rug::Integer;
     /// use rug::ops::DivFromAssign;
-    /// let lhs = Integer::from(50);
     /// let mut rhs = Integer::from(5);
-    /// rhs.div_from_assign(lhs);
+    /// rhs.div_from_assign(50);
     /// // rhs = 50 / 5
     /// assert_eq!(rhs, 10);
     /// ```
@@ -120,13 +159,72 @@ pub trait RemFromAssign<Lhs = Self> {
     /// ```rust
     /// use rug::Integer;
     /// use rug::ops::RemFromAssign;
-    /// let lhs = Integer::from(17);
     /// let mut rhs = Integer::from(2);
-    /// rhs.rem_from_assign(&lhs);
+    /// rhs.rem_from_assign(17);
     /// // rhs = 17 / 2
     /// assert_eq!(rhs, 1);
     /// ```
     fn rem_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Perform bitwise AND and assign the result to the rhs operand.
+///
+/// `rhs.bitand_from_assign(lhs)` has the same effect as
+/// `rhs = lhs & rhs`.
+pub trait BitAndFromAssign<Lhs = Self> {
+    /// Peforms the AND operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::ops::BitAndFromAssign;
+    /// let mut rhs = Integer::from(0xf0);
+    /// rhs.bitand_from_assign(0x33);
+    /// // rhs = 0x33 & 0xf0
+    /// assert_eq!(rhs, 0x30);
+    /// ```
+    fn bitand_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Perform bitwise OR and assign the result to the rhs operand.
+///
+/// `rhs.bitor_from_assign(lhs)` has the same effect as
+/// `rhs = lhs | rhs`.
+pub trait BitOrFromAssign<Lhs = Self> {
+    /// Peforms the OR operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::ops::BitOrFromAssign;
+    /// let mut rhs = Integer::from(0xf0);
+    /// rhs.bitor_from_assign(0x33);
+    /// // rhs = 0x33 | 0xf0
+    /// assert_eq!(rhs, 0xf3);
+    /// ```
+    fn bitor_from_assign(&mut self, lhs: Lhs);
+}
+
+/// Perform bitwise XOR and assign the result to the rhs operand.
+///
+/// `rhs.bitxor_from_assign(lhs)` has the same effect as
+/// `rhs = lhs ^ rhs`.
+pub trait BitXorFromAssign<Lhs = Self> {
+    /// Peforms the XOR operation.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::ops::BitXorFromAssign;
+    /// let mut rhs = Integer::from(0xf0);
+    /// rhs.bitxor_from_assign(0x33);
+    /// // rhs = 0x33 ^ 0xf0
+    /// assert_eq!(rhs, 0xc3);
+    /// ```
+    fn bitxor_from_assign(&mut self, lhs: Lhs);
 }
 
 /// The power operation.
@@ -176,9 +274,8 @@ pub trait PowFromAssign<Lhs = Self> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::ops::PowFromAssign;
-    /// let lhs = 10;
     /// let mut rhs = Float::with_val(53, 5);
-    /// rhs.pow_from_assign(lhs);
+    /// rhs.pow_from_assign(10);
     /// // rhs = 10 ** 5
     /// assert_eq!(rhs, 100_000);
     /// # }

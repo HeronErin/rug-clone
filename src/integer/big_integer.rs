@@ -17,8 +17,9 @@
 use super::xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
-use ops::{Assign, DivFromAssign, NegAssign, NotAssign, Pow, PowAssign,
-          RemFromAssign, SubFromAssign};
+use ops::{AddFromAssign, Assign, BitAndFromAssign, BitOrFromAssign,
+          BitXorFromAssign, DivFromAssign, MulFromAssign, NegAssign,
+          NotAssign, Pow, PowAssign, RemFromAssign, SubFromAssign};
 use rand::RandState;
 use std::{i32, u32};
 use std::cmp::Ordering;
@@ -2434,8 +2435,15 @@ impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {
 ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialRef { k: u32 } }
 
 arith_unary! { Integer; gmp::mpz_neg; Neg neg; NegAssign neg_assign; NegRef }
-arith_binary! { Integer; gmp::mpz_add; Add add; AddAssign add_assign; AddRef }
-arith_noncommut! {
+arith_binary! {
+    Integer;
+    gmp::mpz_add;
+    Add add;
+    AddAssign add_assign;
+    AddFromAssign add_from_assign;
+    AddRef
+}
+arith_binary! {
     Integer;
     gmp::mpz_sub;
     Sub sub;
@@ -2443,8 +2451,15 @@ arith_noncommut! {
     SubFromAssign sub_from_assign;
     SubRef
 }
-arith_binary! { Integer; gmp::mpz_mul; Mul mul; MulAssign mul_assign; MulRef }
-arith_noncommut! {
+arith_binary! {
+    Integer;
+    gmp::mpz_mul;
+    Mul mul;
+    MulAssign mul_assign;
+    MulFromAssign mul_from_assign;
+    MulRef
+}
+arith_binary! {
     Integer;
     xgmp::mpz_tdiv_q_check_0;
     Div div;
@@ -2452,7 +2467,7 @@ arith_noncommut! {
     DivFromAssign div_from_assign;
     DivRef
 }
-arith_noncommut! {
+arith_binary! {
     Integer;
     xgmp::mpz_tdiv_r_check_0;
     Rem rem;
@@ -2462,17 +2477,38 @@ arith_noncommut! {
 }
 arith_unary! { Integer; gmp::mpz_com; Not not; NotAssign not_assign; NotRef }
 arith_binary! {
-    Integer; gmp::mpz_and; BitAnd bitand; BitAndAssign bitand_assign; BitAndRef
+    Integer;
+    gmp::mpz_and;
+    BitAnd bitand;
+    BitAndAssign bitand_assign;
+    BitAndFromAssign bitand_from_assign;
+    BitAndRef
 }
 arith_binary! {
-    Integer; gmp::mpz_ior; BitOr bitor; BitOrAssign bitor_assign; BitOrRef
+    Integer;
+    gmp::mpz_ior;
+    BitOr bitor;
+    BitOrAssign bitor_assign;
+    BitOrFromAssign bitor_from_assign;
+    BitOrRef
 }
 arith_binary! {
-    Integer; gmp::mpz_xor; BitXor bitxor; BitXorAssign bitxor_assign; BitXorRef
+    Integer;
+    gmp::mpz_xor;
+    BitXor bitxor;
+    BitXorAssign bitxor_assign;
+    BitXorFromAssign bitxor_from_assign;
+    BitXorRef
 }
 
 arith_prim_commut! {
-    Integer; xgmp::mpz_add_si; Add add; AddAssign add_assign; i32; AddRefI32
+    Integer;
+    xgmp::mpz_add_si;
+    Add add;
+    AddAssign add_assign;
+    AddFromAssign add_from_assign;
+    i32;
+    AddRefI32
 }
 arith_prim_noncommut! {
     Integer;
@@ -2484,7 +2520,13 @@ arith_prim_noncommut! {
     SubRefI32 SubFromRefI32
 }
 arith_prim_commut! {
-    Integer; gmp::mpz_mul_si; Mul mul; MulAssign mul_assign; i32; MulRefI32
+    Integer;
+    gmp::mpz_mul_si;
+    Mul mul;
+    MulAssign mul_assign;
+    MulFromAssign mul_from_assign;
+    i32;
+    MulRefI32
 }
 arith_prim_noncommut! {
     Integer;
@@ -2515,6 +2557,7 @@ arith_prim_commut! {
     xgmp::bitand_si;
     BitAnd bitand;
     BitAndAssign bitand_assign;
+    BitAndFromAssign bitand_from_assign;
     i32;
     BitAndRefI32
 }
@@ -2523,6 +2566,7 @@ arith_prim_commut! {
     xgmp::bitor_si;
     BitOr bitor;
     BitOrAssign bitor_assign;
+    BitOrFromAssign bitor_from_assign;
     i32;
     BitOrRefI32
 }
@@ -2531,12 +2575,19 @@ arith_prim_commut! {
     xgmp::bitxor_si;
     BitXor bitxor;
     BitXorAssign bitxor_assign;
+    BitXorFromAssign bitxor_from_assign;
     i32;
     BitXorRefI32
 }
 
 arith_prim_commut! {
-    Integer; gmp::mpz_add_ui; Add add; AddAssign add_assign; u32; AddRefU32
+    Integer;
+    gmp::mpz_add_ui;
+    Add add;
+    AddAssign add_assign;
+    AddFromAssign add_from_assign;
+    u32;
+    AddRefU32
 }
 arith_prim_noncommut! {
     Integer;
@@ -2548,7 +2599,13 @@ arith_prim_noncommut! {
     SubRefU32 SubFromRefU32
 }
 arith_prim_commut! {
-    Integer; gmp::mpz_mul_ui; Mul mul; MulAssign mul_assign; u32; MulRefU32
+    Integer;
+    gmp::mpz_mul_ui;
+    Mul mul;
+    MulAssign mul_assign;
+    MulFromAssign mul_from_assign;
+    u32;
+    MulRefU32
 }
 arith_prim_noncommut! {
     Integer;
@@ -2582,6 +2639,7 @@ arith_prim_commut! {
     xgmp::bitand_ui;
     BitAnd bitand;
     BitAndAssign bitand_assign;
+    BitAndFromAssign bitand_from_assign;
     u32;
     BitAndRefU32
 }
@@ -2590,6 +2648,7 @@ arith_prim_commut! {
     xgmp::bitor_ui;
     BitOr bitor;
     BitOrAssign bitor_assign;
+    BitOrFromAssign bitor_from_assign;
     u32;
     BitOrRefU32
 }
@@ -2598,6 +2657,7 @@ arith_prim_commut! {
     xgmp::bitxor_ui;
     BitXor bitxor;
     BitXorAssign bitxor_assign;
+    BitXorFromAssign bitxor_from_assign;
     u32;
     BitXorRefU32
 }

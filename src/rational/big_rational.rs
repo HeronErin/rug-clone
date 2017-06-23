@@ -19,7 +19,8 @@ use super::xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
 use integer::Integer;
-use ops::{Assign, DivFromAssign, NegAssign, Pow, PowAssign, SubFromAssign};
+use ops::{AddFromAssign, Assign, DivFromAssign, MulFromAssign, NegAssign, Pow,
+          PowAssign, SubFromAssign};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
@@ -1170,8 +1171,15 @@ impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
 }
 
 arith_unary! { Rational; gmp::mpq_neg; Neg neg; NegAssign neg_assign; NegRef }
-arith_binary! { Rational; gmp::mpq_add; Add add; AddAssign add_assign; AddRef }
-arith_noncommut! {
+arith_binary! {
+    Rational;
+    gmp::mpq_add;
+    Add add;
+    AddAssign add_assign;
+    AddFromAssign add_from_assign;
+    AddRef
+}
+arith_binary! {
     Rational;
     gmp::mpq_sub;
     Sub sub;
@@ -1179,8 +1187,15 @@ arith_noncommut! {
     SubFromAssign sub_from_assign;
     SubRef
 }
-arith_binary! { Rational; gmp::mpq_mul; Mul mul; MulAssign mul_assign; MulRef }
-arith_noncommut! {
+arith_binary! {
+    Rational;
+    gmp::mpq_mul;
+    Mul mul;
+    MulAssign mul_assign;
+    MulFromAssign mul_from_assign;
+    MulRef
+}
+arith_binary! {
     Rational;
     gmp::mpq_div;
     Div div;

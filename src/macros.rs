@@ -313,15 +313,6 @@ macro_rules! arith_unary {
             }
         }
 
-        impl<'m> $Imp for &'m mut $Big {
-            type Output = &'m mut $Big;
-            #[inline]
-            fn $method(self) -> &'m mut $Big {
-                self.$method_assign();
-                self
-            }
-        }
-
         impl $ImpAssign for $Big {
             #[inline]
             fn $method_assign(&mut self) {
@@ -363,58 +354,75 @@ macro_rules! arith_binary {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
         $Ref:ident
     } => {
+        // x # y
         impl $Imp<$Big> for $Big {
             type Output = $Big;
             #[inline]
-            fn $method(self, op: $Big) -> $Big {
-                self.$method(&op)
+            fn $method(self, rhs: $Big) -> $Big {
+                self.$method(&rhs)
             }
         }
 
+        // x # &y
         impl<'a> $Imp<&'a $Big> for $Big {
             type Output = $Big;
             #[inline]
-            fn $method(mut self, op: &'a $Big) -> $Big {
-                $ImpAssign::<&'a $Big>::$method_assign(&mut self, op);
+            fn $method(mut self, rhs: &'a $Big) -> $Big {
+                self.$method_assign(rhs);
                 self
             }
         }
 
-        impl<'m> $Imp<$Big> for &'m mut $Big {
-            type Output = &'m mut $Big;
+        // &x # y
+        impl<'a> $Imp<$Big> for &'a $Big {
+            type Output = $Big;
             #[inline]
-            fn $method(self, op: $Big) -> &'m mut $Big {
-                self.$method(&op)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                rhs.$method_from_assign(self);
+                rhs
             }
         }
 
-        impl<'a, 'm> $Imp<&'a $Big> for &'m mut $Big {
-            type Output = &'m mut $Big;
-            #[inline]
-            fn $method(self, op: &'a $Big) -> &'m mut $Big {
-                $ImpAssign::<&'a $Big>::$method_assign(self, op);
-                self
-            }
-        }
-
+        // x #= y
         impl $ImpAssign<$Big> for $Big {
             #[inline]
-            fn $method_assign(&mut self, op: $Big) {
-                self.$method_assign(&op);
+            fn $method_assign(&mut self, rhs: $Big) {
+                self.$method_assign(&rhs);
             }
         }
 
+        // x #= &y
         impl<'a> $ImpAssign<&'a $Big> for $Big {
             #[inline]
-            fn $method_assign(&mut self, op: &'a $Big) {
+            fn $method_assign(&mut self, rhs: &'a $Big) {
                 unsafe {
-                    $func(self.inner_mut(), self.inner(), op.inner());
+                    $func(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
         }
 
+        // y #from= x
+        impl $ImpFromAssign<$Big> for $Big {
+            #[inline]
+            fn $method_from_assign(&mut self, lhs: $Big) {
+                self.$method_from_assign(&lhs);
+            }
+        }
+
+        // y #from= &x
+        impl<'a> $ImpFromAssign<&'a $Big> for $Big {
+            #[inline]
+            fn $method_from_assign(&mut self, lhs: &'a $Big) {
+                unsafe {
+                    $func(self.inner_mut(), lhs.inner(), self.inner());
+                }
+            }
+        }
+
+        // &x # &y
         impl<'a> $Imp<&'a $Big> for &'a $Big {
             type Output = $Ref<'a>;
             #[inline]
@@ -445,37 +453,6 @@ macro_rules! arith_binary {
     }
 }
 
-macro_rules! arith_noncommut {
-    {
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
-        $Ref:ident
-    } => {
-        arith_binary! {
-            $Big; $func; $Imp $method; $ImpAssign $method_assign; $Ref
-        }
-
-        impl $ImpFromAssign<$Big> for $Big {
-            #[inline]
-            fn $method_from_assign(&mut self, lhs: $Big) {
-                self.$method_from_assign(&lhs);
-            }
-        }
-
-        impl<'a> $ImpFromAssign<&'a $Big> for $Big {
-            #[inline]
-            fn $method_from_assign(&mut self, lhs: &'a $Big) {
-                unsafe {
-                    $func(self.inner_mut(), lhs.inner(), self.inner());
-                }
-            }
-        }
-    }
-}
-
 macro_rules! arith_prim {
     {
         $Big:ty;
@@ -485,6 +462,7 @@ macro_rules! arith_prim {
         $T:ty;
         $Ref:ident
     } => {
+        // x # t
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
@@ -494,15 +472,7 @@ macro_rules! arith_prim {
             }
         }
 
-        impl<'m> $Imp<$T> for &'m mut $Big {
-            type Output = &'m mut $Big;
-            #[inline]
-            fn $method(self, op: $T) -> &'m mut $Big {
-                self.$method_assign(op);
-                self
-            }
-        }
-
+        // x #= t
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, op: $T) {
@@ -512,6 +482,7 @@ macro_rules! arith_prim {
             }
         }
 
+        // &x # t
         impl<'a> $Imp<$T> for &'a $Big {
             type Output = $Ref<'a>;
             #[inline]
@@ -556,6 +527,7 @@ macro_rules! arith_prim_noncommut {
             $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
         }
 
+        // t - y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -565,15 +537,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl<'m> $Imp<&'m mut $Big> for $T {
-            type Output = &'m mut $Big;
-            #[inline]
-            fn $method(self, op: &'m mut $Big) -> &'m mut $Big {
-                op.$method_from_assign(self);
-                op
-            }
-        }
-
+        // y -from= t
         impl $ImpFromAssign<$T> for $Big {
             #[inline]
             fn $method_from_assign(&mut self, lhs: $T) {
@@ -583,6 +547,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
+        // t - &y
         impl<'a> $Imp<&'a $Big> for $T {
             type Output = $RefFrom<'a>;
             #[inline]
@@ -623,6 +588,7 @@ macro_rules! arith_prim_commut {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
+        $ImpFromAssign:ident $method_from_assign:ident;
         $T:ty;
         $Ref:ident
     } => {
@@ -630,6 +596,7 @@ macro_rules! arith_prim_commut {
             $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
         }
 
+        // t + y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -638,14 +605,15 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl<'m> $Imp<&'m mut $Big> for $T {
-            type Output = &'m mut $Big;
+        // y +from= t
+        impl $ImpFromAssign<$T> for $Big {
             #[inline]
-            fn $method(self, op: &'m mut $Big) -> &'m mut $Big {
-                op.$method(self)
+            fn $method_from_assign(&mut self, lhs: $T) {
+                self.$method_assign(lhs);
             }
         }
 
+        // t + &y
         impl<'a> $Imp<&'a $Big> for $T {
             type Output = $Ref<'a>;
             #[inline]
