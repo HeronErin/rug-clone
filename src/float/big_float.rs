@@ -2593,6 +2593,7 @@ macro_rules! arith_binary_self_float {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_forward_float {
     {
         $func:path;
@@ -2614,6 +2615,7 @@ macro_rules! arith_forward_float {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_commut_float {
     {
         $func:path;
@@ -2639,6 +2641,7 @@ macro_rules! arith_commut_float {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_noncommut_float {
     {
         $func:path, $func_from:path;

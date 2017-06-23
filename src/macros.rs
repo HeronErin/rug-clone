@@ -14,6 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+#[cfg(feature = "integer")]
 macro_rules! math_op1 {
     {
         $Big:ty;
@@ -43,6 +44,7 @@ macro_rules! math_op1 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! ref_math_op1 {
     {
         $Big:ty;
@@ -74,6 +76,7 @@ macro_rules! ref_math_op1 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! math_op1_2 {
     {
         $Big:ty;
@@ -110,6 +113,7 @@ macro_rules! math_op1_2 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! ref_math_op1_2 {
     {
         $Big:ty;
@@ -140,6 +144,7 @@ macro_rules! ref_math_op1_2 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! math_op2 {
     {
         $Big:ty;
@@ -179,6 +184,7 @@ macro_rules! math_op2 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! ref_math_op2 {
     {
         $Big:ty;
@@ -212,6 +218,7 @@ macro_rules! ref_math_op2 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! math_op2_2 {
     {
         $Big:ty;
@@ -251,6 +258,7 @@ macro_rules! math_op2_2 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! ref_math_op2_2 {
     {
         $Big:ty;
@@ -283,6 +291,7 @@ macro_rules! ref_math_op2_2 {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! from_borrow {
     { $Src:ty => $Dst:ty} => {
         impl<'a> From<$Src> for $Dst {
@@ -296,6 +305,7 @@ macro_rules! from_borrow {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_unary {
     {
         $Big:ty;
@@ -348,6 +358,7 @@ macro_rules! arith_unary {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_binary {
     {
         $Big:ty;
@@ -453,6 +464,7 @@ macro_rules! arith_binary {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_prim {
     {
         $Big:ty;
@@ -513,6 +525,7 @@ macro_rules! arith_prim {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_prim_noncommut {
     {
         $Big:ty;
@@ -582,6 +595,7 @@ macro_rules! arith_prim_noncommut {
     }
 }
 
+#[cfg(feature = "integer")]
 macro_rules! arith_prim_commut {
     {
         $Big:ty;
@@ -1102,7 +1116,7 @@ macro_rules! arith_binary_self_round {
     }
 }
 
-#[cfg(feature = "float")]
+#[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_forward_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1164,7 +1178,7 @@ macro_rules! arith_forward_round {
     }
 }
 
-#[cfg(feature = "float")]
+#[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_commut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
@@ -1269,7 +1283,7 @@ macro_rules! arith_commut_round {
     }
 }
 
-#[cfg(feature = "float")]
+#[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_noncommut_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
