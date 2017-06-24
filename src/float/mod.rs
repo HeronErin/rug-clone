@@ -79,23 +79,22 @@
 //! }
 //! ```
 
-mod big_float;
 mod small_float;
-mod xmpfr;
 
-pub use self::big_float::{Constant, Float, ParseFloatError, Round, Special,
-                          ValidFloat, exp_max, exp_min, prec_max, prec_min};
-pub use self::small_float::SmallFloat;
+pub use big_float::{Constant, ParseFloatError, Round, Special, ValidFloat,
+                    exp_max, exp_min, prec_max, prec_min};
+pub use float::small_float::SmallFloat;
 
 #[cfg(test)]
 mod tests {
-    use float::{Float, Special};
-    use gmp_mpfr_sys::{gmp, mpfr};
+    use {Assign, Float};
     #[cfg(feature = "integer")]
-    use integer::Integer;
-    use ops::{Assign, Pow};
+    use Integer;
     #[cfg(feature = "rational")]
-    use rational::Rational;
+    use Rational;
+    use float::Special;
+    use gmp_mpfr_sys::{gmp, mpfr};
+    use ops::Pow;
     use std::{f32, f64, i32, u32};
     use std::mem;
     #[cfg(feature = "integer")]

@@ -139,26 +139,101 @@ extern crate gmp_mpfr_sys;
 
 #[macro_use]
 mod macros;
+mod ext;
 mod inner;
 
+/// Assigns to a number from another value.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Assign;
+/// struct I(i32);
+/// impl Assign<i16> for I {
+///     fn assign(&mut self, rhs: i16) {
+///         self.0 = rhs as i32;
+///     }
+/// }
+/// let mut i = I(0);
+/// i.assign(42_i16);
+/// assert_eq!(i.0, 42);
+/// ```
+pub trait Assign<Rhs = Self> {
+    /// Peforms the assignement.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "integer")] {
+    /// use rug::{Assign, Integer};
+    /// let mut i = Integer::from(15);
+    /// assert_eq!(i, 15);
+    /// i.assign(23);
+    /// assert_eq!(i, 23);
+    /// # }
+    /// ```
+    fn assign(&mut self, rhs: Rhs);
+}
+
+/// Assignment with a specified rounding method.
+pub trait AssignRound<Rhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Peforms the assignment.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::{AssignRound, Float};
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::new(4);
+    /// let dir = f.assign_round(3.3, Round::Nearest);
+    /// // 3.3 rounded down to 3.25
+    /// assert_eq!(f, 3.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// let dir = f.assign_round(3.3, Round::Up);
+    /// // 3.3 rounded up to 3.5
+    /// assert_eq!(f, 3.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+}
+
 pub mod ops;
-#[cfg(feature = "rand")]
-pub mod rand;
+
+#[cfg(feature = "integer")]
+mod big_integer;
+#[cfg(feature = "integer")]
+pub use big_integer::Integer;
 #[cfg(feature = "integer")]
 pub mod integer;
+
+#[cfg(feature = "rational")]
+mod big_rational;
+#[cfg(feature = "rational")]
+pub use big_rational::Rational;
 #[cfg(feature = "rational")]
 pub mod rational;
+
+#[cfg(feature = "float")]
+mod big_float;
+#[cfg(feature = "float")]
+pub use big_float::Float;
 #[cfg(feature = "float")]
 pub mod float;
+
+#[cfg(feature = "complex")]
+mod big_complex;
+#[cfg(feature = "complex")]
+pub use big_complex::Complex;
 #[cfg(feature = "complex")]
 pub mod complex;
 
-#[cfg(feature = "complex")]
-pub use complex::Complex;
-#[cfg(feature = "float")]
-pub use float::Float;
-#[cfg(feature = "integer")]
-pub use integer::Integer;
-pub use ops::{Assign, AssignRound};
-#[cfg(feature = "rational")]
-pub use rational::Rational;
+#[cfg(feature = "rand")]
+pub mod rand;

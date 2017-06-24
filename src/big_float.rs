@@ -14,20 +14,21 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use super::small_float::SmallFloat;
-use super::xmpfr;
+use {Assign, AssignRound};
+#[cfg(feature = "integer")]
+use Integer;
+#[cfg(feature = "rational")]
+use Rational;
+use ext::mpfr as xmpfr;
+use float::SmallFloat;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-#[cfg(feature = "integer")]
-use integer::Integer;
-use ops::{AddFromAssign, AddFromRound, AddRound, Assign, AssignRound,
-          DivFromAssign, DivFromRound, DivRound, MulFromAssign, MulFromRound,
-          MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowFromRound,
-          PowRound, SubFromAssign, SubFromRound, SubRound};
+use ops::{AddFromAssign, AddFromRound, AddRound, DivFromAssign, DivFromRound,
+          DivRound, MulFromAssign, MulFromRound, MulRound, NegAssign, Pow,
+          PowAssign, PowFromAssign, PowFromRound, PowRound, SubFromAssign,
+          SubFromRound, SubRound};
 #[cfg(feature = "rand")]
 use rand::RandState;
-#[cfg(feature = "rational")]
-use rational::Rational;
 use std::{i32, u32};
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;

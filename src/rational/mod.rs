@@ -19,19 +19,16 @@
 //! This module provides arbitrary-precision rational numbers of type
 //! [`Rational`](struct.Rational.html).
 
-mod big_rational;
 mod small_rational;
-mod xgmp;
 
-pub use self::big_rational::{MutNumerDenom, ParseRationalError, Rational,
-                             ValidRational};
-pub use self::small_rational::SmallRational;
+pub use big_rational::{MutNumerDenom, ParseRationalError, ValidRational};
+pub use rational::small_rational::SmallRational;
 
 #[cfg(test)]
 mod tests {
+    use Rational;
     use gmp_mpfr_sys::gmp;
     use ops::Pow;
-    use rational::Rational;
     use std::{i32, u32};
     use std::cmp::Ordering;
     use std::mem;

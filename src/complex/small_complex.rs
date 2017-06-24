@@ -14,8 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use super::Complex;
 use Assign;
+use Complex;
 use float::Round;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;

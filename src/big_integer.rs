@@ -14,12 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use super::xgmp;
+use Assign;
+use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
-use ops::{AddFromAssign, Assign, BitAndFromAssign, BitOrFromAssign,
-          BitXorFromAssign, DivFromAssign, MulFromAssign, NegAssign,
-          NotAssign, Pow, PowAssign, RemFromAssign, SubFromAssign};
+use ops::{AddFromAssign, BitAndFromAssign, BitOrFromAssign, BitXorFromAssign,
+          DivFromAssign, MulFromAssign, NegAssign, NotAssign, Pow, PowAssign,
+          RemFromAssign, SubFromAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};

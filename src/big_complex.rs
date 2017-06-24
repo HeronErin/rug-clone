@@ -14,21 +14,22 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use super::xmpc;
-use float::{self, Constant, Float, ParseFloatError, Round, Special, ValidFloat};
+use {Assign, AssignRound, Float};
+#[cfg(feature = "integer")]
+use Integer;
+#[cfg(feature = "rational")]
+use Rational;
+use ext::mpc as xmpc;
+use float::{self, Constant, ParseFloatError, Round, Special, ValidFloat};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
-#[cfg(feature = "integer")]
-use integer::Integer;
-use ops::{AddFromAssign, AddFromRound, AddRound, Assign, AssignRound,
-          DivFromAssign, DivFromRound, DivRound, MulFromAssign, MulFromRound,
-          MulRound, NegAssign, Pow, PowAssign, PowFromAssign, PowFromRound,
-          PowRound, SubFromAssign, SubFromRound, SubRound};
+use ops::{AddFromAssign, AddFromRound, AddRound, DivFromAssign, DivFromRound,
+          DivRound, MulFromAssign, MulFromRound, MulRound, NegAssign, Pow,
+          PowAssign, PowFromAssign, PowFromRound, PowRound, SubFromAssign,
+          SubFromRound, SubRound};
 #[cfg(feature = "rand")]
 use rand::RandState;
-#[cfg(feature = "rational")]
-use rational::Rational;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;

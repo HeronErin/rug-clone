@@ -35,18 +35,16 @@
 //! assert_eq!(int, 15);
 //! ```
 
-mod big_integer;
 mod small_integer;
-mod xgmp;
 
-pub use self::big_integer::{Integer, IsPrime, ParseIntegerError, ValidInteger};
-pub use self::small_integer::SmallInteger;
+pub use big_integer::{IsPrime, ParseIntegerError, ValidInteger};
+pub use integer::small_integer::SmallInteger;
 
 #[cfg(test)]
 mod tests {
+    use {Assign, Integer};
     use gmp_mpfr_sys::gmp;
-    use integer::Integer;
-    use ops::{Assign, NegAssign, Pow};
+    use ops::{NegAssign, Pow};
     use std::{f32, f64, i32, i64, u32, u64};
     use std::cmp::Ordering;
     use std::mem;

@@ -19,38 +19,7 @@
 //! See the documentation for each trait method to see a usage
 //! example.
 
-/// Assigns to a number from another value.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Assign;
-/// struct I(i32);
-/// impl Assign<i16> for I {
-///     fn assign(&mut self, rhs: i16) {
-///         self.0 = rhs as i32;
-///     }
-/// }
-/// let mut i = I(0);
-/// i.assign(42_i16);
-/// assert_eq!(i.0, 42);
-/// ```
-pub trait Assign<Rhs = Self> {
-    /// Peforms the assignement.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #[cfg(feature = "integer")] {
-    /// use rug::{Assign, Integer};
-    /// let mut i = Integer::from(15);
-    /// assert_eq!(i, 15);
-    /// i.assign(23);
-    /// assert_eq!(i, 23);
-    /// # }
-    /// ```
-    fn assign(&mut self, rhs: Rhs);
-}
+use Assign;
 
 /// Compound negation and assignment.
 ///
@@ -482,36 +451,6 @@ pub trait PowFromAssign<Lhs = Self> {
     /// # }
     /// ```
     fn pow_from_assign(&mut self, lhs: Lhs);
-}
-
-/// Assignment with a specified rounding method.
-pub trait AssignRound<Rhs = Self> {
-    /// The rounding method.
-    type Round;
-    /// The direction from rounding.
-    type Ordering;
-    /// Peforms the assignment.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #[cfg(feature = "float")] {
-    /// use rug::{AssignRound, Float};
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// // only four significant bits
-    /// let mut f = Float::new(4);
-    /// let dir = f.assign_round(3.3, Round::Nearest);
-    /// // 3.3 rounded down to 3.25
-    /// assert_eq!(f, 3.25);
-    /// assert_eq!(dir, Ordering::Less);
-    /// let dir = f.assign_round(3.3, Round::Up);
-    /// // 3.3 rounded up to 3.5
-    /// assert_eq!(f, 3.5);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// # }
-    /// ```
-    fn assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
 /// Compound addition and assignment with a specified rounding method.

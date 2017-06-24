@@ -14,13 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use super::small_rational::SmallRational;
-use super::xgmp;
+use {Assign, Integer};
+use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
-use integer::Integer;
-use ops::{AddFromAssign, Assign, DivFromAssign, MulFromAssign, NegAssign, Pow,
+use ops::{AddFromAssign, DivFromAssign, MulFromAssign, NegAssign, Pow,
           PowAssign, SubFromAssign};
+use rational::SmallRational;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;

@@ -21,19 +21,17 @@
 //! required operations can be specified, and the direction of the
 //! rounding is returned.
 
-mod big_complex;
 mod small_complex;
-mod xmpc;
 
-pub use self::big_complex::{Complex, ParseComplexError, Prec, ValidComplex};
-pub use self::small_complex::SmallComplex;
+pub use big_complex::{ParseComplexError, Prec, ValidComplex};
+pub use complex::small_complex::SmallComplex;
 
 #[cfg(test)]
 mod tests {
-    use complex::Complex;
+    use {Assign, Complex};
     use float::Special;
     use gmp_mpfr_sys::gmp;
-    use ops::{Assign, Pow};
+    use ops::Pow;
     use std::f64;
     use std::mem;
 
