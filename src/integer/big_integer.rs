@@ -879,9 +879,9 @@ impl Integer {
         unsafe { gmp::mpz_divisible_2exp_p(self.inner(), b.into()) != 0 }
     }
 
-    /// Returns `true` if the number is congruent to *c* modulo
-    /// `divisor`, that is, if there exists a *q* such that `self` =
-    /// *c* + *q* × `divisor`. Unlike other division functions,
+    /// Returns `true` if the number is congruent to *c* mod
+    /// *divisor*, that is, if there exists a *q* such that `self` =
+    /// *c* + *q* × *divisor*. Unlike other division functions,
     /// `divisor` can be zero.
     ///
     /// # Examples
@@ -904,9 +904,9 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is congruent to *c* modulo
-    /// `divisor`, that is, if there exists a *q* such that `self` =
-    /// *c* + *q* × `divisor`. Unlike other division functions,
+    /// Returns `true` if the number is congruent to *c* mod
+    /// *divisor*, that is, if there exists a *q* such that `self` =
+    /// *c* + *q* × *divisor*. Unlike other division functions,
     /// `divisor` can be zero.
     ///
     /// # Examples
@@ -926,7 +926,7 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is congruent to *c* modulo
+    /// Returns `true` if the number is congruent to *c* mod
     /// 2<sup>*b*</sup>, that is, if there exists a *q* such that
     /// `self` = *c* + *q* × 2<sup>*b*</sup>.
     ///
@@ -984,7 +984,7 @@ impl Integer {
         unsafe { gmp::mpz_perfect_square_p(self.inner()) != 0 }
     }
 
-    /// Returns the same result as self.cmp(0), but is faster.
+    /// Returns the same result as `self.cmp(&0)`, but is faster.
     ///
     /// # Examples
     ///
@@ -1047,7 +1047,7 @@ impl Integer {
         }
     }
 
-    /// Returns the number of one bits if the value >= 0.
+    /// Returns the number of one bits if the value ≥ 0.
     ///
     /// # Examples
     ///
@@ -1179,6 +1179,7 @@ impl Integer {
     /// let i = Integer::from(-1);
     /// assert_eq!(Integer::from(0).hamming_dist(&i), None);
     /// assert_eq!(Integer::from(-1).hamming_dist(&i), Some(0));
+    /// // -1 is ...11111111 and -13 is ...11110011
     /// assert_eq!(Integer::from(-13).hamming_dist(&i), Some(2));
     /// ```
     #[inline]
@@ -1565,7 +1566,7 @@ impl Integer {
     math_op1! {
         Integer;
         gmp::mpz_root;
-        /// Computes the *n*th root and truncates the result.
+        /// Computes the <i>n</i>th root and truncates the result.
         ///
         /// # Examples
         ///
@@ -1575,7 +1576,7 @@ impl Integer {
         /// assert_eq!(*i.root(3), 10);
         /// ```
         fn root(n: u32);
-        /// Computes the *n*th root and truncates the result.
+        /// Computes the <i>n</i>th root and truncates the result.
         ///
         /// # Examples
         ///
@@ -1589,8 +1590,8 @@ impl Integer {
     math_op1_2! {
         Integer;
         gmp::mpz_rootrem;
-        /// Computes the *n*th root and returns the truncated root and
-        /// the remainder.
+        /// Computes the <i>n</i>th root and returns the truncated
+        /// root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
@@ -1606,8 +1607,8 @@ impl Integer {
         /// assert_eq!(rem, 4);
         /// ```
         fn root_rem(remainder, n: u32);
-        /// Computes the *n*th root and returns the truncated root and
-        /// the remainder.
+        /// Computes the <i>n</i>th root and returns the truncated
+        /// root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
@@ -1798,20 +1799,20 @@ impl Integer {
         fn lcm_ref -> LcmRef;
     }
 
-    /// Calculates the Jacobi symbol (`self`/*n*).
+    /// Calculates the Jacobi symbol (`self`/<i>n</i>).
     #[inline]
     pub fn jacobi(&self, n: &Integer) -> i32 {
         unsafe { gmp::mpz_jacobi(self.inner(), n.inner()) as i32 }
     }
 
-    /// Calculates the Legendre symbol (`self`/*p*).
+    /// Calculates the Legendre symbol (`self`/<i>p</i>).
     #[inline]
     pub fn legendre(&self, p: &Integer) -> i32 {
         unsafe { gmp::mpz_legendre(self.inner(), p.inner()) as i32 }
     }
 
-    /// Calculates the Jacobi symbol (`self`/*n*) with the Kronecker
-    /// extension.
+    /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the
+    /// Kronecker extension.
     #[inline]
     pub fn kronecker(&self, n: &Integer) -> i32 {
         unsafe { gmp::mpz_kronecker(self.inner(), n.inner()) as i32 }

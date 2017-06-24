@@ -90,7 +90,7 @@ impl<'a> RandState<'a> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>`bits`</sup>.
+    /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>*bits*</sup>.
     pub fn new_linear_congruential(
         a: &Integer,
         c: u32,
@@ -109,11 +109,12 @@ impl<'a> RandState<'a> {
     /// Creates a new random generator with a linear congruential
     /// algorithm like the [`new_linear_congruential`][cong] method.
     ///
-    /// *a*, *c* and `bits` are selected from a table such that at
-    /// least `size` bits of each *X* will be used, that is
-    /// 2<sup>`bits`</sup> ≥ `size`. The table only has values for a
-    /// size of up to 256 bits; `None` will be returned if the
-    /// requested size is larger.
+    /// For the linear congrentail algorithm *X* = (*a* × *X* + *c*)
+    /// mod 2<sup>*bits*</sup>, *a*, *c* and *bits* are selected from
+    /// a table such that at least *size* bits of each *X* will be
+    /// used, that is 2<sup>*bits*</sup> ≥ *size*. The table only has
+    /// values for a size of up to 256 bits; `None` will be returned
+    /// if the requested size is larger.
     ///
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {

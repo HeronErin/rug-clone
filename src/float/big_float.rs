@@ -1315,12 +1315,12 @@ impl Float {
     }
     math_op1_float! {
         mpfr::root;
-        /// Computes the *k*th root, rounding to the nearest.
+        /// Computes the <i>k</i>th root, rounding to the nearest.
         fn root(k: u32);
-        /// Computes the *k*th root, applying the specified rounding
-        /// method.
+        /// Computes the <i>k</i>th root, applying the specified
+        /// rounding method.
         fn root_round;
-        /// Computes the *k*th root.
+        /// Computes the <i>k</i>th root.
         fn root_ref -> RootRef;
     }
     math_op1_float! {
@@ -2153,14 +2153,14 @@ impl Float {
     /// 0 ≤ *n* < 2<sup>*p*</sup>, where 2<sup>*p*</sup> is two raised
     /// to the power of the precision, and then dividing the integer
     /// by 2<sup>*p*</sup>. The smallest non-zero result will thus be
-    /// 2<sup>−*p*</sup>, and will only have one bit set. In the
+    /// 2<sup>−<i>p</i></sup>, and will only have one bit set. In the
     /// smaller possible results, many bits will be zero, and not all
     /// the precision will be used.
     ///
     /// In all the normal cases, the result will be exact. However, if
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
-    /// [`rug::float::exp_min()`][fn.exp_min.html]; in this case, the
+    /// [`rug::float::exp_min`](fn.exp_min.html); in this case, the
     /// number is set to Nan and an error is returned.
     ///
     /// # Examples
