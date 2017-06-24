@@ -728,9 +728,10 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// If `self` is a [finite number](#method.is_finite), returns an
-    /// integer and exponent such that `self` is exactly equal to the
-    /// integer multiplied by two raised to the power of the exponent.
+    /// If the value is a [finite number](#method.is_finite), returns
+    /// an [`Integer`](struct.Integer.html) and exponent such that
+    /// `self` is exactly equal to the integer multiplied by two
+    /// raised to the power of the exponent.
     ///
     /// # Examples
     ///
@@ -764,8 +765,9 @@ impl Float {
     }
 
     #[cfg(feature = "rational")]
-    /// If `self` is a [finite number](#method.is_finite), returns a
-    /// `Rational` number preserving all the precision of the value.
+    /// If the value is a [finite number](#method.is_finite), returns
+    /// a [`Rational`](struct.Rational.html) number preserving all the
+    /// precision of the value.
     ///
     /// # Examples
     ///
@@ -1183,9 +1185,9 @@ impl Float {
         unsafe { mpfr::regular_p(self.inner()) != 0 }
     }
 
-    /// Returns `Less` if `self` is less than zero,
-    /// `Greater` if `self` is greater than zero,
-    /// or `Equal` if `self` is equal to zero.
+    /// Returns `Ordering::Less` if `self` is less than zero,
+    /// `Ordering::Greater` if `self` is greater than zero, or
+    /// `Ordering::Equal` if `self` is equal to zero.
     #[inline]
     pub fn sign(&self) -> Option<Ordering> {
         if self.is_nan() {
@@ -1313,12 +1315,12 @@ impl Float {
     }
     math_op1_float! {
         mpfr::root;
-        /// Computes the `k`th root, rounding to the nearest.
+        /// Computes the *k*th root, rounding to the nearest.
         fn root(k: u32);
-        /// Computes the `k`th root, applying the specified rounding
+        /// Computes the *k*th root, applying the specified rounding
         /// method.
         fn root_round;
-        /// Computes the `k`th root.
+        /// Computes the *k*th root.
         fn root_ref -> RootRef;
     }
     math_op1_float! {
@@ -1670,13 +1672,13 @@ impl Float {
         fn atanh_ref -> AtanhRef;
     }
 
-    /// Sets `self` to the factorial of `u`, rounding to the nearest.
+    /// Sets `self` to the factorial of *u*, rounding to the nearest.
     #[inline]
     pub fn assign_factorial_u(&mut self, u: u32) {
         self.assign_factorial_u_round(u, Round::Nearest);
     }
 
-    /// Sets `self` to the factorial of `u`, applying the specified
+    /// Sets `self` to the factorial of *u*, applying the specified
     /// rounding method.
     #[inline]
     pub fn assign_factorial_u_round(
@@ -1918,14 +1920,14 @@ impl Float {
         fn zeta_ref -> ZetaRef;
     }
 
-    /// Sets `self` to the value of the Riemann Zeta function on `u`,
+    /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// rounding to the nearest.
     #[inline]
     pub fn assign_zeta_u(&mut self, u: u32) {
         self.assign_zeta_u_round(u, Round::Nearest);
     }
 
-    /// Sets `self` to the value of the Riemann Zeta function on `u`,
+    /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// applying the specified rounding method.
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
@@ -1981,12 +1983,12 @@ impl Float {
     math_op1_float! {
         xmpfr::jn;
         /// Computes the value of the first kind Bessel function of
-        /// order `n`, rounding to the nearest.
+        /// order *n*, rounding to the nearest.
         fn jn(n: i32);
         /// Computes the value of the first kind Bessel function of
-        /// order `n`, applying the specified rounding method.
+        /// order *n*, applying the specified rounding method.
         fn jn_round;
-        /// Computes the first kind Bessel function of order `n`.
+        /// Computes the first kind Bessel function of order *n*.
         fn jn_ref -> JnRef;
     }
     math_op1_float! {
@@ -2014,12 +2016,12 @@ impl Float {
     math_op1_float! {
         xmpfr::yn;
         /// Computes the value of the second kind Bessel function of
-        /// order `n`, rounding to the nearest.
+        /// order *n*, rounding to the nearest.
         fn yn(n: i32);
         /// Computes the value of the second kind Bessel function of
-        /// order `n`, applying the specified rounding method.
+        /// order *n*, applying the specified rounding method.
         fn yn_round;
-        /// Computes the second kind Bessel function of order `n`.
+        /// Computes the second kind Bessel function of order *n*.
         fn yn_ref -> YnRef;
     }
     math_op2_float! {
@@ -2145,20 +2147,21 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the range `0 <= n < 1`.
+    /// Generates a random number in the range 0 ≤ *n* < 1.
     ///
     /// This is equivalent to generating a random integer in the range
-    /// `0 <= n < 2 ^ p`, where `2 ^ p` is two raised to the power of
-    /// the precision, and then dividing the integer by `2 ^ p`. The
-    /// smallest non-zero result will thus be `2 ^ -p`, and will only
-    /// have one bit set. In the smaller possible results, many bits
-    /// will be zero, and not all the precision will be used.
+    /// 0 ≤ *n* < 2<sup>*p*</sup>, where 2<sup>*p*</sup> is two raised
+    /// to the power of the precision, and then dividing the integer
+    /// by 2<sup>*p*</sup>. The smallest non-zero result will thus be
+    /// 2<sup>−*p*</sup>, and will only have one bit set. In the
+    /// smaller possible results, many bits will be zero, and not all
+    /// the precision will be used.
     ///
     /// In all the normal cases, the result will be exact. However, if
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
-    /// `rug::exp_min()`; in this case, the number is set to Nan and
-    /// an error is returned.
+    /// [`rug::float::exp_min()`][fn.exp_min.html]; in this case, the
+    /// number is set to Nan and an error is returned.
     ///
     /// # Examples
     ///
@@ -2181,8 +2184,8 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continuous range
-    /// `0 <= n < 1`, and rounds to the nearest.
+    /// Generates a random number in the continuous range 0 ≤ *n* < 1,
+    /// and rounds to the nearest.
     ///
     /// The rounded result can actually be equal to one.
     /// This is equivalent to calling
@@ -2194,8 +2197,8 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continous range
-    /// `0 <= n < 1` and applies the specified rounding method.
+    /// Generates a random number in the continous range 0 ≤ *n* < 1,
+    /// and applies the specified rounding method.
     ///
     /// The rounded result can actually be equal to one. Unlike
     /// [`assign_random_bits_round()`](#method.assign_random_bits_round)
@@ -3291,7 +3294,7 @@ fn fmt_radix(
 
 /// A validated string that can always be converted to a `Float`.
 ///
-/// See the [`Float::valid_str_radix()`]
+/// See the [`Float::valid_str_radix`]
 /// (struct.Float.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidFloat<'a> {

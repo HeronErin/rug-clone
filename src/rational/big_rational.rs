@@ -35,11 +35,12 @@ use std::str::FromStr;
 
 /// An arbitrary-precision rational number.
 ///
-/// A rational number is made up of a numerator `Integer` and
-/// denominator `Integer`. After rational number functions, the number
-/// is always in canonical form, that is, the denominator is always
-/// greater than zero, and there are no common factors. Zero is stored
-/// as 0/1.
+/// A rational number is made up of a numerator
+/// [`Integer`](struct.Integer.html) and denominator
+/// [`Integer`](struct.Integer.html). After rational number functions,
+/// the number is always in canonical form, that is, the denominator
+/// is always greater than zero, and there are no common factors. Zero
+/// is stored as 0/1.
 ///
 /// # Examples
 ///
@@ -269,7 +270,8 @@ impl Rational {
         Ok(v)
     }
 
-    /// Converts to an `Integer`, rounding towards zero.
+    /// Converts to an [`Integer`](struct.Integer.html), rounding
+    /// towards zero.
     ///
     /// # Examples
     ///
@@ -289,7 +291,8 @@ impl Rational {
         i
     }
 
-    /// Converts to an `Integer` inside `i`, rounding towards zero.
+    /// Converts to an [`Integer`](struct.Integer.html) inside `i`,
+    /// rounding towards zero.
     ///
     /// # Examples
     ///
@@ -515,7 +518,8 @@ impl Rational {
         }
     }
 
-    /// Borrows the denominator as an `Integer`.
+    /// Borrows the denominator as an
+    /// [`Integer`](struct.Integer.html).
     ///
     /// # Examples
     ///
@@ -533,7 +537,8 @@ impl Rational {
         }
     }
 
-    /// Borrows the numerator and denominator as `Integer`s.
+    /// Borrows the numerator and denominator as
+    /// [`Integer`](struct.Integer.html) values.
     ///
     /// # Examples
     ///
@@ -681,8 +686,9 @@ impl Rational {
         (numer, denom)
     }
 
-    /// Returns `Less` if the number is less than zero, `Greater` if
-    /// it is greater than zero, or `Equal` if it is equal to zero.
+    /// Returns `Ordering::Less` if the number is less than zero,
+    /// `Ordering::Greater` if it is greater than zero, or
+    /// `Ordering::Equal` if it is equal to zero.
     #[inline]
     pub fn sign(&self) -> Ordering {
         self.numer().sign()
@@ -919,10 +925,12 @@ impl Rational {
 from_borrow! { &'a Rational => Rational }
 
 impl From<Integer> for Rational {
-    /// Constructs a `Rational` number from an `Integer`.
+    /// Constructs a `Rational` number from an
+    /// [`Integer`](struct.Integer.html).
     ///
-    /// This constructor allocates one new `Integer` and reuses the
-    /// allocation for `val`.
+    /// This constructor allocates one new
+    /// [`Integer`](struct.Integer.html) and reuses the allocation for
+    /// `val`.
     #[inline]
     fn from(val: Integer) -> Rational {
         Rational::from((val, 1.into()))
@@ -932,11 +940,12 @@ impl From<Integer> for Rational {
 from_borrow! { &'a Integer => Rational }
 
 impl From<(Integer, Integer)> for Rational {
-    /// Constructs a `Rational` number from a numerator `Integer` and
-    /// denominator `Integer`.
+    /// Constructs a `Rational` number from a numerator
+    /// [`Integer`](struct.Integer.html) and denominator
+    /// [`Integer`](struct.Integer.html).
     ///
-    /// This constructor does not allocate, as it reuses the `Integer`
-    /// components.
+    /// This constructor does not allocate, as it reuses the
+    /// [`Integer`](struct.Integer.html) components.
     ///
     /// # Panics
     ///
@@ -1438,9 +1447,11 @@ impl Display for ParseRationalError {
 /// Used to borrow the numerator and denominator of a
 /// [`Rational`](struct.Rational.html) number mutably.
 ///
-/// The `Rational` number is canonicalized when the borrow ends. See
-/// the [`Rational::as_mut_numer_denom()`]
-/// (struct.Rational.html#method.as_mut_numer_denom) method.
+/// The [`Rational`](struct.Rational.html) number is canonicalized
+/// when the borrow ends. See the
+/// [`Rational::as_mut_numer_denom`][mutnumden] method.
+///
+/// [mutnumden]: struct.Rational.html#method.as_mut_numer_denom
 pub struct MutNumerDenom<'a> {
     num: &'a mut Integer,
     den_place: &'a mut Integer,

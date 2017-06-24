@@ -90,7 +90,7 @@ impl<'a> RandState<'a> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>*bits*</sup>.
+    /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>`bits`</sup>.
     pub fn new_linear_congruential(
         a: &Integer,
         c: u32,
@@ -107,14 +107,15 @@ impl<'a> RandState<'a> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm like
-    /// [`new_linear_congruential()`](#method.new_linear_congruential).
+    /// algorithm like the [`new_linear_congruential`][cong] method.
     ///
-    /// *a*, *c* and *bits* are selected from a table such that at
-    /// least *size* bits of each *X* will be used, that is
-    /// 2<sup>*bits*</sup> ≥ *size*. The table only has values for a
+    /// *a*, *c* and `bits` are selected from a table such that at
+    /// least `size` bits of each *X* will be used, that is
+    /// 2<sup>`bits`</sup> ≥ `size`. The table only has values for a
     /// size of up to 256 bits; `None` will be returned if the
     /// requested size is larger.
+    ///
+    /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
             let mut inner = mem::uninitialized();
@@ -131,7 +132,7 @@ impl<'a> RandState<'a> {
 
     /// Creates a new custom random generator.
     ///
-    /// This `RandState` is borrowing mutably, so unlike other
+    /// The created `RandState` is borrowing mutably, so unlike other
     /// instances of `RandState`, it cannot be cloned; attempting to
     /// clone will panic.
     ///
@@ -195,7 +196,8 @@ impl<'a> RandState<'a> {
     ///
     /// This function can never return the maximum 32-bit value; in
     /// order to generate a 32-bit random value that covers the whole
-    /// range, use the [`bits()`](#method.bits) with `bits` set to 32.
+    /// range, use the [`bits`](#method.bits) method with `bits` set
+    /// to 32.
     ///
     /// # Panics
     ///
@@ -217,8 +219,9 @@ pub trait RandGen: Send + Sync {
     ///
     /// The default implementation of this function does nothing.
     ///
-    /// Note that the `RandState::seed()` method will pass its seed
-    /// parameter exactly to this function without using it otherwise.
+    /// Note that the [`RandState::seed()][seed] method will pass its
+    /// seed parameter exactly to this function without using it
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -266,6 +269,8 @@ pub trait RandGen: Send + Sync {
     /// }
     /// assert_eq!(seed.num, i);
     /// ```
+    ///
+    /// [seed]: struct.RandState.html#method.seed
     #[inline]
     fn seed(&mut self, _seed: &Integer) {}
 }

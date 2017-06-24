@@ -28,8 +28,9 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// A small float that does not require any memory allocation.
 ///
 /// This can be useful when you have a primitive number type but need
-/// a reference to a `Float`. The `SmallFloat` will have a precision
-/// according to the type of the primitive used to set its value.
+/// a reference to a [`Float`](struct.Float.html). The `SmallFloat`
+/// will have a precision according to the type of the primitive used
+/// to set its value.
 ///
 /// * `i8`, `u8`: the `SmallFloat` will have eight bits of precision.
 /// * `i16`, `u16`: the `SmallFloat` will have 16 bits of precision.
@@ -38,8 +39,9 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// * `f32`: the `SmallFloat` will have 24 bits of precision.
 /// * `f64`: the `SmallFloat` will have 53 bits of precision.
 ///
-/// The `SmallFloat` type can be coerced to a `Float`, as it
-/// implements `Deref` with a `Float` target.
+/// The `SmallFloat` type can be coerced to a
+/// [`Float`](struct.Float.html), as it implements `Deref` with a
+/// [`Float`](struct.Float.html) target.
 ///
 /// # Examples
 ///

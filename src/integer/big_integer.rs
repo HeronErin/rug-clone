@@ -102,7 +102,8 @@ use std::str::FromStr;
 /// assert_eq!(format!("{:x}", complement_a), "-f00e");
 /// ```
 ///
-/// To initialize a very large `Integer`, you can parse a string.
+/// To initialize a large `Integer` that does not fit in a primitive
+/// type, you can parse a string.
 ///
 /// ```rust
 /// use rug::Integer;
@@ -862,8 +863,7 @@ impl Integer {
         unsafe { gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0 }
     }
 
-    /// Returns `true` if the number is divisible by two to the power
-    /// of `b`.
+    /// Returns `true` if the number is divisible by 2<sup>*b*</sup>.
     ///
     /// # Examples
     ///
@@ -879,9 +879,9 @@ impl Integer {
         unsafe { gmp::mpz_divisible_2exp_p(self.inner(), b.into()) != 0 }
     }
 
-    /// Returns `true` if the number is congruent to `c` modulo
-    /// `divisor`, that is, if there exists a `q` such that
-    /// `self == c + q * divisor`. Unlike other division functions,
+    /// Returns `true` if the number is congruent to *c* modulo
+    /// `divisor`, that is, if there exists a *q* such that `self` =
+    /// *c* + *q* × `divisor`. Unlike other division functions,
     /// `divisor` can be zero.
     ///
     /// # Examples
@@ -904,9 +904,9 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is congruent to `c` modulo
-    /// `divisor`, that is, if there exists a `q` such that
-    /// `self == c + q * divisor`. Unlike other division functions,
+    /// Returns `true` if the number is congruent to *c* modulo
+    /// `divisor`, that is, if there exists a *q* such that `self` =
+    /// *c* + *q* × `divisor`. Unlike other division functions,
     /// `divisor` can be zero.
     ///
     /// # Examples
@@ -926,9 +926,9 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is congruent to `c` modulo two to
-    /// the power of `b`, that is, if there exists a `q` such that
-    /// `self == c + q * 2 ^ b`.
+    /// Returns `true` if the number is congruent to *c* modulo
+    /// 2<sup>*b*</sup>, that is, if there exists a *q* such that
+    /// `self` = *c* + *q* × 2<sup>*b*</sup>.
     ///
     /// # Examples
     ///
@@ -1219,7 +1219,7 @@ impl Integer {
     math_op1! {
         Integer;
         gmp::mpz_fdiv_r_2exp;
-        /// Keeps the `n` least significant bits only.
+        /// Keeps the *n* least significant bits only.
         ///
         /// # Examples
         ///
@@ -1229,7 +1229,7 @@ impl Integer {
         /// assert_eq!(*i.keep_bits(8), 0xff);
         /// ```
         fn keep_bits(n: u32);
-        /// Keeps the `n` least significant bits only.
+        /// Keeps the *n* least significant bits only.
         ///
         /// # Examples
         ///
@@ -1565,7 +1565,7 @@ impl Integer {
     math_op1! {
         Integer;
         gmp::mpz_root;
-        /// Computes the `n`th root and truncates the result.
+        /// Computes the *n*th root and truncates the result.
         ///
         /// # Examples
         ///
@@ -1575,7 +1575,7 @@ impl Integer {
         /// assert_eq!(*i.root(3), 10);
         /// ```
         fn root(n: u32);
-        /// Computes the `n`th root and truncates the result.
+        /// Computes the *n*th root and truncates the result.
         ///
         /// # Examples
         ///
@@ -1589,11 +1589,11 @@ impl Integer {
     math_op1_2! {
         Integer;
         gmp::mpz_rootrem;
-        /// Computes the `n`th root and returns the truncated root and
+        /// Computes the *n*th root and returns the truncated root and
         /// the remainder.
         ///
         /// The remainder is the original number minus the truncated
-        /// root raised to the power of `n`.
+        /// root raised to the power of *n*.
         ///
         /// # Examples
         ///
@@ -1606,11 +1606,11 @@ impl Integer {
         /// assert_eq!(rem, 4);
         /// ```
         fn root_rem(remainder, n: u32);
-        /// Computes the `n`th root and returns the truncated root and
+        /// Computes the *n*th root and returns the truncated root and
         /// the remainder.
         ///
         /// The remainder is the original number minus the truncated
-        /// root raised to the power of `n`.
+        /// root raised to the power of *n*.
         ///
         /// # Examples
         ///
@@ -1798,20 +1798,20 @@ impl Integer {
         fn lcm_ref -> LcmRef;
     }
 
-    /// Calculates the Jacobi symbol (`self`/`n`).
+    /// Calculates the Jacobi symbol (`self`/*n*).
     #[inline]
     pub fn jacobi(&self, n: &Integer) -> i32 {
         unsafe { gmp::mpz_jacobi(self.inner(), n.inner()) as i32 }
     }
 
-    /// Calculates the Legendre symbol (`self`/`p`).
+    /// Calculates the Legendre symbol (`self`/*p*).
     #[inline]
     pub fn legendre(&self, p: &Integer) -> i32 {
         unsafe { gmp::mpz_legendre(self.inner(), p.inner()) as i32 }
     }
 
-    /// Calculates the Jacobi symbol (`self`/`n`) with the
-    /// Kronecker extension.
+    /// Calculates the Jacobi symbol (`self`/*n*) with the Kronecker
+    /// extension.
     #[inline]
     pub fn kronecker(&self, n: &Integer) -> i32 {
         unsafe { gmp::mpz_kronecker(self.inner(), n.inner()) as i32 }
@@ -1866,7 +1866,7 @@ impl Integer {
         }
     }
 
-    /// Computes the factorial of `n`.
+    /// Computes the factorial of *n*.
     ///
     /// # Examples
     ///
@@ -1884,7 +1884,7 @@ impl Integer {
         }
     }
 
-    /// Computes the double factorial of `n`.
+    /// Computes the double factorial of *n*.
     ///
     /// # Examples
     ///
@@ -1902,7 +1902,7 @@ impl Integer {
         }
     }
 
-    /// Computes the `m`-multi factorial of `n`.
+    /// Computes the *m*-multi factorial of *n*.
     ///
     /// # Examples
     ///
@@ -1920,7 +1920,7 @@ impl Integer {
         }
     }
 
-    /// Computes the primorial of `n`.
+    /// Computes the primorial of *n*.
     ///
     /// # Examples
     ///
@@ -1941,7 +1941,7 @@ impl Integer {
     math_op1! {
         Integer;
         gmp::mpz_bin_ui;
-        /// Computes the binomial coefficient over `k`.
+        /// Computes the binomial coefficient over *k*.
         ///
         /// # Examples
         ///
@@ -1952,7 +1952,7 @@ impl Integer {
         /// assert_eq!(*i.binomial(2), 21);
         /// ```
         fn binomial(k: u32);
-        /// Computes the binomial coefficient over `k`.
+        /// Computes the binomial coefficient over *k*.
         ///
         /// # Examples
         ///
@@ -1965,7 +1965,7 @@ impl Integer {
         fn binomial_ref -> BinomialRef;
     }
 
-    /// Computes the binomial coefficient `n` over `k`.
+    /// Computes the binomial coefficient *n* over *k*.
     ///
     /// # Examples
     ///
@@ -1987,8 +1987,9 @@ impl Integer {
     ///
     /// This function is meant for an isolated number. If a sequence
     /// of Fibonacci numbers is required, the first two values of the
-    /// sequence should be computed with `assign_fibonacci_2()`, then
-    /// iterations should be used.
+    /// sequence should be computed with the
+    /// [`assign_fibonacci_2`](#method.assign_fibonacci_2) method,
+    /// then iterations should be used.
     ///
     /// # Examples
     ///
@@ -2037,7 +2038,8 @@ impl Integer {
     ///
     /// This function is meant for an isolated number. If a sequence
     /// of Lucas numbers is required, the first two values of the
-    /// sequence should be computed with `assign_lucas_2()`, then
+    /// sequence should be computed with the
+    /// [`assign_lucas_2`](#method.assign_lucas_2) method, then
     /// iterations should be used.
     ///
     /// # Examples
@@ -3031,9 +3033,10 @@ fn fmt_radix(
     f.pad_integral(!neg, prefix, buf)
 }
 
-/// A validated string that can always be converted to an `Integer`.
+/// A validated string that can always be converted to an
+/// [`Integer`](struct.Integer.html).
 ///
-/// See the [`Integer::valid_str_radix()`]
+/// See the [`Integer::valid_str_radix`]
 /// (struct.Integer.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidInteger<'a> {

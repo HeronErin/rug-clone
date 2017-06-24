@@ -44,7 +44,7 @@ use std::ptr;
 type Round2 = (Round, Round);
 
 /// The `Prec` trait is used to specify the precision of the real and
-/// imaginary parts of a `Complex` number.
+/// imaginary parts of a [`Complex`](struct.Complex.html) number.
 pub trait Prec {
     /// Returs the precision for the real and imaginary parts.
     fn prec(self) -> (u32, u32);
@@ -71,11 +71,12 @@ type Ordering2 = (Ordering, Ordering);
 ///
 /// There are two versions of most methods:
 ///
-/// 1. The first rounds the returned or stored `Complex` number to the
+/// 1. The first rounds the returned or stored
+///    [`Complex`](struct.Complex.html) number to the
 ///    [nearest](enum.Round.html#variant.Nearest) representable value.
 /// 2. The second applies the specified [rounding
-///    methods](../rugflo/enum.Round.html) for the real and imaginary parts, and
-///    returns the rounding directions for both:
+///    methods](../rugflo/enum.Round.html) for the real and imaginary
+///    parts, and returns the rounding directions for both:
 ///    * `Ordering::Less` if the returned/stored part is less than
 ///      the exact result,
 ///    * `Ordering::Equal` if the returned/stored part is equal to
@@ -83,10 +84,13 @@ type Ordering2 = (Ordering, Ordering);
 ///    * `Ordering::Greater` if the returned/stored part is greater
 ///      than the exact result,
 ///
-/// # Note on `Round::AwayFromZero`
+/// # Note on [`Round::AwayFromZero`][away]
 ///
-/// For `Complex` numbers, `Round::AwayFromZero` is not implemented,
-/// and trying to use it will panic.
+/// For [`Complex`](struct.Complex.html) numbers,
+/// [`Round::AwayFromZero`][away] is not implemented, and trying to
+/// use it will panic.
+///
+/// [away]: enum.Round.html#variant.AwayFromZero
 pub struct Complex {
     inner: mpc_t,
 }
@@ -534,7 +538,7 @@ impl Complex {
         Ok(ValidComplex { poss: p })
     }
 
-    /// Returns a string representation of `self` for the specified
+    /// Returns a string representation of the value for the specified
     /// `radix` rounding to the nearest.
     ///
     /// The exponent is encoded in decimal. If the number of digits is
@@ -566,7 +570,7 @@ impl Complex {
         self.to_string_radix_round(radix, num_digits, Default::default())
     }
 
-    /// Returns a string representation of `self` for the specified
+    /// Returns a string representation of the value for the specified
     /// `radix` applying the specified rounding method.
     ///
     /// The exponent is encoded in decimal. If the number of digits is
@@ -722,7 +726,7 @@ impl Complex {
         ))
     }
 
-    /// Borrows the real part as a `Float`.
+    /// Borrows the real part as a [`Float`](struct.Float.html).
     ///
     /// # Examples
     ///
@@ -739,7 +743,7 @@ impl Complex {
         }
     }
 
-    /// Borrows the imaginary part as a `Float`.
+    /// Borrows the imaginary part as a [`Float`](struct.Float.html).
     ///
     /// # Examples
     ///
@@ -838,8 +842,8 @@ impl Complex {
         }
     }
 
-    /// Converts `self` into real and imaginary `Float` values,
-    /// consuming `self`.
+    /// Consumes and converts the value into real and imaginary
+    /// [`Float`](struct.Float.html) values.
     ///
     /// This function reuses the allocated memory and does not
     /// allocate any new memory.
@@ -1177,9 +1181,11 @@ impl Complex {
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range `0 <= n < 1`.
     ///
-    /// This is equivalent to calling [`assign_random_bits(rng)`]
-    /// (../rugflo/struct.Float.html#method.assign_random_bits) on the
-    /// real part, and the same on the imaginary part.
+    /// This is equivalent to calling
+    /// [`assign_random_bits(rng)`][equiv] on the real part, and the
+    /// same on the imaginary part.
+    ///
+    /// [equiv]: ../rugflo/struct.Float.html#method.assign_random_bits
     #[inline]
     pub fn assign_random_bits(
         &mut self,
@@ -1229,11 +1235,12 @@ impl Complex {
 }
 
 impl From<(Float, Float)> for Complex {
-    /// Constructs a `Complex` number from a real `Float` and
-    /// imaginary `Float`.
+    /// Constructs a `Complex` number from a real
+    /// [`Float`](struct.Float.html) and imaginary
+    /// [`Float`](struct.Float.html).
     ///
-    /// This constructor does not allocate, as it reuses the `Float`
-    /// components.
+    /// This constructor does not allocate, as it reuses the
+    /// [`Float`](struct.Float.html) components.
     #[inline]
     fn from((real, imag): (Float, Float)) -> Complex {
         let mut dst: Complex = unsafe { mem::uninitialized() };
@@ -2097,7 +2104,7 @@ fn fmt_float(
 
 /// A validated string that can always be converted to a `Complex`.
 ///
-/// See the [`Complex::valid_str_radix()`]
+/// See the [`Complex::valid_str_radix`]
 /// (struct.Complex.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidComplex<'a> {

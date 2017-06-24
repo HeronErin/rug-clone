@@ -25,15 +25,17 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// A small integer that does not require any memory allocation.
 ///
 /// This can be useful when you have a `u64`, `i64`, `u32` or `i32`
-/// but need a reference to an `Integer`.
+/// but need a reference to an [`Integer`](struct.Integer.html).
 ///
 /// If there are functions that take a `u32` or `i32` directly instead
-/// of an `Integer` reference, using them can still be faster than
-/// using a `SmallInteger`; the functions would still need to check
-/// for the size of an `Integer` obtained using `SmallInteger`.
+/// of an [`Integer`](struct.Integer.html) reference, using them can
+/// still be faster than using a `SmallInteger`; the functions would
+/// still need to check for the size of an `Integer` obtained using
+/// `SmallInteger`.
 ///
-/// The `SmallInteger` type can be coerced to an `Integer`, as it
-/// implements `Deref` with an `Integer` target.
+/// The `SmallInteger` type can be coerced to an
+/// [`Integer`](struct.Integer.html), as it implements `Deref` with an
+/// [`Integer`](struct.Integer.html) target.
 ///
 /// # Examples
 ///

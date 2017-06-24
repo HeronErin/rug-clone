@@ -61,22 +61,25 @@ rug = "0.4.0"
 ```
 
 The `rug` crate depends on the low-level bindings in the
-`gmp-mpfr-sys` crate. This should be transparent on GNU/Linux and
-macOS, but may need some work on Windows. See the `gmp-mpfr-sys`
-[documentation][sys] for some details.
+[`gmp-mpfr-sys`][sys] crate. This should be transparent on GNU/Linux
+and macOS, but may need some work on Windows. See the
+[`gmp-mpfr-sys`][sys] documentation for some details.
 
 ### Optional features
 
-The `rug` crate has five optional features `integer`, `rational`,
-`float`, `complex` and `rand`. The traits in `rug::ops` are always
-included. The optional features are enabled by default; to disable
-them add this to `Cargo.toml`:
+The `rug` crate has five optional features: `integer`, `rational`,
+`float`, `complex` and `rand`. The traits in the [`ops`][rug ops]
+module are always included. The optional features are enabled by
+default; to disable them add this to `Cargo.toml`:
 
 ```toml
 [dependencies.rug]
 version = "0.4.0"
 default-features = false
 ```
+
+If no optional features are selected, the [`gmp-mpfr-sys`][sys] crate
+is not required and thus not enabled.
 
 To use features selectively, you can add this to `Cargo.toml`:
 
@@ -103,6 +106,7 @@ feature depends on, and will enable, the `float` feature.
 [rug com]:  https://docs.rs/rug/*/rug/struct.Complex.html
 [rug flo]:  https://docs.rs/rug/*/rug/struct.Float.html
 [rug int]:  https://docs.rs/rug/*/rug/struct.Integer.html
+[rug ops]:  https://docs.rs/rug/*/rug/ops/index.html
 [rug rat]:  https://docs.rs/rug/*/rug/struct.Rational.html
 [rug]:      https://docs.rs/rug/
-[sys]:      https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp_mpfr_sys/index.html
+[sys]:      https://docs.rs/gmp-mpfr-sys/~1.0.4/
