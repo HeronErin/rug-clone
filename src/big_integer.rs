@@ -3036,10 +3036,10 @@ fn fmt_radix(
 }
 
 /// A validated string that can always be converted to an
-/// [`Integer`](struct.Integer.html).
+/// [`Integer`](../struct.Integer.html).
 ///
 /// See the [`Integer::valid_str_radix`]
-/// (struct.Integer.html#method.valid_str_radix) method.
+/// (../struct.Integer.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidInteger<'a> {
     bytes: &'a [u8],

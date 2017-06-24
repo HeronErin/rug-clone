@@ -45,7 +45,7 @@ use std::ptr;
 type Round2 = (Round, Round);
 
 /// The `Prec` trait is used to specify the precision of the real and
-/// imaginary parts of a [`Complex`](struct.Complex.html) number.
+/// imaginary parts of a [`Complex`](../struct.Complex.html) number.
 pub trait Prec {
     /// Returs the precision for the real and imaginary parts.
     fn prec(self) -> (u32, u32);
@@ -67,31 +67,32 @@ impl Prec for (u32, u32) {
 
 type Ordering2 = (Ordering, Ordering);
 
-/// A multi-precision complex number.
-/// The precision has to be set during construction.
+/// A multi-precision complex number with arbitrarily large precision
+/// and correct rounding.
+///
+/// The precision has to be set during construction. The rounding
+/// method of the required operations can be specified, and the
+/// direction of the rounding is returned.
 ///
 /// There are two versions of most methods:
 ///
-/// 1. The first rounds the returned or stored
-///    [`Complex`](struct.Complex.html) number to the
-///    [nearest](enum.Round.html#variant.Nearest) representable value.
+/// 1. The first rounds the returned or stored `Complex` number to the
+///    [nearest](float/enum.Round.html#variant.Nearest) representable
+///    value.
 /// 2. The second applies the specified [rounding
-///    methods](../rugflo/enum.Round.html) for the real and imaginary
-///    parts, and returns the rounding directions for both:
-///    * `Ordering::Less` if the returned/stored part is less than
-///      the exact result,
-///    * `Ordering::Equal` if the returned/stored part is equal to
-///      the exact result,
-///    * `Ordering::Greater` if the returned/stored part is greater
-///      than the exact result,
+///    methods](float/enum.Round.html) for the real and imaginary
+///    parts, and returns the rounding directions for both: *
+///    `Ordering::Less` if the returned/stored part is less than the
+///    exact result, * `Ordering::Equal` if the returned/stored part
+///    is equal to the exact result, * `Ordering::Greater` if the
+///    returned/stored part is greater than the exact result,
 ///
 /// # Note on [`Round::AwayFromZero`][away]
 ///
-/// For [`Complex`](struct.Complex.html) numbers,
-/// [`Round::AwayFromZero`][away] is not implemented, and trying to
-/// use it will panic.
+/// For `Complex` numbers, [`Round::AwayFromZero`][away] is not
+/// implemented, and trying to use it will panic.
 ///
-/// [away]: enum.Round.html#variant.AwayFromZero
+/// [away]: float/enum.Round.html#variant.AwayFromZero
 pub struct Complex {
     inner: mpc_t,
 }
@@ -1186,7 +1187,7 @@ impl Complex {
     /// [`assign_random_bits(rng)`][equiv] on the real part, and the
     /// same on the imaginary part.
     ///
-    /// [equiv]: ../rugflo/struct.Float.html#method.assign_random_bits
+    /// [equiv]: struct.Float.html#method.assign_random_bits
     #[inline]
     pub fn assign_random_bits(
         &mut self,
@@ -1218,9 +1219,8 @@ impl Complex {
     /// `0 <= n < 1`. After rounding, the value may be equal to one.
     /// Calling this method is equivalent to calling
     /// [`assign_random_cont_round(rng, round.0)`]
-    /// (../rugflo/struct.Float.html#method.assign_random_bits_round)
-    /// on the real part, and the same with `round.1` on the
-    /// imaginary part.
+    /// (struct.Float.html#method.assign_random_bits_round) on the
+    /// real part, and the same with `round.1` on the imaginary part.
     #[inline]
     pub fn assign_random_cont_round(
         &mut self,
@@ -2106,7 +2106,7 @@ fn fmt_float(
 /// A validated string that can always be converted to a `Complex`.
 ///
 /// See the [`Complex::valid_str_radix`]
-/// (struct.Complex.html#method.valid_str_radix) method.
+/// (../struct.Complex.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidComplex<'a> {
     poss: ValidPoss<'a>,

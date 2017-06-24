@@ -16,10 +16,10 @@
 
 //! Aribtrary-precision integers.
 //!
-//! This module provides arbitrary-precision integers of type
-//! [`Integer`](struct.Integer.html). Instances of `Integer` always
-//! have a heap allocation for the bit data; if you want a temporary
-//! small integer without heap allocation, you can use the
+//! This module provides support for arbitrary-precision integers of
+//! type [`Integer`](../struct.Integer.html). Instances of `Integer`
+//! always have a heap allocation for the bit data; if you want a
+//! temporary small integer without heap allocation, you can use the
 //! [`SmallInteger`](struct.SmallInteger.html) type.
 //!
 //! # Examples

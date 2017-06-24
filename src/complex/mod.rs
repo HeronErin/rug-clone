@@ -16,10 +16,8 @@
 
 //! Multi-precision complex numbers with correct rounding.
 //!
-//! This module provides complex numbers with arbitrarily large
-//! precision, and with correct rounding. The rounding method of the
-//! required operations can be specified, and the direction of the
-//! rounding is returned.
+//! This module provides support for complex numbers of type
+//! [`Complex`](../struct.Complex.html).
 
 mod small_complex;
 

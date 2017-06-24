@@ -16,68 +16,8 @@
 
 //! Multi-precision floating-point numbers with correct rounding.
 //!
-//! This module provides floating-point numbers with arbitrarily large
-//! precision, and with correct rounding. The rounding method of the
-//! required operations can be specified, and the direction of the
-//! rounding is returned.
-//!
-//! # Examples
-//!
-//! ```rust
-//! use rug::Float;
-//! use rug::float::Round;
-//! use rug::ops::DivRound;
-//! use std::cmp::Ordering;
-//! // A precision of 32 significant bits is specified here.
-//! // (The primitive `f32` has a precision of 24 and
-//! // `f64` has a precision of 53.)
-//! let mut two_thirds_down = Float::with_val(32, 2.0);
-//! let dir = two_thirds_down.div_round(3.0, Round::Down);
-//! // since we rounded down, direction is Ordering::Less
-//! assert_eq!(dir, Ordering::Less);
-//! let mut two_thirds_up = Float::with_val(32, 2.0);
-//! let dir = two_thirds_up.div_round(3.0, Round::Up);
-//! // since we rounded up, direction is Ordering::Greater
-//! assert_eq!(dir, Ordering::Greater);
-//! let diff_expected = 2.0_f64.powi(-32);
-//! let diff = two_thirds_up - two_thirds_down;
-//! assert_eq!(diff, diff_expected);
-//! ```
-//!
-//! The following example is a translation of the [MPFR
-//! sample](http://www.mpfr.org/sample.html) found on the MPFR
-//! website. The program computes a lower bound on 1 + 1/1! + 1/2! + …
-//! + 1/100! using 200-bit precision. The program writes:
-//!
-//! `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
-//!
-//! ```rust
-//! extern crate rug;
-//! use rug::{AssignRound, Float};
-//! use rug::float::Round;
-//! use rug::ops::{AddRound, MulRound};
-//!
-//! fn main() {
-//!     let mut t = Float::with_val(200, 1.0);
-//!     let mut s = Float::with_val(200, 1.0);
-//!     let mut u = Float::new(200);
-//!     for i in 1..101_u32 {
-//!         // multiply t by i in place, round towards plus infinity
-//!         t.mul_round(i, Round::Up);
-//!         // set u to 1/t, round towards minus infinity
-//!         u.assign_round(t.recip_ref(), Round::Down);
-//!         // increase s by u in place, round towards minus infinity
-//!         s.add_round(&u, Round::Down);
-//!     }
-//!     // `None` means the number of printed digits depends on the precision
-//!     let sr = s.to_string_radix_round(10, None, Round::Down);
-//!     println!("Sum is {}", sr);
-//! #   assert_eq!(
-//! #       sr,
-//! #       "2.7182818284590452353602874713526624977572470936999595749669131"
-//! #   );
-//! }
-//! ```
+//! This module provides support for floating-point numbers of type
+//! [`Float`](../struct.Float.html).
 
 mod small_float;
 

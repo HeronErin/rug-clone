@@ -209,21 +209,86 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     (ordering1(first), ordering1(second))
 }
 
-/// A multi-precision floating-point number.
-/// The precision has to be set during construction.
+/// A multi-precision floating-point number with arbitrarily large
+/// precision and correct rounding
+///
+/// The precision has to be set during construction. The rounding
+/// method of the required operations can be specified, and the
+/// direction of the rounding is returned.
 ///
 /// There are two versions of most methods:
 ///
 /// 1. The first rounds the returned or stored `Float` to the
-///    [nearest](enum.Round.html#variant.Nearest) representable value.
+///    [nearest](float/enum.Round.html#variant.Nearest) representable
+///    value.
+
 /// 2. The second applies the specified [rounding
-///    method](enum.Round.html), and returns the rounding direction:
+///    method](float/enum.Round.html), and returns the rounding
+///    direction:
 ///    * `Ordering::Less` if the returned/stored `Float` is less than
 ///      the exact result,
 ///    * `Ordering::Equal` if the returned/stored `Float` is equal to
 ///      the exact result,
 ///    * `Ordering::Greater` if the returned/stored `Float` is greater
 ///      than the exact result,
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Float;
+/// use rug::float::Round;
+/// use rug::ops::DivRound;
+/// use std::cmp::Ordering;
+/// // A precision of 32 significant bits is specified here.
+/// // (The primitive `f32` has a precision of 24 and
+/// // `f64` has a precision of 53.)
+/// let mut two_thirds_down = Float::with_val(32, 2.0);
+/// let dir = two_thirds_down.div_round(3.0, Round::Down);
+/// // since we rounded down, direction is Ordering::Less
+/// assert_eq!(dir, Ordering::Less);
+/// let mut two_thirds_up = Float::with_val(32, 2.0);
+/// let dir = two_thirds_up.div_round(3.0, Round::Up);
+/// // since we rounded up, direction is Ordering::Greater
+/// assert_eq!(dir, Ordering::Greater);
+/// let diff_expected = 2.0_f64.powi(-32);
+/// let diff = two_thirds_up - two_thirds_down;
+/// assert_eq!(diff, diff_expected);
+/// ```
+///
+/// The following example is a translation of the [MPFR
+/// sample](http://www.mpfr.org/sample.html) found on the MPFR
+/// website. The program computes a lower bound on 1 + 1/1! + 1/2! + …
+/// + 1/100! using 200-bit precision. The program writes:
+///
+/// `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
+///
+/// ```rust
+/// extern crate rug;
+/// use rug::{AssignRound, Float};
+/// use rug::float::Round;
+/// use rug::ops::{AddRound, MulRound};
+///
+/// fn main() {
+///     let mut t = Float::with_val(200, 1.0);
+///     let mut s = Float::with_val(200, 1.0);
+///     let mut u = Float::new(200);
+///     for i in 1..101_u32 {
+///         // multiply t by i in place, round towards plus infinity
+///         t.mul_round(i, Round::Up);
+///         // set u to 1/t, round towards minus infinity
+///         u.assign_round(t.recip_ref(), Round::Down);
+///         // increase s by u in place, round towards minus infinity
+///         s.add_round(&u, Round::Down);
+///     }
+///     // `None` means the number of printed digits depends on the precision
+///     let sr = s.to_string_radix_round(10, None, Round::Down);
+///     println!("Sum is {}", sr);
+/// #   assert_eq!(
+/// #       sr,
+/// #       "2.7182818284590452353602874713526624977572470936999595749669131"
+/// #   );
+/// }
+/// ```
 pub struct Float {
     inner: mpfr_t,
 }
@@ -1211,8 +1276,8 @@ impl Float {
     }
 
     /// Returns the exponent of `self` if `self` is a normal number,
-    /// otherwise `None`.
-    /// The significand is assumed to be in the range [0.5,1).
+    /// otherwise `None`. The significand is assumed to be in the
+    /// range [0.5,1).
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
@@ -2161,7 +2226,7 @@ impl Float {
     /// In all the normal cases, the result will be exact. However, if
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
-    /// [`rug::float::exp_min`](fn.exp_min.html); in this case, the
+    /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
     /// number is set to Nan and an error is returned.
     ///
     /// # Examples
@@ -3296,7 +3361,7 @@ fn fmt_radix(
 /// A validated string that can always be converted to a `Float`.
 ///
 /// See the [`Float::valid_str_radix`]
-/// (struct.Float.html#method.valid_str_radix) method.
+/// (../struct.Float.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidFloat<'a> {
     poss: ValidPoss<'a>,

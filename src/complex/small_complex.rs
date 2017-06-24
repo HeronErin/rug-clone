@@ -30,8 +30,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 ///
 /// This can be useful when you have real and imaginary numbers that
 /// are primitive integers or floats and you need a reference to a
-/// [`Complex`](struct.Complex.html). The `SmallComplex` will have a
-/// precision according to the type of the primitive used to set its
+/// [`Complex`](../struct.Complex.html). The `SmallComplex` will have
+/// a precision according to the type of the primitive used to set its
 /// value.
 ///
 /// * `i8`, `u8`: the `SmallComplex` will have eight bits of precision.
@@ -42,8 +42,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// * `f64`: the `SmallComplex` will have 53 bits of precision.
 ///
 /// The `SmallComplex` type can be coerced to a
-/// [`Complex`](struct.Complex.html), as it implements `Deref` with a
-/// [`Complex`](struct.Complex.html) target.
+/// [`Complex`](../struct.Complex.html), as it implements `Deref` with
+/// a [`Complex`](../struct.Complex.html) target.
 ///
 /// # Examples
 ///

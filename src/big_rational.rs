@@ -1380,8 +1380,8 @@ fn fmt_radix(
 
 /// A validated string that can always be converted to a `Rational`.
 ///
-/// See the [`Rational::valid_str_radix()`]
-/// (struct.Rational.html#method.valid_str_radix) method.
+/// See the [`Rational::valid_str_radix`]
+/// (../struct.Rational.html#method.valid_str_radix) method.
 #[derive(Clone, Debug)]
 pub struct ValidRational<'a> {
     bytes: &'a [u8],
@@ -1445,13 +1445,13 @@ impl Display for ParseRationalError {
 }
 
 /// Used to borrow the numerator and denominator of a
-/// [`Rational`](struct.Rational.html) number mutably.
+/// [`Rational`](../struct.Rational.html) number mutably.
 ///
-/// The [`Rational`](struct.Rational.html) number is canonicalized
+/// The [`Rational`](../struct.Rational.html) number is canonicalized
 /// when the borrow ends. See the
 /// [`Rational::as_mut_numer_denom`][mutnumden] method.
 ///
-/// [mutnumden]: struct.Rational.html#method.as_mut_numer_denom
+/// [mutnumden]: ../struct.Rational.html#method.as_mut_numer_denom
 pub struct MutNumerDenom<'a> {
     num: &'a mut Integer,
     den_place: &'a mut Integer,

@@ -16,8 +16,8 @@
 
 //! Arbitrary-precision rational numbers.
 //!
-//! This module provides arbitrary-precision rational numbers of type
-//! [`Rational`](struct.Rational.html).
+//! This module provides support for arbitrary-precision rational
+//! numbers of type [`Rational`](../struct.Rational.html).
 
 mod small_rational;
 

@@ -26,7 +26,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 ///
 /// This can be useful when you have a numerator and denominator that
 /// are 32-bit or 64-bit integers and you need a reference to a
-/// [`Rational`](struct.Rational.html).
+/// [`Rational`](../struct.Rational.html).
 ///
 /// Although no allocation is required, setting the value of a
 /// `SmallRational` does require some computation, as the numerator
@@ -106,7 +106,7 @@ impl SmallRational {
     /// * it does not canonicalize the numerator and denominator.
     ///
     /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](struct.Rational.html) structures keep their
+    /// [`Rational`](../struct.Rational.html) structures keep their
     /// numerators and denominators canonicalized.
     ///
     /// # Examples
@@ -146,7 +146,7 @@ impl SmallRational {
     /// * it does not canonicalize the numerator and denominator.
     ///
     /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](struct.Rational.html) structures keep their
+    /// [`Rational`](../struct.Rational.html) structures keep their
     /// numerators and denominators canonicalized.
     ///
     /// # Examples
@@ -187,7 +187,7 @@ impl SmallRational {
     /// * it does not canonicalize the numerator and denominator.
     ///
     /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](struct.Rational.html) structures keep their
+    /// [`Rational`](../struct.Rational.html) structures keep their
     /// numerators and denominators canonicalized.
     ///
     /// # Examples
@@ -228,7 +228,7 @@ impl SmallRational {
     /// * it does not canonicalize the numerator and denominator.
     ///
     /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](struct.Rational.html) structures keep their
+    /// [`Rational`](../struct.Rational.html) structures keep their
     /// numerators and denominators canonicalized.
     ///
     /// # Examples
