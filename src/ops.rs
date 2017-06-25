@@ -89,8 +89,7 @@ pub trait NotAssign {
 
 /// Compound addition and assignment to the rhs operand.
 ///
-/// `rhs.add_from(lhs)` has the same effect as
-/// `rhs = lhs + rhs`.
+/// `rhs.add_from(lhs)` has the same effect as `rhs = lhs + rhs`.
 ///
 /// # Examples
 ///
@@ -126,8 +125,7 @@ pub trait AddFrom<Lhs = Self> {
 
 /// Compound subtraction and assignment to the rhs operand.
 ///
-/// `rhs.sub_from(lhs)` has the same effect as
-/// `rhs = lhs - rhs`.
+/// `rhs.sub_from(lhs)` has the same effect as `rhs = lhs - rhs`.
 ///
 /// # Examples
 ///
@@ -163,8 +161,7 @@ pub trait SubFrom<Lhs = Self> {
 
 /// Compound multiplication and assignment to the rhs operand.
 ///
-/// `rhs.mul_from(lhs)` has the same effect as
-/// `rhs = lhs * rhs`.
+/// `rhs.mul_from(lhs)` has the same effect as `rhs = lhs * rhs`.
 ///
 /// # Examples
 ///
@@ -210,8 +207,7 @@ pub trait MulFrom<Lhs = Self> {
 
 /// Compound division and assignment to the rhs operand.
 ///
-/// `rhs.div_from(lhs)` has the same effect as
-/// `rhs = lhs / rhs`.
+/// `rhs.div_from(lhs)` has the same effect as `rhs = lhs / rhs`.
 ///
 /// # Examples
 ///
@@ -247,8 +243,7 @@ pub trait DivFrom<Lhs = Self> {
 
 /// Compound remainder operation and assignment to the rhs operand.
 ///
-/// `rhs.rem_from(lhs)` has the same effect as
-/// `rhs = lhs % rhs`.
+/// `rhs.rem_from(lhs)` has the same effect as `rhs = lhs % rhs`.
 ///
 /// # Examples
 ///
@@ -284,8 +279,7 @@ pub trait RemFrom<Lhs = Self> {
 
 /// Compound bitwise AND and assignment to the rhs operand.
 ///
-/// `rhs.bitand_from(lhs)` has the same effect as
-/// `rhs = lhs & rhs`.
+/// `rhs.bitand_from(lhs)` has the same effect as `rhs = lhs & rhs`.
 pub trait BitAndFrom<Lhs = Self> {
     /// Peforms the AND operation.
     ///
@@ -306,8 +300,7 @@ pub trait BitAndFrom<Lhs = Self> {
 
 /// Compound bitwise OR and assignment to the rhs operand.
 ///
-/// `rhs.bitor_from(lhs)` has the same effect as
-/// `rhs = lhs | rhs`.
+/// `rhs.bitor_from(lhs)` has the same effect as `rhs = lhs | rhs`.
 pub trait BitOrFrom<Lhs = Self> {
     /// Peforms the OR operation.
     ///
@@ -328,8 +321,7 @@ pub trait BitOrFrom<Lhs = Self> {
 
 /// Compound bitwise XOR and assignment to the rhs operand.
 ///
-/// `rhs.bitxor_from(lhs)` has the same effect as
-/// `rhs = lhs ^ rhs`.
+/// `rhs.bitxor_from(lhs)` has the same effect as `rhs = lhs ^ rhs`.
 pub trait BitXorFrom<Lhs = Self> {
     /// Peforms the XOR operation.
     ///
@@ -348,6 +340,86 @@ pub trait BitXorFrom<Lhs = Self> {
     fn bitxor_from(&mut self, lhs: Lhs);
 }
 
+/// Compound left shift and assignment to the rhs operand.
+///
+/// `rhs.shl_from(lhs)` has the same effect as `rhs = lhs << rhs`.
+///
+/// # Examples
+///
+/// ```rust
+/// # #[cfg(feature = "integer")] {
+/// use rug::Integer;
+/// use rug::ops::ShlFrom;
+/// use std::mem;
+/// struct I(Integer);
+/// impl ShlFrom for I {
+///     fn shl_from(&mut self, mut lhs: I) {
+///         let rhs = self.0.to_i32().expect("overflow");
+///         mem::swap(self, &mut lhs);
+///         self.0 <<= rhs;
+///     }
+/// }
+/// let mut i = I(Integer::from(200));
+/// i.shl_from(I(Integer::from(0xf000)));
+/// let expected = Integer::from(0xf000) << 200;
+/// assert_eq!(i.0, expected);
+/// # }
+/// ```
+pub trait ShlFrom<Lhs = Self> {
+    /// Peforms the left shift.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::ops::ShlFrom;
+    /// let mut rhs = 4;
+    /// rhs.shl_from(0x00f0);
+    /// // rhs = 0x00f0 << 4
+    /// assert_eq!(rhs, 0x0f00);
+    /// ```
+    fn shl_from(&mut self, lhs: Lhs);
+}
+
+/// Compound right shift and assignment to the rhs operand.
+///
+/// `rhs.shr_from(lhs)` has the same effect as `rhs = lhs >> rhs`.
+///
+/// # Examples
+///
+/// ```rust
+/// # #[cfg(feature = "integer")] {
+/// use rug::Integer;
+/// use rug::ops::ShrFrom;
+/// use std::mem;
+/// struct I(Integer);
+/// impl ShrFrom for I {
+///     fn shr_from(&mut self, mut lhs: I) {
+///         let rhs = self.0.to_i32().expect("overflow");
+///         mem::swap(self, &mut lhs);
+///         self.0 >>= rhs;
+///     }
+/// }
+/// let mut i = I(Integer::from(4));
+/// i.shr_from(I(Integer::from(0xf000)));
+/// let expected = Integer::from(0xf000) >> 4;
+/// assert_eq!(i.0, expected);
+/// # }
+/// ```
+pub trait ShrFrom<Lhs = Self> {
+    /// Peforms the right shift.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::ops::ShrFrom;
+    /// let mut rhs = 4;
+    /// rhs.shr_from(0x00f0);
+    /// // rhs = 0x00f0 >> 4
+    /// assert_eq!(rhs, 0x000f);
+    /// ```
+    fn shr_from(&mut self, lhs: Lhs);
+}
+
 /// The power operation.
 ///
 /// # Examples
@@ -364,7 +436,7 @@ pub trait BitXorFrom<Lhs = Self> {
 /// let u = U(5);
 /// assert_eq!(u.pow(2_u16), 25);
 /// ```
-pub trait Pow<Rhs = Self> {
+pub trait Pow<Rhs> {
     /// The resulting type after the power operation.
     type Output;
     /// Performs the power operation.
@@ -399,7 +471,7 @@ pub trait Pow<Rhs = Self> {
 /// u.pow_assign(2_u16);
 /// assert_eq!(u.0, 25);
 /// ```
-pub trait PowAssign<Rhs = Self> {
+pub trait PowAssign<Rhs> {
     /// Peforms the power operation.
     ///
     /// # Examples
@@ -418,8 +490,7 @@ pub trait PowAssign<Rhs = Self> {
 
 /// Compound power operation and assignment to the rhs operand.
 ///
-/// `rhs.pow_from(lhs)` has the same effect as
-/// `rhs = lhs.pow(rhs)`.
+/// `rhs.pow_from(lhs)` has the same effect as `rhs = lhs.pow(rhs)`.
 ///
 /// # Examples
 ///
@@ -817,6 +888,8 @@ macro_rules! int_ops {
             assign_from! { $T; bitand; BitAndFrom bitand_from }
             assign_from! { $T; bitor; BitOrFrom bitor_from }
             assign_from! { $T; bitxor; BitXorFrom bitxor_from }
+            assign_from! { $T; shl; ShlFrom shl_from }
+            assign_from! { $T; shr; ShrFrom shr_from }
         )*
     }
 }
@@ -854,14 +927,14 @@ macro_rules! float_ops {
                     *self = self.powi(rhs);
                 }
             }
-            impl Pow for $T {
+            impl Pow<$T> for $T {
                 type Output = $T;
                 #[inline]
                 fn pow(self, rhs: $T) -> $T {
                     self.powf(rhs)
                 }
             }
-            impl PowAssign for $T {
+            impl PowAssign<$T> for $T {
                 #[inline]
                 fn pow_assign(&mut self, rhs: $T) {
                     *self = self.powf(rhs);
@@ -877,9 +950,9 @@ macro_rules! float_ops {
 }
 
 use std::borrow::Cow;
-use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Sub};
-int_ops!{ i8 i16 i32 i64 u8 u16 u32 u64 }
-int_neg!{ i8 i16 i32 i64 }
+use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
+int_ops!{ i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+int_neg!{ i8 i16 i32 i64 isize }
 assign_from! { u32; pow; PowFrom pow_from }
 float_ops!{ f32 f64 }
 
