@@ -89,24 +89,24 @@ pub trait NotAssign {
 
 /// Compound addition and assignment to the rhs operand.
 ///
-/// `rhs.add_from_assign(lhs)` has the same effect as
+/// `rhs.add_from(lhs)` has the same effect as
 /// `rhs = lhs + rhs`.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rug::ops::AddFromAssign;
+/// use rug::ops::AddFrom;
 /// struct S(String);
-/// impl<'a> AddFromAssign<&'a str> for S {
-///     fn add_from_assign(&mut self, lhs: &str) {
+/// impl<'a> AddFrom<&'a str> for S {
+///     fn add_from(&mut self, lhs: &str) {
 ///         self.0.insert_str(0, lhs);
 ///     }
 /// }
 /// let mut s = S("world!".into());
-/// s.add_from_assign("Hello, ");
+/// s.add_from("Hello, ");
 /// assert_eq!(s.0, "Hello, world!");
 /// ```
-pub trait AddFromAssign<Lhs = Self> {
+pub trait AddFrom<Lhs = Self> {
     /// Peforms the addition.
     ///
     /// # Examples
@@ -114,36 +114,36 @@ pub trait AddFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::AddFromAssign;
+    /// use rug::ops::AddFrom;
     /// let mut rhs = Integer::from(10);
-    /// rhs.add_from_assign(100);
+    /// rhs.add_from(100);
     /// // rhs = 100 + 10
     /// assert_eq!(rhs, 110);
     /// # }
     /// ```
-    fn add_from_assign(&mut self, lhs: Lhs);
+    fn add_from(&mut self, lhs: Lhs);
 }
 
 /// Compound subtraction and assignment to the rhs operand.
 ///
-/// `rhs.sub_from_assign(lhs)` has the same effect as
+/// `rhs.sub_from(lhs)` has the same effect as
 /// `rhs = lhs - rhs`.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rug::ops::SubFromAssign;
+/// use rug::ops::SubFrom;
 /// struct I(i32);
-/// impl SubFromAssign<i32> for I {
-///     fn sub_from_assign(&mut self, lhs: i32) {
+/// impl SubFrom<i32> for I {
+///     fn sub_from(&mut self, lhs: i32) {
 ///         self.0 = lhs - self.0;
 ///     }
 /// }
 /// let mut i = I(10);
-/// i.sub_from_assign(42);
+/// i.sub_from(42);
 /// assert_eq!(i.0, 32);
 /// ```
-pub trait SubFromAssign<Lhs = Self> {
+pub trait SubFrom<Lhs = Self> {
     /// Peforms the subtraction.
     ///
     /// # Examples
@@ -151,29 +151,29 @@ pub trait SubFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::SubFromAssign;
+    /// use rug::ops::SubFrom;
     /// let mut rhs = Integer::from(10);
-    /// rhs.sub_from_assign(100);
+    /// rhs.sub_from(100);
     /// // rhs = 100 - 10
     /// assert_eq!(rhs, 90);
     /// # }
     /// ```
-    fn sub_from_assign(&mut self, lhs: Lhs);
+    fn sub_from(&mut self, lhs: Lhs);
 }
 
 /// Compound multiplication and assignment to the rhs operand.
 ///
-/// `rhs.mul_from_assign(lhs)` has the same effect as
+/// `rhs.mul_from(lhs)` has the same effect as
 /// `rhs = lhs * rhs`.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rug::ops::MulFromAssign;
+/// use rug::ops::MulFrom;
 /// struct ColumnVec(i32, i32);
 /// struct SquareMatrix(ColumnVec, ColumnVec);
-/// impl<'a> MulFromAssign<&'a SquareMatrix> for ColumnVec {
-///     fn mul_from_assign(&mut self, lhs: &SquareMatrix) {
+/// impl<'a> MulFrom<&'a SquareMatrix> for ColumnVec {
+///     fn mul_from(&mut self, lhs: &SquareMatrix) {
 ///         let SquareMatrix(ref left, ref right) = *lhs;
 ///         let out_0 = left.0 * self.0 + right.0 * self.1;
 ///         self.1 = left.1 * self.0 + right.1 * self.1;
@@ -186,11 +186,11 @@ pub trait SubFromAssign<Lhs = Self> {
 /// let matrix = SquareMatrix(matrix_left, matrix_right);
 /// // ( 1   3) ( 2) = ( 92)
 /// // (-2  -1) (30)   (-34)
-/// col.mul_from_assign(&matrix);
+/// col.mul_from(&matrix);
 /// assert_eq!(col.0, 92);
 /// assert_eq!(col.1, -34);
 /// ```
-pub trait MulFromAssign<Lhs = Self> {
+pub trait MulFrom<Lhs = Self> {
     /// Peforms the multiplication.
     ///
     /// # Examples
@@ -198,36 +198,36 @@ pub trait MulFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::MulFromAssign;
+    /// use rug::ops::MulFrom;
     /// let mut rhs = Integer::from(5);
-    /// rhs.mul_from_assign(50);
+    /// rhs.mul_from(50);
     /// // rhs = 50 * 5
     /// assert_eq!(rhs, 250);
     /// # }
     /// ```
-    fn mul_from_assign(&mut self, lhs: Lhs);
+    fn mul_from(&mut self, lhs: Lhs);
 }
 
 /// Compound division and assignment to the rhs operand.
 ///
-/// `rhs.div_from_assign(lhs)` has the same effect as
+/// `rhs.div_from(lhs)` has the same effect as
 /// `rhs = lhs / rhs`.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rug::ops::DivFromAssign;
+/// use rug::ops::DivFrom;
 /// struct I(i32);
-/// impl DivFromAssign<i32> for I {
-///     fn div_from_assign(&mut self, lhs: i32) {
+/// impl DivFrom<i32> for I {
+///     fn div_from(&mut self, lhs: i32) {
 ///         self.0 = lhs / self.0;
 ///     }
 /// }
 /// let mut i = I(10);
-/// i.div_from_assign(42);
+/// i.div_from(42);
 /// assert_eq!(i.0, 4);
 /// ```
-pub trait DivFromAssign<Lhs = Self> {
+pub trait DivFrom<Lhs = Self> {
     /// Peforms the division.
     ///
     /// # Examples
@@ -235,36 +235,36 @@ pub trait DivFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::DivFromAssign;
+    /// use rug::ops::DivFrom;
     /// let mut rhs = Integer::from(5);
-    /// rhs.div_from_assign(50);
+    /// rhs.div_from(50);
     /// // rhs = 50 / 5
     /// assert_eq!(rhs, 10);
     /// # }
     /// ```
-    fn div_from_assign(&mut self, lhs: Lhs);
+    fn div_from(&mut self, lhs: Lhs);
 }
 
 /// Compound remainder operation and assignment to the rhs operand.
 ///
-/// `rhs.rem_from_assign(lhs)` has the same effect as
+/// `rhs.rem_from(lhs)` has the same effect as
 /// `rhs = lhs % rhs`.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rug::ops::RemFromAssign;
+/// use rug::ops::RemFrom;
 /// struct I(i32);
-/// impl RemFromAssign<i32> for I {
-///     fn rem_from_assign(&mut self, lhs: i32) {
+/// impl RemFrom<i32> for I {
+///     fn rem_from(&mut self, lhs: i32) {
 ///         self.0 = lhs % self.0;
 ///     }
 /// }
 /// let mut i = I(10);
-/// i.rem_from_assign(42);
+/// i.rem_from(42);
 /// assert_eq!(i.0, 2);
 /// ```
-pub trait RemFromAssign<Lhs = Self> {
+pub trait RemFrom<Lhs = Self> {
     /// Peforms the remainder operation.
     ///
     /// # Examples
@@ -272,21 +272,21 @@ pub trait RemFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::RemFromAssign;
+    /// use rug::ops::RemFrom;
     /// let mut rhs = Integer::from(2);
-    /// rhs.rem_from_assign(17);
+    /// rhs.rem_from(17);
     /// // rhs = 17 / 2
     /// assert_eq!(rhs, 1);
     /// # }
     /// ```
-    fn rem_from_assign(&mut self, lhs: Lhs);
+    fn rem_from(&mut self, lhs: Lhs);
 }
 
 /// Compound bitwise AND and assignment to the rhs operand.
 ///
-/// `rhs.bitand_from_assign(lhs)` has the same effect as
+/// `rhs.bitand_from(lhs)` has the same effect as
 /// `rhs = lhs & rhs`.
-pub trait BitAndFromAssign<Lhs = Self> {
+pub trait BitAndFrom<Lhs = Self> {
     /// Peforms the AND operation.
     ///
     /// # Examples
@@ -294,21 +294,21 @@ pub trait BitAndFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::BitAndFromAssign;
+    /// use rug::ops::BitAndFrom;
     /// let mut rhs = Integer::from(0xf0);
-    /// rhs.bitand_from_assign(0x33);
+    /// rhs.bitand_from(0x33);
     /// // rhs = 0x33 & 0xf0
     /// assert_eq!(rhs, 0x30);
     /// # }
     /// ```
-    fn bitand_from_assign(&mut self, lhs: Lhs);
+    fn bitand_from(&mut self, lhs: Lhs);
 }
 
 /// Compound bitwise OR and assignment to the rhs operand.
 ///
-/// `rhs.bitor_from_assign(lhs)` has the same effect as
+/// `rhs.bitor_from(lhs)` has the same effect as
 /// `rhs = lhs | rhs`.
-pub trait BitOrFromAssign<Lhs = Self> {
+pub trait BitOrFrom<Lhs = Self> {
     /// Peforms the OR operation.
     ///
     /// # Examples
@@ -316,21 +316,21 @@ pub trait BitOrFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::BitOrFromAssign;
+    /// use rug::ops::BitOrFrom;
     /// let mut rhs = Integer::from(0xf0);
-    /// rhs.bitor_from_assign(0x33);
+    /// rhs.bitor_from(0x33);
     /// // rhs = 0x33 | 0xf0
     /// assert_eq!(rhs, 0xf3);
     /// # }
     /// ```
-    fn bitor_from_assign(&mut self, lhs: Lhs);
+    fn bitor_from(&mut self, lhs: Lhs);
 }
 
 /// Compound bitwise XOR and assignment to the rhs operand.
 ///
-/// `rhs.bitxor_from_assign(lhs)` has the same effect as
+/// `rhs.bitxor_from(lhs)` has the same effect as
 /// `rhs = lhs ^ rhs`.
-pub trait BitXorFromAssign<Lhs = Self> {
+pub trait BitXorFrom<Lhs = Self> {
     /// Peforms the XOR operation.
     ///
     /// # Examples
@@ -338,14 +338,14 @@ pub trait BitXorFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::BitXorFromAssign;
+    /// use rug::ops::BitXorFrom;
     /// let mut rhs = Integer::from(0xf0);
-    /// rhs.bitxor_from_assign(0x33);
+    /// rhs.bitxor_from(0x33);
     /// // rhs = 0x33 ^ 0xf0
     /// assert_eq!(rhs, 0xc3);
     /// # }
     /// ```
-    fn bitxor_from_assign(&mut self, lhs: Lhs);
+    fn bitxor_from(&mut self, lhs: Lhs);
 }
 
 /// The power operation.
@@ -418,24 +418,24 @@ pub trait PowAssign<Rhs = Self> {
 
 /// Compound power operation and assignment to the rhs operand.
 ///
-/// `rhs.pow_from_assign(lhs)` has the same effect as
+/// `rhs.pow_from(lhs)` has the same effect as
 /// `rhs = lhs.pow(rhs)`.
 ///
 /// # Examples
 ///
 /// ```rust
-/// use rug::ops::PowFromAssign;
+/// use rug::ops::PowFrom;
 /// struct U(u32);
-/// impl PowFromAssign<u32> for U {
-///     fn pow_from_assign(&mut self, lhs: u32) {
+/// impl PowFrom<u32> for U {
+///     fn pow_from(&mut self, lhs: u32) {
 ///         self.0 = lhs.pow(self.0);
 ///     }
 /// }
 /// let mut u = U(2);
-/// u.pow_from_assign(5);
+/// u.pow_from(5);
 /// assert_eq!(u.0, 25);
 /// ```
-pub trait PowFromAssign<Lhs = Self> {
+pub trait PowFrom<Lhs = Self> {
     /// Peforms the power operation.
     ///
     /// # Examples
@@ -443,18 +443,18 @@ pub trait PowFromAssign<Lhs = Self> {
     /// ```rust
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
-    /// use rug::ops::PowFromAssign;
+    /// use rug::ops::PowFrom;
     /// let mut rhs = Float::with_val(53, 5);
-    /// rhs.pow_from_assign(10);
+    /// rhs.pow_from(10);
     /// // rhs = 10 ** 5
     /// assert_eq!(rhs, 100_000);
     /// # }
     /// ```
-    fn pow_from_assign(&mut self, lhs: Lhs);
+    fn pow_from(&mut self, lhs: Lhs);
 }
 
 /// Compound addition and assignment with a specified rounding method.
-pub trait AddRound<Rhs = Self> {
+pub trait AddAssignRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -467,17 +467,21 @@ pub trait AddRound<Rhs = Self> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::ops::AddRound;
+    /// use rug::ops::AddAssignRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
-    /// let dir = f.add_round(-0.3, Round::Nearest);
+    /// let dir = f.add_assign_round(-0.3, Round::Nearest);
     /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn add_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+    fn add_assign_round(
+        &mut self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
 }
 
 /// Compound addition and assignment to the rhs operand with a
@@ -514,7 +518,7 @@ pub trait AddFromRound<Lhs = Self> {
 
 /// Compound subtraction and assignment with a specified rounding
 /// method.
-pub trait SubRound<Rhs = Self> {
+pub trait SubAssignRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -527,17 +531,21 @@ pub trait SubRound<Rhs = Self> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::ops::SubRound;
+    /// use rug::ops::SubAssignRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
-    /// let dir = f.sub_round(0.3, Round::Nearest);
+    /// let dir = f.sub_assign_round(0.3, Round::Nearest);
     /// // -3.3 rounded up to -3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn sub_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+    fn sub_assign_round(
+        &mut self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
 }
 
 /// Compound subtraction and assignment to the rhs operand with a
@@ -574,7 +582,7 @@ pub trait SubFromRound<Lhs = Self> {
 
 /// Compound multiplication and assignment with a specified rounding
 /// method.
-pub trait MulRound<Rhs = Self> {
+pub trait MulAssignRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -587,17 +595,21 @@ pub trait MulRound<Rhs = Self> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::ops::MulRound;
+    /// use rug::ops::MulAssignRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
-    /// let dir = f.mul_round(13, Round::Nearest);
+    /// let dir = f.mul_assign_round(13, Round::Nearest);
     /// // -39 rounded down to -40
     /// assert_eq!(f, -40);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn mul_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+    fn mul_assign_round(
+        &mut self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
 }
 
 /// Compound multiplication and assignment to the rhs operand with a
@@ -633,7 +645,7 @@ pub trait MulFromRound<Lhs = Self> {
 }
 
 /// Compound division and assignment with a specified rounding method.
-pub trait DivRound<Rhs = Self> {
+pub trait DivAssignRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -646,17 +658,21 @@ pub trait DivRound<Rhs = Self> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::ops::DivRound;
+    /// use rug::ops::DivAssignRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
-    /// let dir = f.div_round(5, Round::Nearest);
+    /// let dir = f.div_assign_round(5, Round::Nearest);
     /// // -0.6 rounded down to -0.625
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn div_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+    fn div_assign_round(
+        &mut self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
 }
 
 /// Compound division and assignment to the rhs operand with a
@@ -693,7 +709,7 @@ pub trait DivFromRound<Lhs = Self> {
 
 /// Compound power operation and assignment with a specified rounding
 /// method.
-pub trait PowRound<Rhs = Self> {
+pub trait PowAssignRound<Rhs = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -706,17 +722,21 @@ pub trait PowRound<Rhs = Self> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::ops::PowRound;
+    /// use rug::ops::PowAssignRound;
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
-    /// let dir = f.pow_round(5, Round::Nearest);
+    /// let dir = f.pow_assign_round(5, Round::Nearest);
     /// // -243 rounded up to -240
     /// assert_eq!(f, -240);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn pow_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+    fn pow_assign_round(
+        &mut self,
+        rhs: Rhs,
+        round: Self::Round,
+    ) -> Self::Ordering;
 }
 
 /// Compound power operation and assignment to the rhs operand with a
@@ -751,7 +771,7 @@ pub trait PowFromRound<Lhs = Self> {
     ) -> Self::Ordering;
 }
 
-macro_rules! from_assign {
+macro_rules! assign_from {
     { $T:ty; $op:ident; $Imp:ident $method:ident } => {
         impl $Imp for $T {
             #[inline]
@@ -789,14 +809,14 @@ macro_rules! int_ops {
                     *self = self.pow(rhs);
                 }
             }
-            from_assign! { $T; add; AddFromAssign add_from_assign }
-            from_assign! { $T; sub; SubFromAssign sub_from_assign }
-            from_assign! { $T; mul; MulFromAssign mul_from_assign }
-            from_assign! { $T; div; DivFromAssign div_from_assign }
-            from_assign! { $T; rem; RemFromAssign rem_from_assign }
-            from_assign! { $T; bitand; BitAndFromAssign bitand_from_assign }
-            from_assign! { $T; bitor; BitOrFromAssign bitor_from_assign }
-            from_assign! { $T; bitxor; BitXorFromAssign bitxor_from_assign }
+            assign_from! { $T; add; AddFrom add_from }
+            assign_from! { $T; sub; SubFrom sub_from }
+            assign_from! { $T; mul; MulFrom mul_from }
+            assign_from! { $T; div; DivFrom div_from }
+            assign_from! { $T; rem; RemFrom rem_from }
+            assign_from! { $T; bitand; BitAndFrom bitand_from }
+            assign_from! { $T; bitor; BitOrFrom bitor_from }
+            assign_from! { $T; bitxor; BitXorFrom bitxor_from }
         )*
     }
 }
@@ -847,11 +867,11 @@ macro_rules! float_ops {
                     *self = self.powf(rhs);
                 }
             }
-            from_assign!{ $T; add; AddFromAssign add_from_assign }
-            from_assign!{ $T; sub; SubFromAssign sub_from_assign }
-            from_assign!{ $T; mul; MulFromAssign mul_from_assign }
-            from_assign!{ $T; div; DivFromAssign div_from_assign }
-            from_assign!{ $T; pow; PowFromAssign pow_from_assign }
+            assign_from!{ $T; add; AddFrom add_from }
+            assign_from!{ $T; sub; SubFrom sub_from }
+            assign_from!{ $T; mul; MulFrom mul_from }
+            assign_from!{ $T; div; DivFrom div_from }
+            assign_from!{ $T; pow; PowFrom pow_from }
         )*
     }
 }
@@ -860,18 +880,18 @@ use std::borrow::Cow;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Sub};
 int_ops!{ i8 i16 i32 i64 u8 u16 u32 u64 }
 int_neg!{ i8 i16 i32 i64 }
-from_assign! { u32; pow; PowFromAssign pow_from_assign }
+assign_from! { u32; pow; PowFrom pow_from }
 float_ops!{ f32 f64 }
 
-impl<'a> AddFromAssign<&'a str> for String {
+impl<'a> AddFrom<&'a str> for String {
     #[inline]
-    fn add_from_assign(&mut self, lhs: &str) {
+    fn add_from(&mut self, lhs: &str) {
         self.insert_str(0, lhs);
     }
 }
 
-impl<'a> AddFromAssign<&'a str> for Cow<'a, str> {
-    fn add_from_assign(&mut self, lhs: &'a str) {
+impl<'a> AddFrom<&'a str> for Cow<'a, str> {
+    fn add_from(&mut self, lhs: &'a str) {
         if lhs.is_empty() {
         } else if self.is_empty() {
             *self = Cow::Borrowed(lhs)
@@ -891,8 +911,8 @@ impl<'a> AddFromAssign<&'a str> for Cow<'a, str> {
     }
 }
 
-impl<'a> AddFromAssign<Cow<'a, str>> for Cow<'a, str> {
-    fn add_from_assign(&mut self, lhs: Cow<'a, str>) {
+impl<'a> AddFrom<Cow<'a, str>> for Cow<'a, str> {
+    fn add_from(&mut self, lhs: Cow<'a, str>) {
         if lhs.is_empty() {
         } else if self.is_empty() {
             *self = lhs;

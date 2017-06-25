@@ -23,10 +23,10 @@ use ext::mpfr as xmpfr;
 use float::SmallFloat;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-use ops::{AddFromAssign, AddFromRound, AddRound, DivFromAssign, DivFromRound,
-          DivRound, MulFromAssign, MulFromRound, MulRound, NegAssign, Pow,
-          PowAssign, PowFromAssign, PowFromRound, PowRound, SubFromAssign,
-          SubFromRound, SubRound};
+use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
+          DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
+          PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
+          SubFrom, SubFromRound};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -237,17 +237,17 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// ```rust
 /// use rug::Float;
 /// use rug::float::Round;
-/// use rug::ops::DivRound;
+/// use rug::ops::DivAssignRound;
 /// use std::cmp::Ordering;
 /// // A precision of 32 significant bits is specified here.
 /// // (The primitive `f32` has a precision of 24 and
 /// // `f64` has a precision of 53.)
 /// let mut two_thirds_down = Float::with_val(32, 2.0);
-/// let dir = two_thirds_down.div_round(3.0, Round::Down);
+/// let dir = two_thirds_down.div_assign_round(3.0, Round::Down);
 /// // since we rounded down, direction is Ordering::Less
 /// assert_eq!(dir, Ordering::Less);
 /// let mut two_thirds_up = Float::with_val(32, 2.0);
-/// let dir = two_thirds_up.div_round(3.0, Round::Up);
+/// let dir = two_thirds_up.div_assign_round(3.0, Round::Up);
 /// // since we rounded up, direction is Ordering::Greater
 /// assert_eq!(dir, Ordering::Greater);
 /// let diff_expected = 2.0_f64.powi(-32);
@@ -266,7 +266,7 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// extern crate rug;
 /// use rug::{AssignRound, Float};
 /// use rug::float::Round;
-/// use rug::ops::{AddRound, MulRound};
+/// use rug::ops::{AddAssignRound, MulAssignRound};
 ///
 /// fn main() {
 ///     let mut t = Float::with_val(200, 1.0);
@@ -274,11 +274,11 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 ///     let mut u = Float::new(200);
 ///     for i in 1..101_u32 {
 ///         // multiply t by i in place, round towards plus infinity
-///         t.mul_round(i, Round::Up);
+///         t.mul_assign_round(i, Round::Up);
 ///         // set u to 1/t, round towards minus infinity
 ///         u.assign_round(t.recip_ref(), Round::Down);
 ///         // increase s by u in place, round towards minus infinity
-///         s.add_round(&u, Round::Down);
+///         s.add_assign_round(&u, Round::Down);
 ///     }
 ///     // `None` means the number of printed digits depends on the precision
 ///     let sr = s.to_string_radix_round(10, None, Round::Down);
@@ -2644,8 +2644,8 @@ macro_rules! arith_binary_self_float {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $Ref:ident
     } => {
@@ -2654,8 +2654,8 @@ macro_rules! arith_binary_self_float {
             $func, rraw => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $Ref
         }
@@ -2668,7 +2668,7 @@ macro_rules! arith_forward_float {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
         $T:ty;
         $Ref:ident $RefOwn:ident
     } => {
@@ -2677,7 +2677,7 @@ macro_rules! arith_forward_float {
             $func, rraw => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
+            $ImpAssignRound $method_assign_round;
             $T;
             $Ref $RefOwn
         }
@@ -2690,8 +2690,8 @@ macro_rules! arith_commut_float {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefOwn:ident
@@ -2701,8 +2701,8 @@ macro_rules! arith_commut_float {
             $func, rraw => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref $RefOwn
@@ -2716,8 +2716,8 @@ macro_rules! arith_noncommut_float {
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefFrom:ident $RefOwn:ident $RefFromOwn:ident
@@ -2727,8 +2727,8 @@ macro_rules! arith_noncommut_float {
             $func, $func_from, rraw => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref $RefFrom $RefOwn $RefFromOwn
@@ -2740,8 +2740,8 @@ arith_binary_self_float! {
     mpfr::add;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     AddRef
 }
@@ -2749,8 +2749,8 @@ arith_binary_self_float! {
     mpfr::sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     SubRef
 }
@@ -2758,8 +2758,8 @@ arith_binary_self_float! {
     mpfr::mul;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     MulRef
 }
@@ -2767,8 +2767,8 @@ arith_binary_self_float! {
     mpfr::div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     DivRef
 }
@@ -2776,8 +2776,8 @@ arith_binary_self_float! {
     mpfr::pow;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
-    PowFromAssign pow_from_assign;
+    PowAssignRound pow_assign_round;
+    PowFrom pow_from;
     PowFromRound pow_from_round;
     PowRef
 }
@@ -2787,8 +2787,8 @@ arith_commut_float! {
     mpfr::add_z;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     Integer;
     AddRefInteger AddRefIntegerOwn
@@ -2798,8 +2798,8 @@ arith_noncommut_float! {
     mpfr::sub_z, mpfr::z_sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     Integer;
     SubRefInteger SubFromRefInteger SubRefIntegerOwn SubFromRefIntegerOwn
@@ -2809,8 +2809,8 @@ arith_commut_float! {
     mpfr::mul_z;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     Integer;
     MulRefInteger MulRefIntegerOwn
@@ -2820,8 +2820,8 @@ arith_noncommut_float! {
     mpfr::div_z, xmpfr::z_div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     Integer;
     DivRefInteger DivFromRefInteger DivRefIntegerOwn DivFromRefIntegerOwn
@@ -2831,7 +2831,7 @@ arith_forward_float! {
     mpfr::pow_z;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     Integer;
     PowRefInteger PowRefIntegerOwn
 }
@@ -2841,8 +2841,8 @@ arith_commut_float! {
     mpfr::add_q;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     Rational;
     AddRefRational AddRefRationalOwn
@@ -2852,8 +2852,8 @@ arith_noncommut_float! {
     mpfr::sub_q, xmpfr::q_sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     Rational;
     SubRefRational SubFromRefRational SubRefRationalOwn SubFromRefRationalOwn
@@ -2863,8 +2863,8 @@ arith_commut_float! {
     mpfr::mul_q;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     Rational;
     MulRefRational MulRefRationalOwn
@@ -2874,8 +2874,8 @@ arith_noncommut_float! {
     mpfr::div_q, xmpfr::q_div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     Rational;
     DivRefRational DivFromRefRational DivRefRationalOwn DivFromRefRationalOwn
@@ -2905,8 +2905,8 @@ macro_rules! arith_prim_commut_float {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident
@@ -2916,8 +2916,8 @@ macro_rules! arith_prim_commut_float {
             $func, rraw => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref
@@ -2930,8 +2930,8 @@ macro_rules! arith_prim_noncommut_float {
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefFrom:ident
@@ -2941,8 +2941,8 @@ macro_rules! arith_prim_noncommut_float {
             $func, $func_from, rraw => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref $RefFrom
@@ -2976,8 +2976,8 @@ macro_rules! conv_ops {
             $add;
             Add add;
             AddAssign add_assign;
-            AddRound add_round;
-            AddFromAssign add_from_assign;
+            AddAssignRound add_assign_round;
+            AddFrom add_from;
             AddFromRound add_from_round;
             $T;
             $AddRef
@@ -2986,8 +2986,8 @@ macro_rules! conv_ops {
             $sub, $sub_from;
             Sub sub;
             SubAssign sub_assign;
-            SubRound sub_round;
-            SubFromAssign sub_from_assign;
+            SubAssignRound sub_assign_round;
+            SubFrom sub_from;
             SubFromRound sub_from_round;
             $T;
             $SubRef $SubFromRef
@@ -2996,8 +2996,8 @@ macro_rules! conv_ops {
             $mul;
             Mul mul;
             MulAssign mul_assign;
-            MulRound mul_round;
-            MulFromAssign mul_from_assign;
+            MulAssignRound mul_assign_round;
+            MulFrom mul_from;
             MulFromRound mul_from_round;
             $T;
             $MulRef
@@ -3006,8 +3006,8 @@ macro_rules! conv_ops {
             $div, $div_from;
             Div div;
             DivAssign div_assign;
-            DivRound div_round;
-            DivFromAssign div_from_assign;
+            DivAssignRound div_assign_round;
+            DivFrom div_from;
             DivFromRound div_from_round;
             $T;
             $DivRef $DivFromRef
@@ -3094,8 +3094,8 @@ arith_prim_noncommut_float!{
     mpfr::pow_ui, mpfr::ui_pow;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
-    PowFromAssign pow_from_assign;
+    PowAssignRound pow_assign_round;
+    PowFrom pow_from;
     PowFromRound pow_from_round;
     u32;
     PowRefU32 PowFromRefU32
@@ -3118,8 +3118,8 @@ arith_prim_noncommut_float!{
     mpfr::pow_si, xmpfr::si_pow;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
-    PowFromAssign pow_from_assign;
+    PowAssignRound pow_assign_round;
+    PowFrom pow_from;
     PowFromRound pow_from_round;
     i32;
     PowRefI32 PowFromRefI32
@@ -3128,8 +3128,8 @@ arith_prim_noncommut_float!{
     xmpfr::pow_f64, xmpfr::f64_pow;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
-    PowFromAssign pow_from_assign;
+    PowAssignRound pow_assign_round;
+    PowFrom pow_from;
     PowFromRound pow_from_round;
     f64;
     PowRefF64 PowFromRefF64
@@ -3138,8 +3138,8 @@ arith_prim_noncommut_float!{
     xmpfr::pow_f32, xmpfr::f32_pow;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
-    PowFromAssign pow_from_assign;
+    PowAssignRound pow_assign_round;
+    PowFrom pow_from;
     PowFromRound pow_from_round;
     f32;
     PowRefF32 PowFromRefF32
@@ -3161,17 +3161,17 @@ impl<'a> AddAssign<MulRef<'a>> for Float {
     /// rounding operation to the nearest.
     #[inline]
     fn add_assign(&mut self, rhs: MulRef) {
-        self.add_round(rhs, Default::default());
+        self.add_assign_round(rhs, Default::default());
     }
 }
 
-impl<'a> AddRound<MulRef<'a>> for Float {
+impl<'a> AddAssignRound<MulRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     /// Peforms multiplication and addition together with only one
     /// rounding operation as specified.
     #[inline]
-    fn add_round(&mut self, rhs: MulRef, round: Round) -> Ordering {
+    fn add_assign_round(&mut self, rhs: MulRef, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fma(
                 self.inner_mut(),

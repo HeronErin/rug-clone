@@ -24,10 +24,10 @@ use float::{self, Constant, ParseFloatError, Round, Special, ValidFloat};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
-use ops::{AddFromAssign, AddFromRound, AddRound, DivFromAssign, DivFromRound,
-          DivRound, MulFromAssign, MulFromRound, MulRound, NegAssign, Pow,
-          PowAssign, PowFromAssign, PowFromRound, PowRound, SubFromAssign,
-          SubFromRound, SubRound};
+use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
+          DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
+          PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
+          SubFrom, SubFromRound};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::ascii::AsciiExt;
@@ -1545,8 +1545,8 @@ macro_rules! arith_binary_self_complex {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $Ref:ident
     } => {
@@ -1555,8 +1555,8 @@ macro_rules! arith_binary_self_complex {
             $func, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $Ref
         }
@@ -1568,7 +1568,7 @@ macro_rules! arith_forward_complex {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
         $T:ty;
         $Ref:ident $RefOwn:ident
     } => {
@@ -1577,7 +1577,7 @@ macro_rules! arith_forward_complex {
             $func, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
+            $ImpAssignRound $method_assign_round;
             $T;
             $Ref $RefOwn
         }
@@ -1589,8 +1589,8 @@ macro_rules! arith_commut_complex {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefOwn:ident
@@ -1600,8 +1600,8 @@ macro_rules! arith_commut_complex {
             $func, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref $RefOwn
@@ -1614,8 +1614,8 @@ macro_rules! arith_noncommut_complex {
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefFrom:ident $RefOwn:ident $RefFromOwn:ident
@@ -1625,8 +1625,8 @@ macro_rules! arith_noncommut_complex {
             $func, $func_from, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref $RefFrom $RefOwn $RefFromOwn
@@ -1638,8 +1638,8 @@ arith_binary_self_complex! {
     mpc::add;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     AddRef
 }
@@ -1647,8 +1647,8 @@ arith_binary_self_complex! {
     mpc::sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     SubRef
 }
@@ -1656,8 +1656,8 @@ arith_binary_self_complex! {
     mpc::mul;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     MulRef
 }
@@ -1665,8 +1665,8 @@ arith_binary_self_complex! {
     mpc::div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     DivRef
 }
@@ -1674,8 +1674,8 @@ arith_binary_self_complex! {
     mpc::pow;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
-    PowFromAssign pow_from_assign;
+    PowAssignRound pow_assign_round;
+    PowFrom pow_from;
     PowFromRound pow_from_round;
     PowRef
 }
@@ -1684,8 +1684,8 @@ arith_commut_complex! {
     mpc::add_fr;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     Float;
     AddRefFloat AddRefFloatOwn
@@ -1694,8 +1694,8 @@ arith_noncommut_complex! {
     mpc::sub_fr, mpc::fr_sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     Float;
     SubRefFloat SubFromRefFloat SubRefFloatOwn SubFromRefFloatOwn
@@ -1704,8 +1704,8 @@ arith_commut_complex! {
     mpc::mul_fr;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     Float;
     MulRefFloat MulRefFloatOwn
@@ -1714,8 +1714,8 @@ arith_noncommut_complex! {
     mpc::div_fr, mpc::fr_div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     Float;
     DivRefFloat DivFromRefFloat DivRefFloatOwn DivFromRefFloatOwn
@@ -1724,7 +1724,7 @@ arith_forward_complex! {
     mpc::pow_fr;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     Float;
     PowRefFloat PowRefFloatOwn
 }
@@ -1733,7 +1733,7 @@ arith_forward_complex! {
     mpc::pow_z;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     Integer;
     PowRefInteger PowRefIntegerOwn
 }
@@ -1743,7 +1743,7 @@ macro_rules! arith_prim_complex {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
         $T:ty;
         $Ref:ident
     } => {
@@ -1752,7 +1752,7 @@ macro_rules! arith_prim_complex {
             $func, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
+            $ImpAssignRound $method_assign_round;
             $T;
             $Ref
         }
@@ -1783,8 +1783,8 @@ macro_rules! arith_prim_commut_complex {
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident
@@ -1794,8 +1794,8 @@ macro_rules! arith_prim_commut_complex {
             $func, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref
@@ -1808,8 +1808,8 @@ macro_rules! arith_prim_noncommut_complex {
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
-        $ImpRound:ident $method_round:ident;
-        $ImpFromAssign:ident $method_from_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $RefFrom:ident
@@ -1819,8 +1819,8 @@ macro_rules! arith_prim_noncommut_complex {
             $func, $func_from, rraw2 => ordering2;
             $Imp $method;
             $ImpAssign $method_assign;
-            $ImpRound $method_round;
-            $ImpFromAssign $method_from_assign;
+            $ImpAssignRound $method_assign_round;
+            $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
             $Ref $RefFrom
@@ -1832,8 +1832,8 @@ arith_prim_commut_complex! {
     mpc::add_ui;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     u32;
     AddRefU32
@@ -1842,8 +1842,8 @@ arith_prim_noncommut_complex! {
     mpc::sub_ui, xmpc::ui_sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     u32;
     SubRefU32 SubFromRefU32
@@ -1852,8 +1852,8 @@ arith_prim_commut_complex! {
     mpc::mul_ui;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     u32;
     MulRefU32
@@ -1862,8 +1862,8 @@ arith_prim_noncommut_complex! {
     mpc::div_ui, xmpc::ui_div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     u32;
     DivRefU32 DivFromRefU32
@@ -1872,8 +1872,8 @@ arith_prim_commut_complex! {
     xmpc::add_si;
     Add add;
     AddAssign add_assign;
-    AddRound add_round;
-    AddFromAssign add_from_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
     AddFromRound add_from_round;
     i32;
     AddRefI32
@@ -1882,8 +1882,8 @@ arith_prim_noncommut_complex! {
     xmpc::sub_si, xmpc::si_sub;
     Sub sub;
     SubAssign sub_assign;
-    SubRound sub_round;
-    SubFromAssign sub_from_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
     SubFromRound sub_from_round;
     i32;
     SubRefI32 SubFromRefI32
@@ -1892,8 +1892,8 @@ arith_prim_commut_complex! {
     mpc::mul_si;
     Mul mul;
     MulAssign mul_assign;
-    MulRound mul_round;
-    MulFromAssign mul_from_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
     MulFromRound mul_from_round;
     i32;
     MulRefI32
@@ -1902,8 +1902,8 @@ arith_prim_noncommut_complex! {
     xmpc::div_si, xmpc::si_div;
     Div div;
     DivAssign div_assign;
-    DivRound div_round;
-    DivFromAssign div_from_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
     DivFromRound div_from_round;
     i32;
     DivRefI32 DivFromRefI32
@@ -1927,7 +1927,7 @@ arith_prim_complex! {
     mpc::pow_ui;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     u32;
     PowRefU32
 }
@@ -1949,7 +1949,7 @@ arith_prim_complex! {
     mpc::pow_si;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     i32;
     PowRefI32
 }
@@ -1957,7 +1957,7 @@ arith_prim_complex! {
     mpc::pow_d;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     f64;
     PowRefF64
 }
@@ -1965,7 +1965,7 @@ arith_prim_complex! {
     xmpc::pow_f32;
     Pow pow;
     PowAssign pow_assign;
-    PowRound pow_round;
+    PowAssignRound pow_assign_round;
     f32;
     PowRefF32
 }
@@ -1986,17 +1986,17 @@ impl<'a> AddAssign<MulRef<'a>> for Complex {
     /// rounding operation to the nearest.
     #[inline]
     fn add_assign(&mut self, rhs: MulRef) {
-        self.add_round(rhs, Default::default());
+        self.add_assign_round(rhs, Default::default());
     }
 }
 
-impl<'a> AddRound<MulRef<'a>> for Complex {
+impl<'a> AddAssignRound<MulRef<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     /// Peforms multiplication and addition together with only one
     /// rounding operation as specified.
     #[inline]
-    fn add_round(&mut self, rhs: MulRef, round: Round2) -> Ordering2 {
+    fn add_assign_round(&mut self, rhs: MulRef, round: Round2) -> Ordering2 {
         let ret = unsafe {
             mpc::fma(
                 self.inner_mut(),

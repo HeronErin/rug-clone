@@ -18,8 +18,7 @@ use {Assign, Integer};
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
-use ops::{AddFromAssign, DivFromAssign, MulFromAssign, NegAssign, Pow,
-          PowAssign, SubFromAssign};
+use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use rational::SmallRational;
 use std::cmp::Ordering;
 use std::error::Error;
@@ -1185,7 +1184,7 @@ arith_binary! {
     gmp::mpq_add;
     Add add;
     AddAssign add_assign;
-    AddFromAssign add_from_assign;
+    AddFrom add_from;
     AddRef
 }
 arith_binary! {
@@ -1193,7 +1192,7 @@ arith_binary! {
     gmp::mpq_sub;
     Sub sub;
     SubAssign sub_assign;
-    SubFromAssign sub_from_assign;
+    SubFrom sub_from;
     SubRef
 }
 arith_binary! {
@@ -1201,7 +1200,7 @@ arith_binary! {
     gmp::mpq_mul;
     Mul mul;
     MulAssign mul_assign;
-    MulFromAssign mul_from_assign;
+    MulFrom mul_from;
     MulRef
 }
 arith_binary! {
@@ -1209,7 +1208,7 @@ arith_binary! {
     gmp::mpq_div;
     Div div;
     DivAssign div_assign;
-    DivFromAssign div_from_assign;
+    DivFrom div_from;
     DivRef
 }
 
