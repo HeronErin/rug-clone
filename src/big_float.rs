@@ -1388,13 +1388,11 @@ impl Float {
         /// Computes the <i>k</i>th root.
         fn root_ref -> RootRef;
     }
-    math_op1_float! {
-        mpfr::abs;
-        /// Computes the absolute value, rounding to the nearest.
+    math_op1_no_round! {
+        Float;
+        mpfr::abs, rraw;
+        /// Computes the absolute value.
         fn abs();
-        /// Computes the absolute value, applying the specified rounding
-        /// method.
-        fn abs_round;
         /// Computes the absolute value.
         fn abs_ref -> AbsRef;
     }
@@ -2122,34 +2120,30 @@ impl Float {
         /// Computes the Airy function Ai on the value.
         fn ai_ref -> AiRef;
     }
-    math_op1_float! {
-        mpfr::rint_ceil;
+    math_op1_no_round! {
+        Float;
+        mpfr::rint_ceil, rraw;
         /// Rounds up to the next higher integer.
         fn ceil();
-        /// Rounds up to the next higher integer.
-        fn ceil_round;
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
         fn ceil_ref -> CeilRef;
     }
-    math_op1_float! {
-        mpfr::rint_floor;
+    math_op1_no_round! {
+        Float;
+        mpfr::rint_floor, rraw;
         /// Rounds down to the next lower integer.
         fn floor();
-        /// Rounds down to the next lower integer.
-        fn floor_round;
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
         fn floor_ref -> FloorRef;
     }
-    math_op1_float! {
-        mpfr::rint_round;
+    math_op1_no_round! {
+        Float;
+        mpfr::rint_round, rraw;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
         fn round();
-        /// Rounds to the nearest integer, rounding half-way cases
-        /// away from zero.
-        fn round_round;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero. The result may be rounded again when
         /// assigned to the target.
@@ -2160,7 +2154,7 @@ impl Float {
         /// use rug::{AssignRound, Float};
         /// use rug::float::Round;
         /// let f = Float::with_val(53, 6.5);
-        /// // 6.5 (binary 110.1) can be rounded to 7 (binary 111)
+        /// // 6.5 (binary 110.1) is rounded to 7 (binary 111)
         /// let r = f.round_ref();
         /// // use only 2 bits of precision in destination
         /// let mut dst = Float::new(2);
@@ -2172,22 +2166,20 @@ impl Float {
         /// ```
         fn round_ref -> RoundRef;
     }
-    math_op1_float! {
-        mpfr::rint_trunc;
+    math_op1_no_round! {
+        Float;
+        mpfr::rint_trunc, rraw;
         /// Rounds to the next integer towards zero.
         fn trunc();
-        /// Rounds to the next integer towards zero.
-        fn trunc_round;
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
         fn trunc_ref -> TruncRef;
     }
-    math_op1_float! {
-        mpfr::frac;
+    math_op1_no_round! {
+        Float;
+        mpfr::frac, rraw;
         /// Gets the fractional part of the number.
         fn fract();
-        /// Gets the fractional part of the number.
-        fn fract_round;
         /// Gets the fractional part of the number.
         fn fract_ref -> FractRef;
     }

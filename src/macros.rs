@@ -687,6 +687,41 @@ macro_rules! math_op1_round {
 }
 
 #[cfg(feature = "float")]
+macro_rules! math_op1_no_round {
+    {
+        $Big:ty;
+        $func:path, $raw_round:path;
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
+    } => {
+        $(#[$attr])*
+        #[inline]
+        pub fn $method(&mut self, $($param: $T),*) -> &mut $Big {
+            unsafe {
+                $func(
+                    self.inner_mut(),
+                    self.inner(),
+                    $($param.into(),)*
+                    $raw_round(Default::default()),
+                );
+            }
+            self
+        }
+
+        $(#[$attr_ref])*
+        #[inline]
+        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
+            $Ref {
+                ref_self: self,
+                $($param: $param,)*
+            }
+        }
+    }
+}
+
+#[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
