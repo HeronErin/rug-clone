@@ -297,9 +297,7 @@ struct MpRandState {
 struct Funcs {
     _seed: Option<unsafe extern "C" fn(*mut randstate_t, *const gmp::mpz_t)>,
     _get: Option<
-        unsafe extern "C" fn(*mut randstate_t,
-                             *mut gmp::limb_t,
-                             c_ulong),
+        unsafe extern "C" fn(*mut randstate_t, *mut gmp::limb_t, c_ulong),
     >,
     _clear: Option<unsafe extern "C" fn(*mut randstate_t)>,
     _iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,

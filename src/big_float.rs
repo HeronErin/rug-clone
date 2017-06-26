@@ -876,9 +876,8 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
-        self.to_integer_exp().map(
-            |(num, exp)| Rational::from(num) << exp,
-        )
+        self.to_integer_exp()
+            .map(|(num, exp)| Rational::from(num) << exp)
     }
 
     /// Converts to an `i32`, rounding to the nearest.
@@ -2246,7 +2245,11 @@ impl Float {
         rng: &mut RandState,
     ) -> Result<(), ()> {
         let err = unsafe { mpfr::urandomb(self.inner_mut(), rng.inner_mut()) };
-        if err != 0 { Err(()) } else { Ok(()) }
+        if err != 0 {
+            Err(())
+        } else {
+            Ok(())
+        }
     }
 
     #[cfg(feature = "rand")]
@@ -3477,7 +3480,11 @@ fn lcase_ascii(byte: &u8) -> u8 {
 }
 
 fn char_to_upper_if(c: char, to_upper: bool) -> char {
-    if to_upper { c.to_ascii_uppercase() } else { c }
+    if to_upper {
+        c.to_ascii_uppercase()
+    } else {
+        c
+    }
 }
 
 impl Inner for Float {

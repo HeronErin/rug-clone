@@ -203,7 +203,8 @@ impl Complex {
         let p = prec.prec();
         assert!(
             p.0 >= float::prec_min() && p.0 <= float::prec_max() &&
-                p.1 >= float::prec_min() && p.1 <= float::prec_max(),
+                p.1 >= float::prec_min() &&
+                p.1 <= float::prec_max(),
             "precision out of range"
         );
         unsafe {
@@ -514,27 +515,24 @@ impl Complex {
         use self::ParseErrorKind as Kind;
 
         let p = if src.starts_with('(') {
-            let space =
-                src.find(' ').ok_or(Error { kind: Kind::MissingSpace })?;
+            let space = src.find(' ')
+                .ok_or(Error { kind: Kind::MissingSpace })?;
             let real_str = &src[1..space];
-            let re = Float::valid_str_radix(real_str, radix).map_err(|e| {
-                Error { kind: Kind::InvalidRealFloat(e) }
-            })?;
+            let re = Float::valid_str_radix(real_str, radix)
+                .map_err(|e| Error { kind: Kind::InvalidRealFloat(e) })?;
             let rest = &src[space + 1..];
-            let close =
-                rest.find(')').ok_or(Error { kind: Kind::MissingClose })?;
+            let close = rest.find(')')
+                .ok_or(Error { kind: Kind::MissingClose })?;
             let imag_str = &rest[0..close];
-            let im = Float::valid_str_radix(imag_str, radix).map_err(|e| {
-                Error { kind: Kind::InvalidImagFloat(e) }
-            })?;
+            let im = Float::valid_str_radix(imag_str, radix)
+                .map_err(|e| Error { kind: Kind::InvalidImagFloat(e) })?;
             if close != rest.len() - 1 {
                 return Err(Error { kind: Kind::CloseNotLast });
             }
             ValidPoss::Complex(re, im)
         } else {
-            let re = Float::valid_str_radix(src, radix).map_err(|e| {
-                Error { kind: Kind::InvalidFloat(e) }
-            })?;
+            let re = Float::valid_str_radix(src, radix)
+                .map_err(|e| Error { kind: Kind::InvalidFloat(e) })?;
             ValidPoss::Real(re)
         };
         Ok(ValidComplex { poss: p })
@@ -610,17 +608,11 @@ impl Complex {
         round: Round2,
     ) -> String {
         let mut buf = String::from("(");
-        buf += &self.real().to_string_radix_round(
-            radix,
-            num_digits,
-            round.0,
-        );
+        buf += &self.real()
+            .to_string_radix_round(radix, num_digits, round.0);
         buf.push(' ');
-        buf += &self.imag().to_string_radix_round(
-            radix,
-            num_digits,
-            round.0,
-        );
+        buf += &self.imag()
+            .to_string_radix_round(radix, num_digits, round.0);
         buf.push(')');
         buf
     }
@@ -1314,11 +1306,7 @@ impl UpperHex for Complex {
 
 impl<T> Assign<T> for Complex
 where
-    Complex: AssignRound<
-        T,
-        Round = Round2,
-        Ordering = Ordering2,
-    >,
+    Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>,
 {
     #[inline]
     fn assign(&mut self, other: T) {
@@ -1403,16 +1391,8 @@ assign! { f64 }
 
 impl<T, U> AssignRound<(T, U)> for Complex
 where
-    Float: AssignRound<
-        T,
-        Round = Round,
-        Ordering = Ordering,
-    >,
-    Float: AssignRound<
-        U,
-        Round = Round,
-        Ordering = Ordering,
-    >,
+    Float: AssignRound<T, Round = Round, Ordering = Ordering>,
+    Float: AssignRound<U, Round = Round, Ordering = Ordering>,
 {
     type Round = Round2;
     type Ordering = Ordering2;

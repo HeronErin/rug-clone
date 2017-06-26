@@ -548,7 +548,8 @@ pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
     match gmp::LIMB_BITS {
         64 => {
             match (*op1).size {
-                0 => if op2 == 0 { 0 } else { -1 },
+                0 if op2 == 0 => 0,
+                0 => -1,
                 size if size < 0 => -1,
                 1 => op1.limb(0).cmp(&(op2 as gmp::limb_t)).to_c_int(),
                 _ => 1,
@@ -585,7 +586,8 @@ pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
                         (true, true) => mag2.cmp(&mag1).to_c_int(),
                     }
                 }
-                _ => if neg1 { -1 } else { 1 },
+                _ if neg1 => -1,
+                _ => 1,
             }
         }
         32 => {
@@ -612,7 +614,8 @@ pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
     match gmp::LIMB_BITS {
         64 | 32 => {
             match (*op1).size {
-                0 => if op2 == 0 { 0 } else { -1 },
+                0 if op2 == 0 => 0,
+                0 => -1,
                 size if size < 0 => -1,
                 1 => op1.limb(0).cmp(&(op2 as gmp::limb_t)).to_c_int(),
                 _ => 1,
@@ -639,7 +642,8 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
                         (true, true) => mag2.cmp(&mag1).to_c_int(),
                     }
                 }
-                _ => if neg1 { -1 } else { 1 },
+                _ if neg1 => -1,
+                _ => 1,
             }
         }
         _ => unimplemented!(),
