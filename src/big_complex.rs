@@ -1782,7 +1782,7 @@ impl Complex {
 
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
-    /// imaginary parts in the range `0 <= n < 1`.
+    /// imaginary parts in the range 0 ≤ *x* < 1.
     ///
     /// This is equivalent to calling
     /// [`assign_random_bits(rng)`][equiv] on the real part, and then
@@ -1803,10 +1803,10 @@ impl Complex {
     /// Generates a random complex number, rounding to the nearest.
     ///
     /// Both the real and imaginary parts are in the continuous range
-    /// `0 <= n < 1`. After rounding, the value may be equal to one.
+    /// 0 ≤ *x* < 1. After rounding, the value may be equal to one.
     /// Calling this method is equivalent to calling
-    /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
-    /// (#method.assign_random_cont_round).
+    /// [`assign_random_cont_round(rng, (Round::Nearest,
+    /// Round::Nearest))`] (#method.assign_random_cont_round).
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         self.assign_random_cont_round(rng, Default::default());
@@ -1817,7 +1817,7 @@ impl Complex {
     /// rounding method.
     ///
     /// Both the real and imaginary parts are in the continuous range
-    /// `0 <= n < 1`. After rounding, the value may be equal to one.
+    /// 0 ≤ *x* < 1. After rounding, the value may be equal to one.
     /// Calling this method is equivalent to calling
     /// [`assign_random_cont_round(rng, round.0)`]
     /// (struct.Float.html#method.assign_random_bits_round) on the

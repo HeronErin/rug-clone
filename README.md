@@ -57,7 +57,7 @@ and add `rug` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rug = "0.4.0"
+rug = "0.5.0"
 ```
 
 The `rug` crate depends on the low-level bindings in the
@@ -74,7 +74,7 @@ default; to disable them add this to `Cargo.toml`:
 
 ```toml
 [dependencies.rug]
-version = "0.4.0"
+version = "0.5.0"
 default-features = false
 ```
 
@@ -85,7 +85,7 @@ To use features selectively, you can add this to `Cargo.toml`:
 
 ```toml
 [dependencies.rug]
-version = "0.4.0"
+version = "0.5.0"
 default-features = false
 # Pick which features to use
 features = ["integer", "float", "rand"]

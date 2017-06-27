@@ -76,7 +76,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rug = "0.4.0"
+//! rug = "0.5.0"
 //! ```
 //!
 //! The `rug` crate depends on the low-level bindings in the
@@ -93,7 +93,7 @@
 //!
 //! ```toml
 //! [dependencies.rug]
-//! version = "0.4.0"
+//! version = "0.5.0"
 //! default-features = false
 //! ```
 //!
@@ -104,7 +104,7 @@
 //!
 //! ```toml
 //! [dependencies.rug]
-//! version = "0.4.0"
+//! version = "0.5.0"
 //! default-features = false
 //! # Pick which features to use
 //! features = ["integer", "float", "rand"]
@@ -131,7 +131,7 @@
 //! [sys]:      https://docs.rs/gmp-mpfr-sys/~1.0.4/
 
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/0.4.0/",
+#![doc(html_root_url = "https://docs.rs/rug/0.5.0/",
        test(attr(deny(warnings))))]
 
 #[cfg(any(feature = "integer", feature = "float"))]

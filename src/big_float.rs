@@ -2391,10 +2391,10 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the range 0 ≤ *n* < 1.
+    /// Generates a random number in the range 0 ≤ *x* < 1.
     ///
     /// This is equivalent to generating a random integer in the range
-    /// 0 ≤ *n* < 2<sup>*p*</sup>, where 2<sup>*p*</sup> is two raised
+    /// 0 ≤ *x* < 2<sup>*p*</sup>, where 2<sup>*p*</sup> is two raised
     /// to the power of the precision, and then dividing the integer
     /// by 2<sup>*p*</sup>. The smallest non-zero result will thus be
     /// 2<sup>−<i>p</i></sup>, and will only have one bit set. In the
@@ -2435,7 +2435,7 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continuous range 0 ≤ *n* < 1,
+    /// Generates a random number in the continuous range 0 ≤ *x* < 1,
     /// and rounds to the nearest.
     ///
     /// The rounded result can actually be equal to one.
@@ -2448,7 +2448,7 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continous range 0 ≤ *n* < 1,
+    /// Generates a random number in the continous range 0 ≤ *x* < 1,
     /// and applies the specified rounding method.
     ///
     /// The rounded result can actually be equal to one. Unlike
