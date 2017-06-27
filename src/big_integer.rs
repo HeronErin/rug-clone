@@ -130,18 +130,26 @@ use std::str::FromStr;
 /// ```
 ///
 /// The `Integer` type supports various functions. Most functions have
-/// two versions: one that changes the operand in place, and one that
-/// borrows the operand.
+/// three versions: one that consumes the operand, one that mutates
+/// the operand, and one that borrows the operand.
 ///
 /// ```rust
 /// use rug::Integer;
-/// let mut a = Integer::from(-15);
-/// // abs_ref() borrows the value
-/// let abs1 = Integer::from(a.abs_ref());
-/// assert_eq!(abs1, 15);
-/// // abs() changes the value in place
-/// a.abs();
-/// assert_eq!(a, 15);
+/// // 1. consume the operand
+/// let a = Integer::from(-15);
+/// let abs_a = a.abs();
+/// assert_eq!(abs_a, 15);
+/// // 2. mutate the operand
+/// let mut b = Integer::from(-16);
+/// b.abs_mut();
+/// assert_eq!(b, 16);
+/// // 3. borrow the operand
+/// let c = Integer::from(-17);
+/// let r = c.abs_ref();
+/// let abs_c = Integer::from(r);
+/// assert_eq!(abs_c, 17);
+/// // c was not consumed
+/// assert_eq!(c, -17);
 /// ```
 pub struct Integer {
     inner: mpz_t,
@@ -1198,11 +1206,22 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(-100);
-        /// assert_eq!(*i.abs(), 100);
-        /// assert_eq!(i, 100);
+        /// let i = Integer::from(-100);
+        /// let abs = i.abs();
+        /// assert_eq!(abs, 100);
         /// ```
         fn abs();
+        /// Computes the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(-100);
+        /// i.abs_mut();
+        /// assert_eq!(i, 100);
+        /// ```
+        fn abs_mut;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -1226,10 +1245,22 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(-1);
-        /// assert_eq!(*i.keep_bits(8), 0xff);
+        /// let i = Integer::from(-1);
+        /// let keep_8 = i.keep_bits(8);
+        /// assert_eq!(keep_8, 0xff);
         /// ```
         fn keep_bits(n: u32);
+        /// Keeps the *n* least significant bits only.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(-1);
+        /// i.keep_bits_mut(8);
+        /// assert_eq!(i, 0xff);
+        /// ```
+        fn keep_bits_mut;
         /// Keeps the *n* least significant bits only.
         ///
         /// # Examples
@@ -1251,15 +1282,26 @@ impl Integer {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Integer};
-        /// let mut i = Integer::from(-3);
-        /// assert_eq!(*i.next_power_of_two(), 1);
-        /// i.assign(4);
-        /// assert_eq!(*i.next_power_of_two(), 4);
-        /// i.assign(7);
-        /// assert_eq!(*i.next_power_of_two(), 8);
+        /// use rug::Integer;
+        /// let i = Integer::from(-3).next_power_of_two();
+        /// assert_eq!(i, 1);
+        /// let i = Integer::from(4).next_power_of_two();
+        /// assert_eq!(i, 4);
+        /// let i = Integer::from(7).next_power_of_two();
+        /// assert_eq!(i, 8);
         /// ```
         fn next_power_of_two();
+        /// Finds the next power of two, or 1 if the number ≤ 0.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(53);
+        /// i.next_power_of_two_mut();
+        /// assert_eq!(i, 64);
+        /// ```
+        fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
         /// # Examples
@@ -1276,16 +1318,16 @@ impl Integer {
     math_op2_2! {
         Integer;
         xgmp::mpz_tdiv_qr_check_0;
-        /// Performs a division and stores the quotient in `self` and
-        /// the remainder in `divisor`.
+        /// Performs a division producing both the quotient and
+        /// remainder.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut quotient = Integer::from(23);
-        /// let mut rem = Integer::from(10);
-        /// quotient.div_rem(&mut rem);
+        /// let dividend = Integer::from(23);
+        /// let divisor = Integer::from(10);
+        /// let (quotient, rem) = dividend.div_rem(divisor);
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, 3);
         /// ```
@@ -1294,18 +1336,38 @@ impl Integer {
         ///
         /// Panics if `divisor` is zero.
         fn div_rem(divisor);
-        /// Performs a division and returns the quotient and
+        /// Performs a division producing both the quotient and
+        /// remainder.
+        ///
+        /// The quotient is stored in `self` and the remainder is
+        /// stored in `divisor`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut dividend_quotient = Integer::from(23);
+        /// let mut divisor_rem = Integer::from(10);
+        /// dividend_quotient.div_rem_mut(&mut divisor_rem);
+        /// assert_eq!(dividend_quotient, 2);
+        /// assert_eq!(divisor_rem, 3);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_rem_mut;
+        /// Performs a division producing both the quotient and
         /// remainder.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Integer};
+        /// use rug::Integer;
         /// let dividend = Integer::from(23);
         /// let divisor = Integer::from(10);
         /// let r = dividend.div_rem_ref(&divisor);
-        /// let (mut quotient, mut rem) = (Integer::new(), Integer::new());
-        /// (&mut quotient, &mut rem).assign(r);
+        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, 3);
         /// ```
@@ -1314,26 +1376,46 @@ impl Integer {
     math_op2! {
         Integer;
         xgmp::mpz_divexact_check_0;
-        /// Performs an exact division. This is much faster than
-        /// normal division, but produces correct results only when
-        /// the division is exact.
+        /// Performs an exact division.
+        ///
+        /// This is much faster than normal division, but produces
+        /// correct results only when the division is exact.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(12345 * 54321);
-        /// assert_eq!(*i.div_exact(&Integer::from(12345)), 54321);
-        /// assert_eq!(i, 54321);
+        /// let i = Integer::from(12345 * 54321);
+        /// let quotient = i.div_exact(&Integer::from(12345));
+        /// assert_eq!(quotient, 54321);
         /// ```
         ///
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
         fn div_exact(divisor);
-        /// Performs an exact division. This is much faster than
-        /// normal division, but produces correct results only when
-        /// the division is exact.
+        /// Performs an exact division.
+        ///
+        /// This is much faster than normal division, but produces
+        /// correct results only when the division is exact.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(12345 * 54321);
+        /// i.div_exact_mut(&Integer::from(12345));
+        /// assert_eq!(i, 54321);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_exact_mut;
+        /// Performs an exact division.
+        ///
+        /// This is much faster than normal division, but produces
+        /// correct results only when the division is exact.
         ///
         /// # Examples
         ///
@@ -1342,8 +1424,8 @@ impl Integer {
         /// let i = Integer::from(12345 * 54321);
         /// let divisor = Integer::from(12345);
         /// let r = i.div_exact_ref(&divisor);
-        /// let q = Integer::from(r);
-        /// assert_eq!(q, 54321);
+        /// let quotient = Integer::from(r);
+        /// assert_eq!(quotient, 54321);
         /// ```
         fn div_exact_ref -> DivExactRef;
     }
@@ -1358,14 +1440,32 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(12345 * 54321);
-        /// assert_eq!(*i.div_exact_u(12345), 54321);
+        /// let i = Integer::from(12345 * 54321);
+        /// let q = i.div_exact_u(12345);
+        /// assert_eq!(q, 54321);
         /// ```
         ///
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
         fn div_exact_u(divisor: u32);
+        /// Performs an exact division. This is much faster than
+        /// normal division, but produces correct results only when
+        /// the division is exact.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(12345 * 54321);
+        /// i.div_exact_u_mut(12345);
+        /// assert_eq!(i, 54321);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_exact_u_mut;
         /// Performs an exact division. This is much faster than
         /// normal division, but produces correct results only when
         /// the division is exact.
@@ -1381,6 +1481,42 @@ impl Integer {
         fn div_exact_u_ref -> DivExactURef;
     }
 
+    /// Finds the inverse modulo `modulo` and returns `Ok(inverse)` if
+    /// it exists, or `Err(unchanged)` if the inverse does not exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let n = Integer::from(2);
+    /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
+    /// let inv_mod_4 = match n.invert(&Integer::from(4)) {
+    ///     Ok(_) => unreachable!(),
+    ///     Err(unchanged) => unchanged,
+    /// };
+    /// // no inverse exists, so value is unchanged
+    /// assert_eq!(inv_mod_4, 2);
+    /// let n = inv_mod_4;
+    /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
+    /// let inv_mod_5 = match n.invert(&Integer::from(5)) {
+    ///     Ok(inverse) => inverse,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// assert_eq!(inv_mod_5, 3);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `modulo` is zero.
+    #[inline]
+    pub fn invert(mut self, modulo: &Integer) -> Result<Integer, Integer> {
+        if self.invert_mut(modulo) {
+            Ok(self)
+        } else {
+            Err(self)
+        }
+    }
+
     /// Finds the inverse modulo `modulo` and returns `true` if an
     /// inverse exists.
     ///
@@ -1390,11 +1526,11 @@ impl Integer {
     /// use rug::Integer;
     /// let mut n = Integer::from(2);
     /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
-    /// let exists_4 = n.invert(&Integer::from(4));
+    /// let exists_4 = n.invert_mut(&Integer::from(4));
     /// assert!(!exists_4);
     /// assert_eq!(n, 2);
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
-    /// let exists_5 = n.invert(&Integer::from(5));
+    /// let exists_5 = n.invert_mut(&Integer::from(5));
     /// assert!(exists_5);
     /// assert_eq!(n, 3);
     /// ```
@@ -1403,7 +1539,7 @@ impl Integer {
     ///
     /// Panics if `modulo` is zero.
     #[inline]
-    pub fn invert(&mut self, modulo: &Integer) -> bool {
+    pub fn invert_mut(&mut self, modulo: &Integer) -> bool {
         unsafe {
             xgmp::mpz_invert_check_0(
                 self.inner_mut(),
@@ -1421,14 +1557,19 @@ impl Integer {
     /// use rug::{Assign, Integer};
     /// let n = Integer::from(2);
     /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
-    /// let (mut inv_4, mut exists_4) = (Integer::new(), false);
-    /// (&mut inv_4, &mut exists_4).assign(n.invert_ref(&Integer::from(4)));
-    /// assert!(!exists_4);
+    /// // For this conversion, if no inverse exists, the Integer
+    /// // created is left unchanged as 0.
+    /// let mut ans = Result::from(n.invert_ref(&Integer::from(4)));
+    /// match ans {
+    ///     Ok(_) => unreachable!(),
+    ///     Err(ref unchanged) => assert_eq!(*unchanged, 0),
+    /// }
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
-    /// let (mut inv_5, mut exists_5) = (Integer::new(), false);
-    /// (&mut inv_5, &mut exists_5).assign(n.invert_ref(&Integer::from(5)));
-    /// assert!(exists_5);
-    /// assert_eq!(inv_5, 3);
+    /// ans.assign(n.invert_ref(&Integer::from(5)));
+    /// match ans {
+    ///     Ok(ref inverse) => assert_eq!(*inverse, 3),
+    ///     Err(_) => unreachable!(),
+    /// };
     /// ```
     #[inline]
     pub fn invert_ref<'a>(&'a self, modulo: &'a Integer) -> InvertRef<'a> {
@@ -1466,7 +1607,7 @@ impl Integer {
     pub fn pow_mod(&mut self, power: &Integer, modulo: &Integer) -> bool {
         let abs_pow;
         let pow_inner = if power.sign() == Ordering::Less {
-            if !(self.invert(modulo)) {
+            if !(self.invert_mut(modulo)) {
                 return false;
             }
             abs_pow = mpz_t {
@@ -1572,10 +1713,22 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(1004);
-        /// assert_eq!(*i.root(3), 10);
+        /// let i = Integer::from(1004);
+        /// let root = i.root(3);
+        /// assert_eq!(root, 10);
         /// ```
         fn root(n: u32);
+        /// Computes the <i>n</i>th root and truncates the result.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(1004);
+        /// i.root_mut(3);
+        /// assert_eq!(i, 10);
+        /// ```
+        fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
         /// # Examples
@@ -1600,13 +1753,29 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(1004);
-        /// let mut rem = Integer::new();
-        /// i.root_rem(&mut rem, 3);
-        /// assert_eq!(i, 10);
+        /// let i = Integer::from(1004);
+        /// let (root, rem) = i.root_rem(Integer::new(), 3);
+        /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
         /// ```
         fn root_rem(remainder, n: u32);
+        /// Computes the <i>n</i>th root and returns the truncated
+        /// root and the remainder.
+        ///
+        /// The remainder is the original number minus the truncated
+        /// root raised to the power of *n*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(1004);
+        /// let mut rem = Integer::new();
+        /// i.root_rem_mut(&mut rem, 3);
+        /// assert_eq!(i, 10);
+        /// assert_eq!(rem, 4);
+        /// ```
+        fn root_rem_mut;
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
         ///
@@ -1624,6 +1793,9 @@ impl Integer {
         /// (&mut root, &mut rem).assign(r);
         /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
+        /// let (other_root, other_rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(other_root, 10);
+        /// assert_eq!(other_rem, 4);
         /// ```
         fn root_rem_ref -> RootRemRef;
     }
@@ -1636,10 +1808,22 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut i = Integer::from(104);
-        /// assert_eq!(*i.sqrt(), 10);
+        /// let i = Integer::from(104);
+        /// let sqrt = i.sqrt();
+        /// assert_eq!(sqrt, 10);
         /// ```
         fn sqrt();
+        /// Computes the square root and truncates the result.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(104);
+        /// i.sqrt_mut();
+        /// assert_eq!(i, 10);
+        /// ```
+        fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
         /// # Examples
@@ -1654,8 +1838,25 @@ impl Integer {
     math_op1_2! {
         Integer;
         gmp::mpz_sqrtrem;
-        /// Computes the square root and the remainder. The remainder
-        /// is the original number minus the truncated root squared.
+        /// Computes the square root and the remainder.
+        ///
+        /// The remainder is the original number minus the truncated
+        /// root squared.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(104);
+        /// let (sqrt, rem) = i.sqrt_rem(Integer::new());
+        /// assert_eq!(sqrt, 10);
+        /// assert_eq!(rem, 4);
+        /// ```
+        fn sqrt_rem(remainder);
+        /// Computes the square root and the remainder.
+        ///
+        /// The remainder is the original number minus the truncated
+        /// root squared.
         ///
         /// # Examples
         ///
@@ -1663,13 +1864,15 @@ impl Integer {
         /// use rug::Integer;
         /// let mut i = Integer::from(104);
         /// let mut rem = Integer::new();
-        /// i.sqrt_rem(&mut rem);
+        /// i.sqrt_rem_mut(&mut rem);
         /// assert_eq!(i, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        fn sqrt_rem(remainder);
-        /// Computes the square root and the remainder. The remainder
-        /// is the original number minus the truncated root squared.
+        fn sqrt_rem_mut;
+        /// Computes the square root and the remainder.
+        ///
+        /// The remainder is the original number minus the truncated
+        /// root squared.
         ///
         /// # Examples
         ///
@@ -1677,11 +1880,14 @@ impl Integer {
         /// use rug::{Assign, Integer};
         /// let i = Integer::from(104);
         /// let r = i.sqrt_rem_ref();
-        /// let mut root = Integer::new();
+        /// let mut sqrt = Integer::new();
         /// let mut rem = Integer::new();
-        /// (&mut root, &mut rem).assign(r);
-        /// assert_eq!(root, 10);
+        /// (&mut sqrt, &mut rem).assign(r);
+        /// assert_eq!(sqrt, 10);
         /// assert_eq!(rem, 4);
+        /// let (other_sqrt, other_rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(other_sqrt, 10);
+        /// assert_eq!(other_rem, 4);
         /// ```
         fn sqrt_rem_ref -> SqrtRemRef;
     }
@@ -1722,6 +1928,9 @@ impl Integer {
         fn next_prime();
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
+        fn next_prime_mut;
+        /// Identifies primes using a probabilistic algorithm; the
+        /// chance of a composite passing will be extremely small.
         fn next_prime_ref -> NextPrimeRef;
     }
     math_op2! {
@@ -1736,19 +1945,45 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::{Assign, Integer};
-        /// let mut a = Integer::new();
+        /// let a = Integer::new();
         /// let mut b = Integer::new();
-        /// a.gcd(&b);
         /// // gcd of 0, 0 is 0
-        /// assert_eq!(*a.gcd(&b), 0);
+        /// let gcd1 = a.gcd(&b);
+        /// assert_eq!(gcd1, 0);
         /// b.assign(10);
         /// // gcd of 0, 10 is 10
-        /// assert_eq!(*a.gcd(&b), 10);
+        /// let gcd2 = gcd1.gcd(&b);
+        /// assert_eq!(gcd2, 10);
         /// b.assign(25);
         /// // gcd of 10, 25 is 5
-        /// assert_eq!(*a.gcd(&b), 5);
+        /// let gcd3 = gcd2.gcd(&b);
+        /// assert_eq!(gcd3, 5);
         /// ```
         fn gcd(other);
+        /// Finds the greatest common divisor.
+        ///
+        /// The result is always positive except when both inputs are
+        /// zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
+        /// let mut a = Integer::new();
+        /// let mut b = Integer::new();
+        /// // gcd of 0, 0 is 0
+        /// a.gcd_mut(&b);
+        /// assert_eq!(a, 0);
+        /// b.assign(10);
+        /// // gcd of 0, 10 is 10
+        /// a.gcd_mut(&b);
+        /// assert_eq!(a, 10);
+        /// b.assign(25);
+        /// // gcd of 10, 25 is 5
+        /// a.gcd_mut(&b);
+        /// assert_eq!(a, 5);
+        /// ```
+        fn gcd_mut;
         /// Finds the greatest common divisor.
         ///
         /// # Examples
@@ -1775,15 +2010,37 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::{Assign, Integer};
+        /// let a = Integer::from(10);
+        /// let mut b = Integer::from(25);
+        /// // lcm of 10, 25 is 50
+        /// let lcm1 = a.lcm(&b);
+        /// assert_eq!(lcm1, 50);
+        /// b.assign(0);
+        /// // lcm of 50, 0 is 0
+        /// let lcm2 = lcm1.lcm(&b);
+        /// assert_eq!(lcm2, 0);
+        /// ```
+        fn lcm(other);
+        /// Finds the least common multiple.
+        ///
+        /// The result is always positive except when one or both
+        /// inputs are zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
         /// let mut a = Integer::from(10);
         /// let mut b = Integer::from(25);
         /// // lcm of 10, 25 is 50
-        /// assert_eq!(*a.lcm(&b), 50);
+        /// a.lcm_mut(&b);
+        /// assert_eq!(a, 50);
         /// b.assign(0);
         /// // lcm of 50, 0 is 0
-        /// assert_eq!(*a.lcm(&b), 0);
+        /// a.lcm_mut(&b);
+        /// assert_eq!(a, 0);
         /// ```
-        fn lcm(other);
+        fn lcm_mut;
         /// Finds the least common multiple.
         ///
         /// # Examples
@@ -1949,10 +2206,23 @@ impl Integer {
         /// ```rust
         /// use rug::Integer;
         /// // 7 choose 2 is 21
-        /// let mut i = Integer::from(7);
-        /// assert_eq!(*i.binomial(2), 21);
+        /// let i = Integer::from(7);
+        /// let bin = i.binomial(2);
+        /// assert_eq!(bin, 21);
         /// ```
         fn binomial(k: u32);
+        /// Computes the binomial coefficient over *k*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 7 choose 2 is 21
+        /// let mut i = Integer::from(7);
+        /// i.binomial_mut(2);
+        /// assert_eq!(i, 21);
+        /// ```
+        fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
         /// # Examples
@@ -2366,7 +2636,7 @@ impl<'a> Assign<PowModRef<'a>> for (&'a mut Integer, &'a mut bool) {
     fn assign(&mut self, src: PowModRef<'a>) {
         let abs_pow;
         let pow_inner = if src.power.sign() == Ordering::Less {
-            if !(self.0.invert(src.modulo)) {
+            if !(self.0.invert_mut(src.modulo)) {
                 *self.1 = false;
                 return;
             }
@@ -2405,16 +2675,48 @@ pub struct InvertRef<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> Assign<InvertRef<'a>> for (&'a mut Integer, &'a mut bool) {
+impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
     #[inline]
-    fn assign(&mut self, src: InvertRef<'a>) {
-        *self.1 = unsafe {
+    fn from(src: InvertRef<'a>) -> Result<Integer, Integer> {
+        let mut i = Integer::new();
+        let exists = unsafe {
             xgmp::mpz_invert_check_0(
-                self.0.inner_mut(),
+                i.inner_mut(),
                 src.ref_self.inner(),
                 src.modulo.inner(),
-            )
-        } != 0;
+            ) != 0
+        };
+        if exists {
+            Ok(i)
+        } else {
+            Err(i)
+        }
+    }
+}
+
+impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
+    #[inline]
+    fn assign(&mut self, src: InvertRef<'a>) {
+        let exists = {
+            let dest = match *self {
+                Ok(ref mut i) | Err(ref mut i) => i,
+            };
+            unsafe {
+                xgmp::mpz_invert_check_0(
+                    dest.inner_mut(),
+                    src.ref_self.inner(),
+                    src.modulo.inner(),
+                ) != 0
+            }
+        };
+        if exists != self.is_ok() {
+            let old = mem::replace(self, unsafe { mem::uninitialized() });
+            let new = match old {
+                Ok(i) => Err(i),
+                Err(i) => Ok(i),
+            };
+            mem::forget(mem::replace(self, new));
+        }
     }
 }
 

@@ -21,16 +21,24 @@ macro_rules! math_op1 {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(&mut self, $($param: $T),*) -> &mut $Big {
+        pub fn $method(mut self, $($param: $T),*) -> $Big {
+            self.$method_mut($($param),*);
+            self
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $($param: $T),*) {
             unsafe {
                 $func(self.inner_mut(), self.inner(), $($param.into()),*);
             }
-            self
         }
 
         $(#[$attr_ref])*
@@ -83,12 +91,25 @@ macro_rules! math_op1_2 {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(&mut self, $rop: &mut $Big, $($param: $T),*) {
+        pub fn $method(
+            mut self,
+            mut $rop: $Big,
+            $($param: $T,)*
+        ) -> ($Big, $Big) {
+            self.$method_mut(&mut $rop, $($param),*);
+            (self, $rop)
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $rop: &mut $Big, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -128,6 +149,15 @@ macro_rules! ref_math_op1_2 {
             $($param: $T,)*
         }
 
+        impl<'a> From<$Ref<'a>> for ($Big, $Big) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> ($Big, $Big) {
+                let mut pair = <($Big, $Big) as Default>::default();
+                (&mut pair.0, &mut pair.1).assign(src);
+                pair
+            }
+        }
+
         impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
@@ -151,12 +181,21 @@ macro_rules! math_op2 {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(&mut self, $op: &$Big, $($param: $T),*) -> &mut $Big {
+        pub fn $method(mut self, $op: &$Big, $($param: $T),*) -> $Big {
+            self.$method_mut($op, $($param),*);
+            self
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $op: &$Big, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -165,7 +204,6 @@ macro_rules! math_op2 {
                     $($param.into(),)*
                 );
             }
-            self
         }
 
         $(#[$attr_ref])*
@@ -225,12 +263,25 @@ macro_rules! math_op2_2 {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(&mut self, $op: &mut $Big, $($param: $T),*) {
+        pub fn $method(
+            mut self,
+            mut $op: $Big,
+            $($param: $T,)*
+        ) -> ($Big, $Big) {
+            self.$method_mut(&mut $op, $($param),*);
+            (self, $op)
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $op: &mut $Big, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -272,6 +323,15 @@ macro_rules! ref_math_op2_2 {
             ref_self: &'a $Big,
             $op: &'a $Big,
             $($param: $T,)*
+        }
+
+        impl<'a> From<$Ref<'a>> for ($Big, $Big) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> ($Big, $Big) {
+                let mut pair = <($Big, $Big) as Default>::default();
+                (&mut pair.0, &mut pair.1).assign(src);
+                pair
+            }
         }
 
         impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {

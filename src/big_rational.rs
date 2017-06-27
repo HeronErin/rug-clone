@@ -702,11 +702,22 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// let mut r = Rational::from((-100, 17));
-        /// assert_eq!(*r.abs(), (100, 17));
-        /// assert_eq!(r, (100, 17));
+        /// let r = Rational::from((-100, 17));
+        /// let abs = r.abs();
+        /// assert_eq!(abs, (100, 17));
         /// ```
         fn abs();
+        /// Computes the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let mut r = Rational::from((-100, 17));
+        /// r.abs_mut();
+        /// assert_eq!(r, (100, 17));
+        /// ```
+        fn abs_mut;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -729,15 +740,30 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// let mut r = Rational::from((-100, 17));
-        /// assert_eq!(*r.recip(), (-17, 100));
-        /// assert_eq!(r, (-17, 100));
+        /// let r = Rational::from((-100, 17));
+        /// let recip = r.recip();
+        /// assert_eq!(recip, (-17, 100));
         /// ```
         ///
         /// # Panics
         ///
         /// Panics if the value is zero.
         fn recip();
+        /// Computes the reciprocal.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let mut r = Rational::from((-100, 17));
+        /// r.recip_mut();
+        /// assert_eq!(r, (-17, 100));
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is zero.
+        fn recip_mut;
         /// Computes the reciprocal.
         ///
         /// # Examples
@@ -859,10 +885,23 @@ impl Rational {
         /// ```rust
         /// use rug::Rational;
         /// // -100/17 = -5 15/17
-        /// let mut r = Rational::from((-100, 17));
-        /// assert_eq!(*r.fract(), (-15, 17));
+        /// let r = Rational::from((-100, 17));
+        /// let fract = r.fract();
+        /// assert_eq!(fract, (-15, 17));
         /// ```
         fn fract();
+        /// Computes the fractional part of the number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -100/17 = -5 15/17
+        /// let mut r = Rational::from((-100, 17));
+        /// r.fract_mut();
+        /// assert_eq!(r, (-15, 17));
+        /// ```
+        fn fract_mut;
         /// Computes the fractional part of the number.
         ///
         /// # Examples

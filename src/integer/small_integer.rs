@@ -46,10 +46,10 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// let mut a = Integer::from(250);
 /// // `b` can reside on the stack
 /// let b = SmallInteger::from(-100);
-/// a.lcm(&b);
+/// a.lcm_mut(&b);
 /// assert_eq!(a, 500);
 /// // another computation:
-/// a.lcm(&SmallInteger::from(30));
+/// a.lcm_mut(&SmallInteger::from(30));
 /// assert_eq!(a, 1500);
 /// ```
 pub struct SmallInteger {
