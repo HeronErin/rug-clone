@@ -1809,6 +1809,8 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
+        /// The initial value of `remainder` is ignored.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1824,6 +1826,8 @@ impl Integer {
         ///
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
+        ///
+        /// The initial value of `remainder` is ignored.
         ///
         /// # Examples
         ///
@@ -1903,6 +1907,8 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
+        /// The initial value of `remainder` is ignored.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1917,6 +1923,8 @@ impl Integer {
         ///
         /// The remainder is the original number minus the truncated
         /// root squared.
+        ///
+        /// The initial value of `remainder` is ignored.
         ///
         /// # Examples
         ///

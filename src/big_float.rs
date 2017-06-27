@@ -2401,12 +2401,6 @@ impl Float {
     /// smaller possible results, many bits will be zero, and not all
     /// the precision will be used.
     ///
-    /// In all the normal cases, the result will be exact. However, if
-    /// the precision is very large, and the generated random number
-    /// is very small, this may require an exponent smaller than
-    /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
-    /// number is set to Nan and an error is returned.
-    ///
     /// # Examples
     ///
     /// ```rust
@@ -2418,6 +2412,15 @@ impl Float {
     /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
     /// println!("0.0 <= {} < 1.0", f);
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// In all the normal cases, the result will be exact. However, if
+    /// the precision is very large, and the generated random number
+    /// is very small, this may require an exponent smaller than
+    /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
+    /// number is set to Nan and an error is returned. This would most
+    /// likely be a programming error.
     #[inline]
     pub fn assign_random_bits(
         &mut self,
@@ -2491,7 +2494,21 @@ impl Float {
 
     #[cfg(feature = "rand")]
     /// Generates two random numbers according to a standard normal
-    /// Gaussian distribution.
+    /// Gaussian distribution, rounding to the nearest.
+    ///
+    /// If `other` is `None`, only one value is generated.
+    #[inline]
+    pub fn assign_random_gaussian(
+        &mut self,
+        other: Option<&mut Float>,
+        rng: &mut RandState,
+    ) {
+        self.assign_random_gaussian_round(other, rng, Default::default());
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates two random numbers according to a standard normal
+    /// Gaussian distribution, applying the specified rounding method.
     ///
     /// If `other` is `None`, only one value is generated.
     #[inline]

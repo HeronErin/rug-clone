@@ -851,8 +851,8 @@ mod rational {
     pub unsafe fn mpq_pow_ui(rop: *mut mpq_t, op1: *const mpq_t, op2: c_ulong) {
         let rop_num = gmp::mpq_numref(rop);
         let rop_den = gmp::mpq_denref(rop);
-        let op1_num = gmp::mpq_numref(op1 as *mut _) as *const _;
-        let op1_den = gmp::mpq_denref(op1 as *mut _) as *const _;
+        let op1_num = gmp::mpq_numref_const(op1);
+        let op1_den = gmp::mpq_denref_const(op1);
         gmp::mpz_pow_ui(rop_num, op1_num, op2);
         gmp::mpz_pow_ui(rop_den, op1_den, op2);
     }
@@ -869,52 +869,78 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_ceil(rop: *mut gmp::mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref(op as *mut _) as *const _;
-        let denref = gmp::mpq_denref(op as *mut _) as *const _;
-        if gmp::mpz_cmp_ui(denref, 1) == 0 {
-            gmp::mpz_set(rop, numref);
+    pub unsafe fn mpq_ceil(rop: *mut mpz_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_ceil(rop, numref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn num_den_ceil(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        if gmp::mpz_cmp_ui(den, 1) == 0 {
+            gmp::mpz_set(rop, num);
         } else {
-            gmp::mpz_tdiv_q(rop, numref, denref);
-            if gmp::mpz_sgn(numref) > 0 {
+            gmp::mpz_tdiv_q(rop, num, den);
+            if gmp::mpz_sgn(num) > 0 {
                 gmp::mpz_add_ui(rop, rop, 1);
             }
         }
     }
 
     #[inline]
-    pub unsafe fn mpq_floor(rop: *mut gmp::mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref(op as *mut _) as *const _;
-        let denref = gmp::mpq_denref(op as *mut _) as *const _;
-        if gmp::mpz_cmp_ui(denref, 1) == 0 {
-            gmp::mpz_set(rop, numref);
+    pub unsafe fn mpq_floor(rop: *mut mpz_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_floor(rop, numref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn num_den_floor(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        if gmp::mpz_cmp_ui(den, 1) == 0 {
+            gmp::mpz_set(rop, num);
         } else {
-            gmp::mpz_tdiv_q(rop, numref, denref);
-            if gmp::mpz_sgn(numref) < 0 {
+            gmp::mpz_tdiv_q(rop, num, den);
+            if gmp::mpz_sgn(num) < 0 {
                 gmp::mpz_sub_ui(rop, rop, 1);
             }
         }
     }
 
     #[inline]
-    pub unsafe fn mpq_round(rop: *mut gmp::mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref(op as *mut _) as *const _;
-        let denref = gmp::mpq_denref(op as *mut _) as *const _;
-        if gmp::mpz_cmp_ui(denref, 1) == 0 {
-            gmp::mpz_set(rop, numref);
+    pub unsafe fn mpq_round(rop: *mut mpz_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_round(rop, numref, denref);
+    }
+
+    pub unsafe fn num_den_round(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        if gmp::mpz_cmp_ui(den, 1) == 0 {
+            gmp::mpz_set(rop, num);
         } else {
             // The remainder cannot be larger than the divisor, but we
             // allocate an extra limb because the GMP docs say we should,
             // and we have to multiply by 2.
-            let bits = ((*denref).size.abs() + 1) * gmp::LIMB_BITS;
-            let mut rem: gmp::mpz_t = mem::uninitialized();
+            let bits = ((*den).size.abs() + 1) * gmp::LIMB_BITS;
+            let mut rem: mpz_t = mem::uninitialized();
             gmp::mpz_init2(&mut rem, bits as gmp::bitcnt_t);
-            gmp::mpz_tdiv_qr(rop, &mut rem, numref, denref);
+            gmp::mpz_tdiv_qr(rop, &mut rem, num, den);
             // if 2 * abs(rem) >= divisor, move one away from zero
             gmp::mpz_abs(&mut rem, &rem);
             gmp::mpz_mul_2exp(&mut rem, &rem, 1);
-            if gmp::mpz_cmp(&rem, denref) >= 0 {
-                if gmp::mpz_sgn(numref) > 0 {
+            if gmp::mpz_cmp(&rem, den) >= 0 {
+                if gmp::mpz_sgn(num) > 0 {
                     gmp::mpz_add_ui(rop, rop, 1);
                 } else {
                     gmp::mpz_sub_ui(rop, rop, 1);
@@ -925,32 +951,50 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_trunc(rop: *mut gmp::mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref(op as *mut _) as *const _;
-        let denref = gmp::mpq_denref(op as *mut _) as *const _;
-        gmp::mpz_tdiv_q(rop, numref, denref);
+    pub unsafe fn mpq_trunc(rop: *mut mpz_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_trunc(rop, numref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn num_den_trunc(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        gmp::mpz_tdiv_q(rop, num, den);
     }
 
     #[inline]
     pub unsafe fn mpq_fract(rop: *mut mpq_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_fract(rop, numref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn num_den_fract(
+        rop: *mut mpq_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
         let r_numref = gmp::mpq_numref(rop);
         let r_denref = gmp::mpq_denref(rop);
-        let numref = gmp::mpq_numref(op as *mut _) as *const _;
-        let denref = gmp::mpq_denref(op as *mut _) as *const _;
-        gmp::mpz_tdiv_r(r_numref, numref, denref);
-        gmp::mpz_set(r_denref, denref);
+        gmp::mpz_tdiv_r(r_numref, num, den);
+        gmp::mpz_set(r_denref, den);
     }
 
     #[inline]
     pub unsafe fn mpq_fract_trunc(
         fop: *mut mpq_t,
-        top: *mut gmp::mpz_t,
+        top: *mut mpz_t,
         op: *const mpq_t,
     ) {
         let f_numref = gmp::mpq_numref(fop);
         let f_denref = gmp::mpq_denref(fop);
-        let numref = gmp::mpq_numref(op as *mut _) as *const _;
-        let denref = gmp::mpq_denref(op as *mut _) as *const _;
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
         gmp::mpz_tdiv_qr(top, f_numref, numref, denref);
         gmp::mpz_set(f_denref, denref);
     }
