@@ -322,6 +322,8 @@ macro_rules! math_op1_float {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
@@ -332,6 +334,8 @@ macro_rules! math_op1_float {
             $func, rraw => ordering1;
             $(#[$attr])*
             fn $method($($param: $T),*);
+            $(#[$attr_mut])*
+            fn $method_mut;
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
@@ -360,6 +364,8 @@ macro_rules! math_op1_2_float {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
@@ -372,6 +378,8 @@ macro_rules! math_op1_2_float {
             fn $method($rop $(, $param: $T)*);
             $(#[$attr_round])*
             fn $method_round;
+            $(#[$attr_mut])*
+            fn $method_mut;
             $(#[$attr_ref])*
             fn $method_ref -> $Ref;
         }
@@ -398,6 +406,8 @@ macro_rules! math_op2_float {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
@@ -408,6 +418,8 @@ macro_rules! math_op2_float {
             $func, rraw => ordering1;
             $(#[$attr])*
             fn $method($op $(, $param: $T)*);
+            $(#[$attr_mut])*
+            fn $method_mut;
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
@@ -1326,6 +1338,8 @@ impl Float {
         mpfr::sqr;
         /// Computes the square, rounding to the nearest.
         fn square();
+        /// Computes the square, rounding to the nearest.
+        fn square_mut;
         /// Computes the square, applying the specified rounding method.
         fn square_round;
         /// Compuets the square.
@@ -1335,6 +1349,8 @@ impl Float {
         mpfr::sqrt;
         /// Computes the square root, rounding to the nearest.
         fn sqrt();
+        /// Computes the square root, rounding to the nearest.
+        fn sqrt_mut;
         /// Computes the square root, applying the specified rounding
         /// method.
         fn sqrt_round;
@@ -1362,6 +1378,8 @@ impl Float {
         mpfr::rec_sqrt;
         /// Computes the reciprocal square root, rounding to the nearest.
         fn recip_sqrt();
+        /// Computes the reciprocal square root, rounding to the nearest.
+        fn recip_sqrt_mut;
         /// Computes the reciprocal square root, applying the specified
         /// rounding method.
         fn recip_sqrt_round;
@@ -1372,6 +1390,8 @@ impl Float {
         mpfr::cbrt;
         /// Computes the cube root, rounding to the nearest.
         fn cbrt();
+        /// Computes the cube root, rounding to the nearest.
+        fn cbrt_mut;
         /// Computes the cube root, applying the specified rounding
         /// method.
         fn cbrt_round;
@@ -1382,6 +1402,8 @@ impl Float {
         mpfr::root;
         /// Computes the <i>k</i>th root, rounding to the nearest.
         fn root(k: u32);
+        /// Computes the <i>k</i>th root, rounding to the nearest.
+        fn root_mut;
         /// Computes the <i>k</i>th root, applying the specified
         /// rounding method.
         fn root_round;
@@ -1394,12 +1416,16 @@ impl Float {
         /// Computes the absolute value.
         fn abs();
         /// Computes the absolute value.
+        fn abs_mut;
+        /// Computes the absolute value.
         fn abs_ref -> AbsRef;
     }
     math_op1_float! {
         xmpfr::recip;
         /// Computes the reciprocal, rounding to the nearest.
         fn recip();
+        /// Computes the reciprocal, rounding to the nearest.
+        fn recip_mut;
         /// Computes the reciprocal, applying the specified rounding
         /// method.
         fn recip_round;
@@ -1412,6 +1438,9 @@ impl Float {
         /// `other`, rounding to the nearest.
         fn abs_diff(other);
         /// Computes the positive difference between `self` and
+        /// `other`, rounding to the nearest.
+        fn abs_diff_mut;
+        /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
         fn abs_diff_round;
         /// Computes the positive difference.
@@ -1421,6 +1450,8 @@ impl Float {
         mpfr::log;
         /// Computes the natural logarithm, rounding to the nearest.
         fn ln();
+        /// Computes the natural logarithm, rounding to the nearest.
+        fn ln_mut;
         /// Computes the natural logarithm, applying the specified
         /// rounding method.
         fn ln_round;
@@ -1431,6 +1462,8 @@ impl Float {
         mpfr::log2;
         /// Computes the logarithm to base 2, rounding to the nearest.
         fn log2();
+        /// Computes the logarithm to base 2, rounding to the nearest.
+        fn log2_mut;
         /// Computes the logarithm to base 2, applying the specified
         /// rounding method.
         fn log2_round;
@@ -1441,6 +1474,8 @@ impl Float {
         mpfr::log10;
         /// Computes the logarithm to base 10, rounding to the nearest.
         fn log10();
+        /// Computes the logarithm to base 10, rounding to the nearest.
+        fn log10_mut;
         /// Computes the logarithm to base 10, applying the specified
         /// rounding method.
         fn log10_round;
@@ -1451,6 +1486,8 @@ impl Float {
         mpfr::exp;
         /// Computes the exponential, rounding to the nearest.
         fn exp();
+        /// Computes the exponential, rounding to the nearest.
+        fn exp_mut;
         /// Computes the exponential, applying the specified rounding
         /// method.
         fn exp_round;
@@ -1461,6 +1498,8 @@ impl Float {
         mpfr::exp2;
         /// Computes 2 to the power of `self`, rounding to the nearest.
         fn exp2();
+        /// Computes 2 to the power of `self`, rounding to the nearest.
+        fn exp2_mut;
         /// Computes 2 to the power of `self`, applying the specified
         /// rounding method.
         fn exp2_round;
@@ -1471,6 +1510,8 @@ impl Float {
         mpfr::exp10;
         /// Computes 10 to the power of `self`, rounding to the nearest.
         fn exp10();
+        /// Computes 10 to the power of `self`, rounding to the nearest.
+        fn exp10_mut;
         /// Computes 10 to the power of `self`, applying the specified
         /// rounding method.
         fn exp10_round;
@@ -1481,6 +1522,8 @@ impl Float {
         mpfr::sin;
         /// Computes the sine, rounding to the nearest.
         fn sin();
+        /// Computes the sine, rounding to the nearest.
+        fn sin_mut;
         /// Computes the sine, applying the specified rounding method.
         fn sin_round;
         /// Computes the sine.
@@ -1490,6 +1533,8 @@ impl Float {
         mpfr::cos;
         /// Computes the cosine, rounding to the nearest.
         fn cos();
+        /// Computes the cosine, rounding to the nearest.
+        fn cos_mut;
         /// Computes the cosine, applying the specified rounding method.
         fn cos_round;
         /// Computes the cosine.
@@ -1499,6 +1544,8 @@ impl Float {
         mpfr::tan;
         /// Computes the tangent, rounding to the nearest.
         fn tan();
+        /// Computes the tangent, rounding to the nearest.
+        fn tan_mut;
         /// Computes the tangent, applying the specified rounding method.
         fn tan_round;
         /// Computes the tangent.
@@ -1512,6 +1559,12 @@ impl Float {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         fn sin_cos(cos);
+        /// Computes the sine and cosine of `self`, rounding to the
+        /// nearest.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sin_cos_mut;
         /// Computes the sine and cosine of `self`, applying the specified
         /// rounding method.
         ///
@@ -1539,6 +1592,8 @@ impl Float {
         mpfr::sec;
         /// Computes the secant, rounding to the nearest.
         fn sec();
+        /// Computes the secant, rounding to the nearest.
+        fn sec_mut;
         /// Computes the secant, applying the specified rounding method.
         fn sec_round;
         /// Computes the secant.
@@ -1548,6 +1603,8 @@ impl Float {
         mpfr::csc;
         /// Computes the cosecant, rounding to the nearest.
         fn csc();
+        /// Computes the cosecant, rounding to the nearest.
+        fn csc_mut;
         /// Computes the cosecant, applying the specified rounding method.
         fn csc_round;
         /// Computes the cosecant.
@@ -1557,6 +1614,8 @@ impl Float {
         mpfr::cot;
         /// Computes the cotangent, rounding to the nearest.
         fn cot();
+        /// Computes the cotangent, rounding to the nearest.
+        fn cot_mut;
         /// Computes the cotangent, applying the specified rounding
         /// method.
         fn cot_round;
@@ -1567,6 +1626,8 @@ impl Float {
         mpfr::acos;
         /// Computes the arc-cosine, rounding to the nearest.
         fn acos();
+        /// Computes the arc-cosine, rounding to the nearest.
+        fn acos_mut;
         /// Computes the arc-cosine, applying the specified rounding
         /// method.
         fn acos_round;
@@ -1577,6 +1638,8 @@ impl Float {
         mpfr::asin;
         /// Computes the arc-sine, rounding to the nearest.
         fn asin();
+        /// Computes the arc-sine, rounding to the nearest.
+        fn asin_mut;
         /// Computes the arc-sine, applying the specified rounding method.
         fn asin_round;
         /// Computes the arc-sine.
@@ -1586,6 +1649,8 @@ impl Float {
         mpfr::atan;
         /// Computes the arc-tangent, rounding to the nearest.
         fn atan();
+        /// Computes the arc-tangent, rounding to the nearest.
+        fn atan_mut;
         /// Computes the arc-tangent, applying the specified rounding
         /// method.
         fn atan_round;
@@ -1601,6 +1666,13 @@ impl Float {
         /// in the cases when either `self` or `other` or both are zero or
         /// infinity.
         fn atan2(other);
+        /// Computes the arc-tangent2 of `self` and `other`, rounding to
+        /// the nearest.
+        ///
+        /// This is similar to the arc-tangent of `self / other`, except
+        /// in the cases when either `self` or `other` or both are zero or
+        /// infinity.
+        fn atan2_mut;
         /// Computes the arc-tangent2 of `self` and `other`, applying the
         /// specified rounding method.
         ///
@@ -1615,6 +1687,8 @@ impl Float {
         mpfr::sinh;
         /// Computes the hyperbolic sine, rounding to the nearest.
         fn sinh();
+        /// Computes the hyperbolic sine, rounding to the nearest.
+        fn sinh_mut;
         /// Computes the hyperbolic sine, applying the specified rounding
         /// method.
         fn sinh_round;
@@ -1625,6 +1699,8 @@ impl Float {
         mpfr::cosh;
         /// Computes the hyperbolic cosine, rounding to the nearest.
         fn cosh();
+        /// Computes the hyperbolic cosine, rounding to the nearest.
+        fn cosh_mut;
         /// Computes the hyperbolic cosine, applying the specified
         /// rounding method.
         fn cosh_round;
@@ -1635,6 +1711,8 @@ impl Float {
         mpfr::tanh;
         /// Computes the hyperbolic tangent, rounding to the nearest.
         fn tanh();
+        /// Computes the hyperbolic tangent, rounding to the nearest.
+        fn tanh_mut;
         /// Computes the hyperbolic tangent, applying the specified
         /// rounding method.
         fn tanh_round;
@@ -1649,6 +1727,12 @@ impl Float {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         fn sinh_cosh(cos);
+        /// Computes the hyperbolic sine and cosine of `self`,
+        /// rounding to the nearest.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sinh_cosh_mut;
         /// Computes the hyperbolic sine and cosine of `self`,
         /// applying the specified rounding method.
         ///
@@ -1676,6 +1760,8 @@ impl Float {
         mpfr::sech;
         /// Computes the hyperbolic secant, rounding to the nearest.
         fn sech();
+        /// Computes the hyperbolic secant, rounding to the nearest.
+        fn sech_mut;
         /// Computes the hyperbolic secant, applying the specified
         /// rounding method.
         fn sech_round;
@@ -1686,6 +1772,8 @@ impl Float {
         mpfr::csch;
         /// Computes the hyperbolic cosecant, rounding to the nearest.
         fn csch();
+        /// Computes the hyperbolic cosecant, rounding to the nearest.
+        fn csch_mut;
         /// Computes the hyperbolic cosecant, applying the specified
         /// rounding method.
         fn csch_round;
@@ -1696,6 +1784,8 @@ impl Float {
         mpfr::coth;
         /// Computes the hyperbolic cotangent, rounding to the nearest.
         fn coth();
+        /// Computes the hyperbolic cotangent, rounding to the nearest.
+        fn coth_mut;
         /// Computes the hyperbolic cotangent, applying the specified
         /// rounding method.
         fn coth_round;
@@ -1707,6 +1797,9 @@ impl Float {
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
         fn acosh();
+        /// Computes the inverse hyperbolic cosine, rounding to the
+        /// nearest.
+        fn acosh_mut;
         /// Computes the inverse hyperbolic cosine, applying the specified
         /// rounding method.
         fn acosh_round;
@@ -1717,6 +1810,8 @@ impl Float {
         mpfr::asinh;
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
         fn asinh();
+        /// Computes the inverse hyperbolic sine, rounding to the nearest.
+        fn asinh_mut;
         /// Computes the inverse hyperbolic sine, applying the specified
         /// rounding method.
         fn asinh_round;
@@ -1728,6 +1823,9 @@ impl Float {
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
         fn atanh();
+        /// Computes the inverse hyperbolic tangent, rounding to the
+        /// nearest.
+        fn atanh_mut;
         /// Computes the inverse hyperbolic tangent, applying the
         /// specified rounding method.
         fn atanh_round;
@@ -1759,6 +1857,9 @@ impl Float {
         /// Computes the natural logarithm of one plus `self`, rounding to
         /// the nearest.
         fn ln_1p();
+        /// Computes the natural logarithm of one plus `self`, rounding to
+        /// the nearest.
+        fn ln_1p_mut;
         /// Computes the natural logarithm of one plus `self`, applying
         /// the specified rounding method.
         fn ln_1p_round;
@@ -1771,6 +1872,9 @@ impl Float {
         /// Subtracts one from the exponential of `self`, rounding to the
         /// nearest.
         fn exp_m1();
+        /// Subtracts one from the exponential of `self`, rounding to the
+        /// nearest.
+        fn exp_m1_mut;
         /// Subtracts one from the exponential of `self`, applying the
         /// specified rounding method.
         fn exp_m1_round;
@@ -1782,6 +1886,8 @@ impl Float {
         mpfr::eint;
         /// Computes the exponential integral, rounding to the nearest.
         fn eint();
+        /// Computes the exponential integral, rounding to the nearest.
+        fn eint_mut;
         /// Computes the exponential integral, applying the specified
         /// rounding method.
         fn eint_round;
@@ -1793,6 +1899,9 @@ impl Float {
         /// Computes the real part of the dilogarithm of `self`, rounding
         /// to the nearest.
         fn li2();
+        /// Computes the real part of the dilogarithm of `self`, rounding
+        /// to the nearest.
+        fn li2_mut;
         /// Computes the real part of the dilogarithm of `self`, applying
         /// the specified rounding method.
         fn li2_round;
@@ -1805,6 +1914,9 @@ impl Float {
         /// Computes the value of the Gamma function on `self`, rounding
         /// to the nearest.
         fn gamma();
+        /// Computes the value of the Gamma function on `self`, rounding
+        /// to the nearest.
+        fn gamma_mut;
         /// Computes the value of the Gamma function on `self`, applying
         /// the specified rounding method.
         fn gamma_round;
@@ -1816,6 +1928,9 @@ impl Float {
         /// Computes the logarithm of the Gamma function on `self`,
         /// rounding to the nearest.
         fn ln_gamma();
+        /// Computes the logarithm of the Gamma function on `self`,
+        /// rounding to the nearest.
+        fn ln_gamma_mut;
         /// Computes the logarithm of the Gamma function on `self`,
         /// applying the specified rounding method.
         fn ln_gamma_round;
@@ -1833,38 +1948,72 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
+    /// use rug::Float;
     /// use rug::float::Constant;
     /// use std::cmp::Ordering;
-    /// let mut f;
-    /// let mut check = Float::new(53);
     ///
     /// // gamma of 1/2 is sqrt(pi)
-    /// f = Float::with_val(64, Constant::Pi);
-    /// f.sqrt().ln();
-    /// let lgamma_1_2 = f;
+    /// let ln_gamma_64 = Float::with_val(64, Constant::Pi).sqrt().ln();
     ///
-    /// f = Float::with_val(53, 0.5);
+    /// let f = Float::with_val(53, 0.5);
+    /// let (ln_gamma, sign) = f.ln_abs_gamma();
     /// // gamma of 1/2 is positive
-    /// assert_eq!(f.ln_abs_gamma(), Ordering::Greater);
-    /// // check is correct to 53 significant bits
-    /// check.assign(&lgamma_1_2);
-    /// assert_eq!(f, check);
+    /// assert_eq!(sign, Ordering::Greater);
+    /// // check to 53 significant bits
+    /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
+    /// ```
+    ///
+    /// If the Gamma function is negative, the sign returned is
+    /// `Ordering::Less`.
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Constant;
+    /// use std::cmp::Ordering;
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
-    /// f = Float::with_val(64, Constant::Pi) * 4;
-    /// f.sqrt().ln();
-    /// let lgamma_neg_1_2 = f;
+    /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
+    /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
-    /// f = Float::with_val(53, -0.5);
+    /// let f = Float::with_val(53, -0.5);
+    /// let (ln_gamma, sign) = f.ln_abs_gamma();
     /// // gamma of -1/2 is negative
-    /// assert_eq!(f.ln_abs_gamma(), Ordering::Less);
-    /// // check is correct to 53 significant bits
-    /// check.assign(&lgamma_neg_1_2);
-    /// assert_eq!(f, check);
+    /// assert_eq!(sign, Ordering::Less);
+    /// // check to 53 significant bits
+    /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
     /// ```
     #[inline]
-    pub fn ln_abs_gamma(&mut self) -> Ordering {
+    pub fn ln_abs_gamma(mut self) -> (Float, Ordering) {
+        let sign = self.ln_abs_gamma_round(Round::Nearest).0;
+        (self, sign)
+    }
+
+    /// Computes the logarithm of the absolute value of the Gamma
+    /// function on `self`, rounding to the nearest.
+    ///
+    /// Returns `Ordering::Less` if the Gamma function is negative, or
+    /// `Ordering::Greater` if the Gamma function is positive.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Constant;
+    /// use std::cmp::Ordering;
+    ///
+    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
+    /// let ln_gamma_64 = abs_gamma_64.ln();
+    ///
+    /// let mut f = Float::with_val(53, -0.5);
+    /// let sign = f.ln_abs_gamma_mut();
+    /// // gamma of -1/2 is negative
+    /// assert_eq!(sign, Ordering::Less);
+    /// // check to 53 significant bits
+    /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
+    /// ```
+    #[inline]
+    pub fn ln_abs_gamma_mut(&mut self) -> Ordering {
         self.ln_abs_gamma_round(Round::Nearest).0
     }
 
@@ -1879,24 +2028,21 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{AssignRound, Float};
+    /// use rug::Float;
     /// use rug::float::{Constant, Round};
     /// use std::cmp::Ordering;
     ///
-    /// let mut f: Float;
-    /// let mut check = Float::new(53);
-    ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
-    /// f = Float::with_val(64, Constant::Pi) * 4;
-    /// f.sqrt().ln();
-    /// let lgamma_neg_1_2 = f;
+    /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
+    /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
-    /// f = Float::with_val(53, -0.5);
+    /// let mut f = Float::with_val(53, -0.5);
     /// let (sign, dir) = f.ln_abs_gamma_round(Round::Nearest);
     /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check is correct to 53 significant bits
-    /// let check_dir = check.assign_round(&lgamma_neg_1_2, Round::Nearest);
+    /// let (check, check_dir) =
+    ///     Float::with_val_round(53, &ln_gamma_64, Round::Nearest);
     /// assert_eq!(f, check);
     /// assert_eq!(dir, check_dir);
     /// ```
@@ -1921,39 +2067,23 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, AssignRound, Float};
-    /// use rug::float::{Constant, Round};
+    /// use rug::{Assign, Float};
+    /// use rug::float::Constant;
     /// use std::cmp::Ordering;
-    /// let mut f: Float;
-    /// let mut check = Float::new(53);
     ///
+    /// let neg1_2 = Float::with_val(53, -0.5);
     /// // gamma of -1/2 is -2 * sqrt(pi)
-    /// f = Float::with_val(64, Constant::Pi) * 4;
-    /// f.sqrt().ln();
-    /// let lgamma_neg_1_2 = f;
-    ///
-    /// let neg_1_2 = Float::with_val(53, -0.5);
-    /// f = Float::new(53);
-    /// let mut sign = Ordering::Equal;
+    /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
+    /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// // Assign rounds to the nearest
-    /// let r = neg_1_2.ln_abs_gamma_ref();
+    /// let r = neg1_2.ln_abs_gamma_ref();
+    /// let (mut f, mut sign) = (Float::new(53), Ordering::Equal);
     /// (&mut f, &mut sign).assign(r);
     /// // gamma of -1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
-    /// // check is correct to 53 significant bits
-    /// check.assign(&lgamma_neg_1_2);
-    /// assert_eq!(f, check);
-    ///
-    /// // AssignRound returns the rounding direction
-    /// let r = neg_1_2.ln_abs_gamma_ref();
-    /// let dir = (&mut f, &mut sign).assign_round(r, Round::Nearest);
-    /// // gamma of -1/2 is negative
-    /// assert_eq!(sign, Ordering::Less);
-    /// // check is correct to 53 significant bits
-    /// let check_dir = check.assign_round(&lgamma_neg_1_2, Round::Nearest);
-    /// assert_eq!(f, check);
-    /// assert_eq!(dir, check_dir);
+    /// // check to 53 significant bits
+    /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaRef {
@@ -1965,6 +2095,9 @@ impl Float {
         /// Computes the value of the Digamma function on `self`, rounding
         /// to the nearest.
         fn digamma();
+        /// Computes the value of the Digamma function on `self`, rounding
+        /// to the nearest.
+        fn digamma_mut;
         /// Computes the value of the Digamma function on `self`, applying
         /// the specified rounding method.
         fn digamma_round;
@@ -1976,6 +2109,9 @@ impl Float {
         /// Computes the value of the Riemann Zeta function on `self`,
         /// rounding to the nearest.
         fn zeta();
+        /// Computes the value of the Riemann Zeta function on `self`,
+        /// rounding to the nearest.
+        fn zeta_mut;
         /// Computes the value of the Riemann Zeta function on `self`,
         /// applying the specified rounding method.
         fn zeta_round;
@@ -2004,6 +2140,9 @@ impl Float {
         /// Computes the value of the error function, rounding to the
         /// nearest.
         fn erf();
+        /// Computes the value of the error function, rounding to the
+        /// nearest.
+        fn erf_mut;
         /// Computes the value of the error function, applying the
         /// specified rounding method.
         fn erf_round;
@@ -2016,6 +2155,9 @@ impl Float {
         /// rounding to the nearest.
         fn erfc();
         /// Computes the value of the complementary error function,
+        /// rounding to the nearest.
+        fn erfc_mut;
+        /// Computes the value of the complementary error function,
         /// applying the specified rounding method.
         fn erfc_round;
         /// Computes the complementary error function.
@@ -2026,6 +2168,9 @@ impl Float {
         /// Computes the value of the first kind Bessel function of
         /// order 0, rounding to the nearest.
         fn j0();
+        /// Computes the value of the first kind Bessel function of
+        /// order 0, rounding to the nearest.
+        fn j0_mut;
         /// Computes the value of the first kind Bessel function of
         /// order 0, applying the specified rounding method.
         fn j0_round;
@@ -2038,6 +2183,9 @@ impl Float {
         /// order 1, rounding to the nearest.
         fn j1();
         /// Computes the value of the first kind Bessel function of
+        /// order 1, rounding to the nearest.
+        fn j1_mut;
+        /// Computes the value of the first kind Bessel function of
         /// order 1, applying the specified rounding method.
         fn j1_round;
         /// Computes the first kind Bessel function of order 1.
@@ -2048,6 +2196,9 @@ impl Float {
         /// Computes the value of the first kind Bessel function of
         /// order *n*, rounding to the nearest.
         fn jn(n: i32);
+        /// Computes the value of the first kind Bessel function of
+        /// order *n*, rounding to the nearest.
+        fn jn_mut;
         /// Computes the value of the first kind Bessel function of
         /// order *n*, applying the specified rounding method.
         fn jn_round;
@@ -2060,6 +2211,9 @@ impl Float {
         /// order 0, rounding to the nearest.
         fn y0();
         /// Computes the value of the second kind Bessel function of
+        /// order 0, rounding to the nearest.
+        fn y0_mut;
+        /// Computes the value of the second kind Bessel function of
         /// order 0, applying the specified rounding method.
         fn y0_round;
         /// Computes the second kind Bessel function of order 0.
@@ -2070,6 +2224,9 @@ impl Float {
         /// Computes the value of the second kind Bessel function of
         /// order 1, rounding to the nearest.
         fn y1();
+        /// Computes the value of the second kind Bessel function of
+        /// order 1, rounding to the nearest.
+        fn y1_mut;
         /// Computes the value of the second kind Bessel function of
         /// order 1, applying the specified rounding method.
         fn y1_round;
@@ -2082,6 +2239,9 @@ impl Float {
         /// order *n*, rounding to the nearest.
         fn yn(n: i32);
         /// Computes the value of the second kind Bessel function of
+        /// order *n*, rounding to the nearest.
+        fn yn_mut;
+        /// Computes the value of the second kind Bessel function of
         /// order *n*, applying the specified rounding method.
         fn yn_round;
         /// Computes the second kind Bessel function of order *n*.
@@ -2093,6 +2253,9 @@ impl Float {
         /// rounding to the nearest.
         fn agm(other);
         /// Computes the arithmetic-geometric mean of `self` and `other`,
+        /// rounding to the nearest.
+        fn agm_mut;
+        /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// applying the specified rounding method.
         fn agm_round;
         /// Computes the arithmetic-geometric mean.
@@ -2103,6 +2266,9 @@ impl Float {
         /// Computes the Euclidean norm of `self` and `other`, rounding to
         /// the nearest.
         fn hypot(other);
+        /// Computes the Euclidean norm of `self` and `other`, rounding to
+        /// the nearest.
+        fn hypot_mut;
         /// Computes the Euclidean norm of `self` and `other`, applying
         /// the specified rounding method.
         fn hypot_round;
@@ -2114,6 +2280,9 @@ impl Float {
         /// Computes the value of the Airy function Ai on `self`, rounding
         /// to the nearest.
         fn ai();
+        /// Computes the value of the Airy function Ai on `self`, rounding
+        /// to the nearest.
+        fn ai_mut;
         /// Computes the value of the Airy function Ai on `self`, applying
         /// the specified rounding method.
         fn ai_round;
@@ -2125,6 +2294,8 @@ impl Float {
         mpfr::rint_ceil, rraw;
         /// Rounds up to the next higher integer.
         fn ceil();
+        /// Rounds up to the next higher integer.
+        fn ceil_mut;
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
         fn ceil_ref -> CeilRef;
@@ -2134,6 +2305,8 @@ impl Float {
         mpfr::rint_floor, rraw;
         /// Rounds down to the next lower integer.
         fn floor();
+        /// Rounds down to the next lower integer.
+        fn floor_mut;
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
         fn floor_ref -> FloorRef;
@@ -2144,6 +2317,9 @@ impl Float {
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
         fn round();
+        /// Rounds to the nearest integer, rounding half-way cases
+        /// away from zero.
+        fn round_mut;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero. The result may be rounded again when
         /// assigned to the target.
@@ -2171,6 +2347,8 @@ impl Float {
         mpfr::rint_trunc, rraw;
         /// Rounds to the next integer towards zero.
         fn trunc();
+        /// Rounds to the next integer towards zero.
+        fn trunc_mut;
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
         fn trunc_ref -> TruncRef;
@@ -2180,6 +2358,8 @@ impl Float {
         mpfr::frac, rraw;
         /// Gets the fractional part of the number.
         fn fract();
+        /// Gets the fractional part of the number.
+        fn fract_mut;
         /// Gets the fractional part of the number.
         fn fract_ref -> FractRef;
     }
@@ -2192,6 +2372,13 @@ impl Float {
         /// precision, while the fractional part is stored in `fract`
         /// keeping its precision.
         fn trunc_fract(fract);
+        /// Gets the integer and fractional parts of the number,
+        /// rounding to the nearest.
+        ///
+        /// The integer part is stored in `self` and keeps its
+        /// precision, while the fractional part is stored in `fract`
+        /// keeping its precision.
+        fn trunc_fract_mut;
         /// Gets the integer and fractional parts of the number,
         /// applying the specified rounding method.
         ///

@@ -150,6 +150,8 @@ macro_rules! math_op1_complex {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
@@ -160,6 +162,8 @@ macro_rules! math_op1_complex {
             $func, rraw2 => ordering2;
             $(#[$attr])*
             fn $method($($param: $T),*);
+            $(#[$attr_mut])*
+            fn $method_mut;
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
@@ -188,6 +192,8 @@ macro_rules! math_op1_2_complex {
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
         $(#[$attr_round:meta])*
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
@@ -198,6 +204,8 @@ macro_rules! math_op1_2_complex {
             $func, rraw2, rraw2 => ordering4;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
+            $(#[$attr_mut])*
+            fn $method_mut;
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
@@ -945,39 +953,72 @@ impl Complex {
         /// Computes a projection onto the Riemann sphere, rounding to
         /// the nearest.
         ///
-        /// If no parts of the number are infinite, the number is
-        /// unchanged. If any part is infinite, the real part is set
-        /// to +∞ and the imaginary part is set to 0 with the same
-        /// sign as the imaginary part of the original number.
-        ///
-        /// # Examples
-        ///
-        /// ```rust
-        /// use rug::{Assign, Complex};
-        /// use std::f64;
-        /// let mut c = Complex::with_val(53, (1.5, 2.5));
-        /// c.proj();
-        /// assert_eq!(c, (1.5, 2.5));
-        /// c.assign((f64::NAN, f64::NEG_INFINITY));
-        /// c.proj();
-        /// assert_eq!(c, (f64::INFINITY, 0.0));
-        /// // imaginary was negative, so now it is minus zero
-        /// assert!(c.imag().get_sign());
-        /// ```
-        fn proj();
-        /// Computes the projection onto the Riemann sphere.
-        ///
-        /// This is the reference version of the
-        /// [`proj`](#method.proj) method.
+        /// If no parts of the number are infinite, the result is
+        /// unchanged. If any part is infinite, the real part of the
+        /// result is set to +∞ and the imaginary part of the result
+        /// is set to 0 with the same sign as the imaginary part of
+        /// the input.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Complex;
         /// use std::f64;
-        /// let c = Complex::with_val(53, (f64::INFINITY, 50));
-        /// let p = Complex::with_val(53, c.proj_ref());
-        /// assert_eq!(p, (f64::INFINITY, 0.0));
+        /// let c1 = Complex::with_val(53, (1.5, 2.5));
+        /// let proj1 = c1.proj();
+        /// assert_eq!(proj1, (1.5, 2.5));
+        /// let c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
+        /// let proj2 = c2.proj();
+        /// assert_eq!(proj2, (f64::INFINITY, 0.0));
+        /// // imaginary was negative, so now it is minus zero
+        /// assert!(proj2.imag().get_sign());
+        /// ```
+        fn proj();
+        /// Computes a projection onto the Riemann sphere, rounding to
+        /// the nearest.
+        ///
+        /// If no parts of the number are infinite, the result is
+        /// unchanged. If any part is infinite, the real part of the
+        /// result is set to +∞ and the imaginary part of the result
+        /// is set to 0 with the same sign as the imaginary part of
+        /// the input.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// use std::f64;
+        /// let mut c1 = Complex::with_val(53, (1.5, 2.5));
+        /// c1.proj_mut();
+        /// assert_eq!(c1, (1.5, 2.5));
+        /// let mut c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
+        /// c2.proj_mut();
+        /// assert_eq!(c2, (f64::INFINITY, 0.0));
+        /// // imaginary was negative, so now it is minus zero
+        /// assert!(c2.imag().get_sign());
+        /// ```
+        fn proj_mut;
+        /// Computes the projection onto the Riemann sphere.
+        ///
+        /// If no parts of the number are infinite, the result is
+        /// unchanged. If any part is infinite, the real part of the
+        /// result is set to +∞ and the imaginary part of the result
+        /// is set to 0 with the same sign as the imaginary part of
+        /// the input.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// use std::f64;
+        /// let c1 = Complex::with_val(53, (f64::INFINITY, 50));
+        /// let proj1 = Complex::with_val(53, c1.proj_ref());
+        /// assert_eq!(proj1, (f64::INFINITY, 0.0));
+        /// let c2 = Complex::with_val(53, (f64::NAN, f64::NEG_INFINITY));
+        /// let proj2 = Complex::with_val(53, c2.proj_ref());
+        /// assert_eq!(proj2, (f64::INFINITY, 0.0));
+        /// // imaginary was negative, so now it is minus zero
+        /// assert!(proj2.imag().get_sign());
         /// ```
         fn proj_ref -> ProjRef;
     }
@@ -989,12 +1030,24 @@ impl Complex {
         ///
         /// ```rust
         /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, -2));
+        /// let c = Complex::with_val(53, (1, -2));
         /// // (1 - 2i) squared is (-3 - 4i)
-        /// c.square();
-        /// assert_eq!(c, (-3, -4));
+        /// let square = c.square();
+        /// assert_eq!(square, (-3, -4));
         /// ```
         fn square();
+        /// Computes the square, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// let mut c = Complex::with_val(53, (1, -2));
+        /// // (1 - 2i) squared is (-3 - 4i)
+        /// c.square_mut();
+        /// assert_eq!(c, (-3, -4));
+        /// ```
+        fn square_mut;
         /// Computes the square, applying the specified rounding method.
         ///
         /// # Examples
@@ -1038,12 +1091,24 @@ impl Complex {
         ///
         /// ```rust
         /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (-1, 0));
+        /// let c = Complex::with_val(53, (-1, 0));
         /// // square root of (-1 + 0i) is (0 + i)
-        /// c.sqrt();
-        /// assert_eq!(c, (0, 1));
+        /// let sqrt = c.sqrt();
+        /// assert_eq!(sqrt, (0, 1));
         /// ```
         fn sqrt();
+        /// Computes the square root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// let mut c = Complex::with_val(53, (-1, 0));
+        /// // square root of (-1 + 0i) is (0 + i)
+        /// c.sqrt_mut();
+        /// assert_eq!(c, (0, 1));
+        /// ```
+        fn sqrt_mut;
         /// Computes the square root, applying the specified rounding
         /// method.
         ///
@@ -1086,11 +1151,22 @@ impl Complex {
         ///
         /// ```rust
         /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1.5, 2.5));
-        /// c.conj();
-        /// assert_eq!(c, (1.5, -2.5));
+        /// let c = Complex::with_val(53, (1.5, 2.5));
+        /// let conj = c.conj();
+        /// assert_eq!(conj, (1.5, -2.5));
         /// ```
         fn conj();
+        /// Computes the complex conjugate.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// let mut c = Complex::with_val(53, (1.5, 2.5));
+        /// c.conj_mut();
+        /// assert_eq!(c, (1.5, -2.5));
+        /// ```
+        fn conj_mut;
         /// Computes the complex conjugate.
         ///
         /// # Examples
@@ -1104,28 +1180,75 @@ impl Complex {
         fn conj_ref -> ConjugateRef;
     }
 
+    /// Computes the absolute value and returns it as a
+    /// [`Float`](struct.Float.html) with the precision of the real
+    /// part.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (30, 40));
+    /// let f = c.abs();
+    /// assert_eq!(f, 50);
+    /// ```
+    #[inline]
+    pub fn abs(self) -> Float {
+        let (mut re, im) = self.into_real_imag();
+        re.hypot_mut(&im);
+        re
+    }
+
+    /// Computes the absolute value.
+    ///
+    /// The real part is set to the absolute value and the imaginary
+    /// part is set to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (30, 40));
+    /// c.abs_mut();
+    /// assert_eq!(c, (50, 0));
+    /// ```
+    #[inline]
+    pub fn abs_mut(&mut self) {
+        let (re, im) = self.as_mut_real_imag();
+        re.hypot_mut(im);
+        im.assign(Special::Zero);
+    }
+
     /// Computes the absolute value.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::{Complex, Float};
-    /// use rug::float::Special;
-    /// let c1 = Complex::with_val(53, (30, 40));
-    /// let f1 = Float::with_val(53, c1.abs_ref());
-    /// assert_eq!(f1, 50);
-    /// let c2 = Complex::with_val(53, (12, Special::Infinity));
-    /// let f2 = Float::with_val(53, c2.abs_ref());
-    /// assert!(f2.is_infinite());
+    /// let c = Complex::with_val(53, (30, 40));
+    /// let f = Float::with_val(53, c.abs_ref());
+    /// assert_eq!(f, 50);
     /// ```
     #[inline]
     pub fn abs_ref(&self) -> AbsRef {
         AbsRef { ref_self: self }
     }
 
-    /// Computes the argument.
+    /// Computes the argument, rounding to the nearest.
+    ///
+    /// The argument is returned as a [`Float`](struct.Float.html)
+    /// with the precision of the real part.
     ///
     /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (4, 3));
+    /// let f = c.arg();
+    /// assert_eq!(f, 0.75_f64.atan());
+    /// ```
+    ///
+    /// Special values are handled like atan2 in IEEE 754-2008.
     ///
     /// ```rust
     /// use rug::{Assign, Complex, Float};
@@ -1133,18 +1256,6 @@ impl Complex {
     /// use std::f64;
     /// // f has precision 53, just like f64, so PI constants match.
     /// let mut arg = Float::new(53);
-    /// let c_pos = Complex::with_val(53, 1);
-    /// arg.assign(c_pos.arg_ref());
-    /// assert!(arg.is_zero());
-    /// let c_neg = Complex::with_val(53, -1.3);
-    /// arg.assign(c_neg.arg_ref());
-    /// assert_eq!(arg, f64::consts::PI);
-    /// let c_pi_4 = Complex::with_val(53, (1.333, 1.333));
-    /// arg.assign(c_pi_4.arg_ref());
-    /// assert_eq!(arg, f64::consts::FRAC_PI_4);
-    ///
-    /// // Special values are handled like atan2 in IEEE 754-2008.
-    /// // Examples for real, imag set to plus, minus zero below:
     /// let mut zero = Complex::new(53);
     /// zero.assign((Special::Zero, Special::Zero));
     /// arg.assign(zero.arg_ref());
@@ -1160,6 +1271,87 @@ impl Complex {
     /// assert_eq!(arg, -f64::consts::PI);
     /// ```
     #[inline]
+    pub fn arg(self) -> Float {
+        let (mut re, im) = self.into_real_imag();
+        unsafe {
+            mpfr::atan2(
+                re.inner_mut(),
+                im.inner(),
+                re.inner(),
+                rraw(Round::Nearest),
+            );
+        }
+        re
+    }
+
+    /// Computes the argument, rounding to the nearest.
+    ///
+    /// The real part is set to the argument and the imaginary part is
+    /// set to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (40, 30));
+    /// c.arg_mut();
+    /// assert_eq!(c, (0.75_f64.atan(), 0));
+    /// ```
+    #[inline]
+    pub fn arg_mut(&mut self) {
+        self.arg_round(Default::default());
+    }
+
+    /// Computes the argument, applying the specified rounding method.
+    ///
+    /// The real part is set to the argument and the imaginary part is
+    /// set to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // use only 4 bits of precision
+    /// let mut c = Complex::with_val(4, (3, 4));
+    /// // arg(3 + 4i) = 0.9316.
+    /// // 0.9316 rounded to the nearest is 0.9375.
+    /// let dir = c.arg_round((Round::Nearest, Round::Nearest));
+    /// assert_eq!(c, (0.9375, 0));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Equal));
+    /// ```
+    #[inline]
+    pub fn arg_round(&mut self, round: Round2) -> Ordering2 {
+        let (re, im) = self.as_mut_real_imag();
+        let ret = unsafe {
+            mpfr::atan2(re.inner_mut(), im.inner(), re.inner(), rraw(round.0))
+        };
+        let dir_re = ordering1(ret);
+        let dir_im = im.assign_round(Special::Zero, round.1);
+        (dir_re, dir_im)
+    }
+
+    /// Computes the argument.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Complex, Float};
+    /// use std::f64;
+    /// // f has precision 53, just like f64, so PI constants match.
+    /// let mut arg = Float::new(53);
+    /// let c_pos = Complex::with_val(53, 1);
+    /// arg.assign(c_pos.arg_ref());
+    /// assert!(arg.is_zero());
+    /// let c_neg = Complex::with_val(53, -1.3);
+    /// arg.assign(c_neg.arg_ref());
+    /// assert_eq!(arg, f64::consts::PI);
+    /// let c_pi_4 = Complex::with_val(53, (1.333, 1.333));
+    /// arg.assign(c_pi_4.arg_ref());
+    /// assert_eq!(arg, f64::consts::FRAC_PI_4);
+    /// ```
+    #[inline]
     pub fn arg_ref(&self) -> ArgRef {
         ArgRef { ref_self: self }
     }
@@ -1173,15 +1365,31 @@ impl Complex {
         ///
         /// ```rust
         /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (13, 24));
-        /// c.mul_i(false);
-        /// assert_eq!(c, (-24, 13));
-        /// c.mul_i(false);
-        /// assert_eq!(c, (-13, -24));
-        /// c.mul_i(true);
-        /// assert_eq!(c, (-24, 13));
+        /// let c = Complex::with_val(53, (13, 24));
+        /// let rot1 = c.mul_i(false);
+        /// assert_eq!(rot1, (-24, 13));
+        /// let rot2 = rot1.mul_i(false);
+        /// assert_eq!(rot2, (-13, -24));
+        /// let rot2_less1 = rot2.mul_i(true);
+        /// assert_eq!(rot2_less1, (-24, 13));
         /// ```
         fn mul_i(negative: bool);
+        /// Multiplies the complex number by ±<i>i</i>, rounding to
+        /// the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// let mut c = Complex::with_val(53, (13, 24));
+        /// c.mul_i_mut(false);
+        /// assert_eq!(c, (-24, 13));
+        /// c.mul_i_mut(false);
+        /// assert_eq!(c, (-13, -24));
+        /// c.mul_i_mut(true);
+        /// assert_eq!(c, (-24, 13));
+        /// ```
+        fn mul_i_mut;
         /// Multiplies the complex number by ±<i>i</i>, applying the
         /// specified rounding method.
         ///
@@ -1222,12 +1430,24 @@ impl Complex {
         ///
         /// ```rust
         /// use rug::Complex;
-        /// let mut c = Complex::with_val(53, (1, 1));
+        /// let c = Complex::with_val(53, (1, 1));
         /// // 1/(1 + i) = (0.5 - 0.5i)
-        /// c.recip();
-        /// assert_eq!(c, (0.5, -0.5));
+        /// let recip = c.recip();
+        /// assert_eq!(recip, (0.5, -0.5));
         /// ```
         fn recip();
+        /// Computes the reciprocal, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Complex;
+        /// let mut c = Complex::with_val(53, (1, 1));
+        /// // 1/(1 + i) = (0.5 - 0.5i)
+        /// c.recip_mut();
+        /// assert_eq!(c, (0.5, -0.5));
+        /// ```
+        fn recip_mut;
         /// Computes the reciprocal, applying the specified rounding
         /// method.
         ///
@@ -1258,6 +1478,73 @@ impl Complex {
         fn recip_ref -> RecipRef;
     }
 
+    /// Computes the norm, that is the square of the absolute value,
+    /// rounding it to the nearest.
+    ///
+    /// The norm is returned as a [`Float`](struct.Float.html) with
+    /// the precision of the real part.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (3, 4));
+    /// let f = c.norm();
+    /// assert_eq!(f, 25);
+    /// ```
+    #[inline]
+    pub fn norm(self) -> Float {
+        Float::with_val(self.real().prec(), self.norm_ref())
+    }
+
+    /// Computes the norm, that is the square of the absolute value,
+    /// rounding to the nearest.
+    ///
+    /// The real part is set to the norm and the imaginary part is set
+    /// to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::with_val(53, (3, 4));
+    /// c.norm_mut();
+    /// assert_eq!(c, (25, 0));
+    /// ```
+    #[inline]
+    pub fn norm_mut(&mut self) {
+        self.norm_round(Default::default());
+    }
+
+    /// Computes the norm, that is the square of the absolute value,
+    /// applying the specified rounding method.
+    ///
+    /// The real part is set to the norm and the imaginary part is set
+    /// to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // use only 4 bits of precision
+    /// let mut c = Complex::with_val(4, (3, 4));
+    /// // 25 rounded up using 4 bits is 26
+    /// let dir = c.norm_round((Round::Up, Round::Up));
+    /// assert_eq!(c, (26, 0));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Equal));
+    /// ```
+    #[inline]
+    pub fn norm_round(&mut self, round: Round2) -> Ordering2 {
+        let (norm, dir_re) =
+            Float::with_val_round(self.real().prec(), self.norm_ref(), round.0);
+        let (real, imag) = self.as_mut_real_imag();
+        mem::replace(real, norm);
+        let dir_im = imag.assign_round(Special::Zero, round.1);
+        (dir_re, dir_im)
+    }
+
     /// Computes the norm, that is the square of the absolute value.
     ///
     /// # Examples
@@ -1277,6 +1564,8 @@ impl Complex {
         mpc::log;
         /// Computes the natural logarithm, rounding to the nearest.
         fn ln();
+        /// Computes the natural logarithm, rounding to the nearest.
+        fn ln_mut;
         /// Computes the natural logarithm, applying the specified
         /// rounding method.
         fn ln_round;
@@ -1287,6 +1576,8 @@ impl Complex {
         mpc::log10;
         /// Computes the logarithm to base 10, rounding to the nearest.
         fn log10();
+        /// Computes the logarithm to base 10, rounding to the nearest.
+        fn log10_mut;
         /// Computes the logarithm to base 10, applying the specified
         /// rounding method.
         fn log10_round;
@@ -1297,6 +1588,8 @@ impl Complex {
         mpc::exp;
         /// Computes the exponential, rounding to the nearest.
         fn exp();
+        /// Computes the exponential, rounding to the nearest.
+        fn exp_mut;
         /// Computes the exponential, applying the specified rounding
         /// method.
         fn exp_round;
@@ -1307,6 +1600,8 @@ impl Complex {
         mpc::sin;
         /// Computes the sine, rounding to the nearest.
         fn sin();
+        /// Computes the sine, rounding to the nearest.
+        fn sin_mut;
         /// Computes the sine, applying the specified rounding method.
         fn sin_round;
         /// Computes the sine.
@@ -1316,6 +1611,8 @@ impl Complex {
         mpc::cos;
         /// Computes the cosine, rounding to the nearest.
         fn cos();
+        /// Computes the cosine, rounding to the nearest.
+        fn cos_mut;
         /// Computes the cosine, applying the specified rounding method.
         fn cos_round;
         /// Computes the cosine.
@@ -1329,6 +1626,12 @@ impl Complex {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         fn sin_cos(cos);
+        /// Computes the sine and cosine of `self`, rounding to the
+        /// nearest.
+        ///
+        /// The sine is stored in `self` and keeps its precision,
+        /// while the cosine is stored in `cos` keeping its precision.
+        fn sin_cos_mut;
         /// Computes the sine and cosine of `self`, applying the
         /// specified rounding methods.
         ///
@@ -1357,6 +1660,8 @@ impl Complex {
         mpc::tan;
         /// Computes the tangent, rounding to the nearest.
         fn tan();
+        /// Computes the tangent, rounding to the nearest.
+        fn tan_mut;
         /// Computes the tangent, applying the specified rounding method.
         fn tan_round;
         /// Computes the tangent.
@@ -1366,6 +1671,8 @@ impl Complex {
         mpc::sinh;
         /// Computes the hyperbolic sine, rounding to the nearest.
         fn sinh();
+        /// Computes the hyperbolic sine, rounding to the nearest.
+        fn sinh_mut;
         /// Computes the hyperbolic sine, applying the specified rounding
         /// method.
         fn sinh_round;
@@ -1376,6 +1683,8 @@ impl Complex {
         mpc::cosh;
         /// Computes the hyperbolic cosine, rounding to the nearest.
         fn cosh();
+        /// Computes the hyperbolic cosine, rounding to the nearest.
+        fn cosh_mut;
         /// Computes the hyperbolic cosine, applying the specified rounding
         /// method.
         fn cosh_round;
@@ -1386,6 +1695,8 @@ impl Complex {
         mpc::tanh;
         /// Computes the hyperbolic tangent, rounding to the nearest.
         fn tanh();
+        /// Computes the hyperbolic tangent, rounding to the nearest.
+        fn tanh_mut;
         /// Computes the hyperbolic tangent, applying the specified
         /// rounding method.
         fn tanh_round;
@@ -1396,6 +1707,8 @@ impl Complex {
         mpc::asin;
         /// Computes the inverse sine, rounding to the nearest.
         fn asin();
+        /// Computes the inverse sine, rounding to the nearest.
+        fn asin_mut;
         /// Computes the inverse sine, applying the specified rounding
         /// method.
         fn asin_round;
@@ -1406,6 +1719,8 @@ impl Complex {
         mpc::acos;
         /// Computes the inverse cosine, rounding to the nearest.
         fn acos();
+        /// Computes the inverse cosine, rounding to the nearest.
+        fn acos_mut;
         /// Computes the inverse cosine, applying the specified rounding
         /// method.
         fn acos_round;
@@ -1416,6 +1731,8 @@ impl Complex {
         mpc::atan;
         /// Computes the inverse tangent, rounding to the nearest.
         fn atan();
+        /// Computes the inverse tangent, rounding to the nearest.
+        fn atan_mut;
         /// Computes the inverse tangent, applying the specified rounding
         /// method.
         fn atan_round;
@@ -1426,6 +1743,8 @@ impl Complex {
         mpc::asinh;
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
         fn asinh();
+        /// Computes the inverse hyperbolic sine, rounding to the nearest.
+        fn asinh_mut;
         /// Computes the inverse hyperbolic sine, applying the specified
         /// rounding method.
         fn asinh_round;
@@ -1437,6 +1756,9 @@ impl Complex {
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
         fn acosh();
+        /// Computes the inverse hyperbolic cosine, rounding to the
+        /// nearest.
+        fn acosh_mut;
         /// Computes the inverse hyperbolic cosine, applying the specified
         /// rounding method.
         fn acosh_round;
@@ -1448,6 +1770,9 @@ impl Complex {
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
         fn atanh();
+        /// Computes the inverse hyperbolic tangent, rounding to the
+        /// nearest.
+        fn atanh_mut;
         /// Computes the inverse hyperbolic tangent, applying the
         /// specified rounding method.
         fn atanh_round;
@@ -2478,6 +2803,11 @@ fn rraw2(round: Round2) -> mpc::rnd_t {
         (Round::AwayFromZero, _) |
         (_, Round::AwayFromZero) => unimplemented!(),
     }
+}
+
+#[inline]
+fn ordering1(ord: c_int) -> Ordering {
+    ord.cmp(&0)
 }
 
 #[inline]
