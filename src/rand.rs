@@ -149,7 +149,7 @@ impl<'a> RandState<'a> {
     /// let mut seed = Seed;
     /// let mut rand = RandState::new_custom(&mut seed);
     /// let mut i = Integer::from(15);
-    /// i.random_below(&mut rand);
+    /// i.random_below_mut(&mut rand);
     /// println!("0 <= {} < 15", i);
     /// assert!(i < 15);
     /// ```

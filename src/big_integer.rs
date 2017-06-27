@@ -1580,7 +1580,60 @@ impl Integer {
     }
 
     /// Raises a number to the power of `power` modulo `modulo` and
-    /// return `true` if an answer exists.
+    /// returns `Ok(raised)` if an answer exists, or `Err(unchanged)`
+    /// if it does not.
+    ///
+    /// If `power` is negative, then the number must have an inverse
+    /// modulo `modulo` for an answer to exist.
+    ///
+    /// # Examples
+    ///
+    /// When the power is positive, an answer always exists.
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 ^ 5 = 16807
+    /// let n = Integer::from(7);
+    /// let pow = Integer::from(5);
+    /// let m = Integer::from(1000);
+    /// let raised = match n.pow_mod(&pow, &m) {
+    ///     Ok(raised) => raised,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// assert_eq!(raised, 807);
+    /// ```
+    ///
+    /// When the power is negative, an answer exists if an inverse
+    /// exists.
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
+    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// let n = Integer::from(7);
+    /// let pow = Integer::from(-5);
+    /// let m = Integer::from(1000);
+    /// let raised = match n.pow_mod(&pow, &m) {
+    ///     Ok(raised) => raised,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// assert_eq!(raised, 943);
+    /// ```
+    #[inline]
+    pub fn pow_mod(
+        mut self,
+        power: &Integer,
+        modulo: &Integer,
+    ) -> Result<Integer, Integer> {
+        if self.pow_mod_mut(power, modulo) {
+            Ok(self)
+        } else {
+            Err(self)
+        }
+    }
+
+    /// Raises a number to the power of `power` modulo `modulo` and
+    /// returns `true` if an answer exists.
     ///
     /// If `power` is negative, then the number must have an inverse
     /// modulo `modulo` for an answer to exist.
@@ -1589,22 +1642,21 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::{Assign, Integer};
-    ///
-    /// // 7 ^ 5 = 16807
-    /// let mut n = Integer::from(7);
-    /// let pow = Integer::from(5);
+    /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
+    /// let mut n = Integer::from(2);
+    /// let pow = Integer::from(-5);
     /// let m = Integer::from(1000);
-    /// assert!(n.pow_mod(&pow, &m));
-    /// assert_eq!(n, 807);
-    ///
+    /// let exists = n.pow_mod_mut(&pow, &m);
+    /// assert!(!exists);
+    /// assert_eq!(n, 2);
     /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
     /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// n.assign(7);
-    /// let neg_pow = Integer::from(-5);
-    /// assert!(n.pow_mod(&neg_pow, &m));
+    /// let exists = n.pow_mod_mut(&pow, &m);
+    /// assert!(exists);
     /// assert_eq!(n, 943);
     /// ```
-    pub fn pow_mod(&mut self, power: &Integer, modulo: &Integer) -> bool {
+    pub fn pow_mod_mut(&mut self, power: &Integer, modulo: &Integer) -> bool {
         let abs_pow;
         let pow_inner = if power.sign() == Ordering::Less {
             if !(self.invert_mut(modulo)) {
@@ -1630,8 +1682,8 @@ impl Integer {
         true
     }
 
-    /// Raises a number to the power of `power` modulo `modulo` and
-    /// return `true` if an answer exists.
+    /// Raises a number to the power of `power` modulo `modulo` if an
+    /// answer exists.
     ///
     /// If `power` is negative, then the number must have an inverse
     /// modulo `modulo` for an answer to exist.
@@ -1640,15 +1692,23 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::{Assign, Integer};
-    /// // 7 ^ 5 = 16807
-    /// let base = Integer::from(7);
-    /// let pow = Integer::from(5);
+    /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
+    /// let two = Integer::from(2);
+    /// let pow = Integer::from(-5);
     /// let m = Integer::from(1000);
-    /// let r = base.pow_mod_ref(&pow, &m);
-    /// let (mut ans, mut exists) = (Integer::new(), false);
-    /// (&mut ans, &mut exists).assign(r);
-    /// assert!(exists);
-    /// assert_eq!(ans, 807);
+    /// let mut ans = Result::from(two.pow_mod_ref(&pow, &m));
+    /// match ans {
+    ///     Ok(_) => unreachable!(),
+    ///     Err(ref unchanged) => assert_eq!(*unchanged, 0),
+    /// }
+    /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
+    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// let seven = Integer::from(7);
+    /// ans.assign(seven.pow_mod_ref(&pow, &m));
+    /// match ans {
+    ///     Ok(ref raised) => assert_eq!(*raised, 943),
+    ///     Err(_) => unreachable!(),
+    /// }
     /// ```
     #[inline]
     pub fn pow_mod_ref<'a>(
@@ -2085,12 +2145,32 @@ impl Integer {
     /// let mut i = Integer::new();
     /// i.assign_u_pow_u(13, 50);
     /// i *= 1000;
-    /// let count = i.remove_factor(&Integer::from(13));
+    /// let (remove, count) = i.remove_factor(&Integer::from(13));
+    /// assert_eq!(remove, 1000);
     /// assert_eq!(count, 50);
-    /// assert_eq!(i, 1000);
     /// ```
     #[inline]
-    pub fn remove_factor(&mut self, factor: &Integer) -> u32 {
+    pub fn remove_factor(mut self, factor: &Integer) -> (Integer, u32) {
+        let count = self.remove_factor_mut(factor);
+        (self, count)
+    }
+
+    /// Removes all occurrences of `factor`, and returns the number of
+    /// occurrences removed.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::new();
+    /// i.assign_u_pow_u(13, 50);
+    /// i *= 1000;
+    /// let count = i.remove_factor_mut(&Integer::from(13));
+    /// assert_eq!(i, 1000);
+    /// assert_eq!(count, 50);
+    /// ```
+    #[inline]
+    pub fn remove_factor_mut(&mut self, factor: &Integer) -> u32 {
         let cnt = unsafe {
             gmp::mpz_remove(self.inner_mut(), self.inner(), factor.inner())
         };
@@ -2392,8 +2472,33 @@ impl Integer {
     /// use rug::Integer;
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
+    /// let i = Integer::from(15);
+    /// let below = i.random_below(&mut rand);
+    /// println!("0 <= {} < 15", below);
+    /// assert!(below < 15);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    #[inline]
+    pub fn random_below(mut self, rng: &mut RandState) -> Integer {
+        self.random_below_mut(rng);
+        self
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a non-negative random number below the given
+    /// boundary value.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
     /// let mut i = Integer::from(15);
-    /// i.random_below(&mut rand);
+    /// i.random_below_mut(&mut rand);
     /// println!("0 <= {} < 15", i);
     /// assert!(i < 15);
     /// ```
@@ -2402,12 +2507,11 @@ impl Integer {
     ///
     /// Panics if the boundary value is less than or equal to zero.
     #[inline]
-    pub fn random_below(&mut self, rng: &mut RandState) -> &mut Integer {
+    pub fn random_below_mut(&mut self, rng: &mut RandState) {
         assert_eq!(self.sign(), Ordering::Greater, "cannot be below zero");
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
         }
-        self
     }
 
     #[cfg(feature = "rand")]
@@ -2436,8 +2540,10 @@ impl Integer {
         bound: &Integer,
         rng: &mut RandState,
     ) {
-        self.assign(bound);
-        self.random_below(rng);
+        assert_eq!(bound.sign(), Ordering::Greater, "cannot be below zero");
+        unsafe {
+            gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), bound.inner());
+        }
     }
 }
 
@@ -2632,32 +2738,91 @@ pub struct PowModRef<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> Assign<PowModRef<'a>> for (&'a mut Integer, &'a mut bool) {
-    fn assign(&mut self, src: PowModRef<'a>) {
-        let abs_pow;
-        let pow_inner = if src.power.sign() == Ordering::Less {
-            if !(self.0.invert_mut(src.modulo)) {
-                *self.1 = false;
-                return;
-            }
-            abs_pow = mpz_t {
+impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
+    #[inline]
+    fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
+        if src.power.sign() == Ordering::Less {
+            let mut ret = Result::from(src.ref_self.invert_ref(src.modulo))?;
+            let abs_pow = mpz_t {
                 alloc: src.power.inner().alloc,
                 size: src.power.inner().size.checked_neg().expect("overflow"),
                 d: src.power.inner().d,
             };
-            &abs_pow
+            unsafe {
+                gmp::mpz_powm(
+                    ret.inner_mut(),
+                    ret.inner(),
+                    &abs_pow,
+                    src.modulo.inner(),
+                );
+            }
+            Ok(ret)
         } else {
-            src.power.inner()
-        };
-        unsafe {
-            gmp::mpz_powm(
-                self.0.inner_mut(),
-                src.ref_self.inner(),
-                pow_inner,
-                src.modulo.inner(),
-            );
+            let mut ret = Integer::new();
+            unsafe {
+                gmp::mpz_powm(
+                    ret.inner_mut(),
+                    src.ref_self.inner(),
+                    src.power.inner(),
+                    src.modulo.inner(),
+                );
+            }
+            Ok(ret)
         }
-        *self.1 = true;
+    }
+}
+
+impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
+    fn assign(&mut self, src: PowModRef<'a>) {
+        if src.power.sign() == Ordering::Less {
+            self.assign(src.ref_self.invert_ref(src.modulo));
+            match *self {
+                Ok(ref mut inv) => {
+                    let abs_pow = mpz_t {
+                        alloc: src.power.inner().alloc,
+                        size: src.power
+                            .inner()
+                            .size
+                            .checked_neg()
+                            .expect("overflow"),
+                        d: src.power.inner().d,
+                    };
+                    unsafe {
+                        gmp::mpz_powm(
+                            inv.inner_mut(),
+                            inv.inner(),
+                            &abs_pow,
+                            src.modulo.inner(),
+                        );
+                    }
+                }
+                Err(_) => {}
+            }
+        } else {
+            if self.is_err() {
+                result_swap(self);
+            }
+            match *self {
+                Ok(ref mut dest) => unsafe {
+                    gmp::mpz_powm(
+                        dest.inner_mut(),
+                        src.ref_self.inner(),
+                        src.power.inner(),
+                        src.modulo.inner(),
+                    );
+                },
+                Err(_) => unreachable!(),
+            }
+            let mut ret = Integer::new();
+            unsafe {
+                gmp::mpz_powm(
+                    ret.inner_mut(),
+                    src.ref_self.inner(),
+                    src.power.inner(),
+                    src.modulo.inner(),
+                );
+            }
+        }
     }
 }
 
@@ -2710,12 +2875,7 @@ impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
             }
         };
         if exists != self.is_ok() {
-            let old = mem::replace(self, unsafe { mem::uninitialized() });
-            let new = match old {
-                Ok(i) => Err(i),
-                Err(i) => Ok(i),
-            };
-            mem::forget(mem::replace(self, new));
+            result_swap(self);
         }
     }
 }
@@ -3448,4 +3608,13 @@ fn trunc_f64_to_f32(f: f64) -> f32 {
     } else {
         f as f32
     }
+}
+
+fn result_swap<T>(r: &mut Result<T, T>) {
+    let old = mem::replace(r, unsafe { mem::uninitialized() });
+    let new = match old {
+        Ok(t) => Err(t),
+        Err(t) => Ok(t),
+    };
+    mem::forget(mem::replace(r, new));
 }
