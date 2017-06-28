@@ -2438,10 +2438,25 @@ impl Float {
     /// Generates a random number in the continuous range 0 ≤ *x* < 1,
     /// and rounds to the nearest.
     ///
-    /// The rounded result can actually be equal to one.
-    /// This is equivalent to calling
+    /// The result can be rounded up to be eual to one. This is
+    /// equivalent to calling
     /// [`assign_random_cont_round(rng, Round::Nearest)`]
     /// (#method.assign_random_cont_round).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let mut f = Float::new(2);
+    /// f.assign_random_cont(&mut rand);
+    /// // The significand is either 0b10 or 0b11
+    /// //           10          11
+    /// assert!(f == 1.0 || f == 0.75 ||
+    ///         f == 0.5 || f == 0.375 ||
+    ///         f == 0.25 || f <= 0.1875);
+    /// ```
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         self.assign_random_cont_round(rng, Round::Nearest);
@@ -2451,8 +2466,8 @@ impl Float {
     /// Generates a random number in the continous range 0 ≤ *x* < 1,
     /// and applies the specified rounding method.
     ///
-    /// The rounded result can actually be equal to one. Unlike
-    /// [`assign_random_bits_round()`](#method.assign_random_bits_round)
+    /// The result can be rounded up to be equal to one. Unlike the
+    /// [`assign_random_bits`](#method.assign_random_bits) method
     /// which generates a discrete random number at intervals
     /// depending on the precision, this method is equivalent to
     /// generating a continuous random number with infinite precision
@@ -2469,16 +2484,14 @@ impl Float {
     /// use std::cmp::Ordering;
     /// let mut rand = RandState::new();
     /// let mut f = Float::new(2);
-    /// let dir = f.assign_random_cont_round(&mut rand, Round::Nearest);
+    /// let dir = f.assign_random_cont_round(&mut rand, Round::Down);
     /// // We cannot have an exact value without rounding.
-    /// assert_ne!(dir, Ordering::Equal);
-    /// // The significand is either 0b10 or 0b11
-    /// //           10          11
-    /// assert!(f == 1.0 || f == 0.75 ||
-    ///         f == 0.5 || f == 0.375 ||
-    ///         f == 0.25 || f <= 0.1875);
-    /// // If the result is 1.0, rounding was up.
-    /// assert!(f != 1.0 || dir == Ordering::Greater);
+    /// assert_eq!(dir, Ordering::Less);
+    /// // The significand is either 0b11 or 0b10
+    /// //           11           10
+    /// assert!(f == 0.75 || f == 0.5 ||
+    ///         f == 0.375 || f == 0.25 ||
+    ///         f <= 0.1875);
     /// ```
     #[inline]
     pub fn assign_random_cont_round(
