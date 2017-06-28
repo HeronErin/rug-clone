@@ -29,10 +29,12 @@ use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::hash::{Hash, Hasher};
+use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
-               BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
-               Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+               BitXor, BitXorAssign, Deref, Div, DivAssign, Mul, MulAssign,
+               Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
+               SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::slice;
 use std::str::FromStr;
@@ -821,6 +823,62 @@ impl Integer {
     ) -> Result<(), ParseIntegerError> {
         self.assign(Integer::valid_str_radix(src, radix)?);
         Ok(())
+    }
+
+    /// Borrows a negated copy of the `Integer`.
+    ///
+    /// The returned object implements `Deref` with an `Integer`
+    /// target. This method performs a shallow copy and negates it, and
+    /// negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(42);
+    /// let neg_i = i.as_neg();
+    /// assert_eq!(*neg_i, -42);
+    /// // methods taking &self can be used on the returned object
+    /// let reneg_i = neg_i.as_neg();
+    /// assert_eq!(*reneg_i, 42);
+    /// assert_eq!(*reneg_i, i);
+    /// ```
+    #[inline]
+    pub fn as_neg(&self) -> BorrowInteger {
+        let mut ret = BorrowInteger {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        ret.inner.size = self.inner.size.checked_neg().expect("overflow");
+        ret
+    }
+
+    /// Borrows an absolute copy of the `Integer`.
+    ///
+    /// The returned object implements `Deref` with an `Integer`
+    /// target. This method performs a shallow copy and possibly
+    /// negates it, and negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let i = Integer::from(-42);
+    /// let abs_i = i.as_abs();
+    /// assert_eq!(*abs_i, 42);
+    /// // methods taking &self can be used on the returned object
+    /// let reabs_i = abs_i.as_abs();
+    /// assert_eq!(*reabs_i, 42);
+    /// assert_eq!(*reabs_i, *abs_i);
+    /// ```
+    #[inline]
+    pub fn as_abs(&self) -> BorrowInteger {
+        let mut ret = BorrowInteger {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        ret.inner.size = self.inner.size.checked_abs().expect("overflow");
+        ret
     }
 
     /// Returns `true` if the number is even.
@@ -2924,6 +2982,20 @@ impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {
 }
 
 ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialRef { k: u32 } }
+
+pub struct BorrowInteger<'a> {
+    inner: mpz_t,
+    phantom: PhantomData<&'a Integer>,
+}
+
+impl<'a> Deref for BorrowInteger<'a> {
+    type Target = Integer;
+    #[inline]
+    fn deref(&self) -> &Integer {
+        let ptr = (&self.inner) as *const _ as *const _;
+        unsafe { &*ptr }
+    }
+}
 
 arith_unary! { Integer; gmp::mpz_neg; Neg neg; NegAssign neg_assign; NegRef }
 arith_binary! {

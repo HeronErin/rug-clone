@@ -37,9 +37,10 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::hash::{Hash, Hasher};
 use std::i32;
+use std::marker::PhantomData;
 use std::mem;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
-               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
+               Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
 use std::ptr;
 
@@ -954,6 +955,134 @@ impl Complex {
         }
         mem::forget(self);
         (real, imag)
+    }
+
+    /// Borrows a negated copy of the `Complex` number.
+    ///
+    /// The returned object implements `Deref` with a `Complex`
+    /// target. This method performs a shallow copy and negates it,
+    /// and negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (4.2, -2.3));
+    /// let neg_c = c.as_neg();
+    /// assert_eq!(*neg_c, (-4.2, 2.3));
+    /// // methods taking &self can be used on the returned object
+    /// let reneg_c = neg_c.as_neg();
+    /// assert_eq!(*reneg_c, (4.2, -2.3));
+    /// assert_eq!(*reneg_c, c);
+    /// ```
+    pub fn as_neg(&self) -> BorrowComplex {
+        let mut ret = BorrowComplex {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        let (self_re, self_im) = self.as_real_imag();
+        unsafe {
+            if self_re.is_nan() {
+                mpfr::set_nanflag();
+            } else {
+                (*mpc::realref(&mut ret.inner)).sign.neg_assign();
+            }
+            if self_im.is_nan() {
+                mpfr::set_nanflag();
+            } else {
+                (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
+            }
+        }
+        ret
+    }
+
+    /// Borrows a conjugate copy of the `Complex` number.
+    ///
+    /// The returned object implements `Deref` with a `Complex`
+    /// target. This method performs a shallow copy and negates its
+    /// imaginary part, and negation does not change the allocated
+    /// data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (4.2, -2.3));
+    /// let conj_c = c.as_conj();
+    /// assert_eq!(*conj_c, (4.2, 2.3));
+    /// // methods taking &self can be used on the returned object
+    /// let reconj_c = conj_c.as_conj();
+    /// assert_eq!(*reconj_c, (4.2, -2.3));
+    /// assert_eq!(*reconj_c, c);
+    /// ```
+    pub fn as_conj(&self) -> BorrowComplex {
+        let mut ret = BorrowComplex {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        let self_im = self.imag();
+        unsafe {
+            if self_im.is_nan() {
+                mpfr::set_nanflag();
+            } else {
+                (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
+            }
+        }
+        ret
+    }
+
+    /// Borrows a rotated copy of the `Complex` number.
+    ///
+    /// The returned object implements `Deref` with a `Complex`
+    /// target. This method operates by performing some shallow
+    /// copying; unlike the [`mul_i`](#method.mul_i) method and
+    /// friends, this method swaps the precision of the real and
+    /// imaginary parts if they have unequal precisions.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::with_val(53, (4.2, -2.3));
+    /// let mul_i_c = c.as_mul_i(false);
+    /// assert_eq!(*mul_i_c, (2.3, 4.2));
+    /// // methods taking &self can be used on the returned object
+    /// let mul_ii_c = mul_i_c.as_mul_i(false);
+    /// assert_eq!(*mul_ii_c, (-4.2, 2.3));
+    /// let mul_1_c = mul_i_c.as_mul_i(true);
+    /// assert_eq!(*mul_1_c, (4.2, -2.3));
+    /// assert_eq!(*mul_1_c, c);
+    /// ```
+    pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
+        let (self_re, self_im) = self.as_real_imag();
+        let (self_re_nan, self_im_nan) = (self_re.is_nan(), self_im.is_nan());
+        let (self_re, self_im) = (self_re.inner(), self_im.inner());
+        let mut ret = BorrowComplex {
+            inner: unsafe { mem::uninitialized() },
+            phantom: PhantomData,
+        };
+        let (ret_re, ret_im) = unsafe {
+            let re = &mut *mpc::realref(&mut ret.inner);
+            let im = &mut *mpc::imagref(&mut ret.inner);
+            (re, im)
+        };
+        *ret_re = *self_im;
+        *ret_im = *self_re;
+        unsafe {
+            if negative {
+                if self_re_nan {
+                    mpfr::set_nanflag();
+                } else {
+                    ret_im.sign.neg_assign();
+                }
+            } else if self_im_nan {
+                mpfr::set_nanflag();
+            } else {
+                ret_re.sign.neg_assign();
+            }
+
+        }
+        ret
     }
 
     math_op1_no_round! {
@@ -2884,6 +3013,20 @@ ref_math_op1_complex! { mpc::atan; struct AtanRef {} }
 ref_math_op1_complex! { mpc::asinh; struct AsinhRef {} }
 ref_math_op1_complex! { mpc::acosh; struct AcoshRef {} }
 ref_math_op1_complex! { mpc::atanh; struct AtanhRef {} }
+
+pub struct BorrowComplex<'a> {
+    inner: mpc_t,
+    phantom: PhantomData<&'a Complex>,
+}
+
+impl<'a> Deref for BorrowComplex<'a> {
+    type Target = Complex;
+    #[inline]
+    fn deref(&self) -> &Complex {
+        let ptr = (&self.inner) as *const _ as *const _;
+        unsafe { &*ptr }
+    }
+}
 
 impl Neg for Complex {
     type Output = Complex;

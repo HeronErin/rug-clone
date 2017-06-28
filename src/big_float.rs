@@ -38,9 +38,10 @@ use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::hash::{Hash, Hasher};
+use std::marker::PhantomData;
 use std::mem;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
-               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
+               Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
 use std::slice;
@@ -1306,6 +1307,72 @@ impl Float {
             Float::valid_str_radix(src, radix)?,
             round,
         ))
+    }
+
+    /// Borrows a negated copy of the `Float`.
+    ///
+    /// The returned object implements `Deref` with a `Float` target.
+    /// This method performs a shallow copy and negates it, and
+    /// negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 4.2);
+    /// let neg_f = f.as_neg();
+    /// assert_eq!(*neg_f, -4.2);
+    /// // methods taking &self can be used on the returned object
+    /// let reneg_f = neg_f.as_neg();
+    /// assert_eq!(*reneg_f, 4.2);
+    /// assert_eq!(*reneg_f, f);
+    /// ```
+    pub fn as_neg(&self) -> BorrowFloat {
+        let mut ret = BorrowFloat {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        unsafe {
+            if self.is_nan() {
+                mpfr::set_nanflag();
+            } else {
+                ret.inner.sign.neg_assign();
+            }
+        }
+        ret
+    }
+
+    /// Borrows an absolute copy of the `Float`.
+    ///
+    /// The returned object implements `Deref` with a `Float` target.
+    /// This method performs a shallow copy and possibly negates it,
+    /// and negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, -4.2);
+    /// let abs_f = f.as_abs();
+    /// assert_eq!(*abs_f, 4.2);
+    /// // methods taking &self can be used on the returned object
+    /// let reabs_f = abs_f.as_abs();
+    /// assert_eq!(*reabs_f, 4.2);
+    /// assert_eq!(*reabs_f, *abs_f);
+    /// ```
+    pub fn as_abs(&self) -> BorrowFloat {
+        let mut ret = BorrowFloat {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        unsafe {
+            if self.is_nan() {
+                mpfr::set_nanflag();
+            } else {
+                ret.inner.sign = 1;
+            }
+        }
+        ret
     }
 
     /// Returns `true` if `self` is an integer.
@@ -2893,6 +2960,20 @@ ref_math_op1_float! { mpfr::rint_round; struct RoundRef {} }
 ref_math_op1_float! { mpfr::rint_trunc; struct TruncRef {} }
 ref_math_op1_float! { mpfr::frac; struct FractRef {} }
 ref_math_op1_2_float! { mpfr::modf; struct TruncFractRef {} }
+
+pub struct BorrowFloat<'a> {
+    inner: mpfr_t,
+    phantom: PhantomData<&'a Float>,
+}
+
+impl<'a> Deref for BorrowFloat<'a> {
+    type Target = Float;
+    #[inline]
+    fn deref(&self) -> &Float {
+        let ptr = (&self.inner) as *const _ as *const _;
+        unsafe { &*ptr }
+    }
+}
 
 impl Neg for Float {
     type Output = Float;

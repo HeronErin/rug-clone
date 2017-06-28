@@ -27,9 +27,10 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::hash::{Hash, Hasher};
 use std::i32;
+use std::marker::PhantomData;
 use std::mem;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
-               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
+               Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int};
 use std::str::FromStr;
 
@@ -692,6 +693,113 @@ impl Rational {
         }
         mem::forget(self);
         (numer, denom)
+    }
+
+    /// Borrows a negated copy of the `Rational` number.
+    ///
+    /// The returned object implements `Deref` with a `Rational`
+    /// target. This method performs a shallow copy and negates it,
+    /// and negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((7, 11));
+    /// let neg_r = r.as_neg();
+    /// assert_eq!(*neg_r, (-7, 11));
+    /// // methods taking &self can be used on the returned object
+    /// let reneg_r = neg_r.as_neg();
+    /// assert_eq!(*reneg_r, (7, 11));
+    /// assert_eq!(*reneg_r, r);
+    /// ```
+    #[inline]
+    pub fn as_neg(&self) -> BorrowRational {
+        let mut ret = BorrowRational {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        let size = self.numer().inner().size.checked_neg().expect("overflow");
+        unsafe {
+            (*gmp::mpq_numref(&mut ret.inner)).size = size;
+        }
+        ret
+    }
+
+    /// Borrows an absolute copy of the `Rational` number.
+    ///
+    /// The returned object implements `Deref` with a `Rational`
+    /// target. This method performs a shallow copy and possibly
+    /// negates it, and negation does not change the allocated data.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-7, 11));
+    /// let abs_r = r.as_abs();
+    /// assert_eq!(*abs_r, (7, 11));
+    /// // methods taking &self can be used on the returned object
+    /// let reabs_r = abs_r.as_abs();
+    /// assert_eq!(*reabs_r, (7, 11));
+    /// assert_eq!(*reabs_r, *abs_r);
+    /// ```
+    #[inline]
+    pub fn as_abs(&self) -> BorrowRational {
+        let mut ret = BorrowRational {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
+        let size = self.numer().inner().size.checked_abs().expect("overflow");
+        unsafe {
+            (*gmp::mpq_numref(&mut ret.inner)).size = size;
+        }
+        ret
+    }
+
+    /// Borrows a reciprocal copy of the `Rational` number.
+    ///
+    /// The returned object implements `Deref` with a `Rational`
+    /// target. This method performs some shallow copying, swapping
+    /// numerator and denominator and making sure the sign is in the
+    /// numberator.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let r = Rational::from((-7, 11));
+    /// let recip_r = r.as_recip();
+    /// assert_eq!(*recip_r, (-11, 7));
+    /// // methods taking &self can be used on the returned object
+    /// let rerecip_r = recip_r.as_recip();
+    /// assert_eq!(*rerecip_r, (-7, 11));
+    /// assert_eq!(*rerecip_r, r);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is zero.
+    pub fn as_recip(&self) -> BorrowRational {
+        let (self_num, self_den) = self.as_numer_denom();
+        let (self_num, self_den) = (self_num.inner(), self_den.inner());
+        assert_ne!(self_num.size, 0, "division by zero");
+        let mut ret = BorrowRational {
+            inner: unsafe { mem::uninitialized() },
+            phantom: PhantomData,
+        };
+        let (ret_num, ret_den) = unsafe {
+            let num = &mut *gmp::mpq_numref(&mut ret.inner);
+            let den = &mut *gmp::mpq_denref(&mut ret.inner);
+            (num, den)
+        };
+        *ret_num = *self_den;
+        *ret_den = *self_num;
+        if self_num.size < 0 {
+            ret_num.size = self_den.size.checked_neg().expect("overflow");
+            ret_den.size = self_num.size.checked_neg().expect("overflow");
+        }
+        ret
     }
 
     /// Returns `Ordering::Less` if the number is less than zero,
@@ -1452,6 +1560,20 @@ impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
                 src.ref_self.inner(),
             );
         }
+    }
+}
+
+pub struct BorrowRational<'a> {
+    inner: mpq_t,
+    phantom: PhantomData<&'a Rational>,
+}
+
+impl<'a> Deref for BorrowRational<'a> {
+    type Target = Rational;
+    #[inline]
+    fn deref(&self) -> &Rational {
+        let ptr = (&self.inner) as *const _ as *const _;
+        unsafe { &*ptr }
     }
 }
 
