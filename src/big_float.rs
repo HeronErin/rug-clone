@@ -221,6 +221,23 @@ pub enum Constant {
 }
 
 /// Special floating-point values.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Float;
+/// use rug::float::Constant;
+///
+/// let log2 = Float::with_val(53, Constant::Log2);
+/// let pi = Float::with_val(53, Constant::Pi);
+/// let euler = Float::with_val(53, Constant::Euler);
+/// let catalan = Float::with_val(53, Constant::Catalan);
+///
+/// assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
+/// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416");
+/// assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
+/// assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Special {
     /// Positive zero.
@@ -1504,15 +1521,15 @@ impl Float {
         mpfr::dim;
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
-        fn abs_diff(other);
+        fn pos_diff(other);
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
-        fn abs_diff_mut;
+        fn pos_diff_mut;
         /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
-        fn abs_diff_round;
+        fn pos_diff_round;
         /// Computes the positive difference.
-        fn abs_diff_ref -> AbsDiffRef;
+        fn pos_diff_ref -> AbsDiffRef;
     }
     math_op1_float! {
         mpfr::log;
@@ -3429,6 +3446,28 @@ impl<'a> Add<MulRef<'a>> for Float {
     type Output = Float;
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision.
+    /// // 22 in binary is 10110.
+    /// let a = Float::with_val(4, 22);
+    /// // 1.5 in binary is 1.1.
+    /// let b = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let c = Float::with_val(4, -13);
+    /// let ans = a + &b * &c;
+    /// assert_eq!(ans, 2.5);
+    ///
+    /// // With separate addition and multiplication:
+    /// let a = Float::with_val(4, 22);
+    /// // No borrows, so b * c is computed immediately.
+    /// // b * c = 1.5 * -13 = -19.5 (binary -10011.1), rounded to -20.
+    /// let inaccurate = a + b * c;
+    /// assert_eq!(inaccurate, 2);
+    /// ```
     #[inline]
     fn add(mut self, rhs: MulRef) -> Float {
         self.add_assign(rhs);
@@ -3439,6 +3478,28 @@ impl<'a> Add<MulRef<'a>> for Float {
 impl<'a> AddAssign<MulRef<'a>> for Float {
     /// Peforms multiplication and addition together, with only one
     /// rounding operation to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision.
+    /// // 20 in binary is 10110.
+    /// let mut a = Float::with_val(4, 22);
+    /// // 1.5 in binary is 1.1.
+    /// let b = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let c = Float::with_val(4, -13);
+    /// a += &b * &c;
+    /// assert_eq!(a, 2.5);
+    ///
+    /// // With separate addition and multiplication:
+    /// let mut inaccurate = Float::with_val(4, 22);
+    /// // No borrows, so b * c is computed immediately.
+    /// // b * c = 1.5 * -13 = -19.5 (binary -10011.1), rounded to -20.
+    /// inaccurate += b * c;
+    /// assert_eq!(inaccurate, 2);
+    /// ```
     #[inline]
     fn add_assign(&mut self, rhs: MulRef) {
         self.add_assign_round(rhs, Default::default());
@@ -3450,6 +3511,36 @@ impl<'a> AddAssignRound<MulRef<'a>> for Float {
     type Ordering = Ordering;
     /// Peforms multiplication and addition together with only one
     /// rounding operation as specified.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::AddAssignRound;
+    /// use std::cmp::Ordering;
+    /// // Use only four bits of precision.
+    /// // 2 in binary is 10.
+    /// let mut a = Float::with_val(4, 1);
+    /// // 1.125 in binary is 1.001.
+    /// let b = Float::with_val(4, 1.125);
+    /// // -2.25 in binary is -10.01.
+    /// let c = Float::with_val(4, -2.25);
+    /// // 1 + 1.125 * -2.25 = -1.53125 (binary -1.10001),
+    /// // becomes -1.625 (binary -1.101) when rounded down.
+    /// let dir = a.add_assign_round(&b * &c, Round::Down);
+    /// assert_eq!(a, -1.625);
+    /// assert_eq!(dir, Ordering::Less);
+    ///
+    /// // With separate addition and multiplication:
+    /// let mut separate = Float::with_val(4, 1);
+    /// // No borrows, so b * c is computed immediately.
+    /// // b * c = 1.125 * -2.25 = -2.53125 (binary -10.10001), rounded to -2.5.
+    /// // Then, 1 - 2.5 becomes -1.5 exactly.
+    /// let dir = separate.add_assign_round(b * c, Round::Down);
+    /// assert_eq!(separate, -1.5);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
     #[inline]
     fn add_assign_round(&mut self, rhs: MulRef, round: Round) -> Ordering {
         let ret = unsafe {
