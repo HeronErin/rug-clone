@@ -35,6 +35,7 @@ use std::cmp::Ordering;
 use std::error::Error;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
+use std::hash::{Hash, Hasher};
 use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
@@ -142,6 +143,14 @@ impl Drop for Complex {
         unsafe {
             mpc::clear(self.inner_mut());
         }
+    }
+}
+
+impl Hash for Complex {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let (re, im) = self.as_real_imag();
+        re.hash(state);
+        im.hash(state);
     }
 }
 
@@ -3511,7 +3520,7 @@ enum ValidPoss<'a> {
     Complex(ValidFloat<'a>, ValidFloat<'a>),
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Complex` number.
 ///
 /// # Examples
@@ -3551,7 +3560,7 @@ impl<'a> AssignRound<ValidComplex<'a>> for Complex {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 enum ParseErrorKind {
     InvalidFloat(ParseFloatError),
     InvalidRealFloat(ParseFloatError),

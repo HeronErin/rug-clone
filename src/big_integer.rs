@@ -28,11 +28,13 @@ use std::error::Error;
 use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
+use std::hash::{Hash, Hasher};
 use std::mem;
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
+use std::slice;
 use std::str::FromStr;
 
 /// An arbitrary-precision integer.
@@ -181,6 +183,18 @@ impl Drop for Integer {
     fn drop(&mut self) {
         unsafe {
             gmp::mpz_clear(self.inner_mut());
+        }
+    }
+}
+
+impl Hash for Integer {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let size = self.inner().size;
+        size.hash(state);
+        if size != 0 {
+            let limbs = size.checked_abs().expect("overflow") as usize;
+            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
+            slice.hash(state);
         }
     }
 }
@@ -3531,13 +3545,13 @@ impl<'a> Assign<ValidInteger<'a>> for Integer {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing an `Integer`.
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,

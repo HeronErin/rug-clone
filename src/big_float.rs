@@ -21,6 +21,7 @@ use Integer;
 use Rational;
 use ext::mpfr as xmpfr;
 use float::SmallFloat;
+use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
@@ -36,13 +37,22 @@ use std::error::Error;
 use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
+use std::hash::{Hash, Hasher};
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
+use std::slice;
 
 /// Returns the minimum value for the exponent.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::float;
+/// println!("Minimum exponent is {}", float::exp_min());
+/// ```
 #[inline]
 pub fn exp_min() -> i32 {
     let min = unsafe { mpfr::get_emin() };
@@ -56,6 +66,13 @@ pub fn exp_min() -> i32 {
 }
 
 /// Returns the maximum value for the exponent.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::float;
+/// println!("Maximum exponent is {}", float::exp_max());
+/// ```
 #[inline]
 pub fn exp_max() -> i32 {
     let max = unsafe { mpfr::get_emax() };
@@ -69,12 +86,26 @@ pub fn exp_max() -> i32 {
 }
 
 /// Returns the minimum value for the precision.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::float;
+/// println!("Minimum precision is {}", float::prec_min());
+/// ```
 #[inline]
 pub fn prec_min() -> u32 {
     mpfr::PREC_MIN as u32
 }
 
 /// Returns the maximum value for the precision.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::float;
+/// println!("Maximum precision is {}", float::prec_max());
+/// ```
 #[inline]
 pub fn prec_max() -> u32 {
     let max = mpfr::PREC_MAX;
@@ -88,30 +119,48 @@ pub fn prec_max() -> u32 {
 }
 
 /// The rounding methods for floating-point values.
-#[derive(Clone, Copy, PartialEq, Eq)]
+///
+/// When rounding to the nearest, if the number to be rounded is
+/// exactly between two representable numbers, it is rounded to
+/// the even one, that is, the one with the least significant bit
+/// set to zero.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::{AssignRound, Float};
+/// use rug::float::Round;
+/// let mut f4 = Float::new(4);
+/// f4.assign_round(10.4, Round::Nearest);
+/// assert_eq!(f4, 10);
+/// f4.assign_round(10.6, Round::Nearest);
+/// assert_eq!(f4, 11);
+/// f4.assign_round(-10.7, Round::Zero);
+/// assert_eq!(f4, -10);
+/// f4.assign_round(10.3, Round::AwayFromZero);
+/// assert_eq!(f4, 11);
+/// ```
+///
+/// Rounding to the nearest will round numbers exactly between two
+/// representable numbers to the even one.
+///
+/// ```rust
+/// use rug::{AssignRound, Float};
+/// use rug::float::Round;
+/// // 24 is 11000 in binary
+/// // 25 is 11001 in binary
+/// // 26 is 11010 in binary
+/// // 27 is 11011 in binary
+/// // 28 is 11100 in binary
+/// let mut f4 = Float::new(4);
+/// f4.assign_round(25, Round::Nearest);
+/// assert_eq!(f4, 24);
+/// f4.assign_round(27, Round::Nearest);
+/// assert_eq!(f4, 28);
+/// ```
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Round {
     /// Round towards the nearest.
-    ///
-    /// When the number to be rounded is exactly between two
-    /// representable numbers, it is rounded to the even one, that is,
-    /// the one with the least significant bit set to zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{AssignRound, Float};
-    /// use rug::float::Round;
-    /// // 24 is 11000 in binary
-    /// // 25 is 11001 in binary
-    /// // 26 is 11010 in binary
-    /// // 27 is 11011 in binary
-    /// // 28 is 11100 in binary
-    /// let mut f4 = Float::new(4);
-    /// f4.assign_round(25, Round::Nearest);
-    /// assert_eq!(f4, 24);
-    /// f4.assign_round(27, Round::Nearest);
-    /// assert_eq!(f4, 28);
-    /// ```
     Nearest,
     /// Round towards zero.
     Zero,
@@ -159,7 +208,7 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 /// assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
 /// assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
 /// ```
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Constant {
     /// The logarithm of two, 0.693...
     Log2,
@@ -172,7 +221,7 @@ pub enum Constant {
 }
 
 /// Special floating-point values.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Special {
     /// Positive zero.
     Zero,
@@ -221,7 +270,6 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// 1. The first rounds the returned or stored `Float` to the
 ///    [nearest](float/enum.Round.html#variant.Nearest) representable
 ///    value.
-
 /// 2. The second applies the specified [rounding
 ///    method](float/enum.Round.html), and returns the rounding
 ///    direction:
@@ -313,6 +361,26 @@ impl Drop for Float {
     fn drop(&mut self) {
         unsafe {
             mpfr::clear(self.inner_mut());
+        }
+    }
+}
+
+impl Hash for Float {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        // Do *not* hash sign. -0.0 == 0.0, so the hashes of plus or
+        // minus zero must be equal.
+        self.inner().exp.hash(state);
+        if self.is_normal() {
+            let prec = self.prec();
+            assert_eq!(prec as usize as u32, prec);
+            let prec = prec as usize;
+            let mut limbs = prec / gmp::LIMB_BITS as usize;
+            // MPFR keeps unused bits set to zero, so use whole of last limb
+            if prec % gmp::LIMB_BITS as usize > 0 {
+                limbs += 1;
+            };
+            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
+            slice.hash(state);
         }
     }
 }
@@ -3623,13 +3691,13 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Float`.
 pub struct ParseFloatError {
     kind: ParseErrorKind,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,

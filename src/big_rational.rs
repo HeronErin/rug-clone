@@ -25,6 +25,7 @@ use std::error::Error;
 use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
+use std::hash::{Hash, Hasher};
 use std::i32;
 use std::mem;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
@@ -85,6 +86,14 @@ impl Drop for Rational {
         unsafe {
             gmp::mpq_clear(self.inner_mut());
         }
+    }
+}
+
+impl Hash for Rational {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let (num, den) = self.as_numer_denom();
+        num.hash(state);
+        den.hash(state);
     }
 }
 
@@ -1674,13 +1683,13 @@ impl<'a> Assign<ValidRational<'a>> for Rational {
     }
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Rational` number.
 pub struct ParseRationalError {
     kind: ParseErrorKind,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,
