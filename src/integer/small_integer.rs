@@ -57,7 +57,10 @@ pub struct SmallInteger {
     limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
 }
 
-const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
+#[cfg(gmp_limb_bits_64)]
+const LIMBS_IN_SMALL_INTEGER: usize = 1;
+#[cfg(gmp_limb_bits_32)]
+const LIMBS_IN_SMALL_INTEGER: usize = 2;
 
 #[repr(C)]
 pub struct Mpz {
@@ -154,29 +157,26 @@ impl Assign<u32> for SmallInteger {
 impl Assign<u64> for SmallInteger {
     #[inline]
     fn assign(&mut self, val: u64) {
-        match gmp::LIMB_BITS {
-            64 => {
-                if val == 0 {
-                    self.inner.size = 0;
-                } else {
-                    self.inner.size = 1;
-                    self.limbs[0] = val as gmp::limb_t;
-                }
+        #[cfg(gmp_limb_bits_64)]
+        {
+            if val == 0 {
+                self.inner.size = 0;
+            } else {
+                self.inner.size = 1;
+                self.limbs[0] = val as gmp::limb_t;
             }
-            32 => {
-                if val == 0 {
-                    self.inner.size = 0;
-                } else if val <= 0xffff_ffff {
-                    self.inner.size = 1;
-                    self.limbs[0] = val as u32 as gmp::limb_t;
-                } else {
-                    self.inner.size = 2;
-                    self.limbs[0] = val as u32 as gmp::limb_t;
-                    self.limbs[1 + 0] = (val >> 32) as u32 as gmp::limb_t;
-                }
-            }
-            _ => {
-                unimplemented!();
+        }
+        #[cfg(gmp_limb_bits_32)]
+        {
+            if val == 0 {
+                self.inner.size = 0;
+            } else if val <= 0xffff_ffff {
+                self.inner.size = 1;
+                self.limbs[0] = val as u32 as gmp::limb_t;
+            } else {
+                self.inner.size = 2;
+                self.limbs[0] = val as u32 as gmp::limb_t;
+                self.limbs[1] = (val >> 32) as u32 as gmp::limb_t;
             }
         }
     }

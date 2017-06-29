@@ -56,7 +56,10 @@ pub struct SmallRational {
     den_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
 }
 
-const LIMBS_IN_SMALL_INTEGER: usize = 64 / gmp::LIMB_BITS as usize;
+#[cfg(gmp_limb_bits_64)]
+const LIMBS_IN_SMALL_INTEGER: usize = 1;
+#[cfg(gmp_limb_bits_32)]
+const LIMBS_IN_SMALL_INTEGER: usize = 2;
 
 #[repr(C)]
 pub struct Mpz {
@@ -251,33 +254,30 @@ impl SmallRational {
         num: u64,
         den: u64,
     ) {
-        match gmp::LIMB_BITS {
-            64 => {
+        #[cfg(gmp_limb_bits_64)]
+        {
+            self.num.size = if neg { -1 } else { 1 };
+            self.num_limbs[0] = num as gmp::limb_t;
+            self.den.size = 1;
+            self.den_limbs[0] = den as gmp::limb_t;
+        }
+        #[cfg(gmp_limb_bits_32)]
+        {
+            if num <= 0xffff_ffff {
                 self.num.size = if neg { -1 } else { 1 };
-                self.num_limbs[0] = num as gmp::limb_t;
+                self.num_limbs[0] = num as u32 as gmp::limb_t;
+            } else {
+                self.num.size = if neg { -2 } else { 2 };
+                self.num_limbs[0] = num as u32 as gmp::limb_t;
+                self.num_limbs[1] = (num >> 32) as u32 as gmp::limb_t;
+            }
+            if den <= 0xffff_ffff {
                 self.den.size = 1;
-                self.den_limbs[0] = den as gmp::limb_t;
-            }
-            32 => {
-                if num <= 0xffff_ffff {
-                    self.num.size = if neg { -1 } else { 1 };
-                    self.num_limbs[0] = num as u32 as gmp::limb_t;
-                } else {
-                    self.num.size = if neg { -2 } else { 2 };
-                    self.num_limbs[0] = num as u32 as gmp::limb_t;
-                    self.num_limbs[1 + 0] = (num >> 32) as u32 as gmp::limb_t;
-                }
-                if den <= 0xffff_ffff {
-                    self.den.size = 1;
-                    self.den_limbs[0] = den as u32 as gmp::limb_t;
-                } else {
-                    self.den.size = 2;
-                    self.den_limbs[0] = den as u32 as gmp::limb_t;
-                    self.den_limbs[1 + 0] = (den >> 32) as u32 as gmp::limb_t;
-                }
-            }
-            _ => {
-                unimplemented!();
+                self.den_limbs[0] = den as u32 as gmp::limb_t;
+            } else {
+                self.den.size = 2;
+                self.den_limbs[0] = den as u32 as gmp::limb_t;
+                self.den_limbs[1] = (den >> 32) as u32 as gmp::limb_t;
             }
         }
     }

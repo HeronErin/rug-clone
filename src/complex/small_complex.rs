@@ -65,7 +65,10 @@ pub struct SmallComplex {
     im_limbs: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
 }
 
-const LIMBS_IN_SMALL_FLOAT: usize = 64 / gmp::LIMB_BITS as usize;
+#[cfg(gmp_limb_bits_64)]
+const LIMBS_IN_SMALL_FLOAT: usize = 1;
+#[cfg(gmp_limb_bits_32)]
+const LIMBS_IN_SMALL_FLOAT: usize = 2;
 
 #[repr(C)]
 pub struct Mpfr {
@@ -205,7 +208,6 @@ macro_rules! set_part_u_single_limb {
                     return;
                 }
                 let leading = val.leading_zeros();
-                assert!(gmp::LIMB_BITS == 64 || gmp::LIMB_BITS == 32);
                 let limb_leading = leading + gmp::LIMB_BITS as u32 - $bits;
                 limbs[0] = (val as gmp::limb_t) << limb_leading;
                 unsafe {
@@ -244,16 +246,15 @@ impl SetPart<u64> for Mpfr {
             return;
         }
         let leading = val.leading_zeros();
-        match gmp::LIMB_BITS {
-            64 => {
-                limbs[0] = (val as gmp::limb_t) << leading;
-            }
-            32 => {
-                let sval = val << leading;
-                limbs[0] = sval as u32 as gmp::limb_t;
-                limbs[1 + 0] = (sval >> 32) as u32 as gmp::limb_t;
-            }
-            _ => unimplemented!(),
+        #[cfg(gmp_limb_bits_64)]
+        {
+            limbs[0] = (val as gmp::limb_t) << leading;
+        }
+        #[cfg(gmp_limb_bits_32)]
+        {
+            let sval = val << leading;
+            limbs[0] = sval as u32 as gmp::limb_t;
+            limbs[1] = (sval >> 32) as u32 as gmp::limb_t;
         }
         unsafe {
             mpfr::custom_init_set(

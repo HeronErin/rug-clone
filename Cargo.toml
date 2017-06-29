@@ -25,6 +25,7 @@ readme = "README.md"
 keywords = ["gmp", "mpfr", "mpc", "mathematics", "numerics"]
 categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
+build = "build.rs"
 
 [features]
 default = ["integer", "rational", "float", "complex", "rand"]
