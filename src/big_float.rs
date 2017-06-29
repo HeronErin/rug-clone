@@ -385,21 +385,24 @@ impl Drop for Float {
 
 impl Hash for Float {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        // Do *not* hash sign. -0.0 == 0.0, so the hashes of plus or
-        // minus zero must be equal.
         self.inner().exp.hash(state);
-        if self.is_normal() {
-            let prec = self.prec();
-            assert_eq!(prec as usize as u32, prec);
-            let prec = prec as usize;
-            let mut limbs = prec / gmp::LIMB_BITS as usize;
-            // MPFR keeps unused bits set to zero, so use whole of last limb
-            if prec % gmp::LIMB_BITS as usize > 0 {
-                limbs += 1;
-            };
-            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
-            slice.hash(state);
+        if self.is_nan() || self.is_zero() {
+            return;
         }
+        self.inner().sign.hash(state);
+        if self.is_infinite() {
+            return;
+        }
+        let prec = self.prec();
+        assert_eq!(prec as usize as u32, prec);
+        let prec = prec as usize;
+        let mut limbs = prec / gmp::LIMB_BITS as usize;
+        // MPFR keeps unused bits set to zero, so use whole of last limb
+        if prec % gmp::LIMB_BITS as usize > 0 {
+            limbs += 1;
+        };
+        let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
+        slice.hash(state);
     }
 }
 
