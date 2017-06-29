@@ -2983,6 +2983,7 @@ impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {
 
 ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialRef { k: u32 } }
 
+#[derive(Clone, Copy)]
 pub struct BorrowInteger<'a> {
     inner: mpz_t,
     phantom: PhantomData<&'a Integer>,

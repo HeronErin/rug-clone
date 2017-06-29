@@ -3014,6 +3014,7 @@ ref_math_op1_complex! { mpc::asinh; struct AsinhRef {} }
 ref_math_op1_complex! { mpc::acosh; struct AcoshRef {} }
 ref_math_op1_complex! { mpc::atanh; struct AtanhRef {} }
 
+#[derive(Clone, Copy)]
 pub struct BorrowComplex<'a> {
     inner: mpc_t,
     phantom: PhantomData<&'a Complex>,

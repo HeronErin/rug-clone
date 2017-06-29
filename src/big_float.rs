@@ -2964,6 +2964,7 @@ ref_math_op1_float! { mpfr::rint_trunc; struct TruncRef {} }
 ref_math_op1_float! { mpfr::frac; struct FractRef {} }
 ref_math_op1_2_float! { mpfr::modf; struct TruncFractRef {} }
 
+#[derive(Clone, Copy)]
 pub struct BorrowFloat<'a> {
     inner: mpfr_t,
     phantom: PhantomData<&'a Float>,

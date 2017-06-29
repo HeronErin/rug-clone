@@ -1563,6 +1563,7 @@ impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct BorrowRational<'a> {
     inner: mpq_t,
     phantom: PhantomData<&'a Rational>,
