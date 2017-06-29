@@ -3816,8 +3816,9 @@ fn fmt_radix(
 
 /// A validated string that can always be converted to a `Float`.
 ///
-/// See the [`Float::valid_str_radix`]
-/// (../struct.Float.html#method.valid_str_radix) method.
+/// See the [`Float::valid_str_radix`][valid] method.
+///
+/// [valid]: ../struct.Float.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidFloat<'a> {
     poss: ValidPoss<'a>,

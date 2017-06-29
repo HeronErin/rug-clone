@@ -3636,8 +3636,7 @@ fn fmt_float(
 
 /// A validated string that can always be converted to a `Complex`.
 ///
-/// See the [`Complex::valid_str_radix`]
-/// (../struct.Complex.html#method.valid_str_radix) method.
+/// See the [`Complex::valid_str_radix`][valid] method.
 ///
 /// # Examples
 ///
@@ -3653,6 +3652,8 @@ fn fmt_float(
 /// let c = Complex::with_val(53, valid);
 /// assert_eq!(c, (0.125, 237));
 /// ```
+///
+/// [valid]: ../struct.Complex.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidComplex<'a> {
     poss: ValidPoss<'a>,

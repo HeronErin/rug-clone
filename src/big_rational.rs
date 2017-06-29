@@ -1779,8 +1779,9 @@ fn fmt_radix(
 
 /// A validated string that can always be converted to a `Rational`.
 ///
-/// See the [`Rational::valid_str_radix`]
-/// (../struct.Rational.html#method.valid_str_radix) method.
+/// See the [`Rational::valid_str_radix`][valid] method.
+///
+/// [valid]: ../struct.Rational.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidRational<'a> {
     bytes: &'a [u8],

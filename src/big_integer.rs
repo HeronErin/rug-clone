@@ -3568,8 +3568,9 @@ fn fmt_radix(
 /// A validated string that can always be converted to an
 /// [`Integer`](../struct.Integer.html).
 ///
-/// See the [`Integer::valid_str_radix`]
-/// (../struct.Integer.html#method.valid_str_radix) method.
+/// See the [`Integer::valid_str_radix`][valid] method.
+///
+/// [valid]: ../struct.Integer.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidInteger<'a> {
     bytes: &'a [u8],
