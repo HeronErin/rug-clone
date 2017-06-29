@@ -620,18 +620,15 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
 
 #[inline]
 pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
+    #[cfg(gmp_limb_bits_64)]
     match (*op).size {
         0 => true,
-        1 => {
-            #[cfg(gmp_limb_bits_64)]
-            {
-                op.limb(0) <= u32::MAX as gmp::limb_t
-            }
-            #[cfg(gmp_limb_bits_32)]
-            {
-                true
-            }
-        }
+        1 => op.limb(0) <= u32::MAX as gmp::limb_t,
+        _ => false,
+    }
+    #[cfg(gmp_limb_bits_32)]
+    match (*op).size {
+        0 | 1 => true,
         _ => false,
     }
 }
