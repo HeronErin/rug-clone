@@ -1734,12 +1734,8 @@ impl Integer {
             if !(self.invert_mut(modulo)) {
                 return false;
             }
-            abs_pow = mpz_t {
-                alloc: power.inner().alloc,
-                size: power.inner().size.checked_neg().expect("overflow"),
-                d: power.inner().d,
-            };
-            &abs_pow
+            abs_pow = power.as_neg();
+            abs_pow.inner()
         } else {
             power.inner()
         };
@@ -2819,35 +2815,38 @@ pub struct PowModRef<'a> {
 }
 
 impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
-    #[inline]
     fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
         if src.power.sign() == Ordering::Less {
-            let mut ret = Result::from(src.ref_self.invert_ref(src.modulo))?;
-            let abs_pow = mpz_t {
-                alloc: src.power.inner().alloc,
-                size: src.power.inner().size.checked_neg().expect("overflow"),
-                d: src.power.inner().d,
+            let mut ret = Result::from(src.ref_self.invert_ref(src.modulo));
+            match ret {
+                Ok(ref mut inv) => {
+                    let abs_pow = src.power.as_neg();
+                    unsafe {
+                        gmp::mpz_powm(
+                            inv.inner_mut(),
+                            inv.inner(),
+                            abs_pow.inner(),
+                            src.modulo.inner(),
+                        );
+                    }
+                }
+                Err(_) => {}
             };
-            unsafe {
-                gmp::mpz_powm(
-                    ret.inner_mut(),
-                    ret.inner(),
-                    &abs_pow,
-                    src.modulo.inner(),
-                );
-            }
-            Ok(ret)
+            ret
         } else {
-            let mut ret = Integer::new();
-            unsafe {
-                gmp::mpz_powm(
-                    ret.inner_mut(),
-                    src.ref_self.inner(),
-                    src.power.inner(),
-                    src.modulo.inner(),
-                );
-            }
-            Ok(ret)
+            let mut ret = Ok(Integer::new());
+            match ret {
+                Ok(ref mut dest) => unsafe {
+                    gmp::mpz_powm(
+                        dest.inner_mut(),
+                        src.ref_self.inner(),
+                        src.power.inner(),
+                        src.modulo.inner(),
+                    );
+                },
+                Err(_) => unreachable!(),
+            };
+            ret
         }
     }
 }
@@ -2858,20 +2857,12 @@ impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
             self.assign(src.ref_self.invert_ref(src.modulo));
             match *self {
                 Ok(ref mut inv) => {
-                    let abs_pow = mpz_t {
-                        alloc: src.power.inner().alloc,
-                        size: src.power
-                            .inner()
-                            .size
-                            .checked_neg()
-                            .expect("overflow"),
-                        d: src.power.inner().d,
-                    };
+                    let abs_pow = src.power.as_neg();
                     unsafe {
                         gmp::mpz_powm(
                             inv.inner_mut(),
                             inv.inner(),
-                            &abs_pow,
+                            abs_pow.inner(),
                             src.modulo.inner(),
                         );
                     }
@@ -2892,15 +2883,6 @@ impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
                     );
                 },
                 Err(_) => unreachable!(),
-            }
-            let mut ret = Integer::new();
-            unsafe {
-                gmp::mpz_powm(
-                    ret.inner_mut(),
-                    src.ref_self.inner(),
-                    src.power.inner(),
-                    src.modulo.inner(),
-                );
             }
         }
     }
@@ -3705,11 +3687,31 @@ fn trunc_f64_to_f32(f: f64) -> f32 {
     }
 }
 
+// The commented out function results in longer x86_64 asm.
+// fn result_swap<T>(r: &mut Result<T, T>) {
+//     let old = mem::replace(r, unsafe { mem::uninitialized() });
+//     let new = match old {
+//         Ok(t) => Err(t),
+//         Err(t) => Ok(t),
+//     };
+//     mem::forget(mem::replace(r, new));
+// }
 fn result_swap<T>(r: &mut Result<T, T>) {
-    let old = mem::replace(r, unsafe { mem::uninitialized() });
-    let new = match old {
-        Ok(t) => Err(t),
-        Err(t) => Ok(t),
-    };
-    mem::forget(mem::replace(r, new));
+    if r.is_ok() {
+        let val = match *r {
+            Ok(ref mut val) => {
+                mem::replace(val, unsafe { mem::uninitialized() })
+            }
+            Err(_) => unreachable!(),
+        };
+        mem::forget(mem::replace(r, Err(val)));
+    } else {
+        let val = match *r {
+            Err(ref mut val) => {
+                mem::replace(val, unsafe { mem::uninitialized() })
+            }
+            Ok(_) => unreachable!(),
+        };
+        mem::forget(mem::replace(r, Ok(val)));
+    }
 }
