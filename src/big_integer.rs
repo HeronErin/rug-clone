@@ -2818,34 +2818,30 @@ impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
     fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
         if src.power.sign() == Ordering::Less {
             let mut ret = Result::from(src.ref_self.invert_ref(src.modulo));
-            match ret {
-                Ok(ref mut inv) => {
-                    let abs_pow = src.power.as_neg();
-                    unsafe {
-                        gmp::mpz_powm(
-                            inv.inner_mut(),
-                            inv.inner(),
-                            abs_pow.inner(),
-                            src.modulo.inner(),
-                        );
-                    }
+            if let Ok(ref mut inv) = ret {
+                let abs_pow = src.power.as_neg();
+                unsafe {
+                    gmp::mpz_powm(
+                        inv.inner_mut(),
+                        inv.inner(),
+                        abs_pow.inner(),
+                        src.modulo.inner(),
+                    );
                 }
-                Err(_) => {}
-            };
+            }
             ret
         } else {
             let mut ret = Ok(Integer::new());
-            match ret {
-                Ok(ref mut dest) => unsafe {
+            if let Ok(ref mut dest) = ret {
+                unsafe {
                     gmp::mpz_powm(
                         dest.inner_mut(),
                         src.ref_self.inner(),
                         src.power.inner(),
                         src.modulo.inner(),
                     );
-                },
-                Err(_) => unreachable!(),
-            };
+                }
+            }
             ret
         }
     }
@@ -2855,34 +2851,30 @@ impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
     fn assign(&mut self, src: PowModRef<'a>) {
         if src.power.sign() == Ordering::Less {
             self.assign(src.ref_self.invert_ref(src.modulo));
-            match *self {
-                Ok(ref mut inv) => {
-                    let abs_pow = src.power.as_neg();
-                    unsafe {
-                        gmp::mpz_powm(
-                            inv.inner_mut(),
-                            inv.inner(),
-                            abs_pow.inner(),
-                            src.modulo.inner(),
-                        );
-                    }
+            if let Ok(ref mut inv) = *self {
+                let abs_pow = src.power.as_neg();
+                unsafe {
+                    gmp::mpz_powm(
+                        inv.inner_mut(),
+                        inv.inner(),
+                        abs_pow.inner(),
+                        src.modulo.inner(),
+                    );
                 }
-                Err(_) => {}
             }
         } else {
             if self.is_err() {
                 result_swap(self);
             }
-            match *self {
-                Ok(ref mut dest) => unsafe {
+            if let Ok(ref mut dest) = *self {
+                unsafe {
                     gmp::mpz_powm(
                         dest.inner_mut(),
                         src.ref_self.inner(),
                         src.power.inner(),
                         src.modulo.inner(),
                     );
-                },
-                Err(_) => unreachable!(),
+                }
             }
         }
     }
