@@ -18,10 +18,10 @@ use std::env;
 
 fn main() {
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
-        let bits = env::var_os("DEP_GMP_GMP_LIMB_BITS")
-            .expect("GMP_LIMB_BITS not set by gmp-mfpr-sys");
+        let bits = env::var_os("DEP_GMP_LIMB_BITS")
+            .expect("DEP_GMP_LIMB_BITS not set by gmp-mfpr-sys");
         let bits = bits.to_str()
-            .expect("GMP_LIMB_BITS contains unexpected characters");
+            .expect("DEP_GMP_LIMB_BITS contains unexpected characters");
         if bits != "32" && bits != "64" {
             panic!("Limb bits not 32 or 64: \"{}\"", bits);
         }
