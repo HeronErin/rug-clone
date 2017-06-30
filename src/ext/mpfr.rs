@@ -301,3 +301,23 @@ pub unsafe fn f64_pow(
     let small = SmallFloat::from(op1);
     mpfr::pow(rop, (*small).inner(), op2, rnd)
 }
+
+#[inline]
+pub unsafe fn submul(
+    rop: *mut mpfr_t,
+    acc: *const mpfr_t,
+    m1: *const mpfr_t,
+    m2: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let reverse_rnd = match rnd {
+        mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
+        mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
+        unchanged => unchanged,
+    };
+    let reverse_ord = mpfr::fms(rop, m1, m2, acc, reverse_rnd);
+    if mpfr::nan_p(rop) == 0 {
+        (*rop).sign = -(*rop).sign;
+    }
+    -reverse_ord
+}

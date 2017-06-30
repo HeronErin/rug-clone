@@ -14,6 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use Complex;
 use complex::SmallComplex;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
@@ -143,6 +144,20 @@ pub unsafe fn pow_f32(
     r: mpc::rnd_t,
 ) -> c_int {
     mpc::pow_d(x, y, z as f64, r)
+}
+
+#[inline]
+pub unsafe fn submul(
+    rop: *mut mpc_t,
+    acc: *const mpc_t,
+    m1: *const mpc_t,
+    m2: *const mpc_t,
+    rnd: mpc::rnd_t,
+) -> c_int {
+    let m1_complex = &*(m1 as *const Complex);
+    let neg_m1_complex = m1_complex.as_neg();
+    let neg_m1 = &*(&*neg_m1_complex as *const Complex as *const mpc_t);
+    mpc::fma(rop, neg_m1, m2, acc, rnd)
 }
 
 #[inline]

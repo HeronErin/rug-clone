@@ -133,6 +133,26 @@ use std::str::FromStr;
 /// assert_eq!(a_b, 13);
 /// ```
 ///
+/// As a special case, when an intermediate value is obtained from
+/// multiplying two `Integer` references, it can be added to or
+/// subtracted from another `Integer` (or reference). This can be
+/// useful for multiply-accumulate operations.
+///
+/// ```rust
+/// use rug::Integer;
+/// let mut acc = Integer::from(100);
+/// let m1 = Integer::from(3);
+/// let m2 = Integer::from(7);
+/// // 100 + 3 * 7 = 121
+/// acc += &m1 * &m2;
+/// assert_eq!(acc, 121);
+/// let other = Integer::from(2000);
+/// // Do not consume any values here:
+/// // 2000 - 3 * 7 = 1979
+/// let sub = Integer::from(&other - &m1 * &m2);
+/// assert_eq!(sub, 1979);
+/// ```
+///
 /// The `Integer` type supports various functions. Most functions have
 /// three versions: one that consumes the operand, one that mutates
 /// the operand, and one that borrows the operand.
@@ -3202,14 +3222,14 @@ arith_prim_commut! {
 
 macro_rules! op_mul {
     {
-        $(#[$attr:meta])* impl $Imp:ident $method:ident;
-        $(#[$attr_assign:meta])* impl $ImpAssign:ident $method_assign:ident;
-        $Ref:ident, $rhs_method:ident, $func:path
+        impl $Imp:ident $method:ident;
+        impl $ImpAssign:ident $method_assign:ident;
+        $Ref:ident, $rhs_method:ident, $func:path;
+        $ImpRef:ident
     } => {
         impl<'a> $Imp<$Ref<'a>> for Integer {
             type Output = Integer;
-            $(#[$attr])*
-                #[inline]
+            #[inline]
             fn $method(mut self, rhs: $Ref) -> Integer {
                 self.$method_assign(rhs);
                 self
@@ -3217,8 +3237,7 @@ macro_rules! op_mul {
         }
 
         impl<'a> $ImpAssign<$Ref<'a>> for Integer  {
-            $(#[$attr_assign])*
-                #[inline]
+            #[inline]
             fn $method_assign(&mut self, rhs: $Ref) {
                 unsafe {
                     $func(
@@ -3229,179 +3248,71 @@ macro_rules! op_mul {
                 }
             }
         }
-    };
+
+        impl<'a> $Imp<$Ref<'a>> for &'a Integer {
+            type Output = $ImpRef<'a>;
+            #[inline]
+            fn $method(self, rhs: $Ref<'a>) -> $ImpRef<'a> {
+                $ImpRef {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        #[derive(Clone,Copy)]
+        pub struct $ImpRef<'a> {
+            lhs: &'a Integer,
+            rhs: $Ref<'a>,
+        }
+
+        from_borrow! { $ImpRef<'a> => Integer }
+
+        impl<'a> Assign<$ImpRef<'a>> for Integer {
+            #[inline]
+            fn assign(&mut self, src: $ImpRef) {
+                self.assign(src.lhs);
+                self.$method_assign(src.rhs);
+            }
+        }
+    }
 }
 
 op_mul! {
-    /// Peforms multiplication and addition together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m1 = Integer::from(3);
-    /// let m2 = Integer::from(7);
-    /// let init = Integer::from(100);
-    /// let acc = init + &m1 * &m2;
-    /// assert_eq!(acc, 121);
-    /// ```
     impl Add add;
-    /// Peforms multiplication and addition together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m1 = Integer::from(3);
-    /// let m2 = Integer::from(7);
-    /// let mut acc = Integer::from(100);
-    /// acc += &m1 * &m2;
-    /// assert_eq!(acc, 121);
-    /// ```
     impl AddAssign add_assign;
-    MulRef, inner, gmp::mpz_addmul
+    MulRef, inner, gmp::mpz_addmul;
+    AddMulRef
 }
-
 op_mul! {
-    /// Peforms multiplication and addition together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let init = Integer::from(100);
-    /// let acc = init + &m * 7u32;
-    /// assert_eq!(acc, 121);
-    /// ```
     impl Add add;
-    /// Peforms multiplication and addition together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let mut acc = Integer::from(100);
-    /// acc += &m * 7u32;
-    /// assert_eq!(acc, 121);
-    /// ```
     impl AddAssign add_assign;
-    MulRefU32, into, gmp::mpz_addmul_ui
+    MulRefU32, into, gmp::mpz_addmul_ui;
+    AddMulRefU32
 }
-
 op_mul! {
-    /// Peforms multiplication and addition together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let init = Integer::from(100);
-    /// let acc = init + &m * -7i32;
-    /// assert_eq!(acc, 79);
-    /// ```
     impl Add add;
-    /// Peforms multiplication and addition together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let mut acc = Integer::from(100);
-    /// acc += &m * -7i32;
-    /// assert_eq!(acc, 79);
-    /// ```
     impl AddAssign add_assign;
-    MulRefI32, into, xgmp::mpz_addmul_si
+    MulRefI32, into, xgmp::mpz_addmul_si;
+    AddMulRefI32
 }
-
 op_mul! {
-    /// Peforms multiplication and subtraction together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m1 = Integer::from(3);
-    /// let m2 = Integer::from(7);
-    /// let init = Integer::from(100);
-    /// let acc = init - &m1 * &m2;
-    /// assert_eq!(acc, 79);
-    /// ```
     impl Sub sub;
-    /// Peforms multiplication and subtraction together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m1 = Integer::from(3);
-    /// let m2 = Integer::from(7);
-    /// let mut acc = Integer::from(100);
-    /// acc -= &m1 * &m2;
-    /// assert_eq!(acc, 79);
-    /// ```
     impl SubAssign sub_assign;
-    MulRef, inner, gmp::mpz_submul
+    MulRef, inner, gmp::mpz_submul;
+    SubMulRef
 }
-
 op_mul! {
-    /// Peforms multiplication and subtraction together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let init = Integer::from(100);
-    /// let acc = init - &m * 7u32;
-    /// assert_eq!(acc, 79);
-    /// ```
     impl Sub sub;
-    /// Peforms multiplication and subtraction together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let mut acc = Integer::from(100);
-    /// acc -= &m * 7u32;
-    /// assert_eq!(acc, 79);
-    /// ```
     impl SubAssign sub_assign;
-    MulRefU32, into, gmp::mpz_submul_ui
+    MulRefU32, into, gmp::mpz_submul_ui;
+    SubMulRefU32
 }
-
 op_mul! {
-    /// Peforms multiplication and subtraction together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let init = Integer::from(100);
-    /// let acc = init - &m * -7i32;
-    /// assert_eq!(acc, 121);
-    /// ```
     impl Sub sub;
-    /// Peforms multiplication and subtraction together.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let m = Integer::from(3);
-    /// let mut acc = Integer::from(100);
-    /// acc -= &m * -7i32;
-    /// assert_eq!(acc, 121);
-    /// ```
     impl SubAssign sub_assign;
-    MulRefI32, into, xgmp::mpz_submul_si
+    MulRefI32, into, xgmp::mpz_submul_si;
+    SubMulRefI32
 }
 
 impl Eq for Integer {}

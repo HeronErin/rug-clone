@@ -118,6 +118,35 @@ type Ordering2 = (Ordering, Ordering);
 /// assert_eq!(f, 0.75_f64.atan());
 /// ```
 ///
+/// Operations on two borrowed `Complex` numbers result in an
+/// intermediate value that has to be assigned to a new `Complex`
+/// value.
+///
+/// ```rust
+/// use rug::Complex;
+/// let a = Complex::with_val(53, (10.5, -11));
+/// let b = Complex::with_val(53, (-1.25, -1.5));
+/// let a_b_ref = &a + &b;
+/// let a_b = Complex::with_val(53, a_b_ref);
+/// assert_eq!(a_b, (9.25, -12.5));
+/// ```
+///
+/// As a special case, when an intermediate value is obtained from
+/// multiplying two `Complex` references, it can be added to or
+/// subtracted from another `Complex` (or reference). This will result
+/// in a fused multiply-accumulate operation, with only one rounding
+/// operation taking place.
+///
+/// ```rust
+/// use rug::Complex;
+/// let mut acc = Complex::with_val(53, (1000, 1000));
+/// let m1 = Complex::with_val(53, (10, 0));
+/// let m2 = Complex::with_val(53, (1, -1));
+/// // (1000 + 1000i) - (10 + 0i) * (1 - i) = (990 + 1010i)
+/// acc -= &m1 * &m2;
+/// assert_eq!(acc, (990, 1010));
+/// ```
+///
 /// [away]: float/enum.Round.html#variant.AwayFromZero
 pub struct Complex {
     inner: mpc_t,
@@ -3501,44 +3530,121 @@ arith_prim_complex! {
     PowRefF32
 }
 
-impl<'a> Add<MulRef<'a>> for Complex {
-    type Output = Complex;
-    /// Peforms multiplication and addition together, with only one
-    /// rounding operation to the nearest.
-    #[inline]
-    fn add(mut self, rhs: MulRef) -> Complex {
-        self.add_assign(rhs);
-        self
+macro_rules! mul_op_round {
+    {
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $ImpAssignRound:ident $method_assign_round:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        // x # mul
+        impl<'a> $Imp<MulRef<'a>> for Complex {
+            type Output = Complex;
+            #[inline]
+            fn $method(mut self, rhs: MulRef) -> Complex {
+                self.$method_assign(rhs);
+                self
+            }
+        }
+
+        // x #= mul
+        impl<'a> $ImpAssign<MulRef<'a>> for Complex {
+            #[inline]
+            fn $method_assign(&mut self, rhs: MulRef) {
+                self.$method_assign_round(rhs, Default::default());
+            }
+        }
+
+        // x #= mul with rounding
+        impl<'a> $ImpAssignRound<MulRef<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            #[inline]
+            fn $method_assign_round(
+                &mut self,
+                rhs: MulRef,
+                round: Round2,
+            ) -> Ordering2 {
+                let ret = unsafe {
+                    $func(self.inner_mut(), self.inner(), rhs, rraw2(round))
+                };
+                ordering2(ret)
+            }
+        }
+
+        // &x # mul
+        impl<'a> $Imp<MulRef<'a>> for &'a Complex {
+            type Output = $Ref<'a>;
+            #[inline]
+            fn $method(self, rhs: MulRef<'a>) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs: rhs,
+                }
+            }
+        }
+
+        #[derive(Clone, Copy)]
+        pub struct $Ref<'a> {
+            lhs: &'a Complex,
+            rhs: MulRef<'a>,
+        }
+
+        impl<'a> AssignRound<$Ref<'a>> for Complex {
+            type Round = Round2;
+            type Ordering = Ordering2;
+            #[inline]
+            fn assign_round(&mut self, src: $Ref, round: Round2) -> Ordering2 {
+                let ret = unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.lhs.inner(),
+                        src.rhs,
+                        rraw2(round),
+                    )
+                };
+                ordering2(ret)
+            }
+        }
     }
 }
 
-impl<'a> AddAssign<MulRef<'a>> for Complex {
-    /// Peforms multiplication and addition together, with only one
-    /// rounding operation to the nearest.
-    #[inline]
-    fn add_assign(&mut self, rhs: MulRef) {
-        self.add_assign_round(rhs, Default::default());
-    }
+mul_op_round! {
+    add_mul;
+    Add add;
+    AddAssign add_assign;
+    AddAssignRound add_assign_round;
+    MulRef;
+    AddMulRef
 }
 
-impl<'a> AddAssignRound<MulRef<'a>> for Complex {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    /// Peforms multiplication and addition together with only one
-    /// rounding operation as specified.
-    #[inline]
-    fn add_assign_round(&mut self, rhs: MulRef, round: Round2) -> Ordering2 {
-        let ret = unsafe {
-            mpc::fma(
-                self.inner_mut(),
-                rhs.lhs.inner(),
-                rhs.rhs.inner(),
-                self.inner(),
-                rraw2(round),
-            )
-        };
-        ordering2(ret)
-    }
+mul_op_round! {
+    sub_mul;
+    Sub sub;
+    SubAssign sub_assign;
+    SubAssignRound sub_assign_round;
+    MulRef;
+    SubMulRef
+}
+
+unsafe fn add_mul<'a>(
+    rop: *mut mpc_t,
+    acc: *const mpc_t,
+    mul: MulRef<'a>,
+    rnd: mpc::rnd_t,
+) -> c_int {
+    mpc::fma(rop, mul.lhs.inner(), mul.rhs.inner(), acc, rnd)
+}
+
+unsafe fn sub_mul<'a>(
+    rop: *mut mpc_t,
+    acc: *const mpc_t,
+    mul: MulRef<'a>,
+    rnd: mpc::rnd_t,
+) -> c_int {
+    xmpc::submul(rop, acc, mul.lhs.inner(), mul.rhs.inner(), rnd)
 }
 
 impl PartialEq for Complex {
