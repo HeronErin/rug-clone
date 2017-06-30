@@ -3592,27 +3592,27 @@ mul_op_noncommut_round! {
     SubMulRef SubMulFromRef
 }
 
-unsafe fn add_mul<'a>(
+unsafe fn add_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
-    mul: MulRef<'a>,
+    mul: MulRef,
     rnd: mpfr::rnd_t,
 ) -> c_int {
     mpfr::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
 }
 
-unsafe fn sub_mul<'a>(
+unsafe fn sub_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
-    mul: MulRef<'a>,
+    mul: MulRef,
     rnd: mpfr::rnd_t,
 ) -> c_int {
     xmpfr::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
 }
 
-unsafe fn mul_sub<'a>(
+unsafe fn mul_sub(
     rop: *mut mpfr_t,
-    mul: MulRef<'a>,
+    mul: MulRef,
     sub: *const mpfr_t,
     rnd: mpfr::rnd_t,
 ) -> c_int {
