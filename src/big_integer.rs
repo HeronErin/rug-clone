@@ -3220,99 +3220,59 @@ arith_prim_commut! {
     BitXorRefU32
 }
 
-macro_rules! op_mul {
-    {
-        impl $Imp:ident $method:ident;
-        impl $ImpAssign:ident $method_assign:ident;
-        $Ref:ident, $rhs_method:ident, $func:path;
-        $ImpRef:ident
-    } => {
-        impl<'a> $Imp<$Ref<'a>> for Integer {
-            type Output = Integer;
-            #[inline]
-            fn $method(mut self, rhs: $Ref) -> Integer {
-                self.$method_assign(rhs);
-                self
-            }
-        }
-
-        impl<'a> $ImpAssign<$Ref<'a>> for Integer  {
-            #[inline]
-            fn $method_assign(&mut self, rhs: $Ref) {
-                unsafe {
-                    $func(
-                        self.inner_mut(),
-                        rhs.lhs.inner(),
-                        rhs.rhs.$rhs_method()
-                    );
-                }
-            }
-        }
-
-        impl<'a> $Imp<$Ref<'a>> for &'a Integer {
-            type Output = $ImpRef<'a>;
-            #[inline]
-            fn $method(self, rhs: $Ref<'a>) -> $ImpRef<'a> {
-                $ImpRef {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        #[derive(Clone,Copy)]
-        pub struct $ImpRef<'a> {
-            lhs: &'a Integer,
-            rhs: $Ref<'a>,
-        }
-
-        from_borrow! { $ImpRef<'a> => Integer }
-
-        impl<'a> Assign<$ImpRef<'a>> for Integer {
-            #[inline]
-            fn assign(&mut self, src: $ImpRef) {
-                self.assign(src.lhs);
-                self.$method_assign(src.rhs);
-            }
-        }
-    }
-}
-
-op_mul! {
-    impl Add add;
-    impl AddAssign add_assign;
-    MulRef, inner, gmp::mpz_addmul;
+mul_op_commut! {
+    Integer;
+    gmp::mpz_addmul;
+    Add add;
+    AddAssign add_assign;
+    AddFrom add_from;
+    MulRef, inner;
     AddMulRef
 }
-op_mul! {
-    impl Add add;
-    impl AddAssign add_assign;
-    MulRefU32, into, gmp::mpz_addmul_ui;
+mul_op_commut! {
+    Integer;
+    gmp::mpz_addmul_ui;
+    Add add;
+    AddAssign add_assign;
+    AddFrom add_from;
+    MulRefU32, into;
     AddMulRefU32
 }
-op_mul! {
-    impl Add add;
-    impl AddAssign add_assign;
-    MulRefI32, into, xgmp::mpz_addmul_si;
+mul_op_commut! {
+    Integer;
+    xgmp::mpz_addmul_si;
+    Add add;
+    AddAssign add_assign;
+    AddFrom add_from;
+    MulRefI32, into;
     AddMulRefI32
 }
-op_mul! {
-    impl Sub sub;
-    impl SubAssign sub_assign;
-    MulRef, inner, gmp::mpz_submul;
-    SubMulRef
+mul_op_noncommut! {
+    Integer;
+    gmp::mpz_submul, xgmp::mpz_mulsub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFrom sub_from;
+    MulRef, inner;
+    SubMulRef SubMulRefFrom
 }
-op_mul! {
-    impl Sub sub;
-    impl SubAssign sub_assign;
-    MulRefU32, into, gmp::mpz_submul_ui;
-    SubMulRefU32
+mul_op_noncommut! {
+    Integer;
+    gmp::mpz_submul_ui, xgmp::mpz_mulsub_ui;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFrom sub_from;
+    MulRefU32, into;
+    SubMulRefU32 SubMulRefFromU32
 }
-op_mul! {
-    impl Sub sub;
-    impl SubAssign sub_assign;
-    MulRefI32, into, xgmp::mpz_submul_si;
-    SubMulRefI32
+mul_op_noncommut! {
+    Integer;
+    xgmp::mpz_submul_si, xgmp::mpz_mulsub_si;
+    Sub sub;
+    SubAssign sub_assign;
+    SubFrom sub_from;
+    MulRefI32, into;
+    SubMulRefI32 SubMulRefFromI32
 }
 
 impl Eq for Integer {}

@@ -3569,121 +3569,54 @@ arith_prim_noncommut_float!{
     PowRefF32 PowFromRefF32
 }
 
-macro_rules! mul_op_round {
-    {
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident
-    } => {
-        // x # mul
-        impl<'a> $Imp<MulRef<'a>> for Float {
-            type Output = Float;
-            #[inline]
-            fn $method(mut self, rhs: MulRef) -> Float {
-                self.$method_assign(rhs);
-                self
-            }
-        }
-
-        // x #= mul
-        impl<'a> $ImpAssign<MulRef<'a>> for Float {
-            #[inline]
-            fn $method_assign(&mut self, rhs: MulRef) {
-                self.$method_assign_round(rhs, Default::default());
-            }
-        }
-
-        // x #= mul with rounding
-        impl<'a> $ImpAssignRound<MulRef<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            #[inline]
-            fn $method_assign_round(
-                &mut self,
-                rhs: MulRef,
-                round: Round,
-            ) -> Ordering {
-                let ret = unsafe {
-                    $func(self.inner_mut(), self.inner(), rhs, rraw(round))
-                };
-                ordering1(ret)
-            }
-        }
-
-        // &x # mul
-        impl<'a> $Imp<MulRef<'a>> for &'a Float {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: MulRef<'a>) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            lhs: &'a Float,
-            rhs: MulRef<'a>,
-        }
-
-        impl<'a> AssignRound<$Ref<'a>> for Float {
-            type Round = Round;
-            type Ordering = Ordering;
-            #[inline]
-            fn assign_round(&mut self, src: $Ref, round: Round) -> Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs,
-                        rraw(round),
-                    )
-                };
-                ordering1(ret)
-            }
-        }
-    }
-}
-
-mul_op_round! {
-    add_mul;
+mul_op_commut_round! {
+    Float, Round => Ordering;
+    add_mul, rraw => ordering1;
     Add add;
     AddAssign add_assign;
     AddAssignRound add_assign_round;
+    AddFrom add_from;
+    AddFromRound add_from_round;
     MulRef;
     AddMulRef
 }
-
-mul_op_round! {
-    sub_mul;
+mul_op_noncommut_round! {
+    Float, Round => Ordering;
+    sub_mul, mul_sub, rraw => ordering1;
     Sub sub;
     SubAssign sub_assign;
     SubAssignRound sub_assign_round;
+    SubFrom sub_from;
+    SubFromRound sub_from_round;
     MulRef;
-    SubMulRef
+    SubMulRef SubMulFromRef
 }
 
 unsafe fn add_mul<'a>(
     rop: *mut mpfr_t,
-    acc: *const mpfr_t,
+    add: *const mpfr_t,
     mul: MulRef<'a>,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::fma(rop, mul.lhs.inner(), mul.rhs.inner(), acc, rnd)
+    mpfr::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
 }
 
 unsafe fn sub_mul<'a>(
     rop: *mut mpfr_t,
-    acc: *const mpfr_t,
+    add: *const mpfr_t,
     mul: MulRef<'a>,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    xmpfr::submul(rop, acc, mul.lhs.inner(), mul.rhs.inner(), rnd)
+    xmpfr::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
+}
+
+unsafe fn mul_sub<'a>(
+    rop: *mut mpfr_t,
+    mul: MulRef<'a>,
+    sub: *const mpfr_t,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    mpfr::fms(rop, mul.lhs.inner(), mul.rhs.inner(), sub, rnd)
 }
 
 impl PartialEq for Float {

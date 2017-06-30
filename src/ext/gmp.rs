@@ -698,6 +698,28 @@ pub unsafe fn mpz_submul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 #[inline]
+pub unsafe fn mpz_mulsub(
+    rop: *mut mpz_t,
+    op1: *const mpz_t,
+    op2: *const mpz_t,
+) {
+    gmp::mpz_submul(rop, op1, op2);
+    (*rop).size = -(*rop).size;
+}
+
+#[inline]
+pub unsafe fn mpz_mulsub_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
+    gmp::mpz_submul_ui(rop, op1, op2);
+    (*rop).size = -(*rop).size;
+}
+
+#[inline]
+pub unsafe fn mpz_mulsub_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+    mpz_submul_si(rop, op1, op2);
+    (*rop).size = -(*rop).size;
+}
+
+#[inline]
 pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     if (*op).size >= 0 {
         c_ulong::max_value()

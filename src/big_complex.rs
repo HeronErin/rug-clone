@@ -3532,121 +3532,54 @@ arith_prim_complex! {
     PowRefF32
 }
 
-macro_rules! mul_op_round {
-    {
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident
-    } => {
-        // x # mul
-        impl<'a> $Imp<MulRef<'a>> for Complex {
-            type Output = Complex;
-            #[inline]
-            fn $method(mut self, rhs: MulRef) -> Complex {
-                self.$method_assign(rhs);
-                self
-            }
-        }
-
-        // x #= mul
-        impl<'a> $ImpAssign<MulRef<'a>> for Complex {
-            #[inline]
-            fn $method_assign(&mut self, rhs: MulRef) {
-                self.$method_assign_round(rhs, Default::default());
-            }
-        }
-
-        // x #= mul with rounding
-        impl<'a> $ImpAssignRound<MulRef<'a>> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            #[inline]
-            fn $method_assign_round(
-                &mut self,
-                rhs: MulRef,
-                round: Round2,
-            ) -> Ordering2 {
-                let ret = unsafe {
-                    $func(self.inner_mut(), self.inner(), rhs, rraw2(round))
-                };
-                ordering2(ret)
-            }
-        }
-
-        // &x # mul
-        impl<'a> $Imp<MulRef<'a>> for &'a Complex {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: MulRef<'a>) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs: rhs,
-                }
-            }
-        }
-
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            lhs: &'a Complex,
-            rhs: MulRef<'a>,
-        }
-
-        impl<'a> AssignRound<$Ref<'a>> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            #[inline]
-            fn assign_round(&mut self, src: $Ref, round: Round2) -> Ordering2 {
-                let ret = unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs,
-                        rraw2(round),
-                    )
-                };
-                ordering2(ret)
-            }
-        }
-    }
-}
-
-mul_op_round! {
-    add_mul;
+mul_op_commut_round! {
+    Complex, Round2 => Ordering2;
+    add_mul, rraw2 => ordering2;
     Add add;
     AddAssign add_assign;
     AddAssignRound add_assign_round;
+    AddFrom add_from;
+    AddFromRound add_from_round;
     MulRef;
     AddMulRef
 }
-
-mul_op_round! {
-    sub_mul;
+mul_op_noncommut_round! {
+    Complex, Round2 => Ordering2;
+    sub_mul, mul_sub, rraw2 => ordering2;
     Sub sub;
     SubAssign sub_assign;
     SubAssignRound sub_assign_round;
+    SubFrom sub_from;
+    SubFromRound sub_from_round;
     MulRef;
-    SubMulRef
+    SubMulRef SubMulFromRef
 }
 
 unsafe fn add_mul<'a>(
     rop: *mut mpc_t,
-    acc: *const mpc_t,
+    add: *const mpc_t,
     mul: MulRef<'a>,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    mpc::fma(rop, mul.lhs.inner(), mul.rhs.inner(), acc, rnd)
+    mpc::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
 }
 
 unsafe fn sub_mul<'a>(
     rop: *mut mpc_t,
-    acc: *const mpc_t,
+    add: *const mpc_t,
     mul: MulRef<'a>,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::submul(rop, acc, mul.lhs.inner(), mul.rhs.inner(), rnd)
+    xmpc::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
+}
+
+unsafe fn mul_sub<'a>(
+    rop: *mut mpc_t,
+    mul: MulRef<'a>,
+    sub: *const mpc_t,
+    rnd: mpc::rnd_t,
+) -> c_int {
+    xmpc::mulsub(rop, (mul.lhs.inner(), mul.rhs.inner()), sub, rnd)
 }
 
 impl PartialEq for Complex {

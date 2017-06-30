@@ -305,9 +305,8 @@ pub unsafe fn f64_pow(
 #[inline]
 pub unsafe fn submul(
     rop: *mut mpfr_t,
-    acc: *const mpfr_t,
-    m1: *const mpfr_t,
-    m2: *const mpfr_t,
+    add: *const mpfr_t,
+    (m1, m2): (*const mpfr_t, *const mpfr_t),
     rnd: mpfr::rnd_t,
 ) -> c_int {
     let reverse_rnd = match rnd {
@@ -315,7 +314,7 @@ pub unsafe fn submul(
         mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
         unchanged => unchanged,
     };
-    let reverse_ord = mpfr::fms(rop, m1, m2, acc, reverse_rnd);
+    let reverse_ord = mpfr::fms(rop, m1, m2, add, reverse_rnd);
     if mpfr::nan_p(rop) == 0 {
         (*rop).sign = -(*rop).sign;
     }

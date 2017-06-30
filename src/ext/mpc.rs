@@ -147,17 +147,27 @@ pub unsafe fn pow_f32(
 }
 
 #[inline]
+pub unsafe fn mulsub(
+    rop: *mut mpc_t,
+    (m1, m2): (*const mpc_t, *const mpc_t),
+    sub: *const mpc_t,
+    rnd: mpc::rnd_t,
+) -> c_int {
+    let sub_complex = &*(sub as *const Complex);
+    let add = sub_complex.as_neg();
+    mpc::fma(rop, m1, m2, add.inner(), rnd)
+}
+
+#[inline]
 pub unsafe fn submul(
     rop: *mut mpc_t,
-    acc: *const mpc_t,
-    m1: *const mpc_t,
-    m2: *const mpc_t,
+    add: *const mpc_t,
+    (m1, m2): (*const mpc_t, *const mpc_t),
     rnd: mpc::rnd_t,
 ) -> c_int {
     let m1_complex = &*(m1 as *const Complex);
-    let neg_m1_complex = m1_complex.as_neg();
-    let neg_m1 = &*(&*neg_m1_complex as *const Complex as *const mpc_t);
-    mpc::fma(rop, neg_m1, m2, acc, rnd)
+    let neg_m1 = m1_complex.as_neg();
+    mpc::fma(rop, neg_m1.inner(), m2, add, rnd)
 }
 
 #[inline]
