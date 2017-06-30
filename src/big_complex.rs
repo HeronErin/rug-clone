@@ -95,11 +95,13 @@ type Ordering2 = (Ordering, Ordering);
 ///    value.
 /// 2. The second applies the specified [rounding
 ///    methods](float/enum.Round.html) for the real and imaginary
-///    parts, and returns the rounding directions for both: *
-///    `Ordering::Less` if the returned/stored part is less than the
-///    exact result, * `Ordering::Equal` if the returned/stored part
-///    is equal to the exact result, * `Ordering::Greater` if the
-///    returned/stored part is greater than the exact result,
+///    parts, and returns the rounding directions for both:
+///    * `Ordering::Less` if the returned/stored part is less than the
+///      exact result,
+///    * `Ordering::Equal` if the returned/stored part is equal to the
+///      exact result,
+///    * `Ordering::Greater` if the returned/stored part is greater
+///      than the exact result,
 ///
 /// # Note on [`Round::AwayFromZero`][away]
 ///
