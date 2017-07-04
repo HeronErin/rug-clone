@@ -3589,6 +3589,29 @@ impl PartialEq for Complex {
     }
 }
 
+#[inline]
+fn real_imag_cmp(
+    real: Option<Ordering>,
+    imag: Option<Ordering>,
+) -> Option<Ordering> {
+    if real == imag || real == Some(Ordering::Equal) {
+        imag
+    } else if imag == Some(Ordering::Equal) {
+        real
+    } else {
+        None
+    }
+}
+
+impl PartialOrd for Complex {
+    #[inline]
+    fn partial_cmp(&self, other: &Complex) -> Option<Ordering> {
+        let real_cmp = self.real().partial_cmp(other.real());
+        let imag_cmp = self.imag().partial_cmp(other.imag());
+        real_imag_cmp(real_cmp, imag_cmp)
+    }
+}
+
 impl<T, U> PartialEq<(T, U)> for Complex
 where
     Float: PartialEq<T>,
@@ -3600,26 +3623,94 @@ where
     }
 }
 
-macro_rules! partial_eq {
+impl<T, U> PartialOrd<(T, U)> for Complex
+where
+    Float: PartialOrd<T>,
+    Float: PartialOrd<U>,
+{
+    #[inline]
+    fn partial_cmp(&self, other: &(T, U)) -> Option<Ordering> {
+        let real_cmp = self.real().partial_cmp(&other.0);
+        let imag_cmp = self.imag().partial_cmp(&other.1);
+        real_imag_cmp(real_cmp, imag_cmp)
+    }
+}
+
+macro_rules! cmp_tuple {
+    { $T:ty, $U:ty } => {
+        impl PartialEq<Complex> for ($T, $U) {
+            #[inline]
+            fn eq(&self, other: &Complex) -> bool {
+                self.0.eq(other.real()) && self.1.eq(other.imag())
+            }
+        }
+
+        impl PartialOrd<Complex> for ($T, $U) {
+            #[inline]
+            fn partial_cmp(&self, other: &Complex) -> Option<Ordering> {
+                let real_cmp = self.0.partial_cmp(other.real());
+                let imag_cmp = self.1.partial_cmp(other.imag());
+                real_imag_cmp(real_cmp, imag_cmp)
+            }
+        }
+    }
+}
+
+macro_rules! cmp {
     { $T:ty } => {
+        #[cfg(feature = "integer")]
+        cmp_tuple! { $T, Integer }
+        #[cfg(feature = "rational")]
+        cmp_tuple! { $T, Rational }
+        cmp_tuple! { $T, Float }
+        cmp_tuple! { $T, u32 }
+        cmp_tuple! { $T, i32 }
+        cmp_tuple! { $T, f64 }
+        cmp_tuple! { $T, f32 }
+
         impl PartialEq<$T> for Complex {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
                 self.real().eq(other) && self.imag().is_zero()
             }
         }
+
+        impl PartialEq<Complex> for $T {
+            #[inline]
+            fn eq(&self, other: &Complex) -> bool {
+                self.eq(other.real()) && other.imag().is_zero()
+            }
+        }
+
+        impl PartialOrd<$T> for Complex {
+            #[inline]
+            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
+                let real_cmp = self.real().partial_cmp(other);
+                let imag_cmp = self.imag().partial_cmp(&0);
+                real_imag_cmp(real_cmp, imag_cmp)
+            }
+        }
+
+        impl PartialOrd<Complex> for $T {
+            #[inline]
+            fn partial_cmp(&self, other: &Complex) -> Option<Ordering> {
+                let real_cmp = self.partial_cmp(other.real());
+                let imag_cmp = 0.partial_cmp(other.imag());
+                real_imag_cmp(real_cmp, imag_cmp)
+            }
+        }
     }
 }
 
 #[cfg(feature = "integer")]
-partial_eq! { Integer }
+cmp! { Integer }
 #[cfg(feature = "rational")]
-partial_eq! { Rational }
-partial_eq! { Float }
-partial_eq! { u32 }
-partial_eq! { i32 }
-partial_eq! { f64 }
-partial_eq! { f32 }
+cmp! { Rational }
+cmp! { Float }
+cmp! { u32 }
+cmp! { i32 }
+cmp! { f64 }
+cmp! { f32 }
 
 fn fmt_radix(
     c: &Complex,
