@@ -1739,6 +1739,8 @@ cmp_small_rat! { (u64, i64) }
 cmp_small_rat! { (u32, u32) }
 cmp_small_rat! { (u64, u64) }
 
+sum_prod! { Rational, Rational::new(), Rational::from(1) }
+
 fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let (num, den) = r.as_numer_denom();

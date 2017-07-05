@@ -3898,6 +3898,8 @@ cmp! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
 cmp! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
 cmp! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, *t as f64) } }
 
+sum_prod! { Float, Float::with_val(53, 0), Float::with_val(53, 1) }
+
 fn make_string(
     f: &Float,
     radix: i32,

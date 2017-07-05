@@ -3712,6 +3712,8 @@ cmp! { i32 }
 cmp! { f64 }
 cmp! { f32 }
 
+sum_prod! { Complex, Complex::with_val(53, 0), Complex::with_val(53, 1) }
+
 fn fmt_radix(
     c: &Complex,
     fmt: &mut Formatter,

@@ -3400,6 +3400,8 @@ impl PartialOrd<Integer> for f64 {
     }
 }
 
+sum_prod! { Integer, Integer::new(), Integer::from(1) }
+
 fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let i_size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
