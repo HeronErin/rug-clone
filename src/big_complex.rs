@@ -1140,7 +1140,7 @@ impl Complex {
         /// let proj2 = c2.proj();
         /// assert_eq!(proj2, (f64::INFINITY, 0.0));
         /// // imaginary was negative, so now it is minus zero
-        /// assert!(proj2.imag().get_sign());
+        /// assert!(proj2.imag().is_sign_negative());
         /// ```
         fn proj();
         /// Computes a projection onto the Riemann sphere, rounding to
@@ -1164,7 +1164,7 @@ impl Complex {
         /// c2.proj_mut();
         /// assert_eq!(c2, (f64::INFINITY, 0.0));
         /// // imaginary was negative, so now it is minus zero
-        /// assert!(c2.imag().get_sign());
+        /// assert!(c2.imag().is_sign_negative());
         /// ```
         fn proj_mut;
         /// Computes the projection onto the Riemann sphere.
@@ -1187,7 +1187,7 @@ impl Complex {
         /// let proj2 = Complex::with_val(53, c2.proj_ref());
         /// assert_eq!(proj2, (f64::INFINITY, 0.0));
         /// // imaginary was negative, so now it is minus zero
-        /// assert!(proj2.imag().get_sign());
+        /// assert!(proj2.imag().is_sign_negative());
         /// ```
         fn proj_ref -> ProjRef;
     }
@@ -1428,10 +1428,10 @@ impl Complex {
     /// let mut zero = Complex::new(53);
     /// zero.assign((Special::Zero, Special::Zero));
     /// arg.assign(zero.arg_ref());
-    /// assert!(arg.is_zero() && !arg.get_sign());
+    /// assert!(arg.is_zero() && arg.is_sign_positive());
     /// zero.assign((Special::Zero, Special::MinusZero));
     /// arg.assign(zero.arg_ref());
-    /// assert!(arg.is_zero() && arg.get_sign());
+    /// assert!(arg.is_zero() && arg.is_sign_negative());
     /// zero.assign((Special::MinusZero, Special::Zero));
     /// arg.assign(zero.arg_ref());
     /// assert_eq!(arg, f64::consts::PI);
@@ -3751,7 +3751,7 @@ fn fmt_float(
     let show_neg_zero = show_neg_zero || fmt.sign_plus();
     let mut s = flt.to_string_radix(radix, fmt.precision());
     let minus = s.starts_with('-') ||
-        (show_neg_zero && flt.is_zero() && flt.get_sign());
+        (show_neg_zero && flt.is_zero() && flt.is_sign_negative());
     if minus {
         buf.push('-');
     } else if fmt.sign_plus() {

@@ -270,8 +270,8 @@ mod tests {
     #[test]
     fn check_from_str() {
         assert!(Float::from_str_radix("-@nan@", 2, 53).unwrap().is_nan());
-        assert!(Float::from_str("-0", 53).unwrap().get_sign());
-        assert!(!Float::from_str("+0", 53).unwrap().get_sign());
+        assert!(Float::from_str("-0", 53).unwrap().is_sign_negative());
+        assert!(Float::from_str("+0", 53).unwrap().is_sign_positive());
         assert!(Float::from_str("1e1000", 53).unwrap().is_finite());
         let huge_hex = "1@99999999999999999999999999999999";
         assert!(

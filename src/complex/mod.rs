@@ -86,8 +86,8 @@ mod tests {
         let mut c = Complex::new(53);
         c.assign_str("(+0 -0)").unwrap();
         assert_eq!(c, (0, 0));
-        assert!(!c.real().get_sign());
-        assert!(c.imag().get_sign());
+        assert!(c.real().is_sign_positive());
+        assert!(c.imag().is_sign_negative());
         c.assign_str("(5 6)").unwrap();
         assert_eq!(c, (5, 6));
         c.assign_str_radix("(50 60)", 8).unwrap();

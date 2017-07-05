@@ -1497,9 +1497,37 @@ impl Float {
         }
     }
 
-    /// Returns the sign bit, that is `true` if the number is negative.
+    /// Returns `true` if the value is positive, +0 or NaN without a
+    /// negative sign.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let pos = Float::with_val(53, 1.0);
+    /// let neg = Float::with_val(53, -1.0);
+    /// assert!(pos.is_sign_positive());
+    /// assert!(!neg.is_sign_positive());
+    /// ```
     #[inline]
-    pub fn get_sign(&self) -> bool {
+    pub fn is_sign_positive(&self) -> bool {
+        !self.is_sign_negative()
+    }
+
+    /// Returns `true` if the value is negative, −0 or NaN with a
+    /// negative sign.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let neg = Float::with_val(53, -1.0);
+    /// let pos = Float::with_val(53, 1.0);
+    /// assert!(neg.is_sign_negative());
+    /// assert!(!pos.is_sign_negative());
+    /// ```
+    #[inline]
+    pub fn is_sign_negative(&self) -> bool {
         unsafe { mpfr::signbit(self.inner()) != 0 }
     }
 
@@ -1630,17 +1658,181 @@ impl Float {
         fn recip_ref -> RecipRef;
     }
     math_op2_float! {
+        mpfr::min;
+        /// Finds the minimum, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, -2);
+        /// let min = a.min(&b);
+        /// assert_eq!(min, -2);
+        /// ```
+        fn min(other);
+        /// Finds the minimum, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, -2);
+        /// a.min_mut(&b);
+        /// assert_eq!(a, -2);
+        /// ```
+        fn min_mut;
+        /// Finds the minimum, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let mut a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, -2);
+        /// let dir = a.min_round(&b, Round::Nearest);
+        /// assert_eq!(a, -2);
+        /// assert_eq!(dir, Ordering::Equal);
+        /// ```
+        fn min_round;
+        /// Finds the minimum.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, -2);
+        /// let r = a.min_ref(&b);
+        /// let min = Float::with_val(53, r);
+        /// assert_eq!(min, -2);
+        /// ```
+        fn min_ref -> MinRef;
+    }
+    math_op2_float! {
+        mpfr::max;
+        /// Finds the maximum, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, 12.5);
+        /// let max = a.max(&b);
+        /// assert_eq!(max, 12.5);
+        /// ```
+        fn max(other);
+        /// Finds the maximum, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, 12.5);
+        /// a.max_mut(&b);
+        /// assert_eq!(a, 12.5);
+        /// ```
+        fn max_mut;
+        /// Finds the maximum, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let mut a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, 12.5);
+        /// let dir = a.max_round(&b, Round::Nearest);
+        /// assert_eq!(a, 12.5);
+        /// assert_eq!(dir, Ordering::Equal);
+        /// ```
+        fn max_round;
+        /// Finds the maximum.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let a = Float::with_val(53, 5.2);
+        /// let b = Float::with_val(53, 12.5);
+        /// let r = a.max_ref(&b);
+        /// let max = Float::with_val(53, r);
+        /// assert_eq!(max, 12.5);
+        /// ```
+        fn max_ref -> MaxRef;
+    }
+    math_op2_float! {
         mpfr::dim;
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let a = Float::with_val(53, 12.5);
+        /// let b = Float::with_val(53, 7.3);
+        /// let diff1 = a.pos_diff(&b);
+        /// assert_eq!(diff1, 5.2);
+        /// let diff2 = diff1.pos_diff(&b);
+        /// assert_eq!(diff2, 0);
+        /// ```
         fn pos_diff(other);
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut a = Float::with_val(53, 12.5);
+        /// let b = Float::with_val(53, 7.3);
+        /// a.pos_diff_mut(&b);
+        /// assert_eq!(a, 5.2);
+        /// a.pos_diff_mut(&b);
+        /// assert_eq!(a, 0);
+        /// ```
         fn pos_diff_mut;
         /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let mut a = Float::with_val(53, 12.5);
+        /// let b = Float::with_val(53, 7.3);
+        /// let dir = a.pos_diff_round(&b, Round::Nearest);
+        /// assert_eq!(a, 5.2);
+        /// assert_eq!(dir, Ordering::Equal);
+        /// let dir = a.pos_diff_round(&b, Round::Nearest);
+        /// assert_eq!(a, 0);
+        /// assert_eq!(dir, Ordering::Equal);
+        /// ```
         fn pos_diff_round;
         /// Computes the positive difference.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let a = Float::with_val(53, 12.5);
+        /// let b = Float::with_val(53, 7.3);
+        /// let rab = a.pos_diff_ref(&b);
+        /// let ab = Float::with_val(53, rab);
+        /// assert_eq!(ab, 5.2);
+        /// let rba = b.pos_diff_ref(&a);
+        /// let ba = Float::with_val(53, rba);
+        /// assert_eq!(ba, 0);
+        /// ```
         fn pos_diff_ref -> AbsDiffRef;
     }
     math_op1_float! {
@@ -2912,6 +3104,8 @@ ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
 ref_math_op1_float! { mpfr::root; struct RootRef { k: u32 } }
 ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
 ref_math_op1_float! { xmpfr::recip; struct RecipRef {} }
+ref_math_op2_float! { mpfr::min; struct MinRef { other } }
+ref_math_op2_float! { mpfr::max; struct MaxRef { other } }
 ref_math_op2_float! { mpfr::dim; struct AbsDiffRef { other } }
 ref_math_op1_float! { mpfr::log; struct LnRef {} }
 ref_math_op1_float! { mpfr::log2; struct Log2Ref {} }
@@ -3717,7 +3911,7 @@ fn make_string(
         return "0.0".to_string();
     }
     if f.is_infinite() {
-        return match (radix > 10, f.get_sign()) {
+        return match (radix > 10, f.is_sign_negative()) {
             (false, false) => "inf".to_string(),
             (false, true) => "-inf".to_string(),
             (true, false) => "@inf@".to_string(),
@@ -3787,7 +3981,10 @@ fn fmt_radix(
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {
-        (show_neg_zero && flt.is_zero() && flt.get_sign(), &s[..])
+        (
+            show_neg_zero && flt.is_zero() && flt.is_sign_negative(),
+            &s[..],
+        )
     };
     f.pad_integral(!neg, prefix, buf)
 }
