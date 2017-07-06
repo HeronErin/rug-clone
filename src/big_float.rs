@@ -869,20 +869,28 @@ impl Float {
             }
             if *b == b'.' {
                 if exp {
-                    return Err(Error { kind: Kind::PointInExp });
+                    return Err(Error {
+                        kind: Kind::PointInExp,
+                    });
                 }
                 if got_point {
-                    return Err(Error { kind: Kind::TooManyPoints });
+                    return Err(Error {
+                        kind: Kind::TooManyPoints,
+                    });
                 }
                 got_point = true;
                 continue;
             }
             if (radix <= 10 && (*b == b'e' || *b == b'E')) || *b == b'@' {
                 if exp {
-                    return Err(Error { kind: Kind::TooManyExp });
+                    return Err(Error {
+                        kind: Kind::TooManyExp,
+                    });
                 }
                 if !got_digit {
-                    return Err(Error { kind: Kind::SignifNoDigits });
+                    return Err(Error {
+                        kind: Kind::SignifNoDigits,
+                    });
                 }
                 got_digit = false;
                 exp = true;
@@ -893,17 +901,27 @@ impl Float {
                 b'0'...b'9' => *b - b'0',
                 b'a'...b'z' => *b - b'a' + 10,
                 b'A'...b'Z' => *b - b'A' + 10,
-                _ => Err(Error { kind: Kind::InvalidDigit })?,
+                _ => {
+                    Err(Error {
+                        kind: Kind::InvalidDigit,
+                    })?
+                }
             };
             if (!exp && digit >= radix as u8) || (exp && digit >= 10) {
-                return Err(Error { kind: Kind::InvalidDigit });
+                return Err(Error {
+                    kind: Kind::InvalidDigit,
+                });
             }
             got_digit = true;
         }
         if !got_digit && exp {
-            return Err(Error { kind: Kind::ExpNoDigits });
+            return Err(Error {
+                kind: Kind::ExpNoDigits,
+            });
         } else if !got_digit {
-            return Err(Error { kind: Kind::NoDigits });
+            return Err(Error {
+                kind: Kind::NoDigits,
+            });
         }
         v.poss = if starts_with_plus {
             ValidPoss::Bytes(&bytes[1..])

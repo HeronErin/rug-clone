@@ -241,10 +241,14 @@ impl Rational {
         for b in iter {
             if *b == b'/' {
                 if denom {
-                    return Err(Error { kind: Kind::TooManySlashes });
+                    return Err(Error {
+                        kind: Kind::TooManySlashes,
+                    });
                 }
                 if !got_digit {
-                    return Err(Error { kind: Kind::NumerNoDigits });
+                    return Err(Error {
+                        kind: Kind::NumerNoDigits,
+                    });
                 }
                 got_digit = false;
                 denom = true;
@@ -254,10 +258,16 @@ impl Rational {
                 b'0'...b'9' => *b - b'0',
                 b'a'...b'z' => *b - b'a' + 10,
                 b'A'...b'Z' => *b - b'A' + 10,
-                _ => Err(Error { kind: Kind::InvalidDigit })?,
+                _ => {
+                    Err(Error {
+                        kind: Kind::InvalidDigit,
+                    })?
+                }
             };
             if digit_value >= radix as u8 {
-                return Err(Error { kind: Kind::InvalidDigit });
+                return Err(Error {
+                    kind: Kind::InvalidDigit,
+                });
             }
             got_digit = true;
             if denom && digit_value > 0 {
@@ -265,12 +275,18 @@ impl Rational {
             }
         }
         if !got_digit && denom {
-            return Err(Error { kind: Kind::DenomNoDigits });
+            return Err(Error {
+                kind: Kind::DenomNoDigits,
+            });
         } else if !got_digit {
-            return Err(Error { kind: Kind::NoDigits });
+            return Err(Error {
+                kind: Kind::NoDigits,
+            });
         }
         if denom && !denom_non_zero {
-            return Err(Error { kind: Kind::DenomZero });
+            return Err(Error {
+                kind: Kind::DenomZero,
+            });
         }
         let v = ValidRational {
             bytes: skip_plus,

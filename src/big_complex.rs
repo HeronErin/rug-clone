@@ -619,23 +619,38 @@ impl Complex {
 
         let p = if src.starts_with('(') {
             let space = src.find(' ')
-                .ok_or(Error { kind: Kind::MissingSpace })?;
+                .ok_or(Error {
+                    kind: Kind::MissingSpace,
+                })?;
             let real_str = &src[1..space];
-            let re = Float::valid_str_radix(real_str, radix)
-                .map_err(|e| Error { kind: Kind::InvalidRealFloat(e) })?;
+            let re = Float::valid_str_radix(real_str, radix).map_err(|e| {
+                Error {
+                    kind: Kind::InvalidRealFloat(e),
+                }
+            })?;
             let rest = &src[space + 1..];
             let close = rest.find(')')
-                .ok_or(Error { kind: Kind::MissingClose })?;
+                .ok_or(Error {
+                    kind: Kind::MissingClose,
+                })?;
             let imag_str = &rest[0..close];
-            let im = Float::valid_str_radix(imag_str, radix)
-                .map_err(|e| Error { kind: Kind::InvalidImagFloat(e) })?;
+            let im = Float::valid_str_radix(imag_str, radix).map_err(|e| {
+                Error {
+                    kind: Kind::InvalidImagFloat(e),
+                }
+            })?;
             if close != rest.len() - 1 {
-                return Err(Error { kind: Kind::CloseNotLast });
+                return Err(Error {
+                    kind: Kind::CloseNotLast,
+                });
             }
             ValidPoss::Complex(re, im)
         } else {
-            let re = Float::valid_str_radix(src, radix)
-                .map_err(|e| Error { kind: Kind::InvalidFloat(e) })?;
+            let re = Float::valid_str_radix(src, radix).map_err(|e| {
+                Error {
+                    kind: Kind::InvalidFloat(e),
+                }
+            })?;
             ValidPoss::Real(re)
         };
         Ok(ValidComplex { poss: p })

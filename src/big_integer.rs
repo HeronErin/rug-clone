@@ -456,15 +456,23 @@ impl Integer {
                 b'0'...b'9' => *b - b'0',
                 b'a'...b'z' => *b - b'a' + 10,
                 b'A'...b'Z' => *b - b'A' + 10,
-                _ => return Err(Error { kind: Kind::InvalidDigit }),
+                _ => {
+                    return Err(Error {
+                        kind: Kind::InvalidDigit,
+                    })
+                }
             };
             if digit_value >= radix as u8 {
-                return Err(Error { kind: Kind::InvalidDigit });
+                return Err(Error {
+                    kind: Kind::InvalidDigit,
+                });
             }
             got_digit = true;
         }
         if !got_digit {
-            return Err(Error { kind: Kind::NoDigits });
+            return Err(Error {
+                kind: Kind::NoDigits,
+            });
         }
         let v = ValidInteger {
             bytes: skip_plus,
