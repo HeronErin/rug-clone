@@ -22,9 +22,10 @@ use std::hash::{Hash, Hasher};
 
 /// A complex number that supports ordering and hashing.
 ///
-/// In this representation, all NaNs are equal, but negative zero is
-/// not equal to positive zero. NaNs are ordered to be greater than
-/// infinity, and the NaN sign is ignored.
+/// For ordering, the real part has precedence over the imaginary
+/// part. Negative zero is ordered as less than positive zero. All
+/// NaNs are ordered as equal and as greater than infinity, with the
+/// NaN sign ignored.
 ///
 /// # Examples
 ///
@@ -49,7 +50,6 @@ use std::hash::{Hash, Hasher};
 /// let zero_inf = OrdComplex::from(zero_inf_c);
 /// assert_eq!(one_pos0.cmp(&zero_inf), Ordering::Greater);
 /// ```
-#[repr(C)]
 #[derive(Clone, Debug, Default)]
 pub struct OrdComplex {
     inner: Complex,

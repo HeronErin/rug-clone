@@ -25,9 +25,9 @@ use std::slice;
 
 /// A float that supports ordering and hashing.
 ///
-/// In this representation, all NaNs are equal, but negative zero is
-/// not equal to positive zero. NaNs are ordered to be greater than
-/// infinity, and the NaN sign is ignored.
+/// Negative zero is ordered as less than positive zero. All NaNs are
+/// ordered as equal and as greater than infinity, with the NaN sign
+/// ignored.
 ///
 /// # Examples
 ///
@@ -50,7 +50,6 @@ use std::slice;
 /// let neg_zero = OrdFloat::from(neg_zero_f);
 /// assert_eq!(zero.cmp(&neg_zero), Ordering::Greater);
 /// ```
-#[repr(C)]
 #[derive(Clone, Debug, Default)]
 pub struct OrdFloat {
     inner: Float,
