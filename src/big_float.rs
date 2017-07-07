@@ -20,8 +20,7 @@ use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use ext::mpfr as xmpfr;
-use float::SmallFloat;
-use gmp_mpfr_sys::gmp;
+use float::{OrdFloat, SmallFloat};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
@@ -37,14 +36,12 @@ use std::error::Error;
 use std::ffi::CStr;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
-use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Div, DivAssign, Mul, MulAssign, Neg,
                Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
-use std::slice;
 
 /// Returns the minimum value for the exponent.
 ///
@@ -244,11 +241,11 @@ pub enum Special {
     /// Positive zero.
     Zero,
     /// Negative zero.
-    MinusZero,
+    NegZero,
     /// Positive infinity.
     Infinity,
     /// Negative infinity.
-    MinusInfinity,
+    NegInfinity,
     /// Not a number.
     Nan,
 }
@@ -401,6 +398,13 @@ pub struct Float {
     inner: mpfr_t,
 }
 
+impl Default for Float {
+    #[inline]
+    fn default() -> Float {
+        Float::new(53)
+    }
+}
+
 impl Clone for Float {
     #[inline]
     fn clone(&self) -> Float {
@@ -422,29 +426,6 @@ impl Drop for Float {
         unsafe {
             mpfr::clear(self.inner_mut());
         }
-    }
-}
-
-impl Hash for Float {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.inner().exp.hash(state);
-        if self.is_nan() || self.is_zero() {
-            return;
-        }
-        self.inner().sign.hash(state);
-        if self.is_infinite() {
-            return;
-        }
-        let prec = self.prec();
-        assert_eq!(prec as usize as u32, prec);
-        let prec = prec as usize;
-        let mut limbs = prec / gmp::LIMB_BITS as usize;
-        // MPFR keeps unused bits set to zero, so use whole of last limb
-        if prec % gmp::LIMB_BITS as usize > 0 {
-            limbs += 1;
-        };
-        let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
-        slice.hash(state);
     }
 }
 
@@ -832,7 +813,7 @@ impl Float {
         if (radix <= 10 && lcase_in(bytes, neg_inf10)) ||
             lcase_in(bytes, neg_inf)
         {
-            v.poss = ValidPoss::Special(Special::MinusInfinity);
+            v.poss = ValidPoss::Special(Special::NegInfinity);
             return Ok(v);
         }
         let nan10: &[&[u8]] = &[b"nan", b"+nan", b"-nan"];
@@ -1234,7 +1215,7 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use rug::float::Special;
-    /// let neg_inf = Float::with_val(53, Special::MinusInfinity);
+    /// let neg_inf = Float::with_val(53, Special::NegInfinity);
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
     /// let twentythree = Float::with_val(8, 23);
@@ -1436,6 +1417,34 @@ impl Float {
             }
         }
         ret
+    }
+
+    /// Borrows the `Float` as an ordered float of type
+    /// [`OrdFloat`](float/struct.OrdFloat.html).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Special;
+    /// use std::cmp::Ordering;
+    ///
+    /// let nan_f = Float::with_val(53, Special::Nan);
+    /// let nan = nan_f.as_ord();
+    /// assert_eq!(nan.cmp(nan), Ordering::Equal);
+    ///
+    /// let inf_f = Float::with_val(53, Special::Infinity);
+    /// let inf = inf_f.as_ord();
+    /// assert_eq!(nan.cmp(inf), Ordering::Greater);
+    ///
+    /// let zero_f = Float::with_val(53, Special::Zero);
+    /// let zero = zero_f.as_ord();
+    /// let neg_zero_f = Float::with_val(53, Special::NegZero);
+    /// let neg_zero = neg_zero_f.as_ord();
+    /// assert_eq!(zero.cmp(neg_zero), Ordering::Greater);
+    /// ```
+    pub fn as_ord(&self) -> &OrdFloat {
+        unsafe { &*(self as *const _ as *const _) }
     }
 
     /// Returns `true` if `self` is an integer.
@@ -2954,6 +2963,12 @@ impl Float {
     }
 }
 
+impl From<OrdFloat> for Float {
+    fn from(ord: OrdFloat) -> Float {
+        unsafe { mem::transmute(ord) }
+    }
+}
+
 impl Display for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -3058,7 +3073,7 @@ impl AssignRound<Special> for Float {
                     (*ptr).sign = 1;
                     (*ptr).exp = EXP_ZERO;
                 }
-                Special::MinusZero => {
+                Special::NegZero => {
                     let ptr = self.inner_mut();
                     (*ptr).sign = -1;
                     (*ptr).exp = EXP_ZERO;
@@ -3068,7 +3083,7 @@ impl AssignRound<Special> for Float {
                     (*ptr).sign = 1;
                     (*ptr).exp = EXP_INF;
                 }
-                Special::MinusInfinity => {
+                Special::NegInfinity => {
                     let ptr = self.inner_mut();
                     (*ptr).sign = -1;
                     (*ptr).exp = EXP_INF;

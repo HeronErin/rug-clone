@@ -19,6 +19,7 @@ use {Assign, AssignRound, Float};
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
+use complex::OrdComplex;
 use ext::mpc as xmpc;
 use float::{self, Constant, ParseFloatError, Round, Special, ValidFloat};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
@@ -35,7 +36,6 @@ use std::cmp::Ordering;
 use std::error::Error;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
-use std::hash::{Hash, Hasher};
 use std::i32;
 use std::marker::PhantomData;
 use std::mem;
@@ -169,20 +169,19 @@ impl Clone for Complex {
     }
 }
 
+impl Default for Complex {
+    #[inline]
+    fn default() -> Complex {
+        Complex::new(53)
+    }
+}
+
 impl Drop for Complex {
     #[inline]
     fn drop(&mut self) {
         unsafe {
             mpc::clear(self.inner_mut());
         }
-    }
-}
-
-impl Hash for Complex {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let (re, im) = self.as_real_imag();
-        re.hash(state);
-        im.hash(state);
     }
 }
 
@@ -1131,6 +1130,35 @@ impl Complex {
         ret
     }
 
+    /// Borrows the `Complex` as an ordered complex number of type
+    /// [`OrdComplex`](complex/struct.OrdComplex.html).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Special;
+    /// use std::cmp::Ordering;
+    ///
+    /// let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
+    /// let nan = nan_c.as_ord();
+    /// assert_eq!(nan.cmp(nan), Ordering::Equal);
+    ///
+    /// let one_neg0_c = Complex::with_val(53, (1, Special::NegZero));
+    /// let one_neg0 = one_neg0_c.as_ord();
+    /// let one_pos0_c = Complex::with_val(53, (1, Special::Zero));
+    /// let one_pos0 = one_pos0_c.as_ord();
+    /// assert_eq!(one_neg0.cmp(one_pos0), Ordering::Less);
+    ///
+    /// let zero_inf_s = (Special::Zero, Special::Infinity);
+    /// let zero_inf_c = Complex::with_val(53, zero_inf_s);
+    /// let zero_inf = zero_inf_c.as_ord();
+    /// assert_eq!(one_pos0.cmp(zero_inf), Ordering::Greater);
+    /// ```
+    pub fn as_ord(&self) -> &OrdComplex {
+        unsafe { &*(self as *const _ as *const _) }
+    }
+
     math_op1_no_round! {
         Complex;
         mpc::proj, rraw2;
@@ -1444,13 +1472,13 @@ impl Complex {
     /// zero.assign((Special::Zero, Special::Zero));
     /// arg.assign(zero.arg_ref());
     /// assert!(arg.is_zero() && arg.is_sign_positive());
-    /// zero.assign((Special::Zero, Special::MinusZero));
+    /// zero.assign((Special::Zero, Special::NegZero));
     /// arg.assign(zero.arg_ref());
     /// assert!(arg.is_zero() && arg.is_sign_negative());
-    /// zero.assign((Special::MinusZero, Special::Zero));
+    /// zero.assign((Special::NegZero, Special::Zero));
     /// arg.assign(zero.arg_ref());
     /// assert_eq!(arg, f64::consts::PI);
-    /// zero.assign((Special::MinusZero, Special::MinusZero));
+    /// zero.assign((Special::NegZero, Special::NegZero));
     /// arg.assign(zero.arg_ref());
     /// assert_eq!(arg, -f64::consts::PI);
     /// ```
@@ -2830,6 +2858,13 @@ impl From<(Float, Float)> for Complex {
     }
 }
 
+impl From<OrdComplex> for Complex {
+    #[inline]
+    fn from(ord: OrdComplex) -> Complex {
+        unsafe { mem::transmute(ord) }
+    }
+}
+
 impl Display for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -3604,29 +3639,6 @@ impl PartialEq for Complex {
     }
 }
 
-#[inline]
-fn real_imag_cmp(
-    real: Option<Ordering>,
-    imag: Option<Ordering>,
-) -> Option<Ordering> {
-    if real == imag || real == Some(Ordering::Equal) {
-        imag
-    } else if imag == Some(Ordering::Equal) {
-        real
-    } else {
-        None
-    }
-}
-
-impl PartialOrd for Complex {
-    #[inline]
-    fn partial_cmp(&self, other: &Complex) -> Option<Ordering> {
-        let real_cmp = self.real().partial_cmp(other.real());
-        let imag_cmp = self.imag().partial_cmp(other.imag());
-        real_imag_cmp(real_cmp, imag_cmp)
-    }
-}
-
 impl<T, U> PartialEq<(T, U)> for Complex
 where
     Float: PartialEq<T>,
@@ -3638,20 +3650,7 @@ where
     }
 }
 
-impl<T, U> PartialOrd<(T, U)> for Complex
-where
-    Float: PartialOrd<T>,
-    Float: PartialOrd<U>,
-{
-    #[inline]
-    fn partial_cmp(&self, other: &(T, U)) -> Option<Ordering> {
-        let real_cmp = self.real().partial_cmp(&other.0);
-        let imag_cmp = self.imag().partial_cmp(&other.1);
-        real_imag_cmp(real_cmp, imag_cmp)
-    }
-}
-
-macro_rules! cmp_tuple {
+macro_rules! eq_tuple {
     { $T:ty, $U:ty } => {
         impl PartialEq<Complex> for ($T, $U) {
             #[inline]
@@ -3659,29 +3658,20 @@ macro_rules! cmp_tuple {
                 self.0.eq(other.real()) && self.1.eq(other.imag())
             }
         }
-
-        impl PartialOrd<Complex> for ($T, $U) {
-            #[inline]
-            fn partial_cmp(&self, other: &Complex) -> Option<Ordering> {
-                let real_cmp = self.0.partial_cmp(other.real());
-                let imag_cmp = self.1.partial_cmp(other.imag());
-                real_imag_cmp(real_cmp, imag_cmp)
-            }
-        }
     }
 }
 
-macro_rules! cmp {
+macro_rules! eq {
     { $T:ty } => {
         #[cfg(feature = "integer")]
-        cmp_tuple! { $T, Integer }
+        eq_tuple! { $T, Integer }
         #[cfg(feature = "rational")]
-        cmp_tuple! { $T, Rational }
-        cmp_tuple! { $T, Float }
-        cmp_tuple! { $T, u32 }
-        cmp_tuple! { $T, i32 }
-        cmp_tuple! { $T, f64 }
-        cmp_tuple! { $T, f32 }
+        eq_tuple! { $T, Rational }
+        eq_tuple! { $T, Float }
+        eq_tuple! { $T, u32 }
+        eq_tuple! { $T, i32 }
+        eq_tuple! { $T, f64 }
+        eq_tuple! { $T, f32 }
 
         impl PartialEq<$T> for Complex {
             #[inline]
@@ -3696,36 +3686,18 @@ macro_rules! cmp {
                 self.eq(other.real()) && other.imag().is_zero()
             }
         }
-
-        impl PartialOrd<$T> for Complex {
-            #[inline]
-            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                let real_cmp = self.real().partial_cmp(other);
-                let imag_cmp = self.imag().partial_cmp(&0);
-                real_imag_cmp(real_cmp, imag_cmp)
-            }
-        }
-
-        impl PartialOrd<Complex> for $T {
-            #[inline]
-            fn partial_cmp(&self, other: &Complex) -> Option<Ordering> {
-                let real_cmp = self.partial_cmp(other.real());
-                let imag_cmp = 0.partial_cmp(other.imag());
-                real_imag_cmp(real_cmp, imag_cmp)
-            }
-        }
     }
 }
 
 #[cfg(feature = "integer")]
-cmp! { Integer }
+eq! { Integer }
 #[cfg(feature = "rational")]
-cmp! { Rational }
-cmp! { Float }
-cmp! { u32 }
-cmp! { i32 }
-cmp! { f64 }
-cmp! { f32 }
+eq! { Rational }
+eq! { Float }
+eq! { u32 }
+eq! { i32 }
+eq! { f64 }
+eq! { f32 }
 
 sum_prod! { Complex, Complex::with_val(53, 0), Complex::with_val(53, 1) }
 

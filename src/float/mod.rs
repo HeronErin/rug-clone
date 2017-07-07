@@ -19,10 +19,12 @@
 //! This module provides support for floating-point numbers of type
 //! [`Float`](../struct.Float.html).
 
+mod ord_float;
 mod small_float;
 
 pub use big_float::{Constant, ParseFloatError, Round, Special, ValidFloat,
                     exp_max, exp_min, prec_max, prec_min};
+pub use float::ord_float::OrdFloat;
 pub use float::small_float::SmallFloat;
 
 #[cfg(test)]
@@ -128,9 +130,9 @@ mod tests {
         let check_prec = 100;
         let f = [
             Float::with_val(work_prec, Special::Zero),
-            Float::with_val(work_prec, Special::MinusZero),
+            Float::with_val(work_prec, Special::NegZero),
             Float::with_val(work_prec, Special::Infinity),
-            Float::with_val(work_prec, Special::MinusInfinity),
+            Float::with_val(work_prec, Special::NegInfinity),
             Float::with_val(work_prec, Special::Nan),
             Float::with_val(work_prec, 1),
             Float::with_val(work_prec, -1),
@@ -319,7 +321,7 @@ mod tests {
         assert_eq!(format!("{}", f), "0.0");
         assert_eq!(format!("{:?}", f), "0.0");
         assert_eq!(format!("{:+?}", f), "+0.0");
-        f.assign(Special::MinusZero);
+        f.assign(Special::NegZero);
         assert_eq!(format!("{}", f), "0.0");
         assert_eq!(format!("{:?}", f), "-0.0");
         assert_eq!(format!("{:+?}", f), "-0.0");

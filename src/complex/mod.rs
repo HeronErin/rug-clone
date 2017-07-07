@@ -19,9 +19,11 @@
 //! This module provides support for complex numbers of type
 //! [`Complex`](../struct.Complex.html).
 
+mod ord_complex;
 mod small_complex;
 
 pub use big_complex::{ParseComplexError, Prec, ValidComplex};
+pub use complex::ord_complex::OrdComplex;
 pub use complex::small_complex::SmallComplex;
 
 #[cfg(test)]
@@ -127,7 +129,7 @@ mod tests {
     #[test]
     fn check_formatting() {
         let mut c = Complex::new((53, 53));
-        c.assign((Special::Zero, Special::MinusZero));
+        c.assign((Special::Zero, Special::NegZero));
         assert_eq!(format!("{}", c), "(0.0 0.0)");
         assert_eq!(format!("{:?}", c), "(0.0 -0.0)");
         assert_eq!(format!("{:+}", c), "(+0.0 -0.0)");
