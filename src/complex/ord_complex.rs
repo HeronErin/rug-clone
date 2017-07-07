@@ -16,8 +16,6 @@
 
 use Complex;
 use std::cmp::Ordering;
-use std::fmt::{self, Binary, Display, Formatter, LowerExp, LowerHex, Octal,
-               UpperExp, UpperHex};
 use std::hash::{Hash, Hasher};
 
 /// A complex number that supports ordering and hashing.
@@ -120,54 +118,5 @@ impl Ord for OrdComplex {
 impl From<Complex> for OrdComplex {
     fn from(c: Complex) -> OrdComplex {
         OrdComplex { inner: c }
-    }
-}
-
-impl Display for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Display::fmt(&self.inner, f)
-    }
-}
-
-impl LowerExp for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        LowerExp::fmt(&self.inner, f)
-    }
-}
-
-impl UpperExp for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        UpperExp::fmt(&self.inner, f)
-    }
-}
-
-impl Binary for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Binary::fmt(&self.inner, f)
-    }
-}
-
-impl Octal for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Octal::fmt(&self.inner, f)
-    }
-}
-
-impl LowerHex for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        LowerHex::fmt(&self.inner, f)
-    }
-}
-
-impl UpperHex for OrdComplex {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        UpperHex::fmt(&self.inner, f)
     }
 }

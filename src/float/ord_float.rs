@@ -18,8 +18,6 @@ use Float;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
 use std::cmp::Ordering;
-use std::fmt::{self, Binary, Display, Formatter, LowerExp, LowerHex, Octal,
-               UpperExp, UpperHex};
 use std::hash::{Hash, Hasher};
 use std::slice;
 
@@ -146,54 +144,5 @@ impl Ord for OrdFloat {
 impl From<Float> for OrdFloat {
     fn from(f: Float) -> OrdFloat {
         OrdFloat { inner: f }
-    }
-}
-
-impl Display for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Display::fmt(&self.inner, f)
-    }
-}
-
-impl LowerExp for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        LowerExp::fmt(&self.inner, f)
-    }
-}
-
-impl UpperExp for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        UpperExp::fmt(&self.inner, f)
-    }
-}
-
-impl Binary for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Binary::fmt(&self.inner, f)
-    }
-}
-
-impl Octal for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Octal::fmt(&self.inner, f)
-    }
-}
-
-impl LowerHex for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        LowerHex::fmt(&self.inner, f)
-    }
-}
-
-impl UpperHex for OrdFloat {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        UpperHex::fmt(&self.inner, f)
     }
 }
