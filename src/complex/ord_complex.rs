@@ -70,6 +70,23 @@ impl OrdComplex {
     pub fn as_complex(&self) -> &Complex {
         &self.inner
     }
+
+    /// Extracts the underlying [`Complex`](../struct.Complex.html).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::complex::OrdComplex;
+    /// let c = Complex::with_val(53, (1.5, -2.5));
+    /// let mut ord = OrdComplex::from(c);
+    /// ord.as_complex_mut().conj_mut();
+    /// let (re, im) = ord.as_complex().as_real_imag();
+    /// assert_eq!(*re, 1.5);
+    /// assert_eq!(*im, 2.5);
+    pub fn as_complex_mut(&mut self) -> &mut Complex {
+        &mut self.inner
+    }
 }
 
 impl Hash for OrdComplex {

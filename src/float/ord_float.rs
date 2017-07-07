@@ -68,6 +68,21 @@ impl OrdFloat {
     pub fn as_float(&self) -> &Float {
         &self.inner
     }
+
+    /// Extracts the underlying [`Float`](../struct.Float.html).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::OrdFloat;
+    /// let f = Float::with_val(53, -1.5);
+    /// let mut ord = OrdFloat::from(f);
+    /// ord.as_float_mut().abs_mut();
+    /// assert_eq!(ord.as_float().to_f64(), 1.5);
+    pub fn as_float_mut(&mut self) -> &mut Float {
+        &mut self.inner
+    }
 }
 
 impl Hash for OrdFloat {
