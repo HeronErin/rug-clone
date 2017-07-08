@@ -3854,8 +3854,6 @@ impl PartialEq for Float {
 }
 
 impl PartialOrd for Float {
-    /// Returns the ordering of `self` and `other`,
-    /// or `None` if one (or both) of them is a NaN.
     #[inline]
     fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
         unsafe {

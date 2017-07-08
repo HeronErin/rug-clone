@@ -90,6 +90,7 @@ impl OrdComplex {
 }
 
 impl Hash for OrdComplex {
+    #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
         let (re, im) = self.inner.as_real_imag();
         let (re, im) = (re.as_ord(), im.as_ord());
@@ -133,6 +134,7 @@ impl Ord for OrdComplex {
 }
 
 impl From<Complex> for OrdComplex {
+    #[inline]
     fn from(c: Complex) -> OrdComplex {
         OrdComplex { inner: c }
     }

@@ -16,6 +16,7 @@
 
 use Float;
 use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::mpfr;
 use inner::Inner;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -138,25 +139,23 @@ impl Ord for OrdFloat {
     fn cmp(&self, other: &OrdFloat) -> Ordering {
         let s = &self.inner;
         let o = &other.inner;
-        if s.is_nan() {
-            if o.is_nan() {
-                Ordering::Equal
-            } else {
-                Ordering::Greater
-            }
-        } else if s.is_zero() && o.is_zero() {
-            match (s.is_sign_negative(), o.is_sign_negative()) {
-                (false, true) => Ordering::Greater,
-                (true, false) => Ordering::Less,
-                _ => Ordering::Equal,
-            }
+        if s.is_zero() && o.is_zero() {
+            s.is_sign_positive().cmp(&o.is_sign_positive())
         } else {
-            s.partial_cmp(o).unwrap()
+            match (s.is_nan(), o.is_nan()) {
+                (false, true) => Ordering::Less,
+                (true, false) => Ordering::Greater,
+                (true, true) => Ordering::Equal,
+                (false, false) => unsafe {
+                    mpfr::cmp(s.inner(), o.inner()).cmp(&0)
+                },
+            }
         }
     }
 }
 
 impl From<Float> for OrdFloat {
+    #[inline]
     fn from(f: Float) -> OrdFloat {
         OrdFloat { inner: f }
     }
