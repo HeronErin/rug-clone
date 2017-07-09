@@ -1433,9 +1433,9 @@ impl Float {
     /// let nan = nan_f.as_ord();
     /// assert_eq!(nan.cmp(nan), Ordering::Equal);
     ///
-    /// let inf_f = Float::with_val(53, Special::Infinity);
-    /// let inf = inf_f.as_ord();
-    /// assert_eq!(nan.cmp(inf), Ordering::Greater);
+    /// let neg_inf_f = Float::with_val(53, Special::NegInfinity);
+    /// let neg_inf = neg_inf_f.as_ord();
+    /// assert_eq!(nan.cmp(neg_inf), Ordering::Less);
     ///
     /// let zero_f = Float::with_val(53, Special::Zero);
     /// let zero = zero_f.as_ord();

@@ -25,8 +25,8 @@ use std::slice;
 /// A float that supports ordering and hashing.
 ///
 /// Negative zero is ordered as less than positive zero. All NaNs are
-/// ordered as equal and as greater than infinity, with the NaN sign
-/// ignored.
+/// ordered as equal and as less than negative infinity, with the NaN
+/// sign ignored.
 ///
 /// # Examples
 ///
@@ -39,9 +39,9 @@ use std::slice;
 /// let nan = OrdFloat::from(nan_f);
 /// assert_eq!(nan.cmp(&nan), Ordering::Equal);
 ///
-/// let inf_f = Float::with_val(53, Special::Infinity);
-/// let inf = OrdFloat::from(inf_f);
-/// assert_eq!(nan.cmp(&inf), Ordering::Greater);
+/// let neg_inf_f = Float::with_val(53, Special::NegInfinity);
+/// let neg_inf = OrdFloat::from(neg_inf_f);
+/// assert_eq!(nan.cmp(&neg_inf), Ordering::Less);
 ///
 /// let zero_f = Float::with_val(53, Special::Zero);
 /// let zero = OrdFloat::from(zero_f);
@@ -143,8 +143,8 @@ impl Ord for OrdFloat {
             s.is_sign_positive().cmp(&o.is_sign_positive())
         } else {
             match (s.is_nan(), o.is_nan()) {
-                (false, true) => Ordering::Less,
-                (true, false) => Ordering::Greater,
+                (false, true) => Ordering::Greater,
+                (true, false) => Ordering::Less,
                 (true, true) => Ordering::Equal,
                 (false, false) => unsafe {
                     mpfr::cmp(s.inner(), o.inner()).cmp(&0)

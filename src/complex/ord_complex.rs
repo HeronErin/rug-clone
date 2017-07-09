@@ -22,8 +22,8 @@ use std::hash::{Hash, Hasher};
 ///
 /// For ordering, the real part has precedence over the imaginary
 /// part. Negative zero is ordered as less than positive zero. All
-/// NaNs are ordered as equal and as greater than infinity, with the
-/// NaN sign ignored.
+/// NaNs are ordered as equal and as less than negative infinity, with
+/// the NaN sign ignored.
 ///
 /// # Examples
 ///
