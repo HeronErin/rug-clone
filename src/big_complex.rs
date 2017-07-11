@@ -3892,8 +3892,7 @@ fn rraw2(round: Round2) -> mpc::rnd_t {
         (Round::Down, Round::Zero) => mpc::RNDDZ,
         (Round::Down, Round::Up) => mpc::RNDDU,
         (Round::Down, Round::Down) => mpc::RNDDD,
-        (Round::AwayFromZero, _) |
-        (_, Round::AwayFromZero) => unimplemented!(),
+        (Round::AwayFromZero, _) | (_, Round::AwayFromZero) => unimplemented!(),
     }
 }
 

@@ -112,12 +112,11 @@ mod tests {
         for &(s, radix) in bad_strings.into_iter() {
             assert!(Complex::valid_str_radix(s, radix.unwrap_or(10)).is_err());
         }
-        let good_strings =
-            [
-                ("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
-                ("(+0e99 1.)", 2, 0.0, 1.0),
-                ("-9.9e1", 10, -99.0, 0.0),
-            ];
+        let good_strings = [
+            ("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
+            ("(+0e99 1.)", 2, 0.0, 1.0),
+            ("-9.9e1", 10, -99.0, 0.0),
+        ];
         for &(s, radix, r, i) in good_strings.into_iter() {
             assert_eq!(
                 Complex::from_str_radix(s, radix, (53, 53)).unwrap(),
