@@ -22,6 +22,8 @@ use inner::{Inner, InnerMut};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::raw::{c_ulong, c_void};
+use std::panic::{self, AssertUnwindSafe};
+use std::process;
 
 /// The state of a random number generator.
 pub struct RandState<'a> {
@@ -303,68 +305,78 @@ struct Funcs {
     _iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
 }
 
-unsafe extern "C" fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
-    let s_ptr = s as *mut MpRandState;
-    let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
-    (*r_ptr).seed(&(*(seed as *const Integer)));
-}
-
-unsafe extern "C" fn custom_get(
-    s: *mut randstate_t,
-    limb: *mut gmp::limb_t,
-    bits: c_ulong,
-) {
-    let s_ptr = s as *mut MpRandState;
-    let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
-    let gen = || (*r_ptr).gen();
-    #[cfg(gmp_limb_bits_64)]
-    {
-        let (limbs, rest) = (bits / 64, bits % 64);
-        assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
-        let limbs = limbs as isize;
-        for i in 0..limbs {
-            let n = (gen() as u64) | (gen() as u64) << 32;
-            *(limb.offset(i)) = n as gmp::limb_t;
-        }
-        if rest >= 32 {
-            let mut n = gen() as u64;
-            if rest > 32 {
-                let mask = !(!0 << (rest - 32));
-                n |= ((gen() & mask) as u64) << 32;
+macro_rules! c_callback {
+    { $(fn $func:ident($($param:tt)*) $body:block)* } => {
+        $(
+            unsafe extern "C" fn $func($($param)*) {
+                panic::catch_unwind(AssertUnwindSafe(|| $body))
+                    .unwrap_or_else(|_| process::abort())
             }
-            *(limb.offset(limbs)) = n as gmp::limb_t;
-        } else if rest > 0 {
-            let mask = !(!0 << rest);
-            let n = (gen() & mask) as u64;
-            *(limb.offset(limbs)) = n as gmp::limb_t;
-        }
-    }
-    #[cfg(gmp_limb_bits_32)]
-    {
-        let (limbs, rest) = (bits / 32, bits % 32);
-        assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
-        let limbs = limbs as isize;
-        for i in 0..limbs {
-            *(limb.offset(i)) = gen() as gmp::limb_t;
-        }
-        if rest > 0 {
-            let mask = !(!0 << rest);
-            *(limb.offset(limbs)) = (gen() & mask) as gmp::limb_t;
-        }
+        )*
     }
 }
 
-unsafe extern "C" fn custom_clear(s: *mut randstate_t) {
-    let s_ptr = s as *mut MpRandState;
-    let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
-    drop(Box::from_raw(r_ptr));
-}
+c_callback! {
+    fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+        let s_ptr = s as *mut MpRandState;
+        let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+        (*r_ptr).seed(&(*(seed as *const Integer)));
+    }
 
-unsafe extern "C" fn custom_iset(
-    _s: *mut randstate_t,
-    _src: *const randstate_t,
-) {
-    panic!("cannot clone custom Rand");
+    fn custom_get(
+        s: *mut randstate_t,
+        limb: *mut gmp::limb_t,
+        bits: c_ulong,
+    ) {
+        let s_ptr = s as *mut MpRandState;
+        let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+        let gen = || (*r_ptr).gen();
+        #[cfg(gmp_limb_bits_64)]
+        {
+            let (limbs, rest) = (bits / 64, bits % 64);
+            assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
+            let limbs = limbs as isize;
+            for i in 0..limbs {
+                let n = (gen() as u64) | (gen() as u64) << 32;
+                *(limb.offset(i)) = n as gmp::limb_t;
+            }
+            if rest >= 32 {
+                let mut n = gen() as u64;
+                if rest > 32 {
+                    let mask = !(!0 << (rest - 32));
+                    n |= ((gen() & mask) as u64) << 32;
+                }
+                *(limb.offset(limbs)) = n as gmp::limb_t;
+            } else if rest > 0 {
+                let mask = !(!0 << rest);
+                let n = (gen() & mask) as u64;
+                *(limb.offset(limbs)) = n as gmp::limb_t;
+            }
+        }
+        #[cfg(gmp_limb_bits_32)]
+        {
+            let (limbs, rest) = (bits / 32, bits % 32);
+            assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
+            let limbs = limbs as isize;
+            for i in 0..limbs {
+                *(limb.offset(i)) = gen() as gmp::limb_t;
+            }
+            if rest > 0 {
+                let mask = !(!0 << rest);
+                *(limb.offset(limbs)) = (gen() & mask) as gmp::limb_t;
+            }
+        }
+    }
+
+    fn custom_clear(s: *mut randstate_t) {
+        let s_ptr = s as *mut MpRandState;
+        let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+        drop(Box::from_raw(r_ptr));
+    }
+
+    fn custom_iset(_s: *mut randstate_t, _src: *const randstate_t) {
+        panic!("cannot clone custom Rand");
+    }
 }
 
 const CUSTOM_FUNCS: Funcs = Funcs {
