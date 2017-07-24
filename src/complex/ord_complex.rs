@@ -126,10 +126,7 @@ impl Ord for OrdComplex {
         let (re, im) = (re.as_ord(), im.as_ord());
         let (other_re, other_im) = other.inner.as_real_imag();
         let (other_re, other_im) = (other_re.as_ord(), other_im.as_ord());
-        match re.cmp(other_re) {
-            Ordering::Equal => im.cmp(other_im),
-            not_equal => not_equal,
-        }
+        re.cmp(other_re).then(im.cmp(other_im))
     }
 }
 

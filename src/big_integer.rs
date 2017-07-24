@@ -476,7 +476,7 @@ impl Integer {
         }
         let v = ValidInteger {
             bytes: skip_plus,
-            radix: radix,
+            radix,
         };
         Ok(v)
     }
@@ -1675,7 +1675,7 @@ impl Integer {
     pub fn invert_ref<'a>(&'a self, modulo: &'a Integer) -> InvertRef<'a> {
         InvertRef {
             ref_self: self,
-            modulo: modulo,
+            modulo,
         }
     }
 
@@ -1814,8 +1814,8 @@ impl Integer {
     ) -> PowModRef<'a> {
         PowModRef {
             ref_self: self,
-            power: power,
-            modulo: modulo,
+            power,
+            modulo,
         }
     }
 
@@ -2304,7 +2304,7 @@ impl Integer {
     ) -> RemoveFactorRef<'a> {
         RemoveFactorRef {
             ref_self: self,
-            factor: factor,
+            factor,
         }
     }
 

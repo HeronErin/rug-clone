@@ -45,7 +45,7 @@ impl<'a> Clone for RandState<'a> {
             let mut inner = mem::uninitialized();
             gmp::randinit_set(&mut inner, self.inner());
             RandState {
-                inner: inner,
+                inner,
                 phantom: PhantomData,
             }
         }
@@ -73,7 +73,7 @@ impl<'a> RandState<'a> {
             let mut inner = mem::uninitialized();
             gmp::randinit_default(&mut inner);
             RandState {
-                inner: inner,
+                inner,
                 phantom: PhantomData,
             }
         }
@@ -85,7 +85,7 @@ impl<'a> RandState<'a> {
             let mut inner = mem::uninitialized();
             gmp::randinit_mt(&mut inner);
             RandState {
-                inner: inner,
+                inner,
                 phantom: PhantomData,
             }
         }
@@ -102,7 +102,7 @@ impl<'a> RandState<'a> {
             let mut inner = mem::uninitialized();
             gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
             RandState {
-                inner: inner,
+                inner,
                 phantom: PhantomData,
             }
         }
@@ -124,7 +124,7 @@ impl<'a> RandState<'a> {
             let mut inner = mem::uninitialized();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
                 Some(RandState {
-                    inner: inner,
+                    inner,
                     phantom: PhantomData,
                 })
             } else {

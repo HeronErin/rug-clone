@@ -46,7 +46,7 @@ macro_rules! math_op1 {
         pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
-                $($param: $param,)*
+                $($param,)*
             }
         }
     }
@@ -128,7 +128,7 @@ macro_rules! math_op1_2 {
         ) -> $Ref {
             $Ref {
                 ref_self: self,
-                $($param: $param,)*
+                $($param,)*
             }
         }
     }
@@ -215,8 +215,8 @@ macro_rules! math_op2 {
         ) -> $Ref<'a> {
             $Ref {
                 ref_self: self,
-                $op: $op,
-                $($param: $param,)*
+                $op,
+                $($param,)*
             }
         }
     }
@@ -302,8 +302,8 @@ macro_rules! math_op2_2 {
         ) -> $Ref<'a> {
             $Ref {
                 ref_self: self,
-                $op: $op,
-                $($param: $param,)*
+                $op,
+                $($param,)*
             }
         }
     }
@@ -500,7 +500,7 @@ macro_rules! arith_binary {
             fn $method(self, rhs: &'a $Big) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -561,7 +561,7 @@ macro_rules! arith_prim {
             fn $method(self, rhs: $T) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -627,7 +627,7 @@ macro_rules! arith_prim_noncommut {
             fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
                 $RefFrom {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -736,7 +736,7 @@ macro_rules! mul_op {
             fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -852,7 +852,7 @@ macro_rules! mul_op_noncommut {
             fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
                 $RefFrom {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -925,7 +925,7 @@ macro_rules! math_op1_round {
         pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
-                $($param: $param,)*
+                $($param,)*
             }
         }
     }
@@ -968,7 +968,7 @@ macro_rules! math_op1_no_round {
         pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
-                $($param: $param,)*
+                $($param,)*
             }
         }
     }
@@ -1068,7 +1068,7 @@ macro_rules! math_op1_2_round {
         pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
             $Ref {
                 ref_self: self,
-                $($param: $param,)*
+                $($param,)*
             }
         }
     }
@@ -1176,8 +1176,8 @@ macro_rules! math_op2_round {
         ) -> $Ref<'a> {
             $Ref {
                 ref_self: self,
-                $op: $op,
-                $($param: $param,)*
+                $op,
+                $($param,)*
             }
         }
     }
@@ -1313,7 +1313,7 @@ macro_rules! arith_binary_round {
             fn $method(self, rhs: &'a $T) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -1457,7 +1457,7 @@ macro_rules! arith_forward_round {
             fn $method(self, rhs: $T) -> $RefOwn<'a> {
                 $RefOwn {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -1645,7 +1645,7 @@ macro_rules! arith_noncommut_round {
             fn $method(self, rhs: &'a $Big) -> $RefFromOwn<'a> {
                 $RefFromOwn {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -1657,7 +1657,7 @@ macro_rules! arith_noncommut_round {
             fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
                 $RefFrom {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -1813,7 +1813,7 @@ macro_rules! arith_prim_exact_round {
             fn $method(self, rhs: $T) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -1992,7 +1992,7 @@ macro_rules! arith_prim_noncommut_round {
             fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
                 $RefFrom {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -2114,7 +2114,7 @@ macro_rules! mul_op_round {
             fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
                 $Ref {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }
@@ -2249,7 +2249,7 @@ macro_rules! mul_op_noncommut_round {
             fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
                 $RefFrom {
                     lhs: self,
-                    rhs: rhs,
+                    rhs,
                 }
             }
         }

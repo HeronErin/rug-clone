@@ -290,7 +290,7 @@ impl Rational {
         }
         let v = ValidRational {
             bytes: skip_plus,
-            radix: radix,
+            radix,
         };
         Ok(v)
     }

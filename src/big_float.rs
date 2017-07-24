@@ -796,7 +796,7 @@ impl Float {
 
         let mut v = ValidFloat {
             poss: ValidPoss::Special(Special::Nan),
-            radix: radix,
+            radix,
             exp_plus: None,
         };
         assert!(radix >= 2 && radix <= 36, "radix out of range");
