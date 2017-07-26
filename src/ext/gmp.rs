@@ -252,14 +252,12 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = op2 as gmp::limb_t;
     match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            if op2 == 0 {
-                (*rop).size = 0;
-            } else {
-                *rop.limb_mut(0) = lop2;
-                (*rop).size = 1;
-            }
-        }
+        Ordering::Equal => if op2 == 0 {
+            (*rop).size = 0;
+        } else {
+            *rop.limb_mut(0) = lop2;
+            (*rop).size = 1;
+        },
         Ordering::Greater => {
             gmp::mpz_set(rop, op1);
             *rop.limb_mut(0) |= lop2;
@@ -279,14 +277,12 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = op2 as gmp::limb_t;
     match (*op1).size.cmp(&0) {
-        Ordering::Equal => {
-            if op2 == 0 {
-                (*rop).size = 0;
-            } else {
-                *rop.limb_mut(0) = lop2;
-                (*rop).size = 1;
-            }
-        }
+        Ordering::Equal => if op2 == 0 {
+            (*rop).size = 0;
+        } else {
+            *rop.limb_mut(0) = lop2;
+            (*rop).size = 1;
+        },
         Ordering::Greater => {
             gmp::mpz_set(rop, op1);
             *rop.limb_mut(0) ^= lop2;

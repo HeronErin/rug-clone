@@ -131,8 +131,8 @@
 //! [sys]:      https://docs.rs/gmp-mpfr-sys/~1.0.6/
 
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/0.5.0/",
-       test(attr(deny(warnings))))]
+#![doc(html_root_url = "https://docs.rs/rug/0.5.0/")]
+#![doc(test(attr(deny(warnings))))]
 
 #[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;

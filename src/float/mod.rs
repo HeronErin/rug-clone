@@ -22,8 +22,8 @@
 mod ord_float;
 mod small_float;
 
-pub use big_float::{Constant, ParseFloatError, Round, Special, ValidFloat,
-                    exp_max, exp_min, prec_max, prec_min};
+pub use big_float::{exp_max, exp_min, prec_max, prec_min, Constant,
+                    ParseFloatError, Round, Special, ValidFloat};
 pub use float::ord_float::OrdFloat;
 pub use float::small_float::SmallFloat;
 

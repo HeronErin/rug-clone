@@ -882,11 +882,9 @@ impl Float {
                 b'0'...b'9' => *b - b'0',
                 b'a'...b'z' => *b - b'a' + 10,
                 b'A'...b'Z' => *b - b'A' + 10,
-                _ => {
-                    Err(Error {
-                        kind: Kind::InvalidDigit,
-                    })?
-                }
+                _ => Err(Error {
+                    kind: Kind::InvalidDigit,
+                })?,
             };
             if (!exp && digit >= radix as u8) || (exp && digit >= 10) {
                 return Err(Error {
