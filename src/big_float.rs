@@ -1999,7 +1999,7 @@ impl Float {
         /// let (mut sin, mut cos) = (Float::new(10), Float::new(10));
         /// (&mut sin, &mut cos).assign(r);
         /// assert_eq!(sin, Float::with_val(10, 0.47943));
-        /// assert_eq!(cos, Float::with_val(10, 0.87748));
+        /// assert_eq!(cos, Float::with_val(10, 0.87758));
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_float! {
