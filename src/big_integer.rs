@@ -281,8 +281,10 @@ impl Integer {
     }
 
     /// Reserves capacity for at least `additional` more bits in the
-    /// `Integer`. If the integer already has enough excess capacity,
-    /// this function does nothing.
+    /// `Integer`.
+    ///
+    /// If the integer already has enough excess capacity, this
+    /// function does nothing.
     ///
     /// # Examples
     ///
@@ -314,9 +316,10 @@ impl Integer {
         }
     }
 
-    /// Reserves capacity for at least `additional` more bits in the
-    /// `Integer`. If the integer already has enough excess capacity,
-    /// this function does nothing.
+    /// Shrinks the capacity of the `Integer` as much as possible.
+    ///
+    /// The capacity can still be larger than the number of
+    /// significant bits.
     ///
     /// # Examples
     ///
@@ -1193,8 +1196,10 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
+    /// // -2 is ...11111110
     /// assert_eq!(Integer::from(-2).find_zero(0), Some(0));
     /// assert_eq!(Integer::from(-2).find_zero(1), None);
+    /// // 15 is ...00001111
     /// assert_eq!(Integer::from(15).find_zero(0), Some(4));
     /// assert_eq!(Integer::from(15).find_zero(20), Some(20));
     #[inline]
@@ -1207,8 +1212,10 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
+    /// // 1 is ...00000001
     /// assert_eq!(Integer::from(1).find_one(0), Some(0));
     /// assert_eq!(Integer::from(1).find_one(1), None);
+    /// // -16 is ...11110000
     /// assert_eq!(Integer::from(-16).find_one(0), Some(4));
     /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
     #[inline]
@@ -1279,6 +1286,8 @@ impl Integer {
 
     /// Retuns the Hamming distance if the two numbers have the same
     /// sign.
+    ///
+    /// The Hamming distance is the number of different bits.
     ///
     /// # Examples
     ///
