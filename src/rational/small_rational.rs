@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Rational};
+
 use gmp_mpfr_sys::gmp;
 use std::mem;
 use std::ops::Deref;

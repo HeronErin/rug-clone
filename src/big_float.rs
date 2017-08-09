@@ -21,7 +21,6 @@ use Integer;
 use Rational;
 use ext::mpfr as xmpfr;
 use float::{OrdFloat, SmallFloat};
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
           DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
@@ -29,6 +28,8 @@ use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
           SubFrom, SubFromRound};
 #[cfg(feature = "rand")]
 use rand::RandState;
+
+use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::{i32, u32};
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;

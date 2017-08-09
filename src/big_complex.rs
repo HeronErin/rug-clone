@@ -22,8 +22,6 @@ use Rational;
 use complex::OrdComplex;
 use ext::mpc as xmpc;
 use float::{self, Constant, ParseFloatError, Round, Special, ValidFloat};
-use gmp_mpfr_sys::mpc::{self, mpc_t};
-use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
           DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
@@ -31,6 +29,9 @@ use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
           SubFrom, SubFromRound};
 #[cfg(feature = "rand")]
 use rand::RandState;
+
+use gmp_mpfr_sys::mpc::{self, mpc_t};
+use gmp_mpfr_sys::mpfr;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;

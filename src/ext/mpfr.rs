@@ -19,12 +19,13 @@ use Float;
 #[cfg(feature = "integer")]
 use float;
 use float::SmallFloat;
-#[cfg(feature = "integer")]
-use gmp_mpfr_sys::gmp;
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::Inner;
 #[cfg(feature = "integer")]
 use inner::InnerMut;
+
+#[cfg(feature = "integer")]
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "integer")]
 use std::cmp;
 use std::mem;

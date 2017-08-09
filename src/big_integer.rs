@@ -16,12 +16,13 @@
 
 use Assign;
 use ext::gmp as xgmp;
-use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
 use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom,
           NegAssign, NotAssign, Pow, PowAssign, RemFrom, SubFrom};
 #[cfg(feature = "rand")]
 use rand::RandState;
+
+use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;

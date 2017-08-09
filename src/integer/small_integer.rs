@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer};
+
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::mem;
 use std::ops::Deref;

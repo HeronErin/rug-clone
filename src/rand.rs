@@ -17,8 +17,9 @@
 //! Random number generation.
 
 use Integer;
-use gmp_mpfr_sys::gmp::{self, randstate_t};
 use inner::{Inner, InnerMut};
+
+use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::raw::{c_ulong, c_void};

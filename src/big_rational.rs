@@ -16,10 +16,11 @@
 
 use {Assign, Integer};
 use ext::gmp as xgmp;
-use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
 use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use rational::SmallRational;
+
+use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;

@@ -16,9 +16,10 @@
 
 use Complex;
 use complex::SmallComplex;
+use inner::Inner;
+
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
-use inner::Inner;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 
