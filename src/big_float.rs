@@ -1346,10 +1346,9 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(
-            Float::valid_str_radix(src, radix)?,
-            round,
-        ))
+        Ok(
+            self.assign_round(Float::valid_str_radix(src, radix)?, round),
+        )
     }
 
     /// Borrows a negated copy of the `Float`.

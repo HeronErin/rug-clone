@@ -674,7 +674,6 @@ impl Rational {
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
-
         (
             &mut *(gmp::mpq_numref(self.inner_mut()) as *mut _),
             &mut *(gmp::mpq_denref(self.inner_mut()) as *mut _),

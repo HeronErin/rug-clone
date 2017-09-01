@@ -618,10 +618,9 @@ impl Complex {
         use self::ParseErrorKind as Kind;
 
         let p = if src.starts_with('(') {
-            let space = src.find(' ')
-                .ok_or(Error {
-                    kind: Kind::MissingSpace,
-                })?;
+            let space = src.find(' ').ok_or(Error {
+                kind: Kind::MissingSpace,
+            })?;
             let real_str = &src[1..space];
             let re = Float::valid_str_radix(real_str, radix).map_err(|e| {
                 Error {
@@ -629,10 +628,9 @@ impl Complex {
                 }
             })?;
             let rest = &src[space + 1..];
-            let close = rest.find(')')
-                .ok_or(Error {
-                    kind: Kind::MissingClose,
-                })?;
+            let close = rest.find(')').ok_or(Error {
+                kind: Kind::MissingClose,
+            })?;
             let imag_str = &rest[0..close];
             let im = Float::valid_str_radix(imag_str, radix).map_err(|e| {
                 Error {
@@ -856,10 +854,9 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(
-            Complex::valid_str_radix(src, radix)?,
-            round,
-        ))
+        Ok(
+            self.assign_round(Complex::valid_str_radix(src, radix)?, round),
+        )
     }
 
     /// Borrows the real part as a [`Float`](struct.Float.html).
@@ -1126,7 +1123,6 @@ impl Complex {
             } else {
                 ret_re.sign.neg_assign();
             }
-
         }
         ret
     }
