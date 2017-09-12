@@ -2845,7 +2845,7 @@ impl From<(Float, Float)> for Complex {
     fn from((real, imag): (Float, Float)) -> Complex {
         let mut dst: Complex = unsafe { mem::uninitialized() };
         unsafe {
-            let mut real_imag = dst.as_mut_real_imag();
+            let real_imag = dst.as_mut_real_imag();
             ptr::copy_nonoverlapping(&real, real_imag.0, 1);
             ptr::copy_nonoverlapping(&imag, real_imag.1, 1);
         }
