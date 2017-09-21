@@ -2172,6 +2172,116 @@ impl Integer {
         /// ```
         fn gcd_ref -> GcdRef;
     }
+    math_op2_3! {
+        Integer;
+        gmp::mpz_gcdext;
+        /// Finds the greatest common divisor (GCD) of the two inputs
+        /// (`self` and `other`), and two multiplication coefficients
+        /// to obtain the GCD from the two inputs.
+        ///
+        /// The GCD is always positive except when both inputs are
+        /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
+        /// the multiplication coefficients are *s* and *t*, then
+        ///
+        /// *a* × *s* + *b* × *t* = *g*
+        ///
+        /// The values *s* and *t* are chosen such that normally,
+        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
+        /// and *t* uniquely. There are a few exceptional cases:
+        ///
+        /// * If |<i>a</i>| = |<i>b</i>|, then *s* = 0, *t* = sgn(*b*).
+        /// * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
+        ///   *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
+        ///   2<i>g</i>, then *t* = sgn(*b*).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let a = Integer::from(4);
+        /// let b = Integer::from(6);
+        /// let (g, s, t) = a.gcd_coeffs(b, Integer::new());
+        /// assert_eq!(g, 2);
+        /// assert_eq!(s, -1);
+        /// assert_eq!(t, 1);
+        /// ```
+        fn gcd_coeffs(other, rop);
+        /// Finds the greatest common divisor (GCD) of the two inputs
+        /// (`self` and `other`), and two multiplication coefficients
+        /// to obtain the GCD from the two inputs.
+        ///
+        /// The GCD is stored in `self`, and the two multiplication
+        /// coefficients are stored in `other` and `rop`.
+        ///
+        /// The GCD is always positive except when both inputs are
+        /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
+        /// the multiplication coefficients are *s* and *t*, then
+        ///
+        /// *a* × *s* + *b* × *t* = *g*
+        ///
+        /// The values *s* and *t* are chosen such that normally,
+        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
+        /// and *t* uniquely. There are a few exceptional cases:
+        ///
+        /// * If |<i>a</i>| = |<i>b</i>|, then *s* = 0, *t* = sgn(*b*).
+        /// * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
+        ///   *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
+        ///   2<i>g</i>, then *t* = sgn(*b*).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut a_g = Integer::from(4);
+        /// let mut b_s = Integer::from(6);
+        /// let mut t = Integer::new();
+        /// a_g.gcd_coeffs_mut(&mut b_s, &mut t);
+        /// assert_eq!(a_g, 2);
+        /// assert_eq!(b_s, -1);
+        /// assert_eq!(t, 1);
+        /// ```
+        fn gcd_coeffs_mut;
+        /// Finds the greatest common divisor (GCD) of the two inputs
+        /// (`self` and `other`), and two multiplication coefficients
+        /// to obtain the GCD from the two inputs.
+        ///
+        /// The GCD is always positive except when both inputs are
+        /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
+        /// the multiplication coefficients are *s* and *t*, then
+        ///
+        /// *a* × *s* + *b* × *t* = *g*
+        ///
+        /// The values *s* and *t* are chosen such that normally,
+        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
+        /// and *t* uniquely. There are a few exceptional cases:
+        ///
+        /// * If |<i>a</i>| = |<i>b</i>|, then *s* = 0, *t* = sgn(*b*).
+        /// * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
+        ///   *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
+        ///   2<i>g</i>, then *t* = sgn(*b*).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
+        /// let a = Integer::from(4);
+        /// let b = Integer::from(6);
+        /// let r = a.gcd_coeffs_ref(&b);
+        /// let mut g = Integer::new();
+        /// let mut s = Integer::new();
+        /// let mut t = Integer::new();
+        /// (&mut g, &mut s, &mut t).assign(r);
+        /// assert_eq!(a, 4);
+        /// assert_eq!(b, 6);
+        /// assert_eq!(g, 2);
+        /// assert_eq!(s, -1);
+        /// assert_eq!(t, 1);
+        /// ```
+        fn gcd_coeffs_ref -> GcdCoeffsRef;
+    }
     math_op2! {
         Integer;
         gmp::mpz_lcm;
@@ -2924,6 +3034,7 @@ ref_math_op1! { Integer; gmp::mpz_sqrt; struct SqrtRef {} }
 ref_math_op1_2! { Integer; gmp::mpz_sqrtrem; struct SqrtRemRef {} }
 ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeRef {} }
 ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdRef { other } }
+ref_math_op2_3! { Integer; gmp::mpz_gcdext; struct GcdCoeffsRef { other } }
 ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
 
 #[derive(Clone, Copy)]

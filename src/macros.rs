@@ -352,6 +352,110 @@ macro_rules! ref_math_op2_2 {
 }
 
 #[cfg(feature = "integer")]
+macro_rules! math_op2_3 {
+    {
+        $Big:ty;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($op:ident, $rop: ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
+    } => {
+        $(#[$attr])*
+        #[inline]
+        pub fn $method(
+            mut self,
+            mut $op: $Big,
+            mut $rop: $Big,
+            $($param: $T,)*
+        ) -> ($Big, $Big, $Big) {
+            self.$method_mut(&mut $op, &mut $rop, $($param),*);
+            (self, $op, $rop)
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(
+            &mut self,
+            $op: &mut $Big,
+            $rop: &mut $Big,
+            $($param: $T,)*
+        ) {
+            unsafe {
+                $func(
+                    self.inner_mut(),
+                    $op.inner_mut(),
+                    $rop.inner_mut(),
+                    self.inner(),
+                    $op.inner(),
+                    $($param.into(),)*
+                );
+            }
+        }
+
+        $(#[$attr_ref])*
+        #[inline]
+        pub fn $method_ref<'a>(
+            &'a self,
+            $op: &'a $Big,
+            $($param: $T,)*
+        ) -> $Ref<'a> {
+            $Ref {
+                ref_self: self,
+                $op,
+                $($param,)*
+            }
+        }
+    }
+}
+
+#[cfg(feature = "integer")]
+macro_rules! ref_math_op2_3 {
+    {
+        $Big:ty;
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
+    } => {
+        $(#[$attr_ref])*
+        #[derive(Clone, Copy)]
+        pub struct $Ref<'a> {
+            ref_self: &'a $Big,
+            $op: &'a $Big,
+            $($param: $T,)*
+        }
+
+        impl<'a> From<$Ref<'a>> for ($Big, $Big, $Big) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> ($Big, $Big, $Big) {
+                let mut three = <($Big, $Big, $Big) as Default>::default();
+                (&mut three.0, &mut three.1, &mut three.2).assign(src);
+                three
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big, &'a mut $Big)
+        {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                unsafe {
+                    $func(
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        self.2.inner_mut(),
+                        src.ref_self.inner(),
+                        src.$op.inner(),
+                        $(src.$param.into(),)*
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[cfg(feature = "integer")]
 macro_rules! from_borrow {
     { $Src:ty => $Dst:ty} => {
         impl<'a> From<$Src> for $Dst {
