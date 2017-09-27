@@ -338,19 +338,19 @@ c_callback! {
             assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
             let limbs = limbs as isize;
             for i in 0..limbs {
-                let n = (gen() as u64) | (gen() as u64) << 32;
+                let n = u64::from(gen()) | u64::from(gen()) << 32;
                 *(limb.offset(i)) = n as gmp::limb_t;
             }
             if rest >= 32 {
-                let mut n = gen() as u64;
+                let mut n = u64::from(gen());
                 if rest > 32 {
                     let mask = !(!0 << (rest - 32));
-                    n |= ((gen() & mask) as u64) << 32;
+                    n |= u64::from(gen() & mask) << 32;
                 }
                 *(limb.offset(limbs)) = n as gmp::limb_t;
             } else if rest > 0 {
                 let mask = !(!0 << rest);
-                let n = (gen() & mask) as u64;
+                let n = u64::from(gen() & mask);
                 *(limb.offset(limbs)) = n as gmp::limb_t;
             }
         }

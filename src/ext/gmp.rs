@@ -18,7 +18,7 @@ use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i32, i64, u32, u64};
 use std::cmp::Ordering;
 use std::mem;
-use std::os::raw::{c_int, c_long, c_uint, c_ulong};
+use std::os::raw::{c_int, c_long, c_ulong};
 
 #[inline]
 pub unsafe fn mpz_tdiv_qr_check_0(
@@ -480,7 +480,7 @@ pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
         (*rop).size = 0;
     } else {
         (*rop).size = 1;
-        *rop.limb_mut(0) = u as gmp::limb_t;
+        *rop.limb_mut(0) = u.into();
     }
 }
 
@@ -589,7 +589,7 @@ pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
         0 if op2 == 0 => 0,
         0 => -1,
         size if size < 0 => -1,
-        1 => op1.limb(0).cmp(&(op2 as gmp::limb_t)).to_c_int(),
+        1 => op1.limb(0).cmp(&gmp::limb_t::from(op2)).to_c_int(),
         _ => 1,
     }
 }
@@ -601,7 +601,7 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
         0 => 0.cmp(&op2).to_c_int(),
         -1 | 1 => {
             let mag1 = op1.limb(0);
-            let mag2 = op2.wrapping_abs() as u32 as gmp::limb_t;
+            let mag2 = gmp::limb_t::from(op2.wrapping_abs() as u32);
             match (neg1, op2 < 0) {
                 (false, false) => mag1.cmp(&mag2).to_c_int(),
                 (false, true) => 1,
@@ -619,7 +619,7 @@ pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
     #[cfg(gmp_limb_bits_64)]
     match (*op).size {
         0 => true,
-        1 => op.limb(0) <= u32::MAX as gmp::limb_t,
+        1 => op.limb(0) <= gmp::limb_t::from(u32::MAX),
         _ => false,
     }
     #[cfg(gmp_limb_bits_32)]
@@ -633,8 +633,8 @@ pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
 pub unsafe fn mpz_fits_i32(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => op.limb(0) <= i32::MAX as u32 as gmp::limb_t,
-        -1 => op.limb(0) <= i32::MIN as u32 as gmp::limb_t,
+        1 => op.limb(0) <= gmp::limb_t::from(i32::MAX as u32),
+        -1 => op.limb(0) <= gmp::limb_t::from(i32::MIN as u32),
         _ => false,
     }
 }
@@ -720,8 +720,8 @@ pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     if (*op).size >= 0 {
         c_ulong::max_value()
     } else {
-        let abs_size = (*op).size.wrapping_abs() as c_uint;
-        let abs_popcount = gmp::mpn_popcount((*op).d, abs_size as gmp::size_t);
+        let abs_size = gmp::size_t::from((*op).size).wrapping_abs();
+        let abs_popcount = gmp::mpn_popcount((*op).d, abs_size);
         let first_one = gmp::mpn_scan1((*op).d, 0);
         abs_popcount + first_one - 1
     }
@@ -733,10 +733,9 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
         gmp::mpz_set_ui(rop, 1);
         return;
     }
-    assert_eq!(size as gmp::size_t as c_int, size, "overflow");
-    let significant_u = gmp::mpn_sizeinbase((*op).d, size as gmp::size_t, 2);
+    let significant_u = gmp::mpn_sizeinbase((*op).d, size.into(), 2);
     let significant = significant_u as gmp::bitcnt_t;
-    assert_eq!(significant_u as usize, significant_u, "overflow");
+    assert_eq!(significant as usize, significant_u, "overflow");
     let first_one = gmp::mpn_scan1((*op).d, 0);
     let bit = if significant - 1 == first_one {
         if rop as *const mpz_t == op {

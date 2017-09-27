@@ -55,9 +55,7 @@ use std::ptr;
 #[inline]
 pub fn exp_min() -> i32 {
     let min = unsafe { mpfr::get_emin() };
-    if mem::size_of::<mpfr::exp_t>() <= mem::size_of::<i32>()
-        || min > i32::MIN as mpfr::exp_t
-    {
+    if min > mpfr::exp_t::from(i32::MIN) {
         min as i32
     } else {
         i32::MIN
@@ -75,9 +73,7 @@ pub fn exp_min() -> i32 {
 #[inline]
 pub fn exp_max() -> i32 {
     let max = unsafe { mpfr::get_emax() };
-    if mem::size_of::<mpfr::exp_t>() <= mem::size_of::<i32>()
-        || max < i32::MAX as mpfr::exp_t
-    {
+    if max < mpfr::exp_t::from(i32::MAX) {
         max as i32
     } else {
         i32::MAX
@@ -1042,9 +1038,9 @@ impl Float {
             return None;
         }
         let i = unsafe { mpfr::get_si(self.inner(), rraw(round)) };
-        if i >= i32::MAX as c_long {
+        if i >= c_long::from(i32::MAX) {
             Some(i32::MAX)
-        } else if i <= i32::MIN as c_long {
+        } else if i <= c_long::from(i32::MIN) {
             Some(i32::MIN)
         } else {
             Some(i as i32)
@@ -1072,7 +1068,7 @@ impl Float {
             return None;
         }
         let u = unsafe { mpfr::get_ui(self.inner(), rraw(round)) };
-        if u >= u32::MAX as c_ulong {
+        if u >= c_ulong::from(u32::MAX) {
             Some(u32::MAX)
         } else {
             Some(u as u32)
@@ -1513,7 +1509,7 @@ impl Float {
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
             let e = unsafe { mpfr::get_exp(self.inner()) };
-            assert!(e <= i32::MAX as mpfr::exp_t, "overflow");
+            assert!(e <= mpfr::exp_t::from(i32::MAX), "overflow");
             Some(e as i32)
         } else {
             None
@@ -3923,7 +3919,7 @@ cmp! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.inner()) } }
 cmp! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
 cmp! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
 cmp! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
-cmp! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, *t as f64) } }
+cmp! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, (*t).into()) } }
 
 sum_prod! { Float, Float::with_val(53, 0), Float::with_val(53, 1) }
 

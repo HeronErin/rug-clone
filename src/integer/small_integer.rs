@@ -150,7 +150,7 @@ impl Assign<u32> for SmallInteger {
             self.inner.size = 0;
         } else {
             self.inner.size = 1;
-            self.limbs[0] = val as gmp::limb_t;
+            self.limbs[0] = val.into();
         }
     }
 }

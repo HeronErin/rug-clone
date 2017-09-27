@@ -144,7 +144,7 @@ pub unsafe fn pow_f32(
     z: f32,
     r: mpc::rnd_t,
 ) -> c_int {
-    mpc::pow_d(x, y, z as f64, r)
+    mpc::pow_d(x, y, z.into(), r)
 }
 
 #[inline]

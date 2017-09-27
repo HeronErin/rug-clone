@@ -165,7 +165,7 @@ unsafe fn divf_mulz_divz(
 
 #[inline]
 pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::set_d(rop, op as f64, rnd)
+    mpfr::set_d(rop, op.into(), rnd)
 }
 
 #[inline]
@@ -175,7 +175,7 @@ pub unsafe fn add_f32(
     op2: f32,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::add_d(rop, op1, op2 as f64, rnd)
+    mpfr::add_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
@@ -185,7 +185,7 @@ pub unsafe fn sub_f32(
     op2: f32,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::sub_d(rop, op1, op2 as f64, rnd)
+    mpfr::sub_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
@@ -195,7 +195,7 @@ pub unsafe fn f32_sub(
     op2: *const mpfr_t,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::d_sub(rop, op1 as f64, op2, rnd)
+    mpfr::d_sub(rop, op1.into(), op2, rnd)
 }
 
 #[inline]
@@ -205,7 +205,7 @@ pub unsafe fn mul_f32(
     op2: f32,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::mul_d(rop, op1, op2 as f64, rnd)
+    mpfr::mul_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
@@ -215,7 +215,7 @@ pub unsafe fn div_f32(
     op2: f32,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::div_d(rop, op1, op2 as f64, rnd)
+    mpfr::div_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
@@ -225,7 +225,7 @@ pub unsafe fn f32_div(
     op2: *const mpfr_t,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::d_div(rop, op1 as f64, op2, rnd)
+    mpfr::d_div(rop, op1.into(), op2, rnd)
 }
 
 #[inline]

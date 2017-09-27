@@ -215,9 +215,9 @@ impl SmallRational {
         den: u32,
     ) {
         self.num.size = if neg { -1 } else { 1 };
-        self.num_limbs[0] = num as gmp::limb_t;
+        self.num_limbs[0] = num.into();
         self.den.size = 1;
-        self.den_limbs[0] = den as gmp::limb_t;
+        self.den_limbs[0] = den.into();
     }
 
     /// Sets a `SmallRational` to a 64-bit numerator and denominator,

@@ -357,7 +357,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn from_f32(val: f32) -> Option<Integer> {
-        Integer::from_f64(val as f64)
+        Integer::from_f64(val.into())
     }
 
     /// Creates an `Integer` from an `f64` if it is finite, rounding
@@ -787,7 +787,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
-        self.assign_f64(val as f64)
+        self.assign_f64(val.into())
     }
 
     /// Assigns from an `f64` if it is finite, rounding towards zero.
@@ -3469,7 +3469,7 @@ cmp! { u64, xgmp::mpz_cmp_u64 }
 impl PartialEq<f32> for Integer {
     #[inline]
     fn eq(&self, other: &f32) -> bool {
-        let o = *other as f64;
+        let o = f64::from(*other);
         self.eq(&o)
     }
 }
@@ -3484,7 +3484,7 @@ impl PartialEq<Integer> for f32 {
 impl PartialOrd<f32> for Integer {
     #[inline]
     fn partial_cmp(&self, other: &f32) -> Option<Ordering> {
-        let o = *other as f64;
+        let o = f64::from(*other);
         self.partial_cmp(&o)
     }
 }

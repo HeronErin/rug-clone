@@ -186,7 +186,7 @@ macro_rules! assign_u_single_limb {
                 }
                 let leading = val.leading_zeros();
                 let limb_leading = leading + gmp::LIMB_BITS as u32 - $bits;
-                self.limbs[0] = (val as gmp::limb_t) << limb_leading;
+                self.limbs[0] = gmp::limb_t::from(val) << limb_leading;
                 unsafe {
                     mpfr::custom_init_set(
                         ptr,
@@ -250,7 +250,7 @@ impl Assign<f32> for SmallFloat {
         unsafe {
             mpfr::custom_init(limb_ptr, 24);
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
-            mpfr::set_d(ptr, val as f64, rraw(Round::Nearest));
+            mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
         }
     }
 }

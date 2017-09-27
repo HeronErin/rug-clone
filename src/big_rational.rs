@@ -133,7 +133,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn from_f32(val: f32) -> Option<Rational> {
-        Rational::from_f64(val as f64)
+        Rational::from_f64(val.into())
     }
 
     /// Creates a `Rational` from an `f64` if it is finite, losing no
@@ -450,7 +450,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
-        self.assign_f64(val as f64)
+        self.assign_f64(val.into())
     }
 
     /// Assigns from an `f64` if it is finite, losing no precision.
