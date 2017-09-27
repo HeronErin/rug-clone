@@ -195,7 +195,7 @@ impl Rational {
     /// error.
     ///
     /// The string must contain a numerator, and may contain a
-    /// denominator; the numberator and denominator are separated with
+    /// denominator; the numerator and denominator are separated with
     /// a `'/'`. The numerator can start with an optional minus or
     /// plus sign.
     ///
@@ -776,7 +776,7 @@ impl Rational {
     /// The returned object implements `Deref` with a `Rational`
     /// target. This method performs some shallow copying, swapping
     /// numerator and denominator and making sure the sign is in the
-    /// numberator.
+    /// numerator.
     ///
     /// # Examples
     ///
