@@ -444,8 +444,8 @@ impl Integer {
         src: &str,
         radix: i32,
     ) -> Result<ValidInteger, ParseIntegerError> {
-        use self::ParseIntegerError as Error;
         use self::ParseErrorKind as Kind;
+        use self::ParseIntegerError as Error;
 
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let bytes = src.as_bytes();

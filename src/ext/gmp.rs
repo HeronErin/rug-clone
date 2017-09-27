@@ -667,9 +667,9 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
         0 | 1 | -1 => true,
         2 => op.limb(1) <= i32::MAX as u32 as gmp::limb_t,
         -2 => {
-            op.limb(1) < i32::MIN as u32 as gmp::limb_t ||
-                (op.limb(1) == i32::MIN as u32 as gmp::limb_t &&
-                    op.limb(0) == 0)
+            op.limb(1) < i32::MIN as u32 as gmp::limb_t
+                || (op.limb(1) == i32::MIN as u32 as gmp::limb_t
+                    && op.limb(0) == 0)
         }
         _ => false,
     }

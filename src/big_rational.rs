@@ -226,8 +226,8 @@ impl Rational {
         src: &str,
         radix: i32,
     ) -> Result<ValidRational, ParseRationalError> {
-        use self::ParseRationalError as Error;
         use self::ParseErrorKind as Kind;
+        use self::ParseRationalError as Error;
 
         assert!(radix >= 2 && radix <= 36, "radix out of range");
         let bytes = src.as_bytes();

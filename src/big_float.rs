@@ -55,8 +55,8 @@ use std::ptr;
 #[inline]
 pub fn exp_min() -> i32 {
     let min = unsafe { mpfr::get_emin() };
-    if mem::size_of::<mpfr::exp_t>() <= mem::size_of::<i32>() ||
-        min > i32::MIN as mpfr::exp_t
+    if mem::size_of::<mpfr::exp_t>() <= mem::size_of::<i32>()
+        || min > i32::MIN as mpfr::exp_t
     {
         min as i32
     } else {
@@ -75,8 +75,8 @@ pub fn exp_min() -> i32 {
 #[inline]
 pub fn exp_max() -> i32 {
     let max = unsafe { mpfr::get_emax() };
-    if mem::size_of::<mpfr::exp_t>() <= mem::size_of::<i32>() ||
-        max < i32::MAX as mpfr::exp_t
+    if mem::size_of::<mpfr::exp_t>() <= mem::size_of::<i32>()
+        || max < i32::MAX as mpfr::exp_t
     {
         max as i32
     } else {
@@ -108,8 +108,8 @@ pub fn prec_min() -> u32 {
 #[inline]
 pub fn prec_max() -> u32 {
     let max = mpfr::PREC_MAX;
-    if mem::size_of::<mpfr::prec_t>() <= mem::size_of::<u32>() ||
-        max < u32::MAX as mpfr::prec_t
+    if mem::size_of::<mpfr::prec_t>() <= mem::size_of::<u32>()
+        || max < u32::MAX as mpfr::prec_t
     {
         max as u32
     } else {
@@ -792,8 +792,8 @@ impl Float {
         src: &str,
         radix: i32,
     ) -> Result<ValidFloat, ParseFloatError> {
-        use self::ParseFloatError as Error;
         use self::ParseErrorKind as Kind;
+        use self::ParseFloatError as Error;
 
         let mut v = ValidFloat {
             poss: ValidPoss::Special(Special::Nan),
@@ -811,8 +811,8 @@ impl Float {
         }
         let neg_inf10: &[&[u8]] = &[b"-inf", b"-infinity"];
         let neg_inf: &[&[u8]] = &[b"-@inf@", b"-@infinity@"];
-        if (radix <= 10 && lcase_in(bytes, neg_inf10)) ||
-            lcase_in(bytes, neg_inf)
+        if (radix <= 10 && lcase_in(bytes, neg_inf10))
+            || lcase_in(bytes, neg_inf)
         {
             v.poss = ValidPoss::Special(Special::NegInfinity);
             return Ok(v);
@@ -1346,9 +1346,7 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(
-            self.assign_round(Float::valid_str_radix(src, radix)?, round),
-        )
+        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
     }
 
     /// Borrows a negated copy of the `Float`.

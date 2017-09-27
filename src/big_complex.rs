@@ -275,9 +275,9 @@ impl Complex {
     fn new_nan<P: Prec>(prec: P) -> Complex {
         let p = prec.prec();
         assert!(
-            p.0 >= float::prec_min() && p.0 <= float::prec_max() &&
-                p.1 >= float::prec_min() &&
-                p.1 <= float::prec_max(),
+            p.0 >= float::prec_min() && p.0 <= float::prec_max()
+                && p.1 >= float::prec_min()
+                && p.1 <= float::prec_max(),
             "precision out of range"
         );
         unsafe {
@@ -854,9 +854,7 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(
-            self.assign_round(Complex::valid_str_radix(src, radix)?, round),
-        )
+        Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
     }
 
     /// Borrows the real part as a [`Float`](struct.Float.html).
@@ -3736,8 +3734,8 @@ fn fmt_float(
 ) {
     let show_neg_zero = show_neg_zero || fmt.sign_plus();
     let mut s = flt.to_string_radix(radix, fmt.precision());
-    let minus = s.starts_with('-') ||
-        (show_neg_zero && flt.is_zero() && flt.is_sign_negative());
+    let minus = s.starts_with('-')
+        || (show_neg_zero && flt.is_zero() && flt.is_sign_negative());
     if minus {
         buf.push('-');
     } else if fmt.sign_plus() {
