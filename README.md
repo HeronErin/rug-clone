@@ -19,7 +19,7 @@ by the Free Software Foundation, either version 3 of the License, or
 
 [Documentation][rug] for this crate is available. This crate depends
 on the low-level bindings in the [`gmp-mpfr-sys`][sys] crate, which
-provides RUST FFI bindings for:
+provides Rust FFI bindings for:
 
 * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
 * the [GNU MPFR Library][mpfr], a library for multiple-precision

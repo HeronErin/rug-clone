@@ -35,7 +35,7 @@
 //! ## Basic use
 //!
 //! This crate depends on the low-level bindings in the
-//! [`gmp-mpfr-sys`][sys] crate, which provides RUST FFI bindings for:
+//! [`gmp-mpfr-sys`][sys] crate, which provides Rust FFI bindings for:
 //!
 //! * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
 //! * the [GNU MPFR Library][mpfr], a library for multiple-precision
