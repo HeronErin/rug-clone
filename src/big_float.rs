@@ -1088,9 +1088,19 @@ impl Float {
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::f32;
+    /// let f = Float::with_val(53, 1.0 + 2.0f64.powi(-50));
+    /// assert_eq!(f.to_f32_round(Round::Up), 1.0 + f32::EPSILON);
+    /// ```
     #[inline]
     pub fn to_f32_round(&self, round: Round) -> f32 {
-        self.to_f64_round(round) as f32
+        unsafe { xmpfr::get_f32(self.inner(), rraw(round)) }
     }
 
     /// Converts to an `f64`, rounding to the nearest.

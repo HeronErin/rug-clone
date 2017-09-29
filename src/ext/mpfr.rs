@@ -163,6 +163,25 @@ unsafe fn divf_mulz_divz(
     }
 }
 
+pub unsafe fn get_f32(op: *const mpfr_t, rnd: mpfr::rnd_t) -> f32 {
+    let mut single: mpfr_t = mem::uninitialized();
+    let mut limb: gmp::limb_t = 0;
+    let limb_ptr = &mut limb as *mut _ as *mut _;
+    let limb_size = mpfr::custom_get_size(24);
+    assert!(limb_size <= 8 * mem::size_of::<gmp::limb_t>());
+    mpfr::custom_init(limb_ptr, 24);
+    mpfr::custom_init_set(
+        &mut single,
+        mpfr::ZERO_KIND,
+        0,
+        24,
+        limb_ptr,
+    );
+    mpfr::set(&mut single, op, rnd);
+    let val = mpfr::get_d(&single, rnd);
+    val as f32
+}
+
 #[inline]
 pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::set_d(rop, op.into(), rnd)
