@@ -18,7 +18,7 @@
 name = "rug"
 version = "0.6.0"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
-description = "Arbitrary-precision big numbers based on GMP, MPFR and MPC"
+description = "Arbitrary-precision integers, rational, floating-point and complex numbers based on GMP, MPFR and MPC"
 documentation = "https://docs.rs/rug/"
 repository = "https://gitlab.com/tspiteri/rug"
 readme = "README.md"
