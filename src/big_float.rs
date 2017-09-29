@@ -653,12 +653,31 @@ impl Float {
     }
 
     /// Returns the precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::new(53);
+    /// assert_eq!(f.prec(), 53);
+    /// ```
     #[inline]
     pub fn prec(&self) -> u32 {
         unsafe { mpfr::get_prec(self.inner()) as u32 }
     }
 
     /// Sets the precision, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // 16.25 has seven significant bits (binary 10000.01)
+    /// let mut f = Float::with_val(53, 16.25);
+    /// f.set_prec(5);
+    /// assert_eq!(f, 16);
+    /// assert_eq!(f.prec(), 5);
+    /// ```
     ///
     /// # Panics
     ///
@@ -669,6 +688,20 @@ impl Float {
     }
 
     /// Sets the precision, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // 16.25 has seven significant bits (binary 10000.01)
+    /// let mut f = Float::with_val(53, 16.25);
+    /// let dir = f.set_prec_round(5, Round::Up);
+    /// assert_eq!(f, 17);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// assert_eq!(f.prec(), 5);
+    /// ```
     ///
     /// # Panics
     ///
@@ -692,7 +725,19 @@ impl Float {
     /// Parses a `Float` with the specified precision, rounding to the
     /// nearest.
     ///
-    /// See the [corresponding assignment](#method.assign_str).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = match Float::from_str("12.5e2", 53) {
+    ///     Ok(f) => f,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// assert_eq!(f, 12.5e2);
+    /// let err_ret = Float::from_str("bad", 53);
+    /// assert!(err_ret.is_err());
+    /// ```
     #[inline]
     pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
         let mut f = Float::new_nan(prec);
@@ -703,7 +748,19 @@ impl Float {
     /// Parses a `Float` with the specified precision, applying the
     /// specified rounding.
     ///
-    /// See the [corresponding assignment](#method.assign_str_round).
+    /// Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let (f, dir) = match Float::from_str_round("14.1", 4, Round::Down) {
+    ///     Ok(f_dir) => f_dir,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// assert_eq!(f, 14);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
     #[inline]
     pub fn from_str_round(
         src: &str,
@@ -718,7 +775,16 @@ impl Float {
     /// Parses a `Float` with the specified radix and precision,
     /// rounding to the nearest.
     ///
-    /// See the [corresponding assignment](#method.assign_str_radix).
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = match Float::from_str_radix("f.f", 16, 53) {
+    ///     Ok(f) => f,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// assert_eq!(f, 15.9375);
+    /// ```
     ///
     /// # Panics
     ///
@@ -737,7 +803,20 @@ impl Float {
     /// Parses a `Float` with the specified radix and precision,
     /// applying the specified rounding.
     ///
-    /// See the [corresponding assignment](#method.assign_str_radix_round).
+    /// Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let (f, dir) =
+    ///     match Float::from_str_radix_round("e.c", 16, 4, Round::Up) {
+    ///         Ok(f_dir) => f_dir,
+    ///         Err(_) => unreachable!(),
+    ///     };
+    /// assert_eq!(f, 15);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
     ///
     /// # Panics
     ///
@@ -909,6 +988,18 @@ impl Float {
 
     #[cfg(feature = "integer")]
     /// Converts to an integer, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let f = Float::with_val(53, 13.7);
+    /// let i = match f.to_integer() {
+    ///     Some(i) => i,
+    ///     None => unreachable!(),
+    /// };
+    /// assert_eq!(i, 14);
+    /// ```
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
         self.to_integer_round(Round::Nearest).map(|x| x.0)
@@ -916,6 +1007,21 @@ impl Float {
 
     #[cfg(feature = "integer")]
     /// Converts to an integer, applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let f = Float::with_val(53, 13.7);
+    /// let (i, dir) = match f.to_integer_round(Round::Down) {
+    ///     Some(i_dir) => i_dir,
+    ///     None => unreachable!(),
+    /// };
+    /// assert_eq!(i, 13);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
     #[inline]
     pub fn to_integer_round(
         &self,
@@ -1022,6 +1128,19 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use std::{i32, u32};
+    /// let mut f = Float::with_val(53, -13.7);
+    /// assert_eq!(f.to_i32_saturating(), Some(-14));
+    /// f.assign(-1e40);
+    /// assert_eq!(f.to_i32_saturating(), Some(i32::MIN));
+    /// f.assign(u32::MAX);
+    /// assert_eq!(f.to_i32_saturating(), Some(i32::MAX));
+    /// ```
     #[inline]
     pub fn to_i32_saturating(&self) -> Option<i32> {
         self.to_i32_saturating_round(Round::Nearest)
@@ -1032,6 +1151,15 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// let f = Float::with_val(53, -13.7);
+    /// assert_eq!(f.to_i32_saturating_round(Round::Up), Some(-13));
+    /// ```
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
@@ -1052,6 +1180,19 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use std::u32;
+    /// let mut f = Float::with_val(53, 13.7);
+    /// assert_eq!(f.to_u32_saturating(), Some(14));
+    /// f.assign(-1);
+    /// assert_eq!(f.to_u32_saturating(), Some(0));
+    /// f.assign(1e40);
+    /// assert_eq!(f.to_u32_saturating(), Some(u32::MAX));
+    /// ```
     #[inline]
     pub fn to_u32_saturating(&self) -> Option<u32> {
         self.to_u32_saturating_round(Round::Nearest)
@@ -1062,6 +1203,15 @@ impl Float {
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
     /// If the value is a NaN, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// let f = Float::with_val(53, 13.7);
+    /// assert_eq!(f.to_u32_saturating_round(Round::Down), Some(13));
+    /// ```
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
@@ -1079,6 +1229,19 @@ impl Float {
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use std::f32;
+    /// let mut f = Float::with_val(53, 13.7);
+    /// assert_eq!(f.to_f32(), 13.7);
+    /// f.assign(1e300);
+    /// assert_eq!(f.to_f32(), f32::INFINITY);
+    /// f.assign(1e-300);
+    /// assert_eq!(f.to_f32(), 0.0);
+    /// ```
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.to_f32_round(Round::Nearest)
@@ -1107,6 +1270,18 @@ impl Float {
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use std::f64;
+    /// let mut f = Float::with_val(53, 13.7);
+    /// assert_eq!(f.to_f64(), 13.7);
+    /// f.assign(1e300);
+    /// f.square_mut();
+    /// assert_eq!(f.to_f64(), f64::INFINITY);
+    /// ```
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.to_f64_round(Round::Nearest)
@@ -1116,6 +1291,17 @@ impl Float {
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::f64;
+    /// // (2.0 ^ -90) + 1
+    /// let f: Float = Float::with_val(100, -90).exp2() + 1;
+    /// assert_eq!(f.to_f64_round(Round::Up), 1.0 + f64::EPSILON);
+    /// ```
     #[inline]
     pub fn to_f64_round(&self, round: Round) -> f64 {
         unsafe { mpfr::get_d(self.inner(), rraw(round)) }
@@ -1187,6 +1373,18 @@ impl Float {
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let zero = Float::new(64);
+    /// let (d0, exp0) = zero.to_f64_exp();
+    /// assert_eq!((d0, exp0), (0.0, 0));
+    /// let three_eighths = Float::with_val(64, 0.375);
+    /// let (d3_8, exp3_8) = three_eighths.to_f64_exp();
+    /// assert_eq!((d3_8, exp3_8), (0.75, -1));
+    /// ```
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, i32) {
         self.to_f64_exp_round(Round::Nearest)
@@ -1199,6 +1397,18 @@ impl Float {
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// let frac_10_3 = Float::with_val(64, 10) / 3u32;
+    /// let (f_down, exp_down) = frac_10_3.to_f64_exp_round(Round::Down);
+    /// assert_eq!((f_down, exp_down), (0.8333333333333333, 2));
+    /// let (f_up, exp_up) = frac_10_3.to_f64_exp_round(Round::Up);
+    /// assert_eq!((f_up, exp_up), (0.8333333333333334, 2));
+    /// ```
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
@@ -1249,6 +1459,18 @@ impl Float {
     /// enough precision such that reading it again will give the exact
     /// same number.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// let twentythree = Float::with_val(8, 23.3);
+    /// let down = twentythree.to_string_radix_round(10, Some(2), Round::Down);
+    /// assert_eq!(down, "2.3e1");
+    /// let up = twentythree.to_string_radix_round(10, Some(2), Round::Up);
+    /// assert_eq!(up, "2.4e1");
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
@@ -1269,10 +1491,11 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let mut f = Float::new(53);
-    /// f.assign_str("12.5e2").unwrap();
+    /// let ok_ret = f.assign_str("12.5e2");
+    /// assert!(ok_ret.is_ok());
     /// assert_eq!(f, 12.5e2);
-    /// let ret = f.assign_str("bad");
-    /// assert!(ret.is_err());
+    /// let err_ret = f.assign_str("bad");
+    /// assert!(err_ret.is_err());
     /// ```
     #[inline]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
@@ -1289,7 +1512,10 @@ impl Float {
     /// use rug::float::Round;
     /// use std::cmp::Ordering;
     /// let mut f = Float::new(4);
-    /// let dir = f.assign_str_round("14.1", Round::Down).unwrap();
+    /// let dir = match f.assign_str_round("14.1", Round::Down) {
+    ///     Ok(dir) => dir,
+    ///     Err(_) => unreachable!(),
+    /// };
     /// assert_eq!(f, 14);
     /// assert_eq!(dir, Ordering::Less);
     /// ```
@@ -1310,7 +1536,8 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// let mut f = Float::new(53);
-    /// f.assign_str_radix("f.f", 16).unwrap();
+    /// let ok_ret = f.assign_str_radix("f.f", 16);
+    /// assert!(ok_ret.is_ok());
     /// assert_eq!(f, 15.9375);
     /// ```
     ///
@@ -1337,7 +1564,10 @@ impl Float {
     /// use rug::float::Round;
     /// use std::cmp::Ordering;
     /// let mut f = Float::new(4);
-    /// let dir = f.assign_str_radix_round("e.c", 16, Round::Up).unwrap();
+    /// let dir = match f.assign_str_radix_round("e.c", 16, Round::Up) {
+    ///     Ok(dir) => dir,
+    ///     Err(_) => unreachable!(),
+    /// };
     /// assert_eq!(f, 15);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
@@ -1450,18 +1680,48 @@ impl Float {
     }
 
     /// Returns `true` if `self` is an integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 13.5);
+    /// assert!(!f.is_integer());
+    /// f *= 2;
+    /// assert!(f.is_integer());
+    /// ```
     #[inline]
     pub fn is_integer(&self) -> bool {
         unsafe { mpfr::integer_p(self.inner()) != 0 }
     }
 
     /// Returns `true` if `self` is not a number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 0);
+    /// assert!(!f.is_nan());
+    /// f /= 0;
+    /// assert!(f.is_nan());
+    /// ```
     #[inline]
     pub fn is_nan(&self) -> bool {
         unsafe { mpfr::nan_p(self.inner()) != 0 }
     }
 
     /// Returns `true` if `self` is plus or minus infinity.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1);
+    /// assert!(!f.is_infinite());
+    /// f /= 0;
+    /// assert!(f.is_infinite());
+    /// ```
     #[inline]
     pub fn is_infinite(&self) -> bool {
         unsafe { mpfr::inf_p(self.inner()) != 0 }
@@ -1469,12 +1729,35 @@ impl Float {
 
     /// Returns `true` if `self` is a finite number,
     /// that is neither NaN nor infinity.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::with_val(53, 1);
+    /// assert!(f.is_finite());
+    /// f /= 0;
+    /// assert!(!f.is_finite());
+    /// ```
     #[inline]
     pub fn is_finite(&self) -> bool {
         unsafe { mpfr::number_p(self.inner()) != 0 }
     }
 
     /// Returns `true` if `self` is plus or minus zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use rug::float::Special;
+    /// let mut f = Float::with_val(53, Special::Zero);
+    /// assert!(f.is_zero());
+    /// f.assign(Special::NegZero);
+    /// assert!(f.is_zero());
+    /// f += 1;
+    /// assert!(!f.is_zero());
+    /// ```
     #[inline]
     pub fn is_zero(&self) -> bool {
         unsafe { mpfr::zero_p(self.inner()) != 0 }
@@ -1483,14 +1766,46 @@ impl Float {
     /// Returns `true` if `self` is a normal number, that is neither
     /// NaN, nor infinity, nor zero. Note that `Float` cannot be
     /// subnormal.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use rug::float::Special;
+    /// let mut f = Float::with_val(53, Special::Zero);
+    /// assert!(!f.is_normal());
+    /// f += 5.2;
+    /// assert!(f.is_normal());
+    /// f.assign(Special::Infinity);
+    /// assert!(!f.is_normal());
+    /// f.assign(Special::Nan);
+    /// assert!(!f.is_normal());
+    /// ```
     #[inline]
     pub fn is_normal(&self) -> bool {
         unsafe { mpfr::regular_p(self.inner()) != 0 }
     }
 
-    /// Returns `Ordering::Less` if `self` is less than zero,
-    /// `Ordering::Greater` if `self` is greater than zero, or
-    /// `Ordering::Equal` if `self` is equal to zero.
+    /// Returns `None` if the value is a NaN, `Some(Ordering::Less)`
+    /// if it is less than zero, `Some(Ordering::Greater)` if it is
+    /// greater than zero, or `Some(Ordering::Equal)` if it is equal
+    /// to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// use rug::float::Special;
+    /// use std::cmp::Ordering;
+    /// let mut f = Float::with_val(53, Special::NegZero);
+    /// assert_eq!(f.sign(), Some(Ordering::Equal));
+    /// f += 5.2;
+    /// assert_eq!(f.sign(), Some(Ordering::Greater));
+    /// f.assign(Special::NegInfinity);
+    /// assert_eq!(f.sign(), Some(Ordering::Less));
+    /// f.assign(Special::Nan);
+    /// assert_eq!(f.sign(), None);
+    /// ```
     #[inline]
     pub fn sign(&self) -> Option<Ordering> {
         if self.is_nan() {
@@ -1502,6 +1817,17 @@ impl Float {
     }
 
     /// Compares the absolute values of `self` and `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use std::cmp::Ordering;
+    /// let a = Float::with_val(53, -10);
+    /// let b = Float::with_val(53, 4);
+    /// assert_eq!(a.partial_cmp(&b), Some(Ordering::Less));
+    /// assert_eq!(a.cmp_abs(&b), Some(Ordering::Greater));
+    /// ```
     #[inline]
     pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
         unsafe {
@@ -1513,8 +1839,23 @@ impl Float {
     }
 
     /// Returns the exponent of `self` if `self` is a normal number,
-    /// otherwise `None`. The significand is assumed to be in the
-    /// range [0.5,1).
+    /// otherwise `None`.
+    ///
+    /// The significand is assumed to be in the range 0.5 ≤ *x* < 1.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// // -(2.0 ^ 32) == -(0.5 * 2 ^ 33)
+    /// let mut f = Float::with_val(53, -2.0f64.powi(32));
+    /// assert_eq!(f.get_exp(), Some(33));
+    /// // 0.8 * 2 ^ -39
+    /// f.assign(0.8 * 2.0f64.powi(-39));
+    /// assert_eq!(f.get_exp(), Some(-39));
+    /// f.assign(0);
+    /// assert_eq!(f.get_exp(), None);
+    /// ```
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
@@ -1652,12 +1993,55 @@ impl Float {
     math_op1_float! {
         mpfr::sqr;
         /// Computes the square, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 5.0);
+        /// let square = f.square();
+        /// assert_eq!(square, 25.0);
+        /// ```
         fn square();
         /// Computes the square, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 5.0);
+        /// f.square_mut();
+        /// assert_eq!(f, 25.0);
+        /// ```
         fn square_mut;
         /// Computes the square, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 5 in binary is 110
+        /// let mut f = Float::with_val(3, 5.0);
+        /// // 25 in binary is 11001 (more than 3 bits of precision).
+        /// // 25 (11001) is rounded up to 28 (11100).
+        /// let dir = f.square_round(Round::Up);
+        /// assert_eq!(f, 28.0);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn square_round;
-        /// Compuets the square.
+        /// Computes the square.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 5.0);
+        /// let r = f.square_ref();
+        /// let square = Float::with_val(53, r);
+        /// assert_eq!(square, 25.0);
+        /// ```
         fn square_ref -> SquareRef;
     }
     math_op1_float! {

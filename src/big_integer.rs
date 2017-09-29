@@ -655,10 +655,10 @@ impl Integer {
     /// use rug::Integer;
     /// use std::f32;
     /// let min = Integer::from_f32(f32::MIN).unwrap();
-    /// let minus_one = min - 1u32;
-    /// // minus_one is truncated to f32::MIN
-    /// assert_eq!(minus_one.to_f32(), f32::MIN);
-    /// let times_two = minus_one * 2u32;
+    /// let min_minus_one = min - 1u32;
+    /// // min_minus_one is truncated to f32::MIN
+    /// assert_eq!(min_minus_one.to_f32(), f32::MIN);
+    /// let times_two = min_minus_one * 2u32;
     /// // times_two is too small
     /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
     /// ```
@@ -685,13 +685,13 @@ impl Integer {
     /// // trunc has 53 ones followed by 3 zeros
     /// let trunc = 0xff_ffff_ffff_fff8_u64;
     /// let j = Integer::from(large);
-    /// assert_eq!(j.to_f64(), trunc as f64);
+    /// assert_eq!(j.to_f64() as u64, trunc);
     ///
     /// let max = Integer::from_f64(f64::MAX).unwrap();
-    /// let plus_one = max + 1u32;
-    /// // plus_one is truncated to f64::MAX
-    /// assert_eq!(plus_one.to_f64(), f64::MAX);
-    /// let times_two = plus_one * 2u32;
+    /// let max_plus_one = max + 1u32;
+    /// // max_plus_one is truncated to f64::MAX
+    /// assert_eq!(max_plus_one.to_f64(), f64::MAX);
+    /// let times_two = max_plus_one * 2u32;
     /// // times_two is too large
     /// assert_eq!(times_two.to_f64(), f64::INFINITY);
     /// ```
@@ -702,7 +702,8 @@ impl Integer {
 
     /// Converts to an `f32` and an exponent, rounding towards zero.
     ///
-    /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
+    /// The returned `f32` is in the range 0.5 ≤ *x* < 1. If the value
+    /// is zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -724,7 +725,8 @@ impl Integer {
 
     /// Converts to an `f64` and an exponent, rounding towards zero.
     ///
-    /// The returned `f64` is in the range 0.5 ≤ *x* < 1.
+    /// The returned `f64` is in the range 0.5 ≤ *x* < 1. If the value
+    /// is zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -1542,9 +1544,10 @@ impl Integer {
     math_op1! {
         Integer;
         xgmp::mpz_divexact_ui_check_0;
-        /// Performs an exact division. This is much faster than
-        /// normal division, but produces correct results only when
-        /// the division is exact.
+        /// Performs an exact division.
+        ///
+        /// This is much faster than normal division, but produces
+        /// correct results only when the division is exact.
         ///
         /// # Examples
         ///
@@ -1559,9 +1562,10 @@ impl Integer {
         ///
         /// Panics if `divisor` is zero.
         fn div_exact_u(divisor: u32);
-        /// Performs an exact division. This is much faster than
-        /// normal division, but produces correct results only when
-        /// the division is exact.
+        /// Performs an exact division.
+        ///
+        /// This is much faster than normal division, but produces
+        /// correct results only when the division is exact.
         ///
         /// # Examples
         ///
@@ -1576,9 +1580,10 @@ impl Integer {
         ///
         /// Panics if `divisor` is zero.
         fn div_exact_u_mut;
-        /// Performs an exact division. This is much faster than
-        /// normal division, but produces correct results only when
-        /// the division is exact.
+        /// Performs an exact division.
+        ///
+        /// This is much faster than normal division, but produces
+        /// correct results only when the division is exact.
         ///
         /// # Examples
         ///
@@ -1689,31 +1694,31 @@ impl Integer {
         }
     }
 
-    /// Raises a number to the power of `power` modulo `modulo` and
-    /// returns `Ok(raised)` if an answer exists, or `Err(unchanged)`
+    /// Raises a number to the power of `exponent` modulo `modulo` and
+    /// returns `Ok(power)` if an answer exists, or `Err(unchanged)`
     /// if it does not.
     ///
-    /// If `power` is negative, then the number must have an inverse
-    /// modulo `modulo` for an answer to exist.
+    /// If `exponent` is negative, then the number must have an
+    /// inverse modulo `modulo` for an answer to exist.
     ///
     /// # Examples
     ///
-    /// When the power is positive, an answer always exists.
+    /// When the exponent is positive, an answer always exists.
     ///
     /// ```rust
     /// use rug::Integer;
     /// // 7 ^ 5 = 16807
     /// let n = Integer::from(7);
-    /// let pow = Integer::from(5);
+    /// let e = Integer::from(5);
     /// let m = Integer::from(1000);
-    /// let raised = match n.pow_mod(&pow, &m) {
-    ///     Ok(raised) => raised,
+    /// let power = match n.pow_mod(&e, &m) {
+    ///     Ok(power) => power,
     ///     Err(_) => unreachable!(),
     /// };
-    /// assert_eq!(raised, 807);
+    /// assert_eq!(power, 807);
     /// ```
     ///
-    /// When the power is negative, an answer exists if an inverse
+    /// When the exponent is negative, an answer exists if an inverse
     /// exists.
     ///
     /// ```rust
@@ -1721,32 +1726,32 @@ impl Integer {
     /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
     /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// let n = Integer::from(7);
-    /// let pow = Integer::from(-5);
+    /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
-    /// let raised = match n.pow_mod(&pow, &m) {
-    ///     Ok(raised) => raised,
+    /// let power = match n.pow_mod(&e, &m) {
+    ///     Ok(power) => power,
     ///     Err(_) => unreachable!(),
     /// };
-    /// assert_eq!(raised, 943);
+    /// assert_eq!(power, 943);
     /// ```
     #[inline]
     pub fn pow_mod(
         mut self,
-        power: &Integer,
+        exponent: &Integer,
         modulo: &Integer,
     ) -> Result<Integer, Integer> {
-        if self.pow_mod_mut(power, modulo) {
+        if self.pow_mod_mut(exponent, modulo) {
             Ok(self)
         } else {
             Err(self)
         }
     }
 
-    /// Raises a number to the power of `power` modulo `modulo` and
+    /// Raises a number to the power of `exponent` modulo `modulo` and
     /// returns `true` if an answer exists.
     ///
-    /// If `power` is negative, then the number must have an inverse
-    /// modulo `modulo` for an answer to exist.
+    /// If `exponent` is negative, then the number must have an
+    /// inverse modulo `modulo` for an answer to exist.
     ///
     /// # Examples
     ///
@@ -1754,28 +1759,32 @@ impl Integer {
     /// use rug::{Assign, Integer};
     /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
     /// let mut n = Integer::from(2);
-    /// let pow = Integer::from(-5);
+    /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
-    /// let exists = n.pow_mod_mut(&pow, &m);
+    /// let exists = n.pow_mod_mut(&e, &m);
     /// assert!(!exists);
     /// assert_eq!(n, 2);
     /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
     /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// n.assign(7);
-    /// let exists = n.pow_mod_mut(&pow, &m);
+    /// let exists = n.pow_mod_mut(&e, &m);
     /// assert!(exists);
     /// assert_eq!(n, 943);
     /// ```
-    pub fn pow_mod_mut(&mut self, power: &Integer, modulo: &Integer) -> bool {
+    pub fn pow_mod_mut(
+        &mut self,
+        exponent: &Integer,
+        modulo: &Integer,
+    ) -> bool {
         let abs_pow;
-        let pow_inner = if power.sign() == Ordering::Less {
+        let pow_inner = if exponent.sign() == Ordering::Less {
             if !(self.invert_mut(modulo)) {
                 return false;
             }
-            abs_pow = power.as_neg();
+            abs_pow = exponent.as_neg();
             abs_pow.inner()
         } else {
-            power.inner()
+            exponent.inner()
         };
         unsafe {
             gmp::mpz_powm(
@@ -1788,11 +1797,11 @@ impl Integer {
         true
     }
 
-    /// Raises a number to the power of `power` modulo `modulo` if an
-    /// answer exists.
+    /// Raises a number to the power of `exponent` modulo `modulo` if
+    /// an answer exists.
     ///
-    /// If `power` is negative, then the number must have an inverse
-    /// modulo `modulo` for an answer to exist.
+    /// If `exponent` is negative, then the number must have an
+    /// inverse modulo `modulo` for an answer to exist.
     ///
     /// # Examples
     ///
@@ -1800,9 +1809,9 @@ impl Integer {
     /// use rug::{Assign, Integer};
     /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
     /// let two = Integer::from(2);
-    /// let pow = Integer::from(-5);
+    /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
-    /// let mut ans = Result::from(two.pow_mod_ref(&pow, &m));
+    /// let mut ans = Result::from(two.pow_mod_ref(&e, &m));
     /// match ans {
     ///     Ok(_) => unreachable!(),
     ///     Err(ref unchanged) => assert_eq!(*unchanged, 0),
@@ -1810,26 +1819,26 @@ impl Integer {
     /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
     /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// let seven = Integer::from(7);
-    /// ans.assign(seven.pow_mod_ref(&pow, &m));
+    /// ans.assign(seven.pow_mod_ref(&e, &m));
     /// match ans {
-    ///     Ok(ref raised) => assert_eq!(*raised, 943),
+    ///     Ok(ref power) => assert_eq!(*power, 943),
     ///     Err(_) => unreachable!(),
     /// }
     /// ```
     #[inline]
     pub fn pow_mod_ref<'a>(
         &'a self,
-        power: &'a Integer,
+        exponent: &'a Integer,
         modulo: &'a Integer,
     ) -> PowModRef<'a> {
         PowModRef {
             ref_self: self,
-            power,
+            exponent,
             modulo,
         }
     }
 
-    /// Raises `base` to the power of `power`.
+    /// Raises `base` to the power of `exponent`.
     ///
     /// # Examples
     ///
@@ -1840,13 +1849,13 @@ impl Integer {
     /// assert_eq!(i, 13_u64.pow(12));
     /// ```
     #[inline]
-    pub fn assign_u_pow_u(&mut self, base: u32, power: u32) {
+    pub fn assign_u_pow_u(&mut self, base: u32, exponent: u32) {
         unsafe {
-            gmp::mpz_ui_pow_ui(self.inner_mut(), base.into(), power.into());
+            gmp::mpz_ui_pow_ui(self.inner_mut(), base.into(), exponent.into());
         }
     }
 
-    /// Raises `base` to the power of `power`.
+    /// Raises `base` to the power of `exponent`.
     ///
     /// # Examples
     ///
@@ -1859,12 +1868,12 @@ impl Integer {
     /// assert_eq!(i, (-13_i64).pow(13));
     /// ```
     #[inline]
-    pub fn assign_i_pow_u(&mut self, base: i32, power: u32) {
+    pub fn assign_i_pow_u(&mut self, base: i32, exponent: u32) {
         if base >= 0 {
-            self.assign_u_pow_u(base as u32, power);
+            self.assign_u_pow_u(base as u32, exponent);
         } else {
-            self.assign_u_pow_u(base.wrapping_neg() as u32, power);
-            if (power & 1) == 1 {
+            self.assign_u_pow_u(base.wrapping_neg() as u32, exponent);
+            if (exponent & 1) == 1 {
                 self.neg_assign();
             }
         }
@@ -2099,12 +2108,40 @@ impl Integer {
         gmp::mpz_nextprime;
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(800_000_000);
+        /// let prime = i.next_prime();
+        /// assert_eq!(prime, 800_000_011);
+        /// ```
         fn next_prime();
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(800_000_000);
+        /// i.next_prime_mut();
+        /// assert_eq!(i, 800_000_011);
+        /// ```
         fn next_prime_mut;
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(800_000_000);
+        /// let r = i.next_prime_ref();
+        /// let prime = Integer::from(r);
+        /// assert_eq!(prime, 800_000_011);
+        /// ```
         fn next_prime_ref -> NextPrimeRef;
     }
     math_op2! {
@@ -2159,6 +2196,9 @@ impl Integer {
         /// ```
         fn gcd_mut;
         /// Finds the greatest common divisor.
+        ///
+        /// The result is always positive except when both inputs are
+        /// zero.
         ///
         /// # Examples
         ///
@@ -2327,6 +2367,9 @@ impl Integer {
         fn lcm_mut;
         /// Finds the least common multiple.
         ///
+        /// The result is always positive except when one or both
+        /// inputs are zero.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2341,12 +2384,36 @@ impl Integer {
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let m = Integer::from(10);
+    /// let mut n = Integer::from(13);
+    /// assert_eq!(m.jacobi(&n), 1);
+    /// n.assign(15);
+    /// assert_eq!(m.jacobi(&n), 0);
+    /// n.assign(17);
+    /// assert_eq!(m.jacobi(&n), -1);
+    /// ```
     #[inline]
     pub fn jacobi(&self, n: &Integer) -> i32 {
         unsafe { gmp::mpz_jacobi(self.inner(), n.inner()) as i32 }
     }
 
     /// Calculates the Legendre symbol (`self`/<i>p</i>).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let a = Integer::from(5);
+    /// let mut p = Integer::from(7);
+    /// assert_eq!(a.legendre(&p), -1);
+    /// p.assign(11);
+    /// assert_eq!(a.legendre(&p), 1);
+    /// ```
     #[inline]
     pub fn legendre(&self, p: &Integer) -> i32 {
         unsafe { gmp::mpz_legendre(self.inner(), p.inner()) as i32 }
@@ -2354,6 +2421,19 @@ impl Integer {
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the
     /// Kronecker extension.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer};
+    /// let k = Integer::from(3);
+    /// let mut n = Integer::from(16);
+    /// assert_eq!(k.kronecker(&n), 1);
+    /// n.assign(17);
+    /// assert_eq!(k.kronecker(&n), -1);
+    /// n.assign(18);
+    /// assert_eq!(k.kronecker(&n), 0);
+    /// ```
     #[inline]
     pub fn kronecker(&self, n: &Integer) -> i32 {
         unsafe { gmp::mpz_kronecker(self.inner(), n.inner()) as i32 }
@@ -2412,8 +2492,10 @@ impl Integer {
     /// let mut i = Integer::new();
     /// i.assign_u_pow_u(13, 50);
     /// i *= 1000;
+    /// let factor = Integer::from(13);
+    /// let r = i.remove_factor_ref(&factor);
     /// let (mut j, mut count) = (Integer::new(), 0);
-    /// (&mut j, &mut count).assign(i.remove_factor_ref(&Integer::from(13)));
+    /// (&mut j, &mut count).assign(r);
     /// assert_eq!(count, 50);
     /// assert_eq!(j, 1000);
     /// ```
@@ -2958,21 +3040,21 @@ ref_math_op1! {
 #[derive(Clone, Copy)]
 pub struct PowModRef<'a> {
     ref_self: &'a Integer,
-    power: &'a Integer,
+    exponent: &'a Integer,
     modulo: &'a Integer,
 }
 
 impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
     fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
-        if src.power.sign() == Ordering::Less {
+        if src.exponent.sign() == Ordering::Less {
             let mut ret = Result::from(src.ref_self.invert_ref(src.modulo));
             if let Ok(ref mut inv) = ret {
-                let abs_pow = src.power.as_neg();
+                let abs_exp = src.exponent.as_neg();
                 unsafe {
                     gmp::mpz_powm(
                         inv.inner_mut(),
                         inv.inner(),
-                        abs_pow.inner(),
+                        abs_exp.inner(),
                         src.modulo.inner(),
                     );
                 }
@@ -2985,7 +3067,7 @@ impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
                     gmp::mpz_powm(
                         dest.inner_mut(),
                         src.ref_self.inner(),
-                        src.power.inner(),
+                        src.exponent.inner(),
                         src.modulo.inner(),
                     );
                 }
@@ -2997,15 +3079,15 @@ impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
 
 impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
     fn assign(&mut self, src: PowModRef<'a>) {
-        if src.power.sign() == Ordering::Less {
+        if src.exponent.sign() == Ordering::Less {
             self.assign(src.ref_self.invert_ref(src.modulo));
             if let Ok(ref mut inv) = *self {
-                let abs_pow = src.power.as_neg();
+                let abs_exp = src.exponent.as_neg();
                 unsafe {
                     gmp::mpz_powm(
                         inv.inner_mut(),
                         inv.inner(),
-                        abs_pow.inner(),
+                        abs_exp.inner(),
                         src.modulo.inner(),
                     );
                 }
@@ -3019,7 +3101,7 @@ impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
                     gmp::mpz_powm(
                         dest.inner_mut(),
                         src.ref_self.inner(),
-                        src.power.inner(),
+                        src.exponent.inner(),
                         src.modulo.inner(),
                     );
                 }

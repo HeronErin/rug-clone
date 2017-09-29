@@ -816,10 +816,17 @@ impl Rational {
         ret
     }
 
-    /// Returns `Ordering::Less` if the number is less than zero,
-    /// `Ordering::Greater` if it is greater than zero, or
-    /// `Ordering::Equal` if it is equal to zero.
-    #[inline]
+    /// Returns the same result as `self.cmp(&0)`, but is faster.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// use std::cmp::Ordering;
+    /// assert_eq!(Rational::from((-5, 7)).sign(), Ordering::Less);
+    /// assert_eq!(Rational::from(0).sign(), Ordering::Equal);
+    /// assert_eq!(Rational::from((5, 7)).sign(), Ordering::Greater);
+    /// ```
     pub fn sign(&self) -> Ordering {
         self.numer().sign()
     }
@@ -979,7 +986,8 @@ impl Rational {
         CeilRef { ref_self: self }
     }
 
-    /// Rounds the number downwards (towards minus infinity).
+    /// Rounds the number downwards (towards minus infinity) and
+    /// returns it as an [`Integer`](struct.Integer.html).
     ///
     /// # Examples
     ///
