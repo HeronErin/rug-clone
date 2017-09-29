@@ -1560,9 +1560,30 @@ impl Float {
         unsafe { mpfr::signbit(self.inner()) != 0 }
     }
 
-    /// Emulate subnormal numbers, rounding to the nearest. This
-    /// method has no effect if the value is not in the subnormal
+    /// Emulate subnormal numbers, rounding to the nearest.
+    ///
+    /// Subnormalization is only performed for precisions
+    /// corresponding to IEEE 754 half precision (11), single
+    /// precision (24), double precision (53), quadruple precision
+    /// (113) and octuple precision (237).
+    ///
+    /// This method has no effect if the value is not in the subnormal
     /// range.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use std::f32;
+    /// let single_min_subnormal = 2.0f64.powi(-149);
+    /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
+    /// let single_cannot = single_min_subnormal * 1.25;
+    /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
+    /// let mut f = Float::with_val(24, single_cannot);
+    /// assert_eq!(f.to_f64(), single_cannot);
+    /// f.subnormalize();
+    /// assert_eq!(f.to_f64(), single_min_subnormal);
+    /// ```
     #[inline]
     pub fn subnormalize(&mut self) -> &mut Float {
         self.subnormalize_round(Ordering::Equal, Round::Nearest);
@@ -1570,22 +1591,62 @@ impl Float {
     }
 
     /// Emulate subnormal numbers, applying the specified rounding
-    /// method. This method simply propagates `prev_rounding` if the
-    /// value is not in the subnormal range.
+    /// method.
+    ///
+    /// Subnormalization is only performed for precisions
+    /// corresponding to IEEE 754 half precision (11), single
+    /// precision (24), double precision (53), quadruple precision
+    /// (113) and octuple precision (237).
+    ///
+    /// This method simply propagates `prev_rounding` if the value is
+    /// not in the subnormal range.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// use std::f32;
+    /// let single_min_subnormal = 2.0f64.powi(-149);
+    /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
+    /// let single_cannot = single_min_subnormal * 1.25;
+    /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
+    /// let mut f = Float::with_val(24, single_cannot);
+    /// assert_eq!(f.to_f64(), single_cannot);
+    /// let dir = f.subnormalize_round(Ordering::Equal, Round::Up);
+    /// assert_eq!(f.to_f64(), single_min_subnormal * 2.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
     #[inline]
     pub fn subnormalize_round(
         &mut self,
         prev_rounding: Ordering,
         round: Round,
     ) -> Ordering {
+        let (emin, emax) = match self.prec() {
+            11 => (-23, 16),
+            24 => (-148, 128),
+            53 => (-1073, 1024),
+            113 => (-16493, 16384),
+            237 => (-262377, 262144),
+            _ => return prev_rounding,
+        };
         let prev = match prev_rounding {
             Ordering::Less => -1,
             Ordering::Equal => 0,
             Ordering::Greater => 1,
         };
-        let ret =
-            unsafe { mpfr::subnormalize(self.inner_mut(), prev, rraw(round)) };
-        ordering1(ret)
+        unsafe {
+            let save_emin = mpfr::get_emin();
+            let save_emax = mpfr::get_emax();
+            mpfr::set_emin(emin);
+            mpfr::set_emax(emax);
+            let ret = mpfr::subnormalize(self.inner_mut(), prev, rraw(round));
+            mpfr::set_emin(save_emin);
+            mpfr::set_emax(save_emax);
+            ordering1(ret)
+        }
     }
 
     math_op1_float! {
