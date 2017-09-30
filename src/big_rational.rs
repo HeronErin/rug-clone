@@ -1805,6 +1805,21 @@ fn fmt_radix(
 ///
 /// See the [`Rational::valid_str_radix`][valid] method.
 ///
+/// # Examples
+///
+/// ```rust
+/// use rug::Rational;
+/// use rug::rational::ValidRational;
+/// // This string is correct in radix 10, it cannot fail.
+/// let s = "123/456";
+/// let valid: ValidRational = match Rational::valid_str_radix(s, 10) {
+///     Ok(valid) => valid,
+///     Err(_) => unreachable!(),
+/// };
+/// let r = Rational::from(valid);
+/// assert_eq!(r, (123, 456));
+/// ```
+///
 /// [valid]: ../struct.Rational.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidRational<'a> {
@@ -1833,6 +1848,20 @@ impl<'a> Assign<ValidRational<'a>> for Rational {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Rational` number.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Rational;
+/// use rug::rational::ParseRationalError;
+/// // This string is not a rational number.
+/// let s = "something completely different (_!_!_)";
+/// let error: ParseRationalError = match Rational::valid_str_radix(s, 4) {
+///     Ok(_) => unreachable!(),
+///     Err(error) => error,
+/// };
+/// println!("Parse error: {:?}", error);
+/// ```
 pub struct ParseRationalError {
     kind: ParseErrorKind,
 }
@@ -1872,8 +1901,27 @@ impl Display for ParseRationalError {
 /// [`Rational`](../struct.Rational.html) number mutably.
 ///
 /// The [`Rational`](../struct.Rational.html) number is canonicalized
-/// when the borrow ends. See the
-/// [`Rational::as_mut_numer_denom`][mutnumden] method.
+/// when the borrow ends.
+///
+/// See the [`Rational::as_mut_numer_denom`][mutnumden] method.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Rational;
+///
+/// let mut r = Rational::from((3, 5));
+/// {
+///     let mut num_den = r.as_mut_numer_denom();
+///     // change r from 3/5 to 4/8, which is equal to 1/2
+///     *num_den.num() += 1;
+///     *num_den.den() += 3;
+///     // borrow ends here
+/// }
+/// let num_den = r.as_numer_denom();
+/// assert_eq!(*num_den.0, 1);
+/// assert_eq!(*num_den.1, 2);
+/// ```
 ///
 /// [mutnumden]: ../struct.Rational.html#method.as_mut_numer_denom
 pub struct MutNumerDenom<'a> {

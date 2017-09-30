@@ -61,6 +61,14 @@ use std::ptr;
 /// ```
 pub trait Prec {
     /// Returns the precision for the real and imaginary parts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::new(32);
+    /// assert_eq!(c.prec(), (32, 32));
+    /// ```
     fn prec(self) -> (u32, u32);
 }
 

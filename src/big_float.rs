@@ -221,17 +221,23 @@ pub enum Constant {
 ///
 /// ```rust
 /// use rug::Float;
-/// use rug::float::Constant;
+/// use rug::float::Special;
 ///
-/// let log2 = Float::with_val(53, Constant::Log2);
-/// let pi = Float::with_val(53, Constant::Pi);
-/// let euler = Float::with_val(53, Constant::Euler);
-/// let catalan = Float::with_val(53, Constant::Catalan);
+/// let zero = Float::with_val(53, Special::Zero);
+/// let neg_zero = Float::with_val(53, Special::NegZero);
+/// let infinity = Float::with_val(53, Special::Infinity);
+/// let neg_infinity = Float::with_val(53, Special::NegInfinity);
+/// let nan = Float::with_val(53, Special::Nan);
 ///
-/// assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
-/// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416");
-/// assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
-/// assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
+/// assert_eq!(zero, 0);
+/// assert!(zero.is_sign_positive());
+/// assert_eq!(neg_zero, 0);
+/// assert!(neg_zero.is_sign_negative());
+/// assert!(infinity.is_infinite());
+/// assert!(infinity.is_sign_positive());
+/// assert!(neg_infinity.is_infinite());
+/// assert!(neg_infinity.is_sign_negative());
+/// assert!(nan.is_nan());
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Special {
@@ -1258,7 +1264,7 @@ impl Float {
     /// use rug::Float;
     /// use rug::float::Round;
     /// use std::f32;
-    /// let f = Float::with_val(53, 1.0 + 2.0f64.powi(-50));
+    /// let f = Float::with_val(53, 1.0 + (-50f64).exp2());
     /// assert_eq!(f.to_f32_round(Round::Up), 1.0 + f32::EPSILON);
     /// ```
     #[inline]
@@ -1848,10 +1854,10 @@ impl Float {
     /// ```rust
     /// use rug::{Assign, Float};
     /// // -(2.0 ^ 32) == -(0.5 * 2 ^ 33)
-    /// let mut f = Float::with_val(53, -2.0f64.powi(32));
+    /// let mut f = Float::with_val(53, -32f64.exp2());
     /// assert_eq!(f.get_exp(), Some(33));
     /// // 0.8 * 2 ^ -39
-    /// f.assign(0.8 * 2.0f64.powi(-39));
+    /// f.assign(0.8 * (-39f64).exp2());
     /// assert_eq!(f.get_exp(), Some(-39));
     /// f.assign(0);
     /// assert_eq!(f.get_exp(), None);
@@ -1916,7 +1922,7 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use std::f32;
-    /// let single_min_subnormal = 2.0f64.powi(-149);
+    /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
     /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
@@ -1949,7 +1955,7 @@ impl Float {
     /// use rug::float::Round;
     /// use std::cmp::Ordering;
     /// use std::f32;
-    /// let single_min_subnormal = 2.0f64.powi(-149);
+    /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
     /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
@@ -2586,7 +2592,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let ln = f.ln();
-        /// let expected = Float::with_val(53, 0.4055);
+        /// let expected = 0.4055_f64;
         /// assert!((ln - expected).abs() < 0.001);
         /// ```
         fn ln();
@@ -2598,7 +2604,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.5);
         /// f.ln_mut();
-        /// let expected = Float::with_val(53, 0.4055);
+        /// let expected = 0.4055_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn ln_mut;
@@ -2628,7 +2634,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let ln = Float::with_val(53, f.ln_ref());
-        /// let expected = Float::with_val(53, 0.4055);
+        /// let expected = 0.4055_f64;
         /// assert!((ln - expected).abs() < 0.001);
         /// ```
         fn ln_ref -> LnRef;
@@ -2643,7 +2649,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let log2 = f.log2();
-        /// let expected = Float::with_val(53, 0.5850);
+        /// let expected = 0.5850_f64;
         /// assert!((log2 - expected).abs() < 0.001);
         /// ```
         fn log2();
@@ -2655,7 +2661,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.5);
         /// f.log2_mut();
-        /// let expected = Float::with_val(53, 0.5850);
+        /// let expected = 0.5850_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn log2_mut;
@@ -2685,7 +2691,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let log2 = Float::with_val(53, f.log2_ref());
-        /// let expected = Float::with_val(53, 0.5850);
+        /// let expected = 0.5850_f64;
         /// assert!((log2 - expected).abs() < 0.001);
         /// ```
         fn log2_ref -> Log2Ref;
@@ -2700,7 +2706,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let log10 = f.log10();
-        /// let expected = Float::with_val(53, 0.1761);
+        /// let expected = 0.1761_f64;
         /// assert!((log10 - expected).abs() < 0.001);
         /// ```
         fn log10();
@@ -2712,7 +2718,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.5);
         /// f.log10_mut();
-        /// let expected = Float::with_val(53, 0.1761);
+        /// let expected = 0.1761_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn log10_mut;
@@ -2742,7 +2748,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let log10 = Float::with_val(53, f.log10_ref());
-        /// let expected = Float::with_val(53, 0.1761);
+        /// let expected = 0.1761_f64;
         /// assert!((log10 - expected).abs() < 0.001);
         /// ```
         fn log10_ref -> Log10Ref;
@@ -2757,7 +2763,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let exp = f.exp();
-        /// let expected = Float::with_val(53, 4.4817);
+        /// let expected = 4.4817_f64;
         /// assert!((exp - expected).abs() < 0.001);
         /// ```
         fn exp();
@@ -2769,7 +2775,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.5);
         /// f.exp_mut();
-        /// let expected = Float::with_val(53, 4.4817);
+        /// let expected = 4.4817_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn exp_mut;
@@ -2799,7 +2805,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let exp = Float::with_val(53, f.exp_ref());
-        /// let expected = Float::with_val(53, 4.4817);
+        /// let expected = 4.4817_f64;
         /// assert!((exp - expected).abs() < 0.001);
         /// ```
         fn exp_ref -> ExpRef;
@@ -2814,7 +2820,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let exp2 = f.exp2();
-        /// let expected = Float::with_val(53, 2.8284);
+        /// let expected = 2.8284_f64;
         /// assert!((exp2 - expected).abs() < 0.001);
         /// ```
         fn exp2();
@@ -2826,7 +2832,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.5);
         /// f.exp2_mut();
-        /// let expected = Float::with_val(53, 2.8284);
+        /// let expected = 2.8284_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn exp2_mut;
@@ -2856,7 +2862,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let exp2 = Float::with_val(53, f.exp2_ref());
-        /// let expected = Float::with_val(53, 2.8284);
+        /// let expected = 2.8284_f64;
         /// assert!((exp2 - expected).abs() < 0.001);
         /// ```
         fn exp2_ref -> Exp2Ref;
@@ -2871,7 +2877,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let exp10 = f.exp10();
-        /// let expected = Float::with_val(53, 31.6228);
+        /// let expected = 31.6228_f64;
         /// assert!((exp10 - expected).abs() < 0.001);
         /// ```
         fn exp10();
@@ -2883,7 +2889,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.5);
         /// f.exp10_mut();
-        /// let expected = Float::with_val(53, 31.6228);
+        /// let expected = 31.6228_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn exp10_mut;
@@ -2913,7 +2919,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.5);
         /// let exp10 = Float::with_val(53, f.exp10_ref());
-        /// let expected = Float::with_val(53, 31.6228);
+        /// let expected = 31.6228_f64;
         /// assert!((exp10 - expected).abs() < 0.001);
         /// ```
         fn exp10_ref -> Exp10Ref;
@@ -2928,7 +2934,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sin = f.sin();
-        /// let expected = Float::with_val(53, 0.9490);
+        /// let expected = 0.9490_f64;
         /// assert!((sin - expected).abs() < 0.001);
         /// ```
         fn sin();
@@ -2940,7 +2946,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sin_mut();
-        /// let expected = Float::with_val(53, 0.9490);
+        /// let expected = 0.9490_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn sin_mut;
@@ -2969,7 +2975,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sin = Float::with_val(53, f.sin_ref());
-        /// let expected = Float::with_val(53, 0.9490);
+        /// let expected = 0.9490_f64;
         /// assert!((sin - expected).abs() < 0.001);
         /// ```
         fn sin_ref -> SinRef;
@@ -2984,7 +2990,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let cos = f.cos();
-        /// let expected = Float::with_val(53, 0.3153);
+        /// let expected = 0.3153_f64;
         /// assert!((cos - expected).abs() < 0.001);
         /// ```
         fn cos();
@@ -2996,7 +3002,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.cos_mut();
-        /// let expected = Float::with_val(53, 0.3153);
+        /// let expected = 0.3153_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn cos_mut;
@@ -3025,7 +3031,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let cos = Float::with_val(53, f.cos_ref());
-        /// let expected = Float::with_val(53, 0.3153);
+        /// let expected = 0.3153_f64;
         /// assert!((cos - expected).abs() < 0.001);
         /// ```
         fn cos_ref -> CosRef;
@@ -3040,7 +3046,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let tan = f.tan();
-        /// let expected = Float::with_val(53, 3.0096);
+        /// let expected = 3.0096_f64;
         /// assert!((tan - expected).abs() < 0.001);
         /// ```
         fn tan();
@@ -3052,7 +3058,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.tan_mut();
-        /// let expected = Float::with_val(53, 3.0096);
+        /// let expected = 3.0096_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn tan_mut;
@@ -3081,7 +3087,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let tan = Float::with_val(53, f.tan_ref());
-        /// let expected = Float::with_val(53, 3.0096);
+        /// let expected = 3.0096_f64;
         /// assert!((tan - expected).abs() < 0.001);
         /// ```
         fn tan_ref -> TanRef;
@@ -3100,8 +3106,8 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let (sin, cos) = f.sin_cos(Float::new(53));
-        /// let expected_sin = Float::with_val(53, 0.9490);
-        /// let expected_cos = Float::with_val(53, 0.3153);
+        /// let expected_sin = 0.9490_f64;
+        /// let expected_cos = 0.3153_f64;
         /// assert!((sin - expected_sin).abs() < 0.001);
         /// assert!((cos - expected_cos).abs() < 0.001);
         /// ```
@@ -3119,8 +3125,8 @@ impl Float {
         /// let mut sin = Float::with_val(53, 1.25);
         /// let mut cos = Float::new(53);
         /// sin.sin_cos_mut(&mut cos);
-        /// let expected_sin = Float::with_val(53, 0.9490);
-        /// let expected_cos = Float::with_val(53, 0.3153);
+        /// let expected_sin = 0.9490_f64;
+        /// let expected_cos = 0.3153_f64;
         /// assert!((sin - expected_sin).abs() < 0.001);
         /// assert!((cos - expected_cos).abs() < 0.001);
         /// ```
@@ -3163,8 +3169,8 @@ impl Float {
         ///
         /// let (mut sin, mut cos) = (Float::new(53), Float::new(53));
         /// (&mut sin, &mut cos).assign(sin_cos);
-        /// let expected_sin = Float::with_val(53, 0.9490);
-        /// let expected_cos = Float::with_val(53, 0.3153);
+        /// let expected_sin = 0.9490_f64;
+        /// let expected_cos = 0.3153_f64;
         /// assert!((sin - expected_sin).abs() < 0.001);
         /// assert!((cos - expected_cos).abs() < 0.001);
         ///
@@ -3190,7 +3196,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sec = f.sec();
-        /// let expected = Float::with_val(53, 3.1714);
+        /// let expected = 3.1714_f64;
         /// assert!((sec - expected).abs() < 0.001);
         /// ```
         fn sec();
@@ -3202,7 +3208,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sec_mut();
-        /// let expected = Float::with_val(53, 3.1714);
+        /// let expected = 3.1714_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn sec_mut;
@@ -3231,7 +3237,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sec = Float::with_val(53, f.sec_ref());
-        /// let expected = Float::with_val(53, 3.1714);
+        /// let expected = 3.1714_f64;
         /// assert!((sec - expected).abs() < 0.001);
         /// ```
         fn sec_ref -> SecRef;
@@ -3246,7 +3252,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let csc = f.csc();
-        /// let expected = Float::with_val(53, 1.0538);
+        /// let expected = 1.0538_f64;
         /// assert!((csc - expected).abs() < 0.001);
         /// ```
         fn csc();
@@ -3258,7 +3264,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.csc_mut();
-        /// let expected = Float::with_val(53, 1.0538);
+        /// let expected = 1.0538_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn csc_mut;
@@ -3287,7 +3293,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let csc = Float::with_val(53, f.csc_ref());
-        /// let expected = Float::with_val(53, 1.0538);
+        /// let expected = 1.0538_f64;
         /// assert!((csc - expected).abs() < 0.001);
         /// ```
         fn csc_ref -> CscRef;
@@ -3302,7 +3308,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let cot = f.cot();
-        /// let expected = Float::with_val(53, 0.3323);
+        /// let expected = 0.3323_f64;
         /// assert!((cot - expected).abs() < 0.001);
         /// ```
         fn cot();
@@ -3314,7 +3320,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.cot_mut();
-        /// let expected = Float::with_val(53, 0.3323);
+        /// let expected = 0.3323_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn cot_mut;
@@ -3344,7 +3350,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let cot = Float::with_val(53, f.cot_ref());
-        /// let expected = Float::with_val(53, 0.3323);
+        /// let expected = 0.3323_f64;
         /// assert!((cot - expected).abs() < 0.001);
         /// ```
         fn cot_ref -> CotRef;
@@ -3359,7 +3365,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, -0.75);
         /// let asin = f.asin();
-        /// let expected = Float::with_val(53, -0.8481);
+        /// let expected = -0.8481_f64;
         /// assert!((asin - expected).abs() < 0.001);
         /// ```
         fn asin();
@@ -3371,7 +3377,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, -0.75);
         /// f.asin_mut();
-        /// let expected = Float::with_val(53, -0.8481);
+        /// let expected = -0.8481_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn asin_mut;
@@ -3400,7 +3406,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, -0.75);
         /// let asin = Float::with_val(53, f.asin_ref());
-        /// let expected = Float::with_val(53, -0.8481);
+        /// let expected = -0.8481_f64;
         /// assert!((asin - expected).abs() < 0.001);
         /// ```
         fn asin_ref -> AsinRef;
@@ -3415,7 +3421,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, -0.75);
         /// let acos = f.acos();
-        /// let expected = Float::with_val(53, 2.4189);
+        /// let expected = 2.4189_f64;
         /// assert!((acos - expected).abs() < 0.001);
         /// ```
         fn acos();
@@ -3427,7 +3433,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, -0.75);
         /// f.acos_mut();
-        /// let expected = Float::with_val(53, 2.4189);
+        /// let expected = 2.4189_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn acos_mut;
@@ -3457,7 +3463,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, -0.75);
         /// let acos = Float::with_val(53, f.acos_ref());
-        /// let expected = Float::with_val(53, 2.4189);
+        /// let expected = 2.4189_f64;
         /// assert!((acos - expected).abs() < 0.001);
         /// ```
         fn acos_ref -> AcosRef;
@@ -3472,7 +3478,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, -0.75);
         /// let atan = f.atan();
-        /// let expected = Float::with_val(53, -0.6435);
+        /// let expected = -0.6435_f64;
         /// assert!((atan - expected).abs() < 0.001);
         /// ```
         fn atan();
@@ -3484,7 +3490,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, -0.75);
         /// f.atan_mut();
-        /// let expected = Float::with_val(53, -0.6435);
+        /// let expected = -0.6435_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn atan_mut;
@@ -3514,7 +3520,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, -0.75);
         /// let atan = Float::with_val(53, f.atan_ref());
-        /// let expected = Float::with_val(53, -0.6435);
+        /// let expected = -0.6435_f64;
         /// assert!((atan - expected).abs() < 0.001);
         /// ```
         fn atan_ref -> AtanRef;
@@ -3534,7 +3540,7 @@ impl Float {
         /// let y = Float::with_val(53, 3.0);
         /// let x = Float::with_val(53, -4.0);
         /// let atan2 = y.atan2(&x);
-        /// let expected = Float::with_val(53, 2.4981);
+        /// let expected = 2.4981_f64;
         /// assert!((atan2 - expected).abs() < 0.001);
         /// ```
         fn atan2(x);
@@ -3551,7 +3557,7 @@ impl Float {
         /// let mut y = Float::with_val(53, 3.0);
         /// let x = Float::with_val(53, -4.0);
         /// y.atan2_mut(&x);
-        /// let expected = Float::with_val(53, 2.4981);
+        /// let expected = 2.4981_f64;
         /// assert!((y - expected).abs() < 0.001);
         /// ```
         fn atan2_mut;
@@ -3590,7 +3596,7 @@ impl Float {
         /// let x = Float::with_val(53, -4.0);
         /// let r = y.atan2_ref(&x);
         /// let atan2 = Float::with_val(53, r);
-        /// let expected = Float::with_val(53, 2.4981);
+        /// let expected = 2.4981_f64;
         /// assert!((atan2 - expected).abs() < 0.001);
         /// ```
         fn atan2_ref -> Atan2Ref;
@@ -3605,7 +3611,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sinh = f.sinh();
-        /// let expected = Float::with_val(53, 1.6019);
+        /// let expected = 1.6019_f64;
         /// assert!((sinh - expected).abs() < 0.001);
         /// ```
         fn sinh();
@@ -3617,7 +3623,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sinh_mut();
-        /// let expected = Float::with_val(53, 1.6019);
+        /// let expected = 1.6019_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn sinh_mut;
@@ -3647,7 +3653,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sinh = Float::with_val(53, f.sinh_ref());
-        /// let expected = Float::with_val(53, 1.6019);
+        /// let expected = 1.6019_f64;
         /// assert!((sinh - expected).abs() < 0.001);
         /// ```
         fn sinh_ref -> SinhRef;
@@ -3662,7 +3668,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let cosh = f.cosh();
-        /// let expected = Float::with_val(53, 1.8884);
+        /// let expected = 1.8884_f64;
         /// assert!((cosh - expected).abs() < 0.001);
         /// ```
         fn cosh();
@@ -3674,7 +3680,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.cosh_mut();
-        /// let expected = Float::with_val(53, 1.8884);
+        /// let expected = 1.8884_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn cosh_mut;
@@ -3704,7 +3710,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let cosh = Float::with_val(53, f.cosh_ref());
-        /// let expected = Float::with_val(53, 1.8884);
+        /// let expected = 1.8884_f64;
         /// assert!((cosh - expected).abs() < 0.001);
         /// ```
         fn cosh_ref -> CoshRef;
@@ -3719,7 +3725,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let tanh = f.tanh();
-        /// let expected = Float::with_val(53, 0.8483);
+        /// let expected = 0.8483_f64;
         /// assert!((tanh - expected).abs() < 0.001);
         /// ```
         fn tanh();
@@ -3731,7 +3737,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.tanh_mut();
-        /// let expected = Float::with_val(53, 0.8483);
+        /// let expected = 0.8483_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn tanh_mut;
@@ -3761,7 +3767,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let tanh = Float::with_val(53, f.tanh_ref());
-        /// let expected = Float::with_val(53, 0.8483);
+        /// let expected = 0.8483_f64;
         /// assert!((tanh - expected).abs() < 0.001);
         /// ```
         fn tanh_ref -> TanhRef;
@@ -3780,8 +3786,8 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let (sinh, cosh) = f.sinh_cosh(Float::new(53));
-        /// let expected_sinh = Float::with_val(53, 1.6019);
-        /// let expected_cosh = Float::with_val(53, 1.8884);
+        /// let expected_sinh = 1.6019_f64;
+        /// let expected_cosh = 1.8884_f64;
         /// assert!((sinh - expected_sinh).abs() < 0.001);
         /// assert!((cosh - expected_cosh).abs() < 0.001);
         /// ```
@@ -3799,8 +3805,8 @@ impl Float {
         /// let mut sinh = Float::with_val(53, 1.25);
         /// let mut cosh = Float::new(53);
         /// sinh.sinh_cosh_mut(&mut cosh);
-        /// let expected_sinh = Float::with_val(53, 1.6019);
-        /// let expected_cosh = Float::with_val(53, 1.8884);
+        /// let expected_sinh = 1.6019_f64;
+        /// let expected_cosh = 1.8884_f64;
         /// assert!((sinh - expected_sinh).abs() < 0.001);
         /// assert!((cosh - expected_cosh).abs() < 0.001);
         /// ```
@@ -3843,8 +3849,8 @@ impl Float {
         ///
         /// let (mut sinh, mut cosh) = (Float::new(53), Float::new(53));
         /// (&mut sinh, &mut cosh).assign(sinh_cosh);
-        /// let expected_sinh = Float::with_val(53, 1.6019);
-        /// let expected_cosh = Float::with_val(53, 1.8884);
+        /// let expected_sinh = 1.6019_f64;
+        /// let expected_cosh = 1.8884_f64;
         /// assert!((sinh - expected_sinh).abs() < 0.001);
         /// assert!((cosh - expected_cosh).abs() < 0.001);
         ///
@@ -3870,7 +3876,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sech = f.sech();
-        /// let expected = Float::with_val(53, 0.5295);
+        /// let expected = 0.5295_f64;
         /// assert!((sech - expected).abs() < 0.001);
         /// ```
         fn sech();
@@ -3882,7 +3888,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sech_mut();
-        /// let expected = Float::with_val(53, 0.5295);
+        /// let expected = 0.5295_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn sech_mut;
@@ -3912,7 +3918,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let sech = Float::with_val(53, f.sech_ref());
-        /// let expected = Float::with_val(53, 0.5295);
+        /// let expected = 0.5295_f64;
         /// assert!((sech - expected).abs() < 0.001);
         /// ```
         fn sech_ref -> SechRef;
@@ -3927,7 +3933,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let csch = f.csch();
-        /// let expected = Float::with_val(53, 0.6243);
+        /// let expected = 0.6243_f64;
         /// assert!((csch - expected).abs() < 0.001);
         /// ```
         fn csch();
@@ -3939,7 +3945,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.csch_mut();
-        /// let expected = Float::with_val(53, 0.6243);
+        /// let expected = 0.6243_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn csch_mut;
@@ -3969,7 +3975,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let csch = Float::with_val(53, f.csch_ref());
-        /// let expected = Float::with_val(53, 0.6243);
+        /// let expected = 0.6243_f64;
         /// assert!((csch - expected).abs() < 0.001);
         /// ```
         fn csch_ref -> CschRef;
@@ -3984,7 +3990,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let coth = f.coth();
-        /// let expected = Float::with_val(53, 1.1789);
+        /// let expected = 1.1789_f64;
         /// assert!((coth - expected).abs() < 0.001);
         /// ```
         fn coth();
@@ -3996,7 +4002,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.coth_mut();
-        /// let expected = Float::with_val(53, 1.1789);
+        /// let expected = 1.1789_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn coth_mut;
@@ -4026,7 +4032,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let coth = Float::with_val(53, f.coth_ref());
-        /// let expected = Float::with_val(53, 1.1789);
+        /// let expected = 1.1789_f64;
         /// assert!((coth - expected).abs() < 0.001);
         /// ```
         fn coth_ref -> CothRef;
@@ -4041,7 +4047,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let asinh = f.asinh();
-        /// let expected = Float::with_val(53, 1.0476);
+        /// let expected = 1.0476_f64;
         /// assert!((asinh - expected).abs() < 0.001);
         /// ```
         fn asinh();
@@ -4053,7 +4059,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.asinh_mut();
-        /// let expected = Float::with_val(53, 1.0476);
+        /// let expected = 1.0476_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn asinh_mut;
@@ -4083,7 +4089,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let asinh = Float::with_val(53, f.asinh_ref());
-        /// let expected = Float::with_val(53, 1.0476);
+        /// let expected = 1.0476_f64;
         /// assert!((asinh - expected).abs() < 0.001);
         /// ```
         fn asinh_ref -> AsinhRef;
@@ -4099,7 +4105,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let acosh = f.acosh();
-        /// let expected = Float::with_val(53, 0.6931);
+        /// let expected = 0.6931_f64;
         /// assert!((acosh - expected).abs() < 0.001);
         /// ```
         fn acosh();
@@ -4112,7 +4118,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 1.25);
         /// f.acosh_mut();
-        /// let expected = Float::with_val(53, 0.6931);
+        /// let expected = 0.6931_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn acosh_mut;
@@ -4142,7 +4148,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 1.25);
         /// let acosh = Float::with_val(53, f.acosh_ref());
-        /// let expected = Float::with_val(53, 0.6931);
+        /// let expected = 0.6931_f64;
         /// assert!((acosh - expected).abs() < 0.001);
         /// ```
         fn acosh_ref -> AcoshRef;
@@ -4158,7 +4164,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 0.75);
         /// let atanh = f.atanh();
-        /// let expected = Float::with_val(53, 0.9730);
+        /// let expected = 0.9730_f64;
         /// assert!((atanh - expected).abs() < 0.001);
         /// ```
         fn atanh();
@@ -4171,7 +4177,7 @@ impl Float {
         /// use rug::Float;
         /// let mut f = Float::with_val(53, 0.75);
         /// f.atanh_mut();
-        /// let expected = Float::with_val(53, 0.9730);
+        /// let expected = 0.9730_f64;
         /// assert!((f - expected).abs() < 0.001);
         /// ```
         fn atanh_mut;
@@ -4201,7 +4207,7 @@ impl Float {
         /// use rug::Float;
         /// let f = Float::with_val(53, 0.75);
         /// let atanh = Float::with_val(53, f.atanh_ref());
-        /// let expected = Float::with_val(53, 0.9730);
+        /// let expected = 0.9730_f64;
         /// assert!((atanh - expected).abs() < 0.001);
         /// ```
         fn atanh_ref -> AtanhRef;
@@ -4255,86 +4261,363 @@ impl Float {
         mpfr::log1p;
         /// Computes the natural logarithm of one plus `self`, rounding to
         /// the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// let f = Float::with_val(53, 1.5 * two_to_m10);
+        /// let ln_1p = f.ln_1p();
+        /// let expected = 1.4989_f64 * two_to_m10;
+        /// assert!((ln_1p - expected).abs() < 0.001 * two_to_m10);
+        /// ```
         fn ln_1p();
         /// Computes the natural logarithm of one plus `self`, rounding to
         /// the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+        /// f.ln_1p_mut();
+        /// let expected = 1.4989_f64 * two_to_m10;
+        /// assert!((f - expected).abs() < 0.001 * two_to_m10);
+        /// ```
         fn ln_1p_mut;
         /// Computes the natural logarithm of one plus `self`, applying
         /// the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+        /// // ln_1p(1.5 * 2 ^ -10) = 1.4989 * 2 ^ -10
+        /// // using 4 significant bits: 1.5 * 2 ^ -10
+        /// let dir = f.ln_1p_round(Round::Nearest);
+        /// assert_eq!(f, 1.5 * two_to_m10);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn ln_1p_round;
-        /// Computes the natural logorithm of one plus the
-        /// value.
+        /// Computes the natural logorithm of one plus the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// let f = Float::with_val(53, 1.5 * two_to_m10);
+        /// let ln_1p = Float::with_val(53, f.ln_1p_ref());
+        /// let expected = 1.4989_f64 * two_to_m10;
+        /// assert!((ln_1p - expected).abs() < 0.001 * two_to_m10);
+        /// ```
         fn ln_1p_ref -> Ln1pRef;
     }
     math_op1_float! {
         mpfr::expm1;
         /// Subtracts one from the exponential of `self`, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// let f = Float::with_val(53, 1.5 * two_to_m10);
+        /// let exp_m1 = f.exp_m1();
+        /// let expected = 1.5011_f64 * two_to_m10;
+        /// assert!((exp_m1 - expected).abs() < 0.001 * two_to_m10);
+        /// ```
         fn exp_m1();
         /// Subtracts one from the exponential of `self`, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
+        /// f.exp_m1_mut();
+        /// let expected = 1.5011_f64 * two_to_m10;
+        /// assert!((f - expected).abs() < 0.001 * two_to_m10);
+        /// ```
         fn exp_m1_mut;
         /// Subtracts one from the exponential of `self`, applying the
         /// specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
+        /// // exp_m1(1.5 * 2 ^ -10) = 1.5011 * 2 ^ -10
+        /// // using 4 significant bits: 1.5 * 2 ^ -10
+        /// let dir = f.exp_m1_round(Round::Nearest);
+        /// assert_eq!(f, 1.5 * two_to_m10);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn exp_m1_round;
         /// Computes one less than the exponential of the
         /// value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let two_to_m10 = (-10f64).exp2();
+        /// let f = Float::with_val(53, 1.5 * two_to_m10);
+        /// let exp_m1 = Float::with_val(53, f.exp_m1_ref());
+        /// let expected = 1.5011_f64 * two_to_m10;
+        /// assert!((exp_m1 - expected).abs() < 0.001 * two_to_m10);
+        /// ```
         fn exp_m1_ref -> ExpM1Ref;
     }
     math_op1_float! {
         mpfr::eint;
         /// Computes the exponential integral, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let eint = f.eint();
+        /// let expected = 2.5810_f64;
+        /// assert!((eint - expected).abs() < 0.001);
+        /// ```
         fn eint();
         /// Computes the exponential integral, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.eint_mut();
+        /// let expected = 2.5810_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn eint_mut;
         /// Computes the exponential integral, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // eint(1.25) = 2.5810
+        /// // using 4 significant bits: 2.5
+        /// let dir = f.eint_round(Round::Nearest);
+        /// assert_eq!(f, 2.5);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn eint_round;
         /// Computes the exponential integral.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let eint = Float::with_val(53, f.eint_ref());
+        /// let expected = 2.5810_f64;
+        /// assert!((eint - expected).abs() < 0.001);
+        /// ```
         fn eint_ref -> EintRef;
     }
     math_op1_float! {
         mpfr::li2;
         /// Computes the real part of the dilogarithm of `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let li2 = f.li2();
+        /// let expected = 2.1902_f64;
+        /// assert!((li2 - expected).abs() < 0.001);
+        /// ```
         fn li2();
         /// Computes the real part of the dilogarithm of `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.li2_mut();
+        /// let expected = 2.1902_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn li2_mut;
         /// Computes the real part of the dilogarithm of `self`, applying
         /// the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // li2(1.25) = 2.1902
+        /// // using 4 significant bits: 2.25
+        /// let dir = f.li2_round(Round::Nearest);
+        /// assert_eq!(f, 2.25);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn li2_round;
         /// Computes the real part of the dilogarithm of the
         /// value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let li2 = Float::with_val(53, f.li2_ref());
+        /// let expected = 2.1902_f64;
+        /// assert!((li2 - expected).abs() < 0.001);
+        /// ```
         fn li2_ref -> Li2Ref;
     }
     math_op1_float! {
         mpfr::gamma;
         /// Computes the value of the Gamma function on `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let gamma = f.gamma();
+        /// let expected = 0.9064_f64;
+        /// assert!((gamma - expected).abs() < 0.001);
+        /// ```
         fn gamma();
         /// Computes the value of the Gamma function on `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.gamma_mut();
+        /// let expected = 0.9064_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn gamma_mut;
         /// Computes the value of the Gamma function on `self`, applying
         /// the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // gamma(1.25) = 0.9064
+        /// // using 4 significant bits: 0.9375
+        /// let dir = f.gamma_round(Round::Nearest);
+        /// assert_eq!(f, 0.9375);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn gamma_round;
         /// Computes the Gamma function on the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let gamma = Float::with_val(53, f.gamma_ref());
+        /// let expected = 0.9064_f64;
+        /// assert!((gamma - expected).abs() < 0.001);
+        /// ```
         fn gamma_ref -> GammaRef;
     }
     math_op1_float! {
         mpfr::lngamma;
         /// Computes the logarithm of the Gamma function on `self`,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let ln_gamma = f.ln_gamma();
+        /// let expected = -0.0983_f64;
+        /// assert!((ln_gamma - expected).abs() < 0.001);
+        /// ```
         fn ln_gamma();
         /// Computes the logarithm of the Gamma function on `self`,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.ln_gamma_mut();
+        /// let expected = -0.0983_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn ln_gamma_mut;
         /// Computes the logarithm of the Gamma function on `self`,
         /// applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // ln_gamma(1.25) = -0.0983
+        /// // using 4 significant bits: -0.1015625
+        /// let dir = f.ln_gamma_round(Round::Nearest);
+        /// assert_eq!(f, -0.1015625);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn ln_gamma_round;
         /// Computes the logarithm of the Gamma function on
         /// the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let ln_gamma = Float::with_val(53, f.ln_gamma_ref());
+        /// let expected = -0.0983_f64;
+        /// assert!((ln_gamma - expected).abs() < 0.001);
+        /// ```
         fn ln_gamma_ref -> LnGammaRef;
     }
 
@@ -4493,33 +4776,133 @@ impl Float {
         mpfr::digamma;
         /// Computes the value of the Digamma function on `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let digamma = f.digamma();
+        /// let expected = -0.2275_f64;
+        /// assert!((digamma - expected).abs() < 0.001);
+        /// ```
         fn digamma();
         /// Computes the value of the Digamma function on `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.digamma_mut();
+        /// let expected = -0.2275_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn digamma_mut;
         /// Computes the value of the Digamma function on `self`, applying
         /// the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // digamma(1.25) = -0.2275
+        /// // using 4 significant bits: -0.234375
+        /// let dir = f.digamma_round(Round::Nearest);
+        /// assert_eq!(f, -0.234375);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn digamma_round;
         /// Computes the Digamma function on the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let digamma = Float::with_val(53, f.digamma_ref());
+        /// let expected = -0.2275_f64;
+        /// assert!((digamma - expected).abs() < 0.001);
+        /// ```
         fn digamma_ref -> DigammaRef;
     }
     math_op1_float! {
         mpfr::zeta;
         /// Computes the value of the Riemann Zeta function on `self`,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let zeta = f.zeta();
+        /// let expected = 4.5951_f64;
+        /// assert!((zeta - expected).abs() < 0.001);
+        /// ```
         fn zeta();
         /// Computes the value of the Riemann Zeta function on `self`,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.zeta_mut();
+        /// let expected = 4.5951_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn zeta_mut;
         /// Computes the value of the Riemann Zeta function on `self`,
         /// applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // zeta(1.25) = 4.5951
+        /// // using 4 significant bits: 4.5
+        /// let dir = f.zeta_round(Round::Nearest);
+        /// assert_eq!(f, 4.5);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn zeta_round;
         /// Computes the Riemann Zeta function on the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let zeta = Float::with_val(53, f.zeta_ref());
+        /// let expected = 4.5951_f64;
+        /// assert!((zeta - expected).abs() < 0.001);
+        /// ```
         fn zeta_ref -> ZetaRef;
     }
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::new(53);
+    /// f.assign_zeta_u(3);
+    /// let expected = 1.2021_f64;
+    /// assert!((f - expected).abs() < 0.001);
+    /// ```
     #[inline]
     pub fn assign_zeta_u(&mut self, u: u32) {
         self.assign_zeta_u_round(u, Round::Nearest);
@@ -4527,6 +4910,20 @@ impl Float {
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// applying the specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // 4 bits of precision
+    /// let mut f = Float::new(4);
+    /// // zeta(3) is 1.2021, using 4 significant bits: 1.25
+    /// let dir = f.assign_zeta_u_round(3, Round::Nearest);
+    /// assert_eq!(f, 1.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
         let ret =
@@ -4538,154 +4935,657 @@ impl Float {
         mpfr::erf;
         /// Computes the value of the error function, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let erf = f.erf();
+        /// let expected = 0.9229_f64;
+        /// assert!((erf - expected).abs() < 0.001);
+        /// ```
         fn erf();
         /// Computes the value of the error function, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.erf_mut();
+        /// let expected = 0.9229_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn erf_mut;
         /// Computes the value of the error function, applying the
         /// specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // erf(1.25) = 0.9229
+        /// // using 4 significant bits: 0.9375
+        /// let dir = f.erf_round(Round::Nearest);
+        /// assert_eq!(f, 0.9375);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn erf_round;
         /// Computes the error function.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let erf = Float::with_val(53, f.erf_ref());
+        /// let expected = 0.9229_f64;
+        /// assert!((erf - expected).abs() < 0.001);
+        /// ```
         fn erf_ref -> ErfRef;
     }
     math_op1_float! {
         mpfr::erfc;
         /// Computes the value of the complementary error function,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let erfc = f.erfc();
+        /// let expected = 0.0771_f64;
+        /// assert!((erfc - expected).abs() < 0.001);
+        /// ```
         fn erfc();
         /// Computes the value of the complementary error function,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.erfc_mut();
+        /// let expected = 0.0771_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn erfc_mut;
         /// Computes the value of the complementary error function,
         /// applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // erfc(1.25) = 0.0771
+        /// // using 4 significant bits: 0.078125
+        /// let dir = f.erfc_round(Round::Nearest);
+        /// assert_eq!(f, 0.078125);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn erfc_round;
         /// Computes the complementary error function.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let erfc = Float::with_val(53, f.erfc_ref());
+        /// let expected = 0.0771_f64;
+        /// assert!((erfc - expected).abs() < 0.001);
+        /// ```
         fn erfc_ref -> ErfcRef;
     }
     math_op1_float! {
         mpfr::j0;
         /// Computes the value of the first kind Bessel function of
         /// order 0, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let j0 = f.j0();
+        /// let expected = 0.6459_f64;
+        /// assert!((j0 - expected).abs() < 0.001);
+        /// ```
         fn j0();
         /// Computes the value of the first kind Bessel function of
         /// order 0, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.j0_mut();
+        /// let expected = 0.6459_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn j0_mut;
         /// Computes the value of the first kind Bessel function of
         /// order 0, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // j0(1.25) = 0.6459
+        /// // using 4 significant bits: 0.625
+        /// let dir = f.j0_round(Round::Nearest);
+        /// assert_eq!(f, 0.625);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn j0_round;
         /// Computes the first kind Bessel function of order 0.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let j0 = Float::with_val(53, f.j0_ref());
+        /// let expected = 0.6459_f64;
+        /// assert!((j0 - expected).abs() < 0.001);
+        /// ```
         fn j0_ref -> J0Ref;
     }
     math_op1_float! {
         mpfr::j1;
         /// Computes the value of the first kind Bessel function of
         /// order 1, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let j1 = f.j1();
+        /// let expected = 0.5106_f64;
+        /// assert!((j1 - expected).abs() < 0.001);
+        /// ```
         fn j1();
         /// Computes the value of the first kind Bessel function of
         /// order 1, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.j1_mut();
+        /// let expected = 0.5106_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn j1_mut;
         /// Computes the value of the first kind Bessel function of
         /// order 1, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // j1(1.25) = 0.5106
+        /// // using 4 significant bits: 0.5
+        /// let dir = f.j1_round(Round::Nearest);
+        /// assert_eq!(f, 0.5);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn j1_round;
         /// Computes the first kind Bessel function of order 1.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let j1 = Float::with_val(53, f.j1_ref());
+        /// let expected = 0.5106_f64;
+        /// assert!((j1 - expected).abs() < 0.001);
+        /// ```
         fn j1_ref -> J1Ref;
     }
     math_op1_float! {
         xmpfr::jn;
         /// Computes the value of the first kind Bessel function of
         /// order *n*, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let j2 = f.jn(2);
+        /// let expected = 0.1711_f64;
+        /// assert!((j2 - expected).abs() < 0.001);
+        /// ```
         fn jn(n: i32);
         /// Computes the value of the first kind Bessel function of
         /// order *n*, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.jn_mut(2);
+        /// let expected = 0.1711_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn jn_mut;
         /// Computes the value of the first kind Bessel function of
         /// order *n*, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // j2(1.25) = 0.1711
+        /// // using 4 significant bits: 0.171875
+        /// let dir = f.jn_round(2, Round::Nearest);
+        /// assert_eq!(f, 0.171875);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn jn_round;
         /// Computes the first kind Bessel function of order *n*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let j2 = Float::with_val(53, f.jn_ref(2));
+        /// let expected = 0.1711_f64;
+        /// assert!((j2 - expected).abs() < 0.001);
+        /// ```
         fn jn_ref -> JnRef;
     }
     math_op1_float! {
         mpfr::y0;
         /// Computes the value of the second kind Bessel function of
         /// order 0, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let y0 = f.y0();
+        /// let expected = 0.2582_f64;
+        /// assert!((y0 - expected).abs() < 0.001);
+        /// ```
         fn y0();
         /// Computes the value of the second kind Bessel function of
         /// order 0, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.y0_mut();
+        /// let expected = 0.2582_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn y0_mut;
         /// Computes the value of the second kind Bessel function of
         /// order 0, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // y0(1.25) = 0.2582
+        /// // using 4 significant bits: 0.25
+        /// let dir = f.y0_round(Round::Nearest);
+        /// assert_eq!(f, 0.25);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn y0_round;
         /// Computes the second kind Bessel function of order 0.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let y0 = Float::with_val(53, f.y0_ref());
+        /// let expected = 0.2582_f64;
+        /// assert!((y0 - expected).abs() < 0.001);
+        /// ```
         fn y0_ref -> Y0Ref;
     }
     math_op1_float! {
         mpfr::y1;
         /// Computes the value of the second kind Bessel function of
         /// order 1, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let y1 = f.y1();
+        /// let expected = -0.5844_f64;
+        /// assert!((y1 - expected).abs() < 0.001);
+        /// ```
         fn y1();
         /// Computes the value of the second kind Bessel function of
         /// order 1, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.y1_mut();
+        /// let expected = -0.5844_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn y1_mut;
         /// Computes the value of the second kind Bessel function of
         /// order 1, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // y1(1.25) = -0.5844
+        /// // using 4 significant bits: -0.5625
+        /// let dir = f.y1_round(Round::Nearest);
+        /// assert_eq!(f, -0.5625);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn y1_round;
         /// Computes the second kind Bessel function of order 1.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let y1 = Float::with_val(53, f.y1_ref());
+        /// let expected = -0.5844_f64;
+        /// assert!((y1 - expected).abs() < 0.001);
+        /// ```
         fn y1_ref -> Y1Ref;
     }
     math_op1_float! {
         xmpfr::yn;
         /// Computes the value of the second kind Bessel function of
         /// order *n*, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let y2 = f.yn(2);
+        /// let expected = -1.1932_f64;
+        /// assert!((y2 - expected).abs() < 0.001);
+        /// ```
         fn yn(n: i32);
         /// Computes the value of the second kind Bessel function of
         /// order *n*, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.yn_mut(2);
+        /// let expected = -1.1932_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn yn_mut;
         /// Computes the value of the second kind Bessel function of
         /// order *n*, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // y2(1.25) = -1.1932
+        /// // using 4 significant bits: -1.25
+        /// let dir = f.yn_round(2, Round::Nearest);
+        /// assert_eq!(f, -1.25);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn yn_round;
         /// Computes the second kind Bessel function of order *n*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let y2 = Float::with_val(53, f.yn_ref(2));
+        /// let expected = -1.1932_f64;
+        /// assert!((y2 - expected).abs() < 0.001);
+        /// ```
         fn yn_ref -> YnRef;
     }
     math_op2_float! {
         mpfr::agm;
         /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let g = Float::with_val(53, 3.75);
+        /// let agm = f.agm(&g);
+        /// let expected = 2.3295_f64;
+        /// assert!((agm - expected).abs() < 0.001);
+        /// ```
         fn agm(other);
         /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// let g = Float::with_val(53, 3.75);
+        /// f.agm_mut(&g);
+        /// let expected = 2.3295_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn agm_mut;
         /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// let g = Float::with_val(4, 3.75);
+        /// // agm(1.25, 3.75) = 2.3295
+        /// // using 4 significant bits: 2.25
+        /// let dir = f.agm_round(&g, Round::Nearest);
+        /// assert_eq!(f, 2.25);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn agm_round;
         /// Computes the arithmetic-geometric mean.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let g = Float::with_val(53, 3.75);
+        /// let agm = Float::with_val(53, f.agm_ref(&g));
+        /// let expected = 2.3295_f64;
+        /// assert!((agm - expected).abs() < 0.001);
+        /// ```
         fn agm_ref -> AgmRef;
     }
     math_op2_float! {
         mpfr::hypot;
         /// Computes the Euclidean norm of `self` and `other`, rounding to
         /// the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let g = Float::with_val(53, 3.75);
+        /// let hypot = f.hypot(&g);
+        /// let expected = 3.9528_f64;
+        /// assert!((hypot - expected).abs() < 0.001);
+        /// ```
         fn hypot(other);
         /// Computes the Euclidean norm of `self` and `other`, rounding to
         /// the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// let g = Float::with_val(53, 3.75);
+        /// f.hypot_mut(&g);
+        /// let expected = 3.9528_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn hypot_mut;
         /// Computes the Euclidean norm of `self` and `other`, applying
         /// the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// let g = Float::with_val(4, 3.75);
+        /// // hypot(1.25) = 3.9528
+        /// // using 4 significant bits: 4.0
+        /// let dir = f.hypot_round(&g, Round::Nearest);
+        /// assert_eq!(f, 4.0);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn hypot_round;
         /// Computes the Euclidean norm.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let g = Float::with_val(53, 3.75);
+        /// let hypot = Float::with_val(53, f.hypot_ref(&g));
+        /// let expected = 3.9528_f64;
+        /// assert!((hypot - expected).abs() < 0.001);
+        /// ```
         fn hypot_ref -> HypotRef;
     }
     math_op1_float! {
         mpfr::ai;
         /// Computes the value of the Airy function Ai on `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let ai = f.ai();
+        /// let expected = 0.0996_f64;
+        /// assert!((ai - expected).abs() < 0.001);
+        /// ```
         fn ai();
         /// Computes the value of the Airy function Ai on `self`, rounding
         /// to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.ai_mut();
+        /// let expected = 0.0996_f64;
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn ai_mut;
         /// Computes the value of the Airy function Ai on `self`, applying
         /// the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // ai(1.25) = 0.0996
+        /// // using 4 significant bits: 0.1015625
+        /// let dir = f.ai_round(Round::Nearest);
+        /// assert_eq!(f, 0.1015625);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn ai_round;
         /// Computes the Airy function Ai on the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let ai = Float::with_val(53, f.ai_ref());
+        /// let expected = 0.0996_f64;
+        /// assert!((ai - expected).abs() < 0.001);
+        /// ```
         fn ai_ref -> AiRef;
     }
     math_op1_no_round! {
@@ -4745,21 +5645,93 @@ impl Float {
         Float;
         mpfr::rint_trunc, rraw;
         /// Rounds to the next integer towards zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let t1 = f1.trunc();
+        /// assert_eq!(t1, -23);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let t2 = f2.trunc();
+        /// assert_eq!(t2, 23);
+        /// ```
         fn trunc();
         /// Rounds to the next integer towards zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, -23.75);
+        /// f1.trunc_mut();
+        /// assert_eq!(f1, -23);
+        /// let mut f2 = Float::with_val(53, 23.75);
+        /// f2.trunc_mut();
+        /// assert_eq!(f2, 23);
+        /// ```
         fn trunc_mut;
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let t1 = Float::with_val(53, f1.trunc_ref());
+        /// assert_eq!(t1, -23);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let t2 = Float::with_val(53, f2.trunc_ref());
+        /// assert_eq!(t2, 23);
+        /// ```
         fn trunc_ref -> TruncRef;
     }
     math_op1_no_round! {
         Float;
         mpfr::frac, rraw;
         /// Gets the fractional part of the number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let fract1 = f1.fract();
+        /// assert_eq!(fract1, -0.75);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let fract2 = f2.fract();
+        /// assert_eq!(fract2, 0.75);
+        /// ```
         fn fract();
         /// Gets the fractional part of the number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, -23.75);
+        /// f1.fract_mut();
+        /// assert_eq!(f1, -0.75);
+        /// let mut f2 = Float::with_val(53, 23.75);
+        /// f2.fract_mut();
+        /// assert_eq!(f2, 0.75);
+        /// ```
         fn fract_mut;
         /// Gets the fractional part of the number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let fract1 = Float::with_val(53, f1.fract_ref());
+        /// assert_eq!(fract1, -0.75);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let fract2 = Float::with_val(53, f2.fract_ref());
+        /// assert_eq!(fract2, 0.75);
+        /// ```
         fn fract_ref -> FractRef;
     }
     math_op1_2_float! {
@@ -4770,6 +5742,20 @@ impl Float {
         /// The integer part is stored in `self` and keeps its
         /// precision, while the fractional part is stored in `fract`
         /// keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let (t1, fract1) = f1.trunc_fract(Float::new(53));
+        /// assert_eq!(t1, -23);
+        /// assert_eq!(fract1, -0.75);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let (t2, fract2) = f2.trunc_fract(Float::new(53));
+        /// assert_eq!(t2, 23);
+        /// assert_eq!(fract2, 0.75);
+        /// ```
         fn trunc_fract(fract);
         /// Gets the integer and fractional parts of the number,
         /// rounding to the nearest.
@@ -4777,15 +5763,74 @@ impl Float {
         /// The integer part is stored in `self` and keeps its
         /// precision, while the fractional part is stored in `fract`
         /// keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, -23.75);
+        /// let mut fract1 = Float::new(53);
+        /// f1.trunc_fract_mut(&mut fract1);
+        /// assert_eq!(f1, -23);
+        /// assert_eq!(fract1, -0.75);
+        /// let mut f2 = Float::with_val(53, 23.75);
+        /// let mut fract2 = Float::new(53);
+        /// f2.trunc_fract_mut(&mut fract2);
+        /// assert_eq!(f2, 23);
+        /// assert_eq!(fract2, 0.75);
+        /// ```
         fn trunc_fract_mut;
         /// Gets the integer and fractional parts of the number,
         /// applying the specified rounding method.
         ///
+        /// The first element of the returned tuple of rounding
+        /// directions is always `Ordering::Equal`, as truncating a
+        /// value in place will always be exact.
+        ///
         /// The integer part is stored in `self` and keeps its
         /// precision, while the fractional part is stored in `fract`
         /// keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 0.515625 in binary is 0.100001
+        /// let mut f1 = Float::with_val(53, -23.515625);
+        /// let mut fract1 = Float::new(4);
+        /// let dir1 = f1.trunc_fract_round(&mut fract1, Round::Nearest);
+        /// assert_eq!(f1, -23);
+        /// assert_eq!(fract1, -0.5);
+        /// assert_eq!(dir1, (Ordering::Equal, Ordering::Greater));
+        /// let mut f2 = Float::with_val(53, 23.515625);
+        /// let mut fract2 = Float::new(4);
+        /// let dir2 = f2.trunc_fract_round(&mut fract2, Round::Nearest);
+        /// assert_eq!(f2, 23);
+        /// assert_eq!(fract2, 0.5);
+        /// assert_eq!(dir2, (Ordering::Equal, Ordering::Less));
+        /// ```
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Float};
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let r1 = f1.trunc_fract_ref();
+        /// let (mut trunc1, mut fract1) = (Float::new(53), Float::new(53));
+        /// (&mut trunc1, &mut fract1).assign(r1);
+        /// assert_eq!(trunc1, -23);
+        /// assert_eq!(fract1, -0.75);
+        /// let f2 = Float::with_val(53, -23.75);
+        /// let r2 = f2.trunc_fract_ref();
+        /// let (mut trunc2, mut fract2) = (Float::new(53), Float::new(53));
+        /// (&mut trunc2, &mut fract2).assign(r2);
+        /// assert_eq!(trunc2, -23);
+        /// assert_eq!(fract2, -0.75);
+        /// ```
         fn trunc_fract_ref -> TruncFractRef;
     }
 
@@ -4851,10 +5896,10 @@ impl Float {
     /// let mut f = Float::new(2);
     /// f.assign_random_cont(&mut rand);
     /// // The significand is either 0b10 or 0b11
-    /// //           10          11
-    /// assert!(f == 1.0 || f == 0.75 ||
-    ///         f == 0.5 || f == 0.375 ||
-    ///         f == 0.25 || f <= 0.1875);
+    /// assert!(
+    ///     f == 1.0 || f == 0.75 || f == 0.5 || f == 0.375 || f == 0.25
+    ///         || f <= 0.1875
+    /// );
     /// ```
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
@@ -4886,11 +5931,10 @@ impl Float {
     /// let dir = f.assign_random_cont_round(&mut rand, Round::Down);
     /// // We cannot have an exact value without rounding.
     /// assert_eq!(dir, Ordering::Less);
-    /// // The significand is either 0b11 or 0b10
-    /// //           11           10
-    /// assert!(f == 0.75 || f == 0.5 ||
-    ///         f == 0.375 || f == 0.25 ||
-    ///         f <= 0.1875);
+    /// // The significand is either 0b10 or 0b11
+    /// assert!(
+    ///     f == 0.75 || f == 0.5 || f == 0.375 || f == 0.25 || f <= 0.1875
+    /// );
     /// ```
     #[inline]
     pub fn assign_random_cont_round(
@@ -4909,6 +5953,17 @@ impl Float {
     /// Gaussian distribution, rounding to the nearest.
     ///
     /// If `other` is `None`, only one value is generated.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let (mut f1, mut f2) = (Float::new(53), Float::new(53));
+    /// f1.assign_random_gaussian(Some(&mut f2), &mut rand);
+    /// println!("Two Gaussian random numbers: {}, {}", f1, f2);
+    /// ```
     #[inline]
     pub fn assign_random_gaussian(
         &mut self,
@@ -4923,6 +5978,30 @@ impl Float {
     /// Gaussian distribution, applying the specified rounding method.
     ///
     /// If `other` is `None`, only one value is generated.
+    ///
+    /// Rounding directions for generated random numbers cannot be
+    /// `Ordering::Equal`, as the random numbers generated can be
+    /// considered to have infinite precision before rounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::rand::RandState;
+    /// use std::cmp::Ordering;
+    /// let mut rand = RandState::new();
+    /// let (mut f1, mut f2) = (Float::new(53), Float::new(53));
+    /// let dirs = f1.assign_random_gaussian_round(
+    ///     Some(&mut f2),
+    ///     &mut rand,
+    ///     Round::Nearest,
+    /// );
+    /// // Rounding directions cannot be `Ordering::Equal`:
+    /// assert_ne!(dirs.0, Ordering::Equal);
+    /// assert_ne!(dirs.1, Ordering::Equal);
+    /// println!("Two Gaussian random numbers: {}, {}", f1, f2);
+    /// ```
     #[inline]
     pub fn assign_random_gaussian_round(
         &mut self,
@@ -6009,6 +7088,21 @@ fn fmt_radix(
 ///
 /// See the [`Float::valid_str_radix`][valid] method.
 ///
+/// # Examples
+///
+/// ```rust
+/// use rug::Float;
+/// use rug::float::ValidFloat;
+/// // This string is correct in radix 10, it cannot fail.
+/// let s = "1.25e-1";
+/// let valid: ValidFloat = match Float::valid_str_radix(s, 10) {
+///     Ok(valid) => valid,
+///     Err(_) => unreachable!(),
+/// };
+/// let f = Float::with_val(53, valid);
+/// assert_eq!(f, 0.125);
+/// ```
+///
 /// [valid]: ../struct.Float.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidFloat<'a> {
@@ -6061,6 +7155,20 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Float`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Float;
+/// use rug::float::ParseFloatError;
+/// // This string is not a floating-point number.
+/// let s = "something completely different (_!_!_)";
+/// let error: ParseFloatError = match Float::valid_str_radix(s, 4) {
+///     Ok(_) => unreachable!(),
+///     Err(error) => error,
+/// };
+/// println!("Parse error: {:?}", error);
+/// ```
 pub struct ParseFloatError {
     kind: ParseErrorKind,
 }

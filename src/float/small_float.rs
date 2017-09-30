@@ -86,6 +86,15 @@ impl Default for SmallFloat {
 
 impl SmallFloat {
     /// Creates a `SmallFloat` with value 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::float::SmallFloat;
+    /// let f = SmallFloat::new();
+    /// // Borrow f as if it were Float.
+    /// assert_eq!(*f, 0.0);
+    /// ```
     #[inline]
     pub fn new() -> SmallFloat {
         unsafe {

@@ -87,6 +87,16 @@ impl Default for SmallComplex {
 
 impl SmallComplex {
     /// Creates a `SmallComplex` with value 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::complex::SmallComplex;
+    /// let c = SmallComplex::new();
+    /// // Use c as if it were Complex.
+    /// assert_eq!(*c.real(), 0.0);
+    /// assert_eq!(*c.imag(), 0.0);
+    /// ```
     pub fn new() -> SmallComplex {
         unsafe {
             let mut ret = SmallComplex {

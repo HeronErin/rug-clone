@@ -78,6 +78,16 @@ impl Default for SmallRational {
 
 impl SmallRational {
     /// Creates a `SmallRational` with value 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rational::SmallRational;
+    /// let r = SmallRational::new();
+    /// // Use r as if it were Rational.
+    /// assert_eq!(*r.numer(), 0);
+    /// assert_eq!(*r.denom(), 1);
+    /// ```
     #[inline]
     pub fn new() -> SmallRational {
         let mut ret = SmallRational {

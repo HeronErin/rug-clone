@@ -79,6 +79,15 @@ impl Default for SmallInteger {
 
 impl SmallInteger {
     /// Creates a `SmallInteger` with value 0.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::SmallInteger;
+    /// let i = SmallInteger::new();
+    /// // Borrow i as if it were Integer.
+    /// assert_eq!(*i, 0);
+    /// ```
     #[inline]
     pub fn new() -> SmallInteger {
         SmallInteger {

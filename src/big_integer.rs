@@ -3654,6 +3654,21 @@ fn fmt_radix(
 ///
 /// See the [`Integer::valid_str_radix`][valid] method.
 ///
+/// # Examples
+///
+/// ```rust
+/// use rug::Integer;
+/// use rug::integer::ValidInteger;
+/// // This string is correct in radix 10, it cannot fail.
+/// let s = "12345";
+/// let valid: ValidInteger = match Integer::valid_str_radix(s, 10) {
+///     Ok(valid) => valid,
+///     Err(_) => unreachable!(),
+/// };
+/// let i = Integer::from(valid);
+/// assert_eq!(i, 12345);
+/// ```
+///
 /// [valid]: ../struct.Integer.html#method.valid_str_radix
 #[derive(Clone, Debug)]
 pub struct ValidInteger<'a> {
@@ -3679,6 +3694,20 @@ impl<'a> Assign<ValidInteger<'a>> for Integer {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing an `Integer`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Integer;
+/// use rug::integer::ParseIntegerError;
+/// // This string is not an integer.
+/// let s = "something completely different (_!_!_)";
+/// let error: ParseIntegerError = match Integer::valid_str_radix(s, 4) {
+///     Ok(_) => unreachable!(),
+///     Err(error) => error,
+/// };
+/// println!("Parse error: {:?}", error);
+/// ```
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
 }
@@ -3708,6 +3737,24 @@ impl Display for ParseIntegerError {
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// Whether a number is prime.
+///
+/// See the [`Integer::is_probably_prime`][ipp] method.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Integer;
+/// use rug::integer::IsPrime;
+/// let no = Integer::from(163 * 4003);
+/// assert_eq!(no.is_probably_prime(15), IsPrime::No);
+/// let yes = Integer::from(21_751);
+/// assert_eq!(yes.is_probably_prime(15), IsPrime::Yes);
+/// // 817_504_243 is actually a prime.
+/// let probably = Integer::from(817_504_243);
+/// assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
+/// ```
+///
+/// [ipp]: ../struct.Integer.html#method.is_probably_prime
 pub enum IsPrime {
     /// The number is definitely not prime.
     No,
