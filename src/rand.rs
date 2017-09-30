@@ -158,9 +158,9 @@ impl<'a> RandState<'a> {
     /// For the linear congrentail algorithm *X* = (*a* × *X* + *c*)
     /// mod 2<sup>*bits*</sup>, *a*, *c* and *bits* are selected from
     /// a table such that at least *size* bits of each *X* will be
-    /// used, that is 2<sup>*bits*</sup> ≥ *size*. The table only has
-    /// values for a size of up to 256 bits; `None` will be returned
-    /// if the requested size is larger.
+    /// used, that is *bits* ≥ *size*. The table only has values for a
+    /// size of up to 256 bits; `None` will be returned if the
+    /// requested size is larger.
     ///
     /// # Examples
     ///
@@ -362,7 +362,7 @@ pub trait RandGen: Send + Sync {
     ///
     /// The default implementation of this function does nothing.
     ///
-    /// Note that the [`RandState::seed()][seed] method will pass its
+    /// Note that the [RandState::seed()][seed] method will pass its
     /// seed parameter exactly to this function without using it
     /// otherwise.
     ///
