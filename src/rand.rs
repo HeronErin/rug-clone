@@ -27,6 +27,15 @@ use std::panic::{self, AssertUnwindSafe};
 use std::process;
 
 /// The state of a random number generator.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::rand::RandState;
+/// let mut rand = RandState::new();
+/// let u = rand.bits(32);
+/// println!("32 random bits: {:032b}", u);
+/// ```
 pub struct RandState<'a> {
     inner: randstate_t,
     phantom: PhantomData<&'a RandGen>,
@@ -68,6 +77,15 @@ unsafe impl<'a> Sync for RandState<'a> {}
 impl<'a> RandState<'a> {
     /// Creates a new random generator with a compromise between speed
     /// and randomness.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// ```
     #[inline]
     pub fn new() -> RandState<'a> {
         unsafe {
@@ -81,6 +99,15 @@ impl<'a> RandState<'a> {
     }
 
     /// Creates a random generator with a Mersenne Twister algorithm.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new_mersenne_twister();
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// ```
     pub fn new_mersenne_twister() -> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
@@ -94,6 +121,22 @@ impl<'a> RandState<'a> {
 
     /// Creates a new random generator with a linear congruential
     /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>*bits*</sup>.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::rand::RandState;
+    /// let a = match Integer::from_str_radix("292787ebd3329ad7e7575e2fd", 16) {
+    ///     Ok(i) => i,
+    ///     Err(_) => unreachable!(),
+    /// };
+    /// let c = 1;
+    /// let bits = 100;
+    /// let mut rand = RandState::new_linear_congruential(&a, c, bits);
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// ```
     pub fn new_linear_congruential(
         a: &Integer,
         c: u32,
@@ -118,6 +161,18 @@ impl<'a> RandState<'a> {
     /// used, that is 2<sup>*bits*</sup> ≥ *size*. The table only has
     /// values for a size of up to 256 bits; `None` will be returned
     /// if the requested size is larger.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = match RandState::new_linear_congruential_size(100) {
+    ///     Some(r) => r,
+    ///     None => unreachable!(),
+    /// };
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// ```
     ///
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
@@ -178,6 +233,24 @@ impl<'a> RandState<'a> {
     }
 
     /// Seeds the random generator.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::rand::RandState;
+    /// let seed = Integer::from(123456);
+    /// let mut rand = RandState::new();
+    /// rand.seed(&seed);
+    /// let u1a = rand.bits(32);
+    /// let u1b = rand.bits(32);
+    /// // reseed with the same seed
+    /// rand.seed(&seed);
+    /// let u2a = rand.bits(32);
+    /// let u2b = rand.bits(32);
+    /// assert_eq!(u1a, u2a);
+    /// assert_eq!(u1b, u2b);
+    /// ```
     #[inline]
     pub fn seed(&mut self, seed: &Integer) {
         unsafe {
@@ -186,6 +259,16 @@ impl<'a> RandState<'a> {
     }
 
     /// Generates a random number with the specified number of bits.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let u = rand.bits(16);
+    /// assert!(u < (1 << 16));
+    /// println!("16 random bits: {:016b}", u);
+    /// ```
     ///
     /// # Panics
     ///
@@ -203,6 +286,16 @@ impl<'a> RandState<'a> {
     /// range, use the [`bits`](#method.bits) method with `bits` set
     /// to 32.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let u = rand.below(10000);
+    /// assert!(u < 10000);
+    /// println!("0 ≤ {} < 10000", u);
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if the boundary value is zero.
@@ -215,8 +308,54 @@ impl<'a> RandState<'a> {
 
 /// Custom random number generator to be used with
 /// [`RandState`](struct.RandState.html).
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Integer;
+/// use rug::rand::RandGen;
+/// struct SimpleGenerator {
+///     seed: u64,
+/// }
+/// impl RandGen for SimpleGenerator {
+///     fn gen(&mut self) -> u32 {
+///         self.seed =
+///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+///         (self.seed >> 32) as u32
+///     }
+///     fn seed(&mut self, seed: &Integer) {
+///         self.seed = seed.to_u64_wrapping();
+///     }
+/// }
+/// let mut rand = SimpleGenerator { seed: 1 };
+/// assert_eq!(rand.gen(), 1481765933);
+/// assert_eq!(rand.seed, 6364136223846793006);
+/// ```
 pub trait RandGen: Send + Sync {
     /// Gets a random 32-bit unsigned integer.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandGen;
+    /// struct SimpleGenerator {
+    ///     seed: u64,
+    /// }
+    /// impl RandGen for SimpleGenerator {
+    ///     fn gen(&mut self) -> u32 {
+    ///         self.seed =
+    ///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+    ///         (self.seed >> 32) as u32
+    ///     }
+    /// }
+    /// let mut rand = SimpleGenerator { seed: 1 };
+    /// let first = rand.gen();
+    /// assert_eq!(rand.seed, 6364136223846793006);
+    /// assert_eq!(first, 1481765933);
+    /// let second = rand.gen();
+    /// assert_eq!(rand.seed, 13885033948157127959);
+    /// assert_eq!(second, 3232861391);
+    /// ```
     fn gen(&mut self) -> u32;
 
     /// Seeds the random number generator.
