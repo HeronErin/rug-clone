@@ -23,7 +23,6 @@ use inner::Inner;
 #[cfg(feature = "integer")]
 use inner::InnerMut;
 
-#[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "integer")]
