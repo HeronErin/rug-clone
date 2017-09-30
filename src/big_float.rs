@@ -2022,7 +2022,7 @@ impl Float {
         /// use rug::Float;
         /// use rug::float::Round;
         /// use std::cmp::Ordering;
-        /// // 5 in binary is 110
+        /// // 5 in binary is 101
         /// let mut f = Float::with_val(3, 5.0);
         /// // 25 in binary is 11001 (more than 3 bits of precision).
         /// // 25 (11001) is rounded up to 28 (11100).
@@ -2047,18 +2047,70 @@ impl Float {
     math_op1_float! {
         mpfr::sqrt;
         /// Computes the square root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 25.0);
+        /// let sqrt = f.sqrt();
+        /// assert_eq!(sqrt, 5.0);
+        /// ```
         fn sqrt();
         /// Computes the square root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 25.0);
+        /// f.sqrt_mut();
+        /// assert_eq!(f, 5.0);
+        /// ```
         fn sqrt_mut;
         /// Computes the square root, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 5 in binary is 101
+        /// let mut f = Float::with_val(4, 5.0);
+        /// // sqrt(5) in binary is 10.00111100...
+        /// // sqrt(5) is rounded to 2.25 (10.01).
+        /// let dir = f.sqrt_round(Round::Nearest);
+        /// assert_eq!(f, 2.25);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn sqrt_round;
         /// Computes the square root.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 25.0);
+        /// let r = f.sqrt_ref();
+        /// let sqrt = Float::with_val(53, r);
+        /// assert_eq!(sqrt, 5.0);
+        /// ```
         fn sqrt_ref -> SqrtRef;
     }
 
     /// Sets `self` to the square root of `u`, rounding to the
     /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::new(53);
+    /// f.assign_sqrt_u(25);
+    /// assert_eq!(f, 5.0);
+    /// ```
     #[inline]
     pub fn assign_sqrt_u(&mut self, u: u32) {
         self.assign_sqrt_u_round(u, Round::Nearest);
@@ -2066,6 +2118,21 @@ impl Float {
 
     /// Sets `self` to the square root of `u`, applying the specified
     /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // 4 bits of precision
+    /// let mut f = Float::new(4);
+    /// // sqrt(5) in binary is 10.00111100...
+    /// // sqrt(5) is rounded to 2.25 (10.01).
+    /// let dir = f.assign_sqrt_u_round(5, Round::Nearest);
+    /// assert_eq!(f, 2.25);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
     #[inline]
     pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
         let ret =
@@ -2076,59 +2143,259 @@ impl Float {
     math_op1_float! {
         mpfr::rec_sqrt;
         /// Computes the reciprocal square root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 16.0);
+        /// let recip_sqrt = f.recip_sqrt();
+        /// assert_eq!(recip_sqrt, 0.25);
+        /// ```
         fn recip_sqrt();
         /// Computes the reciprocal square root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 16.0);
+        /// f.recip_sqrt_mut();
+        /// assert_eq!(f, 0.25);
+        /// ```
         fn recip_sqrt_mut;
         /// Computes the reciprocal square root, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 5 in binary is 101
+        /// let mut f = Float::with_val(4, 5.0);
+        /// // 1/sqrt(5) in binary is 0.01110010...
+        /// // 1/sqrt(5) is rounded to 0.4375 (0.01110).
+        /// let dir = f.recip_sqrt_round(Round::Nearest);
+        /// assert_eq!(f, 0.4375);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn recip_sqrt_round;
         /// Computes the reciprocal square root.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 16.0);
+        /// let r = f.recip_sqrt_ref();
+        /// let recip_sqrt = Float::with_val(53, r);
+        /// assert_eq!(recip_sqrt, 0.25);
+        /// ```
         fn recip_sqrt_ref -> RecipSqrtRef;
     }
     math_op1_float! {
         mpfr::cbrt;
         /// Computes the cube root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 125.0);
+        /// let cbrt = f.cbrt();
+        /// assert_eq!(cbrt, 5.0);
+        /// ```
         fn cbrt();
         /// Computes the cube root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 125.0);
+        /// f.cbrt_mut();
+        /// assert_eq!(f, 5.0);
+        /// ```
         fn cbrt_mut;
         /// Computes the cube root, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 5 in binary is 101
+        /// let mut f = Float::with_val(4, 5.0);
+        /// // cbrt(5) in binary is 1.101101...
+        /// // cbrt(5) is rounded to 1.75 (1.110).
+        /// let dir = f.cbrt_round(Round::Nearest);
+        /// assert_eq!(f, 1.75);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn cbrt_round;
         /// Computes the cube root.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 125.0);
+        /// let r = f.cbrt_ref();
+        /// let cbrt = Float::with_val(53, r);
+        /// assert_eq!(cbrt, 5.0);
+        /// ```
         fn cbrt_ref -> CbrtRef;
     }
     math_op1_float! {
         mpfr::root;
         /// Computes the <i>k</i>th root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 625.0);
+        /// let root = f.root(4);
+        /// assert_eq!(root, 5.0);
+        /// ```
         fn root(k: u32);
         /// Computes the <i>k</i>th root, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 625.0);
+        /// f.root_mut(4);
+        /// assert_eq!(f, 5.0);
+        /// ```
         fn root_mut;
         /// Computes the <i>k</i>th root, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 5 in binary is 101
+        /// let mut f = Float::with_val(4, 5.0);
+        /// // fourth root of 5 in binary is 1.01111...
+        /// // fourth root of 5 is rounded to 1.5 (1.100).
+        /// let dir = f.root_round(4, Round::Nearest);
+        /// assert_eq!(f, 1.5);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn root_round;
         /// Computes the <i>k</i>th root.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 625.0);
+        /// let r = f.root_ref(4);
+        /// let root = Float::with_val(53, r);
+        /// assert_eq!(root, 5.0);
+        /// ```
         fn root_ref -> RootRef;
     }
     math_op1_no_round! {
         Float;
         mpfr::abs, rraw;
         /// Computes the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -23.5);
+        /// let abs = f.abs();
+        /// assert_eq!(abs, 23.5);
+        /// ```
         fn abs();
         /// Computes the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, -23.5);
+        /// f.abs_mut();
+        /// assert_eq!(f, 23.5);
+        /// ```
         fn abs_mut;
         /// Computes the absolute value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -23.5);
+        /// let r = f.abs_ref();
+        /// let abs = Float::with_val(53, r);
+        /// assert_eq!(abs, 23.5);
+        /// ```
         fn abs_ref -> AbsRef;
     }
     math_op1_float! {
         xmpfr::recip;
         /// Computes the reciprocal, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.25);
+        /// let recip = f.recip();
+        /// assert_eq!(recip, -4.0);
+        /// ```
         fn recip();
         /// Computes the reciprocal, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, -0.25);
+        /// f.recip_mut();
+        /// assert_eq!(f, -4.0);
+        /// ```
         fn recip_mut;
         /// Computes the reciprocal, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // 5 in binary is 101
+        /// let mut f = Float::with_val(4, -5.0);
+        /// // 1/5 in binary is 0.00110011...
+        /// // 1/5 is rounded to 0.203125 (0.001101).
+        /// let dir = f.recip_round(Round::Nearest);
+        /// assert_eq!(f, -0.203125);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn recip_round;
         /// Computes the reciprocal.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.25);
+        /// let r = f.recip_ref();
+        /// let recip = Float::with_val(53, r);
+        /// assert_eq!(recip, -4.0);
+        /// ```
         fn recip_ref -> RecipRef;
     }
     math_op2_float! {
@@ -2312,106 +2579,511 @@ impl Float {
     math_op1_float! {
         mpfr::log;
         /// Computes the natural logarithm, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let ln = f.ln();
+        /// let expected = Float::with_val(53, 0.4055);
+        /// assert!((ln - expected).abs() < 0.001);
+        /// ```
         fn ln();
         /// Computes the natural logarithm, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.5);
+        /// f.ln_mut();
+        /// let expected = Float::with_val(53, 0.4055);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn ln_mut;
         /// Computes the natural logarithm, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5);
+        /// // ln(1.5) = 0.4055
+        /// // using 4 significant bits: 0.40625
+        /// let dir = f.ln_round(Round::Nearest);
+        /// assert_eq!(f, 0.40625);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn ln_round;
         /// Computes the natural logarithm.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let ln = Float::with_val(53, f.ln_ref());
+        /// let expected = Float::with_val(53, 0.4055);
+        /// assert!((ln - expected).abs() < 0.001);
+        /// ```
         fn ln_ref -> LnRef;
     }
     math_op1_float! {
         mpfr::log2;
         /// Computes the logarithm to base 2, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let log2 = f.log2();
+        /// let expected = Float::with_val(53, 0.5850);
+        /// assert!((log2 - expected).abs() < 0.001);
+        /// ```
         fn log2();
         /// Computes the logarithm to base 2, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.5);
+        /// f.log2_mut();
+        /// let expected = Float::with_val(53, 0.5850);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn log2_mut;
         /// Computes the logarithm to base 2, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5);
+        /// // log2(1.5) = 0.5850
+        /// // using 4 significant bits: 0.5625
+        /// let dir = f.log2_round(Round::Nearest);
+        /// assert_eq!(f, 0.5625);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn log2_round;
         /// Computes the logarithm to base 2.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let log2 = Float::with_val(53, f.log2_ref());
+        /// let expected = Float::with_val(53, 0.5850);
+        /// assert!((log2 - expected).abs() < 0.001);
+        /// ```
         fn log2_ref -> Log2Ref;
     }
     math_op1_float! {
         mpfr::log10;
         /// Computes the logarithm to base 10, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let log10 = f.log10();
+        /// let expected = Float::with_val(53, 0.1761);
+        /// assert!((log10 - expected).abs() < 0.001);
+        /// ```
         fn log10();
         /// Computes the logarithm to base 10, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.5);
+        /// f.log10_mut();
+        /// let expected = Float::with_val(53, 0.1761);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn log10_mut;
         /// Computes the logarithm to base 10, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5);
+        /// // log10(1.5) = 0.1761
+        /// // using 4 significant bits: 0.171875
+        /// let dir = f.log10_round(Round::Nearest);
+        /// assert_eq!(f, 0.171875);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn log10_round;
         /// Computes the logarithm to base 10.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let log10 = Float::with_val(53, f.log10_ref());
+        /// let expected = Float::with_val(53, 0.1761);
+        /// assert!((log10 - expected).abs() < 0.001);
+        /// ```
         fn log10_ref -> Log10Ref;
     }
     math_op1_float! {
         mpfr::exp;
         /// Computes the exponential, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let exp = f.exp();
+        /// let expected = Float::with_val(53, 4.4817);
+        /// assert!((exp - expected).abs() < 0.001);
+        /// ```
         fn exp();
         /// Computes the exponential, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.5);
+        /// f.exp_mut();
+        /// let expected = Float::with_val(53, 4.4817);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn exp_mut;
         /// Computes the exponential, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5);
+        /// // exp(1.5) = 4.4817
+        /// // using 4 significant bits: 4.5
+        /// let dir = f.exp_round(Round::Nearest);
+        /// assert_eq!(f, 4.5);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn exp_round;
         /// Computes the exponential.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let exp = Float::with_val(53, f.exp_ref());
+        /// let expected = Float::with_val(53, 4.4817);
+        /// assert!((exp - expected).abs() < 0.001);
+        /// ```
         fn exp_ref -> ExpRef;
     }
     math_op1_float! {
         mpfr::exp2;
         /// Computes 2 to the power of `self`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let exp2 = f.exp2();
+        /// let expected = Float::with_val(53, 2.8284);
+        /// assert!((exp2 - expected).abs() < 0.001);
+        /// ```
         fn exp2();
         /// Computes 2 to the power of `self`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.5);
+        /// f.exp2_mut();
+        /// let expected = Float::with_val(53, 2.8284);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn exp2_mut;
         /// Computes 2 to the power of `self`, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5);
+        /// // exp2(1.5) = 2.8284
+        /// // using 4 significant bits: 2.75
+        /// let dir = f.exp2_round(Round::Nearest);
+        /// assert_eq!(f, 2.75);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn exp2_round;
         /// Computes 2 to the power of the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let exp2 = Float::with_val(53, f.exp2_ref());
+        /// let expected = Float::with_val(53, 2.8284);
+        /// assert!((exp2 - expected).abs() < 0.001);
+        /// ```
         fn exp2_ref -> Exp2Ref;
     }
     math_op1_float! {
         mpfr::exp10;
         /// Computes 10 to the power of `self`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let exp10 = f.exp10();
+        /// let expected = Float::with_val(53, 31.6228);
+        /// assert!((exp10 - expected).abs() < 0.001);
+        /// ```
         fn exp10();
         /// Computes 10 to the power of `self`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.5);
+        /// f.exp10_mut();
+        /// let expected = Float::with_val(53, 31.6228);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn exp10_mut;
         /// Computes 10 to the power of `self`, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.5);
+        /// // exp10(1.5) = 31.6228
+        /// // using 4 significant bits: 32
+        /// let dir = f.exp10_round(Round::Nearest);
+        /// assert_eq!(f, 32);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn exp10_round;
         /// Computes 10 to the power of the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.5);
+        /// let exp10 = Float::with_val(53, f.exp10_ref());
+        /// let expected = Float::with_val(53, 31.6228);
+        /// assert!((exp10 - expected).abs() < 0.001);
+        /// ```
         fn exp10_ref -> Exp10Ref;
     }
     math_op1_float! {
         mpfr::sin;
         /// Computes the sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sin = f.sin();
+        /// let expected = Float::with_val(53, 0.9490);
+        /// assert!((sin - expected).abs() < 0.001);
+        /// ```
         fn sin();
         /// Computes the sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.sin_mut();
+        /// let expected = Float::with_val(53, 0.9490);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn sin_mut;
         /// Computes the sine, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // sin(1.25) = 0.9490
+        /// // using 4 significant bits: 0.9375
+        /// let dir = f.sin_round(Round::Nearest);
+        /// assert_eq!(f, 0.9375);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn sin_round;
         /// Computes the sine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sin = Float::with_val(53, f.sin_ref());
+        /// let expected = Float::with_val(53, 0.9490);
+        /// assert!((sin - expected).abs() < 0.001);
+        /// ```
         fn sin_ref -> SinRef;
     }
     math_op1_float! {
         mpfr::cos;
         /// Computes the cosine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let cos = f.cos();
+        /// let expected = Float::with_val(53, 0.3153);
+        /// assert!((cos - expected).abs() < 0.001);
+        /// ```
         fn cos();
         /// Computes the cosine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.cos_mut();
+        /// let expected = Float::with_val(53, 0.3153);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn cos_mut;
         /// Computes the cosine, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // cos(1.25) = 0.3153
+        /// // using 4 significant bits: 0.3125
+        /// let dir = f.cos_round(Round::Nearest);
+        /// assert_eq!(f, 0.3125);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn cos_round;
         /// Computes the cosine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let cos = Float::with_val(53, f.cos_ref());
+        /// let expected = Float::with_val(53, 0.3153);
+        /// assert!((cos - expected).abs() < 0.001);
+        /// ```
         fn cos_ref -> CosRef;
     }
     math_op1_float! {
         mpfr::tan;
         /// Computes the tangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let tan = f.tan();
+        /// let expected = Float::with_val(53, 3.0096);
+        /// assert!((tan - expected).abs() < 0.001);
+        /// ```
         fn tan();
         /// Computes the tangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.tan_mut();
+        /// let expected = Float::with_val(53, 3.0096);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn tan_mut;
         /// Computes the tangent, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // tan(1.25) = 3.0096
+        /// // using 4 significant bits: 3.0
+        /// let dir = f.tan_round(Round::Nearest);
+        /// assert_eq!(f, 3.0);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn tan_round;
         /// Computes the tangent.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let tan = Float::with_val(53, f.tan_ref());
+        /// let expected = Float::with_val(53, 3.0096);
+        /// assert!((tan - expected).abs() < 0.001);
+        /// ```
         fn tan_ref -> TanRef;
     }
     math_op1_2_float! {
@@ -2421,165 +3093,677 @@ impl Float {
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let (sin, cos) = f.sin_cos(Float::new(53));
+        /// let expected_sin = Float::with_val(53, 0.9490);
+        /// let expected_cos = Float::with_val(53, 0.3153);
+        /// assert!((sin - expected_sin).abs() < 0.001);
+        /// assert!((cos - expected_cos).abs() < 0.001);
+        /// ```
         fn sin_cos(cos);
         /// Computes the sine and cosine of `self`, rounding to the
         /// nearest.
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut sin = Float::with_val(53, 1.25);
+        /// let mut cos = Float::new(53);
+        /// sin.sin_cos_mut(&mut cos);
+        /// let expected_sin = Float::with_val(53, 0.9490);
+        /// let expected_cos = Float::with_val(53, 0.3153);
+        /// assert!((sin - expected_sin).abs() < 0.001);
+        /// assert!((cos - expected_cos).abs() < 0.001);
+        /// ```
         fn sin_cos_mut;
         /// Computes the sine and cosine of `self`, applying the specified
         /// rounding method.
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut sin = Float::with_val(4, 1.25);
+        /// let mut cos = Float::new(4);
+        /// // sin(1.25) = 0.9490, using 4 significant bits: 0.9375
+        /// // cos(1.25) = 0.3153, using 4 significant bits: 0.3125
+        /// let (dir_sin, dir_cos) =
+        ///     sin.sin_cos_round(&mut cos, Round::Nearest);
+        /// assert_eq!(sin, 0.9375);
+        /// assert_eq!(dir_sin, Ordering::Less);
+        /// assert_eq!(cos, 0.3125);
+        /// assert_eq!(dir_cos, Ordering::Less);
+        /// ```
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Float};
-        /// // sin(0.5) = 0.47943, cos(0.5) = 0.87758
-        /// let angle = Float::with_val(53, 0.5);
-        /// let r = angle.sin_cos_ref();
-        /// // use only 10 bits of precision here to
-        /// // make comparison easier
-        /// let (mut sin, mut cos) = (Float::new(10), Float::new(10));
-        /// (&mut sin, &mut cos).assign(r);
-        /// assert_eq!(sin, Float::with_val(10, 0.47943));
-        /// assert_eq!(cos, Float::with_val(10, 0.87758));
+        /// use rug::{Assign, AssignRound, Float};
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let phase = Float::with_val(53, 1.25);
+        /// let sin_cos = phase.sin_cos_ref();
+        ///
+        /// let (mut sin, mut cos) = (Float::new(53), Float::new(53));
+        /// (&mut sin, &mut cos).assign(sin_cos);
+        /// let expected_sin = Float::with_val(53, 0.9490);
+        /// let expected_cos = Float::with_val(53, 0.3153);
+        /// assert!((sin - expected_sin).abs() < 0.001);
+        /// assert!((cos - expected_cos).abs() < 0.001);
+        ///
+        /// // using 4 significant bits: sin = 0.9375
+        /// // using 4 significant bits: cos = 0.3125
+        /// let (mut sin_4, mut cos_4) = (Float::new(4), Float::new(4));
+        /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
+        ///     .assign_round(sin_cos, Round::Nearest);
+        /// assert_eq!(sin_4, 0.9375);
+        /// assert_eq!(dir_sin, Ordering::Less);
+        /// assert_eq!(cos_4, 0.3125);
+        /// assert_eq!(dir_cos, Ordering::Less);
+        /// ```
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_float! {
         mpfr::sec;
         /// Computes the secant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sec = f.sec();
+        /// let expected = Float::with_val(53, 3.1714);
+        /// assert!((sec - expected).abs() < 0.001);
+        /// ```
         fn sec();
         /// Computes the secant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.sec_mut();
+        /// let expected = Float::with_val(53, 3.1714);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn sec_mut;
         /// Computes the secant, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // sec(1.25) = 3.1714
+        /// // using 4 significant bits: 3.25
+        /// let dir = f.sec_round(Round::Nearest);
+        /// assert_eq!(f, 3.25);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn sec_round;
         /// Computes the secant.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sec = Float::with_val(53, f.sec_ref());
+        /// let expected = Float::with_val(53, 3.1714);
+        /// assert!((sec - expected).abs() < 0.001);
+        /// ```
         fn sec_ref -> SecRef;
     }
     math_op1_float! {
         mpfr::csc;
         /// Computes the cosecant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let csc = f.csc();
+        /// let expected = Float::with_val(53, 1.0538);
+        /// assert!((csc - expected).abs() < 0.001);
+        /// ```
         fn csc();
         /// Computes the cosecant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.csc_mut();
+        /// let expected = Float::with_val(53, 1.0538);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn csc_mut;
         /// Computes the cosecant, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // csc(1.25) = 1.0538
+        /// // using 4 significant bits: 1.0
+        /// let dir = f.csc_round(Round::Nearest);
+        /// assert_eq!(f, 1.0);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn csc_round;
         /// Computes the cosecant.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let csc = Float::with_val(53, f.csc_ref());
+        /// let expected = Float::with_val(53, 1.0538);
+        /// assert!((csc - expected).abs() < 0.001);
+        /// ```
         fn csc_ref -> CscRef;
     }
     math_op1_float! {
         mpfr::cot;
         /// Computes the cotangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let cot = f.cot();
+        /// let expected = Float::with_val(53, 0.3323);
+        /// assert!((cot - expected).abs() < 0.001);
+        /// ```
         fn cot();
         /// Computes the cotangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.cot_mut();
+        /// let expected = Float::with_val(53, 0.3323);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn cot_mut;
         /// Computes the cotangent, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // cot(1.25) = 0.3323
+        /// // using 4 significant bits: 0.34375
+        /// let dir = f.cot_round(Round::Nearest);
+        /// assert_eq!(f, 0.34375);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn cot_round;
         /// Computes the cotangent.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let cot = Float::with_val(53, f.cot_ref());
+        /// let expected = Float::with_val(53, 0.3323);
+        /// assert!((cot - expected).abs() < 0.001);
+        /// ```
         fn cot_ref -> CotRef;
-    }
-    math_op1_float! {
-        mpfr::acos;
-        /// Computes the arc-cosine, rounding to the nearest.
-        fn acos();
-        /// Computes the arc-cosine, rounding to the nearest.
-        fn acos_mut;
-        /// Computes the arc-cosine, applying the specified rounding
-        /// method.
-        fn acos_round;
-        /// Computes the arc-cosine.
-        fn acos_ref -> AcosRef;
     }
     math_op1_float! {
         mpfr::asin;
         /// Computes the arc-sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.75);
+        /// let asin = f.asin();
+        /// let expected = Float::with_val(53, -0.8481);
+        /// assert!((asin - expected).abs() < 0.001);
+        /// ```
         fn asin();
         /// Computes the arc-sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, -0.75);
+        /// f.asin_mut();
+        /// let expected = Float::with_val(53, -0.8481);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn asin_mut;
         /// Computes the arc-sine, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, -0.75);
+        /// // asin(-0.75) = -0.8481
+        /// // using 4 significant bits: -0.875
+        /// let dir = f.asin_round(Round::Nearest);
+        /// assert_eq!(f, -0.875);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn asin_round;
         /// Computes the arc-sine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.75);
+        /// let asin = Float::with_val(53, f.asin_ref());
+        /// let expected = Float::with_val(53, -0.8481);
+        /// assert!((asin - expected).abs() < 0.001);
+        /// ```
         fn asin_ref -> AsinRef;
+    }
+    math_op1_float! {
+        mpfr::acos;
+        /// Computes the arc-cosine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.75);
+        /// let acos = f.acos();
+        /// let expected = Float::with_val(53, 2.4189);
+        /// assert!((acos - expected).abs() < 0.001);
+        /// ```
+        fn acos();
+        /// Computes the arc-cosine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, -0.75);
+        /// f.acos_mut();
+        /// let expected = Float::with_val(53, 2.4189);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
+        fn acos_mut;
+        /// Computes the arc-cosine, applying the specified rounding
+        /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, -0.75);
+        /// // acos(-0.75) = 2.4189
+        /// // using 4 significant bits: 2.5
+        /// let dir = f.acos_round(Round::Nearest);
+        /// assert_eq!(f, 2.5);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
+        fn acos_round;
+        /// Computes the arc-cosine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.75);
+        /// let acos = Float::with_val(53, f.acos_ref());
+        /// let expected = Float::with_val(53, 2.4189);
+        /// assert!((acos - expected).abs() < 0.001);
+        /// ```
+        fn acos_ref -> AcosRef;
     }
     math_op1_float! {
         mpfr::atan;
         /// Computes the arc-tangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.75);
+        /// let atan = f.atan();
+        /// let expected = Float::with_val(53, -0.6435);
+        /// assert!((atan - expected).abs() < 0.001);
+        /// ```
         fn atan();
         /// Computes the arc-tangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, -0.75);
+        /// f.atan_mut();
+        /// let expected = Float::with_val(53, -0.6435);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn atan_mut;
         /// Computes the arc-tangent, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, -0.75);
+        /// // atan(-0.75) = -0.6435
+        /// // using 4 significant bits: -0.625
+        /// let dir = f.atan_round(Round::Nearest);
+        /// assert_eq!(f, -0.625);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn atan_round;
         /// Computes the arc-tangent.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -0.75);
+        /// let atan = Float::with_val(53, f.atan_ref());
+        /// let expected = Float::with_val(53, -0.6435);
+        /// assert!((atan - expected).abs() < 0.001);
+        /// ```
         fn atan_ref -> AtanRef;
     }
     math_op2_float! {
         mpfr::atan2;
-        /// Computes the arc-tangent2 of `self` and `other`, rounding to
+        /// Computes the arc-tangent2 of `self` and `x`, rounding to
         /// the nearest.
         ///
-        /// This is similar to the arc-tangent of `self / other`, except
-        /// in the cases when either `self` or `other` or both are zero or
-        /// infinity.
-        fn atan2(other);
-        /// Computes the arc-tangent2 of `self` and `other`, rounding to
+        /// This is similar to the arc-tangent of `self / x`, but
+        /// has an output range of 2*π* rather than *π*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let y = Float::with_val(53, 3.0);
+        /// let x = Float::with_val(53, -4.0);
+        /// let atan2 = y.atan2(&x);
+        /// let expected = Float::with_val(53, 2.4981);
+        /// assert!((atan2 - expected).abs() < 0.001);
+        /// ```
+        fn atan2(x);
+        /// Computes the arc-tangent2 of `self` and `x`, rounding to
         /// the nearest.
         ///
-        /// This is similar to the arc-tangent of `self / other`, except
-        /// in the cases when either `self` or `other` or both are zero or
-        /// infinity.
+        /// This is similar to the arc-tangent of `self / x`, but
+        /// has an output range of 2*π* rather than *π*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut y = Float::with_val(53, 3.0);
+        /// let x = Float::with_val(53, -4.0);
+        /// y.atan2_mut(&x);
+        /// let expected = Float::with_val(53, 2.4981);
+        /// assert!((y - expected).abs() < 0.001);
+        /// ```
         fn atan2_mut;
-        /// Computes the arc-tangent2 of `self` and `other`, applying the
+        /// Computes the arc-tangent2 of `self` and `x`, applying the
         /// specified rounding method.
         ///
-        /// This is similar to the arc-tangent of `self / other`, except
-        /// in the cases when either `self` or `other` or both are zero or
-        /// infinity.
+        /// This is similar to the arc-tangent of `self / x`, but
+        /// has an output range of 2*π* rather than *π*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut y = Float::with_val(4, 3.0);
+        /// let x = Float::with_val(4, -4.0);
+        /// // atan2(3.0, -4.0) = 2.4981
+        /// // using 4 significant bits: 2.5
+        /// let dir = y.atan2_round(&x, Round::Nearest);
+        /// assert_eq!(y, 2.5);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn atan2_round;
         /// Computes the arc-tangent.
+        ///
+        /// This is similar to the arc-tangent of `self / x`, but
+        /// has an output range of 2*π* rather than *π*.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let y = Float::with_val(53, 3.0);
+        /// let x = Float::with_val(53, -4.0);
+        /// let r = y.atan2_ref(&x);
+        /// let atan2 = Float::with_val(53, r);
+        /// let expected = Float::with_val(53, 2.4981);
+        /// assert!((atan2 - expected).abs() < 0.001);
+        /// ```
         fn atan2_ref -> Atan2Ref;
     }
     math_op1_float! {
         mpfr::sinh;
         /// Computes the hyperbolic sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sinh = f.sinh();
+        /// let expected = Float::with_val(53, 1.6019);
+        /// assert!((sinh - expected).abs() < 0.001);
+        /// ```
         fn sinh();
         /// Computes the hyperbolic sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.sinh_mut();
+        /// let expected = Float::with_val(53, 1.6019);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn sinh_mut;
         /// Computes the hyperbolic sine, applying the specified rounding
         /// method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // sinh(1.25) = 1.6019
+        /// // using 4 significant bits: 1.625
+        /// let dir = f.sinh_round(Round::Nearest);
+        /// assert_eq!(f, 1.625);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn sinh_round;
         /// Computes the hyperbolic sine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sinh = Float::with_val(53, f.sinh_ref());
+        /// let expected = Float::with_val(53, 1.6019);
+        /// assert!((sinh - expected).abs() < 0.001);
+        /// ```
         fn sinh_ref -> SinhRef;
     }
     math_op1_float! {
         mpfr::cosh;
         /// Computes the hyperbolic cosine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let cosh = f.cosh();
+        /// let expected = Float::with_val(53, 1.8884);
+        /// assert!((cosh - expected).abs() < 0.001);
+        /// ```
         fn cosh();
         /// Computes the hyperbolic cosine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.cosh_mut();
+        /// let expected = Float::with_val(53, 1.8884);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn cosh_mut;
         /// Computes the hyperbolic cosine, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // cosh(1.25) = 1.8884
+        /// // using 4 significant bits: 1.875
+        /// let dir = f.cosh_round(Round::Nearest);
+        /// assert_eq!(f, 1.875);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn cosh_round;
         /// Computes the hyperbolic cosine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let cosh = Float::with_val(53, f.cosh_ref());
+        /// let expected = Float::with_val(53, 1.8884);
+        /// assert!((cosh - expected).abs() < 0.001);
+        /// ```
         fn cosh_ref -> CoshRef;
     }
     math_op1_float! {
         mpfr::tanh;
         /// Computes the hyperbolic tangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let tanh = f.tanh();
+        /// let expected = Float::with_val(53, 0.8483);
+        /// assert!((tanh - expected).abs() < 0.001);
+        /// ```
         fn tanh();
         /// Computes the hyperbolic tangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.tanh_mut();
+        /// let expected = Float::with_val(53, 0.8483);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn tanh_mut;
         /// Computes the hyperbolic tangent, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // tanh(1.25) = 0.8483
+        /// // using 4 significant bits: 0.875
+        /// let dir = f.tanh_round(Round::Nearest);
+        /// assert_eq!(f, 0.875);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn tanh_round;
         /// Computes the hyperbolic tangent.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let tanh = Float::with_val(53, f.tanh_ref());
+        /// let expected = Float::with_val(53, 0.8483);
+        /// assert!((tanh - expected).abs() < 0.001);
+        /// ```
         fn tanh_ref -> TanhRef;
     }
     math_op1_2_float! {
@@ -2589,114 +3773,451 @@ impl Float {
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let (sinh, cosh) = f.sinh_cosh(Float::new(53));
+        /// let expected_sinh = Float::with_val(53, 1.6019);
+        /// let expected_cosh = Float::with_val(53, 1.8884);
+        /// assert!((sinh - expected_sinh).abs() < 0.001);
+        /// assert!((cosh - expected_cosh).abs() < 0.001);
+        /// ```
         fn sinh_cosh(cos);
         /// Computes the hyperbolic sine and cosine of `self`,
         /// rounding to the nearest.
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut sinh = Float::with_val(53, 1.25);
+        /// let mut cosh = Float::new(53);
+        /// sinh.sinh_cosh_mut(&mut cosh);
+        /// let expected_sinh = Float::with_val(53, 1.6019);
+        /// let expected_cosh = Float::with_val(53, 1.8884);
+        /// assert!((sinh - expected_sinh).abs() < 0.001);
+        /// assert!((cosh - expected_cosh).abs() < 0.001);
+        /// ```
         fn sinh_cosh_mut;
         /// Computes the hyperbolic sine and cosine of `self`,
         /// applying the specified rounding method.
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut sinh = Float::with_val(4, 1.25);
+        /// let mut cosh = Float::new(4);
+        /// // sinh(1.25) = 1.6019, using 4 significant bits: 1.625
+        /// // cosh(1.25) = 1.8884, using 4 significant bits: 1.875
+        /// let (dir_sinh, dir_cosh) =
+        ///     sinh.sinh_cosh_round(&mut cosh, Round::Nearest);
+        /// assert_eq!(sinh, 1.625);
+        /// assert_eq!(dir_sinh, Ordering::Greater);
+        /// assert_eq!(cosh, 1.875);
+        /// assert_eq!(dir_cosh, Ordering::Less);
+        /// ```
         fn sinh_cosh_round;
         /// Computes the hyperbolic sine and cosine.
         ///
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Float};
-        /// // sinh(0.5) = 0.52110, cosh(0.5) = 1.1276
-        /// let angle = Float::with_val(53, 0.5);
-        /// let r = angle.sinh_cosh_ref();
-        /// // use only 10 bits of precision here to
-        /// // make comparison easier
-        /// let (mut sinh, mut cosh) = (Float::new(10), Float::new(10));
-        /// (&mut sinh, &mut cosh).assign(r);
-        /// assert_eq!(sinh, Float::with_val(10, 0.52110));
-        /// assert_eq!(cosh, Float::with_val(10, 1.1276));
+        /// use rug::{Assign, AssignRound, Float};
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// let phase = Float::with_val(53, 1.25);
+        /// let sinh_cosh = phase.sinh_cosh_ref();
+        ///
+        /// let (mut sinh, mut cosh) = (Float::new(53), Float::new(53));
+        /// (&mut sinh, &mut cosh).assign(sinh_cosh);
+        /// let expected_sinh = Float::with_val(53, 1.6019);
+        /// let expected_cosh = Float::with_val(53, 1.8884);
+        /// assert!((sinh - expected_sinh).abs() < 0.001);
+        /// assert!((cosh - expected_cosh).abs() < 0.001);
+        ///
+        /// // using 4 significant bits: sin = 1.625
+        /// // using 4 significant bits: cos = 1.875
+        /// let (mut sinh_4, mut cosh_4) = (Float::new(4), Float::new(4));
+        /// let (dir_sinh, dir_cosh) = (&mut sinh_4, &mut cosh_4)
+        ///     .assign_round(sinh_cosh, Round::Nearest);
+        /// assert_eq!(sinh_4, 1.625);
+        /// assert_eq!(dir_sinh, Ordering::Greater);
+        /// assert_eq!(cosh_4, 1.875);
+        /// assert_eq!(dir_cosh, Ordering::Less);
+        /// ```
         fn sinh_cosh_ref -> SinhCoshRef;
     }
     math_op1_float! {
         mpfr::sech;
         /// Computes the hyperbolic secant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sech = f.sech();
+        /// let expected = Float::with_val(53, 0.5295);
+        /// assert!((sech - expected).abs() < 0.001);
+        /// ```
         fn sech();
         /// Computes the hyperbolic secant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.sech_mut();
+        /// let expected = Float::with_val(53, 0.5295);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn sech_mut;
         /// Computes the hyperbolic secant, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // sech(1.25) = 0.5295
+        /// // using 4 significant bits: 0.5
+        /// let dir = f.sech_round(Round::Nearest);
+        /// assert_eq!(f, 0.5);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn sech_round;
         /// Computes the hyperbolic secant.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let sech = Float::with_val(53, f.sech_ref());
+        /// let expected = Float::with_val(53, 0.5295);
+        /// assert!((sech - expected).abs() < 0.001);
+        /// ```
         fn sech_ref -> SechRef;
     }
     math_op1_float! {
         mpfr::csch;
         /// Computes the hyperbolic cosecant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let csch = f.csch();
+        /// let expected = Float::with_val(53, 0.6243);
+        /// assert!((csch - expected).abs() < 0.001);
+        /// ```
         fn csch();
         /// Computes the hyperbolic cosecant, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.csch_mut();
+        /// let expected = Float::with_val(53, 0.6243);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn csch_mut;
         /// Computes the hyperbolic cosecant, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // csch(1.25) = 0.6243
+        /// // using 4 significant bits: 0.625
+        /// let dir = f.csch_round(Round::Nearest);
+        /// assert_eq!(f, 0.625);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn csch_round;
         /// Computes the hyperbolic cosecant.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let csch = Float::with_val(53, f.csch_ref());
+        /// let expected = Float::with_val(53, 0.6243);
+        /// assert!((csch - expected).abs() < 0.001);
+        /// ```
         fn csch_ref -> CschRef;
     }
     math_op1_float! {
         mpfr::coth;
         /// Computes the hyperbolic cotangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let coth = f.coth();
+        /// let expected = Float::with_val(53, 1.1789);
+        /// assert!((coth - expected).abs() < 0.001);
+        /// ```
         fn coth();
         /// Computes the hyperbolic cotangent, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.coth_mut();
+        /// let expected = Float::with_val(53, 1.1789);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn coth_mut;
         /// Computes the hyperbolic cotangent, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // coth(1.25) = 1.1789
+        /// // using 4 significant bits: 1.125
+        /// let dir = f.coth_round(Round::Nearest);
+        /// assert_eq!(f, 1.125);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn coth_round;
         /// Computes the hyperbolic cotangent.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let coth = Float::with_val(53, f.coth_ref());
+        /// let expected = Float::with_val(53, 1.1789);
+        /// assert!((coth - expected).abs() < 0.001);
+        /// ```
         fn coth_ref -> CothRef;
+    }
+    math_op1_float! {
+        mpfr::asinh;
+        /// Computes the inverse hyperbolic sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let asinh = f.asinh();
+        /// let expected = Float::with_val(53, 1.0476);
+        /// assert!((asinh - expected).abs() < 0.001);
+        /// ```
+        fn asinh();
+        /// Computes the inverse hyperbolic sine, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.asinh_mut();
+        /// let expected = Float::with_val(53, 1.0476);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
+        fn asinh_mut;
+        /// Computes the inverse hyperbolic sine, applying the specified
+        /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // asinh(1.25) = 1.0476
+        /// // using 4 significant bits: 1.0
+        /// let dir = f.asinh_round(Round::Nearest);
+        /// assert_eq!(f, 1.0);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
+        fn asinh_round;
+        /// Computes the inverse hyperbolic sine.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let asinh = Float::with_val(53, f.asinh_ref());
+        /// let expected = Float::with_val(53, 1.0476);
+        /// assert!((asinh - expected).abs() < 0.001);
+        /// ```
+        fn asinh_ref -> AsinhRef;
     }
     math_op1_float! {
         mpfr::acosh;
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let acosh = f.acosh();
+        /// let expected = Float::with_val(53, 0.6931);
+        /// assert!((acosh - expected).abs() < 0.001);
+        /// ```
         fn acosh();
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// f.acosh_mut();
+        /// let expected = Float::with_val(53, 0.6931);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn acosh_mut;
         /// Computes the inverse hyperbolic cosine, applying the specified
         /// rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// // acosh(1.25) = 0.6931
+        /// // using 4 significant bits: 0.6875
+        /// let dir = f.acosh_round(Round::Nearest);
+        /// assert_eq!(f, 0.6875);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let acosh = Float::with_val(53, f.acosh_ref());
+        /// let expected = Float::with_val(53, 0.6931);
+        /// assert!((acosh - expected).abs() < 0.001);
+        /// ```
         fn acosh_ref -> AcoshRef;
-    }
-    math_op1_float! {
-        mpfr::asinh;
-        /// Computes the inverse hyperbolic sine, rounding to the nearest.
-        fn asinh();
-        /// Computes the inverse hyperbolic sine, rounding to the nearest.
-        fn asinh_mut;
-        /// Computes the inverse hyperbolic sine, applying the specified
-        /// rounding method.
-        fn asinh_round;
-        /// Computes the inverse hyperbolic sine.
-        fn asinh_ref -> AsinhRef;
     }
     math_op1_float! {
         mpfr::atanh;
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 0.75);
+        /// let atanh = f.atanh();
+        /// let expected = Float::with_val(53, 0.9730);
+        /// assert!((atanh - expected).abs() < 0.001);
+        /// ```
         fn atanh();
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 0.75);
+        /// f.atanh_mut();
+        /// let expected = Float::with_val(53, 0.9730);
+        /// assert!((f - expected).abs() < 0.001);
+        /// ```
         fn atanh_mut;
         /// Computes the inverse hyperbolic tangent, applying the
         /// specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 0.75);
+        /// // atanh(0.75) = 0.9730
+        /// // using 4 significant bits: 1.0
+        /// let dir = f.atanh_round(Round::Nearest);
+        /// assert_eq!(f, 1.0);
+        /// assert_eq!(dir, Ordering::Greater);
+        /// ```
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 0.75);
+        /// let atanh = Float::with_val(53, f.atanh_ref());
+        /// let expected = Float::with_val(53, 0.9730);
+        /// assert!((atanh - expected).abs() < 0.001);
+        /// ```
         fn atanh_ref -> AtanhRef;
     }
 
     /// Sets `self` to the factorial of *u*, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::new(53);
+    /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+    /// f.assign_factorial_u(10);
+    /// assert_eq!(f, 3628800.0);
+    /// ```
     #[inline]
     pub fn assign_factorial_u(&mut self, u: u32) {
         self.assign_factorial_u_round(u, Round::Nearest);
@@ -2704,6 +4225,21 @@ impl Float {
 
     /// Sets `self` to the factorial of *u*, applying the specified
     /// rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // 4 bits of precision
+    /// let mut f = Float::new(4);
+    /// // 10! is 3628800 (binary 110111...)
+    /// // rounded to 3670016 (binary 1110...)
+    /// let dir = f.assign_factorial_u_round(10, Round::Nearest);
+    /// assert_eq!(f, 3670016.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
     #[inline]
     pub fn assign_factorial_u_round(
         &mut self,
@@ -3603,7 +5139,7 @@ ref_math_op1_float! { mpfr::cot; struct CotRef {} }
 ref_math_op1_float! { mpfr::acos; struct AcosRef {} }
 ref_math_op1_float! { mpfr::asin; struct AsinRef {} }
 ref_math_op1_float! { mpfr::atan; struct AtanRef {} }
-ref_math_op2_float! { mpfr::atan2; struct Atan2Ref { other } }
+ref_math_op2_float! { mpfr::atan2; struct Atan2Ref { x } }
 ref_math_op1_float! { mpfr::cosh; struct CoshRef {} }
 ref_math_op1_float! { mpfr::sinh; struct SinhRef {} }
 ref_math_op1_float! { mpfr::tanh; struct TanhRef {} }
