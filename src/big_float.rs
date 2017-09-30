@@ -485,10 +485,10 @@ macro_rules! math_op1_2_float {
             $func, rraw => ordering2;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
-            $(#[$attr_round])*
-            fn $method_round;
             $(#[$attr_mut])*
             fn $method_mut;
+            $(#[$attr_round])*
+            fn $method_round;
             $(#[$attr_ref])*
             fn $method_ref -> $Ref;
         }
