@@ -2593,7 +2593,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let ln = f.ln();
         /// let expected = 0.4055_f64;
-        /// assert!((ln - expected).abs() < 0.001);
+        /// assert!((ln - expected).abs() < 0.0001);
         /// ```
         fn ln();
         /// Computes the natural logarithm, rounding to the nearest.
@@ -2605,7 +2605,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5);
         /// f.ln_mut();
         /// let expected = 0.4055_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn ln_mut;
         /// Computes the natural logarithm, applying the specified
@@ -2635,7 +2635,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let ln = Float::with_val(53, f.ln_ref());
         /// let expected = 0.4055_f64;
-        /// assert!((ln - expected).abs() < 0.001);
+        /// assert!((ln - expected).abs() < 0.0001);
         /// ```
         fn ln_ref -> LnRef;
     }
@@ -2650,7 +2650,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let log2 = f.log2();
         /// let expected = 0.5850_f64;
-        /// assert!((log2 - expected).abs() < 0.001);
+        /// assert!((log2 - expected).abs() < 0.0001);
         /// ```
         fn log2();
         /// Computes the logarithm to base 2, rounding to the nearest.
@@ -2662,7 +2662,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5);
         /// f.log2_mut();
         /// let expected = 0.5850_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn log2_mut;
         /// Computes the logarithm to base 2, applying the specified
@@ -2692,7 +2692,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let log2 = Float::with_val(53, f.log2_ref());
         /// let expected = 0.5850_f64;
-        /// assert!((log2 - expected).abs() < 0.001);
+        /// assert!((log2 - expected).abs() < 0.0001);
         /// ```
         fn log2_ref -> Log2Ref;
     }
@@ -2707,7 +2707,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let log10 = f.log10();
         /// let expected = 0.1761_f64;
-        /// assert!((log10 - expected).abs() < 0.001);
+        /// assert!((log10 - expected).abs() < 0.0001);
         /// ```
         fn log10();
         /// Computes the logarithm to base 10, rounding to the nearest.
@@ -2719,7 +2719,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5);
         /// f.log10_mut();
         /// let expected = 0.1761_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn log10_mut;
         /// Computes the logarithm to base 10, applying the specified
@@ -2749,7 +2749,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let log10 = Float::with_val(53, f.log10_ref());
         /// let expected = 0.1761_f64;
-        /// assert!((log10 - expected).abs() < 0.001);
+        /// assert!((log10 - expected).abs() < 0.0001);
         /// ```
         fn log10_ref -> Log10Ref;
     }
@@ -2764,7 +2764,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let exp = f.exp();
         /// let expected = 4.4817_f64;
-        /// assert!((exp - expected).abs() < 0.001);
+        /// assert!((exp - expected).abs() < 0.0001);
         /// ```
         fn exp();
         /// Computes the exponential, rounding to the nearest.
@@ -2776,7 +2776,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5);
         /// f.exp_mut();
         /// let expected = 4.4817_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn exp_mut;
         /// Computes the exponential, applying the specified rounding
@@ -2806,7 +2806,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let exp = Float::with_val(53, f.exp_ref());
         /// let expected = 4.4817_f64;
-        /// assert!((exp - expected).abs() < 0.001);
+        /// assert!((exp - expected).abs() < 0.0001);
         /// ```
         fn exp_ref -> ExpRef;
     }
@@ -2821,7 +2821,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let exp2 = f.exp2();
         /// let expected = 2.8284_f64;
-        /// assert!((exp2 - expected).abs() < 0.001);
+        /// assert!((exp2 - expected).abs() < 0.0001);
         /// ```
         fn exp2();
         /// Computes 2 to the power of `self`, rounding to the nearest.
@@ -2833,7 +2833,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5);
         /// f.exp2_mut();
         /// let expected = 2.8284_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn exp2_mut;
         /// Computes 2 to the power of `self`, applying the specified
@@ -2863,7 +2863,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let exp2 = Float::with_val(53, f.exp2_ref());
         /// let expected = 2.8284_f64;
-        /// assert!((exp2 - expected).abs() < 0.001);
+        /// assert!((exp2 - expected).abs() < 0.0001);
         /// ```
         fn exp2_ref -> Exp2Ref;
     }
@@ -2878,7 +2878,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let exp10 = f.exp10();
         /// let expected = 31.6228_f64;
-        /// assert!((exp10 - expected).abs() < 0.001);
+        /// assert!((exp10 - expected).abs() < 0.0001);
         /// ```
         fn exp10();
         /// Computes 10 to the power of `self`, rounding to the nearest.
@@ -2890,7 +2890,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5);
         /// f.exp10_mut();
         /// let expected = 31.6228_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn exp10_mut;
         /// Computes 10 to the power of `self`, applying the specified
@@ -2920,7 +2920,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5);
         /// let exp10 = Float::with_val(53, f.exp10_ref());
         /// let expected = 31.6228_f64;
-        /// assert!((exp10 - expected).abs() < 0.001);
+        /// assert!((exp10 - expected).abs() < 0.0001);
         /// ```
         fn exp10_ref -> Exp10Ref;
     }
@@ -2935,7 +2935,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sin = f.sin();
         /// let expected = 0.9490_f64;
-        /// assert!((sin - expected).abs() < 0.001);
+        /// assert!((sin - expected).abs() < 0.0001);
         /// ```
         fn sin();
         /// Computes the sine, rounding to the nearest.
@@ -2947,7 +2947,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sin_mut();
         /// let expected = 0.9490_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn sin_mut;
         /// Computes the sine, applying the specified rounding method.
@@ -2976,7 +2976,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sin = Float::with_val(53, f.sin_ref());
         /// let expected = 0.9490_f64;
-        /// assert!((sin - expected).abs() < 0.001);
+        /// assert!((sin - expected).abs() < 0.0001);
         /// ```
         fn sin_ref -> SinRef;
     }
@@ -2991,7 +2991,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let cos = f.cos();
         /// let expected = 0.3153_f64;
-        /// assert!((cos - expected).abs() < 0.001);
+        /// assert!((cos - expected).abs() < 0.0001);
         /// ```
         fn cos();
         /// Computes the cosine, rounding to the nearest.
@@ -3003,7 +3003,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.cos_mut();
         /// let expected = 0.3153_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn cos_mut;
         /// Computes the cosine, applying the specified rounding method.
@@ -3032,7 +3032,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let cos = Float::with_val(53, f.cos_ref());
         /// let expected = 0.3153_f64;
-        /// assert!((cos - expected).abs() < 0.001);
+        /// assert!((cos - expected).abs() < 0.0001);
         /// ```
         fn cos_ref -> CosRef;
     }
@@ -3047,7 +3047,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let tan = f.tan();
         /// let expected = 3.0096_f64;
-        /// assert!((tan - expected).abs() < 0.001);
+        /// assert!((tan - expected).abs() < 0.0001);
         /// ```
         fn tan();
         /// Computes the tangent, rounding to the nearest.
@@ -3059,7 +3059,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.tan_mut();
         /// let expected = 3.0096_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn tan_mut;
         /// Computes the tangent, applying the specified rounding method.
@@ -3088,7 +3088,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let tan = Float::with_val(53, f.tan_ref());
         /// let expected = 3.0096_f64;
-        /// assert!((tan - expected).abs() < 0.001);
+        /// assert!((tan - expected).abs() < 0.0001);
         /// ```
         fn tan_ref -> TanRef;
     }
@@ -3108,8 +3108,8 @@ impl Float {
         /// let (sin, cos) = f.sin_cos(Float::new(53));
         /// let expected_sin = 0.9490_f64;
         /// let expected_cos = 0.3153_f64;
-        /// assert!((sin - expected_sin).abs() < 0.001);
-        /// assert!((cos - expected_cos).abs() < 0.001);
+        /// assert!((sin - expected_sin).abs() < 0.0001);
+        /// assert!((cos - expected_cos).abs() < 0.0001);
         /// ```
         fn sin_cos(cos);
         /// Computes the sine and cosine of `self`, rounding to the
@@ -3127,8 +3127,8 @@ impl Float {
         /// sin.sin_cos_mut(&mut cos);
         /// let expected_sin = 0.9490_f64;
         /// let expected_cos = 0.3153_f64;
-        /// assert!((sin - expected_sin).abs() < 0.001);
-        /// assert!((cos - expected_cos).abs() < 0.001);
+        /// assert!((sin - expected_sin).abs() < 0.0001);
+        /// assert!((cos - expected_cos).abs() < 0.0001);
         /// ```
         fn sin_cos_mut;
         /// Computes the sine and cosine of `self`, applying the specified
@@ -3171,8 +3171,8 @@ impl Float {
         /// (&mut sin, &mut cos).assign(sin_cos);
         /// let expected_sin = 0.9490_f64;
         /// let expected_cos = 0.3153_f64;
-        /// assert!((sin - expected_sin).abs() < 0.001);
-        /// assert!((cos - expected_cos).abs() < 0.001);
+        /// assert!((sin - expected_sin).abs() < 0.0001);
+        /// assert!((cos - expected_cos).abs() < 0.0001);
         ///
         /// // using 4 significant bits: sin = 0.9375
         /// // using 4 significant bits: cos = 0.3125
@@ -3197,7 +3197,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sec = f.sec();
         /// let expected = 3.1714_f64;
-        /// assert!((sec - expected).abs() < 0.001);
+        /// assert!((sec - expected).abs() < 0.0001);
         /// ```
         fn sec();
         /// Computes the secant, rounding to the nearest.
@@ -3209,7 +3209,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sec_mut();
         /// let expected = 3.1714_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn sec_mut;
         /// Computes the secant, applying the specified rounding method.
@@ -3238,7 +3238,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sec = Float::with_val(53, f.sec_ref());
         /// let expected = 3.1714_f64;
-        /// assert!((sec - expected).abs() < 0.001);
+        /// assert!((sec - expected).abs() < 0.0001);
         /// ```
         fn sec_ref -> SecRef;
     }
@@ -3253,7 +3253,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let csc = f.csc();
         /// let expected = 1.0538_f64;
-        /// assert!((csc - expected).abs() < 0.001);
+        /// assert!((csc - expected).abs() < 0.0001);
         /// ```
         fn csc();
         /// Computes the cosecant, rounding to the nearest.
@@ -3265,7 +3265,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.csc_mut();
         /// let expected = 1.0538_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn csc_mut;
         /// Computes the cosecant, applying the specified rounding method.
@@ -3294,7 +3294,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let csc = Float::with_val(53, f.csc_ref());
         /// let expected = 1.0538_f64;
-        /// assert!((csc - expected).abs() < 0.001);
+        /// assert!((csc - expected).abs() < 0.0001);
         /// ```
         fn csc_ref -> CscRef;
     }
@@ -3309,7 +3309,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let cot = f.cot();
         /// let expected = 0.3323_f64;
-        /// assert!((cot - expected).abs() < 0.001);
+        /// assert!((cot - expected).abs() < 0.0001);
         /// ```
         fn cot();
         /// Computes the cotangent, rounding to the nearest.
@@ -3321,7 +3321,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.cot_mut();
         /// let expected = 0.3323_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn cot_mut;
         /// Computes the cotangent, applying the specified rounding
@@ -3351,7 +3351,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let cot = Float::with_val(53, f.cot_ref());
         /// let expected = 0.3323_f64;
-        /// assert!((cot - expected).abs() < 0.001);
+        /// assert!((cot - expected).abs() < 0.0001);
         /// ```
         fn cot_ref -> CotRef;
     }
@@ -3366,7 +3366,7 @@ impl Float {
         /// let f = Float::with_val(53, -0.75);
         /// let asin = f.asin();
         /// let expected = -0.8481_f64;
-        /// assert!((asin - expected).abs() < 0.001);
+        /// assert!((asin - expected).abs() < 0.0001);
         /// ```
         fn asin();
         /// Computes the arc-sine, rounding to the nearest.
@@ -3378,7 +3378,7 @@ impl Float {
         /// let mut f = Float::with_val(53, -0.75);
         /// f.asin_mut();
         /// let expected = -0.8481_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn asin_mut;
         /// Computes the arc-sine, applying the specified rounding method.
@@ -3407,7 +3407,7 @@ impl Float {
         /// let f = Float::with_val(53, -0.75);
         /// let asin = Float::with_val(53, f.asin_ref());
         /// let expected = -0.8481_f64;
-        /// assert!((asin - expected).abs() < 0.001);
+        /// assert!((asin - expected).abs() < 0.0001);
         /// ```
         fn asin_ref -> AsinRef;
     }
@@ -3422,7 +3422,7 @@ impl Float {
         /// let f = Float::with_val(53, -0.75);
         /// let acos = f.acos();
         /// let expected = 2.4189_f64;
-        /// assert!((acos - expected).abs() < 0.001);
+        /// assert!((acos - expected).abs() < 0.0001);
         /// ```
         fn acos();
         /// Computes the arc-cosine, rounding to the nearest.
@@ -3434,7 +3434,7 @@ impl Float {
         /// let mut f = Float::with_val(53, -0.75);
         /// f.acos_mut();
         /// let expected = 2.4189_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn acos_mut;
         /// Computes the arc-cosine, applying the specified rounding
@@ -3464,7 +3464,7 @@ impl Float {
         /// let f = Float::with_val(53, -0.75);
         /// let acos = Float::with_val(53, f.acos_ref());
         /// let expected = 2.4189_f64;
-        /// assert!((acos - expected).abs() < 0.001);
+        /// assert!((acos - expected).abs() < 0.0001);
         /// ```
         fn acos_ref -> AcosRef;
     }
@@ -3479,7 +3479,7 @@ impl Float {
         /// let f = Float::with_val(53, -0.75);
         /// let atan = f.atan();
         /// let expected = -0.6435_f64;
-        /// assert!((atan - expected).abs() < 0.001);
+        /// assert!((atan - expected).abs() < 0.0001);
         /// ```
         fn atan();
         /// Computes the arc-tangent, rounding to the nearest.
@@ -3491,7 +3491,7 @@ impl Float {
         /// let mut f = Float::with_val(53, -0.75);
         /// f.atan_mut();
         /// let expected = -0.6435_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn atan_mut;
         /// Computes the arc-tangent, applying the specified rounding
@@ -3521,7 +3521,7 @@ impl Float {
         /// let f = Float::with_val(53, -0.75);
         /// let atan = Float::with_val(53, f.atan_ref());
         /// let expected = -0.6435_f64;
-        /// assert!((atan - expected).abs() < 0.001);
+        /// assert!((atan - expected).abs() < 0.0001);
         /// ```
         fn atan_ref -> AtanRef;
     }
@@ -3541,7 +3541,7 @@ impl Float {
         /// let x = Float::with_val(53, -4.0);
         /// let atan2 = y.atan2(&x);
         /// let expected = 2.4981_f64;
-        /// assert!((atan2 - expected).abs() < 0.001);
+        /// assert!((atan2 - expected).abs() < 0.0001);
         /// ```
         fn atan2(x);
         /// Computes the arc-tangent2 of `self` and `x`, rounding to
@@ -3558,7 +3558,7 @@ impl Float {
         /// let x = Float::with_val(53, -4.0);
         /// y.atan2_mut(&x);
         /// let expected = 2.4981_f64;
-        /// assert!((y - expected).abs() < 0.001);
+        /// assert!((y - expected).abs() < 0.0001);
         /// ```
         fn atan2_mut;
         /// Computes the arc-tangent2 of `self` and `x`, applying the
@@ -3597,7 +3597,7 @@ impl Float {
         /// let r = y.atan2_ref(&x);
         /// let atan2 = Float::with_val(53, r);
         /// let expected = 2.4981_f64;
-        /// assert!((atan2 - expected).abs() < 0.001);
+        /// assert!((atan2 - expected).abs() < 0.0001);
         /// ```
         fn atan2_ref -> Atan2Ref;
     }
@@ -3612,7 +3612,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sinh = f.sinh();
         /// let expected = 1.6019_f64;
-        /// assert!((sinh - expected).abs() < 0.001);
+        /// assert!((sinh - expected).abs() < 0.0001);
         /// ```
         fn sinh();
         /// Computes the hyperbolic sine, rounding to the nearest.
@@ -3624,7 +3624,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sinh_mut();
         /// let expected = 1.6019_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn sinh_mut;
         /// Computes the hyperbolic sine, applying the specified rounding
@@ -3654,7 +3654,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sinh = Float::with_val(53, f.sinh_ref());
         /// let expected = 1.6019_f64;
-        /// assert!((sinh - expected).abs() < 0.001);
+        /// assert!((sinh - expected).abs() < 0.0001);
         /// ```
         fn sinh_ref -> SinhRef;
     }
@@ -3669,7 +3669,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let cosh = f.cosh();
         /// let expected = 1.8884_f64;
-        /// assert!((cosh - expected).abs() < 0.001);
+        /// assert!((cosh - expected).abs() < 0.0001);
         /// ```
         fn cosh();
         /// Computes the hyperbolic cosine, rounding to the nearest.
@@ -3681,7 +3681,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.cosh_mut();
         /// let expected = 1.8884_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn cosh_mut;
         /// Computes the hyperbolic cosine, applying the specified
@@ -3711,7 +3711,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let cosh = Float::with_val(53, f.cosh_ref());
         /// let expected = 1.8884_f64;
-        /// assert!((cosh - expected).abs() < 0.001);
+        /// assert!((cosh - expected).abs() < 0.0001);
         /// ```
         fn cosh_ref -> CoshRef;
     }
@@ -3726,7 +3726,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let tanh = f.tanh();
         /// let expected = 0.8483_f64;
-        /// assert!((tanh - expected).abs() < 0.001);
+        /// assert!((tanh - expected).abs() < 0.0001);
         /// ```
         fn tanh();
         /// Computes the hyperbolic tangent, rounding to the nearest.
@@ -3738,7 +3738,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.tanh_mut();
         /// let expected = 0.8483_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn tanh_mut;
         /// Computes the hyperbolic tangent, applying the specified
@@ -3768,7 +3768,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let tanh = Float::with_val(53, f.tanh_ref());
         /// let expected = 0.8483_f64;
-        /// assert!((tanh - expected).abs() < 0.001);
+        /// assert!((tanh - expected).abs() < 0.0001);
         /// ```
         fn tanh_ref -> TanhRef;
     }
@@ -3788,8 +3788,8 @@ impl Float {
         /// let (sinh, cosh) = f.sinh_cosh(Float::new(53));
         /// let expected_sinh = 1.6019_f64;
         /// let expected_cosh = 1.8884_f64;
-        /// assert!((sinh - expected_sinh).abs() < 0.001);
-        /// assert!((cosh - expected_cosh).abs() < 0.001);
+        /// assert!((sinh - expected_sinh).abs() < 0.0001);
+        /// assert!((cosh - expected_cosh).abs() < 0.0001);
         /// ```
         fn sinh_cosh(cos);
         /// Computes the hyperbolic sine and cosine of `self`,
@@ -3807,8 +3807,8 @@ impl Float {
         /// sinh.sinh_cosh_mut(&mut cosh);
         /// let expected_sinh = 1.6019_f64;
         /// let expected_cosh = 1.8884_f64;
-        /// assert!((sinh - expected_sinh).abs() < 0.001);
-        /// assert!((cosh - expected_cosh).abs() < 0.001);
+        /// assert!((sinh - expected_sinh).abs() < 0.0001);
+        /// assert!((cosh - expected_cosh).abs() < 0.0001);
         /// ```
         fn sinh_cosh_mut;
         /// Computes the hyperbolic sine and cosine of `self`,
@@ -3851,8 +3851,8 @@ impl Float {
         /// (&mut sinh, &mut cosh).assign(sinh_cosh);
         /// let expected_sinh = 1.6019_f64;
         /// let expected_cosh = 1.8884_f64;
-        /// assert!((sinh - expected_sinh).abs() < 0.001);
-        /// assert!((cosh - expected_cosh).abs() < 0.001);
+        /// assert!((sinh - expected_sinh).abs() < 0.0001);
+        /// assert!((cosh - expected_cosh).abs() < 0.0001);
         ///
         /// // using 4 significant bits: sin = 1.625
         /// // using 4 significant bits: cos = 1.875
@@ -3877,7 +3877,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sech = f.sech();
         /// let expected = 0.5295_f64;
-        /// assert!((sech - expected).abs() < 0.001);
+        /// assert!((sech - expected).abs() < 0.0001);
         /// ```
         fn sech();
         /// Computes the hyperbolic secant, rounding to the nearest.
@@ -3889,7 +3889,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.sech_mut();
         /// let expected = 0.5295_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn sech_mut;
         /// Computes the hyperbolic secant, applying the specified
@@ -3919,7 +3919,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let sech = Float::with_val(53, f.sech_ref());
         /// let expected = 0.5295_f64;
-        /// assert!((sech - expected).abs() < 0.001);
+        /// assert!((sech - expected).abs() < 0.0001);
         /// ```
         fn sech_ref -> SechRef;
     }
@@ -3934,7 +3934,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let csch = f.csch();
         /// let expected = 0.6243_f64;
-        /// assert!((csch - expected).abs() < 0.001);
+        /// assert!((csch - expected).abs() < 0.0001);
         /// ```
         fn csch();
         /// Computes the hyperbolic cosecant, rounding to the nearest.
@@ -3946,7 +3946,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.csch_mut();
         /// let expected = 0.6243_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn csch_mut;
         /// Computes the hyperbolic cosecant, applying the specified
@@ -3976,7 +3976,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let csch = Float::with_val(53, f.csch_ref());
         /// let expected = 0.6243_f64;
-        /// assert!((csch - expected).abs() < 0.001);
+        /// assert!((csch - expected).abs() < 0.0001);
         /// ```
         fn csch_ref -> CschRef;
     }
@@ -3991,7 +3991,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let coth = f.coth();
         /// let expected = 1.1789_f64;
-        /// assert!((coth - expected).abs() < 0.001);
+        /// assert!((coth - expected).abs() < 0.0001);
         /// ```
         fn coth();
         /// Computes the hyperbolic cotangent, rounding to the nearest.
@@ -4003,7 +4003,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.coth_mut();
         /// let expected = 1.1789_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn coth_mut;
         /// Computes the hyperbolic cotangent, applying the specified
@@ -4033,7 +4033,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let coth = Float::with_val(53, f.coth_ref());
         /// let expected = 1.1789_f64;
-        /// assert!((coth - expected).abs() < 0.001);
+        /// assert!((coth - expected).abs() < 0.0001);
         /// ```
         fn coth_ref -> CothRef;
     }
@@ -4048,7 +4048,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let asinh = f.asinh();
         /// let expected = 1.0476_f64;
-        /// assert!((asinh - expected).abs() < 0.001);
+        /// assert!((asinh - expected).abs() < 0.0001);
         /// ```
         fn asinh();
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
@@ -4060,7 +4060,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.asinh_mut();
         /// let expected = 1.0476_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn asinh_mut;
         /// Computes the inverse hyperbolic sine, applying the specified
@@ -4090,7 +4090,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let asinh = Float::with_val(53, f.asinh_ref());
         /// let expected = 1.0476_f64;
-        /// assert!((asinh - expected).abs() < 0.001);
+        /// assert!((asinh - expected).abs() < 0.0001);
         /// ```
         fn asinh_ref -> AsinhRef;
     }
@@ -4106,7 +4106,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let acosh = f.acosh();
         /// let expected = 0.6931_f64;
-        /// assert!((acosh - expected).abs() < 0.001);
+        /// assert!((acosh - expected).abs() < 0.0001);
         /// ```
         fn acosh();
         /// Computes the inverse hyperbolic cosine, rounding to the
@@ -4119,7 +4119,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.acosh_mut();
         /// let expected = 0.6931_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn acosh_mut;
         /// Computes the inverse hyperbolic cosine, applying the specified
@@ -4149,7 +4149,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let acosh = Float::with_val(53, f.acosh_ref());
         /// let expected = 0.6931_f64;
-        /// assert!((acosh - expected).abs() < 0.001);
+        /// assert!((acosh - expected).abs() < 0.0001);
         /// ```
         fn acosh_ref -> AcoshRef;
     }
@@ -4165,7 +4165,7 @@ impl Float {
         /// let f = Float::with_val(53, 0.75);
         /// let atanh = f.atanh();
         /// let expected = 0.9730_f64;
-        /// assert!((atanh - expected).abs() < 0.001);
+        /// assert!((atanh - expected).abs() < 0.0001);
         /// ```
         fn atanh();
         /// Computes the inverse hyperbolic tangent, rounding to the
@@ -4178,7 +4178,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 0.75);
         /// f.atanh_mut();
         /// let expected = 0.9730_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn atanh_mut;
         /// Computes the inverse hyperbolic tangent, applying the
@@ -4208,7 +4208,7 @@ impl Float {
         /// let f = Float::with_val(53, 0.75);
         /// let atanh = Float::with_val(53, f.atanh_ref());
         /// let expected = 0.9730_f64;
-        /// assert!((atanh - expected).abs() < 0.001);
+        /// assert!((atanh - expected).abs() < 0.0001);
         /// ```
         fn atanh_ref -> AtanhRef;
     }
@@ -4270,7 +4270,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5 * two_to_m10);
         /// let ln_1p = f.ln_1p();
         /// let expected = 1.4989_f64 * two_to_m10;
-        /// assert!((ln_1p - expected).abs() < 0.001 * two_to_m10);
+        /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
         /// ```
         fn ln_1p();
         /// Computes the natural logarithm of one plus `self`, rounding to
@@ -4284,7 +4284,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
         /// f.ln_1p_mut();
         /// let expected = 1.4989_f64 * two_to_m10;
-        /// assert!((f - expected).abs() < 0.001 * two_to_m10);
+        /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
         /// ```
         fn ln_1p_mut;
         /// Computes the natural logarithm of one plus `self`, applying
@@ -4316,7 +4316,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5 * two_to_m10);
         /// let ln_1p = Float::with_val(53, f.ln_1p_ref());
         /// let expected = 1.4989_f64 * two_to_m10;
-        /// assert!((ln_1p - expected).abs() < 0.001 * two_to_m10);
+        /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
         /// ```
         fn ln_1p_ref -> Ln1pRef;
     }
@@ -4333,7 +4333,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5 * two_to_m10);
         /// let exp_m1 = f.exp_m1();
         /// let expected = 1.5011_f64 * two_to_m10;
-        /// assert!((exp_m1 - expected).abs() < 0.001 * two_to_m10);
+        /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
         /// ```
         fn exp_m1();
         /// Subtracts one from the exponential of `self`, rounding to the
@@ -4347,7 +4347,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.5 * two_to_m10);
         /// f.exp_m1_mut();
         /// let expected = 1.5011_f64 * two_to_m10;
-        /// assert!((f - expected).abs() < 0.001 * two_to_m10);
+        /// assert!((f - expected).abs() < 0.0001 * two_to_m10);
         /// ```
         fn exp_m1_mut;
         /// Subtracts one from the exponential of `self`, applying the
@@ -4380,7 +4380,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.5 * two_to_m10);
         /// let exp_m1 = Float::with_val(53, f.exp_m1_ref());
         /// let expected = 1.5011_f64 * two_to_m10;
-        /// assert!((exp_m1 - expected).abs() < 0.001 * two_to_m10);
+        /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
         /// ```
         fn exp_m1_ref -> ExpM1Ref;
     }
@@ -4395,7 +4395,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let eint = f.eint();
         /// let expected = 2.5810_f64;
-        /// assert!((eint - expected).abs() < 0.001);
+        /// assert!((eint - expected).abs() < 0.0001);
         /// ```
         fn eint();
         /// Computes the exponential integral, rounding to the nearest.
@@ -4407,7 +4407,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.eint_mut();
         /// let expected = 2.5810_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn eint_mut;
         /// Computes the exponential integral, applying the specified
@@ -4437,7 +4437,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let eint = Float::with_val(53, f.eint_ref());
         /// let expected = 2.5810_f64;
-        /// assert!((eint - expected).abs() < 0.001);
+        /// assert!((eint - expected).abs() < 0.0001);
         /// ```
         fn eint_ref -> EintRef;
     }
@@ -4453,7 +4453,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let li2 = f.li2();
         /// let expected = 2.1902_f64;
-        /// assert!((li2 - expected).abs() < 0.001);
+        /// assert!((li2 - expected).abs() < 0.0001);
         /// ```
         fn li2();
         /// Computes the real part of the dilogarithm of `self`, rounding
@@ -4466,7 +4466,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.li2_mut();
         /// let expected = 2.1902_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn li2_mut;
         /// Computes the real part of the dilogarithm of `self`, applying
@@ -4497,7 +4497,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let li2 = Float::with_val(53, f.li2_ref());
         /// let expected = 2.1902_f64;
-        /// assert!((li2 - expected).abs() < 0.001);
+        /// assert!((li2 - expected).abs() < 0.0001);
         /// ```
         fn li2_ref -> Li2Ref;
     }
@@ -4513,7 +4513,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let gamma = f.gamma();
         /// let expected = 0.9064_f64;
-        /// assert!((gamma - expected).abs() < 0.001);
+        /// assert!((gamma - expected).abs() < 0.0001);
         /// ```
         fn gamma();
         /// Computes the value of the Gamma function on `self`, rounding
@@ -4526,7 +4526,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.gamma_mut();
         /// let expected = 0.9064_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn gamma_mut;
         /// Computes the value of the Gamma function on `self`, applying
@@ -4556,7 +4556,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let gamma = Float::with_val(53, f.gamma_ref());
         /// let expected = 0.9064_f64;
-        /// assert!((gamma - expected).abs() < 0.001);
+        /// assert!((gamma - expected).abs() < 0.0001);
         /// ```
         fn gamma_ref -> GammaRef;
     }
@@ -4572,7 +4572,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let ln_gamma = f.ln_gamma();
         /// let expected = -0.0983_f64;
-        /// assert!((ln_gamma - expected).abs() < 0.001);
+        /// assert!((ln_gamma - expected).abs() < 0.0001);
         /// ```
         fn ln_gamma();
         /// Computes the logarithm of the Gamma function on `self`,
@@ -4585,7 +4585,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.ln_gamma_mut();
         /// let expected = -0.0983_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn ln_gamma_mut;
         /// Computes the logarithm of the Gamma function on `self`,
@@ -4616,7 +4616,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let ln_gamma = Float::with_val(53, f.ln_gamma_ref());
         /// let expected = -0.0983_f64;
-        /// assert!((ln_gamma - expected).abs() < 0.001);
+        /// assert!((ln_gamma - expected).abs() < 0.0001);
         /// ```
         fn ln_gamma_ref -> LnGammaRef;
     }
@@ -4784,7 +4784,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let digamma = f.digamma();
         /// let expected = -0.2275_f64;
-        /// assert!((digamma - expected).abs() < 0.001);
+        /// assert!((digamma - expected).abs() < 0.0001);
         /// ```
         fn digamma();
         /// Computes the value of the Digamma function on `self`, rounding
@@ -4797,7 +4797,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.digamma_mut();
         /// let expected = -0.2275_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn digamma_mut;
         /// Computes the value of the Digamma function on `self`, applying
@@ -4827,7 +4827,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let digamma = Float::with_val(53, f.digamma_ref());
         /// let expected = -0.2275_f64;
-        /// assert!((digamma - expected).abs() < 0.001);
+        /// assert!((digamma - expected).abs() < 0.0001);
         /// ```
         fn digamma_ref -> DigammaRef;
     }
@@ -4843,7 +4843,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let zeta = f.zeta();
         /// let expected = 4.5951_f64;
-        /// assert!((zeta - expected).abs() < 0.001);
+        /// assert!((zeta - expected).abs() < 0.0001);
         /// ```
         fn zeta();
         /// Computes the value of the Riemann Zeta function on `self`,
@@ -4856,7 +4856,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.zeta_mut();
         /// let expected = 4.5951_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn zeta_mut;
         /// Computes the value of the Riemann Zeta function on `self`,
@@ -4886,7 +4886,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let zeta = Float::with_val(53, f.zeta_ref());
         /// let expected = 4.5951_f64;
-        /// assert!((zeta - expected).abs() < 0.001);
+        /// assert!((zeta - expected).abs() < 0.0001);
         /// ```
         fn zeta_ref -> ZetaRef;
     }
@@ -4901,7 +4901,7 @@ impl Float {
     /// let mut f = Float::new(53);
     /// f.assign_zeta_u(3);
     /// let expected = 1.2021_f64;
-    /// assert!((f - expected).abs() < 0.001);
+    /// assert!((f - expected).abs() < 0.0001);
     /// ```
     #[inline]
     pub fn assign_zeta_u(&mut self, u: u32) {
@@ -4943,7 +4943,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let erf = f.erf();
         /// let expected = 0.9229_f64;
-        /// assert!((erf - expected).abs() < 0.001);
+        /// assert!((erf - expected).abs() < 0.0001);
         /// ```
         fn erf();
         /// Computes the value of the error function, rounding to the
@@ -4956,7 +4956,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.erf_mut();
         /// let expected = 0.9229_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn erf_mut;
         /// Computes the value of the error function, applying the
@@ -4986,7 +4986,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let erf = Float::with_val(53, f.erf_ref());
         /// let expected = 0.9229_f64;
-        /// assert!((erf - expected).abs() < 0.001);
+        /// assert!((erf - expected).abs() < 0.0001);
         /// ```
         fn erf_ref -> ErfRef;
     }
@@ -5002,7 +5002,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let erfc = f.erfc();
         /// let expected = 0.0771_f64;
-        /// assert!((erfc - expected).abs() < 0.001);
+        /// assert!((erfc - expected).abs() < 0.0001);
         /// ```
         fn erfc();
         /// Computes the value of the complementary error function,
@@ -5015,7 +5015,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.erfc_mut();
         /// let expected = 0.0771_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn erfc_mut;
         /// Computes the value of the complementary error function,
@@ -5045,7 +5045,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let erfc = Float::with_val(53, f.erfc_ref());
         /// let expected = 0.0771_f64;
-        /// assert!((erfc - expected).abs() < 0.001);
+        /// assert!((erfc - expected).abs() < 0.0001);
         /// ```
         fn erfc_ref -> ErfcRef;
     }
@@ -5061,7 +5061,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let j0 = f.j0();
         /// let expected = 0.6459_f64;
-        /// assert!((j0 - expected).abs() < 0.001);
+        /// assert!((j0 - expected).abs() < 0.0001);
         /// ```
         fn j0();
         /// Computes the value of the first kind Bessel function of
@@ -5074,7 +5074,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.j0_mut();
         /// let expected = 0.6459_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn j0_mut;
         /// Computes the value of the first kind Bessel function of
@@ -5104,7 +5104,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let j0 = Float::with_val(53, f.j0_ref());
         /// let expected = 0.6459_f64;
-        /// assert!((j0 - expected).abs() < 0.001);
+        /// assert!((j0 - expected).abs() < 0.0001);
         /// ```
         fn j0_ref -> J0Ref;
     }
@@ -5120,7 +5120,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let j1 = f.j1();
         /// let expected = 0.5106_f64;
-        /// assert!((j1 - expected).abs() < 0.001);
+        /// assert!((j1 - expected).abs() < 0.0001);
         /// ```
         fn j1();
         /// Computes the value of the first kind Bessel function of
@@ -5133,7 +5133,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.j1_mut();
         /// let expected = 0.5106_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn j1_mut;
         /// Computes the value of the first kind Bessel function of
@@ -5163,7 +5163,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let j1 = Float::with_val(53, f.j1_ref());
         /// let expected = 0.5106_f64;
-        /// assert!((j1 - expected).abs() < 0.001);
+        /// assert!((j1 - expected).abs() < 0.0001);
         /// ```
         fn j1_ref -> J1Ref;
     }
@@ -5179,7 +5179,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let j2 = f.jn(2);
         /// let expected = 0.1711_f64;
-        /// assert!((j2 - expected).abs() < 0.001);
+        /// assert!((j2 - expected).abs() < 0.0001);
         /// ```
         fn jn(n: i32);
         /// Computes the value of the first kind Bessel function of
@@ -5192,7 +5192,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.jn_mut(2);
         /// let expected = 0.1711_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn jn_mut;
         /// Computes the value of the first kind Bessel function of
@@ -5222,7 +5222,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let j2 = Float::with_val(53, f.jn_ref(2));
         /// let expected = 0.1711_f64;
-        /// assert!((j2 - expected).abs() < 0.001);
+        /// assert!((j2 - expected).abs() < 0.0001);
         /// ```
         fn jn_ref -> JnRef;
     }
@@ -5238,7 +5238,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let y0 = f.y0();
         /// let expected = 0.2582_f64;
-        /// assert!((y0 - expected).abs() < 0.001);
+        /// assert!((y0 - expected).abs() < 0.0001);
         /// ```
         fn y0();
         /// Computes the value of the second kind Bessel function of
@@ -5251,7 +5251,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.y0_mut();
         /// let expected = 0.2582_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn y0_mut;
         /// Computes the value of the second kind Bessel function of
@@ -5281,7 +5281,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let y0 = Float::with_val(53, f.y0_ref());
         /// let expected = 0.2582_f64;
-        /// assert!((y0 - expected).abs() < 0.001);
+        /// assert!((y0 - expected).abs() < 0.0001);
         /// ```
         fn y0_ref -> Y0Ref;
     }
@@ -5297,7 +5297,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let y1 = f.y1();
         /// let expected = -0.5844_f64;
-        /// assert!((y1 - expected).abs() < 0.001);
+        /// assert!((y1 - expected).abs() < 0.0001);
         /// ```
         fn y1();
         /// Computes the value of the second kind Bessel function of
@@ -5310,7 +5310,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.y1_mut();
         /// let expected = -0.5844_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn y1_mut;
         /// Computes the value of the second kind Bessel function of
@@ -5340,7 +5340,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let y1 = Float::with_val(53, f.y1_ref());
         /// let expected = -0.5844_f64;
-        /// assert!((y1 - expected).abs() < 0.001);
+        /// assert!((y1 - expected).abs() < 0.0001);
         /// ```
         fn y1_ref -> Y1Ref;
     }
@@ -5356,7 +5356,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let y2 = f.yn(2);
         /// let expected = -1.1932_f64;
-        /// assert!((y2 - expected).abs() < 0.001);
+        /// assert!((y2 - expected).abs() < 0.0001);
         /// ```
         fn yn(n: i32);
         /// Computes the value of the second kind Bessel function of
@@ -5369,7 +5369,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.yn_mut(2);
         /// let expected = -1.1932_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn yn_mut;
         /// Computes the value of the second kind Bessel function of
@@ -5399,7 +5399,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let y2 = Float::with_val(53, f.yn_ref(2));
         /// let expected = -1.1932_f64;
-        /// assert!((y2 - expected).abs() < 0.001);
+        /// assert!((y2 - expected).abs() < 0.0001);
         /// ```
         fn yn_ref -> YnRef;
     }
@@ -5416,7 +5416,7 @@ impl Float {
         /// let g = Float::with_val(53, 3.75);
         /// let agm = f.agm(&g);
         /// let expected = 2.3295_f64;
-        /// assert!((agm - expected).abs() < 0.001);
+        /// assert!((agm - expected).abs() < 0.0001);
         /// ```
         fn agm(other);
         /// Computes the arithmetic-geometric mean of `self` and `other`,
@@ -5430,7 +5430,7 @@ impl Float {
         /// let g = Float::with_val(53, 3.75);
         /// f.agm_mut(&g);
         /// let expected = 2.3295_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn agm_mut;
         /// Computes the arithmetic-geometric mean of `self` and `other`,
@@ -5462,7 +5462,7 @@ impl Float {
         /// let g = Float::with_val(53, 3.75);
         /// let agm = Float::with_val(53, f.agm_ref(&g));
         /// let expected = 2.3295_f64;
-        /// assert!((agm - expected).abs() < 0.001);
+        /// assert!((agm - expected).abs() < 0.0001);
         /// ```
         fn agm_ref -> AgmRef;
     }
@@ -5479,7 +5479,7 @@ impl Float {
         /// let g = Float::with_val(53, 3.75);
         /// let hypot = f.hypot(&g);
         /// let expected = 3.9528_f64;
-        /// assert!((hypot - expected).abs() < 0.001);
+        /// assert!((hypot - expected).abs() < 0.0001);
         /// ```
         fn hypot(other);
         /// Computes the Euclidean norm of `self` and `other`, rounding to
@@ -5493,7 +5493,7 @@ impl Float {
         /// let g = Float::with_val(53, 3.75);
         /// f.hypot_mut(&g);
         /// let expected = 3.9528_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn hypot_mut;
         /// Computes the Euclidean norm of `self` and `other`, applying
@@ -5525,7 +5525,7 @@ impl Float {
         /// let g = Float::with_val(53, 3.75);
         /// let hypot = Float::with_val(53, f.hypot_ref(&g));
         /// let expected = 3.9528_f64;
-        /// assert!((hypot - expected).abs() < 0.001);
+        /// assert!((hypot - expected).abs() < 0.0001);
         /// ```
         fn hypot_ref -> HypotRef;
     }
@@ -5541,7 +5541,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let ai = f.ai();
         /// let expected = 0.0996_f64;
-        /// assert!((ai - expected).abs() < 0.001);
+        /// assert!((ai - expected).abs() < 0.0001);
         /// ```
         fn ai();
         /// Computes the value of the Airy function Ai on `self`, rounding
@@ -5554,7 +5554,7 @@ impl Float {
         /// let mut f = Float::with_val(53, 1.25);
         /// f.ai_mut();
         /// let expected = 0.0996_f64;
-        /// assert!((f - expected).abs() < 0.001);
+        /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn ai_mut;
         /// Computes the value of the Airy function Ai on `self`, applying
@@ -5584,7 +5584,7 @@ impl Float {
         /// let f = Float::with_val(53, 1.25);
         /// let ai = Float::with_val(53, f.ai_ref());
         /// let expected = 0.0996_f64;
-        /// assert!((ai - expected).abs() < 0.001);
+        /// assert!((ai - expected).abs() < 0.0001);
         /// ```
         fn ai_ref -> AiRef;
     }
