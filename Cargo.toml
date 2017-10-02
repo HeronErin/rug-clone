@@ -27,6 +27,10 @@ categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 build = "build.rs"
 
+[badges]
+
+maintenance = { status = "actively-developed" }
+
 [features]
 default = ["integer", "rational", "float", "complex", "rand"]
 integer = ["gmp-mpfr-sys"]
