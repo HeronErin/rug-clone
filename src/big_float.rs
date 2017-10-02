@@ -5592,22 +5592,94 @@ impl Float {
         Float;
         mpfr::rint_ceil, rraw;
         /// Rounds up to the next higher integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let ceil1 = f1.ceil();
+        /// assert_eq!(ceil1, -23);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let ceil2 = f2.ceil();
+        /// assert_eq!(ceil2, 24);
+        /// ```
         fn ceil();
         /// Rounds up to the next higher integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, -23.75);
+        /// f1.ceil_mut();
+        /// assert_eq!(f1, -23);
+        /// let mut f2 = Float::with_val(53, 23.75);
+        /// f2.ceil_mut();
+        /// assert_eq!(f2, 24);
+        /// ```
         fn ceil_mut;
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let ceil1 = Float::with_val(53, f1.ceil_ref());
+        /// assert_eq!(ceil1, -23);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let ceil2 = Float::with_val(53, f2.ceil_ref());
+        /// assert_eq!(ceil2, 24);
+        /// ```
         fn ceil_ref -> CeilRef;
     }
     math_op1_no_round! {
         Float;
         mpfr::rint_floor, rraw;
         /// Rounds down to the next lower integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let floor1 = f1.floor();
+        /// assert_eq!(floor1, -24);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let floor2 = f2.floor();
+        /// assert_eq!(floor2, 23);
+        /// ```
         fn floor();
         /// Rounds down to the next lower integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, -23.75);
+        /// f1.floor_mut();
+        /// assert_eq!(f1, -24);
+        /// let mut f2 = Float::with_val(53, 23.75);
+        /// f2.floor_mut();
+        /// assert_eq!(f2, 23);
+        /// ```
         fn floor_mut;
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let floor1 = Float::with_val(53, f1.floor_ref());
+        /// assert_eq!(floor1, -24);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let floor2 = Float::with_val(53, f2.floor_ref());
+        /// assert_eq!(floor2, 23);
+        /// ```
         fn floor_ref -> FloorRef;
     }
     math_op1_no_round! {
@@ -5615,15 +5687,53 @@ impl Float {
         mpfr::rint_round, rraw;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let round1 = f1.round();
+        /// assert_eq!(round1, -24);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let round2 = f2.round();
+        /// assert_eq!(round2, 24);
+        /// ```
         fn round();
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, -23.75);
+        /// f1.round_mut();
+        /// assert_eq!(f1, -24);
+        /// let mut f2 = Float::with_val(53, 23.75);
+        /// f2.round_mut();
+        /// assert_eq!(f2, 24);
+        /// ```
         fn round_mut;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero. The result may be rounded again when
         /// assigned to the target.
         ///
         /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, -23.75);
+        /// let round1 = Float::with_val(53, f1.round_ref());
+        /// assert_eq!(round1, -24);
+        /// let f2 = Float::with_val(53, 23.75);
+        /// let round2 = Float::with_val(53, f2.round_ref());
+        /// assert_eq!(round2, 24);
+        /// ```
+        ///
+        /// Double rounding may happen when assigning to a target with
+        /// a precision less than the number of significant bits for
+        /// the truncated integer.
         ///
         /// ```rust
         /// use rug::{AssignRound, Float};
@@ -5639,7 +5749,7 @@ impl Float {
         /// dst.assign_round(r, Round::Nearest);
         /// assert_eq!(dst, 8);
         /// ```
-        fn round_ref -> RoundRef;
+       fn round_ref -> RoundRef;
     }
     math_op1_no_round! {
         Float;
@@ -5651,11 +5761,11 @@ impl Float {
         /// ```rust
         /// use rug::Float;
         /// let f1 = Float::with_val(53, -23.75);
-        /// let t1 = f1.trunc();
-        /// assert_eq!(t1, -23);
+        /// let trunc1 = f1.trunc();
+        /// assert_eq!(trunc1, -23);
         /// let f2 = Float::with_val(53, 23.75);
-        /// let t2 = f2.trunc();
-        /// assert_eq!(t2, 23);
+        /// let trunc2 = f2.trunc();
+        /// assert_eq!(trunc2, 23);
         /// ```
         fn trunc();
         /// Rounds to the next integer towards zero.
@@ -5680,11 +5790,11 @@ impl Float {
         /// ```rust
         /// use rug::Float;
         /// let f1 = Float::with_val(53, -23.75);
-        /// let t1 = Float::with_val(53, f1.trunc_ref());
-        /// assert_eq!(t1, -23);
+        /// let trunc1 = Float::with_val(53, f1.trunc_ref());
+        /// assert_eq!(trunc1, -23);
         /// let f2 = Float::with_val(53, 23.75);
-        /// let t2 = Float::with_val(53, f2.trunc_ref());
-        /// assert_eq!(t2, 23);
+        /// let trunc2 = Float::with_val(53, f2.trunc_ref());
+        /// assert_eq!(trunc2, 23);
         /// ```
         fn trunc_ref -> TruncRef;
     }
@@ -5748,12 +5858,12 @@ impl Float {
         /// ```rust
         /// use rug::Float;
         /// let f1 = Float::with_val(53, -23.75);
-        /// let (t1, fract1) = f1.trunc_fract(Float::new(53));
-        /// assert_eq!(t1, -23);
+        /// let (trunc1, fract1) = f1.trunc_fract(Float::new(53));
+        /// assert_eq!(trunc1, -23);
         /// assert_eq!(fract1, -0.75);
         /// let f2 = Float::with_val(53, 23.75);
-        /// let (t2, fract2) = f2.trunc_fract(Float::new(53));
-        /// assert_eq!(t2, 23);
+        /// let (trunc2, fract2) = f2.trunc_fract(Float::new(53));
+        /// assert_eq!(trunc2, 23);
         /// assert_eq!(fract2, 0.75);
         /// ```
         fn trunc_fract(fract);
