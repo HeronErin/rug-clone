@@ -128,7 +128,7 @@
 //! [rug int]:  struct.Integer.html
 //! [rug ops]:  ops/index.html
 //! [rug rat]:  struct.Rational.html
-//! [sys]:      https://docs.rs/gmp-mpfr-sys/~1.0.6/
+//! [sys]:      https://docs.rs/gmp-mpfr-sys/^1.0.6/
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/0.7.0/")]
 #![doc(test(attr(deny(warnings))))]

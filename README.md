@@ -103,10 +103,10 @@ feature depends on, and will enable, the `float` feature.
 [mpc]:      http://www.multiprecision.org/
 [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 [mpfr]:     http://www.mpfr.org/
-[rug com]:  https://docs.rs/rug/*/rug/struct.Complex.html
-[rug flo]:  https://docs.rs/rug/*/rug/struct.Float.html
-[rug int]:  https://docs.rs/rug/*/rug/struct.Integer.html
-[rug ops]:  https://docs.rs/rug/*/rug/ops/index.html
-[rug rat]:  https://docs.rs/rug/*/rug/struct.Rational.html
-[rug]:      https://docs.rs/rug/
-[sys]:      https://docs.rs/gmp-mpfr-sys/~1.0.6/
+[rug com]:  https://docs.rs/rug/^0.7.0/rug/struct.Complex.html
+[rug flo]:  https://docs.rs/rug/^0.7.0/rug/struct.Float.html
+[rug int]:  https://docs.rs/rug/^0.7.0/rug/struct.Integer.html
+[rug ops]:  https://docs.rs/rug/^0.7.0/rug/ops/index.html
+[rug rat]:  https://docs.rs/rug/^0.7.0/rug/struct.Rational.html
+[rug]:      https://docs.rs/rug/^0.7.0/
+[sys]:      https://docs.rs/gmp-mpfr-sys/^1.0.6/
