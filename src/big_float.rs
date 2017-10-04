@@ -1792,10 +1792,8 @@ impl Float {
         unsafe { mpfr::regular_p(self.inner()) != 0 }
     }
 
-    /// Returns `None` if the value is a NaN, `Some(Ordering::Less)`
-    /// if it is less than zero, `Some(Ordering::Greater)` if it is
-    /// greater than zero, or `Some(Ordering::Equal)` if it is equal
-    /// to zero.
+    /// Returns the same result as `self.partial_cmp(&0)`, but is
+    /// faster.
     ///
     /// # Examples
     ///
@@ -1804,22 +1802,30 @@ impl Float {
     /// use rug::float::Special;
     /// use std::cmp::Ordering;
     /// let mut f = Float::with_val(53, Special::NegZero);
-    /// assert_eq!(f.sign(), Some(Ordering::Equal));
+    /// assert_eq!(f.cmp0(), Some(Ordering::Equal));
     /// f += 5.2;
-    /// assert_eq!(f.sign(), Some(Ordering::Greater));
+    /// assert_eq!(f.cmp0(), Some(Ordering::Greater));
     /// f.assign(Special::NegInfinity);
-    /// assert_eq!(f.sign(), Some(Ordering::Less));
+    /// assert_eq!(f.cmp0(), Some(Ordering::Less));
     /// f.assign(Special::Nan);
-    /// assert_eq!(f.sign(), None);
+    /// assert_eq!(f.cmp0(), None);
     /// ```
     #[inline]
-    pub fn sign(&self) -> Option<Ordering> {
+    pub fn cmp0(&self) -> Option<Ordering> {
         if self.is_nan() {
             None
         } else {
             let ret = unsafe { mpfr::sgn(self.inner()) };
             Some(ordering1(ret))
         }
+    }
+
+    /// Returns the same result as `self.partial_cmp(&0)`, but is
+    /// faster.
+    #[deprecated(since="0.7.1", note="renamed to `cmp0`")]
+    #[inline]
+    pub fn sign(&self) -> Option<Ordering> {
+        self.cmp0()
     }
 
     /// Compares the absolute values of `self` and `other`.

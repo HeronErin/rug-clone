@@ -618,7 +618,7 @@ impl Integer {
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
         let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) };
-        if self.sign() == Ordering::Less {
+        if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
             u
@@ -640,7 +640,7 @@ impl Integer {
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
         let u = unsafe { xgmp::mpz_get_abs_u64(self.inner()) };
-        if self.sign() == Ordering::Less {
+        if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
             u
@@ -1105,13 +1105,20 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// use std::cmp::Ordering;
-    /// assert_eq!(Integer::from(-5).sign(), Ordering::Less);
-    /// assert_eq!(Integer::from(0).sign(), Ordering::Equal);
-    /// assert_eq!(Integer::from(5).sign(), Ordering::Greater);
+    /// assert_eq!(Integer::from(-5).cmp0(), Ordering::Less);
+    /// assert_eq!(Integer::from(0).cmp0(), Ordering::Equal);
+    /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
     /// ```
     #[inline]
-    pub fn sign(&self) -> Ordering {
+    pub fn cmp0(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
+    }
+
+    /// Returns the same result as `self.cmp(&0)`, but is faster.
+    #[deprecated(since="0.7.1", note="renamed to `cmp0`")]
+    #[inline]
+    pub fn sign(&self) -> Ordering {
+        self.cmp0()
     }
 
     /// Compares the absolute values.
@@ -1777,7 +1784,7 @@ impl Integer {
         modulo: &Integer,
     ) -> bool {
         let abs_pow;
-        let pow_inner = if exponent.sign() == Ordering::Less {
+        let pow_inner = if exponent.cmp0() == Ordering::Less {
             if !(self.invert_mut(modulo)) {
                 return false;
             }
@@ -2814,7 +2821,7 @@ impl Integer {
     /// Panics if the boundary value is less than or equal to zero.
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut RandState) {
-        assert_eq!(self.sign(), Ordering::Greater, "cannot be below zero");
+        assert_eq!(self.cmp0(), Ordering::Greater, "cannot be below zero");
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
         }
@@ -2846,7 +2853,7 @@ impl Integer {
         bound: &Integer,
         rng: &mut RandState,
     ) {
-        assert_eq!(bound.sign(), Ordering::Greater, "cannot be below zero");
+        assert_eq!(bound.cmp0(), Ordering::Greater, "cannot be below zero");
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), bound.inner());
         }
@@ -3046,7 +3053,7 @@ pub struct PowModRef<'a> {
 
 impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
     fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
-        if src.exponent.sign() == Ordering::Less {
+        if src.exponent.cmp0() == Ordering::Less {
             let mut ret = Result::from(src.ref_self.invert_ref(src.modulo));
             if let Ok(ref mut inv) = ret {
                 let abs_exp = src.exponent.as_neg();
@@ -3079,7 +3086,7 @@ impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
 
 impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
     fn assign(&mut self, src: PowModRef<'a>) {
-        if src.exponent.sign() == Ordering::Less {
+        if src.exponent.cmp0() == Ordering::Less {
             self.assign(src.ref_self.invert_ref(src.modulo));
             if let Ok(ref mut inv) = *self {
                 let abs_exp = src.exponent.as_neg();

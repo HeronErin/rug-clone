@@ -73,7 +73,7 @@ mod tests {
                 assert_eq!(op + b.clone(), iop.clone() + &b);
                 assert_eq!(op - b.clone(), iop.clone() - &b);
                 assert_eq!(op * b.clone(), iop.clone() * &b);
-                if b.sign() != Ordering::Equal {
+                if b.cmp0() != Ordering::Equal {
                     assert_eq!(op / b.clone(), iop.clone() / &b);
                     assert_eq!(op % b.clone(), iop.clone() % &b);
                 }
@@ -101,7 +101,7 @@ mod tests {
                 assert_eq!(op + b.clone(), iop.clone() + &b);
                 assert_eq!(op - b.clone(), iop.clone() - &b);
                 assert_eq!(op * b.clone(), iop.clone() * &b);
-                if b.sign() != Ordering::Equal {
+                if b.cmp0() != Ordering::Equal {
                     assert_eq!(op / b.clone(), iop.clone() / &b);
                     assert_eq!(op % b.clone(), iop.clone() % &b);
                 }

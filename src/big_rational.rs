@@ -823,12 +823,19 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     /// use std::cmp::Ordering;
-    /// assert_eq!(Rational::from((-5, 7)).sign(), Ordering::Less);
-    /// assert_eq!(Rational::from(0).sign(), Ordering::Equal);
-    /// assert_eq!(Rational::from((5, 7)).sign(), Ordering::Greater);
+    /// assert_eq!(Rational::from((-5, 7)).cmp0(), Ordering::Less);
+    /// assert_eq!(Rational::from(0).cmp0(), Ordering::Equal);
+    /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
     /// ```
+    pub fn cmp0(&self) -> Ordering {
+        self.numer().cmp0()
+    }
+
+    /// Returns the same result as `self.cmp(&0)`, but is faster.
+    #[deprecated(since="0.7.1", note="renamed to `cmp0`")]
+    #[inline]
     pub fn sign(&self) -> Ordering {
-        self.numer().sign()
+        self.cmp0()
     }
 
     math_op1! {
@@ -1340,7 +1347,7 @@ impl From<(Integer, Integer)> for Rational {
     /// Panics if the denominator is zero.
     #[inline]
     fn from((mut num, mut den): (Integer, Integer)) -> Rational {
-        assert_ne!(den.sign(), Ordering::Equal, "division by zero");
+        assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
         let mut dst: Rational = unsafe { mem::uninitialized() };
         {
             let mut num_den = dst.as_mut_numer_denom();
@@ -1951,7 +1958,7 @@ impl<'a> MutNumerDenom<'a> {
 impl<'a> Drop for MutNumerDenom<'a> {
     #[inline]
     fn drop(&mut self) {
-        assert_ne!(self.den_actual.sign(), Ordering::Equal, "division by zero");
+        assert_ne!(self.den_actual.cmp0(), Ordering::Equal, "division by zero");
         unsafe {
             // We can finally place the actual denominator in its
             // proper place inside the rational number.
