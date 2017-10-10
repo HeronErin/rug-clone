@@ -832,7 +832,7 @@ impl Rational {
     }
 
     /// Returns the same result as `self.cmp(&0)`, but is faster.
-    #[deprecated(since="0.7.1", note="renamed to `cmp0`")]
+    #[deprecated(since = "0.7.1", note = "renamed to `cmp0`")]
     #[inline]
     pub fn sign(&self) -> Ordering {
         self.cmp0()
@@ -876,6 +876,99 @@ impl Rational {
         /// ```
         fn abs_ref -> AbsRef;
     }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let min = Rational::from((-3, 2));
+    /// let max = Rational::from((3, 2));
+    /// let too_small = Rational::from((-5, 2));
+    /// let clamped1 = too_small.clamp(&min, &max);
+    /// assert_eq!(clamped1, (-3, 2));
+    /// let in_range = Rational::from((1, 2));
+    /// let clamped2 = in_range.clamp(&min, &max);
+    /// assert_eq!(clamped2, (1, 2));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp(mut self, min: &Rational, max: &Rational) -> Rational {
+        self.clamp_mut(min, max);
+        self
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let min = Rational::from((-3, 2));
+    /// let max = Rational::from((3, 2));
+    /// let mut too_small = Rational::from((-5, 2));
+    /// too_small.clamp_mut(&min, &max);
+    /// assert_eq!(too_small, (-3, 2));
+    /// let mut in_range = Rational::from((1, 2));
+    /// in_range.clamp_mut(&min, &max);
+    /// assert_eq!(in_range, (1, 2));
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_mut(&mut self, min: &Rational, max: &Rational) {
+        assert!(!(*max < *min), "minimum larger than maximum");
+        if *self < *min {
+            self.assign(min);
+        } else if *max < *self {
+            self.assign(max);
+        }
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// The returned reference is `&self` if the value is within the
+    /// bounds, `min` if the value is less than the minimum, and `max`
+    /// if the value is larger than the maximum.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let min = Rational::from((-3, 2));
+    /// let max = Rational::from((3, 2));
+    /// let too_small = Rational::from((-5, 2));
+    /// let r1 = too_small.clamp_ref(&min, &max);
+    /// assert_eq!(r1, &min);
+    /// assert_eq!(r1 as *const Rational, &min as *const Rational);
+    /// let in_range = Rational::from((1, 2));
+    /// let r2 = in_range.clamp_ref(&min, &max);
+    /// assert_eq!(r2, &in_range);
+    /// assert_eq!(r2 as *const Rational, &in_range as *const Rational);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_ref<'a>(
+        &'a self,
+        min: &'a Rational,
+        max: &'a Rational,
+    ) -> &'a Rational {
+        assert!(!(*max < *min), "minimum larger than maximum");
+        if *self < *min {
+            min
+        } else if *max < *self {
+            max
+        } else {
+            self
+        }
+    }
+
     math_op1! {
         Rational;
         xgmp::mpq_inv_check_0;

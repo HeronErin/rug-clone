@@ -1822,7 +1822,7 @@ impl Float {
 
     /// Returns the same result as `self.partial_cmp(&0)`, but is
     /// faster.
-    #[deprecated(since="0.7.1", note="renamed to `cmp0`")]
+    #[deprecated(since = "0.7.1", note = "renamed to `cmp0`")]
     #[inline]
     pub fn sign(&self) -> Option<Ordering> {
         self.cmp0()
@@ -2355,6 +2355,99 @@ impl Float {
         /// ```
         fn abs_ref -> AbsRef;
     }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let min = Float::with_val(53, -1.5);
+    /// let max = Float::with_val(53, 1.5);
+    /// let too_small = Float::with_val(53, -2.5);
+    /// let clamped1 = too_small.clamp(&min, &max);
+    /// assert_eq!(clamped1, -1.5);
+    /// let in_range = Float::with_val(53, 0.5);
+    /// let clamped2 = in_range.clamp(&min, &max);
+    /// assert_eq!(clamped2, 0.5);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp(mut self, min: &Float, max: &Float) -> Float {
+        self.clamp_mut(min, max);
+        self
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let min = Float::with_val(53, -1.5);
+    /// let max = Float::with_val(53, 1.5);
+    /// let mut too_small = Float::with_val(53, -2.5);
+    /// too_small.clamp_mut(&min, &max);
+    /// assert_eq!(too_small, -1.5);
+    /// let mut in_range = Float::with_val(53, 0.5);
+    /// in_range.clamp_mut(&min, &max);
+    /// assert_eq!(in_range, 0.5);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_mut(&mut self, min: &Float, max: &Float) {
+        assert!(!(*max < *min), "minimum larger than maximum");
+        if *self < *min {
+            self.assign(min);
+        } else if *max < *self {
+            self.assign(max);
+        }
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// The returned reference is `&self` if the value is within the
+    /// bounds, `min` if the value is less than the minimum, and `max`
+    /// if the value is larger than the maximum.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let min = Float::with_val(53, -1.5);
+    /// let max = Float::with_val(53, 1.5);
+    /// let too_small = Float::with_val(53, -2.5);
+    /// let r1 = too_small.clamp_ref(&min, &max);
+    /// assert_eq!(r1, &min);
+    /// assert_eq!(r1 as *const Float, &min as *const Float);
+    /// let in_range = Float::with_val(53, 0.5);
+    /// let r2 = in_range.clamp_ref(&min, &max);
+    /// assert_eq!(r2, &in_range);
+    /// assert_eq!(r2 as *const Float, &in_range as *const Float);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_ref<'a>(
+        &'a self,
+        min: &'a Float,
+        max: &'a Float,
+    ) -> &'a Float {
+        assert!(!(*max < *min), "minimum larger than maximum");
+        if *self < *min {
+            min
+        } else if *max < *self {
+            max
+        } else {
+            self
+        }
+    }
+
     math_op1_float! {
         xmpfr::recip;
         /// Computes the reciprocal, rounding to the nearest.

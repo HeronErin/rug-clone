@@ -1115,7 +1115,7 @@ impl Integer {
     }
 
     /// Returns the same result as `self.cmp(&0)`, but is faster.
-    #[deprecated(since="0.7.1", note="renamed to `cmp0`")]
+    #[deprecated(since = "0.7.1", note = "renamed to `cmp0`")]
     #[inline]
     pub fn sign(&self) -> Ordering {
         self.cmp0()
@@ -1355,6 +1355,99 @@ impl Integer {
         /// ```
         fn abs_ref -> AbsRef;
     }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let min = Integer::from(-10);
+    /// let max = Integer::from(10);
+    /// let too_small = Integer::from(-100);
+    /// let clamped1 = too_small.clamp(&min, &max);
+    /// assert_eq!(clamped1, -10);
+    /// let in_range = Integer::from(3);
+    /// let clamped2 = in_range.clamp(&min, &max);
+    /// assert_eq!(clamped2, 3);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp(mut self, min: &Integer, max: &Integer) -> Integer {
+        self.clamp_mut(min, max);
+        self
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let min = Integer::from(-10);
+    /// let max = Integer::from(10);
+    /// let mut too_small = Integer::from(-100);
+    /// too_small.clamp_mut(&min, &max);
+    /// assert_eq!(too_small, -10);
+    /// let mut in_range = Integer::from(3);
+    /// in_range.clamp_mut(&min, &max);
+    /// assert_eq!(in_range, 3);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_mut(&mut self, min: &Integer, max: &Integer) {
+        assert!(!(*max < *min), "minimum larger than maximum");
+        if *self < *min {
+            self.assign(min);
+        } else if *max < *self {
+            self.assign(max);
+        }
+    }
+
+    /// Clamps the value within the specified bounds.
+    ///
+    /// The returned reference is `&self` if the value is within the
+    /// bounds, `min` if the value is less than the minimum, and `max`
+    /// if the value is larger than the maximum.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let min = Integer::from(-10);
+    /// let max = Integer::from(10);
+    /// let too_small = Integer::from(-100);
+    /// let r1 = too_small.clamp_ref(&min, &max);
+    /// assert_eq!(r1, &min);
+    /// assert_eq!(r1 as *const Integer, &min as *const Integer);
+    /// let in_range = Integer::from(3);
+    /// let r2 = in_range.clamp_ref(&min, &max);
+    /// assert_eq!(r2, &in_range);
+    /// assert_eq!(r2 as *const Integer, &in_range as *const Integer);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_ref<'a>(
+        &'a self,
+        min: &'a Integer,
+        max: &'a Integer,
+    ) -> &'a Integer {
+        assert!(!(*max < *min), "minimum larger than maximum");
+        if *self < *min {
+            min
+        } else if *max < *self {
+            max
+        } else {
+            self
+        }
+    }
+
     math_op1! {
         Integer;
         gmp::mpz_fdiv_r_2exp;
