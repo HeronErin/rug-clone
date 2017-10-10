@@ -931,7 +931,7 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The returned reference is `&self` if the value is within the
+    /// The returned reference is `self` if the value is within the
     /// bounds, `min` if the value is less than the minimum, and `max`
     /// if the value is larger than the maximum.
     ///
