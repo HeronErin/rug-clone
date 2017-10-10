@@ -903,8 +903,10 @@ impl Rational {
         max: &'b Max,
     ) -> Rational
     where
-        Rational: PartialOrd<Min> + PartialOrd<Max>,
-        Rational: Assign<&'a Min> + Assign<&'b Max>,
+        Rational: PartialOrd<Min>
+            + PartialOrd<Max>
+            + Assign<&'a Min>
+            + Assign<&'b Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -931,8 +933,10 @@ impl Rational {
     /// Panics if the maximum value is less than the minimum value.
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
-        Rational: PartialOrd<Min> + PartialOrd<Max>,
-        Rational: Assign<&'a Min> + Assign<&'b Max>,
+        Rational: PartialOrd<Min>
+            + PartialOrd<Max>
+            + Assign<&'a Min>
+            + Assign<&'b Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -971,8 +975,10 @@ impl Rational {
         max: &'a Max,
     ) -> ClampRef<'a, Min, Max>
     where
-        Rational: PartialOrd<Min> + PartialOrd<Max>,
-        Rational: Assign<&'a Min> + Assign<&'a Max>,
+        Rational: PartialOrd<Min>
+            + PartialOrd<Max>
+            + Assign<&'a Min>
+            + Assign<&'a Max>,
     {
         ClampRef {
             ref_self: self,
@@ -1599,8 +1605,7 @@ assign_ref!{ Rational: u64 }
 
 impl<T, U> Assign<(T, U)> for Rational
 where
-    Integer: Assign<T>,
-    Integer: Assign<U>,
+    Integer: Assign<T> + Assign<U>,
 {
     #[inline]
     fn assign(&mut self, (num, den): (T, U)) {
@@ -1612,8 +1617,7 @@ where
 
 impl<'a, T, U> Assign<&'a (T, U)> for Rational
 where
-    Integer: Assign<&'a T>,
-    Integer: Assign<&'a U>,
+    Integer: Assign<&'a T> + Assign<&'a U>,
 {
     #[inline]
     fn assign(&mut self, r: &'a (T, U)) {
@@ -1628,8 +1632,10 @@ ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
 #[derive(Clone, Copy)]
 pub struct ClampRef<'a, Min, Max>
 where
-    Rational: PartialOrd<Min> + PartialOrd<Max>,
-    Rational: Assign<&'a Min> + Assign<&'a Max>,
+    Rational: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -1640,8 +1646,10 @@ where
 
 impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Rational
 where
-    Rational: PartialOrd<Min> + PartialOrd<Max>,
-    Rational: Assign<&'a Min> + Assign<&'a Max>,
+    Rational: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -1655,8 +1663,10 @@ where
 
 impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Rational
 where
-    Rational: PartialOrd<Min> + PartialOrd<Max>,
-    Rational: Assign<&'a Min> + Assign<&'a Max>,
+    Rational: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {

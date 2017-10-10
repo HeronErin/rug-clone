@@ -1378,8 +1378,10 @@ impl Integer {
     #[inline]
     pub fn clamp<'a, Min, Max>(mut self, min: &'a Min, max: &'a Max) -> Integer
     where
-        Integer: PartialOrd<Min> + PartialOrd<Max>,
-        Integer: Assign<&'a Min> + Assign<&'a Max>,
+        Integer: PartialOrd<Min>
+            + PartialOrd<Max>
+            + Assign<&'a Min>
+            + Assign<&'a Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -1406,8 +1408,10 @@ impl Integer {
     /// Panics if the maximum value is less than the minimum value.
     pub fn clamp_mut<'a, Min, Max>(&mut self, min: &'a Min, max: &'a Max)
     where
-        Integer: PartialOrd<Min> + PartialOrd<Max>,
-        Integer: Assign<&'a Min> + Assign<&'a Max>,
+        Integer: PartialOrd<Min>
+            + PartialOrd<Max>
+            + Assign<&'a Min>
+            + Assign<&'a Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -1446,8 +1450,10 @@ impl Integer {
         max: &'a Max,
     ) -> ClampRef<'a, Min, Max>
     where
-        Integer: PartialOrd<Min> + PartialOrd<Max>,
-        Integer: Assign<&'a Min> + Assign<&'a Max>,
+        Integer: PartialOrd<Min>
+            + PartialOrd<Max>
+            + Assign<&'a Min>
+            + Assign<&'a Max>,
     {
         ClampRef {
             ref_self: self,
@@ -3142,8 +3148,10 @@ ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
 #[derive(Clone, Copy)]
 pub struct ClampRef<'a, Min, Max>
 where
-    Integer: PartialOrd<Min> + PartialOrd<Max>,
-    Integer: Assign<&'a Min> + Assign<&'a Max>,
+    Integer: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -3154,8 +3162,10 @@ where
 
 impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Integer
 where
-    Integer: PartialOrd<Min> + PartialOrd<Max>,
-    Integer: Assign<&'a Min> + Assign<&'a Max>,
+    Integer: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -3169,8 +3179,10 @@ where
 
 impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Integer
 where
-    Integer: PartialOrd<Min> + PartialOrd<Max>,
-    Integer: Assign<&'a Min> + Assign<&'a Max>,
+    Integer: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
