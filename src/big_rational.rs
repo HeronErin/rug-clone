@@ -883,8 +883,8 @@ impl Rational {
     ///
     /// ```rust
     /// use rug::Rational;
-    /// let min = Rational::from((-3, 2));
-    /// let max = Rational::from((3, 2));
+    /// let min = (-3, 2);
+    /// let max = (3, 2);
     /// let too_small = Rational::from((-5, 2));
     /// let clamped1 = too_small.clamp(&min, &max);
     /// assert_eq!(clamped1, (-3, 2));
@@ -896,7 +896,16 @@ impl Rational {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp(mut self, min: &Rational, max: &Rational) -> Rational {
+    #[inline]
+    pub fn clamp<'a, 'b, Min, Max>(
+        mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) -> Rational
+    where
+        Rational: PartialOrd<Min> + PartialOrd<Max>,
+        Rational: Assign<&'a Min> + Assign<&'b Max>,
+    {
         self.clamp_mut(min, max);
         self
     }
@@ -907,8 +916,8 @@ impl Rational {
     ///
     /// ```rust
     /// use rug::Rational;
-    /// let min = Rational::from((-3, 2));
-    /// let max = Rational::from((3, 2));
+    /// let min = (-3, 2);
+    /// let max = (3, 2);
     /// let mut too_small = Rational::from((-5, 2));
     /// too_small.clamp_mut(&min, &max);
     /// assert_eq!(too_small, (-3, 2));
@@ -920,12 +929,17 @@ impl Rational {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_mut(&mut self, min: &Rational, max: &Rational) {
-        assert!(!(*max < *min), "minimum larger than maximum");
-        if *self < *min {
+    pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
+    where
+        Rational: PartialOrd<Min> + PartialOrd<Max>,
+        Rational: Assign<&'a Min> + Assign<&'b Max>,
+    {
+        if (&*self).lt(min) {
             self.assign(min);
-        } else if *max < *self {
+            assert!(!(&*self).gt(max), "minimum larger than maximum");
+        } else if (&*self).gt(max) {
             self.assign(max);
+            assert!(!(&*self).lt(min), "minimum larger than maximum");
         }
     }
 
@@ -1580,6 +1594,11 @@ assign!{ i64 }
 assign!{ u32 }
 assign!{ u64 }
 
+assign_ref!{ Rational: i32 }
+assign_ref!{ Rational: i64 }
+assign_ref!{ Rational: u32 }
+assign_ref!{ Rational: u64 }
+
 impl<T, U> Assign<(T, U)> for Rational
 where
     Integer: Assign<T>,
@@ -1590,6 +1609,19 @@ where
         let mut num_den = self.as_mut_numer_denom();
         num_den.num().assign(num);
         num_den.den().assign(den);
+    }
+}
+
+impl<'a, T, U> Assign<&'a (T, U)> for Rational
+where
+    Integer: Assign<&'a T>,
+    Integer: Assign<&'a U>,
+{
+    #[inline]
+    fn assign(&mut self, r: &'a (T, U)) {
+        let mut num_den = self.as_mut_numer_denom();
+        num_den.num().assign(&r.0);
+        num_den.den().assign(&r.1);
     }
 }
 

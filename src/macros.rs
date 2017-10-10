@@ -15,6 +15,18 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 #[cfg(feature = "integer")]
+macro_rules! assign_ref {
+    { $Lhs:ty: $Rhs:ty } => {
+        impl<'a> Assign<&'a $Rhs> for $Lhs {
+            #[inline]
+            fn assign(&mut self, r: &'a $Rhs) {
+                self.assign(*r);
+            }
+        }
+    }
+}
+
+#[cfg(feature = "integer")]
 macro_rules! math_op1 {
     {
         $Big:ty;

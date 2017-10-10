@@ -1362,8 +1362,8 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// let min = Integer::from(-10);
-    /// let max = Integer::from(10);
+    /// let min = -10;
+    /// let max = 10;
     /// let too_small = Integer::from(-100);
     /// let clamped1 = too_small.clamp(&min, &max);
     /// assert_eq!(clamped1, -10);
@@ -1375,7 +1375,16 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp(mut self, min: &Integer, max: &Integer) -> Integer {
+    #[inline]
+    pub fn clamp<'a, 'b, Min, Max>(
+        mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) -> Integer
+    where
+        Integer: PartialOrd<Min> + PartialOrd<Max>,
+        Integer: Assign<&'a Min> + Assign<&'b Max>,
+    {
         self.clamp_mut(min, max);
         self
     }
@@ -1386,8 +1395,8 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// let min = Integer::from(-10);
-    /// let max = Integer::from(10);
+    /// let min = -10;
+    /// let max = 10;
     /// let mut too_small = Integer::from(-100);
     /// too_small.clamp_mut(&min, &max);
     /// assert_eq!(too_small, -10);
@@ -1399,12 +1408,20 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_mut(&mut self, min: &Integer, max: &Integer) {
-        assert!(!(*max < *min), "minimum larger than maximum");
-        if *self < *min {
+    pub fn clamp_mut<'a, 'b, Min, Max>(
+        &mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) where
+        Integer: PartialOrd<Min> + PartialOrd<Max>,
+        Integer: Assign<&'a Min> + Assign<&'b Max>,
+    {
+        if (&*self).lt(min) {
             self.assign(min);
-        } else if *max < *self {
+            assert!(!(&*self).gt(max), "minimum larger than maximum");
+        } else if (&*self).gt(max) {
             self.assign(max);
+            assert!(!(&*self).lt(min), "minimum larger than maximum");
         }
     }
 
@@ -3123,6 +3140,11 @@ impl Assign<u64> for Integer {
         }
     }
 }
+
+assign_ref!{ Integer: i32 }
+assign_ref!{ Integer: i64 }
+assign_ref!{ Integer: u32 }
+assign_ref!{ Integer: u64 }
 
 ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
