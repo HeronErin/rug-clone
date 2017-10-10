@@ -2377,15 +2377,16 @@ impl Float {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max, Round>(
+    pub fn clamp<'a, Min, Max, Round>(
         mut self,
         min: &'a Min,
-        max: &'b Max,
+        max: &'a Max,
     ) -> Float
     where
-        Float: PartialOrd<Min> + PartialOrd<Max>,
-        Float: AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+        Float: PartialOrd<Min>
+            + PartialOrd<Max>
+            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
         Round: Default,
     {
         self.clamp_round(min, max, Default::default());
@@ -2413,14 +2414,12 @@ impl Float {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp_mut<'a, 'b, Min, Max, Round>(
-        &mut self,
-        min: &'a Min,
-        max: &'b Max,
-    ) where
-        Float: PartialOrd<Min> + PartialOrd<Max>,
-        Float: AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+    pub fn clamp_mut<'a, Min, Max, Round>(&mut self, min: &'a Min, max: &'a Max)
+    where
+        Float: PartialOrd<Min>
+            + PartialOrd<Max>
+            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
         Round: Default,
     {
         self.clamp_round(min, max, Default::default());
@@ -2450,16 +2449,17 @@ impl Float {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_round<'a, 'b, Min, Max, Round>(
+    pub fn clamp_round<'a, Min, Max, Round>(
         &mut self,
         min: &'a Min,
-        max: &'b Max,
+        max: &'a Max,
         round: Round,
     ) -> Ordering
     where
-        Float: PartialOrd<Min> + PartialOrd<Max>,
-        Float: AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+        Float: PartialOrd<Min>
+            + PartialOrd<Max>
+            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
         Round: Default,
     {
         if (&*self).lt(min) {
@@ -2485,33 +2485,37 @@ impl Float {
     ///
     /// ```rust
     /// use rug::Float;
-    /// let min = Float::with_val(53, -1.5);
-    /// let max = Float::with_val(53, 1.5);
+    /// let min = -1.5;
+    /// let max = 1.5;
     /// let too_small = Float::with_val(53, -2.5);
     /// let r1 = too_small.clamp_ref(&min, &max);
-    /// assert_eq!(r1, &min);
-    /// assert_eq!(r1 as *const Float, &min as *const Float);
+    /// let clamped1 = Float::with_val(53, r1);
+    /// assert_eq!(clamped1, -1.5);
     /// let in_range = Float::with_val(53, 0.5);
     /// let r2 = in_range.clamp_ref(&min, &max);
-    /// assert_eq!(r2, &in_range);
-    /// assert_eq!(r2 as *const Float, &in_range as *const Float);
+    /// let clamped2 = Float::with_val(53, r2);
+    /// assert_eq!(clamped2, 0.5);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_ref<'a>(
+    #[inline]
+    pub fn clamp_ref<'a, Min, Max>(
         &'a self,
-        min: &'a Float,
-        max: &'a Float,
-    ) -> &'a Float {
-        assert!(!(*max < *min), "minimum larger than maximum");
-        if *self < *min {
-            min
-        } else if *max < *self {
-            max
-        } else {
-            self
+        min: &'a Min,
+        max: &'a Max,
+    ) -> ClampRef<'a, Min, Max>
+    where
+        Float: PartialOrd<Min>
+            + PartialOrd<Max>
+            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+    {
+        ClampRef {
+            ref_self: self,
+            min,
+            max,
         }
     }
 
@@ -6477,6 +6481,53 @@ ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtRef {} }
 ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
 ref_math_op1_float! { mpfr::root; struct RootRef { k: u32 } }
 ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
+
+#[derive(Clone, Copy)]
+pub struct ClampRef<'a, Min, Max>
+where
+    Float: PartialOrd<Min>
+        + PartialOrd<Max>
+        + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+        + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+    Min: 'a,
+    Max: 'a,
+{
+    ref_self: &'a Float,
+    min: &'a Min,
+    max: &'a Max,
+}
+
+impl<'a, Min, Max> AssignRound<ClampRef<'a, Min, Max>> for Float
+where
+    Float: PartialOrd<Min>
+        + PartialOrd<Max>
+        + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+        + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+    Min: 'a,
+    Max: 'a,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(
+        &mut self,
+        src: ClampRef<'a, Min, Max>,
+        round: Round,
+    ) -> Ordering {
+        if src.ref_self.lt(src.min) {
+            let dir = self.assign_round(src.min, round);
+            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+            dir
+        } else if src.ref_self.gt(src.max) {
+            let dir = self.assign_round(src.max, round);
+            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+            dir
+        } else {
+            self.assign_round(src.ref_self, round)
+        }
+    }
+}
+
 ref_math_op1_float! { xmpfr::recip; struct RecipRef {} }
 ref_math_op2_float! { mpfr::min; struct MinRef { other } }
 ref_math_op2_float! { mpfr::max; struct MaxRef { other } }

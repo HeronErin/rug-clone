@@ -945,41 +945,39 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The returned reference is `self` if the value is within the
-    /// bounds, `min` if the value is less than the minimum, and `max`
-    /// if the value is larger than the maximum.
-    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Rational;
-    /// let min = Rational::from((-3, 2));
-    /// let max = Rational::from((3, 2));
+    /// let min = (-3, 2);
+    /// let max = (3, 2);
     /// let too_small = Rational::from((-5, 2));
     /// let r1 = too_small.clamp_ref(&min, &max);
-    /// assert_eq!(r1, &min);
-    /// assert_eq!(r1 as *const Rational, &min as *const Rational);
+    /// let clamped1 = Rational::from(r1);
+    /// assert_eq!(clamped1, (-3, 2));
     /// let in_range = Rational::from((1, 2));
     /// let r2 = in_range.clamp_ref(&min, &max);
-    /// assert_eq!(r2, &in_range);
-    /// assert_eq!(r2 as *const Rational, &in_range as *const Rational);
+    /// let clamped2 = Rational::from(r2);
+    /// assert_eq!(clamped2, (1, 2));
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_ref<'a>(
+    #[inline]
+    pub fn clamp_ref<'a, Min, Max>(
         &'a self,
-        min: &'a Rational,
-        max: &'a Rational,
-    ) -> &'a Rational {
-        assert!(!(*max < *min), "minimum larger than maximum");
-        if *self < *min {
-            min
-        } else if *max < *self {
-            max
-        } else {
-            self
+        min: &'a Min,
+        max: &'a Max,
+    ) -> ClampRef<'a, Min, Max>
+    where
+        Rational: PartialOrd<Min> + PartialOrd<Max>,
+        Rational: Assign<&'a Min> + Assign<&'a Max>,
+    {
+        ClampRef {
+            ref_self: self,
+            min,
+            max,
         }
     }
 
@@ -1626,6 +1624,56 @@ where
 }
 
 ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
+
+#[derive(Clone, Copy)]
+pub struct ClampRef<'a, Min, Max>
+where
+    Rational: PartialOrd<Min> + PartialOrd<Max>,
+    Rational: Assign<&'a Min> + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    ref_self: &'a Rational,
+    min: &'a Min,
+    max: &'a Max,
+}
+
+impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Rational
+where
+    Rational: PartialOrd<Min> + PartialOrd<Max>,
+    Rational: Assign<&'a Min> + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    #[inline]
+    fn from(t: ClampRef<'a, Min, Max>) -> Rational {
+        let mut ret = Rational::new();
+        ret.assign(t);
+        ret
+    }
+}
+
+impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Rational
+where
+    Rational: PartialOrd<Min> + PartialOrd<Max>,
+    Rational: Assign<&'a Min> + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    #[inline]
+    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
+        if src.ref_self.lt(src.min) {
+            self.assign(src.min);
+            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+        } else if src.ref_self.gt(src.max) {
+            self.assign(src.max);
+            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+        } else {
+            self.assign(src.ref_self);
+        }
+    }
+}
+
 ref_math_op1! { Rational; xgmp::mpq_inv_check_0; struct RecipRef {} }
 
 pub struct CeilRef<'a> {

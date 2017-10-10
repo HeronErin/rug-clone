@@ -1376,14 +1376,10 @@ impl Integer {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max>(
-        mut self,
-        min: &'a Min,
-        max: &'b Max,
-    ) -> Integer
+    pub fn clamp<'a, Min, Max>(mut self, min: &'a Min, max: &'a Max) -> Integer
     where
         Integer: PartialOrd<Min> + PartialOrd<Max>,
-        Integer: Assign<&'a Min> + Assign<&'b Max>,
+        Integer: Assign<&'a Min> + Assign<&'a Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -1408,13 +1404,10 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_mut<'a, 'b, Min, Max>(
-        &mut self,
-        min: &'a Min,
-        max: &'b Max,
-    ) where
+    pub fn clamp_mut<'a, Min, Max>(&mut self, min: &'a Min, max: &'a Max)
+    where
         Integer: PartialOrd<Min> + PartialOrd<Max>,
-        Integer: Assign<&'a Min> + Assign<&'b Max>,
+        Integer: Assign<&'a Min> + Assign<&'a Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -1427,41 +1420,39 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The returned reference is `self` if the value is within the
-    /// bounds, `min` if the value is less than the minimum, and `max`
-    /// if the value is larger than the maximum.
-    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Integer;
-    /// let min = Integer::from(-10);
-    /// let max = Integer::from(10);
+    /// let min = -10;
+    /// let max = 10;
     /// let too_small = Integer::from(-100);
     /// let r1 = too_small.clamp_ref(&min, &max);
-    /// assert_eq!(r1, &min);
-    /// assert_eq!(r1 as *const Integer, &min as *const Integer);
+    /// let clamped1 = Integer::from(r1);
+    /// assert_eq!(clamped1, -10);
     /// let in_range = Integer::from(3);
     /// let r2 = in_range.clamp_ref(&min, &max);
-    /// assert_eq!(r2, &in_range);
-    /// assert_eq!(r2 as *const Integer, &in_range as *const Integer);
+    /// let clamped2 = Integer::from(r2);
+    /// assert_eq!(clamped2, 3);
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_ref<'a>(
+    #[inline]
+    pub fn clamp_ref<'a, Min, Max>(
         &'a self,
-        min: &'a Integer,
-        max: &'a Integer,
-    ) -> &'a Integer {
-        assert!(!(*max < *min), "minimum larger than maximum");
-        if *self < *min {
-            min
-        } else if *max < *self {
-            max
-        } else {
-            self
+        min: &'a Min,
+        max: &'a Max,
+    ) -> ClampRef<'a, Min, Max>
+    where
+        Integer: PartialOrd<Min> + PartialOrd<Max>,
+        Integer: Assign<&'a Min> + Assign<&'a Max>,
+    {
+        ClampRef {
+            ref_self: self,
+            min,
+            max,
         }
     }
 
@@ -3147,6 +3138,56 @@ assign_ref!{ Integer: u32 }
 assign_ref!{ Integer: u64 }
 
 ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
+
+#[derive(Clone, Copy)]
+pub struct ClampRef<'a, Min, Max>
+where
+    Integer: PartialOrd<Min> + PartialOrd<Max>,
+    Integer: Assign<&'a Min> + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    ref_self: &'a Integer,
+    min: &'a Min,
+    max: &'a Max,
+}
+
+impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Integer
+where
+    Integer: PartialOrd<Min> + PartialOrd<Max>,
+    Integer: Assign<&'a Min> + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    #[inline]
+    fn from(t: ClampRef<'a, Min, Max>) -> Integer {
+        let mut ret = Integer::new();
+        ret.assign(t);
+        ret
+    }
+}
+
+impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Integer
+where
+    Integer: PartialOrd<Min> + PartialOrd<Max>,
+    Integer: Assign<&'a Min> + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    #[inline]
+    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
+        if src.ref_self.lt(src.min) {
+            self.assign(src.min);
+            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+        } else if src.ref_self.gt(src.max) {
+            self.assign(src.max);
+            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+        } else {
+            self.assign(src.ref_self);
+        }
+    }
+}
+
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
 ref_math_op1! { Integer; xgmp::mpz_next_pow_of_two; struct NextPowerTwoRef {} }
 ref_math_op2_2! {
