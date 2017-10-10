@@ -2377,19 +2377,14 @@ impl Float {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp<'a, Min, Max, Round>(
-        mut self,
-        min: &'a Min,
-        max: &'a Max,
-    ) -> Float
+    pub fn clamp<'a, Min, Max>(mut self, min: &'a Min, max: &'a Max) -> Float
     where
         Float: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
-        Round: Default,
     {
-        self.clamp_round(min, max, Default::default());
+        self.clamp_round(min, max, Round::Nearest);
         self
     }
 
@@ -2414,15 +2409,14 @@ impl Float {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp_mut<'a, Min, Max, Round>(&mut self, min: &'a Min, max: &'a Max)
+    pub fn clamp_mut<'a, Min, Max>(&mut self, min: &'a Min, max: &'a Max)
     where
         Float: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
-        Round: Default,
     {
-        self.clamp_round(min, max, Default::default());
+        self.clamp_round(min, max, Round::Nearest);
     }
 
     /// Clamps the value within the specified bounds, applying the
@@ -2449,7 +2443,7 @@ impl Float {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_round<'a, Min, Max, Round>(
+    pub fn clamp_round<'a, Min, Max>(
         &mut self,
         min: &'a Min,
         max: &'a Max,
@@ -2460,7 +2454,6 @@ impl Float {
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
-        Round: Default,
     {
         if (&*self).lt(min) {
             let dir = self.assign_round(min, round);
