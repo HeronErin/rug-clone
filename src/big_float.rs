@@ -2356,7 +2356,8 @@ impl Float {
         fn abs_ref -> AbsRef;
     }
 
-    /// Clamps the value within the specified bounds.
+    /// Clamps the value within the specified bounds, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -2375,12 +2376,14 @@ impl Float {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
+    #[inline]
     pub fn clamp(mut self, min: &Float, max: &Float) -> Float {
-        self.clamp_mut(min, max);
+        self.clamp_round(min, max, Round::Nearest);
         self
     }
 
-    /// Clamps the value within the specified bounds.
+    /// Clamps the value within the specified bounds, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -2399,12 +2402,48 @@ impl Float {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
+    #[inline]
     pub fn clamp_mut(&mut self, min: &Float, max: &Float) {
+        self.clamp_round(min, max, Round::Nearest);
+    }
+
+    /// Clamps the value within the specified bounds, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let min = Float::with_val(53, -1.5);
+    /// let max = Float::with_val(53, 1.5);
+    /// let mut too_small = Float::with_val(53, -2.5);
+    /// let dir1 = too_small.clamp_round(&min, &max, Round::Nearest);
+    /// assert_eq!(too_small, -1.5);
+    /// assert_eq!(dir1, Ordering::Equal);
+    /// let mut in_range = Float::with_val(53, 0.5);
+    /// let dir2 = in_range.clamp_round(&min, &max, Round::Nearest);
+    /// assert_eq!(in_range, 0.5);
+    /// assert_eq!(dir2, Ordering::Equal);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    pub fn clamp_round(
+        &mut self,
+        min: &Float,
+        max: &Float,
+        round: Round,
+    ) -> Ordering {
         assert!(!(*max < *min), "minimum larger than maximum");
         if *self < *min {
-            self.assign(min);
+            self.assign_round(min, round)
         } else if *max < *self {
-            self.assign(max);
+            self.assign_round(max, round)
+        } else {
+            Ordering::Equal
         }
     }
 
