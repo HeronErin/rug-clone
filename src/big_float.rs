@@ -2363,8 +2363,8 @@ impl Float {
     ///
     /// ```rust
     /// use rug::Float;
-    /// let min = Float::with_val(53, -1.5);
-    /// let max = Float::with_val(53, 1.5);
+    /// let min = -1.5;
+    /// let max = 1.5;
     /// let too_small = Float::with_val(53, -2.5);
     /// let clamped1 = too_small.clamp(&min, &max);
     /// assert_eq!(clamped1, -1.5);
@@ -2377,8 +2377,18 @@ impl Float {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp(mut self, min: &Float, max: &Float) -> Float {
-        self.clamp_round(min, max, Round::Nearest);
+    pub fn clamp<'a, 'b, Min, Max, Round>(
+        mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) -> Float
+    where
+        Float: PartialOrd<Min> + PartialOrd<Max>,
+        Float: AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+        Round: Default,
+    {
+        self.clamp_round(min, max, Default::default());
         self
     }
 
@@ -2389,8 +2399,8 @@ impl Float {
     ///
     /// ```rust
     /// use rug::Float;
-    /// let min = Float::with_val(53, -1.5);
-    /// let max = Float::with_val(53, 1.5);
+    /// let min = -1.5;
+    /// let max = 1.5;
     /// let mut too_small = Float::with_val(53, -2.5);
     /// too_small.clamp_mut(&min, &max);
     /// assert_eq!(too_small, -1.5);
@@ -2403,8 +2413,17 @@ impl Float {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp_mut(&mut self, min: &Float, max: &Float) {
-        self.clamp_round(min, max, Round::Nearest);
+    pub fn clamp_mut<'a, 'b, Min, Max, Round>(
+        &mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) where
+        Float: PartialOrd<Min> + PartialOrd<Max>,
+        Float: AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+        Round: Default,
+    {
+        self.clamp_round(min, max, Default::default());
     }
 
     /// Clamps the value within the specified bounds, applying the
@@ -2431,17 +2450,26 @@ impl Float {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_round(
+    pub fn clamp_round<'a, 'b, Min, Max, Round>(
         &mut self,
-        min: &Float,
-        max: &Float,
+        min: &'a Min,
+        max: &'b Max,
         round: Round,
-    ) -> Ordering {
-        assert!(!(*max < *min), "minimum larger than maximum");
-        if *self < *min {
-            self.assign_round(min, round)
-        } else if *max < *self {
-            self.assign_round(max, round)
+    ) -> Ordering
+    where
+        Float: PartialOrd<Min> + PartialOrd<Max>,
+        Float: AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+        Round: Default,
+    {
+        if (&*self).lt(min) {
+            let dir = self.assign_round(min, round);
+            assert!(!(&*self).gt(max), "minimum larger than maximum");
+            dir
+        } else if (&*self).gt(max) {
+            let dir = self.assign_round(max, round);
+            assert!(!(&*self).lt(min), "minimum larger than maximum");
+            dir
         } else {
             Ordering::Equal
         }
@@ -6405,6 +6433,9 @@ impl AssignRound<Special> for Float {
     }
 }
 
+assign_round_ref!{ Float: Constant }
+assign_round_ref!{ Float: Special }
+
 macro_rules! assign {
     { $T:ty, $func:path } => {
         impl<'a> AssignRound<&'a $T> for Float {
@@ -6932,6 +6963,8 @@ macro_rules! conv_ops {
                 ordering1(ret)
             }
         }
+
+        assign_round_ref!{ Float: $T }
 
         arith_prim_commut_float! {
             $add;

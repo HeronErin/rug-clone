@@ -992,6 +992,20 @@ macro_rules! mul_op_noncommut {
 }
 
 #[cfg(feature = "float")]
+macro_rules! assign_round_ref {
+    { $Lhs:ty: $Rhs:ty } => {
+        impl<'a> AssignRound<&'a $Rhs> for $Lhs {
+            type Round = <$Lhs as AssignRound<$Rhs>>::Round;
+            type Ordering = <$Lhs as AssignRound<$Rhs>>::Ordering;
+            #[inline]
+            fn assign_round(&mut self, r: &'a $Rhs, round: Round) -> Ordering {
+                self.assign_round(*r, round)
+            }
+        }
+    }
+}
+
+#[cfg(feature = "float")]
 macro_rules! math_op1_round {
     {
         $Big:ty, $Round:ty => $Ordering:ty;
