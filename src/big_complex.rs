@@ -2960,7 +2960,7 @@ impl<'a> AssignRound<&'a Complex> for Complex {
     }
 }
 
-macro_rules! assign_ref {
+macro_rules! assign_real {
     { $T:ty } => {
         impl<'a> AssignRound<&'a $T> for Complex {
             type Round = Round2;
@@ -2977,11 +2977,7 @@ macro_rules! assign_ref {
                 (ord1, ord2)
             }
         }
-    };
-}
 
-macro_rules! assign {
-    { $T:ty } => {
         impl AssignRound<$T> for Complex {
             type Round = Round2;
             type Ordering = Ordering2;
@@ -2997,36 +2993,47 @@ macro_rules! assign {
 }
 
 #[cfg(feature = "integer")]
-assign_ref! { Integer }
+assign_real! { Integer }
 #[cfg(feature = "rational")]
-assign_ref! { Rational }
-assign_ref! { Float }
-#[cfg(feature = "integer")]
-assign! { Integer }
-#[cfg(feature = "rational")]
-assign! { Rational }
-assign! { Float }
-assign! { Special }
-assign! { Constant }
-assign! { i32 }
-assign! { i64 }
-assign! { u32 }
-assign! { u64 }
-assign! { f32 }
-assign! { f64 }
+assign_real! { Rational }
+assign_real! { Float }
+assign_real! { Special }
+assign_real! { Constant }
+assign_real! { i32 }
+assign_real! { i64 }
+assign_real! { u32 }
+assign_real! { u64 }
+assign_real! { f32 }
+assign_real! { f64 }
 
 impl<T, U> AssignRound<(T, U)> for Complex
 where
-    Float: AssignRound<T, Round = Round, Ordering = Ordering>,
-    Float: AssignRound<U, Round = Round, Ordering = Ordering>,
+    Float: AssignRound<T, Round = Round, Ordering = Ordering>
+        + AssignRound<U, Round = Round, Ordering = Ordering>,
 {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, other: (T, U), round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, rhs: (T, U), round: Round2) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
-        let ord1 = real.assign_round(other.0, round.0);
-        let ord2 = imag.assign_round(other.1, round.1);
+        let ord1 = real.assign_round(rhs.0, round.0);
+        let ord2 = imag.assign_round(rhs.1, round.1);
+        (ord1, ord2)
+    }
+}
+
+impl<'a, T, U> AssignRound<&'a (T, U)> for Complex
+where
+    Float: AssignRound<&'a T, Round = Round, Ordering = Ordering>
+        + AssignRound<&'a U, Round = Round, Ordering = Ordering>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn assign_round(&mut self, rhs: &'a (T, U), round: Round2) -> Ordering2 {
+        let (real, imag) = self.as_mut_real_imag();
+        let ord1 = real.assign_round(&rhs.0, round.0);
+        let ord2 = imag.assign_round(&rhs.1, round.1);
         (ord1, ord2)
     }
 }

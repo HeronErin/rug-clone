@@ -1608,10 +1608,10 @@ where
     Integer: Assign<T> + Assign<U>,
 {
     #[inline]
-    fn assign(&mut self, (num, den): (T, U)) {
+    fn assign(&mut self, rhs: (T, U)) {
         let mut num_den = self.as_mut_numer_denom();
-        num_den.num().assign(num);
-        num_den.den().assign(den);
+        num_den.num().assign(rhs.0);
+        num_den.den().assign(rhs.1);
     }
 }
 
@@ -1620,10 +1620,10 @@ where
     Integer: Assign<&'a T> + Assign<&'a U>,
 {
     #[inline]
-    fn assign(&mut self, r: &'a (T, U)) {
+    fn assign(&mut self, rhs: &'a (T, U)) {
         let mut num_den = self.as_mut_numer_denom();
-        num_den.num().assign(&r.0);
-        num_den.den().assign(&r.1);
+        num_den.num().assign(&rhs.0);
+        num_den.den().assign(&rhs.1);
     }
 }
 
