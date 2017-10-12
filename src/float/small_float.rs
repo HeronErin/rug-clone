@@ -153,13 +153,7 @@ macro_rules! assign_i {
             fn assign(&mut self, val: $I) {
                 self.assign(val.wrapping_abs() as $U);
                 if val < 0 {
-                    unsafe {
-                        mpfr::neg(
-                            &mut self.inner as *mut _ as *mut _,
-                            &self.inner as *const _ as *const _,
-                            rraw(Round::Nearest),
-                        );
-                    }
+                    self.inner.sign = -1;
                 }
             }
         }
