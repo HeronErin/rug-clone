@@ -242,7 +242,7 @@ pub unsafe fn f32_div(
 
 #[inline]
 pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
-    if mem::size_of::<c_long>() >= 64 {
+    if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
         mpfr::set_si(rop, val as c_long, rnd)
     } else {
         let small = SmallFloat::from(val);
@@ -252,7 +252,7 @@ pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
 
 #[inline]
 pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
-    if mem::size_of::<c_ulong>() >= 64 {
+    if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
         mpfr::set_ui(rop, val as c_ulong, rnd)
     } else {
         let small = SmallFloat::from(val);

@@ -2992,7 +2992,7 @@ impl From<i32> for Integer {
 impl From<i64> for Integer {
     #[inline]
     fn from(val: i64) -> Integer {
-        if mem::size_of::<c_long>() >= 8 {
+        if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
             unsafe {
                 let mut ret: Integer = mem::uninitialized();
                 gmp::mpz_init_set_si(ret.inner_mut(), val as c_long);
@@ -3020,7 +3020,7 @@ impl From<u32> for Integer {
 impl From<u64> for Integer {
     #[inline]
     fn from(val: u64) -> Integer {
-        if mem::size_of::<c_ulong>() >= 8 {
+        if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
             unsafe {
                 let mut ret: Integer = mem::uninitialized();
                 gmp::mpz_init_set_ui(ret.inner_mut(), val as c_ulong);
