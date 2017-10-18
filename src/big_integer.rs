@@ -1540,14 +1540,16 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
+        /// The remainder has the same sign as the dividend.
+        ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Integer;
         /// let dividend = Integer::from(23);
-        /// let divisor = Integer::from(10);
+        /// let divisor = Integer::from(-10);
         /// let (quotient, rem) = dividend.div_rem(divisor);
-        /// assert_eq!(quotient, 2);
+        /// assert_eq!(quotient, -2);
         /// assert_eq!(rem, 3);
         /// ```
         ///
@@ -1558,6 +1560,8 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
+        /// The remainder has the same sign as the dividend.
+        ///
         /// The quotient is stored in `self` and the remainder is
         /// stored in `divisor`.
         ///
@@ -1565,11 +1569,11 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let mut dividend_quotient = Integer::from(23);
+        /// let mut dividend_quotient = Integer::from(-23);
         /// let mut divisor_rem = Integer::from(10);
         /// dividend_quotient.div_rem_mut(&mut divisor_rem);
-        /// assert_eq!(dividend_quotient, 2);
-        /// assert_eq!(divisor_rem, 3);
+        /// assert_eq!(dividend_quotient, -2);
+        /// assert_eq!(divisor_rem, -3);
         /// ```
         ///
         /// # Panics
@@ -1579,18 +1583,151 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
+        /// The remainder has the same sign as the dividend.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let dividend = Integer::from(-23);
+        /// let divisor = Integer::from(-10);
+        /// let r = dividend.div_rem_ref(&divisor);
+        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(quotient, 2);
+        /// assert_eq!(rem, -3);
+        /// ```
+        fn div_rem_ref -> DivRemRef;
+    }
+    math_op2_2! {
+        Integer;
+        xgmp::mpz_cdiv_qr_check_0;
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded up.
+        ///
+        /// The sign of the remainder is the opposite of the divisor’s
+        /// sign.
+        ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Integer;
         /// let dividend = Integer::from(23);
-        /// let divisor = Integer::from(10);
-        /// let r = dividend.div_rem_ref(&divisor);
-        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
-        /// assert_eq!(quotient, 2);
+        /// let divisor = Integer::from(-10);
+        /// let (quotient, rem) = dividend.ceil_div_rem(divisor);
+        /// assert_eq!(quotient, -2);
         /// assert_eq!(rem, 3);
         /// ```
-        fn div_rem_ref -> DivRemRef;
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn ceil_div_rem(divisor);
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded up.
+        ///
+        /// The sign of the remainder is the opposite of the divisor’s
+        /// sign.
+        ///
+        /// The quotient is stored in `self` and the remainder is
+        /// stored in `divisor`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut dividend_quotient = Integer::from(-23);
+        /// let mut divisor_rem = Integer::from(10);
+        /// dividend_quotient.ceil_div_rem_mut(&mut divisor_rem);
+        /// assert_eq!(dividend_quotient, -2);
+        /// assert_eq!(divisor_rem, -3);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn ceil_div_rem_mut;
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded up.
+        ///
+        /// The sign of the remainder is the opposite of the divisor’s
+        /// sign.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let dividend = Integer::from(-23);
+        /// let divisor = Integer::from(-10);
+        /// let r = dividend.ceil_div_rem_ref(&divisor);
+        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(quotient, 3);
+        /// assert_eq!(rem, 7);
+        /// ```
+        fn ceil_div_rem_ref -> CeilDivRemRef;
+    }
+    math_op2_2! {
+        Integer;
+        xgmp::mpz_fdiv_qr_check_0;
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded down.
+        ///
+        /// The remainder has the same sign as the divisor.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let dividend = Integer::from(23);
+        /// let divisor = Integer::from(-10);
+        /// let (quotient, rem) = dividend.floor_div_rem(divisor);
+        /// assert_eq!(quotient, -3);
+        /// assert_eq!(rem, -7);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn floor_div_rem(divisor);
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded down.
+        ///
+        /// The remainder has the same sign as the divisor.
+        ///
+        /// The quotient is stored in `self` and the remainder is
+        /// stored in `divisor`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut dividend_quotient = Integer::from(-23);
+        /// let mut divisor_rem = Integer::from(10);
+        /// dividend_quotient.floor_div_rem_mut(&mut divisor_rem);
+        /// assert_eq!(dividend_quotient, -3);
+        /// assert_eq!(divisor_rem, 7);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn floor_div_rem_mut;
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded down.
+        ///
+        /// The remainder has the same sign as the divisor.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let dividend = Integer::from(-23);
+        /// let divisor = Integer::from(-10);
+        /// let r = dividend.floor_div_rem_ref(&divisor);
+        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(quotient, 2);
+        /// assert_eq!(rem, -3);
+        /// ```
+        fn floor_div_rem_ref -> FloorDivRemRef;
     }
     math_op2! {
         Integer;
@@ -3193,10 +3330,83 @@ where
     }
 }
 
+macro_rules! div_rem_ref {
+    {
+        $qrfunc:path;
+        $qfunc:path;
+        $rfunc:path;
+        struct $Ref:ident { $op:ident }
+    } => {
+
+        ref_math_op2_2! {
+            Integer; $qrfunc; struct $Ref { $op }
+        }
+
+        impl<'a> From<$Ref<'a>> for (Integer, ()) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> (Integer, ()) {
+                let mut quotient = Integer::new();
+                (&mut quotient, ()).assign(src);
+                (quotient, ())
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>> for (&'a mut Integer, ()) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                unsafe {
+                    $qfunc(
+                        self.0.inner_mut(),
+                        src.ref_self.inner(),
+                        src.$op.inner(),
+                    );
+                }
+            }
+        }
+
+        impl<'a> From<$Ref<'a>> for ((), Integer) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> ((), Integer) {
+                let mut remainder = Integer::new();
+                ((), &mut remainder).assign(src);
+                ((), remainder)
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>> for ((), &'a mut Integer) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                unsafe {
+                    $rfunc(
+                        self.1.inner_mut(),
+                        src.ref_self.inner(),
+                        src.$op.inner(),
+                    );
+                }
+            }
+        }
+    }
+}
+
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
 ref_math_op1! { Integer; xgmp::mpz_next_pow_of_two; struct NextPowerTwoRef {} }
-ref_math_op2_2! {
-    Integer; xgmp::mpz_tdiv_qr_check_0; struct DivRemRef { divisor }
+div_rem_ref! {
+    xgmp::mpz_tdiv_qr_check_0;
+    xgmp::mpz_tdiv_q_check_0;
+    xgmp::mpz_tdiv_r_check_0;
+    struct DivRemRef { divisor }
+}
+div_rem_ref! {
+    xgmp::mpz_cdiv_qr_check_0;
+    xgmp::mpz_cdiv_q_check_0;
+    xgmp::mpz_cdiv_r_check_0;
+    struct CeilDivRemRef { divisor }
+}
+div_rem_ref! {
+    xgmp::mpz_fdiv_qr_check_0;
+    xgmp::mpz_fdiv_q_check_0;
+    xgmp::mpz_fdiv_r_check_0;
+    struct FloorDivRemRef { divisor }
 }
 ref_math_op2! {
     Integer; xgmp::mpz_divexact_check_0; struct DivExactRef { divisor }
@@ -4005,5 +4215,54 @@ fn result_swap<T>(r: &mut Result<T, T>) {
             Ok(_) => unreachable!(),
         };
         mem::forget(mem::replace(r, Ok(val)));
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    macro_rules! check_div_rem {
+        { $nd:expr, $qr:expr, $m:ident, $mmut:ident, $mref:ident } => {
+            #[test]
+            fn $m() {
+                for (nd, qr) in $nd.iter().zip($qr.iter()) {
+                    let mut dividend = Integer::from(nd.0);
+                    let mut divisor = Integer::from(nd.1);
+                    let check_qr = dividend.clone().$m(divisor.clone());
+                    assert_eq!(check_qr.0, qr.0);
+                    assert_eq!(check_qr.1, qr.1);
+                    {
+                        let check_ref = dividend.$mref(&divisor);
+                        let check_qr = <(Integer, Integer)>::from(check_ref);
+                        let check_q = <(Integer, ())>::from(check_ref);
+                        let check_r = <((), Integer)>::from(check_ref);
+                        assert_eq!(check_qr.0, qr.0);
+                        assert_eq!(check_qr.1, qr.1);
+                        assert_eq!(check_q.0, qr.0);
+                        assert_eq!(check_r.1, qr.1);
+                    }
+                    dividend.$mmut(&mut divisor);
+                    assert_eq!(dividend, qr.0);
+                    assert_eq!(divisor, qr.1);
+                }
+            }
+        }
+    }
+
+    check_div_rem!{
+        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
+        [(2, 3), (-2, 3), (-2, -3), (2, -3)],
+        div_rem, div_rem_mut, div_rem_ref
+    }
+    check_div_rem!{
+        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
+        [(3, -7), (-2, 3), (-2, -3), (3, 7)],
+        ceil_div_rem, ceil_div_rem_mut, ceil_div_rem_ref
+    }
+    check_div_rem!{
+        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
+        [(2, 3), (-3, -7), (-3, 7), (2, -3)],
+        floor_div_rem, floor_div_rem_mut, floor_div_rem_ref
     }
 }

@@ -473,7 +473,7 @@ macro_rules! from_borrow {
         impl<'a> From<$Src> for $Dst {
             #[inline]
             fn from(t: $Src) -> $Dst {
-                let mut ret = <$Dst>::new();
+                let mut ret = <$Dst as Default>::default();
                 ret.assign(t);
                 ret
             }

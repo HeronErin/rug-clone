@@ -32,26 +32,6 @@ pub unsafe fn mpz_tdiv_qr_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_divexact_check_0(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_divexact(q, dividend, divisor);
-}
-
-#[inline]
-pub unsafe fn mpz_divexact_ui_check_0(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: c_ulong,
-) {
-    assert_ne!(divisor, 0, "division by zero");
-    gmp::mpz_divexact_ui(q, dividend, divisor);
-}
-
-#[inline]
 pub unsafe fn mpz_tdiv_q_check_0(
     q: *mut mpz_t,
     dividend: *const mpz_t,
@@ -69,6 +49,88 @@ pub unsafe fn mpz_tdiv_r_check_0(
 ) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     gmp::mpz_tdiv_r(q, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_qr_check_0(
+    q: *mut mpz_t,
+    r: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_cdiv_qr(q, r, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_q_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_cdiv_q(q, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_r_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_cdiv_r(q, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_qr_check_0(
+    q: *mut mpz_t,
+    r: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_fdiv_qr(q, r, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_q_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_fdiv_q(q, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_r_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_fdiv_r(q, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_divexact_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
+    gmp::mpz_divexact(q, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_divexact_ui_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: c_ulong,
+) {
+    assert_ne!(divisor, 0, "division by zero");
+    gmp::mpz_divexact_ui(q, dividend, divisor);
 }
 
 #[inline]
