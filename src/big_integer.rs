@@ -1114,13 +1114,6 @@ impl Integer {
         unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
     }
 
-    /// Returns the same result as `self.cmp(&0)`, but is faster.
-    #[deprecated(since = "0.7.1", note = "renamed to `cmp0`")]
-    #[inline]
-    pub fn sign(&self) -> Ordering {
-        self.cmp0()
-    }
-
     /// Compares the absolute values.
     ///
     /// # Examples

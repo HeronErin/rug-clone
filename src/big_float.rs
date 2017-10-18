@@ -1762,14 +1762,6 @@ impl Float {
         }
     }
 
-    /// Returns the same result as `self.partial_cmp(&0)`, but is
-    /// faster.
-    #[deprecated(since = "0.7.1", note = "renamed to `cmp0`")]
-    #[inline]
-    pub fn sign(&self) -> Option<Ordering> {
-        self.cmp0()
-    }
-
     /// Compares the absolute values of `self` and `other`.
     ///
     /// # Examples

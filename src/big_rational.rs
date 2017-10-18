@@ -831,13 +831,6 @@ impl Rational {
         self.numer().cmp0()
     }
 
-    /// Returns the same result as `self.cmp(&0)`, but is faster.
-    #[deprecated(since = "0.7.1", note = "renamed to `cmp0`")]
-    #[inline]
-    pub fn sign(&self) -> Ordering {
-        self.cmp0()
-    }
-
     math_op1! {
         Rational;
         gmp::mpq_abs;
