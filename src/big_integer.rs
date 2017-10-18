@@ -1613,7 +1613,7 @@ impl Integer {
         /// use rug::Integer;
         /// let dividend = Integer::from(23);
         /// let divisor = Integer::from(-10);
-        /// let (quotient, rem) = dividend.ceil_div_rem(divisor);
+        /// let (quotient, rem) = dividend.div_rem_ceil(divisor);
         /// assert_eq!(quotient, -2);
         /// assert_eq!(rem, 3);
         /// ```
@@ -1621,7 +1621,7 @@ impl Integer {
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
-        fn ceil_div_rem(divisor);
+        fn div_rem_ceil(divisor);
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
         ///
@@ -1637,7 +1637,7 @@ impl Integer {
         /// use rug::Integer;
         /// let mut dividend_quotient = Integer::from(-23);
         /// let mut divisor_rem = Integer::from(10);
-        /// dividend_quotient.ceil_div_rem_mut(&mut divisor_rem);
+        /// dividend_quotient.div_rem_ceil_mut(&mut divisor_rem);
         /// assert_eq!(dividend_quotient, -2);
         /// assert_eq!(divisor_rem, -3);
         /// ```
@@ -1645,7 +1645,7 @@ impl Integer {
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
-        fn ceil_div_rem_mut;
+        fn div_rem_ceil_mut;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
         ///
@@ -1658,12 +1658,12 @@ impl Integer {
         /// use rug::Integer;
         /// let dividend = Integer::from(-23);
         /// let divisor = Integer::from(-10);
-        /// let r = dividend.ceil_div_rem_ref(&divisor);
+        /// let r = dividend.div_rem_ceil_ref(&divisor);
         /// let (quotient, rem) = <(Integer, Integer)>::from(r);
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        fn ceil_div_rem_ref -> CeilDivRemRef;
+        fn div_rem_ceil_ref -> DivRemCeilRef;
     }
     math_op2_2! {
         Integer;
@@ -1679,7 +1679,7 @@ impl Integer {
         /// use rug::Integer;
         /// let dividend = Integer::from(23);
         /// let divisor = Integer::from(-10);
-        /// let (quotient, rem) = dividend.floor_div_rem(divisor);
+        /// let (quotient, rem) = dividend.div_rem_floor(divisor);
         /// assert_eq!(quotient, -3);
         /// assert_eq!(rem, -7);
         /// ```
@@ -1687,7 +1687,7 @@ impl Integer {
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
-        fn floor_div_rem(divisor);
+        fn div_rem_floor(divisor);
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
         ///
@@ -1702,7 +1702,7 @@ impl Integer {
         /// use rug::Integer;
         /// let mut dividend_quotient = Integer::from(-23);
         /// let mut divisor_rem = Integer::from(10);
-        /// dividend_quotient.floor_div_rem_mut(&mut divisor_rem);
+        /// dividend_quotient.div_rem_floor_mut(&mut divisor_rem);
         /// assert_eq!(dividend_quotient, -3);
         /// assert_eq!(divisor_rem, 7);
         /// ```
@@ -1710,7 +1710,7 @@ impl Integer {
         /// # Panics
         ///
         /// Panics if `divisor` is zero.
-        fn floor_div_rem_mut;
+        fn div_rem_floor_mut;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
         ///
@@ -1722,12 +1722,12 @@ impl Integer {
         /// use rug::Integer;
         /// let dividend = Integer::from(-23);
         /// let divisor = Integer::from(-10);
-        /// let r = dividend.floor_div_rem_ref(&divisor);
+        /// let r = dividend.div_rem_floor_ref(&divisor);
         /// let (quotient, rem) = <(Integer, Integer)>::from(r);
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        fn floor_div_rem_ref -> FloorDivRemRef;
+        fn div_rem_floor_ref -> DivRemFloorRef;
     }
     math_op2! {
         Integer;
@@ -3400,13 +3400,13 @@ div_rem_ref! {
     xgmp::mpz_cdiv_qr_check_0;
     xgmp::mpz_cdiv_q_check_0;
     xgmp::mpz_cdiv_r_check_0;
-    struct CeilDivRemRef { divisor }
+    struct DivRemCeilRef { divisor }
 }
 div_rem_ref! {
     xgmp::mpz_fdiv_qr_check_0;
     xgmp::mpz_fdiv_q_check_0;
     xgmp::mpz_fdiv_r_check_0;
-    struct FloorDivRemRef { divisor }
+    struct DivRemFloorRef { divisor }
 }
 ref_math_op2! {
     Integer; xgmp::mpz_divexact_check_0; struct DivExactRef { divisor }
@@ -4258,11 +4258,11 @@ mod tests {
     check_div_rem!{
         [(23, 10), (23, -10), (-23, 10), (-23, -10)],
         [(3, -7), (-2, 3), (-2, -3), (3, 7)],
-        ceil_div_rem, ceil_div_rem_mut, ceil_div_rem_ref
+        div_rem_ceil, div_rem_ceil_mut, div_rem_ceil_ref
     }
     check_div_rem!{
         [(23, 10), (23, -10), (-23, 10), (-23, -10)],
         [(2, 3), (-3, -7), (-3, 7), (2, -3)],
-        floor_div_rem, floor_div_rem_mut, floor_div_rem_ref
+        div_rem_floor, div_rem_floor_mut, div_rem_floor_ref
     }
 }
