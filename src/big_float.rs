@@ -14,13 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, AssignRound};
+use Assign;
 #[cfg(feature = "integer")]
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use ext::mpfr as xmpfr;
-use float::{OrdFloat, SmallFloat};
+use float::{AssignRound, OrdFloat, Round, SmallFloat};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
           DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
@@ -110,67 +110,6 @@ pub fn prec_max() -> u32 {
         max as u32
     } else {
         u32::MAX
-    }
-}
-
-/// The rounding methods for floating-point values.
-///
-/// When rounding to the nearest, if the number to be rounded is
-/// exactly between two representable numbers, it is rounded to
-/// the even one, that is, the one with the least significant bit
-/// set to zero.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::{AssignRound, Float};
-/// use rug::float::Round;
-/// let mut f4 = Float::new(4);
-/// f4.assign_round(10.4, Round::Nearest);
-/// assert_eq!(f4, 10);
-/// f4.assign_round(10.6, Round::Nearest);
-/// assert_eq!(f4, 11);
-/// f4.assign_round(-10.7, Round::Zero);
-/// assert_eq!(f4, -10);
-/// f4.assign_round(10.3, Round::AwayFromZero);
-/// assert_eq!(f4, 11);
-/// ```
-///
-/// Rounding to the nearest will round numbers exactly between two
-/// representable numbers to the even one.
-///
-/// ```rust
-/// use rug::{AssignRound, Float};
-/// use rug::float::Round;
-/// // 24 is 11000 in binary
-/// // 25 is 11001 in binary
-/// // 26 is 11010 in binary
-/// // 27 is 11011 in binary
-/// // 28 is 11100 in binary
-/// let mut f4 = Float::new(4);
-/// f4.assign_round(25, Round::Nearest);
-/// assert_eq!(f4, 24);
-/// f4.assign_round(27, Round::Nearest);
-/// assert_eq!(f4, 28);
-/// ```
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum Round {
-    /// Round towards the nearest.
-    Nearest,
-    /// Round towards zero.
-    Zero,
-    /// Round towards plus infinity.
-    Up,
-    /// Round towards minus infinity.
-    Down,
-    /// Round away from zero.
-    AwayFromZero,
-}
-
-impl Default for Round {
-    #[inline]
-    fn default() -> Round {
-        Round::Nearest
     }
 }
 
@@ -372,8 +311,8 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 ///
 /// ```rust
 /// extern crate rug;
-/// use rug::{AssignRound, Float};
-/// use rug::float::Round;
+/// use rug::Float;
+/// use rug::float::{AssignRound, Round};
 /// use rug::ops::{AddAssignRound, MulAssignRound};
 ///
 /// fn main() {
@@ -1588,7 +1527,10 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(
+            Float::valid_str_radix(src, radix)?,
+            round,
+        ))
     }
 
     /// Borrows a negated copy of the `Float`.
@@ -3324,8 +3266,8 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, AssignRound, Float};
-        /// use rug::float::Round;
+        /// use rug::{Assign, Float};
+        /// use rug::float::{AssignRound, Round};
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
         /// let sin_cos = phase.sin_cos_ref();
@@ -4004,8 +3946,8 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, AssignRound, Float};
-        /// use rug::float::Round;
+        /// use rug::{Assign, Float};
+        /// use rug::float::{AssignRound, Round};
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
         /// let sinh_cosh = phase.sinh_cosh_ref();
@@ -5899,8 +5841,8 @@ impl Float {
         /// the truncated integer.
         ///
         /// ```rust
-        /// use rug::{AssignRound, Float};
-        /// use rug::float::Round;
+        /// use rug::Float;
+        /// use rug::float::{AssignRound, Round};
         /// let f = Float::with_val(53, 6.5);
         /// // 6.5 (binary 110.1) is rounded to 7 (binary 111)
         /// let r = f.round_ref();

@@ -32,8 +32,7 @@ function print_eval {
 }
 
 # For first toolchain and suffix, test without rational, float,
-# complex too. The default feature is complex, so no need to test it
-# here. First test the feature mpc so that we cache all C libraries.
+# complex too. First test the feature mpc to cache all C libraries.
 for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys gmp-mpfr-sys/mpfr integer rational float complex rand; do
 	if [ -e target ]; then
 		rm -r target

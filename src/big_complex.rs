@@ -14,14 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, AssignRound, Float};
+use {Assign, Float};
 #[cfg(feature = "integer")]
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use complex::OrdComplex;
 use ext::mpc as xmpc;
-use float::{self, Constant, ParseFloatError, Round, Special, ValidFloat};
+use float::{self, AssignRound, Constant, ParseFloatError, Round, Special,
+            ValidFloat};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
           DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
@@ -862,7 +863,10 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(
+            Complex::valid_str_radix(src, radix)?,
+            round,
+        ))
     }
 
     /// Borrows the real part as a [`Float`](struct.Float.html).
@@ -2128,8 +2132,8 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, AssignRound, Complex};
-        /// use rug::float::Round;
+        /// use rug::{Assign, Complex};
+        /// use rug::float::{AssignRound, Round};
         /// use std::cmp::Ordering;
         /// let phase = Complex::with_val(53, (1, 1));
         /// let sin_cos = phase.sin_cos_ref();
