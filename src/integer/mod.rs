@@ -35,6 +35,9 @@
 //! assert_eq!(int, 15);
 //! ```
 
+mod arith;
+mod cmp;
+mod division;
 mod small_integer;
 
 pub use big_integer::{IsPrime, ParseIntegerError, ValidInteger};
