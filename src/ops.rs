@@ -1157,6 +1157,250 @@ pub trait PowFromRound<Lhs = Self> {
     ) -> Self::Ordering;
 }
 
+/// Rounding variants of division and remainder operations.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::ops::DivRemRounding;
+/// struct I(i32);
+/// impl DivRemRounding<i32> for I {
+///     type DivOutput = i32;
+///     type RemOutput = i32;
+///     fn div_trunc(self, rhs: i32) -> i32 {
+///         self.0 / rhs
+///     }
+///     fn rem_trunc(self, rhs: i32) -> i32 {
+///         self.0 % rhs
+///     }
+///     fn div_ceil(self, rhs: i32) -> i32 {
+///         let (q, r) = (self.0 / rhs, self.0 % rhs);
+///         let change = if rhs > 0 { r > 0 } else { r < 0 };
+///         if change { q + 1 } else { q }
+///     }
+///     fn rem_ceil(self, rhs: i32) -> i32 {
+///         let r = self.0 % rhs;
+///         let change = if rhs > 0 { r > 0 } else { r < 0 };
+///         if change { r - rhs } else { r }
+///     }
+///     fn div_floor(self, rhs: i32) -> i32 {
+///         let (q, r) = (self.0 / rhs, self.0 % rhs);
+///         let change = if rhs > 0 { r < 0 } else { r > 0 };
+///         if change { q - 1 } else { q }
+///     }
+///     fn rem_floor(self, rhs: i32) -> i32 {
+///         let r = self.0 % rhs;
+///         let change = if rhs > 0 { r < 0 } else { r > 0 };
+///         if change { r + rhs } else { r }
+///     }
+///     fn div_euc(self, rhs: i32) -> i32 {
+///         let (q, r) = (self.0 / rhs, self.0 % rhs);
+///         if r < 0 {
+///             if rhs < 0 { q + 1 } else { q - 1 }
+///         } else {
+///             q
+///         }
+///     }
+///     fn rem_euc(self, rhs: i32) -> i32 {
+///         let r = self.0 % rhs;
+///         if r < 0 {
+///             if rhs < 0 { r - rhs } else { r + rhs }
+///         } else {
+///             r
+///         }
+///     }
+/// }
+/// assert_eq!(I(-10).div_trunc(-3), 3);
+/// assert_eq!(I(-10).rem_trunc(-3), -1);
+/// assert_eq!(I(-10).div_ceil(-3), 4);
+/// assert_eq!(I(-10).rem_ceil(-3), 2);
+/// assert_eq!(I(-10).div_floor(-3), 3);
+/// assert_eq!(I(-10).rem_floor(-3), -1);
+/// assert_eq!(I(-10).div_euc(-3), 4);
+/// assert_eq!(I(-10).rem_euc(-3), 2);
+/// ```
+pub trait DivRemRounding<Rhs = Self> {
+    /// The resulting type from the division operation.
+    type DivOutput;
+    /// The resulting type from the remainder operation.
+    type RemOutput;
+    /// Performs division, rounding the quotient towards zero.
+    fn div_trunc(self, rhs: Rhs) -> Self::DivOutput;
+    /// Finds the remainder when the quotient is rounded towards zero.
+    fn rem_trunc(self, rhs: Rhs) -> Self::RemOutput;
+    /// Performs division, rounding the quotient up.
+    fn div_ceil(self, rhs: Rhs) -> Self::DivOutput;
+    /// Finds the remainder when the quotient is rounded up.
+    fn rem_ceil(self, rhs: Rhs) -> Self::RemOutput;
+    /// Performs division, rounding the quotient down.
+    fn div_floor(self, rhs: Rhs) -> Self::DivOutput;
+    /// Finds the remainder when the quotient is rounded down.
+    fn rem_floor(self, rhs: Rhs) -> Self::RemOutput;
+    /// Performs division, rounding the quotient so that the remainder
+    /// cannot be negative.
+    fn div_euc(self, rhs: Rhs) -> Self::DivOutput;
+    /// Finds the positive remainder.
+    fn rem_euc(self, rhs: Rhs) -> Self::RemOutput;
+}
+
+/// Compound assignment and rounding variants of division and
+/// remainder operations.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::ops::DivRemRoundingAssign;
+/// struct I(i32);
+/// impl DivRemRoundingAssign<i32> for I {
+///     fn div_trunc_assign(&mut self, rhs: i32) {
+///         self.0 /= rhs;
+///     }
+///     fn rem_trunc_assign(&mut self, rhs: i32) {
+///         self.0 %= rhs;
+///     }
+///     fn div_ceil_assign(&mut self, rhs: i32) {
+///         let (q, r) = (self.0 / rhs, self.0 % rhs);
+///         let change = if rhs > 0 { r > 0 } else { r < 0 };
+///         self.0 = if change { q + 1 } else { q };
+///     }
+///     fn rem_ceil_assign(&mut self, rhs: i32) {
+///         let r = self.0 % rhs;
+///         let change = if rhs > 0 { r > 0 } else { r < 0 };
+///         self.0 = if change { r - rhs } else { r };
+///     }
+///     fn div_floor_assign(&mut self, rhs: i32) {
+///         let (q, r) = (self.0 / rhs, self.0 % rhs);
+///         let change = if rhs > 0 { r < 0 } else { r > 0 };
+///         self.0 = if change { q - 1 } else { q };
+///     }
+///     fn rem_floor_assign(&mut self, rhs: i32) {
+///         let r = self.0 % rhs;
+///         let change = if rhs > 0 { r < 0 } else { r > 0 };
+///         self.0 = if change { r + rhs } else { r };
+///     }
+///     fn div_euc_assign(&mut self, rhs: i32) {
+///         let (q, r) = (self.0 / rhs, self.0 % rhs);
+///         self.0 = if r < 0 {
+///             if rhs < 0 { q + 1 } else { q - 1 }
+///         } else {
+///             q
+///         };
+///     }
+///     fn rem_euc_assign(&mut self, rhs: i32) {
+///         let r = self.0 % rhs;
+///         self.0 = if r < 0 {
+///             if rhs < 0 { r - rhs } else { r + rhs }
+///         } else {
+///             r
+///         };
+///     }
+/// }
+/// let mut div_floor = I(-10);
+/// div_floor.div_floor_assign(3);
+/// assert_eq!(div_floor.0, -4);
+/// let mut rem_floor = I(-10);
+/// rem_floor.rem_floor_assign(3);
+/// assert_eq!(rem_floor.0, 2);
+/// ```
+pub trait DivRemRoundingAssign<Rhs = Self> {
+    /// Performs division, rounding the quotient towards zero.
+    fn div_trunc_assign(&mut self, rhs: Rhs);
+    /// Finds the remainder when the quotient is rounded towards zero.
+    fn rem_trunc_assign(&mut self, rhs: Rhs);
+    /// Performs division, rounding the quotient up.
+    fn div_ceil_assign(&mut self, rhs: Rhs);
+    /// Finds the remainder when the quotient is rounded up.
+    fn rem_ceil_assign(&mut self, rhs: Rhs);
+    /// Performs division, rounding the quotient down.
+    fn div_floor_assign(&mut self, rhs: Rhs);
+    /// Finds the remainder when the quotient is rounded down.
+    fn rem_floor_assign(&mut self, rhs: Rhs);
+    /// Performs division, rounding the quotient so that the remainder
+    /// cannot be negative.
+    fn div_euc_assign(&mut self, rhs: Rhs);
+    /// Finds the positive remainder.
+    fn rem_euc_assign(&mut self, rhs: Rhs);
+}
+
+/// Compound assignment to the rhs operand and rounding variants of
+/// division and remainder operations.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::ops::DivRemRoundingFrom;
+/// struct I(i32);
+/// impl DivRemRoundingFrom<i32> for I {
+///     fn div_trunc_from(&mut self, lhs: i32) {
+///         self.0 = lhs / self.0;
+///     }
+///     fn rem_trunc_from(&mut self, lhs: i32) {
+///         self.0 = lhs % self.0;
+///     }
+///     fn div_ceil_from(&mut self, lhs: i32) {
+///         let (q, r) = (lhs / self.0, lhs % self.0);
+///         let change = if self.0 > 0 { r > 0 } else { r < 0 };
+///         self.0 = if change { q + 1 } else { q };
+///     }
+///     fn rem_ceil_from(&mut self, lhs: i32) {
+///         let r = lhs % self.0;
+///         let change = if self.0 > 0 { r > 0 } else { r < 0 };
+///         self.0 = if change { r - self.0 } else { r };
+///     }
+///     fn div_floor_from(&mut self, lhs: i32) {
+///         let (q, r) = (lhs / self.0, lhs % self.0);
+///         let change = if self.0 > 0 { r < 0 } else { r > 0 };
+///         self.0 = if change { q - 1 } else { q };
+///     }
+///     fn rem_floor_from(&mut self, lhs: i32) {
+///         let r = lhs % self.0;
+///         let change = if self.0 > 0 { r < 0 } else { r > 0 };
+///         self.0 = if change { r + self.0 } else { r };
+///     }
+///     fn div_euc_from(&mut self, lhs: i32) {
+///         let (q, r) = (lhs / self.0, lhs % self.0);
+///         self.0 = if r < 0 {
+///             if self.0 < 0 { q + 1 } else { q - 1 }
+///         } else {
+///             q
+///         };
+///     }
+///     fn rem_euc_from(&mut self, lhs: i32) {
+///         let r = lhs % self.0;
+///         self.0 = if r < 0 {
+///             if self.0 < 0 { r - self.0 } else { r + self.0 }
+///         } else {
+///             r
+///         };
+///     }
+/// }
+/// let mut div_ceil = I(3);
+/// div_ceil.div_ceil_from(10);
+/// assert_eq!(div_ceil.0, 4);
+/// let mut rem_ceil = I(3);
+/// rem_ceil.rem_ceil_from(10);
+/// assert_eq!(rem_ceil.0, -2);
+/// ```
+pub trait DivRemRoundingFrom<Lhs = Self> {
+    /// Performs division, rounding the quotient towards zero.
+    fn div_trunc_from(&mut self, lhs: Lhs);
+    /// Finds the remainder when the quotient is rounded towards zero.
+    fn rem_trunc_from(&mut self, lhs: Lhs);
+    /// Performs division, rounding the quotient up.
+    fn div_ceil_from(&mut self, lhs: Lhs);
+    /// Finds the remainder when the quotient is rounded up.
+    fn rem_ceil_from(&mut self, lhs: Lhs);
+    /// Performs division, rounding the quotient down.
+    fn div_floor_from(&mut self, lhs: Lhs);
+    /// Finds the remainder when the quotient is rounded down.
+    fn rem_floor_from(&mut self, lhs: Lhs);
+    /// Performs division, rounding the quotient so that the remainder
+    /// cannot be negative.
+    fn div_euc_from(&mut self, lhs: Lhs);
+    /// Finds the positive remainder.
+    fn rem_euc_from(&mut self, lhs: Lhs);
+}
+
 macro_rules! assign_from {
     { $T:ty; $op:ident; $Imp:ident $method:ident } => {
         impl $Imp for $T {

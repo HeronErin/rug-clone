@@ -17,8 +17,9 @@
 use Assign;
 use ext::gmp as xgmp;
 use inner::{Inner, InnerMut};
-use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom,
-          NegAssign, NotAssign, Pow, PowAssign, RemFrom, SubFrom};
+use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRemRounding,
+          DivRemRoundingAssign, DivRemRoundingFrom, MulFrom, NegAssign,
+          NotAssign, Pow, PowAssign, RemFrom, SubFrom};
 #[cfg(feature = "rand")]
 use rand::RandState;
 
@@ -3330,83 +3331,16 @@ where
     }
 }
 
-macro_rules! div_rem_ref {
-    {
-        $qrfunc:path;
-        $qfunc:path;
-        $rfunc:path;
-        struct $Ref:ident { $op:ident }
-    } => {
-
-        ref_math_op2_2! {
-            Integer; $qrfunc; struct $Ref { $op }
-        }
-
-        impl<'a> From<$Ref<'a>> for (Integer, ()) {
-            #[inline]
-            fn from(src: $Ref<'a>) -> (Integer, ()) {
-                let mut quotient = Integer::new();
-                (&mut quotient, ()).assign(src);
-                (quotient, ())
-            }
-        }
-
-        impl<'a> Assign<$Ref<'a>> for (&'a mut Integer, ()) {
-            #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $qfunc(
-                        self.0.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                    );
-                }
-            }
-        }
-
-        impl<'a> From<$Ref<'a>> for ((), Integer) {
-            #[inline]
-            fn from(src: $Ref<'a>) -> ((), Integer) {
-                let mut remainder = Integer::new();
-                ((), &mut remainder).assign(src);
-                ((), remainder)
-            }
-        }
-
-        impl<'a> Assign<$Ref<'a>> for ((), &'a mut Integer) {
-            #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $rfunc(
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                    );
-                }
-            }
-        }
-    }
-}
-
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
 ref_math_op1! { Integer; xgmp::mpz_next_pow_of_two; struct NextPowerTwoRef {} }
-div_rem_ref! {
-    xgmp::mpz_tdiv_qr_check_0;
-    xgmp::mpz_tdiv_q_check_0;
-    xgmp::mpz_tdiv_r_check_0;
-    struct DivRemRef { divisor }
+ref_math_op2_2! {
+    Integer; xgmp::mpz_tdiv_qr_check_0; struct DivRemRef { divisor }
 }
-div_rem_ref! {
-    xgmp::mpz_cdiv_qr_check_0;
-    xgmp::mpz_cdiv_q_check_0;
-    xgmp::mpz_cdiv_r_check_0;
-    struct DivRemCeilRef { divisor }
+ref_math_op2_2! {
+    Integer; xgmp::mpz_cdiv_qr_check_0; struct DivRemCeilRef { divisor }
 }
-div_rem_ref! {
-    xgmp::mpz_fdiv_qr_check_0;
-    xgmp::mpz_fdiv_q_check_0;
-    xgmp::mpz_fdiv_r_check_0;
-    struct DivRemFloorRef { divisor }
+ref_math_op2_2! {
+    Integer; xgmp::mpz_fdiv_qr_check_0; struct DivRemFloorRef { divisor }
 }
 ref_math_op2! {
     Integer; xgmp::mpz_divexact_check_0; struct DivExactRef { divisor }
@@ -3622,6 +3556,450 @@ arith_binary! {
     RemFrom rem_from;
     RemRef
 }
+
+impl DivRemRounding<Integer> for Integer {
+    type DivOutput = Integer;
+    type RemOutput = Integer;
+    #[inline]
+    fn div_trunc(self, rhs: Integer) -> Integer {
+        self.div_trunc(&rhs)
+    }
+    #[inline]
+    fn rem_trunc(self, rhs: Integer) -> Integer {
+        self.rem_trunc(&rhs)
+    }
+    #[inline]
+    fn div_ceil(self, rhs: Integer) -> Integer {
+        self.div_ceil(&rhs)
+    }
+    #[inline]
+    fn rem_ceil(self, rhs: Integer) -> Integer {
+        self.rem_ceil(&rhs)
+    }
+    #[inline]
+    fn div_floor(self, rhs: Integer) -> Integer {
+        self.div_floor(&rhs)
+    }
+    #[inline]
+    fn rem_floor(self, rhs: Integer) -> Integer {
+        self.rem_floor(&rhs)
+    }
+    #[inline]
+    fn div_euc(self, rhs: Integer) -> Integer {
+        self.div_euc(&rhs)
+    }
+    #[inline]
+    fn rem_euc(self, rhs: Integer) -> Integer {
+        self.rem_euc(&rhs)
+    }
+}
+
+impl<'a> DivRemRounding<&'a Integer> for Integer {
+    type DivOutput = Integer;
+    type RemOutput = Integer;
+    #[inline]
+    fn div_trunc(mut self, rhs: &'a Integer) -> Integer {
+        self.div_trunc_assign(rhs);
+        self
+    }
+    #[inline]
+    fn rem_trunc(mut self, rhs: &'a Integer) -> Integer {
+        self.rem_trunc_assign(rhs);
+        self
+    }
+    #[inline]
+    fn div_ceil(mut self, rhs: &'a Integer) -> Integer {
+        self.div_ceil_assign(rhs);
+        self
+    }
+    #[inline]
+    fn rem_ceil(mut self, rhs: &'a Integer) -> Integer {
+        self.rem_ceil_assign(rhs);
+        self
+    }
+    #[inline]
+    fn div_floor(mut self, rhs: &'a Integer) -> Integer {
+        self.div_floor_assign(rhs);
+        self
+    }
+    #[inline]
+    fn rem_floor(mut self, rhs: &'a Integer) -> Integer {
+        self.rem_floor_assign(rhs);
+        self
+    }
+    #[inline]
+    fn div_euc(mut self, rhs: &'a Integer) -> Integer {
+        self.div_euc_assign(rhs);
+        self
+    }
+    #[inline]
+    fn rem_euc(mut self, rhs: &'a Integer) -> Integer {
+        self.rem_euc_assign(rhs);
+        self
+    }
+}
+
+impl<'a> DivRemRounding<Integer> for &'a Integer {
+    type DivOutput = Integer;
+    type RemOutput = Integer;
+    #[inline]
+    fn div_trunc(self, mut rhs: Integer) -> Integer {
+        rhs.div_trunc_from(self);
+        rhs
+    }
+    #[inline]
+    fn rem_trunc(self, mut rhs: Integer) -> Integer {
+        rhs.rem_trunc_from(self);
+        rhs
+    }
+    #[inline]
+    fn div_ceil(self, mut rhs: Integer) -> Integer {
+        rhs.div_ceil_from(self);
+        rhs
+    }
+    #[inline]
+    fn rem_ceil(self, mut rhs: Integer) -> Integer {
+        rhs.rem_ceil_from(self);
+        rhs
+    }
+    #[inline]
+    fn div_floor(self, mut rhs: Integer) -> Integer {
+        rhs.div_floor_from(self);
+        rhs
+    }
+    #[inline]
+    fn rem_floor(self, mut rhs: Integer) -> Integer {
+        rhs.rem_floor_from(self);
+        rhs
+    }
+    #[inline]
+    fn div_euc(self, mut rhs: Integer) -> Integer {
+        rhs.div_euc_from(self);
+        rhs
+    }
+    #[inline]
+    fn rem_euc(self, mut rhs: Integer) -> Integer {
+        rhs.rem_euc_from(self);
+        rhs
+    }
+}
+
+impl DivRemRoundingAssign<Integer> for Integer {
+    #[inline]
+    fn div_trunc_assign(&mut self, rhs: Integer) {
+        self.div_trunc_assign(&rhs);
+    }
+    #[inline]
+    fn rem_trunc_assign(&mut self, rhs: Integer) {
+        self.rem_trunc_assign(&rhs);
+    }
+    #[inline]
+    fn div_ceil_assign(&mut self, rhs: Integer) {
+        self.div_ceil_assign(&rhs);
+    }
+    #[inline]
+    fn rem_ceil_assign(&mut self, rhs: Integer) {
+        self.rem_ceil_assign(&rhs);
+    }
+    #[inline]
+    fn div_floor_assign(&mut self, rhs: Integer) {
+        self.div_floor_assign(&rhs);
+    }
+    #[inline]
+    fn rem_floor_assign(&mut self, rhs: Integer) {
+        self.rem_floor_assign(&rhs);
+    }
+    #[inline]
+    fn div_euc_assign(&mut self, rhs: Integer) {
+        self.div_euc_assign(&rhs);
+    }
+    #[inline]
+    fn rem_euc_assign(&mut self, rhs: Integer) {
+        self.rem_euc_assign(&rhs);
+    }
+}
+
+impl<'a> DivRemRoundingAssign<&'a Integer> for Integer {
+    #[inline]
+    fn div_trunc_assign(&mut self, rhs: &'a Integer) {
+        self.div_assign(rhs);
+    }
+    #[inline]
+    fn rem_trunc_assign(&mut self, rhs: &'a Integer) {
+        self.rem_assign(rhs);
+    }
+    #[inline]
+    fn div_ceil_assign(&mut self, rhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_cdiv_q_check_0(
+                self.inner_mut(),
+                self.inner(),
+                rhs.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn rem_ceil_assign(&mut self, rhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_cdiv_r_check_0(
+                self.inner_mut(),
+                self.inner(),
+                rhs.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn div_floor_assign(&mut self, rhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_fdiv_q_check_0(
+                self.inner_mut(),
+                self.inner(),
+                rhs.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn rem_floor_assign(&mut self, rhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_fdiv_r_check_0(
+                self.inner_mut(),
+                self.inner(),
+                rhs.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn div_euc_assign(&mut self, rhs: &'a Integer) {
+        if rhs.cmp0() == Ordering::Greater {
+            self.div_floor_assign(rhs);
+        } else {
+            self.div_ceil_assign(rhs);
+        }
+    }
+    #[inline]
+    fn rem_euc_assign(&mut self, rhs: &'a Integer) {
+        if rhs.cmp0() == Ordering::Greater {
+            self.rem_floor_assign(rhs);
+        } else {
+            self.rem_ceil_assign(rhs);
+        }
+    }
+}
+
+impl DivRemRoundingFrom<Integer> for Integer {
+    #[inline]
+    fn div_trunc_from(&mut self, lhs: Integer) {
+        self.div_trunc_from(&lhs);
+    }
+    #[inline]
+    fn rem_trunc_from(&mut self, lhs: Integer) {
+        self.rem_trunc_from(&lhs);
+    }
+    #[inline]
+    fn div_ceil_from(&mut self, lhs: Integer) {
+        self.div_ceil_from(&lhs);
+    }
+    #[inline]
+    fn rem_ceil_from(&mut self, lhs: Integer) {
+        self.rem_ceil_from(&lhs);
+    }
+    #[inline]
+    fn div_floor_from(&mut self, lhs: Integer) {
+        self.div_floor_from(&lhs);
+    }
+    #[inline]
+    fn rem_floor_from(&mut self, lhs: Integer) {
+        self.rem_floor_from(&lhs);
+    }
+    #[inline]
+    fn div_euc_from(&mut self, lhs: Integer) {
+        self.div_euc_from(&lhs);
+    }
+    #[inline]
+    fn rem_euc_from(&mut self, lhs: Integer) {
+        self.rem_euc_from(&lhs);
+    }
+}
+
+impl<'a> DivRemRoundingFrom<&'a Integer> for Integer {
+    #[inline]
+    fn div_trunc_from(&mut self, lhs: &'a Integer) {
+        self.div_from(lhs);
+    }
+    #[inline]
+    fn rem_trunc_from(&mut self, lhs: &'a Integer) {
+        self.rem_from(lhs);
+    }
+    #[inline]
+    fn div_ceil_from(&mut self, lhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_cdiv_q_check_0(
+                self.inner_mut(),
+                lhs.inner(),
+                self.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn rem_ceil_from(&mut self, lhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_cdiv_r_check_0(
+                self.inner_mut(),
+                lhs.inner(),
+                self.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn div_floor_from(&mut self, lhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_fdiv_q_check_0(
+                self.inner_mut(),
+                lhs.inner(),
+                self.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn rem_floor_from(&mut self, lhs: &'a Integer) {
+        unsafe {
+            xgmp::mpz_fdiv_r_check_0(
+                self.inner_mut(),
+                lhs.inner(),
+                self.inner(),
+            );
+        }
+    }
+    #[inline]
+    fn div_euc_from(&mut self, lhs: &'a Integer) {
+        if self.cmp0() == Ordering::Greater {
+            self.div_floor_from(lhs);
+        } else {
+            self.div_ceil_from(lhs);
+        }
+    }
+    #[inline]
+    fn rem_euc_from(&mut self, lhs: &'a Integer) {
+        if self.cmp0() == Ordering::Greater {
+            self.rem_floor_from(lhs);
+        } else {
+            self.rem_ceil_from(lhs);
+        }
+    }
+}
+
+impl<'a> DivRemRounding<&'a Integer> for &'a Integer {
+    type DivOutput = DivRemRoundingRef<'a>;
+    type RemOutput = DivRemRoundingRef<'a>;
+    #[inline]
+    fn div_trunc(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::DivTrunc(self, rhs)
+    }
+    #[inline]
+    fn rem_trunc(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::RemTrunc(self, rhs)
+    }
+    #[inline]
+    fn div_ceil(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::DivCeil(self, rhs)
+    }
+    #[inline]
+    fn rem_ceil(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::RemCeil(self, rhs)
+    }
+    #[inline]
+    fn div_floor(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::DivFloor(self, rhs)
+    }
+    #[inline]
+    fn rem_floor(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::RemFloor(self, rhs)
+    }
+    #[inline]
+    fn div_euc(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::DivEuc(self, rhs)
+    }
+    #[inline]
+    fn rem_euc(self, rhs: &'a Integer) -> DivRemRoundingRef {
+        DivRemRoundingRef::RemEuc(self, rhs)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum DivRemRoundingRef<'a> {
+    DivTrunc(&'a Integer, &'a Integer),
+    RemTrunc(&'a Integer, &'a Integer),
+    DivCeil(&'a Integer, &'a Integer),
+    RemCeil(&'a Integer, &'a Integer),
+    DivFloor(&'a Integer, &'a Integer),
+    RemFloor(&'a Integer, &'a Integer),
+    DivEuc(&'a Integer, &'a Integer),
+    RemEuc(&'a Integer, &'a Integer),
+}
+
+from_borrow! { DivRemRoundingRef<'a> => Integer }
+
+impl<'a> Assign<DivRemRoundingRef<'a>> for Integer {
+    #[inline]
+    fn assign(&mut self, src: DivRemRoundingRef) {
+        use self::DivRemRoundingRef::*;
+        match src {
+            DivTrunc(lhs, rhs) => unsafe {
+                xgmp::mpz_tdiv_q_check_0(
+                    self.inner_mut(),
+                    lhs.inner(),
+                    rhs.inner(),
+                );
+            },
+            RemTrunc(lhs, rhs) => unsafe {
+                xgmp::mpz_tdiv_r_check_0(
+                    self.inner_mut(),
+                    lhs.inner(),
+                    rhs.inner(),
+                );
+            },
+            DivCeil(lhs, rhs) => unsafe {
+                xgmp::mpz_cdiv_q_check_0(
+                    self.inner_mut(),
+                    lhs.inner(),
+                    rhs.inner(),
+                );
+            },
+            RemCeil(lhs, rhs) => unsafe {
+                xgmp::mpz_cdiv_r_check_0(
+                    self.inner_mut(),
+                    lhs.inner(),
+                    rhs.inner(),
+                );
+            },
+            DivFloor(lhs, rhs) => unsafe {
+                xgmp::mpz_fdiv_q_check_0(
+                    self.inner_mut(),
+                    lhs.inner(),
+                    rhs.inner(),
+                );
+            },
+            RemFloor(lhs, rhs) => unsafe {
+                xgmp::mpz_fdiv_r_check_0(
+                    self.inner_mut(),
+                    lhs.inner(),
+                    rhs.inner(),
+                );
+            },
+            DivEuc(lhs, rhs) => if rhs.cmp0() == Ordering::Greater {
+                self.assign(DivFloor(lhs, rhs));
+            } else {
+                self.assign(DivCeil(lhs, rhs));
+            },
+            RemEuc(lhs, rhs) => if rhs.cmp0() == Ordering::Greater {
+                self.assign(RemFloor(lhs, rhs));
+            } else {
+                self.assign(RemCeil(lhs, rhs));
+            },
+        }
+    }
+}
+
 arith_unary! { Integer; gmp::mpz_com; Not not; NotAssign not_assign; NotRef }
 arith_binary! {
     Integer;
@@ -4235,12 +4613,8 @@ mod tests {
                     {
                         let check_ref = dividend.$mref(&divisor);
                         let check_qr = <(Integer, Integer)>::from(check_ref);
-                        let check_q = <(Integer, ())>::from(check_ref);
-                        let check_r = <((), Integer)>::from(check_ref);
                         assert_eq!(check_qr.0, qr.0);
                         assert_eq!(check_qr.1, qr.1);
-                        assert_eq!(check_q.0, qr.0);
-                        assert_eq!(check_r.1, qr.1);
                     }
                     dividend.$mmut(&mut divisor);
                     assert_eq!(dividend, qr.0);
