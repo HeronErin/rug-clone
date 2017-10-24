@@ -43,12 +43,12 @@ pub unsafe fn mpz_tdiv_q_check_0(
 
 #[inline]
 pub unsafe fn mpz_tdiv_r_check_0(
-    q: *mut mpz_t,
+    r: *mut mpz_t,
     dividend: *const mpz_t,
     divisor: *const mpz_t,
 ) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_tdiv_r(q, dividend, divisor);
+    gmp::mpz_tdiv_r(r, dividend, divisor);
 }
 
 #[inline]
@@ -74,12 +74,12 @@ pub unsafe fn mpz_cdiv_q_check_0(
 
 #[inline]
 pub unsafe fn mpz_cdiv_r_check_0(
-    q: *mut mpz_t,
+    r: *mut mpz_t,
     dividend: *const mpz_t,
     divisor: *const mpz_t,
 ) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_cdiv_r(q, dividend, divisor);
+    gmp::mpz_cdiv_r(r, dividend, divisor);
 }
 
 #[inline]
@@ -105,12 +105,42 @@ pub unsafe fn mpz_fdiv_q_check_0(
 
 #[inline]
 pub unsafe fn mpz_fdiv_r_check_0(
-    q: *mut mpz_t,
+    r: *mut mpz_t,
     dividend: *const mpz_t,
     divisor: *const mpz_t,
 ) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_fdiv_r(q, dividend, divisor);
+    gmp::mpz_fdiv_r(r, dividend, divisor);
+}
+
+#[inline]
+pub unsafe fn mpz_ediv_q_check_0(
+    q: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    let sign = gmp::mpz_sgn(divisor);
+    assert_ne!(sign, 0, "division by zero");
+    if sign < 0 {
+        gmp::mpz_cdiv_q(q, dividend, divisor);
+    } else {
+        gmp::mpz_fdiv_q(q, dividend, divisor);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ediv_r_check_0(
+    r: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    let sign = gmp::mpz_sgn(divisor);
+    assert_ne!(sign, 0, "division by zero");
+    if sign < 0 {
+        gmp::mpz_cdiv_r(r, dividend, divisor);
+    } else {
+        gmp::mpz_fdiv_r(r, dividend, divisor);
+    }
 }
 
 #[inline]
