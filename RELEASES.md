@@ -5,8 +5,10 @@ Version 0.8.0 (not yet released)
   as `Integer::cmp0`, `Rational::cmp0` and `Float::cmp0`.
 * Move `rug::AssignRound` to `rug::float::AssignRound`.
 * Add `Integer::clamp`, `Rational::clamp` and `Float::clamp` methods.
-* Add `DivRemRounding`, `DivRemRoundingAssign` and
-  `DivRemRoundingFrom` traits, and implement them for `Integer`.
+* Add `Integer::div_rem_ceil`, `Integer::div_rem_floor` and
+  `Integer::div_rem_euc` methods.
+* Add `DivRounding`, `DivRoundingAssign` and `DivRoundingFrom` traits,
+  and their `Rem` counterparts, and implement them for `Integer`.
 
 Version 0.7.0 (2017-30-09)
 ==========================

@@ -1725,6 +1725,64 @@ impl Integer {
         /// ```
         fn div_rem_floor_ref -> DivRemFloorRef;
     }
+    math_op2_2! {
+        Integer;
+        xgmp::mpz_ediv_qr_check_0;
+        /// Performs a division producing both the quotient and
+        /// remainder, with a positive remainder.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let dividend = Integer::from(23);
+        /// let divisor = Integer::from(-10);
+        /// let (quotient, rem) = dividend.div_rem_euc(divisor);
+        /// assert_eq!(quotient, -2);
+        /// assert_eq!(rem, 3);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_rem_euc(divisor);
+        /// Performs a division producing both the quotient and
+        /// remainder, with a positive remainder.
+        ///
+        /// The quotient is stored in `self` and the remainder is
+        /// stored in `divisor`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut dividend_quotient = Integer::from(-23);
+        /// let mut divisor_rem = Integer::from(10);
+        /// dividend_quotient.div_rem_euc_mut(&mut divisor_rem);
+        /// assert_eq!(dividend_quotient, -3);
+        /// assert_eq!(divisor_rem, 7);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_rem_euc_mut;
+        /// Performs a division producing both the quotient and
+        /// remainder, with a positive remainder.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let dividend = Integer::from(-23);
+        /// let divisor = Integer::from(-10);
+        /// let r = dividend.div_rem_euc_ref(&divisor);
+        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(quotient, 3);
+        /// assert_eq!(rem, 7);
+        /// ```
+        fn div_rem_euc_ref -> DivRemEucRef;
+    }
     math_op2! {
         Integer;
         xgmp::mpz_divexact_check_0;
@@ -3337,6 +3395,9 @@ ref_math_op2_2! {
 ref_math_op2_2! {
     Integer; xgmp::mpz_fdiv_qr_check_0; struct DivRemFloorRef { divisor }
 }
+ref_math_op2_2! {
+    Integer; xgmp::mpz_ediv_qr_check_0; struct DivRemEucRef { divisor }
+}
 ref_math_op2! {
     Integer; xgmp::mpz_divexact_check_0; struct DivExactRef { divisor }
 }
@@ -3779,5 +3840,10 @@ mod tests {
         [(23, 10), (23, -10), (-23, 10), (-23, -10)],
         [(2, 3), (-3, -7), (-3, 7), (2, -3)],
         div_rem_floor, div_rem_floor_mut, div_rem_floor_ref
+    }
+    check_div_rem!{
+        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
+        [(2, 3), (-2, 3), (-3, 7), (3, 7)],
+        div_rem_euc, div_rem_euc_mut, div_rem_euc_ref
     }
 }

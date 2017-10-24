@@ -114,6 +114,22 @@ pub unsafe fn mpz_fdiv_r_check_0(
 }
 
 #[inline]
+pub unsafe fn mpz_ediv_qr_check_0(
+    q: *mut mpz_t,
+    r: *mut mpz_t,
+    dividend: *const mpz_t,
+    divisor: *const mpz_t,
+) {
+    let sign = gmp::mpz_sgn(divisor);
+    assert_ne!(sign, 0, "division by zero");
+    if sign < 0 {
+        gmp::mpz_cdiv_qr(q, r, dividend, divisor);
+    } else {
+        gmp::mpz_fdiv_qr(q, r, dividend, divisor);
+    }
+}
+
+#[inline]
 pub unsafe fn mpz_ediv_q_check_0(
     q: *mut mpz_t,
     dividend: *const mpz_t,
