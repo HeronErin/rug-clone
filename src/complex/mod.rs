@@ -19,69 +19,64 @@
 //! This module provides support for complex numbers of type
 //! [`Complex`](../struct.Complex.html).
 
+mod arith;
+mod cmp;
 mod ord_complex;
 mod small_complex;
+mod traits;
 
-pub use big_complex::{ParseComplexError, Prec, ValidComplex};
+pub use big_complex::{ParseComplexError, ValidComplex};
 pub use complex::ord_complex::OrdComplex;
 pub use complex::small_complex::SmallComplex;
+
+/// The `Prec` trait is used to specify the precision of the real and
+/// imaginary parts of a [`Complex`](../struct.Complex.html) number.
+///
+/// This trait is implememented for `u32` and for `(u32, u32)`.
+///
+/// # Examples
+///
+/// ```rust
+/// use rug::Complex;
+/// let c1 = Complex::new(32);
+/// assert_eq!(c1.prec(), (32, 32));
+/// let c2 = Complex::new((32, 64));
+/// assert_eq!(c2.prec(), (32, 64));
+/// ```
+pub trait Prec {
+    /// Returns the precision for the real and imaginary parts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let c = Complex::new(32);
+    /// assert_eq!(c.prec(), (32, 32));
+    /// ```
+    fn prec(self) -> (u32, u32);
+}
+
+impl Prec for u32 {
+    #[inline]
+    fn prec(self) -> (u32, u32) {
+        (self, self)
+    }
+}
+
+impl Prec for (u32, u32) {
+    #[inline]
+    fn prec(self) -> (u32, u32) {
+        self
+    }
+}
 
 #[cfg(test)]
 mod tests {
     use {Assign, Complex};
     use float::Special;
     use gmp_mpfr_sys::gmp;
-    use ops::Pow;
     use std::f64;
     use std::mem;
-
-    #[test]
-    fn check_ref_op() {
-        let lhs = Complex::with_val(53, (12.25, -1.375));
-        let rhs = Complex::with_val(53, (-1.375, 13));
-        let pu = 30_u32;
-        let pi = -15_i32;
-        let ps = 31.625_f32;
-        let pd = -1.5_f64;
-        assert_eq!(Complex::with_val(53, -&lhs), -lhs.clone());
-        assert_eq!(Complex::with_val(53, &lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Complex::with_val(53, &lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Complex::with_val(53, &lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Complex::with_val(53, &lhs / &rhs), lhs.clone() / &rhs);
-        assert_eq!(
-            Complex::with_val(53, (&lhs).pow(&rhs)),
-            lhs.clone().pow(&rhs)
-        );
-
-        assert_eq!(Complex::with_val(53, &lhs + pu), lhs.clone() + pu);
-        assert_eq!(Complex::with_val(53, &lhs - pu), lhs.clone() - pu);
-        assert_eq!(Complex::with_val(53, &lhs * pu), lhs.clone() * pu);
-        assert_eq!(Complex::with_val(53, &lhs / pu), lhs.clone() / pu);
-        assert_eq!(Complex::with_val(53, &lhs << pu), lhs.clone() << pu);
-        assert_eq!(Complex::with_val(53, &lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Complex::with_val(53, (&lhs).pow(pu)), lhs.clone().pow(pu));
-
-        assert_eq!(Complex::with_val(53, pu + &lhs), pu + lhs.clone());
-        assert_eq!(Complex::with_val(53, pu - &lhs), pu - lhs.clone());
-        assert_eq!(Complex::with_val(53, pu * &lhs), pu * lhs.clone());
-        assert_eq!(Complex::with_val(53, pu / &lhs), pu / lhs.clone());
-
-        assert_eq!(Complex::with_val(53, &lhs + pi), lhs.clone() + pi);
-        assert_eq!(Complex::with_val(53, &lhs - pi), lhs.clone() - pi);
-        assert_eq!(Complex::with_val(53, &lhs * pi), lhs.clone() * pi);
-        assert_eq!(Complex::with_val(53, &lhs / pi), lhs.clone() / pi);
-        assert_eq!(Complex::with_val(53, &lhs << pi), lhs.clone() << pi);
-        assert_eq!(Complex::with_val(53, &lhs >> pi), lhs.clone() >> pi);
-        assert_eq!(Complex::with_val(53, (&lhs).pow(pi)), lhs.clone().pow(pi));
-
-        assert_eq!(Complex::with_val(53, pi + &lhs), pi + lhs.clone());
-        assert_eq!(Complex::with_val(53, pi - &lhs), pi - lhs.clone());
-        assert_eq!(Complex::with_val(53, pi * &lhs), pi * lhs.clone());
-        assert_eq!(Complex::with_val(53, pi / &lhs), pi / lhs.clone());
-
-        assert_eq!(Complex::with_val(53, (&lhs).pow(ps)), lhs.clone().pow(ps));
-        assert_eq!(Complex::with_val(53, (&lhs).pow(pd)), lhs.clone().pow(pd));
-    }
 
     #[test]
     fn check_from_str() {
@@ -150,7 +145,7 @@ mod tests {
     }
 
     #[test]
-    fn check_no_nails() {
+    fn check_assumptions() {
         // we assume no nail bits when we use limbs
         assert_eq!(gmp::NAIL_BITS, 0);
         assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
