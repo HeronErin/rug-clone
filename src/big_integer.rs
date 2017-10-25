@@ -3547,6 +3547,8 @@ fn trunc_f64_to_f32(f: f64) -> f32 {
 }
 
 // The commented out function results in longer x86_64 asm.
+// See: https://github.com/rust-lang/rust/issues/42870
+//
 // fn result_swap<T>(r: &mut Result<T, T>) {
 //     let old = mem::replace(r, unsafe { mem::uninitialized() });
 //     let new = match old {
