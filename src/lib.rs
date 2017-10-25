@@ -175,6 +175,7 @@ pub trait Assign<Rhs = Self> {
 }
 
 pub mod ops;
+mod ops_prim;
 
 #[cfg(feature = "integer")]
 mod big_integer;
