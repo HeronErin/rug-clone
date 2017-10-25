@@ -8,7 +8,9 @@ Version 0.8.0 (not yet released)
 * Add `Integer::div_rem_ceil`, `Integer::div_rem_floor` and
   `Integer::div_rem_euc` methods.
 * Add `DivRounding`, `DivRoundingAssign` and `DivRoundingFrom` traits,
-  and their `Rem` counterparts, and implement them for `Integer`.
+  and their `Rem` counterparts, and implement them for `Integer`, and
+  for combinations of `Integer` with `i32` or `u32`.
+* Add `Rational::fract_floor` and `Rational::fract_ceil` methods.
 
 Version 0.7.0 (2017-30-09)
 ==========================
