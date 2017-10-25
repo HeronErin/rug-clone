@@ -1202,8 +1202,8 @@ pub trait DivRounding<Rhs = Self> {
     fn div_ceil(self, rhs: Rhs) -> Self::Output;
     /// Performs division, rounding the quotient down.
     fn div_floor(self, rhs: Rhs) -> Self::Output;
-    /// Performs division, rounding the quotient so that the remainder
-    /// cannot be negative.
+    /// Performs Euclidean division, rounding the quotient so that the
+    /// remainder cannot be negative.
     fn div_euc(self, rhs: Rhs) -> Self::Output;
 }
 
@@ -1248,8 +1248,8 @@ pub trait DivRoundingAssign<Rhs = Self> {
     fn div_ceil_assign(&mut self, rhs: Rhs);
     /// Performs division, rounding the quotient down.
     fn div_floor_assign(&mut self, rhs: Rhs);
-    /// Performs division, rounding the quotient so that the remainder
-    /// cannot be negative.
+    /// Performs Euclidean division, rounding the quotient so that the
+    /// remainder cannot be negative.
     fn div_euc_assign(&mut self, rhs: Rhs);
 }
 
@@ -1295,8 +1295,8 @@ pub trait DivRoundingFrom<Lhs = Self> {
     fn div_ceil_from(&mut self, lhs: Lhs);
     /// Performs division, rounding the quotient down.
     fn div_floor_from(&mut self, lhs: Lhs);
-    /// Performs division, rounding the quotient so that the remainder
-    /// cannot be negative.
+    /// Performs Euclidean division, rounding the quotient so that the
+    /// remainder cannot be negative.
     fn div_euc_from(&mut self, lhs: Lhs);
 }
 
@@ -1345,7 +1345,7 @@ pub trait RemRounding<Rhs = Self> {
     fn rem_ceil(self, rhs: Rhs) -> Self::Output;
     /// Finds the remainder when the quotient is rounded down.
     fn rem_floor(self, rhs: Rhs) -> Self::Output;
-    /// Finds the positive remainder.
+    /// Finds the positive remainder from Euclidean division.
     fn rem_euc(self, rhs: Rhs) -> Self::Output;
 }
 
@@ -1391,7 +1391,7 @@ pub trait RemRoundingAssign<Rhs = Self> {
     fn rem_ceil_assign(&mut self, rhs: Rhs);
     /// Finds the remainder when the quotient is rounded down.
     fn rem_floor_assign(&mut self, rhs: Rhs);
-    /// Finds the positive remainder.
+    /// Finds the positive remainder from Euclidean division.
     fn rem_euc_assign(&mut self, rhs: Rhs);
 }
 
@@ -1437,7 +1437,7 @@ pub trait RemRoundingFrom<Lhs = Self> {
     fn rem_ceil_from(&mut self, lhs: Lhs);
     /// Finds the remainder when the quotient is rounded down.
     fn rem_floor_from(&mut self, lhs: Lhs);
-    /// Finds the positive remainder.
+    /// Finds the positive remainder from Euclidean division.
     fn rem_euc_from(&mut self, lhs: Lhs);
 }
 

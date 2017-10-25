@@ -24,138 +24,696 @@ use std::os::raw::{c_int, c_long, c_ulong};
 pub unsafe fn mpz_tdiv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_tdiv_qr(q, r, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_tdiv_qr(q, r, n, d);
 }
 
 #[inline]
 pub unsafe fn mpz_tdiv_q_check_0(
     q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_tdiv_q(q, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_tdiv_q(q, n, d);
 }
 
 #[inline]
 pub unsafe fn mpz_tdiv_r_check_0(
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_tdiv_r(r, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_tdiv_r(r, n, d);
+}
+
+#[inline]
+pub unsafe fn mpz_tdiv_q_ui_check_0(
+    q: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    assert_ne!(d, 0, "division by zero");
+    gmp::mpz_tdiv_q_ui(q, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_tdiv_r_ui_check_0(
+    r: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    assert_ne!(d, 0, "division by zero");
+    gmp::mpz_tdiv_r_ui(r, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_ui_tdiv_q_check_0(
+    q: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) -> c_ulong {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n) > 0 {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n
+        gmp::mpz_set_ui(q, 0);
+        n
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let (abs_q, abs_r) = (n / abs_d, n % abs_d);
+        gmp::mpz_set_ui(q, abs_q);
+        if sgn_d < 0 {
+            gmp::mpz_neg(q, q);
+        }
+        abs_r
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ui_tdiv_r_check_0(
+    r: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) -> c_ulong {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n) > 0 {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n
+        gmp::mpz_set_ui(r, n);
+        n
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = n % abs_d;
+        gmp::mpz_set_ui(r, abs_r);
+        abs_r
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_tdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r
+    // +abs_n / -abs_d -> -abs_q, +abs_r
+    // -abs_n / +abs_d -> -abs_q, -abs_r
+    // -abs_n / -abs_d -> +abs_q, -abs_r
+    mpz_tdiv_q_ui_check_0(q, n, d.wrapping_abs() as c_ulong);
+    if d < 0 {
+        gmp::mpz_neg(q, q);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_tdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r
+    // +abs_n / -abs_d -> -abs_q, +abs_r
+    // -abs_n / +abs_d -> -abs_q, -abs_r
+    // -abs_n / -abs_d -> +abs_q, -abs_r
+    mpz_tdiv_r_ui_check_0(r, n, d.wrapping_abs() as c_ulong);
+}
+
+#[inline]
+pub unsafe fn mpz_si_tdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r
+    // +abs_n / -abs_d -> -abs_q, +abs_r
+    // -abs_n / +abs_d -> -abs_q, -abs_r
+    // -abs_n / -abs_d -> +abs_q, -abs_r
+    mpz_ui_tdiv_q_check_0(q, n.wrapping_abs() as c_ulong, d);
+    if n < 0 {
+        gmp::mpz_neg(q, q);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_tdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r
+    // +abs_n / -abs_d -> -abs_q, +abs_r
+    // -abs_n / +abs_d -> -abs_q, -abs_r
+    // -abs_n / -abs_d -> +abs_q, -abs_r
+    mpz_ui_tdiv_r_check_0(r, n.wrapping_abs() as c_ulong, d);
+    if n < 0 {
+        gmp::mpz_neg(r, r);
+    }
 }
 
 #[inline]
 pub unsafe fn mpz_cdiv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_cdiv_qr(q, r, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_cdiv_qr(q, r, n, d);
 }
 
 #[inline]
 pub unsafe fn mpz_cdiv_q_check_0(
     q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_cdiv_q(q, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_cdiv_q(q, n, d);
 }
 
 #[inline]
 pub unsafe fn mpz_cdiv_r_check_0(
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_cdiv_r(r, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_cdiv_r(r, n, d);
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_q_ui_check_0(
+    q: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    assert_ne!(d, 0, "division by zero");
+    gmp::mpz_cdiv_q_ui(q, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_r_ui_check_0(
+    r: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    assert_ne!(d, 0, "division by zero");
+    gmp::mpz_cdiv_r_ui(r, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_ui_cdiv_q_check_0(
+    q: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n) > 0 {
+        // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
+        // n / -abs_d -> 0, n
+        if n > 0 && sgn_d > 0 {
+            gmp::mpz_set_ui(q, 1);
+        } else {
+            gmp::mpz_set_ui(q, 0);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
+        if sgn_d < 0 {
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ui_cdiv_r_check_0(
+    r: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n) > 0 {
+        // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
+        // n / -abs_d -> 0, n
+        if n > 0 && sgn_d > 0 {
+            gmp::mpz_ui_sub(r, n, d);
+        } else {
+            gmp::mpz_set_ui(r, n);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = n % abs_d;
+        if sgn_d < 0 {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            gmp::mpz_neg(r, r);
+        } else {
+            gmp::mpz_set_ui(r, 0);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+    // +abs_n / -abs_d -> -abs_q, +abs_r
+    // -abs_n / +abs_d -> -abs_q, -abs_r
+    // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
+    let some_r = mpz_cdiv_q_ui_check_0(q, n, d.wrapping_abs() as c_ulong) != 0;
+    if d < 0 {
+        if some_r {
+            gmp::mpz_ui_sub(q, 1, q);
+        } else {
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_cdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+    // +abs_n / -abs_d -> -abs_q, +abs_r
+    // -abs_n / +abs_d -> -abs_q, -abs_r
+    // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
+    let some_r = mpz_cdiv_r_ui_check_0(r, n, d.wrapping_abs() as c_ulong) != 0;
+    if d < 0 && some_r {
+        mpz_sub_si(r, r, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_cdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+        // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> 0, +abs_n
+        // -abs_n / +abs_d -> 0, -abs_n
+        // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
+        if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
+            gmp::mpz_set_ui(q, 1);
+        } else {
+            gmp::mpz_set_ui(q, 0);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> -abs_q, +abs_r
+        // -abs_n / +abs_d -> -abs_q, -abs_r
+        // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
+        let abs_n = n.wrapping_abs() as c_ulong;
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
+        if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_cdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+        // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> 0, +abs_n
+        // -abs_n / +abs_d -> 0, -abs_n
+        // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
+        if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
+            mpz_si_sub(r, n, d);
+        } else {
+            gmp::mpz_set_si(r, n);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> -abs_q, +abs_r
+        // -abs_n / +abs_d -> -abs_q, -abs_r
+        // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
+        let abs_n = n.wrapping_abs() as c_ulong;
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = abs_n % abs_d;
+        if n > 0 && sgn_d < 0 {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if n < 0 && sgn_d > 0 {
+            gmp::mpz_set_ui(r, abs_r);
+            gmp::mpz_neg(r, r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            if sgn_d > 0 {
+                gmp::mpz_neg(r, r);
+            }
+        } else {
+            gmp::mpz_set_ui(r, 0);
+        }
+    }
 }
 
 #[inline]
 pub unsafe fn mpz_fdiv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_fdiv_qr(q, r, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_fdiv_qr(q, r, n, d);
 }
 
 #[inline]
 pub unsafe fn mpz_fdiv_q_check_0(
     q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_fdiv_q(q, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_fdiv_q(q, n, d);
 }
 
 #[inline]
 pub unsafe fn mpz_fdiv_r_check_0(
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    gmp::mpz_fdiv_r(r, dividend, divisor);
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    gmp::mpz_fdiv_r(r, n, d);
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_q_ui_check_0(
+    q: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    assert_ne!(d, 0, "division by zero");
+    gmp::mpz_fdiv_q_ui(q, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_r_ui_check_0(
+    r: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    assert_ne!(d, 0, "division by zero");
+    gmp::mpz_cdiv_r_ui(r, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_ui_fdiv_q_check_0(
+    q: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n) > 0 {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
+        if n > 0 && sgn_d < 0 {
+            gmp::mpz_set_si(q, -1);
+        } else {
+            gmp::mpz_set_ui(q, 0);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
+        if sgn_d > 0 {
+            gmp::mpz_set_ui(q, abs_q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ui_fdiv_r_check_0(
+    r: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n) > 0 {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
+        if n > 0 && sgn_d < 0 {
+            gmp::mpz_add_ui(r, d, n);
+        } else {
+            gmp::mpz_set_ui(r, n);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = n % abs_d;
+        if sgn_d > 0 {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            gmp::mpz_neg(r, r);
+        } else {
+            gmp::mpz_set_ui(r, 0);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r
+    // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+    // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
+    // -abs_n / -abs_d -> +abs_q, -abs_r
+    let some_r = mpz_fdiv_q_ui_check_0(q, n, d.wrapping_abs() as c_ulong) != 0;
+    if d < 0 {
+        if some_r {
+            mpz_si_sub(q, -1, q);
+        } else {
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_fdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    // +abs_n / +abs_d -> +abs_q, +abs_r
+    // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+    // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
+    // -abs_n / -abs_d -> +abs_q, -abs_r
+    let some_r = mpz_fdiv_r_ui_check_0(r, n, d.wrapping_abs() as c_ulong) != 0;
+    if d < 0 && some_r {
+        mpz_add_si(r, r, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_fdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+        // +abs_n / +abs_d -> 0, +abs_n
+        // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> 0, -abs_n
+        if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
+            gmp::mpz_set_si(q, -1);
+        } else {
+            gmp::mpz_set_ui(q, 0);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r
+        // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> +abs_q, -abs_r
+        let abs_n = n.wrapping_abs() as c_ulong;
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
+        if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
+            gmp::mpz_set_ui(q, abs_q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_fdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    let sgn_d = gmp::mpz_sgn(d);
+    assert_ne!(sgn_d, 0, "division by zero");
+    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+        // +abs_n / +abs_d -> 0, +abs_n
+        // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> 0, -abs_n
+        if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
+            mpz_add_si(r, d, n);
+        } else {
+            gmp::mpz_set_si(r, n);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r
+        // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> +abs_q, -abs_r
+        let abs_n = n.wrapping_abs() as c_ulong;
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = abs_n % abs_d;
+        if n > 0 && sgn_d > 0 {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if n < 0 && sgn_d < 0 {
+            gmp::mpz_set_ui(r, abs_r);
+            gmp::mpz_neg(r, r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            if sgn_d < 0 {
+                gmp::mpz_neg(r, r);
+            }
+        } else {
+            gmp::mpz_set_ui(r, 0);
+        }
+    }
 }
 
 #[inline]
 pub unsafe fn mpz_ediv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    let sign = gmp::mpz_sgn(divisor);
-    assert_ne!(sign, 0, "division by zero");
-    if sign < 0 {
-        gmp::mpz_cdiv_qr(q, r, dividend, divisor);
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_cdiv_qr_check_0(q, r, n, d);
     } else {
-        gmp::mpz_fdiv_qr(q, r, dividend, divisor);
+        mpz_fdiv_qr_check_0(q, r, n, d);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_ediv_q_check_0(
     q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    let sign = gmp::mpz_sgn(divisor);
-    assert_ne!(sign, 0, "division by zero");
-    if sign < 0 {
-        gmp::mpz_cdiv_q(q, dividend, divisor);
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_cdiv_q_check_0(q, n, d);
     } else {
-        gmp::mpz_fdiv_q(q, dividend, divisor);
+        mpz_fdiv_q_check_0(q, n, d);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_ediv_r_check_0(
     r: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: *const mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
 ) {
-    let sign = gmp::mpz_sgn(divisor);
-    assert_ne!(sign, 0, "division by zero");
-    if sign < 0 {
-        gmp::mpz_cdiv_r(r, dividend, divisor);
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_cdiv_r_check_0(r, n, d);
     } else {
-        gmp::mpz_fdiv_r(r, dividend, divisor);
+        mpz_fdiv_r_check_0(r, n, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ediv_q_ui_check_0(
+    q: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    mpz_fdiv_q_ui_check_0(q, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_ediv_r_ui_check_0(
+    r: *mut mpz_t,
+    n: *const mpz_t,
+    d: c_ulong,
+) -> c_ulong {
+    mpz_fdiv_r_ui_check_0(r, n, d)
+}
+
+#[inline]
+pub unsafe fn mpz_ui_ediv_q_check_0(
+    q: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) {
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_ui_cdiv_q_check_0(q, n, d);
+    } else {
+        mpz_ui_fdiv_q_check_0(q, n, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ui_ediv_r_check_0(
+    r: *mut mpz_t,
+    n: c_ulong,
+    d: *const mpz_t,
+) {
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_ui_cdiv_r_check_0(r, n, d);
+    } else {
+        mpz_ui_fdiv_r_check_0(r, n, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ediv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    if d < 0 {
+        mpz_cdiv_q_si_check_0(q, n, d);
+    } else {
+        mpz_fdiv_q_si_check_0(q, n, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_ediv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+    if d < 0 {
+        mpz_cdiv_r_si_check_0(r, n, d);
+    } else {
+        mpz_fdiv_r_si_check_0(r, n, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_ediv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_si_cdiv_q_check_0(q, n, d);
+    } else {
+        mpz_si_fdiv_q_check_0(q, n, d);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_si_ediv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+    if gmp::mpz_sgn(d) < 0 {
+        mpz_si_cdiv_r_check_0(r, n, d);
+    } else {
+        mpz_si_fdiv_r_check_0(r, n, d);
     }
 }
 
@@ -177,108 +735,6 @@ pub unsafe fn mpz_divexact_ui_check_0(
 ) {
     assert_ne!(divisor, 0, "division by zero");
     gmp::mpz_divexact_ui(q, dividend, divisor);
-}
-
-#[inline]
-pub unsafe fn mpz_tdiv_q_ui_check_0(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: c_ulong,
-) {
-    assert_ne!(divisor, 0, "division by zero");
-    gmp::mpz_tdiv_q_ui(q, dividend, divisor);
-}
-
-#[inline]
-pub unsafe fn mpz_ui_tdiv_q_check_0(
-    q: *mut mpz_t,
-    dividend: c_ulong,
-    divisor: *const mpz_t,
-) {
-    let sgn_divisor = gmp::mpz_sgn(divisor);
-    assert_ne!(sgn_divisor, 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(divisor, dividend) > 0 {
-        gmp::mpz_set_ui(q, 0);
-    } else {
-        let ui = dividend / gmp::mpz_get_ui(divisor);
-        gmp::mpz_set_ui(q, ui);
-        if sgn_divisor < 0 {
-            gmp::mpz_neg(q, q);
-        }
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_tdiv_r_ui_check_0(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: c_ulong,
-) {
-    assert_ne!(divisor, 0, "division by zero");
-    gmp::mpz_tdiv_r_ui(q, dividend, divisor);
-}
-
-#[inline]
-pub unsafe fn mpz_ui_tdiv_r_check_0(
-    q: *mut mpz_t,
-    dividend: c_ulong,
-    divisor: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(divisor, dividend) > 0 {
-        gmp::mpz_set_ui(q, dividend);
-    } else {
-        let ui = dividend % gmp::mpz_get_ui(divisor);
-        gmp::mpz_set_ui(q, ui);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_tdiv_q_si_check_0(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: c_long,
-) {
-    let neg = divisor < 0;
-    mpz_tdiv_q_ui_check_0(q, dividend, divisor.wrapping_abs() as c_ulong);
-    if neg {
-        gmp::mpz_neg(q, q);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_si_tdiv_q_check_0(
-    q: *mut mpz_t,
-    dividend: c_long,
-    divisor: *const mpz_t,
-) {
-    let neg = dividend < 0;
-    mpz_ui_tdiv_q_check_0(q, dividend.wrapping_abs() as c_ulong, divisor);
-    if neg {
-        gmp::mpz_neg(q, q);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_tdiv_r_si_check_0(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: c_long,
-) {
-    mpz_tdiv_r_ui_check_0(q, dividend, divisor.wrapping_abs() as c_ulong);
-}
-
-#[inline]
-pub unsafe fn mpz_si_tdiv_r_check_0(
-    q: *mut mpz_t,
-    dividend: c_long,
-    divisor: *const mpz_t,
-) {
-    let neg = dividend < 0;
-    mpz_ui_tdiv_r_check_0(q, dividend.wrapping_abs() as c_ulong, divisor);
-    if neg {
-        gmp::mpz_neg(q, q);
-    }
 }
 
 #[inline]

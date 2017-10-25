@@ -1728,8 +1728,8 @@ impl Integer {
     math_op2_2! {
         Integer;
         xgmp::mpz_ediv_qr_check_0;
-        /// Performs a division producing both the quotient and
-        /// remainder, with a positive remainder.
+        /// Performs Euclidean division producing both the quotient
+        /// and remainder, with a positive remainder.
         ///
         /// # Examples
         ///
@@ -1746,8 +1746,8 @@ impl Integer {
         ///
         /// Panics if `divisor` is zero.
         fn div_rem_euc(divisor);
-        /// Performs a division producing both the quotient and
-        /// remainder, with a positive remainder.
+        /// Performs Euclidean division producing both the quotient
+        /// and remainder, with a positive remainder.
         ///
         /// The quotient is stored in `self` and the remainder is
         /// stored in `divisor`.
@@ -1767,7 +1767,7 @@ impl Integer {
         ///
         /// Panics if `divisor` is zero.
         fn div_rem_euc_mut;
-        /// Performs a division producing both the quotient and
+        /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
         /// # Examples
@@ -1783,6 +1783,35 @@ impl Integer {
         /// ```
         fn div_rem_euc_ref -> DivRemEucRef;
     }
+
+    /// Returns the modulo, or the remainder of Euclidean division by
+    /// a `u32`.
+    ///
+    /// The result is always zero or positive.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let pos = Integer::from(23);
+    /// assert_eq!(pos.mod_u(1), 0);
+    /// assert_eq!(pos.mod_u(10), 3);
+    /// assert_eq!(pos.mod_u(100), 23);
+    /// let neg = Integer::from(-23);
+    /// assert_eq!(neg.mod_u(1), 0);
+    /// assert_eq!(neg.mod_u(10), 7);
+    /// assert_eq!(neg.mod_u(100), 77);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `modulo` is zero.
+    #[inline]
+    pub fn mod_u(&mut self, modulo: u32) -> u32 {
+        assert_ne!(modulo, 0, "division by zero");
+        unsafe { gmp::mpz_fdiv_ui(self.inner(), modulo.into()) as u32 }
+    }
+
     math_op2! {
         Integer;
         xgmp::mpz_divexact_check_0;
