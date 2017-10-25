@@ -429,7 +429,7 @@ pub unsafe fn mpz_fdiv_r_ui_check_0(
     d: c_ulong,
 ) -> c_ulong {
     assert_ne!(d, 0, "division by zero");
-    gmp::mpz_cdiv_r_ui(r, n, d)
+    gmp::mpz_fdiv_r_ui(r, n, d)
 }
 
 #[inline]

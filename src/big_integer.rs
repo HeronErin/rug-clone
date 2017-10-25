@@ -1807,7 +1807,7 @@ impl Integer {
     ///
     /// Panics if `modulo` is zero.
     #[inline]
-    pub fn mod_u(&mut self, modulo: u32) -> u32 {
+    pub fn mod_u(&self, modulo: u32) -> u32 {
         assert_ne!(modulo, 0, "division by zero");
         unsafe { gmp::mpz_fdiv_ui(self.inner(), modulo.into()) as u32 }
     }
