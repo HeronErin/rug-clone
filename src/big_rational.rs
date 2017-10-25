@@ -1419,6 +1419,144 @@ impl Rational {
     pub fn fract_trunc_ref(&self) -> FractTruncRef {
         FractTruncRef { ref_self: self }
     }
+
+    /// Computes the fractional and floor parts of the number.
+    ///
+    /// The fractional part cannot be negative. The initial value of
+    /// `floor` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // -100/17 = -6 + 2/17
+    /// let r = Rational::from((-100, 17));
+    /// let (fract, floor) = r.fract_floor(Integer::new());
+    /// assert_eq!(fract, (2, 17));
+    /// assert_eq!(floor, -6);
+    /// ```
+    #[inline]
+    pub fn fract_floor(mut self, mut floor: Integer) -> (Rational, Integer) {
+        self.fract_floor_mut(&mut floor);
+        (self, floor)
+    }
+
+    /// Computes the fractional and floor parts of the number.
+    ///
+    /// The fractional part cannot be negative. The initial value of
+    /// `floor` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // -100/17 = -6 + 2/17
+    /// let mut r = Rational::from((-100, 17));
+    /// let mut floor = Integer::new();
+    /// r.fract_floor_mut(&mut floor);
+    /// assert_eq!(r, (2, 17));
+    /// assert_eq!(floor, -6);
+    /// ```
+    #[inline]
+    pub fn fract_floor_mut(&mut self, floor: &mut Integer) {
+        unsafe {
+            xgmp::mpq_fract_floor(
+                self.inner_mut(),
+                floor.inner_mut(),
+                self.inner(),
+            );
+        }
+    }
+
+    /// Computes the fractional and floor parts of the number.
+    ///
+    /// The fractional part cannot be negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// // -100/17 = -6 + 2/17
+    /// let r = Rational::from((-100, 17));
+    /// let r_ref = r.fract_floor_ref();
+    /// let (mut fract, mut floor) = (Rational::new(), Integer::new());
+    /// (&mut fract, &mut floor).assign(r_ref);
+    /// assert_eq!(fract, (2, 17));
+    /// assert_eq!(floor, -6);
+    /// ```
+    #[inline]
+    pub fn fract_floor_ref(&self) -> FractFloorRef {
+        FractFloorRef { ref_self: self }
+    }
+
+    /// Computes the fractional and ceil parts of the number.
+    ///
+    /// The fractional part cannot greater than zero. The initial
+    /// value of `ceil` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // 100/17 = 6 - 2/17
+    /// let r = Rational::from((100, 17));
+    /// let (fract, ceil) = r.fract_ceil(Integer::new());
+    /// assert_eq!(fract, (-2, 17));
+    /// assert_eq!(ceil, 6);
+    /// ```
+    #[inline]
+    pub fn fract_ceil(mut self, mut ceil: Integer) -> (Rational, Integer) {
+        self.fract_ceil_mut(&mut ceil);
+        (self, ceil)
+    }
+
+    /// Computes the fractional and ceil parts of the number.
+    ///
+    /// The fractional part cannot be greater than zero. The initial
+    /// value of `ceil` is ignored.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Integer, Rational};
+    /// // 100/17 = 6 - 2/17
+    /// let mut r = Rational::from((100, 17));
+    /// let mut ceil = Integer::new();
+    /// r.fract_ceil_mut(&mut ceil);
+    /// assert_eq!(r, (-2, 17));
+    /// assert_eq!(ceil, 6);
+    /// ```
+    #[inline]
+    pub fn fract_ceil_mut(&mut self, ceil: &mut Integer) {
+        unsafe {
+            xgmp::mpq_fract_ceil(
+                self.inner_mut(),
+                ceil.inner_mut(),
+                self.inner(),
+            );
+        }
+    }
+
+    /// Computes the fractional and ceil parts of the number.
+    ///
+    /// The fractional part cannot be greater than zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Integer, Rational};
+    /// // 100/17 = 6 - 2/17
+    /// let r = Rational::from((100, 17));
+    /// let r_ref = r.fract_ceil_ref();
+    /// let (mut fract, mut ceil) = (Rational::new(), Integer::new());
+    /// (&mut fract, &mut ceil).assign(r_ref);
+    /// assert_eq!(fract, (-2, 17));
+    /// assert_eq!(ceil, 6);
+    /// ```
+    #[inline]
+    pub fn fract_ceil_ref(&self) -> FractCeilRef {
+        FractCeilRef { ref_self: self }
+    }
 }
 
 from_borrow! { &'a Rational => Rational }
@@ -1760,6 +1898,60 @@ impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
     fn assign(&mut self, src: FractTruncRef<'a>) {
         unsafe {
             xgmp::mpq_fract_trunc(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                src.ref_self.inner(),
+            );
+        }
+    }
+}
+
+pub struct FractFloorRef<'a> {
+    ref_self: &'a Rational,
+}
+
+impl<'a> From<FractFloorRef<'a>> for (Rational, Integer) {
+    #[inline]
+    fn from(src: FractFloorRef<'a>) -> (Rational, Integer) {
+        let mut pair =
+            <(Rational, Integer) as Default>::default();
+        (&mut pair.0, &mut pair.1).assign(src);
+        pair
+    }
+}
+
+impl<'a> Assign<FractFloorRef<'a>> for (&'a mut Rational, &'a mut Integer) {
+    #[inline]
+    fn assign(&mut self, src: FractFloorRef<'a>) {
+        unsafe {
+            xgmp::mpq_fract_floor(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                src.ref_self.inner(),
+            );
+        }
+    }
+}
+
+pub struct FractCeilRef<'a> {
+    ref_self: &'a Rational,
+}
+
+impl<'a> From<FractCeilRef<'a>> for (Rational, Integer) {
+    #[inline]
+    fn from(src: FractCeilRef<'a>) -> (Rational, Integer) {
+        let mut pair =
+            <(Rational, Integer) as Default>::default();
+        (&mut pair.0, &mut pair.1).assign(src);
+        pair
+    }
+}
+
+impl<'a> Assign<FractCeilRef<'a>> for (&'a mut Rational, &'a mut Integer) {
+    #[inline]
+    fn assign(&mut self, src: FractCeilRef<'a>) {
+        unsafe {
+            xgmp::mpq_fract_ceil(
                 self.0.inner_mut(),
                 self.1.inner_mut(),
                 src.ref_self.inner(),

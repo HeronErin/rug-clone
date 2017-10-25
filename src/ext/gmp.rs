@@ -1538,14 +1538,42 @@ mod rational {
     #[inline]
     pub unsafe fn mpq_fract_trunc(
         fop: *mut mpq_t,
-        top: *mut mpz_t,
+        trunc_op: *mut mpz_t,
         op: *const mpq_t,
     ) {
         let f_numref = gmp::mpq_numref(fop);
         let f_denref = gmp::mpq_denref(fop);
         let numref = gmp::mpq_numref_const(op);
         let denref = gmp::mpq_denref_const(op);
-        gmp::mpz_tdiv_qr(top, f_numref, numref, denref);
+        gmp::mpz_tdiv_qr(trunc_op, f_numref, numref, denref);
+        gmp::mpz_set(f_denref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn mpq_fract_floor(
+        fop: *mut mpq_t,
+        floor_op: *mut mpz_t,
+        op: *const mpq_t,
+    ) {
+        let f_numref = gmp::mpq_numref(fop);
+        let f_denref = gmp::mpq_denref(fop);
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        gmp::mpz_fdiv_qr(floor_op, f_numref, numref, denref);
+        gmp::mpz_set(f_denref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn mpq_fract_ceil(
+        fop: *mut mpq_t,
+        ceil_op: *mut mpz_t,
+        op: *const mpq_t,
+    ) {
+        let f_numref = gmp::mpq_numref(fop);
+        let f_denref = gmp::mpq_denref(fop);
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        gmp::mpz_cdiv_qr(ceil_op, f_numref, numref, denref);
         gmp::mpz_set(f_denref, denref);
     }
 }
