@@ -16,25 +16,19 @@
 
 use Assign;
 use ext::gmp as xgmp;
+use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
+use ops::NegAssign;
 #[cfg(feature = "rand")]
 use rand::RandState;
-
-use gmp_mpfr_sys::gmp::{self, mpz_t};
-use ops::NegAssign;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
-               UpperHex};
-use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
-use std::os::raw::{c_char, c_int, c_long, c_ulong};
-use std::slice;
-use std::str::FromStr;
+use std::os::raw::{c_char, c_int, c_long};
 
 /// An arbitrary-precision integer.
 ///
@@ -174,48 +168,6 @@ use std::str::FromStr;
 /// ```
 pub struct Integer {
     inner: mpz_t,
-}
-
-impl Default for Integer {
-    #[inline]
-    fn default() -> Integer {
-        Integer::new()
-    }
-}
-
-impl Clone for Integer {
-    #[inline]
-    fn clone(&self) -> Integer {
-        let mut ret = Integer::new();
-        ret.assign(self);
-        ret
-    }
-
-    #[inline]
-    fn clone_from(&mut self, source: &Integer) {
-        self.assign(source);
-    }
-}
-
-impl Drop for Integer {
-    #[inline]
-    fn drop(&mut self) {
-        unsafe {
-            gmp::mpz_clear(self.inner_mut());
-        }
-    }
-}
-
-impl Hash for Integer {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        let size = self.inner().size;
-        size.hash(state);
-        if size != 0 {
-            let limbs = size.checked_abs().expect("overflow") as usize;
-            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
-            slice.hash(state);
-        }
-    }
 }
 
 impl Integer {
@@ -765,7 +717,22 @@ impl Integer {
     /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
-        make_string(self, radix, false)
+        assert!(radix >= 2 && radix <= 36, "radix out of range");
+        let i_size = unsafe { gmp::mpz_sizeinbase(self.inner(), radix) };
+        // size + 2 for '-' and nul
+        let size = i_size.checked_add(2).unwrap();
+        let mut buf = Vec::<u8>::with_capacity(size);
+        unsafe {
+            buf.set_len(size);
+            gmp::mpz_get_str(
+                buf.as_mut_ptr() as *mut c_char,
+                radix as c_int,
+                self.inner(),
+            );
+            let nul_index = buf.iter().position(|&x| x == 0).unwrap();
+            buf.set_len(nul_index);
+            String::from_utf8_unchecked(buf)
+        }
     }
 
     /// Assigns from an `f32` if it is finite, rounding towards zero.
@@ -3180,182 +3147,6 @@ impl Integer {
     }
 }
 
-impl<'a> From<&'a Integer> for Integer {
-    #[inline]
-    fn from(val: &Integer) -> Integer {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set(ret.inner_mut(), val.inner());
-            ret
-        }
-    }
-}
-
-impl From<i32> for Integer {
-    #[inline]
-    fn from(val: i32) -> Integer {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set_si(ret.inner_mut(), val.into());
-            ret
-        }
-    }
-}
-
-impl From<i64> for Integer {
-    #[inline]
-    fn from(val: i64) -> Integer {
-        if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
-            unsafe {
-                let mut ret: Integer = mem::uninitialized();
-                gmp::mpz_init_set_si(ret.inner_mut(), val as c_long);
-                ret
-            }
-        } else {
-            let mut i = Integer::new();
-            i.assign(val);
-            i
-        }
-    }
-}
-
-impl From<u32> for Integer {
-    #[inline]
-    fn from(val: u32) -> Integer {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set_ui(ret.inner_mut(), val.into());
-            ret
-        }
-    }
-}
-
-impl From<u64> for Integer {
-    #[inline]
-    fn from(val: u64) -> Integer {
-        if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
-            unsafe {
-                let mut ret: Integer = mem::uninitialized();
-                gmp::mpz_init_set_ui(ret.inner_mut(), val as c_ulong);
-                ret
-            }
-        } else {
-            let mut i = Integer::new();
-            i.assign(val);
-            i
-        }
-    }
-}
-
-impl FromStr for Integer {
-    type Err = ParseIntegerError;
-    #[inline]
-    fn from_str(src: &str) -> Result<Integer, ParseIntegerError> {
-        let mut i = Integer::new();
-        i.assign_str(src)?;
-        Ok(i)
-    }
-}
-
-impl Display for Integer {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
-    }
-}
-
-impl Debug for Integer {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
-    }
-}
-
-impl Binary for Integer {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b")
-    }
-}
-
-impl Octal for Integer {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o")
-    }
-}
-
-impl LowerHex for Integer {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x")
-    }
-}
-
-impl UpperHex for Integer {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x")
-    }
-}
-
-impl Assign for Integer {
-    #[inline]
-    fn assign(&mut self, mut other: Integer) {
-        mem::swap(self, &mut other);
-    }
-}
-
-impl<'a> Assign<&'a Integer> for Integer {
-    #[inline]
-    fn assign(&mut self, other: &'a Integer) {
-        unsafe {
-            gmp::mpz_set(self.inner_mut(), other.inner());
-        }
-    }
-}
-
-impl Assign<i32> for Integer {
-    #[inline]
-    fn assign(&mut self, val: i32) {
-        unsafe {
-            xgmp::mpz_set_i32(self.inner_mut(), val);
-        }
-    }
-}
-
-impl Assign<i64> for Integer {
-    #[inline]
-    fn assign(&mut self, val: i64) {
-        unsafe {
-            xgmp::mpz_set_i64(self.inner_mut(), val);
-        }
-    }
-}
-
-impl Assign<u32> for Integer {
-    #[inline]
-    fn assign(&mut self, val: u32) {
-        unsafe {
-            xgmp::mpz_set_u32(self.inner_mut(), val);
-        }
-    }
-}
-
-impl Assign<u64> for Integer {
-    #[inline]
-    fn assign(&mut self, val: u64) {
-        unsafe {
-            xgmp::mpz_set_u64(self.inner_mut(), val);
-        }
-    }
-}
-
-assign_ref!{ Integer: i32 }
-assign_ref!{ Integer: i64 }
-assign_ref!{ Integer: u32 }
-assign_ref!{ Integer: u64 }
-
 ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
 
 #[derive(Clone, Copy)]
@@ -3600,42 +3391,6 @@ impl<'a> Deref for BorrowInteger<'a> {
     }
 }
 
-fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let i_size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
-    // size + 2 for '-' and nul
-    let size = i_size.checked_add(2).unwrap();
-    let mut buf = Vec::<u8>::with_capacity(size);
-    let case_radix = if to_upper { -radix } else { radix };
-    unsafe {
-        buf.set_len(size);
-        gmp::mpz_get_str(
-            buf.as_mut_ptr() as *mut c_char,
-            case_radix as c_int,
-            i.inner(),
-        );
-        let nul_index = buf.iter().position(|&x| x == 0).unwrap();
-        buf.set_len(nul_index);
-        String::from_utf8_unchecked(buf)
-    }
-}
-
-fn fmt_radix(
-    i: &Integer,
-    f: &mut Formatter,
-    radix: i32,
-    to_upper: bool,
-    prefix: &str,
-) -> fmt::Result {
-    let s = make_string(i, radix, to_upper);
-    let (neg, buf) = if s.starts_with('-') {
-        (true, &s[1..])
-    } else {
-        (false, &s[..])
-    };
-    f.pad_integral(!neg, prefix, buf)
-}
-
 /// A validated string that can always be converted to an
 /// [`Integer`](../struct.Integer.html).
 ///
@@ -3662,8 +3417,6 @@ pub struct ValidInteger<'a> {
     bytes: &'a [u8],
     radix: i32,
 }
-
-from_borrow! { ValidInteger<'a> => Integer }
 
 impl<'a> Assign<ValidInteger<'a>> for Integer {
     #[inline]
@@ -3715,13 +3468,6 @@ impl Error for ParseIntegerError {
     }
 }
 
-impl Display for ParseIntegerError {
-    #[inline]
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// Whether a number is prime.
 ///
@@ -3750,9 +3496,6 @@ pub enum IsPrime {
     /// The number is definitely prime.
     Yes,
 }
-
-unsafe impl Send for Integer {}
-unsafe impl Sync for Integer {}
 
 fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     let max: gmp::bitcnt_t = !0;
@@ -3824,55 +3567,5 @@ fn result_swap<T>(r: &mut Result<T, T>) {
             Ok(_) => unreachable!(),
         };
         mem::forget(mem::replace(r, Ok(val)));
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    macro_rules! check_div_rem {
-        { $nd:expr, $qr:expr, $m:ident, $mmut:ident, $mref:ident } => {
-            #[test]
-            fn $m() {
-                for (nd, qr) in $nd.iter().zip($qr.iter()) {
-                    let mut dividend = Integer::from(nd.0);
-                    let mut divisor = Integer::from(nd.1);
-                    let check_qr = dividend.clone().$m(divisor.clone());
-                    assert_eq!(check_qr.0, qr.0);
-                    assert_eq!(check_qr.1, qr.1);
-                    {
-                        let check_ref = dividend.$mref(&divisor);
-                        let check_qr = <(Integer, Integer)>::from(check_ref);
-                        assert_eq!(check_qr.0, qr.0);
-                        assert_eq!(check_qr.1, qr.1);
-                    }
-                    dividend.$mmut(&mut divisor);
-                    assert_eq!(dividend, qr.0);
-                    assert_eq!(divisor, qr.1);
-                }
-            }
-        }
-    }
-
-    check_div_rem!{
-        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
-        [(2, 3), (-2, 3), (-2, -3), (2, -3)],
-        div_rem, div_rem_mut, div_rem_ref
-    }
-    check_div_rem!{
-        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
-        [(3, -7), (-2, 3), (-2, -3), (3, 7)],
-        div_rem_ceil, div_rem_ceil_mut, div_rem_ceil_ref
-    }
-    check_div_rem!{
-        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
-        [(2, 3), (-3, -7), (-3, 7), (2, -3)],
-        div_rem_floor, div_rem_floor_mut, div_rem_floor_ref
-    }
-    check_div_rem!{
-        [(23, 10), (23, -10), (-23, 10), (-23, -10)],
-        [(2, 3), (-2, 3), (-3, 7), (3, 7)],
-        div_rem_euc, div_rem_euc_mut, div_rem_euc_ref
     }
 }

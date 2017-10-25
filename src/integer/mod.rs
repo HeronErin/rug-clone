@@ -39,6 +39,7 @@ mod arith;
 mod cmp;
 mod division;
 mod small_integer;
+mod traits;
 
 pub use big_integer::{IsPrime, ParseIntegerError, ValidInteger};
 pub use integer::small_integer::SmallInteger;
@@ -47,146 +48,9 @@ pub use integer::small_integer::SmallInteger;
 mod tests {
     use {Assign, Integer};
     use gmp_mpfr_sys::gmp;
-    use ops::{NegAssign, Pow};
+    use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
-    use std::cmp::Ordering;
     use std::mem;
-
-    #[test]
-    fn check_arith_u_s() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
-        for &op in &u {
-            let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
-                assert_eq!(b.clone() + op, b.clone() + &iop);
-                assert_eq!(b.clone() - op, b.clone() - &iop);
-                assert_eq!(b.clone() * op, b.clone() * &iop);
-                if op != 0 {
-                    assert_eq!(b.clone() / op, b.clone() / &iop);
-                    assert_eq!(b.clone() % op, b.clone() % &iop);
-                }
-                assert_eq!(b.clone() & op, b.clone() & &iop);
-                assert_eq!(b.clone() | op, b.clone() | &iop);
-                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + &b);
-                assert_eq!(op - b.clone(), iop.clone() - &b);
-                assert_eq!(op * b.clone(), iop.clone() * &b);
-                if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / &b);
-                    assert_eq!(op % b.clone(), iop.clone() % &b);
-                }
-                assert_eq!(op & b.clone(), iop.clone() & &b);
-                assert_eq!(op | b.clone(), iop.clone() | &b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ &b);
-            }
-        }
-        for &op in &s {
-            let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
-                assert_eq!(b.clone() + op, b.clone() + &iop);
-                assert_eq!(b.clone() - op, b.clone() - &iop);
-                assert_eq!(b.clone() * op, b.clone() * &iop);
-                if op != 0 {
-                    assert_eq!(b.clone() / op, b.clone() / &iop);
-                    assert_eq!(b.clone() % op, b.clone() % &iop);
-                }
-                assert_eq!(b.clone() & op, b.clone() & &iop);
-                assert_eq!(b.clone() | op, b.clone() | &iop);
-                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + &b);
-                assert_eq!(op - b.clone(), iop.clone() - &b);
-                assert_eq!(op * b.clone(), iop.clone() * &b);
-                if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / &b);
-                    assert_eq!(op % b.clone(), iop.clone() % &b);
-                }
-                assert_eq!(op & b.clone(), iop.clone() & &b);
-                assert_eq!(op | b.clone(), iop.clone() | &b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ &b);
-            }
-        }
-    }
-
-    #[test]
-    fn check_ref_op() {
-        let lhs = Integer::from(0x00ff);
-        let rhs = Integer::from(0x0f0f);
-        let pu = 30_u32;
-        let pi = -15_i32;
-        assert_eq!(Integer::from(-&lhs), -lhs.clone());
-        assert_eq!(Integer::from(&lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Integer::from(&lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Integer::from(&lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Integer::from(&lhs / &rhs), lhs.clone() / &rhs);
-        assert_eq!(Integer::from(&lhs % &rhs), lhs.clone() % &rhs);
-        assert_eq!(Integer::from(!&lhs), !lhs.clone());
-        assert_eq!(Integer::from(&lhs & &rhs), lhs.clone() & &rhs);
-        assert_eq!(Integer::from(&lhs | &rhs), lhs.clone() | &rhs);
-        assert_eq!(Integer::from(&lhs ^ &rhs), lhs.clone() ^ &rhs);
-
-        assert_eq!(Integer::from(&lhs + pu), lhs.clone() + pu);
-        assert_eq!(Integer::from(&lhs - pu), lhs.clone() - pu);
-        assert_eq!(Integer::from(&lhs * pu), lhs.clone() * pu);
-        assert_eq!(Integer::from(&lhs / pu), lhs.clone() / pu);
-        assert_eq!(Integer::from(&lhs % pu), lhs.clone() % pu);
-        assert_eq!(Integer::from(&lhs & pu), lhs.clone() & pu);
-        assert_eq!(Integer::from(&lhs | pu), lhs.clone() | pu);
-        assert_eq!(Integer::from(&lhs ^ pu), lhs.clone() ^ pu);
-        assert_eq!(Integer::from(&lhs << pu), lhs.clone() << pu);
-        assert_eq!(Integer::from(&lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Integer::from((&lhs).pow(pu)), lhs.clone().pow(pu));
-
-        assert_eq!(Integer::from(&lhs + pi), lhs.clone() + pi);
-        assert_eq!(Integer::from(&lhs - pi), lhs.clone() - pi);
-        assert_eq!(Integer::from(&lhs * pi), lhs.clone() * pi);
-        assert_eq!(Integer::from(&lhs / pi), lhs.clone() / pi);
-        assert_eq!(Integer::from(&lhs % pi), lhs.clone() % pi);
-        assert_eq!(Integer::from(&lhs & pi), lhs.clone() & pi);
-        assert_eq!(Integer::from(&lhs | pi), lhs.clone() | pi);
-        assert_eq!(Integer::from(&lhs ^ pi), lhs.clone() ^ pi);
-        assert_eq!(Integer::from(&lhs << pi), lhs.clone() << pi);
-        assert_eq!(Integer::from(&lhs >> pi), lhs.clone() >> pi);
-
-        assert_eq!(Integer::from(pu + &lhs), pu + lhs.clone());
-        assert_eq!(Integer::from(pu - &lhs), pu - lhs.clone());
-        assert_eq!(Integer::from(pu * &lhs), pu * lhs.clone());
-        assert_eq!(Integer::from(pu / &lhs), pu / lhs.clone());
-        assert_eq!(Integer::from(pu % &lhs), pu % lhs.clone());
-        assert_eq!(Integer::from(pu & &lhs), pu & lhs.clone());
-        assert_eq!(Integer::from(pu | &lhs), pu | lhs.clone());
-        assert_eq!(Integer::from(pu ^ &lhs), pu ^ lhs.clone());
-
-        assert_eq!(Integer::from(pi + &lhs), pi + lhs.clone());
-        assert_eq!(Integer::from(pi - &lhs), pi - lhs.clone());
-        assert_eq!(Integer::from(pi * &lhs), pi * lhs.clone());
-        assert_eq!(Integer::from(pi / &lhs), pi / lhs.clone());
-        assert_eq!(Integer::from(pi % &lhs), pi % lhs.clone());
-        assert_eq!(Integer::from(pi & &lhs), pi & lhs.clone());
-        assert_eq!(Integer::from(pi | &lhs), pi | lhs.clone());
-        assert_eq!(Integer::from(pi ^ &lhs), pi ^ lhs.clone());
-    }
-
-    #[test]
-    fn check_shift_u_s() {
-        let pos: Integer = Integer::from(11) << 100;
-        let neg: Integer = Integer::from(-33) << 50;
-        assert_eq!(pos.clone() << 10, pos.clone() >> -10);
-        assert_eq!(pos.clone() << 10, Integer::from(11) << 110);
-        assert_eq!(pos.clone() << -100, pos.clone() >> 100);
-        assert_eq!(pos.clone() << -100, 11);
-        assert_eq!(neg.clone() << 10, neg.clone() >> -10);
-        assert_eq!(neg.clone() << 10, Integer::from(-33) << 60);
-        assert_eq!(neg.clone() << -100, neg.clone() >> 100);
-        assert_eq!(neg.clone() << -100, -1);
-    }
 
     #[test]
     fn check_int_conversions() {
