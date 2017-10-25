@@ -1548,12 +1548,182 @@ macro_rules! float_ops {
     }
 }
 
+macro_rules! div_signed {
+    { $($T:ty)* } => {
+        $(
+            impl DivRounding for $T {
+                type Output = $T;
+                #[inline]
+                fn div_trunc(self, rhs: $T) -> $T {
+                    self / rhs
+                }
+                #[inline]
+                fn div_ceil(self, rhs: $T) -> $T {
+                    let (q, r) = (self / rhs, self % rhs);
+                    let change = if rhs > 0 { r > 0 } else { r < 0 };
+                    if change {
+                        q + 1
+                    } else {
+                        q
+                    }
+                }
+                #[inline]
+                fn div_floor(self, rhs: $T) -> $T {
+                    let (q, r) = (self / rhs, self % rhs);
+                    let change = if rhs > 0 { r < 0 } else { r > 0 };
+                    if change {
+                        q - 1
+                    } else {
+                        q
+                    }
+                }
+                #[inline]
+                fn div_euc(self, rhs: $T) -> $T {
+                    let (q, r) = (self / rhs, self % rhs);
+                    if r < 0 {
+                        if rhs < 0 {
+                            q + 1
+                        } else {
+                            q - 1
+                        }
+                    } else {
+                        q
+                    }
+                }
+            }
+
+            impl RemRounding for $T {
+                type Output = $T;
+                #[inline]
+                fn rem_trunc(self, rhs: $T) -> $T {
+                    self % rhs
+                }
+                #[inline]
+                fn rem_ceil(self, rhs: $T) -> $T {
+                    let r = self % rhs;
+                    let change = if rhs > 0 { r > 0 } else { r < 0 };
+                    if change {
+                        r - rhs
+                    } else {
+                        r
+                    }
+                }
+                #[inline]
+                fn rem_floor(self, rhs: $T) -> $T {
+                    let r = self % rhs;
+                    let change = if rhs > 0 { r < 0 } else { r > 0 };
+                    if change {
+                        r + rhs
+                    } else {
+                        r
+                    }
+                }
+                #[inline]
+                fn rem_euc(self, rhs: $T) -> $T {
+                    let r = self % rhs;
+                    if r < 0 {
+                        if rhs < 0 {
+                            r - rhs
+                        } else {
+                            r + rhs
+                        }
+                    } else {
+                        r
+                    }
+                }
+            }
+
+            impl DivRoundingAssign for $T {
+                #[inline]
+                fn div_trunc_assign(&mut self, rhs: $T) {
+                    *self = self.div_trunc(rhs);
+                }
+                #[inline]
+                fn div_ceil_assign(&mut self, rhs: $T) {
+                    *self = self.div_ceil(rhs);
+                }
+                #[inline]
+                fn div_floor_assign(&mut self, rhs: $T) {
+                    *self = self.div_floor(rhs);
+                }
+                #[inline]
+                fn div_euc_assign(&mut self, rhs: $T) {
+                    *self = self.div_euc(rhs);
+                }
+            }
+
+            impl DivRoundingFrom for $T {
+                #[inline]
+                fn div_trunc_from(&mut self, lhs: $T) {
+                    *self = lhs.div_trunc(*self);
+                }
+                #[inline]
+                fn div_ceil_from(&mut self, lhs: $T) {
+                    *self = lhs.div_ceil(*self);
+                }
+                #[inline]
+                fn div_floor_from(&mut self, lhs: $T) {
+                    *self = lhs.div_floor(*self);
+                }
+                #[inline]
+                fn div_euc_from(&mut self, lhs: $T) {
+                    *self = lhs.div_euc(*self);
+                }
+            }
+
+            impl RemRoundingAssign for $T {
+                #[inline]
+                fn rem_trunc_assign(&mut self, rhs: $T) {
+                    *self = self.rem_trunc(rhs);
+                }
+                #[inline]
+                fn rem_ceil_assign(&mut self, rhs: $T) {
+                    *self = self.rem_ceil(rhs);
+                }
+                #[inline]
+                fn rem_floor_assign(&mut self, rhs: $T) {
+                    *self = self.rem_floor(rhs);
+                }
+                #[inline]
+                fn rem_euc_assign(&mut self, rhs: $T) {
+                    *self = self.rem_euc(rhs);
+                }
+            }
+
+            impl RemRoundingFrom for $T {
+                #[inline]
+                fn rem_trunc_from(&mut self, lhs: $T) {
+                    *self = lhs.rem_trunc(*self);
+                }
+                #[inline]
+                fn rem_ceil_from(&mut self, lhs: $T) {
+                    *self = lhs.rem_ceil(*self);
+                }
+                #[inline]
+                fn rem_floor_from(&mut self, lhs: $T) {
+                    *self = lhs.rem_floor(*self);
+                }
+                #[inline]
+                fn rem_euc_from(&mut self, lhs: $T) {
+                    *self = lhs.rem_euc(*self);
+                }
+            }
+        )*
+    }
+}
+
 use std::borrow::Cow;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 int_ops!{ i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
 int_neg!{ i8 i16 i32 i64 isize }
 assign_from! { u32; pow; PowFrom pow_from }
 float_ops!{ f32 f64 }
+
+// DivRounding and RemRounding are not implemented for unsigned
+// primitives, as the only methods different from standard truncating
+// division is div_ceil and rem_ceil, and rem_ceil for unsigned
+// operands can be less than zero, so it cannot be stored in unsigned.
+div_signed!{ i8 i16 i32 i64 isize }
 
 impl<'a> AddFrom<&'a str> for String {
     #[inline]
