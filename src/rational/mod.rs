@@ -19,7 +19,10 @@
 //! This module provides support for arbitrary-precision rational
 //! numbers of type [`Rational`](../struct.Rational.html).
 
+mod arith;
+mod cmp;
 mod small_rational;
+mod traits;
 
 pub use big_rational::{MutNumerDenom, ParseRationalError, ValidRational};
 pub use rational::small_rational::SmallRational;
@@ -28,76 +31,7 @@ pub use rational::small_rational::SmallRational;
 mod tests {
     use Rational;
     use gmp_mpfr_sys::gmp;
-    use ops::Pow;
-    use std::{i32, u32};
-    use std::cmp::Ordering;
     use std::mem;
-
-    #[test]
-    fn check_ref_op() {
-        let lhs = Rational::from((-13, 27));
-        let rhs = Rational::from((15, 101));
-        let pu = 30_u32;
-        let pi = -15_i32;
-        assert_eq!(Rational::from(-&lhs), -lhs.clone());
-        assert_eq!(Rational::from(&lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Rational::from(&lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Rational::from(&lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Rational::from(&lhs / &rhs), lhs.clone() / &rhs);
-
-        assert_eq!(Rational::from(&lhs << pu), lhs.clone() << pu);
-        assert_eq!(Rational::from(&lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Rational::from((&lhs).pow(pu)), lhs.clone().pow(pu));
-
-        assert_eq!(Rational::from(&lhs << pi), lhs.clone() << pi);
-        assert_eq!(Rational::from(&lhs >> pi), lhs.clone() >> pi);
-        assert_eq!(Rational::from((&lhs).pow(pi)), lhs.clone().pow(pi));
-    }
-
-    #[test]
-    fn check_cmp_frac() {
-        let zero = Rational::new();
-        let u = [0, 1, 100, u32::MAX];
-        let s = [i32::MIN, -100, -1, 0, 1, 100, i32::MAX];
-        for &n in &u {
-            for &d in &u {
-                if d != 0 {
-                    let ans = 0.partial_cmp(&n);
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
-            for &d in &s {
-                if d != 0 {
-                    let mut ans = 0.partial_cmp(&n);
-                    if d < 0 {
-                        ans = ans.map(Ordering::reverse);
-                    }
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
-        }
-        for &n in &s {
-            for &d in &u {
-                if d != 0 {
-                    let ans = 0.partial_cmp(&n);
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
-            for &d in &s {
-                if d != 0 {
-                    let mut ans = 0.partial_cmp(&n);
-                    if d < 0 {
-                        ans = ans.map(Ordering::reverse);
-                    }
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
-        }
-    }
 
     #[test]
     fn check_from_str() {
@@ -151,7 +85,7 @@ mod tests {
     }
 
     #[test]
-    fn check_no_nails() {
+    fn check_assumptions() {
         // we assume no nail bits when we use limbs
         assert_eq!(gmp::NAIL_BITS, 0);
         assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
