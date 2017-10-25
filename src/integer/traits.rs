@@ -15,12 +15,12 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer};
+use big_integer::make_string;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use integer::{ParseIntegerError, ValidInteger};
 use std::{i32, u32};
-use std::ascii::AsciiExt;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::hash::{Hash, Hasher};
@@ -254,10 +254,7 @@ fn fmt_radix(
     to_upper: bool,
     prefix: &str,
 ) -> fmt::Result {
-    let mut s = i.to_string_radix(radix);
-    if to_upper {
-        s.make_ascii_uppercase();
-    }
+    let s = make_string(i, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

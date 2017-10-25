@@ -15,10 +15,10 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer, Rational};
+use big_rational::make_string;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use rational::{ParseRationalError, ValidRational};
-use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -271,10 +271,7 @@ fn fmt_radix(
     to_upper: bool,
     prefix: &str,
 ) -> fmt::Result {
-    let mut s = r.to_string_radix(radix);
-    if to_upper {
-        s.make_ascii_uppercase();
-    }
+    let s = make_string(r, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

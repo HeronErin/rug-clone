@@ -717,22 +717,7 @@ impl Integer {
     /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let i_size = unsafe { gmp::mpz_sizeinbase(self.inner(), radix) };
-        // size + 2 for '-' and nul
-        let size = i_size.checked_add(2).unwrap();
-        let mut buf = Vec::<u8>::with_capacity(size);
-        unsafe {
-            buf.set_len(size);
-            gmp::mpz_get_str(
-                buf.as_mut_ptr() as *mut c_char,
-                radix as c_int,
-                self.inner(),
-            );
-            let nul_index = buf.iter().position(|&x| x == 0).unwrap();
-            buf.set_len(nul_index);
-            String::from_utf8_unchecked(buf)
-        }
+        make_string(self, radix, false)
     }
 
     /// Assigns from an `f32` if it is finite, rounding towards zero.
@@ -3388,6 +3373,26 @@ impl<'a> Deref for BorrowInteger<'a> {
     fn deref(&self) -> &Integer {
         let ptr = (&self.inner) as *const _ as *const _;
         unsafe { &*ptr }
+    }
+}
+
+pub fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let i_size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
+    // size + 2 for '-' and nul
+    let size = i_size.checked_add(2).unwrap();
+    let mut buf = Vec::<u8>::with_capacity(size);
+    let case_radix = if to_upper { -radix } else { radix };
+    unsafe {
+        buf.set_len(size);
+        gmp::mpz_get_str(
+            buf.as_mut_ptr() as *mut c_char,
+            case_radix as c_int,
+            i.inner(),
+        );
+        let nul_index = buf.iter().position(|&x| x == 0).unwrap();
+        buf.set_len(nul_index);
+        String::from_utf8_unchecked(buf)
     }
 }
 
