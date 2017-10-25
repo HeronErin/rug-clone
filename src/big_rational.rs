@@ -379,7 +379,7 @@ impl Rational {
     /// assert_eq!(r3.to_string_radix(5), "-10/3");
     /// ```
     ///
-    /// #Panics
+    /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]

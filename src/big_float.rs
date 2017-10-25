@@ -160,8 +160,9 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 ///
 /// The following example is a translation of the [MPFR
 /// sample](http://www.mpfr.org/sample.html) found on the MPFR
-/// website. The program computes a lower bound on 1 + 1/1! + 1/2! + …
-/// + 1/100! using 200-bit precision. The program writes:
+/// website. The program computes a lower bound on
+/// 1 + 1/1! + 1/2! + … + 1/100!
+/// using 200-bit precision. The program writes:
 ///
 /// `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 ///
@@ -3453,7 +3454,7 @@ impl Float {
         /// the nearest.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2*π* rather than *π*.
+        /// has an output range of 2<i>π</i> rather than *π*.
         ///
         /// # Examples
         ///
@@ -3470,7 +3471,7 @@ impl Float {
         /// the nearest.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2*π* rather than *π*.
+        /// has an output range of 2<i>π</i> rather than *π*.
         ///
         /// # Examples
         ///
@@ -3487,7 +3488,7 @@ impl Float {
         /// specified rounding method.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2*π* rather than *π*.
+        /// has an output range of 2<i>π</i> rather than *π*.
         ///
         /// # Examples
         ///
@@ -3508,7 +3509,7 @@ impl Float {
         /// Computes the arc-tangent.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2*π* rather than *π*.
+        /// has an output range of 2<i>π</i> rather than *π*.
         ///
         /// # Examples
         ///
@@ -5914,10 +5915,10 @@ impl Float {
     /// Generates a random number in the continuous range 0 ≤ *x* < 1,
     /// and rounds to the nearest.
     ///
-    /// The result can be rounded up to be eual to one. This is
+    /// The result can be rounded up to be equal to one. This is
     /// equivalent to calling
-    /// [`assign_random_cont_round(rng, Round::Nearest)`]
-    /// (#method.assign_random_cont_round).
+    /// `assign_random_cont_round(rng, Round::Nearest)`
+    /// (see [`assign_random_cont_round`](#method.assign_random_cont_round)).
     ///
     /// # Examples
     ///

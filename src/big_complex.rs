@@ -58,10 +58,11 @@ pub type Ordering2 = (Ordering, Ordering);
 ///    * `Ordering::Greater` if the returned/stored part is greater
 ///      than the exact result,
 ///
-/// # Note on [`Round::AwayFromZero`][away]
+/// # Note on `Round::AwayFromZero`
 ///
-/// For `Complex` numbers, [`Round::AwayFromZero`][away] is not
-/// implemented, and trying to use it will panic.
+/// For `Complex` numbers,
+/// [`Round::AwayFromZero`](float/enum.Round.html#variant.AwayFromZero)
+/// is not implemented, and trying to use it will panic.
 ///
 /// # Examples
 ///
@@ -103,8 +104,6 @@ pub type Ordering2 = (Ordering, Ordering);
 /// acc -= &m1 * &m2;
 /// assert_eq!(acc, (990, 1010));
 /// ```
-///
-/// [away]: float/enum.Round.html#variant.AwayFromZero
 pub struct Complex {
     inner: mpc_t,
 }
@@ -2685,10 +2684,10 @@ impl Complex {
     /// imaginary parts in the continous range 0 ≤ *x* < 1, and rounds
     /// to the nearest.
     ///
-    /// The result parts can be rounded up to be eual to one. This is
+    /// The result parts can be rounded up to be equal to one. This is
     /// equivalent to calling
-    /// [`assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`]
-    /// (#method.assign_random_cont_round).
+    /// `assign_random_cont_round(rng, (Round::Nearest, Round::Nearest))`
+    /// (see [`assign_random_cont_round`](#method.assign_random_cont_round)).
     ///
     /// # Examples
     ///
