@@ -1,5 +1,5 @@
-Version 0.8.0 (not yet released)
-================================
+Version 0.8.0 (2017-10-26)
+==========================
 
 * Rename `Integer::sign`, `Rational::sign` and `Float::sign` methods
   as `Integer::cmp0`, `Rational::cmp0` and `Float::cmp0`.
