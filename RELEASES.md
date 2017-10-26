@@ -3,6 +3,7 @@ Version 0.8.0 (not yet released)
 
 * Rename `Integer::sign`, `Rational::sign` and `Float::sign` methods
   as `Integer::cmp0`, `Rational::cmp0` and `Float::cmp0`.
+* Rename `Float::pos_diff` as `Float::positive_diff`.
 * Move `rug::AssignRound` to `rug::float::AssignRound`.
 * Add `Integer::clamp`, `Rational::clamp` and `Float::clamp` methods.
 * Add `Integer::div_rem_ceil`, `Integer::div_rem_floor` and
@@ -12,7 +13,7 @@ Version 0.8.0 (not yet released)
   for combinations of `Integer` with `i32` or `u32`.
 * Add `Rational::fract_floor` and `Rational::fract_ceil` methods.
 
-Version 0.7.0 (2017-30-09)
+Version 0.7.0 (2017-09-30)
 ==========================
 
 * Fix swapped `Float::sin_cos_mut` and `Float::sin_cos_round`,

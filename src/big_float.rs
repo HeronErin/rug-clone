@@ -2490,12 +2490,12 @@ impl Float {
         /// use rug::Float;
         /// let a = Float::with_val(53, 12.5);
         /// let b = Float::with_val(53, 7.3);
-        /// let diff1 = a.pos_diff(&b);
+        /// let diff1 = a.positive_diff(&b);
         /// assert_eq!(diff1, 5.2);
-        /// let diff2 = diff1.pos_diff(&b);
+        /// let diff2 = diff1.positive_diff(&b);
         /// assert_eq!(diff2, 0);
         /// ```
-        fn pos_diff(other);
+        fn positive_diff(other);
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
         ///
@@ -2509,12 +2509,12 @@ impl Float {
         /// use rug::Float;
         /// let mut a = Float::with_val(53, 12.5);
         /// let b = Float::with_val(53, 7.3);
-        /// a.pos_diff_mut(&b);
+        /// a.positive_diff_mut(&b);
         /// assert_eq!(a, 5.2);
-        /// a.pos_diff_mut(&b);
+        /// a.positive_diff_mut(&b);
         /// assert_eq!(a, 0);
         /// ```
-        fn pos_diff_mut;
+        fn positive_diff_mut;
         /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
         ///
@@ -2530,14 +2530,14 @@ impl Float {
         /// use std::cmp::Ordering;
         /// let mut a = Float::with_val(53, 12.5);
         /// let b = Float::with_val(53, 7.3);
-        /// let dir = a.pos_diff_round(&b, Round::Nearest);
+        /// let dir = a.positive_diff_round(&b, Round::Nearest);
         /// assert_eq!(a, 5.2);
         /// assert_eq!(dir, Ordering::Equal);
-        /// let dir = a.pos_diff_round(&b, Round::Nearest);
+        /// let dir = a.positive_diff_round(&b, Round::Nearest);
         /// assert_eq!(a, 0);
         /// assert_eq!(dir, Ordering::Equal);
         /// ```
-        fn pos_diff_round;
+        fn positive_diff_round;
         /// Computes the positive difference.
         ///
         /// The positive difference is `self` − `other` if `self` >
@@ -2550,14 +2550,14 @@ impl Float {
         /// use rug::Float;
         /// let a = Float::with_val(53, 12.5);
         /// let b = Float::with_val(53, 7.3);
-        /// let rab = a.pos_diff_ref(&b);
+        /// let rab = a.positive_diff_ref(&b);
         /// let ab = Float::with_val(53, rab);
         /// assert_eq!(ab, 5.2);
-        /// let rba = b.pos_diff_ref(&a);
+        /// let rba = b.positive_diff_ref(&a);
         /// let ba = Float::with_val(53, rba);
         /// assert_eq!(ba, 0);
         /// ```
-        fn pos_diff_ref -> AbsDiffRef;
+        fn positive_diff_ref -> PositiveDiffRef;
     }
     math_op1_float! {
         mpfr::log;
@@ -6168,7 +6168,7 @@ where
 ref_math_op1_float! { xmpfr::recip; struct RecipRef {} }
 ref_math_op2_float! { mpfr::min; struct MinRef { other } }
 ref_math_op2_float! { mpfr::max; struct MaxRef { other } }
-ref_math_op2_float! { mpfr::dim; struct AbsDiffRef { other } }
+ref_math_op2_float! { mpfr::dim; struct PositiveDiffRef { other } }
 ref_math_op1_float! { mpfr::log; struct LnRef {} }
 ref_math_op1_float! { mpfr::log2; struct Log2Ref {} }
 ref_math_op1_float! { mpfr::log10; struct Log10Ref {} }
