@@ -29,9 +29,101 @@ pub use rational::small_rational::SmallRational;
 
 #[cfg(test)]
 mod tests {
-    use Rational;
+    use {Integer, Rational};
     use gmp_mpfr_sys::gmp;
     use std::mem;
+
+    #[test]
+    fn check_fract_trunc() {
+        let ndwf = [
+            (23, 10, 2, 3),
+            (-23, 10, -2, -3),
+            (20, 10, 2, 0),
+            (-20, 10, -2, 0),
+            (3, 10, 0, 3),
+            (-3, 10, 0, -3),
+            (0, 10, 0, 0),
+        ];
+        for &(n, d, whole, fract_n) in ndwf.iter() {
+            let r = Rational::from((n, d));
+
+            let (fract, trunc) = r.clone().fract_trunc(Integer::new());
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(trunc, whole);
+
+            let (fract, trunc) =
+                <(Rational, Integer)>::from(r.fract_trunc_ref());
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(trunc, whole);
+
+            let mut r = r;
+            let mut trunc = Integer::new();
+            r.fract_trunc_mut(&mut trunc);
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(trunc, whole);
+        }
+    }
+
+    #[test]
+    fn check_fract_floor() {
+        let ndwf = [
+            (23, 10, 2, 3),
+            (-23, 10, -3, 7),
+            (20, 10, 2, 0),
+            (-20, 10, -2, 0),
+            (3, 10, 0, 3),
+            (-3, 10, -1, 7),
+            (0, 10, 0, 0),
+        ];
+        for &(n, d, whole, fract_n) in ndwf.iter() {
+            let r = Rational::from((n, d));
+
+            let (fract, floor) = r.clone().fract_floor(Integer::new());
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(floor, whole);
+
+            let (fract, floor) =
+                <(Rational, Integer)>::from(r.fract_floor_ref());
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(floor, whole);
+
+            let mut r = r;
+            let mut floor = Integer::new();
+            r.fract_floor_mut(&mut floor);
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(floor, whole);
+        }
+    }
+
+    #[test]
+    fn check_fract_ceil() {
+        let ndwf = [
+            (23, 10, 3, -7),
+            (-23, 10, -2, -3),
+            (20, 10, 2, 0),
+            (-20, 10, -2, 0),
+            (3, 10, 1, -7),
+            (-3, 10, 0, -3),
+            (0, 10, 0, 0),
+        ];
+        for &(n, d, whole, fract_n) in ndwf.iter() {
+            let r = Rational::from((n, d));
+
+            let (fract, ceil) = r.clone().fract_ceil(Integer::new());
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(ceil, whole);
+
+            let (fract, ceil) = <(Rational, Integer)>::from(r.fract_ceil_ref());
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(ceil, whole);
+
+            let mut r = r;
+            let mut ceil = Integer::new();
+            r.fract_ceil_mut(&mut ceil);
+            assert_eq!(fract, (fract_n, d));
+            assert_eq!(ceil, whole);
+        }
+    }
 
     #[test]
     fn check_from_str() {
