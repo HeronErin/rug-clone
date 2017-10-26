@@ -49,6 +49,32 @@ use std::os::raw::{c_char, c_int};
 /// assert_eq!(num, -4);
 /// assert_eq!(den, 5);
 /// ```
+///
+/// The `Rational` type supports various functions. Most methods have
+/// three versions: one that consumes the operand, one that mutates
+/// the operand, and one that borrows the operand.
+///
+/// ```rust
+/// use rug::Rational;
+///
+/// // 1. consume the operand
+/// let a = Rational::from((-15, 2));
+/// let abs_a = a.abs();
+/// assert_eq!(abs_a, (15, 2));
+///
+/// // 2. mutate the operand
+/// let mut b = Rational::from((-17, 2));
+/// b.abs_mut();
+/// assert_eq!(b, (17, 2));
+///
+/// // 3. borrow the operand
+/// let c = Rational::from((-19, 2));
+/// let r = c.abs_ref();
+/// let abs_c = Rational::from(r);
+/// assert_eq!(abs_c, (19, 2));
+/// // c was not consumed
+/// assert_eq!(c, (-19, 2));
+/// ```
 pub struct Rational {
     inner: mpq_t,
 }

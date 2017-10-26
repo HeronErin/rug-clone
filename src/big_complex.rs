@@ -43,21 +43,6 @@ pub type Ordering2 = (Ordering, Ordering);
 /// method of the required operations can be specified, and the
 /// direction of the rounding is returned.
 ///
-/// There are two versions of most methods:
-///
-/// 1. The first rounds the returned or stored `Complex` number to the
-///    [nearest](float/enum.Round.html#variant.Nearest) representable
-///    value.
-/// 2. The second applies the specified [rounding
-///    methods](float/enum.Round.html) for the real and imaginary
-///    parts, and returns the rounding directions for both:
-///    * `Ordering::Less` if the returned/stored part is less than the
-///      exact result,
-///    * `Ordering::Equal` if the returned/stored part is equal to the
-///      exact result,
-///    * `Ordering::Greater` if the returned/stored part is greater
-///      than the exact result,
-///
 /// # Note on `Round::AwayFromZero`
 ///
 /// For `Complex` numbers,
@@ -103,6 +88,62 @@ pub type Ordering2 = (Ordering, Ordering);
 /// // (1000 + 1000i) - (10 + 0i) * (1 - i) = (990 + 1010i)
 /// acc -= &m1 * &m2;
 /// assert_eq!(acc, (990, 1010));
+/// ```
+///
+/// The `Complex` type supports various functions. Most methods have
+/// four versions:
+///
+/// 1. The first method consumes the operand and rounds the returned
+///    `Complex` to the [nearest](float/enum.Round.html#variant.Nearest)
+///    representable value.
+/// 2. The second method has a `_mut` suffix, mutates the operand and
+///    rounds it the nearest representable value.
+
+/// 3. The third method has a `_round` suffix, mutates the operand,
+///    applies the specified [rounding method](float/enum.Round.html)
+///    to the real and imaginary parts, and returns the rounding
+///    direction for both:
+///    * `Ordering::Less` if the stored part is less than the exact
+///      result,
+///    * `Ordering::Equal` if the stored part is equal to the exact
+///      result,
+///    * `Ordering::Greater` if the stored part is greater than the
+///      exact result.
+/// 4. The fourth method has a `_ref` suffix and borrows the operand.
+///    The returned item can be assigned to a `Complex`, and the
+///    rounding method is selected during the assignment.
+///
+/// ```rust
+/// use rug::Complex;
+/// use rug::float::Round;
+/// use std::cmp::Ordering;
+/// let expected = Complex::with_val(53, (1.2985, 0.6350));
+///
+/// // 1. consume the operand, round to nearest
+/// let a = Complex::with_val(53, (1, 1));
+/// let sin_a = a.sin();
+/// assert!((sin_a - &expected).abs() < 0.0001);
+///
+/// // 2. mutate the operand, round to nearest
+/// let mut b = Complex::with_val(53, (1, 1));
+/// b.sin_mut();
+/// assert!((b - &expected).abs() < 0.0001);
+///
+/// // 3. mutate the operand, apply specified rounding
+/// let mut c = Complex::with_val(4, (1, 1));
+/// // using 4 significant bits, 1.2985 is rounded down to 1.25
+/// // and 0.6350 is rounded down to 0.625.
+/// let dir = c.sin_round((Round::Nearest, Round::Nearest));
+/// assert_eq!(c, (1.25, 0.625));
+/// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+///
+/// // 4. borrow the operand
+/// let d = Complex::with_val(53, (1, 1));
+/// let r = d.sin_ref();
+/// let sin_d = Complex::with_val(53, r);
+/// assert!((sin_d - &expected).abs() < 0.0001);
+/// // d was not consumed
+/// assert_eq!(d, (1, 1));
 /// ```
 pub struct Complex {
     inner: mpc_t,
@@ -2657,8 +2698,8 @@ impl Complex {
     /// let (re, im) = c.into_real_imag();
     /// assert!(re == 0.0 || re == 0.25 || re == 0.5 || re == 0.75);
     /// assert!(im == 0.0 || im == 0.25 || im == 0.5 || im == 0.75);
-    /// println!("0.0 <= {} < 1.0", re);
-    /// println!("0.0 <= {} < 1.0", im);
+    /// println!("0.0 ≤ {} < 1.0", re);
+    /// println!("0.0 ≤ {} < 1.0", im);
     /// ```
     ///
     /// # Errors

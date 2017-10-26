@@ -144,20 +144,23 @@ use std::os::raw::{c_char, c_int, c_long};
 /// assert_eq!(sub, 1979);
 /// ```
 ///
-/// The `Integer` type supports various functions. Most functions have
+/// The `Integer` type supports various functions. Most methods have
 /// three versions: one that consumes the operand, one that mutates
 /// the operand, and one that borrows the operand.
 ///
 /// ```rust
 /// use rug::Integer;
+///
 /// // 1. consume the operand
 /// let a = Integer::from(-15);
 /// let abs_a = a.abs();
 /// assert_eq!(abs_a, 15);
+///
 /// // 2. mutate the operand
 /// let mut b = Integer::from(-16);
 /// b.abs_mut();
 /// assert_eq!(b, 16);
+///
 /// // 3. borrow the operand
 /// let c = Integer::from(-17);
 /// let r = c.abs_ref();
@@ -3059,7 +3062,7 @@ impl Integer {
     /// let mut rand = RandState::new();
     /// let i = Integer::from(15);
     /// let below = i.random_below(&mut rand);
-    /// println!("0 <= {} < 15", below);
+    /// println!("0 ≤ {} < 15", below);
     /// assert!(below < 15);
     /// ```
     ///
@@ -3084,7 +3087,7 @@ impl Integer {
     /// let mut rand = RandState::new();
     /// let mut i = Integer::from(15);
     /// i.random_below_mut(&mut rand);
-    /// println!("0 <= {} < 15", i);
+    /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
     ///
@@ -3112,7 +3115,7 @@ impl Integer {
     /// let bound = Integer::from(15);
     /// let mut i = Integer::new();
     /// i.assign_random_below(&bound, &mut rand);
-    /// println!("0 <= {} < {}", i, bound);
+    /// println!("0 ≤ {} < {}", i, bound);
     /// assert!(i < bound);
     /// ```
     ///

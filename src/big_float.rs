@@ -78,21 +78,6 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// method of the required operations can be specified, and the
 /// direction of the rounding is returned.
 ///
-/// There are two versions of most methods:
-///
-/// 1. The first rounds the returned or stored `Float` to the
-///    [nearest](float/enum.Round.html#variant.Nearest) representable
-///    value.
-/// 2. The second applies the specified [rounding
-///    method](float/enum.Round.html), and returns the rounding
-///    direction:
-///    * `Ordering::Less` if the returned/stored `Float` is less than
-///      the exact result,
-///    * `Ordering::Equal` if the returned/stored `Float` is equal to
-///      the exact result,
-///    * `Ordering::Greater` if the returned/stored `Float` is greater
-///      than the exact result,
-///
 /// # Examples
 ///
 /// ```rust
@@ -156,6 +141,59 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// // 1.5 * -13 = -19.5 (binary -10011.1), rounded to -20.
 /// let separate_add = a + mul1 * mul2;
 /// assert_eq!(separate_add, 4);
+/// ```
+///
+/// The `Float` type supports various functions. Most methods have
+/// four versions:
+///
+/// 1. The first method consumes the operand and rounds the returned
+///    `Float` to the [nearest](float/enum.Round.html#variant.Nearest)
+///    representable value.
+/// 2. The second method has a `_mut` suffix, mutates the operand and
+///    rounds it the nearest representable value.
+/// 3. The third method has a `_round` suffix, mutates the operand,
+///    applies the specified [rounding method](float/enum.Round.html),
+///    and returns the rounding direction:
+///    * `Ordering::Less` if the stored value is less than the exact
+///      result,
+///    * `Ordering::Equal` if the stored value is equal to the exact
+///      result,
+///    * `Ordering::Greater` if the stored value is greater than the
+///      exact result.
+/// 4. The fourth method has a `_ref` suffix and borrows the operand.
+///    The returned item can be assigned to a `Float`, and the
+///    rounding method is selected during the assignment.
+///
+/// ```rust
+/// use rug::Float;
+/// use rug::float::Round;
+/// use std::cmp::Ordering;
+/// let expected = 0.9490_f64;
+///
+/// // 1. consume the operand, round to nearest
+/// let a = Float::with_val(53, 1.25);
+/// let sin_a = a.sin();
+/// assert!((sin_a - expected).abs() < 0.0001);
+///
+/// // 2. mutate the operand, round to nearest
+/// let mut b = Float::with_val(53, 1.25);
+/// b.sin_mut();
+/// assert!((b - expected).abs() < 0.0001);
+///
+/// // 3. mutate the operand, apply specified rounding
+/// let mut c = Float::with_val(4, 1.25);
+/// // using 4 significant bits, 0.9490 is rounded down to 0.9375
+/// let dir = c.sin_round(Round::Nearest);
+/// assert_eq!(c, 0.9375);
+/// assert_eq!(dir, Ordering::Less);
+///
+/// // 4. borrow the operand
+/// let d = Float::with_val(53, 1.25);
+/// let r = d.sin_ref();
+/// let sin_d = Float::with_val(53, r);
+/// assert!((sin_d - expected).abs() < 0.0001);
+/// // d was not consumed
+/// assert_eq!(d, 1.25);
 /// ```
 ///
 /// The following example is a translation of the [MPFR
@@ -2442,6 +2480,10 @@ impl Float {
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
         ///
+        /// The positive difference is `self` − `other` if `self` >
+        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+        /// is NaN.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2457,6 +2499,10 @@ impl Float {
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
         ///
+        /// The positive difference is `self` − `other` if `self` >
+        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+        /// is NaN.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2471,6 +2517,10 @@ impl Float {
         fn pos_diff_mut;
         /// Computes the positive difference between `self` and
         /// `other`, applying the specified rounding method.
+        ///
+        /// The positive difference is `self` − `other` if `self` >
+        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+        /// is NaN.
         ///
         /// # Examples
         ///
@@ -2489,6 +2539,10 @@ impl Float {
         /// ```
         fn pos_diff_round;
         /// Computes the positive difference.
+        ///
+        /// The positive difference is `self` − `other` if `self` >
+        /// `other`, zero if `self` ≤ `other`, or NaN if any operand
+        /// is NaN.
         ///
         /// # Examples
         ///
@@ -5887,7 +5941,7 @@ impl Float {
     /// let mut f = Float::new(2);
     /// f.assign_random_bits(&mut rand).unwrap();
     /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
-    /// println!("0.0 <= {} < 1.0", f);
+    /// println!("0.0 ≤ {} < 1.0", f);
     /// ```
     ///
     /// # Errors

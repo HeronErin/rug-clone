@@ -208,7 +208,7 @@ impl<'a> RandState<'a> {
     /// let mut rand = RandState::new_custom(&mut seed);
     /// let mut i = Integer::from(15);
     /// i.random_below_mut(&mut rand);
-    /// println!("0 <= {} < 15", i);
+    /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
     pub fn new_custom<'c, T>(custom: &mut T) -> RandState<'c>
