@@ -79,6 +79,179 @@ pub struct Rational {
     inner: mpq_t,
 }
 
+macro_rules! rat_op_int {
+    {
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
+    } => {
+        $(#[$attr])*
+        #[inline]
+        pub fn $method(mut self, $($param: $T),*) -> Integer {
+            unsafe {
+                let num = gmp::mpq_numref(self.inner_mut());
+                $func(num, self.inner(), $($param.into()),*);
+                // not canonicalized, so do not exit unsafe before consuming
+                self.into_numer_denom().0
+            }
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $($param: $T),*) {
+            unsafe {
+                let num_mut = gmp::mpq_numref(self.inner_mut());
+                let den_mut = gmp::mpq_denref(self.inner_mut());
+                $func(num_mut, self.inner(), $($param.into()),*);
+                gmp::mpz_set_ui(den_mut, 1);
+            }
+        }
+
+        $(#[$attr_ref])*
+        #[inline]
+        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
+            $Ref {
+                ref_self: self,
+                $($param,)*
+            }
+        }
+    }
+}
+
+macro_rules! ref_rat_op_int {
+    {
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* }
+    } => {
+         $(#[$attr_ref])*
+        #[derive(Clone, Copy)]
+        pub struct $Ref<'a> {
+            ref_self: &'a Rational,
+            $($param: $T,)*
+        }
+
+        from_borrow! { $Ref<'a> => Integer }
+
+        impl<'a> Assign<$Ref<'a>> for Integer {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                unsafe {
+                    $func(
+                        self.inner_mut(),
+                        src.ref_self.inner(),
+                        $(src.$param.into(),)*
+                    );
+                }
+            }
+        }
+
+        from_borrow! { $Ref<'a> => Rational }
+
+        impl<'a> Assign<$Ref<'a>> for Rational {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                unsafe {
+                    let (num, den) =
+                        self.as_mut_numer_denom_no_canonicalization();
+                    $func(
+                        num.inner_mut(),
+                        src.ref_self.inner(),
+                        $(src.$param.into(),)*
+                    );
+                    gmp::mpz_set_ui(den.inner_mut(), 1);
+                }
+            }
+        }
+    }
+}
+
+macro_rules! rat_op_rat_int {
+    {
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($int:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Ref:ident;
+    } => {
+        $(#[$attr])*
+        #[inline]
+        pub fn $method(
+            mut self,
+            mut $int: Integer,
+            $($param: $T,)*
+        ) -> (Rational, Integer) {
+            self.$method_mut(&mut $int);
+            (self, $int)
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $int: &mut Integer, $($param: $T),*) {
+            unsafe {
+                $func(
+                    self.inner_mut(),
+                    $int.inner_mut(),
+                    self.inner(),
+                    $($param.into()),*
+                );
+            }
+        }
+
+        $(#[$attr_ref])*
+        #[inline]
+        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
+            $Ref {
+                ref_self: self,
+                $($param,)*
+            }
+        }
+    }
+}
+
+macro_rules! ref_rat_op_rat_int {
+    {
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* }
+    } => {
+         $(#[$attr_ref])*
+        #[derive(Clone, Copy)]
+        pub struct $Ref<'a> {
+            ref_self: &'a Rational,
+            $($param: $T,)*
+        }
+
+        impl<'a> From<$Ref<'a>> for (Rational, Integer) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> (Rational, Integer) {
+                let mut pair = (Rational::new(), Integer::new());
+                (&mut pair.0, &mut pair.1).assign(src);
+                pair
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>> for (&'a mut Rational, &'a mut Integer) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                unsafe {
+                    $func(
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        src.ref_self.inner(),
+                    );
+                }
+            }
+        }
+    }
+}
+
 impl Rational {
     /// Constructs a new arbitrary-precision rational number with
     /// value 0.
@@ -843,8 +1016,8 @@ impl Rational {
         /// ```rust
         /// use rug::Rational;
         /// let r = Rational::from((-100, 17));
-        /// let rr = r.abs_ref();
-        /// let abs = Rational::from(rr);
+        /// let r_ref = r.abs_ref();
+        /// let abs = Rational::from(r_ref);
         /// assert_eq!(abs, (100, 17));
         /// ```
         fn abs_ref -> AbsRef;
@@ -1000,636 +1173,665 @@ impl Rational {
         /// ```rust
         /// use rug::Rational;
         /// let r = Rational::from((-100, 17));
-        /// let rr = r.recip_ref();
-        /// let recip = Rational::from(rr);
+        /// let r_ref = r.recip_ref();
+        /// let recip = Rational::from(r_ref);
         /// assert_eq!(recip, (-17, 100));
         /// ```
         fn recip_ref -> RecipRef;
     }
-
-    /// Rounds the number towards zero and returns it as an
-    /// [`Integer`](struct.Integer.html).
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// // -3.7
-    /// let r1 = Rational::from((-37, 10));
-    /// let i1 = r1.trunc();
-    /// assert_eq!(i1, -3);
-    /// // 3.3
-    /// let r2 = Rational::from((33, 10));
-    /// let i2 = r2.trunc();
-    /// assert_eq!(i2, 3);
-    /// ```
-    #[inline]
-    pub fn trunc(self) -> Integer {
-        let (mut num, den) = self.into_numer_denom();
-        unsafe {
-            xgmp::num_den_trunc(num.inner_mut(), num.inner(), den.inner());
-        }
-        num
+    rat_op_int! {
+        xgmp::mpq_trunc;
+        /// Rounds the number towards zero and returns it as an
+        /// [`Integer`](struct.Integer.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.7
+        /// let r1 = Rational::from((-37, 10));
+        /// let i1 = r1.trunc();
+        /// assert_eq!(i1, -3);
+        /// // 3.3
+        /// let r2 = Rational::from((33, 10));
+        /// let i2 = r2.trunc();
+        /// assert_eq!(i2, 3);
+        /// ```
+        fn trunc();
+        /// Rounds the number towards zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Rational};
+        /// // -3.7
+        /// let mut r = Rational::from((-37, 10));
+        /// r.trunc_mut();
+        /// assert_eq!(r, -3);
+        /// // 3.3
+        /// r.assign((33, 10));
+        /// r.trunc_mut();
+        /// assert_eq!(r, 3);
+        /// ```
+        fn trunc_mut;
+        /// Rounds the number towards zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// let mut trunc = Integer::new();
+        /// // -3.7
+        /// let r1 = Rational::from((-37, 10));
+        /// trunc.assign(r1.trunc_ref());
+        /// assert_eq!(trunc, -3);
+        /// // 3.3
+        /// let r2 = Rational::from((33, 10));
+        /// trunc.assign(r2.trunc_ref());
+        /// assert_eq!(trunc, 3);
+        /// ```
+        fn trunc_ref -> TruncRef;
     }
 
-    /// Rounds the number towards zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Rational};
-    /// // -3.7
-    /// let mut r = Rational::from((-37, 10));
-    /// r.trunc_mut();
-    /// assert_eq!(r, -3);
-    /// // 3.3
-    /// r.assign((33, 10));
-    /// r.trunc_mut();
-    /// assert_eq!(r, 3);
-    /// ```
+    /// Computes the fractional part of the number.
+    #[deprecated(since = "0.8.1", note = "renamed to `rem_trunc`")]
     #[inline]
-    pub fn trunc_mut(&mut self) {
-        unsafe {
-            let (num, den) = self.as_mut_numer_denom_no_canonicalization();
-            xgmp::num_den_trunc(num.inner_mut(), num.inner(), den.inner());
-            den.assign(1);
-        }
+    pub fn fract(self) -> Rational {
+        self.rem_trunc()
     }
 
-    /// Rounds the number towards zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// let mut trunc = Integer::new();
-    /// // -3.7
-    /// let r1 = Rational::from((-37, 10));
-    /// trunc.assign(r1.trunc_ref());
-    /// assert_eq!(trunc, -3);
-    /// // 3.3
-    /// let r2 = Rational::from((33, 10));
-    /// trunc.assign(r2.trunc_ref());
-    /// assert_eq!(trunc, 3);
-    /// ```
+    /// Computes the fractional part of the number.
+    #[deprecated(since = "0.8.1", note = "renamed to `rem_trunc_mut`")]
     #[inline]
-    pub fn trunc_ref(&self) -> TruncRef {
-        TruncRef { ref_self: self }
+    pub fn fract_mut(&mut self) {
+        self.rem_trunc_mut();
+    }
+
+    /// Computes the fractional part of the number.
+    #[deprecated(since = "0.8.1", note = "renamed to `rem_trunc_ref`")]
+    #[inline]
+    pub fn fract_ref(&self) -> RemTruncRef {
+        self.rem_trunc_ref()
     }
 
     math_op1! {
         Rational;
-        xgmp::mpq_fract;
+        xgmp::mpq_trunc_fract;
         /// Computes the fractional part of the number.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -5 15/17
+        /// // -100/17 = -5 - 15/17
         /// let r = Rational::from((-100, 17));
-        /// let fract = r.fract();
-        /// assert_eq!(fract, (-15, 17));
+        /// let rem = r.rem_trunc();
+        /// assert_eq!(rem, (-15, 17));
         /// ```
-        fn fract();
+        fn rem_trunc();
         /// Computes the fractional part of the number.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -5 15/17
+        /// // -100/17 = -5 - 15/17
         /// let mut r = Rational::from((-100, 17));
-        /// r.fract_mut();
+        /// r.rem_trunc_mut();
         /// assert_eq!(r, (-15, 17));
         /// ```
-        fn fract_mut;
+        fn rem_trunc_mut;
         /// Computes the fractional part of the number.
         ///
         /// # Examples
         ///
         /// ```rust
         /// use rug::Rational;
+        /// // -100/17 = -5 - 15/17
         /// let r = Rational::from((-100, 17));
-        /// let rr = r.fract_ref();
-        /// let fract = Rational::from(rr);
-        /// assert_eq!(fract, (-15, 17));
+        /// let r_ref = r.rem_trunc_ref();
+        /// let rem = Rational::from(r_ref);
+        /// assert_eq!(rem, (-15, 17));
         /// ```
-        fn fract_ref -> FractRef;
+        fn rem_trunc_ref -> RemTruncRef;
     }
-
-    /// Computes the fractional and truncated parts of the number.
-    ///
-    /// The initial value of `trunc` is ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // -100/17 = -5 15/17
-    /// let r = Rational::from((-100, 17));
-    /// let (fract, trunc) = r.fract_trunc(Integer::new());
-    /// assert_eq!(fract, (-15, 17));
-    /// assert_eq!(trunc, -5);
-    /// ```
-    #[inline]
-    pub fn fract_trunc(mut self, mut trunc: Integer) -> (Rational, Integer) {
-        self.fract_trunc_mut(&mut trunc);
-        (self, trunc)
+    rat_op_rat_int! {
+        xgmp::mpq_trunc_fract_whole;
+        /// Computes the fractional and truncated parts of the number.
+        ///
+        /// The initial value of `trunc` is ignored.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // -100/17 = -5 - 15/17
+        /// let r = Rational::from((-100, 17));
+        /// let (fract, trunc) = r.fract_trunc(Integer::new());
+        /// assert_eq!(fract, (-15, 17));
+        /// assert_eq!(trunc, -5);
+        /// ```
+        fn fract_trunc(trunc);
+        /// Computes the fractional and truncated parts of the number.
+        ///
+        /// The initial value of `trunc` is ignored.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // -100/17 = -5 - 15/17
+        /// let mut r = Rational::from((-100, 17));
+        /// let mut whole = Integer::new();
+        /// r.fract_trunc_mut(&mut whole);
+        /// assert_eq!(r, (-15, 17));
+        /// assert_eq!(whole, -5);
+        /// ```
+        fn fract_trunc_mut;
+        /// Computes the fractional and truncated parts of the number.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// // -100/17 = -5 - 15/17
+        /// let r = Rational::from((-100, 17));
+        /// let r_ref = r.fract_trunc_ref();
+        /// let (mut fract, mut trunc) = (Rational::new(), Integer::new());
+        /// (&mut fract, &mut trunc).assign(r_ref);
+        /// assert_eq!(fract, (-15, 17));
+        /// assert_eq!(trunc, -5);
+        /// ```
+        fn fract_trunc_ref -> FractTruncRef;
     }
-
-    /// Computes the fractional and truncated parts of the number.
-    ///
-    /// The initial value of `trunc` is ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // -100/17 = -5 15/17
-    /// let mut r = Rational::from((-100, 17));
-    /// let mut whole = Integer::new();
-    /// r.fract_trunc_mut(&mut whole);
-    /// assert_eq!(r, (-15, 17));
-    /// assert_eq!(whole, -5);
-    /// ```
-    #[inline]
-    pub fn fract_trunc_mut(&mut self, trunc: &mut Integer) {
-        unsafe {
-            xgmp::mpq_fract_trunc(
-                self.inner_mut(),
-                trunc.inner_mut(),
-                self.inner(),
-            );
-        }
+    rat_op_int! {
+        xgmp::mpq_ceil;
+        /// Rounds the number upwards (towards plus infinity) and returns
+        /// it as an [`Integer`](struct.Integer.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.7
+        /// let r1 = Rational::from((-37, 10));
+        /// let i1 = r1.ceil();
+        /// assert_eq!(i1, -3);
+        /// // 3.3
+        /// let r2 = Rational::from((33, 10));
+        /// let i2 = r2.ceil();
+        /// assert_eq!(i2, 4);
+        /// ```
+        fn ceil();
+        /// Rounds the number upwards (towards plus infinity).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Rational};
+        /// // -3.7
+        /// let mut r = Rational::from((-37, 10));
+        /// r.ceil_mut();
+        /// assert_eq!(r, -3);
+        /// // 3.3
+        /// r.assign((33, 10));
+        /// r.ceil_mut();
+        /// assert_eq!(r, 4);
+        /// ```
+        fn ceil_mut;
+        /// Rounds the number upwards (towards plus infinity).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// let mut ceil = Integer::new();
+        /// // -3.7
+        /// let r1 = Rational::from((-37, 10));
+        /// ceil.assign(r1.ceil_ref());
+        /// assert_eq!(ceil, -3);
+        /// // 3.3
+        /// let r2 = Rational::from((33, 10));
+        /// ceil.assign(r2.ceil_ref());
+        /// assert_eq!(ceil, 4);
+        /// ```
+        fn ceil_ref -> CeilRef;
     }
-
-    /// Computes the fractional and truncated parts of the number.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// // -100/17 = -5 15/17
-    /// let r = Rational::from((-100, 17));
-    /// let r_ref = r.fract_trunc_ref();
-    /// let (mut fract, mut trunc) = (Rational::new(), Integer::new());
-    /// (&mut fract, &mut trunc).assign(r_ref);
-    /// assert_eq!(fract, (-15, 17));
-    /// assert_eq!(trunc, -5);
-    /// ```
-    #[inline]
-    pub fn fract_trunc_ref(&self) -> FractTruncRef {
-        FractTruncRef { ref_self: self }
+    math_op1! {
+        Rational;
+        xgmp::mpq_ceil_fract;
+        /// Computes the non-positive remainder after rounding up.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // 100/17 = 6 - 2/17
+        /// let r = Rational::from((100, 17));
+        /// let rem = r.rem_ceil();
+        /// assert_eq!(rem, (-2, 17));
+        /// ```
+        fn rem_ceil();
+        /// Computes the non-positive remainder after rounding up.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // 100/17 = 6 - 2/17
+        /// let mut r = Rational::from((100, 17));
+        /// r.rem_ceil_mut();
+        /// assert_eq!(r, (-2, 17));
+        /// ```
+        fn rem_ceil_mut;
+        /// Computes the non-positive remainder after rounding up.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // 100/17 = 6 - 2/17
+        /// let r = Rational::from((100, 17));
+        /// let r_ref = r.rem_ceil_ref();
+        /// let rem = Rational::from(r_ref);
+        /// assert_eq!(rem, (-2, 17));
+        /// ```
+        fn rem_ceil_ref -> RemCeilRef;
     }
-
-    /// Rounds the number upwards (towards plus infinity) and returns
-    /// it as an [`Integer`](struct.Integer.html).
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// // -3.7
-    /// let r1 = Rational::from((-37, 10));
-    /// let i1 = r1.ceil();
-    /// assert_eq!(i1, -3);
-    /// // 3.3
-    /// let r2 = Rational::from((33, 10));
-    /// let i2 = r2.ceil();
-    /// assert_eq!(i2, 4);
-    /// ```
-    #[inline]
-    pub fn ceil(self) -> Integer {
-        let (mut num, den) = self.into_numer_denom();
-        unsafe {
-            xgmp::num_den_ceil(num.inner_mut(), num.inner(), den.inner());
-        }
-        num
+    rat_op_rat_int! {
+        xgmp::mpq_ceil_fract_whole;
+        /// Computes the fractional and ceil parts of the number.
+        ///
+        /// The fractional part cannot greater than zero. The initial
+        /// value of `ceil` is ignored.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // 100/17 = 6 - 2/17
+        /// let r = Rational::from((100, 17));
+        /// let (fract, ceil) = r.fract_ceil(Integer::new());
+        /// assert_eq!(fract, (-2, 17));
+        /// assert_eq!(ceil, 6);
+        /// ```
+        fn fract_ceil(ceil);
+        /// Computes the fractional and ceil parts of the number.
+        ///
+        /// The fractional part cannot be greater than zero. The initial
+        /// value of `ceil` is ignored.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // 100/17 = 6 - 2/17
+        /// let mut r = Rational::from((100, 17));
+        /// let mut ceil = Integer::new();
+        /// r.fract_ceil_mut(&mut ceil);
+        /// assert_eq!(r, (-2, 17));
+        /// assert_eq!(ceil, 6);
+        /// ```
+        fn fract_ceil_mut;
+        /// Computes the fractional and ceil parts of the number.
+        ///
+        /// The fractional part cannot be greater than zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// // 100/17 = 6 - 2/17
+        /// let r = Rational::from((100, 17));
+        /// let r_ref = r.fract_ceil_ref();
+        /// let (mut fract, mut ceil) = (Rational::new(), Integer::new());
+        /// (&mut fract, &mut ceil).assign(r_ref);
+        /// assert_eq!(fract, (-2, 17));
+        /// assert_eq!(ceil, 6);
+        /// ```
+        fn fract_ceil_ref -> FractCeilRef;
     }
-
-    /// Rounds the number upwards (towards plus infinity).
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Rational};
-    /// // -3.7
-    /// let mut r = Rational::from((-37, 10));
-    /// r.ceil_mut();
-    /// assert_eq!(r, -3);
-    /// // 3.3
-    /// r.assign((33, 10));
-    /// r.ceil_mut();
-    /// assert_eq!(r, 4);
-    /// ```
-    #[inline]
-    pub fn ceil_mut(&mut self) {
-        unsafe {
-            let (num, den) = self.as_mut_numer_denom_no_canonicalization();
-            xgmp::num_den_ceil(num.inner_mut(), num.inner(), den.inner());
-            den.assign(1);
-        }
+    rat_op_int! {
+        xgmp::mpq_floor;
+        /// Rounds the number downwards (towards minus infinity) and
+        /// returns it as an [`Integer`](struct.Integer.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.7
+        /// let r1 = Rational::from((-37, 10));
+        /// let i1 = r1.floor();
+        /// assert_eq!(i1, -4);
+        /// // 3.3
+        /// let r2 = Rational::from((33, 10));
+        /// let i2 = r2.floor();
+        /// assert_eq!(i2, 3);
+        /// ```
+        fn floor();
+        /// Rounds the number downwards (towards minus infinity).
+        ///
+        /// ```rust
+        /// use rug::{Assign, Rational};
+        /// // -3.7
+        /// let mut r = Rational::from((-37, 10));
+        /// r.floor_mut();
+        /// assert_eq!(r, -4);
+        /// // 3.3
+        /// r.assign((33, 10));
+        /// r.floor_mut();
+        /// assert_eq!(r, 3);
+        /// ```
+        fn floor_mut;
+        /// Rounds the number downwards (towards minus infinity).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// let mut floor = Integer::new();
+        /// // -3.7
+        /// let r1 = Rational::from((-37, 10));
+        /// floor.assign(r1.floor_ref());
+        /// assert_eq!(floor, -4);
+        /// // 3.3
+        /// let r2 = Rational::from((33, 10));
+        /// floor.assign(r2.floor_ref());
+        /// assert_eq!(floor, 3);
+        /// ```
+        fn floor_ref -> FloorRef;
     }
-
-    /// Rounds the number upwards (towards plus infinity).
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// let mut ceil = Integer::new();
-    /// // -3.7
-    /// let r1 = Rational::from((-37, 10));
-    /// ceil.assign(r1.ceil_ref());
-    /// assert_eq!(ceil, -3);
-    /// // 3.3
-    /// let r2 = Rational::from((33, 10));
-    /// ceil.assign(r2.ceil_ref());
-    /// assert_eq!(ceil, 4);
-    /// ```
-    #[inline]
-    pub fn ceil_ref(&self) -> CeilRef {
-        CeilRef { ref_self: self }
+    math_op1! {
+        Rational;
+        xgmp::mpq_floor_fract;
+        /// Computes the non-negative remainder after rounding down.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -100/17 = -6 + 2/17
+        /// let r = Rational::from((-100, 17));
+        /// let rem = r.rem_floor();
+        /// assert_eq!(rem, (2, 17));
+        /// ```
+        fn rem_floor();
+        /// Computes the non-negative remainder after rounding down.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -100/17 = -6 + 2/17
+        /// let mut r = Rational::from((-100, 17));
+        /// r.rem_floor_mut();
+        /// assert_eq!(r, (2, 17));
+        /// ```
+        fn rem_floor_mut;
+        /// Computes the non-negative remainder after rounding down.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -100/17 = -6 + 2/17
+        /// let r = Rational::from((-100, 17));
+        /// let r_ref = r.rem_floor_ref();
+        /// let rem = Rational::from(r_ref);
+        /// assert_eq!(rem, (2, 17));
+        /// ```
+        fn rem_floor_ref -> RemFloorRef;
     }
-
-    /// Computes the fractional and ceil parts of the number.
-    ///
-    /// The fractional part cannot greater than zero. The initial
-    /// value of `ceil` is ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // 100/17 = 6 - 2/17
-    /// let r = Rational::from((100, 17));
-    /// let (fract, ceil) = r.fract_ceil(Integer::new());
-    /// assert_eq!(fract, (-2, 17));
-    /// assert_eq!(ceil, 6);
-    /// ```
-    #[inline]
-    pub fn fract_ceil(mut self, mut ceil: Integer) -> (Rational, Integer) {
-        self.fract_ceil_mut(&mut ceil);
-        (self, ceil)
+    rat_op_rat_int! {
+        xgmp::mpq_floor_fract_whole;
+        /// Computes the fractional and floor parts of the number.
+        ///
+        /// The fractional part cannot be negative. The initial value of
+        /// `floor` is ignored.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // -100/17 = -6 + 2/17
+        /// let r = Rational::from((-100, 17));
+        /// let (fract, floor) = r.fract_floor(Integer::new());
+        /// assert_eq!(fract, (2, 17));
+        /// assert_eq!(floor, -6);
+        /// ```
+        fn fract_floor(floor);
+        /// Computes the fractional and floor parts of the number.
+        ///
+        /// The fractional part cannot be negative. The initial value of
+        /// `floor` is ignored.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // -100/17 = -6 + 2/17
+        /// let mut r = Rational::from((-100, 17));
+        /// let mut floor = Integer::new();
+        /// r.fract_floor_mut(&mut floor);
+        /// assert_eq!(r, (2, 17));
+        /// assert_eq!(floor, -6);
+        /// ```
+        fn fract_floor_mut;
+        /// Computes the fractional and floor parts of the number.
+        ///
+        /// The fractional part cannot be negative.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// // -100/17 = -6 + 2/17
+        /// let r = Rational::from((-100, 17));
+        /// let r_ref = r.fract_floor_ref();
+        /// let (mut fract, mut floor) = (Rational::new(), Integer::new());
+        /// (&mut fract, &mut floor).assign(r_ref);
+        /// assert_eq!(fract, (2, 17));
+        /// assert_eq!(floor, -6);
+        /// ```
+        fn fract_floor_ref -> FractFloorRef;
     }
-
-    /// Computes the fractional and ceil parts of the number.
-    ///
-    /// The fractional part cannot be greater than zero. The initial
-    /// value of `ceil` is ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // 100/17 = 6 - 2/17
-    /// let mut r = Rational::from((100, 17));
-    /// let mut ceil = Integer::new();
-    /// r.fract_ceil_mut(&mut ceil);
-    /// assert_eq!(r, (-2, 17));
-    /// assert_eq!(ceil, 6);
-    /// ```
-    #[inline]
-    pub fn fract_ceil_mut(&mut self, ceil: &mut Integer) {
-        unsafe {
-            xgmp::mpq_fract_ceil(
-                self.inner_mut(),
-                ceil.inner_mut(),
-                self.inner(),
-            );
-        }
+    rat_op_int! {
+        xgmp::mpq_round;
+        /// Rounds the number to the nearest integer and returns it as an
+        /// [`Integer`](struct.Integer.html).
+        ///
+        /// When the number lies exactly between two integers, it is
+        /// rounded away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.5
+        /// let r1 = Rational::from((-35, 10));
+        /// let i1 = r1.round();
+        /// assert_eq!(i1, -4);
+        /// // 3.7
+        /// let r2 = Rational::from((37, 10));
+        /// let i2 = r2.round();
+        /// assert_eq!(i2, 4);
+        /// ```
+        fn round();
+        /// Rounds the number to the nearest integer.
+        ///
+        /// When the number lies exactly between two integers, it is
+        /// rounded away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Rational};
+        /// // -3.5
+        /// let mut r = Rational::from((-35, 10));
+        /// r.round_mut();
+        /// assert_eq!(r, -4);
+        /// // 3.7
+        /// r.assign((37, 10));
+        /// r.round_mut();
+        /// assert_eq!(r, 4);
+        /// ```
+        fn round_mut;
+        /// Rounds the number to the nearest integer.
+        ///
+        /// When the number lies exactly between two integers, it is
+        /// rounded away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// let mut round = Integer::new();
+        /// // -3.5
+        /// let r1 = Rational::from((-35, 10));
+        /// round.assign(r1.round_ref());
+        /// assert_eq!(round, -4);
+        /// // 3.7
+        /// let r2 = Rational::from((37, 10));
+        /// round.assign(r2.round_ref());
+        /// assert_eq!(round, 4);
+        /// ```
+        fn round_ref -> RoundRef;
     }
-
-    /// Computes the fractional and ceil parts of the number.
-    ///
-    /// The fractional part cannot be greater than zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// // 100/17 = 6 - 2/17
-    /// let r = Rational::from((100, 17));
-    /// let r_ref = r.fract_ceil_ref();
-    /// let (mut fract, mut ceil) = (Rational::new(), Integer::new());
-    /// (&mut fract, &mut ceil).assign(r_ref);
-    /// assert_eq!(fract, (-2, 17));
-    /// assert_eq!(ceil, 6);
-    /// ```
-    #[inline]
-    pub fn fract_ceil_ref(&self) -> FractCeilRef {
-        FractCeilRef { ref_self: self }
+    math_op1! {
+        Rational;
+        xgmp::mpq_round_fract;
+        /// Computes the remainder after rounding to the nearest
+        /// integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// let r1 = Rational::from((-35, 10));
+        /// let rem1 = r1.rem_round();
+        /// assert_eq!(rem1, (1, 2));
+        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// let r2 = Rational::from((37, 10));
+        /// let rem2 = r2.rem_round();
+        /// assert_eq!(rem2, (-3, 10));
+        /// ```
+        fn rem_round();
+        /// Computes the remainder after rounding to the nearest
+        /// integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// let mut r1 = Rational::from((-35, 10));
+        /// r1.rem_round_mut();
+        /// assert_eq!(r1, (1, 2));
+        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// let mut r2 = Rational::from((37, 10));
+        /// r2.rem_round_mut();
+        /// assert_eq!(r2, (-3, 10));
+        /// ```
+        fn rem_round_mut;
+        /// Computes the remainder after rounding to the nearest
+        /// integer.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// let r1 = Rational::from((-35, 10));
+        /// let r_ref1 = r1.rem_round_ref();
+        /// let rem1 = Rational::from(r_ref1);
+        /// assert_eq!(rem1, (1, 2));
+        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// let r2 = Rational::from((37, 10));
+        /// let r_ref2 = r2.rem_round_ref();
+        /// let rem2 = Rational::from(r_ref2);
+        /// assert_eq!(rem2, (-3, 10));
+        /// ```
+        fn rem_round_ref -> RemRoundRef;
     }
-
-    /// Rounds the number downwards (towards minus infinity) and
-    /// returns it as an [`Integer`](struct.Integer.html).
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// // -3.7
-    /// let r1 = Rational::from((-37, 10));
-    /// let i1 = r1.floor();
-    /// assert_eq!(i1, -4);
-    /// // 3.3
-    /// let r2 = Rational::from((33, 10));
-    /// let i2 = r2.floor();
-    /// assert_eq!(i2, 3);
-    /// ```
-    #[inline]
-    pub fn floor(self) -> Integer {
-        let (mut num, den) = self.into_numer_denom();
-        unsafe {
-            xgmp::num_den_floor(num.inner_mut(), num.inner(), den.inner());
-        }
-        num
-    }
-
-    /// Rounds the number downwards (towards minus infinity).
-    ///
-    /// ```rust
-    /// use rug::{Assign, Rational};
-    /// // -3.7
-    /// let mut r = Rational::from((-37, 10));
-    /// r.floor_mut();
-    /// assert_eq!(r, -4);
-    /// // 3.3
-    /// r.assign((33, 10));
-    /// r.floor_mut();
-    /// assert_eq!(r, 3);
-    /// ```
-    #[inline]
-    pub fn floor_mut(&mut self) {
-        unsafe {
-            let (num, den) = self.as_mut_numer_denom_no_canonicalization();
-            xgmp::num_den_floor(num.inner_mut(), num.inner(), den.inner());
-            den.assign(1);
-        }
-    }
-
-    /// Rounds the number downwards (towards minus infinity).
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// let mut floor = Integer::new();
-    /// // -3.7
-    /// let r1 = Rational::from((-37, 10));
-    /// floor.assign(r1.floor_ref());
-    /// assert_eq!(floor, -4);
-    /// // 3.3
-    /// let r2 = Rational::from((33, 10));
-    /// floor.assign(r2.floor_ref());
-    /// assert_eq!(floor, 3);
-    /// ```
-    #[inline]
-    pub fn floor_ref(&self) -> FloorRef {
-        FloorRef { ref_self: self }
-    }
-
-    /// Computes the fractional and floor parts of the number.
-    ///
-    /// The fractional part cannot be negative. The initial value of
-    /// `floor` is ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // -100/17 = -6 + 2/17
-    /// let r = Rational::from((-100, 17));
-    /// let (fract, floor) = r.fract_floor(Integer::new());
-    /// assert_eq!(fract, (2, 17));
-    /// assert_eq!(floor, -6);
-    /// ```
-    #[inline]
-    pub fn fract_floor(mut self, mut floor: Integer) -> (Rational, Integer) {
-        self.fract_floor_mut(&mut floor);
-        (self, floor)
-    }
-
-    /// Computes the fractional and floor parts of the number.
-    ///
-    /// The fractional part cannot be negative. The initial value of
-    /// `floor` is ignored.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // -100/17 = -6 + 2/17
-    /// let mut r = Rational::from((-100, 17));
-    /// let mut floor = Integer::new();
-    /// r.fract_floor_mut(&mut floor);
-    /// assert_eq!(r, (2, 17));
-    /// assert_eq!(floor, -6);
-    /// ```
-    #[inline]
-    pub fn fract_floor_mut(&mut self, floor: &mut Integer) {
-        unsafe {
-            xgmp::mpq_fract_floor(
-                self.inner_mut(),
-                floor.inner_mut(),
-                self.inner(),
-            );
-        }
-    }
-
-    /// Computes the fractional and floor parts of the number.
-    ///
-    /// The fractional part cannot be negative.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// // -100/17 = -6 + 2/17
-    /// let r = Rational::from((-100, 17));
-    /// let r_ref = r.fract_floor_ref();
-    /// let (mut fract, mut floor) = (Rational::new(), Integer::new());
-    /// (&mut fract, &mut floor).assign(r_ref);
-    /// assert_eq!(fract, (2, 17));
-    /// assert_eq!(floor, -6);
-    /// ```
-    #[inline]
-    pub fn fract_floor_ref(&self) -> FractFloorRef {
-        FractFloorRef { ref_self: self }
-    }
-
-    /// Rounds the number to the nearest integer and returns it as an
-    /// [`Integer`](struct.Integer.html).
-    ///
-    /// When the number lies exactly between two integers, it is
-    /// rounded away from zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// // -3.5
-    /// let r1 = Rational::from((-35, 10));
-    /// let i1 = r1.round();
-    /// assert_eq!(i1, -4);
-    /// // 3.7
-    /// let r2 = Rational::from((37, 10));
-    /// let i2 = r2.round();
-    /// assert_eq!(i2, 4);
-    /// ```
-    #[inline]
-    pub fn round(self) -> Integer {
-        let (mut num, den) = self.into_numer_denom();
-        unsafe {
-            xgmp::num_den_round(num.inner_mut(), num.inner(), den.inner());
-        }
-        num
-    }
-
-    /// Rounds the number to the nearest integer.
-    ///
-    /// When the number lies exactly between two integers, it is
-    /// rounded away from zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Rational};
-    /// // -3.5
-    /// let mut r = Rational::from((-35, 10));
-    /// r.round_mut();
-    /// assert_eq!(r, -4);
-    /// // 3.7
-    /// r.assign((37, 10));
-    /// r.round_mut();
-    /// assert_eq!(r, 4);
-    /// ```
-    #[inline]
-    pub fn round_mut(&mut self) {
-        unsafe {
-            let (num, den) = self.as_mut_numer_denom_no_canonicalization();
-            xgmp::num_den_round(num.inner_mut(), num.inner(), den.inner());
-            den.assign(1);
-        }
-    }
-
-    /// Rounds the number to the nearest integer.
-    ///
-    /// When the number lies exactly between two integers, it is
-    /// rounded away from zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// let mut round = Integer::new();
-    /// // -3.5
-    /// let r1 = Rational::from((-35, 10));
-    /// round.assign(r1.round_ref());
-    /// assert_eq!(round, -4);
-    /// // 3.7
-    /// let r2 = Rational::from((37, 10));
-    /// round.assign(r2.round_ref());
-    /// assert_eq!(round, 4);
-    /// ```
-    #[inline]
-    pub fn round_ref(&self) -> RoundRef {
-        RoundRef { ref_self: self }
-    }
-
-    /// Computes the fractional and rounded parts of the number.
-    ///
-    /// The fractional part is positive when the number is rounded
-    /// down and negative when the number is rounded up. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // -3.5 = -4 + 0.5
-    /// let r1 = Rational::from((-35, 10));
-    /// let (fract1, round1) = r1.fract_round(Integer::new());
-    /// assert_eq!(fract1, (1, 2));
-    /// assert_eq!(round1, -4);
-    /// // 3.7 = 4 - 0.3
-    /// let r2 = Rational::from((37, 10));
-    /// let (fract2, round2) = r2.fract_round(Integer::new());
-    /// assert_eq!(fract2, (-3, 10));
-    /// assert_eq!(round2, 4);
-    /// ```
-    #[inline]
-    pub fn fract_round(mut self, mut round: Integer) -> (Rational, Integer) {
-        self.fract_round_mut(&mut round);
-        (self, round)
-    }
-
-    /// Computes the fractional and round parts of the number.
-    ///
-    /// The fractional part is positive when the number is rounded
-    /// down and negative when the number is rounded up. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// // -3.5 = -4 + 0.5
-    /// let mut r1 = Rational::from((-35, 10));
-    /// let mut round1 = Integer::new();
-    /// r1.fract_round_mut(&mut round1);
-    /// assert_eq!(r1, (1, 2));
-    /// assert_eq!(round1, -4);
-    /// // 3.7 = 4 - 0.3
-    /// let mut r2 = Rational::from((37, 10));
-    /// let mut round2 = Integer::new();
-    /// r2.fract_round_mut(&mut round2);
-    /// assert_eq!(r2, (-3, 10));
-    /// assert_eq!(round2, 4);
-    /// ```
-    #[inline]
-    pub fn fract_round_mut(&mut self, round: &mut Integer) {
-        unsafe {
-            xgmp::mpq_fract_round(
-                self.inner_mut(),
-                round.inner_mut(),
-                self.inner(),
-            );
-        }
-    }
-
-    /// Computes the fractional and round parts of the number.
-    ///
-    /// The fractional part is positive when the number is rounded
-    /// down and negative when the number is rounded up. When the
-    /// number lies exactly between two integers, it is rounded away
-    /// from zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Assign, Integer, Rational};
-    /// // -3.5 = -4 + 0.5
-    /// let r1 = Rational::from((-35, 10));
-    /// let r_ref1 = r1.fract_round_ref();
-    /// let (mut fract1, mut round1) = (Rational::new(), Integer::new());
-    /// (&mut fract1, &mut round1).assign(r_ref1);
-    /// assert_eq!(fract1, (1, 2));
-    /// assert_eq!(round1, -4);
-    /// // 3.7 = 4 - 0.3
-    /// let r2 = Rational::from((37, 10));
-    /// let r_ref2 = r2.fract_round_ref();
-    /// let (mut fract2, mut round2) = (Rational::new(), Integer::new());
-    /// (&mut fract2, &mut round2).assign(r_ref2);
-    /// assert_eq!(fract2, (-3, 10));
-    /// assert_eq!(round2, 4);
-    /// ```
-    #[inline]
-    pub fn fract_round_ref(&self) -> FractRoundRef {
-        FractRoundRef { ref_self: self }
+    rat_op_rat_int! {
+        xgmp::mpq_round_fract_whole;
+        /// Computes the fractional and rounded parts of the number.
+        ///
+        /// The fractional part is positive when the number is rounded
+        /// down and negative when the number is rounded up. When the
+        /// number lies exactly between two integers, it is rounded away
+        /// from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// let r1 = Rational::from((-35, 10));
+        /// let (fract1, round1) = r1.fract_round(Integer::new());
+        /// assert_eq!(fract1, (1, 2));
+        /// assert_eq!(round1, -4);
+        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// let r2 = Rational::from((37, 10));
+        /// let (fract2, round2) = r2.fract_round(Integer::new());
+        /// assert_eq!(fract2, (-3, 10));
+        /// assert_eq!(round2, 4);
+        /// ```
+        fn fract_round(round);
+        /// Computes the fractional and round parts of the number.
+        ///
+        /// The fractional part is positive when the number is rounded
+        /// down and negative when the number is rounded up. When the
+        /// number lies exactly between two integers, it is rounded away
+        /// from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// let mut r1 = Rational::from((-35, 10));
+        /// let mut round1 = Integer::new();
+        /// r1.fract_round_mut(&mut round1);
+        /// assert_eq!(r1, (1, 2));
+        /// assert_eq!(round1, -4);
+        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// let mut r2 = Rational::from((37, 10));
+        /// let mut round2 = Integer::new();
+        /// r2.fract_round_mut(&mut round2);
+        /// assert_eq!(r2, (-3, 10));
+        /// assert_eq!(round2, 4);
+        /// ```
+        fn fract_round_mut;
+        /// Computes the fractional and round parts of the number.
+        ///
+        /// The fractional part is positive when the number is rounded
+        /// down and negative when the number is rounded up. When the
+        /// number lies exactly between two integers, it is rounded away
+        /// from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer, Rational};
+        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// let r1 = Rational::from((-35, 10));
+        /// let r_ref1 = r1.fract_round_ref();
+        /// let (mut fract1, mut round1) = (Rational::new(), Integer::new());
+        /// (&mut fract1, &mut round1).assign(r_ref1);
+        /// assert_eq!(fract1, (1, 2));
+        /// assert_eq!(round1, -4);
+        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// let r2 = Rational::from((37, 10));
+        /// let r_ref2 = r2.fract_round_ref();
+        /// let (mut fract2, mut round2) = (Rational::new(), Integer::new());
+        /// (&mut fract2, &mut round2).assign(r_ref2);
+        /// assert_eq!(fract2, (-3, 10));
+        /// assert_eq!(round2, 4);
+        /// ```
+        fn fract_round_ref -> FractRoundRef;
     }
 }
 
@@ -1691,176 +1893,18 @@ where
 }
 
 ref_math_op1! { Rational; xgmp::mpq_inv_check_0; struct RecipRef {} }
-
-pub struct TruncRef<'a> {
-    ref_self: &'a Rational,
-}
-
-from_borrow! { TruncRef<'a> => Integer }
-
-impl<'a> Assign<TruncRef<'a>> for Integer {
-    #[inline]
-    fn assign(&mut self, src: TruncRef<'a>) {
-        unsafe {
-            xgmp::mpq_trunc(self.inner_mut(), src.ref_self.inner());
-        }
-    }
-}
-
-ref_math_op1! { Rational; xgmp::mpq_fract; struct FractRef {} }
-
-pub struct FractTruncRef<'a> {
-    ref_self: &'a Rational,
-}
-
-impl<'a> From<FractTruncRef<'a>> for (Rational, Integer) {
-    #[inline]
-    fn from(src: FractTruncRef<'a>) -> (Rational, Integer) {
-        let mut pair =
-            <(Rational, Integer) as Default>::default();
-        (&mut pair.0, &mut pair.1).assign(src);
-        pair
-    }
-}
-
-impl<'a> Assign<FractTruncRef<'a>> for (&'a mut Rational, &'a mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: FractTruncRef<'a>) {
-        unsafe {
-            xgmp::mpq_fract_trunc(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
-                src.ref_self.inner(),
-            );
-        }
-    }
-}
-
-pub struct CeilRef<'a> {
-    ref_self: &'a Rational,
-}
-
-from_borrow! { CeilRef<'a> => Integer }
-
-impl<'a> Assign<CeilRef<'a>> for Integer {
-    #[inline]
-    fn assign(&mut self, src: CeilRef<'a>) {
-        unsafe {
-            xgmp::mpq_ceil(self.inner_mut(), src.ref_self.inner());
-        }
-    }
-}
-
-pub struct FractCeilRef<'a> {
-    ref_self: &'a Rational,
-}
-
-impl<'a> From<FractCeilRef<'a>> for (Rational, Integer) {
-    #[inline]
-    fn from(src: FractCeilRef<'a>) -> (Rational, Integer) {
-        let mut pair =
-            <(Rational, Integer) as Default>::default();
-        (&mut pair.0, &mut pair.1).assign(src);
-        pair
-    }
-}
-
-impl<'a> Assign<FractCeilRef<'a>> for (&'a mut Rational, &'a mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: FractCeilRef<'a>) {
-        unsafe {
-            xgmp::mpq_fract_ceil(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
-                src.ref_self.inner(),
-            );
-        }
-    }
-}
-
-pub struct FloorRef<'a> {
-    ref_self: &'a Rational,
-}
-
-from_borrow! { FloorRef<'a> => Integer }
-
-impl<'a> Assign<FloorRef<'a>> for Integer {
-    #[inline]
-    fn assign(&mut self, src: FloorRef<'a>) {
-        unsafe {
-            xgmp::mpq_floor(self.inner_mut(), src.ref_self.inner());
-        }
-    }
-}
-
-pub struct FractFloorRef<'a> {
-    ref_self: &'a Rational,
-}
-
-impl<'a> From<FractFloorRef<'a>> for (Rational, Integer) {
-    #[inline]
-    fn from(src: FractFloorRef<'a>) -> (Rational, Integer) {
-        let mut pair =
-            <(Rational, Integer) as Default>::default();
-        (&mut pair.0, &mut pair.1).assign(src);
-        pair
-    }
-}
-
-impl<'a> Assign<FractFloorRef<'a>> for (&'a mut Rational, &'a mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: FractFloorRef<'a>) {
-        unsafe {
-            xgmp::mpq_fract_floor(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
-                src.ref_self.inner(),
-            );
-        }
-    }
-}
-
-pub struct RoundRef<'a> {
-    ref_self: &'a Rational,
-}
-
-from_borrow! { RoundRef<'a> => Integer }
-
-impl<'a> Assign<RoundRef<'a>> for Integer {
-    #[inline]
-    fn assign(&mut self, src: RoundRef<'a>) {
-        unsafe {
-            xgmp::mpq_round(self.inner_mut(), src.ref_self.inner());
-        }
-    }
-}
-
-pub struct FractRoundRef<'a> {
-    ref_self: &'a Rational,
-}
-
-impl<'a> From<FractRoundRef<'a>> for (Rational, Integer) {
-    #[inline]
-    fn from(src: FractRoundRef<'a>) -> (Rational, Integer) {
-        let mut pair =
-            <(Rational, Integer) as Default>::default();
-        (&mut pair.0, &mut pair.1).assign(src);
-        pair
-    }
-}
-
-impl<'a> Assign<FractRoundRef<'a>> for (&'a mut Rational, &'a mut Integer) {
-    #[inline]
-    fn assign(&mut self, src: FractRoundRef<'a>) {
-        unsafe {
-            xgmp::mpq_fract_round(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
-                src.ref_self.inner(),
-            );
-        }
-    }
-}
+ref_rat_op_int! { xgmp::mpq_trunc; struct TruncRef {} }
+ref_math_op1! { Rational; xgmp::mpq_trunc_fract; struct RemTruncRef {} }
+ref_rat_op_rat_int! { xgmp::mpq_trunc_fract_whole; struct FractTruncRef {} }
+ref_rat_op_int! { xgmp::mpq_ceil; struct CeilRef {} }
+ref_math_op1! { Rational; xgmp::mpq_ceil_fract; struct RemCeilRef {} }
+ref_rat_op_rat_int! { xgmp::mpq_ceil_fract_whole; struct FractCeilRef {} }
+ref_rat_op_int! { xgmp::mpq_floor; struct FloorRef {} }
+ref_math_op1! { Rational; xgmp::mpq_floor_fract; struct RemFloorRef {} }
+ref_rat_op_rat_int! { xgmp::mpq_floor_fract_whole; struct FractFloorRef {} }
+ref_rat_op_int! { xgmp::mpq_round; struct RoundRef {} }
+ref_math_op1! { Rational; xgmp::mpq_round_fract; struct RemRoundRef {} }
+ref_rat_op_rat_int! { xgmp::mpq_round_fract_whole; struct FractRoundRef {} }
 
 #[derive(Clone, Copy)]
 pub struct BorrowRational<'a> {
