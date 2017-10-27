@@ -795,8 +795,7 @@ pub unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 
 #[inline]
 pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = op2 as gmp::limb_t;
+    let lop2 = gmp::limb_t::from(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             (*rop).size = 0;
@@ -813,8 +812,7 @@ pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = op2 as gmp::limb_t;
+    let lop2 = gmp::limb_t::from(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => if op2 == 0 {
             (*rop).size = 0;
@@ -828,9 +826,11 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
         }
         Ordering::Less => {
             gmp::mpz_com(rop, op1);
-            *rop.limb_mut(0) &= !lop2;
-            if (*rop).size == 1 && rop.limb(0) == 0 {
-                (*rop).size = 0;
+            if (*rop).size != 0 {
+                *rop.limb_mut(0) &= !lop2;
+                if (*rop).size == 1 && rop.limb(0) == 0 {
+                    (*rop).size = 0;
+                }
             }
             gmp::mpz_com(rop, rop);
         }
@@ -838,8 +838,7 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
-    let lop2 = op2 as gmp::limb_t;
+    let lop2 = gmp::limb_t::from(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => if op2 == 0 {
             (*rop).size = 0;
@@ -873,105 +872,103 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = if op2 >= 0 {
-        op2 as gmp::limb_t
+        gmp::limb_t::from(op2 as c_ulong)
     } else {
-        !(!op2 as gmp::limb_t)
+        !gmp::limb_t::from(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             (*rop).size = 0;
         }
-        Ordering::Greater if op2 >= 0 => {
+        Ordering::Greater => if op2 >= 0 {
             *rop.limb_mut(0) = op1.limb(0) & lop2;
             (*rop).size = if rop.limb(0) == 0 { 0 } else { 1 }
-        }
-        Ordering::Greater => {
+        } else {
             gmp::mpz_set(rop, op1);
             *rop.limb_mut(0) &= lop2;
             if (*rop).size == 1 && rop.limb(0) == 0 {
                 (*rop).size = 0;
             }
-        }
-        Ordering::Less if op2 >= 0 => {
+        },
+        Ordering::Less => if op2 >= 0 {
             *rop.limb_mut(0) = op1.limb(0).wrapping_neg() & lop2;
             (*rop).size = if rop.limb(0) == 0 { 0 } else { 1 }
-        }
-        Ordering::Less => {
+        } else {
             gmp::mpz_com(rop, op1);
-            *rop.limb_mut(0) |= !lop2;
-            if (*rop).size == 0 && !lop2 != 0 {
-                (*rop).size = 1;
+            if (*rop).size == 0 {
+                if !lop2 != 0 {
+                    *rop.limb_mut(0) = !lop2;
+                    (*rop).size = 1;
+                }
+            } else {
+                *rop.limb_mut(0) |= !lop2;
             }
             gmp::mpz_com(rop, rop);
-        }
+        },
     }
 }
 
 pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = if op2 >= 0 {
-        op2 as gmp::limb_t
+        gmp::limb_t::from(op2 as c_ulong)
     } else {
-        !(!op2 as gmp::limb_t)
+        !gmp::limb_t::from(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             gmp::mpz_set_si(rop, op2);
         }
-        Ordering::Greater if op2 >= 0 => {
+        Ordering::Greater => if op2 >= 0 {
             gmp::mpz_set(rop, op1);
             *rop.limb_mut(0) |= lop2;
-        }
-        Ordering::Greater => {
+        } else {
             *rop.limb_mut(0) = !op1.limb(0) & !lop2;
             (*rop).size = if rop.limb(0) == 0 { 0 } else { 1 };
             gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less if op2 >= 0 => {
+        },
+        Ordering::Less => if op2 >= 0 {
             gmp::mpz_com(rop, op1);
-            *rop.limb_mut(0) &= !lop2;
-            if (*rop).size == 1 && rop.limb(0) == 0 {
-                (*rop).size = 0;
+            if (*rop).size != 0 {
+                *rop.limb_mut(0) &= !lop2;
+                if (*rop).size == 1 && rop.limb(0) == 0 {
+                    (*rop).size = 0;
+                }
             }
             gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less => {
+        } else {
             *rop.limb_mut(0) = op1.limb(0).wrapping_sub(1) & !lop2;
             (*rop).size = if rop.limb(0) == 0 { 0 } else { 1 };
             gmp::mpz_com(rop, rop);
-        }
+        },
     }
 }
 
 pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    assert!(mem::size_of::<c_long>() <= mem::size_of::<gmp::limb_t>());
     let lop2 = if op2 >= 0 {
-        op2 as gmp::limb_t
+        gmp::limb_t::from(op2 as c_ulong)
     } else {
-        !(!op2 as gmp::limb_t)
+        !gmp::limb_t::from(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             gmp::mpz_set_si(rop, op2);
         }
-        Ordering::Greater if op2 >= 0 => {
+        Ordering::Greater => if op2 >= 0 {
             gmp::mpz_set(rop, op1);
             *rop.limb_mut(0) ^= lop2;
             if (*rop).size == 1 && rop.limb(0) == 0 {
                 (*rop).size = 0;
             }
-        }
-        Ordering::Greater => {
+        } else {
             gmp::mpz_set(rop, op1);
             *rop.limb_mut(0) ^= !lop2;
             if (*rop).size == 1 && rop.limb(0) == 0 {
                 (*rop).size = 0;
             }
             gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less if op2 >= 0 => {
+        },
+        Ordering::Less => if op2 >= 0 {
             gmp::mpz_com(rop, op1);
             if (*rop).size == 0 {
                 if lop2 != 0 {
@@ -985,8 +982,7 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
                 }
             }
             gmp::mpz_com(rop, rop);
-        }
-        Ordering::Less => {
+        } else {
             gmp::mpz_com(rop, op1);
             if (*rop).size == 0 {
                 if !lop2 != 0 {
@@ -999,7 +995,7 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
                     (*rop).size = 0;
                 }
             }
-        }
+        },
     }
 }
 
@@ -1222,17 +1218,17 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
     #[cfg(gmp_limb_bits_64)]
     match (*op).size {
         0 => true,
-        1 => op.limb(0) <= i64::MAX as u64 as gmp::limb_t,
-        -1 => op.limb(0) <= i64::MIN as u64 as gmp::limb_t,
+        1 => op.limb(0) <= gmp::limb_t::from(i64::MAX as u64),
+        -1 => op.limb(0) <= gmp::limb_t::from(i64::MIN as u64),
         _ => false,
     }
     #[cfg(gmp_limb_bits_32)]
     match (*op).size {
         0 | 1 | -1 => true,
-        2 => op.limb(1) <= i32::MAX as u32 as gmp::limb_t,
+        2 => op.limb(1) <= gmp::limb_t::from(i32::MAX as u32),
         -2 => {
-            op.limb(1) < i32::MIN as u32 as gmp::limb_t
-                || (op.limb(1) == i32::MIN as u32 as gmp::limb_t
+            op.limb(1) < gmp::limb_t::from(i32::MIN as u32)
+                || (op.limb(1) == gmp::limb_t::from(i32::MIN as u32)
                     && op.limb(0) == 0)
         }
         _ => false,
@@ -1242,21 +1238,22 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
 #[inline]
 pub unsafe fn mpz_addmul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     if op2 >= 0 {
-        gmp::mpz_addmul_ui(rop, op1, op2 as c_ulong)
+        gmp::mpz_addmul_ui(rop, op1, op2 as c_ulong);
     } else {
-        gmp::mpz_submul_ui(rop, op1, op2.wrapping_neg() as c_ulong)
+        gmp::mpz_submul_ui(rop, op1, op2.wrapping_neg() as c_ulong);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_submul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     if op2 >= 0 {
-        gmp::mpz_submul_ui(rop, op1, op2 as c_ulong)
+        gmp::mpz_submul_ui(rop, op1, op2 as c_ulong);
     } else {
-        gmp::mpz_addmul_ui(rop, op1, op2.wrapping_neg() as c_ulong)
+        gmp::mpz_addmul_ui(rop, op1, op2.wrapping_neg() as c_ulong);
     }
 }
 
+// rop = op1 * op2 - rop
 #[inline]
 pub unsafe fn mpz_mulsub(
     rop: *mut mpz_t,
@@ -1408,8 +1405,8 @@ mod rational {
     pub unsafe fn mpq_pow_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
         if op2 < 0 {
             assert_ne!(gmp::mpq_sgn(op1), 0, "division by zero");
-            gmp::mpq_inv(rop, op1);
-            mpq_pow_ui(rop, rop, op2.wrapping_neg() as c_ulong);
+            mpq_pow_ui(rop, op1, op2.wrapping_neg() as c_ulong);
+            gmp::mpq_inv(rop, rop);
         } else {
             mpq_pow_ui(rop, op1, op2 as c_ulong);
         };
