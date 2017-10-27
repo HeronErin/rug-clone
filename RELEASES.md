@@ -1,3 +1,5 @@
+* Add `Rational::fract_round` methods.
+
 Version 0.8.0 (2017-10-26)
 ==========================
 

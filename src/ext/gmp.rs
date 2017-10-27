@@ -1413,91 +1413,6 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_ceil(rop: *mut mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref_const(op);
-        let denref = gmp::mpq_denref_const(op);
-        num_den_ceil(rop, numref, denref);
-    }
-
-    #[inline]
-    pub unsafe fn num_den_ceil(
-        rop: *mut mpz_t,
-        num: *const mpz_t,
-        den: *const mpz_t,
-    ) {
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set(rop, num);
-        } else {
-            gmp::mpz_tdiv_q(rop, num, den);
-            if gmp::mpz_sgn(num) > 0 {
-                gmp::mpz_add_ui(rop, rop, 1);
-            }
-        }
-    }
-
-    #[inline]
-    pub unsafe fn mpq_floor(rop: *mut mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref_const(op);
-        let denref = gmp::mpq_denref_const(op);
-        num_den_floor(rop, numref, denref);
-    }
-
-    #[inline]
-    pub unsafe fn num_den_floor(
-        rop: *mut mpz_t,
-        num: *const mpz_t,
-        den: *const mpz_t,
-    ) {
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set(rop, num);
-        } else {
-            gmp::mpz_tdiv_q(rop, num, den);
-            if gmp::mpz_sgn(num) < 0 {
-                gmp::mpz_sub_ui(rop, rop, 1);
-            }
-        }
-    }
-
-    #[inline]
-    pub unsafe fn mpq_round(rop: *mut mpz_t, op: *const mpq_t) {
-        let numref = gmp::mpq_numref_const(op);
-        let denref = gmp::mpq_denref_const(op);
-        num_den_round(rop, numref, denref);
-    }
-
-    pub unsafe fn num_den_round(
-        rop: *mut mpz_t,
-        num: *const mpz_t,
-        den: *const mpz_t,
-    ) {
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set(rop, num);
-        } else {
-            // The remainder cannot be larger than the divisor, but we
-            // allocate an extra limb because the GMP docs say we should,
-            // and we have to multiply by 2.
-            let bits = (*den).size.checked_abs().expect("overflow");
-            let bits = bits as gmp::bitcnt_t + 1;
-            let bits = bits.checked_mul(gmp::LIMB_BITS as gmp::bitcnt_t)
-                .expect("overflow");
-            let mut rem: mpz_t = mem::uninitialized();
-            gmp::mpz_init2(&mut rem, bits);
-            gmp::mpz_tdiv_qr(rop, &mut rem, num, den);
-            // if 2 * abs(rem) >= divisor, move one away from zero
-            gmp::mpz_abs(&mut rem, &rem);
-            gmp::mpz_mul_2exp(&mut rem, &rem, 1);
-            if gmp::mpz_cmp(&rem, den) >= 0 {
-                if gmp::mpz_sgn(num) > 0 {
-                    gmp::mpz_add_ui(rop, rop, 1);
-                } else {
-                    gmp::mpz_sub_ui(rop, rop, 1);
-                }
-            }
-            gmp::mpz_clear(&mut rem);
-        }
-    }
-
-    #[inline]
     pub unsafe fn mpq_trunc(rop: *mut mpz_t, op: *const mpq_t) {
         let numref = gmp::mpq_numref_const(op);
         let denref = gmp::mpq_denref_const(op);
@@ -1547,17 +1462,26 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_fract_floor(
-        fop: *mut mpq_t,
-        floor_op: *mut mpz_t,
-        op: *const mpq_t,
-    ) {
-        let f_numref = gmp::mpq_numref(fop);
-        let f_denref = gmp::mpq_denref(fop);
+    pub unsafe fn mpq_ceil(rop: *mut mpz_t, op: *const mpq_t) {
         let numref = gmp::mpq_numref_const(op);
         let denref = gmp::mpq_denref_const(op);
-        gmp::mpz_fdiv_qr(floor_op, f_numref, numref, denref);
-        gmp::mpz_set(f_denref, denref);
+        num_den_ceil(rop, numref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn num_den_ceil(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        if gmp::mpz_cmp_ui(den, 1) == 0 {
+            gmp::mpz_set(rop, num);
+        } else {
+            gmp::mpz_tdiv_q(rop, num, den);
+            if gmp::mpz_sgn(num) > 0 {
+                gmp::mpz_add_ui(rop, rop, 1);
+            }
+        }
     }
 
     #[inline]
@@ -1572,5 +1496,118 @@ mod rational {
         let denref = gmp::mpq_denref_const(op);
         gmp::mpz_cdiv_qr(ceil_op, f_numref, numref, denref);
         gmp::mpz_set(f_denref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn mpq_floor(rop: *mut mpz_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_floor(rop, numref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn num_den_floor(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        if gmp::mpz_cmp_ui(den, 1) == 0 {
+            gmp::mpz_set(rop, num);
+        } else {
+            gmp::mpz_tdiv_q(rop, num, den);
+            if gmp::mpz_sgn(num) < 0 {
+                gmp::mpz_sub_ui(rop, rop, 1);
+            }
+        }
+    }
+
+    #[inline]
+    pub unsafe fn mpq_fract_floor(
+        fop: *mut mpq_t,
+        floor_op: *mut mpz_t,
+        op: *const mpq_t,
+    ) {
+        let f_numref = gmp::mpq_numref(fop);
+        let f_denref = gmp::mpq_denref(fop);
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        gmp::mpz_fdiv_qr(floor_op, f_numref, numref, denref);
+        gmp::mpz_set(f_denref, denref);
+    }
+
+    #[inline]
+    pub unsafe fn mpq_round(rop: *mut mpz_t, op: *const mpq_t) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        num_den_round(rop, numref, denref);
+    }
+
+    pub unsafe fn num_den_round(
+        rop: *mut mpz_t,
+        num: *const mpz_t,
+        den: *const mpz_t,
+    ) {
+        if gmp::mpz_cmp_ui(den, 1) == 0 {
+            gmp::mpz_set(rop, num);
+            return;
+        }
+        let sgn = gmp::mpz_sgn(num);
+        // The remainder cannot be larger than the divisor, but we
+        // allocate an extra limb because the GMP docs say we should,
+        // and we have to multiply by 2.
+        let bits = (*den).size.checked_abs().expect("overflow");
+        let bits = bits as gmp::bitcnt_t + 1;
+        let bits = bits.checked_mul(gmp::LIMB_BITS as gmp::bitcnt_t)
+            .expect("overflow");
+        let mut rem: mpz_t = mem::uninitialized();
+        gmp::mpz_init2(&mut rem, bits);
+        gmp::mpz_tdiv_qr(rop, &mut rem, num, den);
+        // if 2 * abs(rem) >= divisor, move one away from zero
+        gmp::mpz_abs(&mut rem, &rem);
+        gmp::mpz_mul_2exp(&mut rem, &rem, 1);
+        if gmp::mpz_cmp(&rem, den) >= 0 {
+            if sgn > 0 {
+                gmp::mpz_add_ui(rop, rop, 1);
+            } else {
+                gmp::mpz_sub_ui(rop, rop, 1);
+            }
+        }
+        gmp::mpz_clear(&mut rem);
+    }
+
+    pub unsafe fn mpq_fract_round(
+        fop: *mut mpq_t,
+        round_op: *mut mpz_t,
+        op: *const mpq_t,
+    ) {
+        let numref = gmp::mpq_numref_const(op);
+        let denref = gmp::mpq_denref_const(op);
+        let f_numref = gmp::mpq_numref(fop);
+        let f_denref = gmp::mpq_denref(fop);
+        if gmp::mpz_cmp_ui(denref, 1) == 0 {
+            gmp::mpz_set(round_op, numref);
+            gmp::mpz_set_ui(f_numref, 0);
+            gmp::mpz_set_ui(f_denref, 1);
+            return;
+        }
+        let neg = gmp::mpz_sgn(numref) < 0;
+        gmp::mpz_tdiv_qr(round_op, f_numref, numref, denref);
+        if neg {
+            gmp::mpz_neg(round_op, round_op);
+            gmp::mpz_neg(f_numref, f_numref);
+        }
+        gmp::mpz_set(f_denref, denref);
+        // if 2 * f_numref >= f_denref, round away from zero
+        gmp::mpz_mul_2exp(f_numref, f_numref, 1);
+        let away = gmp::mpz_cmp(f_numref, f_denref) >= 0;
+        gmp::mpz_tdiv_q_2exp(f_numref, f_numref, 1);
+        if away {
+            gmp::mpz_add_ui(round_op, round_op, 1);
+            gmp::mpz_sub(f_numref, f_numref, f_denref)
+        }
+        if neg {
+            gmp::mpz_neg(f_numref, f_numref);
+            gmp::mpz_neg(round_op, round_op);
+        }
     }
 }
