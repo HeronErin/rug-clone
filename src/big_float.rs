@@ -1711,6 +1711,64 @@ impl Float {
         unsafe { mpfr::signbit(self.inner()) != 0 }
     }
 
+    /// Sets to the next value towards `to`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let to = Float::with_val(8, 100);
+    /// // 32.5 in binary is 100000.10
+    /// // 32.75 in binary is 100000.11
+    /// let mut f = Float::with_val(8, 32.5);
+    /// f.next_toward(&to);
+    /// assert_eq!(f, 32.75);
+    /// ```
+    #[inline]
+    pub fn next_toward(&mut self, to: &Float) {
+        unsafe {
+            mpfr::nexttoward(self.inner_mut(), to.inner());
+        }
+    }
+
+    /// Sets to the next value towards +∞.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // 32.5 in binary is 100000.10
+    /// // 32.75 in binary is 100000.11
+    /// let mut f = Float::with_val(8, 32.5);
+    /// f.next_above();
+    /// assert_eq!(f, 32.75);
+    /// ```
+    #[inline]
+    pub fn next_above(&mut self) {
+        unsafe {
+            mpfr::nextabove(self.inner_mut());
+        }
+    }
+
+    /// Sets to the next value towards −∞.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // 32.5 in binary is 100000.10
+    /// // 32.25 in binary is 100000.01
+    /// let mut f = Float::with_val(8, 32.5);
+    /// f.next_below();
+    /// assert_eq!(f, 32.25);
+    /// ```
+    #[inline]
+    pub fn next_below(&mut self) {
+        unsafe {
+            mpfr::nextbelow(self.inner_mut());
+        }
+    }
+
     /// Emulate subnormal numbers, rounding to the nearest.
     ///
     /// Subnormalization is only performed for precisions

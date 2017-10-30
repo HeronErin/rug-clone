@@ -2,6 +2,8 @@
   `Rational::rem_trunc` methods.
 * Add `Rational::rem_ceil` and `Rational::rem_floor` methods.
 * Add `Rational::rem_round` and `Rational::fract_round` methods.
+* Add `Float::next_toward`, `Float::next_above` and
+  `Float::next_below`.
 
 Version 0.8.0 (2017-10-26)
 ==========================
