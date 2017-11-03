@@ -17,7 +17,6 @@
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i32, i64, u32, u64};
 use std::cmp::Ordering;
-use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 
 #[inline]
@@ -1358,6 +1357,7 @@ pub use self::rational::*;
 mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
+    use std::mem;
 
     #[inline]
     pub unsafe fn mpq_inv_check_0(rop: *mut mpq_t, op: *const mpq_t) {
