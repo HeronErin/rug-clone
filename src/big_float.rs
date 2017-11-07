@@ -27,6 +27,7 @@ use ops::{AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
+#[allow(unused_imports)]
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
