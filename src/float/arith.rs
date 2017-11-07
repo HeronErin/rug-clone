@@ -21,13 +21,13 @@ use Integer;
 use Rational;
 use big_float::{rraw, ordering1};
 use ext::mpfr as xmpfr;
-use float::{AssignRound, Round};
+use float::Round;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
-          DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
-          PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
-          SubFrom, SubFromRound};
+use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
+          DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
+          NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
+          SubAssignRound, SubFrom, SubFromRound};
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,

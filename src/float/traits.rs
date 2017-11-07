@@ -21,9 +21,10 @@ use Integer;
 use Rational;
 use big_float::{make_string, rraw, ordering1};
 use ext::mpfr as xmpfr;
-use float::{AssignRound, Constant, OrdFloat, ParseFloatError, Round, Special};
+use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
+use ops::AssignRound;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,

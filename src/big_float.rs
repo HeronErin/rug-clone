@@ -20,10 +20,10 @@ use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use ext::mpfr as xmpfr;
-use float::{self, AssignRound, OrdFloat, Round, SmallFloat, Special};
+use float::{self, OrdFloat, Round, SmallFloat, Special};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-use ops::NegAssign;
+use ops::{AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -207,8 +207,8 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// ```rust
 /// extern crate rug;
 /// use rug::Float;
-/// use rug::float::{AssignRound, Round};
-/// use rug::ops::{AddAssignRound, MulAssignRound};
+/// use rug::float::{Round};
+/// use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
 ///
 /// fn main() {
 ///     let mut t = Float::with_val(200, 1.0);
@@ -1391,10 +1391,7 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(
-            Float::valid_str_radix(src, radix)?,
-            round,
-        ))
+        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
     }
 
     /// Borrows a negated copy of the `Float`.
@@ -3197,7 +3194,8 @@ impl Float {
         ///
         /// ```rust
         /// use rug::{Assign, Float};
-        /// use rug::float::{AssignRound, Round};
+        /// use rug::float::Round;
+        /// use rug::ops::AssignRound;
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
         /// let sin_cos = phase.sin_cos_ref();
@@ -3877,7 +3875,8 @@ impl Float {
         ///
         /// ```rust
         /// use rug::{Assign, Float};
-        /// use rug::float::{AssignRound, Round};
+        /// use rug::float::Round;
+        /// use rug::ops::AssignRound;
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
         /// let sinh_cosh = phase.sinh_cosh_ref();
@@ -5772,7 +5771,8 @@ impl Float {
         ///
         /// ```rust
         /// use rug::Float;
-        /// use rug::float::{AssignRound, Round};
+        /// use rug::float::Round;
+        /// use rug::ops::AssignRound;
         /// let f = Float::with_val(53, 6.5);
         /// // 6.5 (binary 110.1) is rounded to 7 (binary 111)
         /// let r = f.round_ref();

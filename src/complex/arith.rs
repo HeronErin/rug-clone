@@ -19,13 +19,12 @@ use {Complex, Float};
 use Integer;
 use big_complex::{Ordering2, Round2, ordering2, rraw2};
 use ext::mpc as xmpc;
-use float::AssignRound;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use inner::{Inner, InnerMut};
-use ops::{AddAssignRound, AddFrom, AddFromRound, DivAssignRound, DivFrom,
-          DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow,
-          PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
-          SubFrom, SubFromRound};
+use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
+          DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
+          NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
+          SubAssignRound, SubFrom, SubFromRound};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;

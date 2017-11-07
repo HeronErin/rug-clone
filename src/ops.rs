@@ -567,6 +567,59 @@ pub trait PowFrom<Lhs = Self> {
     fn pow_from(&mut self, lhs: Lhs);
 }
 
+/// Assignment with a specified rounding method.
+///
+/// # Examples
+///
+/// ```rust
+/// # #[cfg(feature = "float")] {
+/// use rug::float::Round;
+/// use rug::ops::AssignRound;
+/// use std::cmp::Ordering;
+/// struct F(f64);
+/// impl AssignRound<f64> for F {
+///     type Round = Round;
+///     type Ordering = Ordering;
+///     fn assign_round(&mut self, rhs: f64, _round: Round) -> Ordering {
+///         self.0 = rhs;
+///         Ordering::Equal
+///     }
+/// }
+/// let mut f = F(3.0);
+/// let dir = f.assign_round(5.0, Round::Nearest);
+/// assert_eq!(f.0, 5.0);
+/// assert_eq!(dir, Ordering::Equal);
+/// # }
+pub trait AssignRound<Rhs = Self> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Peforms the assignment.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::AssignRound;
+    /// use std::cmp::Ordering;
+    /// // only four significant bits
+    /// let mut f = Float::new(4);
+    /// let dir = f.assign_round(3.3, Round::Nearest);
+    /// // 3.3 rounded down to 3.25
+    /// assert_eq!(f, 3.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// let dir = f.assign_round(3.3, Round::Up);
+    /// // 3.3 rounded up to 3.5
+    /// assert_eq!(f, 3.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+}
+
 /// Compound addition and assignment with a specified rounding method.
 ///
 /// # Examples

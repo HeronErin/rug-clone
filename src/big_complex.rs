@@ -17,11 +17,11 @@
 use {Assign, Float};
 use complex::{OrdComplex, Prec};
 use ext::mpc as xmpc;
-use float::{self, AssignRound, ParseFloatError, Round, Special, ValidFloat};
+use float::{self, ParseFloatError, Round, Special, ValidFloat};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
-use ops::NegAssign;
+use ops::{AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::cmp::Ordering;
@@ -817,10 +817,7 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(
-            Complex::valid_str_radix(src, radix)?,
-            round,
-        ))
+        Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
     }
 
     /// Borrows the real part as a [`Float`](struct.Float.html).
@@ -2087,7 +2084,8 @@ impl Complex {
         ///
         /// ```rust
         /// use rug::{Assign, Complex};
-        /// use rug::float::{AssignRound, Round};
+        /// use rug::float::Round;
+        /// use rug::ops::AssignRound;
         /// use std::cmp::Ordering;
         /// let phase = Complex::with_val(53, (1, 1));
         /// let sin_cos = phase.sin_cos_ref();

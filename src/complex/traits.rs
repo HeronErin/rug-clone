@@ -21,9 +21,10 @@ use Integer;
 use Rational;
 use big_complex::{Ordering2, Round2, ordering2, rraw2};
 use complex::{OrdComplex, ParseComplexError};
-use float::{AssignRound, Constant, Round, Special};
+use float::{Constant, Round, Special};
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
+use ops::AssignRound;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
