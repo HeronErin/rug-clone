@@ -5,6 +5,8 @@
 * Add `Rational::rem_round` and `Rational::fract_round` methods.
 * Add `Float::next_toward`, `Float::next_above` and
   `Float::next_below`.
+* Now `Float::subnormalize` works for all IEEE 754 precisions
+  corresponding to k storage bits, k ≥ 128, k is a multiple of 32.
 
 Version 0.8.0 (2017-10-26)
 ==========================

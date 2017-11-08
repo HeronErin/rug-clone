@@ -1769,10 +1769,17 @@ impl Float {
 
     /// Emulate subnormal numbers, rounding to the nearest.
     ///
-    /// Subnormalization is only performed for precisions
-    /// corresponding to IEEE 754 half precision (11), single
-    /// precision (24), double precision (53), quadruple precision
-    /// (113) and octuple precision (237).
+    /// Subnormalization is only performed for precisions specified in
+    /// IEEE 754:
+    ///
+    /// * binary16 with 16 storage bits and a precision of 11 bits,
+    /// * binary32 (single precision) with 32 storage bits and a
+    ///   precision of 24 bits,
+    /// * binary64 (double precision) with 64 storage bits and a
+    ///   precision of 53 bits,
+    /// * binary{<i>k</i>} with *k* storage bits where *k* is a
+    ///   multiple of 32 and *k* ≥ 128, and a precision of
+    ///   *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
     ///
     /// This method has no effect if the value is not in the subnormal
     /// range.
@@ -1800,10 +1807,17 @@ impl Float {
     /// Emulate subnormal numbers, applying the specified rounding
     /// method.
     ///
-    /// Subnormalization is only performed for precisions
-    /// corresponding to IEEE 754 half precision (11), single
-    /// precision (24), double precision (53), quadruple precision
-    /// (113) and octuple precision (237).
+    /// Subnormalization is only performed for precisions specified in
+    /// IEEE 754:
+    ///
+    /// * binary16 with 16 storage bits and a precision of 11 bits,
+    /// * binary32 (single precision) with 32 storage bits and a
+    ///   precision of 24 bits,
+    /// * binary64 (double precision) with 64 storage bits and a
+    ///   precision of 53 bits,
+    /// * binary{<i>k</i>} with *k* storage bits where *k* is a
+    ///   multiple of 32 and *k* ≥ 128, and a precision of
+    ///   *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
     ///
     /// This method simply propagates `prev_rounding` if the value is
     /// not in the subnormal range.
@@ -1825,20 +1839,19 @@ impl Float {
     /// assert_eq!(f.to_f64(), single_min_subnormal * 2.0);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
-    #[inline]
     pub fn subnormalize_round(
         &mut self,
         prev_rounding: Ordering,
         round: Round,
     ) -> Ordering {
-        let (emin, emax) = match self.prec() {
-            11 => (-23, 16),
-            24 => (-148, 128),
-            53 => (-1073, 1024),
-            113 => (-16_493, 16_384),
-            237 => (-262_377, 262_144),
-            _ => return prev_rounding,
+        let prec = self.prec();
+        let emax = match ieee_storage_bits_for_prec(prec) {
+            Some(k) => mpfr::exp_t::from(1) << (k - prec - 1),
+            None => return prev_rounding,
         };
+        let emin = (4 - emax)
+            .checked_sub(prec as mpfr::exp_t)
+            .expect("overflow");
         let prev = match prev_rounding {
             Ordering::Less => -1,
             Ordering::Equal => 0,
@@ -6547,6 +6560,33 @@ fn char_to_upper_if(c: char, to_upper: bool) -> char {
         c.to_ascii_uppercase()
     } else {
         c
+    }
+}
+
+fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
+    match prec {
+        11 => return Some(16),
+        24 => return Some(32),
+        53 => return Some(64),
+        _ => {}
+    }
+    if prec < 113 {
+        return None;
+    }
+    // p = k - round(4 log2 k) + 13
+    // k = p - 13 + round(4 log2 k)
+    // But we only need to find an approximation for k with error < 16,
+    // and log2 k - log2 p < 1/5 when p ≥ 113.
+    // estimate = p - 13 + 4 * log2 p
+    // log2 p is approximately 31.5 - prec.leading_zeros()
+    let estimate = prec - 4 * prec.leading_zeros() + 113;
+    // k must be a multiple of 32
+    let k = (estimate + 16) & !31;
+    let p = k - (((k as f64).log2() * 4.0).round() as u32) + 13;
+    if p == prec {
+        Some(k)
+    } else {
+        None
     }
 }
 
