@@ -1418,11 +1418,10 @@ impl Float {
             inner: self.inner,
             phantom: PhantomData,
         };
-        unsafe {
-            if self.is_nan() {
+        ret.inner.sign.neg_assign();
+        if self.is_nan() {
+            unsafe {
                 mpfr::set_nanflag();
-            } else {
-                ret.inner.sign.neg_assign();
             }
         }
         ret
@@ -1451,11 +1450,10 @@ impl Float {
             inner: self.inner,
             phantom: PhantomData,
         };
-        unsafe {
-            if self.is_nan() {
+        ret.inner.sign = 1;
+        if self.is_nan() {
+            unsafe {
                 mpfr::set_nanflag();
-            } else {
-                ret.inner.sign = 1;
             }
         }
         ret

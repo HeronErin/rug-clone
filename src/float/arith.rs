@@ -51,7 +51,10 @@ impl NegAssign for Float {
             // sign of NaNs when op1 == op2. As a workaround, change
             // sign directly instead of using mpfr::neg.
             // mpfr::neg(self.inner_mut(), self.inner(), rraw(Round::Nearest));
-            self.inner_mut().sign.neg_assign()
+            self.inner_mut().sign.neg_assign();
+            if self.is_nan() {
+                mpfr::set_nanflag();
+            }
         }
     }
 }
