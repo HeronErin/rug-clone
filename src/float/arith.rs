@@ -47,7 +47,11 @@ impl NegAssign for Float {
     #[inline]
     fn neg_assign(&mut self) {
         unsafe {
-            mpfr::neg(self.inner_mut(), self.inner(), rraw(Round::Nearest));
+            // MPFR ≤ 3.1.6: mpfr_neg(op1, op2, r) does not change
+            // sign of NaNs when op1 == op2. As a workaround, change
+            // sign directly instead of using mpfr::neg.
+            // mpfr::neg(self.inner_mut(), self.inner(), rraw(Round::Nearest));
+            self.inner_mut().sign.neg_assign()
         }
     }
 }
