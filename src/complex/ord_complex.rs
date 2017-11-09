@@ -22,9 +22,11 @@ use std::hash::{Hash, Hasher};
 /// A complex number that supports ordering and hashing.
 ///
 /// For ordering, the real part has precedence over the imaginary
-/// part. Negative zero is ordered as less than positive zero. All
-/// NaNs are ordered as equal and as less than negative infinity, with
-/// the NaN sign ignored.
+/// part. Negative zero is ordered as less than positive zero.
+/// Negative NaN is ordered as less than negative infinity, while
+/// positive NaN is ordered as greater than positive infinity.
+/// Comparing two negative NaNs or two positive NaNs produces
+/// equality.
 ///
 /// # Examples
 ///

@@ -1,4 +1,5 @@
 * Move `rug::float::AssignRound` to `rug::ops::AssignRound`.
+* `OrdFloat` now orders +NaN above +∞, while −NaN is still below −∞.
 * Deprecate `Rational::fract` methods and replace with
   `Rational::rem_trunc` methods.
 * Add `Rational::rem_ceil` and `Rational::rem_floor` methods.

@@ -25,9 +25,10 @@ use std::slice;
 
 /// A float that supports ordering and hashing.
 ///
-/// Negative zero is ordered as less than positive zero. All NaNs are
-/// ordered as equal and as less than negative infinity, with the NaN
-/// sign ignored.
+/// Negative zero is ordered as less than positive zero. Negative NaN
+/// is ordered as less than negative infinity, while positive NaN is
+/// ordered as greater than positive infinity. Comparing two negative
+/// NaNs or two positive NaNs produces equality.
 ///
 /// # Examples
 ///
@@ -36,19 +37,27 @@ use std::slice;
 /// use rug::float::{OrdFloat, Special};
 /// use std::cmp::Ordering;
 ///
-/// let nan_f = Float::with_val(53, Special::Nan);
-/// let nan = OrdFloat::from(nan_f);
-/// assert_eq!(nan.cmp(&nan), Ordering::Equal);
-///
-/// let neg_inf_f = Float::with_val(53, Special::NegInfinity);
-/// let neg_inf = OrdFloat::from(neg_inf_f);
-/// assert_eq!(nan.cmp(&neg_inf), Ordering::Less);
-///
-/// let zero_f = Float::with_val(53, Special::Zero);
-/// let zero = OrdFloat::from(zero_f);
+/// let pos_nan_f = Float::with_val(53, Special::Nan);
+/// let pos_inf_f = Float::with_val(53, Special::Infinity);
+/// let pos_zero_f = Float::with_val(53, Special::Zero);
 /// let neg_zero_f = Float::with_val(53, Special::NegZero);
+/// let neg_inf_f = Float::with_val(53, Special::NegInfinity);
+/// let neg_nan_f = Float::with_val(53, -&pos_nan_f);
+/// let pos_nan = OrdFloat::from(pos_nan_f);
+/// let pos_inf = OrdFloat::from(pos_inf_f);
+/// let pos_zero = OrdFloat::from(pos_zero_f);
 /// let neg_zero = OrdFloat::from(neg_zero_f);
-/// assert_eq!(zero.cmp(&neg_zero), Ordering::Greater);
+/// let neg_inf = OrdFloat::from(neg_inf_f);
+/// let neg_nan = OrdFloat::from(neg_nan_f);
+///
+/// assert_eq!(pos_nan.cmp(&pos_nan), Ordering::Equal);
+/// assert_eq!(neg_nan.cmp(&neg_nan), Ordering::Equal);
+/// assert_eq!(neg_nan.cmp(&pos_nan), Ordering::Less);
+///
+/// assert_eq!(pos_nan.cmp(&pos_inf), Ordering::Greater);
+/// assert_eq!(neg_nan.cmp(&neg_inf), Ordering::Less);
+///
+/// assert_eq!(pos_zero.cmp(&neg_zero), Ordering::Greater);
 /// ```
 #[derive(Clone, Debug, Default)]
 pub struct OrdFloat {
@@ -91,11 +100,8 @@ impl Hash for OrdFloat {
     fn hash<H: Hasher>(&self, state: &mut H) {
         let s = &self.inner;
         s.get_exp().hash(state);
-        if s.is_nan() {
-            return;
-        }
         s.is_sign_negative().hash(state);
-        if s.is_infinite() {
+        if s.is_nan() || s.is_infinite() {
             return;
         }
         let prec = s.prec();
@@ -117,7 +123,7 @@ impl PartialEq for OrdFloat {
         let s = &self.inner;
         let o = &other.inner;
         if s.is_nan() {
-            o.is_nan()
+            o.is_nan() && s.is_sign_negative() == o.is_sign_negative()
         } else if s.is_zero() {
             o.is_zero() && s.is_sign_negative() == o.is_sign_negative()
         } else {
@@ -144,9 +150,17 @@ impl Ord for OrdFloat {
             s.is_sign_positive().cmp(&o.is_sign_positive())
         } else {
             match (s.is_nan(), o.is_nan()) {
-                (false, true) => Ordering::Greater,
-                (true, false) => Ordering::Less,
-                (true, true) => Ordering::Equal,
+                (false, true) => if o.is_sign_negative() {
+                    Ordering::Greater
+                } else {
+                    Ordering::Less
+                },
+                (true, false) => if o.is_sign_negative() {
+                    Ordering::Less
+                } else {
+                    Ordering::Greater
+                },
+                (true, true) => s.is_sign_positive().cmp(&o.is_sign_positive()),
                 (false, false) => unsafe {
                     mpfr::cmp(s.inner(), o.inner()).cmp(&0)
                 },
