@@ -15,16 +15,16 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Rational;
-use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess,
-                SeqAccess, Visitor};
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-use std::fmt;
+use serde::de::{Deserialize, Deserializer, Error as DeError};
+use serde::ser::{Serialize, Serializer};
+use serdeize::{self, Data, PrecReq, PrecVal};
 
 impl Serialize for Rational {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
+        let prec = PrecVal::Zero;
         let radix = if self.numer().significant_bits() <= 32
             && self.denom().significant_bits() <= 32
         {
@@ -33,118 +33,25 @@ impl Serialize for Rational {
             16
         };
         let value = self.to_string_radix(radix);
-        let mut state = serializer.serialize_struct("Rational", 2)?;
-        state.serialize_field("radix", &radix)?;
-        state.serialize_field("value", &value)?;
-        state.end()
+        serdeize::serialize(
+            "Rational",
+            &Data { prec, radix, value },
+            serializer,
+        )
     }
 }
 
-const FIELDS: &'static [&'static str] = &["radix", "value"];
-
-enum Field {
-    Radix,
-    Value,
-}
-
-struct FieldVisitor;
-
-impl<'de> Visitor<'de> for FieldVisitor {
-    type Value = Field;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("`radix` or `value`")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Field, E>
-    where
-        E: DeError,
-    {
-        match value {
-            "radix" => Ok(Field::Radix),
-            "value" => Ok(Field::Value),
-            _ => Err(DeError::unknown_field(value, FIELDS)),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Field {
-    fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_identifier(FieldVisitor)
-    }
-}
-
-struct RationalVisitor;
-
-impl<'de> Visitor<'de> for RationalVisitor {
-    type Value = Rational;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("struct Rational")
-    }
-
-    fn visit_seq<V>(self, mut seq: V) -> Result<Rational, V::Error>
-    where
-        V: SeqAccess<'de>,
-    {
-        let radix = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(0, &self))?;
-        if radix < 2 || radix > 36 {
-            return Err(DeError::custom(format_args!(
-                "radix {} out of range, expected from 2 to 36",
-                radix
-            )));
-        }
-        let value: String = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(1, &self))?;
-        Rational::from_str_radix(&value, radix)
-            .map_err(|e| DeError::custom(format_args!("{}", e)))
-    }
-
-    fn visit_map<V>(self, mut map: V) -> Result<Rational, V::Error>
-    where
-        V: MapAccess<'de>,
-    {
-        let mut radix = None;
-        let mut value = None;
-        while let Some(key) = map.next_key()? {
-            match key {
-                Field::Radix => {
-                    if radix.is_some() {
-                        return Err(DeError::duplicate_field("radix"));
-                    }
-                    let r = map.next_value()?;
-                    if r < 2 || r > 36 {
-                        return Err(DeError::custom(format_args!(
-                            "radix {} out of range, expected from 2 to 36",
-                            r
-                        )));
-                    }
-                    radix = Some(r);
-                }
-                Field::Value => {
-                    if value.is_some() {
-                        return Err(DeError::duplicate_field("value"));
-                    }
-                    value = Some(map.next_value()?);
-                }
-            }
-        }
-        let radix = radix.ok_or_else(|| DeError::missing_field("radix"))?;
-        let value: String =
-            value.ok_or_else(|| DeError::missing_field("value"))?;
-        Rational::from_str_radix(&value, radix)
-            .map_err(|e| DeError::custom(format_args!("{}", e)))
-    }
-}
 impl<'de> Deserialize<'de> for Rational {
     fn deserialize<D>(deserializer: D) -> Result<Rational, D::Error>
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_struct("Rational", FIELDS, RationalVisitor)
+        let Data { prec, radix, value } =
+            serdeize::deserialize("Rational", PrecReq::Zero, deserializer)?;
+        match prec {
+            PrecVal::Zero => {}
+            _ => unreachable!(),
+        }
+        Rational::from_str_radix(&value, radix).map_err(DeError::custom)
     }
 }

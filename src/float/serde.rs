@@ -15,10 +15,9 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Float;
-use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess,
-                SeqAccess, Visitor};
-use serde::ser::{Serialize, SerializeStruct, Serializer};
-use std::fmt;
+use serde::de::{Deserialize, Deserializer, Error as DeError};
+use serde::ser::{Serialize, Serializer};
+use serdeize::{self, Data, PrecReq, PrecVal};
 
 impl Serialize for Float {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -31,132 +30,23 @@ impl Serialize for Float {
         } else {
             16
         };
+        let prec = PrecVal::One(prec);
         let value = self.to_string_radix(radix, None);
-        let mut state = serializer.serialize_struct("Float", 2)?;
-        state.serialize_field("prec", &prec)?;
-        state.serialize_field("radix", &radix)?;
-        state.serialize_field("value", &value)?;
-        state.end()
+        serdeize::serialize("Float", &Data { prec, radix, value }, serializer)
     }
 }
 
-const FIELDS: &'static [&'static str] = &["prec", "radix", "value"];
-
-enum Field {
-    Prec,
-    Radix,
-    Value,
-}
-
-struct FieldVisitor;
-
-impl<'de> Visitor<'de> for FieldVisitor {
-    type Value = Field;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("`prec`, `radix` or `value`")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Field, E>
-    where
-        E: DeError,
-    {
-        match value {
-            "prec" => Ok(Field::Prec),
-            "radix" => Ok(Field::Radix),
-            "value" => Ok(Field::Value),
-            _ => Err(DeError::unknown_field(value, FIELDS)),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for Field {
-    fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_identifier(FieldVisitor)
-    }
-}
-
-struct FloatVisitor;
-
-impl<'de> Visitor<'de> for FloatVisitor {
-    type Value = Float;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("struct Float")
-    }
-
-    fn visit_seq<V>(self, mut seq: V) -> Result<Float, V::Error>
-    where
-        V: SeqAccess<'de>,
-    {
-        let prec = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(0, &self))?;
-        let radix = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(0, &self))?;
-        if radix < 2 || radix > 36 {
-            return Err(DeError::custom(format_args!(
-                "radix {} out of range, expected from 2 to 36",
-                radix
-            )));
-        }
-        let value: String = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(1, &self))?;
-        Float::from_str_radix(&value, radix, prec)
-            .map_err(|e| DeError::custom(format_args!("{}", e)))
-    }
-
-    fn visit_map<V>(self, mut map: V) -> Result<Float, V::Error>
-    where
-        V: MapAccess<'de>,
-    {
-        let mut prec = None;
-        let mut radix = None;
-        let mut value = None;
-        while let Some(key) = map.next_key()? {
-            match key {
-                Field::Prec => {
-                    if prec.is_some() {
-                        return Err(DeError::duplicate_field("prec"));
-                    }
-                    prec = Some(map.next_value()?);
-                }
-                Field::Radix => {
-                    if radix.is_some() {
-                        return Err(DeError::duplicate_field("radix"));
-                    }
-                    let r = map.next_value()?;
-                    if r < 2 || r > 36 {
-                        return Err(DeError::custom(format_args!(
-                            "radix {} out of range, expected from 2 to 36",
-                            r
-                        )));
-                    }
-                    radix = Some(r);
-                }
-                Field::Value => {
-                    if value.is_some() {
-                        return Err(DeError::duplicate_field("value"));
-                    }
-                    value = Some(map.next_value()?);
-                }
-            }
-        }
-        let prec = prec.ok_or_else(|| DeError::missing_field("prec"))?;
-        let radix = radix.ok_or_else(|| DeError::missing_field("radix"))?;
-        let value: String =
-            value.ok_or_else(|| DeError::missing_field("value"))?;
-        Float::from_str_radix(&value, radix, prec)
-            .map_err(|e| DeError::custom(format_args!("{}", e)))
-    }
-}
 impl<'de> Deserialize<'de> for Float {
     fn deserialize<D>(deserializer: D) -> Result<Float, D::Error>
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_struct("Float", FIELDS, FloatVisitor)
+        let Data { prec, radix, value } =
+            serdeize::deserialize("Float", PrecReq::One, deserializer)?;
+        let prec = match prec {
+            PrecVal::One(one) => one,
+            _ => unreachable!(),
+        };
+        Float::from_str_radix(&value, radix, prec).map_err(DeError::custom)
     }
 }

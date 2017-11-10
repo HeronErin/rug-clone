@@ -154,6 +154,8 @@ extern crate serde;
 mod macros;
 mod ext;
 mod inner;
+#[cfg(feature = "serde")]
+mod serdeize;
 
 /// Assigns to a number from another value.
 ///
