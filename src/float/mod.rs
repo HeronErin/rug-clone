@@ -22,6 +22,8 @@
 mod arith;
 mod cmp;
 mod ord_float;
+#[cfg(feature = "serde")]
+mod serde;
 mod small_float;
 mod traits;
 

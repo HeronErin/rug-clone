@@ -21,6 +21,8 @@
 
 mod arith;
 mod cmp;
+#[cfg(feature = "serde")]
+mod serde;
 mod small_rational;
 mod traits;
 

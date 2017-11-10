@@ -38,6 +38,8 @@
 mod arith;
 mod cmp;
 mod division;
+#[cfg(feature = "serde")]
+mod serde;
 mod small_integer;
 mod traits;
 

@@ -43,3 +43,7 @@ rand = ["integer", "gmp-mpfr-sys"]
 version = "1.0.6"
 default-features = false
 optional = true
+
+[dependencies.serde]
+version = "1.0"
+optional = true

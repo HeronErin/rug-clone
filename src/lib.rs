@@ -86,10 +86,21 @@
 //!
 //! ### Optional features
 //!
-//! The `rug` crate has five optional features: `integer`, `rational`,
-//! `float`, `complex` and `rand`. The traits in the [`ops`][rug ops]
-//! module are always included. The optional features are enabled by
-//! default; to disable them add this to `Cargo.toml`:
+//! The `rug` crate has six optional features:
+//!
+//! 1. `integer`, enabled by default.
+//! 2. `rational`, enabled by default. This features depends on the
+//!    `integer` feature.
+//! 3. `float`, enabled by default.
+//! 4. `complex`, enabled by default. This feature depends on the
+//!    `float` feature.
+//! 5. `rand`, enabled by default.
+//! 6. `serde`, disabled by default. This provides serialization
+//!    support for the `Integer`, `Rational`, `Float` and `Complex`
+//!    types, providing that they are enabled.
+//!
+//! The first five optional features are enabled by default; to
+//! disable them add this to `Cargo.toml`:
 //!
 //! ```toml
 //! [dependencies.rug]
@@ -97,8 +108,8 @@
 //! default-features = false
 //! ```
 //!
-//! If no optional features are selected, the [`gmp-mpfr-sys`][sys]
-//! crate is not required and thus not enabled.
+//! If none of the first five optional features are selected, the
+//! [`gmp-mpfr-sys`][sys] crate is not required and thus not enabled.
 //!
 //! To use features selectively, you can add this to `Cargo.toml`:
 //!
@@ -135,6 +146,9 @@
 
 #[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;
+
+#[cfg(feature = "serde")]
+extern crate serde;
 
 #[macro_use]
 mod macros;

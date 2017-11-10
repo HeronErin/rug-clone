@@ -22,6 +22,8 @@
 mod arith;
 mod cmp;
 mod ord_complex;
+#[cfg(feature = "serde")]
+mod serde;
 mod small_complex;
 mod traits;
 
