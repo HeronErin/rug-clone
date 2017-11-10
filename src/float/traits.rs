@@ -72,56 +72,56 @@ impl From<OrdFloat> for Float {
 impl Display for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", true)
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl LowerExp for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl UpperExp for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, true, "", false)
+        fmt_radix(self, f, 10, true, "")
     }
 }
 
 impl Binary for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b", false)
+        fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o", false)
+        fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x", false)
+        fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Float {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x", false)
+        fmt_radix(self, f, 16, true, "0x")
     }
 }
 
@@ -287,7 +287,6 @@ fn fmt_radix(
     radix: i32,
     to_upper: bool,
     prefix: &str,
-    show_neg_zero: bool,
 ) -> fmt::Result {
     let s = make_string(flt, radix, f.precision(), Round::Nearest, to_upper);
     if !flt.is_finite() {
@@ -296,10 +295,7 @@ fn fmt_radix(
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {
-        (
-            show_neg_zero && flt.is_zero() && flt.is_sign_negative(),
-            &s[..],
-        )
+        (false, &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
 }

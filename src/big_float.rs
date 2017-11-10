@@ -702,10 +702,18 @@ impl Float {
             v.poss = ValidPoss::Special(Special::NegInfinity);
             return Ok(v);
         }
-        let nan10: &[&[u8]] = &[b"nan", b"+nan", b"-nan"];
-        let nan: &[&[u8]] = &[b"@nan@", b"+@nan@", b"-@nan@"];
+        let nan10: &[&[u8]] = &[b"nan", b"+nan"];
+        let nan: &[&[u8]] = &[b"@nan@", b"+@nan@"];
         if (radix <= 10 && lcase_in(bytes, nan10)) || lcase_in(bytes, nan) {
             v.poss = ValidPoss::Special(Special::Nan);
+            return Ok(v);
+        }
+        let neg_nan10: &[&[u8]] = &[b"-nan"];
+        let neg_nan: &[&[u8]] = &[b"-@nan@"];
+        if (radix <= 10 && lcase_in(bytes, neg_nan10))
+            || lcase_in(bytes, neg_nan)
+        {
+            v.poss = ValidPoss::NegNan;
             return Ok(v);
         }
 
@@ -6357,19 +6365,23 @@ pub fn make_string(
     use std::fmt::Write;
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     if f.is_zero() {
-        return "0.0".to_string();
+        return if f.is_sign_negative() { "-0.0" } else { "0.0" }.to_string();
     }
     if f.is_infinite() {
         return match (radix > 10, f.is_sign_negative()) {
-            (false, false) => "inf".to_string(),
-            (false, true) => "-inf".to_string(),
-            (true, false) => "@inf@".to_string(),
-            (true, true) => "-@inf@".to_string(),
-        };
+            (false, false) => "inf",
+            (false, true) => "-inf",
+            (true, false) => "@inf@",
+            (true, true) => "-@inf@",
+        }.to_string();
     }
     if f.is_nan() {
-        let s = if radix <= 10 { "NaN" } else { "@NaN@" };
-        return s.to_string();
+        return match (radix > 10, f.is_sign_negative()) {
+            (false, false) => "NaN",
+            (false, true) => "-NaN",
+            (true, false) => "@NaN@",
+            (true, true) => "-@NaN@",
+        }.to_string();
     }
     let mut buf = String::new();
     let mut exp: mpfr::exp_t;
@@ -6446,6 +6458,7 @@ pub struct ValidFloat<'a> {
 enum ValidPoss<'a> {
     Bytes(&'a [u8]),
     Special(Special),
+    NegNan,
 }
 
 impl<'a> AssignRound<ValidFloat<'a>> for Float {
@@ -6455,6 +6468,11 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
         let bytes = match rhs.poss {
             ValidPoss::Special(s) => {
                 self.assign(s);
+                return Ordering::Equal;
+            }
+            ValidPoss::NegNan => {
+                self.assign(Special::Nan);
+                self.neg_assign();
                 return Ordering::Equal;
             }
             ValidPoss::Bytes(b) => b,

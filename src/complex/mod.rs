@@ -124,7 +124,7 @@ mod tests {
     fn check_formatting() {
         let mut c = Complex::new((53, 53));
         c.assign((Special::Zero, Special::NegZero));
-        assert_eq!(format!("{}", c), "(0.0 0.0)");
+        assert_eq!(format!("{}", c), "(0.0 -0.0)");
         assert_eq!(format!("{:?}", c), "(0.0 -0.0)");
         assert_eq!(format!("{:+}", c), "(+0.0 -0.0)");
         c.assign((2.7, f64::NEG_INFINITY));
