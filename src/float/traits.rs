@@ -279,7 +279,7 @@ impl AssignRound<u64> for Float {
 
 assign_round_ref! { Float: u64 }
 conv_ops! { f32, xmpfr::set_f32 }
-conv_ops! { f64, mpfr::set_d }
+conv_ops! { f64, xmpfr::set_f64 }
 
 fn fmt_radix(
     flt: &Float,
