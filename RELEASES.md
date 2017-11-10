@@ -8,6 +8,7 @@
   `Float::next_below`.
 * Now `Float::subnormalize` works for all IEEE 754 precisions
   corresponding to k storage bits, k ≥ 128, k is a multiple of 32.
+* Optional serde support.
 
 Version 0.8.0 (2017-10-26)
 ==========================
