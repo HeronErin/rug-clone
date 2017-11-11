@@ -50,13 +50,21 @@ for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys gmp-mpfr-sys/mpfr integer ratio
 	done
 done
 
+# Test with default features and without serde
+for build in --release ""; do
+	print_eval cargo +${toolchains[0]}"$suffix" test $build \
+		   -p gmp-mpfr-sys -p rug
+	rm -r target
+done
+
+# For all toolchains (including first), test with default features and serde
 for toolchain in "${toolchains[@]}"; do
 	if [ -e target ]; then
 		rm -r target
 	fi
 	for build in "" --release; do
 		print_eval cargo +$toolchain"$suffix" test $build \
-			   -p gmp-mpfr-sys -p rug
+			   --features serde -p gmp-mpfr-sys -p rug
 		rm -r target
 	done
 done

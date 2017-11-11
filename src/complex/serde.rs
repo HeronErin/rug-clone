@@ -71,3 +71,65 @@ impl<'de> Deserialize<'de> for OrdComplex {
         Complex::deserialize(deserializer).map(From::from)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use {Assign, Complex};
+    use float::Special;
+    use serde_test::{self, Token};
+
+    enum Check {
+        SerDe,
+        De,
+    }
+
+    fn check_tokens(
+        c: &Complex,
+        prec: (u32, u32),
+        radix: i32,
+        value: &'static str,
+        check: Check,
+    ) {
+        let tokens = [
+            Token::Struct {
+                name: "Complex",
+                len: 3,
+            },
+            Token::Str("prec"),
+            Token::Tuple { len: 2 },
+            Token::U32(prec.0),
+            Token::U32(prec.1),
+            Token::TupleEnd,
+            Token::Str("radix"),
+            Token::I32(radix),
+            Token::Str("value"),
+            Token::Str(value),
+            Token::StructEnd,
+        ];
+        match check {
+            Check::SerDe => serde_test::assert_tokens(c.as_ord(), &tokens),
+            Check::De => serde_test::assert_de_tokens(c.as_ord(), &tokens),
+        }
+    }
+
+    #[test]
+    fn check() {
+        let mut c = Complex::new((40, 32));
+        check_tokens(&c, (40, 32), 10, "(0.0 0.0)", Check::SerDe);
+
+        c = -c;
+        check_tokens(&c, (40, 32), 10, "(-0.0 -0.0)", Check::SerDe);
+        check_tokens(&c, (40, 32), 16, "(-0 -0)", Check::De);
+
+        c.assign((Special::Nan, 15.0));
+        check_tokens(&c, (40, 32), 10, "(NaN 1.5000000000e1)", Check::SerDe);
+        check_tokens(&c, (40, 32), 10, "(+@nan@ 15)", Check::De);
+        c = -c;
+        check_tokens(&c, (40, 32), 10, "(-NaN -1.5000000000e1)", Check::SerDe);
+
+        c.assign((15.0, Special::Nan));
+        check_tokens(&c, (40, 32), 16, "(f.0000000000 @NaN@)", Check::SerDe);
+        check_tokens(&c, (40, 32), 10, "(1.5e1 nan)", Check::De);
+        check_tokens(&c, (40, 32), 15, "(1.0@1 @nan@)", Check::De);
+    }
+}

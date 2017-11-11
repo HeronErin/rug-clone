@@ -49,3 +49,51 @@ impl<'de> Deserialize<'de> for Integer {
         Integer::from_str_radix(&value, radix).map_err(DeError::custom)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use {Assign, Integer};
+    use serde_test::{self, Token};
+
+    enum Check {
+        SerDe,
+        De,
+    }
+
+    fn check_tokens(
+        i: &Integer,
+        radix: i32,
+        value: &'static str,
+        check: Check,
+    ) {
+        let tokens = [
+            Token::Struct {
+                name: "Integer",
+                len: 2,
+            },
+            Token::Str("radix"),
+            Token::I32(radix),
+            Token::Str("value"),
+            Token::Str(value),
+            Token::StructEnd,
+        ];
+        match check {
+            Check::SerDe => serde_test::assert_tokens(i, &tokens),
+            Check::De => serde_test::assert_de_tokens(i, &tokens),
+        }
+    }
+
+    #[test]
+    fn check() {
+        let mut i = Integer::new();
+        check_tokens(&i, 10, "0", Check::SerDe);
+
+        i.assign(-0xffff_ffff_i64);
+        check_tokens(&i, 10, "-4294967295", Check::SerDe);
+        check_tokens(&i, 16, "-ffffffff", Check::De);
+
+        i = i.abs() + 1;
+        check_tokens(&i, 16, "100000000", Check::SerDe);
+        check_tokens(&i, 10, "4294967296", Check::De);
+    }
+}

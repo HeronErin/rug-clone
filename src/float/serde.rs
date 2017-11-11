@@ -69,3 +69,68 @@ impl<'de> Deserialize<'de> for OrdFloat {
         Float::deserialize(deserializer).map(From::from)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use {Assign, Float};
+    use float::Special;
+    use serde_test::{self, Token};
+
+    enum Check {
+        SerDe,
+        De,
+    }
+
+    fn check_tokens(
+        f: &Float,
+        prec: u32,
+        radix: i32,
+        value: &'static str,
+        check: Check,
+    ) {
+        let tokens = [
+            Token::Struct {
+                name: "Float",
+                len: 3,
+            },
+            Token::Str("prec"),
+            Token::U32(prec),
+            Token::Str("radix"),
+            Token::I32(radix),
+            Token::Str("value"),
+            Token::Str(value),
+            Token::StructEnd,
+        ];
+        match check {
+            Check::SerDe => serde_test::assert_tokens(f.as_ord(), &tokens),
+            Check::De => serde_test::assert_de_tokens(f.as_ord(), &tokens),
+        }
+    }
+
+    #[test]
+    fn check() {
+        let mut f = Float::new(40);
+        check_tokens(&f, 40, 10, "0.0", Check::SerDe);
+
+        f = -f;
+        check_tokens(&f, 40, 10, "-0.0", Check::SerDe);
+        check_tokens(&f, 40, 16, "-0", Check::De);
+
+        f.assign(Special::Nan);
+        check_tokens(&f, 40, 10, "NaN", Check::SerDe);
+        check_tokens(&f, 40, 10, "+@nan@", Check::De);
+        f = -f;
+        check_tokens(&f, 40, 10, "-NaN", Check::SerDe);
+
+        f.assign(15.0);
+        check_tokens(&f, 40, 16, "f.0000000000", Check::SerDe);
+        check_tokens(&f, 40, 10, "1.5e1", Check::De);
+        check_tokens(&f, 40, 15, "1.0@1", Check::De);
+
+        f.set_prec(32);
+        check_tokens(&f, 32, 10, "1.5000000000e1", Check::SerDe);
+        check_tokens(&f, 32, 16, "f", Check::De);
+        check_tokens(&f, 32, 16, "0.f@1", Check::De);
+        check_tokens(&f, 32, 15, "1.0@1", Check::De);
+    }
+}

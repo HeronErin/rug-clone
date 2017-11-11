@@ -149,6 +149,8 @@ extern crate gmp_mpfr_sys;
 
 #[cfg(feature = "serde")]
 extern crate serde;
+#[cfg(all(test, feature = "serde"))]
+extern crate serde_test;
 
 #[macro_use]
 mod macros;

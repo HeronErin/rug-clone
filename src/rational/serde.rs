@@ -55,3 +55,53 @@ impl<'de> Deserialize<'de> for Rational {
         Rational::from_str_radix(&value, radix).map_err(DeError::custom)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use {Assign, Rational};
+    use serde_test::{self, Token};
+
+    enum Check {
+        SerDe,
+        De,
+    }
+
+    fn check_tokens(
+        r: &Rational,
+        radix: i32,
+        value: &'static str,
+        check: Check,
+    ) {
+        let tokens = [
+            Token::Struct {
+                name: "Rational",
+                len: 2,
+            },
+            Token::Str("radix"),
+            Token::I32(radix),
+            Token::Str("value"),
+            Token::Str(value),
+            Token::StructEnd,
+        ];
+        match check {
+            Check::SerDe => serde_test::assert_tokens(r, &tokens),
+            Check::De => serde_test::assert_de_tokens(r, &tokens),
+        }
+    }
+
+
+    #[test]
+    fn check() {
+        let mut r = Rational::new();
+        check_tokens(&r, 10, "0", Check::SerDe);
+        check_tokens(&r, 10, "+0/1", Check::De);
+
+        r.assign((11_i64, -0xffff_ffff_i64));
+        check_tokens(&r, 10, "-11/4294967295", Check::SerDe);
+        check_tokens(&r, 16, "-b/ffffffff", Check::De);
+        check_tokens(&r, 16, "-b0/ffffffff0", Check::De);
+
+        r.assign((-11_i64, -0x1_0000_0000_i64));
+        check_tokens(&r, 16, "b/100000000", Check::SerDe);
+    }
+}
