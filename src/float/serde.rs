@@ -81,13 +81,8 @@ mod tests {
         De,
     }
 
-    fn check_tokens(
-        f: &Float,
-        prec: u32,
-        radix: i32,
-        value: &'static str,
-        check: Check,
-    ) {
+    fn check_tokens(f: &Float, radix: i32, value: &'static str, check: Check) {
+        let prec = f.prec();
         let tokens = [
             Token::Struct {
                 name: "Float",
@@ -110,27 +105,27 @@ mod tests {
     #[test]
     fn check() {
         let mut f = Float::new(40);
-        check_tokens(&f, 40, 10, "0.0", Check::SerDe);
+        check_tokens(&f, 10, "0.0", Check::SerDe);
 
         f = -f;
-        check_tokens(&f, 40, 10, "-0.0", Check::SerDe);
-        check_tokens(&f, 40, 16, "-0", Check::De);
+        check_tokens(&f, 10, "-0.0", Check::SerDe);
+        check_tokens(&f, 16, "-0", Check::De);
 
         f.assign(Special::Nan);
-        check_tokens(&f, 40, 10, "NaN", Check::SerDe);
-        check_tokens(&f, 40, 10, "+@nan@", Check::De);
+        check_tokens(&f, 10, "NaN", Check::SerDe);
+        check_tokens(&f, 10, "+@nan@", Check::De);
         f = -f;
-        check_tokens(&f, 40, 10, "-NaN", Check::SerDe);
+        check_tokens(&f, 10, "-NaN", Check::SerDe);
 
         f.assign(15.0);
-        check_tokens(&f, 40, 16, "f.0000000000", Check::SerDe);
-        check_tokens(&f, 40, 10, "1.5e1", Check::De);
-        check_tokens(&f, 40, 15, "1.0@1", Check::De);
+        check_tokens(&f, 16, "f.0000000000", Check::SerDe);
+        check_tokens(&f, 10, "1.5e1", Check::De);
+        check_tokens(&f, 15, "1.0@1", Check::De);
 
         f.set_prec(32);
-        check_tokens(&f, 32, 10, "1.5000000000e1", Check::SerDe);
-        check_tokens(&f, 32, 16, "f", Check::De);
-        check_tokens(&f, 32, 16, "0.f@1", Check::De);
-        check_tokens(&f, 32, 15, "1.0@1", Check::De);
+        check_tokens(&f, 10, "1.5000000000e1", Check::SerDe);
+        check_tokens(&f, 16, "f", Check::De);
+        check_tokens(&f, 16, "0.f@1", Check::De);
+        check_tokens(&f, 15, "1.0@1", Check::De);
     }
 }
