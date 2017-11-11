@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Float;
+use float::OrdFloat;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -48,5 +49,23 @@ impl<'de> Deserialize<'de> for Float {
             _ => unreachable!(),
         };
         Float::from_str_radix(&value, radix, prec).map_err(DeError::custom)
+    }
+}
+
+impl Serialize for OrdFloat {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.as_float().serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for OrdFloat {
+    fn deserialize<D>(deserializer: D) -> Result<OrdFloat, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Float::deserialize(deserializer).map(From::from)
     }
 }
