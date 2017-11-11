@@ -166,6 +166,7 @@ impl AssignRound<Special> for Float {
         unsafe {
             const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
             const EXP_ZERO: c_long = 0 - EXP_MAX;
+            const EXP_NAN: c_long = 1 - EXP_MAX;
             const EXP_INF: c_long = 2 - EXP_MAX;
             match rhs {
                 Special::Zero => {
@@ -188,7 +189,11 @@ impl AssignRound<Special> for Float {
                     (*ptr).sign = -1;
                     (*ptr).exp = EXP_INF;
                 }
-                Special::Nan => mpfr::set_nan(self.inner_mut()),
+                Special::Nan => {
+                    let ptr = self.inner_mut();
+                    (*ptr).sign = 1;
+                    (*ptr).exp = EXP_NAN;
+                }
             };
         }
         Ordering::Equal
