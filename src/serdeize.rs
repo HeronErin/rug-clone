@@ -237,12 +237,9 @@ where
     D: DeError,
 {
     if val < min {
-        Err(DeError::custom(format_args!(
-            "{} {} smaller than minimum {}",
-            name,
-            val,
-            min,
-        )))
+        Err(DeError::custom(
+            format_args!("{} {} less than minimum {}", name, val, min,),
+        ))
     } else if val > max {
         Err(DeError::custom(format_args!(
             "{} {} greater than maximum {}",

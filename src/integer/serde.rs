@@ -56,45 +56,51 @@ mod tests {
     use {Assign, Integer};
     use serde_test::{self, Token};
 
-    enum Check {
-        SerDe,
-        De,
+    enum Check<'a> {
+        SerDe(&'a Integer),
+        De(&'a Integer),
+        DeError(&'a str),
     }
 
-    fn check_tokens(
-        i: &Integer,
-        radix: i32,
-        value: &'static str,
-        check: Check,
-    ) {
-        let tokens = [
-            Token::Struct {
-                name: "Integer",
-                len: 2,
-            },
-            Token::Str("radix"),
-            Token::I32(radix),
-            Token::Str("value"),
-            Token::Str(value),
-            Token::StructEnd,
-        ];
-        match check {
-            Check::SerDe => serde_test::assert_tokens(i, &tokens),
-            Check::De => serde_test::assert_de_tokens(i, &tokens),
+    impl<'a> Check<'a> {
+        fn check(self, radix: i32, value: &'static str) {
+            let tokens = [
+                Token::Struct {
+                    name: "Integer",
+                    len: 2,
+                },
+                Token::Str("radix"),
+                Token::I32(radix),
+                Token::Str("value"),
+                Token::Str(value),
+                Token::StructEnd,
+            ];
+            match self {
+                Check::SerDe(i) => serde_test::assert_tokens(i, &tokens),
+                Check::De(i) => serde_test::assert_de_tokens(i, &tokens),
+                Check::DeError(msg) => {
+                    serde_test::assert_de_tokens_error::<Integer>(&tokens, msg)
+                }
+            }
         }
     }
 
     #[test]
     fn check() {
+        Check::DeError("radix 1 less than minimum 2").check(1, "0");
+        Check::DeError("radix 37 greater than maximum 36").check(37, "0");
+
         let mut i = Integer::new();
-        check_tokens(&i, 10, "0", Check::SerDe);
+        Check::SerDe(&i).check(10, "0");
+        Check::De(&i).check(10, "+0");
+        Check::De(&i).check(10, "-00");
 
         i.assign(-0xffff_ffff_i64);
-        check_tokens(&i, 10, "-4294967295", Check::SerDe);
-        check_tokens(&i, 16, "-ffffffff", Check::De);
+        Check::SerDe(&i).check(10, "-4294967295");
+        Check::De(&i).check(16, "-ffffffff");
 
         i = i.abs() + 1;
-        check_tokens(&i, 16, "100000000", Check::SerDe);
-        check_tokens(&i, 10, "4294967296", Check::De);
+        Check::SerDe(&i).check(16, "100000000");
+        Check::De(&i).check(10, "4294967296");
     }
 }

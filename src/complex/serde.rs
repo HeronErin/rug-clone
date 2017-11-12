@@ -89,61 +89,81 @@ impl<'de> Deserialize<'de> for OrdComplex {
 #[cfg(test)]
 mod tests {
     use {Assign, Complex};
-    use float::Special;
+    use float::{self, Special};
     use serde_test::{self, Token};
 
-    enum Check {
-        SerDe,
-        De,
+    enum Check<'a> {
+        SerDe(&'a Complex),
+        De(&'a Complex),
+        DeError((u32, u32), &'a str),
     }
 
-    fn check_tokens(
-        c: &Complex,
-        radix: i32,
-        value: &'static str,
-        check: Check,
-    ) {
-        let prec = c.prec();
-        let tokens = [
-            Token::Struct {
-                name: "Complex",
-                len: 3,
-            },
-            Token::Str("prec"),
-            Token::Tuple { len: 2 },
-            Token::U32(prec.0),
-            Token::U32(prec.1),
-            Token::TupleEnd,
-            Token::Str("radix"),
-            Token::I32(radix),
-            Token::Str("value"),
-            Token::Str(value),
-            Token::StructEnd,
-        ];
-        match check {
-            Check::SerDe => serde_test::assert_tokens(c.as_ord(), &tokens),
-            Check::De => serde_test::assert_de_tokens(c.as_ord(), &tokens),
+    impl<'a> Check<'a> {
+        fn check(self, radix: i32, value: &'static str) {
+            let prec = match &self {
+                &Check::SerDe(c) | &Check::De(c) => c.prec(),
+                &Check::DeError(p, _) => p,
+            };
+            let tokens = [
+                Token::Struct {
+                    name: "Complex",
+                    len: 3,
+                },
+                Token::Str("prec"),
+                Token::Tuple { len: 2 },
+                Token::U32(prec.0),
+                Token::U32(prec.1),
+                Token::TupleEnd,
+                Token::Str("radix"),
+                Token::I32(radix),
+                Token::Str("value"),
+                Token::Str(value),
+                Token::StructEnd,
+            ];
+            match self {
+                Check::SerDe(c) => {
+                    serde_test::assert_tokens(c.as_ord(), &tokens)
+                }
+                Check::De(c) => {
+                    serde_test::assert_de_tokens(c.as_ord(), &tokens)
+                }
+                Check::DeError(_, msg) => {
+                    serde_test::assert_de_tokens_error::<Complex>(&tokens, msg)
+                }
+            }
         }
     }
 
     #[test]
     fn check() {
+        let prec_min = float::prec_min();
+        let real_prec_err =
+            format!("real precision 0 less than minimum {}", prec_min);
+        let imag_prec_err =
+            format!("imaginary precision 0 less than minimum {}", prec_min);
+        Check::DeError((0, 32), &real_prec_err).check(10, "0");
+        Check::DeError((40, 0), &imag_prec_err).check(10, "0");
+        Check::DeError((40, 32), "radix 1 less than minimum 2").check(1, "0");
+        Check::DeError((40, 32), "radix 37 greater than maximum 36")
+            .check(37, "0");
+
         let mut c = Complex::new((40, 32));
-        check_tokens(&c, 10, "(0.0 0.0)", Check::SerDe);
+        Check::SerDe(&c).check(10, "(0.0 0.0)");
+        Check::De(&c).check(10, "0");
 
         c = -c;
-        check_tokens(&c, 10, "(-0.0 -0.0)", Check::SerDe);
-        check_tokens(&c, 16, "(-0 -0)", Check::De);
+        Check::SerDe(&c).check(10, "(-0.0 -0.0)");
+        Check::De(&c).check(16, "(-0 -0)");
 
         c.assign((Special::Nan, 15.0));
-        check_tokens(&c, 10, "(NaN 1.5000000000e1)", Check::SerDe);
-        check_tokens(&c, 10, "(+@nan@ 15)", Check::De);
+        Check::SerDe(&c).check(10, "(NaN 1.5000000000e1)");
+        Check::De(&c).check(10, "(+@nan@ 15)");
         c = -c;
-        check_tokens(&c, 10, "(-NaN -1.5000000000e1)", Check::SerDe);
+        Check::SerDe(&c).check(10, "(-NaN -1.5000000000e1)");
 
         c.assign((15.0, Special::Nan));
-        check_tokens(&c, 16, "(f.0000000000 @NaN@)", Check::SerDe);
-        check_tokens(&c, 10, "(1.5e1 nan)", Check::De);
-        check_tokens(&c, 15, "(1.0@1 @nan@)", Check::De);
+        Check::SerDe(&c).check(16, "(f.0000000000 @NaN@)");
+        Check::De(&c).check(10, "(1.5e1 nan)");
+        Check::De(&c).check(15, "(1.0@1 @nan@)");
     }
 }

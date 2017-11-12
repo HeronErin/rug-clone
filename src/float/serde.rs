@@ -80,59 +80,79 @@ impl<'de> Deserialize<'de> for OrdFloat {
 #[cfg(test)]
 mod tests {
     use {Assign, Float};
-    use float::Special;
+    use float::{self, Special};
     use serde_test::{self, Token};
 
-    enum Check {
-        SerDe,
-        De,
+    enum Check<'a> {
+        SerDe(&'a Float),
+        De(&'a Float),
+        DeError(u32, &'a str),
     }
 
-    fn check_tokens(f: &Float, radix: i32, value: &'static str, check: Check) {
-        let prec = f.prec();
-        let tokens = [
-            Token::Struct {
-                name: "Float",
-                len: 3,
-            },
-            Token::Str("prec"),
-            Token::U32(prec),
-            Token::Str("radix"),
-            Token::I32(radix),
-            Token::Str("value"),
-            Token::Str(value),
-            Token::StructEnd,
-        ];
-        match check {
-            Check::SerDe => serde_test::assert_tokens(f.as_ord(), &tokens),
-            Check::De => serde_test::assert_de_tokens(f.as_ord(), &tokens),
+    impl<'a> Check<'a> {
+        fn check(self, radix: i32, value: &'static str) {
+            let prec = match &self {
+                &Check::SerDe(f) | &Check::De(f) => f.prec(),
+                &Check::DeError(p, _) => p,
+            };
+            let tokens = [
+                Token::Struct {
+                    name: "Float",
+                    len: 3,
+                },
+                Token::Str("prec"),
+                Token::U32(prec),
+                Token::Str("radix"),
+                Token::I32(radix),
+                Token::Str("value"),
+                Token::Str(value),
+                Token::StructEnd,
+            ];
+            match self {
+                Check::SerDe(f) => {
+                    serde_test::assert_tokens(f.as_ord(), &tokens)
+                }
+                Check::De(f) => {
+                    serde_test::assert_de_tokens(f.as_ord(), &tokens)
+                }
+                Check::DeError(_, msg) => {
+                    serde_test::assert_de_tokens_error::<Float>(&tokens, msg)
+                }
+            }
         }
     }
 
     #[test]
     fn check() {
+        let prec_err =
+            format!("precision 0 less than minimum {}", float::prec_min());
+        Check::DeError(0, &prec_err).check(10, "0");
+        Check::DeError(40, "radix 1 less than minimum 2").check(1, "0");
+        Check::DeError(40, "radix 37 greater than maximum 36").check(37, "0");
+
         let mut f = Float::new(40);
-        check_tokens(&f, 10, "0.0", Check::SerDe);
+        Check::SerDe(&f).check(10, "0.0");
+        Check::De(&f).check(10, "+0");
 
         f = -f;
-        check_tokens(&f, 10, "-0.0", Check::SerDe);
-        check_tokens(&f, 16, "-0", Check::De);
+        Check::SerDe(&f).check(10, "-0.0");
+        Check::De(&f).check(16, "-0");
 
         f.assign(Special::Nan);
-        check_tokens(&f, 10, "NaN", Check::SerDe);
-        check_tokens(&f, 10, "+@nan@", Check::De);
+        Check::SerDe(&f).check(10, "NaN");
+        Check::De(&f).check(10, "+@nan@");
         f = -f;
-        check_tokens(&f, 10, "-NaN", Check::SerDe);
+        Check::SerDe(&f).check(10, "-NaN");
 
         f.assign(15.0);
-        check_tokens(&f, 16, "f.0000000000", Check::SerDe);
-        check_tokens(&f, 10, "1.5e1", Check::De);
-        check_tokens(&f, 15, "1.0@1", Check::De);
+        Check::SerDe(&f).check(16, "f.0000000000");
+        Check::De(&f).check(10, "1.5e1");
+        Check::De(&f).check(15, "1.0@1");
 
         f.set_prec(32);
-        check_tokens(&f, 10, "1.5000000000e1", Check::SerDe);
-        check_tokens(&f, 16, "f", Check::De);
-        check_tokens(&f, 16, "0.f@1", Check::De);
-        check_tokens(&f, 15, "1.0@1", Check::De);
+        Check::SerDe(&f).check(10, "1.5000000000e1");
+        Check::De(&f).check(16, "f");
+        Check::De(&f).check(16, "0.f@1");
+        Check::De(&f).check(15, "1.0@1");
     }
 }
