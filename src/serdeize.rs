@@ -222,7 +222,11 @@ pub fn deserialize<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    deserializer.deserialize_struct(name, FIELDS, BigVisitor(name, prec_req))
+    let fields = match prec_req {
+        PrecReq::Zero => FIELDS,
+        PrecReq::One | PrecReq::Two => PREC_FIELDS,
+    };
+    deserializer.deserialize_struct(name, fields, BigVisitor(name, prec_req))
 }
 
 fn check_radix(radix: i32) -> Result<i32, String> {
