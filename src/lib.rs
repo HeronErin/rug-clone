@@ -89,12 +89,13 @@
 //! The `rug` crate has six optional features:
 //!
 //! 1. `integer`, enabled by default.
-//! 2. `rational`, enabled by default. This features depends on the
+//! 2. `rational`, enabled by default. This feature requires the
 //!    `integer` feature.
 //! 3. `float`, enabled by default.
-//! 4. `complex`, enabled by default. This feature depends on the
+//! 4. `complex`, enabled by default. This feature requires the
 //!    `float` feature.
-//! 5. `rand`, enabled by default.
+//! 5. `rand`, enabled by default. This features requires the
+//!    `integer` feature.
 //! 6. `serde`, disabled by default. This provides serialization
 //!    support for the `Integer`, `Rational`, `Float` and `Complex`
 //!    types, providing that they are enabled.
@@ -120,11 +121,6 @@
 //! # Pick which features to use
 //! features = ["integer", "float", "rand"]
 //! ```
-//!
-//! Note that both the `rational` feature and the `rand` feature
-//! depend on, and will enable, the `integer` feature. Similarly the
-//! `complex` feature depends on, and will enable, the `float`
-//! feature.
 //!
 //! [gmp doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
 //! [gmp]:      https://gmplib.org/

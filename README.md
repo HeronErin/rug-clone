@@ -70,12 +70,13 @@ and macOS, but may need some work on Windows. See the
 The `rug` crate has six optional features:
 
 1. `integer`, enabled by default.
-2. `rational`, enabled by default. This features depends on the
-   `integer` feature.
-3. `float`, enabled by default.
-4. `complex`, enabled by default. This feature depends on the `float`
+2. `rational`, enabled by default. This feature requires the `integer`
    feature.
-5. `rand`, enabled by default.
+3. `float`, enabled by default.
+4. `complex`, enabled by default. This feature requires the `float`
+   feature.
+5. `rand`, enabled by default. This feature requires the `integer`
+   feature.
 6. `serde`, disabled by default. This provides serialization support
    for the `Integer`, `Rational`, `Float` and `Complex` types,
    providing that they are enabled.
