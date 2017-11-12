@@ -63,7 +63,7 @@ where
     state.end()
 }
 
-const FIELDS: &'static [&'static str] = &["radix", "value"];
+const FIELDS: &[&str] = &["radix", "value"];
 
 enum Field {
     Radix,
@@ -100,7 +100,7 @@ impl<'de> Deserialize<'de> for Field {
     }
 }
 
-const PREC_FIELDS: &'static [&'static str] = &["prec", "radix", "value"];
+const PREC_FIELDS: &[&str] = &["prec", "radix", "value"];
 
 enum PrecField {
     Prec,
