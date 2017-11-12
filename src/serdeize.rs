@@ -158,10 +158,14 @@ impl<'de> Visitor<'de> for BigVisitor {
             PrecReq::Two => PrecVal::Two(seq.next_element()?
                 .ok_or_else(|| DeError::invalid_length(0, &self))?),
         };
+        let prec_count = match self.1 {
+            PrecReq::Zero => 0,
+            PrecReq::One | PrecReq::Two => 1,
+        };
         let radix = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(0, &self))?;
+            .ok_or_else(|| DeError::invalid_length(prec_count, &self))?;
         let value = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(1, &self))?;
+            .ok_or_else(|| DeError::invalid_length(prec_count + 1, &self))?;
         Ok(Data { prec, radix, value })
     }
 
