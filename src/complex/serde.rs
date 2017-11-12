@@ -16,6 +16,7 @@
 
 use Complex;
 use complex::OrdComplex;
+use float;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -50,6 +51,19 @@ impl<'de> Deserialize<'de> for Complex {
             PrecVal::Two(two) => two,
             _ => unreachable!(),
         };
+        serdeize::check_range(
+            "real precision",
+            prec.0,
+            float::prec_min(),
+            float::prec_max(),
+        )?;
+        serdeize::check_range(
+            "imaginary precision",
+            prec.1,
+            float::prec_min(),
+            float::prec_max(),
+        )?;
+        serdeize::check_range("radix", radix, 2, 36)?;
         Complex::from_str_radix(&value, radix, prec).map_err(DeError::custom)
     }
 }

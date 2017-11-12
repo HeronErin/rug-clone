@@ -52,6 +52,7 @@ impl<'de> Deserialize<'de> for Rational {
             PrecVal::Zero => {}
             _ => unreachable!(),
         }
+        serdeize::check_range("radix", radix, 2, 36)?;
         Rational::from_str_radix(&value, radix).map_err(DeError::custom)
     }
 }

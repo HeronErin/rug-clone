@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Float;
-use float::OrdFloat;
+use float::{self, OrdFloat};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -48,6 +48,13 @@ impl<'de> Deserialize<'de> for Float {
             PrecVal::One(one) => one,
             _ => unreachable!(),
         };
+        serdeize::check_range(
+            "precision",
+            prec,
+            float::prec_min(),
+            float::prec_max(),
+        )?;
+        serdeize::check_range("radix", radix, 2, 36)?;
         Float::from_str_radix(&value, radix, prec).map_err(DeError::custom)
     }
 }

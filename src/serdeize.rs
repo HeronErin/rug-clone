@@ -17,7 +17,7 @@
 use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess,
                 SeqAccess, Visitor};
 use serde::ser::{SerializeStruct, Serializer};
-use std::fmt::{Formatter, Result as FmtResult};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 pub enum PrecReq {
     Zero,
@@ -159,8 +159,7 @@ impl<'de> Visitor<'de> for BigVisitor {
                 .ok_or_else(|| DeError::invalid_length(0, &self))?),
         };
         let radix = seq.next_element()?
-            .ok_or_else(|| DeError::invalid_length(0, &self))
-            .and_then(|r| check_radix(r).map_err(DeError::custom))?;
+            .ok_or_else(|| DeError::invalid_length(0, &self))?;
         let value = seq.next_element()?
             .ok_or_else(|| DeError::invalid_length(1, &self))?;
         Ok(Data { prec, radix, value })
@@ -195,9 +194,7 @@ impl<'de> Visitor<'de> for BigVisitor {
                     if radix.is_some() {
                         return Err(DeError::duplicate_field("radix"));
                     }
-                    radix = Some(map.next_value().and_then(
-                        |rad| check_radix(rad).map_err(DeError::custom),
-                    )?);
+                    radix = Some(map.next_value()?);
                 }
                 PrecField::Field(Field::Value) => {
                     if value.is_some() {
@@ -229,13 +226,31 @@ where
     deserializer.deserialize_struct(name, fields, BigVisitor(name, prec_req))
 }
 
-fn check_radix(radix: i32) -> Result<i32, String> {
-    if 2 <= radix && radix <= 36 {
-        Ok(radix)
+pub fn check_range<T, D>(
+    name: &'static str,
+    val: T,
+    min: T,
+    max: T,
+) -> Result<(), D>
+where
+    T: Display + Ord,
+    D: DeError,
+{
+    if val < min {
+        Err(DeError::custom(format_args!(
+            "{} {} smaller than minimum {}",
+            name,
+            val,
+            min,
+        )))
+    } else if val > max {
+        Err(DeError::custom(format_args!(
+            "{} {} greater than maximum {}",
+            name,
+            val,
+            max,
+        )))
     } else {
-        Err(format!(
-            "radix {} out of range, should be from 2 to 36",
-            radix
-        ))
+        Ok(())
     }
 }
