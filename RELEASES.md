@@ -1,5 +1,9 @@
 * Move `rug::float::AssignRound` to `rug::ops::AssignRound`.
 * `OrdFloat` now orders +NaN above +∞, while −NaN is still below −∞.
+* Change `Float::subnormalize` methods to require explicit minimum
+  normal exponent.
+* Add `Float::subnormalize_ieee` methods to deduce exponent range from
+  precision, like old `Float::subnormalize`.
 * Deprecate `Rational::fract` methods and replace with
   `Rational::rem_trunc` methods.
 * Add `Rational::rem_ceil` and `Rational::rem_floor` methods.

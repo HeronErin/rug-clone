@@ -1675,6 +1675,7 @@ impl Float {
         if self.is_normal() {
             let e = unsafe { mpfr::get_exp(self.inner()) };
             assert!(e <= mpfr::exp_t::from(i32::MAX), "overflow");
+            assert!(e >= mpfr::exp_t::from(i32::MIN), "overflow");
             Some(e as i32)
         } else {
             None
@@ -1773,7 +1774,8 @@ impl Float {
         }
     }
 
-    /// Emulate subnormal numbers, rounding to the nearest.
+    /// Emulate subnormal numbers for precisions specified in IEEE
+    /// 754, rounding to the nearest.
     ///
     /// Subnormalization is only performed for precisions specified in
     /// IEEE 754:
@@ -1795,23 +1797,24 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use std::f32;
+    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
     /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
     /// let mut f = Float::with_val(24, single_cannot);
     /// assert_eq!(f.to_f64(), single_cannot);
-    /// f.subnormalize();
+    /// f.subnormalize_ieee();
     /// assert_eq!(f.to_f64(), single_min_subnormal);
     /// ```
     #[inline]
-    pub fn subnormalize(&mut self) -> &mut Float {
-        self.subnormalize_round(Ordering::Equal, Round::Nearest);
+    pub fn subnormalize_ieee(&mut self) -> &mut Float {
+        self.subnormalize_ieee_round(Ordering::Equal, Round::Nearest);
         self
     }
 
-    /// Emulate subnormal numbers, applying the specified rounding
-    /// method.
+    /// Emulate subnormal numbers for precisions specified in IEEE
+    /// 754, applying the specified rounding method.
     ///
     /// Subnormalization is only performed for precisions specified in
     /// IEEE 754:
@@ -1835,29 +1838,117 @@ impl Float {
     /// use rug::float::Round;
     /// use std::cmp::Ordering;
     /// use std::f32;
+    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
     /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
     /// let mut f = Float::with_val(24, single_cannot);
     /// assert_eq!(f.to_f64(), single_cannot);
-    /// let dir = f.subnormalize_round(Ordering::Equal, Round::Up);
+    /// let dir = f.subnormalize_ieee_round(Ordering::Equal, Round::Up);
     /// assert_eq!(f.to_f64(), single_min_subnormal * 2.0);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
-    pub fn subnormalize_round(
+    pub fn subnormalize_ieee_round(
         &mut self,
         prev_rounding: Ordering,
         round: Round,
     ) -> Ordering {
         let prec = self.prec();
-        let emax = match ieee_storage_bits_for_prec(prec) {
-            Some(k) => mpfr::exp_t::from(1) << (k - prec - 1),
+        let exp_bits = match ieee_storage_bits_for_prec(prec) {
+            Some(storage_bits) => storage_bits - prec,
             None => return prev_rounding,
         };
-        let emin = (4 - emax)
-            .checked_sub(prec as mpfr::exp_t)
+        let normal_exp_min = (-1i32 << (exp_bits - 1)) + 3;
+        self.subnormalize_round(normal_exp_min, prev_rounding, round)
+    }
+
+    /// Emulate subnormal numbers, rounding to the nearest.
+    ///
+    /// Subnormalization is only performed when the exponent lies
+    /// within the subnormal range, that is when
+    /// `normal_exp_min` − *precision* + 1 ≤ *exponent* < `normal_exp_min`.
+    /// For example, for IEEE 754 single precision, the precision is
+    /// 24 and `normal_exp_min` is −125, so the subnormal range would
+    /// be −148 ≤ *exponent* < −125.
+    ///
+    /// This method has no effect if the value is not in the subnormal
+    /// range.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use std::f32;
+    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
+    /// let single_min_subnormal = (-149f64).exp2();
+    /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
+    /// let single_cannot = single_min_subnormal * 1.25;
+    /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
+    /// let mut f = Float::with_val(24, single_cannot);
+    /// assert_eq!(f.to_f64(), single_cannot);
+    /// f.subnormalize(-125);
+    /// assert_eq!(f.to_f64(), single_min_subnormal);
+    /// ```
+    #[inline]
+    pub fn subnormalize(&mut self, normal_exp_min: i32) -> &mut Float {
+        self.subnormalize_round(
+            normal_exp_min,
+            Ordering::Equal,
+            Round::Nearest,
+        );
+        self
+    }
+
+    /// Emulate subnormal numbers, applying the specified rounding
+    /// method.
+    ///
+    /// Subnormalization is only performed when the exponent lies
+    /// within the subnormal range, that is when
+    /// `normal_exp_min` − *precision* + 1 ≤ *exponent* < `normal_exp_min`.
+    /// For example, for IEEE 754 single precision, the precision is
+    /// 24 and `normal_exp_min` is −125, so the subnormal range would
+    /// be −148 ≤ *exponent* < −125.
+    ///
+    /// This method simply propagates `prev_rounding` if the value is
+    /// not in the subnormal range.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// use std::f32;
+    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
+    /// let single_min_subnormal = (-149f64).exp2();
+    /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
+    /// let single_cannot = single_min_subnormal * 1.25;
+    /// assert_eq!(single_min_subnormal, single_cannot as f32 as f64);
+    /// let mut f = Float::with_val(24, single_cannot);
+    /// assert_eq!(f.to_f64(), single_cannot);
+    /// let dir = f.subnormalize_round(-125, Ordering::Equal, Round::Up);
+    /// assert_eq!(f.to_f64(), single_min_subnormal * 2.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    pub fn subnormalize_round(
+        &mut self,
+        normal_exp_min: i32,
+        prev_rounding: Ordering,
+        round: Round,
+    ) -> Ordering {
+        if !self.is_normal() {
+            return prev_rounding;
+        }
+        let prec = self.prec();
+        let exp_min = mpfr::exp_t::from(normal_exp_min);
+        let sub_exp_min = exp_min
+            .checked_sub(prec as mpfr::exp_t - 1)
             .expect("overflow");
+        let exp = unsafe { mpfr::get_exp(self.inner()) };
+        if exp < sub_exp_min || exp >= exp_min {
+            return prev_rounding;
+        }
         let prev = match prev_rounding {
             Ordering::Less => -1,
             Ordering::Equal => 0,
@@ -1866,8 +1957,9 @@ impl Float {
         unsafe {
             let save_emin = mpfr::get_emin();
             let save_emax = mpfr::get_emax();
-            mpfr::set_emin(emin);
-            mpfr::set_emax(emax);
+            assert!(save_emax >= exp_min, "`normal_exp_min` too large");
+            mpfr::set_emin(sub_exp_min);
+            mpfr::set_emax(exp_min);
             let ret = mpfr::subnormalize(self.inner_mut(), prev, rraw(round));
             mpfr::set_emin(save_emin);
             mpfr::set_emax(save_emax);
