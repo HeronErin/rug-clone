@@ -2429,8 +2429,6 @@ impl Float {
         if (&*self).lt(min) {
             let dir = self.assign_round(min, round);
             if (&*self).gt(max) {
-                // don't panic immediately in case max at self's
-                // precision is >= min
                 let dir2 = self.assign_round(max, round);
                 assert!(
                     dir == dir2 && !(&*self).lt(min),
@@ -2443,8 +2441,6 @@ impl Float {
         } else if (&*self).gt(max) {
             let dir = self.assign_round(max, round);
             if (&*self).lt(min) {
-                // don't panic immediately in case min at self's
-                // precision is <= max
                 let dir2 = self.assign_round(min, round);
                 assert!(
                     dir == dir2 && !(&*self).gt(max),
@@ -6357,8 +6353,6 @@ where
         if src.ref_self.lt(src.min) {
             let dir = self.assign_round(src.min, round);
             if (&*self).gt(src.max) {
-                // don't panic immediately in case max at self's
-                // precision is >= min
                 let dir2 = self.assign_round(src.max, round);
                 assert!(
                     dir == dir2 && !(&*self).lt(src.min),
@@ -6371,8 +6365,6 @@ where
         } else if src.ref_self.gt(src.max) {
             let dir = self.assign_round(src.max, round);
             if (&*self).lt(src.min) {
-                // don't panic immediately in case min at self's
-                // precision is <= max
                 let dir2 = self.assign_round(src.min, round);
                 assert!(
                     dir == dir2 && !(&*self).gt(src.max),
