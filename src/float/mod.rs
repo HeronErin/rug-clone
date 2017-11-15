@@ -237,8 +237,9 @@ pub enum Special {
 #[cfg(test)]
 mod tests {
     use {Assign, Float};
-    use float::Special;
+    use float::{Round, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
+    use std::cmp::Ordering;
     use std::f64;
     use std::mem;
 
@@ -286,6 +287,39 @@ mod tests {
         for &(s, radix, f) in good_strings.into_iter() {
             assert_eq!(Float::from_str_radix(s, radix, 53).unwrap(), f);
         }
+    }
+
+    #[test]
+    fn check_clamping() {
+        let mut f = Float::new(4);
+
+        f.assign(-1);
+        let dir = f.clamp_round(&1.00002, &1.00001, Round::Down);
+        assert_eq!(f, 1.0);
+        assert_eq!(dir, Ordering::Less);
+
+        f.assign(-1);
+        let dir = f.clamp_round(&1.00002, &1.00001, Round::Up);
+        assert_eq!(f, 1.125);
+        assert_eq!(dir, Ordering::Greater);
+
+        f.assign(2);
+        let dir = f.clamp_round(&1.00002, &1.00001, Round::Down);
+        assert_eq!(f, 1.0);
+        assert_eq!(dir, Ordering::Less);
+
+        f.assign(2);
+        let dir = f.clamp_round(&1.00002, &1.00001, Round::Up);
+        assert_eq!(f, 1.125);
+        assert_eq!(dir, Ordering::Greater);
+    }
+
+    #[test]
+    #[should_panic(expected = "minimum larger than maximum")]
+    fn check_clamping_panic() {
+        let mut f = Float::new(4);
+        f.assign(-1);
+        f.clamp(&1.00001, &0.99999);
     }
 
     #[test]

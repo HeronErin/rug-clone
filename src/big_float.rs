@@ -2340,7 +2340,9 @@ impl Float {
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value.
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to `self` produces the same value
+    /// with the same rounding direction.
     #[inline]
     pub fn clamp<'a, Min, Max>(mut self, min: &'a Min, max: &'a Max) -> Float
     where
@@ -2372,7 +2374,9 @@ impl Float {
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value.
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to `self` produces the same value
+    /// with the same rounding direction.
     #[inline]
     pub fn clamp_mut<'a, Min, Max>(&mut self, min: &'a Min, max: &'a Max)
     where
@@ -2407,7 +2411,9 @@ impl Float {
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value.
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to `self` produces the same value
+    /// with the same rounding direction.
     pub fn clamp_round<'a, Min, Max>(
         &mut self,
         min: &'a Min,
@@ -2422,13 +2428,38 @@ impl Float {
     {
         if (&*self).lt(min) {
             let dir = self.assign_round(min, round);
-            assert!(!(&*self).gt(max), "minimum larger than maximum");
-            dir
+            if (&*self).gt(max) {
+                // don't panic immediately in case max at self's
+                // precision is >= min
+                let dir2 = self.assign_round(max, round);
+                assert!(
+                    dir == dir2 && !(&*self).lt(min),
+                    "minimum larger than maximum"
+                );
+                dir
+            } else {
+                dir
+            }
         } else if (&*self).gt(max) {
             let dir = self.assign_round(max, round);
-            assert!(!(&*self).lt(min), "minimum larger than maximum");
-            dir
+            if (&*self).lt(min) {
+                // don't panic immediately in case min at self's
+                // precision is <= max
+                let dir2 = self.assign_round(min, round);
+                assert!(
+                    dir == dir2 && !(&*self).gt(max),
+                    "minimum larger than maximum"
+                );
+                dir
+            } else {
+                dir
+            }
         } else {
+            if self.is_nan() {
+                unsafe {
+                    mpfr::set_nanflag();
+                }
+            }
             Ordering::Equal
         }
     }
@@ -2457,7 +2488,9 @@ impl Float {
     ///
     /// # Panics
     ///
-    /// Panics if the maximum value is less than the minimum value.
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to the target produces the same
+    /// value with the same rounding direction.
     #[inline]
     pub fn clamp_ref<'a, Min, Max>(
         &'a self,
@@ -6323,12 +6356,32 @@ where
     ) -> Ordering {
         if src.ref_self.lt(src.min) {
             let dir = self.assign_round(src.min, round);
-            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
-            dir
+            if (&*self).gt(src.max) {
+                // don't panic immediately in case max at self's
+                // precision is >= min
+                let dir2 = self.assign_round(src.max, round);
+                assert!(
+                    dir == dir2 && !(&*self).lt(src.min),
+                    "minimum larger than maximum"
+                );
+                dir
+            } else {
+                dir
+            }
         } else if src.ref_self.gt(src.max) {
             let dir = self.assign_round(src.max, round);
-            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
-            dir
+            if (&*self).lt(src.min) {
+                // don't panic immediately in case min at self's
+                // precision is <= max
+                let dir2 = self.assign_round(src.min, round);
+                assert!(
+                    dir == dir2 && !(&*self).gt(src.max),
+                    "minimum larger than maximum"
+                );
+                dir
+            } else {
+                dir
+            }
         } else {
             self.assign_round(src.ref_self, round)
         }
