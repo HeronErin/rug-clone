@@ -6735,7 +6735,7 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     let estimate = prec - 4 * prec.leading_zeros() + 113;
     // k must be a multiple of 32
     let k = (estimate + 16) & !31;
-    let p = k - (((k as f64).log2() * 4.0).round() as u32) + 13;
+    let p = k - ((f64::from(k).log2() * 4.0).round() as u32) + 13;
     if p == prec {
         Some(k)
     } else {
