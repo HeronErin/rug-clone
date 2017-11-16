@@ -8,8 +8,7 @@
   `Rational::rem_trunc` methods.
 * Add `Rational::rem_ceil` and `Rational::rem_floor` methods.
 * Add `Rational::rem_round` and `Rational::fract_round` methods.
-* Add `Float::next_toward`, `Float::next_above` and
-  `Float::next_below`.
+* Add `Float::next_toward`, `Float::next_up` and `Float::next_down`.
 * Now `Float::subnormalize` works for all IEEE 754 precisions
   corresponding to k storage bits, k ≥ 128, k is a multiple of 32.
 * Optional serde support.

@@ -1745,11 +1745,11 @@ impl Float {
     /// // 32.5 in binary is 100000.10
     /// // 32.75 in binary is 100000.11
     /// let mut f = Float::with_val(8, 32.5);
-    /// f.next_above();
+    /// f.next_up();
     /// assert_eq!(f, 32.75);
     /// ```
     #[inline]
-    pub fn next_above(&mut self) {
+    pub fn next_up(&mut self) {
         unsafe {
             mpfr::nextabove(self.inner_mut());
         }
@@ -1764,11 +1764,11 @@ impl Float {
     /// // 32.5 in binary is 100000.10
     /// // 32.25 in binary is 100000.01
     /// let mut f = Float::with_val(8, 32.5);
-    /// f.next_below();
+    /// f.next_down();
     /// assert_eq!(f, 32.25);
     /// ```
     #[inline]
-    pub fn next_below(&mut self) {
+    pub fn next_down(&mut self) {
         unsafe {
             mpfr::nextbelow(self.inner_mut());
         }
