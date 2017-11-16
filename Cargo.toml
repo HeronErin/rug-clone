@@ -28,7 +28,6 @@ license = "LGPL-3.0+"
 build = "build.rs"
 
 [badges]
-
 maintenance = { status = "actively-developed" }
 
 [features]
@@ -50,3 +49,6 @@ optional = true
 
 [dev-dependencies]
 serde_test = "1.0"
+
+[package.metadata.docs.rs]
+all-features = true
