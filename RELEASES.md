@@ -1,17 +1,20 @@
+Version 0.9.0 (2017-11-16)
+==========================
+
 * Move `rug::float::AssignRound` to `rug::ops::AssignRound`.
 * `OrdFloat` now orders +NaN above +∞, while −NaN is still below −∞.
 * Change `Float::subnormalize` methods to require explicit minimum
   normal exponent.
 * Add `Float::subnormalize_ieee` methods to deduce exponent range from
-  precision, like old `Float::subnormalize`.
+  precision, like old `Float::subnormalize`. The new method also
+  supports all IEEE 754-2008 precisions corresponding to k storage
+  bits where k ≥ 128 and k is a multiple of 32.
 * Deprecate `Rational::fract` methods and replace with
   `Rational::rem_trunc` methods.
 * Add `Rational::rem_ceil` and `Rational::rem_floor` methods.
 * Add `Rational::rem_round` and `Rational::fract_round` methods.
 * Add `Float::next_toward`, `Float::next_up` and `Float::next_down`.
-* Now `Float::subnormalize` works for all IEEE 754 precisions
-  corresponding to k storage bits, k ≥ 128, k is a multiple of 32.
-* Optional serde support.
+* Add optional serde support.
 
 Version 0.8.0 (2017-10-26)
 ==========================

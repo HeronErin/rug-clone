@@ -16,7 +16,7 @@
 
 [package]
 name = "rug"
-version = "0.8.0"
+version = "0.9.0"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision integers, rational, floating-point and complex numbers based on GMP, MPFR and MPC"
 documentation = "https://docs.rs/rug/"
