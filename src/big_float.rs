@@ -2426,24 +2426,24 @@ impl Float {
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
-        if (&*self).lt(min) {
+        if (*self).lt(min) {
             let dir = self.assign_round(min, round);
-            if (&*self).gt(max) {
+            if (*self).gt(max) {
                 let dir2 = self.assign_round(max, round);
                 assert!(
-                    dir == dir2 && !(&*self).lt(min),
+                    dir == dir2 && !(*self).lt(min),
                     "minimum larger than maximum"
                 );
                 dir
             } else {
                 dir
             }
-        } else if (&*self).gt(max) {
+        } else if (*self).gt(max) {
             let dir = self.assign_round(max, round);
-            if (&*self).lt(min) {
+            if (*self).lt(min) {
                 let dir2 = self.assign_round(min, round);
                 assert!(
-                    dir == dir2 && !(&*self).gt(max),
+                    dir == dir2 && !(*self).gt(max),
                     "minimum larger than maximum"
                 );
                 dir
@@ -6352,10 +6352,10 @@ where
     ) -> Ordering {
         if src.ref_self.lt(src.min) {
             let dir = self.assign_round(src.min, round);
-            if (&*self).gt(src.max) {
+            if (*self).gt(src.max) {
                 let dir2 = self.assign_round(src.max, round);
                 assert!(
-                    dir == dir2 && !(&*self).lt(src.min),
+                    dir == dir2 && !(*self).lt(src.min),
                     "minimum larger than maximum"
                 );
                 dir
@@ -6364,10 +6364,10 @@ where
             }
         } else if src.ref_self.gt(src.max) {
             let dir = self.assign_round(src.max, round);
-            if (&*self).lt(src.min) {
+            if (*self).lt(src.min) {
                 let dir2 = self.assign_round(src.min, round);
                 assert!(
-                    dir == dir2 && !(&*self).gt(src.max),
+                    dir == dir2 && !(*self).gt(src.max),
                     "minimum larger than maximum"
                 );
                 dir
