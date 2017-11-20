@@ -255,6 +255,10 @@ impl Assign<f32> for SmallFloat {
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
             mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
         }
+        // retain sign in case of NaN
+        if val.is_sign_negative() {
+            self.inner.sign = -1;
+        }
     }
 }
 
@@ -267,6 +271,10 @@ impl Assign<f64> for SmallFloat {
             mpfr::custom_init(limb_ptr, 53);
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 53, limb_ptr);
             mpfr::set_d(ptr, val as f64, rraw(Round::Nearest));
+        }
+        // retain sign in case of NaN
+        if val.is_sign_negative() {
+            self.inner.sign = -1;
         }
     }
 }
