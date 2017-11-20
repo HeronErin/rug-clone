@@ -292,6 +292,10 @@ impl SetPart<f32> for Mpfr {
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
             mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
         }
+        // retain sign in case of NaN
+        if val.is_sign_negative() {
+            self.sign = -1;
+        }
     }
 }
 
@@ -307,6 +311,10 @@ impl SetPart<f64> for Mpfr {
             mpfr::custom_init(limb_ptr, 53);
             mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 53, limb_ptr);
             mpfr::set_d(ptr, val, rraw(Round::Nearest));
+        }
+        // retain sign in case of NaN
+        if val.is_sign_negative() {
+            self.sign = -1;
         }
     }
 }
