@@ -31,8 +31,8 @@ function print_eval {
 	eval $(printf '%q ' "$@")
 }
 
-# For first toolchain and suffix, build without rational, float,
-# complex too. First build the feature mpc to cache all C libraries.
+# For first toolchain and suffix, check without rational, float,
+# complex too. First check the feature mpc to cache all C libraries.
 for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys gmp-mpfr-sys/mpfr integer rational float complex rand; do
 	if [ -e target ]; then
 		rm -r target
@@ -43,16 +43,16 @@ for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys gmp-mpfr-sys/mpfr integer ratio
 		gmp="-p gmp-mpfr-sys"
 	fi
 	for build in --release ""; do
-		print_eval cargo +${toolchains[0]}"$suffix" build $build \
+		print_eval cargo +${toolchains[0]}"$suffix" check $build \
 			   --no-default-features --features "$features" \
 			   $gmp -p rug
 		rm -r target
 	done
 done
 
-# Build with default features and without serde.
+# Check with default features and without serde.
 for build in --release ""; do
-	print_eval cargo +${toolchains[0]}"$suffix" build $build \
+	print_eval cargo +${toolchains[0]}"$suffix" check $build \
 		   -p gmp-mpfr-sys -p rug
 	rm -r target
 done
