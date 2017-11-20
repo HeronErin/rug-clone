@@ -14,6 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+// Lhs = &Rhs
 #[cfg(feature = "integer")]
 macro_rules! assign_ref {
     { $Lhs:ty: $Rhs:ty } => {
@@ -26,10 +27,12 @@ macro_rules! assign_ref {
     }
 }
 
+// method(self, param*) -> Self
+// method_mut(&mut self, param*)
+// method_ref(&self, param*) -> Ref
 #[cfg(feature = "integer")]
 macro_rules! math_op1 {
     {
-        $Big:ty;
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
@@ -40,7 +43,7 @@ macro_rules! math_op1 {
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> $Big {
+        pub fn $method(mut self, $($param: $T),*) -> Self {
             self.$method_mut($($param),*);
             self
         }
@@ -64,6 +67,9 @@ macro_rules! math_op1 {
     }
 }
 
+// struct Ref
+// Ref -> Big
+// big = Ref
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op1 {
     {
@@ -96,10 +102,12 @@ macro_rules! ref_math_op1 {
     }
 }
 
+// method(self, Self, param*) -> (Self, Self)
+// method_mut(&mut self, &mut Self, param*)
+// method_ref(&self) -> Ref
 #[cfg(feature = "integer")]
 macro_rules! math_op1_2 {
     {
-        $Big:ty;
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
@@ -112,16 +120,16 @@ macro_rules! math_op1_2 {
         #[inline]
         pub fn $method(
             mut self,
-            mut $rop: $Big,
+            mut $rop: Self,
             $($param: $T,)*
-        ) -> ($Big, $Big) {
+        ) -> (Self, Self) {
             self.$method_mut(&mut $rop, $($param),*);
             (self, $rop)
         }
 
         $(#[$attr_mut])*
         #[inline]
-        pub fn $method_mut(&mut self, $rop: &mut $Big, $($param: $T),*) {
+        pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -146,6 +154,9 @@ macro_rules! math_op1_2 {
     }
 }
 
+// struct Ref
+// Ref -> (Big, Big)
+// (&mut Big, &mut Big) = Ref
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op1_2 {
     {
@@ -186,10 +197,12 @@ macro_rules! ref_math_op1_2 {
     }
 }
 
+// method(self, &Self, param*) -> Self
+// method_mut(&mut self, &Self, param*)
+// method_ref(&mut self, &Self, param*) -> Ref
 #[cfg(feature = "integer")]
 macro_rules! math_op2 {
     {
-        $Big:ty;
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
@@ -200,14 +213,14 @@ macro_rules! math_op2 {
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(mut self, $op: &$Big, $($param: $T),*) -> $Big {
+        pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
             self.$method_mut($op, $($param),*);
             self
         }
 
         $(#[$attr_mut])*
         #[inline]
-        pub fn $method_mut(&mut self, $op: &$Big, $($param: $T),*) {
+        pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -222,7 +235,7 @@ macro_rules! math_op2 {
         #[inline]
         pub fn $method_ref<'a>(
             &'a self,
-            $op: &'a $Big,
+            $op: &'a Self,
             $($param: $T,)*
         ) -> $Ref<'a> {
             $Ref {
@@ -234,6 +247,9 @@ macro_rules! math_op2 {
     }
 }
 
+// struct Ref
+// Ref -> Big
+// big = Ref
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2 {
     {
@@ -268,10 +284,12 @@ macro_rules! ref_math_op2 {
     }
 }
 
+// method(self, Self, param*) -> (Self, Self)
+// method_mut(&mut self, &mut Self, param*)
+// method_ref(&self, &Self, param*) -> Ref
 #[cfg(feature = "integer")]
 macro_rules! math_op2_2 {
     {
-        $Big:ty;
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
@@ -284,16 +302,16 @@ macro_rules! math_op2_2 {
         #[inline]
         pub fn $method(
             mut self,
-            mut $op: $Big,
+            mut $op: Self,
             $($param: $T,)*
-        ) -> ($Big, $Big) {
+        ) -> (Self, Self) {
             self.$method_mut(&mut $op, $($param),*);
             (self, $op)
         }
 
         $(#[$attr_mut])*
         #[inline]
-        pub fn $method_mut(&mut self, $op: &mut $Big, $($param: $T),*) {
+        pub fn $method_mut(&mut self, $op: &mut Self, $($param: $T),*) {
             unsafe {
                 $func(
                     self.inner_mut(),
@@ -309,7 +327,7 @@ macro_rules! math_op2_2 {
         #[inline]
         pub fn $method_ref<'a>(
             &'a self,
-            $op: &'a $Big,
+            $op: &'a Self,
             $($param: $T,)*
         ) -> $Ref<'a> {
             $Ref {
@@ -321,6 +339,9 @@ macro_rules! math_op2_2 {
     }
 }
 
+// struct Ref
+// Ref -> (Big, Big)
+// (&mut Big, &mut Big) = Ref
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2_2 {
     {
@@ -363,10 +384,12 @@ macro_rules! ref_math_op2_2 {
     }
 }
 
+// method(self, Self, Self, param*) -> (Self, Self, Self)
+// method_mut(&mut self, &mut Self, &mut Self, param*)
+// method_mut(&mut self, &mut Self, param*) -> Ref
 #[cfg(feature = "integer")]
 macro_rules! math_op2_3 {
     {
-        $Big:ty;
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident, $rop: ident $(, $param:ident: $T:ty),*);
@@ -379,10 +402,10 @@ macro_rules! math_op2_3 {
         #[inline]
         pub fn $method(
             mut self,
-            mut $op: $Big,
-            mut $rop: $Big,
+            mut $op: Self,
+            mut $rop: Self,
             $($param: $T,)*
-        ) -> ($Big, $Big, $Big) {
+        ) -> (Self, Self, Self) {
             self.$method_mut(&mut $op, &mut $rop, $($param),*);
             (self, $op, $rop)
         }
@@ -391,8 +414,8 @@ macro_rules! math_op2_3 {
         #[inline]
         pub fn $method_mut(
             &mut self,
-            $op: &mut $Big,
-            $rop: &mut $Big,
+            $op: &mut Self,
+            $rop: &mut Self,
             $($param: $T,)*
         ) {
             unsafe {
@@ -411,7 +434,7 @@ macro_rules! math_op2_3 {
         #[inline]
         pub fn $method_ref<'a>(
             &'a self,
-            $op: &'a $Big,
+            $op: &'a Self,
             $($param: $T,)*
         ) -> $Ref<'a> {
             $Ref {
@@ -423,6 +446,9 @@ macro_rules! math_op2_3 {
     }
 }
 
+// struct Ref
+// Ref -> (Big, Big, Big)
+// (&mut Big, &mut Big, &mut Big) = Ref
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2_3 {
     {
@@ -467,6 +493,7 @@ macro_rules! ref_math_op2_3 {
     }
 }
 
+// Src -> Dst
 #[cfg(feature = "integer")]
 macro_rules! from_borrow {
     { $Src:ty => $Dst:ty} => {
@@ -481,6 +508,12 @@ macro_rules! from_borrow {
     }
 }
 
+// #big -> Big
+// big #=
+// #&big -> Ref
+// struct Ref
+// Ref -> Big
+// big = Ref
 #[cfg(feature = "integer")]
 macro_rules! arith_unary {
     {
@@ -534,6 +567,17 @@ macro_rules! arith_unary {
     }
 }
 
+// big # big -> Big
+// big # &big -> Big
+// &big # big -> Big
+// &big # &big -> Ref
+// big #= big
+// big #= &big
+// big #-> big
+// &big #-> big
+// struct Ref
+// Ref -> Big
+// big = Ref
 #[cfg(feature = "integer")]
 macro_rules! arith_binary {
     {
@@ -544,7 +588,6 @@ macro_rules! arith_binary {
         $ImpFrom:ident $method_from:ident;
         $Ref:ident
     } => {
-        // x # y
         impl $Imp<$Big> for $Big {
             type Output = $Big;
             #[inline]
@@ -553,7 +596,6 @@ macro_rules! arith_binary {
             }
         }
 
-        // x # &y
         impl<'a> $Imp<&'a $Big> for $Big {
             type Output = $Big;
             #[inline]
@@ -563,7 +605,6 @@ macro_rules! arith_binary {
             }
         }
 
-        // &x # y
         impl<'a> $Imp<$Big> for &'a $Big {
             type Output = $Big;
             #[inline]
@@ -573,7 +614,17 @@ macro_rules! arith_binary {
             }
         }
 
-        // x #= y
+        impl<'a> $Imp<&'a $Big> for &'a $Big {
+            type Output = $Ref<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $Big) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
         impl $ImpAssign<$Big> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $Big) {
@@ -581,7 +632,6 @@ macro_rules! arith_binary {
             }
         }
 
-        // x #= &y
         impl<'a> $ImpAssign<&'a $Big> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &'a $Big) {
@@ -591,7 +641,6 @@ macro_rules! arith_binary {
             }
         }
 
-        // y #from= x
         impl $ImpFrom<$Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Big) {
@@ -599,24 +648,11 @@ macro_rules! arith_binary {
             }
         }
 
-        // y #from= &x
         impl<'a> $ImpFrom<&'a $Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &'a $Big) {
                 unsafe {
                     $func(self.inner_mut(), lhs.inner(), self.inner());
-                }
-            }
-        }
-
-        // &x # &y
-        impl<'a> $Imp<&'a $Big> for &'a $Big {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: &'a $Big) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
                 }
             }
         }
@@ -640,6 +676,15 @@ macro_rules! arith_binary {
     }
 }
 
+// big # prim -> Big
+// big # &prim -> Big
+// &big # prim -> Ref
+// &big # &prim -> Ref
+// big #= prim
+// big #= &prim
+// struct Ref
+// Ref -> Big
+// big = Ref
 #[cfg(feature = "integer")]
 macro_rules! arith_prim {
     {
@@ -650,7 +695,6 @@ macro_rules! arith_prim {
         $T:ty;
         $Ref:ident
     } => {
-        // x # t
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
@@ -660,7 +704,33 @@ macro_rules! arith_prim {
             }
         }
 
-        // x #= t
+        impl<'t> $Imp<&'t $T> for $Big {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: &'t $T) -> $Big {
+                self.$method(*rhs)
+            }
+        }
+
+        impl<'b> $Imp<$T> for &'b $Big {
+            type Output = $Ref<'b>;
+            #[inline]
+            fn $method(self, rhs: $T) -> $Ref<'b> {
+                $Ref {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
+        impl<'t, 'b> $Imp<&'t $T> for &'b $Big {
+            type Output = $Ref<'b>;
+            #[inline]
+            fn $method(self, rhs: &'t $T) -> $Ref<'b> {
+                self.$method(*rhs)
+            }
+        }
+
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
@@ -670,15 +740,10 @@ macro_rules! arith_prim {
             }
         }
 
-        // &x # t
-        impl<'a> $Imp<$T> for &'a $Big {
-            type Output = $Ref<'a>;
+        impl<'t> $ImpAssign<&'t $T> for $Big {
             #[inline]
-            fn $method(self, rhs: $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+            fn $method_assign(&mut self, rhs: &'t $T) {
+                self.$method_assign(*rhs);
             }
         }
 
@@ -701,6 +766,86 @@ macro_rules! arith_prim {
     }
 }
 
+// arith_prim!
+// prim # big -> Big
+// prim # &big -> Ref
+// &prim # big -> Big
+// &prim # &big -> <prim # &big>::Output
+// prim #-> big
+// &prim #-> big
+#[cfg(feature = "integer")]
+macro_rules! arith_prim_commut {
+    {
+        $Big:ty;
+        $func:path;
+        $Imp:ident $method:ident;
+        $ImpAssign:ident $method_assign:ident;
+        $ImpFrom:ident $method_from:ident;
+        $T:ty;
+        $Ref:ident
+    } => {
+        arith_prim! {
+            $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
+        }
+
+        impl $Imp<$Big> for $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                rhs.$method(self)
+            }
+        }
+
+        impl<'b> $Imp<&'b $Big> for $T {
+            type Output = $Ref<'b>;
+            #[inline]
+            fn $method(self, rhs: &'b $Big) -> $Ref<'b> {
+                rhs.$method(self)
+            }
+        }
+
+        impl<'t> $Imp<$Big> for &'t $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                (*self).$method(rhs)
+            }
+        }
+
+        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+            type Output = <$T as $Imp<&'b $Big>>::Output;
+            #[inline]
+            fn $method(self, rhs: &'b $Big) -> Self::Output {
+                (*self).$method(rhs)
+            }
+        }
+
+        impl $ImpFrom<$T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: $T) {
+                self.$method_assign(lhs);
+            }
+        }
+
+        impl<'t> $ImpFrom<&'t $T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: &'t $T) {
+                self.$method_from(*lhs);
+            }
+        }
+    }
+}
+
+// arith_prim!
+// prim # big -> Big
+// prim # &big -> RefFrom
+// &prim # big -> Big
+// &prim # &big -> RefFrom
+// prim #-> big
+// &prim #-> big
+// struct RefFrom
+// RefFrom -> Big
+// big = RefFrom
 #[cfg(feature = "integer")]
 macro_rules! arith_prim_noncommut {
     {
@@ -716,7 +861,6 @@ macro_rules! arith_prim_noncommut {
             $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
         }
 
-        // t - y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -726,7 +870,33 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        // y -from= t
+        impl<'b> $Imp<&'b $Big> for $T {
+            type Output = $RefFrom<'b>;
+            #[inline]
+            fn $method(self, rhs: &'b $Big) -> $RefFrom<'b> {
+                $RefFrom {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
+        impl<'t> $Imp<$Big> for &'t $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                (*self).$method(rhs)
+            }
+        }
+
+        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+            type Output = $RefFrom<'b>;
+            #[inline]
+            fn $method(self, rhs: &'b $Big) -> $RefFrom<'b> {
+                (*self).$method(rhs)
+            }
+        }
+
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
@@ -736,15 +906,10 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        // t - &y
-        impl<'a> $Imp<&'a $Big> for $T {
-            type Output = $RefFrom<'a>;
+        impl<'t> $ImpFrom<&'t $T> for $Big {
             #[inline]
-            fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: self,
-                    rhs,
-                }
+            fn $method_from(&mut self, lhs: &'t $T) {
+                self.$method_from(*lhs);
             }
         }
 
@@ -771,49 +936,12 @@ macro_rules! arith_prim_noncommut {
     }
 }
 
-#[cfg(feature = "integer")]
-macro_rules! arith_prim_commut {
-    {
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFrom:ident $method_from:ident;
-        $T:ty;
-        $Ref:ident
-    } => {
-        arith_prim! {
-            $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
-        }
-
-        // t + y
-        impl $Imp<$Big> for $T {
-            type Output = $Big;
-            #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                rhs.$method(self)
-            }
-        }
-
-        // y +from= t
-        impl $ImpFrom<$T> for $Big {
-            #[inline]
-            fn $method_from(&mut self, lhs: $T) {
-                self.$method_assign(lhs);
-            }
-        }
-
-        // t + &y
-        impl<'a> $Imp<&'a $Big> for $T {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: &'a $Big) -> $Ref<'a> {
-                rhs.$method(self)
-            }
-        }
-    }
-}
-
+// big # mul -> Big
+// &big # mul -> Ref
+// big #= mul
+// struct Ref
+// Ref -> Big
+// big = Ref
 #[cfg(feature = "integer")]
 macro_rules! mul_op {
     {
@@ -833,6 +961,17 @@ macro_rules! mul_op {
             }
         }
 
+        impl<'a> $Imp<$Mul<'a>> for &'a $Big {
+            type Output = $Ref<'a>;
+            #[inline]
+            fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
         impl<'a> $ImpAssign<$Mul<'a>> for $Big  {
             #[inline]
             fn $method_assign(&mut self, rhs: $Mul) {
@@ -842,17 +981,6 @@ macro_rules! mul_op {
                         rhs.lhs.inner(),
                         rhs.rhs.$rhs_method(),
                     );
-                }
-            }
-        }
-
-        impl<'a> $Imp<$Mul<'a>> for &'a $Big {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
                 }
             }
         }
@@ -875,6 +1003,10 @@ macro_rules! mul_op {
     }
 }
 
+// mul_op!
+// mul # big -> Big
+// mul # &big -> Ref
+// mul #-> big
 #[cfg(feature = "integer")]
 macro_rules! mul_op_commut {
     {
@@ -903,13 +1035,6 @@ macro_rules! mul_op_commut {
             }
         }
 
-        impl<'a> $ImpFrom<$Mul<'a>> for $Big {
-            #[inline]
-            fn $method_from(&mut self, lhs: $Mul) {
-                self.$method_assign(lhs);
-            }
-        }
-
         impl<'a> $Imp<&'a $Big> for $Mul<'a> {
             type Output = $Ref<'a>;
             #[inline]
@@ -917,9 +1042,23 @@ macro_rules! mul_op_commut {
                 rhs.$method(self)
             }
         }
+
+        impl<'a> $ImpFrom<$Mul<'a>> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: $Mul) {
+                self.$method_assign(lhs);
+            }
+        }
     }
 }
 
+// mul_op!
+// mul # big -> Big
+// mul # &big -> RefFrom
+// mul #-> big
+// struct RefFrom
+// RefFrom -> Big
+// big = RefFrom
 #[cfg(feature = "integer")]
 macro_rules! mul_op_noncommut {
     {
@@ -949,6 +1088,17 @@ macro_rules! mul_op_noncommut {
             }
         }
 
+        impl<'a> $Imp<&'a $Big> for $Mul<'a> {
+            type Output = $RefFrom<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
+                $RefFrom {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
         impl<'a> $ImpFrom<$Mul<'a>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul) {
@@ -958,17 +1108,6 @@ macro_rules! mul_op_noncommut {
                         lhs.lhs.inner(),
                         lhs.rhs.$rhs_method()
                     );
-                }
-            }
-        }
-
-        impl<'a> $Imp<&'a $Big> for $Mul<'a> {
-            type Output = $RefFrom<'a>;
-            #[inline]
-            fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
-                $RefFrom {
-                    lhs: self,
-                    rhs,
                 }
             }
         }

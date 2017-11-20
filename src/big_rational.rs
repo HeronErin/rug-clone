@@ -985,7 +985,6 @@ impl Rational {
     }
 
     math_op1! {
-        Rational;
         gmp::mpq_abs;
         /// Computes the absolute value.
         ///
@@ -1134,7 +1133,6 @@ impl Rational {
     }
 
     math_op1! {
-        Rational;
         xgmp::mpq_inv_check_0;
         /// Computes the reciprocal.
         ///
@@ -1255,7 +1253,6 @@ impl Rational {
     }
 
     math_op1! {
-        Rational;
         xgmp::mpq_trunc_fract;
         /// Computes the fractional part of the number.
         ///
@@ -1398,7 +1395,6 @@ impl Rational {
         fn ceil_ref -> CeilRef;
     }
     math_op1! {
-        Rational;
         xgmp::mpq_ceil_fract;
         /// Computes the non-positive remainder after rounding up.
         ///
@@ -1543,7 +1539,6 @@ impl Rational {
         fn floor_ref -> FloorRef;
     }
     math_op1! {
-        Rational;
         xgmp::mpq_floor_fract;
         /// Computes the non-negative remainder after rounding down.
         ///
@@ -1699,7 +1694,6 @@ impl Rational {
         fn round_ref -> RoundRef;
     }
     math_op1! {
-        Rational;
         xgmp::mpq_round_fract;
         /// Computes the remainder after rounding to the nearest
         /// integer.

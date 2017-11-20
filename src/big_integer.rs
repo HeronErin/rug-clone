@@ -1261,7 +1261,6 @@ impl Integer {
     }
 
     math_op1! {
-        Integer;
         gmp::mpz_abs;
         /// Computes the absolute value.
         ///
@@ -1407,7 +1406,6 @@ impl Integer {
     }
 
     math_op1! {
-        Integer;
         gmp::mpz_fdiv_r_2exp;
         /// Keeps the *n* least significant bits only.
         ///
@@ -1445,7 +1443,6 @@ impl Integer {
         fn keep_bits_ref -> KeepBitsRef;
     }
     math_op1! {
-        Integer;
         xgmp::mpz_next_pow_of_two;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
@@ -1486,7 +1483,6 @@ impl Integer {
         fn next_power_of_two_ref -> NextPowerTwoRef;
     }
     math_op2_2! {
-        Integer;
         xgmp::mpz_tdiv_qr_check_0;
         /// Performs a division producing both the quotient and
         /// remainder.
@@ -1550,7 +1546,6 @@ impl Integer {
         fn div_rem_ref -> DivRemRef;
     }
     math_op2_2! {
-        Integer;
         xgmp::mpz_cdiv_qr_check_0;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
@@ -1617,7 +1612,6 @@ impl Integer {
         fn div_rem_ceil_ref -> DivRemCeilRef;
     }
     math_op2_2! {
-        Integer;
         xgmp::mpz_fdiv_qr_check_0;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
@@ -1681,7 +1675,6 @@ impl Integer {
         fn div_rem_floor_ref -> DivRemFloorRef;
     }
     math_op2_2! {
-        Integer;
         xgmp::mpz_ediv_qr_check_0;
         /// Performs Euclidean division producing both the quotient
         /// and remainder, with a positive remainder.
@@ -1768,7 +1761,6 @@ impl Integer {
     }
 
     math_op2! {
-        Integer;
         xgmp::mpz_divexact_check_0;
         /// Performs an exact division.
         ///
@@ -1824,7 +1816,6 @@ impl Integer {
         fn div_exact_ref -> DivExactRef;
     }
     math_op1! {
-        Integer;
         xgmp::mpz_divexact_ui_check_0;
         /// Performs an exact division.
         ///
@@ -2162,7 +2153,6 @@ impl Integer {
     }
 
     math_op1! {
-        Integer;
         gmp::mpz_root;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
@@ -2198,7 +2188,6 @@ impl Integer {
         fn root_ref -> RootRef;
     }
     math_op1_2! {
-        Integer;
         gmp::mpz_rootrem;
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
@@ -2261,7 +2250,6 @@ impl Integer {
         fn root_rem_ref -> RootRemRef;
     }
     math_op1! {
-        Integer;
         gmp::mpz_sqrt;
         /// Computes the square root and truncates the result.
         ///
@@ -2297,7 +2285,6 @@ impl Integer {
         fn sqrt_ref -> SqrtRef;
     }
     math_op1_2! {
-        Integer;
         gmp::mpz_sqrtrem;
         /// Computes the square root and the remainder.
         ///
@@ -2386,7 +2373,6 @@ impl Integer {
     }
 
     math_op1! {
-        Integer;
         gmp::mpz_nextprime;
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
@@ -2427,7 +2413,6 @@ impl Integer {
         fn next_prime_ref -> NextPrimeRef;
     }
     math_op2! {
-        Integer;
         gmp::mpz_gcd;
         /// Finds the greatest common divisor.
         ///
@@ -2495,7 +2480,6 @@ impl Integer {
         fn gcd_ref -> GcdRef;
     }
     math_op2_3! {
-        Integer;
         gmp::mpz_gcdext;
         /// Finds the greatest common divisor (GCD) of the two inputs
         /// (`self` and `other`), and two multiplication coefficients
@@ -2605,7 +2589,6 @@ impl Integer {
         fn gcd_coeffs_ref -> GcdCoeffsRef;
     }
     math_op2! {
-        Integer;
         gmp::mpz_lcm;
         /// Finds the least common multiple.
         ///
@@ -2865,7 +2848,6 @@ impl Integer {
     }
 
     math_op1! {
-        Integer;
         gmp::mpz_bin_ui;
         /// Computes the binomial coefficient over *k*.
         ///
