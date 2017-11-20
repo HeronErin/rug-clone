@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-// Lhs = &Rhs
+// lhs = &rhs
 #[cfg(feature = "integer")]
 macro_rules! assign_ref {
     { $Lhs:ty: $Rhs:ty } => {
@@ -80,8 +80,8 @@ macro_rules! ref_math_op1 {
     } => {
         $(#[$attr_ref])*
         #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a $Big,
+        pub struct $Ref<'b> {
+            ref_self: &'b $Big,
             $($param: $T,)*
         }
 
@@ -1130,6 +1130,7 @@ macro_rules! mul_op_noncommut {
     }
 }
 
+// lhs = &rhs
 #[cfg(feature = "float")]
 macro_rules! assign_round_ref {
     { $Lhs:ty: $Rhs:ty } => {
@@ -1144,10 +1145,14 @@ macro_rules! assign_round_ref {
     }
 }
 
+// method(self, param*) -> Self
+// method_mut(&mut self, param*)
+// method_round(&mut self, param*, Round) -> Ordering
+// method_ref(&self, param*) -> Ref
 #[cfg(feature = "float")]
 macro_rules! math_op1_round {
     {
-        $Big:ty, $Round:ty => $Ordering:ty;
+        $Round:ty => $Ordering:ty;
         $func:path, $raw_round:path => $ord:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
@@ -1160,7 +1165,7 @@ macro_rules! math_op1_round {
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> $Big {
+        pub fn $method(mut self, $($param: $T),*) -> Self {
             self.$method_round($($param,)* Default::default());
             self
         }
@@ -1200,10 +1205,12 @@ macro_rules! math_op1_round {
     }
 }
 
+// method(self, param*) -> Self
+// method_mut(&mut self, param*)
+// method_ref(&self, param*) -> Ref
 #[cfg(feature = "float")]
 macro_rules! math_op1_no_round {
     {
-        $Big:ty;
         $func:path, $raw_round:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
@@ -1214,7 +1221,7 @@ macro_rules! math_op1_no_round {
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> $Big {
+        pub fn $method(mut self, $($param: $T),*) -> Self {
             self.$method_mut($($param),*);
             self
         }
@@ -1243,6 +1250,8 @@ macro_rules! math_op1_no_round {
     }
 }
 
+// struct Ref
+// big = Ref, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     {
@@ -1281,10 +1290,14 @@ macro_rules! ref_math_op1_round {
     }
 }
 
+// method(self, Self, param*) -> (Self, Self)
+// method_mut(&mut self, &mut Self, param*)
+// method_round(&mut self, &mut Self, param*, Round) -> Ordering
+// method_ref(&self) -> Ref
 #[cfg(feature = "float")]
 macro_rules! math_op1_2_round {
     {
-        $Big:ty, $Round:ty => $Ordering:ty;
+        $Round:ty => $Ordering:ty;
         $func:path, $($raw_round:path),* => $ord:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
@@ -1299,16 +1312,16 @@ macro_rules! math_op1_2_round {
         #[inline]
         pub fn $method(
             mut self,
-            mut $rop: $Big,
+            mut $rop: Self,
             $($param: $T,)*
-        ) -> ($Big, $Big) {
+        ) -> (Self, Self) {
             self.$method_round(&mut $rop, $($param,)* Default::default());
             (self, $rop)
         }
 
         $(#[$attr_mut])*
         #[inline]
-        pub fn $method_mut(&mut self, $rop: &mut $Big, $($param: $T),*) {
+        pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
             self.$method_round($rop, $($param,)* Default::default());
         }
 
@@ -1316,7 +1329,7 @@ macro_rules! math_op1_2_round {
         #[inline]
         pub fn $method_round(
             &mut self,
-            $rop: &mut $Big,
+            $rop: &mut Self,
             $($param: $T,)*
             round: $Round,
         ) -> $Ordering {
@@ -1343,6 +1356,9 @@ macro_rules! math_op1_2_round {
     }
 }
 
+// struct Ref
+// (&mut Big, &mut Big) = Ref
+// (&mut Big, &mut Big) = Ref, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_2_round {
     {
@@ -1389,10 +1405,14 @@ macro_rules! ref_math_op1_2_round {
     }
 }
 
+// method(self, &Self, param*) -> Self
+// method_mut(&mut self, &Self, param*)
+// method_round(&mut self, &Self, param*, Round) -> Ordering
+// method_ref(&mut self, &Self, param*) -> Ref
 #[cfg(feature = "float")]
 macro_rules! math_op2_round {
     {
-        $Big:ty, $Round:ty => $Ordering:ty;
+        $Round:ty => $Ordering:ty;
         $func:path, $raw_round:path => $ord:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
@@ -1405,14 +1425,14 @@ macro_rules! math_op2_round {
     } => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(mut self, $op: &$Big, $($param: $T),*) -> $Big {
+        pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
             self.$method_round($op, $($param.into(),)* Default::default());
             self
         }
 
         $(#[$attr_mut])*
         #[inline]
-        pub fn $method_mut(&mut self, $op: &$Big, $($param: $T),*) {
+        pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
             self.$method_round($op, $($param.into(),)* Default::default());
         }
 
@@ -1420,7 +1440,7 @@ macro_rules! math_op2_round {
         #[inline]
         pub fn $method_round(
             &mut self,
-            $op: &$Big,
+            $op: &Self,
             $($param: $T,)*
             round: $Round,
         ) -> $Ordering {
@@ -1440,7 +1460,7 @@ macro_rules! math_op2_round {
         #[inline]
         pub fn $method_ref<'a>(
             &'a self,
-            $op: &'a $Big,
+            $op: &'a Self,
             $($param: $T,)*
         ) -> $Ref<'a> {
             $Ref {
@@ -1452,6 +1472,8 @@ macro_rules! math_op2_round {
     }
 }
 
+// struct Ref
+// big = Ref, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! ref_math_op2_round {
     {
@@ -1492,6 +1514,15 @@ macro_rules! ref_math_op2_round {
     }
 }
 
+// big # t -> Big
+// big # &t -> Big
+// &big # &t -> Ref
+// big #= t
+// big #= &t
+// big #= t, Round -> Ordering
+// big #= &t, Round -> Ordering
+// struct Ref
+// big = Ref, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! arith_binary_round {
     {
@@ -1503,7 +1534,6 @@ macro_rules! arith_binary_round {
         $T:ty;
         $Ref:ident
     } => {
-        // x # t
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
@@ -1513,7 +1543,6 @@ macro_rules! arith_binary_round {
             }
         }
 
-        // x # &t
         impl<'a> $Imp<&'a $T> for $Big {
             type Output = $Big;
             #[inline]
@@ -1523,7 +1552,6 @@ macro_rules! arith_binary_round {
             }
         }
 
-        // x #= t
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
@@ -1531,7 +1559,17 @@ macro_rules! arith_binary_round {
             }
         }
 
-        // x #= &t
+        impl<'a> $Imp<&'a $T> for &'a $Big {
+            type Output = $Ref<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $T) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
         impl<'a> $ImpAssign<&'a $T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &'a $T) {
@@ -1539,7 +1577,6 @@ macro_rules! arith_binary_round {
             }
         }
 
-        // x #= t with rounding
         impl $ImpAssignRound<$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1553,7 +1590,6 @@ macro_rules! arith_binary_round {
             }
         }
 
-        // x #= &t with rounding
         impl<'a> $ImpAssignRound<&'a $T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1572,18 +1608,6 @@ macro_rules! arith_binary_round {
                     )
                 };
                 $ord(ret)
-            }
-        }
-
-        // &x # &t
-        impl<'a> $Imp<&'a $T> for &'a $Big {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: &'a $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
             }
         }
 
@@ -1612,6 +1636,12 @@ macro_rules! arith_binary_round {
     }
 }
 
+// arith_binary_round!
+// &big # big -> Big
+// big #-> big
+// &big #-> big
+// big #-> big; Round -> Ordering
+// &big #-> big; Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! arith_binary_self_round {
     {
@@ -1634,7 +1664,6 @@ macro_rules! arith_binary_self_round {
             $Ref
         }
 
-        // &x # y
         impl<'a> $Imp<$Big> for &'a $Big {
             type Output = $Big;
             #[inline]
@@ -1644,7 +1673,6 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        // y #from= x
         impl $ImpFrom<$Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Big) {
@@ -1652,7 +1680,6 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        // y #from= &x
         impl<'a> $ImpFrom<&'a $Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$Big) {
@@ -1660,7 +1687,6 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        // y #from= x with rounding
         impl<'a> $ImpFromRound<$Big> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1674,7 +1700,6 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        // y #from= &x with rounding
         impl<'a> $ImpFromRound<&'a $Big> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1698,6 +1723,10 @@ macro_rules! arith_binary_self_round {
     }
 }
 
+// arith_binary_round!
+// &big # t -> RefOwn
+// struct RefOwn
+// Big = RefOwn, Round -> Ordering
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_forward_round {
     {
@@ -1719,7 +1748,6 @@ macro_rules! arith_forward_round {
             $Ref
         }
 
-        // &x # t
         impl<'a> $Imp<$T> for &'a $Big {
             type Output = $RefOwn<'a>;
             #[inline]
@@ -1760,6 +1788,15 @@ macro_rules! arith_forward_round {
     }
 }
 
+// arith_forward_round!
+// t # big -> big
+// t # &big -> RefOwn
+// &t # big -> big
+// &t # &big -> Ref
+// t #-> big
+// &t #-> big
+// t #-> big; Round -> Ordering
+// &t #-> big; Round -> Ordering
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_commut_round {
     {
@@ -1783,7 +1820,6 @@ macro_rules! arith_commut_round {
             $Ref $RefOwn
         }
 
-        // t + y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -1792,16 +1828,6 @@ macro_rules! arith_commut_round {
             }
         }
 
-        // &t + y
-        impl<'a> $Imp<$Big> for &'a $T {
-            type Output = $Big;
-            #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                rhs.$method(self)
-            }
-        }
-
-        // t + &y
         impl<'a> $Imp<&'a $Big> for $T {
             type Output = $RefOwn<'a>;
             #[inline]
@@ -1810,7 +1836,14 @@ macro_rules! arith_commut_round {
             }
         }
 
-        // &t + &y
+        impl<'a> $Imp<$Big> for &'a $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                rhs.$method(self)
+            }
+        }
+
         impl<'a> $Imp<&'a $Big> for &'a $T {
             type Output = $Ref<'a>;
             #[inline]
@@ -1819,7 +1852,6 @@ macro_rules! arith_commut_round {
             }
         }
 
-        // y +from= t
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
@@ -1827,7 +1859,6 @@ macro_rules! arith_commut_round {
             }
         }
 
-        // y +from= &t
         impl<'a> $ImpFrom<&'a $T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &'a $T) {
@@ -1835,7 +1866,6 @@ macro_rules! arith_commut_round {
             }
         }
 
-        // y +from= t with rounding
         impl $ImpFromRound<$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1849,7 +1879,6 @@ macro_rules! arith_commut_round {
             }
         }
 
-        // y +from= &t with rounding
         impl<'a> $ImpFromRound<&'a $T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1865,6 +1894,19 @@ macro_rules! arith_commut_round {
     }
 }
 
+// arith_forward_round!
+// t # big -> big
+// t # &big -> RefFromOwn
+// &t # big -> big
+// &t # &big -> RefFrom
+// t #-> big
+// &t #-> big
+// t #-> big; Round -> Ordering
+// &t #-> big; Round -> Ordering
+// struct RefFrom
+// big = RefFrom, Round -> Ordering
+// struct RefFromOwn
+// big = RefFromOwn, Round -> Ordering
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_noncommut_round {
     {
@@ -1888,7 +1930,6 @@ macro_rules! arith_noncommut_round {
             $Ref $RefOwn
         }
 
-        // t - y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -1897,17 +1938,6 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        // &t - y
-        impl<'a> $Imp<$Big> for &'a $T {
-            type Output = $Big;
-            #[inline]
-            fn $method(self, mut rhs: $Big) -> $Big {
-                rhs.$method_from(self);
-                rhs
-            }
-        }
-
-        // t - &y
         impl<'a> $Imp<&'a $Big> for $T {
             type Output = $RefFromOwn<'a>;
             #[inline]
@@ -1919,7 +1949,15 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        // &t - &y
+        impl<'a> $Imp<$Big> for &'a $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, mut rhs: $Big) -> $Big {
+                rhs.$method_from(self);
+                rhs
+            }
+        }
+
         impl<'a> $Imp<&'a $Big> for &'a $T {
             type Output = $RefFrom<'a>;
             #[inline]
@@ -1931,7 +1969,6 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        // y -from= t
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
@@ -1939,7 +1976,6 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        // y -from= &t
         impl<'a> $ImpFrom<&'a $T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &'a $T) {
@@ -1947,7 +1983,6 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        // y -from= t with rounding
         impl $ImpFromRound<$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -1961,7 +1996,6 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        // y -from= &t with rounding
         impl<'a> $ImpFromRound<&'a $T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -2040,6 +2074,14 @@ macro_rules! arith_noncommut_round {
     }
 }
 
+// big # prim -> Big
+// big # &prim -> Big
+// &big # prim -> Ref
+// &big # &prim -> Ref
+// big #= prim
+// big #= &prim
+// struct Ref
+// big = Ref, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! arith_prim_exact_round {
     {
@@ -2050,7 +2092,6 @@ macro_rules! arith_prim_exact_round {
         $T:ty;
         $Ref:ident
     } => {
-        // x # t
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
@@ -2060,7 +2101,36 @@ macro_rules! arith_prim_exact_round {
             }
         }
 
-        // x #= t
+        impl<'t> $Imp<&'t $T> for $Big {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: &'t $T) -> $Big {
+                self.$method(*rhs)
+            }
+        }
+
+        impl<'a> $Imp<$T> for &'a $Big {
+            type Output = $Ref<'a>;
+            #[inline]
+            fn $method(self, rhs: $T) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
+        impl<'t, 'b> $Imp<&'t $T> for &'b $Big {
+            type Output = $Ref<'b>;
+            #[inline]
+            fn $method(self, rhs: &'t $T) -> $Ref<'b> {
+                $Ref {
+                    lhs: self,
+                    rhs: *rhs,
+                }
+            }
+        }
+
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
@@ -2075,15 +2145,10 @@ macro_rules! arith_prim_exact_round {
             }
         }
 
-        // &x # t
-        impl<'a> $Imp<$T> for &'a $Big {
-            type Output = $Ref<'a>;
+        impl<'t> $ImpAssign<&'t $T> for $Big {
             #[inline]
-            fn $method(self, rhs: $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+            fn $method_assign(&mut self, rhs: &'t $T) {
+                self.$method_assign(*rhs);
             }
         }
 
@@ -2112,6 +2177,9 @@ macro_rules! arith_prim_exact_round {
     }
 }
 
+// arith_prim_exact_round!
+// big #= prim, Round -> Ordering
+// big #= &prim, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! arith_prim_round {
     {
@@ -2132,7 +2200,6 @@ macro_rules! arith_prim_round {
             $Ref
         }
 
-        // x #= t with rounding
         impl $ImpAssignRound<$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -2153,9 +2220,31 @@ macro_rules! arith_prim_round {
                 $ord(ret)
             }
         }
+
+        impl<'t> $ImpAssignRound<&'t $T> for $Big {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn $method_assign_round(
+                &mut self,
+                rhs: &'t $T,
+                round: $Round,
+            ) -> $Ordering {
+                self.$method_assign_round(*rhs, round)
+            }
+        }
     }
 }
 
+// arith_prim_round!
+// prim # big -> Big
+// prim # &big -> Ref
+// &prim # big -> Big
+// &prim # &big -> Ref
+// prim #-> big
+// &prim #-> big
+// prim #-> big; Round -> Ordering
+// &prim #-> big; Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! arith_prim_commut_round {
     {
@@ -2179,7 +2268,6 @@ macro_rules! arith_prim_commut_round {
             $Ref
         }
 
-        // t + y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -2188,7 +2276,6 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        // t + &y
         impl<'a> $Imp<&'a $Big> for $T {
             type Output = $Ref<'a>;
             #[inline]
@@ -2197,7 +2284,22 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        // y +from= t
+        impl<'t> $Imp<$Big> for &'t $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                (*self).$method(rhs)
+            }
+        }
+
+        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+            type Output = $Ref<'b>;
+            #[inline]
+            fn $method(self, rhs: &'b $Big) -> $Ref<'b> {
+                (*self).$method(rhs)
+            }
+        }
+
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
@@ -2205,8 +2307,14 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        // y +from= t with rounding
-        impl<'a> $ImpFromRound<$T> for $Big {
+        impl<'t> $ImpFrom<&'t $T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: &'t $T) {
+                self.$method_from(*lhs);
+            }
+        }
+
+        impl $ImpFromRound<$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2218,9 +2326,33 @@ macro_rules! arith_prim_commut_round {
                 self.$method_assign_round(lhs, round)
             }
         }
+
+        impl<'t> $ImpFromRound<&'t $T> for $Big {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn $method_from_round(
+                &mut self,
+                lhs: &'t $T,
+                round: $Round,
+            ) -> $Ordering {
+                self.$method_from_round(*lhs, round)
+            }
+        }
     }
 }
 
+// arith_prim_round!
+// prim # big -> Big
+// prim # &big -> RefFrom
+// &prim # big -> Big
+// &prim # &big -> RefFrom
+// prim #-> big
+// &prim #-> big
+// prim #-> big; Round -> Ordering
+// &prim #-> big; Round -> Ordering
+// struct RefFrom
+// big = RefFrom, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! arith_prim_noncommut_round {
     {
@@ -2244,7 +2376,6 @@ macro_rules! arith_prim_noncommut_round {
             $Ref
         }
 
-        // t - y
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
@@ -2254,11 +2385,10 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        // t - &y
-        impl<'a> $Imp<&'a $Big> for $T {
-            type Output = $RefFrom<'a>;
+        impl<'b> $Imp<&'b $Big> for $T {
+            type Output = $RefFrom<'b>;
             #[inline]
-            fn $method(self, rhs: &'a $Big) -> $RefFrom<'a> {
+            fn $method(self, rhs: &'b $Big) -> $RefFrom<'b> {
                 $RefFrom {
                     lhs: self,
                     rhs,
@@ -2266,15 +2396,39 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        // y -from= t
-        impl<'a> $ImpFrom<$T> for $Big {
+        impl<'t> $Imp<$Big> for &'t $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                <$T as $Imp<$Big>>::$method(*self, rhs)
+            }
+        }
+
+        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+            type Output = $RefFrom<'b>;
+            #[inline]
+            fn $method(self, rhs: &'b $Big) -> $RefFrom<'b> {
+                $RefFrom {
+                    lhs: *self,
+                    rhs,
+                }
+            }
+        }
+
+        impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
                 self.$method_from_round(lhs, Default::default());
             }
         }
 
-        // y -from= t with rounding
+        impl<'t> $ImpFrom<&'t $T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: &'t $T) {
+                self.$method_from(*lhs);
+            }
+        }
+
         impl $ImpFromRound<$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -2293,6 +2447,19 @@ macro_rules! arith_prim_noncommut_round {
                     )
                 };
                 $ord(ret)
+            }
+        }
+
+        impl<'t> $ImpFromRound<&'t $T> for $Big {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn $method_from_round(
+                &mut self,
+                lhs: &'t $T,
+                round: $Round,
+            ) -> $Ordering {
+                self.$method_from_round(*lhs, round)
             }
         }
 
@@ -2325,6 +2492,12 @@ macro_rules! arith_prim_noncommut_round {
     }
 }
 
+// big # mul -> Big
+// &big # mul -> Ref
+// big #= mul
+// big #= mul, Round -> Ordering
+// struct Ref
+// big = Ref, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! mul_op_round {
     {
@@ -2336,7 +2509,6 @@ macro_rules! mul_op_round {
         $Mul:ident;
         $Ref:ident
     } => {
-        // x # mul
         impl<'a> $Imp<$Mul<'a>> for $Big {
             type Output = $Big;
             #[inline]
@@ -2346,7 +2518,17 @@ macro_rules! mul_op_round {
             }
         }
 
-        // x #= mul
+        impl<'a> $Imp<$Mul<'a>> for &'a $Big {
+            type Output = $Ref<'a>;
+            #[inline]
+            fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
+                $Ref {
+                    lhs: self,
+                    rhs,
+                }
+            }
+        }
+
         impl<'a> $ImpAssign<$Mul<'a>> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $Mul) {
@@ -2354,7 +2536,6 @@ macro_rules! mul_op_round {
             }
         }
 
-        // x #= mul with rounding
         impl<'a> $ImpAssignRound<$Mul<'a>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -2373,18 +2554,6 @@ macro_rules! mul_op_round {
                     )
                 };
                 $ord(ret)
-            }
-        }
-
-        // &x # mul
-        impl<'a> $Imp<$Mul<'a>> for &'a $Big {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
             }
         }
 
@@ -2413,6 +2582,11 @@ macro_rules! mul_op_round {
     }
 }
 
+// mul_op_round!
+// mul # big -> Big
+// mul # &big -> Ref
+// mul #-> big
+// mul #-> big; Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! mul_op_commut_round {
     {
@@ -2436,7 +2610,6 @@ macro_rules! mul_op_commut_round {
             $Ref
         }
 
-        // mul + y
         impl<'a> $Imp<$Big> for $Mul<'a> {
             type Output = $Big;
             #[inline]
@@ -2445,7 +2618,6 @@ macro_rules! mul_op_commut_round {
             }
         }
 
-        // mul + &y
         impl<'a> $Imp<&'a $Big> for $Mul<'a> {
             type Output = $Ref<'a>;
             #[inline]
@@ -2454,7 +2626,6 @@ macro_rules! mul_op_commut_round {
             }
         }
 
-        // y +from= t
         impl<'a> $ImpFrom<$Mul<'a>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul) {
@@ -2462,7 +2633,6 @@ macro_rules! mul_op_commut_round {
             }
         }
 
-        // y +from= t with rounding
         impl<'a> $ImpFromRound<$Mul<'a>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
@@ -2478,6 +2648,13 @@ macro_rules! mul_op_commut_round {
     }
 }
 
+// mul_op_round!
+// mul # big -> Big
+// mul # &big -> RefFrom
+// mul #-> big
+// mul #-> big; Round -> Ordering
+// struct RefFrom
+// big = RefFrom, Round -> Ordering
 #[cfg(feature = "float")]
 macro_rules! mul_op_noncommut_round {
     {
@@ -2501,7 +2678,6 @@ macro_rules! mul_op_noncommut_round {
             $Ref
         }
 
-        // mul - y
         impl<'a> $Imp<$Big> for $Mul<'a> {
             type Output = $Big;
             #[inline]
@@ -2511,7 +2687,6 @@ macro_rules! mul_op_noncommut_round {
             }
         }
 
-        // mul - &y
         impl<'a> $Imp<&'a $Big> for $Mul<'a> {
             type Output = $RefFrom<'a>;
             #[inline]
@@ -2523,7 +2698,6 @@ macro_rules! mul_op_noncommut_round {
             }
         }
 
-        // y -from= mul
         impl<'a> $ImpFrom<$Mul<'a>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul) {
@@ -2531,7 +2705,6 @@ macro_rules! mul_op_noncommut_round {
             }
         }
 
-        // y -from= t with rounding
         impl<'a> $ImpFromRound<$Mul<'a>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;

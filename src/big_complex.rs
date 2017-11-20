@@ -162,7 +162,7 @@ macro_rules! math_op1_complex {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         math_op1_round! {
-            Complex, Round2 => Ordering2;
+            Round2 => Ordering2;
             $func, rraw2 => ordering2;
             $(#[$attr])*
             fn $method($($param: $T),*);
@@ -204,7 +204,7 @@ macro_rules! math_op1_2_complex {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         math_op1_2_round! {
-            Complex, Round2 => (Ordering2, Ordering2);
+            Round2 => (Ordering2, Ordering2);
             $func, rraw2, rraw2 => ordering4;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
@@ -1118,7 +1118,6 @@ impl Complex {
     }
 
     math_op1_no_round! {
-        Complex;
         mpc::proj, rraw2;
         /// Computes a projection onto the Riemann sphere, rounding to
         /// the nearest.
@@ -1316,7 +1315,6 @@ impl Complex {
         fn sqrt_ref -> SqrtRef;
     }
     math_op1_no_round! {
-        Complex;
         mpc::conj, rraw2;
         /// Computes the complex conjugate.
         ///

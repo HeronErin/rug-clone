@@ -249,7 +249,7 @@ macro_rules! math_op1_float {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         math_op1_round! {
-            Float, Round => Ordering;
+            Round => Ordering;
             $func, rraw => ordering1;
             $(#[$attr])*
             fn $method($($param: $T),*);
@@ -291,7 +291,7 @@ macro_rules! math_op1_2_float {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         math_op1_2_round! {
-            Float, Round => (Ordering, Ordering);
+            Round => (Ordering, Ordering);
             $func, rraw => ordering2;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
@@ -333,7 +333,7 @@ macro_rules! math_op2_float {
         fn $method_ref:ident -> $Ref:ident;
     } => {
         math_op2_round! {
-            Float, Round => Ordering;
+            Round => Ordering;
             $func, rraw => ordering1;
             $(#[$attr])*
             fn $method($op $(, $param: $T)*);
@@ -2283,7 +2283,6 @@ impl Float {
         fn root_ref -> RootRef;
     }
     math_op1_no_round! {
-        Float;
         mpfr::abs, rraw;
         /// Computes the absolute value.
         ///
@@ -5764,7 +5763,6 @@ impl Float {
         fn ai_ref -> AiRef;
     }
     math_op1_no_round! {
-        Float;
         mpfr::rint_ceil, rraw;
         /// Rounds up to the next higher integer.
         ///
@@ -5811,7 +5809,6 @@ impl Float {
         fn ceil_ref -> CeilRef;
     }
     math_op1_no_round! {
-        Float;
         mpfr::rint_floor, rraw;
         /// Rounds down to the next lower integer.
         ///
@@ -5858,7 +5855,6 @@ impl Float {
         fn floor_ref -> FloorRef;
     }
     math_op1_no_round! {
-        Float;
         mpfr::rint_round, rraw;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
@@ -5928,7 +5924,6 @@ impl Float {
        fn round_ref -> RoundRef;
     }
     math_op1_no_round! {
-        Float;
         mpfr::rint_trunc, rraw;
         /// Rounds to the next integer towards zero.
         ///
@@ -5975,7 +5970,6 @@ impl Float {
         fn trunc_ref -> TruncRef;
     }
     math_op1_no_round! {
-        Float;
         mpfr::frac, rraw;
         /// Gets the fractional part of the number.
         ///
