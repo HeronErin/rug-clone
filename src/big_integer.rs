@@ -3204,38 +3204,30 @@ pub struct PowModRef<'a> {
 
 impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
     fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
-        if src.exponent.cmp0() == Ordering::Less {
-            let mut ret = Result::from(src.ref_self.invert_ref(src.modulo));
-            if let Ok(ref mut inv) = ret {
-                let abs_exp = src.exponent.as_neg();
-                unsafe {
-                    gmp::mpz_powm(
-                        inv.inner_mut(),
-                        inv.inner(),
-                        abs_exp.inner(),
-                        src.modulo.inner(),
-                    );
-                }
-            }
-            ret
-        } else {
-            let mut ret = Ok(Integer::new());
-            if let Ok(ref mut dest) = ret {
-                unsafe {
-                    gmp::mpz_powm(
-                        dest.inner_mut(),
-                        src.ref_self.inner(),
-                        src.exponent.inner(),
-                        src.modulo.inner(),
-                    );
-                }
-            }
-            ret
-        }
+        let mut i = Ok(Integer::new());
+        <Self as Assign<PowModRef>>::assign(&mut i, src);
+        i
     }
 }
 
 impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
+    #[inline]
+    fn assign(&mut self, src: PowModRef<'a>) {
+        let exists = {
+            let mut r = self.as_mut();
+            <Result<&mut Integer, &mut Integer> as Assign<PowModRef>>::assign(
+                &mut r,
+                src,
+            );
+            r.is_ok()
+        };
+        if exists != self.is_ok() {
+            result_swap(self);
+        }
+    }
+}
+
+impl<'a> Assign<PowModRef<'a>> for Result<&'a mut Integer, &'a mut Integer> {
     fn assign(&mut self, src: PowModRef<'a>) {
         if src.exponent.cmp0() == Ordering::Less {
             self.assign(src.ref_self.invert_ref(src.modulo));
@@ -3286,23 +3278,30 @@ pub struct InvertRef<'a> {
 impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
     #[inline]
     fn from(src: InvertRef<'a>) -> Result<Integer, Integer> {
-        let mut i = Integer::new();
-        let exists = unsafe {
-            xgmp::mpz_invert_check_0(
-                i.inner_mut(),
-                src.ref_self.inner(),
-                src.modulo.inner(),
-            ) != 0
-        };
-        if exists {
-            Ok(i)
-        } else {
-            Err(i)
-        }
+        let mut i = Ok(Integer::new());
+        <Self as Assign<InvertRef>>::assign(&mut i, src);
+        i
     }
 }
 
 impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
+    #[inline]
+    fn assign(&mut self, src: InvertRef<'a>) {
+        let exists = {
+            let mut r = self.as_mut();
+            <Result<&mut Integer, &mut Integer> as Assign<InvertRef>>::assign(
+                &mut r,
+                src,
+            );
+            r.is_ok()
+        };
+        if exists != self.is_ok() {
+            result_swap(self);
+        }
+    }
+}
+
+impl<'a> Assign<InvertRef<'a>> for Result<&'a mut Integer, &'a mut Integer> {
     #[inline]
     fn assign(&mut self, src: InvertRef<'a>) {
         let exists = {
@@ -3327,6 +3326,25 @@ impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
 pub struct RemoveFactorRef<'a> {
     ref_self: &'a Integer,
     factor: &'a Integer,
+}
+
+impl<'a> From<RemoveFactorRef<'a>> for (Integer, u32) {
+    #[inline]
+    fn from(src: RemoveFactorRef<'a>) -> (Integer, u32) {
+        let mut pair = (Integer::new(), 0u32);
+        <Self as Assign<RemoveFactorRef>>::assign(&mut pair, src);
+        pair
+    }
+}
+
+impl<'a> Assign<RemoveFactorRef<'a>> for (Integer, u32) {
+    #[inline]
+    fn assign(&mut self, src: RemoveFactorRef<'a>) {
+        <(&mut Integer, &mut u32) as Assign<RemoveFactorRef>>::assign(
+            &mut (&mut self.0, &mut self.1),
+            src,
+        );
+    }
 }
 
 impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {

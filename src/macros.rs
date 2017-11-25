@@ -21,7 +21,7 @@ macro_rules! assign_ref {
         impl<'a> Assign<&'a $Rhs> for $Lhs {
             #[inline]
             fn assign(&mut self, r: &'a $Rhs) {
-                <$Lhs as Assign<$Rhs>>::assign(self, *r);
+                <Self as Assign<$Rhs>>::assign(self, *r);
             }
         }
     }
@@ -174,10 +174,20 @@ macro_rules! ref_math_op1_2 {
 
         impl<'a> From<$Ref<'a>> for ($Big, $Big) {
             #[inline]
-            fn from(src: $Ref<'a>) -> ($Big, $Big) {
-                let mut pair = <($Big, $Big) as Default>::default();
-                (&mut pair.0, &mut pair.1).assign(src);
+            fn from(src: $Ref<'a>) -> Self {
+                let mut pair = <Self as Default>::default();
+                <Self as Assign<$Ref>>::assign(&mut pair, src);
                 pair
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                <(&mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                );
             }
         }
 
@@ -360,10 +370,20 @@ macro_rules! ref_math_op2_2 {
 
         impl<'a> From<$Ref<'a>> for ($Big, $Big) {
             #[inline]
-            fn from(src: $Ref<'a>) -> ($Big, $Big) {
-                let mut pair = <($Big, $Big) as Default>::default();
-                (&mut pair.0, &mut pair.1).assign(src);
+            fn from(src: $Ref<'a>) -> Self {
+                let mut pair = <Self as Default>::default();
+                <Self as Assign<$Ref>>::assign(&mut pair, src);
                 pair
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                <(&mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                );
             }
         }
 
@@ -467,14 +487,25 @@ macro_rules! ref_math_op2_3 {
 
         impl<'a> From<$Ref<'a>> for ($Big, $Big, $Big) {
             #[inline]
-            fn from(src: $Ref<'a>) -> ($Big, $Big, $Big) {
-                let mut three = <($Big, $Big, $Big) as Default>::default();
-                (&mut three.0, &mut three.1, &mut three.2).assign(src);
+            fn from(src: $Ref<'a>) -> Self {
+                let mut three = <Self as Default>::default();
+                <Self as Assign<$Ref>>::assign(&mut three, src);
                 three
             }
         }
 
-        impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big, &'a mut $Big)
+        impl<'a> Assign<$Ref<'a>> for ($Big, $Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                <(&mut $Big, &mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut self.0, &mut self.1, &mut self.2),
+                    src,
+                );
+            }
+        }
+
+        impl<'a> Assign<$Ref<'a>>
+            for (&'a mut $Big, &'a mut $Big, &'a mut $Big)
         {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
@@ -499,9 +530,9 @@ macro_rules! from_borrow {
     { $Src:ty => $Dst:ty} => {
         impl<'a> From<$Src> for $Dst {
             #[inline]
-            fn from(t: $Src) -> $Dst {
-                let mut ret = <$Dst as Default>::default();
-                <$Dst as Assign<$Src>>::assign(&mut ret, t);
+            fn from(t: $Src) -> Self {
+                let mut ret = <Self as Default>::default();
+                <Self as Assign<$Src>>::assign(&mut ret, t);
                 ret
             }
         }
@@ -1374,6 +1405,16 @@ macro_rules! ref_math_op1_2_round {
             $($param: $T,)*
         }
 
+        impl<'a> Assign<$Ref<'a>> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Ref<'a>) {
+                <(&mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                );
+            }
+        }
+
         impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
@@ -1382,6 +1423,23 @@ macro_rules! ref_math_op1_2_round {
                     src,
                     Default::default()
                 );
+            }
+        }
+
+        impl<'a> AssignRound<$Ref<'a>> for ($Big, $Big) {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn assign_round(
+                &mut self,
+                src: $Ref<'a>,
+                round: $Round,
+            ) -> $Ordering {
+                <(&mut $Big, &mut $Big) as AssignRound<$Ref>>::assign_round(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                    round,
+                )
             }
         }
 

@@ -1400,7 +1400,10 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(
+            Float::valid_str_radix(src, radix)?,
+            round,
+        ))
     }
 
     /// Borrows a negated copy of the `Float`.
@@ -6416,10 +6419,43 @@ pub struct LnAbsGammaRef<'a> {
     ref_self: &'a Float,
 }
 
+impl<'a> Assign<LnAbsGammaRef<'a>> for (Float, Ordering) {
+    #[inline]
+    fn assign(&mut self, src: LnAbsGammaRef<'a>) {
+        <(&mut Float, &mut Ordering) as Assign<LnAbsGammaRef>>::assign(
+            &mut (&mut self.0, &mut self.1),
+            src,
+        );
+    }
+}
+
 impl<'a> Assign<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaRef<'a>) {
-        self.assign_round(src, Round::Nearest);
+        <Self as AssignRound<LnAbsGammaRef>>::assign_round(
+            self,
+            src,
+            Round::Nearest,
+        );
+    }
+}
+
+impl<'a> AssignRound<LnAbsGammaRef<'a>> for (Float, Ordering) {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(
+        &mut self,
+        src: LnAbsGammaRef<'a>,
+        round: Round,
+    ) -> Ordering {
+        <
+            (&mut Float, &mut Ordering) as AssignRound<LnAbsGammaRef>
+        >::assign_round(
+            &mut (&mut self.0, &mut self.1),
+            src,
+            round,
+        )
     }
 }
 
