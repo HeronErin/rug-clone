@@ -1,8 +1,11 @@
-Version 0.9.1 (2017-xx-xx)
+Version 0.9.1 (2017-11-27)
 ==========================
 
 * Implement mathematical operations of big numbers with references to
   primitives.
+* Remove undefined behaviour: replace use of `mem::swap` with one
+  parameter pointing to uninitialized memory with use of
+  `ptr::copy_nonoverlapping`.
 
 Version 0.9.0 (2017-11-16)
 ==========================

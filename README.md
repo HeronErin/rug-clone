@@ -57,7 +57,7 @@ and add `rug` as a dependency in `Cargo.toml`:
 
 ```toml
 [dependencies]
-rug = "0.9.0"
+rug = "0.9.1"
 ```
 
 The `rug` crate depends on the low-level bindings in the
@@ -86,7 +86,7 @@ them add this to `Cargo.toml`:
 
 ```toml
 [dependencies.rug]
-version = "0.9.0"
+version = "0.9.1"
 default-features = false
 ```
 
@@ -97,7 +97,7 @@ To use features selectively, you can add this to `Cargo.toml`:
 
 ```toml
 [dependencies.rug]
-version = "0.9.0"
+version = "0.9.1"
 default-features = false
 # Pick which features to use
 features = ["integer", "float", "rand"]
@@ -111,10 +111,10 @@ features = ["integer", "float", "rand"]
 [mpc]:      http://www.multiprecision.org/
 [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 [mpfr]:     http://www.mpfr.org/
-[rug com]:  https://docs.rs/rug/^0.9.0/rug/struct.Complex.html
-[rug flo]:  https://docs.rs/rug/^0.9.0/rug/struct.Float.html
-[rug int]:  https://docs.rs/rug/^0.9.0/rug/struct.Integer.html
-[rug ops]:  https://docs.rs/rug/^0.9.0/rug/ops/index.html
-[rug rat]:  https://docs.rs/rug/^0.9.0/rug/struct.Rational.html
-[rug]:      https://docs.rs/rug/^0.9.0/
+[rug com]:  https://docs.rs/rug/^0.9.1/rug/struct.Complex.html
+[rug flo]:  https://docs.rs/rug/^0.9.1/rug/struct.Float.html
+[rug int]:  https://docs.rs/rug/^0.9.1/rug/struct.Integer.html
+[rug ops]:  https://docs.rs/rug/^0.9.1/rug/ops/index.html
+[rug rat]:  https://docs.rs/rug/^0.9.1/rug/struct.Rational.html
+[rug]:      https://docs.rs/rug/^0.9.1/
 [sys]:      https://docs.rs/gmp-mpfr-sys/^1.0.6/

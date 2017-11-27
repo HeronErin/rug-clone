@@ -76,7 +76,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rug = "0.9.0"
+//! rug = "0.9.1"
 //! ```
 //!
 //! The `rug` crate depends on the low-level bindings in the
@@ -105,7 +105,7 @@
 //!
 //! ```toml
 //! [dependencies.rug]
-//! version = "0.9.0"
+//! version = "0.9.1"
 //! default-features = false
 //! ```
 //!
@@ -116,7 +116,7 @@
 //!
 //! ```toml
 //! [dependencies.rug]
-//! version = "0.9.0"
+//! version = "0.9.1"
 //! default-features = false
 //! # Pick which features to use
 //! features = ["integer", "float", "rand"]
@@ -137,7 +137,7 @@
 //! [rug rat]:  struct.Rational.html
 //! [sys]:      https://docs.rs/gmp-mpfr-sys/^1.0.6/
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/0.9.0/")]
+#![doc(html_root_url = "https://docs.rs/rug/0.9.1/")]
 #![doc(test(attr(deny(warnings))))]
 
 #[cfg(any(feature = "integer", feature = "float"))]
