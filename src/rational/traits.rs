@@ -205,40 +205,18 @@ impl<'a> Assign<&'a Rational> for Rational {
     }
 }
 
-impl<'a> Assign<&'a Integer> for Rational {
+impl<T> Assign<T> for Rational
+where
+    Integer: Assign<T>,
+{
     #[inline]
-    fn assign(&mut self, val: &'a Integer) {
-        unsafe {
-            gmp::mpq_set_z(self.inner_mut(), val.inner());
-        }
+    fn assign(&mut self, rhs: T) {
+        // no need to canonicalize, as denominator will be 1.
+        let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
+        num_den.0.assign(rhs);
+        <Integer as Assign<u32>>::assign(num_den.1, 1);
     }
 }
-
-macro_rules! assign {
-    { $T:ty } => {
-        impl Assign<$T> for Rational {
-            #[inline]
-            fn assign(&mut self, t: $T) {
-                // no need to canonicalize, as denominator will be 1.
-                let num_den =
-                    unsafe { self.as_mut_numer_denom_no_canonicalization() };
-                num_den.0.assign(t);
-                num_den.1.assign(1);
-            }
-        }
-    };
-}
-
-assign!{ Integer }
-assign!{ i32 }
-assign!{ i64 }
-assign!{ u32 }
-assign!{ u64 }
-
-assign_ref!{ Rational: i32 }
-assign_ref!{ Rational: i64 }
-assign_ref!{ Rational: u32 }
-assign_ref!{ Rational: u64 }
 
 impl<T, U> Assign<(T, U)> for Rational
 where

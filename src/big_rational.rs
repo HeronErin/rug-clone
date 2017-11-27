@@ -152,22 +152,6 @@ macro_rules! ref_rat_op_int {
         }
 
         from_borrow! { $Ref<'a> => Rational }
-
-        impl<'a> Assign<$Ref<'a>> for Rational {
-            #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    let (num, den) =
-                        self.as_mut_numer_denom_no_canonicalization();
-                    $func(
-                        num.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
-                    );
-                    gmp::mpz_set_ui(den.inner_mut(), 1);
-                }
-            }
-        }
     }
 }
 
