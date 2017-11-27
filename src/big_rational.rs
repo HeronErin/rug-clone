@@ -1234,21 +1234,21 @@ impl Rational {
     }
 
     /// Computes the fractional part of the number.
-    #[deprecated(since = "0.9", note = "renamed to `rem_trunc`")]
+    #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc`")]
     #[inline]
     pub fn fract(self) -> Rational {
         self.rem_trunc()
     }
 
     /// Computes the fractional part of the number.
-    #[deprecated(since = "0.9", note = "renamed to `rem_trunc_mut`")]
+    #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc_mut`")]
     #[inline]
     pub fn fract_mut(&mut self) {
         self.rem_trunc_mut();
     }
 
     /// Computes the fractional part of the number.
-    #[deprecated(since = "0.9", note = "renamed to `rem_trunc_ref`")]
+    #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc_ref`")]
     #[inline]
     pub fn fract_ref(&self) -> RemTruncRef {
         self.rem_trunc_ref()
