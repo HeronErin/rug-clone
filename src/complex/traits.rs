@@ -15,13 +15,9 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Complex, Float};
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 use big_complex::{Ordering2, Round2, ordering2, rraw2};
 use complex::{OrdComplex, ParseComplexError};
-use float::{Constant, Round, Special};
+use float::Round;
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
 use ops::AssignRound;
@@ -179,51 +175,21 @@ impl<'a> AssignRound<&'a Complex> for Complex {
     }
 }
 
-macro_rules! assign_real {
-    { $T:ty } => {
-        impl<'a> AssignRound<&'a $T> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            #[inline]
-            fn assign_round(
-                &mut self,
-                other: &'a $T,
-                round: Round2,
-            ) -> Ordering2 {
-                let (real, imag) = self.as_mut_real_imag();
-                let ord1 = real.assign_round(other, round.0);
-                let ord2 = imag.assign_round(0, round.1);
-                (ord1, ord2)
-            }
-        }
-
-        impl AssignRound<$T> for Complex {
-            type Round = Round2;
-            type Ordering = Ordering2;
-            #[inline]
-            fn assign_round(&mut self, other: $T, round: Round2) -> Ordering2 {
-                let (real, imag) = self.as_mut_real_imag();
-                let ord1 = real.assign_round(other, round.0);
-                let ord2 = imag.assign_round(0, round.1);
-                (ord1, ord2)
-            }
-        }
-    };
+impl<T> AssignRound<T> for Complex
+where
+    Float: AssignRound<T, Round = Round, Ordering = Ordering>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn assign_round(&mut self, rhs: T, round: Round2) -> Ordering2 {
+        let (real, imag) = self.as_mut_real_imag();
+        (
+            <Float as AssignRound<T>>::assign_round(real, rhs, round.0),
+            <Float as AssignRound<u32>>::assign_round(imag, 0, round.1),
+        )
+    }
 }
-
-#[cfg(feature = "integer")]
-assign_real! { Integer }
-#[cfg(feature = "rational")]
-assign_real! { Rational }
-assign_real! { Float }
-assign_real! { Special }
-assign_real! { Constant }
-assign_real! { i32 }
-assign_real! { i64 }
-assign_real! { u32 }
-assign_real! { u64 }
-assign_real! { f32 }
-assign_real! { f64 }
 
 impl<T, U> AssignRound<(T, U)> for Complex
 where
@@ -235,9 +201,10 @@ where
     #[inline]
     fn assign_round(&mut self, rhs: (T, U), round: Round2) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
-        let ord1 = real.assign_round(rhs.0, round.0);
-        let ord2 = imag.assign_round(rhs.1, round.1);
-        (ord1, ord2)
+        (
+            <Float as AssignRound<T>>::assign_round(real, rhs.0, round.0),
+            <Float as AssignRound<U>>::assign_round(imag, rhs.1, round.1),
+        )
     }
 }
 
@@ -251,9 +218,10 @@ where
     #[inline]
     fn assign_round(&mut self, rhs: &'a (T, U), round: Round2) -> Ordering2 {
         let (real, imag) = self.as_mut_real_imag();
-        let ord1 = real.assign_round(&rhs.0, round.0);
-        let ord2 = imag.assign_round(&rhs.1, round.1);
-        (ord1, ord2)
+        (
+            <Float as AssignRound<&'a T>>::assign_round(real, &rhs.0, round.0),
+            <Float as AssignRound<&'a U>>::assign_round(imag, &rhs.1, round.1),
+        )
     }
 }
 
