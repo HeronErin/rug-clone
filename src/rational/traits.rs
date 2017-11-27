@@ -67,35 +67,36 @@ impl Hash for Rational {
 
 from_borrow! { &'a Rational => Rational }
 
-impl From<Integer> for Rational {
-    /// Constructs a `Rational` number from an
-    /// [`Integer`](struct.Integer.html).
-    ///
-    /// This constructor allocates one new
-    /// [`Integer`](struct.Integer.html) and reuses the allocation for
-    /// `val`.
+impl<Num> From<Num> for Rational
+where
+    Integer: From<Num>,
+{
     #[inline]
-    fn from(val: Integer) -> Rational {
-        Rational::from((val, 1.into()))
+    fn from(num: Num) -> Rational {
+        let mut num = Integer::from(num);
+        let mut den = <Integer as From<u32>>::from(1);
+        let mut dst: Rational = unsafe { mem::uninitialized() };
+        {
+            let num_den =
+                unsafe { dst.as_mut_numer_denom_no_canonicalization() };
+            mem::swap(&mut num, num_den.0);
+            mem::swap(&mut den, num_den.1);
+        }
+        mem::forget(num);
+        mem::forget(den);
+        dst
     }
 }
 
-from_borrow! { &'a Integer => Rational }
-
-impl From<(Integer, Integer)> for Rational {
-    /// Constructs a `Rational` number from a numerator
-    /// [`Integer`](struct.Integer.html) and denominator
-    /// [`Integer`](struct.Integer.html).
-    ///
-    /// This constructor does not allocate, as it reuses the
-    /// [`Integer`](struct.Integer.html) components.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the denominator is zero.
+impl<Num, Den> From<(Num, Den)> for Rational
+where
+    Integer: From<Num> + From<Den>,
+{
     #[inline]
-    fn from((mut num, mut den): (Integer, Integer)) -> Rational {
+    fn from((num, den): (Num, Den)) -> Rational {
+        let mut den = Integer::from(den);
         assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
+        let mut num = Integer::from(num);
         let mut dst: Rational = unsafe { mem::uninitialized() };
         {
             let mut num_den = dst.as_mut_numer_denom();
@@ -107,34 +108,6 @@ impl From<(Integer, Integer)> for Rational {
         dst
     }
 }
-
-from_borrow2! { (&'a Integer, &'b Integer) => Rational }
-
-macro_rules! from {
-    { $Src:ty => $Dst:ty } => {
-        impl From<$Src> for $Dst {
-            #[inline]
-            fn from(t: $Src) -> $Dst {
-                let mut ret = <$Dst>::new();
-                ret.assign(t);
-                ret
-            }
-        }
-    }
-}
-
-from! { i32 => Rational }
-from! { i64 => Rational }
-from! { u32 => Rational }
-from! { u64 => Rational }
-from! { (i32, i32) => Rational }
-from! { (i64, i64) => Rational }
-from! { (i32, u32) => Rational }
-from! { (i64, u64) => Rational }
-from! { (u32, i32) => Rational }
-from! { (u64, i64) => Rational }
-from! { (u32, u32) => Rational }
-from! { (u64, u64) => Rational }
 
 impl FromStr for Rational {
     type Err = ParseRationalError;
@@ -205,12 +178,12 @@ impl<'a> Assign<&'a Rational> for Rational {
     }
 }
 
-impl<T> Assign<T> for Rational
+impl<Num> Assign<Num> for Rational
 where
-    Integer: Assign<T>,
+    Integer: Assign<Num>,
 {
     #[inline]
-    fn assign(&mut self, rhs: T) {
+    fn assign(&mut self, rhs: Num) {
         // no need to canonicalize, as denominator will be 1.
         let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
         num_den.0.assign(rhs);
@@ -218,24 +191,24 @@ where
     }
 }
 
-impl<T, U> Assign<(T, U)> for Rational
+impl<Num, Den> Assign<(Num, Den)> for Rational
 where
-    Integer: Assign<T> + Assign<U>,
+    Integer: Assign<Num> + Assign<Den>,
 {
     #[inline]
-    fn assign(&mut self, rhs: (T, U)) {
+    fn assign(&mut self, rhs: (Num, Den)) {
         let mut num_den = self.as_mut_numer_denom();
         num_den.num().assign(rhs.0);
         num_den.den().assign(rhs.1);
     }
 }
 
-impl<'a, T, U> Assign<&'a (T, U)> for Rational
+impl<'a, Num, Den> Assign<&'a (Num, Den)> for Rational
 where
-    Integer: Assign<&'a T> + Assign<&'a U>,
+    Integer: Assign<&'a Num> + Assign<&'a Den>,
 {
     #[inline]
-    fn assign(&mut self, rhs: &'a (T, U)) {
+    fn assign(&mut self, rhs: &'a (Num, Den)) {
         let mut num_den = self.as_mut_numer_denom();
         num_den.num().assign(&rhs.0);
         num_den.den().assign(&rhs.1);

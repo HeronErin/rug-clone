@@ -539,21 +539,6 @@ macro_rules! from_borrow {
     }
 }
 
-// Src -> Dst
-#[cfg(feature = "rational")]
-macro_rules! from_borrow2 {
-    { $Src:ty => $Dst:ty} => {
-        impl<'a, 'b> From<$Src> for $Dst {
-            #[inline]
-            fn from(t: $Src) -> Self {
-                let mut ret = <Self as Default>::default();
-                <Self as Assign<$Src>>::assign(&mut ret, t);
-                ret
-            }
-        }
-    }
-}
-
 // #big -> Big
 // big #=
 // #&big -> Ref

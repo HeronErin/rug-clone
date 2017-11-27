@@ -150,8 +150,6 @@ macro_rules! ref_rat_op_int {
                 }
             }
         }
-
-        from_borrow! { $Ref<'a> => Rational }
     }
 }
 
