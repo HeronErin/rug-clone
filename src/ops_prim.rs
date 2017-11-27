@@ -30,6 +30,12 @@ macro_rules! assign_from {
                 *self = lhs.$op(*self);
             }
         }
+        impl<'a> $Imp<&'a $T> for $T {
+            #[inline]
+            fn $method(&mut self, lhs: &'a $T) {
+                *self = (*lhs).$op(*self);
+            }
+        }
     }
 }
 macro_rules! int_ops {
@@ -39,6 +45,12 @@ macro_rules! int_ops {
                 #[inline]
                 fn assign(&mut self, src: $T) {
                     *self = src;
+                }
+            }
+            impl<'a> Assign<&'a $T> for $T {
+                #[inline]
+                fn assign(&mut self, src: &'a $T) {
+                    *self = *src;
                 }
             }
             impl NotAssign for $T {
@@ -54,10 +66,37 @@ macro_rules! int_ops {
                     self.pow(rhs)
                 }
             }
+            impl<'a> Pow<u32> for &'a $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: u32) -> $T {
+                    (*self).pow(rhs)
+                }
+            }
+            impl<'a> Pow<&'a u32> for $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: &'a u32) -> $T {
+                    self.pow(*rhs)
+                }
+            }
+            impl<'a, 'b> Pow<&'a u32> for &'b $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: &'a u32) -> $T {
+                    (*self).pow(*rhs)
+                }
+            }
             impl PowAssign<u32> for $T {
                 #[inline]
                 fn pow_assign(&mut self, rhs: u32) {
                     *self = self.pow(rhs);
+                }
+            }
+            impl<'a> PowAssign<&'a u32> for $T {
+                #[inline]
+                fn pow_assign(&mut self, rhs: &'a u32) {
+                    *self = self.pow(*rhs);
                 }
             }
             assign_from! { $T; add; AddFrom add_from }
@@ -94,6 +133,12 @@ macro_rules! float_ops {
                     *self = src;
                 }
             }
+            impl<'a> Assign<&'a $T> for $T {
+                #[inline]
+                fn assign(&mut self, src: &'a $T) {
+                    *self = *src;
+                }
+            }
             impl Pow<i32> for $T {
                 type Output = $T;
                 #[inline]
@@ -101,10 +146,37 @@ macro_rules! float_ops {
                     self.powi(rhs)
                 }
             }
+            impl<'a> Pow<i32> for &'a $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: i32) -> $T {
+                    self.powi(rhs)
+                }
+            }
+            impl<'a> Pow<&'a i32> for $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: &'a i32) -> $T {
+                    self.powi(*rhs)
+                }
+            }
+            impl<'a, 'b> Pow<&'a i32> for &'b $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: &'a i32) -> $T {
+                    self.powi(*rhs)
+                }
+            }
             impl PowAssign<i32> for $T {
                 #[inline]
                 fn pow_assign(&mut self, rhs: i32) {
                     *self = self.powi(rhs);
+                }
+            }
+            impl<'a> PowAssign<&'a i32> for $T {
+                #[inline]
+                fn pow_assign(&mut self, rhs: &'a i32) {
+                    *self = self.powi(*rhs);
                 }
             }
             impl Pow<$T> for $T {
@@ -114,10 +186,37 @@ macro_rules! float_ops {
                     self.powf(rhs)
                 }
             }
+            impl<'a> Pow<$T> for &'a $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: $T) -> $T {
+                    self.powf(rhs)
+                }
+            }
+            impl<'a> Pow<&'a $T> for $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: &'a $T) -> $T {
+                    self.powf(*rhs)
+                }
+            }
+            impl<'a, 'b> Pow<&'a $T> for &'b $T {
+                type Output = $T;
+                #[inline]
+                fn pow(self, rhs: &'a $T) -> $T {
+                    self.powf(*rhs)
+                }
+            }
             impl PowAssign<$T> for $T {
                 #[inline]
                 fn pow_assign(&mut self, rhs: $T) {
                     *self = self.powf(rhs);
+                }
+            }
+            impl<'a> PowAssign<&'a $T> for $T {
+                #[inline]
+                fn pow_assign(&mut self, rhs: &'a $T) {
+                    *self = self.powf(*rhs);
                 }
             }
             assign_from!{ $T; add; AddFrom add_from }
@@ -173,6 +272,26 @@ macro_rules! div_signed {
                 }
             }
 
+            impl<'a> DivRounding<&'a $T> for $T {
+                type Output = $T;
+                #[inline]
+                fn div_trunc(self, rhs: &'a $T) -> $T {
+                    <Self as DivRounding>::div_trunc(self, *rhs)
+                }
+                #[inline]
+                fn div_ceil(self, rhs: &'a $T) -> $T {
+                    <Self as DivRounding>::div_ceil(self, *rhs)
+                }
+                #[inline]
+                fn div_floor(self, rhs: &'a $T) -> $T {
+                    <Self as DivRounding>::div_floor(self, *rhs)
+                }
+                #[inline]
+                fn div_euc(self, rhs: &'a $T) -> $T {
+                    <Self as DivRounding>::div_euc(self, *rhs)
+                }
+            }
+
             impl RemRounding for $T {
                 type Output = $T;
                 #[inline]
@@ -214,6 +333,26 @@ macro_rules! div_signed {
                 }
             }
 
+            impl<'a> RemRounding<&'a $T> for $T {
+                type Output = $T;
+                #[inline]
+                fn rem_trunc(self, rhs: &'a $T) -> $T {
+                    <Self as RemRounding>::rem_trunc(self, *rhs)
+                }
+                #[inline]
+                fn rem_ceil(self, rhs: &'a $T) -> $T {
+                    <Self as RemRounding>::rem_ceil(self, *rhs)
+                }
+                #[inline]
+                fn rem_floor(self, rhs: &'a $T) -> $T {
+                    <Self as RemRounding>::rem_floor(self, *rhs)
+                }
+                #[inline]
+                fn rem_euc(self, rhs: &'a $T) -> $T {
+                    <Self as RemRounding>::rem_euc(self, *rhs)
+                }
+            }
+
             impl DivRoundingAssign for $T {
                 #[inline]
                 fn div_trunc_assign(&mut self, rhs: $T) {
@@ -230,6 +369,25 @@ macro_rules! div_signed {
                 #[inline]
                 fn div_euc_assign(&mut self, rhs: $T) {
                     *self = self.div_euc(rhs);
+                }
+            }
+
+            impl<'a> DivRoundingAssign<&'a $T> for $T {
+                #[inline]
+                fn div_trunc_assign(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingAssign>::div_trunc_assign(self, *rhs)
+                }
+                #[inline]
+                fn div_ceil_assign(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingAssign>::div_ceil_assign(self, *rhs)
+                }
+                #[inline]
+                fn div_floor_assign(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingAssign>::div_floor_assign(self, *rhs)
+                }
+                #[inline]
+                fn div_euc_assign(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingAssign>::div_euc_assign(self, *rhs)
                 }
             }
 
@@ -252,6 +410,25 @@ macro_rules! div_signed {
                 }
             }
 
+            impl<'a> DivRoundingFrom<&'a $T> for $T {
+                #[inline]
+                fn div_trunc_from(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingFrom>::div_trunc_from(self, *rhs)
+                }
+                #[inline]
+                fn div_ceil_from(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingFrom>::div_ceil_from(self, *rhs)
+                }
+                #[inline]
+                fn div_floor_from(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingFrom>::div_floor_from(self, *rhs)
+                }
+                #[inline]
+                fn div_euc_from(&mut self, rhs: &'a $T) {
+                    <Self as DivRoundingFrom>::div_euc_from(self, *rhs)
+                }
+            }
+
             impl RemRoundingAssign for $T {
                 #[inline]
                 fn rem_trunc_assign(&mut self, rhs: $T) {
@@ -271,6 +448,25 @@ macro_rules! div_signed {
                 }
             }
 
+            impl<'a> RemRoundingAssign<&'a $T> for $T {
+                #[inline]
+                fn rem_trunc_assign(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingAssign>::rem_trunc_assign(self, *rhs)
+                }
+                #[inline]
+                fn rem_ceil_assign(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingAssign>::rem_ceil_assign(self, *rhs)
+                }
+                #[inline]
+                fn rem_floor_assign(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingAssign>::rem_floor_assign(self, *rhs)
+                }
+                #[inline]
+                fn rem_euc_assign(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingAssign>::rem_euc_assign(self, *rhs)
+                }
+            }
+
             impl RemRoundingFrom for $T {
                 #[inline]
                 fn rem_trunc_from(&mut self, lhs: $T) {
@@ -287,6 +483,25 @@ macro_rules! div_signed {
                 #[inline]
                 fn rem_euc_from(&mut self, lhs: $T) {
                     *self = lhs.rem_euc(*self);
+                }
+            }
+
+            impl<'a> RemRoundingFrom<&'a $T> for $T {
+                #[inline]
+                fn rem_trunc_from(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingFrom>::rem_trunc_from(self, *rhs)
+                }
+                #[inline]
+                fn rem_ceil_from(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingFrom>::rem_ceil_from(self, *rhs)
+                }
+                #[inline]
+                fn rem_floor_from(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingFrom>::rem_floor_from(self, *rhs)
+                }
+                #[inline]
+                fn rem_euc_from(&mut self, rhs: &'a $T) {
+                    <Self as RemRoundingFrom>::rem_euc_from(self, *rhs)
                 }
             }
         )*

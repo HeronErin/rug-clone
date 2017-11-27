@@ -1,3 +1,9 @@
+Version 0.9.1 (2017-xx-xx)
+==========================
+
+* Implement mathematical operations of big numbers with references to
+  primitives.
+
 Version 0.9.0 (2017-11-16)
 ==========================
 

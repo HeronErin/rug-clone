@@ -817,7 +817,10 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(
+            Complex::valid_str_radix(src, radix)?,
+            round,
+        ))
     }
 
     /// Borrows the real part as a [`Float`](struct.Float.html).
