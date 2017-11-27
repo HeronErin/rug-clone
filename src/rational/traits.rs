@@ -108,7 +108,7 @@ impl From<(Integer, Integer)> for Rational {
     }
 }
 
-from_borrow! { (&'a Integer, &'a Integer) => Rational }
+from_borrow2! { (&'a Integer, &'b Integer) => Rational }
 
 macro_rules! from {
     { $Src:ty => $Dst:ty } => {

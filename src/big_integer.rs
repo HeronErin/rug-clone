@@ -1319,12 +1319,16 @@ impl Integer {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp<'a, Min, Max>(mut self, min: &'a Min, max: &'a Max) -> Integer
+    pub fn clamp<'a, 'b, Min, Max>(
+        mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) -> Integer
     where
         Integer: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
-            + Assign<&'a Max>,
+            + Assign<&'b Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -1349,12 +1353,12 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the maximum value is less than the minimum value.
-    pub fn clamp_mut<'a, Min, Max>(&mut self, min: &'a Min, max: &'a Max)
+    pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
         Integer: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
-            + Assign<&'a Max>,
+            + Assign<&'b Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -3227,7 +3231,8 @@ impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
     }
 }
 
-impl<'a> Assign<PowModRef<'a>> for Result<&'a mut Integer, &'a mut Integer> {
+impl<'a, 'b> Assign<PowModRef<'a>>
+    for Result<&'b mut Integer, &'b mut Integer> {
     fn assign(&mut self, src: PowModRef<'a>) {
         if src.exponent.cmp0() == Ordering::Less {
             self.assign(src.ref_self.invert_ref(src.modulo));
@@ -3301,7 +3306,8 @@ impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
     }
 }
 
-impl<'a> Assign<InvertRef<'a>> for Result<&'a mut Integer, &'a mut Integer> {
+impl<'a, 'b> Assign<InvertRef<'a>>
+    for Result<&'b mut Integer, &'b mut Integer> {
     #[inline]
     fn assign(&mut self, src: InvertRef<'a>) {
         let exists = {
@@ -3347,7 +3353,8 @@ impl<'a> Assign<RemoveFactorRef<'a>> for (Integer, u32) {
     }
 }
 
-impl<'a> Assign<RemoveFactorRef<'a>> for (&'a mut Integer, &'a mut u32) {
+impl<'a, 'b, 'c> Assign<RemoveFactorRef<'a>>
+    for (&'b mut Integer, &'c mut u32) {
     #[inline]
     fn assign(&mut self, src: RemoveFactorRef<'a>) {
         let cnt = unsafe {

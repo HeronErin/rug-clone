@@ -237,7 +237,9 @@ macro_rules! ref_rat_op_rat_int {
             }
         }
 
-        impl<'a> Assign<$Ref<'a>> for (&'a mut Rational, &'a mut Integer) {
+        impl<'a, 'b, 'c> Assign<$Ref<'a>>
+            for (&'b mut Rational, &'c mut Integer)
+        {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {

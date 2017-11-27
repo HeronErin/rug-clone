@@ -191,7 +191,7 @@ macro_rules! ref_math_op1_2 {
             }
         }
 
-        impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {
+        impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
@@ -387,7 +387,7 @@ macro_rules! ref_math_op2_2 {
             }
         }
 
-        impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {
+        impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
@@ -504,8 +504,8 @@ macro_rules! ref_math_op2_3 {
             }
         }
 
-        impl<'a> Assign<$Ref<'a>>
-            for (&'a mut $Big, &'a mut $Big, &'a mut $Big)
+        impl<'a, 'b, 'c, 'd> Assign<$Ref<'a>>
+            for (&'b mut $Big, &'c mut $Big, &'d mut $Big)
         {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
@@ -529,6 +529,21 @@ macro_rules! ref_math_op2_3 {
 macro_rules! from_borrow {
     { $Src:ty => $Dst:ty} => {
         impl<'a> From<$Src> for $Dst {
+            #[inline]
+            fn from(t: $Src) -> Self {
+                let mut ret = <Self as Default>::default();
+                <Self as Assign<$Src>>::assign(&mut ret, t);
+                ret
+            }
+        }
+    }
+}
+
+// Src -> Dst
+#[cfg(feature = "rational")]
+macro_rules! from_borrow2 {
+    { $Src:ty => $Dst:ty} => {
+        impl<'a, 'b> From<$Src> for $Dst {
             #[inline]
             fn from(t: $Src) -> Self {
                 let mut ret = <Self as Default>::default();
@@ -1415,7 +1430,7 @@ macro_rules! ref_math_op1_2_round {
             }
         }
 
-        impl<'a> Assign<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {
+        impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
                 <Self as AssignRound<$Ref>>::assign_round(
@@ -1443,7 +1458,9 @@ macro_rules! ref_math_op1_2_round {
             }
         }
 
-        impl<'a> AssignRound<$Ref<'a>> for (&'a mut $Big, &'a mut $Big) {
+        impl<'a, 'b, 'c> AssignRound<$Ref<'a>>
+            for (&'b mut $Big, &'c mut $Big)
+        {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]

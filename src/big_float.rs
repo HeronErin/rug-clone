@@ -2346,12 +2346,16 @@ impl Float {
     /// unless assigning any of them to `self` produces the same value
     /// with the same rounding direction.
     #[inline]
-    pub fn clamp<'a, Min, Max>(mut self, min: &'a Min, max: &'a Max) -> Float
+    pub fn clamp<'a, 'b, Min, Max>(
+        mut self,
+        min: &'a Min,
+        max: &'b Max,
+    ) -> Float
     where
         Float: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
     {
         self.clamp_round(min, max, Round::Nearest);
         self
@@ -2380,12 +2384,12 @@ impl Float {
     /// unless assigning any of them to `self` produces the same value
     /// with the same rounding direction.
     #[inline]
-    pub fn clamp_mut<'a, Min, Max>(&mut self, min: &'a Min, max: &'a Max)
+    pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
         Float: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
     {
         self.clamp_round(min, max, Round::Nearest);
     }
@@ -2416,17 +2420,17 @@ impl Float {
     /// Panics if the maximum value is less than the minimum value,
     /// unless assigning any of them to `self` produces the same value
     /// with the same rounding direction.
-    pub fn clamp_round<'a, Min, Max>(
+    pub fn clamp_round<'a, 'b, Min, Max>(
         &mut self,
         min: &'a Min,
-        max: &'a Max,
+        max: &'b Max,
         round: Round,
     ) -> Ordering
     where
         Float: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
     {
         if (*self).lt(min) {
             let dir = self.assign_round(min, round);
@@ -6429,7 +6433,8 @@ impl<'a> Assign<LnAbsGammaRef<'a>> for (Float, Ordering) {
     }
 }
 
-impl<'a> Assign<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
+impl<'a, 'b, 'c> Assign<LnAbsGammaRef<'a>>
+    for (&'b mut Float, &'c mut Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaRef<'a>) {
         <Self as AssignRound<LnAbsGammaRef>>::assign_round(
@@ -6459,7 +6464,8 @@ impl<'a> AssignRound<LnAbsGammaRef<'a>> for (Float, Ordering) {
     }
 }
 
-impl<'a> AssignRound<LnAbsGammaRef<'a>> for (&'a mut Float, &'a mut Ordering) {
+impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
+    for (&'b mut Float, &'c mut Ordering) {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
