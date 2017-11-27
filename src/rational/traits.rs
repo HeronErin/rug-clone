@@ -25,6 +25,7 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
 use std::hash::{Hash, Hasher};
 use std::i32;
 use std::mem;
+use std::ptr;
 use std::str::FromStr;
 
 impl Default for Rational {
@@ -73,14 +74,13 @@ where
 {
     #[inline]
     fn from(num: Num) -> Rational {
-        let mut num = Integer::from(num);
-        let mut den = <Integer as From<u32>>::from(1);
+        let num = Integer::from(num);
+        let den = <Integer as From<u32>>::from(1);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        {
-            let num_den =
-                unsafe { dst.as_mut_numer_denom_no_canonicalization() };
-            mem::swap(&mut num, num_den.0);
-            mem::swap(&mut den, num_den.1);
+        unsafe {
+            let num_den = dst.as_mut_numer_denom_no_canonicalization();
+            ptr::copy_nonoverlapping(&num, num_den.0, 1);
+            ptr::copy_nonoverlapping(&den, num_den.1, 1);
         }
         mem::forget(num);
         mem::forget(den);
@@ -94,14 +94,14 @@ where
 {
     #[inline]
     fn from((num, den): (Num, Den)) -> Rational {
-        let mut den = Integer::from(den);
+        let den = Integer::from(den);
         assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
-        let mut num = Integer::from(num);
+        let num = Integer::from(num);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        {
+        unsafe {
             let mut num_den = dst.as_mut_numer_denom();
-            mem::swap(&mut num, num_den.num());
-            mem::swap(&mut den, num_den.den());
+            ptr::copy_nonoverlapping(&num, num_den.num(), 1);
+            ptr::copy_nonoverlapping(&den, num_den.den(), 1);
         }
         mem::forget(num);
         mem::forget(den);
@@ -164,7 +164,6 @@ impl UpperHex for Rational {
 impl Assign for Rational {
     #[inline]
     fn assign(&mut self, mut other: Rational) {
-        self.assign(&other);
         mem::swap(self, &mut other);
     }
 }

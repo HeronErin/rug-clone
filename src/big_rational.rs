@@ -27,6 +27,7 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_int};
+use std::ptr;
 
 /// An arbitrary-precision rational number.
 ///
@@ -818,14 +819,12 @@ impl Rational {
     /// assert_eq!(den, 5);
     /// ```
     #[inline]
-    pub fn into_numer_denom(mut self) -> (Integer, Integer) {
+    pub fn into_numer_denom(self) -> (Integer, Integer) {
         let (mut numer, mut denom) = unsafe { mem::uninitialized() };
-        {
-            let mut self_numer_denom = self.as_mut_numer_denom();
-            mem::swap(&mut numer, self_numer_denom.num());
-            mem::swap(&mut denom, self_numer_denom.den());
-            // do not canonicalize uninitialized values
-            mem::forget(self_numer_denom);
+        unsafe {
+            let self_numer_denom = self.as_numer_denom();
+            ptr::copy_nonoverlapping(self_numer_denom.0, &mut numer, 1);
+            ptr::copy_nonoverlapping(self_numer_denom.1, &mut denom, 1);
         }
         mem::forget(self);
         (numer, denom)
@@ -2048,21 +2047,20 @@ impl<'a> Drop for MutNumerDenom<'a> {
     #[inline]
     fn drop(&mut self) {
         assert_ne!(self.den_actual.cmp0(), Ordering::Equal, "division by zero");
+        // We can finally place the actual denominator in its
+        // proper place inside the rational number.
+        mem::swap(&mut self.den_actual, self.den_place);
         unsafe {
-            // We can finally place the actual denominator in its
-            // proper place inside the rational number.
-            mem::swap(&mut self.den_actual, self.den_place);
-
             let rat_num = self.num.inner_mut();
             let rat_den = self.den_place.inner_mut();
             let mut canon: mpq_t = mem::uninitialized();
             let canon_num_ptr = gmp::mpq_numref(&mut canon);
             let canon_den_ptr = gmp::mpq_denref(&mut canon);
-            mem::swap(rat_num, &mut *canon_num_ptr);
-            mem::swap(rat_den, &mut *canon_den_ptr);
+            ptr::copy_nonoverlapping(rat_num, &mut *canon_num_ptr, 1);
+            ptr::copy_nonoverlapping(rat_den, &mut *canon_den_ptr, 1);
             gmp::mpq_canonicalize(&mut canon);
-            mem::swap(rat_num, &mut *canon_num_ptr);
-            mem::swap(rat_den, &mut *canon_den_ptr);
+            ptr::copy_nonoverlapping(&*canon_num_ptr, rat_num, 1);
+            ptr::copy_nonoverlapping(&*canon_den_ptr, rat_den, 1);
         }
     }
 }
