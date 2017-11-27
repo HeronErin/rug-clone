@@ -18,6 +18,7 @@ use {Assign, Integer};
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
+use misc;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
@@ -511,23 +512,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn to_f32(&self) -> f32 {
-        let f = self.to_f64();
-        // f as f32 might round away from zero, so we need to clear
-        // the least significant bits of f.
-        // * If f is a nan, we do NOT want to clear any mantissa bits,
-        //   as this may change f into +/- infinity.
-        // * If f is +/- infinity, the bits are already zero, so the
-        //   masking has no effect.
-        // * If f is subnormal, f as f32 will be zero anyway.
-        if !f.is_nan() {
-            let u = unsafe { mem::transmute::<_, u64>(f) };
-            // f64 has 29 more significant bits than f32.
-            let trunc_u = u & (!0 << 29);
-            let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
-            trunc_f as f32
-        } else {
-            f as f32
-        }
+        misc::trunc_f64_to_f32(self.to_f64())
     }
 
     /// Converts to an `f64`, rounding towards zero.

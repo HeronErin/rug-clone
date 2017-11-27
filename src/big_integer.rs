@@ -18,6 +18,7 @@ use Assign;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
+use misc;
 use ops::NegAssign;
 #[cfg(feature = "rand")]
 use rand::RandState;
@@ -615,7 +616,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn to_f32(&self) -> f32 {
-        trunc_f64_to_f32(self.to_f64())
+        misc::trunc_f64_to_f32(self.to_f64())
     }
 
     /// Converts to an `f64`, rounding towards zero.
@@ -670,7 +671,7 @@ impl Integer {
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, u32) {
         let (f, exp) = self.to_f64_exp();
-        let trunc_f = trunc_f64_to_f32(f);
+        let trunc_f = misc::trunc_f64_to_f32(f);
         (trunc_f, exp)
     }
 
@@ -3226,7 +3227,7 @@ impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
             r.is_ok()
         };
         if exists != self.is_ok() {
-            result_swap(self);
+            misc::result_swap(self);
         }
     }
 }
@@ -3249,7 +3250,7 @@ impl<'a, 'b> Assign<PowModRef<'a>>
             }
         } else {
             if self.is_err() {
-                result_swap(self);
+                misc::result_swap(self);
             }
             if let Ok(ref mut dest) = *self {
                 unsafe {
@@ -3301,7 +3302,7 @@ impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
             r.is_ok()
         };
         if exists != self.is_ok() {
-            result_swap(self);
+            misc::result_swap(self);
         }
     }
 }
@@ -3323,7 +3324,7 @@ impl<'a, 'b> Assign<InvertRef<'a>>
             }
         };
         if exists != self.is_ok() {
-            result_swap(self);
+            misc::result_swap(self);
         }
     }
 }
@@ -3534,55 +3535,5 @@ impl InnerMut for Integer {
     #[inline]
     unsafe fn inner_mut(&mut self) -> &mut mpz_t {
         &mut self.inner
-    }
-}
-
-fn trunc_f64_to_f32(f: f64) -> f32 {
-    // f as f32 might round away from zero, so we need to clear
-    // the least significant bits of f.
-    // * If f is a nan, we do NOT want to clear any mantissa bits,
-    //   as this may change f into +/- infinity.
-    // * If f is +/- infinity, the bits are already zero, so the
-    //   masking has no effect.
-    // * If f is subnormal, f as f32 will be zero anyway.
-    if !f.is_nan() {
-        let u = unsafe { mem::transmute::<_, u64>(f) };
-        // f64 has 29 more significant bits than f32.
-        let trunc_u = u & (!0 << 29);
-        let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
-        trunc_f as f32
-    } else {
-        f as f32
-    }
-}
-
-// The commented out function results in longer x86_64 asm.
-// See: https://github.com/rust-lang/rust/issues/42870
-//
-// fn result_swap<T>(r: &mut Result<T, T>) {
-//     let old = mem::replace(r, unsafe { mem::uninitialized() });
-//     let new = match old {
-//         Ok(t) => Err(t),
-//         Err(t) => Ok(t),
-//     };
-//     mem::forget(mem::replace(r, new));
-// }
-fn result_swap<T>(r: &mut Result<T, T>) {
-    if r.is_ok() {
-        let val = match *r {
-            Ok(ref mut val) => {
-                mem::replace(val, unsafe { mem::uninitialized() })
-            }
-            Err(_) => unreachable!(),
-        };
-        mem::forget(mem::replace(r, Err(val)));
-    } else {
-        let val = match *r {
-            Err(ref mut val) => {
-                mem::replace(val, unsafe { mem::uninitialized() })
-            }
-            Ok(_) => unreachable!(),
-        };
-        mem::forget(mem::replace(r, Ok(val)));
     }
 }
