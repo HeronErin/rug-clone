@@ -25,7 +25,6 @@
 // behaviour.
 
 use Integer;
-use Integer;
 use inner::{Inner, InnerMut};
 
 use gmp_mpfr_sys::gmp::{self, randstate_t};
