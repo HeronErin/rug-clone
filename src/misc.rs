@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use std::mem;
+use std::ptr;
 
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
@@ -39,29 +40,27 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
 // See: https://github.com/rust-lang/rust/issues/42870
 //
 // fn result_swap<T>(r: &mut Result<T, T>) {
-//     let old = mem::replace(r, unsafe { mem::uninitialized() });
+//     let old = ptr_read(r);
 //     let new = match old {
 //         Ok(t) => Err(t),
 //         Err(t) => Ok(t),
 //     };
-//     mem::forget(mem::replace(r, new));
+//     ptr::write(r, new);
 // }
 pub fn result_swap<T>(r: &mut Result<T, T>) {
-    if r.is_ok() {
-        let val = match *r {
-            Ok(ref mut val) => {
-                mem::replace(val, unsafe { mem::uninitialized() })
-            }
-            Err(_) => unreachable!(),
-        };
-        mem::forget(mem::replace(r, Err(val)));
-    } else {
-        let val = match *r {
-            Err(ref mut val) => {
-                mem::replace(val, unsafe { mem::uninitialized() })
-            }
-            Ok(_) => unreachable!(),
-        };
-        mem::forget(mem::replace(r, Ok(val)));
+    unsafe {
+        if r.is_ok() {
+            let val = match *r {
+                Ok(ref mut val) => ptr::read(val),
+                Err(_) => unreachable!(),
+            };
+            ptr::write(r, Err(val));
+        } else {
+            let val = match *r {
+                Err(ref mut val) => ptr::read(val),
+                Ok(_) => unreachable!(),
+            };
+            ptr::write(r, Ok(val));
+        }
     }
 }

@@ -953,10 +953,10 @@ impl Complex {
     /// assert_eq!(imag, -20.75);
     /// ```
     #[inline]
-    pub fn into_real_imag(mut self) -> (Float, Float) {
+    pub fn into_real_imag(self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
         unsafe {
-            let real_imag = self.as_mut_real_imag();
+            let real_imag = self.as_real_imag();
             ptr::copy_nonoverlapping(real_imag.0, &mut real, 1);
             ptr::copy_nonoverlapping(real_imag.1, &mut imag, 1);
         }
@@ -989,15 +989,10 @@ impl Complex {
         };
         let (self_re, self_im) = self.as_real_imag();
         unsafe {
-            if self_re.is_nan() {
+            (*mpc::realref(&mut ret.inner)).sign.neg_assign();
+            (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
+            if self_re.is_nan() || self_im.is_nan() {
                 mpfr::set_nanflag();
-            } else {
-                (*mpc::realref(&mut ret.inner)).sign.neg_assign();
-            }
-            if self_im.is_nan() {
-                mpfr::set_nanflag();
-            } else {
-                (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
             }
         }
         ret
@@ -1029,10 +1024,9 @@ impl Complex {
         };
         let self_im = self.imag();
         unsafe {
+            (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
             if self_im.is_nan() {
                 mpfr::set_nanflag();
-            } else {
-                (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
             }
         }
         ret
@@ -1071,21 +1065,18 @@ impl Complex {
         let (ret_re, ret_im) = unsafe {
             let re = &mut *mpc::realref(&mut ret.inner);
             let im = &mut *mpc::imagref(&mut ret.inner);
+            ptr::copy_nonoverlapping(self_re, im, 1);
+            ptr::copy_nonoverlapping(self_im, re, 1);
             (re, im)
         };
-        *ret_re = *self_im;
-        *ret_im = *self_re;
-        unsafe {
-            if negative {
-                if self_re_nan {
-                    mpfr::set_nanflag();
-                } else {
-                    ret_im.sign.neg_assign();
-                }
-            } else if self_im_nan {
+        if negative {
+            ret_im.sign.neg_assign();
+        } else {
+            ret_re.sign.neg_assign();
+        }
+        if self_re_nan || self_im_nan {
+            unsafe {
                 mpfr::set_nanflag();
-            } else {
-                ret_re.sign.neg_assign();
             }
         }
         ret
