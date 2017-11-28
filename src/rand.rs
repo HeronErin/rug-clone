@@ -16,6 +16,15 @@
 
 //! Random number generation.
 
+// UNDEFINED BEHAVIOUR WARNING:
+//
+// Not all the fields of randstate_t are used, and thus GMP does not
+// initialize all the fields. So we must use mem::zeroed rather than
+// mem::uninitialized when creating randstate_t structures. Otherwise,
+// we may have uninitialized memory which can lead to undefined
+// behaviour.
+
+use Integer;
 use Integer;
 use inner::{Inner, InnerMut};
 
@@ -52,7 +61,7 @@ impl<'a> Clone for RandState<'a> {
     #[inline]
     fn clone(&self) -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.inner());
             RandState {
                 inner,
@@ -89,7 +98,7 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn new() -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_default(&mut inner);
             RandState {
                 inner,
@@ -110,7 +119,7 @@ impl<'a> RandState<'a> {
     /// ```
     pub fn new_mersenne_twister() -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_mt(&mut inner);
             RandState {
                 inner,
@@ -143,7 +152,7 @@ impl<'a> RandState<'a> {
         bits: u32,
     ) -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
             RandState {
                 inner,
@@ -177,7 +186,7 @@ impl<'a> RandState<'a> {
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
                 Some(RandState {
                     inner,
