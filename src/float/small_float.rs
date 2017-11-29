@@ -114,6 +114,34 @@ impl SmallFloat {
         }
     }
 
+    /// Returns a mutable reference to [`Float`](../struct.Float.html)
+    /// for simple operations that do not need to change the precision
+    /// of the [`Float`](../struct.Float.html).
+    ///
+    /// # Safety
+    ///
+    /// It is undefined behaviour to modify the precision of the
+    /// referenced [`Float`](../struct.Float.html) or to swap it with
+    /// another [`Float`](../struct.Float.html).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::float::SmallFloat;
+    /// let mut f = SmallFloat::from(1.0f32);
+    /// // addition does not change the precision
+    /// unsafe {
+    ///     *f.as_nongrowing_mut() += 2.0;
+    /// }
+    /// assert_eq!(*f, 3.0);
+    /// ```
+    #[inline]
+    pub unsafe fn as_nongrowing_mut(&mut self) -> &mut Float {
+        self.update_d();
+        let ptr = (&mut self.inner) as *mut _ as *mut _;
+        &mut *ptr
+    }
+
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr_t>());

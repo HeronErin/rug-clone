@@ -100,6 +100,38 @@ impl SmallInteger {
         }
     }
 
+    /// Returns a mutable reference to
+    /// [`Integer`](../struct.Integer.html) for simple operations that
+    /// do not need to allocate more space for the number.
+    ///
+    /// # Safety
+    ///
+    /// It is undefined behaviour to perform operations that
+    /// reallocate the internal data of the referenced
+    /// [`Integer`](../struct.Integer.html) or to swap it with another
+    /// [`Integer`](../struct.Integer.html).
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Assign;
+    /// use rug::integer::SmallInteger;
+    /// let mut i = SmallInteger::from(1u64);
+    /// let capacity = i.capacity();
+    /// // another u64 will not require a reallocation
+    /// unsafe {
+    ///     i.as_nonreallocating_mut().assign(2u64);
+    /// }
+    /// assert_eq!(*i, 2);
+    /// assert_eq!(i.capacity(), capacity);
+    /// ```
+    #[inline]
+    pub unsafe fn as_nonreallocating_mut(&mut self) -> &mut Integer {
+        self.update_d();
+        let ptr = (&mut self.inner) as *mut _ as *mut _;
+        &mut *ptr
+    }
+
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
