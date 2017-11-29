@@ -1169,17 +1169,19 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_f32_exp_round(&self, round: Round) -> (f32, i32) {
-        let sf = SmallFloat::from(0.0f32);
+        let mut sf = SmallFloat::from(0.0f32);
         assert_eq!(sf.prec(), 24);
         // since we won't change precision, we can mutate the Float
-        let mut_sf = unsafe {
-            let ptr: *mut Float = &*sf as *const Float as *mut Float;
-            &mut *ptr
-        };
         let mut exp: c_long = 0;
         let f = unsafe {
-            mpfr::set(mut_sf.inner_mut(), self.inner(), rraw(round));
-            mpfr::get_d_2exp(&mut exp, mut_sf.inner(), rraw(round))
+            // mpfr::set will not change precision of sf, so we can
+            // use the unsafe as_nongrowing_mut method
+            mpfr::set(
+                sf.as_nongrowing_mut().inner_mut(),
+                self.inner(),
+                rraw(round),
+            );
+            mpfr::get_d_2exp(&mut exp, sf.inner(), rraw(round))
         };
         assert_eq!(exp as i32 as c_long, exp, "overflow");
         (f as f32, exp as i32)

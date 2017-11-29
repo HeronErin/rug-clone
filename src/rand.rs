@@ -30,7 +30,7 @@ use inner::{Inner, InnerMut};
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
 use std::mem;
-use std::os::raw::{c_ulong, c_void};
+use std::os::raw::{c_int, c_ulong, c_void};
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
 
@@ -231,7 +231,7 @@ impl<'a> RandState<'a> {
                 size: 0,
                 d: r_ptr as *mut gmp::limb_t,
             },
-            _alg: RandAlg::_DEFAULT,
+            _alg: 0,
             _algdata: &CUSTOM_FUNCS as *const _ as *mut _,
         };
         RandState {
@@ -431,15 +431,11 @@ pub trait RandGen: Send + Sync {
 // we duplcate them here. The structure of function pointers
 // gmp_randfnptr_t is only inside gmp-impl.h and is not available
 // externally, so we duplicate it here as well.
-#[repr(C)]
-enum RandAlg {
-    _DEFAULT = 0,
-}
 
 #[repr(C)]
 struct MpRandState {
     seed: gmp::mpz_t,
-    _alg: RandAlg,
+    _alg: c_int,
     _algdata: *mut c_void,
 }
 

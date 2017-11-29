@@ -659,10 +659,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn numer(&self) -> &Integer {
-        unsafe {
-            let ptr = gmp::mpq_numref_const(self.inner());
-            &*(ptr as *const Integer)
-        }
+        unsafe { &*(gmp::mpq_numref_const(self.inner()) as *const _) }
     }
 
     /// Borrows the denominator as an
@@ -678,10 +675,7 @@ impl Rational {
     /// ```
     #[inline]
     pub fn denom(&self) -> &Integer {
-        unsafe {
-            let ptr = gmp::mpq_denref_const(self.inner());
-            &*(ptr as *const Integer)
-        }
+        unsafe { &*(gmp::mpq_denref_const(self.inner()) as *const _) }
     }
 
     /// Borrows the numerator and denominator as
@@ -822,9 +816,8 @@ impl Rational {
     pub fn into_numer_denom(self) -> (Integer, Integer) {
         let (mut numer, mut denom) = unsafe { mem::uninitialized() };
         unsafe {
-            let self_numer_denom = self.as_numer_denom();
-            ptr::copy_nonoverlapping(self_numer_denom.0, &mut numer, 1);
-            ptr::copy_nonoverlapping(self_numer_denom.1, &mut denom, 1);
+            ptr::copy_nonoverlapping(self.numer(), &mut numer, 1);
+            ptr::copy_nonoverlapping(self.denom(), &mut denom, 1);
         }
         mem::forget(self);
         (numer, denom)
@@ -916,9 +909,7 @@ impl Rational {
     ///
     /// Panics if the value is zero.
     pub fn as_recip(&self) -> BorrowRational {
-        let (self_num, self_den) = self.as_numer_denom();
-        let (self_num, self_den) = (self_num.inner(), self_den.inner());
-        assert_ne!(self_num.size, 0, "division by zero");
+        assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut ret = BorrowRational {
             inner: unsafe { mem::uninitialized() },
             phantom: PhantomData,
@@ -926,13 +917,13 @@ impl Rational {
         let (ret_num, ret_den) = unsafe {
             let num = &mut *gmp::mpq_numref(&mut ret.inner);
             let den = &mut *gmp::mpq_denref(&mut ret.inner);
+            ptr::copy_nonoverlapping(self.denom().inner(), num, 1);
+            ptr::copy_nonoverlapping(self.numer().inner(), den, 1);
             (num, den)
         };
-        *ret_num = *self_den;
-        *ret_den = *self_num;
-        if self_num.size < 0 {
-            ret_num.size = self_den.size.checked_neg().expect("overflow");
-            ret_den.size = self_num.size.checked_neg().expect("overflow");
+        if self.cmp0() == Ordering::Less {
+            ret_num.size = ret_num.size.checked_neg().expect("overflow");
+            ret_den.size = ret_den.size.checked_neg().expect("overflow");
         }
         ret
     }

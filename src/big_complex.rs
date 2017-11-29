@@ -834,10 +834,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn real(&self) -> &Float {
-        unsafe {
-            let ptr = mpc::realref_const(self.inner());
-            &*(ptr as *const Float)
-        }
+        unsafe { &*(mpc::realref_const(self.inner()) as *const _) }
     }
 
     /// Borrows the imaginary part as a [`Float`](struct.Float.html).
@@ -850,10 +847,7 @@ impl Complex {
     /// assert_eq!(*c.imag(), -20.75)
     #[inline]
     pub fn imag(&self) -> &Float {
-        unsafe {
-            let ptr = mpc::imagref_const(self.inner());
-            &*(ptr as *const Float)
-        }
+        unsafe { &*(mpc::imagref_const(self.inner()) as *const _) }
     }
 
     /// Borrows the real part mutably.
@@ -869,10 +863,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_real(&mut self) -> &mut Float {
-        unsafe {
-            let ptr = mpc::realref(self.inner_mut());
-            &mut *(ptr as *mut Float)
-        }
+        unsafe { &mut *(mpc::realref(self.inner_mut()) as *mut _) }
     }
 
     /// Borrows the imaginary part mutably.
@@ -888,10 +879,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
-        unsafe {
-            let ptr = mpc::imagref(self.inner_mut());
-            &mut *(ptr as *mut Float)
-        }
+        unsafe { &mut *(mpc::imagref(self.inner_mut()) as *mut _) }
     }
 
     /// Borrows the real and imaginary parts.
@@ -930,11 +918,9 @@ impl Complex {
     #[inline]
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
-            let real_ptr = mpc::realref(self.inner_mut());
-            let imag_ptr = mpc::imagref(self.inner_mut());
             (
-                &mut *(real_ptr as *mut Float),
-                &mut *(imag_ptr as *mut Float),
+                &mut *(mpc::realref(self.inner_mut()) as *mut _),
+                &mut *(mpc::imagref(self.inner_mut()) as *mut _),
             )
         }
     }
@@ -983,15 +969,15 @@ impl Complex {
     /// assert_eq!(*reneg_c, c);
     /// ```
     pub fn as_neg(&self) -> BorrowComplex {
+        // shallow copy
         let mut ret = BorrowComplex {
             inner: self.inner,
             phantom: PhantomData,
         };
-        let (self_re, self_im) = self.as_real_imag();
         unsafe {
             (*mpc::realref(&mut ret.inner)).sign.neg_assign();
             (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
-            if self_re.is_nan() || self_im.is_nan() {
+            if self.real().is_nan() || self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
         }
@@ -1022,10 +1008,9 @@ impl Complex {
             inner: self.inner,
             phantom: PhantomData,
         };
-        let self_im = self.imag();
         unsafe {
             (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
-            if self_im.is_nan() {
+            if self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
         }
@@ -1055,9 +1040,6 @@ impl Complex {
     /// assert_eq!(*mul_1_c, c);
     /// ```
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
-        let (self_re, self_im) = self.as_real_imag();
-        let (self_re_nan, self_im_nan) = (self_re.is_nan(), self_im.is_nan());
-        let (self_re, self_im) = (self_re.inner(), self_im.inner());
         let mut ret = BorrowComplex {
             inner: unsafe { mem::uninitialized() },
             phantom: PhantomData,
@@ -1065,8 +1047,8 @@ impl Complex {
         let (ret_re, ret_im) = unsafe {
             let re = &mut *mpc::realref(&mut ret.inner);
             let im = &mut *mpc::imagref(&mut ret.inner);
-            ptr::copy_nonoverlapping(self_re, im, 1);
-            ptr::copy_nonoverlapping(self_im, re, 1);
+            ptr::copy_nonoverlapping(self.real().inner(), im, 1);
+            ptr::copy_nonoverlapping(self.imag().inner(), re, 1);
             (re, im)
         };
         if negative {
@@ -1074,7 +1056,7 @@ impl Complex {
         } else {
             ret_re.sign.neg_assign();
         }
-        if self_re_nan || self_im_nan {
+        if self.real().is_nan() || self.imag().is_nan() {
             unsafe {
                 mpfr::set_nanflag();
             }

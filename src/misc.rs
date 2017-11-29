@@ -26,10 +26,10 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
     //   masking has no effect.
     // * If f is subnormal, f as f32 will be zero anyway.
     if !f.is_nan() {
-        let u = unsafe { mem::transmute::<_, u64>(f) };
+        let u: u64 = unsafe { mem::transmute(f) };
         // f64 has 29 more significant bits than f32.
         let trunc_u = u & (!0 << 29);
-        let trunc_f = unsafe { mem::transmute::<_, f64>(trunc_u) };
+        let trunc_f: f64 = unsafe { mem::transmute(trunc_u) };
         trunc_f as f32
     } else {
         f as f32
@@ -39,13 +39,15 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
 // The commented out function results in longer x86_64 asm.
 // See: https://github.com/rust-lang/rust/issues/42870
 //
-// fn result_swap<T>(r: &mut Result<T, T>) {
-//     let old = ptr_read(r);
-//     let new = match old {
-//         Ok(t) => Err(t),
-//         Err(t) => Ok(t),
-//     };
-//     ptr::write(r, new);
+// pub fn result_swap<T>(r: &mut Result<T, T>) {
+//     unsafe {
+//         let old = ptr::read(r);
+//         let new = match old {
+//             Ok(t) => Err(t),
+//             Err(t) => Ok(t),
+//         };
+//         ptr::write(r, new);
+//     }
 // }
 pub fn result_swap<T>(r: &mut Result<T, T>) {
     unsafe {

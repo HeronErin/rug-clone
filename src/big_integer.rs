@@ -257,11 +257,7 @@ impl Integer {
         if additional == 0 {
             return;
         }
-        let used_bits = if self.inner().size == 0 {
-            0
-        } else {
-            unsafe { gmp::mpz_sizeinbase(self.inner(), 2) }
-        };
+        let used_bits = significant_bits_usize(self);
         let req_bits = used_bits.checked_add(additional).expect("overflow");
         assert_eq!(req_bits as gmp::bitcnt_t as usize, req_bits, "overflow");
         unsafe {
@@ -287,7 +283,7 @@ impl Integer {
     /// assert!(i.capacity() >= 20);
     /// ```
     pub fn shrink_to_fit(&mut self) {
-        let used_bits = unsafe { gmp::mpz_sizeinbase(self.inner(), 2) };
+        let used_bits = significant_bits_usize(self);
         assert_eq!(used_bits as gmp::bitcnt_t as usize, used_bits, "overflow");
         unsafe {
             gmp::mpz_realloc2(self.inner_mut(), used_bits as gmp::bitcnt_t);
@@ -1101,16 +1097,11 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        let bits = unsafe { gmp::mpz_sizeinbase(self.inner(), 2) };
+        let bits = significant_bits_usize(self);
         if bits > u32::MAX as usize {
             panic!("overflow");
         }
-        // sizeinbase returns 1 if number is 0
-        if bits == 1 && *self == 0 {
-            0
-        } else {
-            bits as u32
-        }
+        bits as u32
     }
 
     /// Returns the number of one bits if the value ≥ 0.
@@ -3391,7 +3382,7 @@ pub fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let i_size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
     // size + 2 for '-' and nul
-    let size = i_size.checked_add(2).unwrap();
+    let size = i_size.checked_add(2).expect("overflow");
     let mut buf = Vec::<u8>::with_capacity(size);
     let case_radix = if to_upper { -radix } else { radix };
     unsafe {
@@ -3401,7 +3392,8 @@ pub fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
             case_radix as c_int,
             i.inner(),
         );
-        let nul_index = buf.iter().position(|&x| x == 0).unwrap();
+        let nul_index =
+            buf.iter().position(|&x| x == 0).expect("no null terminator");
         buf.set_len(nul_index);
         String::from_utf8_unchecked(buf)
     }
@@ -3520,6 +3512,15 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     } else {
         assert_eq!(bits as u32 as gmp::bitcnt_t, bits, "overflow");
         Some(bits as u32)
+    }
+}
+
+fn significant_bits_usize(n: &Integer) -> usize {
+    // sizeinbase returns 1 if number is 0, so check 0 first
+    if n.cmp0() == Ordering::Equal {
+        0
+    } else {
+        unsafe { gmp::mpz_sizeinbase(n.inner(), 2) }
     }
 }
 
