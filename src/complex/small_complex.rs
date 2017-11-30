@@ -25,7 +25,6 @@ use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
-#[repr(C)]
 /// A small complex number that does not require any memory
 /// allocation.
 ///
@@ -59,11 +58,12 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// assert_eq!(*a.real(), -9);
 /// assert_eq!(*a.imag(), -18.5);
 /// ```
+#[repr(C)]
 pub struct SmallComplex {
     re: Mpfr,
     im: Mpfr,
-    re_limbs: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-    im_limbs: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
+    // real part is first in limbs if re.d <= im.d
+    limbs: [gmp::limb_t; 2 * LIMBS_IN_SMALL_FLOAT],
 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -72,7 +72,7 @@ const LIMBS_IN_SMALL_FLOAT: usize = 1;
 const LIMBS_IN_SMALL_FLOAT: usize = 2;
 
 #[repr(C)]
-pub struct Mpfr {
+struct Mpfr {
     prec: mpfr::prec_t,
     sign: c_int,
     exp: mpfr::exp_t,
@@ -102,25 +102,10 @@ impl SmallComplex {
             let mut ret = SmallComplex {
                 re: mem::uninitialized(),
                 im: mem::uninitialized(),
-                re_limbs: [0; LIMBS_IN_SMALL_FLOAT],
-                im_limbs: [0; LIMBS_IN_SMALL_FLOAT],
+                limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
             };
-            mpfr::custom_init(&mut ret.re_limbs[0] as *mut _ as *mut _, 64);
-            mpfr::custom_init_set(
-                &mut ret.re as *mut _ as *mut _,
-                mpfr::ZERO_KIND,
-                0,
-                64,
-                &mut ret.re_limbs[0] as *mut _ as *mut _,
-            );
-            mpfr::custom_init(&mut ret.im_limbs[0] as *mut _ as *mut _, 64);
-            mpfr::custom_init_set(
-                &mut ret.im as *mut _ as *mut _,
-                mpfr::ZERO_KIND,
-                0,
-                64,
-                &mut ret.im_limbs[0] as *mut _ as *mut _,
-            );
+            custom_zero(&mut ret.re, &mut ret.limbs[0], 64);
+            custom_zero(&mut ret.im, &mut ret.limbs[LIMBS_IN_SMALL_FLOAT], 64);
             ret
         }
     }
@@ -154,37 +139,25 @@ impl SmallComplex {
         &mut *ptr
     }
 
-    // To be used when re and im are written directly into re_limbs
-    // and im_limbs; re.d points to re_limbs and im.d points to
-    // im_limbs.
-    #[inline]
-    fn set_d(&self) {
-        // sanity check
-        assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());
-        // Since this is borrowed, the limbs won't move around, and we
-        // can set the d fields.
-        let re_d = &self.re_limbs[0] as *const _ as *mut _;
-        let im_d = &self.im_limbs[0] as *const _ as *mut _;
-        self.re.d.store(re_d, Ordering::Relaxed);
-        self.im.d.store(im_d, Ordering::Relaxed);
-    }
-
     // To be used when offsetting re and im in case the struct has
     // been displaced in memory; if currently re.d <= im.d then re.d
-    // points to re_limbs and im.d points to im_limbs, otherwise re.d
-    // points to im_limbs and im.d points to re_limbs.
+    // points to limbs[0] and im.d points to
+    // limbs[LIMBS_IN_SMALL_FLOAT], otherwise re.d points to
+    // limbs[LIMBS_IN_SMALL_FLOAT] and im.d points to limbs[0].
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let mut re_d = &self.re_limbs[0] as *const _ as *mut _;
-        let mut im_d = &self.im_limbs[0] as *const _ as *mut _;
-        if (self.re.d.load(Ordering::Relaxed) as usize)
-            > (self.im.d.load(Ordering::Relaxed) as usize)
-        {
-            mem::swap(&mut re_d, &mut im_d);
-        }
+        let first = &self.limbs[0] as *const _ as *mut _;
+        let last = &self.limbs[LIMBS_IN_SMALL_FLOAT] as *const _ as *mut _;
+        let re_is_first = (self.re.d.load(Ordering::Relaxed) as usize)
+            <= (self.im.d.load(Ordering::Relaxed) as usize);
+        let (re_d, im_d) = if re_is_first {
+            (first, last)
+        } else {
+            (last, first)
+        };
         self.re.d.store(re_d, Ordering::Relaxed);
         self.im.d.store(im_d, Ordering::Relaxed);
     }
@@ -211,30 +184,16 @@ where
 }
 
 trait SetPart<T> {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        t: T,
-    );
+    fn set_part(&mut self, limbs: *mut gmp::limb_t, t: T);
 }
 
 macro_rules! set_part_i {
     { $I:ty => $U:ty } => {
         impl SetPart<$I> for Mpfr {
-            fn set_part(
-                &mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: $I,
-            ) {
+            fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $I) {
                 self.set_part(limbs, val.wrapping_abs() as $U);
                 if val < 0 {
-                    unsafe {
-                        mpfr::neg(
-                            self as *mut _ as *mut _,
-                            self as *const _ as *const _,
-                            rraw(Round::Nearest),
-                        );
-                    }
+                    self.sign = -1;
                 }
             }
         }
@@ -249,39 +208,17 @@ set_part_i! { i64 => u64 }
 macro_rules! set_part_u_single_limb {
     { $U:ty => $bits:expr } => {
         impl SetPart<$U> for Mpfr {
-            fn set_part(
-                &mut self,
-                limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-                val: $U,
-            ) {
-                let ptr = self as *mut _ as *mut _;
-                let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
+            fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $U) {
                 unsafe {
-                    mpfr::custom_init(limb_ptr, $bits);
-                }
-                if val == 0 {
-                    unsafe {
-                        mpfr::custom_init_set(
-                            ptr,
-                            mpfr::ZERO_KIND,
-                            0,
-                            $bits,
-                            limb_ptr,
-                        );
+                    if val == 0 {
+                        custom_zero(self, limbs, $bits);
+                    } else {
+                        let leading = val.leading_zeros();
+                        let limb_leading
+                            = leading + gmp::LIMB_BITS as u32 - $bits;
+                        *limbs = gmp::limb_t::from(val) << limb_leading;
+                        custom_regular(self, limbs, $bits - leading, $bits);
                     }
-                    return;
-                }
-                let leading = val.leading_zeros();
-                let limb_leading = leading + gmp::LIMB_BITS as u32 - $bits;
-                limbs[0] = gmp::limb_t::from(val) << limb_leading;
-                unsafe {
-                    mpfr::custom_init_set(
-                        ptr,
-                        mpfr::REGULAR_KIND,
-                        ($bits - leading) as _,
-                        $bits,
-                        limb_ptr,
-                    );
                 }
             }
         }
@@ -293,57 +230,37 @@ set_part_u_single_limb! { u16 => 16 }
 set_part_u_single_limb! { u32 => 32 }
 
 impl SetPart<u64> for Mpfr {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        val: u64,
-    ) {
-        let ptr = self as *mut _ as *mut _;
-        let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
+    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: u64) {
         unsafe {
-            mpfr::custom_init(limb_ptr, 64);
-        }
-        if val == 0 {
-            unsafe {
-                mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 64, limb_ptr);
+            if val == 0 {
+                custom_zero(self, limbs, 64);
+            } else {
+                let leading = val.leading_zeros();
+                let sval = val << leading;
+                #[cfg(gmp_limb_bits_64)]
+                {
+                    *limbs = sval.into();
+                }
+                #[cfg(gmp_limb_bits_32)]
+                {
+                    *limbs = (sval as u32).into();
+                    *limbs.offset(1) = ((sval >> 32) as u32).into();
+                }
+                custom_regular(self, limbs, 64 - leading, 64);
             }
-            return;
-        }
-        let leading = val.leading_zeros();
-        #[cfg(gmp_limb_bits_64)]
-        {
-            limbs[0] = (val as gmp::limb_t) << leading;
-        }
-        #[cfg(gmp_limb_bits_32)]
-        {
-            let sval = val << leading;
-            limbs[0] = sval as u32 as gmp::limb_t;
-            limbs[1] = (sval >> 32) as u32 as gmp::limb_t;
-        }
-        unsafe {
-            mpfr::custom_init_set(
-                ptr,
-                mpfr::REGULAR_KIND,
-                (64 - leading) as _,
-                64,
-                limb_ptr,
-            );
         }
     }
 }
 
 impl SetPart<f32> for Mpfr {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        val: f32,
-    ) {
-        let ptr = self as *mut _ as *mut _;
-        let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
+    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: f32) {
         unsafe {
-            mpfr::custom_init(limb_ptr, 24);
-            mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
-            mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
+            custom_zero(self, limbs, 24);
+            mpfr::set_d(
+                self as *mut _ as *mut _,
+                val.into(),
+                rraw(Round::Nearest),
+            );
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -353,17 +270,10 @@ impl SetPart<f32> for Mpfr {
 }
 
 impl SetPart<f64> for Mpfr {
-    fn set_part(
-        &mut self,
-        limbs: &mut [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
-        val: f64,
-    ) {
-        let ptr = self as *mut _ as *mut _;
-        let limb_ptr = &mut limbs[0] as *mut _ as *mut _;
+    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: f64) {
         unsafe {
-            mpfr::custom_init(limb_ptr, 53);
-            mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 53, limb_ptr);
-            mpfr::set_d(ptr, val, rraw(Round::Nearest));
+            custom_zero(self, limbs, 53);
+            mpfr::set_d(self as *mut _ as *mut _, val, rraw(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -386,10 +296,8 @@ macro_rules! small_assign_re_im {
     { $R:ty, $I:ty } => {
         impl Assign<($R, $I)> for SmallComplex {
             fn assign(&mut self, (re, im): ($R, $I)) {
-                self.re.set_part(&mut self.re_limbs, re);
-                self.im.set_part(&mut self.im_limbs, im);
-                // make sure re.d and im.d are in correct order
-                self.set_d();
+                self.re.set_part(&mut self.limbs[0], re);
+                self.im.set_part(&mut self.limbs[LIMBS_IN_SMALL_FLOAT], im);
             }
         }
     };
@@ -433,4 +341,31 @@ fn rraw(round: Round) -> mpfr::rnd_t {
         Round::Down => mpfr::rnd_t::RNDD,
         Round::AwayFromZero => mpfr::rnd_t::RNDA,
     }
+}
+
+unsafe fn custom_zero(f: &mut Mpfr, limbs: *mut gmp::limb_t, prec: u32) {
+    mpfr::custom_init(limbs as *mut _, prec.into());
+    mpfr::custom_init_set(
+        f as *mut _ as *mut _,
+        mpfr::ZERO_KIND,
+        0,
+        prec.into(),
+        limbs as *mut _,
+    );
+}
+
+unsafe fn custom_regular(
+    f: &mut Mpfr,
+    limbs: *mut gmp::limb_t,
+    exp: u32,
+    prec: mpfr::prec_t,
+) {
+    mpfr::custom_init(limbs as *mut _, prec.into());
+    mpfr::custom_init_set(
+        f as *mut _ as *mut _,
+        mpfr::REGULAR_KIND,
+        exp as _,
+        prec.into(),
+        limbs as *mut _,
+    );
 }

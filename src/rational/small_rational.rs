@@ -17,6 +17,7 @@
 use {Assign, Rational};
 
 use gmp_mpfr_sys::gmp;
+use inner::InnerMut;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
@@ -53,8 +54,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 pub struct SmallRational {
     num: Mpz,
     den: Mpz,
-    num_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
-    den_limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
+    // numerator is first in limbs if num.d <= den.d
+    limbs: [gmp::limb_t; 2 * LIMBS_IN_SMALL_INTEGER],
 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -63,7 +64,7 @@ const LIMBS_IN_SMALL_INTEGER: usize = 1;
 const LIMBS_IN_SMALL_INTEGER: usize = 2;
 
 #[repr(C)]
-pub struct Mpz {
+struct Mpz {
     alloc: c_int,
     size: c_int,
     d: AtomicPtr<gmp::limb_t>,
@@ -101,10 +102,9 @@ impl SmallRational {
                 alloc: LIMBS_IN_SMALL_INTEGER as c_int,
                 d: Default::default(),
             },
-            num_limbs: [0; LIMBS_IN_SMALL_INTEGER],
-            den_limbs: [0; LIMBS_IN_SMALL_INTEGER],
+            limbs: [0; 2 * LIMBS_IN_SMALL_INTEGER],
         };
-        ret.den_limbs[0] = 1;
+        ret.limbs[LIMBS_IN_SMALL_INTEGER] = 1;
         ret
     }
 
@@ -147,15 +147,8 @@ impl SmallRational {
     ///
     /// # Safety
     ///
-    /// This function is unsafe because
-    ///
-    /// * it does not check that the denominator is not zero, and
-    ///
-    /// * it does not canonicalize the numerator and denominator.
-    ///
-    /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](../struct.Rational.html) structures keep their
-    /// numerators and denominators canonicalized.
+    /// This method leads to undefined behaviour if `den` is zero or
+    /// if `num` and `den` have common factors.
     ///
     /// # Examples
     ///
@@ -187,15 +180,8 @@ impl SmallRational {
     ///
     /// # Safety
     ///
-    /// This function is unsafe because
-    ///
-    /// * it does not check that the denominator is not zero, and
-    ///
-    /// * it does not canonicalize the numerator and denominator.
-    ///
-    /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](../struct.Rational.html) structures keep their
-    /// numerators and denominators canonicalized.
+    /// This method leads to undefined behaviour if `den` is zero or
+    /// if `num` and `den` have common factors.
     ///
     /// # Examples
     ///
@@ -205,7 +191,6 @@ impl SmallRational {
     ///     SmallRational::from_canonicalized_64(true, 13, 10)
     /// };
     /// // from_safe is canonicalized to the same form as from_unsafe
-    ///
     /// let from_safe = SmallRational::from((130, -100));
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
@@ -228,15 +213,8 @@ impl SmallRational {
     ///
     /// # Safety
     ///
-    /// This function is unsafe because
-    ///
-    /// * it does not check that the denominator is not zero, and
-    ///
-    /// * it does not canonicalize the numerator and denominator.
-    ///
-    /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](../struct.Rational.html) structures keep their
-    /// numerators and denominators canonicalized.
+    /// This method leads to undefined behaviour if `den` is zero or
+    /// if `num` and `den` have common factors.
     ///
     /// # Examples
     ///
@@ -265,10 +243,11 @@ impl SmallRational {
         } else {
             1
         };
-        self.num_limbs[0] = num.into();
+        self.num.d = Default::default();
         self.den.size = 1;
-        self.den_limbs[0] = den.into();
-        self.set_d();
+        self.den.d = Default::default();
+        self.limbs[0] = num.into();
+        self.limbs[LIMBS_IN_SMALL_INTEGER] = den.into();
     }
 
     /// Sets a `SmallRational` to a 64-bit numerator and denominator,
@@ -276,15 +255,8 @@ impl SmallRational {
     ///
     /// # Safety
     ///
-    /// This function is unsafe because
-    ///
-    /// * it does not check that the denominator is not zero, and
-    ///
-    /// * it does not canonicalize the numerator and denominator.
-    ///
-    /// The rest of the library assumes that `SmallRational` and
-    /// [`Rational`](../struct.Rational.html) structures keep their
-    /// numerators and denominators canonicalized.
+    /// This method leads to undefined behaviour if `den` is zero or
+    /// if `num` and `den` have common factors.
     ///
     /// # Examples
     ///
@@ -315,33 +287,36 @@ impl SmallRational {
             } else {
                 1
             };
-            self.num_limbs[0] = num as gmp::limb_t;
+            self.num.d = Default::default();
             self.den.size = 1;
-            self.den_limbs[0] = den as gmp::limb_t;
-            self.set_d();
+            self.den.d = Default::default();
+            self.limbs[0] = num.into();
+            self.limbs[LIMBS_IN_SMALL_INTEGER] = den.into();
         }
         #[cfg(gmp_limb_bits_32)]
         {
             if num == 0 {
                 self.num_size = 0;
-                self.num_limbs[0] = num as u32 as gmp::limb_t;
+                self.limbs[0] = (num as u32).into();
             } else if num <= 0xffff_ffff {
                 self.num.size = if neg { -1 } else { 1 };
-                self.num_limbs[0] = num as u32 as gmp::limb_t;
+                self.limbs[0] = (num as u32).into();
             } else {
                 self.num.size = if neg { -2 } else { 2 };
-                self.num_limbs[0] = num as u32 as gmp::limb_t;
-                self.num_limbs[1] = (num >> 32) as u32 as gmp::limb_t;
+                self.limbs[0] = (num as u32).into();
+                self.limbs[1] = ((num >> 32) as u32).into();
             }
+            self.num.d = Default::default();
             if den <= 0xffff_ffff {
                 self.den.size = 1;
-                self.den_limbs[0] = den as u32 as gmp::limb_t;
+                self.limbs[LIMBS_IN_SMALL_INTEGER] = (den as u32).into();
             } else {
                 self.den.size = 2;
-                self.den_limbs[0] = den as u32 as gmp::limb_t;
-                self.den_limbs[1] = (den >> 32) as u32 as gmp::limb_t;
+                self.limbs[LIMBS_IN_SMALL_INTEGER] = (den as u32).into();
+                self.limbs[LIMBS_IN_SMALL_INTEGER + 1] =
+                    ((den >> 32) as u32).into();
             }
-            self.set_d();
+            self.den.d = Default::default();
         }
     }
 
@@ -350,16 +325,18 @@ impl SmallRational {
         assert_ne!(den, 0, "division by zero");
         if num == 0 {
             self.num.size = 0;
+            self.num.d = Default::default();
             self.den.size = 1;
-            self.den_limbs[0] = 1;
-            return;
-        }
-        unsafe {
-            self.assign_canonicalized_32(neg, num, den);
-        }
-        self.set_d();
-        unsafe {
-            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
+            self.den.d = Default::default();
+            self.limbs[0] = 0;
+            self.limbs[LIMBS_IN_SMALL_INTEGER] = 1;
+        } else {
+            unsafe {
+                self.assign_canonicalized_32(neg, num, den);
+                gmp::mpq_canonicalize(
+                    self.as_nonreallocating_mut().inner_mut(),
+                );
+            }
         }
     }
 
@@ -368,52 +345,41 @@ impl SmallRational {
         assert_ne!(den, 0, "division by zero");
         if num == 0 {
             self.num.size = 0;
+            self.num.d = Default::default();
             self.den.size = 1;
-            self.den_limbs[0] = 1;
-            return;
+            self.den.d = Default::default();
+            self.limbs[0] = 0;
+            self.limbs[LIMBS_IN_SMALL_INTEGER] = 1;
+        } else {
+            unsafe {
+                self.assign_canonicalized_64(neg, num, den);
+                gmp::mpq_canonicalize(
+                    self.as_nonreallocating_mut().inner_mut(),
+                );
+            }
         }
-        unsafe {
-            self.assign_canonicalized_64(neg, num, den);
-        }
-        self.set_d();
-        unsafe {
-            gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
-        }
-    }
-
-    // To be used when num and den are written directly into num_limbs
-    // and den_limbs; num.d points to num_limbs and den.d points to
-    // den_limbs.
-    #[inline]
-    fn set_d(&self) {
-        // sanity check
-        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
-        // Since this is borrowed, the limbs won't move around, and we
-        // can set the d fields.
-        let num_d = &self.num_limbs[0] as *const _ as *mut _;
-        let den_d = &self.den_limbs[0] as *const _ as *mut _;
-        self.num.d.store(num_d, Ordering::Relaxed);
-        self.den.d.store(den_d, Ordering::Relaxed);
     }
 
     // To be used when offsetting num and den in case the struct has
     // been displaced in memory; if currently num.d <= den.d then
-    // num.d points to num_limbs and den.d points to den_limbs,
-    // otherwise num.d points to den_limbs and den.d points to
-    // num_limbs.
+    // num.d points to limbs[0] and den.d points to
+    // limbs[LIMBS_IN_SMALL_INTEGER], otherwise num.d points to
+    // limbs[LIMBS_IN_SMALL_INTEGER] and den.d points to limbs[0].
     #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let mut num_d = &self.num_limbs[0] as *const _ as *mut _;
-        let mut den_d = &self.den_limbs[0] as *const _ as *mut _;
-        if (self.num.d.load(Ordering::Relaxed) as usize)
-            > (self.den.d.load(Ordering::Relaxed) as usize)
-        {
-            mem::swap(&mut num_d, &mut den_d);
-        }
+        let first = &self.limbs[0] as *const _ as *mut _;
+        let last = &self.limbs[LIMBS_IN_SMALL_INTEGER] as *const _ as *mut _;
+        let num_is_first = (self.num.d.load(Ordering::Relaxed) as usize)
+            <= (self.den.d.load(Ordering::Relaxed) as usize);
+        let (num_d, den_d) = if num_is_first {
+            (first, last)
+        } else {
+            (last, first)
+        };
         self.num.d.store(num_d, Ordering::Relaxed);
         self.den.d.store(den_d, Ordering::Relaxed);
     }
