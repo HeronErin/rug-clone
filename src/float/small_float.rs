@@ -106,7 +106,7 @@ impl SmallFloat {
             xmpfr::custom_zero(
                 &mut ret.inner as *mut _ as *mut _,
                 &mut ret.limbs[0],
-                64,
+                53,
             );
             ret
         }

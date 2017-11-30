@@ -108,12 +108,12 @@ impl SmallComplex {
             xmpfr::custom_zero(
                 &mut ret.re as *mut _ as *mut _,
                 &mut ret.limbs[0],
-                64,
+                53,
             );
             xmpfr::custom_zero(
                 &mut ret.im as *mut _ as *mut _,
                 &mut ret.limbs[LIMBS_IN_SMALL_FLOAT],
-                64,
+                53,
             );
             ret
         }

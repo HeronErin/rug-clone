@@ -1,6 +1,8 @@
 * Add `as_nonreallocating_mut` methods to small integers and rational
   numbers.
 * Add `as_nongrowing_mut` methods to small floats and complex numbers.
+* Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
+  with a precision of 53.
 
 Version 0.9.1 (2017-11-27)
 ==========================
