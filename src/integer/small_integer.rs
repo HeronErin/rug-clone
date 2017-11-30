@@ -100,7 +100,7 @@ impl SmallInteger {
         }
     }
 
-    /// Returns a mutable reference to
+    /// Returns a mutable reference to an
     /// [`Integer`](../struct.Integer.html) for simple operations that
     /// do not need to allocate more space for the number.
     ///
@@ -109,7 +109,7 @@ impl SmallInteger {
     /// It is undefined behaviour to perform operations that
     /// reallocate the internal data of the referenced
     /// [`Integer`](../struct.Integer.html) or to swap it with another
-    /// [`Integer`](../struct.Integer.html).
+    /// number.
     ///
     /// # Examples
     ///

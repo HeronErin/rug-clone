@@ -3392,8 +3392,9 @@ pub fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
             case_radix as c_int,
             i.inner(),
         );
-        let nul_index =
-            buf.iter().position(|&x| x == 0).expect("no null terminator");
+        let nul_index = buf.iter()
+            .position(|&x| x == 0)
+            .expect("no null terminator");
         buf.set_len(nul_index);
         String::from_utf8_unchecked(buf)
     }

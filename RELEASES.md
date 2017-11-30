@@ -1,3 +1,7 @@
+* Add `as_nonreallocating_mut` methods to small integers and rational
+  numbers.
+* Add `as_nongrowing_mut` methods to small floats and complex numbers.
+
 Version 0.9.1 (2017-11-27)
 ==========================
 

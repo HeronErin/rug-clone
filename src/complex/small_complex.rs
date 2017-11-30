@@ -125,14 +125,67 @@ impl SmallComplex {
         }
     }
 
-    fn update_d(&self) {
+    /// Returns a mutable reference to a
+    /// [`Complex`](../struct.Complex.html) number for simple
+    /// operations that do not need to change the precision of the
+    /// real or imaginary part.
+    ///
+    /// # Safety
+    ///
+    /// It is undefined behaviour to modify the precision of the
+    /// referenced [`Complex`](../struct.Complex.html) number or to
+    /// swap it with another number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::complex::SmallComplex;
+    /// let mut c = SmallComplex::from((1.0f32, 3.0f32));
+    /// // rotation does not change the precision
+    /// unsafe {
+    ///     c.as_nongrowing_mut().mul_i_mut(false);
+    /// }
+    /// assert_eq!(*c, (-3.0, 1.0));
+    /// ```
+    #[inline]
+    pub unsafe fn as_nongrowing_mut(&mut self) -> &mut Complex {
+        self.update_d();
+        let ptr = (&mut self.re) as *mut _ as *mut _;
+        &mut *ptr
+    }
+
+    // To be used when re and im are written directly into re_limbs
+    // and im_limbs; re.d points to re_limbs and im.d points to
+    // im_limbs.
+    #[inline]
+    fn set_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
         let re_d = &self.re_limbs[0] as *const _ as *mut _;
-        self.re.d.store(re_d, Ordering::Relaxed);
         let im_d = &self.im_limbs[0] as *const _ as *mut _;
+        self.re.d.store(re_d, Ordering::Relaxed);
+        self.im.d.store(im_d, Ordering::Relaxed);
+    }
+
+    // To be used when offsetting re and im in case the struct has
+    // been displaced in memory; if currently re.d <= im.d then re.d
+    // points to re_limbs and im.d points to im_limbs, otherwise re.d
+    // points to im_limbs and im.d points to re_limbs.
+    fn update_d(&self) {
+        // sanity check
+        assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());
+        // Since this is borrowed, the limbs won't move around, and we
+        // can set the d fields.
+        let mut re_d = &self.re_limbs[0] as *const _ as *mut _;
+        let mut im_d = &self.im_limbs[0] as *const _ as *mut _;
+        if (self.re.d.load(Ordering::Relaxed) as usize)
+            > (self.im.d.load(Ordering::Relaxed) as usize)
+        {
+            mem::swap(&mut re_d, &mut im_d);
+        }
+        self.re.d.store(re_d, Ordering::Relaxed);
         self.im.d.store(im_d, Ordering::Relaxed);
     }
 }
@@ -335,6 +388,8 @@ macro_rules! small_assign_re_im {
             fn assign(&mut self, (re, im): ($R, $I)) {
                 self.re.set_part(&mut self.re_limbs, re);
                 self.im.set_part(&mut self.im_limbs, im);
+                // make sure re.d and im.d are in correct order
+                self.set_d();
             }
         }
     };

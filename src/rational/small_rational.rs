@@ -108,6 +108,40 @@ impl SmallRational {
         ret
     }
 
+    /// Returns a mutable reference to a
+    /// [`Rational`](../struct.Rational.html) number for simple
+    /// operations that do not need to allocate more space for the
+    /// numerator or denominator.
+    ///
+    /// # Safety
+    ///
+    /// It is undefined behaviour to perform operations that
+    /// reallocate the internal data of the referenced
+    /// [`Rational`](../struct.Rational.html) number or to swap it
+    /// with another number.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rational::SmallRational;
+    /// let mut r = SmallRational::from((-15i32, 47i32));
+    /// let num_capacity = r.numer().capacity();
+    /// let den_capacity = r.denom().capacity();
+    /// // reciprocating this will not require reallocations
+    /// unsafe {
+    ///     r.as_nonreallocating_mut().recip_mut();
+    /// }
+    /// assert_eq!(*r, (-47, 15));
+    /// assert_eq!(r.numer().capacity(), num_capacity);
+    /// assert_eq!(r.denom().capacity(), den_capacity);
+    /// ```
+    #[inline]
+    pub unsafe fn as_nonreallocating_mut(&mut self) -> &mut Rational {
+        self.update_d();
+        let ptr = (&mut self.num) as *mut _ as *mut _;
+        &mut *ptr
+    }
+
     /// Creates a `SmallRational` from a 32-bit numerator and
     /// denominator, assuming they are in canonical form.
     ///
@@ -224,10 +258,17 @@ impl SmallRational {
         num: u32,
         den: u32,
     ) {
-        self.num.size = if neg { -1 } else { 1 };
+        self.num.size = if num == 0 {
+            0
+        } else if neg {
+            -1
+        } else {
+            1
+        };
         self.num_limbs[0] = num.into();
         self.den.size = 1;
         self.den_limbs[0] = den.into();
+        self.set_d();
     }
 
     /// Sets a `SmallRational` to a 64-bit numerator and denominator,
@@ -267,14 +308,24 @@ impl SmallRational {
     ) {
         #[cfg(gmp_limb_bits_64)]
         {
-            self.num.size = if neg { -1 } else { 1 };
+            self.num.size = if num == 0 {
+                0
+            } else if neg {
+                -1
+            } else {
+                1
+            };
             self.num_limbs[0] = num as gmp::limb_t;
             self.den.size = 1;
             self.den_limbs[0] = den as gmp::limb_t;
+            self.set_d();
         }
         #[cfg(gmp_limb_bits_32)]
         {
-            if num <= 0xffff_ffff {
+            if num == 0 {
+                self.num_size = 0;
+                self.num_limbs[0] = num as u32 as gmp::limb_t;
+            } else if num <= 0xffff_ffff {
                 self.num.size = if neg { -1 } else { 1 };
                 self.num_limbs[0] = num as u32 as gmp::limb_t;
             } else {
@@ -290,6 +341,7 @@ impl SmallRational {
                 self.den_limbs[0] = den as u32 as gmp::limb_t;
                 self.den_limbs[1] = (den >> 32) as u32 as gmp::limb_t;
             }
+            self.set_d();
         }
     }
 
@@ -305,7 +357,7 @@ impl SmallRational {
         unsafe {
             self.assign_canonicalized_32(neg, num, den);
         }
-        self.update_d();
+        self.set_d();
         unsafe {
             gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
@@ -323,21 +375,46 @@ impl SmallRational {
         unsafe {
             self.assign_canonicalized_64(neg, num, den);
         }
-        self.update_d();
+        self.set_d();
         unsafe {
             gmp::mpq_canonicalize((&mut self.num) as *mut _ as *mut _);
         }
     }
 
+    // To be used when num and den are written directly into num_limbs
+    // and den_limbs; num.d points to num_limbs and den.d points to
+    // den_limbs.
+    #[inline]
+    fn set_d(&self) {
+        // sanity check
+        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
+        // Since this is borrowed, the limbs won't move around, and we
+        // can set the d fields.
+        let num_d = &self.num_limbs[0] as *const _ as *mut _;
+        let den_d = &self.den_limbs[0] as *const _ as *mut _;
+        self.num.d.store(num_d, Ordering::Relaxed);
+        self.den.d.store(den_d, Ordering::Relaxed);
+    }
+
+    // To be used when offsetting num and den in case the struct has
+    // been displaced in memory; if currently num.d <= den.d then
+    // num.d points to num_limbs and den.d points to den_limbs,
+    // otherwise num.d points to den_limbs and den.d points to
+    // num_limbs.
     #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let num_d = &self.num_limbs[0] as *const _ as *mut _;
+        let mut num_d = &self.num_limbs[0] as *const _ as *mut _;
+        let mut den_d = &self.den_limbs[0] as *const _ as *mut _;
+        if (self.num.d.load(Ordering::Relaxed) as usize)
+            > (self.den.d.load(Ordering::Relaxed) as usize)
+        {
+            mem::swap(&mut num_d, &mut den_d);
+        }
         self.num.d.store(num_d, Ordering::Relaxed);
-        let den_d = &self.den_limbs[0] as *const _ as *mut _;
         self.den.d.store(den_d, Ordering::Relaxed);
     }
 }

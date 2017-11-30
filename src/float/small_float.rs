@@ -114,15 +114,15 @@ impl SmallFloat {
         }
     }
 
-    /// Returns a mutable reference to [`Float`](../struct.Float.html)
-    /// for simple operations that do not need to change the precision
-    /// of the [`Float`](../struct.Float.html).
+    /// Returns a mutable reference to a
+    /// [`Float`](../struct.Float.html) for simple operations that do
+    /// not need to change the precision of the number.
     ///
     /// # Safety
     ///
     /// It is undefined behaviour to modify the precision of the
     /// referenced [`Float`](../struct.Float.html) or to swap it with
-    /// another [`Float`](../struct.Float.html).
+    /// another number.
     ///
     /// # Examples
     ///
