@@ -296,8 +296,8 @@ impl SmallRational {
         #[cfg(gmp_limb_bits_32)]
         {
             if num == 0 {
-                self.num_size = 0;
-                self.limbs[0] = (num as u32).into();
+                self.num.size = 0;
+                self.limbs[0] = 0;
             } else if num <= 0xffff_ffff {
                 self.num.size = if neg { -1 } else { 1 };
                 self.limbs[0] = (num as u32).into();
