@@ -344,3 +344,24 @@ pub unsafe fn submul(
     }
     -reverse_ord
 }
+
+#[inline]
+pub unsafe fn custom_zero(
+    f: *mut mpfr_t,
+    limbs: *mut gmp::limb_t,
+    prec: mpfr::prec_t,
+) {
+    mpfr::custom_init(limbs as *mut _, prec);
+    mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut _);
+}
+
+#[inline]
+pub unsafe fn custom_regular(
+    f: *mut mpfr_t,
+    limbs: *mut gmp::limb_t,
+    exp: mpfr::exp_t,
+    prec: mpfr::prec_t,
+) {
+    mpfr::custom_init(limbs as *mut _, prec);
+    mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut _);
+}

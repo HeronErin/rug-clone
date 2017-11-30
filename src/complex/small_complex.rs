@@ -18,6 +18,7 @@ use Assign;
 use Complex;
 use float::Round;
 
+use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::mem;
@@ -104,8 +105,16 @@ impl SmallComplex {
                 im: mem::uninitialized(),
                 limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
             };
-            custom_zero(&mut ret.re, &mut ret.limbs[0], 64);
-            custom_zero(&mut ret.im, &mut ret.limbs[LIMBS_IN_SMALL_FLOAT], 64);
+            xmpfr::custom_zero(
+                &mut ret.re as *mut _ as *mut _,
+                &mut ret.limbs[0],
+                64,
+            );
+            xmpfr::custom_zero(
+                &mut ret.im as *mut _ as *mut _,
+                &mut ret.limbs[LIMBS_IN_SMALL_FLOAT],
+                64,
+            );
             ret
         }
     }
@@ -209,15 +218,17 @@ macro_rules! set_part_u_single_limb {
     { $U:ty => $bits:expr } => {
         impl SetPart<$U> for Mpfr {
             fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $U) {
+                let ptr = self as *mut _ as *mut _;
                 unsafe {
                     if val == 0 {
-                        custom_zero(self, limbs, $bits);
+                        xmpfr::custom_zero(ptr, limbs, $bits);
                     } else {
                         let leading = val.leading_zeros();
                         let limb_leading
                             = leading + gmp::LIMB_BITS as u32 - $bits;
                         *limbs = gmp::limb_t::from(val) << limb_leading;
-                        custom_regular(self, limbs, $bits - leading, $bits);
+                        let exp = $bits - leading;
+                        xmpfr::custom_regular(ptr, limbs, exp as _, $bits);
                     }
                 }
             }
@@ -231,9 +242,10 @@ set_part_u_single_limb! { u32 => 32 }
 
 impl SetPart<u64> for Mpfr {
     fn set_part(&mut self, limbs: *mut gmp::limb_t, val: u64) {
+        let ptr = self as *mut _ as *mut _;
         unsafe {
             if val == 0 {
-                custom_zero(self, limbs, 64);
+                xmpfr::custom_zero(ptr, limbs, 64);
             } else {
                 let leading = val.leading_zeros();
                 let sval = val << leading;
@@ -246,7 +258,7 @@ impl SetPart<u64> for Mpfr {
                     *limbs = (sval as u32).into();
                     *limbs.offset(1) = ((sval >> 32) as u32).into();
                 }
-                custom_regular(self, limbs, 64 - leading, 64);
+                xmpfr::custom_regular(ptr, limbs, (64 - leading) as _, 64);
             }
         }
     }
@@ -254,13 +266,10 @@ impl SetPart<u64> for Mpfr {
 
 impl SetPart<f32> for Mpfr {
     fn set_part(&mut self, limbs: *mut gmp::limb_t, val: f32) {
+        let ptr = self as *mut _ as *mut _;
         unsafe {
-            custom_zero(self, limbs, 24);
-            mpfr::set_d(
-                self as *mut _ as *mut _,
-                val.into(),
-                rraw(Round::Nearest),
-            );
+            xmpfr::custom_zero(ptr, limbs, 24);
+            mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -271,9 +280,10 @@ impl SetPart<f32> for Mpfr {
 
 impl SetPart<f64> for Mpfr {
     fn set_part(&mut self, limbs: *mut gmp::limb_t, val: f64) {
+        let ptr = self as *mut _ as *mut _;
         unsafe {
-            custom_zero(self, limbs, 53);
-            mpfr::set_d(self as *mut _ as *mut _, val, rraw(Round::Nearest));
+            xmpfr::custom_zero(ptr, limbs, 53);
+            mpfr::set_d(ptr, val, rraw(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -341,31 +351,4 @@ fn rraw(round: Round) -> mpfr::rnd_t {
         Round::Down => mpfr::rnd_t::RNDD,
         Round::AwayFromZero => mpfr::rnd_t::RNDA,
     }
-}
-
-unsafe fn custom_zero(f: &mut Mpfr, limbs: *mut gmp::limb_t, prec: u32) {
-    mpfr::custom_init(limbs as *mut _, prec.into());
-    mpfr::custom_init_set(
-        f as *mut _ as *mut _,
-        mpfr::ZERO_KIND,
-        0,
-        prec.into(),
-        limbs as *mut _,
-    );
-}
-
-unsafe fn custom_regular(
-    f: &mut Mpfr,
-    limbs: *mut gmp::limb_t,
-    exp: u32,
-    prec: mpfr::prec_t,
-) {
-    mpfr::custom_init(limbs as *mut _, prec.into());
-    mpfr::custom_init_set(
-        f as *mut _ as *mut _,
-        mpfr::REGULAR_KIND,
-        exp as _,
-        prec.into(),
-        limbs as *mut _,
-    );
 }

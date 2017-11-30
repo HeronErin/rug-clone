@@ -17,6 +17,7 @@
 use {Assign, Float};
 use float::Round;
 
+use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::{i32, u32};
@@ -102,13 +103,10 @@ impl SmallFloat {
                 inner: mem::uninitialized(),
                 limbs: [0; LIMBS_IN_SMALL_FLOAT],
             };
-            mpfr::custom_init(&mut ret.limbs[0] as *mut _ as *mut _, 64);
-            mpfr::custom_init_set(
+            xmpfr::custom_zero(
                 &mut ret.inner as *mut _ as *mut _,
-                mpfr::ZERO_KIND,
-                0,
+                &mut ret.limbs[0],
                 64,
-                &mut ret.limbs[0] as *mut _ as *mut _,
             );
             ret
         }
@@ -199,33 +197,18 @@ macro_rules! assign_u_single_limb {
             #[inline]
             fn assign(&mut self, val: $U) {
                 let ptr = &mut self.inner as *mut _ as *mut _;
-                let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
                 unsafe {
-                    mpfr::custom_init(limb_ptr, $bits);
-                }
-                if val == 0 {
-                    unsafe {
-                        mpfr::custom_init_set(
-                            ptr,
-                            mpfr::ZERO_KIND,
-                            0,
-                            $bits,
-                            limb_ptr,
-                        );
+                    if val == 0 {
+                        xmpfr::custom_zero(ptr, &mut self.limbs[0], $bits);
+                    } else {
+                        let leading = val.leading_zeros();
+                        let limb_leading
+                            = leading + gmp::LIMB_BITS as u32 - $bits;
+                        self.limbs[0] = gmp::limb_t::from(val) << limb_leading;
+                        let limbs = &mut self.limbs[0];
+                        let exp = $bits - leading;
+                        xmpfr::custom_regular(ptr, limbs, exp as _, $bits);
                     }
-                    return;
-                }
-                let leading = val.leading_zeros();
-                let limb_leading = leading + gmp::LIMB_BITS as u32 - $bits;
-                self.limbs[0] = gmp::limb_t::from(val) << limb_leading;
-                unsafe {
-                    mpfr::custom_init_set(
-                        ptr,
-                        mpfr::REGULAR_KIND,
-                        ($bits - leading) as _,
-                        $bits,
-                        limb_ptr,
-                    );
                 }
             }
         }
@@ -240,35 +223,24 @@ impl Assign<u64> for SmallFloat {
     #[inline]
     fn assign(&mut self, val: u64) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
-            mpfr::custom_init(limb_ptr, 64);
-        }
-        if val == 0 {
-            unsafe {
-                mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 64, limb_ptr);
+            if val == 0 {
+                xmpfr::custom_zero(ptr, &mut self.limbs[0], 64);
+            } else {
+                let leading = val.leading_zeros();
+                let sval = val << leading;
+                #[cfg(gmp_limb_bits_64)]
+                {
+                    self.limbs[0] = sval.into();
+                }
+                #[cfg(gmp_limb_bits_32)]
+                {
+                    self.limbs[0] = (sval as u32).into();
+                    self.limbs[1] = ((sval >> 32) as u32).into();
+                }
+                let limbs = &mut self.limbs[0];
+                xmpfr::custom_regular(ptr, limbs, (64 - leading) as _, 64);
             }
-            return;
-        }
-        let leading = val.leading_zeros();
-        #[cfg(gmp_limb_bits_64)]
-        {
-            self.limbs[0] = (val as gmp::limb_t) << leading;
-        }
-        #[cfg(gmp_limb_bits_32)]
-        {
-            let sval = val << leading;
-            self.limbs[0] = sval as u32 as gmp::limb_t;
-            self.limbs[1] = (sval >> 32) as u32 as gmp::limb_t;
-        }
-        unsafe {
-            mpfr::custom_init_set(
-                ptr,
-                mpfr::REGULAR_KIND,
-                (64 - leading) as _,
-                64,
-                limb_ptr,
-            );
         }
     }
 }
@@ -277,10 +249,8 @@ impl Assign<f32> for SmallFloat {
     #[inline]
     fn assign(&mut self, val: f32) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
-            mpfr::custom_init(limb_ptr, 24);
-            mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 24, limb_ptr);
+            xmpfr::custom_zero(ptr, &mut self.limbs[0], 24);
             mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
         }
         // retain sign in case of NaN
@@ -294,10 +264,8 @@ impl Assign<f64> for SmallFloat {
     #[inline]
     fn assign(&mut self, val: f64) {
         let ptr = &mut self.inner as *mut _ as *mut _;
-        let limb_ptr = &mut self.limbs[0] as *mut _ as *mut _;
         unsafe {
-            mpfr::custom_init(limb_ptr, 53);
-            mpfr::custom_init_set(ptr, mpfr::ZERO_KIND, 0, 53, limb_ptr);
+            xmpfr::custom_zero(ptr, &mut self.limbs[0], 53);
             mpfr::set_d(ptr, val as f64, rraw(Round::Nearest));
         }
         // retain sign in case of NaN
