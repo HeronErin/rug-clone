@@ -31,29 +31,34 @@ function print_eval {
 	eval $(printf '%q ' "$@")
 }
 
-# For first toolchain and suffix, check without rational, float,
-# complex too. First check the feature mpc to cache all C libraries.
-for features in gmp-mpfr-sys/mpc "" gmp-mpfr-sys gmp-mpfr-sys/mpfr integer rational float complex rand; do
+# Cache all C libraries.
+print_eval cargo +${toolchains[0]}"$suffix" check --no-default-features \
+	   --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
+	   -p gmp-mpfr-sys -p rug
+rm -r target
+
+# integer,rational = rational
+# integer,rand = rand
+# float,complex = complex
+for features in '' gmp-mpfr-sys{,/mpfr,/mpc} \
+		   integer{,\,float,\,complex}{,\,serde} \
+		   rational{,\,float,\,complex}{,\,rand}{,\,serde} \
+		   float{,\,rand}{,\,serde} \
+		   complex{,\,rand}{,\,serde} \
+		   rand{,\,serde} \
+		   serde
+do
 	if [ -e target ]; then
 		rm -r target
 	fi
-	if [ "$features" == "" ]; then
+	if [ "$features" == "" ] || [ "$features" == serde ]; then
 		gmp=""
 	else
 		gmp="-p gmp-mpfr-sys"
 	fi
-	for build in --release ""; do
-		print_eval cargo +${toolchains[0]}"$suffix" check $build \
-			   --no-default-features --features "$features" \
-			   $gmp -p rug
-		rm -r target
-	done
-done
-
-# Check with default features and without serde.
-for build in --release ""; do
-	print_eval cargo +${toolchains[0]}"$suffix" check $build \
-		   -p gmp-mpfr-sys -p rug
+	print_eval cargo +${toolchains[0]}"$suffix" check \
+		   --no-default-features --features "$features" \
+		   $gmp -p rug
 	rm -r target
 done
 

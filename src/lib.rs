@@ -143,9 +143,10 @@
 #[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;
 
-#[cfg(feature = "serde")]
+#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
 extern crate serde;
-#[cfg(all(test, feature = "serde"))]
+#[cfg(all(test, feature = "serde",
+          any(feature = "integer", feature = "float")))]
 extern crate serde_test;
 
 #[macro_use]
@@ -154,7 +155,7 @@ mod ext;
 mod inner;
 #[cfg(feature = "integer")]
 mod misc;
-#[cfg(feature = "serde")]
+#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
 mod serdeize;
 
 /// Assigns to a number from another value.

@@ -50,6 +50,7 @@ impl<'de> Deserialize<'de> for Rational {
             serdeize::deserialize("Rational", PrecReq::Zero, deserializer)?;
         match prec {
             PrecVal::Zero => {}
+            #[cfg(feature = "float")]
             _ => unreachable!(),
         }
         serdeize::check_range("radix", radix, 2, 36)?;
