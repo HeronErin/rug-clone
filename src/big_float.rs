@@ -6558,15 +6558,30 @@ pub fn make_string(
             (true, true) => "-@NaN@",
         }.to_string();
     }
-    let mut buf = String::new();
-    let mut exp: mpfr::exp_t;
     let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
-    let s;
-    let cstr;
-    unsafe {
+    let num_chars = if digits == 0 {
+        // According to mpfr_get_str documentation, we need
+        // 1 + ceil(p / log2(radix)), but in some cases, it is 1 more.
+        // p is prec - 1 if radix is a power of two, or prec otherwise.
+        let ur = radix as u32;
+        let pdiv = if ur.is_power_of_two() {
+            f64::from(f.prec() - 1) / f64::from(31 - ur.leading_zeros())
+        } else {
+            f64::from(f.prec()) / f64::from(ur).log2()
+        };
+        pdiv.ceil() as usize + 2
+    } else {
+        digits
+    };
+    // + 2 for '-' and nul, and then + 10 for dot and exponent
+    let size = num_chars.checked_add(12).expect("overflow");
+    let mut buf = Vec::<u8>::with_capacity(size);
+    let mut exp: mpfr::exp_t;
+    let mut sbuf = unsafe {
+        buf.set_len(size);
         exp = mem::uninitialized();
-        s = mpfr::get_str(
-            ptr::null_mut(),
+        let s = mpfr::get_str(
+            buf.as_mut_ptr().offset(1) as *mut c_char,
             &mut exp,
             radix.into(),
             digits,
@@ -6574,32 +6589,37 @@ pub fn make_string(
             rraw(round),
         );
         assert!(!s.is_null());
-        cstr = CStr::from_ptr(s);
-    }
-    let mut chars = cstr.to_str().unwrap().chars();
-    let c = chars.next().unwrap();
-    buf.push(char_to_upper_if(c, to_upper));
-    if c == '-' {
-        let c = chars.next().unwrap();
-        buf.push(char_to_upper_if(c, to_upper));
-    }
-    buf.push('.');
-    for c in chars {
-        buf.push(char_to_upper_if(c, to_upper));
-    }
-    unsafe {
-        mpfr::free_str(s);
+        let buf1 = *buf.get_unchecked(1);
+        if buf1 == b'-' {
+            let buf2 = *buf.get_unchecked(2);
+            *buf.get_unchecked_mut(0) = b'-';
+            *buf.get_unchecked_mut(1) = buf2;
+            *buf.get_unchecked_mut(2) = b'.';
+        } else {
+            *buf.get_unchecked_mut(0) = buf1;
+            *buf.get_unchecked_mut(1) = b'.';
+        }
+        let nul_index = buf.iter()
+            .position(|&x| x == 0)
+            .expect("no null terminator");
+        buf.set_len(nul_index);
+        String::from_utf8_unchecked(buf)
+    };
+    if to_upper {
+        sbuf.make_ascii_uppercase();
     }
     let exp = exp.checked_sub(1).expect("overflow");
     if exp != 0 {
-        buf.push(if radix <= 10 {
-            char_to_upper_if('e', to_upper)
-        } else {
+        sbuf.push(if radix > 10 {
             '@'
+        } else if to_upper {
+            'E'
+        } else {
+            'e'
         });
-        let _ = write!(buf, "{}", exp);
+        write!(sbuf, "{}", exp).unwrap();
     }
-    buf
+    sbuf
 }
 
 /// A validated string that can always be converted to a `Float`.
@@ -6743,14 +6763,6 @@ fn lcase_ascii(byte: &u8) -> u8 {
         *byte - b'A' + b'a'
     } else {
         *byte
-    }
-}
-
-fn char_to_upper_if(c: char, to_upper: bool) -> char {
-    if to_upper {
-        c.to_ascii_uppercase()
-    } else {
-        c
     }
 }
 
