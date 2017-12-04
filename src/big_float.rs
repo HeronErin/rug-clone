@@ -1175,9 +1175,9 @@ impl Float {
         let mut exp: c_long = 0;
         let f = unsafe {
             // mpfr::set will not change precision of sf, so we can
-            // use the unsafe as_nongrowing_mut method
+            // use the unsafe as_nonreallocating_mut method
             mpfr::set(
-                sf.as_nongrowing_mut().inner_mut(),
+                sf.as_nonreallocating_mut().inner_mut(),
                 self.inner(),
                 rraw(round),
             );

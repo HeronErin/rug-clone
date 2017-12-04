@@ -1,6 +1,5 @@
-* Add `as_nonreallocating_mut` methods to small integers and rational
-  numbers.
-* Add `as_nongrowing_mut` methods to small floats and complex numbers.
+* Add `as_nonreallocating_mut` methods to `SmallInteger`,
+  `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
   with a precision of 53.
 
