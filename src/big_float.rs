@@ -37,6 +37,7 @@ use std::mem;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
+use std::slice;
 
 #[inline]
 pub fn rraw(round: Round) -> mpfr::rnd_t {
@@ -680,43 +681,16 @@ impl Float {
         use self::ParseErrorKind as Kind;
         use self::ParseFloatError as Error;
 
+        if let Some(special) = valid_str_special(src, radix) {
+            return Ok(special);
+        }
+
         let mut v = ValidFloat {
             poss: ValidPoss::Special(Special::Nan),
             radix,
             exp_plus: None,
         };
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
         let bytes = src.as_bytes();
-        let inf10: &[&[u8]] = &[b"inf", b"+inf", b"infinity", b"+infinity"];
-        let inf: &[&[u8]] =
-            &[b"@inf@", b"+@inf@", b"@infinity@", b"+@infinity@"];
-        if (radix <= 10 && lcase_in(bytes, inf10)) || lcase_in(bytes, inf) {
-            v.poss = ValidPoss::Special(Special::Infinity);
-            return Ok(v);
-        }
-        let neg_inf10: &[&[u8]] = &[b"-inf", b"-infinity"];
-        let neg_inf: &[&[u8]] = &[b"-@inf@", b"-@infinity@"];
-        if (radix <= 10 && lcase_in(bytes, neg_inf10))
-            || lcase_in(bytes, neg_inf)
-        {
-            v.poss = ValidPoss::Special(Special::NegInfinity);
-            return Ok(v);
-        }
-        let nan10: &[&[u8]] = &[b"nan", b"+nan"];
-        let nan: &[&[u8]] = &[b"@nan@", b"+@nan@"];
-        if (radix <= 10 && lcase_in(bytes, nan10)) || lcase_in(bytes, nan) {
-            v.poss = ValidPoss::Special(Special::Nan);
-            return Ok(v);
-        }
-        let neg_nan10: &[&[u8]] = &[b"-nan"];
-        let neg_nan: &[&[u8]] = &[b"-@nan@"];
-        if (radix <= 10 && lcase_in(bytes, neg_nan10))
-            || lcase_in(bytes, neg_nan)
-        {
-            v.poss = ValidPoss::NegNan;
-            return Ok(v);
-        }
-
         let mut iter = bytes.iter();
         let starts_with_plus = bytes.starts_with(&[b'+']);
         let starts_with_minus = bytes.starts_with(&[b'-']);
@@ -1301,7 +1275,9 @@ impl Float {
         num_digits: Option<usize>,
         round: Round,
     ) -> String {
-        make_string(self, radix, num_digits, round, false)
+        let mut s = String::new();
+        append_to_string(&mut s, self, radix, num_digits, round, false);
+        s
     }
 
     /// Parses a `Float` from a string, rounding to the nearest.
@@ -6530,96 +6506,130 @@ impl<'a> Deref for BorrowFloat<'a> {
     }
 }
 
-pub fn make_string(
+pub fn req_chars(
+    f: &Float,
+    radix: i32,
+    precision: Option<usize>,
+    extra: usize,
+) -> usize {
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let size = if f.is_zero() {
+        3
+    } else if f.is_infinite() || f.is_nan() {
+        if radix > 10 {
+            5
+        } else {
+            3
+        }
+    } else {
+        let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
+        let num_chars = if digits == 0 {
+            // According to mpfr_get_str documentation, we need
+            // 1 + ceil(p / log2(radix)), but in some cases, it is 1 more.
+            // p is prec - 1 if radix is a power of two, or prec otherwise.
+            let ur = radix as u32;
+            let pdiv = if ur.is_power_of_two() {
+                f64::from(f.prec() - 1) / f64::from(31 - ur.leading_zeros())
+            } else {
+                f64::from(f.prec()) / f64::from(ur).log2()
+            };
+            pdiv.ceil() as usize + 2
+        } else {
+            digits
+        };
+        // allow for exponent, including prefix like "e-"
+        let exp_chars = (f64::from(8 * mem::size_of::<mpfr::exp_t>() as u32)
+            * 2.0f64.log10())
+            .ceil() as usize + 2;
+        num_chars.checked_add(exp_chars).expect("overflow")
+    };
+    let size_extra = size.checked_add(extra).expect("overflow");
+    if f.is_sign_negative() {
+        size_extra.checked_add(1).expect("overflow")
+    } else {
+        size_extra
+    }
+}
+
+pub fn append_to_string(
+    s: &mut String,
     f: &Float,
     radix: i32,
     precision: Option<usize>,
     round: Round,
     to_upper: bool,
-) -> String {
-    use std::fmt::Write;
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
+) {
+    // add 1 for nul
+    let size = req_chars(f, radix, precision, 1);
+    s.reserve(size);
     if f.is_zero() {
-        return if f.is_sign_negative() { "-0.0" } else { "0.0" }.to_string();
+        s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
+        return;
     }
     if f.is_infinite() {
-        return match (radix > 10, f.is_sign_negative()) {
+        s.push_str(match (radix > 10, f.is_sign_negative()) {
             (false, false) => "inf",
             (false, true) => "-inf",
             (true, false) => "@inf@",
             (true, true) => "-@inf@",
-        }.to_string();
+        });
+        return;
     }
     if f.is_nan() {
-        return match (radix > 10, f.is_sign_negative()) {
+        s.push_str(match (radix > 10, f.is_sign_negative()) {
             (false, false) => "NaN",
             (false, true) => "-NaN",
             (true, false) => "@NaN@",
             (true, true) => "-@NaN@",
-        }.to_string();
+        });
+        return;
     }
+    let orig_len = s.len();
     let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
-    let num_chars = if digits == 0 {
-        // According to mpfr_get_str documentation, we need
-        // 1 + ceil(p / log2(radix)), but in some cases, it is 1 more.
-        // p is prec - 1 if radix is a power of two, or prec otherwise.
-        let ur = radix as u32;
-        let pdiv = if ur.is_power_of_two() {
-            f64::from(f.prec() - 1) / f64::from(31 - ur.leading_zeros())
-        } else {
-            f64::from(f.prec()) / f64::from(ur).log2()
-        };
-        pdiv.ceil() as usize + 2
-    } else {
-        digits
-    };
-    // + 2 for '-' and nul, and then + 10 for dot and exponent
-    let size = num_chars.checked_add(12).expect("overflow");
-    let mut buf = Vec::<u8>::with_capacity(size);
     let mut exp: mpfr::exp_t;
-    let mut sbuf = unsafe {
-        buf.set_len(size);
+    unsafe {
+        let bytes = s.as_mut_vec();
+        let start = bytes.as_mut_ptr().offset(orig_len as isize);
         exp = mem::uninitialized();
-        let s = mpfr::get_str(
-            buf.as_mut_ptr().offset(1) as *mut c_char,
+        // write numbers starting at offset 1, to leave room for '.'
+        mpfr::get_str(
+            start.offset(1) as *mut c_char,
             &mut exp,
             radix.into(),
             digits,
             f.inner(),
             rraw(round),
         );
-        assert!(!s.is_null());
-        let buf1 = *buf.get_unchecked(1);
-        if buf1 == b'-' {
-            let buf2 = *buf.get_unchecked(2);
-            *buf.get_unchecked_mut(0) = b'-';
-            *buf.get_unchecked_mut(1) = buf2;
-            *buf.get_unchecked_mut(2) = b'.';
+        let added = slice::from_raw_parts_mut(start, size);
+        let added1 = *added.get_unchecked(1);
+        if added1 == b'-' {
+            let added2 = *added.get_unchecked(2);
+            *added.get_unchecked_mut(0) = b'-';
+            *added.get_unchecked_mut(1) = added2;
+            *added.get_unchecked_mut(2) = b'.';
         } else {
-            *buf.get_unchecked_mut(0) = buf1;
-            *buf.get_unchecked_mut(1) = b'.';
+            *added.get_unchecked_mut(0) = added1;
+            *added.get_unchecked_mut(1) = b'.';
         }
-        let nul_index = buf.iter()
-            .position(|&x| x == 0)
-            .expect("no null terminator");
-        buf.set_len(nul_index);
-        String::from_utf8_unchecked(buf)
-    };
-    if to_upper {
-        sbuf.make_ascii_uppercase();
+        // search for nul after setting added[0], not before
+        let nul_index = added.iter().position(|&x| x == 0).unwrap();
+        if to_upper {
+            added[0..nul_index].make_ascii_uppercase();
+        }
+        bytes.set_len(orig_len + nul_index);
     }
     let exp = exp.checked_sub(1).expect("overflow");
     if exp != 0 {
-        sbuf.push(if radix > 10 {
+        s.push(if radix > 10 {
             '@'
         } else if to_upper {
             'E'
         } else {
             'e'
         });
-        write!(sbuf, "{}", exp).unwrap();
+        use std::fmt::Write;
+        write!(s, "{}", exp).unwrap();
     }
-    sbuf
 }
 
 /// A validated string that can always be converted to a `Float`.
@@ -6791,6 +6801,41 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     } else {
         None
     }
+}
+
+fn valid_str_special(src: &str, radix: i32) -> Option<ValidFloat> {
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let mut v = ValidFloat {
+        poss: ValidPoss::Special(Special::Nan),
+        radix,
+        exp_plus: None,
+    };
+    let bytes = src.as_bytes();
+    let inf10: &[&[u8]] = &[b"inf", b"+inf", b"infinity", b"+infinity"];
+    let inf: &[&[u8]] = &[b"@inf@", b"+@inf@", b"@infinity@", b"+@infinity@"];
+    if (radix <= 10 && lcase_in(bytes, inf10)) || lcase_in(bytes, inf) {
+        v.poss = ValidPoss::Special(Special::Infinity);
+        return Some(v);
+    }
+    let neg_inf10: &[&[u8]] = &[b"-inf", b"-infinity"];
+    let neg_inf: &[&[u8]] = &[b"-@inf@", b"-@infinity@"];
+    if (radix <= 10 && lcase_in(bytes, neg_inf10)) || lcase_in(bytes, neg_inf) {
+        v.poss = ValidPoss::Special(Special::NegInfinity);
+        return Some(v);
+    }
+    let nan10: &[&[u8]] = &[b"nan", b"+nan"];
+    let nan: &[&[u8]] = &[b"@nan@", b"+@nan@"];
+    if (radix <= 10 && lcase_in(bytes, nan10)) || lcase_in(bytes, nan) {
+        v.poss = ValidPoss::Special(Special::Nan);
+        return Some(v);
+    }
+    let neg_nan10: &[&[u8]] = &[b"-nan"];
+    let neg_nan: &[&[u8]] = &[b"-@nan@"];
+    if (radix <= 10 && lcase_in(bytes, neg_nan10)) || lcase_in(bytes, neg_nan) {
+        v.poss = ValidPoss::NegNan;
+        return Some(v);
+    }
+    None
 }
 
 impl Inner for Float {

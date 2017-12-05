@@ -19,7 +19,7 @@ use {Assign, Float};
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use big_float::{make_string, rraw, ordering1};
+use big_float::{self, rraw, ordering1};
 use ext::mpfr as xmpfr;
 use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
@@ -288,21 +288,29 @@ conv_ops! { f64, xmpfr::set_f64 }
 
 fn fmt_radix(
     flt: &Float,
-    f: &mut Formatter,
+    fmt: &mut Formatter,
     radix: i32,
     to_upper: bool,
     prefix: &str,
 ) -> fmt::Result {
-    let s = make_string(flt, radix, f.precision(), Round::Nearest, to_upper);
+    let mut s = String::new();
+    big_float::append_to_string(
+        &mut s,
+        flt,
+        radix,
+        fmt.precision(),
+        Round::Nearest,
+        to_upper,
+    );
     if !flt.is_finite() {
-        return f.pad(&s);
+        return fmt.pad(&s);
     }
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {
         (false, &s[..])
     };
-    f.pad_integral(!neg, prefix, buf)
+    fmt.pad_integral(!neg, prefix, buf)
 }
 
 impl Display for ParseFloatError {

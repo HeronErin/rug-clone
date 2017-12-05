@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Float};
+use big_float;
 use complex::{OrdComplex, Prec};
 use ext::mpc as xmpc;
 use float::{self, ParseFloatError, Round, Special, ValidFloat};
@@ -686,14 +687,18 @@ impl Complex {
         num_digits: Option<usize>,
         round: Round2,
     ) -> String {
-        let mut buf = String::from("(");
-        buf += &self.real()
-            .to_string_radix_round(radix, num_digits, round.0);
-        buf.push(' ');
-        buf += &self.imag()
-            .to_string_radix_round(radix, num_digits, round.0);
-        buf.push(')');
-        buf
+        let mut s = String::new();
+        append_to_string(
+            &mut s,
+            self,
+            radix,
+            num_digits,
+            round,
+            false,
+            false,
+            "",
+        );
+        s
     }
 
     /// Parses a `Complex` number from a string, rounding to the
@@ -2862,6 +2867,79 @@ impl<'a> Deref for BorrowComplex<'a> {
         let ptr = (&self.inner) as *const _ as *const _;
         unsafe { &*ptr }
     }
+}
+
+pub fn append_to_string(
+    s: &mut String,
+    c: &Complex,
+    radix: i32,
+    precision: Option<usize>,
+    round: Round2,
+    to_upper: bool,
+    sign_plus: bool,
+    prefix: &str,
+) {
+    let (re, im) = c.as_real_imag();
+    let re_plus = sign_plus && re.is_sign_positive();
+    let im_plus = sign_plus && im.is_sign_positive();
+    let re_prefix = !prefix.is_empty() && (re.is_finite() || re.is_zero());
+    let im_prefix = !prefix.is_empty() && (im.is_finite() || im.is_zero());
+    // to avoid reallocations in append_to_string, add 3 for "( )" and 1 for nul
+    let mut extra = 4;
+    if re_plus {
+        extra += 1;
+    }
+    if im_plus {
+        extra += 1;
+    }
+    if re_prefix {
+        extra += prefix.len();
+    }
+    if im_prefix {
+        extra += prefix.len();
+    }
+    let cap = big_float::req_chars(
+        re,
+        radix,
+        precision,
+        big_float::req_chars(im, radix, precision, extra),
+    );
+    s.reserve(cap);
+    s.push('(');
+    if re_plus {
+        s.push('+');
+    }
+    let prefix_start = s.len();
+    if re_prefix {
+        s.push_str(prefix);
+    }
+    let prefix_end = s.len();
+    big_float::append_to_string(s, re, radix, precision, round.0, to_upper);
+    if re_prefix && s.as_bytes()[prefix_end] == b'-' {
+        unsafe {
+            s.as_bytes_mut()[prefix_start] = b'-';
+            s.as_bytes_mut()[prefix_start + 1..prefix_end + 1]
+                .copy_from_slice(prefix.as_bytes());
+        }
+    }
+    s.push(' ');
+    if im_plus {
+        s.push('+');
+    }
+    let prefix_start = s.len();
+    if im_prefix {
+        s.push_str(prefix);
+    }
+    let prefix_end = s.len();
+    big_float::append_to_string(s, im, radix, precision, round.1, to_upper);
+    if im_prefix && s.as_bytes()[prefix_end] == b'-' {
+        unsafe {
+            s.as_bytes_mut()[prefix_start] = b'-';
+            s.as_bytes_mut()[prefix_start + 1..prefix_end + 1]
+                .copy_from_slice(prefix.as_bytes());
+        }
+    }
+    s.push(')');
 }
 
 /// A validated string that can always be converted to a `Complex`.

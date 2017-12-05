@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer};
-use big_integer::make_string;
+use big_integer;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
@@ -254,7 +254,8 @@ fn fmt_radix(
     to_upper: bool,
     prefix: &str,
 ) -> fmt::Result {
-    let s = make_string(i, radix, to_upper);
+    let mut s = String::new();
+    big_integer::append_to_string(&mut s, i, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

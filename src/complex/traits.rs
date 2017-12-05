@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Complex, Float};
-use big_complex::{Ordering2, Round2, ordering2, rraw2};
+use big_complex::{self, Ordering2, Round2, ordering2, rraw2};
 use complex::{OrdComplex, ParseComplexError};
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
@@ -111,56 +111,56 @@ impl From<OrdComplex> for Complex {
 impl Display for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", true)
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl LowerExp for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "", false)
+        fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl UpperExp for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, true, "", false)
+        fmt_radix(self, f, 10, true, "")
     }
 }
 
 impl Binary for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b", false)
+        fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o", false)
+        fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x", false)
+        fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Complex {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x", false)
+        fmt_radix(self, f, 16, true, "0x")
     }
 }
 
@@ -254,52 +254,30 @@ fn fmt_radix(
     radix: i32,
     to_upper: bool,
     prefix: &str,
-    show_neg_zero: bool,
 ) -> fmt::Result {
-    let (real, imag) = c.as_real_imag();
-    let mut buf = String::from("(");
-    fmt_float(&mut buf, real, fmt, radix, to_upper, prefix, show_neg_zero);
-    buf.push(' ');
-    fmt_float(&mut buf, imag, fmt, radix, to_upper, prefix, show_neg_zero);
-    buf.push(')');
-    let count = buf.chars().count();
+    let mut s = String::new();
+    big_complex::append_to_string(
+        &mut s,
+        c,
+        radix,
+        fmt.precision(),
+        (Round::Nearest, Round::Nearest),
+        to_upper,
+        fmt.sign_plus(),
+        if fmt.alternate() { prefix } else { "" },
+    );
+    // s is ascii only, so just take len for character count
+    let count = s.len();
     let padding = match fmt.width() {
         Some(width) if width > count => width - count,
-        _ => return fmt.write_str(&buf),
+        _ => return fmt.write_str(&s),
     };
     let mut fill_buf = String::with_capacity(4);
     fill_buf.push(fmt.fill());
     for _ in 0..padding {
         fmt.write_str(&fill_buf)?;
     }
-    fmt.write_str(&buf)
-}
-
-fn fmt_float(
-    buf: &mut String,
-    flt: &Float,
-    fmt: &mut Formatter,
-    radix: i32,
-    to_upper: bool,
-    prefix: &str,
-    show_neg_zero: bool,
-) {
-    let show_neg_zero = show_neg_zero || fmt.sign_plus();
-    let mut s = flt.to_string_radix(radix, fmt.precision());
-    let minus = s.starts_with('-')
-        || (show_neg_zero && flt.is_zero() && flt.is_sign_negative());
-    if minus {
-        buf.push('-');
-    } else if fmt.sign_plus() {
-        buf.push('+');
-    }
-    if fmt.alternate() {
-        buf.push_str(prefix);
-    }
-    if to_upper && flt.is_finite() {
-        s.make_ascii_uppercase();
-    }
-    buf.push_str(if s.starts_with('-') { &s[1..] } else { &s });
+    fmt.write_str(&s)
 }
 
 impl Display for ParseComplexError {

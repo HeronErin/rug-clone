@@ -30,6 +30,7 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_int, c_long};
+use std::slice;
 
 /// An arbitrary-precision integer.
 ///
@@ -717,7 +718,9 @@ impl Integer {
     /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
-        make_string(self, radix, false)
+        let mut s = String::new();
+        append_to_string(&mut s, self, radix, false);
+        s
     }
 
     /// Assigns from an `f32` if it is finite, rounding towards zero.
@@ -3378,25 +3381,35 @@ impl<'a> Deref for BorrowInteger<'a> {
     }
 }
 
-pub fn make_string(i: &Integer, radix: i32, to_upper: bool) -> String {
+pub fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let i_size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
-    // size + 2 for '-' and nul
-    let size = i_size.checked_add(2).expect("overflow");
-    let mut buf = Vec::<u8>::with_capacity(size);
+    let size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
+    let size_extra = size.checked_add(extra).expect("overflow");
+    if i.cmp0() == Ordering::Less {
+        size_extra.checked_add(1).expect("overflow")
+    } else {
+        size_extra
+    }
+}
+
+pub fn append_to_string(
+    s: &mut String,
+    i: &Integer,
+    radix: i32,
+    to_upper: bool,
+) {
+    // add 1 for nul
+    let size = req_chars(i, radix, 1);
+    s.reserve(size);
     let case_radix = if to_upper { -radix } else { radix };
+    let orig_len = s.len();
     unsafe {
-        buf.set_len(size);
-        gmp::mpz_get_str(
-            buf.as_mut_ptr() as *mut c_char,
-            case_radix as c_int,
-            i.inner(),
-        );
-        let nul_index = buf.iter()
-            .position(|&x| x == 0)
-            .expect("no null terminator");
-        buf.set_len(nul_index);
-        String::from_utf8_unchecked(buf)
+        let bytes = s.as_mut_vec();
+        let start = bytes.as_mut_ptr().offset(orig_len as isize);
+        gmp::mpz_get_str(start as *mut c_char, case_radix as c_int, i.inner());
+        let added = slice::from_raw_parts(start, size);
+        let nul_index = added.iter().position(|&x| x == 0).unwrap();
+        bytes.set_len(orig_len + nul_index);
     }
 }
 

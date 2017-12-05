@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer, Rational};
-use big_rational::make_string;
+use big_rational;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use rational::{ParseRationalError, ValidRational};
@@ -221,7 +221,8 @@ fn fmt_radix(
     to_upper: bool,
     prefix: &str,
 ) -> fmt::Result {
-    let s = make_string(r, radix, to_upper);
+    let mut s = String::new();
+    big_rational::append_to_string(&mut s, r, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer};
+use big_integer;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
@@ -26,7 +27,6 @@ use std::i32;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
-use std::os::raw::{c_char, c_int};
 use std::ptr;
 
 /// An arbitrary-precision rational number.
@@ -553,7 +553,9 @@ impl Rational {
     /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
-        make_string(self, radix, false)
+        let mut s = String::new();
+        append_to_string(&mut s, self, radix, false);
+        s
     }
 
     /// Assigns from an `f32` if it is finite, losing no precision.
@@ -1874,26 +1876,23 @@ impl<'a> Deref for BorrowRational<'a> {
     }
 }
 
-pub fn make_string(r: &Rational, radix: i32, to_upper: bool) -> String {
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
+pub fn append_to_string(
+    s: &mut String,
+    r: &Rational,
+    radix: i32,
+    to_upper: bool,
+) {
     let (num, den) = r.as_numer_denom();
-    let n_size = unsafe { gmp::mpz_sizeinbase(num.inner(), radix) };
-    let d_size = unsafe { gmp::mpz_sizeinbase(den.inner(), radix) };
-    // n_size + d_size + 3 for '-', '/' and nul
-    let size = n_size.checked_add(d_size).unwrap().checked_add(3).unwrap();
-    let mut buf = Vec::<u8>::with_capacity(size);
-    let case_radix = if to_upper { -radix } else { radix };
-    unsafe {
-        buf.set_len(size);
-        gmp::mpq_get_str(
-            buf.as_mut_ptr() as *mut c_char,
-            case_radix as c_int,
-            r.inner(),
-        );
-        let nul_index = buf.iter().position(|&x| x == 0).unwrap();
-        buf.set_len(nul_index);
-        String::from_utf8_unchecked(buf)
-    }
+    // to avoid reallocations in append_to_string, add 1 for '/' and 1 for nul
+    let cap = big_integer::req_chars(
+        num,
+        radix,
+        big_integer::req_chars(den, radix, 2),
+    );
+    s.reserve(cap);
+    big_integer::append_to_string(s, num, radix, to_upper);
+    s.push('/');
+    big_integer::append_to_string(s, den, radix, to_upper);
 }
 
 /// A validated string that can always be converted to a `Rational`.
