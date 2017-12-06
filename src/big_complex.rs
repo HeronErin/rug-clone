@@ -2878,27 +2878,17 @@ pub fn append_to_string(
     let im_plus = sign_plus && im.is_sign_positive();
     let re_prefix = !prefix.is_empty() && (re.is_finite() || re.is_zero());
     let im_prefix = !prefix.is_empty() && (im.is_finite() || im.is_zero());
-    // to avoid reallocations in append_to_string, add 3 for "( )" and 1 for nul
-    let mut extra = 4;
-    if re_plus {
-        extra += 1;
-    }
-    if im_plus {
-        extra += 1;
-    }
-    if re_prefix {
-        extra += prefix.len();
-    }
-    if im_prefix {
-        extra += prefix.len();
-    }
-    let cap = big_float::req_chars(
-        re,
-        radix,
-        precision,
-        big_float::req_chars(im, radix, precision, extra),
-    );
-    s.reserve(cap);
+    // To avoid reallocations in append_to_string, add 3 for "( )".
+    // There is no need for space for a nul terminator, as it will not
+    // be there at the same time as ')'.
+    let mut additional = 3;
+    additional += if re_plus { 1 } else { 0 };
+    additional += if im_plus { 1 } else { 0 };
+    additional += if re_prefix { prefix.len() } else { 0 };
+    additional += if im_prefix { prefix.len() } else { 0 };
+    additional = big_float::req_chars(re, radix, precision, additional);
+    additional = big_float::req_chars(im, radix, precision, additional);
+    s.reserve(additional);
     s.push('(');
     if re_plus {
         s.push('+');

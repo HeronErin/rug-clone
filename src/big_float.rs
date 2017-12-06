@@ -6534,7 +6534,7 @@ pub fn req_chars(
             } else {
                 f64::from(f.prec()) / f64::from(ur).log2()
             };
-            pdiv.ceil() as usize + 2
+            (pdiv.ceil() as usize).checked_add(2).expect("overflow")
         } else {
             digits
         };
@@ -6542,7 +6542,8 @@ pub fn req_chars(
         let exp_chars = (f64::from(8 * mem::size_of::<mpfr::exp_t>() as u32)
             * 2.0f64.log10())
             .ceil() as usize + 2;
-        num_chars.checked_add(exp_chars).expect("overflow")
+        // add one to exp_chars for '.'
+        num_chars.checked_add(exp_chars + 1).expect("overflow")
     };
     let size_extra = size.checked_add(extra).expect("overflow");
     if f.is_sign_negative() {
