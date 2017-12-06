@@ -44,12 +44,6 @@ pub type Ordering2 = (Ordering, Ordering);
 /// method of the required operations can be specified, and the
 /// direction of the rounding is returned.
 ///
-/// # Note on `Round::AwayFromZero`
-///
-/// For `Complex` numbers,
-/// [`Round::AwayFromZero`](float/enum.Round.html#variant.AwayFromZero)
-/// is not implemented, and trying to use it will panic.
-///
 /// # Examples
 ///
 /// ```rust
@@ -3041,6 +3035,7 @@ impl Error for ParseComplexError {
 
 #[inline]
 fn rraw(round: Round) -> mpfr::rnd_t {
+    #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
         Round::Zero => mpfr::rnd_t::RNDZ,
@@ -3052,6 +3047,7 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 
 #[inline]
 pub fn rraw2(round: Round2) -> mpc::rnd_t {
+    #[allow(deprecated)]
     match (round.0, round.1) {
         (Round::Nearest, Round::Nearest) => mpc::RNDNN,
         (Round::Nearest, Round::Zero) => mpc::RNDNZ,

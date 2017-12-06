@@ -178,18 +178,14 @@ fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
         1 => mpfr::rnd_t::RNDZ,
         2 => mpfr::rnd_t::RNDU,
         3 => mpfr::rnd_t::RNDD,
-        4 => mpfr::rnd_t::RNDA,
-        5 => mpfr::rnd_t::RNDF,
-        _ => mpfr::rnd_t::RNDNA,
+        _ => unreachable!(),
     };
     let im = match r >> 4 {
         0 => mpfr::rnd_t::RNDN,
         1 => mpfr::rnd_t::RNDZ,
         2 => mpfr::rnd_t::RNDU,
         3 => mpfr::rnd_t::RNDD,
-        4 => mpfr::rnd_t::RNDA,
-        5 => mpfr::rnd_t::RNDF,
-        _ => mpfr::rnd_t::RNDNA,
+        _ => unreachable!(),
     };
     (re, im)
 }

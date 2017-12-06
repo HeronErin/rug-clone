@@ -41,6 +41,7 @@ use std::slice;
 
 #[inline]
 pub fn rraw(round: Round) -> mpfr::rnd_t {
+    #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
         Round::Zero => mpfr::rnd_t::RNDZ,

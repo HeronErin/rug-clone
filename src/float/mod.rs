@@ -146,6 +146,7 @@ pub fn prec_max() -> u32 {
 /// assert_eq!(f4, 28);
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[allow(deprecated)]
 pub enum Round {
     /// Round towards the nearest.
     Nearest,
@@ -155,7 +156,8 @@ pub enum Round {
     Up,
     /// Round towards minus infinity.
     Down,
-    /// Round away from zero.
+    #[deprecated(since = "0.9.2", note = "not supported at the moment")]
+    #[doc(hidden)]
     AwayFromZero,
 }
 

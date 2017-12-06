@@ -1,7 +1,11 @@
+Version 0.9.2
+=============
+
 * Add `as_nonreallocating_mut` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
   with a precision of 53.
+* Deprecate and hide `float::Round::AwayFromZero`.
 
 Version 0.9.1 (2017-11-27)
 ==========================

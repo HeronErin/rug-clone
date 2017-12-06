@@ -344,6 +344,7 @@ small_assign_re_im! { f32, f32 }
 small_assign_re_im! { f64, f64 }
 
 fn rraw(round: Round) -> mpfr::rnd_t {
+    #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
         Round::Zero => mpfr::rnd_t::RNDZ,
