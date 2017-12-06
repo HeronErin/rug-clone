@@ -123,7 +123,7 @@ pub fn prec_max() -> u32 {
 /// assert_eq!(f4, 11);
 /// f4.assign_round(-10.7, Round::Zero);
 /// assert_eq!(f4, -10);
-/// f4.assign_round(10.3, Round::AwayFromZero);
+/// f4.assign_round(10.3, Round::Up);
 /// assert_eq!(f4, 11);
 /// ```
 ///
