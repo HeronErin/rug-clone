@@ -32,6 +32,7 @@ use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
 use std::ptr;
+use std::slice;
 
 pub type Round2 = (Round, Round);
 
@@ -2901,8 +2902,10 @@ pub fn append_to_string(
     big_float::append_to_string(s, re, radix, precision, round.0, to_upper);
     if re_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
-            s.as_bytes_mut()[prefix_start] = b'-';
-            s.as_bytes_mut()[prefix_start + 1..prefix_end + 1]
+            let bytes =
+                slice::from_raw_parts_mut(s.as_ptr() as *mut _, s.len());
+            bytes[prefix_start] = b'-';
+            bytes[prefix_start + 1..prefix_end + 1]
                 .copy_from_slice(prefix.as_bytes());
         }
     }
@@ -2918,8 +2921,10 @@ pub fn append_to_string(
     big_float::append_to_string(s, im, radix, precision, round.1, to_upper);
     if im_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
-            s.as_bytes_mut()[prefix_start] = b'-';
-            s.as_bytes_mut()[prefix_start + 1..prefix_end + 1]
+            let bytes =
+                slice::from_raw_parts_mut(s.as_ptr() as *mut _, s.len());
+            bytes[prefix_start] = b'-';
+            bytes[prefix_start + 1..prefix_end + 1]
                 .copy_from_slice(prefix.as_bytes());
         }
     }
