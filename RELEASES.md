@@ -1,6 +1,12 @@
 Version 0.9.2
 =============
 
+* Add `Float::assign_log_ui` methods.
+* Add `Float::round_even` methods.
+* Add `Float::assign_random_normal` methods.
+* Deprecate `Float::assign_random_gaussian` methods.
+* Add `Float::assign_random_exp` methods.
+* Add `Float::gamma_inc` methods.
 * Add `as_nonreallocating_mut` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers

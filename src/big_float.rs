@@ -2210,7 +2210,7 @@ impl Float {
         fn cbrt_ref -> CbrtRef;
     }
     math_op1_float! {
-        mpfr::root;
+        mpfr::rootn_ui;
         /// Computes the <i>k</i>th root, rounding to the nearest.
         ///
         /// # Examples
@@ -2797,6 +2797,48 @@ impl Float {
         /// ```
         fn ln_ref -> LnRef;
     }
+
+    /// Sets `self` to the natural logarithm of `u`, rounding to the
+    /// nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f = Float::new(53);
+    /// f.assign_ln_u(3);
+    /// let expected = 1.0986f64;
+    /// assert!((f - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn assign_ln_u(&mut self, u: u32) {
+        self.assign_ln_u_round(u, Round::Nearest);
+    }
+
+    /// Sets `self` to the natural logarithm of `u`, applying the
+    /// specified rounding method.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // 4 bits of precision
+    /// let mut f = Float::new(4);
+    /// // ln(3) = 1.0986
+    /// // using 4 significant bits: 1.125
+    /// let dir = f.assign_ln_u_round(3, Round::Nearest);
+    /// assert_eq!(f, 1.125);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn assign_ln_u_round(&mut self, u: u32, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::log_ui(self.inner_mut(), u.into(), rraw(round)) };
+        ordering1(ret)
+    }
+
     math_op1_float! {
         mpfr::log2;
         /// Computes the logarithm to base 2, rounding to the nearest.
@@ -4663,7 +4705,7 @@ impl Float {
     }
     math_op1_float! {
         mpfr::gamma;
-        /// Computes the value of the Gamma function on `self`, rounding
+        /// Computes the value of the gamma function on `self`, rounding
         /// to the nearest.
         ///
         /// # Examples
@@ -4676,7 +4718,7 @@ impl Float {
         /// assert!((gamma - expected).abs() < 0.0001);
         /// ```
         fn gamma();
-        /// Computes the value of the Gamma function on `self`, rounding
+        /// Computes the value of the gamma function on `self`, rounding
         /// to the nearest.
         ///
         /// # Examples
@@ -4689,7 +4731,7 @@ impl Float {
         /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn gamma_mut;
-        /// Computes the value of the Gamma function on `self`, applying
+        /// Computes the value of the gamma function on `self`, applying
         /// the specified rounding method.
         ///
         /// # Examples
@@ -4707,7 +4749,7 @@ impl Float {
         /// assert_eq!(dir, Ordering::Greater);
         /// ```
         fn gamma_round;
-        /// Computes the Gamma function on the value.
+        /// Computes the gamma function on the value.
         ///
         /// # Examples
         ///
@@ -4720,9 +4762,72 @@ impl Float {
         /// ```
         fn gamma_ref -> GammaRef;
     }
+    math_op2_float! {
+        mpfr::gamma_inc;
+        /// Computes the value of the upper incomplete gamma function
+        /// on `self` and `x`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let x = Float::with_val(53, 2.5);
+        /// let gamma_inc = f.gamma_inc(&x);
+        /// let expected = 0.1116_f64;
+        /// assert!((gamma_inc - expected).abs() < 0.0001);
+        /// ```
+        fn gamma_inc(x);
+        /// Computes the value of the upper incomplete gamma function
+        /// on `self`, rounding to the nearest.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, 1.25);
+        /// let x = Float::with_val(53, 2.5);
+        /// f.gamma_inc_mut(&x);
+        /// let expected = 0.1116_f64;
+        /// assert!((f - expected).abs() < 0.0001);
+        /// ```
+        fn gamma_inc_mut;
+        /// Computes the value of the upper incomplete gamma function
+        /// on `self`, applying the specified rounding method.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// use rug::float::Round;
+        /// use std::cmp::Ordering;
+        /// // Use only 4 bits of precision to show rounding.
+        /// let mut f = Float::with_val(4, 1.25);
+        /// let x = Float::with_val(53, 2.5);
+        /// // gamma_inc(1.25, 2.5) = 0.1116
+        /// // using 4 significant bits: 0.109375
+        /// let dir = f.gamma_inc_round(&x, Round::Nearest);
+        /// assert_eq!(f, 0.109375);
+        /// assert_eq!(dir, Ordering::Less);
+        /// ```
+        fn gamma_inc_round;
+        /// Computes the upper incomplete gamma function on the value.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, 1.25);
+        /// let x = Float::with_val(53, 2.5);
+        /// let gamma_inc = Float::with_val(53, f.gamma_inc_ref(&x));
+        /// let expected = 0.1116_f64;
+        /// assert!((gamma_inc - expected).abs() < 0.0001);
+        /// ```
+        fn gamma_inc_ref -> GammaIncRef;
+    }
     math_op1_float! {
         mpfr::lngamma;
-        /// Computes the logarithm of the Gamma function on `self`,
+        /// Computes the logarithm of the gamma function on `self`,
         /// rounding to the nearest.
         ///
         /// # Examples
@@ -4735,7 +4840,7 @@ impl Float {
         /// assert!((ln_gamma - expected).abs() < 0.0001);
         /// ```
         fn ln_gamma();
-        /// Computes the logarithm of the Gamma function on `self`,
+        /// Computes the logarithm of the gamma function on `self`,
         /// rounding to the nearest.
         ///
         /// # Examples
@@ -4748,7 +4853,7 @@ impl Float {
         /// assert!((f - expected).abs() < 0.0001);
         /// ```
         fn ln_gamma_mut;
-        /// Computes the logarithm of the Gamma function on `self`,
+        /// Computes the logarithm of the gamma function on `self`,
         /// applying the specified rounding method.
         ///
         /// # Examples
@@ -4766,7 +4871,7 @@ impl Float {
         /// assert_eq!(dir, Ordering::Less);
         /// ```
         fn ln_gamma_round;
-        /// Computes the logarithm of the Gamma function on
+        /// Computes the logarithm of the gamma function on
         /// the value.
         ///
         /// # Examples
@@ -4781,11 +4886,11 @@ impl Float {
         fn ln_gamma_ref -> LnGammaRef;
     }
 
-    /// Computes the logarithm of the absolute value of the Gamma
+    /// Computes the logarithm of the absolute value of the gamma
     /// function on `self`, rounding to the nearest.
     ///
-    /// Returns `Ordering::Less` if the Gamma function is negative, or
-    /// `Ordering::Greater` if the Gamma function is positive.
+    /// Returns `Ordering::Less` if the gamma function is negative, or
+    /// `Ordering::Greater` if the gamma function is positive.
     ///
     /// # Examples
     ///
@@ -4805,7 +4910,7 @@ impl Float {
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// If the Gamma function is negative, the sign returned is
+    /// If the gamma function is negative, the sign returned is
     /// `Ordering::Less`.
     ///
     /// ```rust
@@ -4830,11 +4935,11 @@ impl Float {
         (self, sign)
     }
 
-    /// Computes the logarithm of the absolute value of the Gamma
+    /// Computes the logarithm of the absolute value of the gamma
     /// function on `self`, rounding to the nearest.
     ///
-    /// Returns `Ordering::Less` if the Gamma function is negative, or
-    /// `Ordering::Greater` if the Gamma function is positive.
+    /// Returns `Ordering::Less` if the gamma function is negative, or
+    /// `Ordering::Greater` if the gamma function is positive.
     ///
     /// # Examples
     ///
@@ -4859,12 +4964,12 @@ impl Float {
         self.ln_abs_gamma_round(Round::Nearest).0
     }
 
-    /// Computes the logarithm of the absolute value of the Gamma
+    /// Computes the logarithm of the absolute value of the gamma
     /// function on `self`, applying the specified rounding method.
     ///
     /// The returned tuple contains:
     ///
-    /// 1. The logarithm of the absolute value of the Gamma function.
+    /// 1. The logarithm of the absolute value of the gamma function.
     /// 2. The rounding direction.
     ///
     /// # Examples
@@ -4903,7 +5008,7 @@ impl Float {
         (sign_ord, ordering1(ret))
     }
 
-    /// Computes the logarithm of the absolute value of the Gamma
+    /// Computes the logarithm of the absolute value of the gamma
     /// function on `val`.
     ///
     /// # Examples
@@ -5910,6 +6015,55 @@ impl Float {
        fn round_ref -> RoundRef;
     }
     math_op1_no_round! {
+        mpfr::rint_roundeven, rraw;
+        /// Rounds to the nearest integer, rounding half-way cases to
+        /// even.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, 23.5);
+        /// let round1 = f1.round_even();
+        /// assert_eq!(round1, 24);
+        /// let f2 = Float::with_val(53, 24.5);
+        /// let round2 = f2.round_even();
+        /// assert_eq!(round2, 24);
+        /// ```
+        fn round_even();
+        /// Rounds to the nearest integer, rounding half-way cases to
+        /// even.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f1 = Float::with_val(53, 23.5);
+        /// f1.round_even_mut();
+        /// assert_eq!(f1, 24);
+        /// let mut f2 = Float::with_val(53, 24.5);
+        /// f2.round_even_mut();
+        /// assert_eq!(f2, 24);
+        /// ```
+        fn round_even_mut;
+        /// Rounds to the nearest integer, rounding half-way cases to
+        /// even. The result may be rounded again when assigned to the
+        /// target.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f1 = Float::with_val(53, 23.5);
+        /// let round1 = Float::with_val(53, f1.round_even_ref());
+        /// assert_eq!(round1, 24);
+        /// let f2 = Float::with_val(53, 24.5);
+        /// let round2 = Float::with_val(53, f2.round_even_ref());
+        /// assert_eq!(round2, 24);
+        /// ```
+       fn round_even_ref -> RoundEvenRef;
+    }
+    math_op1_no_round! {
         mpfr::rint_trunc, rraw;
         /// Rounds to the next integer towards zero.
         ///
@@ -6215,10 +6369,8 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates two random numbers according to a standard normal
+    /// Generates a random number according to a standard normal
     /// Gaussian distribution, rounding to the nearest.
-    ///
-    /// If `other` is `None`, only one value is generated.
     ///
     /// # Examples
     ///
@@ -6226,17 +6378,65 @@ impl Float {
     /// use rug::Float;
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let (mut f1, mut f2) = (Float::new(53), Float::new(53));
-    /// f1.assign_random_gaussian(Some(&mut f2), &mut rand);
-    /// println!("Two Gaussian random numbers: {}, {}", f1, f2);
+    /// let mut f = Float::new(53);
+    /// f.assign_random_normal(&mut rand);
+    /// println!("Normal random number: {}", f);
     /// ```
+    #[inline]
+    pub fn assign_random_normal(&mut self, rng: &mut RandState) {
+        self.assign_random_normal_round(rng, Default::default());
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number according to a standard normal
+    /// Gaussian distribution, applying the specified rounding method.
+    ///
+    /// The rounding direction for the generated random number cannot
+    /// be `Ordering::Equal`, as the random number generated can be
+    /// considered to have infinite precision before rounding.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::rand::RandState;
+    /// use std::cmp::Ordering;
+    /// let mut rand = RandState::new();
+    /// let mut f = Float::new(53);
+    /// let dir = f.assign_random_normal_round(&mut rand, Round::Nearest);
+    /// // Rounding direction cannot be `Ordering::Equal`:
+    /// assert_ne!(dir, Ordering::Equal);
+    /// println!("Normal random number: {}", f);
+    /// ```
+    #[inline]
+    pub fn assign_random_normal_round(
+        &mut self,
+        rng: &mut RandState,
+        round: Round,
+    ) -> Ordering {
+        let ret = unsafe {
+            mpfr::nrandom(self.inner_mut(), rng.inner_mut(), rraw(round))
+        };
+        ordering1(ret)
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates two random numbers according to a standard normal
+    /// Gaussian distribution, rounding to the nearest.
+    ///
+    /// If `other` is `None`, only one value is generated.
+    #[deprecated(since = "0.9.2", note = "use `assign_random_normal` instead")]
     #[inline]
     pub fn assign_random_gaussian(
         &mut self,
         other: Option<&mut Float>,
         rng: &mut RandState,
     ) {
-        self.assign_random_gaussian_round(other, rng, Default::default());
+        self.assign_random_normal(rng);
+        if let Some(other) = other {
+            other.assign_random_normal(rng);
+        }
     }
 
     #[cfg(feature = "rand")]
@@ -6248,6 +6448,51 @@ impl Float {
     /// Rounding directions for generated random numbers cannot be
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
+    #[deprecated(since = "0.9.2",
+                 note = "use `assign_random_normal_round` instead")]
+    #[inline]
+    pub fn assign_random_gaussian_round(
+        &mut self,
+        other: Option<&mut Float>,
+        rng: &mut RandState,
+        round: Round,
+    ) -> (Ordering, Ordering) {
+        let first = self.assign_random_normal_round(rng, round);
+        let second = if let Some(other) = other {
+            other.assign_random_normal_round(rng, round)
+        } else {
+            Ordering::Equal
+        };
+        (first, second)
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number according to an exponential
+    /// distribution with mean one, rounding to the nearest.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let mut f = Float::new(53);
+    /// f.assign_random_exp(&mut rand);
+    /// println!("Exponential random number: {}", f);
+    /// ```
+    #[inline]
+    pub fn assign_random_exp(&mut self, rng: &mut RandState) {
+        self.assign_random_exp_round(rng, Default::default());
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number according to an exponential
+    /// distribution with mean one, applying the specified rounding
+    /// method.
+    ///
+    /// The rounding direction for the generated random number cannot
+    /// be `Ordering::Equal`, as the random number generated can be
+    /// considered to have infinite precision before rounding.
     ///
     /// # Examples
     ///
@@ -6257,37 +6502,24 @@ impl Float {
     /// use rug::rand::RandState;
     /// use std::cmp::Ordering;
     /// let mut rand = RandState::new();
-    /// let (mut f1, mut f2) = (Float::new(53), Float::new(53));
-    /// let dirs = f1.assign_random_gaussian_round(
-    ///     Some(&mut f2),
-    ///     &mut rand,
-    ///     Round::Nearest,
-    /// );
-    /// // Rounding directions cannot be `Ordering::Equal`:
-    /// assert_ne!(dirs.0, Ordering::Equal);
-    /// assert_ne!(dirs.1, Ordering::Equal);
-    /// println!("Two Gaussian random numbers: {}, {}", f1, f2);
+    /// let mut f = Float::new(53);
+    /// let dir = f.assign_random_exp_round(&mut rand, Round::Nearest);
+    /// // Rounding direction cannot be `Ordering::Equal`:
+    /// assert_ne!(dir, Ordering::Equal);
+    /// // Number cannot be less than zero:
+    /// assert_ne!(f.cmp0(), Some(Ordering::Less));
+    /// println!("Exponential random number: {}", f);
     /// ```
     #[inline]
-    pub fn assign_random_gaussian_round(
+    pub fn assign_random_exp_round(
         &mut self,
-        other: Option<&mut Float>,
         rng: &mut RandState,
         round: Round,
-    ) -> (Ordering, Ordering) {
-        let second_ptr = match other {
-            Some(r) => unsafe { r.inner_mut() },
-            None => ptr::null_mut(),
-        };
+    ) -> Ordering {
         let ret = unsafe {
-            mpfr::grandom(
-                self.inner_mut(),
-                second_ptr,
-                rng.inner_mut(),
-                rraw(round),
-            )
+            mpfr::erandom(self.inner_mut(), rng.inner_mut(), rraw(round))
         };
-        ordering2(ret)
+        ordering1(ret)
     }
 }
 
@@ -6295,7 +6527,7 @@ ref_math_op1_float! { mpfr::sqr; struct SquareRef {} }
 ref_math_op1_float! { mpfr::sqrt; struct SqrtRef {} }
 ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtRef {} }
 ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
-ref_math_op1_float! { mpfr::root; struct RootRef { k: u32 } }
+ref_math_op1_float! { mpfr::rootn_ui; struct RootRef { k: u32 } }
 ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
 
 #[derive(Clone, Copy)]
@@ -6396,6 +6628,7 @@ ref_math_op1_float! { mpfr::expm1; struct ExpM1Ref {} }
 ref_math_op1_float! { mpfr::eint; struct EintRef {} }
 ref_math_op1_float! { mpfr::li2; struct Li2Ref {} }
 ref_math_op1_float! { mpfr::gamma; struct GammaRef {} }
+ref_math_op2_float! { mpfr::gamma_inc; struct GammaIncRef { x } }
 ref_math_op1_float! { mpfr::lngamma; struct LnGammaRef {} }
 
 pub struct LnAbsGammaRef<'a> {
@@ -6488,6 +6721,7 @@ ref_math_op1_float! { mpfr::ai; struct AiRef {} }
 ref_math_op1_float! { mpfr::rint_ceil; struct CeilRef {} }
 ref_math_op1_float! { mpfr::rint_floor; struct FloorRef {} }
 ref_math_op1_float! { mpfr::rint_round; struct RoundRef {} }
+ref_math_op1_float! { mpfr::rint_roundeven; struct RoundEvenRef {} }
 ref_math_op1_float! { mpfr::rint_trunc; struct TruncRef {} }
 ref_math_op1_float! { mpfr::frac; struct FractRef {} }
 ref_math_op1_2_float! { mpfr::modf; struct TruncFractRef {} }
