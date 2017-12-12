@@ -1093,6 +1093,32 @@ impl Complex {
         unsafe { &*(self as *const _ as *const _) }
     }
 
+    /// Compares the absolute values of `self` and `other`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use std::cmp::Ordering;
+    /// let a = Complex::with_val(53, (5, 0));
+    /// let b = Complex::with_val(53, (3, -4));
+    /// let c = Complex::with_val(53, (-4, -4));
+    /// assert_eq!(a.cmp_abs(&b), Some(Ordering::Equal));
+    /// assert_eq!(a.cmp_abs(&c), Some(Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn cmp_abs(&self, other: &Complex) -> Option<Ordering> {
+        unsafe {
+            if self.real().is_nan() || self.imag().is_nan()
+                || other.real().is_nan() || other.imag().is_nan()
+            {
+                None
+            } else {
+                Some(ordering1(mpc::cmp_abs(self.inner(), other.inner())))
+            }
+        }
+    }
+
     math_op1_no_round! {
         mpc::proj, rraw2;
         /// Computes a projection onto the Riemann sphere, rounding to
@@ -1820,6 +1846,61 @@ impl Complex {
         /// ```
         fn log10_ref -> Log10Ref;
     }
+
+    /// Generate a root of unity, rounding to the nearest.
+    ///
+    /// The generated number is the <i>n</i>th root of unity raised to
+    /// the power *k*, that is the magnitude is 1 and the argument
+    /// is 2 <i>π</i> *k* / *n*.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c = Complex::new(53);
+    /// c.assign_root_of_unity(3, 2);
+    /// let expected = Complex::with_val(53, (-0.5, -0.8660));
+    /// assert!((c - expected).abs() < 0.0001);
+    /// ```
+    #[inline]
+    pub fn assign_root_of_unity(&mut self, n: u32, k: u32) {
+        self.assign_root_of_unity_round(n, k, Default::default());
+    }
+
+    /// Generate a root of unity, applying the specified rounding
+    /// method.
+    ///
+    /// The generated number is the <i>n</i>th root of unity raised to
+    /// the power *k*, that is the magnitude is 1 and the argument
+    /// is 2 <i>π</i> *k* / *n*.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let mut c = Complex::new(4);
+    /// let nearest = (Round::Nearest, Round::Nearest);
+    /// let dir = c.assign_root_of_unity_round(3, 2, nearest);
+    /// // exp(4πi / 3) = (-0.5 - 0.8660i)
+    /// // using 4 significant bits: (0.5 - 0.875i)
+    /// assert_eq!(c, (-0.5, -0.875));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
+    /// ```
+    #[inline]
+    pub fn assign_root_of_unity_round(
+        &mut self,
+        n: u32,
+        k: u32,
+        round: Round2,
+    ) -> Ordering2 {
+        let ret = unsafe {
+            mpc::rootofunity(self.inner_mut(), n.into(), k.into(), rraw2(round))
+        };
+        ordering2(ret)
+    }
+
     math_op1_complex! {
         mpc::exp;
         /// Computes the exponential, rounding to the nearest.

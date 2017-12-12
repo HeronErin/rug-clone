@@ -7,6 +7,8 @@ Version 0.9.2
 * Deprecate `Float::assign_random_gaussian` methods.
 * Add `Float::assign_random_exp` methods.
 * Add `Float::gamma_inc` methods.
+* Add `Complex::cmp_abs` method.
+* Add `Complex::assign_root_of_unity` methods.
 * Add `as_nonreallocating_mut` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
