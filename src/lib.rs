@@ -135,9 +135,9 @@
 //! [rug int]:  struct.Integer.html
 //! [rug ops]:  ops/index.html
 //! [rug rat]:  struct.Rational.html
-//! [sys]:      https://docs.rs/gmp-mpfr-sys/^1.1.0/
+//! [sys]:      https://docs.rs/gmp-mpfr-sys/^1.1.0
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/0.9.1/")]
+#![doc(html_root_url = "https://docs.rs/rug/0.9.1")]
 #![doc(test(attr(deny(warnings))))]
 
 #[cfg(any(feature = "integer", feature = "float"))]
