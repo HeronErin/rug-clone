@@ -52,4 +52,4 @@ optional = true
 serde_test = "1.0"
 
 [package.metadata.docs.rs]
-all-features = true
+features = ["serde"]
