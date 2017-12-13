@@ -111,10 +111,10 @@ features = ["integer", "float", "rand"]
 [mpc]:      http://www.multiprecision.org/
 [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 [mpfr]:     http://www.mpfr.org/
-[rug com]:  https://docs.rs/rug/^0.9.1/rug/struct.Complex.html
-[rug flo]:  https://docs.rs/rug/^0.9.1/rug/struct.Float.html
-[rug int]:  https://docs.rs/rug/^0.9.1/rug/struct.Integer.html
-[rug ops]:  https://docs.rs/rug/^0.9.1/rug/ops/index.html
-[rug rat]:  https://docs.rs/rug/^0.9.1/rug/struct.Rational.html
-[rug]:      https://docs.rs/rug/^0.9.1/
-[sys]:      https://docs.rs/gmp-mpfr-sys/^1.0.6/
+[rug com]:  https://docs.rs/rug/0.9.1/rug/struct.Complex.html
+[rug flo]:  https://docs.rs/rug/0.9.1/rug/struct.Float.html
+[rug int]:  https://docs.rs/rug/0.9.1/rug/struct.Integer.html
+[rug ops]:  https://docs.rs/rug/0.9.1/rug/ops/index.html
+[rug rat]:  https://docs.rs/rug/0.9.1/rug/struct.Rational.html
+[rug]:      https://docs.rs/rug/0.9.1/
+[sys]:      https://docs.rs/gmp-mpfr-sys/^1.1.0/
