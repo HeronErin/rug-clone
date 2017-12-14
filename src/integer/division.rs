@@ -20,6 +20,17 @@ use inner::{Inner, InnerMut};
 use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
           RemRoundingAssign, RemRoundingFrom};
 
+// big / big -> Big
+// big / &big -> Big
+// &big / big -> Big
+// &big / &big -> Ref
+// big /= big
+// big /= &big
+// big /-> big
+// &big /-> big
+// struct Ref
+// Ref -> Big
+// big = Ref
 macro_rules! div_op {
     {
         $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
@@ -56,31 +67,31 @@ macro_rules! div_op {
             }
         }
 
-        impl<'a> $Imp<&'a Integer> for Integer {
+        impl<'i> $Imp<&'i Integer> for Integer {
             type Output = Integer;
             #[inline]
-            fn $trunc(mut self, rhs: &'a Integer) -> Integer {
+            fn $trunc(mut self, rhs: &'i Integer) -> Integer {
                 self.$trunc_assign(rhs);
                 self
             }
             #[inline]
-            fn $ceil(mut self, rhs: &'a Integer) -> Integer {
+            fn $ceil(mut self, rhs: &'i Integer) -> Integer {
                 self.$ceil_assign(rhs);
                 self
             }
             #[inline]
-            fn $floor(mut self, rhs: &'a Integer) -> Integer {
+            fn $floor(mut self, rhs: &'i Integer) -> Integer {
                 self.$floor_assign(rhs);
                 self
             }
             #[inline]
-            fn $euc(mut self, rhs: &'a Integer) -> Integer {
+            fn $euc(mut self, rhs: &'i Integer) -> Integer {
                 self.$euc_assign(rhs);
                 self
             }
         }
 
-        impl<'a> $Imp<Integer> for &'a Integer {
+        impl<'i> $Imp<Integer> for &'i Integer {
             type Output = Integer;
             #[inline]
             fn $trunc(self, mut rhs: Integer) -> Integer {
@@ -104,6 +115,26 @@ macro_rules! div_op {
             }
         }
 
+        impl<'i> $Imp<&'i Integer> for &'i Integer {
+            type Output = $Ref<'i>;
+            #[inline]
+            fn $trunc(self, rhs: &'i Integer) -> $Ref {
+                $Ref::Trunc(self, rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: &'i Integer) -> $Ref {
+                $Ref::Ceil(self, rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: &'i Integer) -> $Ref {
+                $Ref::Floor(self, rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: &'i Integer) -> $Ref {
+                $Ref::Euc(self, rhs)
+            }
+        }
+
         impl $ImpAssign<Integer> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: Integer) {
@@ -123,27 +154,27 @@ macro_rules! div_op {
             }
         }
 
-        impl<'a> $ImpAssign<&'a Integer> for Integer {
+        impl<'i> $ImpAssign<&'i Integer> for Integer {
             #[inline]
-            fn $trunc_assign(&mut self, rhs: &'a Integer) {
+            fn $trunc_assign(&mut self, rhs: &'i Integer) {
                 unsafe {
                     $trunc_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
             #[inline]
-            fn $ceil_assign(&mut self, rhs: &'a Integer) {
+            fn $ceil_assign(&mut self, rhs: &'i Integer) {
                 unsafe {
                     $ceil_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
             #[inline]
-            fn $floor_assign(&mut self, rhs: &'a Integer) {
+            fn $floor_assign(&mut self, rhs: &'i Integer) {
                 unsafe {
                     $floor_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
             #[inline]
-            fn $euc_assign(&mut self, rhs: &'a Integer) {
+            fn $euc_assign(&mut self, rhs: &'i Integer) {
                 unsafe {
                     $euc_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
@@ -169,64 +200,44 @@ macro_rules! div_op {
             }
         }
 
-        impl<'a> $ImpFrom<&'a Integer> for Integer {
+        impl<'i> $ImpFrom<&'i Integer> for Integer {
             #[inline]
-            fn $trunc_from(&mut self, lhs: &'a Integer) {
+            fn $trunc_from(&mut self, lhs: &'i Integer) {
                 unsafe {
                     $trunc_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
             #[inline]
-            fn $ceil_from(&mut self, lhs: &'a Integer) {
+            fn $ceil_from(&mut self, lhs: &'i Integer) {
                 unsafe {
                     $ceil_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
             #[inline]
-            fn $floor_from(&mut self, lhs: &'a Integer) {
+            fn $floor_from(&mut self, lhs: &'i Integer) {
                 unsafe {
                     $floor_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
             #[inline]
-            fn $euc_from(&mut self, lhs: &'a Integer) {
+            fn $euc_from(&mut self, lhs: &'i Integer) {
                 unsafe {
                     $euc_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
         }
 
-        impl<'a> $Imp<&'a Integer> for &'a Integer {
-            type Output = $Ref<'a>;
-            #[inline]
-            fn $trunc(self, rhs: &'a Integer) -> $Ref {
-                $Ref::Trunc(self, rhs)
-            }
-            #[inline]
-            fn $ceil(self, rhs: &'a Integer) -> $Ref {
-                $Ref::Ceil(self, rhs)
-            }
-            #[inline]
-            fn $floor(self, rhs: &'a Integer) -> $Ref {
-                $Ref::Floor(self, rhs)
-            }
-            #[inline]
-            fn $euc(self, rhs: &'a Integer) -> $Ref {
-                $Ref::Euc(self, rhs)
-            }
-        }
-
         #[derive(Clone, Copy)]
-        pub enum $Ref<'a> {
-            Trunc(&'a Integer, &'a Integer),
-            Ceil(&'a Integer, &'a Integer),
-            Floor(&'a Integer, &'a Integer),
-            Euc(&'a Integer, &'a Integer),
+        pub enum $Ref<'i> {
+            Trunc(&'i Integer, &'i Integer),
+            Ceil(&'i Integer, &'i Integer),
+            Floor(&'i Integer, &'i Integer),
+            Euc(&'i Integer, &'i Integer),
         }
 
         from_borrow! { $Ref<'a> => Integer }
 
-        impl<'a> Assign<$Ref<'a>> for Integer {
+        impl<'i> Assign<$Ref<'i>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Ref) {
                 match src {
@@ -248,6 +259,24 @@ macro_rules! div_op {
     }
 }
 
+// big / prim -> Big
+// big / &prim -> Big
+// &big / prim -> Ref
+// &big / &prim -> Ref
+// big /= prim
+// big /= &prim
+// struct Ref
+// Ref -> Big
+// big = Ref
+// prim / big -> Big
+// prim / &big -> RefFrom
+// &prim / big -> Big
+// &prim / &big -> RefFrom
+// prim /-> big
+// &prim /-> big
+// struct RefFrom
+// RefFrom -> Big
+// big = RefFrom
 macro_rules! div_prim {
     {
         $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
@@ -293,6 +322,66 @@ macro_rules! div_prim {
             }
         }
 
+        impl<'t> $Imp<&'t $T> for Integer {
+            type Output = Integer;
+            #[inline]
+            fn $trunc(self, rhs: &'t $T) -> Integer {
+                <Integer as $Imp<$T>>::$trunc(self, *rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: &'t $T) -> Integer {
+                <Integer as $Imp<$T>>::$ceil(self, *rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: &'t $T) -> Integer {
+                <Integer as $Imp<$T>>::$floor(self, *rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: &'t $T) -> Integer {
+                <Integer as $Imp<$T>>::$euc(self, *rhs)
+            }
+        }
+
+        impl<'i> $Imp<$T> for &'i Integer {
+            type Output = $Ref<'i>;
+            #[inline]
+            fn $trunc(self, rhs: $T) -> $Ref<'i> {
+                $Ref::Trunc(self, rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: $T) -> $Ref<'i> {
+                $Ref::Ceil(self, rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: $T) -> $Ref<'i> {
+                $Ref::Floor(self, rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: $T) -> $Ref<'i> {
+                $Ref::Euc(self, rhs)
+            }
+        }
+
+        impl<'t, 'i> $Imp<&'t $T> for &'i Integer {
+            type Output = $Ref<'i>;
+            #[inline]
+            fn $trunc(self, rhs: &'t $T) -> $Ref<'i> {
+                <&Integer as $Imp<$T>>::$trunc(self, *rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: &'t $T) -> $Ref<'i> {
+                <&Integer as $Imp<$T>>::$ceil(self, *rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: &'t $T) -> $Ref<'i> {
+                <&Integer as $Imp<$T>>::$floor(self, *rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: &'t $T) -> $Ref<'i> {
+                <&Integer as $Imp<$T>>::$euc(self, *rhs)
+            }
+        }
+
         impl $ImpAssign<$T> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: $T) {
@@ -320,37 +409,36 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'a> $Imp<$T> for &'a Integer {
-            type Output = $Ref<'a>;
+        impl<'t> $ImpAssign<&'t $T> for Integer {
             #[inline]
-            fn $trunc(self, rhs: $T) -> $Ref<'a> {
-                $Ref::Trunc(self, rhs)
+            fn $trunc_assign(&mut self, rhs: &'t $T) {
+                <Integer as $ImpAssign<$T>>::$trunc_assign(self, *rhs);
             }
             #[inline]
-            fn $ceil(self, rhs: $T) -> $Ref<'a> {
-                $Ref::Ceil(self, rhs)
+            fn $ceil_assign(&mut self, rhs: &'t $T) {
+                <Integer as $ImpAssign<$T>>::$ceil_assign(self, *rhs);
             }
             #[inline]
-            fn $floor(self, rhs: $T) -> $Ref<'a> {
-                $Ref::Floor(self, rhs)
+            fn $floor_assign(&mut self, rhs: &'t $T) {
+                <Integer as $ImpAssign<$T>>::$floor_assign(self, *rhs);
             }
             #[inline]
-            fn $euc(self, rhs: $T) -> $Ref<'a> {
-                $Ref::Euc(self, rhs)
+            fn $euc_assign(&mut self, rhs: &'t $T) {
+                <Integer as $ImpAssign<$T>>::$euc_assign(self, *rhs);
             }
         }
 
         #[derive(Clone, Copy)]
-        pub enum $Ref<'a> {
-            Trunc(&'a Integer, $T),
-            Ceil(&'a Integer, $T),
-            Floor(&'a Integer, $T),
-            Euc(&'a Integer, $T),
+        pub enum $Ref<'i> {
+            Trunc(&'i Integer, $T),
+            Ceil(&'i Integer, $T),
+            Floor(&'i Integer, $T),
+            Euc(&'i Integer, $T),
         }
 
         from_borrow! { $Ref<'a> => Integer }
 
-        impl<'a> Assign<$Ref<'a>> for Integer {
+        impl<'i> Assign<$Ref<'i>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Ref) {
                 match src {
@@ -394,6 +482,66 @@ macro_rules! div_prim {
             }
         }
 
+        impl<'i> $Imp<&'i Integer> for $T {
+            type Output = $RefFrom<'i>;
+            #[inline]
+            fn $trunc(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                $RefFrom::Trunc(self, rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                $RefFrom::Ceil(self, rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                $RefFrom::Floor(self, rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                $RefFrom::Euc(self, rhs)
+            }
+        }
+
+        impl<'t> $Imp<Integer> for &'t $T {
+            type Output = Integer;
+            #[inline]
+            fn $trunc(self, rhs: Integer) -> Integer {
+                <$T as $Imp<Integer>>::$trunc(*self, rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: Integer) -> Integer {
+                <$T as $Imp<Integer>>::$ceil(*self, rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: Integer) -> Integer {
+                <$T as $Imp<Integer>>::$floor(*self, rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: Integer) -> Integer {
+                <$T as $Imp<Integer>>::$euc(*self, rhs)
+            }
+        }
+
+        impl<'i, 't> $Imp<&'i Integer> for &'t $T {
+            type Output = $RefFrom<'i>;
+            #[inline]
+            fn $trunc(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                <$T as $Imp<&Integer>>::$trunc(*self, rhs)
+            }
+            #[inline]
+            fn $ceil(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                <$T as $Imp<&Integer>>::$ceil(*self, rhs)
+            }
+            #[inline]
+            fn $floor(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                <$T as $Imp<&Integer>>::$floor(*self, rhs)
+            }
+            #[inline]
+            fn $euc(self, rhs: &'i Integer) -> $RefFrom<'i> {
+                <$T as $Imp<&Integer>>::$euc(*self, rhs)
+            }
+        }
+
         impl $ImpFrom<$T> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: $T) {
@@ -421,37 +569,36 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'a> $Imp<&'a Integer> for $T {
-            type Output = $RefFrom<'a>;
+        impl<'t> $ImpFrom<&'t $T> for Integer {
             #[inline]
-            fn $trunc(self, rhs: &'a Integer) -> $RefFrom<'a> {
-                $RefFrom::Trunc(self, rhs)
+            fn $trunc_from(&mut self, lhs: &'t $T) {
+                <Integer as $ImpFrom<$T>>::$trunc_from(self, *lhs);
             }
             #[inline]
-            fn $ceil(self, rhs: &'a Integer) -> $RefFrom<'a> {
-                $RefFrom::Ceil(self, rhs)
+            fn $ceil_from(&mut self, lhs: &'t $T) {
+                <Integer as $ImpFrom<$T>>::$ceil_from(self, *lhs);
             }
             #[inline]
-            fn $floor(self, rhs: &'a Integer) -> $RefFrom<'a> {
-                $RefFrom::Floor(self, rhs)
+            fn $floor_from(&mut self, lhs: &'t $T) {
+                <Integer as $ImpFrom<$T>>::$floor_from(self, *lhs);
             }
             #[inline]
-            fn $euc(self, rhs: &'a Integer) -> $RefFrom<'a> {
-                $RefFrom::Euc(self, rhs)
+            fn $euc_from(&mut self, lhs: &'t $T) {
+                <Integer as $ImpFrom<$T>>::$euc_from(self, *lhs);
             }
         }
 
         #[derive(Clone, Copy)]
-        pub enum $RefFrom<'a> {
-            Trunc($T, &'a Integer),
-            Ceil($T, &'a Integer),
-            Floor($T, &'a Integer),
-            Euc($T, &'a Integer),
+        pub enum $RefFrom<'i> {
+            Trunc($T, &'i Integer),
+            Ceil($T, &'i Integer),
+            Floor($T, &'i Integer),
+            Euc($T, &'i Integer),
         }
 
         from_borrow! { $RefFrom<'a> => Integer }
 
-        impl<'a> Assign<$RefFrom<'a>> for Integer {
+        impl<'i> Assign<$RefFrom<'i>> for Integer {
             #[inline]
             fn assign(&mut self, src: $RefFrom) {
                 match src {
