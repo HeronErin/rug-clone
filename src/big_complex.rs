@@ -1847,11 +1847,11 @@ impl Complex {
         fn log10_ref -> Log10Ref;
     }
 
-    /// Generate a root of unity, rounding to the nearest.
+    /// Generates a root of unity, rounding to the nearest.
     ///
     /// The generated number is the <i>n</i>th root of unity raised to
-    /// the power *k*, that is the magnitude is 1 and the argument
-    /// is 2 <i>π</i> *k* / *n*.
+    /// the power *k*, that is its magnitude is 1 and its argument is
+    /// 2<i>πk</i>/<i>n</i>.
     ///
     /// # Examples
     ///
@@ -1867,12 +1867,12 @@ impl Complex {
         self.assign_root_of_unity_round(n, k, Default::default());
     }
 
-    /// Generate a root of unity, applying the specified rounding
+    /// Generates a root of unity, applying the specified rounding
     /// method.
     ///
     /// The generated number is the <i>n</i>th root of unity raised to
-    /// the power *k*, that is the magnitude is 1 and the argument
-    /// is 2 <i>π</i> *k* / *n*.
+    /// the power *k*, that is its magnitude is 1 and its argument is
+    /// 2<i>πk</i>/<i>n</i>.
     ///
     /// # Examples
     ///
