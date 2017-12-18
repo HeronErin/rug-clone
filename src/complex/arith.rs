@@ -41,10 +41,6 @@ impl Neg for Complex {
 impl NegAssign for Complex {
     #[inline]
     fn neg_assign(&mut self) {
-        // MPFR ≤ 3.1.6: mpfr_neg(op1, op2, r) does not change sign of
-        // NaNs when op1 == op2, and mpc_neg uses mpfr_neg. As a
-        // workaround, change sign directly instead of using mpc::neg.
-        // mpc::neg(self.inner_mut(), self.inner(), rraw2(Default::default()));
         self.mut_real().neg_assign();
         self.mut_imag().neg_assign();
     }
