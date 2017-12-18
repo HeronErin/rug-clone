@@ -146,6 +146,25 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// assert_eq!(separate_add, 4);
 /// ```
 ///
+/// The intermediate value obtained from multiplying two `Float`
+/// references can also be added to or subtracted from another such
+/// intermediate value, so that two muliplications and an addition are
+/// fused with only one rounding operation taking place.
+///
+/// ```rust
+/// use rug::Float;
+/// let a = Float::with_val(53, 24);
+/// let b = Float::with_val(53, 1.5);
+/// let c = Float::with_val(53, 12);
+/// let d = Float::with_val(53, 2);
+/// // 24 * 1.5 + 12 * 2 = 60
+/// let add = Float::with_val(53, &a * &b + &c * &d);
+/// assert_eq!(add, 60);
+/// // 24 * 1.5 - 12 * 2 = 12
+/// let sub = Float::with_val(53, &a * &b - &c * &d);
+/// assert_eq!(sub, 12);
+/// ```
+///
 /// The `Float` type supports various functions. Most methods have
 /// four versions:
 ///

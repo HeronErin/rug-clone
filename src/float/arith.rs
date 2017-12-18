@@ -576,6 +576,72 @@ mul_op_noncommut_round! {
     SubMulRef SubMulFromRef
 }
 
+impl<'a> Add for MulRef<'a> {
+    type Output = MulAddMulRef<'a>;
+    #[inline]
+    fn add(self, rhs: MulRef<'a>) -> MulAddMulRef<'a> {
+        MulAddMulRef { lhs: self, rhs }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct MulAddMulRef<'a> {
+    lhs: MulRef<'a>,
+    rhs: MulRef<'a>,
+}
+
+impl<'a> AssignRound<MulAddMulRef<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(&mut self, src: MulAddMulRef, round: Round) -> Ordering {
+        let ret = unsafe {
+            mpfr::fmma(
+                self.inner_mut(),
+                src.lhs.lhs.inner(),
+                src.lhs.rhs.inner(),
+                src.rhs.lhs.inner(),
+                src.rhs.rhs.inner(),
+                rraw(round),
+            )
+        };
+        ordering1(ret)
+    }
+}
+
+impl<'a> Sub for MulRef<'a> {
+    type Output = MulSubMulRef<'a>;
+    #[inline]
+    fn sub(self, rhs: MulRef<'a>) -> MulSubMulRef<'a> {
+        MulSubMulRef { lhs: self, rhs }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct MulSubMulRef<'a> {
+    lhs: MulRef<'a>,
+    rhs: MulRef<'a>,
+}
+
+impl<'a> AssignRound<MulSubMulRef<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(&mut self, src: MulSubMulRef, round: Round) -> Ordering {
+        let ret = unsafe {
+            mpfr::fmms(
+                self.inner_mut(),
+                src.lhs.lhs.inner(),
+                src.lhs.rhs.inner(),
+                src.rhs.lhs.inner(),
+                src.rhs.rhs.inner(),
+                rraw(round),
+            )
+        };
+        ordering1(ret)
+    }
+}
+
 unsafe fn add_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,

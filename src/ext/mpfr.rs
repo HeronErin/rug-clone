@@ -339,9 +339,7 @@ pub unsafe fn submul(
         unchanged => unchanged,
     };
     let reverse_ord = mpfr::fms(rop, m1, m2, add, reverse_rnd);
-    if mpfr::nan_p(rop) == 0 {
-        (*rop).sign = -(*rop).sign;
-    }
+    (*rop).sign = -(*rop).sign;
     -reverse_ord
 }
 
