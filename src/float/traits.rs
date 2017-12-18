@@ -263,7 +263,9 @@ impl AssignRound<i64> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, rhs: i64, round: Round) -> Ordering {
-        let ret = unsafe { xmpfr::set_i64(self.inner_mut(), rhs, rraw(round)) };
+        let ret = unsafe {
+            xmpfr::set_i64(self.inner_mut(), rhs, rraw(round))
+        };
         ordering1(ret)
     }
 }
@@ -277,7 +279,9 @@ impl AssignRound<u64> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, rhs: u64, round: Round) -> Ordering {
-        let ret = unsafe { xmpfr::set_u64(self.inner_mut(), rhs, rraw(round)) };
+        let ret = unsafe {
+            xmpfr::set_u64(self.inner_mut(), rhs, rraw(round))
+        };
         ordering1(ret)
     }
 }
