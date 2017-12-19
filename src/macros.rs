@@ -176,7 +176,10 @@ macro_rules! ref_math_op1_2 {
             #[inline]
             fn from(src: $Ref<'a>) -> Self {
                 let mut pair = <Self as Default>::default();
-                <Self as Assign<$Ref>>::assign(&mut pair, src);
+                <(&mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut pair.0, &mut pair.1),
+                    src,
+                );
                 pair
             }
         }
@@ -372,7 +375,10 @@ macro_rules! ref_math_op2_2 {
             #[inline]
             fn from(src: $Ref<'a>) -> Self {
                 let mut pair = <Self as Default>::default();
-                <Self as Assign<$Ref>>::assign(&mut pair, src);
+                <(&mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut pair.0, &mut pair.1),
+                    src,
+                );
                 pair
             }
         }
@@ -489,7 +495,10 @@ macro_rules! ref_math_op2_3 {
             #[inline]
             fn from(src: $Ref<'a>) -> Self {
                 let mut three = <Self as Default>::default();
-                <Self as Assign<$Ref>>::assign(&mut three, src);
+                <(&mut $Big, &mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                    &mut (&mut three.0, &mut three.1, &mut three.2),
+                    src,
+                );
                 three
             }
         }
@@ -622,8 +631,9 @@ macro_rules! arith_binary {
         impl $Imp<$Big> for $Big {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<&$Big>>::$method(self, &rhs)
+            fn $method(mut self, rhs: $Big) -> $Big {
+                <$Big as $ImpAssign<&$Big>>::$method_assign(&mut self, &rhs);
+                self
             }
         }
 
@@ -738,8 +748,9 @@ macro_rules! arith_prim {
         impl<'t> $Imp<&'t $T> for $Big {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: &'t $T) -> $Big {
-                <$Big as $Imp<$T>>::$method(self, *rhs)
+            fn $method(mut self, rhs: &'t $T) -> $Big {
+                <$Big as $ImpAssign<$T>>::$method_assign(&mut self, *rhs);
+                self
             }
         }
 
@@ -822,8 +833,9 @@ macro_rules! arith_prim_commut {
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<$T>>::$method(rhs, self)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssign<$T>>::$method_assign(&mut rhs, self);
+                rhs
             }
         }
 
@@ -838,16 +850,17 @@ macro_rules! arith_prim_commut {
         impl<'t> $Imp<$Big> for &'t $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$T as $Imp<$Big>>::$method(*self, rhs)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssign<$T>>::$method_assign(&mut rhs, *self);
+                rhs
             }
         }
 
         impl<'b, 't> $Imp<&'b $Big> for &'t $T {
-            type Output = <$T as $Imp<&'b $Big>>::Output;
+            type Output = $Ref<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> Self::Output {
-                <$T as $Imp<&$Big>>::$method(*self, rhs)
+                <&$Big as $Imp<$T>>::$method(rhs, *self)
             }
         }
 
@@ -861,7 +874,7 @@ macro_rules! arith_prim_commut {
         impl<'t> $ImpFrom<&'t $T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &'t $T) {
-                <$Big as $ImpFrom<$T>>::$method_from(self, *lhs);
+                <$Big as $ImpAssign<$T>>::$method_assign(self, *lhs);
             }
         }
     }
@@ -915,8 +928,9 @@ macro_rules! arith_prim_noncommut {
         impl<'t> $Imp<$Big> for &'t $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$T as $Imp<$Big>>::$method(*self, rhs)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpFrom<$T>>::$method_from(&mut rhs, *self);
+                rhs
             }
         }
 
@@ -1061,8 +1075,9 @@ macro_rules! mul_op_commut {
         impl<'a> $Imp<$Big> for $Mul<'a> {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<$Mul>>::$method(rhs, self)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssign<$Mul>>::$method_assign(&mut rhs, self);
+                rhs
             }
         }
 
@@ -1408,9 +1423,10 @@ macro_rules! ref_math_op1_2_round {
         impl<'a> Assign<$Ref<'a>> for ($Big, $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
-                <(&mut $Big, &mut $Big) as Assign<$Ref>>::assign(
+                <(&mut $Big, &mut $Big) as AssignRound<$Ref>>::assign_round(
                     &mut (&mut self.0, &mut self.1),
                     src,
+                    Default::default(),
                 );
             }
         }
@@ -1418,10 +1434,10 @@ macro_rules! ref_math_op1_2_round {
         impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Ref<'a>) {
-                <Self as AssignRound<$Ref>>::assign_round(
-                    self,
+                <(&mut $Big, &mut $Big) as AssignRound<$Ref>>::assign_round(
+                    &mut (self.0, self.1),
                     src,
-                    Default::default()
+                    Default::default(),
                 );
             }
         }
@@ -1602,7 +1618,11 @@ macro_rules! arith_binary_round {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: $T) -> $Big {
-                <$Big as $ImpAssign<$T>>::$method_assign(&mut self, rhs);
+                <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
+                    &mut self,
+                    &rhs,
+                    Default::default(),
+                );
                 self
             }
         }
@@ -1611,15 +1631,12 @@ macro_rules! arith_binary_round {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: &'a $T) -> $Big {
-                <$Big as $ImpAssign<&$T>>::$method_assign(&mut self, rhs);
+                <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
+                    &mut self,
+                    rhs,
+                    Default::default(),
+                );
                 self
-            }
-        }
-
-        impl $ImpAssign<$T> for $Big {
-            #[inline]
-            fn $method_assign(&mut self, rhs: $T) {
-                <$Big as $ImpAssign<&$T>>::$method_assign(self, &rhs);
             }
         }
 
@@ -1631,6 +1648,17 @@ macro_rules! arith_binary_round {
                     lhs: self,
                     rhs,
                 }
+            }
+        }
+
+        impl $ImpAssign<$T> for $Big {
+            #[inline]
+            fn $method_assign(&mut self, rhs: $T) {
+                <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
+                    self,
+                    &rhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -1740,7 +1768,11 @@ macro_rules! arith_binary_self_round {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
-                <$Big as $ImpFrom<&$Big>>::$method_from(&mut rhs, self);
+                <$Big as $ImpFromRound<&$Big>>::$method_from_round(
+                    &mut rhs,
+                    self,
+                    Default::default(),
+                );
                 rhs
             }
         }
@@ -1748,7 +1780,11 @@ macro_rules! arith_binary_self_round {
         impl $ImpFrom<$Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Big) {
-                <$Big as $ImpFrom<&$Big>>::$method_from(self, &lhs);
+                <$Big as $ImpFromRound<&$Big>>::$method_from_round(
+                    self,
+                    &lhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -1903,8 +1939,13 @@ macro_rules! arith_commut_round {
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<$T>>::$method(rhs, self)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
+                    &mut rhs,
+                    &self,
+                    Default::default(),
+                );
+                rhs
             }
         }
 
@@ -1919,8 +1960,13 @@ macro_rules! arith_commut_round {
         impl<'a> $Imp<$Big> for &'a $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<&$T>>::$method(rhs, self)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
+                    &mut rhs,
+                    self,
+                    Default::default(),
+                );
+                rhs
             }
         }
 
@@ -1935,7 +1981,11 @@ macro_rules! arith_commut_round {
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
-                <$Big as $ImpFrom<&$T>>::$method_from(self, &lhs);
+                <$Big as $ImpFromRound<&$T>>::$method_from_round(
+                    self,
+                    &lhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -2025,8 +2075,13 @@ macro_rules! arith_noncommut_round {
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <&$T as $Imp<$Big>>::$method(&self, rhs)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpFromRound<&$T>>::$method_from_round(
+                    &mut rhs,
+                    &self,
+                    Default::default(),
+                );
+                rhs
             }
         }
 
@@ -2045,7 +2100,11 @@ macro_rules! arith_noncommut_round {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
-                <$Big as $ImpFrom<&$T>>::$method_from(&mut rhs, self);
+                <$Big as $ImpFromRound<&$T>>::$method_from_round(
+                    &mut rhs,
+                    self,
+                    Default::default(),
+                );
                 rhs
             }
         }
@@ -2064,7 +2123,11 @@ macro_rules! arith_noncommut_round {
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
-                <$Big as $ImpFrom<&$T>>::$method_from(self, &lhs);
+                <$Big as $ImpFromRound<&$T>>::$method_from_round(
+                    self,
+                    &lhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -2204,15 +2267,16 @@ macro_rules! arith_prim_exact_round {
         impl<'t> $Imp<&'t $T> for $Big {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: &'t $T) -> $Big {
-                <$Big as $Imp<$T>>::$method(self, *rhs)
+            fn $method(mut self, rhs: &'t $T) -> $Big {
+                <$Big as $ImpAssign<$T>>::$method_assign(&mut self, *rhs);
+                self
             }
         }
 
-        impl<'a> $Imp<$T> for &'a $Big {
-            type Output = $Ref<'a>;
+        impl<'b> $Imp<$T> for &'b $Big {
+            type Output = $Ref<'b>;
             #[inline]
-            fn $method(self, rhs: $T) -> $Ref<'a> {
+            fn $method(self, rhs: $T) -> $Ref<'b> {
                 $Ref {
                     lhs: self,
                     rhs,
@@ -2224,10 +2288,7 @@ macro_rules! arith_prim_exact_round {
             type Output = $Ref<'b>;
             #[inline]
             fn $method(self, rhs: &'t $T) -> $Ref<'b> {
-                $Ref {
-                    lhs: self,
-                    rhs: *rhs,
-                }
+                <&$Big as $Imp<$T>>::$method(self, *rhs)
             }
         }
 
@@ -2375,8 +2436,9 @@ macro_rules! arith_prim_commut_round {
         impl $Imp<$Big> for $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<$T>>::$method(rhs, self)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssign<$T>>::$method_assign(&mut rhs, self);
+                rhs
             }
         }
 
@@ -2391,8 +2453,9 @@ macro_rules! arith_prim_commut_round {
         impl<'t> $Imp<$Big> for &'t $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$T as $Imp<$Big>>::$method(*self, rhs)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssign<$T>>::$method_assign(&mut rhs, *self);
+                rhs
             }
         }
 
@@ -2400,21 +2463,29 @@ macro_rules! arith_prim_commut_round {
             type Output = $Ref<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> $Ref<'b> {
-                <$T as $Imp<&$Big>>::$method(*self, rhs)
+                <&$Big as $Imp<$T>>::$method(rhs, *self)
             }
         }
 
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
-                <$Big as $ImpAssign<$T>>::$method_assign(self, lhs);
+                <$Big as $ImpAssignRound<$T>>::$method_assign_round(
+                    self,
+                    lhs,
+                    Default::default(),
+                );
             }
         }
 
         impl<'t> $ImpFrom<&'t $T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &'t $T) {
-                <$Big as $ImpFrom<$T>>::$method_from(self, *lhs);
+                <$Big as $ImpAssignRound<$T>>::$method_assign_round(
+                    self,
+                    *lhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -2492,7 +2563,11 @@ macro_rules! arith_prim_noncommut_round {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
-                <$Big as $ImpFrom<$T>>::$method_from(&mut rhs, self);
+                <$Big as $ImpFromRound<$T>>::$method_from_round(
+                    &mut rhs,
+                    self,
+                    Default::default(),
+                );
                 rhs
             }
         }
@@ -2511,8 +2586,13 @@ macro_rules! arith_prim_noncommut_round {
         impl<'t> $Imp<$Big> for &'t $T {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$T as $Imp<$Big>>::$method(*self, rhs)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpFromRound<$T>>::$method_from_round(
+                    &mut rhs,
+                    *self,
+                    Default::default(),
+                );
+                rhs
             }
         }
 
@@ -2538,7 +2618,11 @@ macro_rules! arith_prim_noncommut_round {
         impl<'t> $ImpFrom<&'t $T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &'t $T) {
-                <$Big as $ImpFrom<$T>>::$method_from(self, *lhs);
+                <$Big as $ImpFromRound<$T>>::$method_from_round(
+                    self,
+                    *lhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -2630,7 +2714,11 @@ macro_rules! mul_op_round {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: $Mul) -> $Big {
-                <$Big as $ImpAssign<$Mul>>::$method_assign(&mut self, rhs);
+                <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
+                    &mut self,
+                    rhs,
+                    Default::default(),
+                );
                 self
             }
         }
@@ -2734,8 +2822,13 @@ macro_rules! mul_op_commut_round {
         impl<'a> $Imp<$Big> for $Mul<'a> {
             type Output = $Big;
             #[inline]
-            fn $method(self, rhs: $Big) -> $Big {
-                <$Big as $Imp<$Mul>>::$method(rhs, self)
+            fn $method(self, mut rhs: $Big) -> $Big {
+                <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
+                    &mut rhs,
+                    self,
+                    Default::default(),
+                );
+                rhs
             }
         }
 
@@ -2750,7 +2843,11 @@ macro_rules! mul_op_commut_round {
         impl<'a> $ImpFrom<$Mul<'a>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul) {
-                <$Big as $ImpAssign<$Mul>>::$method_assign(self, lhs);
+                <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
+                    self,
+                    lhs,
+                    Default::default(),
+                );
             }
         }
 
@@ -2807,7 +2904,11 @@ macro_rules! mul_op_noncommut_round {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
-                <$Big as $ImpFrom<$Mul>>::$method_from(&mut rhs, self);
+                <$Big as $ImpFromRound<$Mul>>::$method_from_round(
+                    &mut rhs,
+                    self,
+                    Default::default(),
+                );
                 rhs
             }
         }
