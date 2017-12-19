@@ -153,6 +153,7 @@ impl SmallComplex {
     // points to limbs[0] and im.d points to
     // limbs[LIMBS_IN_SMALL_FLOAT], otherwise re.d points to
     // limbs[LIMBS_IN_SMALL_FLOAT] and im.d points to limbs[0].
+    #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());

@@ -132,6 +132,7 @@ impl SmallInteger {
         &mut *ptr
     }
 
+    #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());

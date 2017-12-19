@@ -70,7 +70,6 @@ pub unsafe fn mpz_tdiv_r_ui_check_0(
     gmp::mpz_tdiv_r_ui(r, n, d)
 }
 
-#[inline]
 pub unsafe fn mpz_ui_tdiv_q_check_0(
     q: *mut mpz_t,
     n: c_ulong,
@@ -96,7 +95,6 @@ pub unsafe fn mpz_ui_tdiv_q_check_0(
     }
 }
 
-#[inline]
 pub unsafe fn mpz_ui_tdiv_r_check_0(
     r: *mut mpz_t,
     n: c_ulong,
@@ -215,7 +213,6 @@ pub unsafe fn mpz_cdiv_r_ui_check_0(
     gmp::mpz_cdiv_r_ui(r, n, d)
 }
 
-#[inline]
 pub unsafe fn mpz_ui_cdiv_q_check_0(
     q: *mut mpz_t,
     n: c_ulong,
@@ -248,7 +245,6 @@ pub unsafe fn mpz_ui_cdiv_q_check_0(
     }
 }
 
-#[inline]
 pub unsafe fn mpz_ui_cdiv_r_check_0(
     r: *mut mpz_t,
     n: c_ulong,
@@ -308,7 +304,6 @@ pub unsafe fn mpz_cdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     }
 }
 
-#[inline]
 pub unsafe fn mpz_si_cdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
@@ -342,7 +337,6 @@ pub unsafe fn mpz_si_cdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     }
 }
 
-#[inline]
 pub unsafe fn mpz_si_cdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
@@ -431,7 +425,6 @@ pub unsafe fn mpz_fdiv_r_ui_check_0(
     gmp::mpz_fdiv_r_ui(r, n, d)
 }
 
-#[inline]
 pub unsafe fn mpz_ui_fdiv_q_check_0(
     q: *mut mpz_t,
     n: c_ulong,
@@ -464,7 +457,6 @@ pub unsafe fn mpz_ui_fdiv_q_check_0(
     }
 }
 
-#[inline]
 pub unsafe fn mpz_ui_fdiv_r_check_0(
     r: *mut mpz_t,
     n: c_ulong,
@@ -524,7 +516,6 @@ pub unsafe fn mpz_fdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     }
 }
 
-#[inline]
 pub unsafe fn mpz_si_fdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
@@ -558,7 +549,6 @@ pub unsafe fn mpz_si_fdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     }
 }
 
-#[inline]
 pub unsafe fn mpz_si_fdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
@@ -792,7 +782,6 @@ pub unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     }
 }
 
-#[inline]
 pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     let lop2 = gmp::limb_t::from(op2);
     match (*op1).size.cmp(&0) {

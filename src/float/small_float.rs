@@ -140,6 +140,7 @@ impl SmallFloat {
         &mut *ptr
     }
 
+    #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr_t>());
