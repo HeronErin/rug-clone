@@ -20,6 +20,24 @@ use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 
 #[inline]
+pub unsafe fn mpz_set_0(rop: *mut mpz_t) {
+    *rop.limb_mut(0) = 0;
+    (*rop).size = 0;
+}
+
+#[inline]
+pub unsafe fn mpz_set_1(rop: *mut mpz_t) {
+    *rop.limb_mut(0) = 1;
+    (*rop).size = 1;
+}
+
+#[inline]
+pub unsafe fn mpz_set_m1(rop: *mut mpz_t) {
+    *rop.limb_mut(0) = 1;
+    (*rop).size = -1;
+}
+
+#[inline]
 pub unsafe fn mpz_tdiv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,
@@ -80,7 +98,7 @@ pub unsafe fn mpz_ui_tdiv_q_check_0(
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
         // n / +abs_d -> 0, n
         // n / -abs_d -> 0, n
-        gmp::mpz_set_ui(q, 0);
+        mpz_set_0(q);
         n
     } else {
         // n / +abs_d -> +abs_q, +abs_r
@@ -224,9 +242,9 @@ pub unsafe fn mpz_ui_cdiv_q_check_0(
         // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
         // n / -abs_d -> 0, n
         if n > 0 && sgn_d > 0 {
-            gmp::mpz_set_ui(q, 1);
+            mpz_set_1(q);
         } else {
-            gmp::mpz_set_ui(q, 0);
+            mpz_set_0(q);
         }
     } else {
         // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
@@ -271,7 +289,7 @@ pub unsafe fn mpz_ui_cdiv_r_check_0(
             gmp::mpz_set_ui(r, abs_d - abs_r);
             gmp::mpz_neg(r, r);
         } else {
-            gmp::mpz_set_ui(r, 0);
+            mpz_set_0(r);
         }
     }
 }
@@ -313,9 +331,9 @@ pub unsafe fn mpz_si_cdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
         // -abs_n / +abs_d -> 0, -abs_n
         // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
         if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
-            gmp::mpz_set_ui(q, 1);
+            mpz_set_1(q);
         } else {
-            gmp::mpz_set_ui(q, 0);
+            mpz_set_0(q);
         }
     } else {
         // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
@@ -369,7 +387,7 @@ pub unsafe fn mpz_si_cdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
                 gmp::mpz_neg(r, r);
             }
         } else {
-            gmp::mpz_set_ui(r, 0);
+            mpz_set_0(r);
         }
     }
 }
@@ -436,9 +454,9 @@ pub unsafe fn mpz_ui_fdiv_q_check_0(
         // n / +abs_d -> 0, n
         // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
         if n > 0 && sgn_d < 0 {
-            gmp::mpz_set_si(q, -1);
+            mpz_set_m1(q);
         } else {
-            gmp::mpz_set_ui(q, 0);
+            mpz_set_0(q);
         }
     } else {
         // n / +abs_d -> +abs_q, +abs_r
@@ -483,7 +501,7 @@ pub unsafe fn mpz_ui_fdiv_r_check_0(
             gmp::mpz_set_ui(r, abs_d - abs_r);
             gmp::mpz_neg(r, r);
         } else {
-            gmp::mpz_set_ui(r, 0);
+            mpz_set_0(r);
         }
     }
 }
@@ -525,9 +543,9 @@ pub unsafe fn mpz_si_fdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
         // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> 0, -abs_n
         if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
-            gmp::mpz_set_si(q, -1);
+            mpz_set_m1(q);
         } else {
-            gmp::mpz_set_ui(q, 0);
+            mpz_set_0(q);
         }
     } else {
         // +abs_n / +abs_d -> +abs_q, +abs_r
@@ -581,7 +599,7 @@ pub unsafe fn mpz_si_fdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
                 gmp::mpz_neg(r, r);
             }
         } else {
-            gmp::mpz_set_ui(r, 0);
+            mpz_set_0(r);
         }
     }
 }
@@ -1279,7 +1297,7 @@ pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
 pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
     let size = (*op).size;
     if size <= 0 {
-        gmp::mpz_set_ui(rop, 1);
+        mpz_set_1(rop);
         return;
     }
     let significant_u = gmp::mpn_sizeinbase((*op).d, size.into(), 2);
@@ -1294,7 +1312,7 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
     } else {
         significant
     };
-    gmp::mpz_set_ui(rop, 0);
+    mpz_set_0(rop);
     gmp::mpz_setbit(rop, bit);
 }
 
@@ -1552,8 +1570,8 @@ mod rational {
         let num = gmp::mpq_numref_const(op);
         let den = gmp::mpq_denref_const(op);
         if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set_ui(fract_num, 0);
-            gmp::mpz_set_ui(fract_den, 1);
+            mpz_set_0(fract_num);
+            mpz_set_1(fract_den);
             return;
         }
         let neg = gmp::mpz_sgn(num) < 0;
@@ -1586,8 +1604,8 @@ mod rational {
         if gmp::mpz_cmp_ui(den, 1) == 0 {
             // set round before fract_num, which might alias num
             gmp::mpz_set(round, num);
-            gmp::mpz_set_ui(fract_num, 0);
-            gmp::mpz_set_ui(fract_den, 1);
+            mpz_set_0(fract_num);
+            mpz_set_1(fract_den);
             return;
         }
         let neg = gmp::mpz_sgn(num) < 0;

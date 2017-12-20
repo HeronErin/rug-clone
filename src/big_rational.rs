@@ -109,7 +109,7 @@ macro_rules! rat_op_int {
                 let num_mut = gmp::mpq_numref(self.inner_mut());
                 let den_mut = gmp::mpq_denref(self.inner_mut());
                 $func(num_mut, self.inner(), $($param.into()),*);
-                gmp::mpz_set_ui(den_mut, 1);
+                xgmp::mpz_set_1(den_mut);
             }
         }
 
