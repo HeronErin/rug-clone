@@ -1301,6 +1301,56 @@ impl Integer {
         /// ```
         fn abs_ref -> AbsRef;
     }
+    math_op1! {
+        xgmp::mpz_signum;
+        /// Computes the signum.
+        ///
+        /// * 0 if the value is zero
+        /// * 1 if the value is positive
+        /// * −1 if the value is negative
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(-100);
+        /// let signum = i.signum();
+        /// assert_eq!(signum, -1);
+        /// ```
+        fn signum();
+        /// Computes the signum.
+        ///
+        /// * 0 if the value is zero
+        /// * 1 if the value is positive
+        /// * −1 if the value is negative
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(-100);
+        /// i.signum_mut();
+        /// assert_eq!(i, -1);
+        /// ```
+        fn signum_mut;
+        /// Computes the signum.
+        ///
+        /// * 0 if the value is zero
+        /// * 1 if the value is positive
+        /// * −1 if the value is negative
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(-100);
+        /// let r = i.signum_ref();
+        /// let signum = Integer::from(r);
+        /// assert_eq!(signum, -1);
+        /// assert_eq!(i, -100);
+        /// ```
+        fn signum_ref -> SignumRef;
+    }
 
     /// Clamps the value within the specified bounds.
     ///
@@ -3127,6 +3177,7 @@ impl Integer {
 }
 
 ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
+ref_math_op1! { Integer; xgmp::mpz_signum; struct SignumRef {} }
 
 #[derive(Clone, Copy)]
 pub struct ClampRef<'a, Min, Max>

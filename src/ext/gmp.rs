@@ -38,6 +38,17 @@ pub unsafe fn mpz_set_m1(rop: *mut mpz_t) {
 }
 
 #[inline]
+pub unsafe fn mpz_signum(rop: *mut mpz_t, op: *const mpz_t) {
+    if (*op).size < 0 {
+        mpz_set_m1(rop);
+    } else if (*op).size > 0 {
+        mpz_set_1(rop);
+    } else {
+        mpz_set_0(rop);
+    }
+}
+
+#[inline]
 pub unsafe fn mpz_tdiv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,
@@ -1365,6 +1376,12 @@ mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
     use std::mem;
+
+    #[inline]
+    pub unsafe fn mpq_signum(signum: *mut mpz_t, op: *const mpq_t) {
+        let num = gmp::mpq_numref_const(op);
+        mpz_signum(signum, num);
+    }
 
     #[inline]
     pub unsafe fn mpq_inv_check_0(rop: *mut mpq_t, op: *const mpq_t) {

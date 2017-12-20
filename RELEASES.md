@@ -14,6 +14,8 @@ Version 0.9.2
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
   with a precision of 53.
 * Deprecate and hide `float::Round::AwayFromZero`.
+* Add `Integer::signum`, `Rational::signum` and `Float::signum`
+  methods.
 
 Version 0.9.1 (2017-11-27)
 ==========================

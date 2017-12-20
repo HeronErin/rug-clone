@@ -2327,6 +2327,55 @@ impl Float {
         /// ```
         fn abs_ref -> AbsRef;
     }
+    math_op1_no_round! {
+        xmpfr::signum, rraw;
+        /// Computes the signum.
+        ///
+        /// * 1.0 if the value is positive, +0.0 or +∞
+        /// * −1.0 if the value is negative, −0.0 or −∞
+        /// * NaN if the value is NaN
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -23.5);
+        /// let signum = f.signum();
+        /// assert_eq!(signum, -1);
+        /// ```
+        fn signum();
+        /// Computes the signum.
+        ///
+        /// * 1.0 if the value is positive, +0.0 or +∞
+        /// * −1.0 if the value is negative, −0.0 or −∞
+        /// * NaN if the value is NaN
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut f = Float::with_val(53, -23.5);
+        /// f.signum_mut();
+        /// assert_eq!(f, -1);
+        /// ```
+        fn signum_mut;
+        /// Computes the signum.
+        ///
+        /// * 1.0 if the value is positive, +0.0 or +∞
+        /// * −1.0 if the value is negative, −0.0 or −∞
+        /// * NaN if the value is NaN
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let f = Float::with_val(53, -23.5);
+        /// let r = f.signum_ref();
+        /// let signum = Float::with_val(53, r);
+        /// assert_eq!(signum, -1);
+        /// ```
+        fn signum_ref -> SignumRef;
+    }
 
     /// Clamps the value within the specified bounds, rounding to the
     /// nearest.
@@ -6559,6 +6608,7 @@ ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtRef {} }
 ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
 ref_math_op1_float! { mpfr::rootn_ui; struct RootRef { k: u32 } }
 ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
+ref_math_op1_float! { xmpfr::signum; struct SignumRef {} }
 
 #[derive(Clone, Copy)]
 pub struct ClampRef<'a, Min, Max>

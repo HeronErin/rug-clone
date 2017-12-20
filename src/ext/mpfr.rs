@@ -33,6 +33,21 @@ use std::os::raw::{c_int, c_long, c_ulong};
 use std::u32;
 
 #[inline]
+pub unsafe fn signum(
+    rop: *mut mpfr_t,
+    op: *const mpfr_t,
+    _rnd: mpfr::rnd_t,
+) -> c_int {
+    if mpfr::nan_p(op) != 0 {
+        mpfr::set(rop, op, mpfr::rnd_t::RNDZ)
+    } else if mpfr::signbit(op) != 0 {
+        mpfr::set_si(rop, -1, mpfr::rnd_t::RNDZ)
+    } else {
+        mpfr::set_si(rop, 1, mpfr::rnd_t::RNDZ)
+    }
+}
+
+#[inline]
 pub unsafe fn recip(
     rop: *mut mpfr_t,
     op: *const mpfr_t,

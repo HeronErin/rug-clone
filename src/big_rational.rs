@@ -982,6 +982,55 @@ impl Rational {
         /// ```
         fn abs_ref -> AbsRef;
     }
+    rat_op_int! {
+        xgmp::mpq_signum;
+        /// Computes the signum.
+        ///
+        /// * 0 if the value is zero
+        /// * 1 if the value is positive
+        /// * −1 if the value is negative
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let r = Rational::from((-100, 17));
+        /// let signum = r.signum();
+        /// assert_eq!(signum, -1);
+        /// ```
+        fn signum();
+        /// Computes the signum.
+        ///
+        /// * 0 if the value is zero
+        /// * 1 if the value is positive
+        /// * −1 if the value is negative
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let mut r = Rational::from((-100, 17));
+        /// r.signum_mut();
+        /// assert_eq!(r, -1);
+        /// ```
+        fn signum_mut;
+        /// Computes the signum.
+        ///
+        /// * 0 if the value is zero
+        /// * 1 if the value is positive
+        /// * −1 if the value is negative
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Integer, Rational};
+        /// let r = Rational::from((-100, 17));
+        /// let r_ref = r.signum_ref();
+        /// let signum = Integer::from(r_ref);
+        /// assert_eq!(signum, -1);
+        /// ```
+        fn signum_ref -> SignumRef;
+    }
 
     /// Clamps the value within the specified bounds.
     ///
@@ -1791,6 +1840,7 @@ impl Rational {
 }
 
 ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
+ref_rat_op_int! { xgmp::mpq_signum; struct SignumRef {} }
 
 #[derive(Clone, Copy)]
 pub struct ClampRef<'a, Min, Max>
