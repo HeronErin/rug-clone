@@ -933,8 +933,14 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
-        self.to_integer_exp()
-            .map(|(num, exp)| Rational::from(num) << exp)
+        if !self.is_finite() {
+            return None;
+        }
+        let mut r = Rational::new();
+        unsafe {
+            mpfr::get_q(r.inner_mut(), self.inner())
+        };
+        Some(r)
     }
 
     /// Converts to an `i32`, rounding to the nearest.
