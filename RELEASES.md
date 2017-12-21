@@ -1,6 +1,7 @@
 Version 0.9.2
 =============
 
+* Requires `gmp-mpfr-sys` version 1.1.0.
 * Add `Float::assign_log_ui` methods.
 * Add `Float::round_even` methods.
 * Add `Float::assign_random_normal` methods.
