@@ -21,7 +21,6 @@ use std::os::raw::{c_int, c_long, c_ulong};
 
 #[inline]
 pub unsafe fn mpz_set_0(rop: *mut mpz_t) {
-    *rop.limb_mut(0) = 0;
     (*rop).size = 0;
 }
 
