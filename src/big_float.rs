@@ -938,8 +938,8 @@ impl Float {
         }
         let mut r = Rational::new();
         unsafe {
-            mpfr::get_q(r.inner_mut(), self.inner())
-        };
+            mpfr::get_q(r.inner_mut(), self.inner());
+        }
         Some(r)
     }
 
