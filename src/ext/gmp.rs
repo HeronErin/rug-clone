@@ -49,6 +49,45 @@ pub unsafe fn mpz_signum(rop: *mut mpz_t, op: *const mpz_t) {
 }
 
 #[inline]
+pub unsafe fn mpz_root_check(
+    rop: *mut mpz_t,
+    op: *const mpz_t,
+    n: c_ulong,
+) -> c_int {
+    assert_ne!(n, 0, "zeroth root");
+    assert!(n & 1 == 1 || mpz_sgn(op) >= 0, "even root of negative");
+    gmp::mpz_root(rop, op, n)
+}
+
+#[inline]
+pub unsafe fn mpz_rootrem_check(
+    root: *mut mpz_t,
+    rem: *mut mpz_t,
+    op: *const mpz_t,
+    n: c_ulong,
+) {
+    assert_ne!(n, 0, "zeroth root");
+    assert!(n & 1 == 1 || mpz_sgn(op) >= 0, "even root of negative");
+    gmp::mpz_rootrem(root, rem, op, n);
+}
+
+#[inline]
+pub unsafe fn mpz_sqrt_check(rop: *mut mpz_t, op: *const mpz_t) {
+    assert!(mpz_sgn(op) >= 0, "square root of negative");
+    gmp::mpz_sqrt(rop, op);
+}
+
+#[inline]
+pub unsafe fn mpz_sqrtrem_check(
+    rop1: *mut mpz_t,
+    rop2: *mut mpz_t,
+    op: *const mpz_t,
+) {
+    assert!(mpz_sgn(op) >= 0, "square root of negative");
+    gmp::mpz_sqrtrem(rop1, rop2, op);
+}
+
+#[inline]
 pub unsafe fn mpz_tdiv_qr_check_0(
     q: *mut mpz_t,
     r: *mut mpz_t,

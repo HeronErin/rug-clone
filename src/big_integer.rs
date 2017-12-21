@@ -2210,7 +2210,7 @@ impl Integer {
     }
 
     math_op1! {
-        gmp::mpz_root;
+        xgmp::mpz_root_check;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
         /// # Examples
@@ -2221,6 +2221,10 @@ impl Integer {
         /// let root = i.root(3);
         /// assert_eq!(root, 10);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
         fn root(n: u32);
         /// Computes the <i>n</i>th root and truncates the result.
         ///
@@ -2232,6 +2236,10 @@ impl Integer {
         /// i.root_mut(3);
         /// assert_eq!(i, 10);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
@@ -2245,7 +2253,7 @@ impl Integer {
         fn root_ref -> RootRef;
     }
     math_op1_2! {
-        gmp::mpz_rootrem;
+        xgmp::mpz_rootrem_check;
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
         ///
@@ -2263,6 +2271,10 @@ impl Integer {
         /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
         fn root_rem(remainder, n: u32);
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
@@ -2282,6 +2294,10 @@ impl Integer {
         /// assert_eq!(i, 10);
         /// assert_eq!(rem, 4);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
         fn root_rem_mut;
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
@@ -2307,7 +2323,7 @@ impl Integer {
         fn root_rem_ref -> RootRemRef;
     }
     math_op1! {
-        gmp::mpz_sqrt;
+        xgmp::mpz_sqrt_check;
         /// Computes the square root and truncates the result.
         ///
         /// # Examples
@@ -2318,6 +2334,10 @@ impl Integer {
         /// let sqrt = i.sqrt();
         /// assert_eq!(sqrt, 10);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
         fn sqrt();
         /// Computes the square root and truncates the result.
         ///
@@ -2329,6 +2349,10 @@ impl Integer {
         /// i.sqrt_mut();
         /// assert_eq!(i, 10);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
@@ -2342,7 +2366,7 @@ impl Integer {
         fn sqrt_ref -> SqrtRef;
     }
     math_op1_2! {
-        gmp::mpz_sqrtrem;
+        xgmp::mpz_sqrtrem_check;
         /// Computes the square root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
@@ -2359,6 +2383,10 @@ impl Integer {
         /// assert_eq!(sqrt, 10);
         /// assert_eq!(rem, 4);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
         fn sqrt_rem(remainder);
         /// Computes the square root and the remainder.
         ///
@@ -2377,6 +2405,10 @@ impl Integer {
         /// assert_eq!(i, 10);
         /// assert_eq!(rem, 4);
         /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
         fn sqrt_rem_mut;
         /// Computes the square root and the remainder.
         ///
@@ -3321,10 +3353,12 @@ impl<'a, 'b> Assign<PowModRef<'a>>
     }
 }
 
-ref_math_op1! { Integer; gmp::mpz_root; struct RootRef { n: u32 } }
-ref_math_op1_2! { Integer; gmp::mpz_rootrem; struct RootRemRef { n: u32 } }
-ref_math_op1! { Integer; gmp::mpz_sqrt; struct SqrtRef {} }
-ref_math_op1_2! { Integer; gmp::mpz_sqrtrem; struct SqrtRemRef {} }
+ref_math_op1! { Integer; xgmp::mpz_root_check; struct RootRef { n: u32 } }
+ref_math_op1_2! {
+    Integer; xgmp::mpz_rootrem_check; struct RootRemRef { n: u32 }
+}
+ref_math_op1! { Integer; xgmp::mpz_sqrt_check; struct SqrtRef {} }
+ref_math_op1_2! { Integer; xgmp::mpz_sqrtrem_check; struct SqrtRemRef {} }
 ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeRef {} }
 ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdRef { other } }
 ref_math_op2_3! { Integer; gmp::mpz_gcdext; struct GcdCoeffsRef { other } }
