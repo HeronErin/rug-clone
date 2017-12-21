@@ -1143,7 +1143,7 @@ impl Rational {
     }
 
     math_op1! {
-        xgmp::mpq_inv_check_0;
+        xgmp::mpq_inv_check;
         /// Computes the reciprocal.
         ///
         /// # Examples
@@ -1897,7 +1897,7 @@ where
     }
 }
 
-ref_math_op1! { Rational; xgmp::mpq_inv_check_0; struct RecipRef {} }
+ref_math_op1! { Rational; xgmp::mpq_inv_check; struct RecipRef {} }
 ref_rat_op_int! { xgmp::mpq_trunc; struct TruncRef {} }
 ref_math_op1! { Rational; xgmp::mpq_trunc_fract; struct RemTruncRef {} }
 ref_rat_op_rat_int! { xgmp::mpq_trunc_fract_whole; struct FractTruncRef {} }

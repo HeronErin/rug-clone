@@ -51,7 +51,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    xgmp::mpz_tdiv_q_check_0;
+    xgmp::mpz_tdiv_q_check;
     Div div;
     DivAssign div_assign;
     DivFrom div_from;
@@ -59,7 +59,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    xgmp::mpz_tdiv_r_check_0;
+    xgmp::mpz_tdiv_r_check;
     Rem rem;
     RemAssign rem_assign;
     RemFrom rem_from;
@@ -120,7 +120,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_q_si_check_0, xgmp::mpz_si_tdiv_q_check_0;
+    xgmp::mpz_tdiv_q_si_check, xgmp::mpz_si_tdiv_q_check;
     Div div;
     DivAssign div_assign;
     DivFrom div_from;
@@ -129,7 +129,7 @@ arith_prim_noncommut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_r_si_check_0, xgmp::mpz_si_tdiv_r_check_0;
+    xgmp::mpz_tdiv_r_si_check, xgmp::mpz_si_tdiv_r_check;
     Rem rem;
     RemAssign rem_assign;
     RemFrom rem_from;
@@ -199,7 +199,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_q_ui_check_0, xgmp::mpz_ui_tdiv_q_check_0;
+    xgmp::mpz_tdiv_q_ui_check, xgmp::mpz_ui_tdiv_q_check;
     Div div;
     DivAssign div_assign;
     DivFrom div_from;
@@ -208,7 +208,7 @@ arith_prim_noncommut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_r_ui_check_0, xgmp::mpz_ui_tdiv_r_check_0;
+    xgmp::mpz_tdiv_r_ui_check, xgmp::mpz_ui_tdiv_r_check;
     Rem rem;
     RemAssign rem_assign;
     RemFrom rem_from;

@@ -1540,7 +1540,7 @@ impl Integer {
         fn next_power_of_two_ref -> NextPowerTwoRef;
     }
     math_op2_2! {
-        xgmp::mpz_tdiv_qr_check_0;
+        xgmp::mpz_tdiv_qr_check;
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
@@ -1603,7 +1603,7 @@ impl Integer {
         fn div_rem_ref -> DivRemRef;
     }
     math_op2_2! {
-        xgmp::mpz_cdiv_qr_check_0;
+        xgmp::mpz_cdiv_qr_check;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
         ///
@@ -1669,7 +1669,7 @@ impl Integer {
         fn div_rem_ceil_ref -> DivRemCeilRef;
     }
     math_op2_2! {
-        xgmp::mpz_fdiv_qr_check_0;
+        xgmp::mpz_fdiv_qr_check;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
         ///
@@ -1732,7 +1732,7 @@ impl Integer {
         fn div_rem_floor_ref -> DivRemFloorRef;
     }
     math_op2_2! {
-        xgmp::mpz_ediv_qr_check_0;
+        xgmp::mpz_ediv_qr_check;
         /// Performs Euclidean division producing both the quotient
         /// and remainder, with a positive remainder.
         ///
@@ -1818,7 +1818,7 @@ impl Integer {
     }
 
     math_op2! {
-        xgmp::mpz_divexact_check_0;
+        xgmp::mpz_divexact_check;
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
@@ -1873,7 +1873,7 @@ impl Integer {
         fn div_exact_ref -> DivExactRef;
     }
     math_op1! {
-        xgmp::mpz_divexact_ui_check_0;
+        xgmp::mpz_divexact_ui_check;
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
@@ -1986,7 +1986,7 @@ impl Integer {
     #[inline]
     pub fn invert_mut(&mut self, modulo: &Integer) -> bool {
         unsafe {
-            xgmp::mpz_invert_check_0(
+            xgmp::mpz_invert_check(
                 self.inner_mut(),
                 self.inner(),
                 modulo.inner(),
@@ -3269,22 +3269,22 @@ where
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
 ref_math_op1! { Integer; xgmp::mpz_next_pow_of_two; struct NextPowerTwoRef {} }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_tdiv_qr_check_0; struct DivRemRef { divisor }
+    Integer; xgmp::mpz_tdiv_qr_check; struct DivRemRef { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_cdiv_qr_check_0; struct DivRemCeilRef { divisor }
+    Integer; xgmp::mpz_cdiv_qr_check; struct DivRemCeilRef { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_fdiv_qr_check_0; struct DivRemFloorRef { divisor }
+    Integer; xgmp::mpz_fdiv_qr_check; struct DivRemFloorRef { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_ediv_qr_check_0; struct DivRemEucRef { divisor }
+    Integer; xgmp::mpz_ediv_qr_check; struct DivRemEucRef { divisor }
 }
 ref_math_op2! {
-    Integer; xgmp::mpz_divexact_check_0; struct DivExactRef { divisor }
+    Integer; xgmp::mpz_divexact_check; struct DivExactRef { divisor }
 }
 ref_math_op1! {
-    Integer; xgmp::mpz_divexact_ui_check_0; struct DivExactURef { divisor: u32 }
+    Integer; xgmp::mpz_divexact_ui_check; struct DivExactURef { divisor: u32 }
 }
 
 #[derive(Clone, Copy)]
@@ -3405,7 +3405,7 @@ impl<'a, 'b> Assign<InvertRef<'a>>
                 Ok(ref mut i) | Err(ref mut i) => i,
             };
             unsafe {
-                xgmp::mpz_invert_check_0(
+                xgmp::mpz_invert_check(
                     dest.inner_mut(),
                     src.ref_self.inner(),
                     src.modulo.inner(),

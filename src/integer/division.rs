@@ -633,10 +633,10 @@ macro_rules! div_prim {
 }
 
 div_op! {
-    xgmp::mpz_tdiv_q_check_0,
-    xgmp::mpz_cdiv_q_check_0,
-    xgmp::mpz_fdiv_q_check_0,
-    xgmp::mpz_ediv_q_check_0;
+    xgmp::mpz_tdiv_q_check,
+    xgmp::mpz_cdiv_q_check,
+    xgmp::mpz_fdiv_q_check,
+    xgmp::mpz_ediv_q_check;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -645,10 +645,10 @@ div_op! {
     DivRoundingRef
 }
 div_op! {
-    xgmp::mpz_tdiv_r_check_0,
-    xgmp::mpz_cdiv_r_check_0,
-    xgmp::mpz_fdiv_r_check_0,
-    xgmp::mpz_ediv_r_check_0;
+    xgmp::mpz_tdiv_r_check,
+    xgmp::mpz_cdiv_r_check,
+    xgmp::mpz_fdiv_r_check,
+    xgmp::mpz_ediv_r_check;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
@@ -658,14 +658,14 @@ div_op! {
 }
 
 div_prim! {
-    xgmp::mpz_tdiv_q_si_check_0,
-    xgmp::mpz_cdiv_q_si_check_0,
-    xgmp::mpz_fdiv_q_si_check_0,
-    xgmp::mpz_ediv_q_si_check_0;
-    xgmp::mpz_si_tdiv_q_check_0,
-    xgmp::mpz_si_cdiv_q_check_0,
-    xgmp::mpz_si_fdiv_q_check_0,
-    xgmp::mpz_si_ediv_q_check_0;
+    xgmp::mpz_tdiv_q_si_check,
+    xgmp::mpz_cdiv_q_si_check,
+    xgmp::mpz_fdiv_q_si_check,
+    xgmp::mpz_ediv_q_si_check;
+    xgmp::mpz_si_tdiv_q_check,
+    xgmp::mpz_si_cdiv_q_check,
+    xgmp::mpz_si_fdiv_q_check,
+    xgmp::mpz_si_ediv_q_check;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -675,14 +675,14 @@ div_prim! {
     DivRoundingRefI32 DivRoundingFromRefI32
 }
 div_prim! {
-    xgmp::mpz_tdiv_r_si_check_0,
-    xgmp::mpz_cdiv_r_si_check_0,
-    xgmp::mpz_fdiv_r_si_check_0,
-    xgmp::mpz_ediv_r_si_check_0;
-    xgmp::mpz_si_tdiv_r_check_0,
-    xgmp::mpz_si_cdiv_r_check_0,
-    xgmp::mpz_si_fdiv_r_check_0,
-    xgmp::mpz_si_ediv_r_check_0;
+    xgmp::mpz_tdiv_r_si_check,
+    xgmp::mpz_cdiv_r_si_check,
+    xgmp::mpz_fdiv_r_si_check,
+    xgmp::mpz_ediv_r_si_check;
+    xgmp::mpz_si_tdiv_r_check,
+    xgmp::mpz_si_cdiv_r_check,
+    xgmp::mpz_si_fdiv_r_check,
+    xgmp::mpz_si_ediv_r_check;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
@@ -692,14 +692,14 @@ div_prim! {
     RemRoundingRefI32 RemRoundingFromRefI32
 }
 div_prim! {
-    xgmp::mpz_tdiv_q_ui_check_0,
-    xgmp::mpz_cdiv_q_ui_check_0,
-    xgmp::mpz_fdiv_q_ui_check_0,
-    xgmp::mpz_ediv_q_ui_check_0;
-    xgmp::mpz_ui_tdiv_q_check_0,
-    xgmp::mpz_ui_cdiv_q_check_0,
-    xgmp::mpz_ui_fdiv_q_check_0,
-    xgmp::mpz_ui_ediv_q_check_0;
+    xgmp::mpz_tdiv_q_ui_check,
+    xgmp::mpz_cdiv_q_ui_check,
+    xgmp::mpz_fdiv_q_ui_check,
+    xgmp::mpz_ediv_q_ui_check;
+    xgmp::mpz_ui_tdiv_q_check,
+    xgmp::mpz_ui_cdiv_q_check,
+    xgmp::mpz_ui_fdiv_q_check,
+    xgmp::mpz_ui_ediv_q_check;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -709,14 +709,14 @@ div_prim! {
     DivRoundingRefU32 DivRoundingFromRefU32
 }
 div_prim! {
-    xgmp::mpz_tdiv_r_ui_check_0,
-    xgmp::mpz_cdiv_r_ui_check_0,
-    xgmp::mpz_fdiv_r_ui_check_0,
-    xgmp::mpz_ediv_r_ui_check_0;
-    xgmp::mpz_ui_tdiv_r_check_0,
-    xgmp::mpz_ui_cdiv_r_check_0,
-    xgmp::mpz_ui_fdiv_r_check_0,
-    xgmp::mpz_ui_ediv_r_check_0;
+    xgmp::mpz_tdiv_r_ui_check,
+    xgmp::mpz_cdiv_r_ui_check,
+    xgmp::mpz_fdiv_r_ui_check,
+    xgmp::mpz_ediv_r_ui_check;
+    xgmp::mpz_ui_tdiv_r_check,
+    xgmp::mpz_ui_cdiv_r_check,
+    xgmp::mpz_ui_fdiv_r_check,
+    xgmp::mpz_ui_ediv_r_check;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;

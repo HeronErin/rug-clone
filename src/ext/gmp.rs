@@ -55,7 +55,7 @@ pub unsafe fn mpz_root_check(
     n: c_ulong,
 ) -> c_int {
     assert_ne!(n, 0, "zeroth root");
-    assert!(n & 1 == 1 || mpz_sgn(op) >= 0, "even root of negative");
+    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
     gmp::mpz_root(rop, op, n)
 }
 
@@ -67,13 +67,13 @@ pub unsafe fn mpz_rootrem_check(
     n: c_ulong,
 ) {
     assert_ne!(n, 0, "zeroth root");
-    assert!(n & 1 == 1 || mpz_sgn(op) >= 0, "even root of negative");
+    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
     gmp::mpz_rootrem(root, rem, op, n);
 }
 
 #[inline]
 pub unsafe fn mpz_sqrt_check(rop: *mut mpz_t, op: *const mpz_t) {
-    assert!(mpz_sgn(op) >= 0, "square root of negative");
+    assert!(gmp::mpz_sgn(op) >= 0, "square root of negative");
     gmp::mpz_sqrt(rop, op);
 }
 
@@ -83,12 +83,12 @@ pub unsafe fn mpz_sqrtrem_check(
     rop2: *mut mpz_t,
     op: *const mpz_t,
 ) {
-    assert!(mpz_sgn(op) >= 0, "square root of negative");
+    assert!(gmp::mpz_sgn(op) >= 0, "square root of negative");
     gmp::mpz_sqrtrem(rop1, rop2, op);
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_qr_check_0(
+pub unsafe fn mpz_tdiv_qr_check(
     q: *mut mpz_t,
     r: *mut mpz_t,
     n: *const mpz_t,
@@ -99,7 +99,7 @@ pub unsafe fn mpz_tdiv_qr_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_q_check_0(
+pub unsafe fn mpz_tdiv_q_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
@@ -109,7 +109,7 @@ pub unsafe fn mpz_tdiv_q_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_r_check_0(
+pub unsafe fn mpz_tdiv_r_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
@@ -119,7 +119,7 @@ pub unsafe fn mpz_tdiv_r_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_q_ui_check_0(
+pub unsafe fn mpz_tdiv_q_ui_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
@@ -129,7 +129,7 @@ pub unsafe fn mpz_tdiv_q_ui_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_r_ui_check_0(
+pub unsafe fn mpz_tdiv_r_ui_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
@@ -138,7 +138,7 @@ pub unsafe fn mpz_tdiv_r_ui_check_0(
     gmp::mpz_tdiv_r_ui(r, n, d)
 }
 
-pub unsafe fn mpz_ui_tdiv_q_check_0(
+pub unsafe fn mpz_ui_tdiv_q_check(
     q: *mut mpz_t,
     n: c_ulong,
     d: *const mpz_t,
@@ -163,7 +163,7 @@ pub unsafe fn mpz_ui_tdiv_q_check_0(
     }
 }
 
-pub unsafe fn mpz_ui_tdiv_r_check_0(
+pub unsafe fn mpz_ui_tdiv_r_check(
     r: *mut mpz_t,
     n: c_ulong,
     d: *const mpz_t,
@@ -186,52 +186,52 @@ pub unsafe fn mpz_ui_tdiv_r_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_tdiv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_tdiv_q_ui_check_0(q, n, d.wrapping_abs() as c_ulong);
+    mpz_tdiv_q_ui_check(q, n, d.wrapping_abs() as c_ulong);
     if d < 0 {
         gmp::mpz_neg(q, q);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_tdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_tdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_tdiv_r_ui_check_0(r, n, d.wrapping_abs() as c_ulong);
+    mpz_tdiv_r_ui_check(r, n, d.wrapping_abs() as c_ulong);
 }
 
 #[inline]
-pub unsafe fn mpz_si_tdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_tdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_ui_tdiv_q_check_0(q, n.wrapping_abs() as c_ulong, d);
+    mpz_ui_tdiv_q_check(q, n.wrapping_abs() as c_ulong, d);
     if n < 0 {
         gmp::mpz_neg(q, q);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_si_tdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_tdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_ui_tdiv_r_check_0(r, n.wrapping_abs() as c_ulong, d);
+    mpz_ui_tdiv_r_check(r, n.wrapping_abs() as c_ulong, d);
     if n < 0 {
         gmp::mpz_neg(r, r);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_qr_check_0(
+pub unsafe fn mpz_cdiv_qr_check(
     q: *mut mpz_t,
     r: *mut mpz_t,
     n: *const mpz_t,
@@ -242,7 +242,7 @@ pub unsafe fn mpz_cdiv_qr_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_q_check_0(
+pub unsafe fn mpz_cdiv_q_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
@@ -252,7 +252,7 @@ pub unsafe fn mpz_cdiv_q_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_r_check_0(
+pub unsafe fn mpz_cdiv_r_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
@@ -262,7 +262,7 @@ pub unsafe fn mpz_cdiv_r_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_q_ui_check_0(
+pub unsafe fn mpz_cdiv_q_ui_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
@@ -272,7 +272,7 @@ pub unsafe fn mpz_cdiv_q_ui_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_r_ui_check_0(
+pub unsafe fn mpz_cdiv_r_ui_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
@@ -281,11 +281,7 @@ pub unsafe fn mpz_cdiv_r_ui_check_0(
     gmp::mpz_cdiv_r_ui(r, n, d)
 }
 
-pub unsafe fn mpz_ui_cdiv_q_check_0(
-    q: *mut mpz_t,
-    n: c_ulong,
-    d: *const mpz_t,
-) {
+pub unsafe fn mpz_ui_cdiv_q_check(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
@@ -313,11 +309,7 @@ pub unsafe fn mpz_ui_cdiv_q_check_0(
     }
 }
 
-pub unsafe fn mpz_ui_cdiv_r_check_0(
-    r: *mut mpz_t,
-    n: c_ulong,
-    d: *const mpz_t,
-) {
+pub unsafe fn mpz_ui_cdiv_r_check(r: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
@@ -345,12 +337,12 @@ pub unsafe fn mpz_ui_cdiv_r_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_cdiv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-    let some_r = mpz_cdiv_q_ui_check_0(q, n, d.wrapping_abs() as c_ulong) != 0;
+    let some_r = mpz_cdiv_q_ui_check(q, n, d.wrapping_abs() as c_ulong) != 0;
     if d < 0 {
         if some_r {
             gmp::mpz_ui_sub(q, 1, q);
@@ -361,18 +353,18 @@ pub unsafe fn mpz_cdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
 }
 
 #[inline]
-pub unsafe fn mpz_cdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_cdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-    let some_r = mpz_cdiv_r_ui_check_0(r, n, d.wrapping_abs() as c_ulong) != 0;
+    let some_r = mpz_cdiv_r_ui_check(r, n, d.wrapping_abs() as c_ulong) != 0;
     if d < 0 && some_r {
         mpz_sub_si(r, r, d);
     }
 }
 
-pub unsafe fn mpz_si_cdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_cdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
@@ -405,7 +397,7 @@ pub unsafe fn mpz_si_cdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     }
 }
 
-pub unsafe fn mpz_si_cdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_cdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
@@ -443,7 +435,7 @@ pub unsafe fn mpz_si_cdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_qr_check_0(
+pub unsafe fn mpz_fdiv_qr_check(
     q: *mut mpz_t,
     r: *mut mpz_t,
     n: *const mpz_t,
@@ -454,7 +446,7 @@ pub unsafe fn mpz_fdiv_qr_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_q_check_0(
+pub unsafe fn mpz_fdiv_q_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
@@ -464,7 +456,7 @@ pub unsafe fn mpz_fdiv_q_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_r_check_0(
+pub unsafe fn mpz_fdiv_r_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
@@ -474,7 +466,7 @@ pub unsafe fn mpz_fdiv_r_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_q_ui_check_0(
+pub unsafe fn mpz_fdiv_q_ui_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
@@ -484,7 +476,7 @@ pub unsafe fn mpz_fdiv_q_ui_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_r_ui_check_0(
+pub unsafe fn mpz_fdiv_r_ui_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
@@ -493,11 +485,7 @@ pub unsafe fn mpz_fdiv_r_ui_check_0(
     gmp::mpz_fdiv_r_ui(r, n, d)
 }
 
-pub unsafe fn mpz_ui_fdiv_q_check_0(
-    q: *mut mpz_t,
-    n: c_ulong,
-    d: *const mpz_t,
-) {
+pub unsafe fn mpz_ui_fdiv_q_check(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
@@ -525,11 +513,7 @@ pub unsafe fn mpz_ui_fdiv_q_check_0(
     }
 }
 
-pub unsafe fn mpz_ui_fdiv_r_check_0(
-    r: *mut mpz_t,
-    n: c_ulong,
-    d: *const mpz_t,
-) {
+pub unsafe fn mpz_ui_fdiv_r_check(r: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n) > 0 {
@@ -557,12 +541,12 @@ pub unsafe fn mpz_ui_fdiv_r_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_fdiv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
     // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    let some_r = mpz_fdiv_q_ui_check_0(q, n, d.wrapping_abs() as c_ulong) != 0;
+    let some_r = mpz_fdiv_q_ui_check(q, n, d.wrapping_abs() as c_ulong) != 0;
     if d < 0 {
         if some_r {
             mpz_si_sub(q, -1, q);
@@ -573,18 +557,18 @@ pub unsafe fn mpz_fdiv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_fdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / +abs_d -> +abs_q, +abs_r
     // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
     // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    let some_r = mpz_fdiv_r_ui_check_0(r, n, d.wrapping_abs() as c_ulong) != 0;
+    let some_r = mpz_fdiv_r_ui_check(r, n, d.wrapping_abs() as c_ulong) != 0;
     if d < 0 && some_r {
         mpz_add_si(r, r, d);
     }
 }
 
-pub unsafe fn mpz_si_fdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_fdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
@@ -617,7 +601,7 @@ pub unsafe fn mpz_si_fdiv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     }
 }
 
-pub unsafe fn mpz_si_fdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_fdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
     if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
@@ -655,127 +639,119 @@ pub unsafe fn mpz_si_fdiv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_qr_check_0(
+pub unsafe fn mpz_ediv_qr_check(
     q: *mut mpz_t,
     r: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
 ) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_cdiv_qr_check_0(q, r, n, d);
+        mpz_cdiv_qr_check(q, r, n, d);
     } else {
-        mpz_fdiv_qr_check_0(q, r, n, d);
+        mpz_fdiv_qr_check(q, r, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_q_check_0(
+pub unsafe fn mpz_ediv_q_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
 ) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_cdiv_q_check_0(q, n, d);
+        mpz_cdiv_q_check(q, n, d);
     } else {
-        mpz_fdiv_q_check_0(q, n, d);
+        mpz_fdiv_q_check(q, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_r_check_0(
+pub unsafe fn mpz_ediv_r_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: *const mpz_t,
 ) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_cdiv_r_check_0(r, n, d);
+        mpz_cdiv_r_check(r, n, d);
     } else {
-        mpz_fdiv_r_check_0(r, n, d);
+        mpz_fdiv_r_check(r, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_q_ui_check_0(
+pub unsafe fn mpz_ediv_q_ui_check(
     q: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
 ) -> c_ulong {
-    mpz_fdiv_q_ui_check_0(q, n, d)
+    mpz_fdiv_q_ui_check(q, n, d)
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_r_ui_check_0(
+pub unsafe fn mpz_ediv_r_ui_check(
     r: *mut mpz_t,
     n: *const mpz_t,
     d: c_ulong,
 ) -> c_ulong {
-    mpz_fdiv_r_ui_check_0(r, n, d)
+    mpz_fdiv_r_ui_check(r, n, d)
 }
 
 #[inline]
-pub unsafe fn mpz_ui_ediv_q_check_0(
-    q: *mut mpz_t,
-    n: c_ulong,
-    d: *const mpz_t,
-) {
+pub unsafe fn mpz_ui_ediv_q_check(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_ui_cdiv_q_check_0(q, n, d);
+        mpz_ui_cdiv_q_check(q, n, d);
     } else {
-        mpz_ui_fdiv_q_check_0(q, n, d);
+        mpz_ui_fdiv_q_check(q, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_ui_ediv_r_check_0(
-    r: *mut mpz_t,
-    n: c_ulong,
-    d: *const mpz_t,
-) {
+pub unsafe fn mpz_ui_ediv_r_check(r: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_ui_cdiv_r_check_0(r, n, d);
+        mpz_ui_cdiv_r_check(r, n, d);
     } else {
-        mpz_ui_fdiv_r_check_0(r, n, d);
+        mpz_ui_fdiv_r_check(r, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_q_si_check_0(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_ediv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     if d < 0 {
-        mpz_cdiv_q_si_check_0(q, n, d);
+        mpz_cdiv_q_si_check(q, n, d);
     } else {
-        mpz_fdiv_q_si_check_0(q, n, d);
+        mpz_fdiv_q_si_check(q, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_ediv_r_si_check_0(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
+pub unsafe fn mpz_ediv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     if d < 0 {
-        mpz_cdiv_r_si_check_0(r, n, d);
+        mpz_cdiv_r_si_check(r, n, d);
     } else {
-        mpz_fdiv_r_si_check_0(r, n, d);
+        mpz_fdiv_r_si_check(r, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_si_ediv_q_check_0(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_ediv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_si_cdiv_q_check_0(q, n, d);
+        mpz_si_cdiv_q_check(q, n, d);
     } else {
-        mpz_si_fdiv_q_check_0(q, n, d);
+        mpz_si_fdiv_q_check(q, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_si_ediv_r_check_0(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
+pub unsafe fn mpz_si_ediv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     if gmp::mpz_sgn(d) < 0 {
-        mpz_si_cdiv_r_check_0(r, n, d);
+        mpz_si_cdiv_r_check(r, n, d);
     } else {
-        mpz_si_fdiv_r_check_0(r, n, d);
+        mpz_si_fdiv_r_check(r, n, d);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_divexact_check_0(
+pub unsafe fn mpz_divexact_check(
     q: *mut mpz_t,
     dividend: *const mpz_t,
     divisor: *const mpz_t,
@@ -785,7 +761,7 @@ pub unsafe fn mpz_divexact_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_divexact_ui_check_0(
+pub unsafe fn mpz_divexact_ui_check(
     q: *mut mpz_t,
     dividend: *const mpz_t,
     divisor: c_ulong,
@@ -795,7 +771,7 @@ pub unsafe fn mpz_divexact_ui_check_0(
 }
 
 #[inline]
-pub unsafe fn mpz_invert_check_0(
+pub unsafe fn mpz_invert_check(
     inv: *mut mpz_t,
     n: *const mpz_t,
     m: *const mpz_t,
@@ -1423,7 +1399,7 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_inv_check_0(rop: *mut mpq_t, op: *const mpq_t) {
+    pub unsafe fn mpq_inv_check(rop: *mut mpq_t, op: *const mpq_t) {
         assert_ne!(gmp::mpq_sgn(op), 0, "division by zero");
         gmp::mpq_inv(rop, op);
     }
