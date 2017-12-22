@@ -310,9 +310,7 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
-        unsafe {
-            gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32
-        }
+        unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
     }
 }
 

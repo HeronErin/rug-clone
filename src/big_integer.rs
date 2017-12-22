@@ -908,9 +908,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_divisible(&self, divisor: &Integer) -> bool {
-        unsafe {
-            gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0
-        }
+        unsafe { gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0 }
     }
 
     /// Returns `true` if the number is divisible by `divisor`. Unlike
@@ -927,9 +925,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
-        unsafe {
-            gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0
-        }
+        unsafe { gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0 }
     }
 
     /// Returns `true` if the number is divisible by 2<sup>*b*</sup>.
@@ -1157,9 +1153,7 @@ impl Integer {
     /// assert_eq!(Integer::from(15).find_zero(20), Some(20));
     #[inline]
     pub fn find_zero(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe {
-            gmp::mpz_scan0(self.inner(), start.into())
-        })
+        bitcount_to_u32(unsafe { gmp::mpz_scan0(self.inner(), start.into()) })
     }
 
     /// Returns the location of the first one, starting at `start`.
@@ -1175,9 +1169,7 @@ impl Integer {
     /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
     #[inline]
     pub fn find_one(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe {
-            gmp::mpz_scan1(self.inner(), start.into())
-        })
+        bitcount_to_u32(unsafe { gmp::mpz_scan1(self.inner(), start.into()) })
     }
 
     /// Sets the bit at location `index` to 1 if `val` is `true` or 0
@@ -2452,9 +2444,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe {
-            gmp::mpz_probab_prime_p(self.inner(), reps as c_int)
-        };
+        let p = unsafe { gmp::mpz_probab_prime_p(self.inner(), reps as c_int) };
         match p {
             0 => IsPrime::No,
             1 => IsPrime::Probably,

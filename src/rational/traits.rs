@@ -184,8 +184,7 @@ where
     #[inline]
     fn assign(&mut self, rhs: Num) {
         // no need to canonicalize, as denominator will be 1.
-        let num_den =
-            unsafe { self.as_mut_numer_denom_no_canonicalization() };
+        let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
         num_den.0.assign(rhs);
         <Integer as Assign<u32>>::assign(num_den.1, 1);
     }

@@ -843,9 +843,8 @@ impl Float {
             return None;
         }
         let mut i = Integer::new();
-        let ret = unsafe {
-            mpfr::get_z(i.inner_mut(), self.inner(), rraw(round))
-        };
+        let ret =
+            unsafe { mpfr::get_z(i.inner_mut(), self.inner(), rraw(round)) };
         Some((i, ordering1(ret)))
     }
 
@@ -881,9 +880,8 @@ impl Float {
             return None;
         }
         let mut i = Integer::new();
-        let exp = unsafe {
-            mpfr::get_z_2exp(i.inner_mut(), self.inner()) as i32
-        };
+        let exp =
+            unsafe { mpfr::get_z_2exp(i.inner_mut(), self.inner()) as i32 };
         Some((i, exp))
     }
 
@@ -1234,9 +1232,8 @@ impl Float {
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
-        let f = unsafe {
-            mpfr::get_d_2exp(&mut exp, self.inner(), rraw(round))
-        };
+        let f =
+            unsafe { mpfr::get_d_2exp(&mut exp, self.inner(), rraw(round)) };
         assert_eq!(exp as i32 as c_long, exp, "overflow");
         (f, exp as i32)
     }
@@ -2119,9 +2116,8 @@ impl Float {
     /// ```
     #[inline]
     pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::sqrt_ui(self.inner_mut(), u.into(), rraw(round))
-        };
+        let ret =
+            unsafe { mpfr::sqrt_ui(self.inner_mut(), u.into(), rraw(round)) };
         ordering1(ret)
     }
 
@@ -2909,9 +2905,8 @@ impl Float {
     /// ```
     #[inline]
     pub fn assign_ln_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::log_ui(self.inner_mut(), u.into(), rraw(round))
-        };
+        let ret =
+            unsafe { mpfr::log_ui(self.inner_mut(), u.into(), rraw(round)) };
         ordering1(ret)
     }
 
@@ -4530,9 +4525,8 @@ impl Float {
         u: u32,
         round: Round,
     ) -> Ordering {
-        let ret = unsafe {
-            mpfr::fac_ui(self.inner_mut(), u.into(), rraw(round))
-        };
+        let ret =
+            unsafe { mpfr::fac_ui(self.inner_mut(), u.into(), rraw(round)) };
         ordering1(ret)
     }
 
@@ -5268,9 +5262,8 @@ impl Float {
     /// ```
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::zeta_ui(self.inner_mut(), u.into(), rraw(round))
-        };
+        let ret =
+            unsafe { mpfr::zeta_ui(self.inner_mut(), u.into(), rraw(round)) };
         ordering1(ret)
     }
 
@@ -6368,8 +6361,7 @@ impl Float {
         &mut self,
         rng: &mut RandState,
     ) -> Result<(), ()> {
-        let err =
-            unsafe { mpfr::urandomb(self.inner_mut(), rng.inner_mut()) };
+        let err = unsafe { mpfr::urandomb(self.inner_mut(), rng.inner_mut()) };
         if err != 0 {
             Err(())
         } else {

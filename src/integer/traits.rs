@@ -65,8 +65,7 @@ impl Hash for Integer {
         size.hash(state);
         if size != 0 {
             let limbs = size.checked_abs().expect("overflow") as usize;
-            let slice =
-                unsafe { slice::from_raw_parts(self.inner().d, limbs) };
+            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
             slice.hash(state);
         }
     }
