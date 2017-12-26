@@ -20,6 +20,7 @@ use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
 use misc;
+use ops::AssignTo;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
@@ -1974,19 +1975,19 @@ pub struct ValidRational<'a> {
     radix: i32,
 }
 
-impl<'a> Assign<ValidRational<'a>> for Rational {
+impl<'a> AssignTo<Rational> for ValidRational<'a> {
     #[inline]
-    fn assign(&mut self, rhs: ValidRational) {
-        let mut v = Vec::<u8>::with_capacity(rhs.bytes.len() + 1);
-        v.extend_from_slice(rhs.bytes);
+    fn assign_to(self, dst: &mut Rational) {
+        let mut v = Vec::<u8>::with_capacity(self.bytes.len() + 1);
+        v.extend_from_slice(self.bytes);
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
-            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), rhs.radix.into())
+            gmp::mpq_set_str(dst.inner_mut(), c_str.as_ptr(), self.radix.into())
         };
         assert_eq!(err, 0);
         unsafe {
-            gmp::mpq_canonicalize(self.inner_mut());
+            gmp::mpq_canonicalize(dst.inner_mut());
         }
     }
 }

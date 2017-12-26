@@ -19,7 +19,7 @@ use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
 use misc;
-use ops::NegAssign;
+use ops::AssignTo;
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -1997,16 +1997,20 @@ impl Integer {
     /// // For this conversion, if no inverse exists, the Integer
     /// // created is left unchanged as 0.
     /// let mut ans = Result::from(n.invert_ref(&Integer::from(4)));
+    /// println!("a");
     /// match ans {
     ///     Ok(_) => unreachable!(),
     ///     Err(ref unchanged) => assert_eq!(*unchanged, 0),
     /// }
+    /// println!("b");
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
     /// ans.assign(n.invert_ref(&Integer::from(5)));
+    /// println!("c");
     /// match ans {
     ///     Ok(ref inverse) => assert_eq!(*inverse, 3),
     ///     Err(_) => unreachable!(),
     /// };
+    /// println!("d");
     /// ```
     #[inline]
     pub fn invert_ref<'a>(&'a self, modulo: &'a Integer) -> InvertRef<'a> {
@@ -2160,45 +2164,50 @@ impl Integer {
         }
     }
 
-    /// Raises `base` to the power of `exponent`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// i.assign_u_pow_u(13, 12);
-    /// assert_eq!(i, 13_u64.pow(12));
-    /// ```
-    #[inline]
-    pub fn assign_u_pow_u(&mut self, base: u32, exponent: u32) {
-        unsafe {
-            gmp::mpz_ui_pow_ui(self.inner_mut(), base.into(), exponent.into());
-        }
+    math_op0! {
+        /// Raises `base` to the power of `exponent`; the return value
+        /// implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let p = Integer::u_pow_u(13, 12);
+        /// let i = Integer::from(p);
+        /// assert_eq!(i, 13_u64.pow(12));
+        /// ```
+        fn u_pow_u(base: u32, exponent: u32) -> UPowU;
     }
 
     /// Raises `base` to the power of `exponent`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// i.assign_i_pow_u(-13, 12);
-    /// assert_eq!(i, (-13_i64).pow(12));
-    /// i.assign_i_pow_u(-13, 13);
-    /// assert_eq!(i, (-13_i64).pow(13));
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `u_pow_u` instead")]
+    #[inline]
+    pub fn assign_u_pow_u(&mut self, base: u32, exponent: u32) {
+        Integer::u_pow_u(base, exponent).assign_to(self);
+    }
+
+    math_op0! {
+        /// Raises `base` to the power of `exponent`; the return value
+        /// implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let p = Integer::i_pow_u(-13, 13);
+        /// let i = Integer::from(p);
+        /// assert_eq!(i, (-13_i64).pow(13));
+        /// ```
+        fn i_pow_u(base: i32, exponent: u32) -> IPowU;
+    }
+
+    /// Raises `base` to the power of `exponent`.
+    #[deprecated(since = "0.9.2", note = "use `i_pow_u` instead")]
     #[inline]
     pub fn assign_i_pow_u(&mut self, base: i32, exponent: u32) {
-        if base >= 0 {
-            self.assign_u_pow_u(base as u32, exponent);
-        } else {
-            self.assign_u_pow_u(base.wrapping_neg() as u32, exponent);
-            if (exponent & 1) == 1 {
-                self.neg_assign();
-            }
-        }
+        Integer::i_pow_u(base, exponent).assign_to(self);
     }
 
     math_op1! {
@@ -2792,8 +2801,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// i.assign_u_pow_u(13, 50);
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
     /// i *= 1000;
     /// let (remove, count) = i.remove_factor(&Integer::from(13));
     /// assert_eq!(remove, 1000);
@@ -2812,8 +2820,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// i.assign_u_pow_u(13, 50);
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
     /// i *= 1000;
     /// let count = i.remove_factor_mut(&Integer::from(13));
     /// assert_eq!(i, 1000);
@@ -2835,8 +2842,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::{Assign, Integer};
-    /// let mut i = Integer::new();
-    /// i.assign_u_pow_u(13, 50);
+    /// let mut i = Integer::from(Integer::u_pow_u(13, 50));
     /// i *= 1000;
     /// let factor = Integer::from(13);
     /// let r = i.remove_factor_ref(&factor);
@@ -2856,76 +2862,99 @@ impl Integer {
         }
     }
 
+    math_op0! {
+        /// Computes the factorial of *n*; the return value implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+        /// let f = Integer::factorial(10);
+        /// let i = Integer::from(f);
+        /// assert_eq!(i, 3628800);
+        /// ```
+        fn factorial(n: u32) -> Factorial;
+    }
+
     /// Computes the factorial of *n*.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
-    /// i.assign_factorial(10);
-    /// assert_eq!(i, 3628800);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `factorial` instead")]
     #[inline]
     pub fn assign_factorial(&mut self, n: u32) {
-        unsafe {
-            gmp::mpz_fac_ui(self.inner_mut(), n.into());
-        }
+        Integer::factorial(n).assign_to(self);
+    }
+
+    math_op0! {
+        /// Computes the double factorial of *n*; the return value
+        /// implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 10 * 8 * 6 * 4 * 2
+        /// let f = Integer::factorial_2(10);
+        /// let i = Integer::from(f);
+        /// assert_eq!(i, 3840);
+        /// ```
+        fn factorial_2(n: u32) -> Factorial2;
     }
 
     /// Computes the double factorial of *n*.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// // 10 * 8 * 6 * 4 * 2
-    /// i.assign_factorial_2(10);
-    /// assert_eq!(i, 3840);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `factorial_2` instead")]
     #[inline]
     pub fn assign_factorial_2(&mut self, n: u32) {
-        unsafe {
-            gmp::mpz_2fac_ui(self.inner_mut(), n.into());
-        }
+        Integer::factorial_2(n).assign_to(self);
+    }
+
+    math_op0! {
+        /// Computes the *m*-multi factorial of *n*; the return value
+        /// implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 10 * 7 * 4 * 1
+        /// let f = Integer::factorial_m(10, 3);
+        /// let i = Integer::from(f);
+        /// assert_eq!(i, 280);
+        /// ```
+        fn factorial_m(n: u32, m: u32) -> FactorialM;
     }
 
     /// Computes the *m*-multi factorial of *n*.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// // 10 * 7 * 4 * 1
-    /// i.assign_factorial_m(10, 3);
-    /// assert_eq!(i, 280);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `factorial_m` instead")]
     #[inline]
     pub fn assign_factorial_m(&mut self, n: u32, m: u32) {
-        unsafe {
-            gmp::mpz_mfac_uiui(self.inner_mut(), n.into(), m.into());
-        }
+        Integer::factorial_m(n, m).assign_to(self);
+    }
+
+    math_op0! {
+        /// Computes the primorial of *n*; the return value implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 7 * 5 * 3 * 2
+        /// let p = Integer::primorial(10);
+        /// let i = Integer::from(p);
+        /// assert_eq!(i, 210);
+        /// ```
+        #[inline]
+        fn primorial(n: u32) -> Primorial;
     }
 
     /// Computes the primorial of *n*.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// // 7 * 5 * 3 * 2
-    /// i.assign_primorial(10);
-    /// assert_eq!(i, 210);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `primorial` instead")]
     #[inline]
     pub fn assign_primorial(&mut self, n: u32) {
-        unsafe {
-            gmp::mpz_primorial_ui(self.inner_mut(), n.into());
-        }
+        Integer::primorial(n).assign_to(self);
     }
 
     math_op1! {
@@ -2966,147 +2995,179 @@ impl Integer {
         /// ```
         fn binomial_ref -> BinomialRef;
     }
+    math_op0!{
+        /// Computes the binomial coefficient *n* over *k*; the return
+        /// value implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 7 choose 2 is 21
+        /// let b = Integer::binomial_u(7, 2);
+        /// let i = Integer::from(b);
+        /// assert_eq!(i, 21);
+        /// ```
+        fn binomial_u(n: u32, k: u32) -> BinomialU;
+    }
 
     /// Computes the binomial coefficient *n* over *k*.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// // 7 choose 2 is 21
-    /// let mut i = Integer::new();
-    /// i.assign_binomial_u(7, 2);
-    /// assert_eq!(i, 21);
-    /// ```
     #[inline]
+    #[deprecated(since = "0.9.2", note = "use `binomial_u` instead")]
     pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
-        unsafe {
-            gmp::mpz_bin_uiui(self.inner_mut(), n.into(), k.into());
-        }
+        Integer::binomial_u(n, k).assign_to(self);
+    }
+
+    math_op0! {
+        /// Computes the Fibonacci number; the return value implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// This function is meant for an isolated number. If a
+        /// sequence of Fibonacci numbers is required, the first two
+        /// values of the sequence should be computed with the
+        /// [`fibonacci_2`](#method.fibonacci_2) method, then
+        /// iterations should be used.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let f = Integer::fibonacci(12);
+        /// let i = Integer::from(f);
+        /// assert_eq!(i, 144);
+        /// ```
+        fn fibonacci(n: u32) -> Fibonacci;
     }
 
     /// Computes the Fibonacci number.
-    ///
-    /// This function is meant for an isolated number. If a sequence
-    /// of Fibonacci numbers is required, the first two values of the
-    /// sequence should be computed with the
-    /// [`assign_fibonacci_2`](#method.assign_fibonacci_2) method,
-    /// then iterations should be used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// i.assign_fibonacci(12);
-    /// assert_eq!(i, 144);
-    /// ```
     #[inline]
+    #[deprecated(since = "0.9.2", note = "use `fibonacci` instead")]
     pub fn assign_fibonacci(&mut self, n: u32) {
-        unsafe {
-            gmp::mpz_fib_ui(self.inner_mut(), n.into());
-        }
+        Integer::fibonacci(n).assign_to(self);
+    }
+
+    math_op0! {
+        /// Computes a Fibonacci number, and the previous Fibonacci
+        /// number; the return value implements
+        /// [`AssignTo<(Integer, Integer)>`](../ops/trait.AssignTo.html).
+        ///
+        /// This function is meant to calculate isolated numbers. If a
+        /// sequence of Fibonacci numbers is required, the first two
+        /// values of the sequence should be computed with this function,
+        /// then iterations should be used.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
+        /// let f = Integer::fibonacci_2(12);
+        /// let mut pair = <(Integer, Integer)>::from(f);
+        /// assert_eq!(pair.0, 144);
+        /// assert_eq!(pair.1, 89);
+        /// // Fibonacci number F[-1] is 1
+        /// pair.assign(Integer::fibonacci_2(0));
+        /// assert_eq!(pair.0, 0);
+        /// assert_eq!(pair.1, 1);
+        /// ```
+        fn fibonacci_2(n: u32) -> Fibonacci2;
     }
 
     /// Computes a Fibonacci number, and the previous Fibonacci number.
-    ///
-    /// This function is meant to calculate isolated numbers. If a
-    /// sequence of Fibonacci numbers is required, the first two
-    /// values of the sequence should be computed with this function,
-    /// then iterations should be used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// let mut j = Integer::new();
-    /// i.assign_fibonacci_2(&mut j, 12);
-    /// assert_eq!(i, 144);
-    /// assert_eq!(j, 89);
-    /// // Fibonacci number F[-1] is 1
-    /// i.assign_fibonacci_2(&mut j, 0);
-    /// assert_eq!(i, 0);
-    /// assert_eq!(j, 1);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `fibonacci_2` instead")]
     #[inline]
     pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
-        unsafe {
-            gmp::mpz_fib2_ui(self.inner_mut(), previous.inner_mut(), n.into());
-        }
+        Integer::fibonacci_2(n).assign_to(&mut(self, previous));
+    }
+
+    math_op0! {
+        /// Computes the Lucas number; the return value implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
+        /// This function is meant for an isolated number. If a
+        /// sequence of Lucas numbers is required, the first two
+        /// values of the sequence should be computed with the
+        /// [`lucas_2`](#method.lucas_2) method, then iterations
+        /// should be used.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let l = Integer::lucas(12);
+        /// let i = Integer::from(l);
+        /// assert_eq!(i, 322);
+        /// ```
+        fn lucas(n: u32) -> Lucas;
     }
 
     /// Computes the Lucas number.
-    ///
-    /// This function is meant for an isolated number. If a sequence
-    /// of Lucas numbers is required, the first two values of the
-    /// sequence should be computed with the
-    /// [`assign_lucas_2`](#method.assign_lucas_2) method, then
-    /// iterations should be used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// i.assign_lucas(12);
-    /// assert_eq!(i, 322);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `lucas` instead")]
     #[inline]
     pub fn assign_lucas(&mut self, n: u32) {
-        unsafe {
-            gmp::mpz_lucnum_ui(self.inner_mut(), n.into());
-        }
+        Integer::lucas(n).assign_to(self);
+    }
+
+    math_op0! {
+        /// Computes a Lucas number, and the previous Lucas number;
+        /// the return value implements
+        /// [`AssignTo<(Integer, Integer)>`](../ops/trait.AssignTo.html).
+        ///
+        /// This function is meant to calculate isolated numbers. If a
+        /// sequence of Lucas numbers is required, the first two values of
+        /// the sequence should be computed with this function, then
+        /// iterations should be used.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
+        /// let l = Integer::lucas_2(12);
+        /// let mut pair = <(Integer, Integer)>::from(l);
+        /// assert_eq!(pair.0, 322);
+        /// assert_eq!(pair.1, 199);
+        /// pair.assign(Integer::lucas_2(0));
+        /// assert_eq!(pair.0, 2);
+        /// assert_eq!(pair.1, -1);
+        /// ```
+        fn lucas_2(n: u32) -> Lucas2;
     }
 
     /// Computes a Lucas number, and the previous Lucas number.
-    ///
-    /// This function is meant to calculate isolated numbers. If a
-    /// sequence of Lucas numbers is required, the first two values of
-    /// the sequence should be computed with this function, then
-    /// iterations should be used.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    /// let mut i = Integer::new();
-    /// let mut j = Integer::new();
-    /// i.assign_lucas_2(&mut j, 12);
-    /// assert_eq!(i, 322);
-    /// assert_eq!(j, 199);
-    /// i.assign_lucas_2(&mut j, 0);
-    /// assert_eq!(i, 2);
-    /// assert_eq!(j, -1);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `lucas_2` instead")]
     #[inline]
     pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
-        unsafe {
-            gmp::mpz_lucnum2_ui(
-                self.inner_mut(),
-                previous.inner_mut(),
-                n.into(),
-            );
-        }
+        Integer::lucas_2(n).assign_to(&mut(self, previous));
     }
 
     #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
-    /// bits.
+    /// bits; the return value implements
+    /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
+    /// use rug::{Assign, Integer};
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let mut i = Integer::new();
-    /// i.assign_random_bits(0, &mut rand);
+    /// let mut i = Integer::from(Integer::random_bits(0, &mut rand));
     /// assert_eq!(i, 0);
-    /// i.assign_random_bits(80, &mut rand);
+    /// i.assign(Integer::random_bits(80, &mut rand));
     /// assert!(i.significant_bits() <= 80);
     /// ```
     #[inline]
+    pub fn random_bits<'a, 'b: 'a>(
+        bits: u32,
+        rng: &'a mut RandState<'b>,
+    ) -> RandomBits<'a, 'b> {
+        RandomBits { bits, rng }
+    }
+
+    /// Generates a random number with a specified maximum number of
+    /// bits.
+    #[inline]
+    #[deprecated(since = "0.9.2", note = "use `binomial_u` instead")]
     pub fn assign_random_bits(&mut self, bits: u32, rng: &mut RandState) {
         unsafe {
             gmp::mpz_urandomb(self.inner_mut(), rng.inner_mut(), bits.into());
@@ -3176,8 +3237,7 @@ impl Integer {
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
     /// let bound = Integer::from(15);
-    /// let mut i = Integer::new();
-    /// i.assign_random_below(&bound, &mut rand);
+    /// let i = Integer::from(Integer::random_below_ref(&bound, &mut rand));
     /// println!("0 ≤ {} < {}", i, bound);
     /// assert!(i < bound);
     /// ```
@@ -3186,11 +3246,28 @@ impl Integer {
     ///
     /// Panics if the boundary value is less than or equal to zero.
     #[inline]
-    pub fn assign_random_below(
+    pub fn random_below_ref<'a, 'b: 'a>(
+        bound: &'a Integer,
+        rng: &'a mut RandState<'b>,
+    ) -> RandomBelowRef<'a, 'b> {
+        RandomBelowRef { bound, rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a non-negative random number below the given
+    /// boundary value.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    #[deprecated(since = "0.9.2", note = "use `random_below_ref` instead")]
+    #[inline]
+    pub fn assign_random_below<'a, 'b: 'a>(
         &mut self,
-        bound: &Integer,
-        rng: &mut RandState,
+        bound: &'a Integer,
+        rng: &'a mut RandState<'b>,
     ) {
+        //        Integer::random_below(bound, rng).assign_to(self);
         assert_eq!(bound.cmp0(), Ordering::Greater, "cannot be below zero");
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), bound.inner());
@@ -3216,7 +3293,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Integer
+impl<'a, Min, Max> AssignTo<Integer> for ClampRef<'a, Min, Max>
 where
     Integer: PartialOrd<Min>
         + PartialOrd<Max>
@@ -3226,32 +3303,15 @@ where
     Max: 'a,
 {
     #[inline]
-    fn from(t: ClampRef<'a, Min, Max>) -> Integer {
-        let mut ret = Integer::new();
-        ret.assign(t);
-        ret
-    }
-}
-
-impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Integer
-where
-    Integer: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
-{
-    #[inline]
-    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
-        if src.ref_self.lt(src.min) {
-            self.assign(src.min);
-            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
-        } else if src.ref_self.gt(src.max) {
-            self.assign(src.max);
-            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+    fn assign_to(self, dst: &mut Integer) {
+        if self.ref_self.lt(self.min) {
+            dst.assign(self.min);
+            assert!(!(&*dst).gt(self.max), "minimum larger than maximum");
+        } else if self.ref_self.gt(self.max) {
+            dst.assign(self.max);
+            assert!(!(&*dst).lt(self.min), "minimum larger than maximum");
         } else {
-            self.assign(src.ref_self);
+            dst.assign(self.ref_self);
         }
     }
 }
@@ -3284,58 +3344,33 @@ pub struct PowModRef<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
-    fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
-        let mut i = Ok(Integer::new());
-        <Self as Assign<PowModRef>>::assign(&mut i, src);
-        i
-    }
-}
-
-impl<'a> Assign<PowModRef<'a>> for Result<Integer, Integer> {
-    #[inline]
-    fn assign(&mut self, src: PowModRef<'a>) {
-        let exists = {
-            let mut r = self.as_mut();
-            <Result<&mut Integer, &mut Integer> as Assign<PowModRef>>::assign(
-                &mut r,
-                src,
-            );
-            r.is_ok()
-        };
-        if exists != self.is_ok() {
-            misc::result_swap(self);
-        }
-    }
-}
-
-impl<'a, 'b> Assign<PowModRef<'a>>
-    for Result<&'b mut Integer, &'b mut Integer> {
-    fn assign(&mut self, src: PowModRef<'a>) {
-        if src.exponent.cmp0() == Ordering::Less {
-            self.assign(src.ref_self.invert_ref(src.modulo));
-            if let Ok(ref mut inv) = *self {
-                let abs_exp = src.exponent.as_neg();
+impl<'a, 'b> AssignTo<Result<&'a mut Integer, &'a mut Integer>>
+    for PowModRef<'b> {
+    fn assign_to(self, dst: &mut Result<&'a mut Integer, &'a mut Integer>) {
+        if self.exponent.cmp0() == Ordering::Less {
+            self.ref_self.invert_ref(self.modulo).assign_to(dst);
+            if let Ok(ref mut inv) = *dst {
+                let abs_exp = self.exponent.as_neg();
                 unsafe {
                     gmp::mpz_powm(
                         inv.inner_mut(),
                         inv.inner(),
                         abs_exp.inner(),
-                        src.modulo.inner(),
+                        self.modulo.inner(),
                     );
                 }
             }
         } else {
-            if self.is_err() {
-                misc::result_swap(self);
+            if dst.is_err() {
+                misc::result_swap(dst);
             }
-            if let Ok(ref mut dest) = *self {
+            if let Ok(ref mut dest) = *dst {
                 unsafe {
                     gmp::mpz_powm(
                         dest.inner_mut(),
-                        src.ref_self.inner(),
-                        src.exponent.inner(),
-                        src.modulo.inner(),
+                        self.ref_self.inner(),
+                        self.exponent.inner(),
+                        self.modulo.inner(),
                     );
                 }
             }
@@ -3343,6 +3378,28 @@ impl<'a, 'b> Assign<PowModRef<'a>>
     }
 }
 
+impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
+    #[inline]
+    fn from(src: PowModRef<'a>) -> Result<Integer, Integer> {
+        let mut dst = Ok(Integer::new());
+        let is_err = {
+            let mut m = dst.as_mut();
+            src.assign_to(&mut m);
+            m.is_err()
+        };
+        if is_err {
+            misc::result_swap(&mut dst);
+        }
+        dst
+    }
+}
+
+ref_math_op0! {
+    Integer; gmp::mpz_ui_pow_ui; struct UPowU { base: u32, exponent: u32 }
+}
+ref_math_op0! {
+    Integer; xgmp::mpz_si_pow_ui; struct IPowU { base: i32, exponent: u32 }
+}
 ref_math_op1! { Integer; xgmp::mpz_root_check; struct RootRef { n: u32 } }
 ref_math_op1_2! {
     Integer; xgmp::mpz_rootrem_check; struct RootRemRef { n: u32 }
@@ -3360,51 +3417,40 @@ pub struct InvertRef<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
-    #[inline]
-    fn from(src: InvertRef<'a>) -> Result<Integer, Integer> {
-        let mut i = Ok(Integer::new());
-        <Self as Assign<InvertRef>>::assign(&mut i, src);
-        i
-    }
-}
-
-impl<'a> Assign<InvertRef<'a>> for Result<Integer, Integer> {
-    #[inline]
-    fn assign(&mut self, src: InvertRef<'a>) {
+impl<'a, 'b> AssignTo<Result<&'a mut Integer, &'a mut Integer>>
+    for InvertRef<'b> {
+    fn assign_to(self, dst: &mut Result<&'a mut Integer, &'a mut Integer>) {
         let exists = {
-            let mut r = self.as_mut();
-            <Result<&mut Integer, &mut Integer> as Assign<InvertRef>>::assign(
-                &mut r,
-                src,
-            );
-            r.is_ok()
-        };
-        if exists != self.is_ok() {
-            misc::result_swap(self);
-        }
-    }
-}
-
-impl<'a, 'b> Assign<InvertRef<'a>>
-    for Result<&'b mut Integer, &'b mut Integer> {
-    #[inline]
-    fn assign(&mut self, src: InvertRef<'a>) {
-        let exists = {
-            let dest = match *self {
+            let dest = match *dst {
                 Ok(ref mut i) | Err(ref mut i) => i,
             };
             unsafe {
                 xgmp::mpz_invert_check(
                     dest.inner_mut(),
-                    src.ref_self.inner(),
-                    src.modulo.inner(),
+                    self.ref_self.inner(),
+                    self.modulo.inner(),
                 ) != 0
             }
         };
-        if exists != self.is_ok() {
-            misc::result_swap(self);
+        if exists != dst.is_ok() {
+            misc::result_swap(dst);
         }
+    }
+}
+
+impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
+    #[inline]
+    fn from(src: InvertRef<'a>) -> Result<Integer, Integer> {
+        let mut dst = Ok(Integer::new());
+        let is_err = {
+            let mut m = dst.as_mut();
+            src.assign_to(&mut m);
+            m.is_err()
+        };
+        if is_err {
+            misc::result_swap(&mut dst);
+        }
+        dst
     }
 }
 
@@ -3414,42 +3460,85 @@ pub struct RemoveFactorRef<'a> {
     factor: &'a Integer,
 }
 
-impl<'a> From<RemoveFactorRef<'a>> for (Integer, u32) {
+impl<'a, 'b, 'c> AssignTo<(&'a mut Integer, &'b mut u32)>
+    for RemoveFactorRef<'c> {
     #[inline]
-    fn from(src: RemoveFactorRef<'a>) -> (Integer, u32) {
-        let mut pair = (Integer::new(), 0u32);
-        <Self as Assign<RemoveFactorRef>>::assign(&mut pair, src);
-        pair
-    }
-}
-
-impl<'a> Assign<RemoveFactorRef<'a>> for (Integer, u32) {
-    #[inline]
-    fn assign(&mut self, src: RemoveFactorRef<'a>) {
-        <(&mut Integer, &mut u32) as Assign<RemoveFactorRef>>::assign(
-            &mut (&mut self.0, &mut self.1),
-            src,
-        );
-    }
-}
-
-impl<'a, 'b, 'c> Assign<RemoveFactorRef<'a>>
-    for (&'b mut Integer, &'c mut u32) {
-    #[inline]
-    fn assign(&mut self, src: RemoveFactorRef<'a>) {
+    fn assign_to(self, dst: &mut (&'a mut Integer, &'b mut u32)) {
         let cnt = unsafe {
             gmp::mpz_remove(
-                self.0.inner_mut(),
-                src.ref_self.inner(),
-                src.factor.inner(),
+                dst.0.inner_mut(),
+                self.ref_self.inner(),
+                self.factor.inner(),
             )
         };
         assert_eq!(cnt as u32 as gmp::bitcnt_t, cnt, "overflow");
-        *self.1 = cnt as u32;
+        *dst.1 = cnt as u32;
     }
 }
 
+impl<'a> From<RemoveFactorRef<'a>> for (Integer, u32) {
+    #[inline]
+    fn from(src: RemoveFactorRef<'a>) -> (Integer, u32) {
+        let mut dst = (Integer::new(), 0u32);
+        src.assign_to(&mut(&mut dst.0, &mut dst.1));
+        dst
+    }
+}
+
+ref_math_op0! { Integer; gmp::mpz_fac_ui; struct Factorial { n: u32 } }
+ref_math_op0! { Integer; gmp::mpz_2fac_ui; struct Factorial2 { n: u32 } }
+ref_math_op0! {
+    Integer; gmp::mpz_mfac_uiui; struct FactorialM { n: u32, m: u32 }
+}
+ref_math_op0! { Integer; gmp::mpz_primorial_ui; struct Primorial { n: u32 } }
 ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialRef { k: u32 } }
+ref_math_op0! {
+    Integer; gmp::mpz_bin_uiui; struct BinomialU { n: u32, k: u32 }
+}
+ref_math_op0! { Integer; gmp::mpz_fib_ui; struct Fibonacci { n: u32 } }
+ref_math_op0_2! { Integer; gmp::mpz_fib2_ui; struct Fibonacci2 { n: u32 } }
+ref_math_op0! { Integer; gmp::mpz_lucnum_ui; struct Lucas { n: u32 } }
+ref_math_op0_2! { Integer; gmp::mpz_lucnum2_ui; struct Lucas2 { n: u32 } }
+
+#[cfg(feature = "rand")]
+pub struct RandomBits<'a, 'b: 'a> {
+    bits: u32,
+    rng: &'a mut RandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl<'a, 'b: 'a> AssignTo<Integer> for RandomBits<'a, 'b> {
+    #[inline]
+    fn assign_to(self, dst: &mut Integer) {
+        unsafe {
+            gmp::mpz_urandomb(
+                dst.inner_mut(),
+                self.rng.inner_mut(),
+                self.bits.into(),
+            );
+        }
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct RandomBelowRef<'a, 'b: 'a> {
+    bound: &'a Integer,
+    rng: &'a mut RandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl<'a, 'b: 'a> AssignTo<Integer> for RandomBelowRef<'a, 'b> {
+    #[inline]
+    fn assign_to(self, dst: &mut Integer) {
+        unsafe {
+            gmp::mpz_urandomm(
+                dst.inner_mut(),
+                self.rng.inner_mut(),
+                self.bound.inner(),
+            );
+        }
+    }
+}
 
 #[derive(Clone, Copy)]
 pub struct BorrowInteger<'a> {
@@ -3525,15 +3614,15 @@ pub struct ValidInteger<'a> {
     radix: i32,
 }
 
-impl<'a> Assign<ValidInteger<'a>> for Integer {
+impl<'a> AssignTo<Integer> for ValidInteger<'a> {
     #[inline]
-    fn assign(&mut self, rhs: ValidInteger) {
-        let mut v = Vec::<u8>::with_capacity(rhs.bytes.len() + 1);
-        v.extend_from_slice(rhs.bytes);
+    fn assign_to(self, dst: &mut Integer) {
+        let mut v = Vec::<u8>::with_capacity(self.bytes.len() + 1);
+        v.extend_from_slice(self.bytes);
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
-            gmp::mpz_set_str(self.inner_mut(), c_str.as_ptr(), rhs.radix.into())
+            gmp::mpz_set_str(dst.inner_mut(), c_str.as_ptr(), self.radix.into())
         };
         assert_eq!(err, 0);
     }

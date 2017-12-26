@@ -14,11 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
+use Integer;
 use ext::gmp as xgmp;
 use inner::{Inner, InnerMut};
-use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
-          RemRoundingAssign, RemRoundingFrom};
+use ops::{AssignTo, DivRounding, DivRoundingAssign, DivRoundingFrom,
+          RemRounding, RemRoundingAssign, RemRoundingFrom};
 
 // big / big -> Big
 // big / &big -> Big
@@ -235,23 +235,21 @@ macro_rules! div_op {
             Euc(&'i Integer, &'i Integer),
         }
 
-        from_borrow! { $Ref<'a> => Integer }
-
-        impl<'i> Assign<$Ref<'i>> for Integer {
+        impl<'i> AssignTo<Integer> for $Ref<'i> {
             #[inline]
-            fn assign(&mut self, src: $Ref) {
-                match src {
+            fn assign_to(self, dst: &mut Integer) {
+                match self {
                     $Ref::Trunc(lhs, rhs) => unsafe {
-                        $trunc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $trunc_fn(dst.inner_mut(), lhs.inner(), rhs.inner());
                     },
                     $Ref::Ceil(lhs, rhs) => unsafe {
-                        $ceil_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $ceil_fn(dst.inner_mut(), lhs.inner(), rhs.inner());
                     },
                     $Ref::Floor(lhs, rhs) => unsafe {
-                        $floor_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $floor_fn(dst.inner_mut(), lhs.inner(), rhs.inner());
                     },
                     $Ref::Euc(lhs, rhs) => unsafe {
-                        $euc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $euc_fn(dst.inner_mut(), lhs.inner(), rhs.inner());
                     },
                 }
             }
@@ -436,23 +434,21 @@ macro_rules! div_prim {
             Euc(&'i Integer, $T),
         }
 
-        from_borrow! { $Ref<'a> => Integer }
-
-        impl<'i> Assign<$Ref<'i>> for Integer {
+        impl<'i> AssignTo<Integer> for $Ref<'i> {
             #[inline]
-            fn assign(&mut self, src: $Ref) {
-                match src {
+            fn assign_to(self, dst: &mut Integer) {
+                match self {
                     $Ref::Trunc(lhs, rhs) => unsafe {
-                        $trunc_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $trunc_fn(dst.inner_mut(), lhs.inner(), rhs.into());
                     },
                     $Ref::Ceil(lhs, rhs) => unsafe {
-                        $ceil_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $ceil_fn(dst.inner_mut(), lhs.inner(), rhs.into());
                     },
                     $Ref::Floor(lhs, rhs) => unsafe {
-                        $floor_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $floor_fn(dst.inner_mut(), lhs.inner(), rhs.into());
                     },
                     $Ref::Euc(lhs, rhs) => unsafe {
-                        $euc_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $euc_fn(dst.inner_mut(), lhs.inner(), rhs.into());
                     },
                 }
             }
@@ -596,35 +592,29 @@ macro_rules! div_prim {
             Euc($T, &'i Integer),
         }
 
-        from_borrow! { $RefFrom<'a> => Integer }
-
-        impl<'i> Assign<$RefFrom<'i>> for Integer {
+        impl<'i> AssignTo<Integer> for $RefFrom<'i> {
             #[inline]
-            fn assign(&mut self, src: $RefFrom) {
-                match src {
+            fn assign_to(self, dst: &mut Integer) {
+                match self {
                     $RefFrom::Trunc(lhs, rhs) => unsafe {
                         $trunc_from_fn(
-                            self.inner_mut(),
+                            dst.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
                     $RefFrom::Ceil(lhs, rhs) => unsafe {
-                        $ceil_from_fn(
-                            self.inner_mut(),
-                            lhs.into(),
-                            rhs.inner(),
-                        );
+                        $ceil_from_fn(dst.inner_mut(), lhs.into(), rhs.inner());
                     },
                     $RefFrom::Floor(lhs, rhs) => unsafe {
                         $floor_from_fn(
-                            self.inner_mut(),
+                            dst.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
                     $RefFrom::Euc(lhs, rhs) => unsafe {
-                        $euc_from_fn(self.inner_mut(), lhs.into(), rhs.inner());
+                        $euc_from_fn(dst.inner_mut(), lhs.into(), rhs.inner());
                     },
                 }
             }

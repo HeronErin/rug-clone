@@ -18,7 +18,8 @@ use {Assign, Integer, Rational};
 use big_rational;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
-use rational::{ParseRationalError, ValidRational};
+use ops::AssignTo;
+use rational::ParseRationalError;
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -68,44 +69,23 @@ impl Hash for Rational {
 
 from_borrow! { &'a Rational => Rational }
 
-impl<Num> From<Num> for Rational
+impl<T> From<T> for Rational
 where
-    Integer: From<Num>,
+    T: AssignTo<Rational>,
 {
     #[inline]
-    fn from(num: Num) -> Rational {
-        let num = Integer::from(num);
-        let den = <Integer as From<u32>>::from(1);
-        let mut dst: Rational = unsafe { mem::uninitialized() };
-        unsafe {
-            let num_den = dst.as_mut_numer_denom_no_canonicalization();
-            ptr::copy_nonoverlapping(&num, num_den.0, 1);
-            ptr::copy_nonoverlapping(&den, num_den.1, 1);
-        }
-        mem::forget(num);
-        mem::forget(den);
-        dst
+    fn from(src: T) -> Rational {
+        src.to_new()
     }
 }
 
-impl<Num, Den> From<(Num, Den)> for Rational
+impl<T> Assign<T> for Rational
 where
-    Integer: From<Num> + From<Den>,
+    T: AssignTo<Rational>,
 {
     #[inline]
-    fn from((num, den): (Num, Den)) -> Rational {
-        let den = Integer::from(den);
-        assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
-        let num = Integer::from(num);
-        let mut dst: Rational = unsafe { mem::uninitialized() };
-        unsafe {
-            let mut num_den = dst.as_mut_numer_denom();
-            ptr::copy_nonoverlapping(&num, num_den.num(), 1);
-            ptr::copy_nonoverlapping(&den, num_den.den(), 1);
-        }
-        mem::forget(num);
-        mem::forget(den);
-        dst
+    fn assign(&mut self, src: T) {
+        src.assign_to(self);
     }
 }
 
@@ -177,40 +157,71 @@ impl<'a> Assign<&'a Rational> for Rational {
     }
 }
 
-impl<Num> Assign<Num> for Rational
+impl<Num> AssignTo<Rational> for Num
 where
-    Integer: Assign<Num>,
+    Integer: Assign<Num> + From<Num>,
 {
     #[inline]
-    fn assign(&mut self, rhs: Num) {
+    fn assign_to(self, dst: &mut Rational) {
         // no need to canonicalize, as denominator will be 1.
-        let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
-        num_den.0.assign(rhs);
+        let num_den = unsafe { dst.as_mut_numer_denom_no_canonicalization() };
+        num_den.0.assign(self);
         <Integer as Assign<u32>>::assign(num_den.1, 1);
     }
-}
 
-impl<Num, Den> Assign<(Num, Den)> for Rational
-where
-    Integer: Assign<Num> + Assign<Den>,
-{
     #[inline]
-    fn assign(&mut self, rhs: (Num, Den)) {
-        let mut num_den = self.as_mut_numer_denom();
-        num_den.num().assign(rhs.0);
-        num_den.den().assign(rhs.1);
+    fn to_new(self) -> Rational {
+        let num = Integer::from(self);
+        let den = <Integer as From<u32>>::from(1);
+        let mut dst: Rational = unsafe { mem::uninitialized() };
+        unsafe {
+            let num_den = dst.as_mut_numer_denom_no_canonicalization();
+            ptr::copy_nonoverlapping(&num, num_den.0, 1);
+            ptr::copy_nonoverlapping(&den, num_den.1, 1);
+        }
+        mem::forget(num);
+        mem::forget(den);
+        dst
     }
 }
 
-impl<'a, Num, Den> Assign<&'a (Num, Den)> for Rational
+impl<Num, Den> AssignTo<Rational> for (Num, Den)
+where
+    Integer: Assign<Num> + Assign<Den> + From<Num> + From<Den>,
+{
+    #[inline]
+    fn assign_to(self, dst: &mut Rational) {
+        let mut num_den = dst.as_mut_numer_denom();
+        num_den.num().assign(self.0);
+        num_den.den().assign(self.1);
+    }
+
+    #[inline]
+    fn to_new(self) -> Rational {
+        let den = Integer::from(self.1);
+        assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
+        let num = Integer::from(self.0);
+        let mut dst: Rational = unsafe { mem::uninitialized() };
+        unsafe {
+            let mut num_den = dst.as_mut_numer_denom();
+            ptr::copy_nonoverlapping(&num, num_den.num(), 1);
+            ptr::copy_nonoverlapping(&den, num_den.den(), 1);
+        }
+        mem::forget(num);
+        mem::forget(den);
+        dst
+    }
+}
+
+impl<'a, Num, Den> AssignTo<Rational> for &'a (Num, Den)
 where
     Integer: Assign<&'a Num> + Assign<&'a Den>,
 {
     #[inline]
-    fn assign(&mut self, rhs: &'a (Num, Den)) {
-        let mut num_den = self.as_mut_numer_denom();
-        num_den.num().assign(&rhs.0);
-        num_den.den().assign(&rhs.1);
+    fn assign_to(self, dst: &mut Rational) {
+        let mut num_den = dst.as_mut_numer_denom();
+        num_den.num().assign(&self.0);
+        num_den.den().assign(&self.1);
     }
 }
 
@@ -230,8 +241,6 @@ fn fmt_radix(
     };
     f.pad_integral(!neg, prefix, buf)
 }
-
-from_borrow! { ValidRational<'a> => Rational }
 
 impl Display for ParseRationalError {
     #[inline]

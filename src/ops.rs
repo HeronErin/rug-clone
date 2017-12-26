@@ -1491,3 +1491,75 @@ pub trait RemRoundingFrom<Lhs = Self> {
     /// Finds the positive remainder from Euclidean division.
     fn rem_euc_from(&mut self, lhs: Lhs);
 }
+
+/// Assignment into `Dst`.
+///
+/// # Examples
+///
+/// ```rust
+/// # #[cfg(feature = "integer")] {
+/// use rug::{Assign, Integer};
+/// use rug::ops::AssignTo;
+/// #[derive(Clone, Copy)]
+/// struct I(i32);
+/// impl AssignTo<Integer> for I {
+///     fn assign_to(self, dst: &mut Integer) {
+///         dst.assign(self.0);
+///     }
+/// }
+/// let src = I(42);
+///
+/// let mut dst1 = Integer::new();
+/// src.assign_to(&mut dst1);
+/// assert_eq!(dst1, 42);
+///
+/// let dst2: Integer = src.to_new();
+/// assert_eq!(dst2, 42);
+/// # }
+/// ```
+pub trait AssignTo<Dst> {
+    /// Performs the assignment.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "integer")] {
+    /// use rug::Integer;
+    /// use rug::ops::AssignTo;
+    /// // src implements AssignTo<Integer>
+    /// let src = Integer::u_pow_u(2, 3);
+    /// let mut dst = Integer::new();
+    /// src.assign_to(&mut dst);
+    /// assert_eq!(dst, 8);
+    /// # }
+    /// ```
+    fn assign_to(self, dst: &mut Dst);
+
+    /// Creates a new `Dst` and assigns to it.
+    ///
+    /// In functionality, `src.to_new` is equivalent to creating a
+    /// default `Dst` and calling `src.assign_to` on the created
+    /// object.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "integer")] {
+    /// use rug::Integer;
+    /// use rug::ops::AssignTo;
+    /// // src implements AssignTo<Integer>
+    /// let src = Integer::u_pow_u(2, 3);
+    /// let dst: Integer = src.to_new();
+    /// assert_eq!(dst, 8);
+    /// # }
+    /// ```
+    fn to_new(self) -> Dst
+    where
+        Self: Sized,
+        Dst: Default,
+    {
+        let mut dst = Default::default();
+        self.assign_to(&mut dst);
+        dst
+    }
+}

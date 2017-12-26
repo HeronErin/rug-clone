@@ -780,6 +780,18 @@ pub unsafe fn mpz_invert_check(
 }
 
 #[inline]
+pub unsafe fn mpz_si_pow_ui(rop: *mut mpz_t, base: c_long, exp: c_ulong) {
+    if base >= 0 {
+        gmp::mpz_ui_pow_ui(rop, base as c_ulong, exp);
+    } else {
+        gmp::mpz_ui_pow_ui(rop, base.wrapping_neg() as c_ulong, exp);
+        if (exp & 1) == 1 {
+            (*rop).size = -(*rop).size;
+        }
+    }
+}
+
+#[inline]
 pub unsafe fn mpz_add_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     if op2 >= 0 {
         gmp::mpz_add_ui(rop, op1, op2 as c_ulong);
