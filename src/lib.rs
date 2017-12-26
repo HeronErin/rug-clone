@@ -34,8 +34,9 @@
 //!
 //! ## Basic use
 //!
-//! This crate depends on the low-level bindings in the
-//! [`gmp-mpfr-sys`][sys] crate, which provides Rust FFI bindings for:
+//! This crate requires rustc version 1.17.0. This crate depends on
+//! the low-level bindings in the [`gmp-mpfr-sys`][sys] crate, which
+//! provides Rust FFI bindings for:
 //!
 //! * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
 //! * the [GNU MPFR Library][mpfr], a library for multiple-precision

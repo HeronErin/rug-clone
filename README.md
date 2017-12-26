@@ -17,9 +17,9 @@ by the Free Software Foundation, either version 3 of the License, or
 
 ## Basic use
 
-[Documentation][rug] for this crate is available. This crate depends
-on the low-level bindings in the [`gmp-mpfr-sys`][sys] crate, which
-provides Rust FFI bindings for:
+[Documentation][rug] for this crate is available. This crate requires
+rustc version 1.17.0. This crate depends on the low-level bindings in
+the [`gmp-mpfr-sys`][sys] crate, which provides Rust FFI bindings for:
 
 * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
 * the [GNU MPFR Library][mpfr], a library for multiple-precision
