@@ -228,7 +228,7 @@ impl AssignTo<Integer> for i64 {
         if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
             unsafe {
                 ret = mem::uninitialized();
-                gmp::mpz_init_set_si(ret.inner_mut(), self.into());
+                gmp::mpz_init_set_si(ret.inner_mut(), self as c_long);
             }
         } else {
             ret = Integer::new();
