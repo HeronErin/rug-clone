@@ -212,7 +212,7 @@ impl AssignTo<Integer> for i32 {
     }
 }
 
-assign_to_ref!{ i32; Integer }
+assign_to!{ i32 => Integer }
 
 impl AssignTo<Integer> for i64 {
     #[inline]
@@ -238,7 +238,7 @@ impl AssignTo<Integer> for i64 {
     }
 }
 
-assign_to_ref!{ i64; Integer }
+assign_to!{ i64 => Integer }
 
 impl AssignTo<Integer> for u32 {
     #[inline]
@@ -258,7 +258,7 @@ impl AssignTo<Integer> for u32 {
     }
 }
 
-assign_to_ref!{ u32; Integer }
+assign_to!{ u32 => Integer }
 
 impl AssignTo<Integer> for u64 {
     #[inline]
@@ -284,7 +284,7 @@ impl AssignTo<Integer> for u64 {
     }
 }
 
-assign_to_ref!{ u64; Integer }
+assign_to!{ u64 => Integer }
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;

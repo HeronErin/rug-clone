@@ -67,7 +67,14 @@ impl Hash for Rational {
     }
 }
 
-from_borrow! { &'a Rational => Rational }
+impl<'a> From<&'a Rational> for Rational {
+    #[inline]
+    fn from(src: &'a Rational) -> Self {
+        let mut dst = <Self as Default>::default();
+        dst.assign(src);
+        dst
+    }
+}
 
 impl<T> From<T> for Rational
 where
@@ -82,6 +89,26 @@ where
 impl<T> Assign<T> for Rational
 where
     T: AssignTo<Rational>,
+{
+    #[inline]
+    fn assign(&mut self, src: T) {
+        src.assign_to(self);
+    }
+}
+
+impl<T> Assign<T> for (Rational, Integer)
+where
+    T: for<'a, 'b> AssignTo<(&'a mut Rational, &'b mut Integer)>,
+{
+    #[inline]
+    fn assign(&mut self, src: T) {
+        src.assign_to(&mut (&mut self.0, &mut self.1));
+    }
+}
+
+impl<'a, 'b, T> Assign<T> for (&'a mut Rational, &'b mut Integer)
+where
+    T: AssignTo<Self>,
 {
     #[inline]
     fn assign(&mut self, src: T) {

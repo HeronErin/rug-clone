@@ -138,20 +138,20 @@ macro_rules! ref_rat_op_int {
             $($param: $T,)*
         }
 
-        from_borrow! { $Ref<'a> => Integer }
-
-        impl<'a> Assign<$Ref<'a>> for Integer {
+        impl<'a> AssignTo<Integer> for $Ref<'a> {
             #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
+            fn assign_to(self, dst: &mut Integer) {
                 unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
+                        dst.inner_mut(),
+                        self.ref_self.inner(),
+                        $(self.$param.into(),)*
                     );
                 }
             }
         }
+
+        assign_to!{ ref $Ref<'r> => Integer }
     }
 }
 
@@ -213,27 +213,48 @@ macro_rules! ref_rat_op_rat_int {
             $($param: $T,)*
         }
 
-        impl<'a> From<$Ref<'a>> for (Rational, Integer) {
+        impl<'a, 'b, 'c>
+            AssignTo<(&'a mut Rational, &'b mut Integer)> for $Ref<'c>
+        {
             #[inline]
-            fn from(src: $Ref<'a>) -> (Rational, Integer) {
-                let mut pair = (Rational::new(), Integer::new());
-                (&mut pair.0, &mut pair.1).assign(src);
-                pair
+            fn assign_to(self, dst: &mut (&'a mut Rational, &'b mut Integer)) {
+                unsafe {
+                    $func(
+                        dst.0.inner_mut(),
+                        dst.1.inner_mut(),
+                        self.ref_self.inner(),
+                        $(self.$param.into(),)*
+                    );
+                }
             }
         }
 
-        impl<'a, 'b, 'c> Assign<$Ref<'a>>
-            for (&'b mut Rational, &'c mut Integer)
+        impl<'a> From<$Ref<'a>> for (Rational, Integer) {
+            #[inline]
+            fn from(src: $Ref<'a>) -> Self {
+                let mut dst = <Self as Default>::default();
+                src.assign_to(&mut (&mut dst.0, &mut dst.1));
+                dst
+            }
+        }
+
+        impl<'a, 'b, 'c, 'r: 'c>
+            AssignTo<(&'a mut Rational, &'b mut Integer)> for &'c $Ref<'r>
         {
             #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                    );
-                }
+            fn assign_to(self, dst: &mut (&'a mut Rational, &'b mut Integer)) {
+                <$Ref as AssignTo<
+                    (&'a mut Rational, &'b mut Integer),
+                >>::assign_to(*self, dst);
+            }
+        }
+
+        impl<'a, 'r: 'a> From<&'a $Ref<'r>> for (Rational, Integer) {
+            #[inline]
+            fn from(src: &'a $Ref<'r>) -> Self {
+                let mut dst = <Self as Default>::default();
+                src.assign_to(&mut (&mut dst.0, &mut dst.1));
+                dst
             }
         }
     }
@@ -1858,7 +1879,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Rational
+impl<'a, Min, Max> AssignTo<Rational> for ClampRef<'a, Min, Max>
 where
     Rational: PartialOrd<Min>
         + PartialOrd<Max>
@@ -1868,32 +1889,15 @@ where
     Max: 'a,
 {
     #[inline]
-    fn from(t: ClampRef<'a, Min, Max>) -> Rational {
-        let mut ret = Rational::new();
-        ret.assign(t);
-        ret
-    }
-}
-
-impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Rational
-where
-    Rational: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
-{
-    #[inline]
-    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
-        if src.ref_self.lt(src.min) {
-            self.assign(src.min);
-            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
-        } else if src.ref_self.gt(src.max) {
-            self.assign(src.max);
-            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+    fn assign_to(self, dst: &mut Rational) {
+        if self.ref_self.lt(self.min) {
+            dst.assign(self.min);
+            assert!(!(&*dst).gt(self.max), "minimum larger than maximum");
+        } else if self.ref_self.gt(self.max) {
+            dst.assign(self.max);
+            assert!(!(&*dst).lt(self.min), "minimum larger than maximum");
         } else {
-            self.assign(src.ref_self);
+            dst.assign(self.ref_self);
         }
     }
 }

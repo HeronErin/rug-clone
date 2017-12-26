@@ -14,11 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Rational};
+use Rational;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
-use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
+use ops::{AddFrom, AssignTo, DivFrom, MulFrom, NegAssign, Pow, PowAssign,
+          SubFrom};
 use std::i32;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
