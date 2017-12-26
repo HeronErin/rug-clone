@@ -1281,6 +1281,9 @@ impl Integer {
         fn abs_mut;
         /// Computes the absolute value.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1330,6 +1333,9 @@ impl Integer {
         /// * 0 if the value is zero
         /// * 1 if the value is positive
         /// * −1 if the value is negative
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1416,6 +1422,9 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
+    /// The returned object implements
+    /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1480,6 +1489,9 @@ impl Integer {
         fn keep_bits_mut;
         /// Keeps the *n* least significant bits only.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1519,6 +1531,9 @@ impl Integer {
         /// ```
         fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1578,6 +1593,10 @@ impl Integer {
         fn div_rem_mut;
         /// Performs a division producing both the quotient and
         /// remainder.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// The remainder has the same sign as the dividend.
         ///
@@ -1647,6 +1666,10 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1710,6 +1733,10 @@ impl Integer {
         ///
         /// The remainder has the same sign as the divisor.
         ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1766,6 +1793,10 @@ impl Integer {
         fn div_rem_euc_mut;
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1852,6 +1883,9 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1907,6 +1941,9 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1920,6 +1957,10 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` and returns `Ok(inverse)` if
     /// it exists, or `Err(unchanged)` if the inverse does not exist.
+    ///
+    /// The returned object implements
+    /// [`AssignTo<Result<&mut Integer, &mut Integer>>`]
+    /// (../ops/trait.AssignTo.html).
     ///
     /// # Examples
     ///
@@ -2129,6 +2170,10 @@ impl Integer {
     /// If `exponent` is negative, then the number must have an
     /// inverse modulo `modulo` for an answer to exist.
     ///
+    /// The returned object implements
+    /// [`AssignTo<Result<&mut Integer, &mut Integer>>`]
+    /// (../ops/trait.AssignTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2165,8 +2210,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Raises `base` to the power of `exponent`; the return value
-        /// implements
+        /// Raises `base` to the power of `exponent`.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -2188,8 +2234,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Raises `base` to the power of `exponent`; the return value
-        /// implements
+        /// Raises `base` to the power of `exponent`.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -2243,6 +2290,9 @@ impl Integer {
         /// Panics if *n* is even and the value is negative.
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -2306,6 +2356,10 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2356,6 +2410,9 @@ impl Integer {
         /// Panics if the value is negative.
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -2415,6 +2472,10 @@ impl Integer {
         ///
         /// The remainder is the original number minus the truncated
         /// root squared.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -2491,6 +2552,9 @@ impl Integer {
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2556,6 +2620,9 @@ impl Integer {
         ///
         /// The result is always positive except when both inputs are
         /// zero.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -2643,6 +2710,10 @@ impl Integer {
         /// (`self` and `other`), and two multiplication coefficients
         /// to obtain the GCD from the two inputs.
         ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
+        ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
         /// the multiplication coefficients are *s* and *t*, then
@@ -2724,6 +2795,9 @@ impl Integer {
         ///
         /// The result is always positive except when one or both
         /// inputs are zero.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -2863,7 +2937,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the factorial of *n*; the return value implements
+        /// Computes the factorial of *n*.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -2886,8 +2962,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the double factorial of *n*; the return value
-        /// implements
+        /// Computes the double factorial of *n*.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -2910,8 +2987,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the *m*-multi factorial of *n*; the return value
-        /// implements
+        /// Computes the *m*-multi factorial of *n*.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -2934,7 +3012,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the primorial of *n*; the return value implements
+        /// Computes the primorial of *n*.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -2985,6 +3065,9 @@ impl Integer {
         fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2996,8 +3079,9 @@ impl Integer {
         fn binomial_ref -> BinomialRef;
     }
     math_op0!{
-        /// Computes the binomial coefficient *n* over *k*; the return
-        /// value implements
+        /// Computes the binomial coefficient *n* over *k*.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
@@ -3020,7 +3104,9 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the Fibonacci number; the return value implements
+        /// Computes the Fibonacci number.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// This function is meant for an isolated number. If a
@@ -3049,8 +3135,11 @@ impl Integer {
 
     math_op0! {
         /// Computes a Fibonacci number, and the previous Fibonacci
-        /// number; the return value implements
-        /// [`AssignTo<(Integer, Integer)>`](../ops/trait.AssignTo.html).
+        /// number.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3077,11 +3166,13 @@ impl Integer {
     #[deprecated(since = "0.9.2", note = "use `fibonacci_2` instead")]
     #[inline]
     pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
-        Integer::fibonacci_2(n).assign_to(&mut(self, previous));
+        Integer::fibonacci_2(n).assign_to(&mut (self, previous));
     }
 
     math_op0! {
-        /// Computes the Lucas number; the return value implements
+        /// Computes the Lucas number.
+        ///
+        /// The returned object implements
         /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// This function is meant for an isolated number. If a
@@ -3109,9 +3200,12 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes a Lucas number, and the previous Lucas number;
-        /// the return value implements
-        /// [`AssignTo<(Integer, Integer)>`](../ops/trait.AssignTo.html).
+        /// Computes a Lucas number, and the previous Lucas number.
+        ///
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Lucas numbers is required, the first two values of
@@ -3137,12 +3231,14 @@ impl Integer {
     #[deprecated(since = "0.9.2", note = "use `lucas_2` instead")]
     #[inline]
     pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
-        Integer::lucas_2(n).assign_to(&mut(self, previous));
+        Integer::lucas_2(n).assign_to(&mut (self, previous));
     }
 
     #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
-    /// bits; the return value implements
+    /// bits.
+    ///
+    /// The returned object implements
     /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
     ///
     /// # Examples
@@ -3164,6 +3260,7 @@ impl Integer {
         RandomBits { bits, rng }
     }
 
+    #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
     /// bits.
     #[inline]
@@ -3480,7 +3577,7 @@ impl<'a> From<RemoveFactorRef<'a>> for (Integer, u32) {
     #[inline]
     fn from(src: RemoveFactorRef<'a>) -> (Integer, u32) {
         let mut dst = (Integer::new(), 0u32);
-        src.assign_to(&mut(&mut dst.0, &mut dst.1));
+        src.assign_to(&mut (&mut dst.0, &mut dst.1));
         dst
     }
 }

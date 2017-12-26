@@ -2,6 +2,8 @@ Version 0.9.2
 =============
 
 * Requires `gmp-mpfr-sys` version 1.1.0.
+* Deprecate most `assign_*` methods, and add static methods that
+  return an object that implements `AssignTo` instead.
 * Add `Float::assign_log_ui` methods.
 * Add `Float::round_even` methods.
 * Add `Float::assign_random_normal` methods.

@@ -993,6 +993,9 @@ impl Rational {
         fn abs_mut;
         /// Computes the absolute value.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1043,6 +1046,9 @@ impl Rational {
         /// * −1 if the value is negative
         ///
         /// # Examples
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
@@ -1126,6 +1132,9 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
+    /// The returned object implements
+    /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1198,6 +1207,9 @@ impl Rational {
         fn recip_mut;
         /// Computes the reciprocal.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1245,6 +1257,9 @@ impl Rational {
         /// ```
         fn trunc_mut;
         /// Rounds the number towards zero.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1312,6 +1327,9 @@ impl Rational {
         fn rem_trunc_mut;
         /// Computes the fractional part of the number.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1358,6 +1376,10 @@ impl Rational {
         /// ```
         fn fract_trunc_mut;
         /// Computes the fractional and truncated parts of the number.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1410,6 +1432,9 @@ impl Rational {
         fn ceil_mut;
         /// Rounds the number upwards (towards plus infinity).
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1453,6 +1478,9 @@ impl Rational {
         /// ```
         fn rem_ceil_mut;
         /// Computes the non-positive remainder after rounding up.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1505,6 +1533,10 @@ impl Rational {
         ///
         /// The fractional part cannot be greater than zero.
         ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1554,6 +1586,9 @@ impl Rational {
         fn floor_mut;
         /// Rounds the number downwards (towards minus infinity).
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1597,6 +1632,9 @@ impl Rational {
         /// ```
         fn rem_floor_mut;
         /// Computes the non-negative remainder after rounding down.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1648,6 +1686,10 @@ impl Rational {
         /// Computes the fractional and floor parts of the number.
         ///
         /// The fractional part cannot be negative.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1709,6 +1751,9 @@ impl Rational {
         /// When the number lies exactly between two integers, it is
         /// rounded away from zero.
         ///
+        /// The returned object implements
+        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1763,6 +1808,9 @@ impl Rational {
         fn rem_round_mut;
         /// Computes the remainder after rounding to the nearest
         /// integer.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
@@ -1837,6 +1885,10 @@ impl Rational {
         /// down and negative when the number is rounded up. When the
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
+        ///
+        /// The returned object implements
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
+        /// (../ops/trait.AssignTo.html).
         ///
         /// # Examples
         ///
