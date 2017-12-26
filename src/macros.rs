@@ -16,37 +16,12 @@
 
 #[cfg(feature = "integer")]
 macro_rules! from_assign_to {
-    { $Src:ty => $Dst:ty} => {
-        impl<'r> From<$Src> for $Dst {
-            #[inline]
-            fn from(src: $Src) -> Self {
-                let mut dst = <Self as Default>::default();
-                <$Src as AssignTo<$Dst>::assign_to(src, &mut dst);
-                dst
-            }
-        }
-    };
-
     { ref $Src:ty => $Dst:ty} => {
         impl<'a, 'r> From<&'a $Src> for $Dst {
             #[inline]
             fn from(src: &'a $Src) -> Self {
                 let mut dst = <Self as Default>::default();
                 <$Src as AssignTo<$Dst>::assign_to(*src, &mut dst);
-                dst
-            }
-        }
-    };
-
-    { $Src:ty => $Dst1:ty, $Dst2:ty} => {
-        impl<'r> From<$Src> for ($Dst1, $Dst2) {
-            #[inline]
-            fn from(src: $Src) -> Self {
-                let mut dst = <Self as Default>::default();
-                <$Src as AssignTo<(&mut $Dst1, &mut $Dst2)>>::assign_to(
-                    src,
-                    &mut (&mut dst.0, &mut dst.1),
-                );
                 dst
             }
         }
@@ -59,6 +34,47 @@ macro_rules! from_assign_to {
                 let mut dst = <Self as Default>::default();
                 <$Src as AssignTo<(&mut $Dst1, &mut $Dst2)>>::assign_to(
                     *src,
+                    &mut (&mut dst.0, &mut dst.1),
+                );
+                dst
+            }
+        }
+    };
+
+    { ref $Src:ty => $Dst1:ty, $Dst2:ty, $Dst3: ty} => {
+        impl<'a, 'r> From<&'a $Src> for ($Dst1, $Dst2, $Dst3) {
+            #[inline]
+            fn from(src: &'a $Src) -> Self {
+                let mut dst = <Self as Default>::default();
+                <$Src as AssignTo<
+                    (&mut $Dst1, &mut $Dst2, &mut $Dst3),
+                >>::assign_to(
+                    *src,
+                    &mut (&mut dst.0, &mut dst.1, &mut dst.2),
+                );
+                dst
+            }
+        }
+    };
+
+    { $Src:ty => $Dst:ty} => {
+        impl<'r> From<$Src> for $Dst {
+            #[inline]
+            fn from(src: $Src) -> Self {
+                let mut dst = <Self as Default>::default();
+                <$Src as AssignTo<$Dst>::assign_to(src, &mut dst);
+                dst
+            }
+        }
+    };
+
+    { $Src:ty => $Dst1:ty, $Dst2:ty} => {
+        impl<'r> From<$Src> for ($Dst1, $Dst2) {
+            #[inline]
+            fn from(src: $Src) -> Self {
+                let mut dst = <Self as Default>::default();
+                <$Src as AssignTo<(&mut $Dst1, &mut $Dst2)>>::assign_to(
+                    src,
                     &mut (&mut dst.0, &mut dst.1),
                 );
                 dst
@@ -81,40 +97,10 @@ macro_rules! from_assign_to {
             }
         }
     };
-
-    { ref $Src:ty => $Dst1:ty, $Dst2:ty, $Dst3: ty} => {
-        impl<'a, 'r> From<&'a $Src> for ($Dst1, $Dst2, $Dst3) {
-            #[inline]
-            fn from(src: &'a $Src) -> Self {
-                let mut dst = <Self as Default>::default();
-                <$Src as AssignTo<
-                    (&mut $Dst1, &mut $Dst2, &mut $Dst3),
-                >>::assign_to(
-                    *src,
-                    &mut (&mut dst.0, &mut dst.1, &mut dst.2),
-                );
-                dst
-            }
-        }
-    };
 }
 
 #[cfg(feature = "integer")]
 macro_rules! assign_to {
-    { $Src:ty => $Dst:ty } => {
-        impl<'a> AssignTo<$Dst> for &'a $Src {
-            #[inline]
-            fn assign_to(self, dst: &mut $Dst) {
-                <$Src as AssignTo<$Dst>>::assign_to(*self, dst);
-            }
-
-            #[inline]
-            fn to_new(self) -> $Dst {
-                <$Src as AssignTo<$Dst>>::to_new(*self)
-            }
-        }
-    };
-
     { ref $Ref:ty => $Dst:ty } => {
         impl<'a, 'r: 'a> AssignTo<$Dst> for &'a $Ref {
             #[inline]
@@ -125,30 +111,6 @@ macro_rules! assign_to {
             #[inline]
             fn to_new(self) -> $Dst {
                 <$Ref as AssignTo<$Dst>>::to_new(*self)
-            }
-        }
-    };
-
-    { $Src:ty => $Dst1:ty, $Dst2:ty } => {
-        impl<'a, 'b, 'c> AssignTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Src {
-            #[inline]
-            fn assign_to(self, dst: &mut (&'a mut $Dst1, &'b mut $Dst2)) {
-                <$Src as AssignTo<
-                    (&mut $Dst1, &mut $Dst2),
-                >>::assign_to(*self, dst);
-            }
-        }
-    };
-
-    { ref $Ref:ty => $Dst1:ty, $Dst2:ty } => {
-        impl<'a, 'b, 'c, 'r: 'c>
-            AssignTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Ref
-        {
-            #[inline]
-            fn assign_to(self, dst: &mut (&'a mut $Dst1, &'b mut $Dst2)) {
-                <$Ref as AssignTo<
-                    (&'a mut $Dst1, &'b mut $Dst2),
-                >>::assign_to(*self, dst);
             }
         }
     };
@@ -167,7 +129,45 @@ macro_rules! assign_to {
                 >>::assign_to(*self, dst);
             }
         }
-    }
+    };
+
+    { ref $Ref:ty => $Dst1:ty, $Dst2:ty } => {
+        impl<'a, 'b, 'c, 'r: 'c>
+            AssignTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Ref
+        {
+            #[inline]
+            fn assign_to(self, dst: &mut (&'a mut $Dst1, &'b mut $Dst2)) {
+                <$Ref as AssignTo<
+                    (&'a mut $Dst1, &'b mut $Dst2),
+                >>::assign_to(*self, dst);
+            }
+        }
+    };
+
+    { $Src:ty => $Dst:ty } => {
+        impl<'a> AssignTo<$Dst> for &'a $Src {
+            #[inline]
+            fn assign_to(self, dst: &mut $Dst) {
+                <$Src as AssignTo<$Dst>>::assign_to(*self, dst);
+            }
+
+            #[inline]
+            fn to_new(self) -> $Dst {
+                <$Src as AssignTo<$Dst>>::to_new(*self)
+            }
+        }
+    };
+
+    { $Src:ty => $Dst1:ty, $Dst2:ty } => {
+        impl<'a, 'b, 'c> AssignTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Src {
+            #[inline]
+            fn assign_to(self, dst: &mut (&'a mut $Dst1, &'b mut $Dst2)) {
+                <$Src as AssignTo<
+                    (&mut $Dst1, &mut $Dst2),
+                >>::assign_to(*self, dst);
+            }
+        }
+    };
 }
 
 // method(param*) -> Src
