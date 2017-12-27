@@ -23,7 +23,11 @@ use ext::mpfr as xmpfr;
 use float::{self, OrdFloat, Round, SmallFloat, Special};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-use ops::{AssignRound, NegAssign};
+#[cfg(feature = "rand")]
+use misc;
+use ops::{AssignRound, AssignRoundTo, NegAssign};
+#[cfg(feature = "rand")]
+use ops::AssignTo;
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -255,6 +259,21 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// ```
 pub struct Float {
     inner: mpfr_t,
+}
+
+macro_rules! ref_math_op0_float {
+    {
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Ref:ident { $($param:ident: $T:ty),* }
+    } => {
+        ref_math_op0_round! {
+            Float, Round => Ordering;
+            $func, rraw => ordering1;
+            $(#[$attr_ref])*
+            struct $Ref { $($param: $T),* }
+        }
+    }
 }
 
 macro_rules! math_op1_float {
@@ -2014,6 +2033,9 @@ impl Float {
         fn square_round;
         /// Computes the square.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2069,6 +2091,9 @@ impl Float {
         fn sqrt_round;
         /// Computes the square root.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2080,45 +2105,37 @@ impl Float {
         /// ```
         fn sqrt_ref -> SqrtRef;
     }
+    math_op0! {
+        /// Computes the square root of `u`.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let s = Float::sqrt_u(25);
+        /// let f = Float::with_val(53, s);
+        /// assert_eq!(f, 5.0);
+        /// ```
+        fn sqrt_u(u: u32) -> SqrtU;
+    }
 
     /// Sets `self` to the square root of `u`, rounding to the
     /// nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let mut f = Float::new(53);
-    /// f.assign_sqrt_u(25);
-    /// assert_eq!(f, 5.0);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `sqrt_u` instead")]
     #[inline]
     pub fn assign_sqrt_u(&mut self, u: u32) {
-        self.assign_sqrt_u_round(u, Round::Nearest);
+        Float::sqrt_u(u).assign_round_to(self, Round::Nearest);
     }
 
     /// Sets `self` to the square root of `u`, applying the specified
     /// rounding method.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// // 4 bits of precision
-    /// let mut f = Float::new(4);
-    /// // sqrt(5) in binary is 10.00111100...
-    /// // sqrt(5) is rounded to 2.25 (10.01).
-    /// let dir = f.assign_sqrt_u_round(5, Round::Nearest);
-    /// assert_eq!(f, 2.25);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `sqrt_u` instead")]
     #[inline]
     pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let ret =
-            unsafe { mpfr::sqrt_ui(self.inner_mut(), u.into(), rraw(round)) };
-        ordering1(ret)
+        Float::sqrt_u(u).assign_round_to(self, round)
     }
 
     math_op1_float! {
@@ -2164,6 +2181,9 @@ impl Float {
         /// ```
         fn recip_sqrt_round;
         /// Computes the reciprocal square root.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -2220,6 +2240,9 @@ impl Float {
         fn cbrt_round;
         /// Computes the cube root.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2275,6 +2298,9 @@ impl Float {
         fn root_round;
         /// Computes the <i>k</i>th root.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2311,6 +2337,9 @@ impl Float {
         /// ```
         fn abs_mut;
         /// Computes the absolute value.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -2360,6 +2389,9 @@ impl Float {
         /// * 1.0 if the value is positive, +0.0 or +∞
         /// * −1.0 if the value is negative, −0.0 or −∞
         /// * NaN if the value is NaN
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -2518,9 +2550,8 @@ impl Float {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The returned reference is `self` if the value is within the
-    /// bounds, `min` if the value is less than the minimum, and `max`
-    /// if the value is larger than the maximum.
+    /// The returned object implements
+    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
     ///
     /// # Examples
     ///
@@ -2606,6 +2637,9 @@ impl Float {
         fn recip_round;
         /// Computes the reciprocal.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2659,6 +2693,9 @@ impl Float {
         /// ```
         fn min_round;
         /// Finds the minimum.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -2714,6 +2751,9 @@ impl Float {
         /// ```
         fn max_round;
         /// Finds the maximum.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -2796,6 +2836,9 @@ impl Float {
         /// `other`, zero if `self` ≤ `other`, or NaN if any operand
         /// is NaN.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2857,6 +2900,9 @@ impl Float {
         fn ln_round;
         /// Computes the natural logarithm.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2868,46 +2914,22 @@ impl Float {
         /// ```
         fn ln_ref -> LnRef;
     }
-
-    /// Sets `self` to the natural logarithm of `u`, rounding to the
-    /// nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let mut f = Float::new(53);
-    /// f.assign_ln_u(3);
-    /// let expected = 1.0986f64;
-    /// assert!((f - expected).abs() < 0.0001);
-    /// ```
-    #[inline]
-    pub fn assign_ln_u(&mut self, u: u32) {
-        self.assign_ln_u_round(u, Round::Nearest);
-    }
-
-    /// Sets `self` to the natural logarithm of `u`, applying the
-    /// specified rounding method.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// // 4 bits of precision
-    /// let mut f = Float::new(4);
-    /// // ln(3) = 1.0986
-    /// // using 4 significant bits: 1.125
-    /// let dir = f.assign_ln_u_round(3, Round::Nearest);
-    /// assert_eq!(f, 1.125);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// ```
-    #[inline]
-    pub fn assign_ln_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let ret =
-            unsafe { mpfr::log_ui(self.inner_mut(), u.into(), rraw(round)) };
-        ordering1(ret)
+    math_op0! {
+        /// Computes the natural logarithm of `u`.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let l = Float::ln_u(3);
+        /// let f = Float::with_val(53, l);
+        /// let expected = 1.0986f64;
+        /// assert!((f - expected).abs() < 0.0001);
+        /// ```
+        fn ln_u(u: u32) -> LnU;
     }
 
     math_op1_float! {
@@ -2955,6 +2977,9 @@ impl Float {
         /// ```
         fn log2_round;
         /// Computes the logarithm to base 2.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3013,6 +3038,9 @@ impl Float {
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3069,6 +3097,9 @@ impl Float {
         /// ```
         fn exp_round;
         /// Computes the exponential.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3127,6 +3158,9 @@ impl Float {
         fn exp2_round;
         /// Computes 2 to the power of the value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3184,6 +3218,9 @@ impl Float {
         fn exp10_round;
         /// Computes 10 to the power of the value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3239,6 +3276,9 @@ impl Float {
         /// ```
         fn sin_round;
         /// Computes the sine.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3296,6 +3336,9 @@ impl Float {
         fn cos_round;
         /// Computes the cosine.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3351,6 +3394,9 @@ impl Float {
         /// ```
         fn tan_round;
         /// Computes the tangent.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3429,6 +3475,10 @@ impl Float {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<(&mut Float, &mut Float)>`]
+        /// (../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3503,6 +3553,9 @@ impl Float {
         fn sec_round;
         /// Computes the secant.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3558,6 +3611,9 @@ impl Float {
         /// ```
         fn csc_round;
         /// Computes the cosecant.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3616,6 +3672,9 @@ impl Float {
         fn cot_round;
         /// Computes the cotangent.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3671,6 +3730,9 @@ impl Float {
         /// ```
         fn asin_round;
         /// Computes the arc-sine.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3729,6 +3791,9 @@ impl Float {
         fn acos_round;
         /// Computes the arc-cosine.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3785,6 +3850,9 @@ impl Float {
         /// ```
         fn atan_round;
         /// Computes the arc-tangent.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -3860,6 +3928,9 @@ impl Float {
         /// This is similar to the arc-tangent of `self / x`, but
         /// has an output range of 2<i>π</i> rather than *π*.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3919,6 +3990,9 @@ impl Float {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3976,6 +4050,9 @@ impl Float {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4032,6 +4109,9 @@ impl Float {
         /// ```
         fn tanh_round;
         /// Computes the hyperbolic tangent.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -4110,6 +4190,10 @@ impl Float {
         fn sinh_cosh_round;
         /// Computes the hyperbolic sine and cosine.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<(&mut Float, &mut Float)>`]
+        /// (../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4185,6 +4269,9 @@ impl Float {
         fn sech_round;
         /// Computes the hyperbolic secant.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4241,6 +4328,9 @@ impl Float {
         /// ```
         fn csch_round;
         /// Computes the hyperbolic cosecant.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -4299,6 +4389,9 @@ impl Float {
         fn coth_round;
         /// Computes the hyperbolic cotangent.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4355,6 +4448,9 @@ impl Float {
         /// ```
         fn asinh_round;
         /// Computes the inverse hyperbolic sine.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -4415,6 +4511,9 @@ impl Float {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4474,6 +4573,9 @@ impl Float {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4485,49 +4587,41 @@ impl Float {
         /// ```
         fn atanh_ref -> AtanhRef;
     }
+    math_op0! {
+        /// Computes the factorial of *n*.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+        /// let n = Float::factorial(10);
+        /// let f = Float::with_val(53, n);
+        /// assert_eq!(f, 3628800.0);
+        /// ```
+        fn factorial(n: u32) -> Factorial;
+    }
 
     /// Sets `self` to the factorial of *u*, rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let mut f = Float::new(53);
-    /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
-    /// f.assign_factorial_u(10);
-    /// assert_eq!(f, 3628800.0);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `factorial` instead")]
     #[inline]
     pub fn assign_factorial_u(&mut self, u: u32) {
-        self.assign_factorial_u_round(u, Round::Nearest);
+        Float::factorial(u).assign_round_to(self, Round::Nearest);
     }
 
     /// Sets `self` to the factorial of *u*, applying the specified
     /// rounding method.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// // 4 bits of precision
-    /// let mut f = Float::new(4);
-    /// // 10! is 3628800 (binary 110111...)
-    /// // rounded to 3670016 (binary 1110...)
-    /// let dir = f.assign_factorial_u_round(10, Round::Nearest);
-    /// assert_eq!(f, 3670016.0);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `factorial` instead")]
     #[inline]
     pub fn assign_factorial_u_round(
         &mut self,
         u: u32,
         round: Round,
     ) -> Ordering {
-        let ret =
-            unsafe { mpfr::fac_ui(self.inner_mut(), u.into(), rraw(round)) };
-        ordering1(ret)
+        Float::factorial(u).assign_round_to(self, round)
     }
 
     math_op1_float! {
@@ -4580,6 +4674,9 @@ impl Float {
         /// ```
         fn ln_1p_round;
         /// Computes the natural logorithm of one plus the value.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -4645,6 +4742,9 @@ impl Float {
         /// Computes one less than the exponential of the
         /// value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4702,6 +4802,9 @@ impl Float {
         /// ```
         fn eint_round;
         /// Computes the exponential integral.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -4763,6 +4866,9 @@ impl Float {
         /// Computes the real part of the dilogarithm of the
         /// value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4821,6 +4927,9 @@ impl Float {
         /// ```
         fn gamma_round;
         /// Computes the gamma function on the value.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -4884,6 +4993,9 @@ impl Float {
         fn gamma_inc_round;
         /// Computes the upper incomplete gamma function on the value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4944,6 +5056,9 @@ impl Float {
         fn ln_gamma_round;
         /// Computes the logarithm of the gamma function on
         /// the value.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -5082,6 +5197,10 @@ impl Float {
     /// Computes the logarithm of the absolute value of the gamma
     /// function on `val`.
     ///
+    /// The returned object implements
+    /// [`AssignRoundTo<(&mut Float, &mut Ordering)>`]
+    /// (../ops/trait.AssignRoundTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -5156,6 +5275,9 @@ impl Float {
         fn digamma_round;
         /// Computes the Digamma function on the value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5215,6 +5337,9 @@ impl Float {
         fn zeta_round;
         /// Computes the Riemann Zeta function on the value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5226,45 +5351,38 @@ impl Float {
         /// ```
         fn zeta_ref -> ZetaRef;
     }
+    math_op0!{
+        /// Computes the Riemann Zeta function on *u*.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let z = Float::zeta_u(3);
+        /// let f = Float::with_val(53, z);
+        /// let expected = 1.2021_f64;
+        /// assert!((f - expected).abs() < 0.0001);
+        /// ```
+        fn zeta_u(u: u32) -> ZetaU;
+    }
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let mut f = Float::new(53);
-    /// f.assign_zeta_u(3);
-    /// let expected = 1.2021_f64;
-    /// assert!((f - expected).abs() < 0.0001);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `zeta_u` instead")]
     #[inline]
     pub fn assign_zeta_u(&mut self, u: u32) {
-        self.assign_zeta_u_round(u, Round::Nearest);
+        Float::zeta_u(u).assign_round_to(self, Round::Nearest);
     }
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// applying the specified rounding method.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// // 4 bits of precision
-    /// let mut f = Float::new(4);
-    /// // zeta(3) is 1.2021, using 4 significant bits: 1.25
-    /// let dir = f.assign_zeta_u_round(3, Round::Nearest);
-    /// assert_eq!(f, 1.25);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `zeta_u` instead")]
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        let ret =
-            unsafe { mpfr::zeta_ui(self.inner_mut(), u.into(), rraw(round)) };
-        ordering1(ret)
+        Float::zeta_u(u).assign_round_to(self, round)
     }
 
     math_op1_float! {
@@ -5314,6 +5432,9 @@ impl Float {
         /// ```
         fn erf_round;
         /// Computes the error function.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -5374,6 +5495,9 @@ impl Float {
         fn erfc_round;
         /// Computes the complementary error function.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5432,6 +5556,9 @@ impl Float {
         /// ```
         fn j0_round;
         /// Computes the first kind Bessel function of order 0.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -5492,6 +5619,9 @@ impl Float {
         fn j1_round;
         /// Computes the first kind Bessel function of order 1.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5550,6 +5680,9 @@ impl Float {
         /// ```
         fn jn_round;
         /// Computes the first kind Bessel function of order *n*.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -5610,6 +5743,9 @@ impl Float {
         fn y0_round;
         /// Computes the second kind Bessel function of order 0.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5669,6 +5805,9 @@ impl Float {
         fn y1_round;
         /// Computes the second kind Bessel function of order 1.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5727,6 +5866,9 @@ impl Float {
         /// ```
         fn yn_round;
         /// Computes the second kind Bessel function of order *n*.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -5789,6 +5931,9 @@ impl Float {
         /// ```
         fn agm_round;
         /// Computes the arithmetic-geometric mean.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -5853,6 +5998,9 @@ impl Float {
         fn hypot_round;
         /// Computes the Euclidean norm.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5913,6 +6061,9 @@ impl Float {
         fn ai_round;
         /// Computes the Airy function Ai on the value.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5956,6 +6107,9 @@ impl Float {
         fn ceil_mut;
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -6002,6 +6156,9 @@ impl Float {
         fn floor_mut;
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -6051,6 +6208,9 @@ impl Float {
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero. The result may be rounded again when
         /// assigned to the target.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -6121,6 +6281,9 @@ impl Float {
         /// even. The result may be rounded again when assigned to the
         /// target.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -6167,6 +6330,9 @@ impl Float {
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -6211,6 +6377,9 @@ impl Float {
         /// ```
         fn fract_mut;
         /// Gets the fractional part of the number.
+        ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
         ///
         /// # Examples
         ///
@@ -6305,6 +6474,9 @@ impl Float {
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
         ///
+        /// The returned object implements
+        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -6336,14 +6508,19 @@ impl Float {
     /// smaller possible results, many bits will be zero, and not all
     /// the precision will be used.
     ///
+    /// The returned object implements
+    /// [`AssignTo<Result<&mut Float, &mut Float>`]
+    /// (../ops/trait.AssignTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
+    /// use rug::{Assign, Float};
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let mut f = Float::new(2);
-    /// f.assign_random_bits(&mut rand).unwrap();
+    /// let mut f = Ok(Float::new(2));
+    /// f.assign(Float::random_bits(&mut rand));
+    /// let f = f.unwrap();
     /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
     /// println!("0.0 ≤ {} < 1.0", f);
     /// ```
@@ -6354,18 +6531,28 @@ impl Float {
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
     /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
-    /// number is set to Nan and an error is returned. This would most
+    /// number is set to NaN and an error is returned. This would most
     /// likely be a programming error.
+    #[inline]
+    pub fn random_bits<'a, 'b: 'a>(
+        rng: &'a mut RandState<'b>,
+    ) -> RandomBits<'a, 'b> {
+        RandomBits { rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the range 0 ≤ *x* < 1.
+    #[deprecated(since = "0.9.2", note = "use `random_bits` instead")]
     #[inline]
     pub fn assign_random_bits(
         &mut self,
         rng: &mut RandState,
     ) -> Result<(), ()> {
-        let err = unsafe { mpfr::urandomb(self.inner_mut(), rng.inner_mut()) };
-        if err != 0 {
-            Err(())
-        } else {
-            Ok(())
+        let mut r = Ok(self);
+        Float::random_bits(rng).assign_to(&mut r);
+        match r {
+            Ok(_) => Ok(()),
+            Err(_) => Err(()),
         }
     }
 
@@ -6373,10 +6560,21 @@ impl Float {
     /// Generates a random number in the continuous range 0 ≤ *x* < 1,
     /// and rounds to the nearest.
     ///
-    /// The result can be rounded up to be equal to one. This is
-    /// equivalent to calling
-    /// `assign_random_cont_round(rng, Round::Nearest)`
-    /// (see [`assign_random_cont_round`](#method.assign_random_cont_round)).
+    /// The result can be rounded up to be equal to one. Unlike the
+    /// [`random_bits`](#method.random_bits) method which generates a
+    /// discrete random number at intervals depending on the
+    /// precision, this method is equivalent to generating a
+    /// continuous random number with infinite precision and then
+    /// rounding the result. This means that even the smaller numbers
+    /// will be using all the available precision bits, and rounding
+    /// is performed in all cases, not in some corner case.
+    ///
+    /// Rounding directions for generated random numbers cannot be
+    /// `Ordering::Equal`, as the random numbers generated can be
+    /// considered to have infinite precision before rounding.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
     ///
     /// # Examples
     ///
@@ -6384,8 +6582,7 @@ impl Float {
     /// use rug::Float;
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let mut f = Float::new(2);
-    /// f.assign_random_cont(&mut rand);
+    /// let f = Float::with_val(2, Float::random_cont(&mut rand));
     /// // The significand is either 0b10 or 0b11
     /// assert!(
     ///     f == 1.0 || f == 0.75 || f == 0.5 || f == 0.375 || f == 0.25
@@ -6393,103 +6590,59 @@ impl Float {
     /// );
     /// ```
     #[inline]
+    pub fn random_cont<'a, 'b: 'a>(
+        rng: &'a mut RandState<'b>,
+    ) -> RandomCont<'a, 'b> {
+        RandomCont { rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the continuous range 0 ≤ *x* < 1,
+    /// and rounds to the nearest.
+    #[deprecated(since = "0.9.2", note = "use `random_cont` instead")]
+    #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
-        self.assign_random_cont_round(rng, Round::Nearest);
+        Float::random_cont(rng).assign_round_to(self, Round::Nearest);
     }
 
     #[cfg(feature = "rand")]
     /// Generates a random number in the continous range 0 ≤ *x* < 1,
     /// and applies the specified rounding method.
-    ///
-    /// The result can be rounded up to be equal to one. Unlike the
-    /// [`assign_random_bits`](#method.assign_random_bits) method
-    /// which generates a discrete random number at intervals
-    /// depending on the precision, this method is equivalent to
-    /// generating a continuous random number with infinite precision
-    /// and then rounding the result. This means that even the smaller
-    /// numbers will be using all the available precision bits, and
-    /// rounding is performed in all cases, not in some corner case.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::rand::RandState;
-    /// use std::cmp::Ordering;
-    /// let mut rand = RandState::new();
-    /// let mut f = Float::new(2);
-    /// let dir = f.assign_random_cont_round(&mut rand, Round::Down);
-    /// // We cannot have an exact value without rounding.
-    /// assert_eq!(dir, Ordering::Less);
-    /// // The significand is either 0b10 or 0b11
-    /// assert!(
-    ///     f == 0.75 || f == 0.5 || f == 0.375 || f == 0.25 || f <= 0.1875
-    /// );
-    /// ```
+    #[deprecated(since = "0.9.2", note = "use `` instead")]
     #[inline]
     pub fn assign_random_cont_round(
         &mut self,
         rng: &mut RandState,
         round: Round,
     ) -> Ordering {
-        let ret = unsafe {
-            mpfr::urandom(self.inner_mut(), rng.inner_mut(), rraw(round))
-        };
-        ordering1(ret)
+        Float::random_cont(rng).assign_round_to(self, round)
     }
 
     #[cfg(feature = "rand")]
     /// Generates a random number according to a standard normal
     /// Gaussian distribution, rounding to the nearest.
     ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::rand::RandState;
-    /// let mut rand = RandState::new();
-    /// let mut f = Float::new(53);
-    /// f.assign_random_normal(&mut rand);
-    /// println!("Normal random number: {}", f);
-    /// ```
-    #[inline]
-    pub fn assign_random_normal(&mut self, rng: &mut RandState) {
-        self.assign_random_normal_round(rng, Default::default());
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random number according to a standard normal
-    /// Gaussian distribution, applying the specified rounding method.
-    ///
-    /// The rounding direction for the generated random number cannot
-    /// be `Ordering::Equal`, as the random number generated can be
+    /// Rounding directions for generated random numbers cannot be
+    /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
+    /// The returned object implements
+    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
-    /// use rug::float::Round;
     /// use rug::rand::RandState;
-    /// use std::cmp::Ordering;
     /// let mut rand = RandState::new();
-    /// let mut f = Float::new(53);
-    /// let dir = f.assign_random_normal_round(&mut rand, Round::Nearest);
-    /// // Rounding direction cannot be `Ordering::Equal`:
-    /// assert_ne!(dir, Ordering::Equal);
+    /// let f = Float::with_val(53, Float::random_normal(&mut rand));
     /// println!("Normal random number: {}", f);
     /// ```
     #[inline]
-    pub fn assign_random_normal_round(
-        &mut self,
-        rng: &mut RandState,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpfr::nrandom(self.inner_mut(), rng.inner_mut(), rraw(round))
-        };
-        ordering1(ret)
+    pub fn random_normal<'a, 'b: 'a>(
+        rng: &'a mut RandState<'b>,
+    ) -> RandomNormal<'a, 'b> {
+        RandomNormal { rng }
     }
 
     #[cfg(feature = "rand")]
@@ -6497,16 +6650,16 @@ impl Float {
     /// Gaussian distribution, rounding to the nearest.
     ///
     /// If `other` is `None`, only one value is generated.
-    #[deprecated(since = "0.9.2", note = "use `assign_random_normal` instead")]
+    #[deprecated(since = "0.9.2", note = "use `random_normal` instead")]
     #[inline]
     pub fn assign_random_gaussian(
         &mut self,
         other: Option<&mut Float>,
         rng: &mut RandState,
     ) {
-        self.assign_random_normal(rng);
+        Float::random_normal(rng).assign_round_to(self, Round::Nearest);
         if let Some(other) = other {
-            other.assign_random_normal(rng);
+            Float::random_normal(rng).assign_round_to(other, Round::Nearest);
         }
     }
 
@@ -6515,10 +6668,6 @@ impl Float {
     /// Gaussian distribution, applying the specified rounding method.
     ///
     /// If `other` is `None`, only one value is generated.
-    ///
-    /// Rounding directions for generated random numbers cannot be
-    /// `Ordering::Equal`, as the random numbers generated can be
-    /// considered to have infinite precision before rounding.
     #[deprecated(since = "0.9.2",
                  note = "use `assign_random_normal_round` instead")]
     #[inline]
@@ -6528,9 +6677,9 @@ impl Float {
         rng: &mut RandState,
         round: Round,
     ) -> (Ordering, Ordering) {
-        let first = self.assign_random_normal_round(rng, round);
+        let first = Float::random_normal(rng).assign_round_to(self, round);
         let second = if let Some(other) = other {
-            other.assign_random_normal_round(rng, round)
+            Float::random_normal(rng).assign_round_to(other, round)
         } else {
             Ordering::Equal
         };
@@ -6541,61 +6690,33 @@ impl Float {
     /// Generates a random number according to an exponential
     /// distribution with mean one, rounding to the nearest.
     ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::rand::RandState;
-    /// let mut rand = RandState::new();
-    /// let mut f = Float::new(53);
-    /// f.assign_random_exp(&mut rand);
-    /// println!("Exponential random number: {}", f);
-    /// ```
-    #[inline]
-    pub fn assign_random_exp(&mut self, rng: &mut RandState) {
-        self.assign_random_exp_round(rng, Default::default());
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random number according to an exponential
-    /// distribution with mean one, applying the specified rounding
-    /// method.
-    ///
-    /// The rounding direction for the generated random number cannot
-    /// be `Ordering::Equal`, as the random number generated can be
+    /// Rounding directions for generated random numbers cannot be
+    /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
+    /// The returned object implements
+    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+    ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
-    /// use rug::float::Round;
     /// use rug::rand::RandState;
-    /// use std::cmp::Ordering;
     /// let mut rand = RandState::new();
-    /// let mut f = Float::new(53);
-    /// let dir = f.assign_random_exp_round(&mut rand, Round::Nearest);
-    /// // Rounding direction cannot be `Ordering::Equal`:
-    /// assert_ne!(dir, Ordering::Equal);
-    /// // Number cannot be less than zero:
-    /// assert_ne!(f.cmp0(), Some(Ordering::Less));
+    /// let f = Float::with_val(53, Float::random_exp(&mut rand));
     /// println!("Exponential random number: {}", f);
     /// ```
     #[inline]
-    pub fn assign_random_exp_round(
-        &mut self,
-        rng: &mut RandState,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpfr::erandom(self.inner_mut(), rng.inner_mut(), rraw(round))
-        };
-        ordering1(ret)
+    pub fn random_exp<'a, 'b: 'a>(
+        rng: &'a mut RandState<'b>,
+    ) -> RandomExp<'a, 'b> {
+        RandomExp { rng }
     }
 }
 
 ref_math_op1_float! { mpfr::sqr; struct SquareRef {} }
 ref_math_op1_float! { mpfr::sqrt; struct SqrtRef {} }
+ref_math_op0_float! { mpfr::sqrt_ui; struct SqrtU { u: u32 } }
 ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtRef {} }
 ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
 ref_math_op1_float! { mpfr::rootn_ui; struct RootRef { k: u32 } }
@@ -6617,7 +6738,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> AssignRound<ClampRef<'a, Min, Max>> for Float
+impl<'a, Min, Max> AssignRoundTo<Float> for ClampRef<'a, Min, Max>
 where
     Float: PartialOrd<Min>
         + PartialOrd<Max>
@@ -6629,29 +6750,25 @@ where
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: ClampRef<'a, Min, Max>,
-        round: Round,
-    ) -> Ordering {
-        if src.ref_self.lt(src.min) {
-            let dir = self.assign_round(src.min, round);
-            if (*self).gt(src.max) {
-                let dir2 = self.assign_round(src.max, round);
+    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+        if self.ref_self.lt(self.min) {
+            let dir = dst.assign_round(self.min, round);
+            if (*dst).gt(self.max) {
+                let dir2 = dst.assign_round(self.max, round);
                 assert!(
-                    dir == dir2 && !(*self).lt(src.min),
+                    dir == dir2 && !(*dst).lt(self.min),
                     "minimum larger than maximum"
                 );
                 dir
             } else {
                 dir
             }
-        } else if src.ref_self.gt(src.max) {
-            let dir = self.assign_round(src.max, round);
-            if (*self).lt(src.min) {
-                let dir2 = self.assign_round(src.min, round);
+        } else if self.ref_self.gt(self.max) {
+            let dir = dst.assign_round(self.max, round);
+            if (*dst).lt(self.min) {
+                let dir2 = dst.assign_round(self.min, round);
                 assert!(
-                    dir == dir2 && !(*self).gt(src.max),
+                    dir == dir2 && !(*dst).gt(self.max),
                     "minimum larger than maximum"
                 );
                 dir
@@ -6659,7 +6776,7 @@ where
                 dir
             }
         } else {
-            self.assign_round(src.ref_self, round)
+            dst.assign_round(self.ref_self, round)
         }
     }
 }
@@ -6669,6 +6786,7 @@ ref_math_op2_float! { mpfr::min; struct MinRef { other } }
 ref_math_op2_float! { mpfr::max; struct MaxRef { other } }
 ref_math_op2_float! { mpfr::dim; struct PositiveDiffRef { other } }
 ref_math_op1_float! { mpfr::log; struct LnRef {} }
+ref_math_op0_float! { mpfr::log_ui; struct LnU { u: u32 } }
 ref_math_op1_float! { mpfr::log2; struct Log2Ref {} }
 ref_math_op1_float! { mpfr::log10; struct Log10Ref {} }
 ref_math_op1_float! { mpfr::exp; struct ExpRef {} }
@@ -6695,6 +6813,7 @@ ref_math_op1_float! { mpfr::coth; struct CothRef {} }
 ref_math_op1_float! { mpfr::acosh; struct AcoshRef {} }
 ref_math_op1_float! { mpfr::asinh; struct AsinhRef {} }
 ref_math_op1_float! { mpfr::atanh; struct AtanhRef {} }
+ref_math_op0_float! { mpfr::fac_ui; struct Factorial { n: u32 } }
 ref_math_op1_float! { mpfr::log1p; struct Ln1pRef {} }
 ref_math_op1_float! { mpfr::expm1; struct ExpM1Ref {} }
 ref_math_op1_float! { mpfr::eint; struct EintRef {} }
@@ -6707,68 +6826,27 @@ pub struct LnAbsGammaRef<'a> {
     ref_self: &'a Float,
 }
 
-impl<'a> Assign<LnAbsGammaRef<'a>> for (Float, Ordering) {
-    #[inline]
-    fn assign(&mut self, src: LnAbsGammaRef<'a>) {
-        <(&mut Float, &mut Ordering) as Assign<LnAbsGammaRef>>::assign(
-            &mut (&mut self.0, &mut self.1),
-            src,
-        );
-    }
-}
-
-impl<'a, 'b, 'c> Assign<LnAbsGammaRef<'a>>
-    for (&'b mut Float, &'c mut Ordering) {
-    #[inline]
-    fn assign(&mut self, src: LnAbsGammaRef<'a>) {
-        <Self as AssignRound<LnAbsGammaRef>>::assign_round(
-            self,
-            src,
-            Round::Nearest,
-        );
-    }
-}
-
-impl<'a> AssignRound<LnAbsGammaRef<'a>> for (Float, Ordering) {
+impl<'a, 'b, 'c> AssignRoundTo<(&'a mut Float, &'b mut Ordering)>
+    for LnAbsGammaRef<'c> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: LnAbsGammaRef<'a>,
-        round: Round,
-    ) -> Ordering {
-        <
-            (&mut Float, &mut Ordering) as AssignRound<LnAbsGammaRef>
-        >::assign_round(
-            &mut (&mut self.0, &mut self.1),
-            src,
-            round,
-        )
-    }
-}
-
-impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
-    for (&'b mut Float, &'c mut Ordering) {
-    type Round = Round;
-    type Ordering = Ordering;
-    #[inline]
-    fn assign_round(
-        &mut self,
-        src: LnAbsGammaRef<'a>,
+    fn assign_round_to(
+        self,
+        dst: &mut (&'a mut Float, &'b mut Ordering),
         round: Round,
     ) -> Ordering {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
         let ret = unsafe {
             mpfr::lgamma(
-                self.0.inner_mut(),
+                dst.0.inner_mut(),
                 sign_ptr,
-                src.ref_self.inner(),
+                self.ref_self.inner(),
                 rraw(round),
             )
         };
-        *self.1 = if sign < 0 {
+        *dst.1 = if sign < 0 {
             Ordering::Less
         } else {
             Ordering::Greater
@@ -6779,6 +6857,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
 
 ref_math_op1_float! { mpfr::digamma; struct DigammaRef {} }
 ref_math_op1_float! { mpfr::zeta; struct ZetaRef {} }
+ref_math_op0_float! { mpfr::zeta_ui; struct ZetaU { u: u32 } }
 ref_math_op1_float! { mpfr::erf; struct ErfRef {} }
 ref_math_op1_float! { mpfr::erfc; struct ErfcRef {} }
 ref_math_op1_float! { mpfr::j0; struct J0Ref {} }
@@ -6797,6 +6876,81 @@ ref_math_op1_float! { mpfr::rint_roundeven; struct RoundEvenRef {} }
 ref_math_op1_float! { mpfr::rint_trunc; struct TruncRef {} }
 ref_math_op1_float! { mpfr::frac; struct FractRef {} }
 ref_math_op1_2_float! { mpfr::modf; struct TruncFractRef {} }
+
+#[cfg(feature = "rand")]
+pub struct RandomBits<'a, 'b: 'a> {
+    rng: &'a mut RandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl<'a, 'b, 'c: 'b> AssignTo<Result<&'a mut Float, &'a mut Float>>
+    for RandomBits<'b, 'c> {
+    #[inline]
+    fn assign_to(self, dst: &mut Result<&'a mut Float, &'a mut Float>) {
+        let err = match *dst {
+            Ok(ref mut dest) | Err(ref mut dest) => unsafe {
+                mpfr::urandomb(dest.inner_mut(), self.rng.inner_mut())
+            },
+        };
+        if (err != 0) != dst.is_err() {
+            misc::result_swap(dst)
+        }
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct RandomCont<'a, 'b: 'a> {
+    rng: &'a mut RandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl<'a, 'b: 'a> AssignRoundTo<Float> for RandomCont<'a, 'b> {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+        let ret = unsafe {
+            mpfr::urandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
+        };
+        ordering1(ret)
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct RandomNormal<'a, 'b: 'a> {
+    rng: &'a mut RandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl<'a, 'b: 'a> AssignRoundTo<Float> for RandomNormal<'a, 'b> {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+        let ret = unsafe {
+            mpfr::nrandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
+        };
+        ordering1(ret)
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct RandomExp<'a, 'b: 'a> {
+    rng: &'a mut RandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl<'a, 'b: 'a> AssignRoundTo<Float> for RandomExp<'a, 'b> {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+        let ret = unsafe {
+            mpfr::erandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
+        };
+        ordering1(ret)
+    }
+}
 
 #[derive(Clone, Copy)]
 pub struct BorrowFloat<'a> {
@@ -6974,24 +7128,24 @@ enum ValidPoss<'a> {
     NegNan,
 }
 
-impl<'a> AssignRound<ValidFloat<'a>> for Float {
+impl<'a> AssignRoundTo<Float> for ValidFloat<'a> {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, rhs: ValidFloat, round: Round) -> Ordering {
-        let bytes = match rhs.poss {
+    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+        let bytes = match self.poss {
             ValidPoss::Special(s) => {
-                self.assign(s);
+                dst.assign(s);
                 return Ordering::Equal;
             }
             ValidPoss::NegNan => {
-                self.assign(Special::Nan);
-                self.neg_assign();
+                dst.assign(Special::Nan);
+                dst.neg_assign();
                 return Ordering::Equal;
             }
             ValidPoss::Bytes(b) => b,
         };
         let mut v = Vec::<u8>::with_capacity(bytes.len() + 1);
-        if let Some(exp_plus) = rhs.exp_plus {
+        if let Some(exp_plus) = self.exp_plus {
             v.extend_from_slice(&bytes[0..exp_plus]);
             v.extend_from_slice(&bytes[exp_plus + 1..]);
         } else {
@@ -7002,10 +7156,10 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
         let ret = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
             mpfr::strtofr(
-                self.inner_mut(),
+                dst.inner_mut(),
                 c_str.as_ptr(),
                 &mut c_str_end as *mut _ as *mut *mut c_char,
-                rhs.radix as c_int,
+                self.radix as c_int,
                 rraw(round),
             )
         };

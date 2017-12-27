@@ -14,9 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+#[cfg(feature = "integer")]
 use std::mem;
 use std::ptr;
 
+#[cfg(feature = "integer")]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.

@@ -3,15 +3,15 @@ Version 0.9.2
 
 * Requires `gmp-mpfr-sys` version 1.1.0.
 * Deprecate most `assign_*` methods, and add static methods that
-  return an object that implements `AssignTo` instead.
-* Add `Float::assign_log_ui` methods.
+  return an object that implements `AssignTo` or `AssignRoundTo`
+  instead.
+* Add `Float::ln_u` method.
 * Add `Float::round_even` methods.
-* Add `Float::assign_random_normal` methods.
-* Deprecate `Float::assign_random_gaussian` methods.
-* Add `Float::assign_random_exp` methods.
 * Add `Float::gamma_inc` methods.
+* Add `Float::random_normal` and `Float::random_exp` methods.
+* Deprecate `Float::assign_random_gaussian` methods.
 * Add `Complex::cmp_abs` method.
-* Add `Complex::assign_root_of_unity` methods.
+* Add `Complex::root_of_unity` method.
 * Add `as_nonreallocating_mut` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers

@@ -1563,3 +1563,64 @@ pub trait AssignTo<Dst> {
         dst
     }
 }
+
+/// Assignment with specified rounding method into `Dst`.
+///
+/// # Examples
+///
+/// ```rust
+/// # #[cfg(feature = "float")] {
+/// use rug::float::Round;
+/// use rug::ops::AssignRoundTo;
+/// use std::cmp::Ordering;
+/// struct F(f64);
+/// impl AssignRoundTo<F> for f64 {
+///     type Round = Round;
+///     type Ordering = Ordering;
+///     fn assign_round_to(self, dst: &mut F, _round: Round) -> Ordering {
+///         dst.0 = self;
+///         Ordering::Equal
+///     }
+/// }
+/// let src = 5.0_f64;
+/// let mut dst = F(0.0);
+/// let dir = src.assign_round_to(&mut dst, Round::Nearest);
+/// assert_eq!(dst.0, 5.0);
+/// assert_eq!(dir, Ordering::Equal);
+/// # }
+/// ```
+pub trait AssignRoundTo<Dst> {
+    /// The rounding method.
+    type Round;
+    /// The direction from rounding.
+    type Ordering;
+    /// Performs the assignment.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "float")] {
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::AssignRoundTo;
+    /// use std::cmp::Ordering;
+    /// // src implements AssignRoundTo<Float>
+    /// let src = 3.3_f64;
+    /// // only four significant bits
+    /// let mut dst = Float::new(4);
+    /// let dir = src.assign_round_to(&mut dst, Round::Nearest);
+    /// // 3.3 rounded down to 3.25
+    /// assert_eq!(dst, 3.25);
+    /// assert_eq!(dir, Ordering::Less);
+    /// let dir = src.assign_round_to(&mut dst, Round::Up);
+    /// // 3.3 rounded up to 3.5
+    /// assert_eq!(dst, 3.5);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// # }
+    /// ```
+    fn assign_round_to(
+        self,
+        dst: &mut Dst,
+        round: Self::Round,
+    ) -> Self::Ordering;
+}

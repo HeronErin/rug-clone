@@ -115,6 +115,19 @@ macro_rules! assign_to {
         }
     };
 
+    { ref $Ref:ty => $Dst1:ty, $Dst2:ty } => {
+        impl<'a, 'b, 'c, 'r: 'c>
+            AssignTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Ref
+        {
+            #[inline]
+            fn assign_to(self, dst: &mut (&'a mut $Dst1, &'b mut $Dst2)) {
+                <$Ref as AssignTo<
+                    (&'a mut $Dst1, &'b mut $Dst2),
+                >>::assign_to(*self, dst);
+            }
+        }
+    };
+
     { ref $Ref:ty => $Dst1:ty, $Dst2:ty, $Dst3:ty } => {
         impl<'a, 'b, 'c, 'd, 'r: 'd>
             AssignTo<(&'a mut $Dst1, &'b mut $Dst2, &'c mut $Dst3)> for &'d $Ref
@@ -126,19 +139,6 @@ macro_rules! assign_to {
             ) {
                 <$Ref as AssignTo<
                     (&'a mut $Dst1, &'b mut $Dst2, &'c mut $Dst3),
-                >>::assign_to(*self, dst);
-            }
-        }
-    };
-
-    { ref $Ref:ty => $Dst1:ty, $Dst2:ty } => {
-        impl<'a, 'b, 'c, 'r: 'c>
-            AssignTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Ref
-        {
-            #[inline]
-            fn assign_to(self, dst: &mut (&'a mut $Dst1, &'b mut $Dst2)) {
-                <$Ref as AssignTo<
-                    (&'a mut $Dst1, &'b mut $Dst2),
                 >>::assign_to(*self, dst);
             }
         }
@@ -171,7 +171,7 @@ macro_rules! assign_to {
 }
 
 // method(param*) -> Src
-#[cfg(feature = "integer")]
+#[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! math_op0 {
     {
         $(#[$attr:meta])*
@@ -720,8 +720,8 @@ macro_rules! ref_math_op2_3 {
 // big #=
 // #&big -> Ref
 // struct Ref
-// Ref -> Big
-// big = Ref
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "integer")]
 macro_rules! arith_unary {
     {
@@ -784,8 +784,8 @@ macro_rules! arith_unary {
 // big #-> big
 // &big #-> big
 // struct Ref
-// Ref -> Big
-// big = Ref
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "integer")]
 macro_rules! arith_binary {
     {
@@ -892,8 +892,8 @@ macro_rules! arith_binary {
 // big #= prim
 // big #= &prim
 // struct Ref
-// Ref -> Big
-// big = Ref
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "integer")]
 macro_rules! arith_prim {
     {
@@ -1056,8 +1056,8 @@ macro_rules! arith_prim_commut {
 // prim #-> big
 // &prim #-> big
 // struct RefFrom
-// RefFrom -> Big
-// big = RefFrom
+// AssignTo<Big> for RefFrom
+// AssignTo<Big> for &RefFrom
 #[cfg(feature = "integer")]
 macro_rules! arith_prim_noncommut {
     {
@@ -1153,8 +1153,8 @@ macro_rules! arith_prim_noncommut {
 // &big # mul -> Ref
 // big #= mul
 // struct Ref
-// Ref -> Big
-// big = Ref
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "integer")]
 macro_rules! mul_op {
     {
@@ -1271,8 +1271,8 @@ macro_rules! mul_op_commut {
 // mul # &big -> RefFrom
 // mul #-> big
 // struct RefFrom
-// RefFrom -> Big
-// big = RefFrom
+// AssignTo<Big> for RefFrom
+// AssignTo<Big> for &RefFrom
 #[cfg(feature = "integer")]
 macro_rules! mul_op_noncommut {
     {
@@ -1344,18 +1344,107 @@ macro_rules! mul_op_noncommut {
     }
 }
 
-// lhs = &rhs
 #[cfg(feature = "float")]
-macro_rules! assign_round_ref {
-    { $Lhs:ty: $Rhs:ty } => {
-        impl<'a> AssignRound<&'a $Rhs> for $Lhs {
-            type Round = <$Lhs as AssignRound<$Rhs>>::Round;
-            type Ordering = <$Lhs as AssignRound<$Rhs>>::Ordering;
+macro_rules! assign_round_to {
+    { ref $Ref:ty => $Dst:ty } => {
+        impl<'a, 'r: 'a> AssignRoundTo<$Dst> for &'a $Ref {
+            type Round = <$Ref as AssignRoundTo<$Dst>>::Round;
+            type Ordering = <$Ref as AssignRoundTo<$Dst>>::Ordering;
             #[inline]
-            fn assign_round(&mut self, r: &'a $Rhs, round: Round) -> Ordering {
-                <$Lhs as AssignRound<$Rhs>>::assign_round(self, *r, round)
+            fn assign_round_to(
+                self,
+                dst: &mut $Dst,
+                round: Self::Round
+            ) -> Self::Ordering {
+                <$Ref as AssignRoundTo<$Dst>>::assign_round_to(
+                    *self,
+                    dst,
+                    round,
+                )
             }
         }
+    };
+
+    { ref $Ref:ty => $Dst1:ty, $Dst2:ty } => {
+        impl<'a, 'b, 'c, 'r: 'c>
+            AssignRoundTo<(&'a mut $Dst1, &'b mut $Dst2)> for &'c $Ref
+        {
+            type Round =
+                <$Ref as AssignRoundTo<(&'a mut $Dst1, &'b mut $Dst2)>>::Round;
+            type Ordering = <$Ref as AssignRoundTo<
+                (&'a mut $Dst1, &'b mut $Dst2),
+            >>::Ordering;
+            #[inline]
+            fn assign_round_to(
+                self,
+                dst: &mut (&'a mut $Dst1, &'b mut $Dst2),
+                round: Self::Round,
+            ) -> Self::Ordering {
+                <$Ref as AssignRoundTo<
+                    (&'a mut $Dst1, &'b mut $Dst2),
+                >>::assign_round_to(*self, dst, round)
+            }
+        }
+    };
+
+    { $Src:ty => $Dst:ty } => {
+        impl<'a> AssignRoundTo<$Dst> for &'a $Src {
+            type Round = <$Src as AssignRoundTo<$Dst>>::Round;
+            type Ordering = <$Src as AssignRoundTo<$Dst>>::Ordering;
+            #[inline]
+            fn assign_round_to(
+                self,
+                dst: &mut $Dst,
+                round: Self::Round
+            ) -> Self::Ordering {
+                <$Src as AssignRoundTo<$Dst>>::assign_round_to(
+                    *self,
+                    dst,
+                    round,
+                )
+            }
+        }
+    };
+}
+
+// struct Src
+// AssignRoundTo<Big> for Src
+// AssignRoundTo<Big> for &Src
+#[cfg(feature = "float")]
+macro_rules! ref_math_op0_round {
+    {
+        $Big:ty, $Round:ty => $Ordering:ty;
+        $func:path, $raw_round:path => $ord:path;
+        $(#[$attr_ref:meta])*
+        struct $Src:ident { $($param:ident: $T:ty),* }
+    } => {
+        $(#[$attr_ref])*
+        #[derive(Clone, Copy)]
+        pub struct $Src {
+            $($param: $T,)*
+        }
+
+        impl AssignRoundTo<$Big> for $Src {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
+                round: $Round,
+            ) -> $Ordering {
+                let ret = unsafe {
+                    $func(
+                        dst.inner_mut(),
+                        $(self.$param.into(),)*
+                        $raw_round(round),
+                    )
+                };
+                $ord(ret)
+            }
+        }
+
+        assign_round_to!{ $Src => $Big }
     }
 }
 
@@ -1465,7 +1554,8 @@ macro_rules! math_op1_no_round {
 }
 
 // struct Ref
-// big = Ref, Round -> Ordering
+// AssignRoundTo<Big> for Ref
+// AssignRoundTo<Big> for &Ref
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     {
@@ -1481,26 +1571,28 @@ macro_rules! ref_math_op1_round {
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Ref<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $Ref<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
+                        dst.inner_mut(),
+                        self.ref_self.inner(),
+                        $(self.$param.into(),)*
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $Ref<'r> => $Big }
     }
 }
 
@@ -1571,8 +1663,8 @@ macro_rules! math_op1_2_round {
 }
 
 // struct Ref
-// (&mut Big, &mut Big) = Ref
-// (&mut Big, &mut Big) = Ref, Round -> Ordering
+// AssignRoundTo<(Big, Big)> for Ref
+// AssignRoundTo<(Big, Big)> for &Ref
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_2_round {
     {
@@ -1588,68 +1680,31 @@ macro_rules! ref_math_op1_2_round {
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Ref<'a>> for ($Big, $Big) {
-            #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                <(&mut $Big, &mut $Big) as AssignRound<$Ref>>::assign_round(
-                    &mut (&mut self.0, &mut self.1),
-                    src,
-                    Default::default(),
-                );
-            }
-        }
-
-        impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
-            #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                <(&mut $Big, &mut $Big) as AssignRound<$Ref>>::assign_round(
-                    &mut (self.0, self.1),
-                    src,
-                    Default::default(),
-                );
-            }
-        }
-
-        impl<'a> AssignRound<$Ref<'a>> for ($Big, $Big) {
-            type Round = $Round;
-            type Ordering = $Ordering;
-            #[inline]
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
-                round: $Round,
-            ) -> $Ordering {
-                <(&mut $Big, &mut $Big) as AssignRound<$Ref>>::assign_round(
-                    &mut (&mut self.0, &mut self.1),
-                    src,
-                    round,
-                )
-            }
-        }
-
-        impl<'a, 'b, 'c> AssignRound<$Ref<'a>>
-            for (&'b mut $Big, &'c mut $Big)
+        impl<'a, 'b, 'c>
+            AssignRoundTo<(&'a mut $Big, &'b mut $Big)> for $Ref<'c>
         {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
+            fn assign_round_to(
+                self,
+                dst: &mut (&'a mut $Big, &'b mut $Big),
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                        $(src.$param.into(),)*
+                        dst.0.inner_mut(),
+                        dst.1.inner_mut(),
+                        self.ref_self.inner(),
+                        $(self.$param.into(),)*
                         $($raw_round(round),)*
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $Ref<'r> => $Big, $Big }
     }
 }
 
@@ -1721,7 +1776,8 @@ macro_rules! math_op2_round {
 }
 
 // struct Ref
-// big = Ref, Round -> Ordering
+// AssignRoundTo<Big> for Ref
+// AssignRoundTo<Big> for &Ref
 #[cfg(feature = "float")]
 macro_rules! ref_math_op2_round {
     {
@@ -1738,27 +1794,29 @@ macro_rules! ref_math_op2_round {
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Ref<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $Ref<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $Ref<'a>,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                        $(src.$param.into(),)*
+                        dst.inner_mut(),
+                        self.ref_self.inner(),
+                        self.$op.inner(),
+                        $(self.$param.into(),)*
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $Ref<'r> => $Big }
     }
 }
 
@@ -1770,7 +1828,8 @@ macro_rules! ref_math_op2_round {
 // big #= t, Round -> Ordering
 // big #= &t, Round -> Ordering
 // struct Ref
-// big = Ref, Round -> Ordering
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "float")]
 macro_rules! arith_binary_round {
     {
@@ -1885,22 +1944,28 @@ macro_rules! arith_binary_round {
             rhs: &'a $T,
         }
 
-        impl<'a> AssignRound<$Ref<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $Ref<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $Ref, round: $Round) -> $Ordering {
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
+                round: $Round,
+            ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        dst.inner_mut(),
+                        self.lhs.inner(),
+                        self.rhs.inner(),
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $Ref<'r> => $Big }
     }
 }
 
@@ -2010,7 +2075,8 @@ macro_rules! arith_binary_self_round {
 // arith_binary_round!
 // &big # t -> RefOwn
 // struct RefOwn
-// Big = RefOwn, Round -> Ordering
+// AssignTo<Big> for RefOwn
+// AssignTo<Big> for &RefOwn
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_forward_round {
     {
@@ -2049,20 +2115,37 @@ macro_rules! arith_forward_round {
             rhs: $T,
         }
 
-        impl<'a> AssignRound<$RefOwn<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $RefOwn<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $RefOwn,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
+                round: $Round,
+            ) -> $Ordering {
+                <&$RefOwn as AssignRoundTo<$Big>>::assign_round_to(
+                    &self,
+                    dst,
+                    round,
+                )
+            }
+        }
+
+        impl<'a, 'b> AssignRoundTo<$Big> for &'a $RefOwn<'b> {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        dst.inner_mut(),
+                        self.lhs.inner(),
+                        self.rhs.inner(),
                         $raw_round(round),
                     )
                 };
@@ -2214,9 +2297,11 @@ macro_rules! arith_commut_round {
 // t #-> big; Round -> Ordering
 // &t #-> big; Round -> Ordering
 // struct RefFrom
-// big = RefFrom, Round -> Ordering
+// AssignTo<Big> for RefFrom
+// AssignTo<Big> for &RefFrom
 // struct RefFromOwn
-// big = RefFromOwn, Round -> Ordering
+// AssignTo<Big> for RefFromOwn
+// AssignTo<Big> for &RefFromOwn
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_noncommut_round {
     {
@@ -2355,20 +2440,20 @@ macro_rules! arith_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$RefFrom<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $RefFrom<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $RefFrom,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        dst.inner_mut(),
+                        self.lhs.inner(),
+                        self.rhs.inner(),
                         $raw_round(round),
                     )
                 };
@@ -2376,26 +2461,45 @@ macro_rules! arith_noncommut_round {
             }
         }
 
+        assign_round_to!{ ref $RefFrom<'r> => $Big }
+
         #[derive(Clone)]
         pub struct $RefFromOwn<'a> {
             lhs: $T,
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$RefFromOwn<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $RefFromOwn<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $RefFromOwn,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
+                round: $Round,
+            ) -> $Ordering {
+                <&$RefFromOwn as AssignRoundTo<$Big>>::assign_round_to(
+                    &self,
+                    dst,
+                    round,
+                )
+            }
+        }
+
+        impl<'a, 'b> AssignRoundTo<$Big> for &'a $RefFromOwn<'b> {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        dst.inner_mut(),
+                        self.lhs.inner(),
+                        self.rhs.inner(),
                         $raw_round(round),
                     )
                 };
@@ -2412,7 +2516,8 @@ macro_rules! arith_noncommut_round {
 // big #= prim
 // big #= &prim
 // struct Ref
-// big = Ref, Round -> Ordering
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "float")]
 macro_rules! arith_prim_exact_round {
     {
@@ -2487,22 +2592,28 @@ macro_rules! arith_prim_exact_round {
             rhs: $T,
         }
 
-        impl<'a> AssignRound<$Ref<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $Ref<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $Ref, round: $Round) -> $Ordering {
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
+                round: $Round,
+            ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.into(),
+                        dst.inner_mut(),
+                        self.lhs.inner(),
+                        self.rhs.into(),
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $Ref<'r> => $Big }
     }
 }
 
@@ -2703,7 +2814,8 @@ macro_rules! arith_prim_commut_round {
 // prim #-> big; Round -> Ordering
 // &prim #-> big; Round -> Ordering
 // struct RefFrom
-// big = RefFrom, Round -> Ordering
+// AssignTo<Big> for RefFrom
+// AssignTo<Big> for &RefFrom
 #[cfg(feature = "float")]
 macro_rules! arith_prim_noncommut_round {
     {
@@ -2838,26 +2950,28 @@ macro_rules! arith_prim_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$RefFrom<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $RefFrom<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $RefFrom,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        src.lhs.into(),
-                        src.rhs.inner(),
+                        dst.inner_mut(),
+                        self.lhs.into(),
+                        self.rhs.inner(),
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $RefFrom<'r> => $Big }
     }
 }
 
@@ -2866,7 +2980,8 @@ macro_rules! arith_prim_noncommut_round {
 // big #= mul
 // big #= mul, Round -> Ordering
 // struct Ref
-// big = Ref, Round -> Ordering
+// AssignTo<Big> for Ref
+// AssignTo<Big> for &Ref
 #[cfg(feature = "float")]
 macro_rules! mul_op_round {
     {
@@ -2940,22 +3055,28 @@ macro_rules! mul_op_round {
             rhs: $Mul<'a>,
         }
 
-        impl<'a> AssignRound<$Ref<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $Ref<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $Ref, round: $Round) -> $Ordering {
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
+                round: $Round,
+            ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs,
+                        dst.inner_mut(),
+                        self.lhs.inner(),
+                        self.rhs,
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $Ref<'r> => $Big }
     }
 }
 
@@ -3044,7 +3165,8 @@ macro_rules! mul_op_commut_round {
 // mul #-> big
 // mul #-> big; Round -> Ordering
 // struct RefFrom
-// big = RefFrom, Round -> Ordering
+// AssignTo<Big> for RefFrom
+// AssignTo<Big> for &RefFrom
 #[cfg(feature = "float")]
 macro_rules! mul_op_noncommut_round {
     {
@@ -3130,26 +3252,28 @@ macro_rules! mul_op_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$RefFrom<'a>> for $Big {
+        impl<'a> AssignRoundTo<$Big> for $RefFrom<'a> {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(
-                &mut self,
-                src: $RefFrom,
+            fn assign_round_to(
+                self,
+                dst: &mut $Big,
                 round: $Round,
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        src.lhs,
-                        src.rhs.inner(),
+                        dst.inner_mut(),
+                        self.lhs,
+                        self.rhs.inner(),
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
+
+        assign_round_to!{ ref $RefFrom<'r> => $Big }
     }
 }
 

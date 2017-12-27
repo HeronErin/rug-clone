@@ -154,7 +154,7 @@ extern crate serde_test;
 mod macros;
 mod ext;
 mod inner;
-#[cfg(feature = "integer")]
+#[cfg(any(feature = "integer", feature = "float"))]
 mod misc;
 #[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
 mod serdeize;
