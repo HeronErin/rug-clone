@@ -2156,8 +2156,7 @@ impl Complex {
         /// Computes the sine and cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<(&mut Complex, &mut Complex)>`]
-        /// (../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundTo<(&mut Complex, &mut Complex)>`][art].
         ///
         /// # Examples
         ///
@@ -2186,6 +2185,8 @@ impl Complex {
         /// assert_eq!(cos_4, (0.8125, -1));
         /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
         /// ```
+        ///
+        /// [art]: (../ops/trait.AssignRoundTo.html)
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_complex! {
@@ -2795,8 +2796,7 @@ impl Complex {
     /// and not all the precision will be used.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Result<&mut Complex, &mut Complex>`]
-    /// (../ops/trait.AssignRoundTo.html).
+    /// [`AssignTo<Result<&mut Complex, &mut Complex>`][at].
     ///
     /// # Examples
     ///
@@ -2822,6 +2822,8 @@ impl Complex {
     /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
     /// number is set to Nan and an error is returned. This would most
     /// likely be a programming error.
+    ///
+    /// [at]: (../ops/trait.AssignTo.html)
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,

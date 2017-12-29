@@ -3476,8 +3476,7 @@ impl Float {
         /// Computes the sine and cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<(&mut Float, &mut Float)>`]
-        /// (../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundTo<(&mut Float, &mut Float)>`][art].
         ///
         /// # Examples
         ///
@@ -3506,6 +3505,8 @@ impl Float {
         /// assert_eq!(cos_4, 0.3125);
         /// assert_eq!(dir_cos, Ordering::Less);
         /// ```
+        ///
+        /// [art]: (../ops/trait.AssignRoundTo.html)
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_float! {
@@ -4191,8 +4192,7 @@ impl Float {
         /// Computes the hyperbolic sine and cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<(&mut Float, &mut Float)>`]
-        /// (../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundTo<(&mut Float, &mut Float)>`][art].
         ///
         /// # Examples
         ///
@@ -4221,6 +4221,8 @@ impl Float {
         /// assert_eq!(cosh_4, 1.875);
         /// assert_eq!(dir_cosh, Ordering::Less);
         /// ```
+        ///
+        /// [art]: (../ops/trait.AssignRoundTo.html)
         fn sinh_cosh_ref -> SinhCoshRef;
     }
     math_op1_float! {
@@ -5198,8 +5200,7 @@ impl Float {
     /// function on `val`.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<(&mut Float, &mut Ordering)>`]
-    /// (../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundTo<(&mut Float, &mut Ordering)>`][art].
     ///
     /// # Examples
     ///
@@ -5222,6 +5223,8 @@ impl Float {
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
+    ///
+    /// [art]: (../ops/trait.AssignRoundTo.html)
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaRef {
         LnAbsGammaRef { ref_self: self }
@@ -6509,8 +6512,7 @@ impl Float {
     /// the precision will be used.
     ///
     /// The returned object implements
-    /// [`AssignTo<Result<&mut Float, &mut Float>`]
-    /// (../ops/trait.AssignTo.html).
+    /// [`AssignTo<Result<&mut Float, &mut Float>`][at].
     ///
     /// # Examples
     ///
@@ -6533,6 +6535,8 @@ impl Float {
     /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
     /// number is set to NaN and an error is returned. This would most
     /// likely be a programming error.
+    ///
+    /// [at]: (../ops/trait.AssignTo.html)
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,

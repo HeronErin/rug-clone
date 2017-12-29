@@ -1595,8 +1595,7 @@ impl Integer {
         /// remainder.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// The remainder has the same sign as the dividend.
         ///
@@ -1611,6 +1610,8 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn div_rem_ref -> DivRemRef;
     }
     math_op2_2! {
@@ -1667,8 +1668,7 @@ impl Integer {
         /// sign.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1681,6 +1681,8 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn div_rem_ceil_ref -> DivRemCeilRef;
     }
     math_op2_2! {
@@ -1734,8 +1736,7 @@ impl Integer {
         /// The remainder has the same sign as the divisor.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1748,6 +1749,8 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn div_rem_floor_ref -> DivRemFloorRef;
     }
     math_op2_2! {
@@ -1795,8 +1798,7 @@ impl Integer {
         /// remainder, with a positive remainder.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1809,6 +1811,8 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn div_rem_euc_ref -> DivRemEucRef;
     }
 
@@ -1959,8 +1963,7 @@ impl Integer {
     /// it exists, or `Err(unchanged)` if the inverse does not exist.
     ///
     /// The returned object implements
-    /// [`AssignTo<Result<&mut Integer, &mut Integer>>`]
-    /// (../ops/trait.AssignTo.html).
+    /// [`AssignTo<Result<&mut Integer, &mut Integer>>`][at].
     ///
     /// # Examples
     ///
@@ -1986,6 +1989,8 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if `modulo` is zero.
+    ///
+    /// [at]: (../ops/trait.AssignTo.html)
     #[inline]
     pub fn invert(mut self, modulo: &Integer) -> Result<Integer, Integer> {
         if self.invert_mut(modulo) {
@@ -2171,8 +2176,7 @@ impl Integer {
     /// inverse modulo `modulo` for an answer to exist.
     ///
     /// The returned object implements
-    /// [`AssignTo<Result<&mut Integer, &mut Integer>>`]
-    /// (../ops/trait.AssignTo.html).
+    /// [`AssignTo<Result<&mut Integer, &mut Integer>>`][at].
     ///
     /// # Examples
     ///
@@ -2196,6 +2200,8 @@ impl Integer {
     ///     Err(_) => unreachable!(),
     /// }
     /// ```
+    ///
+    /// [at]: (../ops/trait.AssignTo.html)
     #[inline]
     pub fn pow_mod_ref<'a>(
         &'a self,
@@ -2357,8 +2363,7 @@ impl Integer {
         /// root raised to the power of *n*.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -2375,6 +2380,8 @@ impl Integer {
         /// assert_eq!(other_root, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn root_rem_ref -> RootRemRef;
     }
     math_op1! {
@@ -2474,8 +2481,7 @@ impl Integer {
         /// root squared.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -2492,6 +2498,8 @@ impl Integer {
         /// assert_eq!(other_sqrt, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn sqrt_rem_ref -> SqrtRemRef;
     }
 
@@ -2711,8 +2719,7 @@ impl Integer {
         /// to obtain the GCD from the two inputs.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer, &mut Integer)>`][at].
         ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
@@ -2747,6 +2754,8 @@ impl Integer {
         /// assert_eq!(s, -1);
         /// assert_eq!(t, 1);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn gcd_coeffs_ref -> GcdCoeffsRef;
     }
     math_op2! {
@@ -3138,8 +3147,7 @@ impl Integer {
         /// number.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3159,6 +3167,8 @@ impl Integer {
         /// assert_eq!(pair.0, 0);
         /// assert_eq!(pair.1, 1);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn fibonacci_2(n: u32) -> Fibonacci2;
     }
 
@@ -3204,8 +3214,7 @@ impl Integer {
         ///
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Integer, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Integer, &mut Integer)>`][at].
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Lucas numbers is required, the first two values of
@@ -3224,6 +3233,8 @@ impl Integer {
         /// assert_eq!(pair.0, 2);
         /// assert_eq!(pair.1, -1);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn lucas_2(n: u32) -> Lucas2;
     }
 

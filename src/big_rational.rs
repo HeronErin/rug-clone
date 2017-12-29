@@ -1378,8 +1378,7 @@ impl Rational {
         /// Computes the fractional and truncated parts of the number.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1393,6 +1392,8 @@ impl Rational {
         /// assert_eq!(fract, (-15, 17));
         /// assert_eq!(trunc, -5);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn fract_trunc_ref -> FractTruncRef;
     }
     rat_op_int! {
@@ -1534,8 +1535,7 @@ impl Rational {
         /// The fractional part cannot be greater than zero.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1549,6 +1549,8 @@ impl Rational {
         /// assert_eq!(fract, (-2, 17));
         /// assert_eq!(ceil, 6);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn fract_ceil_ref -> FractCeilRef;
     }
     rat_op_int! {
@@ -1688,8 +1690,7 @@ impl Rational {
         /// The fractional part cannot be negative.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1703,6 +1704,8 @@ impl Rational {
         /// assert_eq!(fract, (2, 17));
         /// assert_eq!(floor, -6);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn fract_floor_ref -> FractFloorRef;
     }
     rat_op_int! {
@@ -1887,8 +1890,7 @@ impl Rational {
         /// from zero.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`]
-        /// (../ops/trait.AssignTo.html).
+        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1909,6 +1911,8 @@ impl Rational {
         /// assert_eq!(fract2, (-3, 10));
         /// assert_eq!(round2, 4);
         /// ```
+        ///
+        /// [at]: (../ops/trait.AssignTo.html)
         fn fract_round_ref -> FractRoundRef;
     }
 }
