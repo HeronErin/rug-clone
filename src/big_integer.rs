@@ -2233,7 +2233,10 @@ impl Integer {
     }
 
     /// Raises `base` to the power of `exponent`.
-    #[deprecated(since = "0.9.2", note = "use `u_pow_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `u_pow_u` instead; \
+                         `i.assign_u_pow_u(base, exponent)` can be replaced \
+                         with `i.assign(Integer::u_pow_u(base, exponent)`.")]
     #[inline]
     pub fn assign_u_pow_u(&mut self, base: u32, exponent: u32) {
         Integer::u_pow_u(base, exponent).assign_to(self);
@@ -2257,7 +2260,10 @@ impl Integer {
     }
 
     /// Raises `base` to the power of `exponent`.
-    #[deprecated(since = "0.9.2", note = "use `i_pow_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `i_pow_u` instead; \
+                         `i.assign_i_pow_u(base, exponent)` can be replaced \
+                         with `i.assign(Integer::i_pow_u(base, exponent)`.")]
     #[inline]
     pub fn assign_i_pow_u(&mut self, base: i32, exponent: u32) {
         Integer::i_pow_u(base, exponent).assign_to(self);
@@ -2964,7 +2970,9 @@ impl Integer {
     }
 
     /// Computes the factorial of *n*.
-    #[deprecated(since = "0.9.2", note = "use `factorial` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `factorial` instead; `i.assign_factorial(n)` can \
+                         be replaced with `i.assign(Integer::factorial(n))`.")]
     #[inline]
     pub fn assign_factorial(&mut self, n: u32) {
         Integer::factorial(n).assign_to(self);
@@ -2989,7 +2997,10 @@ impl Integer {
     }
 
     /// Computes the double factorial of *n*.
-    #[deprecated(since = "0.9.2", note = "use `factorial_2` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `factorial_2` instead; `i.assign_factorial_2(n)` \
+                         can be replaced with \
+                         `i.assign(Integer::factorial_2(n))`.")]
     #[inline]
     pub fn assign_factorial_2(&mut self, n: u32) {
         Integer::factorial_2(n).assign_to(self);
@@ -3014,7 +3025,10 @@ impl Integer {
     }
 
     /// Computes the *m*-multi factorial of *n*.
-    #[deprecated(since = "0.9.2", note = "use `factorial_m` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `factorial_m` instead; \
+                         `i.assign_factorial_m(n, m)` can be replaced with \
+                         `i.assign(Integer::factorial_m(n, m))`.")]
     #[inline]
     pub fn assign_factorial_m(&mut self, n: u32, m: u32) {
         Integer::factorial_m(n, m).assign_to(self);
@@ -3040,7 +3054,9 @@ impl Integer {
     }
 
     /// Computes the primorial of *n*.
-    #[deprecated(since = "0.9.2", note = "use `primorial` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `primorial` instead; `i.assign_primorial(n)` can \
+                         be replaced with `i.assign(Integer::primorial(n))`.")]
     #[inline]
     pub fn assign_primorial(&mut self, n: u32) {
         Integer::primorial(n).assign_to(self);
@@ -3107,7 +3123,10 @@ impl Integer {
 
     /// Computes the binomial coefficient *n* over *k*.
     #[inline]
-    #[deprecated(since = "0.9.2", note = "use `binomial_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `binomial_u` instead; `i.assign_binomial_u(n, k)` \
+                         can be replaced with \
+                         `i.assign(Integer::binomial_u(n, k))`.")]
     pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
         Integer::binomial_u(n, k).assign_to(self);
     }
@@ -3137,7 +3156,9 @@ impl Integer {
 
     /// Computes the Fibonacci number.
     #[inline]
-    #[deprecated(since = "0.9.2", note = "use `fibonacci` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `fibonacci` instead; `i.assign_fibonacci(n)` can \
+                         be replaced with `i.assign(Integer::fibonacci(n))`.")]
     pub fn assign_fibonacci(&mut self, n: u32) {
         Integer::fibonacci(n).assign_to(self);
     }
@@ -3173,7 +3194,10 @@ impl Integer {
     }
 
     /// Computes a Fibonacci number, and the previous Fibonacci number.
-    #[deprecated(since = "0.9.2", note = "use `fibonacci_2` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `fibonacci_2` instead; `i.assign_fibonacci_2(n)` \
+                         can be replaced with \
+                         `i.assign(Integer::fibonacci_2(n))`.")]
     #[inline]
     pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
         Integer::fibonacci_2(n).assign_to(&mut (self, previous));
@@ -3203,7 +3227,9 @@ impl Integer {
     }
 
     /// Computes the Lucas number.
-    #[deprecated(since = "0.9.2", note = "use `lucas` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `lucas` instead; `i.assign_lucas(n)` can be \
+                         replaced with `i.assign(Integer::lucas(n))`.")]
     #[inline]
     pub fn assign_lucas(&mut self, n: u32) {
         Integer::lucas(n).assign_to(self);
@@ -3239,7 +3265,9 @@ impl Integer {
     }
 
     /// Computes a Lucas number, and the previous Lucas number.
-    #[deprecated(since = "0.9.2", note = "use `lucas_2` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `lucas_2` instead; `i.assign_lucas_2(n)` can be \
+                         replaced with `i.assign(Integer::lucas_2(n))`.")]
     #[inline]
     pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
         Integer::lucas_2(n).assign_to(&mut (self, previous));
@@ -3275,11 +3303,12 @@ impl Integer {
     /// Generates a random number with a specified maximum number of
     /// bits.
     #[inline]
-    #[deprecated(since = "0.9.2", note = "use `binomial_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_bits` instead; \
+                         `i.assign_random_bits(bits, rng)` can be replaced \
+                         with `i.assign(Integer::random_bits(bits, rng))`.")]
     pub fn assign_random_bits(&mut self, bits: u32, rng: &mut RandState) {
-        unsafe {
-            gmp::mpz_urandomb(self.inner_mut(), rng.inner_mut(), bits.into());
-        }
+        Integer::random_bits(bits, rng).assign_to(self);
     }
 
     #[cfg(feature = "rand")]
@@ -3371,7 +3400,10 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if the boundary value is less than or equal to zero.
-    #[deprecated(since = "0.9.2", note = "use `random_below_ref` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_below_ref` instead; \
+                         `i.assign_random_below(bound, rng)` can be replaced \
+                         with `i.assign(bound.random_below_ref(rng))`.")]
     #[inline]
     pub fn assign_random_below<'a, 'b: 'a>(
         &mut self,

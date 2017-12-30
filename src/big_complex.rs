@@ -2834,7 +2834,42 @@ impl Complex {
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range 0 ≤ *x* < 1.
-    #[deprecated(since = "0.9.2", note = "use `random_bits` instead")]
+    ///
+    /// This method is deprecated. The code
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut c: Complex;
+    /// // ...
+    /// # c = Complex::new(53);
+    /// # let mut rand = ::rug::rand::RandState::new();
+    /// # let rng = &mut rand;
+    /// # #[allow(deprecated)]
+    /// match c.assign_random_bits(rng) {
+    ///     Ok(()) => { /* ok */ }
+    ///     Err(()) => { /* error */ }
+    /// }
+    /// ```
+    ///
+    /// can be replaced with
+    ///
+    /// ```rust
+    /// use rug::{Assign, Complex};
+    /// let mut c: Complex;
+    /// // ...
+    /// # c = Complex::new(53);
+    /// # let mut rand = ::rug::rand::RandState::new();
+    /// # let rng = &mut rand;
+    /// let mut result = Ok(&mut c);
+    /// result.assign(Complex::random_bits(rng));
+    /// match result {
+    ///     Ok(_) => { /* ok */ }
+    ///     Err(_) => { /* error */ }
+    /// };
+    /// ```
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_bits` instead; see documentation for an \
+                         example replacement.")]
     #[inline]
     pub fn assign_random_bits(
         &mut self,
@@ -2897,7 +2932,10 @@ impl Complex {
     /// Generates a random complex number with both the real and
     /// imaginary parts in the continous range 0 ≤ *x* < 1, and rounds
     /// to the nearest.
-    #[deprecated(since = "0.9.2", note = "use `random_cont` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_cont` instead; \
+                         `c.assign_random_cont(rng)` can be replaced with \
+                         `c.assign(Complex::random_cont(rng))`.")]
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         Complex::random_cont(rng).assign_round_to(self, Default::default());
@@ -2907,7 +2945,11 @@ impl Complex {
     /// Generates a random complex number with both the real and
     /// imaginary parts in the continous range 0 ≤ *x* < 1, and
     /// applies the specified rounding method.
-    #[deprecated(since = "0.9.2", note = "use `random_cont` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_cont` instead; \
+                         `c.assign_random_cont_round(rng, round)` can be \
+                         replaced with \
+                         `c.assign_round(Complex::random_cont(rng, round))`.")]
     #[inline]
     pub fn assign_random_cont_round(
         &mut self,

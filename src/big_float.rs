@@ -2124,7 +2124,9 @@ impl Float {
 
     /// Sets `self` to the square root of `u`, rounding to the
     /// nearest.
-    #[deprecated(since = "0.9.2", note = "use `sqrt_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `sqrt_u` instead; `f.assign_sqrt_u(u)` can be \
+                         replaced with `f.assign(Float::sqrt_u(u))`.")]
     #[inline]
     pub fn assign_sqrt_u(&mut self, u: u32) {
         Float::sqrt_u(u).assign_round_to(self, Round::Nearest);
@@ -2132,7 +2134,10 @@ impl Float {
 
     /// Sets `self` to the square root of `u`, applying the specified
     /// rounding method.
-    #[deprecated(since = "0.9.2", note = "use `sqrt_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `sqrt_u` instead; \
+                         `f.assign_sqrt_u_round(u, round)` can be replaced \
+                         with `f.assign_round(Float::sqrt_u(u), round)`.")]
     #[inline]
     pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
         Float::sqrt_u(u).assign_round_to(self, round)
@@ -4608,7 +4613,10 @@ impl Float {
     }
 
     /// Sets `self` to the factorial of *u*, rounding to the nearest.
-    #[deprecated(since = "0.9.2", note = "use `factorial` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `factorial` instead; `f.assign_factorial_u(u)` \
+                         can be replaced with \
+                         `f.assign(Float::factorial(u))`.")]
     #[inline]
     pub fn assign_factorial_u(&mut self, u: u32) {
         Float::factorial(u).assign_round_to(self, Round::Nearest);
@@ -4616,7 +4624,11 @@ impl Float {
 
     /// Sets `self` to the factorial of *u*, applying the specified
     /// rounding method.
-    #[deprecated(since = "0.9.2", note = "use `factorial` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `factorial` instead; \
+                         `f.assign_factorial_u_round(u, round)` can be \
+                         replaced with \
+                         `f.assign_round(Float::factorial(u), round))`.")]
     #[inline]
     pub fn assign_factorial_u_round(
         &mut self,
@@ -5374,7 +5386,9 @@ impl Float {
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// rounding to the nearest.
-    #[deprecated(since = "0.9.2", note = "use `zeta_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `zeta_u` instead; `f.assign_zeta_u(u)` can be \
+                         replaced with `f.assign(Float::zeta_u(u))`.")]
     #[inline]
     pub fn assign_zeta_u(&mut self, u: u32) {
         Float::zeta_u(u).assign_round_to(self, Round::Nearest);
@@ -5382,7 +5396,10 @@ impl Float {
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
     /// applying the specified rounding method.
-    #[deprecated(since = "0.9.2", note = "use `zeta_u` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `zeta_u` instead; \
+                         `f.assign_zeta_u_round(u, round)` can be replaced \
+                         with `f.assign_round(Float::zeta_u(u), round)`.")]
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
         Float::zeta_u(u).assign_round_to(self, round)
@@ -6546,7 +6563,42 @@ impl Float {
 
     #[cfg(feature = "rand")]
     /// Generates a random number in the range 0 ≤ *x* < 1.
-    #[deprecated(since = "0.9.2", note = "use `random_bits` instead")]
+    ///
+    /// This method is deprecated. The code
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut f: Float;
+    /// // ...
+    /// # f = Float::new(53);
+    /// # let mut rand = ::rug::rand::RandState::new();
+    /// # let rng = &mut rand;
+    /// # #[allow(deprecated)]
+    /// match f.assign_random_bits(rng) {
+    ///     Ok(()) => { /* ok */ }
+    ///     Err(()) => { /* error */ }
+    /// }
+    /// ```
+    ///
+    /// can be replaced with
+    ///
+    /// ```rust
+    /// use rug::{Assign, Float};
+    /// let mut f: Float;
+    /// // ...
+    /// # f = Float::new(53);
+    /// # let mut rand = ::rug::rand::RandState::new();
+    /// # let rng = &mut rand;
+    /// let mut result = Ok(&mut f);
+    /// result.assign(Float::random_bits(rng));
+    /// match result {
+    ///     Ok(_) => { /* ok */ }
+    ///     Err(_) => { /* error */ }
+    /// };
+    /// ```
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_bits` instead; see documentation for an \
+                         example replacement.")]
     #[inline]
     pub fn assign_random_bits(
         &mut self,
@@ -6603,7 +6655,10 @@ impl Float {
     #[cfg(feature = "rand")]
     /// Generates a random number in the continuous range 0 ≤ *x* < 1,
     /// and rounds to the nearest.
-    #[deprecated(since = "0.9.2", note = "use `random_cont` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_cont` instead; \
+                         `f.assign_random_cont(rng)` can be replaced with \
+                         `f.assign(Float::random_cont(rng))`.")]
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
         Float::random_cont(rng).assign_round_to(self, Round::Nearest);
@@ -6612,7 +6667,11 @@ impl Float {
     #[cfg(feature = "rand")]
     /// Generates a random number in the continous range 0 ≤ *x* < 1,
     /// and applies the specified rounding method.
-    #[deprecated(since = "0.9.2", note = "use `` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_cont` instead; \
+                         `f.assign_random_cont_round(rng)` can be replaced \
+                         with \
+                         `f.assign_round(Float::random_cont(rng), round)`.")]
     #[inline]
     pub fn assign_random_cont_round(
         &mut self,
@@ -6654,7 +6713,12 @@ impl Float {
     /// Gaussian distribution, rounding to the nearest.
     ///
     /// If `other` is `None`, only one value is generated.
-    #[deprecated(since = "0.9.2", note = "use `random_normal` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `random_normal` instead; \
+                         `f.assign_random_gaussian(Some(&mut other), rng)` can \
+                         be replaced with \
+                         `f.assign(Float::random_normal(rng))` and
+                         `other.assign(Float::random_normal(rng))`.")]
     #[inline]
     pub fn assign_random_gaussian(
         &mut self,
@@ -6673,7 +6737,10 @@ impl Float {
     ///
     /// If `other` is `None`, only one value is generated.
     #[deprecated(since = "0.9.2",
-                 note = "use `assign_random_normal_round` instead")]
+                 note = "use `random_normal` instead; \
+                         `f.assign_random_gaussian_round(Some(&mut other), rng, round)` \
+                         can be replaced with \
+                         `(f.assign_round(Float::random_normal(rng)), other.assign(Float::random_normal(rng))`.")]
     #[inline]
     pub fn assign_random_gaussian_round(
         &mut self,

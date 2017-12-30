@@ -481,7 +481,9 @@ impl Rational {
     /// Converts to an [`Integer`](struct.Integer.html) inside `i`,
     /// rounding towards zero.
     #[inline]
-    #[deprecated(since = "0.9.2", note = "use `trunc_ref` instead")]
+    #[deprecated(since = "0.9.2",
+                 note = "use `trunc_ref` instead; `r.copy_to_integer(&mut i)` \
+                         can be replaced with `i.assign(r.trunc_ref())`.")]
     pub fn copy_to_integer(&self, i: &mut Integer) {
         i.assign(self.trunc_ref());
     }
