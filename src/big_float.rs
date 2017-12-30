@@ -6716,11 +6716,11 @@ impl Float {
     ///
     /// If `other` is `None`, only one value is generated.
     #[deprecated(since = "0.9.2",
-                 note = "use `random_normal` instead; \
-                         `f.assign_random_gaussian(Some(&mut other), rng)` can \
-                         be replaced with \
-                         `f.assign(Float::random_normal(rng))` and
-                         `other.assign(Float::random_normal(rng))`.")]
+                 note = "use `random_normal` instead; if `other` is `None` \
+                         then `f.assign_random_gaussian(other, rng)` can be \
+                         replaced with `f.assign(Float::random_normal(rng))`; \
+                         if `other` is `Some(&mut g)` instead then \
+                         `g.assign(Float::random_normal(rng))` can be added.")]
     #[inline]
     pub fn assign_random_gaussian(
         &mut self,
@@ -6739,10 +6739,14 @@ impl Float {
     ///
     /// If `other` is `None`, only one value is generated.
     #[deprecated(since = "0.9.2",
-                 note = "use `random_normal` instead; \
-                         `f.assign_random_gaussian_round(Some(&mut other), rng, round)` \
+                 note = "use `random_normal` instead; if `other` is `None` \
+                         then \
+                         `f.assign_random_gaussian_round(other, rng, round)` \
                          can be replaced with \
-                         `(f.assign_round(Float::random_normal(rng)), other.assign(Float::random_normal(rng))`.")]
+                         `f.assign_round(Float::random_normal(rng), round)`; \
+                         if `other` is `Some(&mut g)` instead then \
+                         `g.assign_round(Float::random_normal(rng), round)` \
+                         can be added.")]
     #[inline]
     pub fn assign_random_gaussian_round(
         &mut self,
