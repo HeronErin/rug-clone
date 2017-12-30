@@ -3345,7 +3345,7 @@ impl Integer {
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
     /// let bound = Integer::from(15);
-    /// let i = Integer::from(Integer::random_below_ref(&bound, &mut rand));
+    /// let i = Integer::from(bound.random_below_ref(&mut rand));
     /// println!("0 ≤ {} < {}", i, bound);
     /// assert!(i < bound);
     /// ```
@@ -3355,10 +3355,13 @@ impl Integer {
     /// Panics if the boundary value is less than or equal to zero.
     #[inline]
     pub fn random_below_ref<'a, 'b: 'a>(
-        bound: &'a Integer,
+        &'a self,
         rng: &'a mut RandState<'b>,
     ) -> RandomBelowRef<'a, 'b> {
-        RandomBelowRef { bound, rng }
+        RandomBelowRef {
+            ref_self: self,
+            rng,
+        }
     }
 
     #[cfg(feature = "rand")]
@@ -3375,11 +3378,7 @@ impl Integer {
         bound: &'a Integer,
         rng: &'a mut RandState<'b>,
     ) {
-        //        Integer::random_below(bound, rng).assign_to(self);
-        assert_eq!(bound.cmp0(), Ordering::Greater, "cannot be below zero");
-        unsafe {
-            gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), bound.inner());
-        }
+        bound.random_below_ref(rng).assign_to(self);
     }
 }
 
@@ -3630,7 +3629,7 @@ impl<'a, 'b: 'a> AssignTo<Integer> for RandomBits<'a, 'b> {
 
 #[cfg(feature = "rand")]
 pub struct RandomBelowRef<'a, 'b: 'a> {
-    bound: &'a Integer,
+    ref_self: &'a Integer,
     rng: &'a mut RandState<'b>,
 }
 
@@ -3638,11 +3637,16 @@ pub struct RandomBelowRef<'a, 'b: 'a> {
 impl<'a, 'b: 'a> AssignTo<Integer> for RandomBelowRef<'a, 'b> {
     #[inline]
     fn assign_to(self, dst: &mut Integer) {
+        assert_eq!(
+            self.ref_self.cmp0(),
+            Ordering::Greater,
+            "cannot be below zero"
+        );
         unsafe {
             gmp::mpz_urandomm(
                 dst.inner_mut(),
                 self.rng.inner_mut(),
-                self.bound.inner(),
+                self.ref_self.inner(),
             );
         }
     }
