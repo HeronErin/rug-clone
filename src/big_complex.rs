@@ -964,9 +964,10 @@ impl Complex {
 
     /// Borrows a negated copy of the `Complex` number.
     ///
-    /// The returned object implements `Deref` with a `Complex`
-    /// target. This method performs a shallow copy and negates it,
-    /// and negation does not change the allocated data.
+    /// The returned object implements `Deref<Complex>`.
+    ///
+    /// This method performs a shallow copy and negates it, and
+    /// negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -998,10 +999,10 @@ impl Complex {
 
     /// Borrows a conjugate copy of the `Complex` number.
     ///
-    /// The returned object implements `Deref` with a `Complex`
-    /// target. This method performs a shallow copy and negates its
-    /// imaginary part, and negation does not change the allocated
-    /// data.
+    /// The returned object implements `Deref<Complex>`.
+    ///
+    /// This method performs a shallow copy and negates its imaginary
+    /// part, and negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -1031,11 +1032,12 @@ impl Complex {
 
     /// Borrows a rotated copy of the `Complex` number.
     ///
-    /// The returned object implements `Deref` with a `Complex`
-    /// target. This method operates by performing some shallow
-    /// copying; unlike the [`mul_i`](#method.mul_i) method and
-    /// friends, this method swaps the precision of the real and
-    /// imaginary parts if they have unequal precisions.
+    /// The returned object implements `Deref<Complex>`.
+    ///
+    /// This method operates by performing some shallow copying;
+    /// unlike the [`mul_i`](#method.mul_i) method and friends, this
+    /// method swaps the precision of the real and imaginary parts if
+    /// they have unequal precisions.
     ///
     /// # Examples
     ///

@@ -42,8 +42,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// * `f64`: the `SmallFloat` will have 53 bits of precision.
 ///
 /// The `SmallFloat` type can be coerced to a
-/// [`Float`](../struct.Float.html), as it implements `Deref` with a
-/// [`Float`](../struct.Float.html) target.
+/// [`Float`](../struct.Float.html), as it implements `Deref<Float>`.
 ///
 /// # Examples
 ///

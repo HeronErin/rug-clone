@@ -838,9 +838,10 @@ impl Rational {
 
     /// Borrows a negated copy of the `Rational` number.
     ///
-    /// The returned object implements `Deref` with a `Rational`
-    /// target. This method performs a shallow copy and negates it,
-    /// and negation does not change the allocated data.
+    /// The returned object implements `Deref<Rational>.
+    ///
+    /// This method performs a shallow copy and negates it, and
+    /// negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -869,9 +870,10 @@ impl Rational {
 
     /// Borrows an absolute copy of the `Rational` number.
     ///
-    /// The returned object implements `Deref` with a `Rational`
-    /// target. This method performs a shallow copy and possibly
-    /// negates it, and negation does not change the allocated data.
+    /// The returned object implements `Deref<Rational>`.
+    ///
+    /// This method performs a shallow copy and possibly negates it,
+    /// and negation does not change the allocated data.
     ///
     /// # Examples
     ///
@@ -900,10 +902,10 @@ impl Rational {
 
     /// Borrows a reciprocal copy of the `Rational` number.
     ///
-    /// The returned object implements `Deref` with a `Rational`
-    /// target. This method performs some shallow copying, swapping
-    /// numerator and denominator and making sure the sign is in the
-    /// numerator.
+    /// The returned object implements `Deref<Rational>`.
+    ///
+    /// This method performs some shallow copying, swapping numerator
+    /// and denominator and making sure the sign is in the numerator.
     ///
     /// # Examples
     ///

@@ -35,8 +35,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// `SmallInteger`.
 ///
 /// The `SmallInteger` type can be coerced to an
-/// [`Integer`](../struct.Integer.html), as it implements `Deref` with an
-/// [`Integer`](../struct.Integer.html) target.
+/// [`Integer`](../struct.Integer.html), as it implements
+/// `Deref<Integer>`.
 ///
 /// # Examples
 ///

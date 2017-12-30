@@ -43,8 +43,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// * `f64`: the `SmallComplex` will have 53 bits of precision.
 ///
 /// The `SmallComplex` type can be coerced to a
-/// [`Complex`](../struct.Complex.html), as it implements `Deref` with
-/// a [`Complex`](../struct.Complex.html) target.
+/// [`Complex`](../struct.Complex.html), as it implements
+/// `Deref<Complex>`.
 ///
 /// # Examples
 ///

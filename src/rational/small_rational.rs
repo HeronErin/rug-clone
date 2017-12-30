@@ -34,8 +34,9 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// `SmallRational` does require some computation, as the numerator
 /// and denominator need to be canonicalized.
 ///
-/// The `SmallRational` type can be coerced to a `Rational`, as it
-/// implements `Deref` with a `Rational` target.
+/// The `SmallRational` type can be coerced to a
+/// [`Rational`](../struct.Rational.html), as it implements
+/// `Deref<Rational>`.
 ///
 /// # Examples
 ///
