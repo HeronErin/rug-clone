@@ -1,10 +1,11 @@
 Version 0.9.2
 =============
 
-* Requires `gmp-mpfr-sys` version 1.1.0.
+* Require `gmp-mpfr-sys` version 1.1.0.
 * Deprecate most `assign_*` methods, and add static methods that
   return an object that implements `AssignTo` or `AssignRoundTo`
   instead.
+* Deprecate `Rational::copy_to_integer` method.
 * Add `Float::ln_u` method.
 * Add `Float::round_even` methods.
 * Add `Float::gamma_inc` methods.

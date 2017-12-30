@@ -458,6 +458,10 @@ impl Rational {
     /// Converts to an [`Integer`](struct.Integer.html), rounding
     /// towards zero.
     ///
+    /// Note that this method does not consume `self`, and allocates a
+    /// new `Integer`. If `self` can be consumed, you should use
+    /// [`trunc`](#method.trunc) instead.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -471,32 +475,15 @@ impl Rational {
     /// ```
     #[inline]
     pub fn to_integer(&self) -> Integer {
-        let mut i = Integer::new();
-        self.copy_to_integer(&mut i);
-        i
+        Integer::from(self.trunc_ref())
     }
 
     /// Converts to an [`Integer`](struct.Integer.html) inside `i`,
     /// rounding towards zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::{Integer, Rational};
-    /// let mut i = Integer::new();
-    /// assert_eq!(i, 0);
-    /// let pos = Rational::from((139, 10));
-    /// pos.copy_to_integer(&mut i);
-    /// assert_eq!(i, 13);
-    /// let neg = Rational::from((-139, 10));
-    /// neg.copy_to_integer(&mut i);
-    /// assert_eq!(i, -13);
-    /// ```
     #[inline]
+    #[deprecated(since = "0.9.2", note = "use `trunc_ref` instead")]
     pub fn copy_to_integer(&self, i: &mut Integer) {
-        unsafe {
-            gmp::mpz_set_q(i.inner_mut(), self.inner());
-        }
+        i.assign(self.trunc_ref());
     }
 
     /// Converts to an `f32`, rounding towards zero.
