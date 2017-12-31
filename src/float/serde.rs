@@ -16,6 +16,8 @@
 
 use Float;
 use float::{self, OrdFloat};
+use gmp_mpfr_sys::mpfr;
+use inner::InnerMut;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -42,22 +44,46 @@ impl<'de> Deserialize<'de> for Float {
     where
         D: Deserializer<'de>,
     {
-        let Data { prec, radix, value } =
-            serdeize::deserialize("Float", PrecReq::One, deserializer)?;
-        let prec = match prec {
-            PrecVal::One(one) => one,
-            #[cfg(any(feature = "integer", feature = "complex"))]
-            _ => unreachable!(),
-        };
-        serdeize::check_range(
-            "precision",
-            prec,
-            float::prec_min(),
-            float::prec_max(),
-        )?;
-        serdeize::check_range("radix", radix, 2, 36)?;
+        let (prec, radix, value) = de_data(deserializer)?;
         Float::from_str_radix(&value, radix, prec).map_err(DeError::custom)
     }
+
+    fn deserialize_in_place<D>(
+        deserializer: D,
+        place: &mut Float,
+    ) -> Result<(), D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let (prec, radix, value) = de_data(deserializer)?;
+        unsafe {
+            mpfr::set_prec(place.inner_mut(), prec.into());
+        }
+        place
+            .assign_str_radix(&value, radix)
+            .map_err(DeError::custom)
+    }
+}
+
+fn de_data<'de, D>(deserializer: D) -> Result<(u32, i32, String), D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let Data { prec, radix, value } =
+        serdeize::deserialize("Float", PrecReq::One, deserializer)?;
+    let prec = match prec {
+        PrecVal::One(one) => one,
+        #[cfg(any(feature = "integer", feature = "complex"))]
+        _ => unreachable!(),
+    };
+    serdeize::check_range(
+        "precision",
+        prec,
+        float::prec_min(),
+        float::prec_max(),
+    )?;
+    serdeize::check_range("radix", radix, 2, 36)?;
+    Ok((prec, radix, value))
 }
 
 impl Serialize for OrdFloat {

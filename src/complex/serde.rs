@@ -17,6 +17,8 @@
 use Complex;
 use complex::OrdComplex;
 use float;
+use gmp_mpfr_sys::mpfr;
+use inner::InnerMut;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -45,27 +47,55 @@ impl<'de> Deserialize<'de> for Complex {
     where
         D: Deserializer<'de>,
     {
-        let Data { prec, radix, value } =
-            serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
-        let prec = match prec {
-            PrecVal::Two(two) => two,
-            _ => unreachable!(),
-        };
-        serdeize::check_range(
-            "real precision",
-            prec.0,
-            float::prec_min(),
-            float::prec_max(),
-        )?;
-        serdeize::check_range(
-            "imaginary precision",
-            prec.1,
-            float::prec_min(),
-            float::prec_max(),
-        )?;
-        serdeize::check_range("radix", radix, 2, 36)?;
+        let (prec, radix, value) = de_data(deserializer)?;
         Complex::from_str_radix(&value, radix, prec).map_err(DeError::custom)
     }
+
+    fn deserialize_in_place<D>(
+        deserializer: D,
+        place: &mut Complex,
+    ) -> Result<(), D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let (prec, radix, value) = de_data(deserializer)?;
+        unsafe {
+            let parts = place.as_mut_real_imag();
+            mpfr::set_prec(parts.0.inner_mut(), prec.0.into());
+            mpfr::set_prec(parts.1.inner_mut(), prec.1.into());
+        }
+        place
+            .assign_str_radix(&value, radix)
+            .map_err(DeError::custom)
+    }
+}
+
+fn de_data<'de, D>(
+    deserializer: D,
+) -> Result<((u32, u32), i32, String), D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let Data { prec, radix, value } =
+        serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
+    let prec = match prec {
+        PrecVal::Two(two) => two,
+        _ => unreachable!(),
+    };
+    serdeize::check_range(
+        "real precision",
+        prec.0,
+        float::prec_min(),
+        float::prec_max(),
+    )?;
+    serdeize::check_range(
+        "imaginary precision",
+        prec.1,
+        float::prec_min(),
+        float::prec_max(),
+    )?;
+    serdeize::check_range("radix", radix, 2, 36)?;
+    Ok((prec, radix, value))
 }
 
 impl Serialize for OrdComplex {

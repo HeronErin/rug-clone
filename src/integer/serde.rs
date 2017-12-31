@@ -40,16 +40,37 @@ impl<'de> Deserialize<'de> for Integer {
     where
         D: Deserializer<'de>,
     {
-        let Data { prec, radix, value } =
-            serdeize::deserialize("Integer", PrecReq::Zero, deserializer)?;
-        match prec {
-            PrecVal::Zero => {}
-            #[cfg(feature = "float")]
-            _ => unreachable!(),
-        }
-        serdeize::check_range("radix", radix, 2, 36)?;
+        let (radix, value) = de_data(deserializer)?;
         Integer::from_str_radix(&value, radix).map_err(DeError::custom)
     }
+
+    fn deserialize_in_place<D>(
+        deserializer: D,
+        place: &mut Integer,
+    ) -> Result<(), D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let (radix, value) = de_data(deserializer)?;
+        place
+            .assign_str_radix(&value, radix)
+            .map_err(DeError::custom)
+    }
+}
+
+fn de_data<'de, D>(deserializer: D) -> Result<(i32, String), D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let Data { prec, radix, value } =
+        serdeize::deserialize("Integer", PrecReq::Zero, deserializer)?;
+    match prec {
+        PrecVal::Zero => {}
+        #[cfg(feature = "float")]
+        _ => unreachable!(),
+    }
+    serdeize::check_range("radix", radix, 2, 36)?;
+    Ok((radix, value))
 }
 
 #[cfg(test)]

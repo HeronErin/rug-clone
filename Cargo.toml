@@ -45,7 +45,7 @@ default-features = false
 optional = true
 
 [dependencies.serde]
-version = "1.0"
+version = "1.0.25"
 optional = true
 
 [dev-dependencies]
