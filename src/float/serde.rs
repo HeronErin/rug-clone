@@ -56,8 +56,9 @@ impl<'de> Deserialize<'de> for Float {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
+        // we have already checked that precision is in range
         unsafe {
-            mpfr::set_prec(place.inner_mut(), prec.into());
+            mpfr::set_prec(place.inner_mut(), prec as mpfr::prec_t);
         }
         place
             .assign_str_radix(&value, radix)
