@@ -17,7 +17,7 @@
 use Integer;
 use ext::gmp as xgmp;
 use inner::{Inner, InnerMut};
-use ops::{AssignTo, DivRounding, DivRoundingAssign, DivRoundingFrom,
+use ops::{AssignInto, DivRounding, DivRoundingAssign, DivRoundingFrom,
           RemRounding, RemRoundingAssign, RemRoundingFrom};
 
 // big / big -> Big
@@ -235,9 +235,9 @@ macro_rules! div_op {
             Euc(&'i Integer, &'i Integer),
         }
 
-        impl<'i> AssignTo<Integer> for $Ref<'i> {
+        impl<'i> AssignInto<Integer> for $Ref<'i> {
             #[inline]
-            fn assign_to(self, dst: &mut Integer) {
+            fn assign_into(self, dst: &mut Integer) {
                 match self {
                     $Ref::Trunc(lhs, rhs) => unsafe {
                         $trunc_fn(dst.inner_mut(), lhs.inner(), rhs.inner());
@@ -252,6 +252,15 @@ macro_rules! div_op {
                         $euc_fn(dst.inner_mut(), lhs.inner(), rhs.inner());
                     },
                 }
+            }
+        }
+
+        impl<'i> From<$Ref<'i>> for Integer {
+            #[inline]
+            fn from(src: $Ref<'i>) -> Self {
+                let mut dst = Integer::new();
+                src.assign_into(&mut dst);
+                dst
             }
         }
     }
@@ -434,9 +443,9 @@ macro_rules! div_prim {
             Euc(&'i Integer, $T),
         }
 
-        impl<'i> AssignTo<Integer> for $Ref<'i> {
+        impl<'i> AssignInto<Integer> for $Ref<'i> {
             #[inline]
-            fn assign_to(self, dst: &mut Integer) {
+            fn assign_into(self, dst: &mut Integer) {
                 match self {
                     $Ref::Trunc(lhs, rhs) => unsafe {
                         $trunc_fn(dst.inner_mut(), lhs.inner(), rhs.into());
@@ -451,6 +460,15 @@ macro_rules! div_prim {
                         $euc_fn(dst.inner_mut(), lhs.inner(), rhs.into());
                     },
                 }
+            }
+        }
+
+        impl<'i> From<$Ref<'i>> for Integer {
+            #[inline]
+            fn from(src: $Ref<'i>) -> Self {
+                let mut dst = Integer::new();
+                src.assign_into(&mut dst);
+                dst
             }
         }
 
@@ -592,9 +610,9 @@ macro_rules! div_prim {
             Euc($T, &'i Integer),
         }
 
-        impl<'i> AssignTo<Integer> for $RefFrom<'i> {
+        impl<'i> AssignInto<Integer> for $RefFrom<'i> {
             #[inline]
-            fn assign_to(self, dst: &mut Integer) {
+            fn assign_into(self, dst: &mut Integer) {
                 match self {
                     $RefFrom::Trunc(lhs, rhs) => unsafe {
                         $trunc_from_fn(
@@ -617,6 +635,15 @@ macro_rules! div_prim {
                         $euc_from_fn(dst.inner_mut(), lhs.into(), rhs.inner());
                     },
                 }
+            }
+        }
+
+        impl<'i> From<$RefFrom<'i>> for Integer {
+            #[inline]
+            fn from(src: $RefFrom<'i>) -> Self {
+                let mut dst = Integer::new();
+                src.assign_into(&mut dst);
+                dst
             }
         }
     }

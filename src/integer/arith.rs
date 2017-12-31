@@ -18,7 +18,7 @@ use {Assign, Integer};
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
-use ops::{AddFrom, AssignTo, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom,
+use ops::{AddFrom, AssignInto, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom,
           MulFrom, NegAssign, NotAssign, Pow, PowAssign, RemFrom, SubFrom};
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,

@@ -165,7 +165,7 @@ where
     SmallFloat: Assign<T>,
 {
     #[inline]
-    fn from(val: T) -> SmallFloat {
+    fn from(val: T) -> Self {
         let mut ret = SmallFloat::new();
         ret.assign(val);
         ret

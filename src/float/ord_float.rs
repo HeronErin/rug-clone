@@ -171,7 +171,7 @@ impl Ord for OrdFloat {
 
 impl From<Float> for OrdFloat {
     #[inline]
-    fn from(f: Float) -> OrdFloat {
+    fn from(f: Float) -> Self {
         OrdFloat { inner: f }
     }
 }

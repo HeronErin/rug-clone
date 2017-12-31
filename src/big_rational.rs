@@ -20,7 +20,7 @@ use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
 use misc;
-use ops::AssignTo;
+use ops::AssignInto;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CStr;
@@ -138,9 +138,9 @@ macro_rules! ref_rat_op_int {
             $($param: $T,)*
         }
 
-        impl<'a> AssignTo<Integer> for $Ref<'a> {
+        impl<'a> AssignInto<Integer> for $Ref<'a> {
             #[inline]
-            fn assign_to(self, dst: &mut Integer) {
+            fn assign_into(self, dst: &mut Integer) {
                 unsafe {
                     $func(
                         dst.inner_mut(),
@@ -151,7 +151,7 @@ macro_rules! ref_rat_op_int {
             }
         }
 
-        assign_to!{ ref $Ref<'r> => Integer }
+        from_assign_into! { $Ref<'r> => Integer }
     }
 }
 
@@ -214,10 +214,13 @@ macro_rules! ref_rat_op_rat_int {
         }
 
         impl<'a, 'b, 'c>
-            AssignTo<(&'a mut Rational, &'b mut Integer)> for $Ref<'c>
+            AssignInto<(&'a mut Rational, &'b mut Integer)> for $Ref<'c>
         {
             #[inline]
-            fn assign_to(self, dst: &mut (&'a mut Rational, &'b mut Integer)) {
+            fn assign_into(
+                self,
+                dst: &mut (&'a mut Rational, &'b mut Integer),
+            ) {
                 unsafe {
                     $func(
                         dst.0.inner_mut(),
@@ -233,27 +236,7 @@ macro_rules! ref_rat_op_rat_int {
             #[inline]
             fn from(src: $Ref<'a>) -> Self {
                 let mut dst = <Self as Default>::default();
-                src.assign_to(&mut (&mut dst.0, &mut dst.1));
-                dst
-            }
-        }
-
-        impl<'a, 'b, 'c, 'r: 'c>
-            AssignTo<(&'a mut Rational, &'b mut Integer)> for &'c $Ref<'r>
-        {
-            #[inline]
-            fn assign_to(self, dst: &mut (&'a mut Rational, &'b mut Integer)) {
-                <$Ref as AssignTo<
-                    (&'a mut Rational, &'b mut Integer),
-                >>::assign_to(*self, dst);
-            }
-        }
-
-        impl<'a, 'r: 'a> From<&'a $Ref<'r>> for (Rational, Integer) {
-            #[inline]
-            fn from(src: &'a $Ref<'r>) -> Self {
-                let mut dst = <Self as Default>::default();
-                src.assign_to(&mut (&mut dst.0, &mut dst.1));
+                src.assign_into(&mut (&mut dst.0, &mut dst.1));
                 dst
             }
         }
@@ -985,7 +968,7 @@ impl Rational {
         /// Computes the absolute value.
         ///
         /// The returned object implements
-        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1039,7 +1022,7 @@ impl Rational {
         /// # Examples
         ///
         /// The returned object implements
-        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
@@ -1124,7 +1107,7 @@ impl Rational {
     /// Clamps the value within the specified bounds.
     ///
     /// The returned object implements
-    /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+    /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
     ///
     /// # Examples
     ///
@@ -1199,7 +1182,7 @@ impl Rational {
         /// Computes the reciprocal.
         ///
         /// The returned object implements
-        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1250,7 +1233,7 @@ impl Rational {
         /// Rounds the number towards zero.
         ///
         /// The returned object implements
-        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1319,7 +1302,7 @@ impl Rational {
         /// Computes the fractional part of the number.
         ///
         /// The returned object implements
-        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1369,7 +1352,7 @@ impl Rational {
         /// Computes the fractional and truncated parts of the number.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
+        /// [`AssignInto<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1384,7 +1367,7 @@ impl Rational {
         /// assert_eq!(trunc, -5);
         /// ```
         ///
-        /// [at]: (../ops/trait.AssignTo.html)
+        /// [at]: (../ops/trait.AssignInto.html)
         fn fract_trunc_ref -> FractTruncRef;
     }
     rat_op_int! {
@@ -1425,7 +1408,7 @@ impl Rational {
         /// Rounds the number upwards (towards plus infinity).
         ///
         /// The returned object implements
-        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1472,7 +1455,7 @@ impl Rational {
         /// Computes the non-positive remainder after rounding up.
         ///
         /// The returned object implements
-        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1526,7 +1509,7 @@ impl Rational {
         /// The fractional part cannot be greater than zero.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
+        /// [`AssignInto<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1541,7 +1524,7 @@ impl Rational {
         /// assert_eq!(ceil, 6);
         /// ```
         ///
-        /// [at]: (../ops/trait.AssignTo.html)
+        /// [at]: (../ops/trait.AssignInto.html)
         fn fract_ceil_ref -> FractCeilRef;
     }
     rat_op_int! {
@@ -1580,7 +1563,7 @@ impl Rational {
         /// Rounds the number downwards (towards minus infinity).
         ///
         /// The returned object implements
-        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1627,7 +1610,7 @@ impl Rational {
         /// Computes the non-negative remainder after rounding down.
         ///
         /// The returned object implements
-        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1681,7 +1664,7 @@ impl Rational {
         /// The fractional part cannot be negative.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
+        /// [`AssignInto<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1696,7 +1679,7 @@ impl Rational {
         /// assert_eq!(floor, -6);
         /// ```
         ///
-        /// [at]: (../ops/trait.AssignTo.html)
+        /// [at]: (../ops/trait.AssignInto.html)
         fn fract_floor_ref -> FractFloorRef;
     }
     rat_op_int! {
@@ -1746,7 +1729,7 @@ impl Rational {
         /// rounded away from zero.
         ///
         /// The returned object implements
-        /// [`AssignTo<Integer>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1804,7 +1787,7 @@ impl Rational {
         /// integer.
         ///
         /// The returned object implements
-        /// [`AssignTo<Rational>`](../ops/trait.AssignTo.html).
+        /// [`AssignInto<Rational>`](../ops/trait.AssignInto.html).
         ///
         /// # Examples
         ///
@@ -1881,7 +1864,7 @@ impl Rational {
         /// from zero.
         ///
         /// The returned object implements
-        /// [`AssignTo<(&mut Rational, &mut Integer)>`][at].
+        /// [`AssignInto<(&mut Rational, &mut Integer)>`][at].
         ///
         /// # Examples
         ///
@@ -1903,7 +1886,7 @@ impl Rational {
         /// assert_eq!(round2, 4);
         /// ```
         ///
-        /// [at]: (../ops/trait.AssignTo.html)
+        /// [at]: (../ops/trait.AssignInto.html)
         fn fract_round_ref -> FractRoundRef;
     }
 }
@@ -1926,7 +1909,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> AssignTo<Rational> for ClampRef<'a, Min, Max>
+impl<'a, Min, Max> AssignInto<Rational> for ClampRef<'a, Min, Max>
 where
     Rational: PartialOrd<Min>
         + PartialOrd<Max>
@@ -1936,7 +1919,7 @@ where
     Max: 'a,
 {
     #[inline]
-    fn assign_to(self, dst: &mut Rational) {
+    fn assign_into(self, dst: &mut Rational) {
         if self.ref_self.lt(self.min) {
             dst.assign(self.min);
             assert!(!(&*dst).gt(self.max), "minimum larger than maximum");
@@ -1946,6 +1929,23 @@ where
         } else {
             dst.assign(self.ref_self);
         }
+    }
+}
+
+impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Rational
+where
+    Rational: PartialOrd<Min>
+        + PartialOrd<Max>
+        + Assign<&'a Min>
+        + Assign<&'a Max>,
+    Min: 'a,
+    Max: 'a,
+{
+    #[inline]
+    fn from(src: ClampRef<'a, Min, Max>) -> Self {
+        let mut dst = Rational::new();
+        src.assign_into(&mut dst);
+        dst
     }
 }
 
@@ -2026,9 +2026,9 @@ pub struct ValidRational<'a> {
     radix: i32,
 }
 
-impl<'a> AssignTo<Rational> for ValidRational<'a> {
+impl<'a> AssignInto<Rational> for ValidRational<'a> {
     #[inline]
-    fn assign_to(self, dst: &mut Rational) {
+    fn assign_into(self, dst: &mut Rational) {
         let mut v = Vec::<u8>::with_capacity(self.bytes.len() + 1);
         v.extend_from_slice(self.bytes);
         v.push(0);
@@ -2040,6 +2040,15 @@ impl<'a> AssignTo<Rational> for ValidRational<'a> {
         unsafe {
             gmp::mpq_canonicalize(dst.inner_mut());
         }
+    }
+}
+
+impl<'a> From<ValidRational<'a>> for Rational {
+    #[inline]
+    fn from(src: ValidRational<'a>) -> Self {
+        let mut dst = Rational::new();
+        src.assign_into(&mut dst);
+        dst
     }
 }
 

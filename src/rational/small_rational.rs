@@ -401,7 +401,7 @@ where
     SmallRational: Assign<T>,
 {
     #[inline]
-    fn from(val: T) -> SmallRational {
+    fn from(val: T) -> Self {
         let mut ret = SmallRational::new();
         ret.assign(val);
         ret

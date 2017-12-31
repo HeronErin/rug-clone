@@ -21,7 +21,7 @@ use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use integer::ParseIntegerError;
 use misc;
-use ops::AssignTo;
+use ops::AssignInto;
 use std::{i32, u32};
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -73,46 +73,25 @@ impl Hash for Integer {
     }
 }
 
-impl<'a> From<&'a Integer> for Integer {
-    #[inline]
-    fn from(val: &Integer) -> Integer {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set(ret.inner_mut(), val.inner());
-            ret
-        }
-    }
-}
-
-impl<T> From<T> for Integer
-where
-    T: AssignTo<Integer>,
-{
-    #[inline]
-    fn from(src: T) -> Integer {
-        src.to_new()
-    }
-}
-
 impl<T> Assign<T> for Integer
 where
-    T: AssignTo<Integer>,
+    T: AssignInto<Integer>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(self);
+        src.assign_into(self);
     }
 }
 
 impl<T> Assign<T> for Result<Integer, Integer>
 where
-    T: for<'a> AssignTo<Result<&'a mut Integer, &'a mut Integer>>,
+    T: for<'a> AssignInto<Result<&'a mut Integer, &'a mut Integer>>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
         let ok = {
             let mut m = self.as_mut();
-            src.assign_to(&mut m);
+            src.assign_into(&mut m);
             m.is_ok()
         };
         if self.is_ok() != ok {
@@ -123,209 +102,246 @@ where
 
 impl<'a, T> Assign<T> for Result<&'a mut Integer, &'a mut Integer>
 where
-    T: AssignTo<Self>,
+    T: AssignInto<Self>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(self);
+        src.assign_into(self);
     }
 }
 
 impl<T> Assign<T> for (Integer, u32)
 where
-    T: for<'a, 'b> AssignTo<(&'a mut Integer, &'b mut u32)>,
+    T: for<'a, 'b> AssignInto<(&'a mut Integer, &'b mut u32)>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(&mut (&mut self.0, &mut self.1));
+        src.assign_into(&mut (&mut self.0, &mut self.1));
     }
 }
 
 impl<'a, 'b, T> Assign<T> for (&'a mut Integer, &'b mut u32)
 where
-    T: AssignTo<Self>,
+    T: AssignInto<Self>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(self);
+        src.assign_into(self);
     }
 }
 
 impl<T> Assign<T> for (Integer, Integer)
 where
-    T: for<'a, 'b> AssignTo<(&'a mut Integer, &'b mut Integer)>,
+    T: for<'a, 'b> AssignInto<(&'a mut Integer, &'b mut Integer)>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(&mut (&mut self.0, &mut self.1));
+        src.assign_into(&mut (&mut self.0, &mut self.1));
     }
 }
 
 impl<'a, 'b, T> Assign<T> for (&'a mut Integer, &'b mut Integer)
 where
-    T: AssignTo<Self>,
+    T: AssignInto<Self>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(self);
+        src.assign_into(self);
     }
 }
 
 impl<T> Assign<T> for (Integer, Integer, Integer)
 where
-    T: for<'a, 'b, 'c> AssignTo<
+    T: for<'a, 'b, 'c> AssignInto<
         (&'a mut Integer, &'b mut Integer, &'c mut Integer),
     >,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(&mut (&mut self.0, &mut self.1, &mut self.2));
+        src.assign_into(&mut (&mut self.0, &mut self.1, &mut self.2));
     }
 }
 
 impl<'a, 'b, 'c, T> Assign<T>
     for (&'a mut Integer, &'b mut Integer, &'c mut Integer)
 where
-    T: AssignTo<Self>,
+    T: AssignInto<Self>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(self);
+        src.assign_into(self);
     }
 }
 
-macro_rules! assign_to_cast {
+impl AssignInto<Integer> for Integer {
+    #[inline]
+    fn assign_into(mut self, dst: &mut Integer) {
+        mem::swap(&mut self, dst);
+    }
+}
+
+impl<'a> AssignInto<Integer> for &'a Integer {
+    #[inline]
+    fn assign_into(self, dst: &mut Integer) {
+        unsafe {
+            gmp::mpz_set(dst.inner_mut(), self.inner());
+        }
+    }
+}
+
+impl<'a> From<&'a Integer> for Integer {
+    #[inline]
+    fn from(val: &Integer) -> Self {
+        unsafe {
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init_set(ret.inner_mut(), val.inner());
+            ret
+        }
+    }
+}
+
+macro_rules! assign_into_cast {
     { $New:ty, $Existing:ty } => {
-        impl AssignTo<Integer> for $New {
+        impl AssignInto<Integer> for $New {
             #[inline]
-            fn assign_to(self, dst: &mut Integer) {
-                <$Existing as AssignTo<Integer>>::assign_to(
+            fn assign_into(self, dst: &mut Integer) {
+                <$Existing as AssignInto<Integer>>::assign_into(
                     self as $Existing,
                     dst,
                 );
             }
+        }
 
+        impl From<$New> for Integer {
             #[inline]
-            fn to_new(self) -> Integer {
-                <$Existing as AssignTo<Integer>>::to_new(self as $Existing)
+            fn from(src: $New) -> Self {
+                <Self as From<$Existing>>::from(src as $Existing)
             }
         }
 
-        assign_to! { $New => Integer }
+        assign_into_deref! { $New => Integer }
     }
 }
 
-assign_to_cast! { i8, i32 }
-assign_to_cast! { i16, i32 }
+assign_into_cast! { i8, i32 }
+assign_into_cast! { i16, i32 }
 
-impl AssignTo<Integer> for i32 {
+impl AssignInto<Integer> for i32 {
     #[inline]
-    fn assign_to(self, dst: &mut Integer) {
+    fn assign_into(self, dst: &mut Integer) {
         unsafe {
             xgmp::mpz_set_i32(dst.inner_mut(), self);
         }
     }
+}
 
+impl From<i32> for Integer {
     #[inline]
-    fn to_new(self) -> Integer {
+    fn from(src: i32) -> Self {
         unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set_si(ret.inner_mut(), self.into());
-            ret
+            let mut dst: Integer = mem::uninitialized();
+            gmp::mpz_init_set_si(dst.inner_mut(), src.into());
+            dst
         }
     }
 }
 
-assign_to! { i32 => Integer }
+assign_into_deref! { i32 => Integer }
 
-impl AssignTo<Integer> for i64 {
+impl AssignInto<Integer> for i64 {
     #[inline]
-    fn assign_to(self, dst: &mut Integer) {
+    fn assign_into(self, dst: &mut Integer) {
         unsafe {
             xgmp::mpz_set_i64(dst.inner_mut(), self);
         }
     }
+}
 
+impl From<i64> for Integer {
     #[inline]
-    fn to_new(self) -> Integer {
-        let mut ret: Integer;
+    fn from(src: i64) -> Self {
+        let mut dst: Integer;
         if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
             unsafe {
-                ret = mem::uninitialized();
-                gmp::mpz_init_set_si(ret.inner_mut(), self as c_long);
+                dst = mem::uninitialized();
+                gmp::mpz_init_set_si(dst.inner_mut(), src as c_long);
             }
         } else {
-            ret = Integer::new();
-            self.assign_to(&mut ret);
+            dst = Integer::new();
+            src.assign_into(&mut dst);
         }
-        ret
+        dst
     }
 }
 
-assign_to! { i64 => Integer }
+assign_into_deref! { i64 => Integer }
 
 #[cfg(target_pointer_width = "16")]
-assign_to_cast! { isize, i16 }
+assign_into_cast! { isize, i16 }
 #[cfg(target_pointer_width = "32")]
-assign_to_cast! { isize, i32 }
+assign_into_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
-assign_to_cast! { isize, i64 }
+assign_into_cast! { isize, i64 }
 
-assign_to_cast! { u8, u32 }
-assign_to_cast! { u16, u32 }
+assign_into_cast! { u8, u32 }
+assign_into_cast! { u16, u32 }
 
-impl AssignTo<Integer> for u32 {
+impl AssignInto<Integer> for u32 {
     #[inline]
-    fn assign_to(self, dst: &mut Integer) {
+    fn assign_into(self, dst: &mut Integer) {
         unsafe {
             xgmp::mpz_set_u32(dst.inner_mut(), self);
         }
     }
+}
 
+impl From<u32> for Integer {
     #[inline]
-    fn to_new(self) -> Integer {
+    fn from(src: u32) -> Self {
         unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set_ui(ret.inner_mut(), self.into());
-            ret
+            let mut dst: Integer = mem::uninitialized();
+            gmp::mpz_init_set_ui(dst.inner_mut(), src.into());
+            dst
         }
     }
 }
 
-assign_to! { u32 => Integer }
+assign_into_deref! { u32 => Integer }
 
-impl AssignTo<Integer> for u64 {
+impl AssignInto<Integer> for u64 {
     #[inline]
-    fn assign_to(self, dst: &mut Integer) {
+    fn assign_into(self, dst: &mut Integer) {
         unsafe {
             xgmp::mpz_set_u64(dst.inner_mut(), self);
         }
     }
+}
 
+impl From<u64> for Integer {
     #[inline]
-    fn to_new(self) -> Integer {
-        let mut ret: Integer;
+    fn from(src: u64) -> Self {
+        let mut dst: Integer;
         if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
             unsafe {
-                ret = mem::uninitialized();
-                gmp::mpz_init_set_ui(ret.inner_mut(), self as c_ulong);
+                dst = mem::uninitialized();
+                gmp::mpz_init_set_ui(dst.inner_mut(), src as c_ulong);
             }
         } else {
-            ret = Integer::new();
-            ret.assign(self);
+            dst = Integer::new();
+            dst.assign(src);
         }
-        ret
+        dst
     }
 }
 
-assign_to! { u64 => Integer }
+assign_into_deref! { u64 => Integer }
 
 #[cfg(target_pointer_width = "16")]
-assign_to_cast! { usize, u16 }
+assign_into_cast! { usize, u16 }
 #[cfg(target_pointer_width = "32")]
-assign_to_cast! { usize, u32 }
+assign_into_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
-assign_to_cast! { usize, u64 }
+assign_into_cast! { usize, u64 }
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;
@@ -376,22 +392,6 @@ impl UpperHex for Integer {
     #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x")
-    }
-}
-
-impl Assign for Integer {
-    #[inline]
-    fn assign(&mut self, mut other: Integer) {
-        mem::swap(self, &mut other);
-    }
-}
-
-impl<'a> Assign<&'a Integer> for Integer {
-    #[inline]
-    fn assign(&mut self, other: &'a Integer) {
-        unsafe {
-            gmp::mpz_set(self.inner_mut(), other.inner());
-        }
     }
 }
 

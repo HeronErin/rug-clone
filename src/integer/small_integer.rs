@@ -158,7 +158,7 @@ where
     SmallInteger: Assign<T>,
 {
     #[inline]
-    fn from(val: T) -> SmallInteger {
+    fn from(val: T) -> Self {
         let mut ret = SmallInteger::new();
         ret.assign(val);
         ret

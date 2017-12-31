@@ -135,7 +135,7 @@ impl Ord for OrdComplex {
 
 impl From<Complex> for OrdComplex {
     #[inline]
-    fn from(c: Complex) -> OrdComplex {
+    fn from(c: Complex) -> Self {
         OrdComplex { inner: c }
     }
 }

@@ -24,9 +24,9 @@ use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
 use misc;
-use ops::{AssignRound, AssignRoundTo, NegAssign};
+use ops::{AssignRound, AssignRoundInto, NegAssign};
 #[cfg(feature = "rand")]
-use ops::AssignTo;
+use ops::AssignInto;
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::cmp::Ordering;
@@ -1192,7 +1192,7 @@ impl Complex {
         /// the input.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1255,7 +1255,7 @@ impl Complex {
         /// Computes the square.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1320,7 +1320,7 @@ impl Complex {
         /// Computes the square root.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1366,7 +1366,7 @@ impl Complex {
         /// Computes the complex conjugate.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1421,7 +1421,7 @@ impl Complex {
     /// Computes the absolute value.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -1537,7 +1537,7 @@ impl Complex {
     /// Computes the argument.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -1618,7 +1618,7 @@ impl Complex {
         /// Multiplies the complex number by ±<i>i</i>.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1676,7 +1676,7 @@ impl Complex {
         /// Computes the reciprocal.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1760,7 +1760,7 @@ impl Complex {
     /// Computes the norm, that is the square of the absolute value.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -1821,7 +1821,7 @@ impl Complex {
         /// Computes the natural logarithm;
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1880,7 +1880,7 @@ impl Complex {
         /// Computes the logarithm to base 10.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1901,7 +1901,7 @@ impl Complex {
         /// its argument is 2<i>πk</i>/<i>n</i>.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -1960,7 +1960,7 @@ impl Complex {
         /// Computes the exponential.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2018,7 +2018,7 @@ impl Complex {
         /// Computes the sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2076,7 +2076,7 @@ impl Complex {
         /// Computes the cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2158,7 +2158,7 @@ impl Complex {
         /// Computes the sine and cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<(&mut Complex, &mut Complex)>`][art].
+        /// [`AssignRoundInto<(&mut Complex, &mut Complex)>`][art].
         ///
         /// # Examples
         ///
@@ -2188,7 +2188,7 @@ impl Complex {
         /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
         /// ```
         ///
-        /// [art]: (../ops/trait.AssignRoundTo.html)
+        /// [art]: (../ops/trait.AssignRoundInto.html)
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_complex! {
@@ -2236,7 +2236,7 @@ impl Complex {
         /// Computes the tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2295,7 +2295,7 @@ impl Complex {
         /// Computes the hyperbolic sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2354,7 +2354,7 @@ impl Complex {
         /// Computes the hyperbolic cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2413,7 +2413,7 @@ impl Complex {
         /// Computes the hyperbolic tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2472,7 +2472,7 @@ impl Complex {
         /// Computes the inverse sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2531,7 +2531,7 @@ impl Complex {
         /// Computes the inverse cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2590,7 +2590,7 @@ impl Complex {
         /// Computes the inverse tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2649,7 +2649,7 @@ impl Complex {
         /// Computes the inverse hyperboic sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2710,7 +2710,7 @@ impl Complex {
         /// Computes the inverse hyperbolic cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2771,7 +2771,7 @@ impl Complex {
         /// Computes the inverse hyperbolic tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2798,7 +2798,7 @@ impl Complex {
     /// and not all the precision will be used.
     ///
     /// The returned object implements
-    /// [`AssignTo<Result<&mut Complex, &mut Complex>`][at].
+    /// [`AssignInto<Result<&mut Complex, &mut Complex>`][at].
     ///
     /// # Examples
     ///
@@ -2825,7 +2825,7 @@ impl Complex {
     /// number is set to Nan and an error is returned. This would most
     /// likely be a programming error.
     ///
-    /// [at]: (../ops/trait.AssignTo.html)
+    /// [at]: (../ops/trait.AssignInto.html)
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -2878,7 +2878,7 @@ impl Complex {
         rng: &mut RandState,
     ) -> Result<(), ()> {
         let mut r = Ok(self);
-        Complex::random_bits(rng).assign_to(&mut r);
+        Complex::random_bits(rng).assign_into(&mut r);
         match r {
             Ok(_) => Ok(()),
             Err(_) => Err(()),
@@ -2904,7 +2904,7 @@ impl Complex {
     /// considered to have infinite precision before rounding.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Complex>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -2940,7 +2940,7 @@ impl Complex {
                          `c.assign(Complex::random_cont(rng))`.")]
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
-        Complex::random_cont(rng).assign_round_to(self, Default::default());
+        Complex::random_cont(rng).assign_round_into(self, Default::default());
     }
 
     #[cfg(feature = "rand")]
@@ -2958,7 +2958,7 @@ impl Complex {
         rng: &mut RandState,
         round: Round2,
     ) -> Ordering2 {
-        Complex::random_cont(rng).assign_round_to(self, round)
+        Complex::random_cont(rng).assign_round_into(self, round)
     }
 }
 
@@ -2972,11 +2972,11 @@ pub struct AbsRef<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRoundTo<Float> for AbsRef<'a> {
+impl<'a> AssignRoundInto<Float> for AbsRef<'a> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpc::abs(dst.inner_mut(), self.ref_self.inner(), rraw(round))
         };
@@ -2984,26 +2984,22 @@ impl<'a> AssignRoundTo<Float> for AbsRef<'a> {
     }
 }
 
-assign_round_to! { ref AbsRef<'r> => Float }
-
 #[derive(Clone, Copy)]
 pub struct ArgRef<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRoundTo<Float> for ArgRef<'a> {
+impl<'a> AssignRoundInto<Float> for ArgRef<'a> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpc::arg(dst.inner_mut(), self.ref_self.inner(), rraw(round))
         };
         ret.cmp(&0)
     }
 }
-
-assign_round_to! { ref ArgRef<'r> => Float }
 
 ref_math_op1_complex! { xmpc::mul_i; struct MulIRef { negative: bool } }
 ref_math_op1_complex! { xmpc::recip; struct RecipRef {} }
@@ -3013,19 +3009,17 @@ pub struct NormRef<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRoundTo<Float> for NormRef<'a> {
+impl<'a> AssignRoundInto<Float> for NormRef<'a> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpc::norm(dst.inner_mut(), self.ref_self.inner(), rraw(round))
         };
         ret.cmp(&0)
     }
 }
-
-assign_round_to! { ref NormRef<'r> => Float }
 
 ref_math_op1_complex! { mpc::log; struct LnRef {} }
 ref_math_op1_complex! { mpc::log10; struct Log10Ref {} }
@@ -3053,16 +3047,16 @@ pub struct RandomBits<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b, 'c: 'b> AssignTo<Result<&'a mut Complex, &'a mut Complex>>
+impl<'a, 'b, 'c: 'b> AssignInto<Result<&'a mut Complex, &'a mut Complex>>
     for RandomBits<'b, 'c> {
     #[inline]
-    fn assign_to(self, dst: &mut Result<&'a mut Complex, &'a mut Complex>) {
+    fn assign_into(self, dst: &mut Result<&'a mut Complex, &'a mut Complex>) {
         let err = match *dst {
             Ok(ref mut dest) | Err(ref mut dest) => {
                 let (real, imag) = dest.as_mut_real_imag();
                 let (mut rreal, mut rimag) = (Ok(real), Ok(imag));
-                Float::random_bits(self.rng).assign_to(&mut rreal);
-                Float::random_bits(self.rng).assign_to(&mut rimag);
+                Float::random_bits(self.rng).assign_into(&mut rreal);
+                Float::random_bits(self.rng).assign_into(&mut rimag);
                 rreal.is_err() || rimag.is_err()
             }
         };
@@ -3078,15 +3072,15 @@ pub struct RandomCont<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRoundTo<Complex> for RandomCont<'a, 'b> {
+impl<'a, 'b: 'a> AssignRoundInto<Complex> for RandomCont<'a, 'b> {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_to(self, dst: &mut Complex, round: Round2) -> Ordering2 {
+    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
         let (real, imag) = dst.as_mut_real_imag();
         (
-            Float::random_cont(self.rng).assign_round_to(real, round.0),
-            Float::random_cont(self.rng).assign_round_to(imag, round.1),
+            Float::random_cont(self.rng).assign_round_into(real, round.0),
+            Float::random_cont(self.rng).assign_round_into(imag, round.1),
         )
     }
 }
@@ -3224,11 +3218,11 @@ pub struct ParseComplexError {
     kind: ParseErrorKind,
 }
 
-impl<'a> AssignRoundTo<Complex> for ValidComplex<'a> {
+impl<'a> AssignRoundInto<Complex> for ValidComplex<'a> {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_to(self, dst: &mut Complex, round: Round2) -> Ordering2 {
+    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
         match self.poss {
             ValidPoss::Real(re) => {
                 let real_ord = dst.mut_real().assign_round(re, round.0);

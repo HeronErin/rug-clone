@@ -186,7 +186,7 @@ impl<T> From<T> for SmallComplex
 where
     SmallComplex: Assign<T>,
 {
-    fn from(val: T) -> SmallComplex {
+    fn from(val: T) -> Self {
         let mut ret = SmallComplex::new();
         ret.assign(val);
         ret

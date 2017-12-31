@@ -25,7 +25,7 @@ use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use misc;
-use ops::{AssignRound, AssignRoundTo, AssignTo};
+use ops::{AssignInto, AssignRound, AssignRoundInto};
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
@@ -65,7 +65,7 @@ impl Drop for Float {
 }
 
 impl From<OrdFloat> for Float {
-    fn from(ord: OrdFloat) -> Float {
+    fn from(ord: OrdFloat) -> Self {
         unsafe { mem::transmute(ord) }
     }
 }
@@ -128,35 +128,35 @@ impl UpperHex for Float {
 
 impl<T> Assign<T> for Float
 where
-    T: AssignRoundTo<Float, Round = Round, Ordering = Ordering>,
+    T: AssignRoundInto<Float, Round = Round, Ordering = Ordering>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_to(self, Round::Nearest);
+        src.assign_round_into(self, Round::Nearest);
     }
 }
 
 impl<T> AssignRound<T> for Float
 where
-    T: AssignRoundTo<Float, Round = Round, Ordering = Ordering>,
+    T: AssignRoundInto<Float, Round = Round, Ordering = Ordering>,
 {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: T, round: Round) -> Ordering {
-        src.assign_round_to(self, round)
+        src.assign_round_into(self, round)
     }
 }
 
 impl<T> Assign<T> for Result<Float, Float>
 where
-    T: for<'a> AssignTo<Result<&'a mut Float, &'a mut Float>>,
+    T: for<'a> AssignInto<Result<&'a mut Float, &'a mut Float>>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
         let ok = {
             let mut m = self.as_mut();
-            src.assign_to(&mut m);
+            src.assign_into(&mut m);
             m.is_ok()
         };
         if self.is_ok() != ok {
@@ -167,17 +167,17 @@ where
 
 impl<'a, T> Assign<T> for Result<&'a mut Float, &'a mut Float>
 where
-    T: AssignTo<Self>,
+    T: AssignInto<Self>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_to(self);
+        src.assign_into(self);
     }
 }
 
 impl<T> Assign<T> for (Float, Ordering)
 where
-    T: for<'a, 'b> AssignRoundTo<
+    T: for<'a, 'b> AssignRoundInto<
         (&'a mut Float, &'b mut Ordering),
         Round = Round,
         Ordering = Ordering,
@@ -185,13 +185,13 @@ where
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_to(&mut (&mut self.0, &mut self.1), Round::Nearest);
+        src.assign_round_into(&mut (&mut self.0, &mut self.1), Round::Nearest);
     }
 }
 
 impl<T> AssignRound<T> for (Float, Ordering)
 where
-    T: for<'a, 'b> AssignRoundTo<
+    T: for<'a, 'b> AssignRoundInto<
         (&'a mut Float, &'b mut Ordering),
         Round = Round,
         Ordering = Ordering,
@@ -201,35 +201,35 @@ where
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: T, round: Round) -> Ordering {
-        src.assign_round_to(&mut (&mut self.0, &mut self.1), round)
+        src.assign_round_into(&mut (&mut self.0, &mut self.1), round)
     }
 }
 
 impl<'a, 'b, T> Assign<T> for (&'a mut Float, &'b mut Ordering)
 where
-    T: AssignRoundTo<Self, Round = Round, Ordering = Ordering>,
+    T: AssignRoundInto<Self, Round = Round, Ordering = Ordering>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_to(self, Round::Nearest);
+        src.assign_round_into(self, Round::Nearest);
     }
 }
 
 impl<'a, 'b, T> AssignRound<T> for (&'a mut Float, &'b mut Ordering)
 where
-    T: AssignRoundTo<Self, Round = Round, Ordering = Ordering>,
+    T: AssignRoundInto<Self, Round = Round, Ordering = Ordering>,
 {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: T, round: Round) -> Ordering {
-        src.assign_round_to(self, round)
+        src.assign_round_into(self, round)
     }
 }
 
 impl<T> Assign<T> for (Float, Float)
 where
-    T: for<'a, 'b> AssignRoundTo<
+    T: for<'a, 'b> AssignRoundInto<
         (&'a mut Float, &'b mut Float),
         Round = Round,
         Ordering = (Ordering, Ordering),
@@ -237,23 +237,23 @@ where
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_to(&mut (&mut self.0, &mut self.1), Round::Nearest);
+        src.assign_round_into(&mut (&mut self.0, &mut self.1), Round::Nearest);
     }
 }
 
 impl<'a, 'b, T> Assign<T> for (&'a mut Float, &'b mut Float)
 where
-    T: AssignRoundTo<Self, Round = Round, Ordering = (Ordering, Ordering)>,
+    T: AssignRoundInto<Self, Round = Round, Ordering = (Ordering, Ordering)>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_to(self, Round::Nearest);
+        src.assign_round_into(self, Round::Nearest);
     }
 }
 
 impl<T> AssignRound<T> for (Float, Float)
 where
-    T: for<'a, 'b> AssignRoundTo<
+    T: for<'a, 'b> AssignRoundInto<
         (&'a mut Float, &'b mut Float),
         Round = Round,
         Ordering = (Ordering, Ordering),
@@ -263,27 +263,27 @@ where
     type Ordering = (Ordering, Ordering);
     #[inline]
     fn assign_round(&mut self, src: T, round: Round) -> (Ordering, Ordering) {
-        src.assign_round_to(&mut (&mut self.0, &mut self.1), round)
+        src.assign_round_into(&mut (&mut self.0, &mut self.1), round)
     }
 }
 
 impl<'a, 'b, T> AssignRound<T> for (&'a mut Float, &'b mut Float)
 where
-    T: AssignRoundTo<Self, Round = Round, Ordering = (Ordering, Ordering)>,
+    T: AssignRoundInto<Self, Round = Round, Ordering = (Ordering, Ordering)>,
 {
     type Round = Round;
     type Ordering = (Ordering, Ordering);
     #[inline]
     fn assign_round(&mut self, src: T, round: Round) -> (Ordering, Ordering) {
-        src.assign_round_to(self, round)
+        src.assign_round_into(self, round)
     }
 }
 
-impl AssignRoundTo<Float> for Constant {
+impl AssignRoundInto<Float> for Constant {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             match self {
                 Constant::Log2 => {
@@ -302,13 +302,13 @@ impl AssignRoundTo<Float> for Constant {
     }
 }
 
-assign_round_to!{ Constant => Float }
+assign_round_into_deref!{ Constant => Float }
 
-impl AssignRoundTo<Float> for Special {
+impl AssignRoundInto<Float> for Special {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, _round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, _round: Round) -> Ordering {
         unsafe {
             const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
             const EXP_ZERO: c_long = 0 - EXP_MAX;
@@ -346,15 +346,15 @@ impl AssignRoundTo<Float> for Special {
     }
 }
 
-assign_round_to!{ Special => Float }
+assign_round_into_deref!{ Special => Float }
 
 macro_rules! assign {
     { $T:ty, $func:path } => {
-        impl<'a> AssignRoundTo<Float> for &'a $T {
+        impl<'a> AssignRoundInto<Float> for &'a $T {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round_to(
+            fn assign_round_into(
                 self,
                 dst: &mut Float,
                 round: Round
@@ -366,13 +366,16 @@ macro_rules! assign {
             }
         }
 
-        impl AssignRoundTo<Float> for $T {
+        impl AssignRoundInto<Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering
-            {
-                <&$T as AssignRoundTo<Float>>::assign_round_to(
+            fn assign_round_into(
+                self,
+                dst: &mut Float,
+                round: Round,
+            ) -> Ordering {
+                <&$T as AssignRoundInto<Float>>::assign_round_into(
                     &self,
                     dst,
                     round,
@@ -390,12 +393,15 @@ assign! { Rational, mpfr::set_q }
 
 macro_rules! conv_ops {
     { $T:ty, $set:path } => {
-        impl AssignRoundTo<Float> for $T {
+        impl AssignRoundInto<Float> for $T {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering
-            {
+            fn assign_round_into(
+                self,
+                dst: &mut Float,
+                round: Round,
+            ) -> Ordering {
                 let ret = unsafe {
                     $set(dst.inner_mut(), self.into(), rraw(round))
                 };
@@ -403,7 +409,7 @@ macro_rules! conv_ops {
             }
         }
 
-        assign_round_to!{ $T => Float }
+        assign_round_into_deref!{ $T => Float }
     }
 }
 

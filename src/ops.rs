@@ -1499,25 +1499,22 @@ pub trait RemRoundingFrom<Lhs = Self> {
 /// ```rust
 /// # #[cfg(feature = "integer")] {
 /// use rug::{Assign, Integer};
-/// use rug::ops::AssignTo;
+/// use rug::ops::AssignInto;
 /// #[derive(Clone, Copy)]
 /// struct I(i32);
-/// impl AssignTo<Integer> for I {
-///     fn assign_to(self, dst: &mut Integer) {
+/// impl AssignInto<Integer> for I {
+///     fn assign_into(self, dst: &mut Integer) {
 ///         dst.assign(self.0);
 ///     }
 /// }
 /// let src = I(42);
 ///
-/// let mut dst1 = Integer::new();
-/// src.assign_to(&mut dst1);
-/// assert_eq!(dst1, 42);
-///
-/// let dst2: Integer = src.to_new();
-/// assert_eq!(dst2, 42);
+/// let mut dst = Integer::new();
+/// src.assign_into(&mut dst);
+/// assert_eq!(dst, 42);
 /// # }
 /// ```
-pub trait AssignTo<Dst> {
+pub trait AssignInto<Dst> {
     /// Performs the assignment.
     ///
     /// # Examples
@@ -1525,43 +1522,15 @@ pub trait AssignTo<Dst> {
     /// ```rust
     /// # #[cfg(feature = "integer")] {
     /// use rug::Integer;
-    /// use rug::ops::AssignTo;
-    /// // src implements AssignTo<Integer>
+    /// use rug::ops::AssignInto;
+    /// // src implements AssignInto<Integer>
     /// let src = Integer::u_pow_u(2, 3);
     /// let mut dst = Integer::new();
-    /// src.assign_to(&mut dst);
+    /// src.assign_into(&mut dst);
     /// assert_eq!(dst, 8);
     /// # }
     /// ```
-    fn assign_to(self, dst: &mut Dst);
-
-    /// Creates a new `Dst` and assigns to it.
-    ///
-    /// In functionality, `src.to_new` is equivalent to creating a
-    /// default `Dst` and calling `src.assign_to` on the created
-    /// object.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::AssignTo;
-    /// // src implements AssignTo<Integer>
-    /// let src = Integer::u_pow_u(2, 3);
-    /// let dst: Integer = src.to_new();
-    /// assert_eq!(dst, 8);
-    /// # }
-    /// ```
-    fn to_new(self) -> Dst
-    where
-        Self: Sized,
-        Dst: Default,
-    {
-        let mut dst = Default::default();
-        self.assign_to(&mut dst);
-        dst
-    }
+    fn assign_into(self, dst: &mut Dst);
 }
 
 /// Assignment with specified rounding method into `Dst`.
@@ -1571,25 +1540,25 @@ pub trait AssignTo<Dst> {
 /// ```rust
 /// # #[cfg(feature = "float")] {
 /// use rug::float::Round;
-/// use rug::ops::AssignRoundTo;
+/// use rug::ops::AssignRoundInto;
 /// use std::cmp::Ordering;
 /// struct F(f64);
-/// impl AssignRoundTo<F> for f64 {
+/// impl AssignRoundInto<F> for f64 {
 ///     type Round = Round;
 ///     type Ordering = Ordering;
-///     fn assign_round_to(self, dst: &mut F, _round: Round) -> Ordering {
+///     fn assign_round_into(self, dst: &mut F, _round: Round) -> Ordering {
 ///         dst.0 = self;
 ///         Ordering::Equal
 ///     }
 /// }
 /// let src = 5.0_f64;
 /// let mut dst = F(0.0);
-/// let dir = src.assign_round_to(&mut dst, Round::Nearest);
+/// let dir = src.assign_round_into(&mut dst, Round::Nearest);
 /// assert_eq!(dst.0, 5.0);
 /// assert_eq!(dir, Ordering::Equal);
 /// # }
 /// ```
-pub trait AssignRoundTo<Dst> {
+pub trait AssignRoundInto<Dst> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -1602,23 +1571,23 @@ pub trait AssignRoundTo<Dst> {
     /// # #[cfg(feature = "float")] {
     /// use rug::Float;
     /// use rug::float::Round;
-    /// use rug::ops::AssignRoundTo;
+    /// use rug::ops::AssignRoundInto;
     /// use std::cmp::Ordering;
-    /// // src implements AssignRoundTo<Float>
+    /// // src implements AssignRoundInto<Float>
     /// let src = 3.3_f64;
     /// // only four significant bits
     /// let mut dst = Float::new(4);
-    /// let dir = src.assign_round_to(&mut dst, Round::Nearest);
+    /// let dir = src.assign_round_into(&mut dst, Round::Nearest);
     /// // 3.3 rounded down to 3.25
     /// assert_eq!(dst, 3.25);
     /// assert_eq!(dir, Ordering::Less);
-    /// let dir = src.assign_round_to(&mut dst, Round::Up);
+    /// let dir = src.assign_round_into(&mut dst, Round::Up);
     /// // 3.3 rounded up to 3.5
     /// assert_eq!(dst, 3.5);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn assign_round_to(
+    fn assign_round_into(
         self,
         dst: &mut Dst,
         round: Self::Round,

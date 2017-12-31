@@ -25,9 +25,9 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
 use misc;
-use ops::{AssignRound, AssignRoundTo, NegAssign};
+use ops::{AssignRound, AssignRoundInto, NegAssign};
 #[cfg(feature = "rand")]
-use ops::AssignTo;
+use ops::AssignInto;
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -2036,7 +2036,7 @@ impl Float {
         /// Computes the square.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2094,7 +2094,7 @@ impl Float {
         /// Computes the square root.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2111,7 +2111,7 @@ impl Float {
         /// Computes the square root of `u`.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2131,7 +2131,7 @@ impl Float {
                          replaced with `f.assign(Float::sqrt_u(u))`.")]
     #[inline]
     pub fn assign_sqrt_u(&mut self, u: u32) {
-        Float::sqrt_u(u).assign_round_to(self, Round::Nearest);
+        Float::sqrt_u(u).assign_round_into(self, Round::Nearest);
     }
 
     /// Sets `self` to the square root of `u`, applying the specified
@@ -2142,7 +2142,7 @@ impl Float {
                          with `f.assign_round(Float::sqrt_u(u), round)`.")]
     #[inline]
     pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        Float::sqrt_u(u).assign_round_to(self, round)
+        Float::sqrt_u(u).assign_round_into(self, round)
     }
 
     math_op1_float! {
@@ -2190,7 +2190,7 @@ impl Float {
         /// Computes the reciprocal square root.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2248,7 +2248,7 @@ impl Float {
         /// Computes the cube root.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2306,7 +2306,7 @@ impl Float {
         /// Computes the <i>k</i>th root.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2346,7 +2346,7 @@ impl Float {
         /// Computes the absolute value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2398,7 +2398,7 @@ impl Float {
         /// * NaN if the value is NaN
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2558,7 +2558,7 @@ impl Float {
     /// Clamps the value within the specified bounds.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -2645,7 +2645,7 @@ impl Float {
         /// Computes the reciprocal.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2702,7 +2702,7 @@ impl Float {
         /// Finds the minimum.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2760,7 +2760,7 @@ impl Float {
         /// Finds the maximum.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2844,7 +2844,7 @@ impl Float {
         /// is NaN.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2908,7 +2908,7 @@ impl Float {
         /// Computes the natural logarithm.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2925,7 +2925,7 @@ impl Float {
         /// Computes the natural logarithm of `u`.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -2986,7 +2986,7 @@ impl Float {
         /// Computes the logarithm to base 2.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3046,7 +3046,7 @@ impl Float {
         /// Computes the logarithm to base 10.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3106,7 +3106,7 @@ impl Float {
         /// Computes the exponential.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3166,7 +3166,7 @@ impl Float {
         /// Computes 2 to the power of the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3226,7 +3226,7 @@ impl Float {
         /// Computes 10 to the power of the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3285,7 +3285,7 @@ impl Float {
         /// Computes the sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3344,7 +3344,7 @@ impl Float {
         /// Computes the cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3403,7 +3403,7 @@ impl Float {
         /// Computes the tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3483,7 +3483,7 @@ impl Float {
         /// Computes the sine and cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<(&mut Float, &mut Float)>`][art].
+        /// [`AssignRoundInto<(&mut Float, &mut Float)>`][art].
         ///
         /// # Examples
         ///
@@ -3513,7 +3513,7 @@ impl Float {
         /// assert_eq!(dir_cos, Ordering::Less);
         /// ```
         ///
-        /// [art]: (../ops/trait.AssignRoundTo.html)
+        /// [art]: (../ops/trait.AssignRoundInto.html)
         fn sin_cos_ref -> SinCosRef;
     }
     math_op1_float! {
@@ -3562,7 +3562,7 @@ impl Float {
         /// Computes the secant.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3621,7 +3621,7 @@ impl Float {
         /// Computes the cosecant.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3681,7 +3681,7 @@ impl Float {
         /// Computes the cotangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3740,7 +3740,7 @@ impl Float {
         /// Computes the arc-sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3800,7 +3800,7 @@ impl Float {
         /// Computes the arc-cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3860,7 +3860,7 @@ impl Float {
         /// Computes the arc-tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3937,7 +3937,7 @@ impl Float {
         /// has an output range of 2<i>π</i> rather than *π*.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -3999,7 +3999,7 @@ impl Float {
         /// Computes the hyperbolic sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4059,7 +4059,7 @@ impl Float {
         /// Computes the hyperbolic cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4119,7 +4119,7 @@ impl Float {
         /// Computes the hyperbolic tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4199,7 +4199,7 @@ impl Float {
         /// Computes the hyperbolic sine and cosine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<(&mut Float, &mut Float)>`][art].
+        /// [`AssignRoundInto<(&mut Float, &mut Float)>`][art].
         ///
         /// # Examples
         ///
@@ -4229,7 +4229,7 @@ impl Float {
         /// assert_eq!(dir_cosh, Ordering::Less);
         /// ```
         ///
-        /// [art]: (../ops/trait.AssignRoundTo.html)
+        /// [art]: (../ops/trait.AssignRoundInto.html)
         fn sinh_cosh_ref -> SinhCoshRef;
     }
     math_op1_float! {
@@ -4279,7 +4279,7 @@ impl Float {
         /// Computes the hyperbolic secant.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4339,7 +4339,7 @@ impl Float {
         /// Computes the hyperbolic cosecant.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4399,7 +4399,7 @@ impl Float {
         /// Computes the hyperbolic cotangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4459,7 +4459,7 @@ impl Float {
         /// Computes the inverse hyperbolic sine.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4521,7 +4521,7 @@ impl Float {
         /// Computes the inverse hyperbolic cosine
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4583,7 +4583,7 @@ impl Float {
         /// Computes the inverse hyperbolic tangent.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4600,7 +4600,7 @@ impl Float {
         /// Computes the factorial of *n*.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4621,7 +4621,7 @@ impl Float {
                          `f.assign(Float::factorial(u))`.")]
     #[inline]
     pub fn assign_factorial_u(&mut self, u: u32) {
-        Float::factorial(u).assign_round_to(self, Round::Nearest);
+        Float::factorial(u).assign_round_into(self, Round::Nearest);
     }
 
     /// Sets `self` to the factorial of *u*, applying the specified
@@ -4637,7 +4637,7 @@ impl Float {
         u: u32,
         round: Round,
     ) -> Ordering {
-        Float::factorial(u).assign_round_to(self, round)
+        Float::factorial(u).assign_round_into(self, round)
     }
 
     math_op1_float! {
@@ -4692,7 +4692,7 @@ impl Float {
         /// Computes the natural logorithm of one plus the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4759,7 +4759,7 @@ impl Float {
         /// value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4820,7 +4820,7 @@ impl Float {
         /// Computes the exponential integral.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4883,7 +4883,7 @@ impl Float {
         /// value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -4945,7 +4945,7 @@ impl Float {
         /// Computes the gamma function on the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5010,7 +5010,7 @@ impl Float {
         /// Computes the upper incomplete gamma function on the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5074,7 +5074,7 @@ impl Float {
         /// the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5214,7 +5214,7 @@ impl Float {
     /// function on `val`.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<(&mut Float, &mut Ordering)>`][art].
+    /// [`AssignRoundInto<(&mut Float, &mut Ordering)>`][art].
     ///
     /// # Examples
     ///
@@ -5238,7 +5238,7 @@ impl Float {
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [art]: (../ops/trait.AssignRoundTo.html)
+    /// [art]: (../ops/trait.AssignRoundInto.html)
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaRef {
         LnAbsGammaRef { ref_self: self }
@@ -5293,7 +5293,7 @@ impl Float {
         /// Computes the Digamma function on the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5355,7 +5355,7 @@ impl Float {
         /// Computes the Riemann Zeta function on the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5372,7 +5372,7 @@ impl Float {
         /// Computes the Riemann Zeta function on *u*.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5393,7 +5393,7 @@ impl Float {
                          replaced with `f.assign(Float::zeta_u(u))`.")]
     #[inline]
     pub fn assign_zeta_u(&mut self, u: u32) {
-        Float::zeta_u(u).assign_round_to(self, Round::Nearest);
+        Float::zeta_u(u).assign_round_into(self, Round::Nearest);
     }
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
@@ -5404,7 +5404,7 @@ impl Float {
                          with `f.assign_round(Float::zeta_u(u), round)`.")]
     #[inline]
     pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        Float::zeta_u(u).assign_round_to(self, round)
+        Float::zeta_u(u).assign_round_into(self, round)
     }
 
     math_op1_float! {
@@ -5456,7 +5456,7 @@ impl Float {
         /// Computes the error function.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5518,7 +5518,7 @@ impl Float {
         /// Computes the complementary error function.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5580,7 +5580,7 @@ impl Float {
         /// Computes the first kind Bessel function of order 0.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5642,7 +5642,7 @@ impl Float {
         /// Computes the first kind Bessel function of order 1.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5704,7 +5704,7 @@ impl Float {
         /// Computes the first kind Bessel function of order *n*.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5766,7 +5766,7 @@ impl Float {
         /// Computes the second kind Bessel function of order 0.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5828,7 +5828,7 @@ impl Float {
         /// Computes the second kind Bessel function of order 1.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5890,7 +5890,7 @@ impl Float {
         /// Computes the second kind Bessel function of order *n*.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -5955,7 +5955,7 @@ impl Float {
         /// Computes the arithmetic-geometric mean.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6021,7 +6021,7 @@ impl Float {
         /// Computes the Euclidean norm.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6084,7 +6084,7 @@ impl Float {
         /// Computes the Airy function Ai on the value.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6131,7 +6131,7 @@ impl Float {
         /// rounded again when assigned to the target.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6180,7 +6180,7 @@ impl Float {
         /// rounded again when assigned to the target.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6232,7 +6232,7 @@ impl Float {
         /// assigned to the target.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6304,7 +6304,7 @@ impl Float {
         /// target.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6353,7 +6353,7 @@ impl Float {
         /// rounded again when assigned to the target.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6401,7 +6401,7 @@ impl Float {
         /// Gets the fractional part of the number.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6497,7 +6497,7 @@ impl Float {
         /// Gets the integer and fractional parts of the number.
         ///
         /// The returned object implements
-        /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+        /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
         ///
         /// # Examples
         ///
@@ -6531,7 +6531,7 @@ impl Float {
     /// the precision will be used.
     ///
     /// The returned object implements
-    /// [`AssignTo<Result<&mut Float, &mut Float>`][at].
+    /// [`AssignInto<Result<&mut Float, &mut Float>`][at].
     ///
     /// # Examples
     ///
@@ -6555,7 +6555,7 @@ impl Float {
     /// number is set to NaN and an error is returned. This would most
     /// likely be a programming error.
     ///
-    /// [at]: (../ops/trait.AssignTo.html)
+    /// [at]: (../ops/trait.AssignInto.html)
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -6607,7 +6607,7 @@ impl Float {
         rng: &mut RandState,
     ) -> Result<(), ()> {
         let mut r = Ok(self);
-        Float::random_bits(rng).assign_to(&mut r);
+        Float::random_bits(rng).assign_into(&mut r);
         match r {
             Ok(_) => Ok(()),
             Err(_) => Err(()),
@@ -6632,7 +6632,7 @@ impl Float {
     /// considered to have infinite precision before rounding.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -6663,7 +6663,7 @@ impl Float {
                          `f.assign(Float::random_cont(rng))`.")]
     #[inline]
     pub fn assign_random_cont(&mut self, rng: &mut RandState) {
-        Float::random_cont(rng).assign_round_to(self, Round::Nearest);
+        Float::random_cont(rng).assign_round_into(self, Round::Nearest);
     }
 
     #[cfg(feature = "rand")]
@@ -6680,7 +6680,7 @@ impl Float {
         rng: &mut RandState,
         round: Round,
     ) -> Ordering {
-        Float::random_cont(rng).assign_round_to(self, round)
+        Float::random_cont(rng).assign_round_into(self, round)
     }
 
     #[cfg(feature = "rand")]
@@ -6692,7 +6692,7 @@ impl Float {
     /// considered to have infinite precision before rounding.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -6727,9 +6727,9 @@ impl Float {
         other: Option<&mut Float>,
         rng: &mut RandState,
     ) {
-        Float::random_normal(rng).assign_round_to(self, Round::Nearest);
+        Float::random_normal(rng).assign_round_into(self, Round::Nearest);
         if let Some(other) = other {
-            Float::random_normal(rng).assign_round_to(other, Round::Nearest);
+            Float::random_normal(rng).assign_round_into(other, Round::Nearest);
         }
     }
 
@@ -6754,9 +6754,9 @@ impl Float {
         rng: &mut RandState,
         round: Round,
     ) -> (Ordering, Ordering) {
-        let first = Float::random_normal(rng).assign_round_to(self, round);
+        let first = Float::random_normal(rng).assign_round_into(self, round);
         let second = if let Some(other) = other {
-            Float::random_normal(rng).assign_round_to(other, round)
+            Float::random_normal(rng).assign_round_into(other, round)
         } else {
             Ordering::Equal
         };
@@ -6772,7 +6772,7 @@ impl Float {
     /// considered to have infinite precision before rounding.
     ///
     /// The returned object implements
-    /// [`AssignRoundTo<Float>`](../ops/trait.AssignRoundTo.html).
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
     ///
     /// # Examples
     ///
@@ -6815,7 +6815,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> AssignRoundTo<Float> for ClampRef<'a, Min, Max>
+impl<'a, Min, Max> AssignRoundInto<Float> for ClampRef<'a, Min, Max>
 where
     Float: PartialOrd<Min>
         + PartialOrd<Max>
@@ -6827,7 +6827,7 @@ where
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         if self.ref_self.lt(self.min) {
             let dir = dst.assign_round(self.min, round);
             if (*dst).gt(self.max) {
@@ -6903,12 +6903,12 @@ pub struct LnAbsGammaRef<'a> {
     ref_self: &'a Float,
 }
 
-impl<'a, 'b, 'c> AssignRoundTo<(&'a mut Float, &'b mut Ordering)>
+impl<'a, 'b, 'c> AssignRoundInto<(&'a mut Float, &'b mut Ordering)>
     for LnAbsGammaRef<'c> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(
+    fn assign_round_into(
         self,
         dst: &mut (&'a mut Float, &'b mut Ordering),
         round: Round,
@@ -6960,10 +6960,10 @@ pub struct RandomBits<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b, 'c: 'b> AssignTo<Result<&'a mut Float, &'a mut Float>>
+impl<'a, 'b, 'c: 'b> AssignInto<Result<&'a mut Float, &'a mut Float>>
     for RandomBits<'b, 'c> {
     #[inline]
-    fn assign_to(self, dst: &mut Result<&'a mut Float, &'a mut Float>) {
+    fn assign_into(self, dst: &mut Result<&'a mut Float, &'a mut Float>) {
         let err = match *dst {
             Ok(ref mut dest) | Err(ref mut dest) => unsafe {
                 mpfr::urandomb(dest.inner_mut(), self.rng.inner_mut())
@@ -6981,11 +6981,11 @@ pub struct RandomCont<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRoundTo<Float> for RandomCont<'a, 'b> {
+impl<'a, 'b: 'a> AssignRoundInto<Float> for RandomCont<'a, 'b> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::urandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
         };
@@ -6999,11 +6999,11 @@ pub struct RandomNormal<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRoundTo<Float> for RandomNormal<'a, 'b> {
+impl<'a, 'b: 'a> AssignRoundInto<Float> for RandomNormal<'a, 'b> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::nrandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
         };
@@ -7017,11 +7017,11 @@ pub struct RandomExp<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRoundTo<Float> for RandomExp<'a, 'b> {
+impl<'a, 'b: 'a> AssignRoundInto<Float> for RandomExp<'a, 'b> {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::erandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
         };
@@ -7205,10 +7205,10 @@ enum ValidPoss<'a> {
     NegNan,
 }
 
-impl<'a> AssignRoundTo<Float> for ValidFloat<'a> {
+impl<'a> AssignRoundInto<Float> for ValidFloat<'a> {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round_to(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let bytes = match self.poss {
             ValidPoss::Special(s) => {
                 dst.assign(s);
