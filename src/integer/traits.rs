@@ -194,6 +194,30 @@ where
     }
 }
 
+macro_rules! assign_to_cast {
+    { $New:ty, $Existing:ty } => {
+        impl AssignTo<Integer> for $New {
+            #[inline]
+            fn assign_to(self, dst: &mut Integer) {
+                <$Existing as AssignTo<Integer>>::assign_to(
+                    self as $Existing,
+                    dst,
+                );
+            }
+
+            #[inline]
+            fn to_new(self) -> Integer {
+                <$Existing as AssignTo<Integer>>::to_new(self as $Existing)
+            }
+        }
+
+        assign_to! { $New => Integer }
+    }
+}
+
+assign_to_cast! { i8, i32 }
+assign_to_cast! { i16, i32 }
+
 impl AssignTo<Integer> for i32 {
     #[inline]
     fn assign_to(self, dst: &mut Integer) {
@@ -212,7 +236,7 @@ impl AssignTo<Integer> for i32 {
     }
 }
 
-assign_to!{ i32 => Integer }
+assign_to! { i32 => Integer }
 
 impl AssignTo<Integer> for i64 {
     #[inline]
@@ -238,7 +262,17 @@ impl AssignTo<Integer> for i64 {
     }
 }
 
-assign_to!{ i64 => Integer }
+assign_to! { i64 => Integer }
+
+#[cfg(target_pointer_width = "16")]
+assign_to_cast! { isize, i16 }
+#[cfg(target_pointer_width = "32")]
+assign_to_cast! { isize, i32 }
+#[cfg(target_pointer_width = "64")]
+assign_to_cast! { isize, i64 }
+
+assign_to_cast! { u8, u32 }
+assign_to_cast! { u16, u32 }
 
 impl AssignTo<Integer> for u32 {
     #[inline]
@@ -258,7 +292,7 @@ impl AssignTo<Integer> for u32 {
     }
 }
 
-assign_to!{ u32 => Integer }
+assign_to! { u32 => Integer }
 
 impl AssignTo<Integer> for u64 {
     #[inline]
@@ -284,7 +318,14 @@ impl AssignTo<Integer> for u64 {
     }
 }
 
-assign_to!{ u64 => Integer }
+assign_to! { u64 => Integer }
+
+#[cfg(target_pointer_width = "16")]
+assign_to_cast! { usize, u16 }
+#[cfg(target_pointer_width = "32")]
+assign_to_cast! { usize, u32 }
+#[cfg(target_pointer_width = "64")]
+assign_to_cast! { usize, u64 }
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;

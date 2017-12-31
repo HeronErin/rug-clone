@@ -434,6 +434,48 @@ impl Integer {
         Ok(v)
     }
 
+    /// Converts to an `i8` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(-100);
+    /// assert_eq!(fits.to_i8(), Some(-100));
+    /// let small = Integer::from(-200);
+    /// assert_eq!(small.to_i8(), None);
+    /// let large = Integer::from(200);
+    /// assert_eq!(large.to_i8(), None);
+    /// ```
+    #[inline]
+    pub fn to_i8(&self) -> Option<i8> {
+        if unsafe { xgmp::mpz_fits_i8(self.inner()) } {
+            Some(self.to_i8_wrapping())
+        } else {
+            None
+        }
+    }
+
+    /// Converts to an `i16` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(-30_000);
+    /// assert_eq!(fits.to_i16(), Some(-30_000));
+    /// let small = Integer::from(-40_000);
+    /// assert_eq!(small.to_i16(), None);
+    /// let large = Integer::from(40_000);
+    /// assert_eq!(large.to_i16(), None);
+    /// ```
+    #[inline]
+    pub fn to_i16(&self) -> Option<i16> {
+        if unsafe { xgmp::mpz_fits_i16(self.inner()) } {
+            Some(self.to_i16_wrapping())
+        } else {
+            None
+        }
+    }
+
     /// Converts to an `i32` if the value fits.
     ///
     /// # Examples
@@ -443,7 +485,7 @@ impl Integer {
     /// assert_eq!(fits.to_i32(), Some(-50));
     /// let small = Integer::from(-123456789012345_i64);
     /// assert_eq!(small.to_i32(), None);
-    /// let large = Integer::from(123456789012345_u64);
+    /// let large = Integer::from(123456789012345_i64);
     /// assert_eq!(large.to_i32(), None);
     /// ```
     #[inline]
@@ -476,6 +518,74 @@ impl Integer {
         }
     }
 
+    /// Converts to an `isize` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(0x1000);
+    /// assert_eq!(fits.to_isize(), Some(0x1000));
+    /// let large: Integer = Integer::from(0x1000) << 128;
+    /// assert_eq!(large.to_isize(), None);
+    /// ```
+    #[inline]
+    pub fn to_isize(&self) -> Option<isize> {
+        #[cfg(target_pointer_width = "16")]
+        {
+            self.to_i16().map(|i| i as isize)
+        }
+        #[cfg(target_pointer_width = "32")]
+        {
+            self.to_i32().map(|i| i as isize)
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            self.to_i64().map(|i| i as isize)
+        }
+    }
+
+    /// Converts to a `u8` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(200);
+    /// assert_eq!(fits.to_u8(), Some(200));
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(neg.to_u8(), None);
+    /// let large = Integer::from(300);
+    /// assert_eq!(large.to_u8(), None);
+    /// ```
+    #[inline]
+    pub fn to_u8(&self) -> Option<u8> {
+        if unsafe { xgmp::mpz_fits_u8(self.inner()) } {
+            Some(self.to_u8_wrapping())
+        } else {
+            None
+        }
+    }
+
+    /// Converts to a `u16` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(60_000);
+    /// assert_eq!(fits.to_u16(), Some(60_000));
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(neg.to_u16(), None);
+    /// let large = Integer::from(70_000);
+    /// assert_eq!(large.to_u16(), None);
+    /// ```
+    #[inline]
+    pub fn to_u16(&self) -> Option<u16> {
+        if unsafe { xgmp::mpz_fits_u16(self.inner()) } {
+            Some(self.to_u16_wrapping())
+        } else {
+            None
+        }
+    }
+
     /// Converts to a `u32` if the value fits.
     ///
     /// # Examples
@@ -485,7 +595,7 @@ impl Integer {
     /// assert_eq!(fits.to_u32(), Some(1234567890));
     /// let neg = Integer::from(-1);
     /// assert_eq!(neg.to_u32(), None);
-    /// let large = "123456789012345".parse::<Integer>().unwrap();
+    /// let large = Integer::from(123456789012345_u64);
     /// assert_eq!(large.to_u32(), None);
     /// ```
     #[inline]
@@ -518,17 +628,67 @@ impl Integer {
         }
     }
 
+    /// Converts to a `usize` if the value fits.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(0x1000);
+    /// assert_eq!(fits.to_usize(), Some(0x1000));
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(neg.to_usize(), None);
+    /// let large: Integer = Integer::from(0x1000) << 128;
+    /// assert_eq!(large.to_usize(), None);
+    /// ```
+    #[inline]
+    pub fn to_usize(&self) -> Option<usize> {
+        #[cfg(target_pointer_width = "16")]
+        {
+            self.to_u16().map(|u| u as usize)
+        }
+        #[cfg(target_pointer_width = "32")]
+        {
+            self.to_u32().map(|u| u as usize)
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            self.to_u64().map(|u| u as usize)
+        }
+    }
+
+    /// Converts to an `i8`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let large = Integer::from(0x1234);
+    /// assert_eq!(large.to_i8_wrapping(), 0x34);
+    /// ```
+    #[inline]
+    pub fn to_i8_wrapping(&self) -> i8 {
+        self.to_u8_wrapping() as i8
+    }
+
+    /// Converts to an `i16`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let large = Integer::from(0x1234_5678);
+    /// assert_eq!(large.to_i16_wrapping(), 0x5678);
+    /// ```
+    #[inline]
+    pub fn to_i16_wrapping(&self) -> i16 {
+        self.to_u16_wrapping() as i16
+    }
+
     /// Converts to an `i32`, wrapping if the value does not fit.
     ///
     /// # Examples
     /// ```rust
     /// use rug::Integer;
-    /// let fits = Integer::from(-0xabcdef_i32);
-    /// assert_eq!(fits.to_i32_wrapping(), -0xabcdef);
-    /// let small = Integer::from(0x1_ffff_ffff_u64);
-    /// assert_eq!(small.to_i32_wrapping(), -1);
-    /// let large = Integer::from_str_radix("1234567890abcdef", 16).unwrap();
-    /// assert_eq!(large.to_i32_wrapping(), 0x90abcdef_u32 as i32);
+    /// let large = Integer::from(0x1234_5678_9abc_def0_u64);
+    /// assert_eq!(large.to_i32_wrapping(), 0x9abc_def0_u32 as i32);
     /// ```
     #[inline]
     pub fn to_i32_wrapping(&self) -> i32 {
@@ -540,16 +700,65 @@ impl Integer {
     /// # Examples
     /// ```rust
     /// use rug::Integer;
-    /// let fits = Integer::from(-0xabcdef);
-    /// assert_eq!(fits.to_i64_wrapping(), -0xabcdef);
-    /// let small = Integer::from_str_radix("1ffffffffffffffff", 16).unwrap();
-    /// assert_eq!(small.to_i64_wrapping(), -1);
-    /// let large = Integer::from_str_radix("f1234567890abcdef", 16).unwrap();
-    /// assert_eq!(large.to_i64_wrapping(), 0x1234567890abcdef_i64);
+    /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
+    /// assert_eq!(large.to_i64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     #[inline]
     pub fn to_i64_wrapping(&self) -> i64 {
         self.to_u64_wrapping() as i64
+    }
+
+    /// Converts to an `isize`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let large: Integer = (Integer::from(0x1000) << 128) | 0x1234;
+    /// assert_eq!(large.to_isize_wrapping(), 0x1234);
+    /// ```
+    #[inline]
+    pub fn to_isize_wrapping(&self) -> isize {
+        self.to_usize_wrapping() as isize
+    }
+
+    /// Converts to a `u8`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(neg.to_u8_wrapping(), 0xff);
+    /// let large = Integer::from(0x1234);
+    /// assert_eq!(large.to_u8_wrapping(), 0x34);
+    /// ```
+    #[inline]
+    pub fn to_u8_wrapping(&self) -> u8 {
+        let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) as u8 };
+        if self.cmp0() == Ordering::Less {
+            u.wrapping_neg()
+        } else {
+            u
+        }
+    }
+
+    /// Converts to a `u16`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(neg.to_u16_wrapping(), 0xffff);
+    /// let large = Integer::from(0x1234_5678);
+    /// assert_eq!(large.to_u16_wrapping(), 0x5678);
+    /// ```
+    #[inline]
+    pub fn to_u16_wrapping(&self) -> u16 {
+        let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) as u16 };
+        if self.cmp0() == Ordering::Less {
+            u.wrapping_neg()
+        } else {
+            u
+        }
     }
 
     /// Converts to a `u32`, wrapping if the value does not fit.
@@ -557,12 +766,10 @@ impl Integer {
     /// # Examples
     /// ```rust
     /// use rug::Integer;
-    /// let fits = Integer::from(0x90abcdef_u32);
-    /// assert_eq!(fits.to_u32_wrapping(), 0x90abcdef);
     /// let neg = Integer::from(-1);
-    /// assert_eq!(neg.to_u32_wrapping(), 0xffffffff);
-    /// let large = Integer::from_str_radix("1234567890abcdef", 16).unwrap();
-    /// assert_eq!(large.to_u32_wrapping(), 0x90abcdef);
+    /// assert_eq!(neg.to_u32_wrapping(), 0xffff_ffff);
+    /// let large = Integer::from(0x1234_5678_9abc_def0_u64);
+    /// assert_eq!(large.to_u32_wrapping(), 0x9abc_def0);
     /// ```
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
@@ -579,12 +786,10 @@ impl Integer {
     /// # Examples
     /// ```rust
     /// use rug::Integer;
-    /// let fits = Integer::from(0x90abcdef_u64);
-    /// assert_eq!(fits.to_u64_wrapping(), 0x90abcdef);
     /// let neg = Integer::from(-1);
     /// assert_eq!(neg.to_u64_wrapping(), 0xffff_ffff_ffff_ffff);
     /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
-    /// assert_eq!(large.to_u64_wrapping(), 0x123456789abcdef0);
+    /// assert_eq!(large.to_u64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
@@ -593,6 +798,30 @@ impl Integer {
             u.wrapping_neg()
         } else {
             u
+        }
+    }
+
+    /// Converts to a `usize`, wrapping if the value does not fit.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Integer;
+    /// let large: Integer = (Integer::from(0x1000) << 128) | 0x1234;
+    /// assert_eq!(large.to_usize_wrapping(), 0x1234);
+    /// ```
+    #[inline]
+    pub fn to_usize_wrapping(&self) -> usize {
+        #[cfg(target_pointer_width = "16")]
+        {
+            self.to_i16_wrapping() as usize
+        }
+        #[cfg(target_pointer_width = "32")]
+        {
+            self.to_i32_wrapping() as usize
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            self.to_i64_wrapping() as usize
         }
     }
 
@@ -709,8 +938,8 @@ impl Integer {
     /// assert_eq!(i.to_string_radix(16), "-a");
     /// i.assign(0x1234cdef);
     /// assert_eq!(i.to_string_radix(4), "102031030313233");
-    /// i.assign_str_radix("1234567890aAbBcCdDeEfF", 16).unwrap();
-    /// assert_eq!(i.to_string_radix(16), "1234567890aabbccddeeff");
+    /// i.assign_str_radix("123456789aAbBcCdDeEfF", 16).unwrap();
+    /// assert_eq!(i.to_string_radix(16), "123456789aabbccddeeff");
     /// ```
     ///
     /// # Panics

@@ -56,7 +56,7 @@ macro_rules! cmp {
         impl PartialEq<Integer> for $T {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                other.eq(self)
+                <Integer as PartialEq<$T>>::eq(other, self)
             }
         }
 
@@ -71,46 +71,80 @@ macro_rules! cmp {
         impl PartialOrd<Integer> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-                other.partial_cmp(self).map(Ordering::reverse)
+                <Integer as PartialOrd<$T>>::partial_cmp(other, self)
+                    .map(Ordering::reverse)
             }
         }
     };
 }
 
+macro_rules! cmp_cast {
+    { $New:ty, $Existing:ty } => {
+        impl PartialEq<$New> for Integer {
+            #[inline]
+            fn eq(&self, other: &$New) -> bool {
+                <Integer as PartialEq<$Existing>>::eq(
+                    self,
+                    &(*other as $Existing),
+                )
+            }
+        }
+
+        impl PartialEq<Integer> for $New {
+            #[inline]
+            fn eq(&self, other: &Integer) -> bool {
+                <Integer as PartialEq<$Existing>>::eq(
+                    other,
+                    &(*self as $Existing),
+                )
+            }
+        }
+
+        impl PartialOrd<$New> for Integer {
+            #[inline]
+            fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
+                <Integer as PartialOrd<$Existing>>::partial_cmp(
+                    self,
+                    &(*other as $Existing),
+                )
+            }
+        }
+
+        impl PartialOrd<Integer> for $New {
+            #[inline]
+            fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
+                <Integer as PartialOrd<$Existing>>::partial_cmp(
+                    other,
+                    &(*self as $Existing),
+                ).map(Ordering::reverse)
+            }
+        }
+    }
+}
+
+cmp_cast! { i8, i32 }
+cmp_cast! { i16, i32 }
 cmp! { i32, xgmp::mpz_cmp_i32 }
 cmp! { i64, xgmp::mpz_cmp_i64 }
+#[cfg(target_pointer_width = "16")]
+cmp_cast! { isize, i16 }
+#[cfg(target_pointer_width = "32")]
+cmp_cast! { isize, i32 }
+#[cfg(target_pointer_width = "64")]
+cmp_cast! { isize, i64 }
+
+cmp_cast! { u8, u32 }
+cmp_cast! { u16, u32 }
 cmp! { u32, xgmp::mpz_cmp_u32 }
 cmp! { u64, xgmp::mpz_cmp_u64 }
+#[cfg(target_pointer_width = "16")]
+cmp_cast! { usize, u16 }
+#[cfg(target_pointer_width = "32")]
+cmp_cast! { usize, u32 }
+#[cfg(target_pointer_width = "64")]
+cmp_cast! { usize, u64 }
 
-impl PartialEq<f32> for Integer {
-    #[inline]
-    fn eq(&self, other: &f32) -> bool {
-        let o = f64::from(*other);
-        self.eq(&o)
-    }
-}
-
-impl PartialEq<Integer> for f32 {
-    #[inline]
-    fn eq(&self, other: &Integer) -> bool {
-        other.eq(self)
-    }
-}
-
-impl PartialOrd<f32> for Integer {
-    #[inline]
-    fn partial_cmp(&self, other: &f32) -> Option<Ordering> {
-        let o = f64::from(*other);
-        self.partial_cmp(&o)
-    }
-}
-
-impl PartialOrd<Integer> for f32 {
-    #[inline]
-    fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        other.partial_cmp(self).map(Ordering::reverse)
-    }
-}
+cmp_cast! { f32, f64 }
 
 impl PartialEq<f64> for Integer {
     #[inline]
@@ -122,7 +156,7 @@ impl PartialEq<f64> for Integer {
 impl PartialEq<Integer> for f64 {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        other.eq(self)
+        <Integer as PartialEq<f64>>::eq(other, self)
     }
 }
 
@@ -141,6 +175,7 @@ impl PartialOrd<f64> for Integer {
 impl PartialOrd<Integer> for f64 {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        other.partial_cmp(self).map(Ordering::reverse)
+        <Integer as PartialOrd<f64>>::partial_cmp(other, self)
+            .map(Ordering::reverse)
     }
 }

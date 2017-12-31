@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use std::{i32, i64, u32, u64};
+use std::{i16, i32, i64, i8, u16, u32, u64, u8};
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 
@@ -1214,6 +1214,44 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
         }
         _ if neg1 => -1,
         _ => 1,
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_fits_u8(op: *const mpz_t) -> bool {
+    match (*op).size {
+        0 => true,
+        1 => limb(op, 0) <= gmp::limb_t::from(u8::MAX),
+        _ => false,
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_fits_i8(op: *const mpz_t) -> bool {
+    match (*op).size {
+        0 => true,
+        1 => limb(op, 0) <= gmp::limb_t::from(i8::MAX as u8),
+        -1 => limb(op, 0) <= gmp::limb_t::from(i8::MIN as u8),
+        _ => false,
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_fits_u16(op: *const mpz_t) -> bool {
+    match (*op).size {
+        0 => true,
+        1 => limb(op, 0) <= gmp::limb_t::from(u16::MAX),
+        _ => false,
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_fits_i16(op: *const mpz_t) -> bool {
+    match (*op).size {
+        0 => true,
+        1 => limb(op, 0) <= gmp::limb_t::from(i16::MAX as u16),
+        -1 => limb(op, 0) <= gmp::limb_t::from(i16::MIN as u16),
+        _ => false,
     }
 }
 
