@@ -25,8 +25,9 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 #[repr(C)]
 /// A small integer that does not require any memory allocation.
 ///
-/// This can be useful when you have a `u64`, `i64`, `u32` or `i32`
-/// but need a reference to an [`Integer`](../struct.Integer.html).
+/// This can be useful when you have a primitive integer type such as
+/// `u64` or `i8`, but need a reference to an
+/// [`Integer`](../struct.Integer.html).
 ///
 /// If there are functions that take a `u32` or `i32` directly instead
 /// of an [`Integer`](../struct.Integer.html) reference, using them can
@@ -165,62 +166,76 @@ where
     }
 }
 
-impl Assign<i32> for SmallInteger {
-    #[inline]
-    fn assign(&mut self, val: i32) {
-        self.assign(val.wrapping_abs() as u32);
-        if val < 0 {
-            self.inner.size = -self.inner.size;
+macro_rules! signed {
+    { $I:ty, $U:ty } => {
+        impl Assign<$I> for SmallInteger {
+            #[inline]
+            fn assign(&mut self, val: $I) {
+                self.assign(val.wrapping_abs() as $U);
+                if val < 0 {
+                    self.inner.size = -self.inner.size;
+                }
+            }
         }
     }
 }
 
-impl Assign<i64> for SmallInteger {
-    #[inline]
-    fn assign(&mut self, val: i64) {
-        self.assign(val.wrapping_abs() as u64);
-        if val < 0 {
-            self.inner.size = -self.inner.size;
+macro_rules! one_limb {
+    { $U:ty } => {
+        impl Assign<$U> for SmallInteger {
+            #[inline]
+            fn assign(&mut self, val: $U) {
+                if val == 0 {
+                    self.inner.size = 0;
+                } else {
+                    self.inner.size = 1;
+                    self.limbs[0] = val.into();
+                }
+            }
         }
     }
 }
 
-impl Assign<u32> for SmallInteger {
-    #[inline]
-    fn assign(&mut self, val: u32) {
-        if val == 0 {
-            self.inner.size = 0;
-        } else {
-            self.inner.size = 1;
-            self.limbs[0] = val.into();
-        }
-    }
-}
+signed! { i8, u8 }
+signed! { i16, u16 }
+signed! { i32, u32 }
+signed! { i64, u64 }
+signed! { isize, usize }
 
+one_limb! { u8 }
+one_limb! { u16 }
+one_limb! { u32 }
+
+#[cfg(gmp_limb_bits_64)]
+one_limb! { u64 }
+
+#[cfg(gmp_limb_bits_32)]
 impl Assign<u64> for SmallInteger {
     #[inline]
     fn assign(&mut self, val: u64) {
-        #[cfg(gmp_limb_bits_64)]
-        {
-            if val == 0 {
-                self.inner.size = 0;
-            } else {
-                self.inner.size = 1;
-                self.limbs[0] = val as gmp::limb_t;
-            }
+        if val == 0 {
+            self.inner.size = 0;
+        } else if val <= 0xffff_ffff {
+            self.inner.size = 1;
+            self.limbs[0] = val as u32 as gmp::limb_t;
+        } else {
+            self.inner.size = 2;
+            self.limbs[0] = val as u32 as gmp::limb_t;
+            self.limbs[1] = (val >> 32) as u32 as gmp::limb_t;
         }
-        #[cfg(gmp_limb_bits_32)]
+    }
+}
+
+impl Assign<usize> for SmallInteger {
+    #[inline]
+    fn assign(&mut self, val: usize) {
+        #[cfg(target_pointer_width = "32")]
         {
-            if val == 0 {
-                self.inner.size = 0;
-            } else if val <= 0xffff_ffff {
-                self.inner.size = 1;
-                self.limbs[0] = val as u32 as gmp::limb_t;
-            } else {
-                self.inner.size = 2;
-                self.limbs[0] = val as u32 as gmp::limb_t;
-                self.limbs[1] = (val >> 32) as u32 as gmp::limb_t;
-            }
+            self.assign(val as u32);
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            self.assign(val as u64);
         }
     }
 }

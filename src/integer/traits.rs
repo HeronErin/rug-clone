@@ -27,7 +27,6 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::hash::{Hash, Hasher};
 use std::mem;
-use std::os::raw::{c_long, c_ulong};
 use std::slice;
 use std::str::FromStr;
 
@@ -200,6 +199,32 @@ impl<'a> From<&'a Integer> for Integer {
     }
 }
 
+macro_rules! assign_into {
+    { $T:ty, $set:path, $init_set:path } => {
+        impl AssignInto<Integer> for $T {
+            #[inline]
+            fn assign_into(self, dst: &mut Integer) {
+                unsafe {
+                    $set(dst.inner_mut(), self.into());
+                }
+            }
+        }
+
+        impl From<$T> for Integer {
+            #[inline]
+            fn from(src: $T) -> Self {
+                unsafe {
+                    let mut dst: Integer = mem::uninitialized();
+                    $init_set(dst.inner_mut(), src.into());
+                    dst
+                }
+            }
+        }
+
+        assign_into_deref! { $T => Integer }
+    }
+}
+
 macro_rules! assign_into_cast {
     { $New:ty, $Existing:ty } => {
         impl AssignInto<Integer> for $New {
@@ -223,121 +248,19 @@ macro_rules! assign_into_cast {
     }
 }
 
-assign_into_cast! { i8, i32 }
-assign_into_cast! { i16, i32 }
-
-impl AssignInto<Integer> for i32 {
-    #[inline]
-    fn assign_into(self, dst: &mut Integer) {
-        unsafe {
-            xgmp::mpz_set_i32(dst.inner_mut(), self);
-        }
-    }
-}
-
-impl From<i32> for Integer {
-    #[inline]
-    fn from(src: i32) -> Self {
-        unsafe {
-            let mut dst: Integer = mem::uninitialized();
-            gmp::mpz_init_set_si(dst.inner_mut(), src.into());
-            dst
-        }
-    }
-}
-
-assign_into_deref! { i32 => Integer }
-
-impl AssignInto<Integer> for i64 {
-    #[inline]
-    fn assign_into(self, dst: &mut Integer) {
-        unsafe {
-            xgmp::mpz_set_i64(dst.inner_mut(), self);
-        }
-    }
-}
-
-impl From<i64> for Integer {
-    #[inline]
-    fn from(src: i64) -> Self {
-        let mut dst: Integer;
-        if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
-            unsafe {
-                dst = mem::uninitialized();
-                gmp::mpz_init_set_si(dst.inner_mut(), src as c_long);
-            }
-        } else {
-            dst = Integer::new();
-            src.assign_into(&mut dst);
-        }
-        dst
-    }
-}
-
-assign_into_deref! { i64 => Integer }
-
-#[cfg(target_pointer_width = "16")]
-assign_into_cast! { isize, i16 }
+assign_into! { i8, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
+assign_into! { i16, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
+assign_into! { i32, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
+assign_into! { i64, xgmp::mpz_set_i64, xgmp::mpz_init_set_i64 }
 #[cfg(target_pointer_width = "32")]
 assign_into_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 assign_into_cast! { isize, i64 }
 
-assign_into_cast! { u8, u32 }
-assign_into_cast! { u16, u32 }
-
-impl AssignInto<Integer> for u32 {
-    #[inline]
-    fn assign_into(self, dst: &mut Integer) {
-        unsafe {
-            xgmp::mpz_set_u32(dst.inner_mut(), self);
-        }
-    }
-}
-
-impl From<u32> for Integer {
-    #[inline]
-    fn from(src: u32) -> Self {
-        unsafe {
-            let mut dst: Integer = mem::uninitialized();
-            gmp::mpz_init_set_ui(dst.inner_mut(), src.into());
-            dst
-        }
-    }
-}
-
-assign_into_deref! { u32 => Integer }
-
-impl AssignInto<Integer> for u64 {
-    #[inline]
-    fn assign_into(self, dst: &mut Integer) {
-        unsafe {
-            xgmp::mpz_set_u64(dst.inner_mut(), self);
-        }
-    }
-}
-
-impl From<u64> for Integer {
-    #[inline]
-    fn from(src: u64) -> Self {
-        let mut dst: Integer;
-        if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
-            unsafe {
-                dst = mem::uninitialized();
-                gmp::mpz_init_set_ui(dst.inner_mut(), src as c_ulong);
-            }
-        } else {
-            dst = Integer::new();
-            dst.assign(src);
-        }
-        dst
-    }
-}
-
-assign_into_deref! { u64 => Integer }
-
-#[cfg(target_pointer_width = "16")]
-assign_into_cast! { usize, u16 }
+assign_into! { u8, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
+assign_into! { u16, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
+assign_into! { u32, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
+assign_into! { u64, xgmp::mpz_set_u64, xgmp::mpz_init_set_u64 }
 #[cfg(target_pointer_width = "32")]
 assign_into_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]

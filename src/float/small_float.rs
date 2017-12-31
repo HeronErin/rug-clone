@@ -38,6 +38,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// * `i16`, `u16`: the `SmallFloat` will have 16 bits of precision.
 /// * `i32`, `u32`: the `SmallFloat` will have 32 bits of precision.
 /// * `i64`, `u64`: the `SmallFloat` will have 64 bits of precision.
+/// * `isize`, `usize`: the `SmallFloat` will have 32 or 64 bits of
+///   precision, depending on the platform.
 /// * `f32`: the `SmallFloat` will have 24 bits of precision.
 /// * `f64`: the `SmallFloat` will have 53 bits of precision.
 ///
@@ -172,8 +174,8 @@ where
     }
 }
 
-macro_rules! assign_i {
-    { $I:ty => $U:ty } => {
+macro_rules! signed {
+    { $I:ty, $U:ty } => {
         impl Assign<$I> for SmallFloat {
             #[inline]
             fn assign(&mut self, val: $I) {
@@ -186,13 +188,8 @@ macro_rules! assign_i {
     };
 }
 
-assign_i! { i8 => u8 }
-assign_i! { i16 => u16 }
-assign_i! { i32 => u32 }
-assign_i! { i64 => u64 }
-
-macro_rules! assign_u_single_limb {
-    { $U:ty => $bits:expr } => {
+macro_rules! unsigned_32 {
+    { $U:ty, $bits:expr } => {
         impl Assign<$U> for SmallFloat {
             #[inline]
             fn assign(&mut self, val: $U) {
@@ -215,9 +212,15 @@ macro_rules! assign_u_single_limb {
     };
 }
 
-assign_u_single_limb! { u8 => 8 }
-assign_u_single_limb! { u16 => 16 }
-assign_u_single_limb! { u32 => 32 }
+signed! { i8, u8 }
+signed! { i16, u16 }
+signed! { i32, u32 }
+signed! { i64, u64 }
+signed! { isize, usize }
+
+unsigned_32! { u8, 8 }
+unsigned_32! { u16, 16 }
+unsigned_32! { u32, 32 }
 
 impl Assign<u64> for SmallFloat {
     #[inline]
@@ -241,6 +244,20 @@ impl Assign<u64> for SmallFloat {
                 let limbs = &mut self.limbs[0];
                 xmpfr::custom_regular(ptr, limbs, (64 - leading) as _, 64);
             }
+        }
+    }
+}
+
+impl Assign<usize> for SmallFloat {
+    #[inline]
+    fn assign(&mut self, val: usize) {
+        #[cfg(target_pointer_width = "32")]
+        {
+            self.assign(val as u32);
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            self.assign(val as u64);
         }
     }
 }

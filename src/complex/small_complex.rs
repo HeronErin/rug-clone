@@ -31,16 +31,21 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 ///
 /// This can be useful when you have real and imaginary numbers that
 /// are primitive integers or floats and you need a reference to a
-/// [`Complex`](../struct.Complex.html). The `SmallComplex` will have
-/// a precision according to the type of the primitive used to set its
-/// value.
+/// [`Complex`](../struct.Complex.html).
 ///
-/// * `i8`, `u8`: the `SmallComplex` will have eight bits of precision.
-/// * `i16`, `u16`: the `SmallComplex` will have 16 bits of precision.
-/// * `i32`, `u32`: the `SmallComplex` will have 32 bits of precision.
-/// * `i64`, `u64`: the `SmallComplex` will have 64 bits of precision.
-/// * `f32`: the `SmallComplex` will have 24 bits of precision.
-/// * `f64`: the `SmallComplex` will have 53 bits of precision.
+/// The `SmallComplex` will have a precision according to the types of
+/// the primitives used to set its real and imaginary parts. Note that
+/// if different types are used to set the parts, the parts can have
+/// different precisions.
+///
+/// * `i8`, `u8`: the part will have eight bits of precision.
+/// * `i16`, `u16`: the part will have 16 bits of precision.
+/// * `i32`, `u32`: the part will have 32 bits of precision.
+/// * `i64`, `u64`: the part will have 64 bits of precision.
+/// * `isize`, `usize`: the part will have 32 or 64 bits of precision,
+///   depending on the platform.
+/// * `f32`: the part will have 24 bits of precision.
+/// * `f64`: the part will have 53 bits of precision.
 ///
 /// The `SmallComplex` type can be coerced to a
 /// [`Complex`](../struct.Complex.html), as it implements
@@ -175,6 +180,7 @@ impl SmallComplex {
 
 impl Deref for SmallComplex {
     type Target = Complex;
+    #[inline]
     fn deref(&self) -> &Complex {
         self.update_d();
         let ptr = (&self.re) as *const _ as *const _;
@@ -186,6 +192,7 @@ impl<T> From<T> for SmallComplex
 where
     SmallComplex: Assign<T>,
 {
+    #[inline]
     fn from(val: T) -> Self {
         let mut ret = SmallComplex::new();
         ret.assign(val);
@@ -197,9 +204,10 @@ trait SetPart<T> {
     fn set_part(&mut self, limbs: *mut gmp::limb_t, t: T);
 }
 
-macro_rules! set_part_i {
-    { $I:ty => $U:ty } => {
+macro_rules! signed_part {
+    { $I:ty, $U:ty } => {
         impl SetPart<$I> for Mpfr {
+            #[inline]
             fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $I) {
                 self.set_part(limbs, val.wrapping_abs() as $U);
                 if val < 0 {
@@ -210,12 +218,13 @@ macro_rules! set_part_i {
     };
 }
 
-set_part_i! { i8 => u8 }
-set_part_i! { i16 => u16 }
-set_part_i! { i32 => u32 }
-set_part_i! { i64 => u64 }
+signed_part! { i8, u8 }
+signed_part! { i16, u16 }
+signed_part! { i32, u32 }
+signed_part! { i64, u64 }
+signed_part! { isize, usize }
 
-macro_rules! set_part_u_single_limb {
+macro_rules! unsigned_32_part {
     { $U:ty => $bits:expr } => {
         impl SetPart<$U> for Mpfr {
             fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $U) {
@@ -237,9 +246,9 @@ macro_rules! set_part_u_single_limb {
     };
 }
 
-set_part_u_single_limb! { u8 => 8 }
-set_part_u_single_limb! { u16 => 16 }
-set_part_u_single_limb! { u32 => 32 }
+unsigned_32_part! { u8 => 8 }
+unsigned_32_part! { u16 => 16 }
+unsigned_32_part! { u32 => 32 }
 
 impl SetPart<u64> for Mpfr {
     fn set_part(&mut self, limbs: *mut gmp::limb_t, val: u64) {
@@ -261,6 +270,19 @@ impl SetPart<u64> for Mpfr {
                 }
                 xmpfr::custom_regular(ptr, limbs, (64 - leading) as _, 64);
             }
+        }
+    }
+}
+
+impl SetPart<usize> for Mpfr {
+    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: usize) {
+        #[cfg(target_pointer_width = "32")]
+        {
+            self.set_part(limbs, val as u32);
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            self.set_part(limbs, val as u64);
         }
     }
 }
@@ -293,56 +315,49 @@ impl SetPart<f64> for Mpfr {
     }
 }
 
-macro_rules! small_assign_re {
-    { $T:ty } => {
-        impl Assign<$T> for SmallComplex {
-            fn assign(&mut self, val: $T) {
-                self.assign((val, 0 as $T));
+macro_rules! cross {
+    { $Re:ty, $Im:ty } => {
+        impl Assign<($Re, $Im)> for SmallComplex {
+            #[inline]
+            fn assign(&mut self, val: ($Re, $Im)) {
+                self.re.set_part(&mut self.limbs[0], val.0);
+                self.im.set_part(&mut self.limbs[LIMBS_IN_SMALL_FLOAT], val.1);
             }
         }
-    };
+    }
 }
 
-macro_rules! small_assign_re_im {
-    { $R:ty, $I:ty } => {
-        impl Assign<($R, $I)> for SmallComplex {
-            fn assign(&mut self, (re, im): ($R, $I)) {
-                self.re.set_part(&mut self.limbs[0], re);
-                self.im.set_part(&mut self.limbs[LIMBS_IN_SMALL_FLOAT], im);
+// (Major), (Major, Major), (Major, Minor*), (Minor*, Major)
+macro_rules! matrix {
+    { $Major:ty $(; $Minor:ty)* } => {
+        impl Assign<$Major> for SmallComplex {
+            #[inline]
+            fn assign(&mut self, val: $Major) {
+                self.re.set_part(&mut self.limbs[0], val);
+                self.im.set_part(
+                    &mut self.limbs[LIMBS_IN_SMALL_FLOAT],
+                    0 as $Major,
+                );
             }
         }
-    };
+        cross! { $Major, $Major }
+        $( cross! { $Major, $Minor } )*
+        $( cross! { $Minor, $Major } )*
+    }
 }
 
-small_assign_re! { i8 }
-small_assign_re! { i16 }
-small_assign_re! { i32 }
-small_assign_re! { i64 }
-small_assign_re! { u8 }
-small_assign_re! { u16 }
-small_assign_re! { u32 }
-small_assign_re! { u64 }
-small_assign_re_im! { i8, i8 }
-small_assign_re_im! { i16, i16 }
-small_assign_re_im! { i32, i32 }
-small_assign_re_im! { i64, i64 }
-small_assign_re_im! { i8, u8 }
-small_assign_re_im! { i16, u16 }
-small_assign_re_im! { i32, u32 }
-small_assign_re_im! { i64, u64 }
-small_assign_re_im! { u8, i8 }
-small_assign_re_im! { u16, i16 }
-small_assign_re_im! { u32, i32 }
-small_assign_re_im! { u64, i64 }
-small_assign_re_im! { u8, u8 }
-small_assign_re_im! { u16, u16 }
-small_assign_re_im! { u32, u32 }
-small_assign_re_im! { u64, u64 }
-
-small_assign_re! { f32 }
-small_assign_re! { f64 }
-small_assign_re_im! { f32, f32 }
-small_assign_re_im! { f64, f64 }
+matrix! { u8 }
+matrix! { i8; u8 }
+matrix! { u16; i8; u8 }
+matrix! { i16; u16; i8; u8 }
+matrix! { u32; i16; u16; i8; u8 }
+matrix! { i32; u32; i16; u16; i8; u8 }
+matrix! { usize; i32; u32; i16; u16; i8; u8 }
+matrix! { isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { f32; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { f64; f32; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 
 fn rraw(round: Round) -> mpfr::rnd_t {
     #[allow(deprecated)]

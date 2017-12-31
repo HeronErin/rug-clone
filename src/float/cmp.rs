@@ -20,6 +20,7 @@ use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use big_float::ordering1;
+use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::mpfr;
 use inner::Inner;
 use std::{i32, u32};
@@ -103,7 +104,24 @@ macro_rules! cmp {
 cmp! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.inner()) } }
 #[cfg(feature = "rational")]
 cmp! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.inner()) } }
-cmp! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
+
+cmp! { i8, |f, t: &i8| unsafe { mpfr::cmp_si(f, (*t).into()) } }
+cmp! { i16, |f, t: &i16| unsafe { mpfr::cmp_si(f, (*t).into()) } }
 cmp! { i32, |f, t: &i32| unsafe { mpfr::cmp_si(f, (*t).into()) } }
-cmp! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
+cmp! { i64, |f, t: &i64| unsafe { xmpfr::cmp_i64(f, *t) } }
+#[cfg(target_pointer_width = "32")]
+cmp! { isize, |f, t: &isize| unsafe { mpfr::cmp_si(f, (*t as i32).into()) } }
+#[cfg(target_pointer_width = "64")]
+cmp! { isize, |f, t: &isize| unsafe { xmpfr::cmp_i64(f, *t as i64) } }
+
+cmp! { u8, |f, t: &u8| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
+cmp! { u16, |f, t: &u16| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
+cmp! { u32, |f, t: &u32| unsafe { mpfr::cmp_ui(f, (*t).into()) } }
+cmp! { u64, |f, t: &u64| unsafe { xmpfr::cmp_u64(f, *t) } }
+#[cfg(target_pointer_width = "32")]
+cmp! { usize, |f, t: &usize| unsafe { mpfr::cmp_ui(f, (*t as u32).into()) } }
+#[cfg(target_pointer_width = "64")]
+cmp! { usize, |f, t: &usize| unsafe { xmpfr::cmp_u64(f, *t as u64) } }
+
 cmp! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, (*t).into()) } }
+cmp! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }

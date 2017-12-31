@@ -27,8 +27,8 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// allocation.
 ///
 /// This can be useful when you have a numerator and denominator that
-/// are 32-bit or 64-bit integers and you need a reference to a
-/// [`Rational`](../struct.Rational.html).
+/// are primitive integer-types such as `i64` or `u8`, and you need a
+/// reference to a [`Rational`](../struct.Rational.html).
 ///
 /// Although no allocation is required, setting the value of a
 /// `SmallRational` does require some computation, as the numerator
@@ -322,42 +322,34 @@ impl SmallRational {
     }
 
     #[inline]
+    fn set_num_32(&mut self, neg: bool, num: u32) {
+        unsafe {
+            self.assign_canonicalized_32(neg, num, 1);
+        }
+    }
+
+    #[inline]
     fn set_num_den_32(&mut self, neg: bool, num: u32, den: u32) {
         assert_ne!(den, 0, "division by zero");
-        if num == 0 {
-            self.num.size = 0;
-            self.num.d = Default::default();
-            self.den.size = 1;
-            self.den.d = Default::default();
-            self.limbs[0] = 0;
-            self.limbs[LIMBS_IN_SMALL_INTEGER] = 1;
-        } else {
-            unsafe {
-                self.assign_canonicalized_32(neg, num, den);
-                gmp::mpq_canonicalize(
-                    self.as_nonreallocating_mut().inner_mut(),
-                );
-            }
+        unsafe {
+            self.assign_canonicalized_32(neg, num, den);
+            gmp::mpq_canonicalize(self.as_nonreallocating_mut().inner_mut());
+        }
+    }
+
+    #[inline]
+    fn set_num_64(&mut self, neg: bool, num: u64) {
+        unsafe {
+            self.assign_canonicalized_64(neg, num, 1);
         }
     }
 
     #[inline]
     fn set_num_den_64(&mut self, neg: bool, num: u64, den: u64) {
         assert_ne!(den, 0, "division by zero");
-        if num == 0 {
-            self.num.size = 0;
-            self.num.d = Default::default();
-            self.den.size = 1;
-            self.den.d = Default::default();
-            self.limbs[0] = 0;
-            self.limbs[LIMBS_IN_SMALL_INTEGER] = 1;
-        } else {
-            unsafe {
-                self.assign_canonicalized_64(neg, num, den);
-                gmp::mpq_canonicalize(
-                    self.as_nonreallocating_mut().inner_mut(),
-                );
-            }
+        unsafe {
+            self.assign_canonicalized_64(neg, num, den);
+            gmp::mpq_canonicalize(self.as_nonreallocating_mut().inner_mut());
         }
     }
 
@@ -408,106 +400,106 @@ where
     }
 }
 
-impl Assign<i32> for SmallRational {
-    #[inline]
-    fn assign(&mut self, num: i32) {
-        unsafe {
-            self.assign_canonicalized_32(num < 0, num.wrapping_abs() as u32, 1);
+macro_rules! cross {
+    {
+        $U:ty, $method_num:ident, $method_num_den:ident;
+        $NumI:ty, $NumU:ty; $DenI:ty, $DenU:ty
+    } => {
+        impl Assign<($NumI, $DenI)> for SmallRational {
+            #[inline]
+            fn assign(&mut self, val: ($NumI, $DenI)) {
+                self.$method_num_den(
+                    (val.0 < 0) != (val.1 < 0),
+                    val.0.wrapping_abs() as $NumU as $U,
+                    val.1.wrapping_abs() as $DenU as $U,
+                );
+            }
+        }
+        impl Assign<($NumI, $DenU)> for SmallRational {
+            #[inline]
+            fn assign(&mut self, val: ($NumI, $DenU)) {
+                self.$method_num_den(
+                    val.0 < 0,
+                    val.0.wrapping_abs() as $NumU as $U,
+                    val.1 as $U,
+                );
+            }
+        }
+        impl Assign<($NumU, $DenI)> for SmallRational {
+            #[inline]
+            fn assign(&mut self, val: ($NumU, $DenI)) {
+                self.$method_num_den(
+                    val.1 < 0,
+                    val.0 as $U,
+                    val.1.wrapping_abs() as $DenU as $U,
+                );
+            }
+        }
+        impl Assign<($NumU, $DenU)> for SmallRational {
+            #[inline]
+            fn assign(&mut self, val: ($NumU, $DenU)) {
+                self.$method_num_den(false, val.0 as $U, val.1 as $U);
+            }
         }
     }
 }
 
-impl Assign<i64> for SmallRational {
-    #[inline]
-    fn assign(&mut self, num: i64) {
-        unsafe {
-            self.assign_canonicalized_64(num < 0, num.wrapping_abs() as u64, 1);
+// (Major), (Major, Major), (Major, Minor*), (Minor*, Major)
+macro_rules! matrix {
+    {
+        $U:ty, $method_num:ident, $method_num_den:ident;
+        $MajorI:ty, $MajorU:ty $(; $MinorI:ty, $MinorU:ty)*
+    } => {
+        impl Assign<$MajorI> for SmallRational {
+            #[inline]
+            fn assign(&mut self, val: $MajorI) {
+                self.$method_num(val < 0, val.wrapping_abs() as $MajorU as $U);
+            }
         }
-    }
-}
-
-impl Assign<u32> for SmallRational {
-    #[inline]
-    fn assign(&mut self, num: u32) {
-        unsafe {
-            self.assign_canonicalized_32(false, num, 1);
+        impl Assign<$MajorU> for SmallRational {
+            #[inline]
+            fn assign(&mut self, val: $MajorU) {
+                self.$method_num(false, val as $U);
+            }
         }
-    }
-}
-
-impl Assign<u64> for SmallRational {
-    #[inline]
-    fn assign(&mut self, num: u64) {
-        unsafe {
-            self.assign_canonicalized_64(false, num, 1);
+        cross! {
+            $U, $method_num, $method_num_den;
+            $MajorI, $MajorU; $MajorI, $MajorU
         }
+        $( cross! {
+            $U, $method_num, $method_num_den;
+            $MajorI, $MajorU; $MinorI, $MinorU
+        } )*
+        $( cross! {
+            $U, $method_num, $method_num_den;
+            $MinorI, $MinorU; $MajorI, $MajorU
+        } )*
     }
 }
 
-impl Assign<(i32, i32)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (i32, i32)) {
-        let num_neg = num < 0;
-        let den_neg = den < 0;
-        self.set_num_den_32(
-            num_neg != den_neg,
-            num.wrapping_abs() as u32,
-            den.wrapping_abs() as u32,
-        );
-    }
+matrix! {
+    u32, set_num_32, set_num_den_32;
+    i8, u8
 }
-
-impl Assign<(i64, i64)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (i64, i64)) {
-        let num_neg = num < 0;
-        let den_neg = den < 0;
-        self.set_num_den_64(
-            num_neg != den_neg,
-            num.wrapping_abs() as u64,
-            den.wrapping_abs() as u64,
-        );
-    }
+matrix! {
+    u32, set_num_32, set_num_den_32;
+    i16, u16; i8, u8
 }
-
-impl Assign<(i32, u32)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (i32, u32)) {
-        self.set_num_den_32(num < 0, num.wrapping_abs() as u32, den);
-    }
+matrix! {
+    u32, set_num_32, set_num_den_32;
+    i32, u32; i16, u16; i8, u8
 }
-
-impl Assign<(i64, u64)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (i64, u64)) {
-        self.set_num_den_64(num < 0, num.wrapping_abs() as u64, den);
-    }
+#[cfg(target_pointer_width = "32")]
+matrix! {
+    u32, set_num_32, set_num_den_32;
+    isize, usize; i32, u32; i16, u16; i8, u8
 }
-
-impl Assign<(u32, i32)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (u32, i32)) {
-        self.set_num_den_32(den < 0, num, den.wrapping_abs() as u32);
-    }
+#[cfg(target_pointer_width = "64")]
+matrix! {
+    u64, set_num_64, set_num_den_64;
+    isize, usize; i32, u32; i16, u16; i8, u8
 }
-
-impl Assign<(u64, i64)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (u64, i64)) {
-        self.set_num_den_64(den < 0, num, den.wrapping_abs() as u64);
-    }
-}
-
-impl Assign<(u32, u32)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (u32, u32)) {
-        self.set_num_den_32(false, num, den);
-    }
-}
-
-impl Assign<(u64, u64)> for SmallRational {
-    #[inline]
-    fn assign(&mut self, (num, den): (u64, u64)) {
-        self.set_num_den_64(false, num, den);
-    }
+matrix! {
+    u64, set_num_64, set_num_den_64;
+    i64, u64; isize, usize; i32, u32; i16, u16; i8, u8
 }

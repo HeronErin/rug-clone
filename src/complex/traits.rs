@@ -27,7 +27,6 @@ use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
-use std::i32;
 use std::mem;
 use std::ptr;
 

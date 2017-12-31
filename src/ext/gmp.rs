@@ -17,6 +17,7 @@
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i16, i32, i64, i8, u16, u32, u64, u8};
 use std::cmp::Ordering;
+use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 
 #[inline]
@@ -1096,6 +1097,26 @@ pub unsafe fn mpz_set_i32(rop: *mut mpz_t, i: i32) {
 }
 
 #[inline]
+pub unsafe fn mpz_init_set_u64(rop: *mut mpz_t, u: u64) {
+    if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
+        gmp::mpz_init_set_ui(rop, u as c_ulong);
+    } else {
+        gmp::mpz_init(rop);
+        mpz_set_u64(rop, u);
+    }
+}
+
+#[inline]
+pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
+    if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
+        gmp::mpz_init_set_si(rop, i as c_long);
+    } else {
+        gmp::mpz_init(rop);
+        mpz_set_i64(rop, i);
+    }
+}
+
+#[inline]
 pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
     #[cfg(gmp_limb_bits_64)]
     {
@@ -1416,7 +1437,8 @@ pub use self::rational::*;
 mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
-    use std::mem;
+    use inner::Inner;
+    use rational::SmallRational;
 
     #[inline]
     pub unsafe fn mpq_signum(signum: *mut mpz_t, op: *const mpq_t) {
@@ -1684,6 +1706,26 @@ mod rational {
         if neg {
             gmp::mpz_neg(fract_num, fract_num);
             gmp::mpz_neg(round, round);
+        }
+    }
+
+    #[inline]
+    pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
+        if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
+            gmp::mpq_cmp_ui(op1, n2 as c_ulong, d2 as c_ulong)
+        } else {
+            let small = SmallRational::from((n2, d2));
+            gmp::mpq_cmp(op1, (*small).inner())
+        }
+    }
+
+    #[inline]
+    pub unsafe fn mpq_cmp_i64(op1: *const mpq_t, n2: i64, d2: i64) -> c_int {
+        if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
+            gmp::mpq_cmp_si(op1, n2 as c_long, d2 as c_ulong)
+        } else {
+            let small = SmallRational::from((n2, d2));
+            gmp::mpq_cmp(op1, (*small).inner())
         }
     }
 }

@@ -287,6 +287,26 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
 }
 
 #[inline]
+pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
+    if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
+        mpfr::cmp_si(op1, op2 as c_long)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::cmp(op1, (*small).inner())
+    }
+}
+
+#[inline]
+pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
+    if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
+        mpfr::cmp_ui(op1, op2 as c_ulong)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::cmp(op1, (*small).inner())
+    }
+}
+
+#[inline]
 pub unsafe fn pow_f64(
     rop: *mut mpfr_t,
     op1: *const mpfr_t,

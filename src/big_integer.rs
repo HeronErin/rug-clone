@@ -530,10 +530,6 @@ impl Integer {
     /// ```
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
-        #[cfg(target_pointer_width = "16")]
-        {
-            self.to_i16().map(|i| i as isize)
-        }
         #[cfg(target_pointer_width = "32")]
         {
             self.to_i32().map(|i| i as isize)
@@ -642,10 +638,6 @@ impl Integer {
     /// ```
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
-        #[cfg(target_pointer_width = "16")]
-        {
-            self.to_u16().map(|u| u as usize)
-        }
         #[cfg(target_pointer_width = "32")]
         {
             self.to_u32().map(|u| u as usize)
@@ -811,10 +803,6 @@ impl Integer {
     /// ```
     #[inline]
     pub fn to_usize_wrapping(&self) -> usize {
-        #[cfg(target_pointer_width = "16")]
-        {
-            self.to_i16_wrapping() as usize
-        }
         #[cfg(target_pointer_width = "32")]
         {
             self.to_i32_wrapping() as usize

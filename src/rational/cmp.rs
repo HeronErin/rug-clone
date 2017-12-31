@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Integer, Rational};
+use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
 use rational::SmallRational;
@@ -45,78 +46,135 @@ impl PartialOrd for Rational {
     }
 }
 
+impl PartialEq<Integer> for Rational {
+    #[inline]
+    fn eq(&self, other: &Integer) -> bool {
+        unsafe { gmp::mpq_cmp_z(self.inner(), other.inner()) == 0 }
+    }
+}
+
+impl PartialEq<Rational> for Integer {
+    #[inline]
+    fn eq(&self, other: &Rational) -> bool {
+        other.eq(self)
+    }
+}
+
+impl PartialOrd<Integer> for Rational {
+    #[inline]
+    fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
+        let ord = unsafe { gmp::mpq_cmp_z(self.inner(), other.inner()) };
+        Some(ord.cmp(&0))
+    }
+}
+
+impl PartialOrd<Rational> for Integer {
+    #[inline]
+    fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
+        other.partial_cmp(self).map(Ordering::reverse)
+    }
+}
+
 macro_rules! cmp {
-    { $T:ty, $eq:expr, $cmp:expr } => {
+    { $T:ty, $cmp:path } => {
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                $eq(self.inner(), other)
+                unsafe { $cmp(self.inner(), (*other) as _, 1) == 0 }
             }
         }
 
         impl PartialEq<Rational> for $T {
             #[inline]
             fn eq(&self, other: &Rational) -> bool {
-                other.eq(self)
+                <Rational as PartialEq<$T>>::eq(other, self)
             }
         }
 
         impl PartialOrd<$T> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                Some($cmp(self.inner(), other))
+                let ord = unsafe { $cmp(self.inner(), (*other) as _, 1) };
+                Some(ord.cmp(&0))
             }
         }
 
         impl PartialOrd<Rational> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-                other.partial_cmp(self).map(Ordering::reverse)
+                <Rational as PartialOrd<$T>>::partial_cmp(other, self)
+                    .map(Ordering::reverse)
             }
         }
     }
 }
 
-cmp! {
-    Integer,
-    |r, t: &Integer| unsafe { gmp::mpq_cmp_z(r, t.inner()) } == 0,
-    |r, t: &Integer| unsafe { gmp::mpq_cmp_z(r, t.inner()) }.cmp(&0)
-}
-cmp! {
-    i32,
-    |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1) } == 0,
-    |r, t: &i32| unsafe { gmp::mpq_cmp_si(r, (*t).into(), 1) }.cmp(&0)
-}
-cmp! {
-    u32,
-    |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1) } == 0,
-    |r, t: &u32| unsafe { gmp::mpq_cmp_ui(r, (*t).into(), 1) }.cmp(&0)
-}
+cmp! { i8, gmp::mpq_cmp_si }
+cmp! { i16, gmp::mpq_cmp_si }
+cmp! { i32, gmp::mpq_cmp_si }
+cmp! { i64, xgmp::mpq_cmp_i64 }
+#[cfg(target_pointer_width = "32")]
+cmp! { isize, gmp::mpq_cmp_si }
+#[cfg(target_pointer_width = "64")]
+cmp! { isize, xgmp::mpq_cmp_i64 }
 
-macro_rules! cmp_small_rat {
-    { $T:ty } => {
-        cmp! {
-            $T,
-            |r, t: &$T| unsafe {
-                gmp::mpq_equal(r, SmallRational::from(*t).inner())
-            } != 0,
-            |r, t: &$T| unsafe {
-                gmp::mpq_cmp(r, SmallRational::from(*t).inner())
-            }.cmp(&0)
+cmp! { u8, gmp::mpq_cmp_ui }
+cmp! { u16, gmp::mpq_cmp_ui }
+cmp! { u32, gmp::mpq_cmp_ui }
+cmp! { u64, xgmp::mpq_cmp_u64 }
+#[cfg(target_pointer_width = "32")]
+cmp! { usize, gmp::mpq_cmp_ui }
+#[cfg(target_pointer_width = "64")]
+cmp! { usize, xgmp::mpq_cmp_u64 }
+
+macro_rules! cross {
+    { $Num:ty; $Den:ty } => {
+        impl PartialEq<($Num, $Den)> for Rational {
+            #[inline]
+            fn eq(&self, other: &($Num, $Den)) -> bool {
+                self.eq(&*SmallRational::from(*other))
+            }
         }
-    };
+        impl PartialEq<Rational> for ($Num, $Den) {
+            #[inline]
+            fn eq(&self, other: &Rational) -> bool {
+                SmallRational::from(*self).eq(other)
+            }
+        }
+        impl PartialOrd<($Num, $Den)> for Rational {
+            #[inline]
+            fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
+                self.partial_cmp(&*SmallRational::from(*other))
+            }
+        }
+        impl PartialOrd<Rational> for ($Num, $Den) {
+            #[inline]
+            fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
+                SmallRational::from(*self).partial_cmp(other)
+            }
+        }
+    }
 }
 
-cmp_small_rat! { i64 }
-cmp_small_rat! { u64 }
-cmp_small_rat! { (i32, i32) }
-cmp_small_rat! { (i64, i64) }
-cmp_small_rat! { (i32, u32) }
-cmp_small_rat! { (i64, u64) }
-cmp_small_rat! { (u32, i32) }
-cmp_small_rat! { (u64, i64) }
-cmp_small_rat! { (u32, u32) }
-cmp_small_rat! { (u64, u64) }
+// (Major, Major), (Major, Minor*), (Minor*, Major)
+macro_rules! matrix {
+    { $Major:ty $(; $Minor:ty)* } => {
+        cross! { $Major; $Major }
+        $( cross! { $Major; $Minor } )*
+        $( cross! { $Minor; $Major } )*
+    }
+}
+
+matrix! { u8 }
+matrix! { i8; u8 }
+matrix! { u16; i8; u8 }
+matrix! { i16; u16; i8; u8 }
+matrix! { u32; i16; u16; i8; u8 }
+matrix! { i32; u32; i16; u16; i8; u8 }
+matrix! { usize; i32; u32; i16; u16; i8; u8 }
+matrix! { isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 
 #[cfg(test)]
 mod tests {

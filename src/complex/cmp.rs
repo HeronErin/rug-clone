@@ -28,23 +28,18 @@ impl PartialEq for Complex {
     }
 }
 
-impl<T, U> PartialEq<(T, U)> for Complex
-where
-    Float: PartialEq<T>,
-    Float: PartialEq<U>,
-{
-    #[inline]
-    fn eq(&self, other: &(T, U)) -> bool {
-        self.real().eq(&other.0) && self.imag().eq(&other.1)
-    }
-}
-
 macro_rules! eq_tuple {
     { $T:ty, $U:ty } => {
         impl PartialEq<Complex> for ($T, $U) {
             #[inline]
             fn eq(&self, other: &Complex) -> bool {
                 self.0.eq(other.real()) && self.1.eq(other.imag())
+            }
+        }
+        impl PartialEq<($T, $U)> for Complex {
+            #[inline]
+            fn eq(&self, other: &($T, $U)) -> bool {
+                self.real().eq(&other.0) && self.imag().eq(&other.1)
             }
         }
     }
@@ -57,22 +52,30 @@ macro_rules! eq {
         #[cfg(feature = "rational")]
         eq_tuple! { $T, Rational }
         eq_tuple! { $T, Float }
+        eq_tuple! { $T, u8 }
+        eq_tuple! { $T, i8 }
+        eq_tuple! { $T, u16 }
+        eq_tuple! { $T, i16 }
         eq_tuple! { $T, u32 }
         eq_tuple! { $T, i32 }
-        eq_tuple! { $T, f64 }
+        eq_tuple! { $T, u64 }
+        eq_tuple! { $T, i64 }
+        eq_tuple! { $T, usize }
+        eq_tuple! { $T, isize }
         eq_tuple! { $T, f32 }
+        eq_tuple! { $T, f64 }
 
         impl PartialEq<$T> for Complex {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                self.real().eq(other) && self.imag().is_zero()
+                self.imag().is_zero() && self.real().eq(other)
             }
         }
 
         impl PartialEq<Complex> for $T {
             #[inline]
             fn eq(&self, other: &Complex) -> bool {
-                self.eq(other.real()) && other.imag().is_zero()
+                other.imag().is_zero() && self.eq(other.real())
             }
         }
     }
@@ -83,7 +86,15 @@ eq! { Integer }
 #[cfg(feature = "rational")]
 eq! { Rational }
 eq! { Float }
+eq! { u8 }
+eq! { i8 }
+eq! { u16 }
+eq! { i16 }
 eq! { u32 }
 eq! { i32 }
-eq! { f64 }
+eq! { u64 }
+eq! { i64 }
+eq! { usize }
+eq! { isize }
 eq! { f32 }
+eq! { f64 }

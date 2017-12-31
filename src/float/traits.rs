@@ -413,10 +413,47 @@ macro_rules! conv_ops {
     }
 }
 
+macro_rules! conv_ops_cast {
+    { $New:ty, $Existing:ty } => {
+        impl AssignRoundInto<Float> for $New {
+            type Round = Round;
+            type Ordering = Ordering;
+            #[inline]
+            fn assign_round_into(
+                self,
+                dst: &mut Float,
+                round: Round,
+            ) -> Ordering {
+                <$Existing as AssignRoundInto<Float>>::assign_round_into(
+                    self as $Existing,
+                    dst,
+                    round
+                )
+            }
+        }
+
+        assign_round_into_deref!{ $New => Float }
+    }
+}
+
+conv_ops!{ i8, mpfr::set_si }
+conv_ops!{ i16, mpfr::set_si }
 conv_ops!{ i32, mpfr::set_si }
 conv_ops!{ i64, xmpfr::set_i64 }
+#[cfg(target_pointer_width = "32")]
+conv_ops_cast! { isize, i32 }
+#[cfg(target_pointer_width = "64")]
+conv_ops_cast! { isize, i64 }
+
+conv_ops!{ u8, mpfr::set_ui }
+conv_ops!{ u16, mpfr::set_ui }
 conv_ops!{ u32, mpfr::set_ui }
 conv_ops!{ u64, xmpfr::set_u64 }
+#[cfg(target_pointer_width = "32")]
+conv_ops_cast! { usize, u32 }
+#[cfg(target_pointer_width = "64")]
+conv_ops_cast! { usize, u64 }
+
 conv_ops!{ f32, xmpfr::set_f32 }
 conv_ops!{ f64, xmpfr::set_f64 }
 

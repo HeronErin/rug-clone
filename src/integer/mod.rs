@@ -241,5 +241,10 @@ mod tests {
         assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
         // we assume that a limb has 32 or 64 bits.
         assert!(gmp::NUMB_BITS == 32 || gmp::NUMB_BITS == 64);
+
+        // check that target_pointer_width is 32 or 64
+        #[cfg(not(any(target_pointer_width = "32",
+                      target_pointer_width = "64")))]
+        panic!("target_pointer_width is not 32 or 64");
     }
 }

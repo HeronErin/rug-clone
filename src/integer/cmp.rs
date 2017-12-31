@@ -126,8 +126,6 @@ cmp_cast! { i8, i32 }
 cmp_cast! { i16, i32 }
 cmp! { i32, xgmp::mpz_cmp_i32 }
 cmp! { i64, xgmp::mpz_cmp_i64 }
-#[cfg(target_pointer_width = "16")]
-cmp_cast! { isize, i16 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
@@ -137,8 +135,6 @@ cmp_cast! { u8, u32 }
 cmp_cast! { u16, u32 }
 cmp! { u32, xgmp::mpz_cmp_u32 }
 cmp! { u64, xgmp::mpz_cmp_u64 }
-#[cfg(target_pointer_width = "16")]
-cmp_cast! { usize, u16 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
