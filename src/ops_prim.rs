@@ -276,19 +276,19 @@ macro_rules! div_signed {
                 type Output = $T;
                 #[inline]
                 fn div_trunc(self, rhs: &'a $T) -> $T {
-                    <Self as DivRounding>::div_trunc(self, *rhs)
+                    <$T as DivRounding>::div_trunc(self, *rhs)
                 }
                 #[inline]
                 fn div_ceil(self, rhs: &'a $T) -> $T {
-                    <Self as DivRounding>::div_ceil(self, *rhs)
+                    <$T as DivRounding>::div_ceil(self, *rhs)
                 }
                 #[inline]
                 fn div_floor(self, rhs: &'a $T) -> $T {
-                    <Self as DivRounding>::div_floor(self, *rhs)
+                    <$T as DivRounding>::div_floor(self, *rhs)
                 }
                 #[inline]
                 fn div_euc(self, rhs: &'a $T) -> $T {
-                    <Self as DivRounding>::div_euc(self, *rhs)
+                    <$T as DivRounding>::div_euc(self, *rhs)
                 }
             }
 
@@ -337,171 +337,171 @@ macro_rules! div_signed {
                 type Output = $T;
                 #[inline]
                 fn rem_trunc(self, rhs: &'a $T) -> $T {
-                    <Self as RemRounding>::rem_trunc(self, *rhs)
+                    <$T as RemRounding>::rem_trunc(self, *rhs)
                 }
                 #[inline]
                 fn rem_ceil(self, rhs: &'a $T) -> $T {
-                    <Self as RemRounding>::rem_ceil(self, *rhs)
+                    <$T as RemRounding>::rem_ceil(self, *rhs)
                 }
                 #[inline]
                 fn rem_floor(self, rhs: &'a $T) -> $T {
-                    <Self as RemRounding>::rem_floor(self, *rhs)
+                    <$T as RemRounding>::rem_floor(self, *rhs)
                 }
                 #[inline]
                 fn rem_euc(self, rhs: &'a $T) -> $T {
-                    <Self as RemRounding>::rem_euc(self, *rhs)
+                    <$T as RemRounding>::rem_euc(self, *rhs)
                 }
             }
 
             impl DivRoundingAssign for $T {
                 #[inline]
                 fn div_trunc_assign(&mut self, rhs: $T) {
-                    *self = self.div_trunc(rhs);
+                    *self = <$T as DivRounding>::div_trunc(*self, rhs);
                 }
                 #[inline]
                 fn div_ceil_assign(&mut self, rhs: $T) {
-                    *self = self.div_ceil(rhs);
+                    *self = <$T as DivRounding>::div_ceil(*self, rhs);
                 }
                 #[inline]
                 fn div_floor_assign(&mut self, rhs: $T) {
-                    *self = self.div_floor(rhs);
+                    *self = <$T as DivRounding>::div_floor(*self, rhs);
                 }
                 #[inline]
                 fn div_euc_assign(&mut self, rhs: $T) {
-                    *self = self.div_euc(rhs);
+                    *self = <$T as DivRounding>::div_euc(*self, rhs);
                 }
             }
 
             impl<'a> DivRoundingAssign<&'a $T> for $T {
                 #[inline]
                 fn div_trunc_assign(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingAssign>::div_trunc_assign(self, *rhs)
+                    *self = <$T as DivRounding>::div_trunc(*self, *rhs);
                 }
                 #[inline]
                 fn div_ceil_assign(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingAssign>::div_ceil_assign(self, *rhs)
+                    *self = <$T as DivRounding>::div_ceil(*self, *rhs);
                 }
                 #[inline]
                 fn div_floor_assign(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingAssign>::div_floor_assign(self, *rhs)
+                    *self = <$T as DivRounding>::div_floor(*self, *rhs);
                 }
                 #[inline]
                 fn div_euc_assign(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingAssign>::div_euc_assign(self, *rhs)
+                    *self = <$T as DivRounding>::div_euc(*self, *rhs);
                 }
             }
 
             impl DivRoundingFrom for $T {
                 #[inline]
                 fn div_trunc_from(&mut self, lhs: $T) {
-                    *self = lhs.div_trunc(*self);
+                    *self = <$T as DivRounding>::div_trunc(lhs, *self);
                 }
                 #[inline]
                 fn div_ceil_from(&mut self, lhs: $T) {
-                    *self = lhs.div_ceil(*self);
+                    *self = <$T as DivRounding>::div_ceil(lhs, *self);
                 }
                 #[inline]
                 fn div_floor_from(&mut self, lhs: $T) {
-                    *self = lhs.div_floor(*self);
+                    *self = <$T as DivRounding>::div_floor(lhs, *self);
                 }
                 #[inline]
                 fn div_euc_from(&mut self, lhs: $T) {
-                    *self = lhs.div_euc(*self);
+                    *self = <$T as DivRounding>::div_euc(lhs, *self);
                 }
             }
 
             impl<'a> DivRoundingFrom<&'a $T> for $T {
                 #[inline]
-                fn div_trunc_from(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingFrom>::div_trunc_from(self, *rhs)
+                fn div_trunc_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as DivRounding>::div_trunc(*lhs, *self);
                 }
                 #[inline]
-                fn div_ceil_from(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingFrom>::div_ceil_from(self, *rhs)
+                fn div_ceil_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as DivRounding>::div_ceil(*lhs, *self);
                 }
                 #[inline]
-                fn div_floor_from(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingFrom>::div_floor_from(self, *rhs)
+                fn div_floor_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as DivRounding>::div_floor(*lhs, *self);
                 }
                 #[inline]
-                fn div_euc_from(&mut self, rhs: &'a $T) {
-                    <Self as DivRoundingFrom>::div_euc_from(self, *rhs)
+                fn div_euc_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as DivRounding>::div_euc(*lhs, *self);
                 }
             }
 
             impl RemRoundingAssign for $T {
                 #[inline]
                 fn rem_trunc_assign(&mut self, rhs: $T) {
-                    *self = self.rem_trunc(rhs);
+                    *self = <$T as RemRounding>::rem_trunc(*self, rhs);
                 }
                 #[inline]
                 fn rem_ceil_assign(&mut self, rhs: $T) {
-                    *self = self.rem_ceil(rhs);
+                    *self = <$T as RemRounding>::rem_ceil(*self, rhs);
                 }
                 #[inline]
                 fn rem_floor_assign(&mut self, rhs: $T) {
-                    *self = self.rem_floor(rhs);
+                    *self = <$T as RemRounding>::rem_floor(*self, rhs);
                 }
                 #[inline]
                 fn rem_euc_assign(&mut self, rhs: $T) {
-                    *self = self.rem_euc(rhs);
+                    *self = <$T as RemRounding>::rem_euc(*self, rhs);
                 }
             }
 
             impl<'a> RemRoundingAssign<&'a $T> for $T {
                 #[inline]
                 fn rem_trunc_assign(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingAssign>::rem_trunc_assign(self, *rhs)
+                    *self = <$T as RemRounding>::rem_trunc(*self, *rhs);
                 }
                 #[inline]
                 fn rem_ceil_assign(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingAssign>::rem_ceil_assign(self, *rhs)
+                    *self = <$T as RemRounding>::rem_ceil(*self, *rhs);
                 }
                 #[inline]
                 fn rem_floor_assign(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingAssign>::rem_floor_assign(self, *rhs)
+                    *self = <$T as RemRounding>::rem_floor(*self, *rhs);
                 }
                 #[inline]
                 fn rem_euc_assign(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingAssign>::rem_euc_assign(self, *rhs)
+                    *self = <$T as RemRounding>::rem_euc(*self, *rhs);
                 }
             }
 
             impl RemRoundingFrom for $T {
                 #[inline]
                 fn rem_trunc_from(&mut self, lhs: $T) {
-                    *self = lhs.rem_trunc(*self);
+                    *self = <$T as RemRounding>::rem_trunc(lhs, *self);
                 }
                 #[inline]
                 fn rem_ceil_from(&mut self, lhs: $T) {
-                    *self = lhs.rem_ceil(*self);
+                    *self = <$T as RemRounding>::rem_ceil(lhs, *self);
                 }
                 #[inline]
                 fn rem_floor_from(&mut self, lhs: $T) {
-                    *self = lhs.rem_floor(*self);
+                    *self = <$T as RemRounding>::rem_floor(lhs, *self);
                 }
                 #[inline]
                 fn rem_euc_from(&mut self, lhs: $T) {
-                    *self = lhs.rem_euc(*self);
+                    *self = <$T as RemRounding>::rem_euc(lhs, *self);
                 }
             }
 
             impl<'a> RemRoundingFrom<&'a $T> for $T {
                 #[inline]
-                fn rem_trunc_from(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingFrom>::rem_trunc_from(self, *rhs)
+                fn rem_trunc_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as RemRounding>::rem_trunc(*lhs, *self);
                 }
                 #[inline]
-                fn rem_ceil_from(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingFrom>::rem_ceil_from(self, *rhs)
+                fn rem_ceil_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as RemRounding>::rem_ceil(*lhs, *self);
                 }
                 #[inline]
-                fn rem_floor_from(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingFrom>::rem_floor_from(self, *rhs)
+                fn rem_floor_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as RemRounding>::rem_floor(*lhs, *self);
                 }
                 #[inline]
-                fn rem_euc_from(&mut self, rhs: &'a $T) {
-                    <Self as RemRoundingFrom>::rem_euc_from(self, *rhs)
+                fn rem_euc_from(&mut self, lhs: &'a $T) {
+                    *self = <$T as RemRounding>::rem_euc(*lhs, *self);
                 }
             }
         )*

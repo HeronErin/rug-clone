@@ -70,7 +70,16 @@ macro_rules! cmp {
         impl PartialEq<$T> for Float {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                self.partial_cmp(other) == Some(Ordering::Equal)
+                <Float as PartialOrd<$T>>::partial_cmp(self, other)
+                    == Some(Ordering::Equal)
+            }
+        }
+
+        impl PartialEq<Float> for $T {
+            #[inline]
+            fn eq(&self, other: &Float) -> bool {
+                <Float as PartialOrd<$T>>::partial_cmp(other, self)
+                    == Some(Ordering::Equal)
             }
         }
 
@@ -78,23 +87,18 @@ macro_rules! cmp {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if self.is_nan() {
-                    return None;
+                    None
+                } else {
+                    Some(ordering1($eval(self.inner(), other)))
                 }
-                Some(ordering1($eval(self.inner(), other)))
-            }
-        }
-
-        impl PartialEq<Float> for $T {
-            #[inline]
-            fn eq(&self, other: &Float) -> bool {
-                other.eq(self)
             }
         }
 
         impl PartialOrd<Float> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
-                other.partial_cmp(self).map(Ordering::reverse)
+                <Float as PartialOrd<$T>>::partial_cmp(other, self)
+                    .map(Ordering::reverse)
             }
         }
     }

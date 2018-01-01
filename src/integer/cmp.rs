@@ -33,14 +33,14 @@ impl Ord for Integer {
 impl PartialEq for Integer {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        self.cmp(other) == Ordering::Equal
+        <Integer as Ord>::cmp(self, other) == Ordering::Equal
     }
 }
 
 impl PartialOrd for Integer {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        Some(self.cmp(other))
+        Some(<Integer as Ord>::cmp(self, other))
     }
 }
 
@@ -49,14 +49,16 @@ macro_rules! cmp {
         impl PartialEq<$T> for Integer {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                self.partial_cmp(other) == Some(Ordering::Equal)
+                <Integer as PartialOrd<$T>>::partial_cmp(self, other)
+                    == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $T {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                <Integer as PartialEq<$T>>::eq(other, self)
+                <Integer as PartialOrd<$T>>::partial_cmp(other, self)
+                    == Some(Ordering::Equal)
             }
         }
 
@@ -83,20 +85,20 @@ macro_rules! cmp_cast {
         impl PartialEq<$New> for Integer {
             #[inline]
             fn eq(&self, other: &$New) -> bool {
-                <Integer as PartialEq<$Existing>>::eq(
+                <Integer as PartialOrd<$Existing>>::partial_cmp(
                     self,
                     &(*other as $Existing),
-                )
+                ) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $New {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                <Integer as PartialEq<$Existing>>::eq(
+                <Integer as PartialOrd<$Existing>>::partial_cmp(
                     other,
                     &(*self as $Existing),
-                )
+                ) == Some(Ordering::Equal)
             }
         }
 
@@ -145,14 +147,16 @@ cmp_cast! { f32, f64 }
 impl PartialEq<f64> for Integer {
     #[inline]
     fn eq(&self, other: &f64) -> bool {
-        self.partial_cmp(other) == Some(Ordering::Equal)
+        <Integer as PartialOrd<f64>>::partial_cmp(self, other)
+            == Some(Ordering::Equal)
     }
 }
 
 impl PartialEq<Integer> for f64 {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        <Integer as PartialEq<f64>>::eq(other, self)
+        <Integer as PartialOrd<f64>>::partial_cmp(other, self)
+            == Some(Ordering::Equal)
     }
 }
 

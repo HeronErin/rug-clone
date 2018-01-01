@@ -42,7 +42,7 @@ impl PartialEq for Rational {
 impl PartialOrd for Rational {
     #[inline]
     fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-        Some(self.cmp(other))
+        Some(<Rational as Ord>::cmp(self, other))
     }
 }
 
@@ -56,7 +56,7 @@ impl PartialEq<Integer> for Rational {
 impl PartialEq<Rational> for Integer {
     #[inline]
     fn eq(&self, other: &Rational) -> bool {
-        other.eq(self)
+        <Rational as PartialEq<Integer>>::eq(other, self)
     }
 }
 
@@ -71,7 +71,8 @@ impl PartialOrd<Integer> for Rational {
 impl PartialOrd<Rational> for Integer {
     #[inline]
     fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-        other.partial_cmp(self).map(Ordering::reverse)
+        <Rational as PartialOrd<Integer>>::partial_cmp(other, self)
+            .map(Ordering::reverse)
     }
 }
 
@@ -132,25 +133,31 @@ macro_rules! cross {
         impl PartialEq<($Num, $Den)> for Rational {
             #[inline]
             fn eq(&self, other: &($Num, $Den)) -> bool {
-                self.eq(&*SmallRational::from(*other))
+                <Rational as PartialEq>::eq(self, &*SmallRational::from(*other))
             }
         }
         impl PartialEq<Rational> for ($Num, $Den) {
             #[inline]
             fn eq(&self, other: &Rational) -> bool {
-                SmallRational::from(*self).eq(other)
+                <Rational as PartialEq>::eq(&*SmallRational::from(*self), other)
             }
         }
         impl PartialOrd<($Num, $Den)> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
-                self.partial_cmp(&*SmallRational::from(*other))
+                <Rational as PartialOrd>::partial_cmp(
+                    self,
+                    &*SmallRational::from(*other),
+                )
             }
         }
         impl PartialOrd<Rational> for ($Num, $Den) {
             #[inline]
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-                SmallRational::from(*self).partial_cmp(other)
+                <Rational as PartialOrd>::partial_cmp(
+                    &*SmallRational::from(*self),
+                    other,
+                )
             }
         }
     }

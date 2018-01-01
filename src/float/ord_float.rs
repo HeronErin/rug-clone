@@ -117,29 +117,7 @@ impl Hash for OrdFloat {
     }
 }
 
-impl PartialEq for OrdFloat {
-    #[inline]
-    fn eq(&self, other: &OrdFloat) -> bool {
-        let s = &self.inner;
-        let o = &other.inner;
-        if s.is_nan() {
-            o.is_nan() && s.is_sign_negative() == o.is_sign_negative()
-        } else if s.is_zero() {
-            o.is_zero() && s.is_sign_negative() == o.is_sign_negative()
-        } else {
-            s.eq(o)
-        }
-    }
-}
-
 impl Eq for OrdFloat {}
-
-impl PartialOrd for OrdFloat {
-    #[inline]
-    fn partial_cmp(&self, other: &OrdFloat) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
 
 impl Ord for OrdFloat {
     #[inline]
@@ -166,6 +144,28 @@ impl Ord for OrdFloat {
                 },
             }
         }
+    }
+}
+
+impl PartialEq for OrdFloat {
+    #[inline]
+    fn eq(&self, other: &OrdFloat) -> bool {
+        let s = &self.inner;
+        let o = &other.inner;
+        if s.is_nan() {
+            o.is_nan() && s.is_sign_negative() == o.is_sign_negative()
+        } else if s.is_zero() {
+            o.is_zero() && s.is_sign_negative() == o.is_sign_negative()
+        } else {
+            s.eq(o)
+        }
+    }
+}
+
+impl PartialOrd for OrdFloat {
+    #[inline]
+    fn partial_cmp(&self, other: &OrdFloat) -> Option<Ordering> {
+        Some(<OrdFloat as Ord>::cmp(self, other))
     }
 }
 

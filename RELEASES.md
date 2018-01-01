@@ -20,6 +20,7 @@ Version 0.9.2
 * Deprecate and hide `float::Round::AwayFromZero`.
 * Add `Integer::signum`, `Rational::signum` and `Float::signum`
   methods.
+* Add missing conversion to/from and comparisons to primitive types.
 
 Version 0.9.1 (2017-11-27)
 ==========================

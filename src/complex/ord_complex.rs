@@ -102,6 +102,19 @@ impl Hash for OrdComplex {
     }
 }
 
+impl Eq for OrdComplex {}
+
+impl Ord for OrdComplex {
+    #[inline]
+    fn cmp(&self, other: &OrdComplex) -> Ordering {
+        let (re, im) = self.inner.as_real_imag();
+        let (re, im) = (re.as_ord(), im.as_ord());
+        let (other_re, other_im) = other.inner.as_real_imag();
+        let (other_re, other_im) = (other_re.as_ord(), other_im.as_ord());
+        re.cmp(other_re).then(im.cmp(other_im))
+    }
+}
+
 impl PartialEq for OrdComplex {
     #[inline]
     fn eq(&self, other: &OrdComplex) -> bool {
@@ -113,23 +126,10 @@ impl PartialEq for OrdComplex {
     }
 }
 
-impl Eq for OrdComplex {}
-
 impl PartialOrd for OrdComplex {
     #[inline]
     fn partial_cmp(&self, other: &OrdComplex) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for OrdComplex {
-    #[inline]
-    fn cmp(&self, other: &OrdComplex) -> Ordering {
-        let (re, im) = self.inner.as_real_imag();
-        let (re, im) = (re.as_ord(), im.as_ord());
-        let (other_re, other_im) = other.inner.as_real_imag();
-        let (other_re, other_im) = (other_re.as_ord(), other_im.as_ord());
-        re.cmp(other_re).then(im.cmp(other_im))
+        Some(<OrdComplex as Ord>::cmp(self, other))
     }
 }
 
