@@ -306,27 +306,10 @@ impl From<f32> for Float {
         let u: u32 = unsafe { mem::transmute(src) };
         let neg = (u & SIGN_MASK) != 0;
         let biased_exp = u & EXP_MASK;
-        let mant = u & MANT_MASK;
+        let shift = (biased_exp >> MANT_BITS) as i32 - (EXP_BIAS + MANT_BITS);
 
-        // check for zero
-        if biased_exp == 0 && mant == 0 {
-            return Float {
-                neg,
-                fits: true,
-                wrapped: 0,
-            };
-        }
-        // check for infinity or nan
-        if biased_exp == EXP_MASK {
-            return Float {
-                neg,
-                fits: false,
-                wrapped: 0,
-            };
-        }
-
-        let shift = (biased_exp >> MANT_BITS) as i32 - EXP_BIAS - MANT_BITS;
-        // Do not return early if shift == -MANT_BITS, as there is implicit one.
+        // Check if the magnitude is smaller than one. Do not return
+        // early if shift == -MANT_BITS, as there is implicit one.
         if shift < -MANT_BITS {
             return Float {
                 neg,
@@ -334,6 +317,9 @@ impl From<f32> for Float {
                 wrapped: 0,
             };
         }
+
+        // Check if the least significant bit will be in a u64. This
+        // condition handles infinites and NaNs too.
         if shift >= 64 {
             return Float {
                 neg,
@@ -342,17 +328,14 @@ impl From<f32> for Float {
             };
         }
 
-        // Add implicit one. (Subnormals have already returned early.)
-        let significand = u64::from(mant) | (1 << MANT_BITS);
-        if shift < 0 {
-            return Float {
-                neg,
-                fits: true,
-                wrapped: significand >> -shift,
-            };
-        }
-        let wrapped = significand << shift;
-        let fits = (wrapped >> shift) == significand;
+        // Add implicit one.
+        let significand = u64::from(u & MANT_MASK) | (1 << MANT_BITS);
+        let (fits, wrapped) = if shift < 0 {
+            (true, significand >> -shift)
+        } else {
+            let wrapped = significand << shift;
+            ((wrapped >> shift) == significand, wrapped)
+        };
         Float { neg, fits, wrapped }
     }
 }
@@ -369,27 +352,10 @@ impl From<f64> for Float {
         let u: u64 = unsafe { mem::transmute(src) };
         let neg = (u & SIGN_MASK) != 0;
         let biased_exp = u & EXP_MASK;
-        let mant = u & MANT_MASK;
+        let shift = (biased_exp >> MANT_BITS) as i32 - (EXP_BIAS + MANT_BITS);
 
-        // check for zero
-        if biased_exp == 0 && mant == 0 {
-            return Float {
-                neg,
-                fits: true,
-                wrapped: 0,
-            };
-        }
-        // check for infinity or nan
-        if biased_exp == EXP_MASK {
-            return Float {
-                neg,
-                fits: false,
-                wrapped: 0,
-            };
-        }
-
-        let shift = (biased_exp >> MANT_BITS) as i32 - EXP_BIAS - MANT_BITS;
-        // Do not return early if shift == -MANT_BITS, as there is implicit one.
+        // Check if the magnitude is smaller than one. Do not return
+        // early if shift == -MANT_BITS, as there is implicit one.
         if shift < -MANT_BITS {
             return Float {
                 neg,
@@ -397,6 +363,9 @@ impl From<f64> for Float {
                 wrapped: 0,
             };
         }
+
+        // Check if the least significant bit will be in a u64. This
+        // condition handles infinites and NaNs too.
         if shift >= 64 {
             return Float {
                 neg,
@@ -405,17 +374,14 @@ impl From<f64> for Float {
             };
         }
 
-        // Add implicit one. (Subnormals have already returned early.)
-        let significand = mant | (1 << MANT_BITS);
-        if shift < 0 {
-            return Float {
-                neg,
-                fits: true,
-                wrapped: significand >> -shift,
-            };
-        }
-        let wrapped = significand << shift;
-        let fits = (wrapped >> shift) == significand;
+        // Add implicit one.
+        let significand = (u & MANT_MASK) | (1 << MANT_BITS);
+        let (fits, wrapped) = if shift < 0 {
+            (true, significand >> -shift)
+        } else {
+            let wrapped = significand << shift;
+            ((wrapped >> shift) == significand, wrapped)
+        };
         Float { neg, fits, wrapped }
     }
 }
