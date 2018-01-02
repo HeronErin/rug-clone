@@ -27,6 +27,7 @@
 use Integer;
 use inner::{Inner, InnerMut};
 
+use cast::cast;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
 use std::mem;
@@ -478,11 +479,10 @@ c_callback! {
         #[cfg(gmp_limb_bits_64)]
         {
             let (limbs, rest) = (bits / 64, bits % 64);
-            assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
-            let limbs = limbs as isize;
+            let limbs: isize  = cast(limbs);
             for i in 0..limbs {
                 let n = u64::from(gen()) | u64::from(gen()) << 32;
-                *(limb.offset(i)) = n as gmp::limb_t;
+                *(limb.offset(i)) = cast(n);
             }
             if rest >= 32 {
                 let mut n = u64::from(gen());
@@ -490,24 +490,23 @@ c_callback! {
                     let mask = !(!0 << (rest - 32));
                     n |= u64::from(gen() & mask) << 32;
                 }
-                *(limb.offset(limbs)) = n as gmp::limb_t;
+                *(limb.offset(limbs)) = cast(n);
             } else if rest > 0 {
                 let mask = !(!0 << rest);
                 let n = u64::from(gen() & mask);
-                *(limb.offset(limbs)) = n as gmp::limb_t;
+                *(limb.offset(limbs)) = cast(n);
             }
         }
         #[cfg(gmp_limb_bits_32)]
         {
             let (limbs, rest) = (bits / 32, bits % 32);
-            assert_eq!((limbs + 1) as isize as c_ulong, limbs + 1, "overflow");
-            let limbs = limbs as isize;
+            let limbs: isize = cast(limbs);
             for i in 0..limbs {
-                *(limb.offset(i)) = gen() as gmp::limb_t;
+                *(limb.offset(i)) = cast(gen());
             }
             if rest > 0 {
                 let mask = !(!0 << rest);
-                *(limb.offset(limbs)) = (gen() & mask) as gmp::limb_t;
+                *(limb.offset(limbs)) = cast(gen() & mask);
             }
         }
     }

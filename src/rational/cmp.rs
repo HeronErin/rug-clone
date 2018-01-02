@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Integer, Rational};
+use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
@@ -81,7 +82,7 @@ macro_rules! cmp {
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                unsafe { $cmp(self.inner(), (*other) as _, 1) == 0 }
+                unsafe { $cmp(self.inner(), cast(*other), 1) == 0 }
             }
         }
 
@@ -95,7 +96,7 @@ macro_rules! cmp {
         impl PartialOrd<$T> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                let ord = unsafe { $cmp(self.inner(), (*other) as _, 1) };
+                let ord = unsafe { $cmp(self.inner(), cast(*other), 1) };
                 Some(ord.cmp(&0))
             }
         }

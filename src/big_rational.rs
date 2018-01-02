@@ -16,6 +16,7 @@
 
 use {Assign, Integer};
 use big_integer;
+use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
@@ -407,7 +408,7 @@ impl Rational {
                     kind: Kind::InvalidDigit,
                 })?,
             };
-            if digit_value >= radix as u8 {
+            if digit_value >= cast::<_, u8>(radix) {
                 return Err(Error {
                     kind: Kind::InvalidDigit,
                 });

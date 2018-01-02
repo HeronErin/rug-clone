@@ -16,6 +16,7 @@
 
 use {Assign, Float};
 use big_float;
+use cast::cast;
 use complex::{OrdComplex, Prec};
 use ext::mpc as xmpc;
 use float::{self, ParseFloatError, Round, Special, ValidFloat};
@@ -260,7 +261,7 @@ impl Complex {
         );
         unsafe {
             let mut c: Complex = mem::uninitialized();
-            mpc::init3(c.inner_mut(), p.0 as mpfr::prec_t, p.1 as mpfr::prec_t);
+            mpc::init3(c.inner_mut(), cast(p.0), cast(p.1));
             c
         }
     }

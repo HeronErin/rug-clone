@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Integer;
+use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
@@ -87,7 +88,7 @@ macro_rules! cmp_cast {
             fn eq(&self, other: &$New) -> bool {
                 <Integer as PartialOrd<$Existing>>::partial_cmp(
                     self,
-                    &(*other as $Existing),
+                    &cast(*other),
                 ) == Some(Ordering::Equal)
             }
         }
@@ -97,7 +98,7 @@ macro_rules! cmp_cast {
             fn eq(&self, other: &Integer) -> bool {
                 <Integer as PartialOrd<$Existing>>::partial_cmp(
                     other,
-                    &(*self as $Existing),
+                    &cast(*self),
                 ) == Some(Ordering::Equal)
             }
         }
@@ -107,7 +108,7 @@ macro_rules! cmp_cast {
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
                 <Integer as PartialOrd<$Existing>>::partial_cmp(
                     self,
-                    &(*other as $Existing),
+                    &cast(*other),
                 )
             }
         }
@@ -117,7 +118,7 @@ macro_rules! cmp_cast {
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
                 <Integer as PartialOrd<$Existing>>::partial_cmp(
                     other,
-                    &(*self as $Existing),
+                    &cast(*self),
                 ).map(Ordering::reverse)
             }
         }

@@ -14,6 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use cast::cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i16, i32, i64, i8, u16, u32, u64, u8};
 use std::cmp::Ordering;
@@ -1051,7 +1052,7 @@ pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
             (*rop).size = 0;
         } else {
             (*rop).size = 1;
-            *limb_mut(rop, 0) = u as gmp::limb_t;
+            *limb_mut(rop, 0) = cast(u);
         }
     }
     #[cfg(gmp_limb_bits_32)]
@@ -1060,12 +1061,12 @@ pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
             (*rop).size = 0;
         } else if u <= 0xffff_ffff {
             (*rop).size = 1;
-            *limb_mut(rop, 0) = u as gmp::limb_t;
+            *limb_mut(rop, 0) = cast(u);
         } else {
             gmp::_mpz_realloc(rop, 2);
             (*rop).size = 2;
-            *limb_mut(rop, 0) = u as u32 as gmp::limb_t;
-            *limb_mut(rop, 1) = (u >> 32) as u32 as gmp::limb_t;
+            *limb_mut(rop, 0) = cast(u as u32);
+            *limb_mut(rop, 1) = cast((u >> 32) as u32);
         }
     }
 }
@@ -1151,7 +1152,7 @@ pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
             0 if op2 == 0 => 0,
             0 => -1,
             size if size < 0 => -1,
-            1 => ord_int(limb(op1, 0).cmp(&(op2 as gmp::limb_t))),
+            1 => ord_int(limb(op1, 0).cmp(&cast::<_, gmp::limb_t>(op2))),
             _ => 1,
         }
     }
@@ -1177,7 +1178,7 @@ pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
             0 => ord_int(0.cmp(&op2)),
             -1 | 1 => {
                 let mag1 = limb(op1, 0);
-                let mag2 = op2.wrapping_abs() as u64 as gmp::limb_t;
+                let mag2: gmp::limb_t = cast(op2.wrapping_abs() as u64);
                 match (neg1, op2 < 0) {
                     (false, false) => ord_int(mag1.cmp(&mag2)),
                     (false, true) => 1,
@@ -1225,7 +1226,7 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
         0 => ord_int(0.cmp(&op2)),
         -1 | 1 => {
             let mag1 = limb(op1, 0);
-            let mag2 = gmp::limb_t::from(op2.wrapping_abs() as u32);
+            let mag2: gmp::limb_t = cast(op2.wrapping_abs() as u32);
             match (neg1, op2 < 0) {
                 (false, false) => ord_int(mag1.cmp(&mag2)),
                 (false, true) => 1,
@@ -1396,9 +1397,8 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
         mpz_set_1(rop);
         return;
     }
-    let significant_u = gmp::mpn_sizeinbase((*op).d, size.into(), 2);
-    let significant = significant_u as gmp::bitcnt_t;
-    assert_eq!(significant as usize, significant_u, "overflow");
+    let significant: gmp::bitcnt_t =
+        cast(gmp::mpn_sizeinbase((*op).d, cast(size), 2));
     let first_one = gmp::mpn_scan1((*op).d, 0);
     let bit = if significant - 1 == first_one {
         if rop as *const mpz_t == op {
@@ -1621,9 +1621,9 @@ mod rational {
         // The remainder cannot be larger than the divisor, but we
         // allocate an extra limb because the GMP docs say we should,
         // and also because we have to multiply by 2.
-        let limbs = (*den).size.abs() as gmp::bitcnt_t + 1;
+        let limbs = cast::<_, gmp::bitcnt_t>((*den).size.abs()) + 1;
         let bits = limbs
-            .checked_mul(gmp::LIMB_BITS as gmp::bitcnt_t)
+            .checked_mul(cast::<_, gmp::bitcnt_t>(gmp::LIMB_BITS))
             .expect("overflow");
         let mut rem: mpz_t = mem::uninitialized();
         gmp::mpz_init2(&mut rem, bits);

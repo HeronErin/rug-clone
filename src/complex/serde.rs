@@ -59,11 +59,10 @@ impl<'de> Deserialize<'de> for Complex {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        // we have already checked that precision is in range
         unsafe {
             let parts = place.as_mut_real_imag();
-            mpfr::set_prec(parts.0.inner_mut(), prec.0 as mpfr::prec_t);
-            mpfr::set_prec(parts.1.inner_mut(), prec.1 as mpfr::prec_t);
+            mpfr::set_prec(parts.0.inner_mut(), cast(prec.0));
+            mpfr::set_prec(parts.1.inner_mut(), cast(prec.1));
         }
         place
             .assign_str_radix(&value, radix)

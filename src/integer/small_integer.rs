@@ -16,6 +16,7 @@
 
 use {Assign, Integer};
 
+use cast::cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::mem;
 use std::ops::Deref;
@@ -94,7 +95,7 @@ impl SmallInteger {
         SmallInteger {
             inner: Mpz {
                 size: 0,
-                alloc: LIMBS_IN_SMALL_INTEGER as c_int,
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
                 d: Default::default(),
             },
             limbs: [0; LIMBS_IN_SMALL_INTEGER],
@@ -217,11 +218,11 @@ impl Assign<u64> for SmallInteger {
             self.inner.size = 0;
         } else if val <= 0xffff_ffff {
             self.inner.size = 1;
-            self.limbs[0] = val as u32 as gmp::limb_t;
+            self.limbs[0] = cast(val as u32);
         } else {
             self.inner.size = 2;
-            self.limbs[0] = val as u32 as gmp::limb_t;
-            self.limbs[1] = (val >> 32) as u32 as gmp::limb_t;
+            self.limbs[0] = cast(val as u32);
+            self.limbs[1] = cast((val >> 32) as u32);
         }
     }
 }

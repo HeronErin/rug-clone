@@ -16,6 +16,7 @@
 
 use {Assign, Integer};
 use big_integer;
+use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
@@ -65,7 +66,7 @@ impl Hash for Integer {
         let size = self.inner().size;
         size.hash(state);
         if size != 0 {
-            let limbs = size.checked_abs().expect("overflow") as usize;
+            let limbs: usize = cast(size.checked_abs().expect("overflow"));
             let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
             slice.hash(state);
         }
@@ -231,7 +232,7 @@ macro_rules! assign_into_cast {
             #[inline]
             fn assign_into(self, dst: &mut Integer) {
                 <$Existing as AssignInto<Integer>>::assign_into(
-                    self as $Existing,
+                    cast(self),
                     dst,
                 );
             }
@@ -240,7 +241,7 @@ macro_rules! assign_into_cast {
         impl From<$New> for Integer {
             #[inline]
             fn from(src: $New) -> Self {
-                <Self as From<$Existing>>::from(src as $Existing)
+                <Self as From<$Existing>>::from(cast(src))
             }
         }
 

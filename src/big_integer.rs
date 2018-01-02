@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Assign;
+use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
@@ -205,10 +206,9 @@ impl Integer {
     /// ```
     #[inline]
     pub fn with_capacity(bits: usize) -> Integer {
-        assert_eq!(bits as gmp::bitcnt_t as usize, bits, "overflow");
         unsafe {
             let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init2(ret.inner_mut(), bits as gmp::bitcnt_t);
+            gmp::mpz_init2(ret.inner_mut(), cast(bits));
             ret
         }
     }
@@ -224,13 +224,9 @@ impl Integer {
     /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
-        let limbs = self.inner().alloc;
-        let bits = limbs as usize * gmp::LIMB_BITS as usize;
-        assert_eq!(
-            limbs,
-            (bits / gmp::LIMB_BITS as usize) as c_int,
-            "overflow"
-        );
+        let bits = cast::<_, usize>(self.inner().alloc)
+            .checked_mul(cast::<_, usize>(gmp::LIMB_BITS))
+            .expect("overflow");
         bits
     }
 
@@ -260,9 +256,8 @@ impl Integer {
         }
         let used_bits = significant_bits_usize(self);
         let req_bits = used_bits.checked_add(additional).expect("overflow");
-        assert_eq!(req_bits as gmp::bitcnt_t as usize, req_bits, "overflow");
         unsafe {
-            gmp::mpz_realloc2(self.inner_mut(), req_bits as gmp::bitcnt_t);
+            gmp::mpz_realloc2(self.inner_mut(), cast(req_bits));
         }
     }
 
@@ -285,9 +280,8 @@ impl Integer {
     /// ```
     pub fn shrink_to_fit(&mut self) {
         let used_bits = significant_bits_usize(self);
-        assert_eq!(used_bits as gmp::bitcnt_t as usize, used_bits, "overflow");
         unsafe {
-            gmp::mpz_realloc2(self.inner_mut(), used_bits as gmp::bitcnt_t);
+            gmp::mpz_realloc2(self.inner_mut(), cast(used_bits));
         }
     }
 
@@ -415,7 +409,7 @@ impl Integer {
                     })
                 }
             };
-            if digit_value >= radix as u8 {
+            if digit_value >= cast::<_, u8>(radix) {
                 return Err(Error {
                     kind: Kind::InvalidDigit,
                 });
@@ -532,11 +526,11 @@ impl Integer {
     pub fn to_isize(&self) -> Option<isize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_i32().map(|i| i as isize)
+            self.to_i32().map(cast)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_i64().map(|i| i as isize)
+            self.to_i64().map(cast)
         }
     }
 
@@ -640,11 +634,11 @@ impl Integer {
     pub fn to_usize(&self) -> Option<usize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_u32().map(|u| u as usize)
+            self.to_u32().map(cast)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_u64().map(|u| u as usize)
+            self.to_u64().map(cast)
         }
     }
 
@@ -805,11 +799,11 @@ impl Integer {
     pub fn to_usize_wrapping(&self) -> usize {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_i32_wrapping() as usize
+            cast(self.to_u32_wrapping())
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_i64_wrapping() as usize
+            cast(self.to_u64_wrapping())
         }
     }
 
@@ -909,8 +903,7 @@ impl Integer {
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let mut exp: c_long = 0;
         let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.inner()) };
-        assert_eq!(exp as u32 as c_long, exp, "overflow");
-        (f, exp as u32)
+        (f, cast(exp))
     }
 
     /// Returns a string representation of the number for the
@@ -1319,11 +1312,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        let bits = significant_bits_usize(self);
-        if bits > u32::MAX as usize {
-            panic!("overflow");
-        }
-        bits as u32
+        cast(significant_bits_usize(self))
     }
 
     /// Returns the number of one bits if the value ≥ 0.
@@ -2747,7 +2736,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe { gmp::mpz_probab_prime_p(self.inner(), reps as c_int) };
+        let p = unsafe { gmp::mpz_probab_prime_p(self.inner(), cast(reps)) };
         match p {
             0 => IsPrime::No,
             1 => IsPrime::Probably,
@@ -3139,8 +3128,7 @@ impl Integer {
         let cnt = unsafe {
             gmp::mpz_remove(self.inner_mut(), self.inner(), factor.inner())
         };
-        assert_eq!(cnt as u32 as gmp::bitcnt_t, cnt, "overflow");
-        cnt as u32
+        cast(cnt)
     }
 
     /// Removes all occurrences of `factor`, and counts the number of
@@ -3846,8 +3834,7 @@ impl<'a, 'b, 'c> AssignInto<(&'a mut Integer, &'b mut u32)>
                 self.factor.inner(),
             )
         };
-        assert_eq!(cnt as u32 as gmp::bitcnt_t, cnt, "overflow");
-        *dst.1 = cnt as u32;
+        *dst.1 = cast(cnt);
     }
 }
 
@@ -4103,12 +4090,10 @@ pub enum IsPrime {
 }
 
 fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
-    let max: gmp::bitcnt_t = !0;
-    if bits == max {
+    if bits == !0 {
         None
     } else {
-        assert_eq!(bits as u32 as gmp::bitcnt_t, bits, "overflow");
-        Some(bits as u32)
+        Some(cast(bits))
     }
 }
 

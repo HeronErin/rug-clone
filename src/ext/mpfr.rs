@@ -16,6 +16,7 @@
 
 #[cfg(feature = "integer")]
 use Float;
+use cast::cast;
 #[cfg(feature = "integer")]
 use float;
 use float::SmallFloat;
@@ -155,11 +156,9 @@ unsafe fn divf_mulz_divz(
 
     let mut denom_buf: Float;
     let denom = if let Some(div) = div {
-        let mut prec = (*f).prec as u32;
-        assert_eq!(prec as mpfr::prec_t, (*f).prec, "overflow");
-        let bits = gmp::mpz_sizeinbase(div, 2);
-        assert!(bits < u32::MAX as usize, "overflow");
-        prec = prec.checked_add(bits as u32).expect("overflow");
+        let mut prec: u32 = cast((*f).prec);
+        let bits: u32 = cast(gmp::mpz_sizeinbase(div, 2));
+        prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
         mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
         denom_buf.inner() as *const _
@@ -167,9 +166,8 @@ unsafe fn divf_mulz_divz(
         f
     };
     if let Some(mul) = mul {
-        let bits = gmp::mpz_sizeinbase(mul, 2);
-        assert!(bits <= u32::MAX as usize, "overflow");
-        let mut buf = Float::new(cmp::max(float::prec_min(), bits as u32));
+        let bits: u32 = cast(gmp::mpz_sizeinbase(mul, 2));
+        let mut buf = Float::new(cmp::max(float::prec_min(), bits));
         mpfr::set_z(buf.inner_mut(), mul, rnd);
         mpfr::div(rop, buf.inner(), denom, rnd)
     } else {
@@ -269,7 +267,7 @@ pub unsafe fn f32_div(
 #[inline]
 pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
     if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
-        mpfr::set_si(rop, val as c_long, rnd)
+        mpfr::set_si(rop, cast(val), rnd)
     } else {
         let small = SmallFloat::from(val);
         mpfr::set(rop, (*small).inner(), rnd)
@@ -279,7 +277,7 @@ pub unsafe fn set_i64(rop: *mut mpfr_t, val: i64, rnd: mpfr::rnd_t) -> c_int {
 #[inline]
 pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
     if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
-        mpfr::set_ui(rop, val as c_ulong, rnd)
+        mpfr::set_ui(rop, cast(val), rnd)
     } else {
         let small = SmallFloat::from(val);
         mpfr::set(rop, (*small).inner(), rnd)
@@ -289,7 +287,7 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
 #[inline]
 pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
     if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
-        mpfr::cmp_si(op1, op2 as c_long)
+        mpfr::cmp_si(op1, cast(op2))
     } else {
         let small = SmallFloat::from(op2);
         mpfr::cmp(op1, (*small).inner())
@@ -299,7 +297,7 @@ pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
 #[inline]
 pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
     if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
-        mpfr::cmp_ui(op1, op2 as c_ulong)
+        mpfr::cmp_ui(op1, cast(op2))
     } else {
         let small = SmallFloat::from(op2);
         mpfr::cmp(op1, (*small).inner())

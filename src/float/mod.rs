@@ -28,6 +28,7 @@ mod small_float;
 mod traits;
 
 pub use big_float::{ParseFloatError, ValidFloat};
+use cast::cast;
 pub use float::ord_float::OrdFloat;
 pub use float::small_float::SmallFloat;
 use gmp_mpfr_sys::mpfr;
@@ -80,7 +81,7 @@ pub fn exp_max() -> i32 {
 /// ```
 #[inline]
 pub fn prec_min() -> u32 {
-    mpfr::PREC_MIN as u32
+    cast(mpfr::PREC_MIN)
 }
 
 /// Returns the maximum value for the precision.

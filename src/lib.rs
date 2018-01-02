@@ -152,6 +152,7 @@ extern crate serde_test;
 
 #[macro_use]
 mod macros;
+mod cast;
 mod ext;
 mod inner;
 #[cfg(any(feature = "integer", feature = "float"))]

@@ -17,6 +17,7 @@
 use {Assign, Float};
 use float::Round;
 
+use cast::cast;
 use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
@@ -200,11 +201,11 @@ macro_rules! unsigned_32 {
                     } else {
                         let leading = val.leading_zeros();
                         let limb_leading
-                            = leading + gmp::LIMB_BITS as u32 - $bits;
+                            = leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
                         self.limbs[0] = gmp::limb_t::from(val) << limb_leading;
                         let limbs = &mut self.limbs[0];
                         let exp = $bits - leading;
-                        xmpfr::custom_regular(ptr, limbs, exp as _, $bits);
+                        xmpfr::custom_regular(ptr, limbs, cast(exp), $bits);
                     }
                 }
             }
@@ -234,15 +235,15 @@ impl Assign<u64> for SmallFloat {
                 let sval = val << leading;
                 #[cfg(gmp_limb_bits_64)]
                 {
-                    self.limbs[0] = sval.into();
+                    self.limbs[0] = cast(sval);
                 }
                 #[cfg(gmp_limb_bits_32)]
                 {
-                    self.limbs[0] = (sval as u32).into();
-                    self.limbs[1] = ((sval >> 32) as u32).into();
+                    self.limbs[0] = cast(sval as u32);
+                    self.limbs[1] = cast((sval >> 32) as u32);
                 }
                 let limbs = &mut self.limbs[0];
-                xmpfr::custom_regular(ptr, limbs, (64 - leading) as _, 64);
+                xmpfr::custom_regular(ptr, limbs, cast(64 - leading), 64);
             }
         }
     }
@@ -283,7 +284,7 @@ impl Assign<f64> for SmallFloat {
         let ptr = &mut self.inner as *mut _ as *mut _;
         unsafe {
             xmpfr::custom_zero(ptr, &mut self.limbs[0], 53);
-            mpfr::set_d(ptr, val as f64, rraw(Round::Nearest));
+            mpfr::set_d(ptr, val, rraw(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {

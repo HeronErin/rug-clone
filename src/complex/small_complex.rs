@@ -18,6 +18,7 @@ use Assign;
 use Complex;
 use float::Round;
 
+use cast::cast;
 use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
@@ -238,7 +239,7 @@ macro_rules! unsigned_32_part {
                             = leading + gmp::LIMB_BITS as u32 - $bits;
                         *limbs = gmp::limb_t::from(val) << limb_leading;
                         let exp = $bits - leading;
-                        xmpfr::custom_regular(ptr, limbs, exp as _, $bits);
+                        xmpfr::custom_regular(ptr, limbs, cast(exp), $bits);
                     }
                 }
             }
@@ -261,14 +262,14 @@ impl SetPart<u64> for Mpfr {
                 let sval = val << leading;
                 #[cfg(gmp_limb_bits_64)]
                 {
-                    *limbs = sval.into();
+                    *limbs = cast(sval);
                 }
                 #[cfg(gmp_limb_bits_32)]
                 {
-                    *limbs = (sval as u32).into();
-                    *limbs.offset(1) = ((sval >> 32) as u32).into();
+                    *limbs = cast(sval as u32);
+                    *limbs.offset(1) = cast((sval >> 32) as u32);
                 }
-                xmpfr::custom_regular(ptr, limbs, (64 - leading) as _, 64);
+                xmpfr::custom_regular(ptr, limbs, cast(64 - leading), 64);
             }
         }
     }

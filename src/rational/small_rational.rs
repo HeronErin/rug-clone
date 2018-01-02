@@ -16,6 +16,7 @@
 
 use {Assign, Rational};
 
+use cast::cast;
 use gmp_mpfr_sys::gmp;
 use inner::InnerMut;
 use std::mem;
@@ -95,12 +96,12 @@ impl SmallRational {
         let mut ret = SmallRational {
             num: Mpz {
                 size: 0,
-                alloc: LIMBS_IN_SMALL_INTEGER as c_int,
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
                 d: Default::default(),
             },
             den: Mpz {
                 size: 1,
-                alloc: LIMBS_IN_SMALL_INTEGER as c_int,
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
                 d: Default::default(),
             },
             limbs: [0; 2 * LIMBS_IN_SMALL_INTEGER],
@@ -301,21 +302,21 @@ impl SmallRational {
                 self.limbs[0] = 0;
             } else if num <= 0xffff_ffff {
                 self.num.size = if neg { -1 } else { 1 };
-                self.limbs[0] = (num as u32).into();
+                self.limbs[0] = cast(num as u32);
             } else {
                 self.num.size = if neg { -2 } else { 2 };
-                self.limbs[0] = (num as u32).into();
-                self.limbs[1] = ((num >> 32) as u32).into();
+                self.limbs[0] = cast(num as u32);
+                self.limbs[1] = cast((num >> 32) as u32);
             }
             self.num.d = Default::default();
             if den <= 0xffff_ffff {
                 self.den.size = 1;
-                self.limbs[LIMBS_IN_SMALL_INTEGER] = (den as u32).into();
+                self.limbs[LIMBS_IN_SMALL_INTEGER] = cast(den as u32);
             } else {
                 self.den.size = 2;
-                self.limbs[LIMBS_IN_SMALL_INTEGER] = (den as u32).into();
+                self.limbs[LIMBS_IN_SMALL_INTEGER] = cast(den as u32);
                 self.limbs[LIMBS_IN_SMALL_INTEGER + 1] =
-                    ((den >> 32) as u32).into();
+                    cast((den >> 32) as u32);
             }
             self.den.d = Default::default();
         }
@@ -402,7 +403,7 @@ where
 
 macro_rules! cross {
     {
-        $U:ty, $method_num:ident, $method_num_den:ident;
+        $method_num:ident, $method_num_den:ident;
         $NumI:ty, $NumU:ty; $DenI:ty, $DenU:ty
     } => {
         impl Assign<($NumI, $DenI)> for SmallRational {
@@ -410,8 +411,8 @@ macro_rules! cross {
             fn assign(&mut self, val: ($NumI, $DenI)) {
                 self.$method_num_den(
                     (val.0 < 0) != (val.1 < 0),
-                    val.0.wrapping_abs() as $NumU as $U,
-                    val.1.wrapping_abs() as $DenU as $U,
+                    cast(val.0.wrapping_abs() as $NumU),
+                    cast(val.1.wrapping_abs() as $DenU),
                 );
             }
         }
@@ -420,8 +421,8 @@ macro_rules! cross {
             fn assign(&mut self, val: ($NumI, $DenU)) {
                 self.$method_num_den(
                     val.0 < 0,
-                    val.0.wrapping_abs() as $NumU as $U,
-                    val.1 as $U,
+                    cast(val.0.wrapping_abs() as $NumU),
+                    cast(val.1),
                 );
             }
         }
@@ -430,15 +431,15 @@ macro_rules! cross {
             fn assign(&mut self, val: ($NumU, $DenI)) {
                 self.$method_num_den(
                     val.1 < 0,
-                    val.0 as $U,
-                    val.1.wrapping_abs() as $DenU as $U,
+                    cast(val.0),
+                    cast(val.1.wrapping_abs() as $DenU),
                 );
             }
         }
         impl Assign<($NumU, $DenU)> for SmallRational {
             #[inline]
             fn assign(&mut self, val: ($NumU, $DenU)) {
-                self.$method_num_den(false, val.0 as $U, val.1 as $U);
+                self.$method_num_den(false, cast(val.0), cast(val.1));
             }
         }
     }
@@ -447,59 +448,59 @@ macro_rules! cross {
 // (Major), (Major, Major), (Major, Minor*), (Minor*, Major)
 macro_rules! matrix {
     {
-        $U:ty, $method_num:ident, $method_num_den:ident;
+        $method_num:ident, $method_num_den:ident;
         $MajorI:ty, $MajorU:ty $(; $MinorI:ty, $MinorU:ty)*
     } => {
         impl Assign<$MajorI> for SmallRational {
             #[inline]
             fn assign(&mut self, val: $MajorI) {
-                self.$method_num(val < 0, val.wrapping_abs() as $MajorU as $U);
+                self.$method_num(val < 0, cast(val.wrapping_abs() as $MajorU));
             }
         }
         impl Assign<$MajorU> for SmallRational {
             #[inline]
             fn assign(&mut self, val: $MajorU) {
-                self.$method_num(false, val as $U);
+                self.$method_num(false, cast(val));
             }
         }
         cross! {
-            $U, $method_num, $method_num_den;
+            $method_num, $method_num_den;
             $MajorI, $MajorU; $MajorI, $MajorU
         }
         $( cross! {
-            $U, $method_num, $method_num_den;
+            $method_num, $method_num_den;
             $MajorI, $MajorU; $MinorI, $MinorU
         } )*
         $( cross! {
-            $U, $method_num, $method_num_den;
+            $method_num, $method_num_den;
             $MinorI, $MinorU; $MajorI, $MajorU
         } )*
     }
 }
 
 matrix! {
-    u32, set_num_32, set_num_den_32;
+    set_num_32, set_num_den_32;
     i8, u8
 }
 matrix! {
-    u32, set_num_32, set_num_den_32;
+    set_num_32, set_num_den_32;
     i16, u16; i8, u8
 }
 matrix! {
-    u32, set_num_32, set_num_den_32;
+    set_num_32, set_num_den_32;
     i32, u32; i16, u16; i8, u8
 }
 #[cfg(target_pointer_width = "32")]
 matrix! {
-    u32, set_num_32, set_num_den_32;
+    set_num_32, set_num_den_32;
     isize, usize; i32, u32; i16, u16; i8, u8
 }
 #[cfg(target_pointer_width = "64")]
 matrix! {
-    u64, set_num_64, set_num_den_64;
+    set_num_64, set_num_den_64;
     isize, usize; i32, u32; i16, u16; i8, u8
 }
 matrix! {
-    u64, set_num_64, set_num_den_64;
+    set_num_64, set_num_den_64;
     i64, u64; isize, usize; i32, u32; i16, u16; i8, u8
 }

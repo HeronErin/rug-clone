@@ -17,6 +17,7 @@
 use Float;
 use inner::Inner;
 
+use cast::cast;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
@@ -104,12 +105,10 @@ impl Hash for OrdFloat {
         if s.is_nan() || s.is_infinite() {
             return;
         }
-        let prec = s.prec();
-        assert_eq!(prec as usize as u32, prec);
-        let prec = prec as usize;
-        let mut limbs = prec / gmp::LIMB_BITS as usize;
+        let prec: usize = cast(s.prec());
+        let mut limbs = prec / cast::<_, usize>(gmp::LIMB_BITS);
         // MPFR keeps unused bits set to zero, so use whole of last limb
-        if prec % gmp::LIMB_BITS as usize > 0 {
+        if prec % cast::<_, usize>(gmp::LIMB_BITS) > 0 {
             limbs += 1;
         };
         let slice = unsafe { slice::from_raw_parts(s.inner().d, limbs) };

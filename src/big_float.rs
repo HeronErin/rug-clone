@@ -19,6 +19,7 @@ use Assign;
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
+use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{self, OrdFloat, Round, SmallFloat, Special};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
@@ -497,7 +498,7 @@ impl Float {
         );
         unsafe {
             let mut ret: Float = mem::uninitialized();
-            mpfr::init2(ret.inner_mut(), prec as mpfr::prec_t);
+            mpfr::init2(ret.inner_mut(), cast(prec));
             ret
         }
     }
@@ -513,7 +514,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn prec(&self) -> u32 {
-        unsafe { mpfr::get_prec(self.inner()) as u32 }
+        unsafe { cast(mpfr::get_prec(self.inner())) }
     }
 
     /// Sets the precision, rounding to the nearest.
@@ -563,11 +564,7 @@ impl Float {
             "precision out of range"
         );
         let ret = unsafe {
-            mpfr::prec_round(
-                self.inner_mut(),
-                prec as mpfr::prec_t,
-                rraw(round),
-            )
+            mpfr::prec_round(self.inner_mut(), cast(prec), rraw(round))
         };
         ordering1(ret)
     }
@@ -793,7 +790,7 @@ impl Float {
                     kind: Kind::InvalidDigit,
                 })?,
             };
-            if (!exp && digit >= radix as u8) || (exp && digit >= 10) {
+            if (!exp && digit >= cast::<_, u8>(radix)) || (exp && digit >= 10) {
                 return Err(Error {
                     kind: Kind::InvalidDigit,
                 });
@@ -899,9 +896,8 @@ impl Float {
             return None;
         }
         let mut i = Integer::new();
-        let exp =
-            unsafe { mpfr::get_z_2exp(i.inner_mut(), self.inner()) as i32 };
-        Some((i, exp))
+        let exp = unsafe { mpfr::get_z_2exp(i.inner_mut(), self.inner()) };
+        Some((i, cast(exp)))
     }
 
     #[cfg(feature = "rational")]
@@ -1202,8 +1198,7 @@ impl Float {
             );
             mpfr::get_d_2exp(&mut exp, sf.inner(), rraw(round))
         };
-        assert_eq!(exp as i32 as c_long, exp, "overflow");
-        (f as f32, exp as i32)
+        (f as f32, cast(exp))
     }
 
     /// Converts to an `f64` and an exponent, rounding to the nearest.
@@ -1253,8 +1248,7 @@ impl Float {
         let mut exp: c_long = 0;
         let f =
             unsafe { mpfr::get_d_2exp(&mut exp, self.inner(), rraw(round)) };
-        assert_eq!(exp as i32 as c_long, exp, "overflow");
-        (f, exp as i32)
+        (f, cast(exp))
     }
 
     /// Returns a string representation of `self` for the specified
@@ -1699,9 +1693,7 @@ impl Float {
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
             let e = unsafe { mpfr::get_exp(self.inner()) };
-            assert!(e <= mpfr::exp_t::from(i32::MAX), "overflow");
-            assert!(e >= mpfr::exp_t::from(i32::MIN), "overflow");
-            Some(e as i32)
+            Some(cast(e))
         } else {
             None
         }
@@ -1965,10 +1957,9 @@ impl Float {
         if !self.is_normal() {
             return prev_rounding;
         }
-        let prec = self.prec();
-        let exp_min = mpfr::exp_t::from(normal_exp_min);
+        let exp_min: mpfr::exp_t = cast(normal_exp_min);
         let sub_exp_min = exp_min
-            .checked_sub(prec as mpfr::exp_t - 1)
+            .checked_sub(cast::<_, mpfr::exp_t>(self.prec() - 1))
             .expect("overflow");
         let exp = unsafe { mpfr::get_exp(self.inner()) };
         if exp < sub_exp_min || exp >= exp_min {
@@ -7071,16 +7062,18 @@ pub fn req_chars(
             } else {
                 f64::from(f.prec()) / f64::from(ur).log2()
             };
-            (pdiv.ceil() as usize).checked_add(2).expect("overflow")
+            cast::<_, usize>(pdiv.ceil())
+                .checked_add(2)
+                .expect("overflow")
         } else {
             digits
         };
         // allow for exponent, including prefix like "e-"
-        let exp_chars = (f64::from(8 * mem::size_of::<mpfr::exp_t>() as u32)
-            * 2.0f64.log10())
-            .ceil() as usize + 2;
-        // add one to exp_chars for '.'
-        num_chars.checked_add(exp_chars + 1).expect("overflow")
+        let exp_chars: f64 = cast(8 * mem::size_of::<mpfr::exp_t>());
+        let exp_chars = (exp_chars * 2.0f64.log10()).ceil();
+        let exp_chars: usize = cast(exp_chars);
+        // one for '.' and two for exponent prefix like "e-"
+        num_chars.checked_add(exp_chars + 3).expect("overflow")
     };
     let size_extra = size.checked_add(extra).expect("overflow");
     if f.is_sign_negative() {
@@ -7236,7 +7229,7 @@ impl<'a> AssignRoundInto<Float> for ValidFloat<'a> {
                 dst.inner_mut(),
                 c_str.as_ptr(),
                 &mut c_str_end as *mut _ as *mut *mut c_char,
-                self.radix as c_int,
+                cast(self.radix),
                 rraw(round),
             )
         };
@@ -7334,7 +7327,7 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     let estimate = prec - 4 * prec.leading_zeros() + 113;
     // k must be a multiple of 32
     let k = (estimate + 16) & !31;
-    let p = k - ((f64::from(k).log2() * 4.0).round() as u32) + 13;
+    let p = k - cast::<_, u32>((f64::from(k).log2() * 4.0).round()) + 13;
     if p == prec {
         Some(k)
     } else {

@@ -20,6 +20,7 @@ use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use big_float::{self, rraw, ordering1};
+use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
@@ -425,7 +426,7 @@ macro_rules! conv_ops_cast {
                 round: Round,
             ) -> Ordering {
                 <$Existing as AssignRoundInto<Float>>::assign_round_into(
-                    self as $Existing,
+                    cast(self),
                     dst,
                     round
                 )

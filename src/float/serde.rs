@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Float;
+use cast::cast;
 use float::{self, OrdFloat};
 use gmp_mpfr_sys::mpfr;
 use inner::InnerMut;
@@ -56,9 +57,8 @@ impl<'de> Deserialize<'de> for Float {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        // we have already checked that precision is in range
         unsafe {
-            mpfr::set_prec(place.inner_mut(), prec as mpfr::prec_t);
+            mpfr::set_prec(place.inner_mut(), cast(prec));
         }
         place
             .assign_str_radix(&value, radix)
