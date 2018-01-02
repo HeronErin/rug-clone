@@ -18,6 +18,7 @@
 use std::mem;
 use std::ptr;
 
+#[allow(unknown_lints, transmute_int_to_float)]
 #[cfg(feature = "integer")]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
