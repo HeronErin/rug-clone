@@ -15,6 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Complex;
+use cast::cast;
 use complex::OrdComplex;
 use float;
 use gmp_mpfr_sys::mpfr;
