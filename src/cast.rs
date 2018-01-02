@@ -16,12 +16,40 @@
 
 use std::mem;
 
+/// Casts into the destination if the value fits, otherwise panics.
+///
+/// Floats are rounded towards zero when cast into integers.
+///
+/// # Panics
+///
+/// * If a NaN is cast into an integer type.
+/// * If the value does not fit in the destination integer type.
+pub trait Cast<Dst> {
+    fn cast(self) -> Dst;
+}
+
+/// Casts into the destination if the value fits.
+///
+/// Floats are rounded towards zero when cast into integers.
 pub trait CheckedCast<Dst> {
     fn checked_cast(self) -> Option<Dst>;
 }
 
+/// Casts into the destination, wrapping integers around if the value
+/// does not fit.
+///
+/// Floats are rounded towards zero when cast into integers.
 pub trait WrappingCast<Dst> {
     fn wrapping_cast(self) -> Dst;
+}
+
+#[inline]
+#[allow(unused)]
+pub fn cast<Src, Dst>(src: Src) -> Dst
+where
+    Src: Cast<Dst>,
+{
+    src.cast()
 }
 
 #[inline]
@@ -35,15 +63,6 @@ where
 
 #[inline]
 #[allow(unused)]
-pub fn cast<Src, Dst>(src: Src) -> Dst
-where
-    Src: CheckedCast<Dst>,
-{
-    src.checked_cast().expect("overflow")
-}
-
-#[inline]
-#[allow(unused)]
 pub fn wrapping_cast<Src, Dst>(src: Src) -> Dst
 where
     Src: WrappingCast<Dst>,
@@ -51,9 +70,67 @@ where
     src.wrapping_cast()
 }
 
-macro_rules! same_signedness {
+macro_rules! cast_int_to_int {
+    { $Src:ty => $($Dst:ty)* } => { $(
+        impl Cast<$Dst> for $Src {
+            #[inline]
+            fn cast(self) -> $Dst {
+                <$Src as CheckedCast<$Dst>>::checked_cast(self)
+                    .expect("overflow")
+            }
+        }
+    )* }
+}
+
+macro_rules! cast_float_to_int {
+    { $Src:ty => $($Dst:ty)* } => { $(
+        impl Cast<$Dst> for $Src {
+            #[inline]
+            fn cast(self) -> $Dst {
+                assert!(!self.is_nan(), "NaN");
+                <$Src as CheckedCast<$Dst>>::checked_cast(self)
+                    .expect("overflow")
+            }
+        }
+    )* }
+}
+
+macro_rules! cast_as {
+    { $Src:ty => $($Dst:ty)* } => { $(
+        impl Cast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
+            #[inline]
+            fn cast(self) -> $Dst {
+                self as $Dst
+            }
+        }
+    )* }
+}
+
+macro_rules! cast_int {
+    { $($Src:ty)* } => { $(
+        cast_int_to_int! { $Src => i8 i16 i32 i64 isize }
+        cast_int_to_int! { $Src => u8 u16 u32 u64 usize }
+        cast_as! { $Src => f32 f64 }
+    )* }
+}
+
+macro_rules! cast_float {
+    { $($Src:ty)* } => { $(
+        cast_float_to_int! { $Src => i8 i16 i32 i64 isize }
+        cast_float_to_int! { $Src => u8 u16 u32 u64 usize }
+        cast_as! { $Src => f32 f64 }
+    )* }
+}
+
+cast_int! { i8 i16 i32 i64 isize }
+cast_int! { u8 u16 u32 u64 usize }
+cast_float! { f32 f64 }
+
+macro_rules! checked_same_signedness {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
@@ -67,9 +144,10 @@ macro_rules! same_signedness {
     )* }
 }
 
-macro_rules! signed_to_unsigned {
+macro_rules! checked_signed_to_unsigned {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
@@ -83,9 +161,10 @@ macro_rules! signed_to_unsigned {
     )* }
 }
 
-macro_rules! unsigned_to_signed {
+macro_rules! checked_unsigned_to_signed {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
@@ -99,9 +178,10 @@ macro_rules! unsigned_to_signed {
     )* }
 }
 
-macro_rules! float_via {
+macro_rules! checked_float_via {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let f = Float::from(self);
@@ -123,9 +203,10 @@ macro_rules! float_via {
     )* }
 }
 
-macro_rules! always_works {
+macro_rules! checked_as {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 Some(self as $Dst)
@@ -134,37 +215,38 @@ macro_rules! always_works {
     )* }
 }
 
-macro_rules! signed_to {
+macro_rules! checked_signed {
     { $($Src:ty)* } => { $(
-        same_signedness! { $Src => i8 i16 i32 i64 isize }
-        signed_to_unsigned! { $Src => u8 u16 u32 u64 usize }
-        always_works! { $Src => f32 f64 }
-    )*}
+        checked_same_signedness! { $Src => i8 i16 i32 i64 isize }
+        checked_signed_to_unsigned! { $Src => u8 u16 u32 u64 usize }
+        checked_as! { $Src => f32 f64 }
+    )* }
 }
 
-macro_rules! unsigned_to {
+macro_rules! checked_unsigned {
     { $($Src:ty)* } => { $(
-        unsigned_to_signed! { $Src => i8 i16 i32 i64 isize }
-        same_signedness! { $Src => u8 u16 u32 u64 usize }
-        always_works! { $Src => f32 f64 }
-    )*}
+        checked_unsigned_to_signed! { $Src => i8 i16 i32 i64 isize }
+        checked_same_signedness! { $Src => u8 u16 u32 u64 usize }
+        checked_as! { $Src => f32 f64 }
+    )* }
 }
 
-macro_rules! float_to {
+macro_rules! checked_float {
     { $($Src:ty)* } => { $(
-        float_via! { $Src => i8 i16 i32 i64 isize }
-        float_via! { $Src => u8 u16 u32 u64 usize }
-        always_works! { $Src => f32 f64 }
-    )*}
+        checked_float_via! { $Src => i8 i16 i32 i64 isize }
+        checked_float_via! { $Src => u8 u16 u32 u64 usize }
+        checked_as! { $Src => f32 f64 }
+    )* }
 }
 
-signed_to! { i8 i16 i32 i64 isize }
-unsigned_to! { u8 u16 u32 u64 usize }
-float_to! { f32 f64 }
+checked_signed! { i8 i16 i32 i64 isize }
+checked_unsigned! { u8 u16 u32 u64 usize }
+checked_float! { f32 f64 }
 
-macro_rules! wrap_as {
+macro_rules! wrapping_as {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl WrappingCast<$Dst> for $Src {
+            #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn wrapping_cast(self) -> $Dst {
                 self as $Dst
@@ -173,7 +255,7 @@ macro_rules! wrap_as {
     )* }
 }
 
-macro_rules! wrap_float_via {
+macro_rules! wrapping_float_via {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl WrappingCast<$Dst> for $Src {
             #[inline]
@@ -187,21 +269,24 @@ macro_rules! wrap_float_via {
     )* }
 }
 
-macro_rules! wrap_integer {
+macro_rules! wrapping_int {
     { $($Src:ty)* } => { $(
-        wrap_as! { $Src => i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+        wrapping_as! { $Src => i8 i16 i32 i64 isize }
+        wrapping_as! { $Src => u8 u16 u32 u64 usize }
+        wrapping_as! { $Src => f32 f64 }
     )* }
 }
 
-macro_rules! wrap_float {
+macro_rules! wrapping_float {
     { $($Src:ty)* } => { $(
-        wrap_float_via! { $Src => i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
-        wrap_as! { $Src => f32 f64 }
+        wrapping_float_via! { $Src => i8 i16 i32 i64 isize }
+        wrapping_float_via! { $Src => u8 u16 u32 u64 usize }
+        wrapping_as! { $Src => f32 f64 }
     )* }
 }
 
-wrap_integer! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
-wrap_float! { f32 f64 }
+wrapping_int! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+wrapping_float! { f32 f64 }
 
 struct Float {
     neg: bool,
@@ -258,7 +343,7 @@ impl From<f32> for Float {
         }
 
         // Add implicit one. (Subnormals have already returned early.)
-        let significand = mant as u64 | (1 << MANT_BITS);
+        let significand = u64::from(mant) | (1 << MANT_BITS);
         if shift < 0 {
             return Float {
                 neg,
@@ -436,7 +521,7 @@ mod tests {
         );
         assert_eq!(checked_cast::<f32, u64>(f32(1.0, 64)), None);
         assert_eq!(
-            checked_cast::<f32, u64>(f32(1.0, 64) - f64(1.0, 40)),
+            checked_cast::<f32, u64>(f32(1.0, 64) - f32(1.0, 40)),
             Some(0xffff_ff00_0000_0000_u64)
         );
 
@@ -553,7 +638,7 @@ mod tests {
         );
         assert_eq!(wrapping_cast::<f32, u64>(f32(1.0, 64)), 0);
         assert_eq!(
-            checked_cast::<f32, u64>(f32(1.0, 64) - f64(1.0, 40)),
+            wrapping_cast::<f32, u64>(f32(1.0, 64) - f32(1.0, 40)),
             0xffff_ff00_0000_0000_u64
         );
 
