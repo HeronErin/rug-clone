@@ -22,6 +22,7 @@ macro_rules! same_signedness {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
             #[inline]
+            #[allow(cast_lossless)]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
                 if self == dst as $Src {
@@ -38,6 +39,7 @@ macro_rules! signed_to_unsigned {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
             #[inline]
+            #[allow(cast_lossless)]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
                 if self >= 0 && self == dst as $Src {
@@ -54,6 +56,7 @@ macro_rules! unsigned_to_signed {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
             #[inline]
+            #[allow(cast_lossless)]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
                 if dst >= 0 && self == dst as $Src {
@@ -70,6 +73,7 @@ macro_rules! float_to_integer {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
             #[inline]
+            #[allow(cast_lossless)]
             fn checked_cast(self) -> Option<$Dst> {
                 if !self.is_finite() {
                     return None;
@@ -91,6 +95,7 @@ macro_rules! always_works {
     { $Src:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
             #[inline]
+            #[allow(cast_lossless)]
             fn checked_cast(self) -> Option<$Dst> {
                 Some(self as $Dst)
             }

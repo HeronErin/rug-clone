@@ -96,7 +96,7 @@ pub fn prec_min() -> u32 {
 pub fn prec_max() -> u32 {
     let max = mpfr::PREC_MAX;
     if mem::size_of::<mpfr::prec_t>() <= mem::size_of::<u32>()
-        || max < u32::MAX as mpfr::prec_t
+        || max < cast::<_, mpfr::prec_t>(u32::MAX)
     {
         max as u32
     } else {

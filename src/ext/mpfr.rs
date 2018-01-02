@@ -197,7 +197,7 @@ pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
 pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: mpfr::rnd_t) -> c_int {
     // retain sign in case of NaN
     let sign_neg = op.is_sign_negative();
-    let ret = mpfr::set_d(rop, op.into(), rnd);
+    let ret = mpfr::set_d(rop, op, rnd);
     if sign_neg {
         (*rop).sign = -1;
     }

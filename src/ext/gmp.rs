@@ -840,7 +840,7 @@ pub unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2 = gmp::limb_t::from(op2);
+    let lop2: gmp::limb_t = cast(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             (*rop).size = 0;
@@ -857,7 +857,7 @@ pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2 = gmp::limb_t::from(op2);
+    let lop2: gmp::limb_t = cast(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => if op2 == 0 {
             (*rop).size = 0;
@@ -883,7 +883,7 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2 = gmp::limb_t::from(op2);
+    let lop2: gmp::limb_t = cast(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => if op2 == 0 {
             (*rop).size = 0;
@@ -917,10 +917,10 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let lop2 = if op2 >= 0 {
-        gmp::limb_t::from(op2 as c_ulong)
+    let lop2: gmp::limb_t = if op2 >= 0 {
+        cast(op2 as c_ulong)
     } else {
-        !gmp::limb_t::from(!op2 as c_ulong)
+        !cast::<_, gmp::limb_t>(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -955,10 +955,10 @@ pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let lop2 = if op2 >= 0 {
-        gmp::limb_t::from(op2 as c_ulong)
+    let lop2: gmp::limb_t = if op2 >= 0 {
+        cast(op2 as c_ulong)
     } else {
-        !gmp::limb_t::from(!op2 as c_ulong)
+        !cast::<_, gmp::limb_t>(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -990,10 +990,10 @@ pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let lop2 = if op2 >= 0 {
-        gmp::limb_t::from(op2 as c_ulong)
+    let lop2: gmp::limb_t = if op2 >= 0 {
+        cast(op2 as c_ulong)
     } else {
-        !gmp::limb_t::from(!op2 as c_ulong)
+        !cast::<_, gmp::limb_t>(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -1321,17 +1321,17 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
     #[cfg(gmp_limb_bits_64)]
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(i64::MAX as u64),
-        -1 => limb(op, 0) <= gmp::limb_t::from(i64::MIN as u64),
+        1 => limb(op, 0) <= cast::<_, gmp::limb_t>(i64::MAX as u64),
+        -1 => limb(op, 0) <= cast::<_, gmp::limb_t>(i64::MIN as u64),
         _ => false,
     }
     #[cfg(gmp_limb_bits_32)]
     match (*op).size {
         0 | 1 | -1 => true,
-        2 => limb(op, 1) <= gmp::limb_t::from(i32::MAX as u32),
+        2 => limb(op, 1) <= cast::<_, gmp::limb_t>(i32::MAX as u32),
         -2 => {
-            limb(op, 1) < gmp::limb_t::from(i32::MIN as u32)
-                || (limb(op, 1) == gmp::limb_t::from(i32::MIN as u32)
+            limb(op, 1) < cast::<_, gmp::limb_t>(i32::MIN as u32)
+                || (limb(op, 1) == cast::<_, gmp::limb_t>(i32::MIN as u32)
                     && limb(op, 0) == 0)
         }
         _ => false,

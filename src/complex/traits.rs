@@ -351,9 +351,11 @@ fn fmt_radix(
         radix,
         fmt.precision(),
         (Round::Nearest, Round::Nearest),
-        to_upper,
-        fmt.sign_plus(),
-        if fmt.alternate() { prefix } else { "" },
+        (
+            to_upper,
+            fmt.sign_plus(),
+            if fmt.alternate() { prefix } else { "" },
+        ),
     );
     // s is ascii only, so just take len for character count
     let count = s.len();

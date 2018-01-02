@@ -705,9 +705,7 @@ impl Complex {
             radix,
             num_digits,
             round,
-            false,
-            false,
-            "",
+            (false, false, ""),
         );
         s
     }
@@ -3107,9 +3105,7 @@ pub fn append_to_string(
     radix: i32,
     precision: Option<usize>,
     round: Round2,
-    to_upper: bool,
-    sign_plus: bool,
-    prefix: &str,
+    (to_upper, sign_plus, prefix): (bool, bool, &str),
 ) {
     let (re, im) = c.as_real_imag();
     let re_plus = sign_plus && re.is_sign_positive();

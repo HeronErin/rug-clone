@@ -7127,7 +7127,7 @@ pub fn append_to_string(
         mpfr::get_str(
             start.offset(1) as *mut c_char,
             &mut exp,
-            radix.into(),
+            cast(radix),
             digits,
             f.inner(),
             rraw(round),

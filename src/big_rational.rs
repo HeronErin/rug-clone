@@ -2035,7 +2035,7 @@ impl<'a> AssignInto<Rational> for ValidRational<'a> {
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
-            gmp::mpq_set_str(dst.inner_mut(), c_str.as_ptr(), self.radix.into())
+            gmp::mpq_set_str(dst.inner_mut(), c_str.as_ptr(), cast(self.radix))
         };
         assert_eq!(err, 0);
         unsafe {

@@ -292,8 +292,8 @@ impl SmallRational {
             self.num.d = Default::default();
             self.den.size = 1;
             self.den.d = Default::default();
-            self.limbs[0] = num.into();
-            self.limbs[LIMBS_IN_SMALL_INTEGER] = den.into();
+            self.limbs[0] = cast(num);
+            self.limbs[LIMBS_IN_SMALL_INTEGER] = cast(den);
         }
         #[cfg(gmp_limb_bits_32)]
         {

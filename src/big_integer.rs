@@ -224,10 +224,9 @@ impl Integer {
     /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
-        let bits = cast::<_, usize>(self.inner().alloc)
+        cast::<_, usize>(self.inner().alloc)
             .checked_mul(cast::<_, usize>(gmp::LIMB_BITS))
-            .expect("overflow");
-        bits
+            .expect("overflow")
     }
 
     /// Reserves capacity for at least `additional` more bits in the
@@ -4009,7 +4008,7 @@ impl<'a> AssignInto<Integer> for ValidInteger<'a> {
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
-            gmp::mpz_set_str(dst.inner_mut(), c_str.as_ptr(), self.radix.into())
+            gmp::mpz_set_str(dst.inner_mut(), c_str.as_ptr(), cast(self.radix))
         };
         assert_eq!(err, 0);
     }

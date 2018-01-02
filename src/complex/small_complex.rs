@@ -337,7 +337,7 @@ macro_rules! matrix {
                 self.re.set_part(&mut self.limbs[0], val);
                 self.im.set_part(
                     &mut self.limbs[LIMBS_IN_SMALL_FLOAT],
-                    0 as $Major,
+                    cast::<_, $Major>(0),
                 );
             }
         }
