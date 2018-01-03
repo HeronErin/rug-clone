@@ -14,8 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use std::mem;
-
 /// Casts into the destination if the value fits, otherwise panics.
 ///
 /// Floats are rounded towards zero when cast into integers.
@@ -179,24 +177,24 @@ macro_rules! checked_unsigned_to_signed {
 }
 
 macro_rules! checked_float_via {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    { $Src:ty, $ViaU:ty, $ViaI:ty => $($Dst:ty)* } => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
-                let f = Float::from(self);
+                let f = <Float<$ViaU, bool> as From<$Src>>::from(self);
                 if !f.fits {
                     return None;
                 }
                 if f.neg {
-                    let i = f.wrapped as i64;
+                    let i = f.wrapped as $ViaI;
                     if i < 0 {
                         return None
                     }
                     let i = -i;
-                    <i64 as CheckedCast<$Dst>>::checked_cast(i)
+                    <$ViaI as CheckedCast<$Dst>>::checked_cast(i)
                 } else {
-                    <u64 as CheckedCast<$Dst>>::checked_cast(f.wrapped)
+                    <$ViaU as CheckedCast<$Dst>>::checked_cast(f.wrapped)
                 }
             }
         }
@@ -232,16 +230,27 @@ macro_rules! checked_unsigned {
 }
 
 macro_rules! checked_float {
-    { $($Src:ty)* } => { $(
-        checked_float_via! { $Src => i8 i16 i32 i64 isize }
-        checked_float_via! { $Src => u8 u16 u32 u64 usize }
+    { $Src:ty, $ViaU32:ty, $ViaI32:ty, $ViaU64:ty, $ViaI64:ty } => {
+        checked_float_via! {$Src, $ViaU32, $ViaI32 => i8 i16 i32 }
+        checked_float_via! {$Src, $ViaU64, $ViaI64 => i64 }
+        #[cfg(target_pointer_width = "32")]
+        checked_float_via! { $Src, $ViaU32, $ViaI32 => isize }
+        #[cfg(target_pointer_width = "64")]
+        checked_float_via! { $Src, $ViaU64, $ViaI64 => isize }
+        checked_float_via! {$Src, $ViaU32, $ViaI32 => u8 u16 u32 }
+        checked_float_via! {$Src, $ViaU64, $ViaI64 => u64 }
+        #[cfg(target_pointer_width = "32")]
+        checked_float_via! { $Src, $ViaU32, $ViaI32 => usize }
+        #[cfg(target_pointer_width = "64")]
+        checked_float_via! { $Src, $ViaU64, $ViaI64 => usize }
         checked_as! { $Src => f32 f64 }
-    )* }
+    }
 }
 
 checked_signed! { i8 i16 i32 i64 isize }
 checked_unsigned! { u8 u16 u32 u64 usize }
-checked_float! { f32 f64 }
+checked_float! { f32, u32, i32, u64, i64 }
+checked_float! { f64, u64, i64, u64, i64 }
 
 macro_rules! wrapping_as {
     { $Src:ty => $($Dst:ty)* } => { $(
@@ -256,11 +265,11 @@ macro_rules! wrapping_as {
 }
 
 macro_rules! wrapping_float_via {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    { $Src:ty, $Via:ty => $($Dst:ty)* } => { $(
         impl WrappingCast<$Dst> for $Src {
             #[inline]
             fn wrapping_cast(self) -> $Dst {
-                let f = Float::from(self);
+                let f = <Float<$Via, ()> as From<$Src>>::from(self);
                 let u = f.wrapped;
                 let n = if f.neg { u.wrapping_neg() } else { u };
                 n as $Dst
@@ -278,112 +287,123 @@ macro_rules! wrapping_int {
 }
 
 macro_rules! wrapping_float {
-    { $($Src:ty)* } => { $(
-        wrapping_float_via! { $Src => i8 i16 i32 i64 isize }
-        wrapping_float_via! { $Src => u8 u16 u32 u64 usize }
+    { $Src:ty, $Via32:ty, $Via64:ty } => {
+        wrapping_float_via! { $Src, $Via32 => i8 i16 i32 }
+        wrapping_float_via! { $Src, $Via64 => i64 }
+        #[cfg(target_pointer_width = "32")]
+        wrapping_float_via! { $Src, $Via32 => isize }
+        #[cfg(target_pointer_width = "64")]
+        wrapping_float_via! { $Src, $Via64 => isize }
+        wrapping_float_via! { $Src, $Via32 => u8 u16 u32 }
+        wrapping_float_via! { $Src, $Via64 => u64 }
+        #[cfg(target_pointer_width = "32")]
+        wrapping_float_via! { $Src, $Via32 => usize }
+        #[cfg(target_pointer_width = "64")]
+        wrapping_float_via! { $Src, $Via64 => usize }
         wrapping_as! { $Src => f32 f64 }
-    )* }
+    }
 }
 
 wrapping_int! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
-wrapping_float! { f32 f64 }
+wrapping_float! { f32, u32, u64 }
+wrapping_float! { f64, u64, u64 }
 
-struct Float {
+struct Float<Uns, Fit> {
     neg: bool,
-    fits: bool,
-    wrapped: u64,
+    fits: Fit,
+    wrapped: Uns,
 }
 
-impl From<f32> for Float {
-    fn from(src: f32) -> Float {
-        const EXP_BITS: i32 = 8;
-        const MANT_BITS: i32 = 23;
-        const SIGN_MASK: u32 = 1 << (EXP_BITS + MANT_BITS);
-        const EXP_MASK: u32 = ((1 << EXP_BITS) - 1) << MANT_BITS;
-        const MANT_MASK: u32 = (1 << MANT_BITS) - 1;
-        const EXP_BIAS: i32 = (1 << (EXP_BITS - 1)) - 1;
-
-        let u: u32 = unsafe { mem::transmute(src) };
-        let neg = (u & SIGN_MASK) != 0;
-        let biased_exp = u & EXP_MASK;
-        let shift = (biased_exp >> MANT_BITS) as i32 - (EXP_BIAS + MANT_BITS);
-
-        // Check if the magnitude is smaller than one. Do not return
-        // early if shift == -MANT_BITS, as there is implicit one.
-        if shift < -MANT_BITS {
-            return Float {
-                neg,
-                fits: true,
-                wrapped: 0,
-            };
-        }
-
-        // Check if the least significant bit will be in a u64. This
-        // condition handles infinites and NaNs too.
-        if shift >= 64 {
-            return Float {
-                neg,
-                fits: false,
-                wrapped: 0,
-            };
-        }
-
-        // Add implicit one.
-        let significand = u64::from(u & MANT_MASK) | (1 << MANT_BITS);
-        let (fits, wrapped) = if shift < 0 {
-            (true, significand >> -shift)
-        } else {
-            let wrapped = significand << shift;
-            ((wrapped >> shift) == significand, wrapped)
-        };
-        Float { neg, fits, wrapped }
+trait YesNo: Sized {
+    fn yes_no() -> (Self, Self);
+}
+impl YesNo for bool {
+    fn yes_no() -> (bool, bool) {
+        (true, false)
+    }
+}
+impl YesNo for () {
+    fn yes_no() -> ((), ()) {
+        ((), ())
     }
 }
 
-impl From<f64> for Float {
-    fn from(src: f64) -> Float {
-        const EXP_BITS: i32 = 11;
-        const MANT_BITS: i32 = 52;
-        const SIGN_MASK: u64 = 1 << (EXP_BITS + MANT_BITS);
-        const EXP_MASK: u64 = ((1 << EXP_BITS) - 1) << MANT_BITS;
-        const MANT_MASK: u64 = (1 << MANT_BITS) - 1;
-        const EXP_BIAS: i32 = (1 << (EXP_BITS - 1)) - 1;
+macro_rules! from_for_float {
+    {
+        $Src:ty, $Uns:ty, $exp_bits:expr, $mant_bits:expr;
+        $($Fit:ty, $Dst:ty, $dst_bits:expr);*
+    } => { $(
+        impl From<$Src> for Float<$Dst, $Fit> {
+            fn from(src: $Src) -> Self {
+                const EXP_BITS: i32 = $exp_bits;
+                const MANT_BITS: i32 = $mant_bits;
+                const OUT_BITS: i32 = $dst_bits;
+                const SIGN_MASK: $Uns = 1 << (EXP_BITS + MANT_BITS);
+                const EXP_MASK: $Uns = ((1 << EXP_BITS) - 1) << MANT_BITS;
+                const MANT_MASK: $Uns = (1 << MANT_BITS) - 1;
+                const EXP_BIAS: i32 = (1 << (EXP_BITS - 1)) - 1;
 
-        let u: u64 = unsafe { mem::transmute(src) };
-        let neg = (u & SIGN_MASK) != 0;
-        let biased_exp = u & EXP_MASK;
-        let shift = (biased_exp >> MANT_BITS) as i32 - (EXP_BIAS + MANT_BITS);
+                let (fits_yes, fits_no) = <$Fit as YesNo>::yes_no();
 
-        // Check if the magnitude is smaller than one. Do not return
-        // early if shift == -MANT_BITS, as there is implicit one.
-        if shift < -MANT_BITS {
-            return Float {
-                neg,
-                fits: true,
-                wrapped: 0,
-            };
+                let u: $Uns = unsafe { ::std::mem::transmute(src) };
+                let neg = (u & SIGN_MASK) != 0;
+                let biased_exp = u & EXP_MASK;
+                let shift = (biased_exp >> MANT_BITS) as i32
+                    - (EXP_BIAS + MANT_BITS);
+
+                // Check if the magnitude is smaller than one. Do not return
+                // early if shift == -MANT_BITS, as there is implicit one.
+                if shift < -MANT_BITS {
+                    return Float {
+                        neg,
+                        fits: fits_yes,
+                        wrapped: 0,
+                    };
+                }
+
+                // Check if the least significant bit will be in a $dst. This
+                // condition handles infinites and NaNs too.
+                if shift >= OUT_BITS {
+                    return Float {
+                        neg,
+                        fits: fits_no,
+                        wrapped: 0,
+                    };
+                }
+
+                // Add implicit one.
+                let significand = <$Dst as From<$Uns>>::from(u & MANT_MASK)
+                    | (1 << MANT_BITS);
+                let (fits, wrapped) = if shift < 0 {
+                    (fits_yes, significand >> -shift)
+                } else {
+                    let wrapped = significand << shift;
+                    let fits = if fits_yes == fits_no
+                        || (wrapped >> shift) == significand
+                    {
+                        fits_yes
+                    } else {
+                        fits_no
+                    };
+                    (fits, wrapped)
+                };
+                Float { neg, fits, wrapped }
+            }
         }
+    )* }
+}
 
-        // Check if the least significant bit will be in a u64. This
-        // condition handles infinites and NaNs too.
-        if shift >= 64 {
-            return Float {
-                neg,
-                fits: false,
-                wrapped: 0,
-            };
-        }
-
-        // Add implicit one.
-        let significand = (u & MANT_MASK) | (1 << MANT_BITS);
-        let (fits, wrapped) = if shift < 0 {
-            (true, significand >> -shift)
-        } else {
-            let wrapped = significand << shift;
-            ((wrapped >> shift) == significand, wrapped)
-        };
-        Float { neg, fits, wrapped }
-    }
+from_for_float! {
+    f32, u32, 8, 23;
+    bool, u32, 32;
+    (), u32, 32;
+    bool, u64, 64;
+    (), u64, 64
+}
+from_for_float! {
+    f64, u64, 11, 52;
+    bool, u64, 64;
+    (), u64, 64
 }
 
 #[cfg(test)]
