@@ -743,8 +743,8 @@ impl Rational {
     /// Panics if the denominator is zero when the borrow ends.
     pub fn as_mut_numer_denom(&mut self) -> MutNumerDenom {
         // We swap in a denominator of 1 so that if the
-        // `MutNumerDenom` is leaked, we don't end up with an
-        // uncanonicalized rational number.
+        // `MutNumerDenom` is leaked, we don't end up with a
+        // non-canonical rational number.
         unsafe {
             let numer_ptr = gmp::mpq_numref(self.inner_mut());
             let denom_ptr = gmp::mpq_denref(self.inner_mut());
@@ -766,7 +766,7 @@ impl Rational {
     /// This function is unsafe because it does not canonicalize the
     /// rational number when the borrow ends. The rest of the library
     /// assumes that `Rational` structures keep their numerators and
-    /// denominators canonicalized.
+    /// denominators in canonical form.
     ///
     /// # Examples
     ///
@@ -779,7 +779,7 @@ impl Rational {
     ///         r.as_mut_numer_denom_no_canonicalization()
     ///     };
     ///     // Add one to r by adding den to num. Since num and den
-    ///     // are relatively prime, r remains canonicalized.
+    ///     // are relatively prime, r remains in canonical form.
     ///     *num += &*den;
     /// }
     /// assert_eq!(r, (8, 5));

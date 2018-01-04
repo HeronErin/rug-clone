@@ -2,8 +2,8 @@ Version 0.9.2
 =============
 
 * Require `gmp-mpfr-sys` version 1.1.0.
-* Deprecate most `assign_*` methods, and add static methods that
-  return an object that implements `AssignTo` or `AssignRoundTo`
+* Deprecate most `assign_*` methods, and replace with static methods
+  that return an object that implements `AssignTo` or `AssignRoundTo`
   instead.
 * Deprecate `Rational::copy_to_integer` method.
 * Add `Float::ln_u` method.
@@ -13,6 +13,10 @@ Version 0.9.2
 * Deprecate `Float::assign_random_gaussian` methods.
 * Add `Complex::cmp_abs` method.
 * Add `Complex::root_of_unity` method.
+* Rename `SmallRational::from_canonicalized_*` methods to
+  `SmallRational::from_canonical_*`.
+* Deprecate `SmallRational::assign_canonicalized_*` methods, and
+  replace with `SmallRational::assign_canonical_*` static methods.
 * Add `as_nonreallocating` functions to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
