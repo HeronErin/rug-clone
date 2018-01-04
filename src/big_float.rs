@@ -1649,6 +1649,13 @@ impl Float {
         }
     }
 
+    #[doc(hidden)]
+    #[deprecated(since = "0.8.0", note = "renamed to `cmp0`")]
+    #[inline]
+    pub fn sign(&self) -> Option<Ordering> {
+        self.cmp0()
+    }
+
     /// Compares the absolute values of `self` and `other`.
     ///
     /// # Examples
@@ -2852,6 +2859,56 @@ impl Float {
         /// ```
         fn positive_diff_ref -> PositiveDiffRef;
     }
+
+    #[doc(hidden)]
+    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff`")]
+    #[inline]
+    pub fn pos_diff(self, other: &Float) -> Self {
+        self.positive_diff(other)
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_mut`")]
+    #[inline]
+    pub fn pos_diff_mut(&mut self, other: &Float) {
+        self.positive_diff_mut(other);
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_round`")]
+    #[inline]
+    pub fn pos_diff_round(&mut self, other: &Float, round: Round) -> Ordering {
+        self.positive_diff_round(other, round)
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_ref`")]
+    #[inline]
+    pub fn pos_diff_ref<'a>(&'a self, other: &'a Float) -> PositiveDiffRef<'a> {
+        self.positive_diff_ref(other)
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff`")]
+    #[inline]
+    pub fn abs_diff(self, other: &Float) -> Self {
+        self.positive_diff(other)
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_mut`")]
+    #[inline]
+    pub fn abs_diff_mut(&mut self, other: &Float) {
+        self.positive_diff_mut(other);
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_round`")]
+    #[inline]
+    pub fn abs_diff_round(&mut self, other: &Float, round: Round) -> Ordering {
+        self.positive_diff_round(other, round)
+    }
+    #[doc(hidden)]
+    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_ref`")]
+    #[inline]
+    pub fn abs_diff_ref<'a>(&'a self, other: &'a Float) -> PositiveDiffRef<'a> {
+        self.positive_diff_ref(other)
+    }
+
     math_op1_float! {
         mpfr::log;
         /// Computes the natural logarithm, rounding to the nearest.

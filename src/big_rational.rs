@@ -942,6 +942,13 @@ impl Rational {
         self.numer().cmp0()
     }
 
+    #[doc(hidden)]
+    #[deprecated(since = "0.8.0", note = "renamed to `cmp0`")]
+    #[inline]
+    pub fn sign(&self) -> Ordering {
+        self.cmp0()
+    }
+
     math_op1! {
         gmp::mpq_abs;
         /// Computes the absolute value.
