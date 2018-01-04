@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Complex, Float};
-use big_complex::{self, Ordering2, Round2, ordering2, rraw2};
+use big_complex::{self, Ordering2, Round2, ordering2, raw_round2};
 use complex::{OrdComplex, ParseComplexError};
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
@@ -277,8 +277,9 @@ impl<'a> AssignRoundInto<Complex> for &'a Complex {
     type Ordering = Ordering2;
     #[inline]
     fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
-        let ret =
-            unsafe { mpc::set(dst.inner_mut(), self.inner(), rraw2(round)) };
+        let ret = unsafe {
+            mpc::set(dst.inner_mut(), self.inner(), raw_round2(round))
+        };
         ordering2(ret)
     }
 }

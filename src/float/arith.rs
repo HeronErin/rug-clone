@@ -19,7 +19,7 @@ use Float;
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use big_float::{rraw, ordering1};
+use big_float::{raw_round, ordering1};
 use ext::mpfr as xmpfr;
 use float::Round;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
@@ -74,7 +74,7 @@ impl<'a> AssignRoundInto<Float> for NegRef<'a> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::neg(dst.inner_mut(), self.val.inner(), rraw(round))
+            mpfr::neg(dst.inner_mut(), self.val.inner(), raw_round(round))
         };
         ordering1(ret)
     }
@@ -92,7 +92,7 @@ macro_rules! arith_binary_self_float {
     } => {
         arith_binary_self_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
@@ -115,7 +115,7 @@ macro_rules! arith_forward_float {
     } => {
         arith_forward_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
@@ -139,7 +139,7 @@ macro_rules! arith_commut_float {
     } => {
         arith_commut_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
@@ -165,7 +165,7 @@ macro_rules! arith_noncommut_float {
     } => {
         arith_noncommut_round! {
             Float, Round => Ordering;
-            $func, $func_from, rraw => ordering1;
+            $func, $func_from, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
@@ -332,7 +332,7 @@ macro_rules! arith_prim_exact_float {
     } => {
         arith_prim_exact_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $T;
@@ -354,7 +354,7 @@ macro_rules! arith_prim_commut_float {
     } => {
         arith_prim_commut_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
@@ -379,7 +379,7 @@ macro_rules! arith_prim_noncommut_float {
     } => {
         arith_prim_noncommut_round! {
             Float, Round => Ordering;
-            $func, $func_from, rraw => ordering1;
+            $func, $func_from, raw_round => ordering1;
             $Imp $method;
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
@@ -552,7 +552,7 @@ arith_prim_noncommut_float!{
 
 mul_op_commut_round! {
     Float, Round => Ordering;
-    add_mul, rraw => ordering1;
+    add_mul, raw_round => ordering1;
     Add add;
     AddAssign add_assign;
     AddAssignRound add_assign_round;
@@ -563,7 +563,7 @@ mul_op_commut_round! {
 }
 mul_op_noncommut_round! {
     Float, Round => Ordering;
-    sub_mul, mul_sub, rraw => ordering1;
+    sub_mul, mul_sub, raw_round => ordering1;
     Sub sub;
     SubAssign sub_assign;
     SubAssignRound sub_assign_round;
@@ -599,7 +599,7 @@ impl<'a> AssignRoundInto<Float> for MulAddMulRef<'a> {
                 self.lhs.rhs.inner(),
                 self.rhs.lhs.inner(),
                 self.rhs.rhs.inner(),
-                rraw(round),
+                raw_round(round),
             )
         };
         ordering1(ret)
@@ -632,7 +632,7 @@ impl<'a> AssignRoundInto<Float> for MulSubMulRef<'a> {
                 self.lhs.rhs.inner(),
                 self.rhs.lhs.inner(),
                 self.rhs.rhs.inner(),
-                rraw(round),
+                raw_round(round),
             )
         };
         ordering1(ret)

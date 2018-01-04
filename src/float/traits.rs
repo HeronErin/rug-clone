@@ -19,7 +19,7 @@ use {Assign, Float};
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use big_float::{self, rraw, ordering1};
+use big_float::{self, raw_round, ordering1};
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
@@ -288,14 +288,16 @@ impl AssignRoundInto<Float> for Constant {
         let ret = unsafe {
             match self {
                 Constant::Log2 => {
-                    mpfr::const_log2(dst.inner_mut(), rraw(round))
+                    mpfr::const_log2(dst.inner_mut(), raw_round(round))
                 }
-                Constant::Pi => mpfr::const_pi(dst.inner_mut(), rraw(round)),
+                Constant::Pi => {
+                    mpfr::const_pi(dst.inner_mut(), raw_round(round))
+                }
                 Constant::Euler => {
-                    mpfr::const_euler(dst.inner_mut(), rraw(round))
+                    mpfr::const_euler(dst.inner_mut(), raw_round(round))
                 }
                 Constant::Catalan => {
-                    mpfr::const_catalan(dst.inner_mut(), rraw(round))
+                    mpfr::const_catalan(dst.inner_mut(), raw_round(round))
                 }
             }
         };
@@ -361,7 +363,7 @@ macro_rules! assign {
                 round: Round
             ) -> Ordering {
                 let ret = unsafe {
-                    $func(dst.inner_mut(), self.inner(), rraw(round))
+                    $func(dst.inner_mut(), self.inner(), raw_round(round))
                 };
                 ordering1(ret)
             }
@@ -404,7 +406,7 @@ macro_rules! conv_ops {
                 round: Round,
             ) -> Ordering {
                 let ret = unsafe {
-                    $set(dst.inner_mut(), self.into(), rraw(round))
+                    $set(dst.inner_mut(), self.into(), raw_round(round))
                 };
                 ordering1(ret)
             }

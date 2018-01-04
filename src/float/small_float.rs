@@ -269,7 +269,7 @@ impl Assign<f32> for SmallFloat {
         let ptr = &mut self.inner as *mut _ as *mut _;
         unsafe {
             xmpfr::custom_zero(ptr, &mut self.limbs[0], 24);
-            mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
+            mpfr::set_d(ptr, val.into(), raw_round(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -284,7 +284,7 @@ impl Assign<f64> for SmallFloat {
         let ptr = &mut self.inner as *mut _ as *mut _;
         unsafe {
             xmpfr::custom_zero(ptr, &mut self.limbs[0], 53);
-            mpfr::set_d(ptr, val, rraw(Round::Nearest));
+            mpfr::set_d(ptr, val, raw_round(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -294,7 +294,7 @@ impl Assign<f64> for SmallFloat {
 }
 
 #[inline]
-fn rraw(round: Round) -> mpfr::rnd_t {
+fn raw_round(round: Round) -> mpfr::rnd_t {
     #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,

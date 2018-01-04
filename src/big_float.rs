@@ -45,7 +45,7 @@ use std::ptr;
 use std::slice;
 
 #[inline]
-pub fn rraw(round: Round) -> mpfr::rnd_t {
+pub fn raw_round(round: Round) -> mpfr::rnd_t {
     #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
@@ -270,7 +270,7 @@ macro_rules! ref_math_op0_float {
     } => {
         ref_math_op0_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
@@ -291,7 +291,7 @@ macro_rules! math_op1_float {
     } => {
         math_op1_round! {
             Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $(#[$attr])*
             fn $method($($param: $T),*);
             $(#[$attr_mut])*
@@ -312,7 +312,7 @@ macro_rules! ref_math_op1_float {
     } => {
         ref_math_op1_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
@@ -333,7 +333,7 @@ macro_rules! math_op1_2_float {
     } => {
         math_op1_2_round! {
             Round => (Ordering, Ordering);
-            $func, rraw => ordering2;
+            $func, raw_round => ordering2;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
             $(#[$attr_mut])*
@@ -354,7 +354,7 @@ macro_rules! ref_math_op1_2_float {
     } => {
         ref_math_op1_2_round! {
             Float, Round => (Ordering, Ordering);
-            $func, rraw => ordering2;
+            $func, raw_round => ordering2;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
@@ -375,7 +375,7 @@ macro_rules! math_op2_float {
     } => {
         math_op2_round! {
             Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $(#[$attr])*
             fn $method($op $(, $param: $T)*);
             $(#[$attr_mut])*
@@ -396,7 +396,7 @@ macro_rules! ref_math_op2_float {
     } => {
         ref_math_op2_round! {
             Float, Round => Ordering;
-            $func, rraw => ordering1;
+            $func, raw_round => ordering1;
             $(#[$attr_ref])*
             struct $Ref { $op $(, $param: $T)* }
         }
@@ -564,7 +564,7 @@ impl Float {
             "precision out of range"
         );
         let ret = unsafe {
-            mpfr::prec_round(self.inner_mut(), cast(prec), rraw(round))
+            mpfr::prec_round(self.inner_mut(), cast(prec), raw_round(round))
         };
         ordering1(ret)
     }
@@ -859,8 +859,9 @@ impl Float {
             return None;
         }
         let mut i = Integer::new();
-        let ret =
-            unsafe { mpfr::get_z(i.inner_mut(), self.inner(), rraw(round)) };
+        let ret = unsafe {
+            mpfr::get_z(i.inner_mut(), self.inner(), raw_round(round))
+        };
         Some((i, ordering1(ret)))
     }
 
@@ -998,7 +999,7 @@ impl Float {
         if self.is_nan() {
             return None;
         }
-        let i = unsafe { mpfr::get_si(self.inner(), rraw(round)) };
+        let i = unsafe { mpfr::get_si(self.inner(), raw_round(round)) };
         if i >= c_long::from(i32::MAX) {
             Some(i32::MAX)
         } else if i <= c_long::from(i32::MIN) {
@@ -1050,7 +1051,7 @@ impl Float {
         if self.is_nan() {
             return None;
         }
-        let u = unsafe { mpfr::get_ui(self.inner(), rraw(round)) };
+        let u = unsafe { mpfr::get_ui(self.inner(), raw_round(round)) };
         if u >= c_ulong::from(u32::MAX) {
             Some(u32::MAX)
         } else {
@@ -1096,7 +1097,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_f32_round(&self, round: Round) -> f32 {
-        unsafe { xmpfr::get_f32(self.inner(), rraw(round)) }
+        unsafe { xmpfr::get_f32(self.inner(), raw_round(round)) }
     }
 
     /// Converts to an `f64`, rounding to the nearest.
@@ -1137,7 +1138,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_f64_round(&self, round: Round) -> f64 {
-        unsafe { mpfr::get_d(self.inner(), rraw(round)) }
+        unsafe { mpfr::get_d(self.inner(), raw_round(round)) }
     }
 
     /// Converts to an `f32` and an exponent, rounding to the nearest.
@@ -1194,9 +1195,9 @@ impl Float {
             mpfr::set(
                 SmallFloat::as_nonreallocating(&mut sf).inner_mut(),
                 self.inner(),
-                rraw(round),
+                raw_round(round),
             );
-            mpfr::get_d_2exp(&mut exp, sf.inner(), rraw(round))
+            mpfr::get_d_2exp(&mut exp, sf.inner(), raw_round(round))
         };
         (f as f32, cast(exp))
     }
@@ -1246,8 +1247,9 @@ impl Float {
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
-        let f =
-            unsafe { mpfr::get_d_2exp(&mut exp, self.inner(), rraw(round)) };
+        let f = unsafe {
+            mpfr::get_d_2exp(&mut exp, self.inner(), raw_round(round))
+        };
         (f, cast(exp))
     }
 
@@ -1418,6 +1420,130 @@ impl Float {
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
         Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
+    }
+
+    #[cfg(feature = "raw")]
+    /// Creates a `Float` from an initialized MPFR floating-point
+    /// number.
+    ///
+    /// # Safety
+    ///
+    /// * The value must be initialized.
+    /// * The `gmp_mpfr_sys::mpfr::mpfr_t` type can be considered as a
+    ///   kind of pointer, so there can be can multiple copies of it.
+    ///   Since this function takes over ownership, no other copies of
+    ///   the passed value should exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// use std::mem;
+    /// fn main() {
+    ///     let f = unsafe {
+    ///         let mut m = mem::uninitialized();
+    ///         mpfr::init2(&mut m, 53);
+    ///         mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
+    ///         // m is initialized and unique
+    ///         Float::from_raw(m)
+    ///     };
+    ///     assert_eq!(f, -14.5);
+    ///     // since f is a Float now, deallocation is automatic
+    /// }
+    /// ```
+    #[inline]
+    pub unsafe fn from_raw(raw: mpfr_t) -> Float {
+        Float { inner: raw }
+    }
+
+    #[cfg(feature = "raw")]
+    /// Converts a `Float` into an MPFR floating-point number.
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// fn main() {
+    ///     let f = Float::with_val(53, -14.5);
+    ///     let mut m = f.into_raw();
+    ///     unsafe {
+    ///         let d = mpfr::get_d(&m, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(d, -14.5);
+    ///         // free object to prevent memory leak
+    ///         mpfr::clear(&mut m);
+    ///     }
+    /// }
+    /// ```
+    #[inline]
+    pub fn into_raw(self) -> mpfr_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    #[cfg(feature = "raw")]
+    /// Returns a pointer to the internal MPFR floating-point number.
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// fn main() {
+    ///     let f = Float::with_val(53, -14.5);
+    ///     let m_ptr = f.as_raw();
+    ///     unsafe {
+    ///         let d = mpfr::get_d(m_ptr, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(d, -14.5);
+    ///     }
+    ///     // f is still valid
+    ///     assert_eq!(f, -14.5);
+    /// }
+    /// ```
+    #[inline]
+    pub fn as_raw(&self) -> *const mpfr_t {
+        self.inner()
+    }
+
+    #[cfg(feature = "raw")]
+    /// Returns an unsafe mutable pointer to the internal MPFR
+    /// floating-point number.
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// fn main() {
+    ///     let mut f = Float::with_val(53, -14.5);
+    ///     let m_ptr = f.as_raw_mut();
+    ///     unsafe {
+    ///         mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
+    ///     }
+    ///     assert_eq!(f, -4.5);
+    /// }
+    /// ```
+    #[inline]
+    pub fn as_raw_mut(&mut self) -> *mut mpfr_t {
+        unsafe { self.inner_mut() }
     }
 
     /// Borrows a negated copy of the `Float`.
@@ -1983,7 +2109,8 @@ impl Float {
             assert!(save_emax >= exp_min, "`normal_exp_min` too large");
             mpfr::set_emin(sub_exp_min);
             mpfr::set_emax(exp_min);
-            let ret = mpfr::subnormalize(self.inner_mut(), prev, rraw(round));
+            let ret =
+                mpfr::subnormalize(self.inner_mut(), prev, raw_round(round));
             mpfr::set_emin(save_emin);
             mpfr::set_emax(save_emax);
             ordering1(ret)
@@ -2318,7 +2445,7 @@ impl Float {
         fn root_ref -> RootRef;
     }
     math_op1_no_round! {
-        mpfr::abs, rraw;
+        mpfr::abs, raw_round;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -2358,7 +2485,7 @@ impl Float {
         fn abs_ref -> AbsRef;
     }
     math_op1_no_round! {
-        xmpfr::signum, rraw;
+        xmpfr::signum, raw_round;
         /// Computes the signum.
         ///
         /// * 1.0 if the value is positive, +0.0 or +∞
@@ -5248,7 +5375,12 @@ impl Float {
         let mut sign: c_int = 0;
         let sign_ptr = &mut sign as *mut c_int;
         let ret = unsafe {
-            mpfr::lgamma(self.inner_mut(), sign_ptr, self.inner(), rraw(round))
+            mpfr::lgamma(
+                self.inner_mut(),
+                sign_ptr,
+                self.inner(),
+                raw_round(round),
+            )
         };
         let sign_ord = if sign < 0 {
             Ordering::Less
@@ -6146,7 +6278,7 @@ impl Float {
         fn ai_ref -> AiRef;
     }
     math_op1_no_round! {
-        mpfr::rint_ceil, rraw;
+        mpfr::rint_ceil, raw_round;
         /// Rounds up to the next higher integer.
         ///
         /// # Examples
@@ -6195,7 +6327,7 @@ impl Float {
         fn ceil_ref -> CeilRef;
     }
     math_op1_no_round! {
-        mpfr::rint_floor, rraw;
+        mpfr::rint_floor, raw_round;
         /// Rounds down to the next lower integer.
         ///
         /// # Examples
@@ -6244,7 +6376,7 @@ impl Float {
         fn floor_ref -> FloorRef;
     }
     math_op1_no_round! {
-        mpfr::rint_round, rraw;
+        mpfr::rint_round, raw_round;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
         ///
@@ -6316,7 +6448,7 @@ impl Float {
        fn round_ref -> RoundRef;
     }
     math_op1_no_round! {
-        mpfr::rint_roundeven, rraw;
+        mpfr::rint_roundeven, raw_round;
         /// Rounds to the nearest integer, rounding half-way cases to
         /// even.
         ///
@@ -6368,7 +6500,7 @@ impl Float {
        fn round_even_ref -> RoundEvenRef;
     }
     math_op1_no_round! {
-        mpfr::rint_trunc, rraw;
+        mpfr::rint_trunc, raw_round;
         /// Rounds to the next integer towards zero.
         ///
         /// # Examples
@@ -6417,7 +6549,7 @@ impl Float {
         fn trunc_ref -> TruncRef;
     }
     math_op1_no_round! {
-        mpfr::frac, rraw;
+        mpfr::frac, raw_round;
         /// Gets the fractional part of the number.
         ///
         /// # Examples
@@ -6968,7 +7100,7 @@ impl<'a, 'b, 'c> AssignRoundInto<(&'a mut Float, &'b mut Ordering)>
                 dst.0.inner_mut(),
                 sign_ptr,
                 self.ref_self.inner(),
-                rraw(round),
+                raw_round(round),
             )
         };
         *dst.1 = if sign < 0 {
@@ -7035,7 +7167,11 @@ impl<'a, 'b: 'a> AssignRoundInto<Float> for RandomCont<'a, 'b> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::urandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
+            mpfr::urandom(
+                dst.inner_mut(),
+                self.rng.inner_mut(),
+                raw_round(round),
+            )
         };
         ordering1(ret)
     }
@@ -7053,7 +7189,11 @@ impl<'a, 'b: 'a> AssignRoundInto<Float> for RandomNormal<'a, 'b> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::nrandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
+            mpfr::nrandom(
+                dst.inner_mut(),
+                self.rng.inner_mut(),
+                raw_round(round),
+            )
         };
         ordering1(ret)
     }
@@ -7071,7 +7211,11 @@ impl<'a, 'b: 'a> AssignRoundInto<Float> for RandomExp<'a, 'b> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::erandom(dst.inner_mut(), self.rng.inner_mut(), rraw(round))
+            mpfr::erandom(
+                dst.inner_mut(),
+                self.rng.inner_mut(),
+                raw_round(round),
+            )
         };
         ordering1(ret)
     }
@@ -7187,7 +7331,7 @@ pub fn append_to_string(
             cast(radix),
             digits,
             f.inner(),
-            rraw(round),
+            raw_round(round),
         );
         let added = slice::from_raw_parts_mut(start, size);
         let added1 = *added.get_unchecked(1);
@@ -7287,7 +7431,7 @@ impl<'a> AssignRoundInto<Float> for ValidFloat<'a> {
                 c_str.as_ptr(),
                 &mut c_str_end as *mut _ as *mut *mut c_char,
                 cast(self.radix),
-                rraw(round),
+                raw_round(round),
             )
         };
         let nul = v.last().unwrap() as *const _ as *const c_char;

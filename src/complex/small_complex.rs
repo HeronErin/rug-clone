@@ -293,7 +293,7 @@ impl SetPart<f32> for Mpfr {
         let ptr = self as *mut _ as *mut _;
         unsafe {
             xmpfr::custom_zero(ptr, limbs, 24);
-            mpfr::set_d(ptr, val.into(), rraw(Round::Nearest));
+            mpfr::set_d(ptr, val.into(), raw_round(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -307,7 +307,7 @@ impl SetPart<f64> for Mpfr {
         let ptr = self as *mut _ as *mut _;
         unsafe {
             xmpfr::custom_zero(ptr, limbs, 53);
-            mpfr::set_d(ptr, val, rraw(Round::Nearest));
+            mpfr::set_d(ptr, val, raw_round(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
@@ -360,7 +360,7 @@ matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 matrix! { f32; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 matrix! { f64; f32; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 
-fn rraw(round: Round) -> mpfr::rnd_t {
+fn raw_round(round: Round) -> mpfr::rnd_t {
     #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,

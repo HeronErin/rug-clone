@@ -37,6 +37,7 @@ rational = ["integer", "gmp-mpfr-sys"]
 float = ["gmp-mpfr-sys/mpfr"]
 complex = ["float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
 rand = ["integer", "gmp-mpfr-sys"]
+raw = []
 
 [dependencies.gmp-mpfr-sys]
 #version = "1.1.0"
@@ -52,4 +53,4 @@ optional = true
 serde_test = "1.0"
 
 [package.metadata.docs.rs]
-features = ["serde"]
+features = ["raw", "serde"]

@@ -158,7 +158,7 @@ macro_rules! ref_math_op0_complex {
     } => {
         ref_math_op0_round! {
             Complex, Round2 => Ordering2;
-            $func, rraw2 => ordering2;
+            $func, raw_round2 => ordering2;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
@@ -179,7 +179,7 @@ macro_rules! math_op1_complex {
     } => {
         math_op1_round! {
             Round2 => Ordering2;
-            $func, rraw2 => ordering2;
+            $func, raw_round2 => ordering2;
             $(#[$attr])*
             fn $method($($param: $T),*);
             $(#[$attr_mut])*
@@ -200,7 +200,7 @@ macro_rules! ref_math_op1_complex {
     } => {
         ref_math_op1_round! {
             Complex, Round2 => Ordering2;
-            $func, rraw2 => ordering2;
+            $func, raw_round2 => ordering2;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
@@ -221,7 +221,7 @@ macro_rules! math_op1_2_complex {
     } => {
         math_op1_2_round! {
             Round2 => (Ordering2, Ordering2);
-            $func, rraw2, rraw2 => ordering4;
+            $func, raw_round2, raw_round2 => ordering4;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
             $(#[$attr_mut])*
@@ -242,7 +242,7 @@ macro_rules! ref_math_op1_2_complex {
     } => {
         ref_math_op1_2_round! {
             Complex, Round2 => (Ordering2, Ordering2);
-            $func, rraw2, rraw2 => ordering4;
+            $func, raw_round2, raw_round2 => ordering4;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
@@ -834,6 +834,137 @@ impl Complex {
         Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
     }
 
+    #[cfg(feature = "raw")]
+    /// Creates a `Complex` from an initialized MPC complex number.
+    ///
+    /// # Safety
+    ///
+    /// * The value must be initialized.
+    /// * The `gmp_mpfr_sys::mpc::mpc_t` type can be considered as a
+    ///   kind of pointer, so there can be can multiple copies of it.
+    ///   Since this function takes over ownership, no other copies of
+    ///   the passed value should exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpc;
+    /// use rug::Complex;
+    /// use std::mem;
+    /// fn main() {
+    ///     let c = unsafe {
+    ///         let mut m = mem::uninitialized();
+    ///         mpc::init3(&mut m, 53, 53);
+    ///         mpc::set_d_d(&mut m, -14.5, 3.25, mpc::RNDNN);
+    ///         // m is initialized and unique
+    ///         Complex::from_raw(m)
+    ///     };
+    ///     assert_eq!(c, (-14.5, 3.25));
+    ///     // since c is a Complex now, deallocation is automatic
+    /// }
+    /// ```
+    #[inline]
+    pub unsafe fn from_raw(raw: mpc_t) -> Complex {
+        Complex { inner: raw }
+    }
+
+    #[cfg(feature = "raw")]
+    /// Converts a `Complex` into an MPC complex number.
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::{mpc, mpfr};
+    /// use rug::Complex;
+    /// fn main() {
+    ///     let c = Complex::with_val(53, (-14.5, 3.25));
+    ///     let mut m = c.into_raw();
+    ///     unsafe {
+    ///         let re_ptr = mpc::realref_const(&m);
+    ///         let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(re, -14.5);
+    ///         let im_ptr = mpc::imagref_const(&m);
+    ///         let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(im, 3.25);
+    ///         // free object to prevent memory leak
+    ///         mpc::clear(&mut m);
+    ///     }
+    /// }
+    /// ```
+    #[inline]
+    pub fn into_raw(self) -> mpc_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    #[cfg(feature = "raw")]
+    /// Returns a pointer to the internal MPC complex number.
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::{mpc, mpfr};
+    /// use rug::Complex;
+    /// fn main() {
+    ///     let c = Complex::with_val(53, (-14.5, 3.25));
+    ///     let m_ptr = c.as_raw();
+    ///     unsafe {
+    ///         let re_ptr = mpc::realref_const(m_ptr);
+    ///         let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(re, -14.5);
+    ///         let im_ptr = mpc::imagref_const(m_ptr);
+    ///         let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(im, 3.25);
+    ///     }
+    ///     // c is still valid
+    ///     assert_eq!(c, (-14.5, 3.25));
+    /// }
+    /// ```
+    #[inline]
+    pub fn as_raw(&self) -> *const mpc_t {
+        self.inner()
+    }
+
+    #[cfg(feature = "raw")]
+    /// Returns an unsafe mutable pointer to the internal MPC complex
+    /// number.
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpc;
+    /// use rug::Complex;
+    /// fn main() {
+    ///     let mut c = Complex::with_val(53, (-14.5, 3.25));
+    ///     let m_ptr = c.as_raw_mut();
+    ///     unsafe {
+    ///         mpc::conj(m_ptr, m_ptr, mpc::RNDNN);
+    ///     }
+    ///     assert_eq!(c, (-14.5, -3.25));
+    /// }
+    /// ```
+    #[inline]
+    pub fn as_raw_mut(&mut self) -> *mut mpc_t {
+        unsafe { self.inner_mut() }
+    }
+
     /// Borrows the real part as a [`Float`](struct.Float.html).
     ///
     /// # Examples
@@ -1133,7 +1264,7 @@ impl Complex {
     }
 
     math_op1_no_round! {
-        mpc::proj, rraw2;
+        mpc::proj, raw_round2;
         /// Computes a projection onto the Riemann sphere, rounding to
         /// the nearest.
         ///
@@ -1339,7 +1470,7 @@ impl Complex {
         fn sqrt_ref -> SqrtRef;
     }
     math_op1_no_round! {
-        mpc::conj, rraw2;
+        mpc::conj, raw_round2;
         /// Computes the complex conjugate.
         ///
         /// # Examples
@@ -1479,7 +1610,7 @@ impl Complex {
                 re.inner_mut(),
                 im.inner(),
                 re.inner(),
-                rraw(Round::Nearest),
+                raw_round(Round::Nearest),
             );
         }
         re
@@ -1526,7 +1657,12 @@ impl Complex {
     pub fn arg_round(&mut self, round: Round2) -> Ordering2 {
         let (re, im) = self.as_mut_real_imag();
         let ret = unsafe {
-            mpfr::atan2(re.inner_mut(), im.inner(), re.inner(), rraw(round.0))
+            mpfr::atan2(
+                re.inner_mut(),
+                im.inner(),
+                re.inner(),
+                raw_round(round.0),
+            )
         };
         let dir_re = ordering1(ret);
         let dir_im = im.assign_round(Special::Zero, round.1);
@@ -2977,7 +3113,7 @@ impl<'a> AssignRoundInto<Float> for AbsRef<'a> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::abs(dst.inner_mut(), self.ref_self.inner(), rraw(round))
+            mpc::abs(dst.inner_mut(), self.ref_self.inner(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -2994,7 +3130,7 @@ impl<'a> AssignRoundInto<Float> for ArgRef<'a> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::arg(dst.inner_mut(), self.ref_self.inner(), rraw(round))
+            mpc::arg(dst.inner_mut(), self.ref_self.inner(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3014,7 +3150,7 @@ impl<'a> AssignRoundInto<Float> for NormRef<'a> {
     #[inline]
     fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::norm(dst.inner_mut(), self.ref_self.inner(), rraw(round))
+            mpc::norm(dst.inner_mut(), self.ref_self.inner(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3262,7 +3398,7 @@ impl Error for ParseComplexError {
 }
 
 #[inline]
-fn rraw(round: Round) -> mpfr::rnd_t {
+fn raw_round(round: Round) -> mpfr::rnd_t {
     #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
@@ -3274,7 +3410,7 @@ fn rraw(round: Round) -> mpfr::rnd_t {
 }
 
 #[inline]
-pub fn rraw2(round: Round2) -> mpc::rnd_t {
+pub fn raw_round2(round: Round2) -> mpc::rnd_t {
     #[allow(deprecated)]
     match (round.0, round.1) {
         (Round::Nearest, Round::Nearest) => mpc::RNDNN,
