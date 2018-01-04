@@ -13,7 +13,7 @@ Version 0.9.2
 * Deprecate `Float::assign_random_gaussian` methods.
 * Add `Complex::cmp_abs` method.
 * Add `Complex::root_of_unity` method.
-* Add `as_nonreallocating_mut` methods to `SmallInteger`,
+* Add `as_nonreallocating` functions to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
   with a precision of 53.
