@@ -1422,7 +1422,6 @@ impl Float {
         Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
     }
 
-    #[cfg(feature = "raw")]
     /// Creates a `Float` from an initialized MPFR floating-point
     /// number.
     ///
@@ -1459,7 +1458,6 @@ impl Float {
         Float { inner: raw }
     }
 
-    #[cfg(feature = "raw")]
     /// Converts a `Float` into an MPFR floating-point number.
     ///
     /// The returned object should be freed to avoid memory leaks.
@@ -1489,7 +1487,6 @@ impl Float {
         ret
     }
 
-    #[cfg(feature = "raw")]
     /// Returns a pointer to the internal MPFR floating-point number.
     ///
     /// The returned pointer will be valid for as long as `self` is
@@ -1518,7 +1515,6 @@ impl Float {
         self.inner()
     }
 
-    #[cfg(feature = "raw")]
     /// Returns an unsafe mutable pointer to the internal MPFR
     /// floating-point number.
     ///

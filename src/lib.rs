@@ -87,7 +87,7 @@
 //!
 //! ### Optional features
 //!
-//! The `rug` crate has seven optional features:
+//! The `rug` crate has six optional features:
 //!
 //! 1. `integer`, enabled by default.
 //! 2. `rational`, enabled by default. This feature requires the
@@ -97,10 +97,7 @@
 //!    `float` feature.
 //! 5. `rand`, enabled by default. This features requires the
 //!    `integer` feature.
-//! 6. `raw`, disabled by default. This provides access to the
-//!    internal data so that it can be used directly with the
-//!    `gmp-mpfr-sys` functions.
-//! 7. `serde`, disabled by default. This provides serialization
+//! 6. `serde`, disabled by default. This provides serialization
 //!    support for the `Integer`, `Rational`, `Float` and `Complex`
 //!    types, providing that they are enabled.
 //!

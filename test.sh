@@ -11,6 +11,9 @@ fi
 if [ -e cache ]; then
 	rm -r cache
 fi
+if [ -e target ]; then
+	rm -r target
+fi
 
 suffix=""
 if [[ "$1" == "-"* ]]; then
@@ -41,18 +44,14 @@ rm -r target
 # integer,rand = rand
 # float,complex = complex
 for features in '' gmp-mpfr-sys{,/mpfr,/mpc} \
-		   integer{,\,float,\,complex}{,\,raw}{,\,serde} \
-		   rational{,\,float,\,complex}{,\,rand}{,\,raw}{,\,serde} \
-		   float{,\,rand}{,\,raw}{,\,serde} \
-		   complex{,\,rand}{,\,raw}{,\,serde} \
-		   rand{,\,raw}{,\,serde} \
-		   raw{,\,serde} \
-		   serde
+		integer{,\,float,\,complex}{,\,serde} \
+		rational{,\,float,\,complex}{,\,rand}{,\,serde} \
+		float{,\,rand}{,\,serde} \
+		complex{,\,rand}{,\,serde} \
+		rand{,\,serde} \
+		serde
 do
-	if [ -e target ]; then
-		rm -r target
-	fi
-	if [[ "$features" =~ ^(|raw|serde|raw,serde)$ ]]; then
+	if [[ "$features" =~ ^(|serde)$ ]]; then
 		gmp=""
 	else
 		gmp="-p gmp-mpfr-sys"
@@ -65,9 +64,6 @@ done
 
 # For all toolchains (including first), test with default features and serde
 for toolchain in "${toolchains[@]}"; do
-	if [ -e target ]; then
-		rm -r target
-	fi
 	for build in "" --release; do
 		print_eval cargo +$toolchain"$suffix" test $build \
 			   --features serde -p gmp-mpfr-sys -p rug

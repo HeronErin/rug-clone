@@ -644,7 +644,6 @@ impl Rational {
         Ok(())
     }
 
-    #[cfg(feature = "raw")]
     /// Creates a `Rational` from an initialized GMP rational number.
     ///
     /// # Safety
@@ -681,7 +680,6 @@ impl Rational {
         Rational { inner: raw }
     }
 
-    #[cfg(feature = "raw")]
     /// Converts a `Rational` into a GMP rational number.
     ///
     /// The returned object should be freed to avoid memory leaks.
@@ -711,7 +709,6 @@ impl Rational {
         ret
     }
 
-    #[cfg(feature = "raw")]
     /// Returns a pointer to the internal GMP rational number.
     ///
     /// The returned pointer will be valid for as long as `self` is
@@ -740,7 +737,6 @@ impl Rational {
         self.inner()
     }
 
-    #[cfg(feature = "raw")]
     /// Returns an unsafe mutable pointer to the internal GMP rational
     /// number.
     ///

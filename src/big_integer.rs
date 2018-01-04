@@ -1019,7 +1019,6 @@ impl Integer {
         Ok(())
     }
 
-    #[cfg(feature = "raw")]
     /// Creates an `Integer` from an initialized GMP integer.
     ///
     /// # Safety
@@ -1054,7 +1053,6 @@ impl Integer {
         Integer { inner: raw }
     }
 
-    #[cfg(feature = "raw")]
     /// Converts an `Integer` into a GMP integer.
     ///
     /// The returned object should be freed to avoid memory leaks.
@@ -1084,7 +1082,6 @@ impl Integer {
         ret
     }
 
-    #[cfg(feature = "raw")]
     /// Returns a pointer to the internal GMP integer.
     ///
     /// The returned pointer will be valid for as long as `self` is
@@ -1113,7 +1110,6 @@ impl Integer {
         self.inner()
     }
 
-    #[cfg(feature = "raw")]
     /// Returns an unsafe mutable pointer to the internal GMP integer.
     ///
     /// The returned pointer will be valid for as long as `self` is

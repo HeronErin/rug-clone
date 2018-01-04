@@ -25,9 +25,8 @@ Version 0.9.2
 * Add `Integer::signum`, `Rational::signum` and `Float::signum`
   methods.
 * Add missing conversion to/from and comparisons to primitive types.
-* Add optional `raw` feature that adds `from_raw`, `into_raw`,
-  `as_raw` and `as_raw_mut` to `Integer`, `Rational`, `Float` and
-  `Complex`.
+* Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to `Integer`,
+  `Rational`, `Float` and `Complex`.
 
 Version 0.9.1 (2017-11-27)
 ==========================

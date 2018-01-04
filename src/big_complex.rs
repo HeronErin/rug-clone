@@ -834,7 +834,6 @@ impl Complex {
         Ok(self.assign_round(Complex::valid_str_radix(src, radix)?, round))
     }
 
-    #[cfg(feature = "raw")]
     /// Creates a `Complex` from an initialized MPC complex number.
     ///
     /// # Safety
@@ -870,7 +869,6 @@ impl Complex {
         Complex { inner: raw }
     }
 
-    #[cfg(feature = "raw")]
     /// Converts a `Complex` into an MPC complex number.
     ///
     /// The returned object should be freed to avoid memory leaks.
@@ -904,7 +902,6 @@ impl Complex {
         ret
     }
 
-    #[cfg(feature = "raw")]
     /// Returns a pointer to the internal MPC complex number.
     ///
     /// The returned pointer will be valid for as long as `self` is
@@ -937,7 +934,6 @@ impl Complex {
         self.inner()
     }
 
-    #[cfg(feature = "raw")]
     /// Returns an unsafe mutable pointer to the internal MPC complex
     /// number.
     ///
