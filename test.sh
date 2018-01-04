@@ -52,7 +52,7 @@ do
 	if [ -e target ]; then
 		rm -r target
 	fi
-	if [ "$features" == "" ] || [ "$features" == serde ]; then
+	if [[ "$features" =~ ^(|raw|serde|raw,serde)$ ]]; then
 		gmp=""
 	else
 		gmp="-p gmp-mpfr-sys"
