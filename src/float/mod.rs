@@ -19,7 +19,7 @@
 //! This module provides support for floating-point numbers of type
 //! [`Float`](../struct.Float.html).
 
-mod arith;
+pub(crate) mod arith;
 mod cmp;
 mod ord_float;
 #[cfg(feature = "serde")]

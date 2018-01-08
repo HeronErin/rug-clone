@@ -34,7 +34,7 @@
 //!
 //! ## Basic use
 //!
-//! This crate requires rustc version 1.17.0. This crate depends on
+//! This crate requires rustc version 1.18.0. This crate depends on
 //! the low-level bindings in the [`gmp-mpfr-sys`][sys] crate, which
 //! provides Rust FFI bindings for:
 //!

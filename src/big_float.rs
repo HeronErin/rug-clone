@@ -22,6 +22,7 @@ use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{self, OrdFloat, Round, SmallFloat, Special};
+use float::arith::{AddMulRef, SubMulFromRef};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
@@ -2145,6 +2146,264 @@ impl Float {
             mpfr::set_emax(save_emax);
             ordering1(ret)
         }
+    }
+
+    /// Multiplies and adds in one fused operation, rounding to the
+    /// nearest with only one rounding error.
+    ///
+    /// `a.mul_add(&b, &c)` produces a result like `&a * &b + &c`, but
+    /// `a` is consumed and the result produced uses its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let add = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 + 24 = 4.5
+    /// let mul_add = mul1.mul_add(&mul2, &add);
+    /// assert_eq!(mul_add, 4.5);
+    /// ```
+    pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
+        self.mul_add_round(mul, add, Default::default());
+        self
+    }
+
+    /// Multiplies and adds in one fused operation, rounding to the
+    /// nearest with only one rounding error.
+    ///
+    /// `a.mul_add_mut(&b, &c)` produces a result like `&a * &b + &c`,
+    /// but stores the result in `a` using its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mut mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let add = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 + 24 = 4.5
+    /// mul1.mul_add_mut(&mul2, &add);
+    /// assert_eq!(mul1, 4.5);
+    /// ```
+    pub fn mul_add_mut(&mut self, mul: &Self, add: &Self) {
+        self.mul_add_round(mul, add, Default::default());
+    }
+
+    /// Multiplies and adds in one fused operation, applying the
+    /// specified rounding method with only one rounding error.
+    ///
+    /// `a.mul_add_round(&b, &c, round)` produces a result like
+    /// `ans.assign(&a * &b + &c)`, but stores the result in `a` using
+    /// its precision rather than in another `Float` like `ans`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mut mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let add = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 + 24 = 4.5
+    /// let dir = mul1.mul_add_round(&mul2, &add, Round::Nearest);
+    /// assert_eq!(mul1, 4.5);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
+    pub fn mul_add_round(
+        &mut self,
+        mul: &Self,
+        add: &Self,
+        round: Round,
+    ) -> Ordering {
+        let ret = unsafe {
+            mpfr::fma(
+                self.inner_mut(),
+                self.inner(),
+                mul.inner(),
+                add.inner(),
+                raw_round(round),
+            )
+        };
+        ordering1(ret)
+    }
+
+    /// Multiplies and adds in one fused operation.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
+    ///
+    /// `a.mul_add_ref(&b, &c)` produces the exact same result as
+    /// `&a * &b + &c`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let add = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 + 24 = 4.5
+    /// let ans = Float::with_val(4, mul1.mul_add_ref(&mul2, &add));
+    /// assert_eq!(ans, 4.5);
+    /// ```
+    pub fn mul_add_ref<'a>(
+        &'a self,
+        mul: &'a Self,
+        add: &'a Self,
+    ) -> AddMulRef<'a> {
+        self * mul + add
+    }
+
+    /// Multiplies and subtracts in one fused operation, rounding to
+    /// the nearest with only one rounding error.
+    ///
+    /// `a.mul_sub(&b, &c)` produces a result like `&a * &b - &c`, but
+    /// `a` is consumed and the result produced uses its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let sub = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// let mul_sub = mul1.mul_sub(&mul2, &sub);
+    /// assert_eq!(mul_sub, -44);
+    /// ```
+    pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
+        self.mul_sub_round(mul, sub, Default::default());
+        self
+    }
+
+    /// Multiplies and subtracts in one fused operation, rounding to
+    /// the nearest with only one rounding error.
+    ///
+    /// `a.mul_sub_mut(&b, &c)` produces a result like `&a * &b - &c`,
+    /// but stores the result in `a` using its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mut mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let sub = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// mul1.mul_sub_mut(&mul2, &sub);
+    /// assert_eq!(mul1, -44);
+    /// ```
+    pub fn mul_sub_mut(&mut self, mul: &Self, sub: &Self) {
+        self.mul_sub_round(mul, sub, Default::default());
+    }
+
+    /// Multiplies and subtracts in one fused operation, applying the
+    /// specified rounding method with only one rounding error.
+    ///
+    /// `a.mul_sub_round(&b, &c, round)` produces a result like
+    /// `ans.assign(&a * &b - &c)`, but stores the result in `a` using
+    /// its precision rather than in another `Float` like `ans`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mut mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let sub = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// let dir = mul1.mul_sub_round(&mul2, &sub, Round::Nearest);
+    /// assert_eq!(mul1, -44);
+    /// assert_eq!(dir, Ordering::Less);
+    /// ```
+    pub fn mul_sub_round(
+        &mut self,
+        mul: &Self,
+        sub: &Self,
+        round: Round,
+    ) -> Ordering {
+        let ret = unsafe {
+            mpfr::fms(
+                self.inner_mut(),
+                self.inner(),
+                mul.inner(),
+                sub.inner(),
+                raw_round(round),
+            )
+        };
+        ordering1(ret)
+    }
+
+    /// Multiplies and subtracts in one fused operation.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
+    ///
+    /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
+    /// `&a * &b - &c`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// // Use only 4 bits of precision for demonstration purposes.
+    /// // 1.5 in binary is 1.1.
+    /// let mul1 = Float::with_val(4, 1.5);
+    /// // -13 in binary is -1101.
+    /// let mul2 = Float::with_val(4, -13);
+    /// // 24 in binary is 11000.
+    /// let sub = Float::with_val(4, 24);
+    ///
+    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// let ans = Float::with_val(4, mul1.mul_sub_ref(&mul2, &sub));
+    /// assert_eq!(ans, -44);
+    /// ```
+    pub fn mul_sub_ref<'a>(
+        &'a self,
+        mul: &'a Self,
+        sub: &'a Self,
+    ) -> SubMulFromRef<'a> {
+        self * mul - sub
     }
 
     math_op1_float! {

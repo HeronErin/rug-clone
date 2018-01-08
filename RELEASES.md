@@ -1,6 +1,7 @@
 Version 0.9.2
 =============
 
+* Requires rustc version 1.18.0.
 * Require `gmp-mpfr-sys` version 1.1.0.
 * Deprecate most `assign_*` methods, and replace with static methods
   that return an object that implements `AssignTo` or `AssignRoundTo`
@@ -28,6 +29,7 @@ Version 0.9.2
 * Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to `Integer`,
   `Rational`, `Float` and `Complex`.
 * Add `Float::classify` method.
+* Add `Float::mul_add` and `Float::mul_sub` methods.
 
 Version 0.9.1 (2017-11-27)
 ==========================
