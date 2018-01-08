@@ -18,6 +18,7 @@ use {Assign, Float};
 use big_float;
 use cast::cast;
 use complex::{OrdComplex, Prec};
+use complex::arith::{AddMulRef, SubMulFromRef};
 use ext::mpc as xmpc;
 use float::{self, ParseFloatError, Round, Special, ValidFloat};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
@@ -1257,6 +1258,223 @@ impl Complex {
                 Some(ordering1(mpc::cmp_abs(self.inner(), other.inner())))
             }
         }
+    }
+
+    /// Multiplies and adds in one fused operation, rounding to the
+    /// nearest with only one rounding error.
+    ///
+    /// `a.mul_add(&b, &c)` produces a result like `&a * &b + &c`, but
+    /// `a` is consumed and the result produced uses its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// let mul_add = a.mul_add(&b, &c);
+    /// assert_eq!(mul_add, (1010, 990));
+    /// ```
+    pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
+        self.mul_add_round(mul, add, Default::default());
+        self
+    }
+
+    /// Multiplies and adds in one fused operation, rounding to the
+    /// nearest with only one rounding error.
+    ///
+    /// `a.mul_add_mut(&b, &c)` produces a result like `&a * &b + &c`,
+    /// but stores the result in `a` using its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// a.mul_add_mut(&b, &c);
+    /// assert_eq!(a, (1010, 990));
+    /// ```
+    pub fn mul_add_mut(&mut self, mul: &Self, add: &Self) {
+        self.mul_add_round(mul, add, Default::default());
+    }
+
+    /// Multiplies and adds in one fused operation, applying the
+    /// specified rounding method with only one rounding error.
+    ///
+    /// `a.mul_add_round(&b, &c, round)` produces a result like
+    /// `ans.assign(&a * &b + &c)`, but stores the result in `a` using
+    /// its precision rather than in another `Complex` like `ans`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let mut a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// let dir = a.mul_add_round(&b, &c, (Round::Nearest, Round::Nearest));
+    /// assert_eq!(a, (1010, 990));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
+    /// ```
+    pub fn mul_add_round(
+        &mut self,
+        mul: &Self,
+        add: &Self,
+        round: Round2,
+    ) -> Ordering2 {
+        let ret = unsafe {
+            mpc::fma(
+                self.inner_mut(),
+                self.inner(),
+                mul.inner(),
+                add.inner(),
+                raw_round2(round),
+            )
+        };
+        ordering2(ret)
+    }
+
+    /// Multiplies and adds in one fused operation.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
+    ///
+    /// `a.mul_add_ref(&b, &c)` produces the exact same result as
+    /// `&a * &b + &c`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// let ans = Complex::with_val(53, a.mul_add_ref(&b, &c));
+    /// assert_eq!(ans, (1010, 990));
+    /// ```
+    pub fn mul_add_ref<'a>(
+        &'a self,
+        mul: &'a Self,
+        add: &'a Self,
+    ) -> AddMulRef<'a> {
+        self * mul + add
+    }
+
+    /// Multiplies and subtracts in one fused operation, rounding to
+    /// the nearest with only one rounding error.
+    ///
+    /// `a.mul_sub(&b, &c)` produces a result like `&a * &b - &c`, but
+    /// `a` is consumed and the result produced uses its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// let mul_sub = a.mul_sub(&b, &c);
+    /// assert_eq!(mul_sub, (-990, -1010));
+    /// ```
+    pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
+        self.mul_sub_round(mul, sub, Default::default());
+        self
+    }
+
+    /// Multiplies and subtracts in one fused operation, rounding to
+    /// the nearest with only one rounding error.
+    ///
+    /// `a.mul_sub_mut(&b, &c)` produces a result like `&a * &b - &c`,
+    /// but stores the result in `a` using its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let mut a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// a.mul_sub_mut(&b, &c);
+    /// assert_eq!(a, (-990, -1010));
+    /// ```
+    pub fn mul_sub_mut(&mut self, mul: &Self, sub: &Self) {
+        self.mul_sub_round(mul, sub, Default::default());
+    }
+
+    /// Multiplies and subtracts in one fused operation, applying the
+    /// specified rounding method with only one rounding error.
+    ///
+    /// `a.mul_sub_round(&b, &c, round)` produces a result like
+    /// `ans.assign(&a * &b - &c)`, but stores the result in `a` using
+    /// its precision rather than in another `Complex` like `ans`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let mut a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// let dir = a.mul_sub_round(&b, &c, (Round::Nearest, Round::Nearest));
+    /// assert_eq!(a, (-990, -1010));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
+    /// ```
+    pub fn mul_sub_round(
+        &mut self,
+        mul: &Self,
+        sub: &Self,
+        round: Round2,
+    ) -> Ordering2 {
+        let ret = unsafe {
+            xmpc::mulsub(
+                self.inner_mut(),
+                (self.inner(), mul.inner()),
+                sub.inner(),
+                raw_round2(round),
+            )
+        };
+        ordering2(ret)
+    }
+
+    /// Multiplies and subtracts in one fused operation.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundInto<Complex>`](../ops/trait.AssignRoundInto.html).
+    ///
+    /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
+    /// `&a * &b - &c`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// let a = Complex::with_val(53, (10, 0));
+    /// let b = Complex::with_val(53, (1, -1));
+    /// let c = Complex::with_val(53, (1000, 1000));
+    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// let ans = Complex::with_val(53, a.mul_sub_ref(&b, &c));
+    /// assert_eq!(ans, (-990, -1010));
+    /// ```
+    pub fn mul_sub_ref<'a>(
+        &'a self,
+        mul: &'a Self,
+        sub: &'a Self,
+    ) -> SubMulFromRef<'a> {
+        self * mul - sub
     }
 
     math_op1_no_round! {

@@ -31,6 +31,7 @@ Version 0.9.2
 * Add `Float::classify` method.
 * Add `Float::mul_add`, `Float::mul_sub`, `Float::mul_add_mul` and
   `Float::mul_sub_mul` methods.
+* Add `Complex::mul_add` and `Complex::mul_sub` methods.
 
 Version 0.9.1 (2017-11-27)
 ==========================

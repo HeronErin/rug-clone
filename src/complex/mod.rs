@@ -19,7 +19,7 @@
 //! This module provides support for complex numbers of type
 //! [`Complex`](../struct.Complex.html).
 
-mod arith;
+pub(crate) mod arith;
 mod cmp;
 mod ord_complex;
 #[cfg(feature = "serde")]
