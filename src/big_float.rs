@@ -39,6 +39,7 @@ use std::error::Error;
 use std::ffi::CStr;
 use std::marker::PhantomData;
 use std::mem;
+use std::num::FpCategory;
 use std::ops::Deref;
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
@@ -1741,6 +1742,39 @@ impl Float {
     #[inline]
     pub fn is_normal(&self) -> bool {
         unsafe { mpfr::regular_p(self.inner()) != 0 }
+    }
+
+    /// Returns the floating-point category of the number. Note that
+    /// `Float` cannot be subnormal.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Special;
+    /// use std::num::FpCategory;
+    /// let nan = Float::with_val(53, Special::Nan);
+    /// let infinite = Float::with_val(53, Special::Infinity);
+    /// let zero = Float::with_val(53, Special::Zero);
+    /// let normal = Float::with_val(53, 2.3);
+    /// assert_eq!(nan.classify(), FpCategory::Nan);
+    /// assert_eq!(infinite.classify(), FpCategory::Infinite);
+    /// assert_eq!(zero.classify(), FpCategory::Zero);
+    /// assert_eq!(normal.classify(), FpCategory::Normal);
+    /// ```
+    #[inline]
+    pub fn classify(&self) -> FpCategory {
+        let inner: *const mpfr_t = self.inner();
+        unsafe {
+            if mpfr::nan_p(inner) != 0 {
+                FpCategory::Nan
+            } else if mpfr::inf_p(inner) != 0 {
+                FpCategory::Infinite
+            } else if mpfr::zero_p(inner) != 0 {
+                FpCategory::Zero
+            } else {
+                FpCategory::Normal
+            }
+        }
     }
 
     /// Returns the same result as `self.partial_cmp(&0)`, but is

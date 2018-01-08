@@ -27,6 +27,7 @@ Version 0.9.2
 * Add missing conversion to/from and comparisons to primitive types.
 * Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to `Integer`,
   `Rational`, `Float` and `Complex`.
+* Add `Float::classify` method.
 
 Version 0.9.1 (2017-11-27)
 ==========================
