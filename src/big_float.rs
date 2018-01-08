@@ -22,7 +22,7 @@ use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{self, OrdFloat, Round, SmallFloat, Special};
-use float::arith::{AddMulRef, SubMulFromRef};
+use float::arith::{AddMulRef, MulAddMulRef, MulSubMulRef, SubMulFromRef};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
@@ -2404,6 +2404,269 @@ impl Float {
         sub: &'a Self,
     ) -> SubMulFromRef<'a> {
         self * mul - sub
+    }
+
+    /// Multiplies two products and adds them in one fused operation,
+    /// rounding to the nearest with only one rounding error.
+    ///
+    /// `a.mul_add_mul(&b, &c, &d)` produces a result like
+    /// `&a * &b + &c * &d`, but `a` is consumed and the result
+    /// produced uses its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 + 12 * 2 = 60
+    /// let mul_add_mul = a.mul_add_mul(&b, &c, &d);
+    /// assert_eq!(mul_add_mul, 60);
+    /// ```
+    pub fn mul_add_mul(
+        mut self,
+        mul: &Self,
+        add_mul1: &Self,
+        add_mul2: &Self,
+    ) -> Self {
+        self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
+        self
+    }
+
+    /// Multiplies two products and adds them in one fused operation,
+    /// rounding to the nearest with only one rounding error.
+    ///
+    /// `a.mul_add_mul_mut(&b, &c, &d)` produces a result like
+    /// `&a * &b + &c * &d`, but stores the result in `a` using its
+    /// precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 + 12 * 2 = 60
+    /// a.mul_add_mul_mut(&b, &c, &d);
+    /// assert_eq!(a, 60);
+    /// ```
+    pub fn mul_add_mul_mut(
+        &mut self,
+        mul: &Self,
+        add_mul1: &Self,
+        add_mul2: &Self,
+    ) {
+        self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
+    }
+
+    /// Multiplies two produces and adds them in one fused operation,
+    /// applying the specified rounding method with only one rounding
+    /// error.
+    ///
+    /// `a.mul_add_mul_round(&b, &c, &d, round)` produces a result
+    /// like `ans.assign(&a * &b + &c * &d)`, but stores the result in
+    /// `a` using its precision rather than in another `Float` like
+    /// `ans`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let mut a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 + 12 * 2 = 60
+    /// let dir = a.mul_add_mul_round(&b, &c, &d, Round::Nearest);
+    /// assert_eq!(a, 60);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
+    pub fn mul_add_mul_round(
+        &mut self,
+        mul: &Self,
+        add_mul1: &Self,
+        add_mul2: &Self,
+        round: Round,
+    ) -> Ordering {
+        let ret = unsafe {
+            mpfr::fmma(
+                self.inner_mut(),
+                self.inner(),
+                mul.inner(),
+                add_mul1.inner(),
+                add_mul2.inner(),
+                raw_round(round),
+            )
+        };
+        ordering1(ret)
+    }
+
+    /// Multiplies two products and adds them in one fused operation.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
+    ///
+    /// `a.mul_add_mul_ref(&b, &c, &d)` produces the exact same result
+    /// as `&a * &b + &c * &d`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 + 12 * 2 = 60
+    /// let ans = Float::with_val(53, a.mul_add_mul_ref(&b, &c, &d));
+    /// assert_eq!(ans, 60);
+    /// ```
+    pub fn mul_add_mul_ref<'a>(
+        &'a self,
+        mul: &'a Self,
+        add_mul1: &'a Self,
+        add_mul2: &'a Self,
+    ) -> MulAddMulRef<'a> {
+        self * mul + add_mul1 * add_mul2
+    }
+
+    /// Multiplies two products and subtracts them in one fused
+    /// operation, rounding to the nearest with only one rounding
+    /// error.
+    ///
+    /// `a.mul_sub_mul(&b, &c, &d)` produces a result like
+    /// `&a * &b - &c * &d`, but `a` is consumed and the result
+    /// produced uses its precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 - 12 * 2 = 12
+    /// let mul_sub_mul = a.mul_sub_mul(&b, &c, &d);
+    /// assert_eq!(mul_sub_mul, 12);
+    /// ```
+    pub fn mul_sub_mul(
+        mut self,
+        mul: &Self,
+        sub_mul1: &Self,
+        sub_mul2: &Self,
+    ) -> Self {
+        self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
+        self
+    }
+
+    /// Multiplies two products and subtracts them in one fused
+    /// operation, rounding to the nearest with only one rounding
+    /// error.
+    ///
+    /// `a.mul_sub_mul_mut(&b, &c, &d)` produces a result like
+    /// `&a * &b - &c * &d`, but stores the result in `a` using its
+    /// precision.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let mut a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 - 12 * 2 = 12
+    /// a.mul_sub_mul_mut(&b, &c, &d);
+    /// assert_eq!(a, 12);
+    /// ```
+    pub fn mul_sub_mul_mut(
+        &mut self,
+        mul: &Self,
+        sub_mul1: &Self,
+        sub_mul2: &Self,
+    ) {
+        self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
+    }
+
+    /// Multiplies two produces and subtracts them in one fused
+    /// operation, applying the specified rounding method with only
+    /// one rounding error.
+    ///
+    /// `a.mul_sub_mul_round(&b, &c, &d, round)` produces a result
+    /// like `ans.assign(&a * &b - &c * &d)`, but stores the result in
+    /// `a` using its precision rather than in another `Float` like
+    /// `ans`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// let mut a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 - 12 * 2 = 12
+    /// let dir = a.mul_sub_mul_round(&b, &c, &d, Round::Nearest);
+    /// assert_eq!(a, 12);
+    /// assert_eq!(dir, Ordering::Equal);
+    /// ```
+    pub fn mul_sub_mul_round(
+        &mut self,
+        mul: &Self,
+        sub_mul1: &Self,
+        sub_mul2: &Self,
+        round: Round,
+    ) -> Ordering {
+        let ret = unsafe {
+            mpfr::fmms(
+                self.inner_mut(),
+                self.inner(),
+                mul.inner(),
+                sub_mul1.inner(),
+                sub_mul2.inner(),
+                raw_round(round),
+            )
+        };
+        ordering1(ret)
+    }
+
+    /// Multiplies two products and subtracts them in one fused
+    /// operation.
+    ///
+    /// The returned object implements
+    /// [`AssignRoundInto<Float>`](../ops/trait.AssignRoundInto.html).
+    ///
+    /// `a.mul_sub_mul_ref(&b, &c, &d)` produces the exact same result
+    /// as `&a * &b - &c * &d`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let a = Float::with_val(53, 24);
+    /// let b = Float::with_val(53, 1.5);
+    /// let c = Float::with_val(53, 12);
+    /// let d = Float::with_val(53, 2);
+    /// // 24 * 1.5 - 12 * 2 = 12
+    /// let ans = Float::with_val(53, a.mul_sub_mul_ref(&b, &c, &d));
+    /// assert_eq!(ans, 12);
+    /// ```
+    pub fn mul_sub_mul_ref<'a>(
+        &'a self,
+        mul: &'a Self,
+        sub_mul1: &'a Self,
+        sub_mul2: &'a Self,
+    ) -> MulSubMulRef<'a> {
+        self * mul - sub_mul1 * sub_mul2
     }
 
     math_op1_float! {

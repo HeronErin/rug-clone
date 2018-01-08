@@ -29,7 +29,8 @@ Version 0.9.2
 * Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to `Integer`,
   `Rational`, `Float` and `Complex`.
 * Add `Float::classify` method.
-* Add `Float::mul_add` and `Float::mul_sub` methods.
+* Add `Float::mul_add`, `Float::mul_sub`, `Float::mul_add_mul` and
+  `Float::mul_sub_mul` methods.
 
 Version 0.9.1 (2017-11-27)
 ==========================
