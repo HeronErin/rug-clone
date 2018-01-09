@@ -4,8 +4,8 @@ Version 0.9.2
 * Requires rustc version 1.18.0.
 * Require `gmp-mpfr-sys` version 1.1.0.
 * Deprecate most `assign_*` methods, and replace with static methods
-  that return an object that implements `AssignTo` or `AssignRoundTo`
-  instead.
+  that return an object that implements `AssignInto` or
+  `AssignRoundInto` instead.
 * Deprecate `Rational::copy_to_integer` method.
 * Add `Float::ln_u` method.
 * Add `Float::round_even` methods.

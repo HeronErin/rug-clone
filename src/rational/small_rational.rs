@@ -37,7 +37,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 ///
 /// The `SmallRational` type can be coerced to a
 /// [`Rational`](../struct.Rational.html), as it implements
-/// `Deref<Rational>`.
+/// `Deref<Target = Rational>`.
 ///
 /// # Examples
 ///

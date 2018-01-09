@@ -1546,7 +1546,7 @@ impl Float {
 
     /// Borrows a negated copy of the `Float`.
     ///
-    /// The returned object implements `Deref<Float>`.
+    /// The returned object implements `Deref<Target = Float>`.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1579,7 +1579,7 @@ impl Float {
 
     /// Borrows an absolute copy of the `Float`.
     ///
-    /// The returned object implements `Deref<Float>`.
+    /// The returned object implements `Deref<Target = Float>`.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.

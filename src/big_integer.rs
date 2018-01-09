@@ -1138,7 +1138,7 @@ impl Integer {
 
     /// Borrows a negated copy of the `Integer`.
     ///
-    /// The returned object implements `Deref<Integer>`.
+    /// The returned object implements `Deref<Target = Integer>`.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1167,7 +1167,7 @@ impl Integer {
 
     /// Borrows an absolute copy of the `Integer`.
     ///
-    /// The returned object implements `Deref<Integer>`.
+    /// The returned object implements `Deref<Target = Integer>`.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.

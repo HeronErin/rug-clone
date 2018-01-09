@@ -50,7 +50,7 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 ///
 /// The `SmallComplex` type can be coerced to a
 /// [`Complex`](../struct.Complex.html), as it implements
-/// `Deref<Complex>`.
+/// `Deref<Target = Complex>`.
 ///
 /// # Examples
 ///
