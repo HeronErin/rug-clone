@@ -2205,8 +2205,9 @@ impl Float {
     /// specified rounding method with only one rounding error.
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
-    /// `ans.assign(&a * &b + &c)`, but stores the result in `a` using
-    /// its precision rather than in another `Float` like `ans`.
+    /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
+    /// in `a` using its precision rather than in another `Float` like
+    /// `ans`.
     ///
     /// # Examples
     ///
@@ -2334,8 +2335,9 @@ impl Float {
     /// specified rounding method with only one rounding error.
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
-    /// `ans.assign(&a * &b - &c)`, but stores the result in `a` using
-    /// its precision rather than in another `Float` like `ans`.
+    /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
+    /// in `a` using its precision rather than in another `Float` like
+    /// `ans`.
     ///
     /// # Examples
     ///
@@ -2468,9 +2470,9 @@ impl Float {
     /// error.
     ///
     /// `a.mul_add_mul_round(&b, &c, &d, round)` produces a result
-    /// like `ans.assign(&a * &b + &c * &d)`, but stores the result in
-    /// `a` using its precision rather than in another `Float` like
-    /// `ans`.
+    /// like `ans.assign_round(&a * &b + &c * &d, round)`, but stores
+    /// the result in `a` using its precision rather than in another
+    /// `Float` like `ans`.
     ///
     /// # Examples
     ///
@@ -2600,9 +2602,9 @@ impl Float {
     /// one rounding error.
     ///
     /// `a.mul_sub_mul_round(&b, &c, &d, round)` produces a result
-    /// like `ans.assign(&a * &b - &c * &d)`, but stores the result in
-    /// `a` using its precision rather than in another `Float` like
-    /// `ans`.
+    /// like `ans.assign_round(&a * &b - &c * &d, round)`, but stores
+    /// the result in `a` using its precision rather than in another
+    /// `Float` like `ans`.
     ///
     /// # Examples
     ///

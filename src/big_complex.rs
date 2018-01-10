@@ -1307,8 +1307,9 @@ impl Complex {
     /// specified rounding method with only one rounding error.
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
-    /// `ans.assign(&a * &b + &c)`, but stores the result in `a` using
-    /// its precision rather than in another `Complex` like `ans`.
+    /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
+    /// in `a` using its precision rather than in another `Complex`
+    /// like `ans`.
     ///
     /// # Examples
     ///
@@ -1416,8 +1417,9 @@ impl Complex {
     /// specified rounding method with only one rounding error.
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
-    /// `ans.assign(&a * &b - &c)`, but stores the result in `a` using
-    /// its precision rather than in another `Complex` like `ans`.
+    /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
+    /// in `a` using its precision rather than in another `Complex`
+    /// like `ans`.
     ///
     /// # Examples
     ///
