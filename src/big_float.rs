@@ -4209,7 +4209,8 @@ impl Float {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// `AssignRound<Src> for (&mut Float, &mut Float)` is
+        /// `AssignRound<Src> for (Float, Float)` and
+        /// `AssignRound<Src> for (&mut Float, &mut Float)` are
         /// implemented with the returned object as `Src`.
         ///
         /// # Examples
@@ -4923,7 +4924,8 @@ impl Float {
         fn sinh_cosh_round;
         /// Computes the hyperbolic sine and cosine.
         ///
-        /// `AssignRound<Src> for (&mut Float, &mut Float)` is
+        /// `AssignRound<Src> for (Float, Float)` and
+        /// `AssignRound<Src> for (&mut Float, &mut Float)` are
         /// implemented with the returned object as `Src`.
         ///
         /// # Examples
@@ -5941,7 +5943,8 @@ impl Float {
     /// Computes the logarithm of the absolute value of the gamma
     /// function on `val`.
     ///
-    /// `AssignRound<Src> for (&mut Float, &mut Ordering)` is
+    /// `AssignRound<Src> for (Float, Ordering)` and
+    /// `AssignRound<Src> for (&mut Float, &mut Ordering)` are
     /// implemented with the returned object as `Src`.
     ///
     /// # Examples
@@ -7256,7 +7259,8 @@ impl Float {
     /// smaller possible results, many bits will be zero, and not all
     /// the precision will be used.
     ///
-    /// `Assign<Src> for Result<&mut Float, &mut Float>` is
+    /// `Assign<Src> for Result<Float, Float>` and
+    /// `Assign<Src> for Result<&mut Float, &mut Float>` are
     /// implemented with the returned object as `Src`.
     ///
     /// # Examples

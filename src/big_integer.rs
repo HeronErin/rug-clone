@@ -1924,6 +1924,7 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -1996,6 +1997,7 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -2063,6 +2065,7 @@ impl Integer {
         ///
         /// The remainder has the same sign as the divisor.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -2124,6 +2127,7 @@ impl Integer {
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -2355,6 +2359,7 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` if an inverse exists.
     ///
+    /// `Assign<Src> for Result<Integer, Integer>`,
     /// `Assign<Src> for Result<&mut Integer, &mut Integer>` and
     /// `From<Src> for Result<Integer, Integer>` are implemented with
     /// the returned object as `Src`.
@@ -2500,6 +2505,7 @@ impl Integer {
     /// If `exponent` is negative, then the number must have an
     /// inverse modulo `modulo` for an answer to exist.
     ///
+    /// `Assign<Src> for Result<Integer, Integer>`,
     /// `Assign<Src> for Result<&mut Integer, &mut Integer>` and
     /// `From<Src> for Result<Integer, Integer>` are implemented with
     /// the returned object as `Src`.
@@ -2692,6 +2698,7 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -2809,6 +2816,7 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -3046,9 +3054,10 @@ impl Integer {
         /// (`self` and `other`), and two multiplication coefficients
         /// to obtain the GCD from the two inputs.
         ///
-        /// `Assign<Src> for (&mut Integer, &mut Integer, &mut
-        /// Integer)` and `From<Src> for (Integer, Integer, Integer)`
-        /// are implemented with the returned object as `Src`.
+        /// `Assign<Src> for (Integer, Integer, Integer)`,
+        /// `Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`
+        /// and `From<Src> for (Integer, Integer, Integer)` are
+        /// implemented with the returned object as `Src`.
         ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
@@ -3487,6 +3496,7 @@ impl Integer {
         /// Computes a Fibonacci number, and the previous Fibonacci
         /// number.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -3557,6 +3567,7 @@ impl Integer {
     math_op0! {
         /// Computes a Lucas number, and the previous Lucas number.
         ///
+        /// `Assign<Src> for (Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer)` and
         /// `From<Src> for (Integer, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -3684,6 +3695,9 @@ impl Integer {
     #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
+    ///
+    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///

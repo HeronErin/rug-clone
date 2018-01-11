@@ -2506,7 +2506,8 @@ impl Complex {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// `AssignRound<Src> for (&mut Complex, &mut Complex)` is
+        /// `AssignRound<Src> for (Complex, Complex)` and
+        /// `AssignRound<Src> for (&mut Complex, &mut Complex)` are
         /// implemented with the returned object as `Src`.
         ///
         /// # Examples
@@ -3144,7 +3145,8 @@ impl Complex {
     /// set. In the smaller possible results, many bits will be zero,
     /// and not all the precision will be used.
     ///
-    /// `Assign<Src> for Result<&mut Complex, &mut Complex>` is
+    /// `Assign<Src> for Result<Complex, Complex>` and
+    /// `Assign<Src> for Result<&mut Complex, &mut Complex>` are
     /// implemented with the returned object as `Src`.
     ///
     /// # Examples

@@ -938,7 +938,7 @@ impl Rational {
 
     /// Borrows a negated copy of the `Rational` number.
     ///
-    /// The returned object implements `Deref<Target = Rational>.
+    /// The returned object implements `Deref<Target = Rational>`.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1475,6 +1475,7 @@ impl Rational {
         fn fract_trunc_mut;
         /// Computes the fractional and truncated parts of the number.
         ///
+        /// `Assign<Src> for (Rational, Integer)`,
         /// `Assign<Src> for (&mut Rational, &mut Integer)` and
         /// `From<Src> for (Rational, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -1631,6 +1632,7 @@ impl Rational {
         ///
         /// The fractional part cannot be greater than zero.
         ///
+        /// `Assign<Src> for (Rational, Integer)`,
         /// `Assign<Src> for (&mut Rational, &mut Integer)` and
         /// `From<Src> for (Rational, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -1785,6 +1787,7 @@ impl Rational {
         ///
         /// The fractional part cannot be negative.
         ///
+        /// `Assign<Src> for (Rational, Integer)`,
         /// `Assign<Src> for (&mut Rational, &mut Integer)` and
         /// `From<Src> for (Rational, Integer)` are implemented with
         /// the returned object as `Src`.
@@ -1984,6 +1987,7 @@ impl Rational {
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
         ///
+        /// `Assign<Src> for (Rational, Integer)`,
         /// `Assign<Src> for (&mut Rational, &mut Integer)` and
         /// `From<Src> for (Rational, Integer)` are implemented with
         /// the returned object as `Src`.
