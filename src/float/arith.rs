@@ -24,10 +24,10 @@ use ext::mpfr as xmpfr;
 use float::Round;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRoundInto,
-          DivAssignRound, DivFrom, DivFromRound, MulAssignRound, MulFrom,
-          MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
-          PowFromRound, SubAssignRound, SubFrom, SubFromRound};
+use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
+          DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
+          NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
+          SubAssignRound, SubFrom, SubFromRound};
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
@@ -68,13 +68,13 @@ pub struct NegRef<'a> {
     val: &'a Float,
 }
 
-impl<'a> AssignRoundInto<Float> for NegRef<'a> {
+impl<'a> AssignRound<NegRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: NegRef<'a>, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::neg(dst.inner_mut(), self.val.inner(), raw_round(round))
+            mpfr::neg(self.inner_mut(), src.val.inner(), raw_round(round))
         };
         ordering1(ret)
     }
@@ -587,18 +587,22 @@ pub struct MulAddMulRef<'a> {
     rhs: MulRef<'a>,
 }
 
-impl<'a> AssignRoundInto<Float> for MulAddMulRef<'a> {
+impl<'a> AssignRound<MulAddMulRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: MulAddMulRef<'a>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpfr::fmma(
-                dst.inner_mut(),
-                self.lhs.lhs.inner(),
-                self.lhs.rhs.inner(),
-                self.rhs.lhs.inner(),
-                self.rhs.rhs.inner(),
+                self.inner_mut(),
+                src.lhs.lhs.inner(),
+                src.lhs.rhs.inner(),
+                src.rhs.lhs.inner(),
+                src.rhs.rhs.inner(),
                 raw_round(round),
             )
         };
@@ -620,18 +624,22 @@ pub struct MulSubMulRef<'a> {
     rhs: MulRef<'a>,
 }
 
-impl<'a> AssignRoundInto<Float> for MulSubMulRef<'a> {
+impl<'a> AssignRound<MulSubMulRef<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round_into(self, dst: &mut Float, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: MulSubMulRef<'a>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpfr::fmms(
-                dst.inner_mut(),
-                self.lhs.lhs.inner(),
-                self.lhs.rhs.inner(),
-                self.rhs.lhs.inner(),
-                self.rhs.rhs.inner(),
+                self.inner_mut(),
+                src.lhs.lhs.inner(),
+                src.lhs.rhs.inner(),
+                src.rhs.lhs.inner(),
+                src.rhs.rhs.inner(),
                 raw_round(round),
             )
         };

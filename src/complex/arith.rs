@@ -21,10 +21,10 @@ use big_complex::{Ordering2, Round2, ordering2, raw_round2};
 use ext::mpc as xmpc;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use inner::{Inner, InnerMut};
-use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRoundInto,
-          DivAssignRound, DivFrom, DivFromRound, MulAssignRound, MulFrom,
-          MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
-          PowFromRound, SubAssignRound, SubFrom, SubFromRound};
+use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
+          DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
+          NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
+          SubAssignRound, SubFrom, SubFromRound};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
@@ -59,13 +59,13 @@ pub struct NegRef<'a> {
     val: &'a Complex,
 }
 
-impl<'a> AssignRoundInto<Complex> for NegRef<'a> {
+impl<'a> AssignRound<NegRef<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, src: NegRef<'a>, round: Round2) -> Ordering2 {
         let ret = unsafe {
-            mpc::neg(dst.inner_mut(), self.val.inner(), raw_round2(round))
+            mpc::neg(self.inner_mut(), src.val.inner(), raw_round2(round))
         };
         ordering2(ret)
     }

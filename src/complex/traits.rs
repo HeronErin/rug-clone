@@ -21,7 +21,7 @@ use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
 use misc;
-use ops::{AssignRound, AssignRoundInto};
+use ops::AssignRound;
 #[allow(unused_imports)]
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -166,23 +166,11 @@ impl UpperHex for Complex {
 
 impl<T> Assign<T> for Complex
 where
-    T: AssignRoundInto<Complex, Round = Round2, Ordering = Ordering2>,
+    Self: AssignRound<T, Round = Round2, Ordering = Ordering2>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_into(self, Default::default());
-    }
-}
-
-impl<T> AssignRound<T> for Complex
-where
-    T: AssignRoundInto<Complex, Round = Round2, Ordering = Ordering2>,
-{
-    type Round = Round2;
-    type Ordering = Ordering2;
-    #[inline]
-    fn assign_round(&mut self, src: T, round: Round2) -> Ordering2 {
-        src.assign_round_into(self, round)
+        self.assign_round(src, Default::default());
     }
 }
 
@@ -205,18 +193,32 @@ where
 
 impl<'a, 'b, T> Assign<T> for (&'a mut Complex, &'b mut Complex)
 where
-    T: AssignRoundInto<Self, Round = Round2, Ordering = (Ordering2, Ordering2)>,
+    Self: AssignRound<T, Round = Round2, Ordering = (Ordering2, Ordering2)>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_round_into(self, Default::default());
+        self.assign_round(src, Default::default());
+    }
+}
+
+impl<T> Assign<T> for (Complex, Complex)
+where
+    for<'a, 'b> (&'a mut Complex, &'b mut Complex): AssignRound<
+        T,
+        Round = Round2,
+        Ordering = (Ordering2, Ordering2),
+    >,
+{
+    #[inline]
+    fn assign(&mut self, src: T) {
+        (&mut self.0, &mut self.1).assign_round(src, Default::default());
     }
 }
 
 impl<T> AssignRound<T> for (Complex, Complex)
 where
-    T: for<'a, 'b> AssignRoundInto<
-        (&'a mut Complex, &'b mut Complex),
+    for<'a, 'b> (&'a mut Complex, &'b mut Complex): AssignRound<
+        T,
         Round = Round2,
         Ordering = (Ordering2, Ordering2),
     >,
@@ -229,72 +231,60 @@ where
         src: T,
         round: Round2,
     ) -> (Ordering2, Ordering2) {
-        src.assign_round_into(&mut (&mut self.0, &mut self.1), round)
+        (&mut self.0, &mut self.1).assign_round(src, round)
     }
 }
 
-impl<'a, 'b, T> AssignRound<T> for (&'a mut Complex, &'b mut Complex)
-where
-    T: AssignRoundInto<Self, Round = Round2, Ordering = (Ordering2, Ordering2)>,
-{
-    type Round = Round2;
-    type Ordering = (Ordering2, Ordering2);
-    #[inline]
-    fn assign_round(
-        &mut self,
-        src: T,
-        round: Round2,
-    ) -> (Ordering2, Ordering2) {
-        src.assign_round_into(self, round)
-    }
-}
-
-impl AssignRoundInto<Complex> for Complex {
+impl AssignRound for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
-        <&Complex as AssignRoundInto<Complex>>::assign_round_into(
-            &self,
-            dst,
-            round,
-        )
+    fn assign_round(&mut self, mut src: Complex, round: Round2) -> Ordering2 {
+        let (dst_real, dst_imag) = self.as_mut_real_imag();
+        let (src_real, src_imag) = src.as_mut_real_imag();
+        let real_ord = if dst_real.prec() == src_real.prec() {
+            mem::swap(dst_real, src_real);
+            Ordering::Equal
+        } else {
+            dst_real.assign_round(&*src_real, round.0)
+        };
+        let imag_ord = if dst_imag.prec() == src_imag.prec() {
+            mem::swap(dst_imag, src_imag);
+            Ordering::Equal
+        } else {
+            dst_imag.assign_round(&*src_imag, round.1)
+        };
+        (real_ord, imag_ord)
     }
 }
 
-impl<'a> AssignRoundInto<Complex> for &'a Complex {
+impl<'a> AssignRound<&'a Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, src: &'a Complex, round: Round2) -> Ordering2 {
         let ret = unsafe {
-            mpc::set(dst.inner_mut(), self.inner(), raw_round2(round))
+            mpc::set(self.inner_mut(), src.inner(), raw_round2(round))
         };
         ordering2(ret)
     }
 }
 
-impl<Re> AssignRoundInto<Complex> for Re
+impl<Re> AssignRound<Re> for Complex
 where
     Float: AssignRound<Re, Round = Round, Ordering = Ordering>,
 {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
-        let (real, imag) = dst.as_mut_real_imag();
-        (
-            <Float as AssignRound<Re>>::assign_round(real, self, round.0),
-            <Float as AssignRound<Special>>::assign_round(
-                imag,
-                Special::Zero,
-                round.1,
-            ),
-        )
+    fn assign_round(&mut self, src: Re, round: Round2) -> Ordering2 {
+        let real_ord = self.mut_real().assign_round(src, round.0);
+        <Float as Assign<Special>>::assign(self.mut_imag(), Special::Zero);
+        (real_ord, Ordering::Equal)
     }
 }
 
-impl<Re, Im> AssignRoundInto<Complex> for (Re, Im)
+impl<Re, Im> AssignRound<(Re, Im)> for Complex
 where
     Float: AssignRound<Re, Round = Round, Ordering = Ordering>
         + AssignRound<Im, Round = Round, Ordering = Ordering>,
@@ -302,16 +292,14 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
-        let (real, imag) = dst.as_mut_real_imag();
-        (
-            real.assign_round(self.0, round.0),
-            imag.assign_round(self.1, round.1),
-        )
+    fn assign_round(&mut self, src: (Re, Im), round: Round2) -> Ordering2 {
+        let real_ord = self.mut_real().assign_round(src.0, round.0);
+        let imag_ord = self.mut_imag().assign_round(src.1, round.1);
+        (real_ord, imag_ord)
     }
 }
 
-impl<'a, Re, Im> AssignRoundInto<Complex> for &'a (Re, Im)
+impl<'a, Re, Im> AssignRound<&'a (Re, Im)> for Complex
 where
     Float: AssignRound<&'a Re, Round = Round, Ordering = Ordering>
         + AssignRound<&'a Im, Round = Round, Ordering = Ordering>,
@@ -319,12 +307,10 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round_into(self, dst: &mut Complex, round: Round2) -> Ordering2 {
-        let (real, imag) = dst.as_mut_real_imag();
-        (
-            real.assign_round(&self.0, round.0),
-            imag.assign_round(&self.1, round.1),
-        )
+    fn assign_round(&mut self, src: &'a (Re, Im), round: Round2) -> Ordering2 {
+        let real_ord = self.mut_real().assign_round(&src.0, round.0);
+        let imag_ord = self.mut_imag().assign_round(&src.1, round.1);
+        (real_ord, imag_ord)
     }
 }
 
