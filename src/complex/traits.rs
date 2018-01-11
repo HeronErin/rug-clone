@@ -21,7 +21,7 @@ use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
 use misc;
-use ops::{AssignInto, AssignRound, AssignRoundInto};
+use ops::{AssignRound, AssignRoundInto};
 #[allow(unused_imports)]
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -188,28 +188,18 @@ where
 
 impl<T> Assign<T> for Result<Complex, Complex>
 where
-    T: for<'a> AssignInto<Result<&'a mut Complex, &'a mut Complex>>,
+    for<'a> Result<&'a mut Complex, &'a mut Complex>: Assign<T>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
         let ok = {
             let mut m = self.as_mut();
-            src.assign_into(&mut m);
+            m.assign(src);
             m.is_ok()
         };
         if self.is_ok() != ok {
             misc::result_swap(self);
         }
-    }
-}
-
-impl<'a, T> Assign<T> for Result<&'a mut Complex, &'a mut Complex>
-where
-    T: AssignInto<Self>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        src.assign_into(self);
     }
 }
 

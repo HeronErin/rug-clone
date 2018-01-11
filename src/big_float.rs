@@ -29,8 +29,6 @@ use inner::{Inner, InnerMut};
 use misc;
 use ops::{AssignRound, AssignRoundInto, NegAssign};
 #[cfg(feature = "rand")]
-use ops::AssignInto;
-#[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
 #[allow(unused_imports)]
@@ -7264,8 +7262,8 @@ impl Float {
     /// smaller possible results, many bits will be zero, and not all
     /// the precision will be used.
     ///
-    /// The returned object implements
-    /// [`AssignInto<Result<&mut Float, &mut Float>`][at].
+    /// `Assign<Src> for Result<&mut Float, &mut Float>` is
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -7288,8 +7286,6 @@ impl Float {
     /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
     /// number is set to NaN and an error is returned. This would most
     /// likely be a programming error.
-    ///
-    /// [at]: (../ops/trait.AssignInto.html)
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -7341,7 +7337,7 @@ impl Float {
         rng: &mut RandState,
     ) -> Result<(), ()> {
         let mut r = Ok(self);
-        Float::random_bits(rng).assign_into(&mut r);
+        r.assign(Float::random_bits(rng));
         match r {
             Ok(_) => Ok(()),
             Err(_) => Err(()),
@@ -7694,17 +7690,17 @@ pub struct RandomBits<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b, 'c: 'b> AssignInto<Result<&'a mut Float, &'a mut Float>>
-    for RandomBits<'b, 'c> {
+impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>>
+    for Result<&'c mut Float, &'c mut Float> {
     #[inline]
-    fn assign_into(self, dst: &mut Result<&'a mut Float, &'a mut Float>) {
-        let err = match *dst {
-            Ok(ref mut dest) | Err(ref mut dest) => unsafe {
-                mpfr::urandomb(dest.inner_mut(), self.rng.inner_mut())
+    fn assign(&mut self, src: RandomBits<'a, 'b>) {
+        let err = match *self {
+            Ok(ref mut dst) | Err(ref mut dst) => unsafe {
+                mpfr::urandomb(dst.inner_mut(), src.rng.inner_mut())
             },
         };
-        if (err != 0) != dst.is_err() {
-            misc::result_swap(dst)
+        if (err != 0) != self.is_err() {
+            misc::result_swap(self)
         }
     }
 }

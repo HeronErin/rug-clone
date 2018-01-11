@@ -15,25 +15,25 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 #[cfg(feature = "integer")]
-macro_rules! assign_into_deref {
+macro_rules! assign_deref {
     { $Src:ty => $Dst:ty } => {
-        impl<'a> AssignInto<$Dst> for &'a $Src {
+        impl<'a> Assign<&'a $Src> for $Dst {
             #[inline]
-            fn assign_into(self, dst: &mut $Dst) {
-                <$Src as AssignInto<$Dst>>::assign_into(*self, dst);
+            fn assign(&mut self, src: &'a $Src) {
+                <$Dst as Assign<$Src>>::assign(self, *src);
             }
         }
     }
 }
 
 #[cfg(feature = "integer")]
-macro_rules! from_assign_into {
+macro_rules! from_assign {
     { $Src:ty => $Dst:ty} => {
         impl<'r> From<$Src> for $Dst {
             #[inline]
             fn from(src: $Src) -> Self {
                 let mut dst = <Self as Default>::default();
-                <$Src as AssignInto<$Dst>>::assign_into(src, &mut dst);
+                <$Dst as Assign<$Src>>::assign(&mut dst, src);
                 dst
             }
         }
@@ -44,9 +44,9 @@ macro_rules! from_assign_into {
             #[inline]
             fn from(src: $Src) -> Self {
                 let mut dst = <Self as Default>::default();
-                <$Src as AssignInto<(&mut $Dst1, &mut $Dst2)>>::assign_into(
-                    src,
+                <(&mut $Dst1, &mut $Dst2) as Assign<$Src>>::assign(
                     &mut (&mut dst.0, &mut dst.1),
+                    src,
                 );
                 dst
             }
@@ -58,11 +58,9 @@ macro_rules! from_assign_into {
             #[inline]
             fn from(src: $Src) -> Self {
                 let mut dst = <Self as Default>::default();
-                <$Src as AssignInto<
-                    (&mut $Dst1, &mut $Dst2, &mut $Dst3),
-                >>::assign_into(
-                    src,
+                <(&mut $Dst1, &mut $Dst2, &mut $Dst3) as Assign<$Src>>::assign(
                     &mut (&mut dst.0, &mut dst.1, &mut dst.2),
+                    src,
                 );
                 dst
             }
@@ -88,8 +86,8 @@ macro_rules! math_op0 {
 }
 
 // struct Src
-// AssignInto<Big> for Src
-// AssignInto<Big> for &Src
+// Big = Src
+// Src -> Big
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op0 {
     {
@@ -104,24 +102,22 @@ macro_rules! ref_math_op0 {
             $($param: $T,)*
         }
 
-        impl AssignInto<$Big> for $Src {
+        impl Assign<$Src> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $Src) {
                 unsafe {
-                    $func(dst.inner_mut(), $(self.$param.into()),*);
+                    $func(self.inner_mut(), $(src.$param.into()),*);
                 }
             }
         }
 
-        from_assign_into! { $Src => $Big }
+        from_assign! { $Src => $Big }
     }
 }
 
 // struct Src
-// AssignInto<(Big, Big)> for Src
+// (Big, Big) = Src
 // Src -> (Big, Big)
-// AssignInto<(Big, Big)> for &Src
-// &Src -> (Big, Big)
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op0_2 {
     {
@@ -136,20 +132,20 @@ macro_rules! ref_math_op0_2 {
             $($param: $T,)*
         }
 
-        impl<'a, 'b> AssignInto<(&'a mut $Big, &'b mut $Big)> for $Src {
+        impl<'a, 'b> Assign<$Src> for (&'a mut $Big, &'b mut $Big) {
             #[inline]
-            fn assign_into(self, dst: &mut (&'a mut $Big, &'b mut $Big)) {
+            fn assign(&mut self, src: $Src) {
                 unsafe {
                     $func(
-                        dst.0.inner_mut(),
-                        dst.1.inner_mut(),
-                        $(self.$param.into(),)*
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        $(src.$param.into(),)*
                     );
                 }
             }
         }
 
-        from_assign_into! { $Src => $Big, $Big }
+        from_assign! { $Src => $Big, $Big }
     }
 }
 
@@ -194,8 +190,8 @@ macro_rules! math_op1 {
 }
 
 // struct Ref
-// AssignInto<Big> for Ref
-// AssignInto<Big> for &Ref
+// Big = Ref
+// Ref -> Big
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op1 {
     {
@@ -211,20 +207,20 @@ macro_rules! ref_math_op1 {
             $($param: $T,)*
         }
 
-        impl<'a> AssignInto<$Big> for $Ref<'a> {
+        impl<'a> Assign<$Ref<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
-                        dst.inner_mut(),
-                        self.ref_self.inner(),
-                        $(self.$param.into(),)*
+                        self.inner_mut(),
+                        src.ref_self.inner(),
+                        $(src.$param.into(),)*
                     );
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big }
+        from_assign! { $Ref<'r> => $Big }
     }
 }
 
@@ -281,10 +277,8 @@ macro_rules! math_op1_2 {
 }
 
 // struct Ref
-// AssignInto<(Big, Big)> for Ref
+// (Big, Big) = Ref
 // Ref -> (Big, Big)
-// AssignInto<(Big, Big)> for &Ref
-// &Ref -> (Big, Big)
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op1_2 {
     {
@@ -300,21 +294,21 @@ macro_rules! ref_math_op1_2 {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c> AssignInto<(&'a mut $Big, &'b mut $Big)> for $Ref<'c> {
+        impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
             #[inline]
-            fn assign_into(self, dst: &mut (&'a mut $Big, &'b mut $Big)) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
-                        dst.0.inner_mut(),
-                        dst.1.inner_mut(),
-                        self.ref_self.inner(),
-                        $(self.$param.into(),)*
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        src.ref_self.inner(),
+                        $(src.$param.into(),)*
                     );
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big, $Big }
+        from_assign! { $Ref<'r> => $Big, $Big }
     }
 }
 
@@ -369,8 +363,8 @@ macro_rules! math_op2 {
 }
 
 // struct Ref
-// AssignInto<Big> for Ref
-// AssignInto<Big> for &Ref
+// Big = Ref
+// Ref -> Big
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2 {
     {
@@ -387,21 +381,21 @@ macro_rules! ref_math_op2 {
             $($param: $T,)*
         }
 
-        impl<'a> AssignInto<$Big> for $Ref<'a> {
+        impl<'a> Assign<$Ref<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
-                        dst.inner_mut(),
-                        self.ref_self.inner(),
-                        self.$op.inner(),
-                        $(self.$param.into(),)*
+                        self.inner_mut(),
+                        src.ref_self.inner(),
+                        src.$op.inner(),
+                        $(src.$param.into(),)*
                     );
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big }
+        from_assign! { $Ref<'r> => $Big }
     }
 }
 
@@ -461,10 +455,8 @@ macro_rules! math_op2_2 {
 }
 
 // struct Ref
-// AssignInto<(Big, Big)> for Ref
+// (Big, Big) = Ref
 // Ref -> (Big, Big)
-// AssignInto<(Big, Big)> for &Ref
-// &Ref -> (Big, Big)
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2_2 {
     {
@@ -481,22 +473,22 @@ macro_rules! ref_math_op2_2 {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c> AssignInto<(&'a mut $Big, &'b mut $Big)> for $Ref<'c> {
+        impl<'a, 'b, 'c> Assign<$Ref<'a>> for (&'b mut $Big, &'c mut $Big) {
             #[inline]
-            fn assign_into(self, dst: &mut (&'a mut $Big, &'b mut $Big)) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
-                        dst.0.inner_mut(),
-                        dst.1.inner_mut(),
-                        self.ref_self.inner(),
-                        self.$op.inner(),
-                        $(self.$param.into(),)*
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        src.ref_self.inner(),
+                        src.$op.inner(),
+                        $(src.$param.into(),)*
                     );
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big, $Big }
+        from_assign! { $Ref<'r> => $Big, $Big }
     }
 }
 
@@ -563,10 +555,8 @@ macro_rules! math_op2_3 {
 }
 
 // struct Ref
-// AssignInto<(Big, Big, Big)> for Ref
+// (Big, Big, Big) = Ref
 // Ref -> (Big, Big, Big)
-// AssignInto<(Big, Big, Big)> for &Ref
-// &Ref -> (Big, Big, Big)
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2_3 {
     {
@@ -583,28 +573,25 @@ macro_rules! ref_math_op2_3 {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c, 'd>
-            AssignInto<(&'a mut $Big, &'b mut $Big, &'c mut $Big)> for $Ref<'d>
+        impl<'a, 'b, 'c, 'd> Assign<$Ref<'a>>
+            for (&'b mut $Big, &'c mut $Big, &'d mut $Big)
         {
             #[inline]
-            fn assign_into(
-                self,
-                dst: &mut (&'a mut $Big, &'b mut $Big, &'c mut $Big),
-            ) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
                     $func(
-                        dst.0.inner_mut(),
-                        dst.1.inner_mut(),
-                        dst.2.inner_mut(),
-                        self.ref_self.inner(),
-                        self.$op.inner(),
-                        $(self.$param.into(),)*
+                        self.0.inner_mut(),
+                        self.1.inner_mut(),
+                        self.2.inner_mut(),
+                        src.ref_self.inner(),
+                        src.$op.inner(),
+                        $(src.$param.into(),)*
                     );
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big, $Big, $Big }
+        from_assign! { $Ref<'r> => $Big, $Big, $Big }
     }
 }
 
@@ -612,8 +599,8 @@ macro_rules! ref_math_op2_3 {
 // big #=
 // #&big -> Ref
 // struct Ref
-// AssignInto<Big> for Ref
-// AssignInto<Big> for &Ref
+// Big = Ref
+// Ref -> Big
 #[cfg(feature = "integer")]
 macro_rules! arith_unary {
     {
@@ -654,16 +641,16 @@ macro_rules! arith_unary {
             op: &'a $Big,
         }
 
-        impl<'a> AssignInto<$Big> for $Ref<'a> {
+        impl<'a> Assign<$Ref<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
-                    $func(dst.inner_mut(), self.op.inner());
+                    $func(self.inner_mut(), src.op.inner());
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big }
+        from_assign! { $Ref<'r> => $Big }
     }
 }
 
@@ -676,8 +663,8 @@ macro_rules! arith_unary {
 // big #-> big
 // &big #-> big
 // struct Ref
-// AssignInto<Big> for Ref
-// AssignInto<Big> for &Ref
+// Big = Ref
+// Ref -> Big
 #[cfg(feature = "integer")]
 macro_rules! arith_binary {
     {
@@ -764,16 +751,16 @@ macro_rules! arith_binary {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignInto<$Big> for $Ref<'a> {
+        impl<'a> Assign<$Ref<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
-                    $func(dst.inner_mut(), self.lhs.inner(), self.rhs.inner());
+                    $func(self.inner_mut(), src.lhs.inner(), src.rhs.inner());
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big }
+        from_assign! { $Ref<'r> => $Big }
     }
 }
 
@@ -784,8 +771,8 @@ macro_rules! arith_binary {
 // big #= prim
 // big #= &prim
 // struct Ref
-// AssignInto<Big> for Ref
-// AssignInto<Big> for &Ref
+// Big = Ref
+// Ref -> Big
 #[cfg(feature = "integer")]
 macro_rules! arith_prim {
     {
@@ -855,16 +842,16 @@ macro_rules! arith_prim {
             rhs: $T,
         }
 
-        impl<'a> AssignInto<$Big> for $Ref<'a> {
+        impl<'a> Assign<$Ref<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $Ref<'a>) {
                 unsafe {
-                    $func(dst.inner_mut(), self.lhs.inner(), self.rhs.into());
+                    $func(self.inner_mut(), src.lhs.inner(), src.rhs.into());
                 }
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big }
+        from_assign! { $Ref<'r> => $Big }
     }
 }
 
@@ -948,8 +935,8 @@ macro_rules! arith_prim_commut {
 // prim #-> big
 // &prim #-> big
 // struct RefFrom
-// AssignInto<Big> for RefFrom
-// AssignInto<Big> for &RefFrom
+// Big = RefFrom
+// RefFrom -> Big
 #[cfg(feature = "integer")]
 macro_rules! arith_prim_noncommut {
     {
@@ -1024,20 +1011,20 @@ macro_rules! arith_prim_noncommut {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignInto<$Big> for $RefFrom<'a> {
+        impl<'a> Assign<$RefFrom<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
+            fn assign(&mut self, src: $RefFrom<'a>) {
                 unsafe {
                     $func_from(
-                        dst.inner_mut(),
-                        self.lhs.into(),
-                        self.rhs.inner()
+                        self.inner_mut(),
+                        src.lhs.into(),
+                        src.rhs.inner()
                     );
                 }
             }
         }
 
-        from_assign_into! { $RefFrom<'r> => $Big }
+        from_assign! { $RefFrom<'r> => $Big }
     }
 }
 
@@ -1045,8 +1032,8 @@ macro_rules! arith_prim_noncommut {
 // &big # mul -> Ref
 // big #= mul
 // struct Ref
-// AssignInto<Big> for Ref
-// AssignInto<Big> for &Ref
+// Big = Ref
+// Ref -> Big
 #[cfg(feature = "integer")]
 macro_rules! mul_op {
     {
@@ -1096,15 +1083,15 @@ macro_rules! mul_op {
             rhs: $Mul<'a>,
         }
 
-        impl<'a> AssignInto<$Big> for $Ref<'a> {
+        impl<'a> Assign<$Ref<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
-                <$Big as Assign<&$Big>>::assign(dst, self.lhs);
-                <$Big as $ImpAssign<$Mul>>::$method_assign(dst, self.rhs);
+            fn assign(&mut self, src: $Ref<'a>) {
+                <$Big as Assign<&$Big>>::assign(self, src.lhs);
+                <$Big as $ImpAssign<$Mul>>::$method_assign(self, src.rhs);
             }
         }
 
-        from_assign_into! { $Ref<'r> => $Big }
+        from_assign! { $Ref<'r> => $Big }
     }
 }
 
@@ -1163,8 +1150,8 @@ macro_rules! mul_op_commut {
 // mul # &big -> RefFrom
 // mul #-> big
 // struct RefFrom
-// AssignInto<Big> for RefFrom
-// AssignInto<Big> for &RefFrom
+// Big = RefFrom
+// RefFrom -> Big
 #[cfg(feature = "integer")]
 macro_rules! mul_op_noncommut {
     {
@@ -1224,15 +1211,15 @@ macro_rules! mul_op_noncommut {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignInto<$Big> for $RefFrom<'a> {
+        impl<'a> Assign<$RefFrom<'a>> for $Big {
             #[inline]
-            fn assign_into(self, dst: &mut $Big) {
-                <$Big as Assign<&$Big>>::assign(dst, self.rhs);
-                <$Big as $ImpFrom<$Mul>>::$method_from(dst, self.lhs);
+            fn assign(&mut self, src: $RefFrom<'a>) {
+                <$Big as Assign<&$Big>>::assign(self, src.rhs);
+                <$Big as $ImpFrom<$Mul>>::$method_from(self, src.lhs);
             }
         }
 
-        from_assign_into! { $RefFrom<'r> => $Big }
+        from_assign! { $RefFrom<'r> => $Big }
     }
 }
 

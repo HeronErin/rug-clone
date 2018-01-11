@@ -26,7 +26,7 @@ use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use misc;
-use ops::{AssignInto, AssignRound, AssignRoundInto};
+use ops::{AssignRound, AssignRoundInto};
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
@@ -151,28 +151,18 @@ where
 
 impl<T> Assign<T> for Result<Float, Float>
 where
-    T: for<'a> AssignInto<Result<&'a mut Float, &'a mut Float>>,
+    for<'a> Result<&'a mut Float, &'a mut Float>: Assign<T>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
         let ok = {
             let mut m = self.as_mut();
-            src.assign_into(&mut m);
+            m.assign(src);
             m.is_ok()
         };
         if self.is_ok() != ok {
             misc::result_swap(self);
         }
-    }
-}
-
-impl<'a, T> Assign<T> for Result<&'a mut Float, &'a mut Float>
-where
-    T: AssignInto<Self>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        src.assign_into(self);
     }
 }
 

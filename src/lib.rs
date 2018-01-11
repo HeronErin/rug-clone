@@ -176,7 +176,7 @@ mod serdeize;
 /// i.assign(42_i16);
 /// assert_eq!(i.0, 42);
 /// ```
-pub trait Assign<Rhs = Self> {
+pub trait Assign<Src = Self> {
     /// Peforms the assignement.
     ///
     /// # Examples
@@ -190,7 +190,7 @@ pub trait Assign<Rhs = Self> {
     /// assert_eq!(i, 23);
     /// # }
     /// ```
-    fn assign(&mut self, rhs: Rhs);
+    fn assign(&mut self, src: Src);
 }
 
 pub mod ops;

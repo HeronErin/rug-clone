@@ -590,7 +590,7 @@ pub trait PowFrom<Lhs = Self> {
 /// assert_eq!(f.0, 5.0);
 /// assert_eq!(dir, Ordering::Equal);
 /// # }
-pub trait AssignRound<Rhs = Self> {
+pub trait AssignRound<Src = Self> {
     /// The rounding method.
     type Round;
     /// The direction from rounding.
@@ -617,7 +617,7 @@ pub trait AssignRound<Rhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
+    fn assign_round(&mut self, src: Src, round: Self::Round) -> Self::Ordering;
 }
 
 /// Compound addition and assignment with a specified rounding method.
@@ -1490,47 +1490,6 @@ pub trait RemRoundingFrom<Lhs = Self> {
     fn rem_floor_from(&mut self, lhs: Lhs);
     /// Finds the positive remainder from Euclidean division.
     fn rem_euc_from(&mut self, lhs: Lhs);
-}
-
-/// Assignment into `Dst`.
-///
-/// # Examples
-///
-/// ```rust
-/// # #[cfg(feature = "integer")] {
-/// use rug::{Assign, Integer};
-/// use rug::ops::AssignInto;
-/// #[derive(Clone, Copy)]
-/// struct I(i32);
-/// impl AssignInto<Integer> for I {
-///     fn assign_into(self, dst: &mut Integer) {
-///         dst.assign(self.0);
-///     }
-/// }
-/// let src = I(42);
-///
-/// let mut dst = Integer::new();
-/// src.assign_into(&mut dst);
-/// assert_eq!(dst, 42);
-/// # }
-/// ```
-pub trait AssignInto<Dst> {
-    /// Performs the assignment.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::AssignInto;
-    /// // src implements AssignInto<Integer>
-    /// let src = Integer::u_pow_u(2, 3);
-    /// let mut dst = Integer::new();
-    /// src.assign_into(&mut dst);
-    /// assert_eq!(dst, 8);
-    /// # }
-    /// ```
-    fn assign_into(self, dst: &mut Dst);
 }
 
 /// Assignment with specified rounding method into `Dst`.

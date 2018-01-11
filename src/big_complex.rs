@@ -28,8 +28,6 @@ use inner::{Inner, InnerMut};
 use misc;
 use ops::{AssignRound, AssignRoundInto, NegAssign};
 #[cfg(feature = "rand")]
-use ops::AssignInto;
-#[cfg(feature = "rand")]
 use rand::RandState;
 use std::cmp::Ordering;
 use std::error::Error;
@@ -3148,8 +3146,8 @@ impl Complex {
     /// set. In the smaller possible results, many bits will be zero,
     /// and not all the precision will be used.
     ///
-    /// The returned object implements
-    /// [`AssignInto<Result<&mut Complex, &mut Complex>`][at].
+    /// `Assign<Src> for Result<&mut Complex, &mut Complex>` is
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -3175,8 +3173,6 @@ impl Complex {
     /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
     /// number is set to Nan and an error is returned. This would most
     /// likely be a programming error.
-    ///
-    /// [at]: (../ops/trait.AssignInto.html)
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -3229,7 +3225,7 @@ impl Complex {
         rng: &mut RandState,
     ) -> Result<(), ()> {
         let mut r = Ok(self);
-        Complex::random_bits(rng).assign_into(&mut r);
+        r.assign(Complex::random_bits(rng));
         match r {
             Ok(_) => Ok(()),
             Err(_) => Err(()),
@@ -3398,21 +3394,21 @@ pub struct RandomBits<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b, 'c: 'b> AssignInto<Result<&'a mut Complex, &'a mut Complex>>
-    for RandomBits<'b, 'c> {
+impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>>
+    for Result<&'c mut Complex, &'c mut Complex> {
     #[inline]
-    fn assign_into(self, dst: &mut Result<&'a mut Complex, &'a mut Complex>) {
-        let err = match *dst {
-            Ok(ref mut dest) | Err(ref mut dest) => {
-                let (real, imag) = dest.as_mut_real_imag();
+    fn assign(&mut self, src: RandomBits<'a, 'b>) {
+        let err = match *self {
+            Ok(ref mut dst) | Err(ref mut dst) => {
+                let (real, imag) = dst.as_mut_real_imag();
                 let (mut rreal, mut rimag) = (Ok(real), Ok(imag));
-                Float::random_bits(self.rng).assign_into(&mut rreal);
-                Float::random_bits(self.rng).assign_into(&mut rimag);
+                rreal.assign(Float::random_bits(src.rng));
+                rimag.assign(Float::random_bits(src.rng));
                 rreal.is_err() || rimag.is_err()
             }
         };
-        if err != dst.is_err() {
-            misc::result_swap(dst)
+        if err != self.is_err() {
+            misc::result_swap(self)
         }
     }
 }

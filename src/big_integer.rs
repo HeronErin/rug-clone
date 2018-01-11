@@ -20,7 +20,6 @@ use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
 use misc;
-use ops::AssignInto;
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -1612,8 +1611,8 @@ impl Integer {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1665,8 +1664,8 @@ impl Integer {
         /// * 1 if the value is positive
         /// * −1 if the value is negative
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1753,8 +1752,8 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// The returned object implements
-    /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1820,8 +1819,8 @@ impl Integer {
         fn keep_bits_mut;
         /// Keeps the *n* least significant bits only.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1863,8 +1862,8 @@ impl Integer {
         fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1925,8 +1924,9 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// The remainder has the same sign as the dividend.
         ///
@@ -1941,8 +1941,6 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn div_rem_ref -> DivRemRef;
     }
     math_op2_2! {
@@ -1998,8 +1996,9 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2012,8 +2011,6 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn div_rem_ceil_ref -> DivRemCeilRef;
     }
     math_op2_2! {
@@ -2066,8 +2063,9 @@ impl Integer {
         ///
         /// The remainder has the same sign as the divisor.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2080,8 +2078,6 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn div_rem_floor_ref -> DivRemFloorRef;
     }
     math_op2_2! {
@@ -2128,8 +2124,9 @@ impl Integer {
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2142,8 +2139,6 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn div_rem_euc_ref -> DivRemEucRef;
     }
 
@@ -2218,8 +2213,8 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2276,8 +2271,8 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2292,9 +2287,6 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` and returns `Ok(inverse)` if
     /// it exists, or `Err(unchanged)` if the inverse does not exist.
-    ///
-    /// The returned object implements
-    /// [`AssignInto<Result<&mut Integer, &mut Integer>>`][at].
     ///
     /// # Examples
     ///
@@ -2320,8 +2312,6 @@ impl Integer {
     /// # Panics
     ///
     /// Panics if `modulo` is zero.
-    ///
-    /// [at]: (../ops/trait.AssignInto.html)
     #[inline]
     pub fn invert(mut self, modulo: &Integer) -> Result<Integer, Integer> {
         if self.invert_mut(modulo) {
@@ -2364,6 +2354,10 @@ impl Integer {
     }
 
     /// Finds the inverse modulo `modulo` if an inverse exists.
+    ///
+    /// `Assign<Src> for Result<&mut Integer, &mut Integer>` and
+    /// `From<Src> for Result<Integer, Integer>` are implemented with
+    /// the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -2506,8 +2500,9 @@ impl Integer {
     /// If `exponent` is negative, then the number must have an
     /// inverse modulo `modulo` for an answer to exist.
     ///
-    /// The returned object implements
-    /// [`AssignInto<Result<&mut Integer, &mut Integer>>`][at].
+    /// `Assign<Src> for Result<&mut Integer, &mut Integer>` and
+    /// `From<Src> for Result<Integer, Integer>` are implemented with
+    /// the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -2531,8 +2526,6 @@ impl Integer {
     ///     Err(_) => unreachable!(),
     /// }
     /// ```
-    ///
-    /// [at]: (../ops/trait.AssignInto.html)
     #[inline]
     pub fn pow_mod_ref<'a>(
         &'a self,
@@ -2549,8 +2542,8 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2570,14 +2563,14 @@ impl Integer {
                          with `i.assign(Integer::u_pow_u(base, exponent)`.")]
     #[inline]
     pub fn assign_u_pow_u(&mut self, base: u32, exponent: u32) {
-        Integer::u_pow_u(base, exponent).assign_into(self);
+        self.assign(Integer::u_pow_u(base, exponent));
     }
 
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2597,7 +2590,7 @@ impl Integer {
                          with `i.assign(Integer::i_pow_u(base, exponent)`.")]
     #[inline]
     pub fn assign_i_pow_u(&mut self, base: i32, exponent: u32) {
-        Integer::i_pow_u(base, exponent).assign_into(self);
+        self.assign(Integer::i_pow_u(base, exponent));
     }
 
     math_op1! {
@@ -2634,8 +2627,8 @@ impl Integer {
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2699,8 +2692,9 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2717,8 +2711,6 @@ impl Integer {
         /// assert_eq!(other_root, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn root_rem_ref -> RootRemRef;
     }
     math_op1! {
@@ -2755,8 +2747,8 @@ impl Integer {
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2817,8 +2809,9 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2835,8 +2828,6 @@ impl Integer {
         /// assert_eq!(other_sqrt, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn sqrt_rem_ref -> SqrtRemRef;
     }
 
@@ -2897,8 +2888,8 @@ impl Integer {
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2966,8 +2957,8 @@ impl Integer {
         /// The result is always positive except when both inputs are
         /// zero.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3055,8 +3046,9 @@ impl Integer {
         /// (`self` and `other`), and two multiplication coefficients
         /// to obtain the GCD from the two inputs.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer, &mut
+        /// Integer)` and `From<Src> for (Integer, Integer, Integer)`
+        /// are implemented with the returned object as `Src`.
         ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
@@ -3091,8 +3083,6 @@ impl Integer {
         /// assert_eq!(s, -1);
         /// assert_eq!(t, 1);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn gcd_coeffs_ref -> GcdCoeffsRef;
     }
     math_op2! {
@@ -3142,8 +3132,8 @@ impl Integer {
         /// The result is always positive except when one or both
         /// inputs are zero.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3284,8 +3274,8 @@ impl Integer {
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3305,14 +3295,14 @@ impl Integer {
                          be replaced with `i.assign(Integer::factorial(n))`.")]
     #[inline]
     pub fn assign_factorial(&mut self, n: u32) {
-        Integer::factorial(n).assign_into(self);
+        self.assign(Integer::factorial(n));
     }
 
     math_op0! {
         /// Computes the double factorial of *n*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3333,14 +3323,14 @@ impl Integer {
                          `i.assign(Integer::factorial_2(n))`.")]
     #[inline]
     pub fn assign_factorial_2(&mut self, n: u32) {
-        Integer::factorial_2(n).assign_into(self);
+        self.assign(Integer::factorial_2(n));
     }
 
     math_op0! {
         /// Computes the *m*-multi factorial of *n*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3361,14 +3351,14 @@ impl Integer {
                          `i.assign(Integer::factorial_m(n, m))`.")]
     #[inline]
     pub fn assign_factorial_m(&mut self, n: u32, m: u32) {
-        Integer::factorial_m(n, m).assign_into(self);
+        self.assign(Integer::factorial_m(n, m));
     }
 
     math_op0! {
         /// Computes the primorial of *n*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3389,7 +3379,7 @@ impl Integer {
                          be replaced with `i.assign(Integer::primorial(n))`.")]
     #[inline]
     pub fn assign_primorial(&mut self, n: u32) {
-        Integer::primorial(n).assign_into(self);
+        self.assign(Integer::primorial(n));
     }
 
     math_op1! {
@@ -3420,8 +3410,8 @@ impl Integer {
         fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3436,8 +3426,8 @@ impl Integer {
     math_op0!{
         /// Computes the binomial coefficient *n* over *k*.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3458,14 +3448,14 @@ impl Integer {
                          can be replaced with \
                          `i.assign(Integer::binomial_u(n, k))`.")]
     pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
-        Integer::binomial_u(n, k).assign_into(self);
+        self.assign(Integer::binomial_u(n, k));
     }
 
     math_op0! {
         /// Computes the Fibonacci number.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3490,15 +3480,16 @@ impl Integer {
                  note = "use `fibonacci` instead; `i.assign_fibonacci(n)` can \
                          be replaced with `i.assign(Integer::fibonacci(n))`.")]
     pub fn assign_fibonacci(&mut self, n: u32) {
-        Integer::fibonacci(n).assign_into(self);
+        self.assign(Integer::fibonacci(n));
     }
 
     math_op0! {
         /// Computes a Fibonacci number, and the previous Fibonacci
         /// number.
         ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3518,26 +3509,24 @@ impl Integer {
         /// assert_eq!(pair.0, 0);
         /// assert_eq!(pair.1, 1);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn fibonacci_2(n: u32) -> Fibonacci2;
     }
 
     /// Computes a Fibonacci number, and the previous Fibonacci number.
     #[deprecated(since = "0.9.2",
-                 note = "use `fibonacci_2` instead; `i.assign_fibonacci_2(n)` \
-                         can be replaced with \
-                         `i.assign(Integer::fibonacci_2(n))`.")]
+                 note = "use `fibonacci_2` instead; \
+                         `i.assign_fibonacci_2(j, n)` can be replaced with \
+                         `(i, j).assign(Integer::fibonacci_2(n))`.")]
     #[inline]
     pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
-        Integer::fibonacci_2(n).assign_into(&mut (self, previous));
+        (self, previous).assign(Integer::fibonacci_2(n));
     }
 
     math_op0! {
         /// Computes the Lucas number.
         ///
-        /// The returned object implements
-        /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Lucas numbers is required, the first two
@@ -3562,15 +3551,15 @@ impl Integer {
                          replaced with `i.assign(Integer::lucas(n))`.")]
     #[inline]
     pub fn assign_lucas(&mut self, n: u32) {
-        Integer::lucas(n).assign_into(self);
+        self.assign(Integer::lucas(n));
     }
 
     math_op0! {
         /// Computes a Lucas number, and the previous Lucas number.
         ///
-        ///
-        /// The returned object implements
-        /// [`AssignInto<(&mut Integer, &mut Integer)>`][at].
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are implemented with
+        /// the returned object as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Lucas numbers is required, the first two values of
@@ -3589,26 +3578,25 @@ impl Integer {
         /// assert_eq!(pair.0, 2);
         /// assert_eq!(pair.1, -1);
         /// ```
-        ///
-        /// [at]: (../ops/trait.AssignInto.html)
         fn lucas_2(n: u32) -> Lucas2;
     }
 
     /// Computes a Lucas number, and the previous Lucas number.
     #[deprecated(since = "0.9.2",
-                 note = "use `lucas_2` instead; `i.assign_lucas_2(n)` can be \
-                         replaced with `i.assign(Integer::lucas_2(n))`.")]
+                 note = "use `lucas_2` instead; `i.assign_lucas_2(j, n)` can \
+                         be replaced with \
+                         `(i, j).assign(Integer::lucas_2(n))`.")]
     #[inline]
     pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
-        Integer::lucas_2(n).assign_into(&mut (self, previous));
+        (self, previous).assign(Integer::lucas_2(n));
     }
 
     #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
-    /// The returned object implements
-    /// [`AssignInto<Integer>`](../ops/trait.AssignInto.html).
+    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -3638,7 +3626,7 @@ impl Integer {
                          `i.assign_random_bits(bits, rng)` can be replaced \
                          with `i.assign(Integer::random_bits(bits, rng))`.")]
     pub fn assign_random_bits(&mut self, bits: u32, rng: &mut RandState) {
-        Integer::random_bits(bits, rng).assign_into(self);
+        self.assign(Integer::random_bits(bits, rng));
     }
 
     #[cfg(feature = "rand")]
@@ -3740,7 +3728,7 @@ impl Integer {
         bound: &'a Integer,
         rng: &'a mut RandState<'b>,
     ) {
-        bound.random_below_ref(rng).assign_into(self);
+        self.assign(bound.random_below_ref(rng));
     }
 }
 
@@ -3762,7 +3750,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> AssignInto<Integer> for ClampRef<'a, Min, Max>
+impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Integer
 where
     Integer: PartialOrd<Min>
         + PartialOrd<Max>
@@ -3772,15 +3760,15 @@ where
     Max: 'a,
 {
     #[inline]
-    fn assign_into(self, dst: &mut Integer) {
-        if self.ref_self.lt(self.min) {
-            dst.assign(self.min);
-            assert!(!(&*dst).gt(self.max), "minimum larger than maximum");
-        } else if self.ref_self.gt(self.max) {
-            dst.assign(self.max);
-            assert!(!(&*dst).lt(self.min), "minimum larger than maximum");
+    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
+        if src.ref_self.lt(src.min) {
+            self.assign(src.min);
+            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+        } else if src.ref_self.gt(src.max) {
+            self.assign(src.max);
+            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
         } else {
-            dst.assign(self.ref_self);
+            self.assign(src.ref_self);
         }
     }
 }
@@ -3797,7 +3785,7 @@ where
     #[inline]
     fn from(src: ClampRef<'a, Min, Max>) -> Self {
         let mut dst = Integer::new();
-        src.assign_into(&mut dst);
+        dst.assign(src);
         dst
     }
 }
@@ -3830,33 +3818,33 @@ pub struct PowModRef<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a, 'b> AssignInto<Result<&'a mut Integer, &'a mut Integer>>
-    for PowModRef<'b> {
-    fn assign_into(self, dst: &mut Result<&'a mut Integer, &'a mut Integer>) {
-        if self.exponent.cmp0() == Ordering::Less {
-            self.ref_self.invert_ref(self.modulo).assign_into(dst);
-            if let Ok(ref mut inv) = *dst {
-                let abs_exp = self.exponent.as_neg();
+impl<'a, 'b> Assign<PowModRef<'a>>
+    for Result<&'b mut Integer, &'b mut Integer> {
+    fn assign(&mut self, src: PowModRef<'a>) {
+        if src.exponent.cmp0() == Ordering::Less {
+            self.assign(src.ref_self.invert_ref(src.modulo));
+            if let Ok(ref mut inv) = *self {
+                let abs_exp = src.exponent.as_neg();
                 unsafe {
                     gmp::mpz_powm(
                         inv.inner_mut(),
                         inv.inner(),
                         abs_exp.inner(),
-                        self.modulo.inner(),
+                        src.modulo.inner(),
                     );
                 }
             }
         } else {
-            if dst.is_err() {
-                misc::result_swap(dst);
+            if self.is_err() {
+                misc::result_swap(self);
             }
-            if let Ok(ref mut dest) = *dst {
+            if let Ok(ref mut dest) = *self {
                 unsafe {
                     gmp::mpz_powm(
                         dest.inner_mut(),
-                        self.ref_self.inner(),
-                        self.exponent.inner(),
-                        self.modulo.inner(),
+                        src.ref_self.inner(),
+                        src.exponent.inner(),
+                        src.modulo.inner(),
                     );
                 }
             }
@@ -3870,7 +3858,7 @@ impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
         let mut dst = Ok(Integer::new());
         let is_err = {
             let mut m = dst.as_mut();
-            src.assign_into(&mut m);
+            m.assign(src);
             m.is_err()
         };
         if is_err {
@@ -3903,23 +3891,23 @@ pub struct InvertRef<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a, 'b> AssignInto<Result<&'a mut Integer, &'a mut Integer>>
-    for InvertRef<'b> {
-    fn assign_into(self, dst: &mut Result<&'a mut Integer, &'a mut Integer>) {
+impl<'a, 'b> Assign<InvertRef<'a>>
+    for Result<&'b mut Integer, &'b mut Integer> {
+    fn assign(&mut self, src: InvertRef<'a>) {
         let exists = {
-            let dest = match *dst {
+            let dst = match *self {
                 Ok(ref mut i) | Err(ref mut i) => i,
             };
             unsafe {
                 xgmp::mpz_invert_check(
-                    dest.inner_mut(),
-                    self.ref_self.inner(),
-                    self.modulo.inner(),
+                    dst.inner_mut(),
+                    src.ref_self.inner(),
+                    src.modulo.inner(),
                 ) != 0
             }
         };
-        if exists != dst.is_ok() {
-            misc::result_swap(dst);
+        if exists != self.is_ok() {
+            misc::result_swap(self);
         }
     }
 }
@@ -3930,7 +3918,7 @@ impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
         let mut dst = Ok(Integer::new());
         let is_err = {
             let mut m = dst.as_mut();
-            src.assign_into(&mut m);
+            m.assign(src);
             m.is_err()
         };
         if is_err {
@@ -3946,18 +3934,18 @@ pub struct RemoveFactorRef<'a> {
     factor: &'a Integer,
 }
 
-impl<'a, 'b, 'c> AssignInto<(&'a mut Integer, &'b mut u32)>
-    for RemoveFactorRef<'c> {
+impl<'a, 'b, 'c> Assign<RemoveFactorRef<'a>>
+    for (&'b mut Integer, &'c mut u32) {
     #[inline]
-    fn assign_into(self, dst: &mut (&'a mut Integer, &'b mut u32)) {
+    fn assign(&mut self, src: RemoveFactorRef<'a>) {
         let cnt = unsafe {
             gmp::mpz_remove(
-                dst.0.inner_mut(),
-                self.ref_self.inner(),
-                self.factor.inner(),
+                self.0.inner_mut(),
+                src.ref_self.inner(),
+                src.factor.inner(),
             )
         };
-        *dst.1 = cast(cnt);
+        *self.1 = cast(cnt);
     }
 }
 
@@ -3965,7 +3953,7 @@ impl<'a> From<RemoveFactorRef<'a>> for (Integer, u32) {
     #[inline]
     fn from(src: RemoveFactorRef<'a>) -> Self {
         let mut dst = (Integer::new(), 0u32);
-        src.assign_into(&mut (&mut dst.0, &mut dst.1));
+        (&mut dst.0, &mut dst.1).assign(src);
         dst
     }
 }
@@ -3992,14 +3980,14 @@ pub struct RandomBits<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignInto<Integer> for RandomBits<'a, 'b> {
+impl<'a, 'b: 'a> Assign<RandomBits<'a, 'b>> for Integer {
     #[inline]
-    fn assign_into(self, dst: &mut Integer) {
+    fn assign(&mut self, src: RandomBits<'a, 'b>) {
         unsafe {
             gmp::mpz_urandomb(
-                dst.inner_mut(),
-                self.rng.inner_mut(),
-                self.bits.into(),
+                self.inner_mut(),
+                src.rng.inner_mut(),
+                src.bits.into(),
             );
         }
     }
@@ -4010,7 +3998,7 @@ impl<'a, 'b: 'a> From<RandomBits<'a, 'b>> for Integer {
     #[inline]
     fn from(src: RandomBits<'a, 'b>) -> Self {
         let mut dst = Integer::new();
-        src.assign_into(&mut dst);
+        dst.assign(src);
         dst
     }
 }
@@ -4022,19 +4010,19 @@ pub struct RandomBelowRef<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignInto<Integer> for RandomBelowRef<'a, 'b> {
+impl<'a, 'b: 'a> Assign<RandomBelowRef<'a, 'b>> for Integer {
     #[inline]
-    fn assign_into(self, dst: &mut Integer) {
+    fn assign(&mut self, src: RandomBelowRef<'a, 'b>) {
         assert_eq!(
-            self.ref_self.cmp0(),
+            src.ref_self.cmp0(),
             Ordering::Greater,
             "cannot be below zero"
         );
         unsafe {
             gmp::mpz_urandomm(
-                dst.inner_mut(),
-                self.rng.inner_mut(),
-                self.ref_self.inner(),
+                self.inner_mut(),
+                src.rng.inner_mut(),
+                src.ref_self.inner(),
             );
         }
     }
@@ -4045,7 +4033,7 @@ impl<'a, 'b: 'a> From<RandomBelowRef<'a, 'b>> for Integer {
     #[inline]
     fn from(src: RandomBelowRef<'a, 'b>) -> Self {
         let mut dst = Integer::new();
-        src.assign_into(&mut dst);
+        dst.assign(src);
         dst
     }
 }
@@ -4124,15 +4112,15 @@ pub struct ValidInteger<'a> {
     radix: i32,
 }
 
-impl<'a> AssignInto<Integer> for ValidInteger<'a> {
+impl<'a> Assign<ValidInteger<'a>> for Integer {
     #[inline]
-    fn assign_into(self, dst: &mut Integer) {
-        let mut v = Vec::<u8>::with_capacity(self.bytes.len() + 1);
-        v.extend_from_slice(self.bytes);
+    fn assign(&mut self, src: ValidInteger<'a>) {
+        let mut v = Vec::<u8>::with_capacity(src.bytes.len() + 1);
+        v.extend_from_slice(src.bytes);
         v.push(0);
         let err = unsafe {
             let c_str = CStr::from_bytes_with_nul_unchecked(&v);
-            gmp::mpz_set_str(dst.inner_mut(), c_str.as_ptr(), cast(self.radix))
+            gmp::mpz_set_str(self.inner_mut(), c_str.as_ptr(), cast(src.radix))
         };
         assert_eq!(err, 0);
     }
@@ -4142,7 +4130,7 @@ impl<'a> From<ValidInteger<'a>> for Integer {
     #[inline]
     fn from(src: ValidInteger<'a>) -> Self {
         let mut dst = Integer::new();
-        src.assign_into(&mut dst);
+        dst.assign(src);
         dst
     }
 }

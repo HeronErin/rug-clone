@@ -18,7 +18,6 @@ use {Assign, Integer, Rational};
 use big_rational;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
-use ops::AssignInto;
 use rational::ParseRationalError;
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
@@ -67,33 +66,13 @@ impl Hash for Rational {
     }
 }
 
-impl<T> Assign<T> for Rational
-where
-    T: AssignInto<Rational>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        src.assign_into(self);
-    }
-}
-
 impl<T> Assign<T> for (Rational, Integer)
 where
-    T: for<'a, 'b> AssignInto<(&'a mut Rational, &'b mut Integer)>,
+    for<'a, 'b> (&'a mut Rational, &'b mut Integer): Assign<T>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.assign_into(&mut (&mut self.0, &mut self.1));
-    }
-}
-
-impl<'a, 'b, T> Assign<T> for (&'a mut Rational, &'b mut Integer)
-where
-    T: AssignInto<Self>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        src.assign_into(self);
+        (&mut self.0, &mut self.1).assign(src);
     }
 }
 
@@ -149,18 +128,18 @@ impl UpperHex for Rational {
     }
 }
 
-impl AssignInto<Rational> for Rational {
+impl Assign for Rational {
     #[inline]
-    fn assign_into(mut self, dst: &mut Rational) {
-        mem::swap(&mut self, dst);
+    fn assign(&mut self, mut src: Rational) {
+        mem::swap(self, &mut src);
     }
 }
 
-impl<'a> AssignInto<Rational> for &'a Rational {
+impl<'a> Assign<&'a Rational> for Rational {
     #[inline]
-    fn assign_into(self, dst: &mut Rational) {
+    fn assign(&mut self, src: &'a Rational) {
         unsafe {
-            gmp::mpq_set(dst.inner_mut(), self.inner());
+            gmp::mpq_set(self.inner_mut(), src.inner());
         }
     }
 }
@@ -174,15 +153,15 @@ impl<'a> From<&'a Rational> for Rational {
     }
 }
 
-impl<Num> AssignInto<Rational> for Num
+impl<Num> Assign<Num> for Rational
 where
     Integer: Assign<Num>,
 {
     #[inline]
-    fn assign_into(self, dst: &mut Rational) {
+    fn assign(&mut self, src: Num) {
         // no need to canonicalize, as denominator will be 1.
-        let num_den = unsafe { dst.as_mut_numer_denom_no_canonicalization() };
-        num_den.0.assign(self);
+        let num_den = unsafe { self.as_mut_numer_denom_no_canonicalization() };
+        num_den.0.assign(src);
         <Integer as Assign<u32>>::assign(num_den.1, 1);
     }
 }
@@ -207,15 +186,15 @@ where
     }
 }
 
-impl<Num, Den> AssignInto<Rational> for (Num, Den)
+impl<Num, Den> Assign<(Num, Den)> for Rational
 where
     Integer: Assign<Num> + Assign<Den>,
 {
     #[inline]
-    fn assign_into(self, dst: &mut Rational) {
-        let mut num_den = dst.as_mut_numer_denom();
-        num_den.num().assign(self.0);
-        num_den.den().assign(self.1);
+    fn assign(&mut self, src: (Num, Den)) {
+        let mut num_den = self.as_mut_numer_denom();
+        num_den.num().assign(src.0);
+        num_den.den().assign(src.1);
     }
 }
 
@@ -240,15 +219,15 @@ where
     }
 }
 
-impl<'a, Num, Den> AssignInto<Rational> for &'a (Num, Den)
+impl<'a, Num, Den> Assign<&'a (Num, Den)> for Rational
 where
     Integer: Assign<&'a Num> + Assign<&'a Den>,
 {
     #[inline]
-    fn assign_into(self, dst: &mut Rational) {
-        let mut num_den = dst.as_mut_numer_denom();
-        num_den.num().assign(&self.0);
-        num_den.den().assign(&self.1);
+    fn assign(&mut self, src: &'a (Num, Den)) {
+        let mut num_den = self.as_mut_numer_denom();
+        num_den.num().assign(&src.0);
+        num_den.den().assign(&src.1);
     }
 }
 
