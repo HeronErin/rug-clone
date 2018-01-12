@@ -1414,7 +1414,7 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
 
 #[inline]
 unsafe fn limb(z: *const mpz_t, index: isize) -> gmp::limb_t {
-    *((*z).d.offset(index))
+    *(*z).d.offset(index)
 }
 
 #[inline]
