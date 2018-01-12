@@ -640,6 +640,76 @@ impl Rational {
         Ok(())
     }
 
+    /// Creates a new `Rational` from a numerator and denominator
+    /// without canonicalizing aftwerwards.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not canonicalize the
+    /// rational number. The caller must ensure that the numerator and
+    /// denominator are in canonical form, as the rest of the library
+    /// assumes that `Rational` structures keep their numerators and
+    /// denominators in canonical form.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    ///
+    /// // -3 / 5 is in canonical form
+    /// let r = unsafe { Rational::from_canonical(-3, 5) };
+    /// assert_eq!(r, (-3, 5));
+    /// ```
+    pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Rational
+    where
+        Integer: From<Num> + From<Den>,
+    {
+        let num = Integer::from(num);
+        let den = Integer::from(den);
+        let mut dst: Rational = mem::uninitialized();
+        {
+            let (dst_num, dst_den) =
+                dst.as_mut_numer_denom_no_canonicalization();
+            ptr::copy_nonoverlapping(&num, dst_num, 1);
+            ptr::copy_nonoverlapping(&den, dst_den, 1);
+        }
+        mem::forget(num);
+        mem::forget(den);
+        dst
+    }
+
+    /// Assigns to the numerator and denominator without
+    /// canonicalizing aftwerwards.
+    ///
+    /// # Safety
+    ///
+    /// This function is unsafe because it does not canonicalize the
+    /// rational number after the assignment. The caller must ensure
+    /// that the numerator and denominator are in canonical form, as
+    /// the rest of the library assumes that `Rational` structures
+    /// keep their numerators and denominators in canonical form.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    ///
+    /// let mut r = Rational::new();
+    /// // -3 / 5 is in canonical form
+    /// unsafe {
+    ///     r.assign_canonical(-3, 5);
+    /// }
+    /// assert_eq!(r, (-3, 5));
+    /// ```
+    pub unsafe fn assign_canonical<Num, Den>(&mut self, num: Num, den: Den)
+    where
+        Integer: Assign<Num> + Assign<Den>,
+    {
+        let (dst_num, dst_den) = self.as_mut_numer_denom_no_canonicalization();
+        dst_num.assign(num);
+        dst_den.assign(den);
+    }
+
     /// Creates a `Rational` from an initialized GMP rational number.
     ///
     /// # Safety
@@ -880,9 +950,10 @@ impl Rational {
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// rational number when the borrow ends. The rest of the library
-    /// assumes that `Rational` structures keep their numerators and
-    /// denominators in canonical form.
+    /// rational number when the borrow ends. The caller must ensure
+    /// that the rational number is left in canonical form, as the
+    /// rest of the library assumes that `Rational` structures keep
+    /// their numerators and denominators in canonical form.
     ///
     /// # Examples
     ///

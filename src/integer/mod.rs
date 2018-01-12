@@ -40,7 +40,7 @@ mod cmp;
 mod division;
 #[cfg(feature = "serde")]
 mod serde;
-mod small_integer;
+pub(crate) mod small_integer;
 mod traits;
 
 pub use big_integer::{IsPrime, ParseIntegerError, ValidInteger};

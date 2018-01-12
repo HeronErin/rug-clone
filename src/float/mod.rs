@@ -24,7 +24,7 @@ mod cmp;
 mod ord_float;
 #[cfg(feature = "serde")]
 mod serde;
-mod small_float;
+pub(crate) mod small_float;
 mod traits;
 
 pub use big_float::{ParseFloatError, ValidFloat};

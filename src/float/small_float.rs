@@ -27,7 +27,6 @@ use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
-#[repr(C)]
 /// A small float that does not require any memory allocation.
 ///
 /// This can be useful when you have a primitive number type but need
@@ -63,22 +62,37 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// a *= &*b;
 /// assert_eq!(a, -15000);
 /// ```
+#[derive(Clone)]
+#[repr(C)]
 pub struct SmallFloat {
     inner: Mpfr,
     limbs: [gmp::limb_t; LIMBS_IN_SMALL_FLOAT],
 }
 
 #[cfg(gmp_limb_bits_64)]
-const LIMBS_IN_SMALL_FLOAT: usize = 1;
+pub const LIMBS_IN_SMALL_FLOAT: usize = 1;
 #[cfg(gmp_limb_bits_32)]
-const LIMBS_IN_SMALL_FLOAT: usize = 2;
+pub const LIMBS_IN_SMALL_FLOAT: usize = 2;
 
+// Zero prec means d is already set, so do nothing in update_d().
+// This is useful for SmallComplex implementation.
 #[repr(C)]
 pub struct Mpfr {
-    prec: mpfr::prec_t,
-    sign: c_int,
-    exp: mpfr::exp_t,
-    d: AtomicPtr<gmp::limb_t>,
+    pub prec: mpfr::prec_t,
+    pub sign: c_int,
+    pub exp: mpfr::exp_t,
+    pub d: AtomicPtr<gmp::limb_t>,
+}
+
+impl Clone for Mpfr {
+    fn clone(&self) -> Mpfr {
+        Mpfr {
+            prec: self.prec,
+            sign: self.sign,
+            exp: self.exp,
+            d: AtomicPtr::new(self.d.load(Ordering::Relaxed)),
+        }
+    }
 }
 
 impl Default for SmallFloat {
@@ -143,14 +157,17 @@ impl SmallFloat {
         &mut *ptr
     }
 
+    // Zero prec means d is already set, so do nothing.
     #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr_t>());
-        // Since this is borrowed, the limb won't move around, and we
-        // can set the d field.
-        let d = &self.limbs[0] as *const _ as *mut _;
-        self.inner.d.store(d, Ordering::Relaxed);
+        if self.inner.prec != 0 {
+            // Since this is borrowed, the limb won't move around, and we
+            // can set the d field.
+            let d = &self.limbs[0] as *const _ as *mut _;
+            self.inner.d.store(d, Ordering::Relaxed);
+        }
     }
 }
 
@@ -161,18 +178,6 @@ impl Deref for SmallFloat {
         self.update_d();
         let ptr = (&self.inner) as *const _ as *const _;
         unsafe { &*ptr }
-    }
-}
-
-impl<T> From<T> for SmallFloat
-where
-    SmallFloat: Assign<T>,
-{
-    #[inline]
-    fn from(val: T) -> Self {
-        let mut ret = SmallFloat::new();
-        ret.assign(val);
-        ret
     }
 }
 
@@ -187,30 +192,34 @@ macro_rules! signed {
                 }
             }
         }
+
+        from_assign! { $I => SmallFloat }
     };
 }
 
 macro_rules! unsigned_32 {
     { $U:ty, $bits:expr } => {
         impl Assign<$U> for SmallFloat {
-            #[inline]
             fn assign(&mut self, val: $U) {
-                let ptr = &mut self.inner as *mut _ as *mut _;
+                self.update_d();
+                let ptr = &mut self.inner as *mut Mpfr as *mut mpfr_t;
+                let limbs = self.inner.d.load(Ordering::Relaxed);
                 unsafe {
                     if val == 0 {
-                        xmpfr::custom_zero(ptr, &mut self.limbs[0], $bits);
+                        xmpfr::custom_zero(ptr, limbs, $bits);
                     } else {
                         let leading = val.leading_zeros();
                         let limb_leading
                             = leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
-                        self.limbs[0] = gmp::limb_t::from(val) << limb_leading;
-                        let limbs = &mut self.limbs[0];
+                        *limbs = gmp::limb_t::from(val) << limb_leading;
                         let exp = $bits - leading;
                         xmpfr::custom_regular(ptr, limbs, cast(exp), $bits);
                     }
                 }
             }
         }
+
+        from_assign! { $U => SmallFloat }
     };
 }
 
@@ -225,30 +234,32 @@ unsigned_32! { u16, 16 }
 unsigned_32! { u32, 32 }
 
 impl Assign<u64> for SmallFloat {
-    #[inline]
     fn assign(&mut self, val: u64) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
+        self.update_d();
+        let ptr = &mut self.inner as *mut Mpfr as *mut mpfr_t;
+        let limbs = self.inner.d.load(Ordering::Relaxed);
         unsafe {
             if val == 0 {
-                xmpfr::custom_zero(ptr, &mut self.limbs[0], 64);
+                xmpfr::custom_zero(ptr, limbs, 64);
             } else {
                 let leading = val.leading_zeros();
                 let sval = val << leading;
                 #[cfg(gmp_limb_bits_64)]
                 {
-                    self.limbs[0] = cast(sval);
+                    *limbs = cast(sval);
                 }
                 #[cfg(gmp_limb_bits_32)]
                 {
-                    self.limbs[0] = cast(sval as u32);
-                    self.limbs[1] = cast((sval >> 32) as u32);
+                    *limbs = cast(sval as u32);
+                    *limbs.offset(1) = cast((sval >> 32) as u32);
                 }
-                let limbs = &mut self.limbs[0];
                 xmpfr::custom_regular(ptr, limbs, cast(64 - leading), 64);
             }
         }
     }
 }
+
+from_assign! { u64 => SmallFloat }
 
 impl Assign<usize> for SmallFloat {
     #[inline]
@@ -264,12 +275,15 @@ impl Assign<usize> for SmallFloat {
     }
 }
 
+from_assign! { usize => SmallFloat }
+
 impl Assign<f32> for SmallFloat {
-    #[inline]
     fn assign(&mut self, val: f32) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
+        self.update_d();
+        let ptr = &mut self.inner as *mut Mpfr as *mut mpfr_t;
+        let limbs = self.inner.d.load(Ordering::Relaxed);
         unsafe {
-            xmpfr::custom_zero(ptr, &mut self.limbs[0], 24);
+            xmpfr::custom_zero(ptr, limbs, 24);
             mpfr::set_d(ptr, val.into(), raw_round(Round::Nearest));
         }
         // retain sign in case of NaN
@@ -279,18 +293,37 @@ impl Assign<f32> for SmallFloat {
     }
 }
 
+from_assign! { f32 => SmallFloat }
+
 impl Assign<f64> for SmallFloat {
-    #[inline]
     fn assign(&mut self, val: f64) {
-        let ptr = &mut self.inner as *mut _ as *mut _;
+        self.update_d();
+        let ptr = &mut self.inner as *mut Mpfr as *mut mpfr_t;
+        let limbs = self.inner.d.load(Ordering::Relaxed);
         unsafe {
-            xmpfr::custom_zero(ptr, &mut self.limbs[0], 53);
+            xmpfr::custom_zero(ptr, limbs, 53);
             mpfr::set_d(ptr, val, raw_round(Round::Nearest));
         }
         // retain sign in case of NaN
         if val.is_sign_negative() {
             self.inner.sign = -1;
         }
+    }
+}
+
+from_assign! { f64 => SmallFloat }
+
+impl<'a> Assign<&'a SmallFloat> for SmallFloat {
+    #[inline]
+    fn assign(&mut self, other: &'a SmallFloat) {
+        self.clone_from(other);
+    }
+}
+
+impl Assign<SmallFloat> for SmallFloat {
+    #[inline]
+    fn assign(&mut self, other: SmallFloat) {
+        mem::drop(mem::replace(self, other));
     }
 }
 

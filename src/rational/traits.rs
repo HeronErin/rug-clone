@@ -130,8 +130,8 @@ impl UpperHex for Rational {
 
 impl Assign for Rational {
     #[inline]
-    fn assign(&mut self, mut src: Rational) {
-        mem::swap(self, &mut src);
+    fn assign(&mut self, src: Rational) {
+        mem::drop(mem::replace(self, src));
     }
 }
 

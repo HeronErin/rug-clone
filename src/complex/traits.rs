@@ -239,20 +239,20 @@ impl AssignRound for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, mut src: Complex, round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, src: Complex, round: Round2) -> Ordering2 {
         let (dst_real, dst_imag) = self.as_mut_real_imag();
-        let (src_real, src_imag) = src.as_mut_real_imag();
+        let (src_real, src_imag) = src.into_real_imag();
         let real_ord = if dst_real.prec() == src_real.prec() {
-            mem::swap(dst_real, src_real);
+            mem::drop(mem::replace(dst_real, src_real));
             Ordering::Equal
         } else {
-            dst_real.assign_round(&*src_real, round.0)
+            dst_real.assign_round(src_real, round.0)
         };
         let imag_ord = if dst_imag.prec() == src_imag.prec() {
-            mem::swap(dst_imag, src_imag);
+            mem::drop(mem::replace(dst_imag, src_imag));
             Ordering::Equal
         } else {
-            dst_imag.assign_round(&*src_imag, round.1)
+            dst_imag.assign_round(src_imag, round.1)
         };
         (real_ord, imag_ord)
     }

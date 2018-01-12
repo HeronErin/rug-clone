@@ -6,6 +6,8 @@ Version 0.9.2
 * Deprecate most `assign_*` methods, and replace with static methods
   that return an assignable object.
 * Deprecate `Rational::copy_to_integer` method.
+* Add `Rational::assign_canonical` method and
+  `Rational::from_canonical` function.
 * Add `Float::ln_u` method.
 * Add `Float::round_even` methods.
 * Add `Float::gamma_inc` methods.
@@ -13,10 +15,9 @@ Version 0.9.2
 * Deprecate `Float::assign_random_gaussian` methods.
 * Add `Complex::cmp_abs` method.
 * Add `Complex::root_of_unity` method.
-* Rename `SmallRational::from_canonicalized_*` methods to
-  `SmallRational::from_canonical_*`.
-* Deprecate `SmallRational::assign_canonicalized_*` methods, and
-  replace with `SmallRational::assign_canonical_*` static methods.
+* Replace `SmallRational::from_canonicalized_*` functions with
+  `SmallRational::from_canonical` function.
+* Deprecate `SmallRational::assign_canonicalized_*` methods.
 * Add `as_nonreallocating_*` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers

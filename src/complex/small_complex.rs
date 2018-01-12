@@ -14,18 +14,17 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Assign;
-use Complex;
-use float::Round;
+use {Assign, Complex};
 
-use cast::cast;
 use ext::mpfr as xmpfr;
+use float::SmallFloat;
+use float::small_float::{Mpfr, LIMBS_IN_SMALL_FLOAT};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::ops::Deref;
-use std::os::raw::c_int;
-use std::sync::atomic::{AtomicPtr, Ordering};
+use std::os::raw::{c_long, c_ulong};
+use std::sync::atomic::Ordering;
 
 /// A small complex number that does not require any memory
 /// allocation.
@@ -65,25 +64,13 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// assert_eq!(*a.real(), -9);
 /// assert_eq!(*a.imag(), -18.5);
 /// ```
+#[derive(Clone)]
 #[repr(C)]
 pub struct SmallComplex {
     re: Mpfr,
     im: Mpfr,
     // real part is first in limbs if re.d <= im.d
     limbs: [gmp::limb_t; 2 * LIMBS_IN_SMALL_FLOAT],
-}
-
-#[cfg(gmp_limb_bits_64)]
-const LIMBS_IN_SMALL_FLOAT: usize = 1;
-#[cfg(gmp_limb_bits_32)]
-const LIMBS_IN_SMALL_FLOAT: usize = 2;
-
-#[repr(C)]
-struct Mpfr {
-    prec: mpfr::prec_t,
-    sign: c_int,
-    exp: mpfr::exp_t,
-    d: AtomicPtr<gmp::limb_t>,
 }
 
 impl Default for SmallComplex {
@@ -189,184 +176,89 @@ impl Deref for SmallComplex {
     }
 }
 
-impl<T> From<T> for SmallComplex
+impl<Re> Assign<Re> for SmallComplex
 where
-    SmallComplex: Assign<T>,
+    SmallFloat: Assign<Re>,
 {
     #[inline]
-    fn from(val: T) -> Self {
+    fn assign(&mut self, re: Re) {
+        const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
+        const EXP_ZERO: c_long = 0 - EXP_MAX;
+
+        self.update_d();
+
+        // zero prec during SmallFloat assignment so that it leaves d alone
+        self.re.prec = 0;
+        let re_ptr = &mut self.re as *mut Mpfr as *mut SmallFloat;
+        unsafe {
+            (*re_ptr).assign(re);
+        }
+        assert_ne!(self.re.prec, 0);
+
+        self.im.prec = self.re.prec;
+        self.im.sign = 1;
+        self.im.exp = EXP_ZERO;
+    }
+}
+
+impl<Re> From<Re> for SmallComplex
+where
+    SmallFloat: Assign<Re>,
+{
+    #[inline]
+    fn from(val: Re) -> Self {
         let mut ret = SmallComplex::new();
         ret.assign(val);
         ret
     }
 }
 
-trait SetPart<T> {
-    fn set_part(&mut self, limbs: *mut gmp::limb_t, t: T);
-}
+impl<Re, Im> Assign<(Re, Im)> for SmallComplex
+where
+    SmallFloat: Assign<Re> + Assign<Im>,
+{
+    #[inline]
+    fn assign(&mut self, (re, im): (Re, Im)) {
+        self.update_d();
 
-macro_rules! signed_part {
-    { $I:ty, $U:ty } => {
-        impl SetPart<$I> for Mpfr {
-            #[inline]
-            fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $I) {
-                self.set_part(limbs, val.wrapping_abs() as $U);
-                if val < 0 {
-                    self.sign = -1;
-                }
-            }
-        }
-    };
-}
-
-signed_part! { i8, u8 }
-signed_part! { i16, u16 }
-signed_part! { i32, u32 }
-signed_part! { i64, u64 }
-signed_part! { isize, usize }
-
-macro_rules! unsigned_32_part {
-    { $U:ty => $bits:expr } => {
-        impl SetPart<$U> for Mpfr {
-            fn set_part(&mut self, limbs: *mut gmp::limb_t, val: $U) {
-                let ptr = self as *mut _ as *mut _;
-                unsafe {
-                    if val == 0 {
-                        xmpfr::custom_zero(ptr, limbs, $bits);
-                    } else {
-                        let leading = val.leading_zeros();
-                        let limb_leading
-                            = leading + gmp::LIMB_BITS as u32 - $bits;
-                        *limbs = gmp::limb_t::from(val) << limb_leading;
-                        let exp = $bits - leading;
-                        xmpfr::custom_regular(ptr, limbs, cast(exp), $bits);
-                    }
-                }
-            }
-        }
-    };
-}
-
-unsigned_32_part! { u8 => 8 }
-unsigned_32_part! { u16 => 16 }
-unsigned_32_part! { u32 => 32 }
-
-impl SetPart<u64> for Mpfr {
-    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: u64) {
-        let ptr = self as *mut _ as *mut _;
+        // zero prec during SmallFloat assignment so that it leaves d alone
+        self.re.prec = 0;
+        let re_ptr = &mut self.re as *mut Mpfr as *mut SmallFloat;
         unsafe {
-            if val == 0 {
-                xmpfr::custom_zero(ptr, limbs, 64);
-            } else {
-                let leading = val.leading_zeros();
-                let sval = val << leading;
-                #[cfg(gmp_limb_bits_64)]
-                {
-                    *limbs = cast(sval);
-                }
-                #[cfg(gmp_limb_bits_32)]
-                {
-                    *limbs = cast(sval as u32);
-                    *limbs.offset(1) = cast((sval >> 32) as u32);
-                }
-                xmpfr::custom_regular(ptr, limbs, cast(64 - leading), 64);
-            }
+            (*re_ptr).assign(re);
         }
-    }
-}
-
-impl SetPart<usize> for Mpfr {
-    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: usize) {
-        #[cfg(target_pointer_width = "32")]
-        {
-            self.set_part(limbs, val as u32);
-        }
-        #[cfg(target_pointer_width = "64")]
-        {
-            self.set_part(limbs, val as u64);
-        }
-    }
-}
-
-impl SetPart<f32> for Mpfr {
-    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: f32) {
-        let ptr = self as *mut _ as *mut _;
+        assert_ne!(self.re.prec, 0);
+        self.im.prec = 0;
+        let im_ptr = &mut self.im as *mut Mpfr as *mut SmallFloat;
         unsafe {
-            xmpfr::custom_zero(ptr, limbs, 24);
-            mpfr::set_d(ptr, val.into(), raw_round(Round::Nearest));
+            (*im_ptr).assign(im);
         }
-        // retain sign in case of NaN
-        if val.is_sign_negative() {
-            self.sign = -1;
-        }
+        assert_ne!(self.im.prec, 0);
     }
 }
 
-impl SetPart<f64> for Mpfr {
-    fn set_part(&mut self, limbs: *mut gmp::limb_t, val: f64) {
-        let ptr = self as *mut _ as *mut _;
-        unsafe {
-            xmpfr::custom_zero(ptr, limbs, 53);
-            mpfr::set_d(ptr, val, raw_round(Round::Nearest));
-        }
-        // retain sign in case of NaN
-        if val.is_sign_negative() {
-            self.sign = -1;
-        }
+impl<Re, Im> From<(Re, Im)> for SmallComplex
+where
+    SmallFloat: Assign<Re> + Assign<Im>,
+{
+    #[inline]
+    fn from(val: (Re, Im)) -> Self {
+        let mut ret = SmallComplex::new();
+        ret.assign(val);
+        ret
     }
 }
 
-macro_rules! cross {
-    { $Re:ty, $Im:ty } => {
-        impl Assign<($Re, $Im)> for SmallComplex {
-            #[inline]
-            fn assign(&mut self, val: ($Re, $Im)) {
-                self.re.set_part(&mut self.limbs[0], val.0);
-                self.im.set_part(&mut self.limbs[LIMBS_IN_SMALL_FLOAT], val.1);
-            }
-        }
+impl<'a> Assign<&'a SmallComplex> for SmallComplex {
+    #[inline]
+    fn assign(&mut self, other: &'a SmallComplex) {
+        self.clone_from(other);
     }
 }
 
-// (Major), (Major, Major), (Major, Minor*), (Minor*, Major)
-macro_rules! matrix {
-    { $Major:ty $(; $Minor:ty)* } => {
-        impl Assign<$Major> for SmallComplex {
-            #[inline]
-            fn assign(&mut self, val: $Major) {
-                self.re.set_part(&mut self.limbs[0], val);
-                self.im.set_part(
-                    &mut self.limbs[LIMBS_IN_SMALL_FLOAT],
-                    cast::<_, $Major>(0),
-                );
-            }
-        }
-        cross! { $Major, $Major }
-        $( cross! { $Major, $Minor } )*
-        $( cross! { $Minor, $Major } )*
-    }
-}
-
-matrix! { u8 }
-matrix! { i8; u8 }
-matrix! { u16; i8; u8 }
-matrix! { i16; u16; i8; u8 }
-matrix! { u32; i16; u16; i8; u8 }
-matrix! { i32; u32; i16; u16; i8; u8 }
-matrix! { usize; i32; u32; i16; u16; i8; u8 }
-matrix! { isize; usize; i32; u32; i16; u16; i8; u8 }
-matrix! { u64; isize; usize; i32; u32; i16; u16; i8; u8 }
-matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
-matrix! { f32; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
-matrix! { f64; f32; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
-
-fn raw_round(round: Round) -> mpfr::rnd_t {
-    #[allow(deprecated)]
-    match round {
-        Round::Nearest => mpfr::rnd_t::RNDN,
-        Round::Zero => mpfr::rnd_t::RNDZ,
-        Round::Up => mpfr::rnd_t::RNDU,
-        Round::Down => mpfr::rnd_t::RNDD,
-        Round::AwayFromZero => mpfr::rnd_t::RNDA,
+impl Assign<SmallComplex> for SmallComplex {
+    #[inline]
+    fn assign(&mut self, other: SmallComplex) {
+        mem::drop(mem::replace(self, other));
     }
 }

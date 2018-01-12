@@ -23,7 +23,6 @@ use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
-#[repr(C)]
 /// A small integer that does not require any memory allocation.
 ///
 /// This can be useful when you have a primitive integer type such as
@@ -55,21 +54,35 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// a.lcm_mut(&SmallInteger::from(30));
 /// assert_eq!(a, 1500);
 /// ```
+#[derive(Clone)]
+#[repr(C)]
 pub struct SmallInteger {
     inner: Mpz,
     limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
 }
 
 #[cfg(gmp_limb_bits_64)]
-const LIMBS_IN_SMALL_INTEGER: usize = 1;
+pub const LIMBS_IN_SMALL_INTEGER: usize = 1;
 #[cfg(gmp_limb_bits_32)]
-const LIMBS_IN_SMALL_INTEGER: usize = 2;
+pub const LIMBS_IN_SMALL_INTEGER: usize = 2;
 
+// Zero alloc means d is already set, so do nothing in update_d().
+// This is useful for SmallRational implementation.
 #[repr(C)]
 pub struct Mpz {
-    alloc: c_int,
-    size: c_int,
-    d: AtomicPtr<gmp::limb_t>,
+    pub alloc: c_int,
+    pub size: c_int,
+    pub d: AtomicPtr<gmp::limb_t>,
+}
+
+impl Clone for Mpz {
+    fn clone(&self) -> Mpz {
+        Mpz {
+            alloc: self.alloc,
+            size: self.size,
+            d: AtomicPtr::new(self.d.load(Ordering::Relaxed)),
+        }
+    }
 }
 
 impl Default for SmallInteger {
@@ -134,14 +147,17 @@ impl SmallInteger {
         &mut *ptr
     }
 
+    // Zero alloc means d is already set, so do nothing.
     #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
-        // Since this is borrowed, the limbs won't move around, and we
-        // can set the d field.
-        let d = &self.limbs[0] as *const _ as *mut _;
-        self.inner.d.store(d, Ordering::Relaxed);
+        if self.inner.alloc != 0 {
+            // Since this is borrowed, the limbs won't move around, and we
+            // can set the d field.
+            let d = &self.limbs[0] as *const _ as *mut _;
+            self.inner.d.store(d, Ordering::Relaxed);
+        }
     }
 }
 
@@ -152,18 +168,6 @@ impl Deref for SmallInteger {
         self.update_d();
         let ptr = (&self.inner) as *const _ as *const _;
         unsafe { &*ptr }
-    }
-}
-
-impl<T> From<T> for SmallInteger
-where
-    SmallInteger: Assign<T>,
-{
-    #[inline]
-    fn from(val: T) -> Self {
-        let mut ret = SmallInteger::new();
-        ret.assign(val);
-        ret
     }
 }
 
@@ -178,6 +182,8 @@ macro_rules! signed {
                 }
             }
         }
+
+        from_assign! { $I => SmallInteger }
     }
 }
 
@@ -186,14 +192,19 @@ macro_rules! one_limb {
         impl Assign<$U> for SmallInteger {
             #[inline]
             fn assign(&mut self, val: $U) {
+                self.update_d();
                 if val == 0 {
                     self.inner.size = 0;
                 } else {
                     self.inner.size = 1;
-                    self.limbs[0] = val.into();
+                    unsafe {
+                        *self.inner.d.load(Ordering::Relaxed) = val.into();
+                    }
                 }
             }
         }
+
+        from_assign! { $U => SmallInteger }
     }
 }
 
@@ -218,14 +229,21 @@ impl Assign<u64> for SmallInteger {
             self.inner.size = 0;
         } else if val <= 0xffff_ffff {
             self.inner.size = 1;
-            self.limbs[0] = cast(val as u32);
+            unsafe {
+                *self.d = cast(val as u32);
+            }
         } else {
             self.inner.size = 2;
-            self.limbs[0] = cast(val as u32);
-            self.limbs[1] = cast((val >> 32) as u32);
+            unsafe {
+                *self.d = cast(val as u32);
+                *(self.d.offset(1)) = cast((val >> 32) as u32);
+            }
         }
     }
 }
+
+#[cfg(gmp_limb_bits_32)]
+from_assign! { u64 => SmallInteger }
 
 impl Assign<usize> for SmallInteger {
     #[inline]
@@ -238,5 +256,21 @@ impl Assign<usize> for SmallInteger {
         {
             self.assign(val as u64);
         }
+    }
+}
+
+from_assign! { usize => SmallInteger }
+
+impl<'a> Assign<&'a SmallInteger> for SmallInteger {
+    #[inline]
+    fn assign(&mut self, other: &'a SmallInteger) {
+        self.clone_from(other);
+    }
+}
+
+impl<'a> Assign<SmallInteger> for SmallInteger {
+    #[inline]
+    fn assign(&mut self, other: SmallInteger) {
+        mem::drop(mem::replace(self, other));
     }
 }

@@ -122,8 +122,8 @@ where
 
 impl Assign for Integer {
     #[inline]
-    fn assign(&mut self, mut src: Integer) {
-        mem::swap(self, &mut src);
+    fn assign(&mut self, src: Integer) {
+        mem::drop(mem::replace(self, src));
     }
 }
 

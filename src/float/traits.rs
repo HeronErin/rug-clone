@@ -305,9 +305,9 @@ impl AssignRound for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, mut src: Float, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: Float, round: Round) -> Ordering {
         if self.prec() == src.prec() {
-            mem::swap(self, &mut src);
+            mem::drop(mem::replace(self, src));
             Ordering::Equal
         } else {
             <Float as AssignRound<&Float>>::assign_round(self, &src, round)
