@@ -1,13 +1,13 @@
-Version 0.9.2
-=============
+Version 0.9.2 (2018-01-12)
+==========================
 
-* Requires rustc version 1.18.0.
+* Require rustc version 1.18.0.
 * Require `gmp-mpfr-sys` version 1.1.0.
 * Deprecate most `assign_*` methods, and replace with static methods
   that return an assignable object.
 * Deprecate `Rational::copy_to_integer` method.
-* Add `Rational::assign_canonical` method and
-  `Rational::from_canonical` function.
+* Add `Rational::assign_canonical` and `Rational::from_canonical`
+  methods.
 * Add `Float::ln_u` method.
 * Add `Float::round_even` methods.
 * Add `Float::gamma_inc` methods.
@@ -15,8 +15,8 @@ Version 0.9.2
 * Deprecate `Float::assign_random_gaussian` methods.
 * Add `Complex::cmp_abs` method.
 * Add `Complex::root_of_unity` method.
-* Replace `SmallRational::from_canonicalized_*` functions with
-  `SmallRational::from_canonical` function.
+* Deprecate `SmallRational::from_canonicalized_*` methods and replace
+  with `SmallRational::from_canonical` method.
 * Deprecate `SmallRational::assign_canonicalized_*` methods.
 * Add `as_nonreallocating_*` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
