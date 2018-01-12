@@ -1125,6 +1125,7 @@ impl Rational {
     /// assert_eq!(Rational::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
     /// ```
+    #[inline]
     pub fn cmp0(&self) -> Ordering {
         self.numer().cmp0()
     }
@@ -1134,6 +1135,23 @@ impl Rational {
     #[inline]
     pub fn sign(&self) -> Ordering {
         self.cmp0()
+    }
+
+    /// Compares the absolute values.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// use std::cmp::Ordering;
+    /// let a = Rational::from((-23, 10));
+    /// let b = Rational::from((-47, 5));
+    /// assert_eq!(a.cmp(&b), Ordering::Greater);
+    /// assert_eq!(a.cmp_abs(&b), Ordering::Less);
+    /// ```
+    #[inline]
+    pub fn cmp_abs(&self, other: &Rational) -> Ordering {
+        self.as_abs().cmp(&*other.as_abs())
     }
 
     math_op1! {

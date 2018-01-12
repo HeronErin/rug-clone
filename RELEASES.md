@@ -1,3 +1,5 @@
+* Add `Rational::cmp_abs` method.
+
 Version 0.9.2 (2018-01-12)
 ==========================
 
