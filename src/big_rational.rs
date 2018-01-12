@@ -716,7 +716,7 @@ impl Rational {
     ///
     /// * The value must be initialized.
     /// * The `gmp_mpfr_sys::gmp::mpq_t` type can be considered as a
-    ///   kind of pointer, so there can be can multiple copies of it.
+    ///   kind of pointer, so there can be multiple copies of it.
     ///   Since this function takes over ownership, no other copies of
     ///   the passed value should exist.
     ///
