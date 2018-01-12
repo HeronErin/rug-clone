@@ -225,6 +225,7 @@ one_limb! { u64 }
 impl Assign<u64> for SmallInteger {
     #[inline]
     fn assign(&mut self, val: u64) {
+        self.update_d();
         if val == 0 {
             self.inner.size = 0;
         } else if val <= 0xffff_ffff {
