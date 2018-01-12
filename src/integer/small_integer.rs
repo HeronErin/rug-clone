@@ -122,15 +122,15 @@ impl SmallInteger {
     /// let capacity = i.capacity();
     /// // another u64 will not require a reallocation
     /// unsafe {
-    ///     SmallInteger::as_nonreallocating(&mut i).assign(2u64);
+    ///     i.as_nonreallocating_integer().assign(2u64);
     /// }
     /// assert_eq!(*i, 2);
     /// assert_eq!(i.capacity(), capacity);
     /// ```
     #[inline]
-    pub unsafe fn as_nonreallocating(small: &mut SmallInteger) -> &mut Integer {
-        small.update_d();
-        let ptr = (&mut small.inner) as *mut _ as *mut _;
+    pub unsafe fn as_nonreallocating_integer(&mut self) -> &mut Integer {
+        self.update_d();
+        let ptr = (&mut self.inner) as *mut _ as *mut _;
         &mut *ptr
     }
 

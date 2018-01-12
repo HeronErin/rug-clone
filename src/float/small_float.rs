@@ -132,14 +132,14 @@ impl SmallFloat {
     /// let mut f = SmallFloat::from(1.0f32);
     /// // addition does not change the precision
     /// unsafe {
-    ///     *SmallFloat::as_nonreallocating(&mut f) += 2.0;
+    ///     *f.as_nonreallocating_float() += 2.0;
     /// }
     /// assert_eq!(*f, 3.0);
     /// ```
     #[inline]
-    pub unsafe fn as_nonreallocating(small: &mut SmallFloat) -> &mut Float {
-        small.update_d();
-        let ptr = (&mut small.inner) as *mut _ as *mut _;
+    pub unsafe fn as_nonreallocating_float(&mut self) -> &mut Float {
+        self.update_d();
+        let ptr = (&mut self.inner) as *mut _ as *mut _;
         &mut *ptr
     }
 

@@ -17,7 +17,7 @@ Version 0.9.2
   `SmallRational::from_canonical_*`.
 * Deprecate `SmallRational::assign_canonicalized_*` methods, and
   replace with `SmallRational::assign_canonical_*` static methods.
-* Add `as_nonreallocating` functions to `SmallInteger`,
+* Add `as_nonreallocating_*` methods to `SmallInteger`,
   `SmallRational`, `SmallFloat` and `SmallComplex`.
 * Fix `SmallFloat::new` and `SmallComplex::new` to produce numbers
   with a precision of 53.

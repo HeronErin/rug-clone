@@ -131,18 +131,16 @@ impl SmallRational {
     /// let den_capacity = r.denom().capacity();
     /// // reciprocating this will not require reallocations
     /// unsafe {
-    ///     SmallRational::as_nonreallocating(&mut r).recip_mut();
+    ///     r.as_nonreallocating_rational().recip_mut();
     /// }
     /// assert_eq!(*r, (-47, 15));
     /// assert_eq!(r.numer().capacity(), num_capacity);
     /// assert_eq!(r.denom().capacity(), den_capacity);
     /// ```
     #[inline]
-    pub unsafe fn as_nonreallocating(
-        small: &mut SmallRational,
-    ) -> &mut Rational {
-        small.update_d();
-        let ptr = (&mut small.num) as *mut _ as *mut _;
+    pub unsafe fn as_nonreallocating_rational(&mut self) -> &mut Rational {
+        self.update_d();
+        let ptr = (&mut self.num) as *mut _ as *mut _;
         &mut *ptr
     }
 
@@ -403,7 +401,7 @@ impl SmallRational {
         unsafe {
             SmallRational::assign_canonical_32(self, neg, num, den);
             gmp::mpq_canonicalize(
-                SmallRational::as_nonreallocating(self).inner_mut(),
+                self.as_nonreallocating_rational().inner_mut(),
             );
         }
     }
@@ -421,7 +419,7 @@ impl SmallRational {
         unsafe {
             SmallRational::assign_canonical_64(self, neg, num, den);
             gmp::mpq_canonicalize(
-                SmallRational::as_nonreallocating(self).inner_mut(),
+                self.as_nonreallocating_rational().inner_mut(),
             );
         }
     }

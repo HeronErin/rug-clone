@@ -143,14 +143,14 @@ impl SmallComplex {
     /// let mut c = SmallComplex::from((1.0f32, 3.0f32));
     /// // rotation does not change the precision
     /// unsafe {
-    ///     SmallComplex::as_nonreallocating(&mut c).mul_i_mut(false);
+    ///     c.as_nonreallocating_complex().mul_i_mut(false);
     /// }
     /// assert_eq!(*c, (-3.0, 1.0));
     /// ```
     #[inline]
-    pub unsafe fn as_nonreallocating(small: &mut SmallComplex) -> &mut Complex {
-        small.update_d();
-        let ptr = (&mut small.re) as *mut _ as *mut _;
+    pub unsafe fn as_nonreallocating_complex(&mut self) -> &mut Complex {
+        self.update_d();
+        let ptr = (&mut self.re) as *mut _ as *mut _;
         &mut *ptr
     }
 
