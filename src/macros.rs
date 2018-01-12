@@ -26,7 +26,7 @@ macro_rules! assign_deref {
     }
 }
 
-#[cfg(feature = "integer")]
+#[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! from_assign {
     { $Src:ty => $Dst:ty} => {
         impl<'r> From<$Src> for $Dst {
