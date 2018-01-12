@@ -230,13 +230,14 @@ impl Assign<u64> for SmallInteger {
         } else if val <= 0xffff_ffff {
             self.inner.size = 1;
             unsafe {
-                *self.d = cast(val as u32);
+                *self.inner.d.load(Ordering::Relaxed) = cast(val as u32);
             }
         } else {
             self.inner.size = 2;
             unsafe {
-                *self.d = cast(val as u32);
-                *(self.d.offset(1)) = cast((val >> 32) as u32);
+                *self.inner.d.load(Ordering::Relaxed) = cast(val as u32);
+                *self.inner.d.load(Ordering::Relaxed).offset(1) =
+                    cast((val >> 32) as u32);
             }
         }
     }
