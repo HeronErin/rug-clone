@@ -7636,7 +7636,8 @@ pub struct LnAbsGammaRef<'a> {
 }
 
 impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
-    for (&'b mut Float, &'c mut Ordering) {
+    for (&'b mut Float, &'c mut Ordering)
+{
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -7693,7 +7694,8 @@ pub struct RandomBits<'a, 'b: 'a> {
 
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>>
-    for Result<&'c mut Float, &'c mut Float> {
+    for Result<&'c mut Float, &'c mut Float>
+{
     #[inline]
     fn assign(&mut self, src: RandomBits<'a, 'b>) {
         let err = match *self {

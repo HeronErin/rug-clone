@@ -3833,7 +3833,8 @@ pub struct PowModRef<'a> {
 }
 
 impl<'a, 'b> Assign<PowModRef<'a>>
-    for Result<&'b mut Integer, &'b mut Integer> {
+    for Result<&'b mut Integer, &'b mut Integer>
+{
     fn assign(&mut self, src: PowModRef<'a>) {
         if src.exponent.cmp0() == Ordering::Less {
             self.assign(src.ref_self.invert_ref(src.modulo));
@@ -3906,7 +3907,8 @@ pub struct InvertRef<'a> {
 }
 
 impl<'a, 'b> Assign<InvertRef<'a>>
-    for Result<&'b mut Integer, &'b mut Integer> {
+    for Result<&'b mut Integer, &'b mut Integer>
+{
     fn assign(&mut self, src: InvertRef<'a>) {
         let exists = {
             let dst = match *self {
@@ -3949,7 +3951,8 @@ pub struct RemoveFactorRef<'a> {
 }
 
 impl<'a, 'b, 'c> Assign<RemoveFactorRef<'a>>
-    for (&'b mut Integer, &'c mut u32) {
+    for (&'b mut Integer, &'c mut u32)
+{
     #[inline]
     fn assign(&mut self, src: RemoveFactorRef<'a>) {
         let cnt = unsafe {

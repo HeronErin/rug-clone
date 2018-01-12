@@ -3395,7 +3395,8 @@ pub struct RandomBits<'a, 'b: 'a> {
 
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>>
-    for Result<&'c mut Complex, &'c mut Complex> {
+    for Result<&'c mut Complex, &'c mut Complex>
+{
     #[inline]
     fn assign(&mut self, src: RandomBits<'a, 'b>) {
         let err = match *self {
