@@ -1,4 +1,6 @@
 * Add `Rational::cmp_abs` method.
+* Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to
+  `RandState`.
 
 Version 0.9.2 (2018-01-12)
 ==========================

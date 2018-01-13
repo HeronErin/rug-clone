@@ -313,6 +313,124 @@ impl<'a> RandState<'a> {
         assert_ne!(bound, 0, "cannot be below zero");
         unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
     }
+
+    /// Creates a random generator from an initialized GMP random
+    /// generator.
+    ///
+    /// # Safety
+    ///
+    /// * The value must be initialized.
+    /// * The `gmp_mpfr_sys::gmp::randstate_t` type can be considered
+    ///   as a kind of pointer, so there can be multiple copies of it.
+    ///   Since this function takes over ownership, no other copies of
+    ///   the passed value should exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::rand::RandState;
+    /// use std::mem;
+    /// fn main() {
+    ///     let mut rand = unsafe {
+    ///         let mut r = mem::uninitialized();
+    ///         gmp::randinit_default(&mut r);
+    ///         // r is initialized and unique
+    ///         RandState::from_raw(r)
+    ///     };
+    ///     let u = rand.bits(32);
+    ///     println!("32 random bits: {:032b}", u);
+    ///     // since rand is a RandState now, deallocation is automatic
+    /// }
+    /// ```
+    #[inline]
+    pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
+        RandState {
+            inner: raw,
+            phantom: PhantomData,
+        }
+    }
+
+    /// Converts a random generator into a GMP random generator.
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::rand::RandState;
+    /// fn main() {
+    ///     let rand = RandState::new();
+    ///     let mut r = rand.into_raw();
+    ///     unsafe {
+    ///         let u = gmp::urandomb_ui(&mut r, 32) as u32;
+    ///         println!("32 random bits: {:032b}", u);
+    ///         // free object to prevent memory leak
+    ///         gmp::randclear(&mut r);
+    ///     }
+    /// }
+    /// ```
+    #[inline]
+    pub fn into_raw(self) -> randstate_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    /// Returns a pointer to the internal GMP random generator.
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let r_ptr = rand.as_raw();
+    /// // there is not much you can do with an immutable randstate_t
+    /// println!("pointer: {:p}", r_ptr);
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// ```
+    #[inline]
+    pub fn as_raw(&mut self) -> *const randstate_t {
+        self.inner()
+    }
+
+    /// Returns an unsafe mutable pointer to the internal GMP random
+    /// generator.
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::rand::RandState;
+    /// fn main() {
+    ///     let mut rand = RandState::new();
+    ///     let r_ptr = rand.as_raw_mut();
+    ///     unsafe {
+    ///         let u1 = gmp::urandomb_ui(r_ptr, 32) as u32;
+    ///         println!("32 random bits: {:032b}", u1);
+    ///     }
+    ///     let u2 = rand.bits(32);
+    ///     println!("another 32 random bits: {:032b}", u2);
+    /// }
+    /// ```
+    #[inline]
+    pub fn as_raw_mut(&mut self) -> *mut randstate_t {
+        unsafe { self.inner_mut() }
+    }
 }
 
 /// Custom random number generator to be used with
