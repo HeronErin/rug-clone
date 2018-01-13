@@ -19,10 +19,9 @@
 // UNDEFINED BEHAVIOUR WARNING:
 //
 // Not all the fields of randstate_t are used, and thus GMP does not
-// initialize all the fields. So we must use mem::zeroed rather than
-// mem::uninitialized when creating randstate_t structures. Otherwise,
-// we may have uninitialized memory which can lead to undefined
-// behaviour.
+// initialize all the fields. So we must use clear_unused_fields,
+// otherwise, we may have uninitialized memory which can lead to
+// undefined behaviour.
 
 use Integer;
 use inner::{Inner, InnerMut};
@@ -61,8 +60,9 @@ impl<'a> Clone for RandState<'a> {
     #[inline]
     fn clone(&self) -> RandState<'a> {
         unsafe {
-            let mut inner = mem::zeroed();
+            let mut inner = mem::uninitialized();
             gmp::randinit_set(&mut inner, self.inner());
+            clear_unused_field(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -98,8 +98,9 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn new() -> RandState<'a> {
         unsafe {
-            let mut inner = mem::zeroed();
+            let mut inner = mem::uninitialized();
             gmp::randinit_default(&mut inner);
+            clear_unused_field(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -119,8 +120,9 @@ impl<'a> RandState<'a> {
     /// ```
     pub fn new_mersenne_twister() -> RandState<'a> {
         unsafe {
-            let mut inner = mem::zeroed();
+            let mut inner = mem::uninitialized();
             gmp::randinit_mt(&mut inner);
+            clear_unused_field(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -152,8 +154,9 @@ impl<'a> RandState<'a> {
         bits: u32,
     ) -> RandState<'a> {
         unsafe {
-            let mut inner = mem::zeroed();
+            let mut inner = mem::uninitialized();
             gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
+            clear_unused_field(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -186,13 +189,15 @@ impl<'a> RandState<'a> {
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
-            let mut inner = mem::zeroed();
+            let mut inner = mem::uninitialized();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
+                clear_unused_field(&mut inner);
                 Some(RandState {
                     inner,
                     phantom: PhantomData,
                 })
             } else {
+                mem::forget(inner);
                 None
             }
         }
@@ -232,7 +237,7 @@ impl<'a> RandState<'a> {
                 size: 0,
                 d: r_ptr as *mut gmp::limb_t,
             },
-            _alg: 0,
+            alg: 0,
             _algdata: &CUSTOM_FUNCS as *const _ as *mut _,
         };
         RandState {
@@ -346,7 +351,8 @@ impl<'a> RandState<'a> {
     /// }
     /// ```
     #[inline]
-    pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
+    pub unsafe fn from_raw(mut raw: randstate_t) -> RandState<'a> {
+        clear_unused_field(&mut raw);
         RandState {
             inner: raw,
             phantom: PhantomData,
@@ -554,7 +560,7 @@ pub trait RandGen: Send + Sync {
 #[repr(C)]
 struct MpRandState {
     seed: gmp::mpz_t,
-    _alg: c_int,
+    alg: c_int,
     _algdata: *mut c_void,
 }
 
@@ -646,6 +652,13 @@ const CUSTOM_FUNCS: Funcs = Funcs {
     _clear: Some(custom_clear),
     _iset: Some(custom_iset),
 };
+
+unsafe fn clear_unused_field(rand: *mut randstate_t) {
+    // sanity check
+    assert_eq!(mem::size_of::<MpRandState>(), mem::size_of::<randstate_t>());
+    let state = rand as *mut MpRandState;
+    (*state).alg = 0;
+}
 
 impl<'a> Inner for RandState<'a> {
     type Output = randstate_t;
