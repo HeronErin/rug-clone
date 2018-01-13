@@ -19,7 +19,7 @@
 // UNDEFINED BEHAVIOUR WARNING:
 //
 // Not all the fields of randstate_t are used, and thus GMP does not
-// initialize all the fields. So we must use clear_unused_fields,
+// initialize all the fields. So we must use clear_unused_fields(),
 // otherwise, we may have uninitialized memory which can lead to
 // undefined behaviour.
 
@@ -62,7 +62,7 @@ impl<'a> Clone for RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
             gmp::randinit_set(&mut inner, self.inner());
-            clear_unused_field(&mut inner);
+            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -100,7 +100,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
             gmp::randinit_default(&mut inner);
-            clear_unused_field(&mut inner);
+            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -122,7 +122,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
             gmp::randinit_mt(&mut inner);
-            clear_unused_field(&mut inner);
+            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -156,7 +156,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
             gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
-            clear_unused_field(&mut inner);
+            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -191,7 +191,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::uninitialized();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
-                clear_unused_field(&mut inner);
+                clear_unused_fields(&mut inner);
                 Some(RandState {
                     inner,
                     phantom: PhantomData,
@@ -352,7 +352,7 @@ impl<'a> RandState<'a> {
     /// ```
     #[inline]
     pub unsafe fn from_raw(mut raw: randstate_t) -> RandState<'a> {
-        clear_unused_field(&mut raw);
+        clear_unused_fields(&mut raw);
         RandState {
             inner: raw,
             phantom: PhantomData,
@@ -653,10 +653,12 @@ const CUSTOM_FUNCS: Funcs = Funcs {
     _iset: Some(custom_iset),
 };
 
-unsafe fn clear_unused_field(rand: *mut randstate_t) {
+unsafe fn clear_unused_fields(rand: *mut randstate_t) {
     // sanity check
     assert_eq!(mem::size_of::<MpRandState>(), mem::size_of::<randstate_t>());
     let state = rand as *mut MpRandState;
+    (*state).seed.alloc = 0;
+    (*state).seed.size = 0;
     (*state).alg = 0;
 }
 
