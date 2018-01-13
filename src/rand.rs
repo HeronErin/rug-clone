@@ -225,9 +225,9 @@ impl<'a> RandState<'a> {
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
-    pub fn new_custom<'c, T>(custom: &mut T) -> RandState<'c>
+    pub fn new_custom<T>(custom: &mut T) -> RandState<'a>
     where
-        T: 'c + RandGen,
+        T: 'a + RandGen,
     {
         let b = Box::new(custom as &mut RandGen);
         let r_ptr = Box::into_raw(b);
