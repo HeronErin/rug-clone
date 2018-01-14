@@ -15,12 +15,12 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer};
-use big_integer;
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use integer::ParseIntegerError;
+use integer::big;
 use misc;
 use std::{i32, u32};
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
@@ -271,7 +271,7 @@ fn fmt_radix(
     prefix: &str,
 ) -> fmt::Result {
     let mut s = String::new();
-    big_integer::append_to_string(&mut s, i, radix, to_upper);
+    big::append_to_string(&mut s, i, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

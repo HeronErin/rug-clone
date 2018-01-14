@@ -20,16 +20,17 @@
 //! [`Complex`](../struct.Complex.html).
 
 pub(crate) mod arith;
+pub(crate) mod big;
 mod cmp;
-mod ord_complex;
+mod ord;
 #[cfg(feature = "serde")]
 mod serde;
-mod small_complex;
+mod small;
 mod traits;
 
-pub use big_complex::{ParseComplexError, ValidComplex};
-pub use complex::ord_complex::OrdComplex;
-pub use complex::small_complex::SmallComplex;
+pub use complex::big::{ParseComplexError, ValidComplex};
+pub use complex::ord::OrdComplex;
+pub use complex::small::SmallComplex;
 
 /// The `Prec` trait is used to specify the precision of the real and
 /// imaginary parts of a [`Complex`](../struct.Complex.html) number.

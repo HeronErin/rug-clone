@@ -36,15 +36,16 @@
 //! ```
 
 mod arith;
+pub(crate) mod big;
 mod cmp;
 mod division;
 #[cfg(feature = "serde")]
 mod serde;
-pub(crate) mod small_integer;
+pub(crate) mod small;
 mod traits;
 
-pub use big_integer::{IsPrime, ParseIntegerError, ValidInteger};
-pub use integer::small_integer::SmallInteger;
+pub use integer::big::{IsPrime, ParseIntegerError, ValidInteger};
+pub use integer::small::SmallInteger;
 
 #[cfg(test)]
 mod tests {

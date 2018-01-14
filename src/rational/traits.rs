@@ -15,10 +15,10 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer, Rational};
-use big_rational;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use rational::ParseRationalError;
+use rational::big;
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -260,7 +260,7 @@ fn fmt_radix(
     prefix: &str,
 ) -> fmt::Result {
     let mut s = String::new();
-    big_rational::append_to_string(&mut s, r, radix, to_upper);
+    big::append_to_string(&mut s, r, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

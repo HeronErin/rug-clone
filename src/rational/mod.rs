@@ -20,14 +20,15 @@
 //! numbers of type [`Rational`](../struct.Rational.html).
 
 mod arith;
+pub(crate) mod big;
 mod cmp;
 #[cfg(feature = "serde")]
 mod serde;
-mod small_rational;
+mod small;
 mod traits;
 
-pub use big_rational::{MutNumerDenom, ParseRationalError, ValidRational};
-pub use rational::small_rational::SmallRational;
+pub use rational::big::{MutNumerDenom, ParseRationalError, ValidRational};
+pub use rational::small::SmallRational;
 
 #[cfg(test)]
 mod tests {

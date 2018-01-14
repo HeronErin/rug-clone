@@ -20,7 +20,7 @@ use cast::cast;
 use gmp_mpfr_sys::gmp;
 use inner::InnerMut;
 use integer::SmallInteger;
-use integer::small_integer::{Mpz, LIMBS_IN_SMALL_INTEGER};
+use integer::small::{Mpz, LIMBS_IN_SMALL_INTEGER};
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;

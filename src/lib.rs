@@ -197,32 +197,24 @@ pub mod ops;
 mod ops_prim;
 
 #[cfg(feature = "integer")]
-mod big_integer;
-#[cfg(feature = "integer")]
-pub use big_integer::Integer;
-#[cfg(feature = "integer")]
 pub mod integer;
+#[cfg(feature = "integer")]
+pub use integer::big::Integer;
 
-#[cfg(feature = "rational")]
-mod big_rational;
-#[cfg(feature = "rational")]
-pub use big_rational::Rational;
 #[cfg(feature = "rational")]
 pub mod rational;
+#[cfg(feature = "rational")]
+pub use rational::big::Rational;
 
-#[cfg(feature = "float")]
-mod big_float;
-#[cfg(feature = "float")]
-pub use big_float::Float;
 #[cfg(feature = "float")]
 pub mod float;
+#[cfg(feature = "float")]
+pub use float::big::Float;
 
 #[cfg(feature = "complex")]
-mod big_complex;
-#[cfg(feature = "complex")]
-pub use big_complex::Complex;
-#[cfg(feature = "complex")]
 pub mod complex;
+#[cfg(feature = "complex")]
+pub use complex::big::Complex;
 
 #[cfg(feature = "rand")]
 pub mod rand;

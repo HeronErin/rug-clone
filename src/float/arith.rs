@@ -19,9 +19,9 @@ use Float;
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use big_float::{raw_round, ordering1};
 use ext::mpfr as xmpfr;
 use float::Round;
+use float::big::{raw_round, ordering1};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,

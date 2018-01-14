@@ -15,12 +15,12 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Float};
-use big_float;
 use cast::cast;
 use complex::{OrdComplex, Prec};
 use complex::arith::{AddMulRef, SubMulFromRef};
 use ext::mpc as xmpc;
 use float::{self, ParseFloatError, Round, Special, ValidFloat};
+use float::big as big_float;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};

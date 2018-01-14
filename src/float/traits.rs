@@ -19,10 +19,10 @@ use {Assign, Float};
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use big_float::{self, raw_round, ordering1};
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
+use float::big::{self, raw_round, ordering1};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use misc;
@@ -424,7 +424,7 @@ fn fmt_radix(
     prefix: &str,
 ) -> fmt::Result {
     let mut s = String::new();
-    big_float::append_to_string(
+    big::append_to_string(
         &mut s,
         flt,
         radix,

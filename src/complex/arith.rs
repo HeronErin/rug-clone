@@ -17,7 +17,7 @@
 use {Complex, Float};
 #[cfg(feature = "integer")]
 use Integer;
-use big_complex::{Ordering2, Round2, ordering2, raw_round2};
+use complex::big::{Ordering2, Round2, ordering2, raw_round2};
 use ext::mpc as xmpc;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use inner::{Inner, InnerMut};

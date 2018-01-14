@@ -18,7 +18,7 @@ use {Assign, Complex};
 
 use ext::mpfr as xmpfr;
 use float::SmallFloat;
-use float::small_float::{Mpfr, LIMBS_IN_SMALL_FLOAT};
+use float::small::{Mpfr, LIMBS_IN_SMALL_FLOAT};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::mem;

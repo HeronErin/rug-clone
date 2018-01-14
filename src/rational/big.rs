@@ -15,11 +15,11 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer};
-use big_integer;
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use inner::{Inner, InnerMut};
+use integer::big as big_integer;
 use misc;
 use std::cmp::Ordering;
 use std::error::Error;

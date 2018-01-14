@@ -20,17 +20,18 @@
 //! [`Float`](../struct.Float.html).
 
 pub(crate) mod arith;
+pub(crate) mod big;
 mod cmp;
-mod ord_float;
+mod ord;
 #[cfg(feature = "serde")]
 mod serde;
-pub(crate) mod small_float;
+pub(crate) mod small;
 mod traits;
 
-pub use big_float::{ParseFloatError, ValidFloat};
 use cast::cast;
-pub use float::ord_float::OrdFloat;
-pub use float::small_float::SmallFloat;
+pub use float::big::{ParseFloatError, ValidFloat};
+pub use float::ord::OrdFloat;
+pub use float::small::SmallFloat;
 use gmp_mpfr_sys::mpfr;
 use std::{i32, u32};
 use std::mem;

@@ -19,9 +19,9 @@ use Float;
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use big_float::ordering1;
 use cast::cast;
 use ext::mpfr as xmpfr;
+use float::big::ordering1;
 use gmp_mpfr_sys::mpfr;
 use inner::Inner;
 use std::{i32, u32};
