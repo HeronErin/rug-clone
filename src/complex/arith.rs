@@ -19,12 +19,14 @@ use {Complex, Float};
 use Integer;
 use complex::big::{Ordering2, Round2, ordering2, raw_round2};
 use ext::mpc as xmpc;
+use float::Special;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
           DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
           NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
           SubAssignRound, SubFrom, SubFromRound};
+use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
@@ -551,7 +553,38 @@ unsafe fn mul_sub(
     xmpc::mulsub(rop, (mul.lhs.inner(), mul.rhs.inner()), sub, rnd)
 }
 
-sum_prod! { Complex, Complex::with_val(53, 0), Complex::with_val(53, 1) }
+// use Complex::sum instead of fold! for iterator sum, to get correct rounding
+
+impl Sum for Complex {
+    #[inline]
+    fn sum<I>(mut iter: I) -> Complex
+    where
+        I: Iterator<Item = Complex>,
+    {
+        match iter.next() {
+            Some(first) => {
+                let others = iter.collect::<Vec<_>>();
+                first + Complex::sum(others.iter())
+            }
+            None => Complex::with_val(53, Special::Zero),
+        }
+    }
+}
+
+impl<'a> Sum<&'a Complex> for Complex {
+    #[inline]
+    fn sum<I>(mut iter: I) -> Complex
+    where
+        I: Iterator<Item = &'a Complex>,
+    {
+        match iter.next() {
+            Some(first) => first.clone() + Complex::sum(iter),
+            None => Complex::with_val(53, Special::Zero),
+        }
+    }
+}
+
+fold! { Complex, Product product, Complex::with_val(53, 1), Mul::mul }
 
 #[cfg(test)]
 mod tests {

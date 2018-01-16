@@ -20,6 +20,7 @@ use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use std::i32;
+use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 
@@ -87,7 +88,8 @@ arith_prim! {
     Rational; xgmp::mpq_pow_ui; Pow pow; PowAssign pow_assign; u32; PowRefU32
 }
 
-sum_prod! { Rational, Rational::new(), Rational::from(1) }
+fold! { Rational, Sum sum, Rational::new(), Add::add }
+fold! { Rational, Product product, Rational::from(1), Mul::mul }
 
 #[cfg(test)]
 mod tests {

@@ -20,6 +20,7 @@ use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom,
           NegAssign, NotAssign, Pow, PowAssign, RemFrom, SubFrom};
+use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
@@ -307,7 +308,8 @@ mul_op_noncommut! {
     SubMulRefI32 SubMulRefFromI32
 }
 
-sum_prod! { Integer, Integer::new(), Integer::from(1) }
+fold! { Integer, Sum sum, Integer::new(), Add::add }
+fold! { Integer, Product product, Integer::from(1), Mul::mul }
 
 #[cfg(test)]
 mod tests {

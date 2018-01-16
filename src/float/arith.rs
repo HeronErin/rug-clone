@@ -20,7 +20,7 @@ use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use ext::mpfr as xmpfr;
-use float::Round;
+use float::{Round, Special};
 use float::big::{raw_round, ordering1};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
@@ -30,6 +30,7 @@ use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
           SubAssignRound, SubFrom, SubFromRound};
 use std::{i32, u32};
 use std::cmp::Ordering;
+use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
@@ -674,7 +675,38 @@ unsafe fn mul_sub(
     mpfr::fms(rop, mul.lhs.inner(), mul.rhs.inner(), sub, rnd)
 }
 
-sum_prod! { Float, Float::with_val(53, 0), Float::with_val(53, 1) }
+// use Float::sum instead of fold! for iterator sum, to get correct rounding
+
+impl Sum for Float {
+    #[inline]
+    fn sum<I>(mut iter: I) -> Float
+    where
+        I: Iterator<Item = Float>,
+    {
+        match iter.next() {
+            Some(first) => {
+                let others = iter.collect::<Vec<_>>();
+                first + Float::sum(others.iter())
+            }
+            None => Float::with_val(53, Special::Zero),
+        }
+    }
+}
+
+impl<'a> Sum<&'a Float> for Float {
+    #[inline]
+    fn sum<I>(mut iter: I) -> Float
+    where
+        I: Iterator<Item = &'a Float>,
+    {
+        match iter.next() {
+            Some(first) => first.clone() + Float::sum(iter),
+            None => Float::with_val(53, Special::Zero),
+        }
+    }
+}
+
+fold! { Float, Product product, Float::with_val(53, 1), Mul::mul }
 
 #[cfg(test)]
 mod tests {

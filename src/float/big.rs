@@ -27,7 +27,7 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
 use misc;
-use ops::{AssignRound, NegAssign};
+use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -39,7 +39,7 @@ use std::ffi::CStr;
 use std::marker::PhantomData;
 use std::mem;
 use std::num::FpCategory;
-use std::ops::Deref;
+use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
 use std::slice;
@@ -2144,6 +2144,47 @@ impl Float {
             mpfr::set_emax(save_emax);
             ordering1(ret)
         }
+    }
+
+    /// Adds a list of `Float` values with correct rounding.
+    ///
+    /// `AssignRound<Src> for Float`, `Add<Src> for Float`,
+    /// `AddAssign<Src> for Float` and `AddAssignRound<Src> for Float`
+    /// are implemented with the returned object as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// use rug::float::Round;
+    /// use rug::ops::AddAssignRound;
+    /// use std::cmp::Ordering;
+    ///
+    /// // Give each value only 4 bits of precision for example purposes.
+    /// let values = [
+    ///     Float::with_val(4, 5.0),
+    ///     Float::with_val(4, 1024.0),
+    ///     Float::with_val(4, -1024.0),
+    ///     Float::with_val(4, -4.5),
+    /// ];
+    /// let sum_values = Float::sum(values.iter());
+    ///
+    /// // The result should still be exact if it fits.
+    /// let sum = Float::with_val(4, sum_values.clone());
+    /// assert_eq!(sum, 0.5);
+    ///
+    /// let mut f = Float::with_val(4, 15.0);
+    /// // 15.5 using 4 bits of precision becomes 16.0
+    /// let dir = f.add_assign_round(sum_values, Round::Nearest);
+    /// assert_eq!(f, 16.0);
+    /// assert_eq!(dir, Ordering::Greater);
+    /// ```
+    #[inline]
+    pub fn sum<'a, I>(values: I) -> SumRef<'a, I>
+    where
+        I: Iterator<Item = &'a Self>,
+    {
+        SumRef { values }
     }
 
     /// Multiplies and adds in one fused operation, rounding to the
@@ -7516,6 +7557,79 @@ impl Float {
         rng: &'a mut RandState<'b>,
     ) -> RandomExp<'a, 'b> {
         RandomExp { rng }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct SumRef<'a, I>
+where
+    I: Iterator<Item = &'a Float>,
+{
+    values: I,
+}
+
+impl<'a, I> AssignRound<SumRef<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Float>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: SumRef<'a, I>, round: Round) -> Ordering {
+        let refs = src.values
+            .map(|r| r.inner() as *const mpfr_t)
+            .collect::<Vec<_>>();
+        let tab = refs.as_ptr() as *mut *mut mpfr_t;
+        let n = cast(refs.len());
+        let ret =
+            unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
+        ordering1(ret)
+    }
+}
+
+impl<'a, I> Add<SumRef<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Float>,
+{
+    type Output = Float;
+    #[inline]
+    fn add(mut self, rhs: SumRef<'a, I>) -> Self {
+        self.add_assign_round(rhs, Round::Nearest);
+        self
+    }
+}
+
+impl<'a, I> AddAssign<SumRef<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Float>,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: SumRef<'a, I>) {
+        self.add_assign_round(rhs, Round::Nearest);
+    }
+}
+
+impl<'a, I> AddAssignRound<SumRef<'a, I>> for Float
+where
+    I: Iterator<Item = &'a Float>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn add_assign_round(
+        &mut self,
+        src: SumRef<'a, I>,
+        round: Round,
+    ) -> Ordering {
+        let mut refs = match src.values.size_hint() {
+            (_, None) => Vec::new(),
+            (_, Some(upper)) => Vec::with_capacity(upper + 1),
+        };
+        refs.push(self.inner() as *const mpfr_t);
+        refs.extend(src.values.map(|r| r.inner() as *const mpfr_t));
+        let tab = refs.as_ptr() as *mut *mut mpfr_t;
+        let n = cast(refs.len());
+        let ret =
+            unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
+        ordering1(ret)
     }
 }
 

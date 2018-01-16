@@ -26,14 +26,14 @@ use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 #[cfg(feature = "rand")]
 use misc;
-use ops::{AssignRound, NegAssign};
+use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::c_int;
 use std::ptr;
 use std::slice;
@@ -1256,6 +1256,48 @@ impl Complex {
                 Some(ordering1(mpc::cmp_abs(self.inner(), other.inner())))
             }
         }
+    }
+
+    /// Adds a list of `Complex` numbers with correct rounding.
+    ///
+    /// `AssignRound<Src> for Complex`, `Add<Src> for Complex`,
+    /// `AddAssign<Src> for Complex` and
+    /// `AddAssignRound<Src> for Complex` are implemented with the
+    /// returned object as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use rug::ops::AddAssignRound;
+    /// use std::cmp::Ordering;
+    ///
+    /// // Give each value only 4 bits of precision for example purposes.
+    /// let values = [
+    ///     Complex::with_val(4, (5.0, 1024.0)),
+    ///     Complex::with_val(4, (1024.0, 15.0)),
+    ///     Complex::with_val(4, (-1024.0, -1024.0)),
+    ///     Complex::with_val(4, (-4.5, -16.0)),
+    /// ];
+    /// let sum_values = Complex::sum(values.iter());
+    ///
+    /// // The result should still be exact if it fits.
+    /// let sum = Complex::with_val(4, sum_values.clone());
+    /// assert_eq!(sum, (0.5, -1.0));
+    ///
+    /// let mut f = Complex::with_val(4, (1.0, -1.0));
+    /// let round = (Round::Nearest, Round::Nearest);
+    /// let dir = f.add_assign_round(sum_values, round);
+    /// assert_eq!(f, (1.5, -2.0));
+    /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
+    /// ```
+    #[inline]
+    pub fn sum<'a, I>(values: I) -> SumRef<'a, I>
+    where
+        I: Iterator<Item = &'a Self>,
+    {
+        SumRef { values }
     }
 
     /// Multiplies and adds in one fused operation, rounding to the
@@ -3306,6 +3348,106 @@ impl Complex {
         round: Round2,
     ) -> Ordering2 {
         self.assign_round(Complex::random_cont(rng), round)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct SumRef<'a, I>
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    values: I,
+}
+
+impl<'a, I> AssignRound<SumRef<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn assign_round(&mut self, src: SumRef<'a, I>, round: Round2) -> Ordering2 {
+        let (mut reals, mut imags) = match src.values.size_hint() {
+            (_, None) => (Vec::new(), Vec::new()),
+            (_, Some(upper)) => {
+                (Vec::with_capacity(upper), Vec::with_capacity(upper))
+            }
+        };
+        for value in src.values {
+            let (real, imag) = value.as_real_imag();
+            reals.push(real.inner() as *const mpfr::mpfr_t);
+            imags.push(imag.inner() as *const mpfr::mpfr_t);
+        }
+        let tab_real = reals.as_ptr() as *mut *mut mpfr::mpfr_t;
+        let tab_imag = imags.as_ptr() as *mut *mut mpfr::mpfr_t;
+        let n = cast(reals.len());
+        let (ord_real, ord_imag) = unsafe {
+            let (real, imag) = self.as_mut_real_imag();
+            (
+                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
+                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
+            )
+        };
+        (ordering1(ord_real), ordering1(ord_imag))
+    }
+}
+
+impl<'a, I> Add<SumRef<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    type Output = Complex;
+    #[inline]
+    fn add(mut self, rhs: SumRef<'a, I>) -> Self {
+        self.add_assign_round(rhs, Default::default());
+        self
+    }
+}
+
+impl<'a, I> AddAssign<SumRef<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: SumRef<'a, I>) {
+        self.add_assign_round(rhs, Default::default());
+    }
+}
+
+impl<'a, I> AddAssignRound<SumRef<'a, I>> for Complex
+where
+    I: Iterator<Item = &'a Complex>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn add_assign_round(
+        &mut self,
+        src: SumRef<'a, I>,
+        round: Round2,
+    ) -> Ordering2 {
+        let (mut reals, mut imags) = match src.values.size_hint() {
+            (_, None) => (Vec::new(), Vec::new()),
+            (_, Some(upper)) => {
+                (Vec::with_capacity(upper + 1), Vec::with_capacity(upper + 1))
+            }
+        };
+        reals.push(self.real().inner() as *const mpfr::mpfr_t);
+        imags.push(self.imag().inner() as *const mpfr::mpfr_t);
+        for value in src.values {
+            let (real, imag) = value.as_real_imag();
+            reals.push(real.inner() as *const mpfr::mpfr_t);
+            imags.push(imag.inner() as *const mpfr::mpfr_t);
+        }
+        let tab_real = reals.as_ptr() as *mut *mut mpfr::mpfr_t;
+        let tab_imag = imags.as_ptr() as *mut *mut mpfr::mpfr_t;
+        let n = cast(reals.len());
+        let (ord_real, ord_imag) = unsafe {
+            let (real, imag) = self.as_mut_real_imag();
+            (
+                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
+                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
+            )
+        };
+        (ordering1(ord_real), ordering1(ord_imag))
     }
 }
 

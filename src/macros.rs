@@ -3071,56 +3071,30 @@ macro_rules! mul_op_noncommut_round {
 }
 
 #[cfg(any(feature = "integer", feature = "float"))]
-macro_rules! sum_prod {
-    { $Big:ty, $zero:expr, $one:expr } => {
-        impl ::std::iter::Sum for $Big {
+macro_rules! fold {
+    { $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper:path } => {
+        impl $Imp for $Big {
             #[inline]
-            fn sum<I>(mut iter: I) -> $Big
+            fn $method<I>(mut iter: I) -> $Big
             where
                 I: ::std::iter::Iterator<Item = $Big>,
             {
                 match iter.next() {
-                    Some(first) => iter.fold(first, Add::add),
-                    None => $zero,
+                    Some(first) => iter.fold(first, $oper),
+                    None => $ident,
                 }
             }
         }
 
-        impl<'a> ::std::iter::Sum<&'a $Big> for $Big {
+        impl<'a> $Imp<&'a $Big> for $Big {
             #[inline]
-            fn sum<I>(mut iter: I) -> $Big
+            fn $method<I>(mut iter: I) -> $Big
             where
                 I: ::std::iter::Iterator<Item = &'a $Big>,
             {
                 match iter.next() {
-                    Some(first) => iter.fold(first.clone(), Add::add),
-                    None => $zero,
-                }
-            }
-        }
-
-        impl ::std::iter::Product for $Big {
-            #[inline]
-            fn product<I>(mut iter: I) -> $Big
-            where
-                I: ::std::iter::Iterator<Item = $Big>,
-            {
-                match iter.next() {
-                    Some(first) => iter.fold(first, Mul::mul),
-                    None => $one,
-                }
-            }
-        }
-
-        impl<'a> ::std::iter::Product<&'a $Big> for $Big {
-            #[inline]
-            fn product<I>(mut iter: I) -> $Big
-            where
-                I: ::std::iter::Iterator<Item = &'a $Big>,
-            {
-                match iter.next() {
-                    Some(first) => iter.fold(first.clone(), Mul::mul),
-                    None => $one,
+                    Some(first) => iter.fold(first.clone(), $oper),
+                    None => $ident,
                 }
             }
         }
