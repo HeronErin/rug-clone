@@ -1269,9 +1269,6 @@ impl Complex {
     ///
     /// ```rust
     /// use rug::Complex;
-    /// use rug::float::Round;
-    /// use rug::ops::AddAssignRound;
-    /// use std::cmp::Ordering;
     ///
     /// // Give each value only 4 bits of precision for example purposes.
     /// let values = [
@@ -1283,14 +1280,11 @@ impl Complex {
     /// let sum_values = Complex::sum(values.iter());
     ///
     /// // The result should still be exact if it fits.
-    /// let sum = Complex::with_val(4, sum_values.clone());
-    /// assert_eq!(sum, (0.5, -1.0));
+    /// let sum1 = Complex::with_val(4, sum_values.clone());
+    /// assert_eq!(sum1, (0.5, -1.0));
     ///
-    /// let mut f = Complex::with_val(4, (1.0, -1.0));
-    /// let round = (Round::Nearest, Round::Nearest);
-    /// let dir = f.add_assign_round(sum_values, round);
-    /// assert_eq!(f, (1.5, -2.0));
-    /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
+    /// let sum2 = Complex::with_val(4, (1.0, -1.0)) + sum_values;
+    /// assert_eq!(sum2, (1.5, -2.0));
     /// ```
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumRef<'a, I>
