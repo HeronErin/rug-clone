@@ -51,7 +51,7 @@ for features in '' gmp-mpfr-sys{,/mpfr,/mpc} \
 		rand{,\,serde} \
 		serde
 do
-	if [[ "$features" =~ ^(|serde)$ ]]; then
+	if [[ "$features" =~ ^(()|serde)$ ]]; then
 		gmp=""
 	else
 		gmp="-p gmp-mpfr-sys"
