@@ -19,9 +19,9 @@
 // UNDEFINED BEHAVIOUR WARNING:
 //
 // Not all the fields of randstate_t are used, and thus GMP does not
-// initialize all the fields. So we must use clear_unused_fields(),
-// otherwise, we may have uninitialized memory which can lead to
-// undefined behaviour.
+// initialize all the fields. So we must use mem::zeroed rather than
+// mem::uninitialized, otherwise we may have uninitialized memory
+// which can eventually lead to undefined behaviour.
 
 use Integer;
 use inner::{Inner, InnerMut};
@@ -60,9 +60,8 @@ impl<'a> Clone for RandState<'a> {
     #[inline]
     fn clone(&self) -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.inner());
-            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -98,9 +97,8 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn new() -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_default(&mut inner);
-            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -120,9 +118,8 @@ impl<'a> RandState<'a> {
     /// ```
     pub fn new_mersenne_twister() -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_mt(&mut inner);
-            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -154,9 +151,8 @@ impl<'a> RandState<'a> {
         bits: u32,
     ) -> RandState<'a> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
-            clear_unused_fields(&mut inner);
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -189,9 +185,8 @@ impl<'a> RandState<'a> {
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
-            let mut inner = mem::uninitialized();
+            let mut inner = mem::zeroed();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
-                clear_unused_fields(&mut inner);
                 Some(RandState {
                     inner,
                     phantom: PhantomData,
@@ -324,7 +319,16 @@ impl<'a> RandState<'a> {
     ///
     /// # Safety
     ///
-    /// * The value must be initialized.
+    /// * The value must be initialized. Note that the GMP functions
+    ///   do not initialize all fields of the
+    ///   `gmp_mpfr_sys::gmp::randstate_t` object, which can
+    ///   eventually lead to reading uninitialized memory, and that is
+    ///   undefined behaviour in Rust even if no decision is made
+    ///   using the read value. One way to ensure that there is no
+    ///   uninitialized memory inside `raw` is to use `mem::zeroed` to
+    ///   initialize `raw` before initializing with a function such as
+    ///   `gmp_mpfr_sys::gmp::randinit_default`, like in the example
+    ///   below.
     /// * The `gmp_mpfr_sys::gmp::randstate_t` type can be considered
     ///   as a kind of pointer, so there can be multiple copies of it.
     ///   Since this function takes over ownership, no other copies of
@@ -340,10 +344,12 @@ impl<'a> RandState<'a> {
     /// use std::mem;
     /// fn main() {
     ///     let mut rand = unsafe {
-    ///         let mut r = mem::uninitialized();
-    ///         gmp::randinit_default(&mut r);
-    ///         // r is initialized and unique
-    ///         RandState::from_raw(r)
+    ///         // Do not use mem::uninitialized, as gmp::randinit_default
+    ///         // does not initialize all of the fields of raw.
+    ///         let mut raw = mem::zeroed();
+    ///         gmp::randinit_default(&mut raw);
+    ///         // raw is initialized and unique
+    ///         RandState::from_raw(raw)
     ///     };
     ///     let u = rand.bits(32);
     ///     println!("32 random bits: {:032b}", u);
@@ -351,8 +357,7 @@ impl<'a> RandState<'a> {
     /// }
     /// ```
     #[inline]
-    pub unsafe fn from_raw(mut raw: randstate_t) -> RandState<'a> {
-        clear_unused_fields(&mut raw);
+    pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
         RandState {
             inner: raw,
             phantom: PhantomData,
@@ -372,12 +377,12 @@ impl<'a> RandState<'a> {
     /// use rug::rand::RandState;
     /// fn main() {
     ///     let rand = RandState::new();
-    ///     let mut r = rand.into_raw();
+    ///     let mut raw = rand.into_raw();
     ///     unsafe {
-    ///         let u = gmp::urandomb_ui(&mut r, 32) as u32;
+    ///         let u = gmp::urandomb_ui(&mut raw, 32) as u32;
     ///         println!("32 random bits: {:032b}", u);
     ///         // free object to prevent memory leak
-    ///         gmp::randclear(&mut r);
+    ///         gmp::randclear(&mut raw);
     ///     }
     /// }
     /// ```
@@ -398,9 +403,9 @@ impl<'a> RandState<'a> {
     /// ```rust
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let r_ptr = rand.as_raw();
-    /// // there is not much you can do with an immutable randstate_t
-    /// println!("pointer: {:p}", r_ptr);
+    /// let raw_ptr = rand.as_raw();
+    /// // There is not much you can do with an immutable randstate_t pointer.
+    /// println!("pointer: {:p}", raw_ptr);
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
@@ -424,9 +429,9 @@ impl<'a> RandState<'a> {
     /// use rug::rand::RandState;
     /// fn main() {
     ///     let mut rand = RandState::new();
-    ///     let r_ptr = rand.as_raw_mut();
+    ///     let raw_ptr = rand.as_raw_mut();
     ///     unsafe {
-    ///         let u1 = gmp::urandomb_ui(r_ptr, 32) as u32;
+    ///         let u1 = gmp::urandomb_ui(raw_ptr, 32) as u32;
     ///         println!("32 random bits: {:032b}", u1);
     ///     }
     ///     let u2 = rand.bits(32);
@@ -652,15 +657,6 @@ const CUSTOM_FUNCS: Funcs = Funcs {
     _clear: Some(custom_clear),
     _iset: Some(custom_iset),
 };
-
-unsafe fn clear_unused_fields(rand: *mut randstate_t) {
-    // sanity check
-    assert_eq!(mem::size_of::<MpRandState>(), mem::size_of::<randstate_t>());
-    let state = rand as *mut MpRandState;
-    (*state).seed.alloc = 0;
-    (*state).seed.size = 0;
-    (*state).alg = 0;
-}
 
 impl<'a> Inner for RandState<'a> {
     type Output = randstate_t;
