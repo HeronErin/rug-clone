@@ -7384,8 +7384,7 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continuous range 0 ≤ *x* < 1,
-    /// and rounds to the nearest.
+    /// Generates a random number in the continuous range 0 ≤ *x* < 1.
     ///
     /// The result can be rounded up to be equal to one. Unlike the
     /// [`random_bits`](#method.random_bits) method which generates a
