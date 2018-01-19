@@ -982,6 +982,7 @@ impl Complex {
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.imag(), -20.75)
+    /// ```
     #[inline]
     pub fn imag(&self) -> &Float {
         unsafe { &*(mpc::imagref_const(self.inner()) as *const _) }
@@ -2202,6 +2203,7 @@ impl Complex {
         /// let dir = c.ln_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.46875, -0.3125));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
+        /// ```
         fn ln_round;
         /// Computes the natural logarithm;
         ///
@@ -2261,6 +2263,7 @@ impl Complex {
         /// let dir = c.log10_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.203125, -0.140625));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+        /// ```
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
@@ -2341,6 +2344,7 @@ impl Complex {
         /// let dir = c.exp_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1.25, -1.125));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+        /// ```
         fn exp_round;
         /// Computes the exponential.
         ///
@@ -2399,6 +2403,7 @@ impl Complex {
         /// let dir = c.sin_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1.25, 0.625));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+        /// ```
         fn sin_round;
         /// Computes the sine.
         ///
@@ -2457,6 +2462,7 @@ impl Complex {
         /// let dir = c.cos_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.8125, -1));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+        /// ```
         fn cos_round;
         /// Computes the cosine.
         ///
@@ -2616,6 +2622,7 @@ impl Complex {
         /// let dir = c.tan_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.28125, 1.125));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
+        /// ```
         fn tan_round;
         /// Computes the tangent.
         ///
@@ -2675,6 +2682,7 @@ impl Complex {
         /// let dir = c.sinh_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.625, 1.25));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+        /// ```
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
@@ -2734,6 +2742,7 @@ impl Complex {
         /// let dir = c.cosh_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.8125, 1));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+        /// ```
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
@@ -2793,6 +2802,7 @@ impl Complex {
         /// let dir = c.tanh_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1.125, 0.28125));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
+        /// ```
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         ///
@@ -2852,6 +2862,7 @@ impl Complex {
         /// let dir = c.asin_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.6875, 1));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+        /// ```
         fn asin_round;
         /// Computes the inverse sine.
         ///
@@ -2911,6 +2922,7 @@ impl Complex {
         /// let dir = c.acos_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.875, -1));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+        /// ```
         fn acos_round;
         /// Computes the inverse cosine.
         ///
@@ -2970,6 +2982,7 @@ impl Complex {
         /// let dir = c.atan_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1, 0.40625));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+        /// ```
         fn atan_round;
         /// Computes the inverse tangent.
         ///
@@ -3029,6 +3042,7 @@ impl Complex {
         /// let dir = c.asinh_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1, 0.6875));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
+        /// ```
         fn asinh_round;
         /// Computes the inverse hyperboic sine.
         ///
@@ -3090,6 +3104,7 @@ impl Complex {
         /// let dir = c.acosh_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1, 0.875));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
+        /// ```
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine.
         ///
@@ -3151,6 +3166,7 @@ impl Complex {
         /// let dir = c.atanh_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.40625, 1));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+        /// ```
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///

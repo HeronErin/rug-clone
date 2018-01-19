@@ -77,6 +77,7 @@ impl OrdFloat {
     /// let ord = OrdFloat::from(f);
     /// let f_ref = ord.as_float();
     /// assert_eq!(f_ref.to_f64(), 1.5);
+    /// ```
     pub fn as_float(&self) -> &Float {
         &self.inner
     }
@@ -92,6 +93,7 @@ impl OrdFloat {
     /// let mut ord = OrdFloat::from(f);
     /// ord.as_float_mut().abs_mut();
     /// assert_eq!(ord.as_float().to_f64(), 1.5);
+    /// ```
     pub fn as_float_mut(&mut self) -> &mut Float {
         &mut self.inner
     }

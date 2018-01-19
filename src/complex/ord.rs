@@ -70,6 +70,7 @@ impl OrdComplex {
     /// let (re, im) = c_ref.as_real_imag();
     /// assert_eq!(*re, 1.5);
     /// assert_eq!(*im, 2.5);
+    /// ```
     pub fn as_complex(&self) -> &Complex {
         &self.inner
     }
@@ -87,6 +88,7 @@ impl OrdComplex {
     /// let (re, im) = ord.as_complex().as_real_imag();
     /// assert_eq!(*re, 1.5);
     /// assert_eq!(*im, 2.5);
+    /// ```
     pub fn as_complex_mut(&mut self) -> &mut Complex {
         &mut self.inner
     }

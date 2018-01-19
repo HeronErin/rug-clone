@@ -590,6 +590,7 @@ pub trait PowFrom<Lhs = Self> {
 /// assert_eq!(f.0, 5.0);
 /// assert_eq!(dir, Ordering::Equal);
 /// # }
+/// ```
 pub trait AssignRound<Src = Self> {
     /// The rounding method.
     type Round;

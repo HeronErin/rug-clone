@@ -1481,6 +1481,7 @@ impl Integer {
     /// // 15 is ...00001111
     /// assert_eq!(Integer::from(15).find_zero(0), Some(4));
     /// assert_eq!(Integer::from(15).find_zero(20), Some(20));
+    /// ```
     #[inline]
     pub fn find_zero(&self, start: u32) -> Option<u32> {
         bitcount_to_u32(unsafe { gmp::mpz_scan0(self.inner(), start.into()) })
@@ -1497,6 +1498,7 @@ impl Integer {
     /// // -16 is ...11110000
     /// assert_eq!(Integer::from(-16).find_one(0), Some(4));
     /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
+    /// ```
     #[inline]
     pub fn find_one(&self, start: u32) -> Option<u32> {
         bitcount_to_u32(unsafe { gmp::mpz_scan1(self.inner(), start.into()) })
