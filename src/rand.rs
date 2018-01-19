@@ -192,7 +192,6 @@ impl<'a> RandState<'a> {
                     phantom: PhantomData,
                 })
             } else {
-                mem::forget(inner);
                 None
             }
         }
