@@ -185,7 +185,7 @@ impl Integer {
     /// assert_eq!(i, 0);
     /// ```
     #[inline]
-    pub fn new() -> Integer {
+    pub fn new() -> Self {
         unsafe {
             let mut ret: Integer = mem::uninitialized();
             gmp::mpz_init(ret.inner_mut());
@@ -204,7 +204,7 @@ impl Integer {
     /// assert!(i.capacity() >= 137);
     /// ```
     #[inline]
-    pub fn with_capacity(bits: usize) -> Integer {
+    pub fn with_capacity(bits: usize) -> Self {
         unsafe {
             let mut ret: Integer = mem::uninitialized();
             gmp::mpz_init2(ret.inner_mut(), cast(bits));
@@ -297,7 +297,7 @@ impl Integer {
     /// assert!(neg_inf.is_none());
     /// ```
     #[inline]
-    pub fn from_f32(val: f32) -> Option<Integer> {
+    pub fn from_f32(val: f32) -> Option<Self> {
         Integer::from_f64(val.into())
     }
 
@@ -315,7 +315,7 @@ impl Integer {
     /// assert!(inf.is_none());
     /// ```
     #[inline]
-    pub fn from_f64(val: f64) -> Option<Integer> {
+    pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
             unsafe {
                 let mut i: Integer = mem::uninitialized();
@@ -344,7 +344,7 @@ impl Integer {
     pub fn from_str_radix(
         src: &str,
         radix: i32,
-    ) -> Result<Integer, ParseIntegerError> {
+    ) -> Result<Self, ParseIntegerError> {
         let mut i = Integer::new();
         i.assign_str_radix(src, radix)?;
         Ok(i)
@@ -1048,7 +1048,7 @@ impl Integer {
     /// }
     /// ```
     #[inline]
-    pub unsafe fn from_raw(raw: mpz_t) -> Integer {
+    pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
     }
 
@@ -1234,7 +1234,7 @@ impl Integer {
     /// assert!(!i.is_divisible(&Integer::new()));
     /// ```
     #[inline]
-    pub fn is_divisible(&self, divisor: &Integer) -> bool {
+    pub fn is_divisible(&self, divisor: &Self) -> bool {
         unsafe { gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0 }
     }
 
@@ -1290,7 +1290,7 @@ impl Integer {
     /// assert!(n.is_congruent(&n, &Integer::from(0)));
     /// ```
     #[inline]
-    pub fn is_congruent(&self, c: &Integer, divisor: &Integer) -> bool {
+    pub fn is_congruent(&self, c: &Self, divisor: &Self) -> bool {
         unsafe {
             gmp::mpz_congruent_p(self.inner(), c.inner(), divisor.inner()) != 0
         }
@@ -1331,7 +1331,7 @@ impl Integer {
     /// assert!(!n.is_congruent_2pow(&Integer::from(13 << 17 | 22), 17));
     /// ```
     #[inline]
-    pub fn is_congruent_2pow(&self, c: &Integer, b: u32) -> bool {
+    pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
         unsafe {
             gmp::mpz_congruent_2exp_p(self.inner(), c.inner(), b.into()) != 0
         }
@@ -1412,7 +1412,7 @@ impl Integer {
     /// assert_eq!(a.cmp_abs(&b), Ordering::Greater);
     /// ```
     #[inline]
-    pub fn cmp_abs(&self, other: &Integer) -> Ordering {
+    pub fn cmp_abs(&self, other: &Self) -> Ordering {
         unsafe { gmp::mpz_cmpabs(self.inner(), other.inner()).cmp(&0) }
     }
 
@@ -1515,7 +1515,7 @@ impl Integer {
     /// assert_eq!(*i.set_bit(11, true), 0x8ff);
     /// ```
     #[inline]
-    pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Integer {
+    pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Self {
         unsafe {
             if val {
                 gmp::mpz_setbit(self.inner_mut(), index.into());
@@ -1556,7 +1556,7 @@ impl Integer {
     /// assert_eq!(i, 0b101);
     /// ```
     #[inline]
-    pub fn toggle_bit(&mut self, index: u32) -> &mut Integer {
+    pub fn toggle_bit(&mut self, index: u32) -> &mut Self {
         unsafe {
             gmp::mpz_combit(self.inner_mut(), index.into());
         }
@@ -1579,7 +1579,7 @@ impl Integer {
     /// assert_eq!(Integer::from(-13).hamming_dist(&i), Some(2));
     /// ```
     #[inline]
-    pub fn hamming_dist(&self, other: &Integer) -> Option<u32> {
+    pub fn hamming_dist(&self, other: &Self) -> Option<u32> {
         bitcount_to_u32(unsafe {
             gmp::mpz_hamdist(self.inner(), other.inner())
         })
@@ -1700,13 +1700,9 @@ impl Integer {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max>(
-        mut self,
-        min: &'a Min,
-        max: &'b Max,
-    ) -> Integer
+    pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
-        Integer: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'b Max>,
@@ -1736,7 +1732,7 @@ impl Integer {
     /// Panics if the maximum value is less than the minimum value.
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
-        Integer: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'b Max>,
@@ -1781,7 +1777,7 @@ impl Integer {
         max: &'a Max,
     ) -> ClampRef<'a, Min, Max>
     where
-        Integer: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'a Max>,
@@ -2317,7 +2313,7 @@ impl Integer {
     ///
     /// Panics if `modulo` is zero.
     #[inline]
-    pub fn invert(mut self, modulo: &Integer) -> Result<Integer, Integer> {
+    pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
         if self.invert_mut(modulo) {
             Ok(self)
         } else {
@@ -2347,7 +2343,7 @@ impl Integer {
     ///
     /// Panics if `modulo` is zero.
     #[inline]
-    pub fn invert_mut(&mut self, modulo: &Integer) -> bool {
+    pub fn invert_mut(&mut self, modulo: &Self) -> bool {
         unsafe {
             xgmp::mpz_invert_check(
                 self.inner_mut(),
@@ -2389,7 +2385,7 @@ impl Integer {
     /// println!("d");
     /// ```
     #[inline]
-    pub fn invert_ref<'a>(&'a self, modulo: &'a Integer) -> InvertRef<'a> {
+    pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> InvertRef<'a> {
         InvertRef {
             ref_self: self,
             modulo,
@@ -2439,9 +2435,9 @@ impl Integer {
     #[inline]
     pub fn pow_mod(
         mut self,
-        exponent: &Integer,
-        modulo: &Integer,
-    ) -> Result<Integer, Integer> {
+        exponent: &Self,
+        modulo: &Self,
+    ) -> Result<Self, Self> {
         if self.pow_mod_mut(exponent, modulo) {
             Ok(self)
         } else {
@@ -2473,11 +2469,7 @@ impl Integer {
     /// assert!(exists);
     /// assert_eq!(n, 943);
     /// ```
-    pub fn pow_mod_mut(
-        &mut self,
-        exponent: &Integer,
-        modulo: &Integer,
-    ) -> bool {
+    pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> bool {
         let abs_pow;
         let pow_inner = if exponent.cmp0() == Ordering::Less {
             if !(self.invert_mut(modulo)) {
@@ -2535,8 +2527,8 @@ impl Integer {
     #[inline]
     pub fn pow_mod_ref<'a>(
         &'a self,
-        exponent: &'a Integer,
-        modulo: &'a Integer,
+        exponent: &'a Self,
+        modulo: &'a Self,
     ) -> PowModRef<'a> {
         PowModRef {
             ref_self: self,
@@ -3172,7 +3164,7 @@ impl Integer {
     /// assert_eq!(m.jacobi(&n), -1);
     /// ```
     #[inline]
-    pub fn jacobi(&self, n: &Integer) -> i32 {
+    pub fn jacobi(&self, n: &Self) -> i32 {
         unsafe { gmp::mpz_jacobi(self.inner(), n.inner()) as i32 }
     }
 
@@ -3189,7 +3181,7 @@ impl Integer {
     /// assert_eq!(a.legendre(&p), 1);
     /// ```
     #[inline]
-    pub fn legendre(&self, p: &Integer) -> i32 {
+    pub fn legendre(&self, p: &Self) -> i32 {
         unsafe { gmp::mpz_legendre(self.inner(), p.inner()) as i32 }
     }
 
@@ -3209,7 +3201,7 @@ impl Integer {
     /// assert_eq!(k.kronecker(&n), 0);
     /// ```
     #[inline]
-    pub fn kronecker(&self, n: &Integer) -> i32 {
+    pub fn kronecker(&self, n: &Self) -> i32 {
         unsafe { gmp::mpz_kronecker(self.inner(), n.inner()) as i32 }
     }
 
@@ -3227,7 +3219,7 @@ impl Integer {
     /// assert_eq!(count, 50);
     /// ```
     #[inline]
-    pub fn remove_factor(mut self, factor: &Integer) -> (Integer, u32) {
+    pub fn remove_factor(mut self, factor: &Self) -> (Self, u32) {
         let count = self.remove_factor_mut(factor);
         (self, count)
     }
@@ -3246,7 +3238,7 @@ impl Integer {
     /// assert_eq!(count, 50);
     /// ```
     #[inline]
-    pub fn remove_factor_mut(&mut self, factor: &Integer) -> u32 {
+    pub fn remove_factor_mut(&mut self, factor: &Self) -> u32 {
         let cnt = unsafe {
             gmp::mpz_remove(self.inner_mut(), self.inner(), factor.inner())
         };
@@ -3272,7 +3264,7 @@ impl Integer {
     #[inline]
     pub fn remove_factor_ref<'a>(
         &'a self,
-        factor: &'a Integer,
+        factor: &'a Self,
     ) -> RemoveFactorRef<'a> {
         RemoveFactorRef {
             ref_self: self,
@@ -3528,7 +3520,7 @@ impl Integer {
                          `i.assign_fibonacci_2(j, n)` can be replaced with \
                          `(i, j).assign(Integer::fibonacci_2(n))`.")]
     #[inline]
-    pub fn assign_fibonacci_2(&mut self, previous: &mut Integer, n: u32) {
+    pub fn assign_fibonacci_2(&mut self, previous: &mut Self, n: u32) {
         (self, previous).assign(Integer::fibonacci_2(n));
     }
 
@@ -3598,7 +3590,7 @@ impl Integer {
                          be replaced with \
                          `(i, j).assign(Integer::lucas_2(n))`.")]
     #[inline]
-    pub fn assign_lucas_2(&mut self, previous: &mut Integer, n: u32) {
+    pub fn assign_lucas_2(&mut self, previous: &mut Self, n: u32) {
         (self, previous).assign(Integer::lucas_2(n));
     }
 
@@ -3660,7 +3652,7 @@ impl Integer {
     ///
     /// Panics if the boundary value is less than or equal to zero.
     #[inline]
-    pub fn random_below(mut self, rng: &mut RandState) -> Integer {
+    pub fn random_below(mut self, rng: &mut RandState) -> Self {
         self.random_below_mut(rng);
         self
     }
@@ -3739,7 +3731,7 @@ impl Integer {
     #[inline]
     pub fn assign_random_below<'a, 'b: 'a>(
         &mut self,
-        bound: &'a Integer,
+        bound: &'a Self,
         rng: &'a mut RandState<'b>,
     ) {
         self.assign(bound.random_below_ref(rng));
@@ -3766,10 +3758,7 @@ where
 
 impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Integer
 where
-    Integer: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
+    Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -3789,10 +3778,7 @@ where
 
 impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Integer
 where
-    Integer: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
+    Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {

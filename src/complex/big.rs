@@ -250,7 +250,7 @@ macro_rules! ref_math_op1_2_complex {
 
 impl Complex {
     #[inline]
-    fn new_nan<P: Prec>(prec: P) -> Complex {
+    fn new_nan<P: Prec>(prec: P) -> Self {
         let p = prec.prec();
         assert!(
             p.0 >= float::prec_min() && p.0 <= float::prec_max()
@@ -284,7 +284,7 @@ impl Complex {
     ///
     /// Panics if the precision is out of the allowed range.
     #[inline]
-    pub fn new<P: Prec>(prec: P) -> Complex {
+    pub fn new<P: Prec>(prec: P) -> Self {
         let mut ret = Complex::new_nan(prec);
         ret.mut_real().assign(Special::Zero);
         ret.mut_imag().assign(Special::Zero);
@@ -311,9 +311,9 @@ impl Complex {
     ///
     /// Panics if `prec` is out of the allowed range.
     #[inline]
-    pub fn with_val<P: Prec, T>(prec: P, val: T) -> Complex
+    pub fn with_val<P: Prec, T>(prec: P, val: T) -> Self
     where
-        Complex: Assign<T>,
+        Self: Assign<T>,
     {
         let mut ret = Complex::new_nan(prec);
         ret.assign(val);
@@ -346,9 +346,9 @@ impl Complex {
         prec: P,
         val: T,
         round: Round2,
-    ) -> (Complex, Ordering2)
+    ) -> (Self, Ordering2)
     where
-        Complex: AssignRound<T, Round = Round2, Ordering = Ordering2>,
+        Self: AssignRound<T, Round = Round2, Ordering = Ordering2>,
     {
         let mut ret = Complex::new_nan(prec);
         let ord = ret.assign_round(val, round);
@@ -446,7 +446,7 @@ impl Complex {
     pub fn from_str<P: Prec>(
         src: &str,
         prec: P,
-    ) -> Result<Complex, ParseComplexError> {
+    ) -> Result<Self, ParseComplexError> {
         let mut val = Complex::new_nan(prec);
         val.assign_str(src)?;
         Ok(val)
@@ -479,7 +479,7 @@ impl Complex {
         src: &str,
         prec: P,
         round: Round2,
-    ) -> Result<(Complex, Ordering2), ParseComplexError> {
+    ) -> Result<(Self, Ordering2), ParseComplexError> {
         let mut val = Complex::new_nan(prec);
         let ord = val.assign_str_round(src, round)?;
         Ok((val, ord))
@@ -511,7 +511,7 @@ impl Complex {
         src: &str,
         radix: i32,
         prec: P,
-    ) -> Result<Complex, ParseComplexError> {
+    ) -> Result<Self, ParseComplexError> {
         let mut val = Complex::new_nan(prec);
         val.assign_str_radix(src, radix)?;
         Ok(val)
@@ -549,7 +549,7 @@ impl Complex {
         radix: i32,
         prec: P,
         round: Round2,
-    ) -> Result<(Complex, Ordering2), ParseComplexError> {
+    ) -> Result<(Self, Ordering2), ParseComplexError> {
         let mut val = Complex::new_nan(prec);
         let ord = val.assign_str_radix_round(src, radix, round)?;
         Ok((val, ord))
@@ -864,7 +864,7 @@ impl Complex {
     /// }
     /// ```
     #[inline]
-    pub unsafe fn from_raw(raw: mpc_t) -> Complex {
+    pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
     }
 
@@ -1246,7 +1246,7 @@ impl Complex {
     /// assert_eq!(a.cmp_abs(&c), Some(Ordering::Less));
     /// ```
     #[inline]
-    pub fn cmp_abs(&self, other: &Complex) -> Option<Ordering> {
+    pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
         unsafe {
             if self.real().is_nan() || self.imag().is_nan()
                 || other.real().is_nan() || other.imag().is_nan()
@@ -3355,7 +3355,7 @@ where
 
 impl<'a, I> AssignRound<SumRef<'a, I>> for Complex
 where
-    I: Iterator<Item = &'a Complex>,
+    I: Iterator<Item = &'a Self>,
 {
     type Round = Round2;
     type Ordering = Ordering2;
@@ -3387,9 +3387,9 @@ where
 
 impl<'a, I> Add<SumRef<'a, I>> for Complex
 where
-    I: Iterator<Item = &'a Complex>,
+    I: Iterator<Item = &'a Self>,
 {
-    type Output = Complex;
+    type Output = Self;
     #[inline]
     fn add(mut self, rhs: SumRef<'a, I>) -> Self {
         self.add_assign_round(rhs, Default::default());
@@ -3399,7 +3399,7 @@ where
 
 impl<'a, I> AddAssign<SumRef<'a, I>> for Complex
 where
-    I: Iterator<Item = &'a Complex>,
+    I: Iterator<Item = &'a Self>,
 {
     #[inline]
     fn add_assign(&mut self, rhs: SumRef<'a, I>) {
@@ -3409,7 +3409,7 @@ where
 
 impl<'a, I> AddAssignRound<SumRef<'a, I>> for Complex
 where
-    I: Iterator<Item = &'a Complex>,
+    I: Iterator<Item = &'a Self>,
 {
     type Round = Round2;
     type Ordering = Ordering2;

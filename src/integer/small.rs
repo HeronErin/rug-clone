@@ -87,7 +87,7 @@ impl Clone for Mpz {
 
 impl Default for SmallInteger {
     #[inline]
-    fn default() -> SmallInteger {
+    fn default() -> Self {
         SmallInteger::new()
     }
 }
@@ -104,7 +104,7 @@ impl SmallInteger {
     /// assert_eq!(*i, 0);
     /// ```
     #[inline]
-    pub fn new() -> SmallInteger {
+    pub fn new() -> Self {
         SmallInteger {
             inner: Mpz {
                 size: 0,
@@ -263,16 +263,16 @@ impl Assign<usize> for SmallInteger {
 
 from_assign! { usize => SmallInteger }
 
-impl<'a> Assign<&'a SmallInteger> for SmallInteger {
+impl<'a> Assign<&'a Self> for SmallInteger {
     #[inline]
-    fn assign(&mut self, other: &'a SmallInteger) {
+    fn assign(&mut self, other: &'a Self) {
         self.clone_from(other);
     }
 }
 
-impl<'a> Assign<SmallInteger> for SmallInteger {
+impl<'a> Assign for SmallInteger {
     #[inline]
-    fn assign(&mut self, other: SmallInteger) {
+    fn assign(&mut self, other: Self) {
         mem::drop(mem::replace(self, other));
     }
 }

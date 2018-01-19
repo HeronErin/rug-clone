@@ -74,7 +74,7 @@ pub struct SmallComplex {
 }
 
 impl Default for SmallComplex {
-    fn default() -> SmallComplex {
+    fn default() -> Self {
         SmallComplex::new()
     }
 }
@@ -91,7 +91,7 @@ impl SmallComplex {
     /// assert_eq!(*c.real(), 0.0);
     /// assert_eq!(*c.imag(), 0.0);
     /// ```
-    pub fn new() -> SmallComplex {
+    pub fn new() -> Self {
         unsafe {
             let mut ret = SmallComplex {
                 re: mem::uninitialized(),
@@ -249,16 +249,16 @@ where
     }
 }
 
-impl<'a> Assign<&'a SmallComplex> for SmallComplex {
+impl<'a> Assign<&'a Self> for SmallComplex {
     #[inline]
-    fn assign(&mut self, other: &'a SmallComplex) {
+    fn assign(&mut self, other: &'a Self) {
         self.clone_from(other);
     }
 }
 
-impl Assign<SmallComplex> for SmallComplex {
+impl Assign for SmallComplex {
     #[inline]
-    fn assign(&mut self, other: SmallComplex) {
+    fn assign(&mut self, other: Self) {
         mem::drop(mem::replace(self, other));
     }
 }

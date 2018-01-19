@@ -420,7 +420,7 @@ impl Float {
     ///
     /// Panics if `prec` is out of the allowed range.
     #[inline]
-    pub fn new(prec: u32) -> Float {
+    pub fn new(prec: u32) -> Self {
         let mut ret = Float::new_nan(prec);
         ret.assign(Special::Zero);
         ret
@@ -442,7 +442,7 @@ impl Float {
     ///
     /// Panics if `prec` is out of the allowed range.
     #[inline]
-    pub fn with_val<T>(prec: u32, val: T) -> Float
+    pub fn with_val<T>(prec: u32, val: T) -> Self
     where
         Float: Assign<T>,
     {
@@ -481,9 +481,9 @@ impl Float {
         prec: u32,
         val: T,
         round: Round,
-    ) -> (Float, Ordering)
+    ) -> (Self, Ordering)
     where
-        Float: AssignRound<T, Round = Round, Ordering = Ordering>,
+        Self: AssignRound<T, Round = Round, Ordering = Ordering>,
     {
         let mut ret = Float::new_nan(prec);
         let ord = ret.assign_round(val, round);
@@ -491,7 +491,7 @@ impl Float {
     }
 
     #[inline]
-    fn new_nan(prec: u32) -> Float {
+    fn new_nan(prec: u32) -> Self {
         assert!(
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
@@ -586,7 +586,7 @@ impl Float {
     /// assert!(err_ret.is_err());
     /// ```
     #[inline]
-    pub fn from_str(src: &str, prec: u32) -> Result<Float, ParseFloatError> {
+    pub fn from_str(src: &str, prec: u32) -> Result<Self, ParseFloatError> {
         let mut f = Float::new_nan(prec);
         f.assign_str(src)?;
         Ok(f)
@@ -613,7 +613,7 @@ impl Float {
         src: &str,
         prec: u32,
         round: Round,
-    ) -> Result<(Float, Ordering), ParseFloatError> {
+    ) -> Result<(Self, Ordering), ParseFloatError> {
         let mut f = Float::new_nan(prec);
         let ord = f.assign_str_round(src, round)?;
         Ok((f, ord))
@@ -641,7 +641,7 @@ impl Float {
         src: &str,
         radix: i32,
         prec: u32,
-    ) -> Result<Float, ParseFloatError> {
+    ) -> Result<Self, ParseFloatError> {
         let mut f = Float::new_nan(prec);
         f.assign_str_radix(src, radix)?;
         Ok(f)
@@ -674,7 +674,7 @@ impl Float {
         radix: i32,
         prec: u32,
         round: Round,
-    ) -> Result<(Float, Ordering), ParseFloatError> {
+    ) -> Result<(Self, Ordering), ParseFloatError> {
         let mut f = Float::new_nan(prec);
         let ord = f.assign_str_radix_round(src, radix, round)?;
         Ok((f, ord))
@@ -1454,7 +1454,7 @@ impl Float {
     /// }
     /// ```
     #[inline]
-    pub unsafe fn from_raw(raw: mpfr_t) -> Float {
+    pub unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }
     }
 
@@ -1824,7 +1824,7 @@ impl Float {
     /// assert_eq!(a.cmp_abs(&b), Some(Ordering::Greater));
     /// ```
     #[inline]
-    pub fn cmp_abs(&self, other: &Float) -> Option<Ordering> {
+    pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
         unsafe {
             match mpfr::unordered_p(self.inner(), other.inner()) {
                 0 => Some(ordering1(mpfr::cmpabs(self.inner(), other.inner()))),
@@ -1909,7 +1909,7 @@ impl Float {
     /// assert_eq!(f, 32.75);
     /// ```
     #[inline]
-    pub fn next_toward(&mut self, to: &Float) {
+    pub fn next_toward(&mut self, to: &Self) {
         unsafe {
             mpfr::nexttoward(self.inner_mut(), to.inner());
         }
@@ -1987,7 +1987,7 @@ impl Float {
     /// assert_eq!(f.to_f64(), single_min_subnormal);
     /// ```
     #[inline]
-    pub fn subnormalize_ieee(&mut self) -> &mut Float {
+    pub fn subnormalize_ieee(&mut self) -> &mut Self {
         self.subnormalize_ieee_round(Ordering::Equal, Round::Nearest);
         self
     }
@@ -2070,7 +2070,7 @@ impl Float {
     /// assert_eq!(f.to_f64(), single_min_subnormal);
     /// ```
     #[inline]
-    pub fn subnormalize(&mut self, normal_exp_min: i32) -> &mut Float {
+    pub fn subnormalize(&mut self, normal_exp_min: i32) -> &mut Self {
         self.subnormalize_round(
             normal_exp_min,
             Ordering::Equal,
@@ -3153,13 +3153,9 @@ impl Float {
     /// unless assigning any of them to `self` produces the same value
     /// with the same rounding direction.
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max>(
-        mut self,
-        min: &'a Min,
-        max: &'b Max,
-    ) -> Float
+    pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
-        Float: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
@@ -3193,7 +3189,7 @@ impl Float {
     #[inline]
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
-        Float: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
@@ -3234,7 +3230,7 @@ impl Float {
         round: Round,
     ) -> Ordering
     where
-        Float: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
@@ -3306,7 +3302,7 @@ impl Float {
         max: &'a Max,
     ) -> ClampRef<'a, Min, Max>
     where
-        Float: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
@@ -3583,49 +3579,49 @@ impl Float {
     #[doc(hidden)]
     #[deprecated(since = "0.8.0", note = "renamed to `positive_diff`")]
     #[inline]
-    pub fn pos_diff(self, other: &Float) -> Self {
+    pub fn pos_diff(self, other: &Self) -> Self {
         self.positive_diff(other)
     }
     #[doc(hidden)]
     #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_mut`")]
     #[inline]
-    pub fn pos_diff_mut(&mut self, other: &Float) {
+    pub fn pos_diff_mut(&mut self, other: &Self) {
         self.positive_diff_mut(other);
     }
     #[doc(hidden)]
     #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_round`")]
     #[inline]
-    pub fn pos_diff_round(&mut self, other: &Float, round: Round) -> Ordering {
+    pub fn pos_diff_round(&mut self, other: &Self, round: Round) -> Ordering {
         self.positive_diff_round(other, round)
     }
     #[doc(hidden)]
     #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_ref`")]
     #[inline]
-    pub fn pos_diff_ref<'a>(&'a self, other: &'a Float) -> PositiveDiffRef<'a> {
+    pub fn pos_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffRef<'a> {
         self.positive_diff_ref(other)
     }
     #[doc(hidden)]
     #[deprecated(since = "0.6.0", note = "renamed to `positive_diff`")]
     #[inline]
-    pub fn abs_diff(self, other: &Float) -> Self {
+    pub fn abs_diff(self, other: &Self) -> Self {
         self.positive_diff(other)
     }
     #[doc(hidden)]
     #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_mut`")]
     #[inline]
-    pub fn abs_diff_mut(&mut self, other: &Float) {
+    pub fn abs_diff_mut(&mut self, other: &Self) {
         self.positive_diff_mut(other);
     }
     #[doc(hidden)]
     #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_round`")]
     #[inline]
-    pub fn abs_diff_round(&mut self, other: &Float, round: Round) -> Ordering {
+    pub fn abs_diff_round(&mut self, other: &Self, round: Round) -> Ordering {
         self.positive_diff_round(other, round)
     }
     #[doc(hidden)]
     #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_ref`")]
     #[inline]
-    pub fn abs_diff_ref<'a>(&'a self, other: &'a Float) -> PositiveDiffRef<'a> {
+    pub fn abs_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffRef<'a> {
         self.positive_diff_ref(other)
     }
 
@@ -5898,7 +5894,7 @@ impl Float {
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
     /// ```
     #[inline]
-    pub fn ln_abs_gamma(mut self) -> (Float, Ordering) {
+    pub fn ln_abs_gamma(mut self) -> (Self, Ordering) {
         let sign = self.ln_abs_gamma_round(Round::Nearest).0;
         (self, sign)
     }
@@ -7492,7 +7488,7 @@ impl Float {
     #[inline]
     pub fn assign_random_gaussian(
         &mut self,
-        other: Option<&mut Float>,
+        other: Option<&mut Self>,
         rng: &mut RandState,
     ) {
         self.assign_round(Float::random_normal(rng), Round::Nearest);
@@ -7518,7 +7514,7 @@ impl Float {
     #[inline]
     pub fn assign_random_gaussian_round(
         &mut self,
-        other: Option<&mut Float>,
+        other: Option<&mut Self>,
         rng: &mut RandState,
         round: Round,
     ) -> (Ordering, Ordering) {
@@ -7569,7 +7565,7 @@ where
 
 impl<'a, I> AssignRound<SumRef<'a, I>> for Float
 where
-    I: Iterator<Item = &'a Float>,
+    I: Iterator<Item = &'a Self>,
 {
     type Round = Round;
     type Ordering = Ordering;
@@ -7587,9 +7583,9 @@ where
 
 impl<'a, I> Add<SumRef<'a, I>> for Float
 where
-    I: Iterator<Item = &'a Float>,
+    I: Iterator<Item = &'a Self>,
 {
-    type Output = Float;
+    type Output = Self;
     #[inline]
     fn add(mut self, rhs: SumRef<'a, I>) -> Self {
         self.add_assign_round(rhs, Round::Nearest);
@@ -7599,7 +7595,7 @@ where
 
 impl<'a, I> AddAssign<SumRef<'a, I>> for Float
 where
-    I: Iterator<Item = &'a Float>,
+    I: Iterator<Item = &'a Self>,
 {
     #[inline]
     fn add_assign(&mut self, rhs: SumRef<'a, I>) {
@@ -7609,7 +7605,7 @@ where
 
 impl<'a, I> AddAssignRound<SumRef<'a, I>> for Float
 where
-    I: Iterator<Item = &'a Float>,
+    I: Iterator<Item = &'a Self>,
 {
     type Round = Round;
     type Ordering = Ordering;
@@ -7658,7 +7654,7 @@ where
 
 impl<'a, Min, Max> AssignRound<ClampRef<'a, Min, Max>> for Float
 where
-    Float: PartialOrd<Min>
+    Self: PartialOrd<Min>
         + PartialOrd<Max>
         + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
         + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,

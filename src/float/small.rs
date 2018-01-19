@@ -97,7 +97,7 @@ impl Clone for Mpfr {
 
 impl Default for SmallFloat {
     #[inline]
-    fn default() -> SmallFloat {
+    fn default() -> Self {
         SmallFloat::new()
     }
 }
@@ -114,7 +114,7 @@ impl SmallFloat {
     /// assert_eq!(*f, 0.0);
     /// ```
     #[inline]
-    pub fn new() -> SmallFloat {
+    pub fn new() -> Self {
         unsafe {
             let mut ret = SmallFloat {
                 inner: mem::uninitialized(),
@@ -313,16 +313,16 @@ impl Assign<f64> for SmallFloat {
 
 from_assign! { f64 => SmallFloat }
 
-impl<'a> Assign<&'a SmallFloat> for SmallFloat {
+impl<'a> Assign<&'a Self> for SmallFloat {
     #[inline]
-    fn assign(&mut self, other: &'a SmallFloat) {
+    fn assign(&mut self, other: &'a Self) {
         self.clone_from(other);
     }
 }
 
-impl Assign<SmallFloat> for SmallFloat {
+impl Assign for SmallFloat {
     #[inline]
-    fn assign(&mut self, other: SmallFloat) {
+    fn assign(&mut self, other: Self) {
         mem::drop(mem::replace(self, other));
     }
 }

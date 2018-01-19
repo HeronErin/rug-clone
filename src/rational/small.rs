@@ -64,7 +64,7 @@ pub struct SmallRational {
 
 impl Default for SmallRational {
     #[inline]
-    fn default() -> SmallRational {
+    fn default() -> Self {
         SmallRational::new()
     }
 }
@@ -82,7 +82,7 @@ impl SmallRational {
     /// assert_eq!(*r.denom(), 1);
     /// ```
     #[inline]
-    pub fn new() -> SmallRational {
+    pub fn new() -> Self {
         let mut ret = SmallRational {
             num: Mpz {
                 size: 0,
@@ -154,7 +154,7 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
-    pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> SmallRational
+    pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
         SmallInteger: Assign<Num> + Assign<Den>,
     {
@@ -182,11 +182,7 @@ impl SmallRational {
                          can be replaced with \
                          `SmallRational::from_canonical(-13, 10)`.")]
     #[inline]
-    pub unsafe fn from_canonicalized_32(
-        neg: bool,
-        num: u32,
-        den: u32,
-    ) -> SmallRational {
+    pub unsafe fn from_canonicalized_32(neg: bool, num: u32, den: u32) -> Self {
         let mut ret = SmallRational::from_canonical(num, den);
         if neg {
             ret.num.size = -ret.num.size;
@@ -202,11 +198,7 @@ impl SmallRational {
                          can be replaced with \
                          `SmallRational::from_canonical(-13, 10)`.")]
     #[inline]
-    pub unsafe fn from_canonicalized_64(
-        neg: bool,
-        num: u64,
-        den: u64,
-    ) -> SmallRational {
+    pub unsafe fn from_canonicalized_64(neg: bool, num: u64, den: u64) -> Self {
         let mut ret = SmallRational::from_canonical(num, den);
         if neg {
             ret.num.size = -ret.num.size;
@@ -379,16 +371,16 @@ where
     }
 }
 
-impl<'a> Assign<&'a SmallRational> for SmallRational {
+impl<'a> Assign<&'a Self> for SmallRational {
     #[inline]
-    fn assign(&mut self, other: &'a SmallRational) {
+    fn assign(&mut self, other: &'a Self) {
         self.clone_from(other);
     }
 }
 
-impl Assign<SmallRational> for SmallRational {
+impl Assign for SmallRational {
     #[inline]
-    fn assign(&mut self, other: SmallRational) {
+    fn assign(&mut self, other: Self) {
         mem::drop(mem::replace(self, other));
     }
 }

@@ -171,7 +171,7 @@ macro_rules! rat_op_rat_int {
             mut self,
             mut $int: Integer,
             $($param: $T,)*
-        ) -> (Rational, Integer) {
+        ) -> (Self, Integer) {
             self.$method_mut(&mut $int);
             (self, $int)
         }
@@ -251,7 +251,7 @@ impl Rational {
     /// assert_eq!(r, 0);
     /// ```
     #[inline]
-    pub fn new() -> Rational {
+    pub fn new() -> Self {
         unsafe {
             let mut ret: Rational = mem::uninitialized();
             gmp::mpq_init(ret.inner_mut());
@@ -273,7 +273,7 @@ impl Rational {
     /// assert!(inf.is_none());
     /// ```
     #[inline]
-    pub fn from_f32(val: f32) -> Option<Rational> {
+    pub fn from_f32(val: f32) -> Option<Self> {
         Rational::from_f64(val.into())
     }
 
@@ -291,7 +291,7 @@ impl Rational {
     /// assert!(inf.is_none());
     /// ```
     #[inline]
-    pub fn from_f64(val: f64) -> Option<Rational> {
+    pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
             let mut r = Rational::new();
             r.assign_f64(val).unwrap();
@@ -322,7 +322,7 @@ impl Rational {
     pub fn from_str_radix(
         src: &str,
         radix: i32,
-    ) -> Result<Rational, ParseRationalError> {
+    ) -> Result<Self, ParseRationalError> {
         let mut r = Rational::new();
         r.assign_str_radix(src, radix)?;
         Ok(r)
@@ -660,7 +660,7 @@ impl Rational {
     /// let r = unsafe { Rational::from_canonical(-3, 5) };
     /// assert_eq!(r, (-3, 5));
     /// ```
-    pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Rational
+    pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
         Integer: From<Num> + From<Den>,
     {
@@ -742,7 +742,7 @@ impl Rational {
     /// }
     /// ```
     #[inline]
-    pub unsafe fn from_raw(raw: mpq_t) -> Rational {
+    pub unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
     }
 
@@ -1150,7 +1150,7 @@ impl Rational {
     /// assert_eq!(a.cmp_abs(&b), Ordering::Less);
     /// ```
     #[inline]
-    pub fn cmp_abs(&self, other: &Rational) -> Ordering {
+    pub fn cmp_abs(&self, other: &Self) -> Ordering {
         self.as_abs().cmp(&*other.as_abs())
     }
 
@@ -1267,13 +1267,9 @@ impl Rational {
     ///
     /// Panics if the maximum value is less than the minimum value.
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max>(
-        mut self,
-        min: &'a Min,
-        max: &'b Max,
-    ) -> Rational
+    pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
-        Rational: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'b Max>,
@@ -1303,7 +1299,7 @@ impl Rational {
     /// Panics if the maximum value is less than the minimum value.
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
-        Rational: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'b Max>,
@@ -1348,7 +1344,7 @@ impl Rational {
         max: &'a Max,
     ) -> ClampRef<'a, Min, Max>
     where
-        Rational: PartialOrd<Min>
+        Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'a Max>,
@@ -1468,7 +1464,7 @@ impl Rational {
     /// Computes the fractional part of the number.
     #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc`")]
     #[inline]
-    pub fn fract(self) -> Rational {
+    pub fn fract(self) -> Self {
         self.rem_trunc()
     }
 
@@ -2124,10 +2120,7 @@ where
 
 impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Rational
 where
-    Rational: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
+    Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -2147,10 +2140,7 @@ where
 
 impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Rational
 where
-    Rational: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
+    Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
