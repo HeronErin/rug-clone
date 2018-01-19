@@ -710,7 +710,7 @@ fold! { Float, Product product, Float::with_val(53, 1), Mul::mul }
 
 #[cfg(test)]
 mod tests {
-    use Float;
+    use {Assign, Float};
     #[cfg(feature = "integer")]
     use Integer;
     #[cfg(feature = "rational")]
@@ -946,5 +946,32 @@ mod tests {
                 assert!(same(*oo / ff.clone(), of.clone() / ff));
             }
         }
+    }
+
+    #[test]
+    fn check_sum() {
+        let nothing = Vec::<Float>::new();
+        let empty1: Float = nothing.iter().sum();
+        assert_eq!(empty1, 0);
+        assert_eq!(empty1.prec(), 53);
+        let empty2: Float = nothing.into_iter().sum();
+        assert_eq!(empty2, 0);
+
+        let values = vec![
+            Float::with_val(4, 5.0),
+            Float::with_val(4, 1024.0),
+            Float::with_val(4, -1024.0),
+            Float::with_val(4, -4.5),
+        ];
+        let sum1: Float = values.iter().sum();
+        assert_eq!(sum1, 0.5);
+        assert_eq!(sum1.prec(), 4);
+        let mut sum2 = Float::new(4);
+        sum2.assign(Float::sum(values.iter()));
+        assert_eq!(sum2, 0.5);
+        sum2 += Float::sum(values.iter());
+        assert_eq!(sum2, 1.0);
+        let sum3: Float = values.into_iter().sum();
+        assert_eq!(sum3, 0.5);
     }
 }

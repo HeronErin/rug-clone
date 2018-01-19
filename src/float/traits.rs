@@ -432,14 +432,12 @@ fn fmt_radix(
         Round::Nearest,
         to_upper,
     );
-    if !flt.is_finite() {
-        return fmt.pad(&s);
-    }
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {
         (false, &s[..])
     };
+    let prefix = if flt.is_finite() { prefix } else { "" };
     fmt.pad_integral(!neg, prefix, buf)
 }
 

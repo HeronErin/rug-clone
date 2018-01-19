@@ -98,6 +98,7 @@ mod tests {
         let bad_strings = [
             ("(0,0)", None),
             ("(0 0 )", None),
+            ("(0 0) ", None),
             ("( 0 0)", None),
             ("( 0)", None),
             ("(0 )", None),
@@ -130,21 +131,23 @@ mod tests {
         assert_eq!(format!("{}", c), "(0.0 -0.0)");
         assert_eq!(format!("{:?}", c), "(0.0 -0.0)");
         assert_eq!(format!("{:+}", c), "(+0.0 -0.0)");
+        assert_eq!(format!("{:+}", *c.as_neg()), "(-0.0 +0.0)");
         c.assign((2.7, f64::NEG_INFINITY));
         assert_eq!(format!("{:.2}", c), "(2.7 -inf)");
         assert_eq!(format!("{:+.8}", c), "(+2.7000000 -inf)");
         assert_eq!(format!("{:.4e}", c), "(2.700 -inf)");
         assert_eq!(format!("{:.4E}", c), "(2.700 -inf)");
         assert_eq!(format!("{:16.2}", c), "      (2.7 -inf)");
-        c.assign((3.5, 11));
-        assert_eq!(format!("{:.4b}", c), "(1.110e1 1.011e3)");
-        assert_eq!(format!("{:#.4b}", c), "(0b1.110e1 0b1.011e3)");
-        assert_eq!(format!("{:.4o}", c), "(3.400 1.300e1)");
-        assert_eq!(format!("{:#.4o}", c), "(0o3.400 0o1.300e1)");
-        assert_eq!(format!("{:.2x}", c), "(3.8 b.0)");
-        assert_eq!(format!("{:#.2x}", c), "(0x3.8 0xb.0)");
-        assert_eq!(format!("{:.2X}", c), "(3.8 B.0)");
-        assert_eq!(format!("{:#.2X}", c), "(0x3.8 0xB.0)");
+        c.assign((-3.5, 11));
+        assert_eq!(format!("{:.4b}", c), "(-1.110e1 1.011e3)");
+        assert_eq!(format!("{:#.4b}", c), "(-0b1.110e1 0b1.011e3)");
+        assert_eq!(format!("{:.4o}", c), "(-3.400 1.300e1)");
+        assert_eq!(format!("{:#.4o}", c), "(-0o3.400 0o1.300e1)");
+        c.assign((3.5, -11));
+        assert_eq!(format!("{:.2x}", c), "(3.8 -b.0)");
+        assert_eq!(format!("{:#.2x}", c), "(0x3.8 -0xb.0)");
+        assert_eq!(format!("{:.2X}", c), "(3.8 -B.0)");
+        assert_eq!(format!("{:#.2X}", c), "(0x3.8 -0xB.0)");
     }
 
     #[test]

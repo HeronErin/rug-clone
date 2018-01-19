@@ -588,7 +588,7 @@ fold! { Complex, Product product, Complex::with_val(53, 1), Mul::mul }
 
 #[cfg(test)]
 mod tests {
-    use Complex;
+    use {Assign, Complex};
     use ops::Pow;
 
     #[test]
@@ -637,5 +637,32 @@ mod tests {
 
         assert_eq!(Complex::with_val(53, (&lhs).pow(ps)), lhs.clone().pow(ps));
         assert_eq!(Complex::with_val(53, (&lhs).pow(pd)), lhs.clone().pow(pd));
+    }
+
+    #[test]
+    fn check_sum() {
+        let nothing = Vec::<Complex>::new();
+        let empty1: Complex = nothing.iter().sum();
+        assert_eq!(empty1, 0);
+        assert_eq!(empty1.prec(), (53, 53));
+        let empty2: Complex = nothing.into_iter().sum();
+        assert_eq!(empty2, 0);
+
+        let values = vec![
+            Complex::with_val(4, (5.0, 1024.0)),
+            Complex::with_val(4, (1024.0, 15.0)),
+            Complex::with_val(4, (-1024.0, -1024.0)),
+            Complex::with_val(4, (-4.5, -16.0)),
+        ];
+        let sum1: Complex = values.iter().sum();
+        assert_eq!(sum1, (0.5, -1.0));
+        assert_eq!(sum1.prec(), (4, 4));
+        let mut sum2 = Complex::new(4);
+        sum2.assign(Complex::sum(values.iter()));
+        assert_eq!(sum2, (0.5, -1.0));
+        sum2 += Complex::sum(values.iter());
+        assert_eq!(sum2, (1.0, -2.0));
+        let sum3: Complex = values.into_iter().sum();
+        assert_eq!(sum3, (0.5, -1.0));
     }
 }

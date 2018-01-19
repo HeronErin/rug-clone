@@ -262,10 +262,12 @@ mod tests {
 
         let bad_strings = [
             ("inf", 16),
+            ("1.1.", 10),
             ("1e", 10),
             ("e10", 10),
             (".e10", 10),
             ("1e1.", 10),
+            ("1e1e1", 10),
             ("1e+-1", 10),
             ("1e-+1", 10),
             ("+-1", 10),
@@ -285,7 +287,7 @@ mod tests {
             ("-.99e+2", 10, -99.0),
             ("+99.e+0", 10, 99.0),
             ("-99@-1", 10, -9.9f64),
-            ("-abc.def@3", 16, -0xabcdef as f64),
+            ("-abc.DEF@3", 16, -0xabcdef as f64),
             ("1e1023", 2, 2.0f64.powi(1023)),
         ];
         for &(s, radix, f) in good_strings.into_iter() {
@@ -336,6 +338,20 @@ mod tests {
         assert_eq!(format!("{}", f), "-0.0");
         assert_eq!(format!("{:?}", f), "-0.0");
         assert_eq!(format!("{:+?}", f), "-0.0");
+        f.assign(Special::Infinity);
+        assert_eq!(format!("{}", f), "inf");
+        assert_eq!(format!("{:+}", f), "+inf");
+        assert_eq!(format!("{:x}", f), "@inf@");
+        f.assign(Special::NegInfinity);
+        assert_eq!(format!("{}", f), "-inf");
+        assert_eq!(format!("{:x}", f), "-@inf@");
+        f.assign(Special::Nan);
+        assert_eq!(format!("{}", f), "NaN");
+        assert_eq!(format!("{:+}", f), "+NaN");
+        assert_eq!(format!("{:x}", f), "@NaN@");
+        f = -f;
+        assert_eq!(format!("{}", f), "-NaN");
+        assert_eq!(format!("{:x}", f), "-@NaN@");
         f.assign(-27);
         assert_eq!(format!("{:.2}", f), "-2.7e1");
         assert_eq!(format!("{:.4?}", f), "-2.700e1");

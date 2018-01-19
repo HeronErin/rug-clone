@@ -166,12 +166,15 @@ mod tests {
     #[test]
     fn check_from_str() {
         let bad_strings = [
+            ("", None),
             (" 1", None),
             ("1/-1", None),
             ("1/+3", None),
             ("1/0", None),
             ("1 / 1", None),
+            ("/2", None),
             ("2/", None),
+            ("2/2/", None),
             ("/2", None),
             ("++1", None),
             ("+-1", None),
