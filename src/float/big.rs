@@ -3089,9 +3089,10 @@ impl Float {
         ///
         /// ```rust
         /// use rug::Float;
-        /// let f = Float::with_val(53, -23.5);
-        /// let signum = f.signum();
-        /// assert_eq!(signum, -1);
+        /// assert_eq!(Float::with_val(53, -23.5).signum(), -1);
+        /// assert_eq!(Float::with_val(53, -0.0).signum(), -1);
+        /// assert_eq!(Float::with_val(53, 0.0).signum(), 1);
+        /// assert_eq!(Float::with_val(53, 23.5).signum(), 1);
         /// ```
         fn signum();
         /// Computes the signum.

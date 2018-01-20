@@ -7,11 +7,12 @@ shopt -s globstar
 FIND='/```rust$/,/```$/'
 UNCOMMENT='s, *//[/!],       ,'
 BLOCK='s/    ```rust$/\{/;s/    ```/\}/'
-UNCRATE='/extern crate/d'
-UNRUG='s/rug:://'
-UNMAIN='s,fn main(),/* fn main() */,'
-UNHASH='s/# //'
-SCRIPT="$FIND"'{'"$UNCOMMENT;$BLOCK;$UNCRATE;$UNRUG;$UNMAIN;$UNHASH;p;"'}'
+CRATE='/extern crate/d'
+RUG='s/rug:://'
+MAIN='s,fn main(),/* fn main() */,'
+HASH='s/# //'
+SPACE='s/ *$//'
+SCRIPT="$FIND"'{'"$UNCOMMENT;$BLOCK;$CRATE;$RUG;$MAIN;$HASH;$SPACE;p;"'}'
 for f in src/**/*.rs; do
 	sed -n -e "$SCRIPT" < "$f" > "$f.tmp_doc"
 	echo '// AUTOEXTRACTED DOCTESTS BELOW' >> "$f"
@@ -23,7 +24,7 @@ done
 
 # generate coverage.report
 
-cargo tarpaulin -v --features serde >& coverage_all.report
+cargo tarpaulin -v --features serde --ignore-tests >& coverage_all.report
 sed -i -e 's/ - /: /' coverage_all.report
 echo '-*- mode: compilation -*-' > coverage.report
 echo >> coverage.report

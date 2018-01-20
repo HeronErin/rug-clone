@@ -1640,9 +1640,9 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let i = Integer::from(-100);
-        /// let signum = i.signum();
-        /// assert_eq!(signum, -1);
+        /// assert_eq!(Integer::from(-100).signum(), -1);
+        /// assert_eq!(Integer::from(0).signum(), 0);
+        /// assert_eq!(Integer::from(100).signum(), 1);
         /// ```
         fn signum();
         /// Computes the signum.
@@ -2576,9 +2576,12 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// let p = Integer::i_pow_u(-13, 13);
-        /// let i = Integer::from(p);
-        /// assert_eq!(i, (-13_i64).pow(13));
+        /// let p1 = Integer::i_pow_u(-13, 13);
+        /// let i1 = Integer::from(p1);
+        /// assert_eq!(i1, (-13_i64).pow(13));
+        /// let p2 = Integer::i_pow_u(13, 13);
+        /// let i2 = Integer::from(p2);
+        /// assert_eq!(i2, (13_i64).pow(13));
         /// ```
         fn i_pow_u(base: i32, exponent: u32) -> IPowU;
     }
