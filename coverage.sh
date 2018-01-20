@@ -1,39 +1,54 @@
 #!/bin/sh
 
 shopt -s globstar
+SUFFIX=.original
 
 # first extract docs
-
-FIND='/```rust$/,/```$/'
-UNCOMMENT='s, *//[/!],       ,'
-BLOCK='s/    ```rust$/\{/;s/    ```/\}/'
-CRATE='/extern crate/d'
-RUG='s/rug:://'
-MAIN='s,fn main(),/* fn main() */,'
-HASH='s/# //'
-SPACE='s/ *$//'
-SCRIPT="$FIND"'{'"$UNCOMMENT;$BLOCK;$CRATE;$RUG;$MAIN;$HASH;$SPACE;p;"'}'
-for f in src/**/*.rs; do
-	sed -n -e "$SCRIPT" < "$f" > "$f.tmp_doc"
-	echo '// AUTOEXTRACTED DOCTESTS BELOW' >> "$f"
-	echo '#[test] fn check_doctests() {' >> "$f"
-	cat "$f.tmp_doc" >> "$f"
-	echo '}' >> "$f"
-	rm "$f.tmp_doc"
-done
+EXTRACT_SCRIPT='
+p                       # print original, as sed is called quiet
+/```rust$/,/```$/{      # work between ```rust and ```
+    s, *//[/!],       ,     # uncomment lines
+    s, *$,,                 # remove trailing spaces
+    s,^\( *\)# ,\1/* # */ , # comment hiding hash
+    s,    ```rust$,\{,      # replace ```rust with {
+    s,extern crate.*,// &,  # comment lines containing extern crate
+    s, rug::, /*& */ ,      # comment rug::
+    s, ::rug, /*& */ ,      # comment ::rug
+    s,fn main(),/* & */,    # comment fn main()
+    s,    ```,\},           # replace ``` with }
+    H                       # append to hold
+}
+${                      # at the end of the file
+    x                       # move the hold to pattern space
+    /./{                    # if hold was not empty
+        s/^.//                  # remove leading newline
+        i\
+// AUTOEXTRACTED DOCTESTS BELOW
+        i\
+#[test]
+        i\
+fn check_doctests() {
+        p                       # print the hold (wrapped by fn)
+        i\
+}
+    }
+}'
+sed -i$SUFFIX -n -e "$EXTRACT_SCRIPT" src/**/*.rs
 
 # generate coverage.report
+FILTER_SCRIPT='
+1i\
+-*- mode: compilation -*-\
 
-cargo tarpaulin -v --features serde --ignore-tests >& coverage_all.report
-sed -i -e 's/ - /: /' coverage_all.report
-echo '-*- mode: compilation -*-' > coverage.report
-echo >> coverage.report
-grep 'hits: 0' coverage_all.report >> coverage.report
-cat coverage_all.report >> coverage.report
-rm coverage_all.report
+s/ - /: /               # make lines friendly with emacs compilation mode
+/hits: 0/p              # print zero coverage-lines immediately
+H                       # hold everything
+${x;p}                  # at the end of the file, print the hold
+'
+cargo tarpaulin -v --features serde --ignore-tests |&
+    sed -n -e "$FILTER_SCRIPT" > coverage.report
 
-# remove extracted docs
-
-for f in src/**/*.rs; do
-	sed -i -e '/AUTOEXTRACTED DOCTESTS BELOW/,$d' "$f"
+# restore original sources
+for f in src/**/*.rs$SUFFIX; do
+    mv "$f" "${f%$SUFFIX}"
 done
