@@ -117,4 +117,4 @@ features = ["integer", "float", "rand"]
 [rug ops]:  https://docs.rs/rug/0.9.2/rug/ops/index.html
 [rug rat]:  https://docs.rs/rug/0.9.2/rug/struct.Rational.html
 [rug]:      https://docs.rs/rug/0.9.2/rug/index.html
-[sys]:      https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
+[sys]:      https://crates.io/crates/gmp-mpfr-sys
