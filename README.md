@@ -63,7 +63,7 @@ rug = "0.9.2"
 The `rug` crate depends on the low-level bindings in the
 [`gmp-mpfr-sys`][sys] crate. This should be transparent on GNU/Linux
 and macOS, but may need some work on Windows. See the
-[`gmp-mpfr-sys`][sys] documentation for some details.
+[`gmp-mpfr-sys`][sys doc] documentation for some details.
 
 ### Optional features
 
@@ -117,4 +117,5 @@ features = ["integer", "float", "rand"]
 [rug ops]:  https://docs.rs/rug/0.9.2/rug/ops/index.html
 [rug rat]:  https://docs.rs/rug/0.9.2/rug/struct.Rational.html
 [rug]:      https://docs.rs/rug/0.9.2/rug/index.html
+[sys doc]:  https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
 [sys]:      https://crates.io/crates/gmp-mpfr-sys
