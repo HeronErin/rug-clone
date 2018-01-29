@@ -176,3 +176,32 @@ impl From<Float> for OrdFloat {
         OrdFloat { inner: f }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use Float;
+    use float::Special;
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    fn calculate_hash<T: Hash>(t: &T) -> u64 {
+        let mut s = DefaultHasher::new();
+        t.hash(&mut s);
+        s.finish()
+    }
+
+    #[test]
+    fn check_zero() {
+        let p = Float::with_val(53, Special::Zero);
+        let n = Float::with_val(53, Special::NegZero);
+        assert_eq!(p, n);
+        let ord_p = p.as_ord();
+        let ord_n = n.as_ord();
+        assert_eq!(ord_p, ord_p);
+        assert_eq!(ord_n, ord_n);
+        assert_eq!(calculate_hash(ord_p), calculate_hash(ord_p));
+        assert_eq!(calculate_hash(ord_n), calculate_hash(ord_n));
+        assert_ne!(ord_p, ord_n);
+        assert_ne!(calculate_hash(ord_p), calculate_hash(ord_n));
+    }
+}

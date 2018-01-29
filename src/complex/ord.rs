@@ -141,3 +141,49 @@ impl From<Complex> for OrdComplex {
         OrdComplex { inner: c }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use Complex;
+    use float::Special;
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    fn calculate_hash<T: Hash>(t: &T) -> u64 {
+        let mut s = DefaultHasher::new();
+        t.hash(&mut s);
+        s.finish()
+    }
+
+    #[test]
+    fn check_zero() {
+        let pp = Complex::with_val(53, (Special::Zero, Special::Zero));
+        let pn = Complex::with_val(53, (Special::Zero, Special::NegZero));
+        let np = Complex::with_val(53, (Special::NegZero, Special::Zero));
+        let nn = Complex::with_val(53, (Special::NegZero, Special::NegZero));
+        assert_eq!(pp, pn);
+        assert_eq!(pn, np);
+        assert_eq!(np, nn);
+        assert_eq!(nn, pp);
+        let ord_pp = pp.as_ord();
+        let ord_pn = pn.as_ord();
+        let ord_np = np.as_ord();
+        let ord_nn = nn.as_ord();
+        assert_eq!(ord_pp, ord_pp);
+        assert_eq!(ord_pn, ord_pn);
+        assert_eq!(ord_np, ord_np);
+        assert_eq!(ord_nn, ord_nn);
+        assert_eq!(calculate_hash(ord_pp), calculate_hash(ord_pp));
+        assert_eq!(calculate_hash(ord_pn), calculate_hash(ord_pn));
+        assert_eq!(calculate_hash(ord_np), calculate_hash(ord_np));
+        assert_eq!(calculate_hash(ord_nn), calculate_hash(ord_nn));
+        assert_ne!(ord_pp, ord_pn);
+        assert_ne!(ord_pn, ord_np);
+        assert_ne!(ord_np, ord_nn);
+        assert_ne!(ord_nn, ord_pp);
+        assert_ne!(calculate_hash(ord_pp), calculate_hash(ord_pn));
+        assert_ne!(calculate_hash(ord_pn), calculate_hash(ord_np));
+        assert_ne!(calculate_hash(ord_np), calculate_hash(ord_nn));
+        assert_ne!(calculate_hash(ord_nn), calculate_hash(ord_pp));
+    }
+}
