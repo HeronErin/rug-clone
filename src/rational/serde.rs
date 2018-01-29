@@ -82,10 +82,11 @@ where
 #[cfg(test)]
 mod tests {
     use {Assign, Rational};
-    use bincode;
-    use serde::Deserialize;
-    use serde_json;
-    use serde_test;
+    use cast::cast;
+
+    fn assert(a: &Rational, b: &Rational) {
+        assert_eq!(a, b);
+    }
 
     enum Check<'a> {
         SerDe(&'a Rational),
@@ -93,37 +94,12 @@ mod tests {
         DeError(&'a str),
     }
 
-    fn json_assert_value(r: &Rational, value: &serde_json::Value) {
-        let encoded = serde_json::to_string(r).unwrap();
-        let decoded: Rational = serde_json::from_str(&encoded).unwrap();
-        assert_eq!(r, &decoded);
-
-        let decoded_value: serde_json::Value =
-            serde_json::from_str(&encoded).unwrap();
-        assert_eq!(value, &decoded_value);
-    }
-
-    fn json_assert_de_value(r: &Rational, value: serde_json::Value) {
-        let decoded: Rational = serde_json::from_value(value).unwrap();
-        assert_eq!(r, &decoded);
-    }
-
-    fn try_bincode(r: &Rational) {
-        use bincode::Deserializer;
-        use bincode::read_types::SliceReader;
-        let encoded = bincode::serialize(&r, bincode::Infinite).unwrap();
-        let decoded: Rational = bincode::deserialize(&encoded).unwrap();
-        assert_eq!(r, &decoded);
-        let mut in_place = Rational::from((111, 47));
-        let reader = SliceReader::new(&encoded);
-        let mut de = Deserializer::new(reader, bincode::Infinite);
-        Deserialize::deserialize_in_place(&mut de, &mut in_place).unwrap();
-        assert_eq!(r, &in_place);
-    }
-
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
-            use serde_test::Token;
+            use byteorder::{LittleEndian, WriteBytesExt};
+            use serde_test::{self, Token};
+            use serdeize::test::*;
+            use std::io::Write;
             let tokens = [
                 Token::Struct {
                     name: "Rational",
@@ -135,19 +111,27 @@ mod tests {
                 Token::Str(value),
                 Token::StructEnd,
             ];
-            let json_value = json!({
+            let json = json!({
                 "radix": radix,
                 "value": value,
             });
+            let mut bincode = Vec::<u8>::new();
+            bincode.write_i32::<LittleEndian>(radix).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
+            bincode.write(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(r) => {
                     serde_test::assert_tokens(r, &tokens);
-                    json_assert_value(r, &json_value);
-                    try_bincode(r);
+                    json_assert_value(r, &json, assert);
+                    let in_place = Rational::from((0xbad, 3));
+                    bincode_assert_value(r, &bincode, assert, in_place);
                 }
                 Check::De(r) => {
                     serde_test::assert_de_tokens(r, &tokens);
-                    json_assert_de_value(r, json_value);
+                    json_assert_de_value(r, json, assert);
+                    bincode_assert_de_value(r, &bincode, assert);
                 }
                 Check::DeError(msg) => {
                     serde_test::assert_de_tokens_error::<Rational>(

@@ -283,3 +283,60 @@ where
         Ok(())
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use serde::{Deserialize, Serialize};
+    use serde_json;
+
+    pub fn json_assert_value<T, F>(t: &T, val: &serde_json::Value, test: F)
+    where
+        T: Serialize + for<'de> Deserialize<'de>,
+        F: Fn(&T, &T),
+    {
+        let enc = serde_json::to_string(t).unwrap();
+        let dec: T = serde_json::from_str(&enc).unwrap();
+        test(t, &dec);
+        let dec_v: serde_json::Value = serde_json::from_str(&enc).unwrap();
+        assert_eq!(val, &dec_v);
+    }
+
+    pub fn json_assert_de_value<T, F>(t: &T, val: serde_json::Value, test: F)
+    where
+        T: for<'de> Deserialize<'de>,
+        F: Fn(&T, &T),
+    {
+        let dec: T = serde_json::from_value(val).unwrap();
+        test(t, &dec);
+    }
+
+    pub fn bincode_assert_value<T, F>(t: &T, val: &[u8], test: F, in_place: T)
+    where
+        T: Serialize + for<'de> Deserialize<'de>,
+        F: Fn(&T, &T),
+    {
+        use bincode::{self, Deserializer, Infinite};
+        use bincode::read_types::SliceReader;
+        let enc = bincode::serialize(&t, Infinite).unwrap();
+        let dec: T = bincode::deserialize(&enc).unwrap();
+        test(t, &dec);
+
+        assert_eq!(enc, val);
+
+        let mut in_place = in_place;
+        let reader = SliceReader::new(&enc);
+        let mut de = Deserializer::new(reader, Infinite);
+        Deserialize::deserialize_in_place(&mut de, &mut in_place).unwrap();
+        test(t, &in_place);
+    }
+
+    pub fn bincode_assert_de_value<T, F>(t: &T, val: &[u8], test: F)
+    where
+        T: for<'de> Deserialize<'de>,
+        F: Fn(&T, &T),
+    {
+        use bincode;
+        let dec: T = bincode::deserialize(&val).unwrap();
+        test(t, &dec);
+    }
+}

@@ -118,42 +118,12 @@ impl<'de> Deserialize<'de> for OrdFloat {
 #[cfg(test)]
 mod tests {
     use {Assign, Float};
-    use bincode;
+    use cast::cast;
     use float::{self, Special};
-    use serde::Deserialize;
-    use serde_json;
-    use serde_test;
 
-    fn json_assert_value(f: &Float, value: &serde_json::Value) {
-        let encoded = serde_json::to_string(f).unwrap();
-        let decoded: Float = serde_json::from_str(&encoded).unwrap();
-        assert_eq!(f.prec(), decoded.prec());
-        assert_eq!(f.as_ord(), decoded.as_ord());
-
-        let decoded_value: serde_json::Value =
-            serde_json::from_str(&encoded).unwrap();
-        assert_eq!(value, &decoded_value);
-    }
-
-    fn json_assert_de_value(f: &Float, value: serde_json::Value) {
-        let decoded: Float = serde_json::from_value(value).unwrap();
-        assert_eq!(f.prec(), decoded.prec());
-        assert_eq!(f.as_ord(), decoded.as_ord());
-    }
-
-    fn try_bincode(f: &Float) {
-        use bincode::Deserializer;
-        use bincode::read_types::SliceReader;
-        let encoded = bincode::serialize(&f, bincode::Infinite).unwrap();
-        let decoded: Float = bincode::deserialize(&encoded).unwrap();
-        assert_eq!(f.prec(), decoded.prec());
-        assert_eq!(f.as_ord(), decoded.as_ord());
-        let mut in_place = Float::new(1);
-        let reader = SliceReader::new(&encoded);
-        let mut de = Deserializer::new(reader, bincode::Infinite);
-        Deserialize::deserialize_in_place(&mut de, &mut in_place).unwrap();
-        assert_eq!(f.prec(), in_place.prec());
-        assert_eq!(f.as_ord(), in_place.as_ord());
+    fn assert(a: &Float, b: &Float) {
+        assert_eq!(a.prec(), b.prec());
+        assert_eq!(a.as_ord(), b.as_ord());
     }
 
     enum Check<'a> {
@@ -164,7 +134,10 @@ mod tests {
 
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
-            use serde_test::Token;
+            use byteorder::{LittleEndian, WriteBytesExt};
+            use serde_test::{self, Token};
+            use serdeize::test::*;
+            use std::io::Write;
             let prec = match &self {
                 &Check::SerDe(f) | &Check::De(f) => f.prec(),
                 &Check::DeError(p, _) => p,
@@ -182,20 +155,28 @@ mod tests {
                 Token::Str(value),
                 Token::StructEnd,
             ];
-            let json_value = json!({
+            let json = json!({
                 "prec": prec,
                 "radix": radix,
                 "value": value,
             });
+            let mut bincode = Vec::<u8>::new();
+            bincode.write_u32::<LittleEndian>(prec).unwrap();
+            bincode.write_i32::<LittleEndian>(radix).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
+            bincode.write(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(f) => {
                     serde_test::assert_tokens(f.as_ord(), &tokens);
-                    json_assert_value(f, &json_value);
-                    try_bincode(f);
+                    json_assert_value(f, &json, assert);
+                    bincode_assert_value(f, &bincode, assert, Float::new(1));
                 }
                 Check::De(f) => {
                     serde_test::assert_de_tokens(f.as_ord(), &tokens);
-                    json_assert_de_value(f, json_value);
+                    json_assert_de_value(f, json, assert);
+                    bincode_assert_de_value(f, &bincode, assert);
                 }
                 Check::DeError(_, msg) => {
                     serde_test::assert_de_tokens_error::<Float>(&tokens, msg);

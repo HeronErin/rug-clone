@@ -76,37 +76,10 @@ where
 #[cfg(test)]
 mod tests {
     use {Assign, Integer};
-    use bincode;
-    use serde::Deserialize;
-    use serde_json;
-    use serde_test;
+    use cast::cast;
 
-    fn json_assert_value(i: &Integer, value: &serde_json::Value) {
-        let encoded = serde_json::to_string(i).unwrap();
-        let decoded: Integer = serde_json::from_str(&encoded).unwrap();
-        assert_eq!(i, &decoded);
-
-        let decoded_value: serde_json::Value =
-            serde_json::from_str(&encoded).unwrap();
-        assert_eq!(value, &decoded_value);
-    }
-
-    fn json_assert_de_value(i: &Integer, value: serde_json::Value) {
-        let decoded: Integer = serde_json::from_value(value).unwrap();
-        assert_eq!(i, &decoded);
-    }
-
-    fn try_bincode(i: &Integer) {
-        use bincode::Deserializer;
-        use bincode::read_types::SliceReader;
-        let encoded = bincode::serialize(&i, bincode::Infinite).unwrap();
-        let decoded: Integer = bincode::deserialize(&encoded).unwrap();
-        assert_eq!(i, &decoded);
-        let mut in_place = Integer::from(111);
-        let reader = SliceReader::new(&encoded);
-        let mut de = Deserializer::new(reader, bincode::Infinite);
-        Deserialize::deserialize_in_place(&mut de, &mut in_place).unwrap();
-        assert_eq!(i, &in_place);
+    fn assert(a: &Integer, b: &Integer) {
+        assert_eq!(a, b);
     }
 
     enum Check<'a> {
@@ -117,7 +90,10 @@ mod tests {
 
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
-            use serde_test::Token;
+            use byteorder::{LittleEndian, WriteBytesExt};
+            use serde_test::{self, Token};
+            use serdeize::test::*;
+            use std::io::Write;
             let tokens = [
                 Token::Struct {
                     name: "Integer",
@@ -129,19 +105,27 @@ mod tests {
                 Token::Str(value),
                 Token::StructEnd,
             ];
-            let json_value = json!({
+            let json = json!({
                 "radix": radix,
                 "value": value,
             });
+            let mut bincode = Vec::<u8>::new();
+            bincode.write_i32::<LittleEndian>(radix).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
+            bincode.write(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(i) => {
                     serde_test::assert_tokens(i, &tokens);
-                    json_assert_value(i, &json_value);
-                    try_bincode(i);
+                    json_assert_value(i, &json, assert);
+                    let in_place = Integer::from(0xbad);
+                    bincode_assert_value(i, &bincode, assert, in_place);
                 }
                 Check::De(i) => {
                     serde_test::assert_de_tokens(i, &tokens);
-                    json_assert_de_value(i, json_value);
+                    json_assert_de_value(i, json, assert);
+                    bincode_assert_de_value(i, &bincode, assert);
                 }
                 Check::DeError(msg) => {
                     serde_test::assert_de_tokens_error::<Integer>(&tokens, msg);
