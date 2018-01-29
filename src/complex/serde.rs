@@ -115,13 +115,58 @@ impl<'de> Deserialize<'de> for OrdComplex {
     {
         Complex::deserialize(deserializer).map(From::from)
     }
+
+    fn deserialize_in_place<D>(
+        deserializer: D,
+        place: &mut OrdComplex,
+    ) -> Result<(), D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        Complex::deserialize_in_place(deserializer, place.as_complex_mut())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use {Assign, Complex};
+    use bincode;
     use float::{self, Special};
-    use serde_test::{self, Token};
+    use serde::Deserialize;
+    use serde_json;
+    use serde_test;
+
+    fn json_assert_value(c: &Complex, value: &serde_json::Value) {
+        let encoded = serde_json::to_string(c).unwrap();
+        let decoded: Complex = serde_json::from_str(&encoded).unwrap();
+        assert_eq!(c.prec(), decoded.prec());
+        assert_eq!(c.as_ord(), decoded.as_ord());
+
+        let decoded_value: serde_json::Value =
+            serde_json::from_str(&encoded).unwrap();
+        assert_eq!(value, &decoded_value);
+    }
+
+    fn json_assert_de_value(c: &Complex, value: serde_json::Value) {
+        let decoded: Complex = serde_json::from_value(value).unwrap();
+        assert_eq!(c.prec(), decoded.prec());
+        assert_eq!(c.as_ord(), decoded.as_ord());
+    }
+
+    fn try_bincode(c: &Complex) {
+        use bincode::Deserializer;
+        use bincode::read_types::SliceReader;
+        let encoded = bincode::serialize(&c, bincode::Infinite).unwrap();
+        let decoded: Complex = bincode::deserialize(&encoded).unwrap();
+        assert_eq!(c.prec(), decoded.prec());
+        assert_eq!(c.as_ord(), decoded.as_ord());
+        let mut in_place = Complex::new(1);
+        let reader = SliceReader::new(&encoded);
+        let mut de = Deserializer::new(reader, bincode::Infinite);
+        Deserialize::deserialize_in_place(&mut de, &mut in_place).unwrap();
+        assert_eq!(c.prec(), in_place.prec());
+        assert_eq!(c.as_ord(), in_place.as_ord());
+    }
 
     enum Check<'a> {
         SerDe(&'a Complex),
@@ -131,6 +176,7 @@ mod tests {
 
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
+            use serde_test::Token;
             let prec = match &self {
                 &Check::SerDe(c) | &Check::De(c) => c.prec(),
                 &Check::DeError(p, _) => p,
@@ -151,15 +197,23 @@ mod tests {
                 Token::Str(value),
                 Token::StructEnd,
             ];
+            let json_value = json!({
+                "prec": [prec.0, prec.1],
+                "radix": radix,
+                "value": value,
+            });
             match self {
                 Check::SerDe(c) => {
-                    serde_test::assert_tokens(c.as_ord(), &tokens)
+                    serde_test::assert_tokens(c.as_ord(), &tokens);
+                    json_assert_value(c, &json_value);
+                    try_bincode(c);
                 }
                 Check::De(c) => {
-                    serde_test::assert_de_tokens(c.as_ord(), &tokens)
+                    serde_test::assert_de_tokens(c.as_ord(), &tokens);
+                    json_assert_de_value(c, json_value);
                 }
                 Check::DeError(_, msg) => {
-                    serde_test::assert_de_tokens_error::<Complex>(&tokens, msg)
+                    serde_test::assert_de_tokens_error::<Complex>(&tokens, msg);
                 }
             }
         }
