@@ -167,10 +167,10 @@ impl<'de> Visitor<'de> for BigVisitor {
         let prec_count = match self.1 {
             #[cfg(feature = "integer")]
             PrecReq::Zero => 0,
-            #[cfg(feature = "float")]
+            #[cfg(all(feature = "float", not(feature = "complex")))]
             PrecReq::One => 1,
             #[cfg(feature = "complex")]
-            PrecReq::Two => 1,
+            PrecReq::One | PrecReq::Two => 1,
         };
         let radix = seq.next_element()?
             .ok_or_else(|| DeError::invalid_length(prec_count, &self))?;
@@ -189,19 +189,20 @@ impl<'de> Visitor<'de> for BigVisitor {
         let mut prec = match self.1 {
             #[cfg(feature = "integer")]
             PrecReq::Zero => Some(PrecVal::Zero),
+            #[cfg(not(feature = "complex"))]
             PrecReq::One => None,
             #[cfg(feature = "complex")]
-            PrecReq::Two => None,
+            PrecReq::One | PrecReq::Two => None,
         };
         let mut radix = None;
         let mut value = None;
         while let Some(key) = match self.1 {
             #[cfg(feature = "integer")]
             PrecReq::Zero => map.next_key()?.map(PrecField::Field),
-            #[cfg(feature = "float")]
+            #[cfg(all(feature = "float", not(feature = "complex")))]
             PrecReq::One => map.next_key()?,
             #[cfg(feature = "complex")]
-            PrecReq::Two => map.next_key()?,
+            PrecReq::One | PrecReq::Two => map.next_key()?,
         } {
             match key {
                 #[cfg(not(feature = "float"))]
@@ -251,10 +252,10 @@ where
     let fields = match prec_req {
         #[cfg(feature = "integer")]
         PrecReq::Zero => FIELDS,
-        #[cfg(feature = "float")]
+        #[cfg(all(feature = "float", not(feature = "complex")))]
         PrecReq::One => PREC_FIELDS,
         #[cfg(feature = "complex")]
-        PrecReq::Two => PREC_FIELDS,
+        PrecReq::One | PrecReq::Two => PREC_FIELDS,
     };
     deserializer.deserialize_struct(name, fields, BigVisitor(name, prec_req))
 }
@@ -266,7 +267,7 @@ pub fn check_range<T, D>(
     max: T,
 ) -> Result<(), D>
 where
-    T: Display + Ord,
+    T: Copy + Display + Ord,
     D: DeError,
 {
     if val < min {
