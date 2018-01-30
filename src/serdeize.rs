@@ -19,16 +19,18 @@ use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess,
 use serde::ser::{SerializeStruct, Serializer};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
+#[allow(unused)]
 pub enum PrecReq {
-    #[cfg(feature = "integer")] Zero,
-    #[cfg(feature = "float")] One,
-    #[cfg(feature = "complex")] Two,
+    Zero,
+    One,
+    Two,
 }
 
+#[allow(unused)]
 pub enum PrecVal {
-    #[cfg(feature = "integer")] Zero,
-    #[cfg(feature = "float")] One(u32),
-    #[cfg(feature = "complex")] Two((u32, u32)),
+    Zero,
+    One(u32),
+    Two((u32, u32)),
 }
 
 pub struct Data {
@@ -46,15 +48,12 @@ where
     S: Serializer,
 {
     let mut state = match data.prec {
-        #[cfg(feature = "integer")]
         PrecVal::Zero => serializer.serialize_struct(name, 2)?,
-        #[cfg(feature = "float")]
         PrecVal::One(one) => {
             let mut state = serializer.serialize_struct(name, 3)?;
             state.serialize_field("prec", &one)?;
             state
         }
-        #[cfg(feature = "complex")]
         PrecVal::Two(two) => {
             let mut state = serializer.serialize_struct(name, 3)?;
             state.serialize_field("prec", &two)?;
@@ -155,21 +154,14 @@ impl<'de> Visitor<'de> for BigVisitor {
         V: SeqAccess<'de>,
     {
         let prec = match self.1 {
-            #[cfg(feature = "integer")]
             PrecReq::Zero => PrecVal::Zero,
-            #[cfg(feature = "float")]
             PrecReq::One => PrecVal::One(seq.next_element()?
                 .ok_or_else(|| DeError::invalid_length(0, &self))?),
-            #[cfg(feature = "complex")]
             PrecReq::Two => PrecVal::Two(seq.next_element()?
                 .ok_or_else(|| DeError::invalid_length(0, &self))?),
         };
         let prec_count = match self.1 {
-            #[cfg(feature = "integer")]
             PrecReq::Zero => 0,
-            #[cfg(all(feature = "float", not(feature = "complex")))]
-            PrecReq::One => 1,
-            #[cfg(feature = "complex")]
             PrecReq::One | PrecReq::Two => 1,
         };
         let radix = seq.next_element()?
@@ -183,40 +175,24 @@ impl<'de> Visitor<'de> for BigVisitor {
     where
         V: MapAccess<'de>,
     {
-        #[cfg(not(feature = "float"))]
-        let prec = Some(PrecVal::Zero);
-        #[cfg(feature = "float")]
         let mut prec = match self.1 {
-            #[cfg(feature = "integer")]
             PrecReq::Zero => Some(PrecVal::Zero),
-            #[cfg(not(feature = "complex"))]
-            PrecReq::One => None,
-            #[cfg(feature = "complex")]
             PrecReq::One | PrecReq::Two => None,
         };
         let mut radix = None;
         let mut value = None;
         while let Some(key) = match self.1 {
-            #[cfg(feature = "integer")]
             PrecReq::Zero => map.next_key()?.map(PrecField::Field),
-            #[cfg(all(feature = "float", not(feature = "complex")))]
-            PrecReq::One => map.next_key()?,
-            #[cfg(feature = "complex")]
             PrecReq::One | PrecReq::Two => map.next_key()?,
         } {
             match key {
-                #[cfg(not(feature = "float"))]
-                PrecField::Prec => unreachable!(),
-                #[cfg(feature = "float")]
                 PrecField::Prec => {
                     if prec.is_some() {
                         return Err(DeError::duplicate_field("prec"));
                     }
                     prec = match self.1 {
-                        #[cfg(feature = "integer")]
                         PrecReq::Zero => unreachable!(),
                         PrecReq::One => Some(PrecVal::One(map.next_value()?)),
-                        #[cfg(feature = "complex")]
                         PrecReq::Two => Some(PrecVal::Two(map.next_value()?)),
                     }
                 }
@@ -250,11 +226,7 @@ where
     D: Deserializer<'de>,
 {
     let fields = match prec_req {
-        #[cfg(feature = "integer")]
         PrecReq::Zero => FIELDS,
-        #[cfg(all(feature = "float", not(feature = "complex")))]
-        PrecReq::One => PREC_FIELDS,
-        #[cfg(feature = "complex")]
         PrecReq::One | PrecReq::Two => PREC_FIELDS,
     };
     deserializer.deserialize_struct(name, fields, BigVisitor(name, prec_req))

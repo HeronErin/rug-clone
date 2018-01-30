@@ -74,7 +74,6 @@ where
         serdeize::deserialize("Float", PrecReq::One, deserializer)?;
     let prec = match prec {
         PrecVal::One(one) => one,
-        #[cfg(any(feature = "integer", feature = "complex"))]
         _ => unreachable!(),
     };
     serdeize::check_range(
