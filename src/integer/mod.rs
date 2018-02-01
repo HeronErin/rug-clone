@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn check_formatting() {
-        let i = Integer::from((-11));
+        let i = Integer::from(-11);
         assert_eq!(format!("{}", i), "-11");
         assert_eq!(format!("{:?}", i), "-11");
         assert_eq!(format!("{:b}", i), "-1011");
