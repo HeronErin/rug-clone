@@ -1376,7 +1376,8 @@ impl Integer {
         unsafe { gmp::mpz_perfect_square_p(self.inner()) != 0 }
     }
 
-    /// Returns the same result as `self.cmp(&0)`, but is faster.
+    /// Returns the same result as `self.partial_cmp(&0).unwrap()`,
+    /// but is faster.
     ///
     /// # Examples
     ///
