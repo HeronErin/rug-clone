@@ -2,6 +2,15 @@
 
 set -e
 
+for word in "$@"; do
+	arr=(X${word}X)
+	count=${#arr[*]}
+	if [ $count != 1 ]; then
+		printf 'Expected single parameter, got "%s"\n' "$word"
+		exit 1
+	fi
+done
+
 if [[ $(uname) == MINGW* ]]; then
 	export GMP_MPFR_SYS_CACHE="$(cmd /c cd)\\cache"
 else
@@ -34,8 +43,14 @@ function print_eval {
 	eval $(printf '%q ' "$@")
 }
 
+function tc {
+	if [ "$1" != "" ]; then
+		echo +$1$suffix
+	fi
+}
+
 # Cache all C libraries.
-print_eval cargo +${toolchains[0]}"$suffix" check --no-default-features \
+print_eval cargo $(tc "${toolchains[0]}") check --no-default-features \
 	   --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
 	   -p gmp-mpfr-sys -p rug
 rm -r target
@@ -56,7 +71,7 @@ do
 	else
 		gmp="-p gmp-mpfr-sys"
 	fi
-	print_eval cargo +${toolchains[0]}"$suffix" check \
+	print_eval cargo $(tc "${toolchains[0]}") check \
 		   --no-default-features --features "$features" \
 		   $gmp -p rug
 	rm -r target
@@ -65,16 +80,16 @@ done
 # For all toolchains (including first), test with default features and serde
 for toolchain in "${toolchains[@]}"; do
 	for build in "" --release; do
-		print_eval cargo +$toolchain"$suffix" test $build \
+		print_eval cargo $(tc "$toolchains") test $build \
 			   --features serde -p gmp-mpfr-sys -p rug
 		rm -r target
 	done
 done
 
-# copy C libraries to some targets before clearing cache
-cargo +stable"$suffix" check -p gmp-mpfr-sys
-cargo +stable"$suffix" check --release -p gmp-mpfr-sys
-cargo +nightly"$suffix" check -p gmp-mpfr-sys
-cargo +nightly"$suffix" check --release -p gmp-mpfr-sys
+# copy C libraries to targets before clearing cache
+for toolchain in "${toolchains[@]}"; do
+	cargo $(tc "$toolchain") check -p gmp-mpfr-sys
+	cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
+done
 
 rm -r cache
