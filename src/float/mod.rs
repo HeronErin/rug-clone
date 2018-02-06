@@ -243,6 +243,7 @@ mod tests {
     use {Assign, Float};
     use float::{Round, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
+    use rand::{RandGen, RandState};
     use std::cmp::Ordering;
     use std::f64;
     use std::mem;
@@ -380,5 +381,47 @@ mod tests {
         assert!(
             unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize
         );
+    }
+
+    struct OnesZerosRand {
+        one_words: u32,
+    }
+
+    impl RandGen for OnesZerosRand {
+        fn gen(&mut self) -> u32 {
+            if self.one_words > 0 {
+                self.one_words -= 1;
+                !0
+            } else {
+                0
+            }
+        }
+    }
+
+    #[test]
+    fn check_error_random_bits() {
+        // Least significant 64 bits (two 32-bit words) of mantissa
+        // will be ones, all others will be zeros. With 256 bits of
+        // precision, the "random" number will be 0.0{192}1{64}. This
+        // will be normalized to 0.1{64} * 2^-192.
+        for i in 0..2 {
+            let mut zeros_ones = OnesZerosRand { one_words: 2 };
+            let mut rand = RandState::new_custom(&mut zeros_ones);
+            let save_emin;
+            unsafe {
+                save_emin = mpfr::get_emin();
+                mpfr::set_emin(-192 + i);
+            }
+            let mut f = Ok(Float::new(256));
+            f.assign(Float::random_bits(&mut rand));
+            if i == 0 {
+                assert_eq!(f.unwrap(), Float::with_val(64, !0u64) >> 256);
+            } else {
+                assert!(f.is_err());
+            }
+            unsafe {
+                mpfr::set_emin(save_emin);
+            }
+        }
     }
 }
