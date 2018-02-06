@@ -3223,7 +3223,7 @@ impl Complex {
     /// the precision is very large, and the generated random number
     /// is very small, this may require an exponent smaller than
     /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
-    /// number is set to Nan and an error is returned. This would most
+    /// number is set to NaN and an error is returned. This would most
     /// likely be a programming error.
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
