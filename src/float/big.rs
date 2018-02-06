@@ -7307,9 +7307,12 @@ impl Float {
     /// use rug::{Assign, Float};
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let mut f = Ok(Float::new(2));
-    /// f.assign(Float::random_bits(&mut rand));
-    /// let f = f.unwrap();
+    /// let mut f = Float::new(2);
+    /// {
+    ///     let mut res = Ok(&mut f);
+    ///     res.assign(Float::random_bits(&mut rand));
+    ///     assert!(res.is_ok());
+    /// }
     /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
     /// println!("0.0 ≤ {} < 1.0", f);
     /// ```
