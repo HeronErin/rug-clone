@@ -33,6 +33,7 @@ use std::mem;
 use std::os::raw::{c_int, c_ulong, c_void};
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
+use std::ptr;
 
 /// The state of a random number generator.
 ///
@@ -62,6 +63,11 @@ impl<'a> Clone for RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.inner());
+            // If d is null, then boxed_clone must have returned None.
+            let ptr = &inner as *const _ as *const MpRandState;
+            if (*ptr).seed.d.is_null() {
+                panic!("`RandGen::boxed_clone` returned `None`");
+            }
             RandState {
                 inner,
                 phantom: PhantomData,
@@ -199,9 +205,10 @@ impl<'a> RandState<'a> {
 
     /// Creates a new custom random generator.
     ///
-    /// The created `RandState` is borrowing mutably, so unlike other
-    /// instances of `RandState`, it cannot be cloned; attempting to
-    /// clone will panic.
+    /// If the custom random generator is cloned, the implemented
+    /// trait method
+    /// [`RandGen::boxed_clone`](trait.RandGen.html#method.boxed_clone)
+    /// is called; this leads to panic if the method returns `None`.
     ///
     /// # Examples
     ///
@@ -223,8 +230,8 @@ impl<'a> RandState<'a> {
     where
         T: 'a + RandGen,
     {
-        let b = Box::new(custom as &mut RandGen);
-        let r_ptr = Box::into_raw(b);
+        let b: Box<&mut RandGen> = Box::new(custom);
+        let r_ptr: *mut &mut RandGen = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
                 alloc: 0,
@@ -233,6 +240,50 @@ impl<'a> RandState<'a> {
             },
             alg: 0,
             _algdata: &CUSTOM_FUNCS as *const _ as *mut _,
+        };
+        RandState {
+            inner: unsafe { mem::transmute(inner) },
+            phantom: PhantomData,
+        }
+    }
+
+    /// Creates a new custom random generator.
+    ///
+    /// If the custom random generator is cloned, the implemented
+    /// trait method
+    /// [`RandGen::boxed_clone`](trait.RandGen.html#method.boxed_clone)
+    /// is called; this leads to panic if the method returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::rand::{RandGen, RandState};
+    /// struct Seed;
+    /// impl RandGen for Seed {
+    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
+    /// }
+    /// let seed = Box::new(Seed);
+    /// let mut rand = RandState::new_custom_boxed(seed);
+    /// let mut i = Integer::from(15);
+    /// i.random_below_mut(&mut rand);
+    /// println!("0 ≤ {} < 15", i);
+    /// assert!(i < 15);
+    /// ```
+    pub fn new_custom_boxed<T>(custom: Box<T>) -> RandState<'a>
+    where
+        T: 'a + RandGen,
+    {
+        let b: Box<Box<RandGen>> = Box::new(custom);
+        let r_ptr: *mut Box<RandGen> = Box::into_raw(b);
+        let inner = MpRandState {
+            seed: gmp::mpz_t {
+                alloc: 0,
+                size: 0,
+                d: r_ptr as *mut gmp::limb_t,
+            },
+            alg: 0,
+            _algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
         };
         RandState {
             inner: unsafe { mem::transmute(inner) },
@@ -524,26 +575,28 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(seed.inner, i);
     /// ```
     ///
-    /// If you use unsafe code, you can pass a reference to anything,
-    /// or even an `isize` or `usize`, to the seeding function.
+    /// Since the seed parameter is only passed to this function and
+    /// not used otherwise, with unsafe code you can pass a reference
+    /// to anything, or even an `isize` or `usize`, to the seeding
+    /// function.
     ///
     /// ```rust
     /// use rug::Integer;
     /// use rug::rand::{RandGen, RandState};
+    /// use std::mem;
     /// struct Seed { num: isize };
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
     ///     fn seed(&mut self, seed: &Integer) {
-    ///         // cast seed to pointer, then to isize
-    ///         self.num = seed as *const _ as isize;
+    ///         // unsafe code to transmute from &Integer to isize
+    ///         self.num = unsafe { mem::transmute(seed) };
     ///     }
     /// }
     /// let mut seed = Seed { num: 15 };
     /// let i = -12345_isize;
     /// {
-    ///     let i_ptr = i as *const Integer;
-    ///     // unsafe code to cast i from isize to &Integer
-    ///     let ir = unsafe { &*i_ptr };
+    ///     // unsafe code to transmute from isize to &Integer
+    ///     let ir = unsafe { mem::transmute(i) };
     ///     let mut rand = RandState::new_custom(&mut seed);
     ///     rand.seed(ir);
     /// }
@@ -552,7 +605,48 @@ pub trait RandGen: Send + Sync {
     ///
     /// [seed]: struct.RandState.html#method.seed
     #[inline]
-    fn seed(&mut self, _seed: &Integer) {}
+    fn seed(&mut self, seed: &Integer) {
+        let _ = seed;
+    }
+
+    /// Optionally clones the random number generator.
+    ///
+    /// The default implementation returns `None`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandGen;
+    /// struct SimpleGenerator {
+    ///     seed: u64,
+    /// }
+    /// impl RandGen for SimpleGenerator {
+    ///     fn gen(&mut self) -> u32 {
+    ///         self.seed =
+    ///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+    ///         (self.seed >> 32) as u32
+    ///     }
+    ///     fn boxed_clone(&self) -> Option<Box<RandGen>> {
+    ///         let other = SimpleGenerator { seed: self.seed };
+    ///         let boxed = Box::new(other);
+    ///         Some(boxed)
+    ///     }
+    /// }
+    /// let mut rand = SimpleGenerator { seed: 1 };
+    /// let first = rand.gen();
+    /// assert_eq!(rand.seed, 6364136223846793006);
+    /// assert_eq!(first, 1481765933);
+    /// let mut other = rand.boxed_clone().unwrap();
+    /// let second = rand.gen();
+    /// assert_eq!(rand.seed, 13885033948157127959);
+    /// assert_eq!(second, 3232861391);
+    /// let second_other = other.gen();
+    /// assert_eq!(second_other, 3232861391);
+    /// ```
+    #[inline]
+    fn boxed_clone(&self) -> Option<Box<RandGen>> {
+        None
+    }
 }
 
 // The contents of gmp::randstate_t are not available because the
@@ -596,18 +690,14 @@ c_callback! {
         (*r_ptr).seed(&(*(seed as *const Integer)));
     }
 
-    fn custom_get(
-        s: *mut randstate_t,
-        limb: *mut gmp::limb_t,
-        bits: c_ulong,
-    ) {
+    fn custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
         let s_ptr = s as *mut MpRandState;
         let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
         let gen = || (*r_ptr).gen();
         #[cfg(gmp_limb_bits_64)]
         {
             let (limbs, rest) = (bits / 64, bits % 64);
-            let limbs: isize  = cast(limbs);
+            let limbs: isize = cast(limbs);
             for i in 0..limbs {
                 let n = u64::from(gen()) | u64::from(gen()) << 32;
                 *limb.offset(i) = cast(n);
@@ -645,8 +735,28 @@ c_callback! {
         drop(Box::from_raw(r_ptr));
     }
 
-    fn custom_iset(_s: *mut randstate_t, _src: *const randstate_t) {
-        panic!("cannot clone custom Rand");
+    fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
+        let src_ptr = src as *const MpRandState;
+        let src_r_ptr = (*src_ptr).seed.d as *const &mut RandGen;
+        let other = (*src_r_ptr).boxed_clone();
+        // Do not panic here if other is None, as panics cannot cross
+        // FFI boundareies. Instead, set dst_ptr.seed.d to null.
+        let dst_r_ptr: *mut Box<RandGen> = if let Some(other) = other {
+            let b: Box<Box<RandGen>> = Box::new(other);
+            Box::into_raw(b)
+        } else {
+            ptr::null_mut()
+        };
+        let dst_ptr = dst as *mut MpRandState;
+        *dst_ptr = MpRandState {
+            seed: gmp::mpz_t {
+                alloc: 0,
+                size: 0,
+                d: dst_r_ptr as *mut gmp::limb_t,
+            },
+            alg: 0,
+            _algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
+        };
     }
 }
 
@@ -655,6 +765,94 @@ const CUSTOM_FUNCS: Funcs = Funcs {
     _get: Some(custom_get),
     _clear: Some(custom_clear),
     _iset: Some(custom_iset),
+};
+
+c_callback! {
+    fn custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+        let s_ptr = s as *mut MpRandState;
+        let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
+        (*r_ptr).seed(&(*(seed as *const Integer)));
+    }
+
+    fn custom_boxed_get(
+        s: *mut randstate_t,
+        limb: *mut gmp::limb_t,
+        bits: c_ulong,
+    ) {
+        let s_ptr = s as *mut MpRandState;
+        let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
+        let gen = || (*r_ptr).gen();
+        #[cfg(gmp_limb_bits_64)]
+        {
+            let (limbs, rest) = (bits / 64, bits % 64);
+            let limbs: isize = cast(limbs);
+            for i in 0..limbs {
+                let n = u64::from(gen()) | u64::from(gen()) << 32;
+                *limb.offset(i) = cast(n);
+            }
+            if rest >= 32 {
+                let mut n = u64::from(gen());
+                if rest > 32 {
+                    let mask = !(!0 << (rest - 32));
+                    n |= u64::from(gen() & mask) << 32;
+                }
+                *limb.offset(limbs) = cast(n);
+            } else if rest > 0 {
+                let mask = !(!0 << rest);
+                let n = u64::from(gen() & mask);
+                *limb.offset(limbs) = cast(n);
+            }
+        }
+        #[cfg(gmp_limb_bits_32)]
+        {
+            let (limbs, rest) = (bits / 32, bits % 32);
+            let limbs: isize = cast(limbs);
+            for i in 0..limbs {
+                *limb.offset(i) = cast(gen());
+            }
+            if rest > 0 {
+                let mask = !(!0 << rest);
+                *limb.offset(limbs) = cast(gen() & mask);
+            }
+        }
+    }
+
+    fn custom_boxed_clear(s: *mut randstate_t) {
+        let s_ptr = s as *mut MpRandState;
+        let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
+        drop(Box::from_raw(r_ptr));
+    }
+
+    fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
+        let src_ptr = src as *const MpRandState;
+        let src_r_ptr = (*src_ptr).seed.d as *const Box<RandGen>;
+        let other = (*src_r_ptr).boxed_clone();
+        // Do not panic here if other is None, as panics cannot cross
+        // FFI boundareies. Instead, set dst_ptr.seed.d to null.
+        let dst_r_ptr: *mut Box<RandGen> = if let Some(other) = other {
+            let b: Box<Box<RandGen>> = Box::new(other);
+            Box::into_raw(b)
+        } else {
+            ptr::null_mut()
+        };
+        let dst_ptr = dst as *mut MpRandState;
+        *dst_ptr = MpRandState {
+            seed: gmp::mpz_t {
+                alloc: 0,
+                size: 0,
+                d: dst_r_ptr as *mut gmp::limb_t,
+            },
+            alg: 0,
+            _algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
+        };
+    }
+}
+
+const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
+    _seed: Some(custom_boxed_seed),
+    _get: Some(custom_boxed_get),
+    _clear: Some(custom_boxed_clear),
+    _iset: Some(custom_boxed_iset),
 };
 
 impl<'a> Inner for RandState<'a> {
@@ -669,5 +867,57 @@ impl<'a> InnerMut for RandState<'a> {
     #[inline]
     unsafe fn inner_mut(&mut self) -> &mut randstate_t {
         &mut self.inner
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use rand::{RandGen, RandState};
+
+    struct SimpleGenerator {
+        seed: u64,
+    }
+
+    impl RandGen for SimpleGenerator {
+        fn gen(&mut self) -> u32 {
+            self.seed =
+                self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+            (self.seed >> 32) as u32
+        }
+        fn boxed_clone(&self) -> Option<Box<RandGen>> {
+            let other = SimpleGenerator { seed: self.seed };
+            let boxed = Box::new(other);
+            Some(boxed)
+        }
+    }
+
+    #[test]
+    fn check_custom_clone() {
+        let mut gen = SimpleGenerator { seed: 1 };
+        let mut rand1 = RandState::new_custom(&mut gen);
+        let mut rand2 = rand1.clone();
+        let first1 = rand1.bits(32);
+        let first2 = rand2.bits(32);
+        assert_eq!(first1, first2);
+        let second1 = rand1.bits(32);
+        let second2 = rand2.bits(32);
+        assert_eq!(second1, second2);
+        assert_ne!(first1, second1);
+    }
+
+    struct NoCloneGenerator;
+
+    impl RandGen for NoCloneGenerator {
+        fn gen(&mut self) -> u32 {
+            0
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "`RandGen::boxed_clone` returned `None`")]
+    fn check_custom_no_clone() {
+        let mut gen = NoCloneGenerator;
+        let rand1 = RandState::new_custom(&mut gen);
+        rand1.clone();
     }
 }

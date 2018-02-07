@@ -2,6 +2,8 @@
 * Add `Float::sum` and `Complex::sum` methods.
 * Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to
   `RandState`.
+* Add `RandGen::boxed_clone` and `RandState::new_custom_boxed`, and
+  thus support for cloning custom random generators.
 
 Version 0.9.2 (2018-01-12)
 ==========================
