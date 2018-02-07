@@ -684,6 +684,22 @@ macro_rules! c_callback {
 }
 
 c_callback! {
+    fn abort_seed(_: *mut randstate_t, _: *const gmp::mpz_t) {
+        process::abort();
+    }
+
+    fn abort_get(_: *mut randstate_t, _: *mut gmp::limb_t, _: c_ulong) {
+        process::abort();
+    }
+
+    fn abort_clear(_: *mut randstate_t) {
+        process::abort();
+    }
+
+    fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
+        process::abort();
+    }
+
     fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
         let s_ptr = s as *mut MpRandState;
         let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
@@ -741,11 +757,13 @@ c_callback! {
         let other = (*src_r_ptr).boxed_clone();
         // Do not panic here if other is None, as panics cannot cross
         // FFI boundareies. Instead, set dst_ptr.seed.d to null.
-        let dst_r_ptr: *mut Box<RandGen> = if let Some(other) = other {
+        let (dst_r_ptr, funcs) = if let Some(other) = other {
             let b: Box<Box<RandGen>> = Box::new(other);
-            Box::into_raw(b)
+            let dst_r_ptr: *mut Box<RandGen> = Box::into_raw(b);
+            let funcs = &CUSTOM_BOXED_FUNCS;
+            (dst_r_ptr, funcs)
         } else {
-            ptr::null_mut()
+            (ptr::null_mut(), &ABORT_FUNCS)
         };
         let dst_ptr = dst as *mut MpRandState;
         *dst_ptr = MpRandState {
@@ -755,19 +773,10 @@ c_callback! {
                 d: dst_r_ptr as *mut gmp::limb_t,
             },
             alg: 0,
-            _algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
+            _algdata: funcs as *const _ as *mut _,
         };
     }
-}
 
-const CUSTOM_FUNCS: Funcs = Funcs {
-    _seed: Some(custom_seed),
-    _get: Some(custom_get),
-    _clear: Some(custom_clear),
-    _iset: Some(custom_iset),
-};
-
-c_callback! {
     fn custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
         let s_ptr = s as *mut MpRandState;
         let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
@@ -829,11 +838,13 @@ c_callback! {
         let other = (*src_r_ptr).boxed_clone();
         // Do not panic here if other is None, as panics cannot cross
         // FFI boundareies. Instead, set dst_ptr.seed.d to null.
-        let dst_r_ptr: *mut Box<RandGen> = if let Some(other) = other {
+        let (dst_r_ptr, funcs) = if let Some(other) = other {
             let b: Box<Box<RandGen>> = Box::new(other);
-            Box::into_raw(b)
+            let dst_r_ptr: *mut Box<RandGen> = Box::into_raw(b);
+            let funcs = &CUSTOM_BOXED_FUNCS;
+            (dst_r_ptr, funcs)
         } else {
-            ptr::null_mut()
+            (ptr::null_mut(), &ABORT_FUNCS)
         };
         let dst_ptr = dst as *mut MpRandState;
         *dst_ptr = MpRandState {
@@ -843,10 +854,24 @@ c_callback! {
                 d: dst_r_ptr as *mut gmp::limb_t,
             },
             alg: 0,
-            _algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
+            _algdata: funcs as *const _ as *mut _,
         };
     }
 }
+
+const ABORT_FUNCS: Funcs = Funcs {
+    _seed: Some(abort_seed),
+    _get: Some(abort_get),
+    _clear: Some(abort_clear),
+    _iset: Some(abort_iset),
+};
+
+const CUSTOM_FUNCS: Funcs = Funcs {
+    _seed: Some(custom_seed),
+    _get: Some(custom_get),
+    _clear: Some(custom_clear),
+    _iset: Some(custom_iset),
+};
 
 const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     _seed: Some(custom_boxed_seed),
@@ -894,15 +919,25 @@ mod tests {
     #[test]
     fn check_custom_clone() {
         let mut gen = SimpleGenerator { seed: 1 };
-        let mut rand1 = RandState::new_custom(&mut gen);
-        let mut rand2 = rand1.clone();
-        let first1 = rand1.bits(32);
-        let first2 = rand2.bits(32);
-        assert_eq!(first1, first2);
-        let second1 = rand1.bits(32);
-        let second2 = rand2.bits(32);
-        assert_eq!(second1, second2);
-        assert_ne!(first1, second1);
+        let mut rand2;
+        {
+            let mut rand1 = RandState::new_custom(&mut gen);
+            rand2 = rand1.clone();
+            let first1 = rand1.bits(32);
+            let first2 = rand2.bits(32);
+            assert_eq!(first1, first2);
+            let second1 = rand1.bits(32);
+            let second2 = rand2.bits(32);
+            assert_eq!(second1, second2);
+            assert_ne!(first1, second1);
+        }
+        let mut rand3 = RandState::new_custom_boxed(Box::new(gen));
+        let mut rand4 = rand3.clone();
+        let third2 = rand2.bits(32);
+        let third3 = rand3.bits(32);
+        let third4 = rand4.bits(32);
+        assert_eq!(third2, third3);
+        assert_eq!(third3, third4);
     }
 
     struct NoCloneGenerator;
