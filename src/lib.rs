@@ -32,11 +32,8 @@
 //! License, or (at your option) any later version. See the full text
 //! of the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 //!
-//! ## Basic use
-//!
-//! This crate requires rustc version 1.18.0. This crate depends on
-//! the low-level bindings in the [`gmp-mpfr-sys`][sys] crate, which
-//! provides Rust FFI bindings for:
+//! This crate depends on the low-level bindings in the
+//! [`gmp-mpfr-sys`][sys] crate, which provides Rust FFI bindings for:
 //!
 //! * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
 //! * the [GNU MPFR Library][mpfr], a library for multiple-precision
@@ -71,6 +68,8 @@
 //! ```
 //!
 //! ## Usage
+//!
+//! This crate requires rustc version 1.18.0 or later.
 //!
 //! To use `rug` in your crate, add `extern crate rug;` to the crate
 //! root and add `rug` as a dependency in `Cargo.toml`:
