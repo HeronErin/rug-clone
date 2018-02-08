@@ -184,7 +184,6 @@ impl PartialOrd<Integer> for f64 {
 #[cfg(test)]
 mod tests {
     use Integer;
-    use std::{i32, i64, u32, u64};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
     where
@@ -215,34 +214,17 @@ mod tests {
 
     #[test]
     fn check_cmp_u_s() {
+        use tests::{I32, I64, U32, U64};
         let large = &[(1, 100), (-11, 200), (33, 150)];
-        let uns32 = &[0, 1, 100, 101, u32::MAX];
-        let sig32 = &[i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
-        let uns64 = &[0, 1, 100, 101, u32::MAX as u64 + 1, u64::MAX];
-        let sig64 = &[
-            i64::MIN,
-            -(u32::MAX as i64) - 1,
-            i32::MIN as i64 - 1,
-            -101,
-            -100,
-            -1,
-            0,
-            1,
-            100,
-            101,
-            i32::MAX as i64 + 1,
-            u32::MAX as i64 + 1,
-            i64::MAX,
-        ];
         let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-            .chain(uns32.iter().map(|&x| Integer::from(x)))
-            .chain(sig32.iter().map(|&x| Integer::from(x)))
-            .chain(uns64.iter().map(|&x| Integer::from(x)))
-            .chain(sig64.iter().map(|&x| Integer::from(x)))
+            .chain(U32.iter().map(|&x| Integer::from(x)))
+            .chain(I32.iter().map(|&x| Integer::from(x)))
+            .chain(U64.iter().map(|&x| Integer::from(x)))
+            .chain(I64.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
-        check_cmp_prim(uns32, &against);
-        check_cmp_prim(sig32, &against);
-        check_cmp_prim(uns64, &against);
-        check_cmp_prim(sig64, &against);
+        check_cmp_prim(U32, &against);
+        check_cmp_prim(I32, &against);
+        check_cmp_prim(U64, &against);
+        check_cmp_prim(I64, &against);
     }
 }

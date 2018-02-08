@@ -227,3 +227,77 @@ pub use complex::big::Complex;
 
 #[cfg(feature = "rand")]
 pub mod rand;
+
+#[cfg(test)]
+#[cfg(any(feature = "integer", feature = "float"))]
+mod tests {
+    #[cfg(feature = "float")]
+    use std::{f32, f64};
+    use std::{i32, i64, u32, u64};
+
+    pub const U32: &[u32] = &[0, 1, 1000, 1001, i32::MAX as u32 + 1, u32::MAX];
+    pub const I32: &[i32] =
+        &[i32::MIN, -1001, -1000, -1, 0, 1, 1000, 1001, i32::MAX];
+    pub const U64: &[u64] = &[
+        0,
+        1,
+        1000,
+        1001,
+        i32::MAX as u64 + 1,
+        u32::MAX as u64 + 1,
+        u64::MAX,
+    ];
+    pub const I64: &[i64] = &[
+        i64::MIN,
+        -(u32::MAX as i64) - 1,
+        i32::MIN as i64 - 1,
+        -1001,
+        -1000,
+        -1,
+        0,
+        1,
+        1000,
+        1001,
+        i32::MAX as i64 + 1,
+        u32::MAX as i64 + 1,
+        i64::MAX,
+    ];
+    #[cfg(feature = "float")]
+    pub const F32: &[f32] = &[
+        -f32::NAN,
+        f32::NEG_INFINITY,
+        f32::MIN,
+        -12.0e30,
+        -2.0,
+        -1.0,
+        -f32::MIN_POSITIVE,
+        -0.0,
+        0.0,
+        f32::MIN_POSITIVE,
+        1.0,
+        2.0,
+        12.0e30,
+        f32::MAX,
+        f32::INFINITY,
+        f32::NAN,
+    ];
+    #[cfg(feature = "float")]
+    pub const F64: &[f64] = &[
+        -f64::NAN,
+        f64::NEG_INFINITY,
+        f64::MIN,
+        -12.0e43,
+        -2.0,
+        -1.0,
+        -f64::MIN_POSITIVE,
+        -0.0,
+        0.0,
+        f64::MIN_POSITIVE,
+        1.0,
+        2.0,
+        12.0e43,
+        f64::MAX,
+        f64::INFINITY,
+        f64::NAN,
+    ];
+}

@@ -315,20 +315,22 @@ fold! { Integer, Product product, Integer::from(1), Mul::mul }
 mod tests {
     use Integer;
     use ops::Pow;
-    use std::{i32, u32};
     use std::cmp::Ordering;
 
     #[test]
     fn check_arith_u_s() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
-        for &op in &u {
+        use tests::{I32, I64, U32, U64};
+        let large = &[(1, 100), (-11, 200), (33, 150)];
+        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+            .chain(U32.iter().map(|&x| Integer::from(x)))
+            .chain(I32.iter().map(|&x| Integer::from(x)))
+            .chain(U64.iter().map(|&x| Integer::from(x)))
+            .chain(I64.iter().map(|&x| Integer::from(x)))
+            .collect::<Vec<Integer>>();
+
+        for &op in U32 {
             let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
+            for b in &against {
                 assert_eq!(b.clone() + op, b.clone() + &iop);
                 assert_eq!(b.clone() - op, b.clone() - &iop);
                 assert_eq!(b.clone() * op, b.clone() * &iop);
@@ -339,24 +341,21 @@ mod tests {
                 assert_eq!(b.clone() & op, b.clone() & &iop);
                 assert_eq!(b.clone() | op, b.clone() | &iop);
                 assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + &b);
-                assert_eq!(op - b.clone(), iop.clone() - &b);
-                assert_eq!(op * b.clone(), iop.clone() * &b);
+                assert_eq!(op + b.clone(), iop.clone() + b);
+                assert_eq!(op - b.clone(), iop.clone() - b);
+                assert_eq!(op * b.clone(), iop.clone() * b);
                 if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / &b);
-                    assert_eq!(op % b.clone(), iop.clone() % &b);
+                    assert_eq!(op / b.clone(), iop.clone() / b);
+                    assert_eq!(op % b.clone(), iop.clone() % b);
                 }
-                assert_eq!(op & b.clone(), iop.clone() & &b);
-                assert_eq!(op | b.clone(), iop.clone() | &b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ &b);
+                assert_eq!(op & b.clone(), iop.clone() & b);
+                assert_eq!(op | b.clone(), iop.clone() | b);
+                assert_eq!(op ^ b.clone(), iop.clone() ^ b);
             }
         }
-        for &op in &s {
+        for &op in I32 {
             let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
+            for b in &against {
                 assert_eq!(b.clone() + op, b.clone() + &iop);
                 assert_eq!(b.clone() - op, b.clone() - &iop);
                 assert_eq!(b.clone() * op, b.clone() * &iop);
@@ -367,16 +366,16 @@ mod tests {
                 assert_eq!(b.clone() & op, b.clone() & &iop);
                 assert_eq!(b.clone() | op, b.clone() | &iop);
                 assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + &b);
-                assert_eq!(op - b.clone(), iop.clone() - &b);
-                assert_eq!(op * b.clone(), iop.clone() * &b);
+                assert_eq!(op + b.clone(), iop.clone() + b);
+                assert_eq!(op - b.clone(), iop.clone() - b);
+                assert_eq!(op * b.clone(), iop.clone() * b);
                 if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / &b);
-                    assert_eq!(op % b.clone(), iop.clone() % &b);
+                    assert_eq!(op / b.clone(), iop.clone() / b);
+                    assert_eq!(op % b.clone(), iop.clone() % b);
                 }
-                assert_eq!(op & b.clone(), iop.clone() & &b);
-                assert_eq!(op | b.clone(), iop.clone() | &b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ &b);
+                assert_eq!(op & b.clone(), iop.clone() & b);
+                assert_eq!(op | b.clone(), iop.clone() | b);
+                assert_eq!(op ^ b.clone(), iop.clone() ^ b);
             }
         }
     }
