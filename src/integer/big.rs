@@ -2719,6 +2719,44 @@ impl Integer {
         fn root_rem_ref -> RootRemRef;
     }
     math_op1! {
+        xgmp::mpz_square;
+        /// Computes the square.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(13);
+        /// let square = i.square();
+        /// assert_eq!(square, 169);
+        /// ```
+        fn square();
+        /// Computes the square.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(13);
+        /// i.square_mut();
+        /// assert_eq!(i, 169);
+        /// ```
+        fn square_mut;
+        /// Computes the square.
+        ///
+        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+        /// implemented with the returned object as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(13);
+        /// assert_eq!(Integer::from(i.square_ref()), 169);
+        /// ```
+        fn square_ref -> SquareRef;
+    }
+    math_op1! {
         xgmp::mpz_sqrt_check;
         /// Computes the square root and truncates the result.
         ///
@@ -3885,6 +3923,7 @@ ref_math_op1! { Integer; xgmp::mpz_root_check; struct RootRef { n: u32 } }
 ref_math_op1_2! {
     Integer; xgmp::mpz_rootrem_check; struct RootRemRef { n: u32 }
 }
+ref_math_op1! { Integer; xgmp::mpz_square; struct SquareRef {} }
 ref_math_op1! { Integer; xgmp::mpz_sqrt_check; struct SqrtRef {} }
 ref_math_op1_2! { Integer; xgmp::mpz_sqrtrem_check; struct SqrtRemRef {} }
 ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeRef {} }

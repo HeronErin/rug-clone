@@ -1,3 +1,4 @@
+* Add `Integer::square` and `Rational::square` methods.
 * Add `Rational::cmp_abs` method.
 * Add `Float::sum` and `Complex::sum` methods.
 * Add `from_raw`, `into_raw`, `as_raw` and `as_raw_mut` to

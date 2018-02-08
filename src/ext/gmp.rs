@@ -50,6 +50,11 @@ pub unsafe fn mpz_signum(rop: *mut mpz_t, op: *const mpz_t) {
 }
 
 #[inline]
+pub unsafe fn mpz_square(rop: *mut mpz_t, op: *const mpz_t) {
+    gmp::mpz_mul(rop, op, op);
+}
+
+#[inline]
 pub unsafe fn mpz_root_check(
     rop: *mut mpz_t,
     op: *const mpz_t,
@@ -1444,6 +1449,12 @@ mod rational {
     pub unsafe fn mpq_signum(signum: *mut mpz_t, op: *const mpq_t) {
         let num = gmp::mpq_numref_const(op);
         mpz_signum(signum, num);
+    }
+
+    #[inline]
+    pub unsafe fn mpq_square(rop: *mut mpq_t, op: *const mpq_t) {
+        mpz_square(gmp::mpq_numref(rop), gmp::mpq_numref_const(op));
+        mpz_square(gmp::mpq_denref(rop), gmp::mpq_denref_const(op));
     }
 
     #[inline]

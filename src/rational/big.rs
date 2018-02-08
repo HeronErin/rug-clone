@@ -2099,6 +2099,44 @@ impl Rational {
         /// ```
         fn fract_round_ref -> FractRoundRef;
     }
+    math_op1! {
+        xgmp::mpq_square;
+        /// Computes the square.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let r = Rational::from((-13, 2));
+        /// let square = r.square();
+        /// assert_eq!(square, (169, 4));
+        /// ```
+        fn square();
+        /// Computes the square.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let mut r = Rational::from((-13, 2));
+        /// r.square_mut();
+        /// assert_eq!(r, (169, 4));
+        /// ```
+        fn square_mut;
+        /// Computes the square.
+        ///
+        /// `Assign<Src> for Rational` and `From<Src> for Rational` are
+        /// implemented with the returned object as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Rational;
+        /// let r = Rational::from((-13, 2));
+        /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
+        /// ```
+        fn square_ref -> SquareRef;
+    }
 }
 
 ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
@@ -2166,6 +2204,7 @@ ref_rat_op_rat_int! { xgmp::mpq_floor_fract_whole; struct FractFloorRef {} }
 ref_rat_op_int! { xgmp::mpq_round; struct RoundRef {} }
 ref_math_op1! { Rational; xgmp::mpq_round_fract; struct RemRoundRef {} }
 ref_rat_op_rat_int! { xgmp::mpq_round_fract_whole; struct FractRoundRef {} }
+ref_math_op1! { Rational; xgmp::mpq_square; struct SquareRef {} }
 
 #[derive(Clone, Copy)]
 pub struct BorrowRational<'a> {
