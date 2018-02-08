@@ -867,57 +867,57 @@ mod tests {
             12.0e30,
         ];
         #[cfg(feature = "integer")]
-        for zz in &z {
-            let zf = Float::with_val(check_prec, zz);
+        for oo in &z {
+            let of = Float::with_val(check_prec, oo);
             for ff in &f {
-                assert!(same(ff.clone() + zz, ff.clone() + &zf));
-                assert!(same(ff.clone() - zz, ff.clone() - &zf));
-                assert!(same(ff.clone() * zz, ff.clone() * &zf));
-                assert!(same(ff.clone() / zz, ff.clone() / &zf));
-                assert!(same(zz.clone() + ff.clone(), zf.clone() + ff));
-                assert!(same(zz.clone() - ff.clone(), zf.clone() - ff));
-                assert!(same(zz.clone() * ff.clone(), zf.clone() * ff));
-                assert!(same(zz.clone() / ff.clone(), zf.clone() / ff));
+                assert!(same(ff.clone() + oo, ff.clone() + &of));
+                assert!(same(ff.clone() - oo, ff.clone() - &of));
+                assert!(same(ff.clone() * oo, ff.clone() * &of));
+                assert!(same(ff.clone() / oo, ff.clone() / &of));
+                assert!(same(oo.clone() + ff.clone(), of.clone() + ff));
+                assert!(same(oo.clone() - ff.clone(), of.clone() - ff));
+                assert!(same(oo.clone() * ff.clone(), of.clone() * ff));
+                assert!(same(oo.clone() / ff.clone(), of.clone() / ff));
             }
         }
         #[cfg(feature = "rational")]
-        for qq in &q {
-            let qf = Float::with_val(check_prec, qq);
+        for oo in &q {
+            let of = Float::with_val(check_prec, oo);
             for ff in &f {
-                assert!(same(ff.clone() + qq, ff.clone() + &qf));
-                assert!(same(ff.clone() - qq, ff.clone() - &qf));
-                assert!(same(ff.clone() * qq, ff.clone() * &qf));
-                assert!(same(ff.clone() / qq, ff.clone() / &qf));
-                assert!(same(qq.clone() + ff.clone(), qf.clone() + ff));
-                assert!(same(qq.clone() - ff.clone(), qf.clone() - ff));
-                assert!(same(qq.clone() * ff.clone(), qf.clone() * ff));
-                assert!(same(qq.clone() / ff.clone(), qf.clone() / ff));
+                assert!(same(ff.clone() + oo, ff.clone() + &of));
+                assert!(same(ff.clone() - oo, ff.clone() - &of));
+                assert!(same(ff.clone() * oo, ff.clone() * &of));
+                assert!(same(ff.clone() / oo, ff.clone() / &of));
+                assert!(same(oo.clone() + ff.clone(), of.clone() + ff));
+                assert!(same(oo.clone() - ff.clone(), of.clone() - ff));
+                assert!(same(oo.clone() * ff.clone(), of.clone() * ff));
+                assert!(same(oo.clone() / ff.clone(), of.clone() / ff));
             }
         }
-        for uu in &u {
-            let uf = Float::with_val(check_prec, *uu);
+        for oo in &u {
+            let of = Float::with_val(check_prec, *oo);
             for ff in &f {
-                assert!(same(ff.clone() + *uu, ff.clone() + &uf));
-                assert!(same(ff.clone() - *uu, ff.clone() - &uf));
-                assert!(same(ff.clone() * *uu, ff.clone() * &uf));
-                assert!(same(ff.clone() / *uu, ff.clone() / &uf));
-                assert!(same(*uu + ff.clone(), uf.clone() + ff));
-                assert!(same(*uu - ff.clone(), uf.clone() - ff));
-                assert!(same(*uu * ff.clone(), uf.clone() * ff));
-                assert!(same(*uu / ff.clone(), uf.clone() / ff));
+                assert!(same(ff.clone() + *oo, ff.clone() + &of));
+                assert!(same(ff.clone() - *oo, ff.clone() - &of));
+                assert!(same(ff.clone() * *oo, ff.clone() * &of));
+                assert!(same(ff.clone() / *oo, ff.clone() / &of));
+                assert!(same(*oo + ff.clone(), of.clone() + ff));
+                assert!(same(*oo - ff.clone(), of.clone() - ff));
+                assert!(same(*oo * ff.clone(), of.clone() * ff));
+                assert!(same(*oo / ff.clone(), of.clone() / ff));
             }
         }
-        for ss in &s {
-            let sf = Float::with_val(check_prec, *ss);
+        for oo in &s {
+            let of = Float::with_val(check_prec, *oo);
             for ff in &f {
-                assert!(same(ff.clone() + *ss, ff.clone() + &sf));
-                assert!(same(ff.clone() - *ss, ff.clone() - &sf));
-                assert!(same(ff.clone() * *ss, ff.clone() * &sf));
-                assert!(same(ff.clone() / *ss, ff.clone() / &sf));
-                assert!(same(*ss + ff.clone(), sf.clone() + ff));
-                assert!(same(*ss - ff.clone(), sf.clone() - ff));
-                assert!(same(*ss * ff.clone(), sf.clone() * ff));
-                assert!(same(*ss / ff.clone(), sf.clone() / ff));
+                assert!(same(ff.clone() + *oo, ff.clone() + &of));
+                assert!(same(ff.clone() - *oo, ff.clone() - &of));
+                assert!(same(ff.clone() * *oo, ff.clone() * &of));
+                assert!(same(ff.clone() / *oo, ff.clone() / &of));
+                assert!(same(*oo + ff.clone(), of.clone() + ff));
+                assert!(same(*oo - ff.clone(), of.clone() - ff));
+                assert!(same(*oo * ff.clone(), of.clone() * ff));
+                assert!(same(*oo / ff.clone(), of.clone() / ff));
             }
         }
         for oo in &double {

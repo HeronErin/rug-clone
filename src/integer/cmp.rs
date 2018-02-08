@@ -180,3 +180,50 @@ impl PartialOrd<Integer> for f64 {
             .map(Ordering::reverse)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use Integer;
+    use std::{i32, u32};
+
+    #[test]
+    fn check_cmp_u_s() {
+        let large = [(1, 100), (-11, 200), (33, 150)];
+        let u = [0, 1, 100, 101, u32::MAX];
+        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
+        for &op in &u {
+            let iop = Integer::from(op);
+            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+                .chain(s.iter().map(|&x| Integer::from(x)))
+                .chain(u.iter().map(|&x| Integer::from(x)));
+            for b in against {
+                assert_eq!(b.eq(&op), b.eq(&iop));
+                assert_eq!(op.eq(&b), iop.eq(&b));
+                assert_eq!(b.eq(&op), op.eq(&b));
+                assert_eq!(b.partial_cmp(&op), b.partial_cmp(&iop));
+                assert_eq!(op.partial_cmp(&b), iop.partial_cmp(&b));
+                assert_eq!(
+                    b.partial_cmp(&op).unwrap(),
+                    op.partial_cmp(&b).unwrap().reverse()
+                );
+            }
+        }
+        for &op in &s {
+            let iop = Integer::from(op);
+            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+                .chain(s.iter().map(|&x| Integer::from(x)))
+                .chain(u.iter().map(|&x| Integer::from(x)));
+            for b in against {
+                assert_eq!(b.eq(&op), b.eq(&iop));
+                assert_eq!(op.eq(&b), iop.eq(&b));
+                assert_eq!(b.eq(&op), op.eq(&b));
+                assert_eq!(b.partial_cmp(&op), b.partial_cmp(&iop));
+                assert_eq!(op.partial_cmp(&b), iop.partial_cmp(&b));
+                assert_eq!(
+                    b.partial_cmp(&op).unwrap(),
+                    op.partial_cmp(&b).unwrap().reverse()
+                );
+            }
+        }
+    }
+}
