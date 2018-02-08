@@ -47,7 +47,7 @@ use std::ptr;
 /// ```
 pub struct RandState<'a> {
     inner: randstate_t,
-    phantom: PhantomData<&'a (RandGen + 'a)>,
+    phantom: PhantomData<&'a RandGen>,
 }
 
 impl<'a> Default for RandState<'a> {
@@ -226,8 +226,8 @@ impl<'a> RandState<'a> {
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
-    pub fn new_custom(custom: &'a mut (RandGen + 'a)) -> RandState<'a> {
-        let b: Box<&'a mut (RandGen + 'a)> = Box::new(custom);
+    pub fn new_custom(custom: &'a mut RandGen) -> RandState<'a> {
+        let b: Box<&'a mut RandGen> = Box::new(custom);
         let r_ptr: *mut &mut RandGen = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
@@ -267,8 +267,8 @@ impl<'a> RandState<'a> {
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
-    pub fn new_custom_boxed(custom: Box<RandGen + 'a>) -> RandState<'a> {
-        let b: Box<Box<RandGen + 'a>> = Box::new(custom);
+    pub fn new_custom_boxed(custom: Box<RandGen>) -> RandState<'a> {
+        let b: Box<Box<RandGen>> = Box::new(custom);
         let r_ptr: *mut Box<RandGen> = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
