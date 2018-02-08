@@ -156,66 +156,103 @@ cmp_f! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
 
 #[cfg(test)]
 mod tests {
-    use Float;
+    use {Assign, Float};
     #[cfg(feature = "integer")]
     use Integer;
     #[cfg(feature = "rational")]
     use Rational;
     use float::Special;
-    use std::{f32, f64, i32, u32};
+    use std::{f32, f64, i32, i64, u32, u64};
     #[cfg(feature = "integer")]
     use std::str::FromStr;
 
+    fn check_cmp_prim<T>(s: &[T], against: &[Float])
+    where
+        Float: Assign<T> + PartialEq<T> + PartialOrd<T>,
+        T: Copy + PartialEq<Float> + PartialOrd<Float>,
+    {
+        for op in s {
+            let fop = Float::with_val(100, *op);
+            for b in against {
+                assert_eq!(b.eq(op), <Float as PartialEq>::eq(&b, &fop));
+                assert_eq!(op.eq(&b), <Float as PartialEq>::eq(&fop, &b));
+                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(
+                    b.partial_cmp(op),
+                    <Float as PartialOrd>::partial_cmp(&b, &fop)
+                );
+                assert_eq!(
+                    op.partial_cmp(&b),
+                    <Float as PartialOrd>::partial_cmp(&fop, &b)
+                );
+                assert_eq!(
+                    b.partial_cmp(op),
+                    op.partial_cmp(&b).map(|o| o.reverse())
+                );
+            }
+        }
+    }
+
+    #[cfg(feature = "integer")]
+    fn check_cmp_big<'a, T>(s: &'a [T], against: &[Float])
+    where
+        Float: Assign<&'a T> + PartialEq<T> + PartialOrd<T>,
+        T: PartialEq<Float> + PartialOrd<Float>,
+    {
+        for op in s {
+            let fop = Float::with_val(100, op);
+            for b in against {
+                assert_eq!(b.eq(op), <Float as PartialEq>::eq(&b, &fop));
+                assert_eq!(op.eq(&b), <Float as PartialEq>::eq(&fop, &b));
+                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(
+                    b.partial_cmp(op),
+                    <Float as PartialOrd>::partial_cmp(&b, &fop)
+                );
+                assert_eq!(
+                    op.partial_cmp(&b),
+                    <Float as PartialOrd>::partial_cmp(&fop, &b)
+                );
+                assert_eq!(
+                    b.partial_cmp(op),
+                    op.partial_cmp(&b).map(|o| o.reverse())
+                );
+            }
+        }
+    }
+
     #[test]
     fn check_cmp_others() {
-        let work_prec = 20;
-        let check_prec = 100;
-        let f = [
-            Float::with_val(work_prec, Special::Zero),
-            Float::with_val(work_prec, Special::NegZero),
-            Float::with_val(work_prec, Special::Infinity),
-            Float::with_val(work_prec, Special::NegInfinity),
-            Float::with_val(work_prec, Special::Nan),
-            Float::with_val(work_prec, 1),
-            Float::with_val(work_prec, -1),
-            Float::with_val(work_prec, 999999e100),
-            Float::with_val(work_prec, 999999e-100),
-            Float::with_val(work_prec, -999999e100),
-            Float::with_val(work_prec, -999999e-100),
+        let large = &[
+            Float::with_val(20, Special::Zero),
+            Float::with_val(20, Special::NegZero),
+            Float::with_val(20, Special::Infinity),
+            Float::with_val(20, Special::NegInfinity),
+            Float::with_val(20, Special::Nan),
+            Float::with_val(20, 1),
+            Float::with_val(20, -1),
+            Float::with_val(20, 999999e100),
+            Float::with_val(20, 999999e-100),
+            Float::with_val(20, -999999e100),
+            Float::with_val(20, -999999e-100),
         ];
-        #[cfg(feature = "integer")]
-        let z = [
-            Integer::from(0),
-            Integer::from(1),
-            Integer::from(-1),
-            Integer::from_str("-1000000000000").unwrap(),
-            Integer::from_str("1000000000000").unwrap(),
+        let uns32 = &[0, 1, 1000, u32::MAX];
+        let sig32 = &[i32::MIN, -1000, -1, 0, 1, 1000, i32::MAX];
+        let uns64 = &[0, 1, 1000, u32::MAX as u64 + 1, u64::MAX];
+        let sig64 = &[
+            i64::MIN,
+            -(u32::MAX as i64) - 1,
+            i32::MIN as i64 - 1,
+            -1000,
+            -1,
+            0,
+            1,
+            1000,
+            i32::MAX as i64 + 1,
+            u32::MAX as i64 + 1,
+            i64::MAX,
         ];
-        #[cfg(feature = "rational")]
-        let q = [
-            Rational::from(0),
-            Rational::from(1),
-            Rational::from(-1),
-            Rational::from_str("-1000000000000/33333333333").unwrap(),
-            Rational::from_str("1000000000000/33333333333").unwrap(),
-        ];
-        let u = [0, 1, 1000, u32::MAX];
-        let s = [i32::MIN, -1000, -1, 0, 1, 1000, i32::MAX];
-        let double = [
-            f64::INFINITY,
-            f64::MAX,
-            f64::MIN_POSITIVE,
-            0.0,
-            -0.0,
-            -f64::MIN_POSITIVE,
-            f64::MIN,
-            f64::NEG_INFINITY,
-            f64::NAN,
-            1.0,
-            2.0,
-            12.0e43,
-        ];
-        let single = [
+        let flo32 = &[
             f32::INFINITY,
             f32::MAX,
             f32::MIN_POSITIVE,
@@ -229,91 +266,58 @@ mod tests {
             2.0,
             12.0e30,
         ];
+        let flo64 = &[
+            f64::INFINITY,
+            f64::MAX,
+            f64::MIN_POSITIVE,
+            0.0,
+            -0.0,
+            -f64::MIN_POSITIVE,
+            f64::MIN,
+            f64::NEG_INFINITY,
+            f64::NAN,
+            1.0,
+            2.0,
+            12.0e43,
+        ];
         #[cfg(feature = "integer")]
-        for oo in &z {
-            let of = Float::with_val(check_prec, oo);
-            for ff in &f {
-                assert_eq!(ff.eq(oo), ff.eq(&of));
-                assert_eq!(oo.eq(ff), of.eq(ff));
-                assert_eq!(ff.eq(oo), oo.eq(ff));
-                assert_eq!(ff.partial_cmp(oo), ff.partial_cmp(&of));
-                assert_eq!(oo.partial_cmp(ff), of.partial_cmp(ff));
-                assert_eq!(
-                    ff.partial_cmp(oo),
-                    oo.partial_cmp(ff).map(|o| o.reverse())
-                );
-            }
-        }
+        let z = &[
+            Integer::from(0),
+            Integer::from(1),
+            Integer::from(-1),
+            Integer::from_str("-1000000000000").unwrap(),
+            Integer::from_str("1000000000000").unwrap(),
+        ];
         #[cfg(feature = "rational")]
-        for oo in &q {
-            let of = Float::with_val(check_prec, oo);
-            for ff in &f {
-                assert_eq!(ff.eq(oo), ff.eq(&of));
-                assert_eq!(oo.eq(ff), of.eq(ff));
-                assert_eq!(ff.eq(oo), oo.eq(ff));
-                assert_eq!(ff.partial_cmp(oo), ff.partial_cmp(&of));
-                assert_eq!(oo.partial_cmp(ff), of.partial_cmp(ff));
-                assert_eq!(
-                    ff.partial_cmp(oo),
-                    oo.partial_cmp(ff).map(|o| o.reverse())
-                );
-            }
-        }
-        for oo in &u {
-            let of = Float::with_val(check_prec, *oo);
-            for ff in &f {
-                assert_eq!(ff.eq(oo), ff.eq(&of));
-                assert_eq!(oo.eq(ff), of.eq(ff));
-                assert_eq!(ff.eq(oo), oo.eq(ff));
-                assert_eq!(ff.partial_cmp(oo), ff.partial_cmp(&of));
-                assert_eq!(oo.partial_cmp(ff), of.partial_cmp(ff));
-                assert_eq!(
-                    ff.partial_cmp(oo),
-                    oo.partial_cmp(ff).map(|o| o.reverse())
-                );
-            }
-        }
-        for oo in &s {
-            let of = Float::with_val(check_prec, *oo);
-            for ff in &f {
-                assert_eq!(ff.eq(oo), ff.eq(&of));
-                assert_eq!(oo.eq(ff), of.eq(ff));
-                assert_eq!(ff.eq(oo), oo.eq(ff));
-                assert_eq!(ff.partial_cmp(oo), ff.partial_cmp(&of));
-                assert_eq!(oo.partial_cmp(ff), of.partial_cmp(ff));
-                assert_eq!(
-                    ff.partial_cmp(oo),
-                    oo.partial_cmp(ff).map(|o| o.reverse())
-                );
-            }
-        }
-        for oo in &double {
-            let of = Float::with_val(check_prec, *oo);
-            for ff in &f {
-                assert_eq!(ff.eq(oo), ff.eq(&of));
-                assert_eq!(oo.eq(ff), of.eq(ff));
-                assert_eq!(ff.eq(oo), oo.eq(ff));
-                assert_eq!(ff.partial_cmp(oo), ff.partial_cmp(&of));
-                assert_eq!(oo.partial_cmp(ff), of.partial_cmp(ff));
-                assert_eq!(
-                    ff.partial_cmp(oo),
-                    oo.partial_cmp(ff).map(|o| o.reverse())
-                );
-            }
-        }
-        for oo in &single {
-            let of = Float::with_val(check_prec, *oo);
-            for ff in &f {
-                assert_eq!(ff.eq(oo), ff.eq(&of));
-                assert_eq!(oo.eq(ff), of.eq(ff));
-                assert_eq!(ff.eq(oo), oo.eq(ff));
-                assert_eq!(ff.partial_cmp(oo), ff.partial_cmp(&of));
-                assert_eq!(oo.partial_cmp(ff), of.partial_cmp(ff));
-                assert_eq!(
-                    ff.partial_cmp(oo),
-                    oo.partial_cmp(ff).map(|o| o.reverse())
-                );
-            }
-        }
+        let q = &[
+            Rational::from(0),
+            Rational::from(1),
+            Rational::from(-1),
+            Rational::from_str("-1000000000000/33333333333").unwrap(),
+            Rational::from_str("1000000000000/33333333333").unwrap(),
+        ];
+
+        let mut against = (large.iter().cloned())
+            .chain(uns32.iter().map(|&x| Float::with_val(20, x)))
+            .chain(sig32.iter().map(|&x| Float::with_val(20, x)))
+            .chain(uns64.iter().map(|&x| Float::with_val(20, x)))
+            .chain(sig64.iter().map(|&x| Float::with_val(20, x)))
+            .chain(flo32.iter().map(|&x| Float::with_val(20, x)))
+            .chain(flo64.iter().map(|&x| Float::with_val(20, x)))
+            .collect::<Vec<Float>>();
+        #[cfg(feature = "integer")]
+        against.extend(z.iter().map(|x| Float::with_val(20, x)));
+        #[cfg(feature = "rational")]
+        against.extend(q.iter().map(|x| Float::with_val(20, x)));
+        check_cmp_prim(uns32, &against);
+        check_cmp_prim(sig32, &against);
+        check_cmp_prim(uns64, &against);
+        check_cmp_prim(sig64, &against);
+        check_cmp_prim(flo32, &against);
+        check_cmp_prim(flo64, &against);
+        #[cfg(feature = "integer")]
+        check_cmp_big(z, &against);
+        #[cfg(feature = "rational")]
+        check_cmp_big(q, &against);
     }
 }

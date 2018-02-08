@@ -184,46 +184,65 @@ impl PartialOrd<Integer> for f64 {
 #[cfg(test)]
 mod tests {
     use Integer;
-    use std::{i32, u32};
+    use std::{i32, i64, u32, u64};
+
+    fn check_cmp_prim<T>(s: &[T], against: &[Integer])
+    where
+        Integer: From<T> + PartialEq<T> + PartialOrd<T>,
+        T: Copy + PartialEq<Integer> + PartialOrd<Integer>,
+    {
+        for op in s {
+            let iop = Integer::from(*op);
+            for b in against {
+                assert_eq!(b.eq(op), <Integer as PartialEq>::eq(&b, &iop));
+                assert_eq!(op.eq(&b), <Integer as PartialEq>::eq(&iop, &b));
+                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(
+                    b.partial_cmp(op),
+                    <Integer as PartialOrd>::partial_cmp(&b, &iop)
+                );
+                assert_eq!(
+                    op.partial_cmp(&b),
+                    <Integer as PartialOrd>::partial_cmp(&iop, &b)
+                );
+                assert_eq!(
+                    b.partial_cmp(op).unwrap(),
+                    op.partial_cmp(&b).unwrap().reverse()
+                );
+            }
+        }
+    }
 
     #[test]
     fn check_cmp_u_s() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
-        for &op in &u {
-            let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
-                assert_eq!(b.eq(&op), b.eq(&iop));
-                assert_eq!(op.eq(&b), iop.eq(&b));
-                assert_eq!(b.eq(&op), op.eq(&b));
-                assert_eq!(b.partial_cmp(&op), b.partial_cmp(&iop));
-                assert_eq!(op.partial_cmp(&b), iop.partial_cmp(&b));
-                assert_eq!(
-                    b.partial_cmp(&op).unwrap(),
-                    op.partial_cmp(&b).unwrap().reverse()
-                );
-            }
-        }
-        for &op in &s {
-            let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
-                assert_eq!(b.eq(&op), b.eq(&iop));
-                assert_eq!(op.eq(&b), iop.eq(&b));
-                assert_eq!(b.eq(&op), op.eq(&b));
-                assert_eq!(b.partial_cmp(&op), b.partial_cmp(&iop));
-                assert_eq!(op.partial_cmp(&b), iop.partial_cmp(&b));
-                assert_eq!(
-                    b.partial_cmp(&op).unwrap(),
-                    op.partial_cmp(&b).unwrap().reverse()
-                );
-            }
-        }
+        let large = &[(1, 100), (-11, 200), (33, 150)];
+        let uns32 = &[0, 1, 100, 101, u32::MAX];
+        let sig32 = &[i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
+        let uns64 = &[0, 1, 100, 101, u32::MAX as u64 + 1, u64::MAX];
+        let sig64 = &[
+            i64::MIN,
+            -(u32::MAX as i64) - 1,
+            i32::MIN as i64 - 1,
+            -101,
+            -100,
+            -1,
+            0,
+            1,
+            100,
+            101,
+            i32::MAX as i64 + 1,
+            u32::MAX as i64 + 1,
+            i64::MAX,
+        ];
+        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+            .chain(uns32.iter().map(|&x| Integer::from(x)))
+            .chain(sig32.iter().map(|&x| Integer::from(x)))
+            .chain(uns64.iter().map(|&x| Integer::from(x)))
+            .chain(sig64.iter().map(|&x| Integer::from(x)))
+            .collect::<Vec<Integer>>();
+        check_cmp_prim(uns32, &against);
+        check_cmp_prim(sig32, &against);
+        check_cmp_prim(uns64, &against);
+        check_cmp_prim(sig64, &against);
     }
 }
