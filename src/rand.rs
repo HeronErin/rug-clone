@@ -540,6 +540,65 @@ pub trait RandGen: Send + Sync {
     /// ```
     fn gen(&mut self) -> u32;
 
+    /// Gets up to 32 random bits.
+    ///
+    /// The default implementation simply calls the
+    /// [`gen`](#method.gen) method once and returns the most
+    /// significant required bits.
+    ///
+    /// This method can be overridden to store any unused bits for
+    /// later use, for example if the random number generation process
+    /// is computationally expensive.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandGen;
+    /// struct SimpleGenerator {
+    ///     seed: u64,
+    ///     buffer: u64,
+    ///     len: u32,
+    /// }
+    /// impl RandGen for SimpleGenerator {
+    ///     fn gen(&mut self) -> u32 {
+    ///         self.gen_bits(32)
+    ///     }
+    ///     fn gen_bits(&mut self, bits: u32) -> u32 {
+    ///         let mut bits = match bits {
+    ///             0 => return 0,
+    ///             1...31 => bits,
+    ///             _ => 32,
+    ///         };
+    ///         let mut ret = 0;
+    ///         if bits > self.len {
+    ///             bits -= self.len;
+    ///             ret |= (self.buffer << bits) as u32;
+    ///             self.seed = self.seed.wrapping_mul(6364136223846793005);
+    ///             self.seed = self.seed.wrapping_add(1);
+    ///             self.buffer = self.seed;
+    ///             self.len = 64;
+    ///         }
+    ///         self.len -= bits;
+    ///         ret |= (self.buffer >> self.len) as u32;
+    ///         self.buffer &= !(!0 << self.len);
+    ///         ret
+    ///     }
+    /// }
+    /// let mut rand = SimpleGenerator { seed: 1, buffer: 0, len: 0 };
+    /// let full = 6364136223846793006_u64;
+    /// assert_eq!(rand.gen_bits(16), (full >> 48) as u32);
+    /// assert_eq!(rand.gen_bits(32), (full >> 16) as u32);
+    /// assert_eq!(rand.gen_bits(16), full as u32 & 0xffff);
+    /// ```
+    fn gen_bits(&mut self, bits: u32) -> u32 {
+        let gen = self.gen();
+        match bits {
+            0 => 0,
+            1...32 => gen >> (32 - bits),
+            _ => gen,
+        }
+    }
+
     /// Seeds the random number generator.
     ///
     /// The default implementation of this function does nothing.
@@ -759,12 +818,12 @@ unsafe fn gen_bits(gen: &mut RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
         let mut n = u64::from(gen.gen());
         if rest > 32 {
             let mask = !(!0 << (rest - 32));
-            n |= u64::from(gen.gen() & mask) << 32;
+            n |= u64::from(gen.gen_bits(cast(rest - 32)) & mask) << 32;
         }
         *limb.offset(limbs) = cast(n);
     } else if rest > 0 {
         let mask = !(!0 << rest);
-        let n = u64::from(gen.gen() & mask);
+        let n = u64::from(gen.gen_bits(cast(rest)) & mask);
         *limb.offset(limbs) = cast(n);
     }
 }
@@ -778,7 +837,7 @@ unsafe fn gen_bits(gen: &mut RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *limb.offset(limbs) = cast(gen.gen() & mask);
+        *limb.offset(limbs) = cast(gen.gen_bits(cast(rest)) & mask);
     }
 }
 
