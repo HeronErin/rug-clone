@@ -236,7 +236,7 @@ impl<'a> RandState<'a> {
                 d: r_ptr as *mut gmp::limb_t,
             },
             alg: 0,
-            _algdata: &CUSTOM_FUNCS as *const _ as *mut _,
+            algdata: &CUSTOM_FUNCS as *const _ as *mut _,
         };
         RandState {
             inner: unsafe { mem::transmute(inner) },
@@ -277,7 +277,7 @@ impl<'a> RandState<'a> {
                 d: r_ptr as *mut gmp::limb_t,
             },
             alg: 0,
-            _algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
+            algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
         };
         RandState {
             inner: unsafe { mem::transmute(inner) },
@@ -712,17 +712,17 @@ pub trait RandGen: Send + Sync {
 struct MpRandState {
     seed: gmp::mpz_t,
     alg: c_int,
-    _algdata: *mut c_void,
+    algdata: *mut c_void,
 }
 
 #[repr(C)]
 struct Funcs {
-    _seed: Option<unsafe extern "C" fn(*mut randstate_t, *const gmp::mpz_t)>,
-    _get: Option<
+    seed: Option<unsafe extern "C" fn(*mut randstate_t, *const gmp::mpz_t)>,
+    get: Option<
         unsafe extern "C" fn(*mut randstate_t, *mut gmp::limb_t, c_ulong),
     >,
-    _clear: Option<unsafe extern "C" fn(*mut randstate_t)>,
-    _iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
+    clear: Option<unsafe extern "C" fn(*mut randstate_t)>,
+    iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
 }
 
 macro_rules! c_callback {
@@ -848,10 +848,10 @@ unsafe fn gen_copy(gen: &RandGen, dst: *mut randstate_t) {
     let (dst_r_ptr, funcs) = if let Some(other) = other {
         let b: Box<Box<RandGen>> = Box::new(other);
         let dst_r_ptr: *mut Box<RandGen> = Box::into_raw(b);
-        let funcs = &CUSTOM_BOXED_FUNCS;
+        let funcs = &CUSTOM_BOXED_FUNCS as *const _ as *mut _;
         (dst_r_ptr, funcs)
     } else {
-        (ptr::null_mut(), &ABORT_FUNCS)
+        (ptr::null_mut(), &ABORT_FUNCS as *const _ as *mut _)
     };
     let dst_ptr = dst as *mut MpRandState;
     *dst_ptr = MpRandState {
@@ -861,29 +861,29 @@ unsafe fn gen_copy(gen: &RandGen, dst: *mut randstate_t) {
             d: dst_r_ptr as *mut gmp::limb_t,
         },
         alg: 0,
-        _algdata: funcs as *const _ as *mut _,
+        algdata: funcs,
     };
 }
 
 const ABORT_FUNCS: Funcs = Funcs {
-    _seed: Some(abort_seed),
-    _get: Some(abort_get),
-    _clear: Some(abort_clear),
-    _iset: Some(abort_iset),
+    seed: Some(abort_seed),
+    get: Some(abort_get),
+    clear: Some(abort_clear),
+    iset: Some(abort_iset),
 };
 
 const CUSTOM_FUNCS: Funcs = Funcs {
-    _seed: Some(custom_seed),
-    _get: Some(custom_get),
-    _clear: Some(custom_clear),
-    _iset: Some(custom_iset),
+    seed: Some(custom_seed),
+    get: Some(custom_get),
+    clear: Some(custom_clear),
+    iset: Some(custom_iset),
 };
 
 const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
-    _seed: Some(custom_boxed_seed),
-    _get: Some(custom_boxed_get),
-    _clear: Some(custom_boxed_clear),
-    _iset: Some(custom_boxed_iset),
+    seed: Some(custom_boxed_seed),
+    get: Some(custom_boxed_get),
+    clear: Some(custom_boxed_clear),
+    iset: Some(custom_boxed_iset),
 };
 
 impl<'a> Inner for RandState<'a> {
