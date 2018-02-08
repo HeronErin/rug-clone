@@ -543,12 +543,12 @@ pub trait RandGen: Send + Sync {
     /// Gets up to 32 random bits.
     ///
     /// The default implementation simply calls the
-    /// [`gen`](#method.gen) method once and returns the most
+    /// [`gen`](#tymethod.gen) method once and returns the most
     /// significant required bits.
     ///
     /// This method can be overridden to store any unused bits for
-    /// later use, for example if the random number generation process
-    /// is computationally expensive.
+    /// later use. This can be useful for example if the random number
+    /// generation process is computationally expensive.
     ///
     /// # Examples
     ///
@@ -603,7 +603,7 @@ pub trait RandGen: Send + Sync {
     ///
     /// The default implementation of this function does nothing.
     ///
-    /// Note that the [RandState::seed()][seed] method will pass its
+    /// Note that the [`RandState::seed`][seed] method will pass its
     /// seed parameter exactly to this function without using it
     /// otherwise.
     ///
