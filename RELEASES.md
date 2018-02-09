@@ -1,3 +1,6 @@
+Version 0.9.3 (2018-01-09)
+==========================
+
 * Add `Integer::square` and `Rational::square` methods.
 * Add `Rational::cmp_abs` method.
 * Add `Float::sum` and `Complex::sum` methods.
@@ -5,6 +8,8 @@
   `RandState`.
 * Add `RandGen::boxed_clone` and `RandState::new_custom_boxed`, and
   thus support for cloning custom random generators.
+* Fix `Float::PartialOrd<f32>` (and `<f64>`) to return `None` when the
+  primitive is NaN.
 
 Version 0.9.2 (2018-01-12)
 ==========================
