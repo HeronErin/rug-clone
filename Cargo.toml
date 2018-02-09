@@ -39,7 +39,7 @@ complex = ["float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
 rand = ["integer", "gmp-mpfr-sys"]
 
 [dependencies.gmp-mpfr-sys]
-version = "1.1.0"
+version = "1.1.1"
 default-features = false
 optional = true
 

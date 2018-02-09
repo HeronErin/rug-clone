@@ -7577,7 +7577,7 @@ where
         let refs = src.values
             .map(|r| r.inner() as *const mpfr_t)
             .collect::<Vec<_>>();
-        let tab = refs.as_ptr() as *mut *mut mpfr_t;
+        let tab = refs.as_ptr() as *const *mut mpfr_t;
         let n = cast(refs.len());
         let ret =
             unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
@@ -7624,7 +7624,7 @@ where
         };
         refs.push(self.inner() as *const mpfr_t);
         refs.extend(src.values.map(|r| r.inner() as *const mpfr_t));
-        let tab = refs.as_ptr() as *mut *mut mpfr_t;
+        let tab = refs.as_ptr() as *const *mut mpfr_t;
         let n = cast(refs.len());
         let ret =
             unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
