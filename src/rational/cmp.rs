@@ -15,8 +15,12 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Integer, Rational};
+#[cfg(feature = "float")]
+use Float;
 use cast::cast;
 use ext::gmp as xgmp;
+#[cfg(feature = "float")]
+use float::SmallFloat;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
 use rational::SmallRational;
@@ -184,54 +188,166 @@ matrix! { isize; usize; i32; u32; i16; u16; i8; u8 }
 matrix! { u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 
+macro_rules! cmp_f {
+    { $T:ty } => {
+        impl PartialEq<$T> for Rational {
+            #[inline]
+            fn eq(&self, other: &$T) -> bool {
+                <Float as PartialOrd<Rational>>::partial_cmp(
+                    &*SmallFloat::from(*other),
+                    self,
+                ) == Some(Ordering::Equal)
+            }
+        }
+
+        impl PartialEq<Rational> for $T {
+            #[inline]
+            fn eq(&self, other: &Rational) -> bool {
+                <Float as PartialOrd<Rational>>::partial_cmp(
+                    &*SmallFloat::from(*self),
+                    other,
+                ) == Some(Ordering::Equal)
+            }
+        }
+
+        impl PartialOrd<$T> for Rational {
+            #[inline]
+            fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
+                <Float as PartialOrd<Rational>>::partial_cmp(
+                    &*SmallFloat::from(*other),
+                    self,
+                ).map(Ordering::reverse)
+            }
+        }
+
+        impl PartialOrd<Rational> for $T {
+            #[inline]
+            fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
+                <Float as PartialOrd<Rational>>::partial_cmp(
+                    &*SmallFloat::from(*self),
+                    other,
+                )
+            }
+        }
+    }
+}
+
+#[cfg(feature = "float")]
+cmp_f! { f32 }
+#[cfg(feature = "float")]
+cmp_f! { f64 }
+
 #[cfg(test)]
 mod tests {
     use Rational;
-    use std::{i32, u32};
+    #[cfg(feature = "float")]
+    use std::{f32, f64};
     use std::cmp::Ordering;
+    use std::ops::Neg;
+    use tests::{I32, I64, U32, U64};
 
-    #[test]
-    fn check_cmp_frac() {
-        let zero = Rational::new();
-        let u = [0, 1, 100, u32::MAX];
-        let s = [i32::MIN, -100, -1, 0, 1, 100, i32::MAX];
-        for &n in &u {
-            for &d in &u {
-                if d != 0 {
-                    let ans = 0.partial_cmp(&n);
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
-            for &d in &s {
-                if d != 0 {
-                    let mut ans = 0.partial_cmp(&n);
-                    if d < 0 {
-                        ans = ans.map(Ordering::reverse);
-                    }
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
+    fn check_cmp_prim<T>(s: &[T], against: &[Rational])
+    where
+        Rational: From<T> + PartialEq<T> + PartialOrd<T>,
+        T: Copy + PartialEq<Rational> + PartialOrd<Rational>,
+    {
+        for op in s {
+            let iop = Rational::from(*op);
+            for b in against {
+                assert_eq!(b.eq(op), <Rational as PartialEq>::eq(&b, &iop));
+                assert_eq!(op.eq(&b), <Rational as PartialEq>::eq(&iop, &b));
+                assert_eq!(b.eq(op), op.eq(&b));
+                assert_eq!(
+                    b.partial_cmp(op),
+                    <Rational as PartialOrd>::partial_cmp(&b, &iop)
+                );
+                assert_eq!(
+                    op.partial_cmp(&b),
+                    <Rational as PartialOrd>::partial_cmp(&iop, &b)
+                );
+                assert_eq!(
+                    b.partial_cmp(op).unwrap(),
+                    op.partial_cmp(&b).unwrap().reverse()
+                );
             }
         }
-        for &n in &s {
-            for &d in &u {
-                if d != 0 {
-                    let ans = 0.partial_cmp(&n);
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
-            for &d in &s {
-                if d != 0 {
-                    let mut ans = 0.partial_cmp(&n);
-                    if d < 0 {
-                        ans = ans.map(Ordering::reverse);
-                    }
-                    assert_eq!(zero.partial_cmp(&(n, d)), ans);
-                    assert_eq!(zero.partial_cmp(&Rational::from((n, d))), ans);
-                }
-            }
+    }
+
+    #[test]
+    fn check_cmp_u_s() {
+        let large = &[(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
+        let against =
+            (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
+                .chain(U32.iter().map(|&x| Rational::from(x)))
+                .chain(I32.iter().map(|&x| Rational::from(x)))
+                .chain(U64.iter().map(|&x| Rational::from(x)))
+                .chain(I64.iter().map(|&x| Rational::from(x)))
+                .collect::<Vec<Rational>>();
+        check_cmp_prim(U32, &against);
+        check_cmp_prim(I32, &against);
+        check_cmp_prim(U64, &against);
+        check_cmp_prim(I64, &against);
+    }
+
+    #[cfg(feature = "float")]
+    fn check_known_cmp<T>(t: T, against: &Rational, ord: Ordering)
+    where
+        Rational: PartialEq<T> + PartialEq<<T as Neg>::Output>,
+        Rational: PartialOrd<T> + PartialOrd<<T as Neg>::Output>,
+        T: Copy + Neg + PartialEq<Rational> + PartialOrd<Rational>,
+        <T as Neg>::Output: PartialEq<Rational> + PartialOrd<Rational>,
+    {
+        let neg = against.as_neg();
+        assert_eq!(t.eq(against), ord == Ordering::Equal);
+        assert_eq!((-t).eq(&*neg), ord == Ordering::Equal);
+        assert_eq!(against.eq(&t), ord == Ordering::Equal);
+        assert_eq!(neg.eq(&-t), ord == Ordering::Equal);
+        assert_eq!(t.partial_cmp(against), Some(ord));
+        assert_eq!((-t).partial_cmp(&*neg), Some(ord.reverse()));
+        assert_eq!(against.partial_cmp(&t), Some(ord.reverse()));
+        assert_eq!(neg.partial_cmp(&-t), Some(ord));
+    }
+
+    #[cfg(feature = "float")]
+    fn check_nan_cmp<T>(t: T, against: &Rational)
+    where
+        Rational: PartialEq<T> + PartialEq<<T as Neg>::Output>,
+        Rational: PartialOrd<T> + PartialOrd<<T as Neg>::Output>,
+        T: Copy + Neg + PartialEq<Rational> + PartialOrd<Rational>,
+        <T as Neg>::Output: PartialEq<Rational> + PartialOrd<Rational>,
+    {
+        let neg = against.as_neg();
+        assert!(t.ne(against));
+        assert!((-t).ne(&*neg));
+        assert!(against.ne(&t));
+        assert!(neg.ne(&-t));
+        assert!(t.partial_cmp(against).is_none());
+        assert!((-t).partial_cmp(&*neg).is_none());
+        assert!(against.partial_cmp(&t).is_none());
+        assert!(neg.partial_cmp(&-t).is_none());
+    }
+
+    #[cfg(feature = "float")]
+    #[test]
+    fn check_cmp_f() {
+        let large = &[(5, 2, 0), (5, 17, 100), (-11, 3, 200), (33, 777, -150)];
+        let against =
+            (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
+                .chain(U32.iter().map(|&x| Rational::from(x)))
+                .chain(I32.iter().map(|&x| Rational::from(x)))
+                .chain(U64.iter().map(|&x| Rational::from(x)))
+                .chain(I64.iter().map(|&x| Rational::from(x)))
+                .collect::<Vec<Rational>>();
+        for b in &against {
+            check_known_cmp(0.0f32, b, b.cmp0().reverse());
+            check_known_cmp(0.0f64, b, b.cmp0().reverse());
+            let ord = 5.partial_cmp(&(b.clone() << 1)).unwrap();
+            check_known_cmp(2.5f32, b, ord);
+            check_known_cmp(2.5f64, b, ord);
+            check_known_cmp(f32::INFINITY, b, Ordering::Greater);
+            check_known_cmp(f64::INFINITY, b, Ordering::Greater);
+            check_nan_cmp(f32::NAN, b);
+            check_nan_cmp(f64::NAN, b);
         }
     }
 }
