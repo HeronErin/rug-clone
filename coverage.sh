@@ -38,7 +38,7 @@ sed -i$SUFFIX -n -e "$EXTRACT_SCRIPT" src/**/*.rs
 # generate coverage.report
 FILTER_SCRIPT='
 1i\
--*- mode: compilation -*-\
+-*- mode: compilation; default-directory: "'"$PWD"'"-*-\
 
 s/ - /: /               # make lines friendly with emacs compilation mode
 /hits: 0/p              # print zero coverage-lines immediately
