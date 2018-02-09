@@ -188,6 +188,7 @@ matrix! { isize; usize; i32; u32; i16; u16; i8; u8 }
 matrix! { u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 
+#[cfg(feature = "float")]
 macro_rules! cmp_f {
     { $T:ty } => {
         impl PartialEq<$T> for Rational {
