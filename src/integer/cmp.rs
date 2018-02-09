@@ -184,6 +184,10 @@ impl PartialOrd<Integer> for f64 {
 #[cfg(test)]
 mod tests {
     use Integer;
+    use std::{f32, f64};
+    use std::cmp::Ordering;
+    use std::ops::Neg;
+    use tests::{I32, I64, U32, U64};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
     where
@@ -214,7 +218,6 @@ mod tests {
 
     #[test]
     fn check_cmp_u_s() {
-        use tests::{I32, I64, U32, U64};
         let large = &[(1, 100), (-11, 200), (33, 150)];
         let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
             .chain(U32.iter().map(|&x| Integer::from(x)))
@@ -226,5 +229,67 @@ mod tests {
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
         check_cmp_prim(I64, &against);
+    }
+
+    fn check_known_cmp<T>(t: T, against: &Integer, ord: Ordering)
+    where
+        Integer: PartialEq<T> + PartialOrd<T>,
+        T: Copy + Neg + PartialEq<Integer> + PartialOrd<Integer>,
+        Integer: PartialEq<<T as Neg>::Output> + PartialOrd<<T as Neg>::Output>,
+        <T as Neg>::Output: PartialEq<Integer> + PartialOrd<Integer>,
+    {
+        let neg = against.as_neg();
+        assert_eq!(t.eq(against), ord == Ordering::Equal);
+        assert_eq!((-t).eq(&*neg), ord == Ordering::Equal);
+        assert_eq!(against.eq(&t), ord == Ordering::Equal);
+        assert_eq!(neg.eq(&-t), ord == Ordering::Equal);
+        assert_eq!(t.partial_cmp(against), Some(ord));
+        assert_eq!((-t).partial_cmp(&*neg), Some(ord.reverse()));
+        assert_eq!(against.partial_cmp(&t), Some(ord.reverse()));
+        assert_eq!(neg.partial_cmp(&-t), Some(ord));
+    }
+
+    fn check_nan_cmp<T>(t: T, against: &Integer)
+    where
+        Integer: PartialEq<T> + PartialOrd<T>,
+        T: Copy + Neg + PartialEq<Integer> + PartialOrd<Integer>,
+        Integer: PartialEq<<T as Neg>::Output> + PartialOrd<<T as Neg>::Output>,
+        <T as Neg>::Output: PartialEq<Integer> + PartialOrd<Integer>,
+    {
+        let neg = against.as_neg();
+        assert!(t.ne(against));
+        assert!((-t).ne(&*neg));
+        assert!(against.ne(&t));
+        assert!(neg.ne(&-t));
+        assert!(t.partial_cmp(against).is_none());
+        assert!((-t).partial_cmp(&*neg).is_none());
+        assert!(against.partial_cmp(&t).is_none());
+        assert!(neg.partial_cmp(&-t).is_none());
+    }
+
+    #[test]
+    fn check_cmp_f() {
+        let large = &[(1, 100), (-11, 200), (33, 150)];
+        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+            .chain(U32.iter().map(|&x| Integer::from(x)))
+            .chain(I32.iter().map(|&x| Integer::from(x)))
+            .chain(U64.iter().map(|&x| Integer::from(x)))
+            .chain(I64.iter().map(|&x| Integer::from(x)))
+            .collect::<Vec<Integer>>();
+        for b in &against {
+            check_known_cmp(0.0f32, b, b.cmp0().reverse());
+            check_known_cmp(0.0f64, b, b.cmp0().reverse());
+            let ord = if *b <= 2 {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            };
+            check_known_cmp(2.5f32, b, ord);
+            check_known_cmp(2.5f64, b, ord);
+            check_known_cmp(f32::INFINITY, b, Ordering::Greater);
+            check_known_cmp(f64::INFINITY, b, Ordering::Greater);
+            check_nan_cmp(f32::NAN, b);
+            check_nan_cmp(f64::NAN, b);
+        }
     }
 }
