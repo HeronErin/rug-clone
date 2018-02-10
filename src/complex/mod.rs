@@ -52,9 +52,9 @@ pub trait Prec {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
-    /// let c = Complex::new(32);
-    /// assert_eq!(c.prec(), (32, 32));
+    /// use rug::complex::Prec;
+    /// assert_eq!(Prec::prec(24), (24, 24));
+    /// assert_eq!(Prec::prec((24, 53)), (24, 53));
     /// ```
     fn prec(self) -> (u32, u32);
 }
