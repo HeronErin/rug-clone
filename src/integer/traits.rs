@@ -215,9 +215,7 @@ impl FromStr for Integer {
     type Err = ParseIntegerError;
     #[inline]
     fn from_str(src: &str) -> Result<Integer, ParseIntegerError> {
-        let mut i = Integer::new();
-        i.assign_str(src)?;
-        Ok(i)
+        Ok(Integer::from(Integer::parse(src, 10)?))
     }
 }
 

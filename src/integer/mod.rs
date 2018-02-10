@@ -44,7 +44,9 @@ mod serde;
 pub(crate) mod small;
 mod traits;
 
-pub use integer::big::{IsPrime, ParseIntegerError, ValidInteger};
+pub use integer::big::{IsPrime, ParseIntegerError};
+#[allow(deprecated)]
+pub use integer::big::ValidInteger;
 pub use integer::small::SmallInteger;
 
 #[cfg(test)]
@@ -180,40 +182,52 @@ mod tests {
     fn check_from_str() {
         let mut i: Integer = "+134".parse().unwrap();
         assert_eq!(i, 134);
-        i.assign_str_radix("-ffFFffffFfFfffffffffffffffffffff", 16)
-            .unwrap();
+        i.assign(
+            Integer::parse("-ffFFffffFfFfffffffffffffffffffff", 16).unwrap(),
+        );
         assert_eq!(i.significant_bits(), 128);
         i -= 1;
         assert_eq!(i.significant_bits(), 129);
 
         let bad_strings = [
-            ("1\0", None),
-            ("1_2", None),
-            (" 1", None),
+            ("_1", None),
+            ("+_1", None),
+            ("-_1", None),
             ("+-3", None),
             ("-+3", None),
             ("++3", None),
             ("--3", None),
             ("0+3", None),
-            ("0 ", None),
             ("", None),
+            ("9\09", None),
             ("80", Some(8)),
             ("0xf", Some(16)),
             ("9", Some(9)),
         ];
         for &(s, radix) in bad_strings.into_iter() {
-            assert!(Integer::valid_str_radix(s, radix.unwrap_or(10)).is_err());
+            assert!(
+                Integer::parse(s, radix.unwrap_or(10)).is_err(),
+                "{} parsed correctly",
+                s
+            );
         }
         let good_strings = [
             ("0", 10, 0),
             ("+0", 16, 0),
+            ("  + 1_2", 10, 12),
+            ("  - 1_2", 10, -12),
             ("-0", 2, 0),
             ("99", 10, 99),
             ("+Cc", 16, 0xcc),
             ("-77", 8, -0o77),
+            (" 1 2\n 3 4 ", 10, 1234),
+            ("1_2__", 10, 12),
         ];
         for &(s, radix, i) in good_strings.into_iter() {
-            assert_eq!(Integer::from_str_radix(s, radix).unwrap(), i);
+            match Integer::parse(s, radix) {
+                Ok(ok) => assert_eq!(Integer::from(ok), i),
+                Err(_) => panic!("could not parse {}", s),
+            }
         }
     }
 

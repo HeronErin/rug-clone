@@ -1,3 +1,6 @@
+* Add `Integer::parse` and deprecate `ValidInteger`,
+  `valid_str_radix`, `assign_str*`.
+
 Version 0.9.3 (2018-01-09)
 ==========================
 
