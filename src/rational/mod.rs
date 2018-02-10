@@ -27,7 +27,9 @@ mod serde;
 mod small;
 mod traits;
 
-pub use rational::big::{MutNumerDenom, ParseRationalError, ValidRational};
+pub use rational::big::{MutNumerDenom, ParseRationalError};
+#[allow(deprecated)]
+pub use rational::big::ValidRational;
 pub use rational::small::SmallRational;
 
 #[cfg(test)]
@@ -165,38 +167,55 @@ mod tests {
 
     #[test]
     fn check_from_str() {
+        assert_eq!("-13/7".parse::<Rational>().unwrap(), (-13, 7));
+
         let bad_strings = [
+            ("_1", None),
+            ("+_1", None),
+            ("-_1", None),
+            ("1/_1", None),
+            ("+-3", None),
+            ("-+3", None),
+            ("++3", None),
+            ("--3", None),
+            ("0+3", None),
             ("", None),
-            (" 1", None),
             ("1/-1", None),
             ("1/+3", None),
             ("1/0", None),
-            ("1 / 1", None),
             ("/2", None),
             ("2/", None),
             ("2/2/", None),
-            ("/2", None),
-            ("++1", None),
-            ("+-1", None),
             ("1/80", Some(8)),
             ("0xf", Some(16)),
             ("9", Some(9)),
         ];
         for &(s, radix) in bad_strings.into_iter() {
-            assert!(Rational::valid_str_radix(s, radix.unwrap_or(10)).is_err());
+            assert!(
+                Rational::parse(s, radix.unwrap_or(10)).is_err(),
+                "{} parsed correctly",
+                s
+            );
         }
         let good_strings = [
             ("0", 10, 0, 1),
             ("+0/fC", 16, 0, 1),
+            (" + 1 _ / 2 _ ", 10, 1, 2),
+            (" - 1 _ / 2 _ ", 10, -1, 2),
             ("-0/10", 2, 0, 1),
             ("-99/3", 10, -33, 1),
             ("+Ce/fF", 16, 0xce, 0xff),
             ("-77/2", 8, -0o77, 2),
         ];
         for &(s, radix, n, d) in good_strings.into_iter() {
-            let r = Rational::from_str_radix(s, radix).unwrap();
-            assert_eq!(*r.numer(), n);
-            assert_eq!(*r.denom(), d);
+            match Rational::parse(s, radix) {
+                Ok(ok) => {
+                    let r = Rational::from(ok);
+                    assert_eq!(*r.numer(), n, "numerator mismatch for {}", s);
+                    assert_eq!(*r.denom(), d, "denominator mismatch for {}", s);
+                }
+                Err(_) => panic!("could not parse {}", s),
+            }
         }
     }
 

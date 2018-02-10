@@ -323,116 +323,66 @@ impl Rational {
         src: &str,
         radix: i32,
     ) -> Result<Self, ParseRationalError> {
-        let mut r = Rational::new();
-        r.assign_str_radix(src, radix)?;
-        Ok(r)
+        Ok(Rational::from(Rational::parse(src, radix)?))
     }
 
-    /// Checks if a `Rational` number can be parsed.
+    /// Parses a string or byte slice into a `Rational` number.
     ///
-    /// If this method does not return an error, neither will any
-    /// other function that parses a `Rational` number. If this method
-    /// returns an error, the other functions will return the same
-    /// error.
+    /// `Assign<Src> for Rational` and `From<Src> for Rational` are
+    /// implemented with the returned object as `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
     /// a `'/'`. The numerator can start with an optional minus or
     /// plus sign.
     ///
-    /// Whitespace is not allowed anywhere in the string, including in
-    /// the beginning and end and around the `'/'`.
+    /// ASCII whitespace is ignored everywhere in the string.
+    /// Underscores anywhere except before the first digit of the
+    /// numerator and between the `'/'` and the the first digit of the
+    /// denominator.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Rational;
     ///
-    /// let valid1 = Rational::valid_str_radix("12/23", 4);
+    /// let valid1 = Rational::parse("12/23", 4);
     /// let r1 = Rational::from(valid1.unwrap());
     /// assert_eq!(r1, (2 + 4 * 1, 3 + 4 * 2));
-    /// let valid2 = Rational::valid_str_radix("12/yz", 36);
+    /// let valid2 = Rational::parse("12 / yz", 36);
     /// let r2 = Rational::from(valid2.unwrap());
     /// assert_eq!(r2, (2 + 36 * 1, 35 + 36 * 34));
     ///
-    /// let invalid = Rational::valid_str_radix("12 / 23", 4);
-    /// let invalid_f = Rational::from_str_radix("12 / 23", 4);
-    /// assert_eq!(invalid.unwrap_err(), invalid_f.unwrap_err());
+    /// let invalid = Rational::parse("12/", 10);
+    /// assert!(invalid.is_err());
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    #[inline]
+    pub fn parse<S: AsRef<[u8]>>(
+        src: S,
+        radix: i32,
+    ) -> Result<ValidParse, ParseRationalError> {
+        parse(src.as_ref(), radix)
+    }
+
+    /// Checks if a `Rational` number can be parsed.
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; \
+                         `Rational::valid_str_radix(src, radix)` can be \
+                         replaced with `Rational::parse(src, radix)`.")]
+    #[inline]
+    #[allow(deprecated)]
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
     ) -> Result<ValidRational, ParseRationalError> {
-        use self::ParseErrorKind as Kind;
-        use self::ParseRationalError as Error;
-
-        assert!(radix >= 2 && radix <= 36, "radix out of range");
-        let bytes = src.as_bytes();
-        let (skip_plus, iter) = match bytes.get(0) {
-            Some(&b'+') => (&bytes[1..], bytes[1..].iter()),
-            Some(&b'-') => (bytes, bytes[1..].iter()),
-            _ => (bytes, bytes.iter()),
-        };
-        let mut got_digit = false;
-        let mut denom = false;
-        let mut denom_non_zero = false;
-        for b in iter {
-            if *b == b'/' {
-                if denom {
-                    return Err(Error {
-                        kind: Kind::TooManySlashes,
-                    });
-                }
-                if !got_digit {
-                    return Err(Error {
-                        kind: Kind::NumerNoDigits,
-                    });
-                }
-                got_digit = false;
-                denom = true;
-                continue;
-            }
-            let digit_value = match *b {
-                b'0'...b'9' => *b - b'0',
-                b'a'...b'z' => *b - b'a' + 10,
-                b'A'...b'Z' => *b - b'A' + 10,
-                _ => Err(Error {
-                    kind: Kind::InvalidDigit,
-                })?,
-            };
-            if digit_value >= cast::<_, u8>(radix) {
-                return Err(Error {
-                    kind: Kind::InvalidDigit,
-                });
-            }
-            got_digit = true;
-            if denom && digit_value > 0 {
-                denom_non_zero = true;
-            }
-        }
-        if !got_digit && denom {
-            return Err(Error {
-                kind: Kind::DenomNoDigits,
-            });
-        } else if !got_digit {
-            return Err(Error {
-                kind: Kind::NoDigits,
-            });
-        }
-        if denom && !denom_non_zero {
-            return Err(Error {
-                kind: Kind::DenomZero,
-            });
-        }
-        let v = ValidRational {
-            bytes: skip_plus,
-            radix,
-        };
-        Ok(v)
+        Rational::parse(src, radix).map(|inner| ValidRational {
+            inner,
+            phantom: PhantomData,
+        })
     }
 
     /// Converts to an [`Integer`](struct.Integer.html), rounding
@@ -596,47 +546,28 @@ impl Rational {
     }
 
     /// Parses a `Rational` number from a string.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// let mut r = Rational::new();
-    /// let ret = r.assign_str("1/0");
-    /// assert!(ret.is_err());
-    /// r.assign_str("-24/2").unwrap();
-    /// assert_eq!(*r.numer(), -12);
-    /// assert_eq!(*r.denom(), 1);
-    /// ```
     #[inline]
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; `r.assign_str(src)?` can be \
+                         replaced with `r.assign(Rational::parse(src, 10)?)`.")]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
-        self.assign_str_radix(src, 10)
+        self.assign(Rational::parse(src, 10)?);
+        Ok(())
     }
 
     /// Parses a `Rational` number from a string with the specified
     /// radix.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// let mut r = Rational::new();
-    /// r.assign_str_radix("ff/a", 16).unwrap();
-    /// assert_eq!(r, (255, 10));
-    /// r.assign_str_radix("+ff0/a0", 16).unwrap();
-    /// assert_eq!(r, (255, 10));
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; \
+                         `r.assign_str_radix(src, radix)?` can be replaced \
+                         with `r.assign(Rational::parse(src, radix)?)`.")]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
         radix: i32,
     ) -> Result<(), ParseRationalError> {
-        self.assign(Rational::valid_str_radix(src, radix)?);
+        self.assign(Rational::parse(src, radix)?);
         Ok(())
     }
 
@@ -2243,55 +2174,161 @@ pub fn append_to_string(
     }
 }
 
-/// A validated string that can always be converted to a `Rational`.
-///
-/// See the [`Rational::valid_str_radix`][valid] method.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Rational;
-/// use rug::rational::ValidRational;
-/// // This string is correct in radix 10, it cannot fail.
-/// let s = "123/456";
-/// let valid: ValidRational = match Rational::valid_str_radix(s, 10) {
-///     Ok(valid) => valid,
-///     Err(_) => unreachable!(),
-/// };
-/// let r = Rational::from(valid);
-/// assert_eq!(r, (123, 456));
-/// ```
-///
-/// [valid]: ../struct.Rational.html#method.valid_str_radix
 #[derive(Clone, Debug)]
-pub struct ValidRational<'a> {
-    bytes: &'a [u8],
+pub struct ValidParse {
+    bytes: Box<[u8]>,
     radix: i32,
 }
 
-impl<'a> Assign<ValidRational<'a>> for Rational {
+impl Assign<ValidParse> for Rational {
     #[inline]
-    fn assign(&mut self, src: ValidRational<'a>) {
-        let mut v = Vec::<u8>::with_capacity(src.bytes.len() + 1);
-        v.extend_from_slice(src.bytes);
-        v.push(0);
-        let err = unsafe {
-            let c_str = CStr::from_bytes_with_nul_unchecked(&v);
-            gmp::mpq_set_str(self.inner_mut(), c_str.as_ptr(), cast(src.radix))
-        };
-        assert_eq!(err, 0);
+    fn assign(&mut self, src: ValidParse) {
         unsafe {
+            let c_str = CStr::from_bytes_with_nul_unchecked(&src.bytes);
+            let err = gmp::mpq_set_str(
+                self.inner_mut(),
+                c_str.as_ptr(),
+                cast(src.radix),
+            );
+            assert_eq!(err, 0);
             gmp::mpq_canonicalize(self.inner_mut());
         }
     }
 }
 
-impl<'a> From<ValidRational<'a>> for Rational {
+impl<'a> From<ValidParse> for Rational {
     #[inline]
-    fn from(src: ValidRational<'a>) -> Self {
+    fn from(src: ValidParse) -> Self {
         let mut dst = Rational::new();
         dst.assign(src);
         dst
+    }
+}
+
+fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
+    use self::ParseErrorKind as Kind;
+    use self::ParseRationalError as Error;
+
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let bradix: u8 = cast(radix);
+
+    let mut skip_initial = 0;
+    let mut has_sign = false;
+    let mut has_minus = false;
+    let mut has_digits = false;
+    let mut has_underscores = false;
+    let mut denom = false;
+    let mut denom_non_zero = false;
+    for (i, &b) in bytes.iter().enumerate() {
+        if b == b'/' {
+            if denom {
+                return Err(Error {
+                    kind: Kind::TooManySlashes,
+                });
+            }
+            if !has_digits {
+                return Err(Error {
+                    kind: Kind::NumerNoDigits,
+                });
+            }
+            has_digits = false;
+            denom = true;
+            continue;
+        }
+        let digit_value = match b {
+            b'+' if !denom && !has_sign && !has_digits => {
+                has_sign = true;
+                continue;
+            }
+            b'-' if !denom && !has_sign && !has_digits => {
+                has_sign = true;
+                has_minus = true;
+                continue;
+            }
+            b'_' if has_digits => {
+                has_underscores = true;
+                continue;
+            }
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
+            b'0'...b'9' => b - b'0',
+            b'a'...b'z' => b - b'a' + 10,
+            b'A'...b'Z' => b - b'A' + 10,
+            _ => {
+                return Err(Error {
+                    kind: Kind::InvalidDigit,
+                })
+            }
+        };
+        if digit_value >= bradix {
+            return Err(Error {
+                kind: Kind::InvalidDigit,
+            });
+        }
+        if !has_digits {
+            if !denom {
+                skip_initial = i;
+            }
+            has_digits = true;
+        }
+        if denom && digit_value > 0 {
+            denom_non_zero = true;
+        }
+    }
+    if !has_digits && denom {
+        return Err(Error {
+            kind: Kind::DenomNoDigits,
+        });
+    } else if !has_digits {
+        return Err(Error {
+            kind: Kind::NoDigits,
+        });
+    }
+    if denom && !denom_non_zero {
+        return Err(Error {
+            kind: Kind::DenomZero,
+        });
+    }
+    let bytes = &bytes[skip_initial..];
+    let mut v = Vec::with_capacity(bytes.len() + 2);
+    if has_minus {
+        v.push(b'-');
+    }
+    v.extend_from_slice(bytes);
+    if has_underscores {
+        v.retain(|&b| b != b'_');
+    }
+    v.push(b'\0');
+    let bytes = v.into_boxed_slice();
+    Ok(ValidParse { bytes, radix })
+}
+
+/// A validated string that can always be converted to a
+/// [`Rational`](../struct.Rational.html) number.
+#[allow(deprecated)]
+#[deprecated(since = "0.9.4",
+             note = "use the `Rational::parse` method instead of \
+                     `Rational::valid_str_radix`, and if for example you were \
+                     storing the returned object in a struct, convert into a \
+                     `Rational` before storing.")]
+#[derive(Clone, Debug)]
+pub struct ValidRational<'a> {
+    inner: ValidParse,
+    phantom: PhantomData<&'a ()>,
+}
+
+#[allow(deprecated)]
+impl<'a> Assign<ValidRational<'a>> for Rational {
+    #[inline]
+    fn assign(&mut self, src: ValidRational<'a>) {
+        self.assign(src.inner);
+    }
+}
+
+#[allow(deprecated)]
+impl<'a> From<ValidRational<'a>> for Rational {
+    #[inline]
+    fn from(src: ValidRational<'a>) -> Self {
+        Rational::from(src.inner)
     }
 }
 
@@ -2305,7 +2342,7 @@ impl<'a> From<ValidRational<'a>> for Rational {
 /// use rug::rational::ParseRationalError;
 /// // This string is not a rational number.
 /// let s = "something completely different (_!_!_)";
-/// let error: ParseRationalError = match Rational::valid_str_radix(s, 4) {
+/// let error: ParseRationalError = match Rational::parse(s, 4) {
 ///     Ok(_) => unreachable!(),
 ///     Err(error) => error,
 /// };

@@ -80,9 +80,7 @@ impl FromStr for Rational {
     type Err = ParseRationalError;
     #[inline]
     fn from_str(src: &str) -> Result<Rational, ParseRationalError> {
-        let mut r = Rational::new();
-        r.assign_str(src)?;
-        Ok(r)
+        Ok(Rational::from(Rational::parse(src, 10)?))
     }
 }
 
