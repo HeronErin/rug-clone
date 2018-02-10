@@ -64,7 +64,7 @@ arith_prim! {
     Shl shl;
     ShlAssign shl_assign;
     i32;
-    ShlRefI32
+    ShlI32Ref
 }
 arith_prim! {
     Rational;
@@ -72,20 +72,20 @@ arith_prim! {
     Shr shr;
     ShrAssign shr_assign;
     i32;
-    ShrRefI32
+    ShrI32Ref
 }
 arith_prim! {
-    Rational; xgmp::mpq_pow_si; Pow pow; PowAssign pow_assign; i32; PowRefI32
+    Rational; xgmp::mpq_pow_si; Pow pow; PowAssign pow_assign; i32; PowI32Ref
 }
 
 arith_prim! {
-    Rational; gmp::mpq_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlRefU32
+    Rational; gmp::mpq_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlU32Ref
 }
 arith_prim! {
-    Rational; gmp::mpq_div_2exp; Shr shr; ShrAssign shr_assign; u32; ShrRefU32
+    Rational; gmp::mpq_div_2exp; Shr shr; ShrAssign shr_assign; u32; ShrU32Ref
 }
 arith_prim! {
-    Rational; xgmp::mpq_pow_ui; Pow pow; PowAssign pow_assign; u32; PowRefU32
+    Rational; xgmp::mpq_pow_ui; Pow pow; PowAssign pow_assign; u32; PowU32Ref
 }
 
 fold! { Rational, Sum sum, Rational::new(), Add::add }

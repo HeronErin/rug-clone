@@ -99,7 +99,7 @@ arith_prim_commut! {
     AddAssign add_assign;
     AddFrom add_from;
     i32;
-    AddRefI32
+    AddI32Ref
 }
 arith_prim_noncommut! {
     Integer;
@@ -108,7 +108,7 @@ arith_prim_noncommut! {
     SubAssign sub_assign;
     SubFrom sub_from;
     i32;
-    SubRefI32 SubFromRefI32
+    SubI32Ref SubFromI32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -117,7 +117,7 @@ arith_prim_commut! {
     MulAssign mul_assign;
     MulFrom mul_from;
     i32;
-    MulRefI32
+    MulI32Ref
 }
 arith_prim_noncommut! {
     Integer;
@@ -126,7 +126,7 @@ arith_prim_noncommut! {
     DivAssign div_assign;
     DivFrom div_from;
     i32;
-    DivRefI32 DivFromRefI32
+    DivI32Ref DivFromI32Ref
 }
 arith_prim_noncommut! {
     Integer;
@@ -135,13 +135,13 @@ arith_prim_noncommut! {
     RemAssign rem_assign;
     RemFrom rem_from;
     i32;
-    RemRefI32 RemFromRefI32
+    RemI32Ref RemFromI32Ref
 }
 arith_prim! {
-    Integer; xgmp::mpz_lshift_si; Shl shl; ShlAssign shl_assign; i32; ShlRefI32
+    Integer; xgmp::mpz_lshift_si; Shl shl; ShlAssign shl_assign; i32; ShlI32Ref
 }
 arith_prim! {
-    Integer; xgmp::mpz_rshift_si; Shr shr; ShrAssign shr_assign; i32; ShrRefI32
+    Integer; xgmp::mpz_rshift_si; Shr shr; ShrAssign shr_assign; i32; ShrI32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -150,7 +150,7 @@ arith_prim_commut! {
     BitAndAssign bitand_assign;
     BitAndFrom bitand_from;
     i32;
-    BitAndRefI32
+    BitAndI32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -159,7 +159,7 @@ arith_prim_commut! {
     BitOrAssign bitor_assign;
     BitOrFrom bitor_from;
     i32;
-    BitOrRefI32
+    BitOrI32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -168,7 +168,7 @@ arith_prim_commut! {
     BitXorAssign bitxor_assign;
     BitXorFrom bitxor_from;
     i32;
-    BitXorRefI32
+    BitXorI32Ref
 }
 
 arith_prim_commut! {
@@ -178,7 +178,7 @@ arith_prim_commut! {
     AddAssign add_assign;
     AddFrom add_from;
     u32;
-    AddRefU32
+    AddU32Ref
 }
 arith_prim_noncommut! {
     Integer;
@@ -187,7 +187,7 @@ arith_prim_noncommut! {
     SubAssign sub_assign;
     SubFrom sub_from;
     u32;
-    SubRefU32 SubFromRefU32
+    SubU32Ref SubFromU32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -196,7 +196,7 @@ arith_prim_commut! {
     MulAssign mul_assign;
     MulFrom mul_from;
     u32;
-    MulRefU32
+    MulU32Ref
 }
 arith_prim_noncommut! {
     Integer;
@@ -205,7 +205,7 @@ arith_prim_noncommut! {
     DivAssign div_assign;
     DivFrom div_from;
     u32;
-    DivRefU32 DivFromRefU32
+    DivU32Ref DivFromU32Ref
 }
 arith_prim_noncommut! {
     Integer;
@@ -214,16 +214,16 @@ arith_prim_noncommut! {
     RemAssign rem_assign;
     RemFrom rem_from;
     u32;
-    RemRefU32 RemFromRefU32
+    RemU32Ref RemFromU32Ref
 }
 arith_prim! {
-    Integer; gmp::mpz_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlRefU32
+    Integer; gmp::mpz_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlU32Ref
 }
 arith_prim! {
-    Integer; gmp::mpz_fdiv_q_2exp; Shr shr; ShrAssign shr_assign; u32; ShrRefU32
+    Integer; gmp::mpz_fdiv_q_2exp; Shr shr; ShrAssign shr_assign; u32; ShrU32Ref
 }
 arith_prim! {
-    Integer; gmp::mpz_pow_ui; Pow pow; PowAssign pow_assign; u32; PowRefU32
+    Integer; gmp::mpz_pow_ui; Pow pow; PowAssign pow_assign; u32; PowU32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -232,7 +232,7 @@ arith_prim_commut! {
     BitAndAssign bitand_assign;
     BitAndFrom bitand_from;
     u32;
-    BitAndRefU32
+    BitAndU32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -241,7 +241,7 @@ arith_prim_commut! {
     BitOrAssign bitor_assign;
     BitOrFrom bitor_from;
     u32;
-    BitOrRefU32
+    BitOrU32Ref
 }
 arith_prim_commut! {
     Integer;
@@ -250,7 +250,7 @@ arith_prim_commut! {
     BitXorAssign bitxor_assign;
     BitXorFrom bitxor_from;
     u32;
-    BitXorRefU32
+    BitXorU32Ref
 }
 
 mul_op_commut! {
@@ -268,8 +268,8 @@ mul_op_commut! {
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    MulRefU32, into;
-    AddMulRefU32
+    MulU32Ref, into;
+    AddMulU32Ref
 }
 mul_op_commut! {
     Integer;
@@ -277,8 +277,8 @@ mul_op_commut! {
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    MulRefI32, into;
-    AddMulRefI32
+    MulI32Ref, into;
+    AddMulI32Ref
 }
 mul_op_noncommut! {
     Integer;
@@ -287,7 +287,7 @@ mul_op_noncommut! {
     SubAssign sub_assign;
     SubFrom sub_from;
     MulRef, inner;
-    SubMulRef SubMulRefFrom
+    SubMulRef SubMulFromRef
 }
 mul_op_noncommut! {
     Integer;
@@ -295,8 +295,8 @@ mul_op_noncommut! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    MulRefU32, into;
-    SubMulRefU32 SubMulRefFromU32
+    MulU32Ref, into;
+    SubMulU32Ref SubMulFromU32Ref
 }
 mul_op_noncommut! {
     Integer;
@@ -304,8 +304,8 @@ mul_op_noncommut! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    MulRefI32, into;
-    SubMulRefI32 SubMulRefFromI32
+    MulI32Ref, into;
+    SubMulI32Ref SubMulFromI32Ref
 }
 
 fold! { Integer, Sum sum, Integer::new(), Add::add }

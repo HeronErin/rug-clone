@@ -112,7 +112,7 @@ macro_rules! arith_forward_float {
         $ImpAssign:ident $method_assign:ident;
         $ImpAssignRound:ident $method_assign_round:ident;
         $T:ty;
-        $Ref:ident $RefOwn:ident
+        $Ref:ident $OwnedRef:ident
     } => {
         arith_forward_round! {
             Float, Round => Ordering;
@@ -121,7 +121,7 @@ macro_rules! arith_forward_float {
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
             $T;
-            $Ref $RefOwn
+            $Ref $OwnedRef
         }
     }
 }
@@ -136,7 +136,7 @@ macro_rules! arith_commut_float {
         $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
-        $Ref:ident $RefOwn:ident
+        $Ref:ident $OwnedRef:ident
     } => {
         arith_commut_round! {
             Float, Round => Ordering;
@@ -147,7 +147,7 @@ macro_rules! arith_commut_float {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref $RefOwn
+            $Ref $OwnedRef
         }
     }
 }
@@ -162,7 +162,7 @@ macro_rules! arith_noncommut_float {
         $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
-        $Ref:ident $RefFrom:ident $RefOwn:ident $RefFromOwn:ident
+        $Ref:ident $FromRef:ident $OwnedRef:ident $FromOwnedRef:ident
     } => {
         arith_noncommut_round! {
             Float, Round => Ordering;
@@ -173,7 +173,7 @@ macro_rules! arith_noncommut_float {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref $RefFrom $RefOwn $RefFromOwn
+            $Ref $FromRef $OwnedRef $FromOwnedRef
         }
     }
 }
@@ -233,7 +233,7 @@ arith_commut_float! {
     AddFrom add_from;
     AddFromRound add_from_round;
     Integer;
-    AddRefInteger AddRefIntegerOwn
+    AddIntegerRef AddOwnedIntegerRef
 }
 #[cfg(feature = "integer")]
 arith_noncommut_float! {
@@ -244,7 +244,7 @@ arith_noncommut_float! {
     SubFrom sub_from;
     SubFromRound sub_from_round;
     Integer;
-    SubRefInteger SubFromRefInteger SubRefIntegerOwn SubFromRefIntegerOwn
+    SubIntegerRef SubFromIntegerRef SubOwnedIntegerRef SubFromOwnedIntegerRef
 }
 #[cfg(feature = "integer")]
 arith_commut_float! {
@@ -255,7 +255,7 @@ arith_commut_float! {
     MulFrom mul_from;
     MulFromRound mul_from_round;
     Integer;
-    MulRefInteger MulRefIntegerOwn
+    MulIntegerRef MulOwnedIntegerRef
 }
 #[cfg(feature = "integer")]
 arith_noncommut_float! {
@@ -266,7 +266,7 @@ arith_noncommut_float! {
     DivFrom div_from;
     DivFromRound div_from_round;
     Integer;
-    DivRefInteger DivFromRefInteger DivRefIntegerOwn DivFromRefIntegerOwn
+    DivIntegerRef DivFromIntegerRef DivOwnedIntegerRef DivFromOwnedIntegerRef
 }
 #[cfg(feature = "integer")]
 arith_forward_float! {
@@ -275,7 +275,7 @@ arith_forward_float! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     Integer;
-    PowRefInteger PowRefIntegerOwn
+    PowIntegerRef PowOwnedIntegerRef
 }
 
 #[cfg(feature = "rational")]
@@ -287,7 +287,7 @@ arith_commut_float! {
     AddFrom add_from;
     AddFromRound add_from_round;
     Rational;
-    AddRefRational AddRefRationalOwn
+    AddRationalRef AddOwnedRationalRef
 }
 #[cfg(feature = "rational")]
 arith_noncommut_float! {
@@ -298,7 +298,8 @@ arith_noncommut_float! {
     SubFrom sub_from;
     SubFromRound sub_from_round;
     Rational;
-    SubRefRational SubFromRefRational SubRefRationalOwn SubFromRefRationalOwn
+    SubRationalRef SubFromRationalRef
+        SubOwnedRationalRef SubFromOwnedRationalRef
 }
 #[cfg(feature = "rational")]
 arith_commut_float! {
@@ -309,7 +310,7 @@ arith_commut_float! {
     MulFrom mul_from;
     MulFromRound mul_from_round;
     Rational;
-    MulRefRational MulRefRationalOwn
+    MulRationalRef MulOwnedRationalRef
 }
 #[cfg(feature = "rational")]
 arith_noncommut_float! {
@@ -320,7 +321,8 @@ arith_noncommut_float! {
     DivFrom div_from;
     DivFromRound div_from_round;
     Rational;
-    DivRefRational DivFromRefRational DivRefRationalOwn DivFromRefRationalOwn
+    DivRationalRef DivFromRationalRef
+        DivOwnedRationalRef DivFromOwnedRationalRef
 }
 
 macro_rules! arith_prim_exact_float {
@@ -376,7 +378,7 @@ macro_rules! arith_prim_noncommut_float {
         $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
-        $Ref:ident $RefFrom:ident
+        $Ref:ident $FromRef:ident
     } => {
         arith_prim_noncommut_round! {
             Float, Round => Ordering;
@@ -387,7 +389,7 @@ macro_rules! arith_prim_noncommut_float {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref $RefFrom
+            $Ref $FromRef
         }
     }
 }
@@ -447,39 +449,39 @@ macro_rules! arith_ops {
 
 arith_ops! {
     i32,
-    (AddRefI32 mpfr::add_si,
-     SubRefI32 mpfr::sub_si,
-     SubFromRefI32 mpfr::si_sub),
-    (MulRefI32 mpfr::mul_si,
-     DivRefI32 mpfr::div_si,
-     DivFromRefI32 mpfr::si_div)
+    (AddI32Ref mpfr::add_si,
+     SubI32Ref mpfr::sub_si,
+     SubFromI32Ref mpfr::si_sub),
+    (MulI32Ref mpfr::mul_si,
+     DivI32Ref mpfr::div_si,
+     DivFromI32Ref mpfr::si_div)
 }
 arith_ops! {
     u32,
-    (AddRefU32 mpfr::add_ui,
-     SubRefU32 mpfr::sub_ui,
-     SubFromRefU32 mpfr::ui_sub),
-    (MulRefU32 mpfr::mul_ui,
-     DivRefU32 mpfr::div_ui,
-     DivFromRefU32 mpfr::ui_div)
+    (AddU32Ref mpfr::add_ui,
+     SubU32Ref mpfr::sub_ui,
+     SubFromU32Ref mpfr::ui_sub),
+    (MulU32Ref mpfr::mul_ui,
+     DivU32Ref mpfr::div_ui,
+     DivFromU32Ref mpfr::ui_div)
 }
 arith_ops! {
     f32,
-    (AddRefF32 xmpfr::add_f32,
-     SubRefF32 xmpfr::sub_f32,
-     SubFromRefF32 xmpfr::f32_sub),
-    (MulRefF32 xmpfr::mul_f32,
-     DivRefF32 xmpfr::div_f32,
-     DivFromRefF32 xmpfr::f32_div)
+    (AddF32Ref xmpfr::add_f32,
+     SubF32Ref xmpfr::sub_f32,
+     SubFromF32Ref xmpfr::f32_sub),
+    (MulF32Ref xmpfr::mul_f32,
+     DivF32Ref xmpfr::div_f32,
+     DivFromF32Ref xmpfr::f32_div)
 }
 arith_ops! {
     f64,
-    (AddRefF64 mpfr::add_d,
-     SubRefF64 mpfr::sub_d,
-     SubFromRefF64 mpfr::d_sub),
-    (MulRefF64 mpfr::mul_d,
-     DivRefF64 mpfr::div_d,
-     DivFromRefF64 mpfr::d_div)
+    (AddF64Ref mpfr::add_d,
+     SubF64Ref mpfr::sub_d,
+     SubFromF64Ref mpfr::d_sub),
+    (MulF64Ref mpfr::mul_d,
+     DivF64Ref mpfr::div_d,
+     DivFromF64Ref mpfr::d_div)
 }
 
 arith_prim_exact_float! {
@@ -487,14 +489,14 @@ arith_prim_exact_float! {
     Shl shl;
     ShlAssign shl_assign;
     u32;
-    ShlRefU32
+    ShlU32Ref
 }
 arith_prim_exact_float! {
     mpfr::div_2ui;
     Shr shr;
     ShrAssign shr_assign;
     u32;
-    ShrRefU32
+    ShrU32Ref
 }
 arith_prim_noncommut_float!{
     mpfr::pow_ui, mpfr::ui_pow;
@@ -504,21 +506,21 @@ arith_prim_noncommut_float!{
     PowFrom pow_from;
     PowFromRound pow_from_round;
     u32;
-    PowRefU32 PowFromRefU32
+    PowU32Ref PowFromU32Ref
 }
 arith_prim_exact_float! {
     mpfr::mul_2si;
     Shl shl;
     ShlAssign shl_assign;
     i32;
-    ShlRefI32
+    ShlI32Ref
 }
 arith_prim_exact_float! {
     mpfr::div_2si;
     Shr shr;
     ShrAssign shr_assign;
     i32;
-    ShrRefI32
+    ShrI32Ref
 }
 arith_prim_noncommut_float!{
     mpfr::pow_si, xmpfr::si_pow;
@@ -528,7 +530,7 @@ arith_prim_noncommut_float!{
     PowFrom pow_from;
     PowFromRound pow_from_round;
     i32;
-    PowRefI32 PowFromRefI32
+    PowI32Ref PowFromI32Ref
 }
 arith_prim_noncommut_float!{
     xmpfr::pow_f64, xmpfr::f64_pow;
@@ -538,7 +540,7 @@ arith_prim_noncommut_float!{
     PowFrom pow_from;
     PowFromRound pow_from_round;
     f64;
-    PowRefF64 PowFromRefF64
+    PowF64Ref PowFromF64Ref
 }
 arith_prim_noncommut_float!{
     xmpfr::pow_f32, xmpfr::f32_pow;
@@ -548,7 +550,7 @@ arith_prim_noncommut_float!{
     PowFrom pow_from;
     PowFromRound pow_from_round;
     f32;
-    PowRefF32 PowFromRefF32
+    PowF32Ref PowFromF32Ref
 }
 
 mul_op_commut_round! {

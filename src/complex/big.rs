@@ -1757,7 +1757,7 @@ impl Complex {
         /// let conj = Complex::with_val(53, c.conj_ref());
         /// assert_eq!(conj, (1.5, -2.5));
         /// ```
-        fn conj_ref -> ConjugateRef;
+        fn conj_ref -> ConjRef;
     }
 
     /// Computes the absolute value and returns it as a
@@ -3464,7 +3464,7 @@ where
 ref_math_op1_complex! { mpc::proj; struct ProjRef {} }
 ref_math_op1_complex! { mpc::sqr; struct SquareRef {} }
 ref_math_op1_complex! { mpc::sqrt; struct SqrtRef {} }
-ref_math_op1_complex! { mpc::conj; struct ConjugateRef {} }
+ref_math_op1_complex! { mpc::conj; struct ConjRef {} }
 
 #[derive(Clone, Copy)]
 pub struct AbsRef<'a> {

@@ -222,7 +222,7 @@ mod tests {
 
     #[test]
     fn check_cmp_others() {
-        use tests::{U32, I32, U64, I64, F32, F64};
+        use tests::{F32, F64, I32, I64, U32, U64};
         let large = &[
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

@@ -295,14 +295,14 @@ macro_rules! div_op {
 // Ref -> Big
 // big = Ref
 // prim / big -> Big
-// prim / &big -> RefFrom
+// prim / &big -> FromRef
 // &prim / big -> Big
-// &prim / &big -> RefFrom
+// &prim / &big -> FromRef
 // prim /-> big
 // &prim /-> big
-// struct RefFrom
-// RefFrom -> Big
-// big = RefFrom
+// struct FromRef
+// FromRef -> Big
+// big = FromRef
 macro_rules! div_prim {
     {
         $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
@@ -322,7 +322,7 @@ macro_rules! div_prim {
             $floor_from:ident
             $euc_from:ident;
         $T:ty;
-        $Ref:ident $RefFrom:ident
+        $Ref:ident $FromRef:ident
     } => {
         impl $Imp<$T> for Integer {
             type Output = Integer;
@@ -520,22 +520,22 @@ macro_rules! div_prim {
         }
 
         impl<'i> $Imp<&'i Integer> for $T {
-            type Output = $RefFrom<'i>;
+            type Output = $FromRef<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $RefFrom<'i> {
-                $RefFrom::Trunc(self, rhs)
+            fn $trunc(self, rhs: &'i Integer) -> $FromRef<'i> {
+                $FromRef::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $RefFrom<'i> {
-                $RefFrom::Ceil(self, rhs)
+            fn $ceil(self, rhs: &'i Integer) -> $FromRef<'i> {
+                $FromRef::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $RefFrom<'i> {
-                $RefFrom::Floor(self, rhs)
+            fn $floor(self, rhs: &'i Integer) -> $FromRef<'i> {
+                $FromRef::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $RefFrom<'i> {
-                $RefFrom::Euc(self, rhs)
+            fn $euc(self, rhs: &'i Integer) -> $FromRef<'i> {
+                $FromRef::Euc(self, rhs)
             }
         }
 
@@ -564,21 +564,21 @@ macro_rules! div_prim {
         }
 
         impl<'i, 't> $Imp<&'i Integer> for &'t $T {
-            type Output = $RefFrom<'i>;
+            type Output = $FromRef<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $RefFrom<'i> {
+            fn $trunc(self, rhs: &'i Integer) -> $FromRef<'i> {
                 <$T as $Imp<&Integer>>::$trunc(*self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $RefFrom<'i> {
+            fn $ceil(self, rhs: &'i Integer) -> $FromRef<'i> {
                 <$T as $Imp<&Integer>>::$ceil(*self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $RefFrom<'i> {
+            fn $floor(self, rhs: &'i Integer) -> $FromRef<'i> {
                 <$T as $Imp<&Integer>>::$floor(*self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $RefFrom<'i> {
+            fn $euc(self, rhs: &'i Integer) -> $FromRef<'i> {
                 <$T as $Imp<&Integer>>::$euc(*self, rhs)
             }
         }
@@ -630,48 +630,48 @@ macro_rules! div_prim {
         }
 
         #[derive(Clone, Copy)]
-        pub enum $RefFrom<'i> {
+        pub enum $FromRef<'i> {
             Trunc($T, &'i Integer),
             Ceil($T, &'i Integer),
             Floor($T, &'i Integer),
             Euc($T, &'i Integer),
         }
 
-        impl<'i> Assign<$RefFrom<'i>> for Integer {
+        impl<'i> Assign<$FromRef<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $RefFrom<'i>) {
+            fn assign(&mut self, src: $FromRef<'i>) {
                 match src {
-                    $RefFrom::Trunc(lhs, rhs) => unsafe {
+                    $FromRef::Trunc(lhs, rhs) => unsafe {
                         $trunc_from_fn(
                             self.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
-                    $RefFrom::Ceil(lhs, rhs) => unsafe {
+                    $FromRef::Ceil(lhs, rhs) => unsafe {
                         $ceil_from_fn(
                             self.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
-                    $RefFrom::Floor(lhs, rhs) => unsafe {
+                    $FromRef::Floor(lhs, rhs) => unsafe {
                         $floor_from_fn(
                             self.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
-                    $RefFrom::Euc(lhs, rhs) => unsafe {
+                    $FromRef::Euc(lhs, rhs) => unsafe {
                         $euc_from_fn(self.inner_mut(), lhs.into(), rhs.inner());
                     },
                 }
             }
         }
 
-        impl<'i> From<$RefFrom<'i>> for Integer {
+        impl<'i> From<$FromRef<'i>> for Integer {
             #[inline]
-            fn from(src: $RefFrom<'i>) -> Self {
+            fn from(src: $FromRef<'i>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -720,7 +720,7 @@ div_prim! {
     DivRoundingFrom
         div_trunc_from div_ceil_from div_floor_from div_euc_from;
     i32;
-    DivRoundingRefI32 DivRoundingFromRefI32
+    DivRoundingI32Ref DivRoundingFromI32Ref
 }
 div_prim! {
     xgmp::mpz_tdiv_r_si_check,
@@ -737,7 +737,7 @@ div_prim! {
     RemRoundingFrom
         rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
     i32;
-    RemRoundingRefI32 RemRoundingFromRefI32
+    RemRoundingI32Ref RemRoundingFromI32Ref
 }
 div_prim! {
     xgmp::mpz_tdiv_q_ui_check,
@@ -754,7 +754,7 @@ div_prim! {
     DivRoundingFrom
         div_trunc_from div_ceil_from div_floor_from div_euc_from;
     u32;
-    DivRoundingRefU32 DivRoundingFromRefU32
+    DivRoundingU32Ref DivRoundingFromU32Ref
 }
 div_prim! {
     xgmp::mpz_tdiv_r_ui_check,
@@ -771,7 +771,7 @@ div_prim! {
     RemRoundingFrom
         rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
     u32;
-    RemRoundingRefU32 RemRoundingFromRefU32
+    RemRoundingU32Ref RemRoundingFromU32Ref
 }
 
 #[cfg(test)]

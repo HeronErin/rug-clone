@@ -1873,7 +1873,7 @@ impl Integer {
         /// let next = Integer::from(r);
         /// assert_eq!(next, 64);
         /// ```
-        fn next_power_of_two_ref -> NextPowerTwoRef;
+        fn next_power_of_two_ref -> NextPowerOfTwoRef;
     }
     math_op2_2! {
         xgmp::mpz_tdiv_qr_check;
@@ -3835,7 +3835,9 @@ where
 }
 
 ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
-ref_math_op1! { Integer; xgmp::mpz_next_pow_of_two; struct NextPowerTwoRef {} }
+ref_math_op1! {
+    Integer; xgmp::mpz_next_pow_of_two; struct NextPowerOfTwoRef {}
+}
 ref_math_op2_2! {
     Integer; xgmp::mpz_tdiv_qr_check; struct DivRemRef { divisor }
 }
