@@ -23,7 +23,7 @@ use integer::big as big_integer;
 use misc;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CStr;
+use std::ffi::CString;
 use std::i32;
 use std::marker::PhantomData;
 use std::mem;
@@ -2176,7 +2176,7 @@ pub fn append_to_string(
 
 #[derive(Clone, Debug)]
 pub struct ValidParse {
-    bytes: Box<[u8]>,
+    c_string: CString,
     radix: i32,
 }
 
@@ -2184,10 +2184,9 @@ impl Assign<ValidParse> for Rational {
     #[inline]
     fn assign(&mut self, src: ValidParse) {
         unsafe {
-            let c_str = CStr::from_bytes_with_nul_unchecked(&src.bytes);
             let err = gmp::mpq_set_str(
                 self.inner_mut(),
-                c_str.as_ptr(),
+                src.c_string.as_ptr(),
                 cast(src.radix),
             );
             assert_eq!(err, 0);
@@ -2211,15 +2210,16 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast(radix);
+    let small_bound = b'a' - 10 + bradix;
+    let capital_bound = b'A' - 10 + bradix;
+    let digit_bound = b'0' + bradix;
 
-    let mut skip_initial = 0;
+    let mut v = Vec::with_capacity(bytes.len() + 1);
     let mut has_sign = false;
-    let mut has_minus = false;
     let mut has_digits = false;
-    let mut has_underscores = false;
     let mut denom = false;
-    let mut denom_non_zero = false;
-    for (i, &b) in bytes.iter().enumerate() {
+    let mut division_by_zero = false;
+    for &b in bytes {
         if b == b'/' {
             if denom {
                 return Err(Error {
@@ -2231,75 +2231,56 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
                     kind: Kind::NumerNoDigits,
                 });
             }
+            v.push(b'/');
             has_digits = false;
             denom = true;
+            division_by_zero = true;
             continue;
         }
-        let digit_value = match b {
+        let valid_digit = match b {
             b'+' if !denom && !has_sign && !has_digits => {
                 has_sign = true;
                 continue;
             }
             b'-' if !denom && !has_sign && !has_digits => {
+                v.push(b'-');
                 has_sign = true;
-                has_minus = true;
                 continue;
             }
-            b'_' if has_digits => {
-                has_underscores = true;
-                continue;
-            }
+            b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
-            b'0'...b'9' => b - b'0',
-            b'a'...b'z' => b - b'a' + 10,
-            b'A'...b'Z' => b - b'A' + 10,
-            _ => {
-                return Err(Error {
-                    kind: Kind::InvalidDigit,
-                })
-            }
+
+            _ if b >= b'a' => b < small_bound,
+            _ if b >= b'A' => b < capital_bound,
+            b'0'...b'9' => b < digit_bound,
+            _ => false,
         };
-        if digit_value >= bradix {
+        if !valid_digit {
             return Err(Error {
                 kind: Kind::InvalidDigit,
             });
         }
-        if !has_digits {
-            if !denom {
-                skip_initial = i;
-            }
-            has_digits = true;
-        }
-        if denom && digit_value > 0 {
-            denom_non_zero = true;
-        }
+        v.push(b);
+        has_digits = true;
+        division_by_zero = division_by_zero && b == b'0';
     }
-    if !has_digits && denom {
+    if !has_digits {
         return Err(Error {
-            kind: Kind::DenomNoDigits,
-        });
-    } else if !has_digits {
-        return Err(Error {
-            kind: Kind::NoDigits,
+            kind: if denom {
+                Kind::DenomNoDigits
+            } else {
+                Kind::NoDigits
+            },
         });
     }
-    if denom && !denom_non_zero {
+    if division_by_zero {
         return Err(Error {
             kind: Kind::DenomZero,
         });
     }
-    let bytes = &bytes[skip_initial..];
-    let mut v = Vec::with_capacity(bytes.len() + 2);
-    if has_minus {
-        v.push(b'-');
-    }
-    v.extend_from_slice(bytes);
-    if has_underscores {
-        v.retain(|&b| b != b'_');
-    }
-    v.push(b'\0');
-    let bytes = v.into_boxed_slice();
-    Ok(ValidParse { bytes, radix })
+    // we've only added b'-' and digits, so we know there are no nuls
+    let c_string = unsafe { CString::from_vec_unchecked(v) };
+    Ok(ValidParse { c_string, radix })
 }
 
 /// A validated string that can always be converted to a

@@ -203,6 +203,14 @@ mod tests {
             ("80", Some(8)),
             ("0xf", Some(16)),
             ("9", Some(9)),
+            ("/0", Some(36)),
+            (":0", Some(36)),
+            ("@0", Some(36)),
+            ("[0", Some(36)),
+            ("`0", Some(36)),
+            ("{0", Some(36)),
+            ("Z0", Some(35)),
+            ("z0", Some(35)),
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(
@@ -222,6 +230,8 @@ mod tests {
             ("-77", 8, -0o77),
             (" 1 2\n 3 4 ", 10, 1234),
             ("1_2__", 10, 12),
+            ("z0", 36, 35 * 36),
+            ("Z0", 36, 35 * 36),
         ];
         for &(s, radix, i) in good_strings.into_iter() {
             match Integer::parse(s, radix) {

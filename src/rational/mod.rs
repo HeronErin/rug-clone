@@ -189,6 +189,15 @@ mod tests {
             ("1/80", Some(8)),
             ("0xf", Some(16)),
             ("9", Some(9)),
+            (":0", Some(36)),
+            ("/0", Some(36)),
+            (":0", Some(36)),
+            ("@0", Some(36)),
+            ("[0", Some(36)),
+            ("`0", Some(36)),
+            ("{0", Some(36)),
+            ("Z0", Some(35)),
+            ("z0", Some(35)),
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(
@@ -206,6 +215,7 @@ mod tests {
             ("-99/3", 10, -33, 1),
             ("+Ce/fF", 16, 0xce, 0xff),
             ("-77/2", 8, -0o77, 2),
+            ("Z/z0", 36, 1, 36),
         ];
         for &(s, radix, n, d) in good_strings.into_iter() {
             match Rational::parse(s, radix) {
