@@ -35,7 +35,7 @@ use std::{i32, u32};
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CStr;
+use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
 use std::num::FpCategory;
@@ -571,103 +571,57 @@ impl Float {
 
     /// Parses a `Float` with the specified precision, rounding to the
     /// nearest.
-    ///
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let f = match Float::from_str("12.5e2", 53) {
-    ///     Ok(f) => f,
-    ///     Err(_) => unreachable!(),
-    /// };
-    /// assert_eq!(f, 12.5e2);
-    /// let err_ret = Float::from_str("bad", 53);
-    /// assert!(err_ret.is_err());
-    /// ```
+    #[deprecated(since = "0.9.4",
+                 note = "use `with_val` and `parse` instead; \
+                         `Float::from_str(src, prec)?` can be replaced with \
+                         `Float::with_val(prec, Float::parse(src, 10)?)`.")]
     #[inline]
     pub fn from_str(src: &str, prec: u32) -> Result<Self, ParseFloatError> {
-        let mut f = Float::new_nan(prec);
-        f.assign_str(src)?;
-        Ok(f)
+        Ok(Float::with_val(prec, Float::parse(src, 10)?))
     }
 
     /// Parses a `Float` with the specified precision, applying the
     /// specified rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// let (f, dir) = match Float::from_str_round("14.1", 4, Round::Down) {
-    ///     Ok(f_dir) => f_dir,
-    ///     Err(_) => unreachable!(),
-    /// };
-    /// assert_eq!(f, 14);
-    /// assert_eq!(dir, Ordering::Less);
-    /// ```
+    #[deprecated(
+        since = "0.9.4",
+        note = "use `with_val_round` and `parse` instead; \
+                `Float::from_str_round(src, prec, round)?` can be replaced \
+                with \
+                `Float::with_val_round(prec, Float::parse(src, 10)?, round)`.")]
     #[inline]
     pub fn from_str_round(
         src: &str,
         prec: u32,
         round: Round,
     ) -> Result<(Self, Ordering), ParseFloatError> {
-        let mut f = Float::new_nan(prec);
-        let ord = f.assign_str_round(src, round)?;
-        Ok((f, ord))
+        Ok(Float::with_val_round(prec, Float::parse(src, 10)?, round))
     }
 
     /// Parses a `Float` with the specified radix and precision,
     /// rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let f = match Float::from_str_radix("f.f", 16, 53) {
-    ///     Ok(f) => f,
-    ///     Err(_) => unreachable!(),
-    /// };
-    /// assert_eq!(f, 15.9375);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    #[deprecated(since = "0.9.4",
+                 note = "use `with_val` and `parse` instead; \
+                         `Float::from_str_radix(src, radix, prec)?` can be \
+                         replaced with \
+                         `Float::with_val(prec, Float::parse(src, radix)?)`.")]
     #[inline]
     pub fn from_str_radix(
         src: &str,
         radix: i32,
         prec: u32,
     ) -> Result<Self, ParseFloatError> {
-        let mut f = Float::new_nan(prec);
-        f.assign_str_radix(src, radix)?;
-        Ok(f)
+        Ok(Float::with_val(prec, Float::parse(src, radix)?))
     }
 
     /// Parses a `Float` with the specified radix and precision,
     /// applying the specified rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// let (f, dir) =
-    ///     match Float::from_str_radix_round("e.c", 16, 4, Round::Up) {
-    ///         Ok(f_dir) => f_dir,
-    ///         Err(_) => unreachable!(),
-    ///     };
-    /// assert_eq!(f, 15);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    #[deprecated(
+        since = "0.9.4",
+        note =
+            "use `with_val_round` and `parse` instead; \
+             `Float::from_str_radix_round(src, radix, prec, round)?` can be \
+             replaced with \
+             `Float::with_val_round(prec, Float::parse(src, radix)?, round)`.")]
     #[inline]
     pub fn from_str_radix_round(
         src: &str,
@@ -675,143 +629,82 @@ impl Float {
         prec: u32,
         round: Round,
     ) -> Result<(Self, Ordering), ParseFloatError> {
-        let mut f = Float::new_nan(prec);
-        let ord = f.assign_str_radix_round(src, radix, round)?;
-        Ok((f, ord))
+        Ok(Float::with_val_round(
+            prec,
+            Float::parse(src, radix)?,
+            round,
+        ))
     }
 
-    /// Checks if a `Float` can be parsed.
+    /// Parses a string or byte slice into a `Float`.
     ///
-    /// If this method does not return an error, neither will any
-    /// other function that parses a `Float`. If this method returns
-    /// an error, the other functions will return the same error.
+    /// `AssignRound<Src> for Float` is implemented with the returned
+    /// object as `Src`.
     ///
-    /// The string can start with an optional minus or plus sign.
-    /// Whitespace is not allowed anywhere in the string, including in
-    /// the beginning and end.
+    /// The string can start with an optional minus or plus sign and
+    /// must then have one or more significant digits with an optional
+    /// point. This can optionally be followed by an exponent; the
+    /// exponent can start with a separator 'e' or 'E' if the radix ≤
+    /// 10, or '@' for any radix, and is followed by an optional minus
+    /// or plus sign and by one or more decimal digits.
+    ///
+    /// Alternatively, the string can indicate the special values
+    /// infinity or NaN. If the radix ≤ 10, infinity can be
+    /// represented as "inf" or "infinity", and NaN can be represented
+    /// as "nan". For any radix, infinity can be represented as
+    /// "@inf@" or "@infinity@", and NaN can be represented as
+    /// "@nan@". The NaN representation may also include a
+    /// possibly-empty string of ASCII letters, digits underscores
+    /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`. All of
+    /// these special representations are case insensitive.
+    ///
+    /// ASCII whitespace is ignored everywhere in a digit string, and
+    /// at the beginning or at the end of the special cases for
+    /// infinity or NaN. Underscores are ignored anywhere in digit
+    /// strings except before the first digit and between the exponent
+    /// separator and the first digit of the exponent.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Float;
     ///
-    /// let valid1 = Float::valid_str_radix("12.23e-4", 4);
+    /// let valid1 = Float::parse("12.23e-4", 4);
     /// let f1 = Float::with_val(53, valid1.unwrap());
     /// assert_eq!(f1, (2.0 + 4.0 * 1.0 + 0.25 * (2.0 + 0.25 * 3.0)) / 256.0);
-    /// let valid2 = Float::valid_str_radix("12.yz@2", 36);
+    /// let valid2 = Float::parse("12.yz@2", 36);
     /// let f2 = Float::with_val(53, valid2.unwrap());
     /// assert_eq!(f2, 35 + 36 * (34 + 36 * (2 + 36 * 1)));
     ///
-    /// let invalid = Float::valid_str_radix("ffe-2", 16);
-    /// let invalid_f = Float::from_str_radix("ffe-2", 16, 53);
-    /// assert_eq!(invalid.unwrap_err(), invalid_f.unwrap_err());
+    /// let invalid = Float::parse("ffe-2", 16);
+    /// assert!(invalid.is_err());
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
+    pub fn parse<S: AsRef<[u8]>>(
+        src: S,
+        radix: i32,
+    ) -> Result<ValidParse, ParseFloatError> {
+        parse(src.as_ref(), radix)
+    }
+
+    /// Checks if a `Float` can be parsed.
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; \
+                         `Float::valid_str_radix(src, radix)` can be \
+                         replaced with `Float::parse(src, radix)`.")]
+    #[inline]
+    #[allow(deprecated)]
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
     ) -> Result<ValidFloat, ParseFloatError> {
-        use self::ParseErrorKind as Kind;
-        use self::ParseFloatError as Error;
-
-        if let Some(special) = valid_str_special(src, radix) {
-            return Ok(special);
-        }
-
-        let mut v = ValidFloat {
-            poss: ValidPoss::Special(Special::Nan),
-            radix,
-            exp_plus: None,
-        };
-        let bytes = src.as_bytes();
-        let mut iter = bytes.iter();
-        let starts_with_plus = bytes.starts_with(&[b'+']);
-        let starts_with_minus = bytes.starts_with(&[b'-']);
-        if starts_with_plus || starts_with_minus {
-            iter.next();
-        }
-        let mut got_digit = false;
-        let mut got_point = false;
-        let mut exp = false;
-        let mut fresh_exp = false;
-        for (i, b) in iter.enumerate() {
-            if fresh_exp {
-                fresh_exp = false;
-                if *b == b'-' {
-                    continue;
-                }
-                if *b == b'+' {
-                    v.exp_plus = if starts_with_minus {
-                        Some(i + 1)
-                    } else {
-                        Some(i)
-                    };
-                    continue;
-                }
-            }
-            if *b == b'.' {
-                if exp {
-                    return Err(Error {
-                        kind: Kind::PointInExp,
-                    });
-                }
-                if got_point {
-                    return Err(Error {
-                        kind: Kind::TooManyPoints,
-                    });
-                }
-                got_point = true;
-                continue;
-            }
-            if (radix <= 10 && (*b == b'e' || *b == b'E')) || *b == b'@' {
-                if exp {
-                    return Err(Error {
-                        kind: Kind::TooManyExp,
-                    });
-                }
-                if !got_digit {
-                    return Err(Error {
-                        kind: Kind::SignifNoDigits,
-                    });
-                }
-                got_digit = false;
-                exp = true;
-                fresh_exp = true;
-                continue;
-            }
-            let digit = match *b {
-                b'0'...b'9' => *b - b'0',
-                b'a'...b'z' => *b - b'a' + 10,
-                b'A'...b'Z' => *b - b'A' + 10,
-                _ => Err(Error {
-                    kind: Kind::InvalidDigit,
-                })?,
-            };
-            if (!exp && digit >= cast::<_, u8>(radix)) || (exp && digit >= 10) {
-                return Err(Error {
-                    kind: Kind::InvalidDigit,
-                });
-            }
-            got_digit = true;
-        }
-        if !got_digit && exp {
-            return Err(Error {
-                kind: Kind::ExpNoDigits,
-            });
-        } else if !got_digit {
-            return Err(Error {
-                kind: Kind::NoDigits,
-            });
-        }
-        v.poss = if starts_with_plus {
-            ValidPoss::Bytes(&bytes[1..])
-        } else {
-            ValidPoss::Bytes(bytes)
-        };
-        Ok(v)
+        Float::parse(src, radix).map(|inner| ValidFloat {
+            inner,
+            phantom: PhantomData,
+        })
     }
 
     #[cfg(feature = "integer")]
@@ -1322,96 +1215,54 @@ impl Float {
     }
 
     /// Parses a `Float` from a string, rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let mut f = Float::new(53);
-    /// let ok_ret = f.assign_str("12.5e2");
-    /// assert!(ok_ret.is_ok());
-    /// assert_eq!(f, 12.5e2);
-    /// let err_ret = f.assign_str("bad");
-    /// assert!(err_ret.is_err());
-    /// ```
     #[inline]
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; `f.assign_str(src)?` can be \
+                         replaced with `f.assign(Float::parse(src, 10)?)`.")]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
-        self.assign_str_radix(src, 10)
+        self.assign_round(Float::parse(src, 10)?, Round::Nearest);
+        Ok(())
     }
 
     /// Parses a `Float` from a string, applying the specified
     /// rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// let mut f = Float::new(4);
-    /// let dir = match f.assign_str_round("14.1", Round::Down) {
-    ///     Ok(dir) => dir,
-    ///     Err(_) => unreachable!(),
-    /// };
-    /// assert_eq!(f, 14);
-    /// assert_eq!(dir, Ordering::Less);
-    /// ```
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; \
+                         `f.assign_str_round(src, round)?` can be replaced \
+                         with \
+                         `f.assign_round(Float::parse(src, 10)?, round)`.")]
     #[inline]
     pub fn assign_str_round(
         &mut self,
         src: &str,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        self.assign_str_radix_round(src, 10, round)
+        Ok(self.assign_round(Float::parse(src, 10)?, round))
     }
 
     /// Parses a `Float` from a string with the specified radix,
     /// rounding to the nearest.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// let mut f = Float::new(53);
-    /// let ok_ret = f.assign_str_radix("f.f", 16);
-    /// assert!(ok_ret.is_ok());
-    /// assert_eq!(f, 15.9375);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; \
+                         `f.assign_str_radix(src, radix)?` can be replaced \
+                         with `f.assign(Float::parse(src, radix)?)`.")]
     #[inline]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
         radix: i32,
     ) -> Result<(), ParseFloatError> {
-        self.assign_str_radix_round(src, radix, Round::Nearest)?;
+        self.assign_round(Float::parse(src, radix)?, Round::Nearest);
         Ok(())
     }
 
     /// Parses a `Float` from a string with the specified radix,
     /// applying the specified rounding.
-    ///
-    /// Examples
-    ///
-    /// ```rust
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use std::cmp::Ordering;
-    /// let mut f = Float::new(4);
-    /// let dir = match f.assign_str_radix_round("e.c", 16, Round::Up) {
-    ///     Ok(dir) => dir,
-    ///     Err(_) => unreachable!(),
-    /// };
-    /// assert_eq!(f, 15);
-    /// assert_eq!(dir, Ordering::Greater);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    #[deprecated(since = "0.9.4",
+                 note = "use `parse` instead; \
+                         `f.assign_str_radix_round(src, round)?` can be \
+                         replaced with \
+                         `f.assign_round(Float::parse(src, radix)?, round)`.")]
     #[inline]
     pub fn assign_str_radix_round(
         &mut self,
@@ -1419,7 +1270,7 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::valid_str_radix(src, radix)?, round))
+        Ok(self.assign_round(Float::parse(src, radix)?, round))
     }
 
     /// Creates a `Float` from an initialized MPFR floating-point
@@ -8044,78 +7895,296 @@ pub fn append_to_string(
     }
 }
 
-/// A validated string that can always be converted to a `Float`.
-///
-/// See the [`Float::valid_str_radix`][valid] method.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::ValidFloat;
-/// // This string is correct in radix 10, it cannot fail.
-/// let s = "1.25e-1";
-/// let valid: ValidFloat = match Float::valid_str_radix(s, 10) {
-///     Ok(valid) => valid,
-///     Err(_) => unreachable!(),
-/// };
-/// let f = Float::with_val(53, valid);
-/// assert_eq!(f, 0.125);
-/// ```
-///
-/// [valid]: ../struct.Float.html#method.valid_str_radix
 #[derive(Clone, Debug)]
-pub struct ValidFloat<'a> {
-    poss: ValidPoss<'a>,
-    radix: i32,
-    exp_plus: Option<usize>,
-}
-
-#[derive(Clone, Debug)]
-enum ValidPoss<'a> {
-    Bytes(&'a [u8]),
+pub enum ValidParse {
+    CString { c_string: CString, radix: i32 },
     Special(Special),
     NegNan,
 }
 
-impl<'a> AssignRound<ValidFloat<'a>> for Float {
+impl AssignRound<ValidParse> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: ValidFloat<'a>, round: Round) -> Ordering {
-        let bytes = match src.poss {
-            ValidPoss::Special(s) => {
-                self.assign(s);
+    fn assign_round(&mut self, src: ValidParse, round: Round) -> Ordering {
+        let (c_string, radix) = match src {
+            ValidParse::CString { c_string, radix } => (c_string, radix),
+            ValidParse::Special(special) => {
+                self.assign(special);
                 return Ordering::Equal;
             }
-            ValidPoss::NegNan => {
+            ValidParse::NegNan => {
                 self.assign(Special::Nan);
                 self.neg_assign();
                 return Ordering::Equal;
             }
-            ValidPoss::Bytes(b) => b,
         };
-        let mut v = Vec::<u8>::with_capacity(bytes.len() + 1);
-        if let Some(exp_plus) = src.exp_plus {
-            v.extend_from_slice(&bytes[0..exp_plus]);
-            v.extend_from_slice(&bytes[exp_plus + 1..]);
-        } else {
-            v.extend_from_slice(bytes);
-        }
-        v.push(0);
         let mut c_str_end: *const c_char = ptr::null();
         let ret = unsafe {
-            let c_str = CStr::from_bytes_with_nul_unchecked(&v);
             mpfr::strtofr(
                 self.inner_mut(),
-                c_str.as_ptr(),
+                c_string.as_ptr(),
                 &mut c_str_end as *mut _ as *mut *mut c_char,
-                cast(src.radix),
+                cast(radix),
                 raw_round(round),
             )
         };
-        let nul = v.last().unwrap() as *const _ as *const c_char;
+        let nul = c_string.as_bytes_with_nul().last().unwrap() as *const _
+            as *const c_char;
         assert_eq!(c_str_end, nul);
         ordering1(ret)
+    }
+}
+
+fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
+    use self::ParseErrorKind as Kind;
+    use self::ParseFloatError as Error;
+
+    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    let bradix: u8 = cast(radix);
+    let small_bound = b'a' - 10 + bradix;
+    let capital_bound = b'A' - 10 + bradix;
+    let digit_bound = b'0' + bradix;
+
+    let mut has_sign = false;
+    let mut has_minus = false;
+    let mut first_after_sign = None;
+    for (i, &b) in bytes.iter().enumerate() {
+        match b {
+            b'+' if !has_sign => {
+                has_sign = true;
+                continue;
+            }
+            b'-' if !has_sign => {
+                has_minus = true;
+                has_sign = true;
+                continue;
+            }
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
+            _ => {
+                first_after_sign = Some(i);
+                break;
+            }
+        }
+    }
+    let first_after_sign = first_after_sign.ok_or(Error {
+        kind: Kind::SignifNoDigits,
+    })?;
+    if let Some(special) =
+        parse_special(&bytes[first_after_sign..], radix <= 10, has_minus)
+    {
+        return special;
+    }
+
+    let mut v = Vec::with_capacity(bytes.len() - first_after_sign + 2);
+    if has_minus {
+        v.push(b'-');
+    }
+    let mut has_digits = false;
+    let mut has_point = false;
+    let mut exp = false;
+    for &b in &bytes[first_after_sign..] {
+        if b == b'.' {
+            if exp {
+                return Err(Error {
+                    kind: Kind::PointInExp,
+                });
+            }
+            if has_point {
+                return Err(Error {
+                    kind: Kind::TooManyPoints,
+                });
+            }
+            v.push(b);
+            has_point = true;
+            continue;
+        }
+        if (radix <= 10 && (b == b'e' || b == b'E')) || b == b'@' {
+            if exp {
+                return Err(Error {
+                    kind: Kind::TooManyExp,
+                });
+            }
+            if !has_digits {
+                return Err(Error {
+                    kind: Kind::SignifNoDigits,
+                });
+            }
+            v.push(b);
+            exp = true;
+            has_sign = false;
+            has_digits = false;
+            continue;
+        }
+        let valid_digit = match b {
+            b'+' if exp && !has_sign && !has_digits => {
+                has_sign = true;
+                continue;
+            }
+            b'-' if exp && !has_sign && !has_digits => {
+                v.push(b'-');
+                has_sign = true;
+                continue;
+            }
+            b'_' if has_digits => continue,
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
+
+            _ if !exp && b >= b'a' => b < small_bound,
+            _ if !exp && b >= b'A' => b < capital_bound,
+            b'0'...b'9' if !exp => b < digit_bound,
+            b'0'...b'9' if exp => true,
+            _ => false,
+        };
+        if !valid_digit {
+            return Err(Error {
+                kind: Kind::InvalidDigit,
+            });
+        }
+        v.push(b);
+        has_digits = true;
+    }
+    if !has_digits {
+        return Err(Error {
+            kind: if exp {
+                Kind::ExpNoDigits
+            } else {
+                Kind::NoDigits
+            },
+        });
+    }
+    // we've only added checked bytes, so we know there are no nuls
+    let c_string = unsafe { CString::from_vec_unchecked(v) };
+    Ok(ValidParse::CString { c_string, radix })
+}
+
+fn parse_special(
+    bytes: &[u8],
+    small_radix: bool,
+    negative: bool,
+) -> Option<Result<ValidParse, ParseFloatError>> {
+    let invalid_digit = ParseFloatError {
+        kind: ParseErrorKind::InvalidDigit,
+    };
+
+    let small = if small_radix { Some(()) } else { None };
+    let inf10: &[&[u8]] = &[b"inf", b"infinity"];
+    let inf: &[&[u8]] = &[b"@inf@", b"@infinity@"];
+    if let Some(inf_end) = small
+        .and_then(|()| lcase_match_ends(bytes, inf10))
+        .or_else(|| lcase_match_ends(bytes, inf))
+    {
+        return if first_nonwhitespace(&bytes[inf_end..]).is_some() {
+            Some(Err(invalid_digit))
+        } else if negative {
+            Some(Ok(ValidParse::Special(Special::NegInfinity)))
+        } else {
+            Some(Ok(ValidParse::Special(Special::Infinity)))
+        };
+    }
+    let nan10: &[&[u8]] = &[b"nan", b"+nan"];
+    let nan: &[&[u8]] = &[b"@nan@", b"+@nan@"];
+    if let Some(nan_end) = small
+        .and_then(|()| lcase_match_ends(bytes, nan10))
+        .or_else(|| lcase_match_ends(bytes, nan))
+    {
+        let after_nan = &bytes[nan_end..];
+        let extra =
+            first_nonwhitespace(after_nan).map(|offset| &after_nan[offset..]);
+        let after_extra = if let Some(extra) = extra {
+            match nan_extra_ends(extra) {
+                Some(offset) => Some(&extra[offset..]),
+                None => return Some(Err(invalid_digit)),
+            }
+        } else {
+            None
+        };
+        if let Some(after_extra) = after_extra {
+            if first_nonwhitespace(after_extra).is_some() {
+                return Some(Err(invalid_digit));
+            }
+        }
+        return if negative {
+            Some(Ok(ValidParse::NegNan))
+        } else {
+            Some(Ok(ValidParse::Special(Special::Nan)))
+        };
+    }
+    None
+}
+
+fn lcase_match_ends(bytes: &[u8], patterns: &[&[u8]]) -> Option<usize> {
+    'next_pattern: for pattern in patterns {
+        if bytes.len() < pattern.len() {
+            continue 'next_pattern;
+        }
+        for (b, p) in bytes
+            .iter()
+            .cloned()
+            .map(lcase_ascii)
+            .zip(pattern.iter().cloned())
+        {
+            if b != p {
+                continue 'next_pattern;
+            }
+        }
+        return Some(pattern.len());
+    }
+    None
+}
+
+fn lcase_ascii(byte: u8) -> u8 {
+    if b'A' <= byte && byte <= b'Z' {
+        byte - b'A' + b'a'
+    } else {
+        byte
+    }
+}
+
+fn first_nonwhitespace(bytes: &[u8]) -> Option<usize> {
+    for (i, &b) in bytes.iter().enumerate() {
+        match b {
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
+            _ => return Some(i),
+        }
+    }
+    None
+}
+
+fn nan_extra_ends(bytes: &[u8]) -> Option<usize> {
+    let mut iter = bytes.iter().enumerate();
+    match iter.next() {
+        Some((_, &b'(')) => {}
+        _ => return None,
+    };
+    for (i, &b) in iter {
+        match b {
+            b'0'...b'9' | b'a'...b'z' | b'A'...b'Z' | b'_' => {}
+            b')' => return Some(i + 1),
+            _ => return None,
+        }
+    }
+    None
+}
+
+/// A validated string that can always be converted to a
+/// [`Float`](../struct.Float.html).
+#[allow(deprecated)]
+#[deprecated(since = "0.9.4",
+             note = "use the `Float::parse` method instead of \
+                     `Float::valid_str_radix`, and if for example you were \
+                     storing the returned object in a struct, convert into a \
+                     `Float` before storing.")]
+#[derive(Clone, Debug)]
+pub struct ValidFloat<'a> {
+    inner: ValidParse,
+    phantom: PhantomData<&'a ()>,
+}
+
+#[allow(deprecated)]
+impl<'a> AssignRound<ValidFloat<'a>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(&mut self, src: ValidFloat<'a>, round: Round) -> Ordering {
+        self.assign_round(src.inner, round)
     }
 }
 
@@ -8165,29 +8234,6 @@ impl Error for ParseFloatError {
     }
 }
 
-fn lcase_in(a: &[u8], bs: &[&[u8]]) -> bool {
-    'next_b: for b in bs {
-        if a.len() != b.len() {
-            continue 'next_b;
-        }
-        for (ac, &bc) in a.iter().map(lcase_ascii).zip(b.iter()) {
-            if ac != bc {
-                continue 'next_b;
-            }
-        }
-        return true;
-    }
-    false
-}
-
-fn lcase_ascii(byte: &u8) -> u8 {
-    if b'A' <= *byte && *byte <= b'Z' {
-        *byte - b'A' + b'a'
-    } else {
-        *byte
-    }
-}
-
 fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     match prec {
         11 => return Some(16),
@@ -8213,41 +8259,6 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     } else {
         None
     }
-}
-
-fn valid_str_special(src: &str, radix: i32) -> Option<ValidFloat> {
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let mut v = ValidFloat {
-        poss: ValidPoss::Special(Special::Nan),
-        radix,
-        exp_plus: None,
-    };
-    let bytes = src.as_bytes();
-    let inf10: &[&[u8]] = &[b"inf", b"+inf", b"infinity", b"+infinity"];
-    let inf: &[&[u8]] = &[b"@inf@", b"+@inf@", b"@infinity@", b"+@infinity@"];
-    if (radix <= 10 && lcase_in(bytes, inf10)) || lcase_in(bytes, inf) {
-        v.poss = ValidPoss::Special(Special::Infinity);
-        return Some(v);
-    }
-    let neg_inf10: &[&[u8]] = &[b"-inf", b"-infinity"];
-    let neg_inf: &[&[u8]] = &[b"-@inf@", b"-@infinity@"];
-    if (radix <= 10 && lcase_in(bytes, neg_inf10)) || lcase_in(bytes, neg_inf) {
-        v.poss = ValidPoss::Special(Special::NegInfinity);
-        return Some(v);
-    }
-    let nan10: &[&[u8]] = &[b"nan", b"+nan"];
-    let nan: &[&[u8]] = &[b"@nan@", b"+@nan@"];
-    if (radix <= 10 && lcase_in(bytes, nan10)) || lcase_in(bytes, nan) {
-        v.poss = ValidPoss::Special(Special::Nan);
-        return Some(v);
-    }
-    let neg_nan10: &[&[u8]] = &[b"-nan"];
-    let neg_nan: &[&[u8]] = &[b"-@nan@"];
-    if (radix <= 10 && lcase_in(bytes, neg_nan10)) || lcase_in(bytes, neg_nan) {
-        v.poss = ValidPoss::NegNan;
-        return Some(v);
-    }
-    None
 }
 
 impl Inner for Float {

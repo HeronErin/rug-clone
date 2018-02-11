@@ -25,7 +25,7 @@ use rand::RandState;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::{CString};
+use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;

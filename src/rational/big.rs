@@ -337,9 +337,9 @@ impl Rational {
     /// plus sign.
     ///
     /// ASCII whitespace is ignored everywhere in the string.
-    /// Underscores anywhere except before the first digit of the
-    /// numerator and between the `'/'` and the the first digit of the
-    /// denominator.
+    /// Underscores are ignored anywhere except before the first digit
+    /// of the numerator and between the `'/'` and the the first digit
+    /// of the denominator.
     ///
     /// # Examples
     ///

@@ -29,7 +29,9 @@ pub(crate) mod small;
 mod traits;
 
 use cast::cast;
-pub use float::big::{ParseFloatError, ValidFloat};
+pub use float::big::ParseFloatError;
+#[allow(deprecated)]
+pub use float::big::ValidFloat;
 pub use float::ord::OrdFloat;
 pub use float::small::SmallFloat;
 use gmp_mpfr_sys::mpfr;
@@ -250,18 +252,27 @@ mod tests {
 
     #[test]
     fn check_from_str() {
-        assert!(Float::from_str_radix("-@nan@", 2, 53).unwrap().is_nan());
-        assert!(Float::from_str("-0", 53).unwrap().is_sign_negative());
-        assert!(Float::from_str("+0", 53).unwrap().is_sign_positive());
-        assert!(Float::from_str("1e1000", 53).unwrap().is_finite());
+        assert!(
+            Float::with_val(53, Float::parse("-0", 10).unwrap())
+                .is_sign_negative()
+        );
+        assert!(
+            Float::with_val(53, Float::parse("+0", 10).unwrap())
+                .is_sign_positive()
+        );
+        assert!(
+            Float::with_val(53, Float::parse("1e1000", 10).unwrap())
+                .is_finite()
+        );
         let huge_hex = "1@99999999999999999999999999999999";
         assert!(
-            Float::from_str_radix(huge_hex, 16, 53)
-                .unwrap()
+            Float::with_val(53, Float::parse(huge_hex, 16).unwrap())
                 .is_infinite()
         );
 
         let bad_strings = [
+            ("inf", 11),
+            ("nan ( )", 10),
             ("inf", 16),
             ("1.1.", 10),
             ("1e", 10),
@@ -278,7 +289,7 @@ mod tests {
             ("9", 9),
         ];
         for &(s, radix) in bad_strings.into_iter() {
-            assert!(Float::valid_str_radix(s, radix).is_err());
+            assert!(Float::parse(s, radix).is_err(), "{} parsed correctly", s);
         }
         let good_strings = [
             ("INF", 10, f64::INFINITY),
@@ -292,7 +303,30 @@ mod tests {
             ("1e1023", 2, 2.0f64.powi(1023)),
         ];
         for &(s, radix, f) in good_strings.into_iter() {
-            assert_eq!(Float::from_str_radix(s, radix, 53).unwrap(), f);
+            match Float::parse(s, radix) {
+                Ok(ok) => assert_eq!(Float::with_val(53, ok), f),
+                Err(_) => panic!("could not parse {}", s),
+            }
+        }
+        let nan_strings = [
+            (" NaN() ", 10, false),
+            (" + NaN (20_Number_Is) ", 10, false),
+            (" - @nan@", 2, true),
+        ];
+        for &(s, radix, negative) in nan_strings.into_iter() {
+            match Float::parse(s, radix) {
+                Ok(ok) => {
+                    let f = Float::with_val(53, ok);
+                    assert!(f.is_nan(), "{} should be NaN");
+                    assert_eq!(
+                        f.is_sign_negative(),
+                        negative,
+                        "sign mismatch for {}",
+                        s
+                    );
+                }
+                Err(_) => panic!("could not parse {}", s),
+            }
         }
     }
 

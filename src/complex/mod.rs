@@ -109,7 +109,11 @@ mod tests {
             ("(8 9)", Some(9)),
         ];
         for &(s, radix) in bad_strings.into_iter() {
-            assert!(Complex::valid_str_radix(s, radix.unwrap_or(10)).is_err());
+            assert!(
+                Complex::valid_str_radix(s, radix.unwrap_or(10)).is_err(),
+                "{} parsed correctly",
+                s
+            );
         }
         let good_strings = [
             ("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
@@ -117,10 +121,14 @@ mod tests {
             ("-9.9e1", 10, -99.0, 0.0),
         ];
         for &(s, radix, r, i) in good_strings.into_iter() {
-            assert_eq!(
-                Complex::from_str_radix(s, radix, (53, 53)).unwrap(),
-                (r, i)
-            );
+            match Complex::valid_str_radix(s, radix) {
+                Ok(ok) => {
+                    let c = Complex::with_val(53, ok);
+                    assert_eq!(*c.real(), r, "real mismatch for {}", s);
+                    assert_eq!(*c.imag(), i, "imaginary mismatch for {}", s);
+                }
+                Err(_) => panic!("could not parse {}", s),
+            }
         }
     }
 
