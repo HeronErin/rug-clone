@@ -53,7 +53,9 @@ function tc {
 print_eval cargo $(tc "${toolchains[0]}") check --no-default-features \
 	   --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
 	   -p gmp-mpfr-sys -p rug
-rm -r target
+if [ -e target ]; then
+	rm -r target
+fi
 
 # integer,rational = rational
 # integer,rand = rand
@@ -74,22 +76,28 @@ do
 	print_eval cargo $(tc "${toolchains[0]}") check \
 		   --no-default-features --features "$features" \
 		   $gmp -p rug
-	rm -r target
+	if [ -e target ]; then
+		rm -r target
+	fi
 done
 
 # For all toolchains (including first), test with default features and serde
 for toolchain in "${toolchains[@]}"; do
 	for build in "" --release; do
-		print_eval cargo $(tc "$toolchains") test $build \
+		print_eval cargo $(tc "$toolchain") test $build \
 			   --features serde -p gmp-mpfr-sys -p rug
-		rm -r target
+		if [ -e target ]; then
+			rm -r target
+		fi
 	done
 done
 
 # copy C libraries to targets before clearing cache
 for toolchain in "${toolchains[@]}"; do
-	cargo $(tc "$toolchain") check -p gmp-mpfr-sys
-	cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
+	print_eval cargo $(tc "$toolchain") check -p gmp-mpfr-sys
+	print_eval cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
 done
 
-rm -r cache
+if [ -e target ]; then
+	rm -r target
+fi
