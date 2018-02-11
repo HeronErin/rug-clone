@@ -1,8 +1,9 @@
 * Add `Integer::parse` and `Rational::parse`, and deprecate
   `ValidInteger`, `ValidRational`, `valid_str_radix` methods, and
   `assign_str*` methods.
-* Add `Float::parse` and deprecate `ValidFloat`, `from_str*,
-  `valid_str_radix`, and `assign_str*` methods.
+* Add `Float::parse` and `Complex::parse`, and deprecate `ValidFloat`,
+  `ValidComplex`, `from_str*` methods, `valid_str_radix` methods, and
+  `assign_str*` methods.
 
 Version 0.9.3 (2018-01-09)
 ==========================

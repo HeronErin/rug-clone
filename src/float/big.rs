@@ -808,8 +808,8 @@ impl Float {
     /// use std::cmp::Ordering;
     ///
     /// // Consider the number 123,456,789 / 10,000,000,000.
-    /// let res = Float::from_str_round("0.0123456789", 35, Round::Down);
-    /// let (f, f_rounding) = res.unwrap();
+    /// let parse = Float::parse("0.0123456789", 10).unwrap();
+    /// let (f, f_rounding) = Float::with_val_round(35, parse, Round::Down);
     /// assert_eq!(f_rounding, Ordering::Less);
     /// let r = Rational::from_str("123456789/10000000000").unwrap();
     /// // Set fr to the value of f exactly.
@@ -8139,7 +8139,7 @@ fn lcase_ascii(byte: u8) -> u8 {
     }
 }
 
-fn first_nonwhitespace(bytes: &[u8]) -> Option<usize> {
+pub fn first_nonwhitespace(bytes: &[u8]) -> Option<usize> {
     for (i, &b) in bytes.iter().enumerate() {
         match b {
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
@@ -8198,7 +8198,7 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
 /// use rug::float::ParseFloatError;
 /// // This string is not a floating-point number.
 /// let s = "something completely different (_!_!_)";
-/// let error: ParseFloatError = match Float::valid_str_radix(s, 4) {
+/// let error: ParseFloatError = match Float::parse(s, 4) {
 ///     Ok(_) => unreachable!(),
 ///     Err(error) => error,
 /// };
