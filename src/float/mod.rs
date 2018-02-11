@@ -241,14 +241,54 @@ pub enum Special {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use {Assign, Float};
     use float::{Round, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
     use rand::{RandGen, RandState};
     use std::cmp::Ordering;
     use std::f64;
+    use std::fmt::{Debug, Error as FmtError, Formatter};
     use std::mem;
+
+    #[derive(Clone, Copy)]
+    pub(crate) enum Cmp {
+        F64(f64),
+        Nan(bool),
+    }
+
+    impl Cmp {
+        pub fn inf(neg: bool) -> Cmp {
+            Cmp::F64(if neg {
+                f64::NEG_INFINITY
+            } else {
+                f64::INFINITY
+            })
+        }
+    }
+
+    impl Debug for Cmp {
+        fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+            match self {
+                &Cmp::F64(ref val) => val.fmt(f),
+                &Cmp::Nan(negative) => {
+                    let s = if negative { "-NaN" } else { "NaN" };
+                    s.fmt(f)
+                }
+            }
+        }
+    }
+
+    impl PartialEq<Cmp> for Float {
+        fn eq(&self, other: &Cmp) -> bool {
+            match other {
+                &Cmp::F64(ref f) => self.eq(f),
+                &Cmp::Nan(negative) => {
+                    self.is_nan() && self.is_sign_negative() == negative
+                }
+            }
+        }
+    }
 
     #[test]
     fn check_from_str() {
@@ -272,7 +312,7 @@ mod tests {
 
         let bad_strings = [
             ("inf", 11),
-            ("nan ( )", 10),
+            ("@ nan @", 10),
             ("inf", 16),
             ("1.1.", 10),
             ("1e", 10),
@@ -292,39 +332,22 @@ mod tests {
             assert!(Float::parse(s, radix).is_err(), "{} parsed correctly", s);
         }
         let good_strings = [
-            ("INF", 10, f64::INFINITY),
-            ("-@iNf@", 16, f64::NEG_INFINITY),
-            ("+0e99", 2, 0.0),
-            ("-9.9e1", 10, -99.0),
-            ("-.99e+2", 10, -99.0),
-            ("+99.e+0", 10, 99.0),
-            ("-99@-1", 10, -9.9f64),
-            ("-abc.DEF@3", 16, -0xabcdef as f64),
-            ("1e1023", 2, 2.0f64.powi(1023)),
+            ("INF", 10, Cmp::inf(false)),
+            ("- @iNf@", 16, Cmp::inf(true)),
+            ("+0e99", 2, Cmp::F64(0.0)),
+            ("-9.9e1", 10, Cmp::F64(-99.0)),
+            ("-.99e+2", 10, Cmp::F64(-99.0)),
+            ("+99.e+0", 10, Cmp::F64(99.0)),
+            ("-99@-1", 10, Cmp::F64(-9.9f64)),
+            ("-abc.DEF@3", 16, Cmp::F64(-0xabcdef as f64)),
+            ("1e1023", 2, Cmp::F64(2.0f64.powi(1023))),
+            (" NaN() ", 10, Cmp::Nan(false)),
+            (" + NaN (20 Number_Is) ", 10, Cmp::Nan(false)),
+            (" - @nan@", 2, Cmp::Nan(true)),
         ];
         for &(s, radix, f) in good_strings.into_iter() {
             match Float::parse(s, radix) {
                 Ok(ok) => assert_eq!(Float::with_val(53, ok), f),
-                Err(_) => panic!("could not parse {}", s),
-            }
-        }
-        let nan_strings = [
-            (" NaN() ", 10, false),
-            (" + NaN (20_Number_Is) ", 10, false),
-            (" - @nan@", 2, true),
-        ];
-        for &(s, radix, negative) in nan_strings.into_iter() {
-            match Float::parse(s, radix) {
-                Ok(ok) => {
-                    let f = Float::with_val(53, ok);
-                    assert!(f.is_nan(), "{} should be NaN");
-                    assert_eq!(
-                        f.is_sign_negative(),
-                        negative,
-                        "sign mismatch for {}",
-                        s
-                    );
-                }
                 Err(_) => panic!("could not parse {}", s),
             }
         }

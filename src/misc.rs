@@ -14,12 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-#[cfg(feature = "integer")]
+#![allow(dead_code)]
+
 use std::mem;
 use std::ptr;
 
 #[allow(unknown_lints, transmute_int_to_float)]
-#[cfg(feature = "integer")]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.
@@ -68,4 +68,103 @@ pub fn result_swap<T>(r: &mut Result<T, T>) {
             ptr::write(r, Ok(val));
         }
     }
+}
+
+fn lcase(byte: u8) -> u8 {
+    match byte {
+        b'A'...b'Z' => byte - b'A' + b'a',
+        _ => byte,
+    }
+}
+
+pub fn trim_start(bytes: &[u8]) -> &[u8] {
+    for (start, &b) in bytes.iter().enumerate() {
+        match b {
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => {}
+            _ => return &bytes[start..],
+        }
+    }
+    &[]
+}
+
+pub fn trim_end(bytes: &[u8]) -> &[u8] {
+    for (end, &b) in bytes.iter().enumerate().rev() {
+        match b {
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => {}
+            _ => return &bytes[..end + 1],
+        }
+    }
+    &[]
+}
+
+// If bytes starts with a match to one of patterns, return bytes with
+// the match skipped. Only bytes is converted to lcase.
+pub fn skip_lcase_match<'a>(
+    bytes: &'a [u8],
+    patterns: &[&[u8]],
+) -> Option<&'a [u8]> {
+    'next_pattern: for pattern in patterns {
+        if bytes.len() < pattern.len() {
+            continue 'next_pattern;
+        }
+        for (&b, &p) in bytes.iter().zip(pattern.iter()) {
+            if lcase(b) != p {
+                continue 'next_pattern;
+            }
+        }
+        return Some(&bytes[pattern.len()..]);
+    }
+    None
+}
+
+// If bytes starts with '(' and has a matching ')', returns the
+// contents and the remainder.
+pub fn matched_brackets(bytes: &[u8]) -> Option<(&[u8], &[u8])> {
+    let mut iter = bytes.iter().enumerate();
+    match iter.next() {
+        Some((_, &b'(')) => {}
+        _ => return None,
+    }
+    let mut level = 1;
+    for (i, &b) in iter {
+        match b {
+            b'(' => level += 1,
+            b')' => {
+                level -= 1;
+                if level == 0 {
+                    return Some((&bytes[1..i], &bytes[i + 1..]));
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+pub fn find_outside_brackets(bytes: &[u8], pattern: u8) -> Option<usize> {
+    let mut level = 0;
+    for (i, &b) in bytes.iter().enumerate() {
+        match b {
+            b'(' => level += 1,
+            b')' if level > 0 => level -= 1,
+            _ if level == 0 && b == pattern => return Some(i),
+            _ => {}
+        }
+    }
+    None
+}
+
+pub fn find_space_outside_brackets(bytes: &[u8]) -> Option<usize> {
+    let mut level = 0;
+    for (i, &b) in bytes.iter().enumerate() {
+        match b {
+            b'(' => level += 1,
+            b')' if level > 0 => level -= 1,
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d if level == 0 => {
+                return Some(i);
+            }
+            _ => {}
+        }
+    }
+    None
 }

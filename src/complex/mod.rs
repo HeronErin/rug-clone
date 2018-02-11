@@ -79,6 +79,7 @@ impl Prec for (u32, u32) {
 mod tests {
     use {Assign, Complex};
     use float::Special;
+    use float::tests::Cmp;
     use gmp_mpfr_sys::gmp;
     use std::f64;
     use std::mem;
@@ -117,10 +118,16 @@ mod tests {
             );
         }
         let good_strings = [
-            ("(inf -@inf@)", 10, f64::INFINITY, f64::NEG_INFINITY),
-            ("(+0e99 1.)", 2, 0.0, 1.0),
-            ("(+ 0 e 99, .1)", 2, 0.0, 0.5),
-            ("-9.9e1", 10, -99.0, 0.0),
+            ("(inf -@inf@)", 10, Cmp::inf(false), Cmp::inf(true)),
+            ("(+0e99 1.)", 2, Cmp::F64(0.0), Cmp::F64(1.0)),
+            ("(+ 0 e 99, .1)", 2, Cmp::F64(0.0), Cmp::F64(0.5)),
+            ("-9.9e1", 10, Cmp::F64(-99.0), Cmp::F64(0.0)),
+            (
+                "( -@nan@( _ ) nan( 0 n ) )",
+                10,
+                Cmp::Nan(true),
+                Cmp::Nan(false),
+            ),
         ];
         for &(s, radix, r, i) in good_strings.into_iter() {
             match Complex::parse(s, radix) {

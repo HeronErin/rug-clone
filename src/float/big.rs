@@ -25,7 +25,6 @@ use float::{self, OrdFloat, Round, SmallFloat, Special};
 use float::arith::{AddMulRef, MulAddMulRef, MulSubMulRef, SubMulFromRef};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-#[cfg(feature = "rand")]
 use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
@@ -658,11 +657,12 @@ impl Float {
     /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`. All of
     /// these special representations are case insensitive.
     ///
-    /// ASCII whitespace is ignored everywhere in a digit string, and
-    /// at the beginning or at the end of the special cases for
-    /// infinity or NaN. Underscores are ignored anywhere in digit
-    /// strings except before the first digit and between the exponent
-    /// separator and the first digit of the exponent.
+    /// ASCII whitespace is ignored everywhere in the string except in
+    /// the substrings specified above for special values; for example
+    /// " @inf@ " is accepted but "@ inf @" is not. Underscores are
+    /// ignored anywhere in digit strings except before the first
+    /// digit and between the exponent separator and the first digit
+    /// of the exponent.
     ///
     /// # Examples
     ///
@@ -7935,87 +7935,74 @@ impl AssignRound<ValidParse> for Float {
     }
 }
 
-fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
-    use self::ParseErrorKind as Kind;
-    use self::ParseFloatError as Error;
+macro_rules! parse_error {
+    ($kind:expr) => {
+        Err(ParseFloatError {
+            kind: $kind
+        })
+    }
+}
 
+fn parse(mut bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast(radix);
     let small_bound = b'a' - 10 + bradix;
     let capital_bound = b'A' - 10 + bradix;
     let digit_bound = b'0' + bradix;
 
+    bytes = misc::trim_start(bytes);
+    bytes = misc::trim_end(bytes);
+    if bytes.is_empty() {
+        parse_error!(ParseErrorKind::NoDigits)?;
+    }
+
     let mut has_sign = false;
     let mut has_minus = false;
-    let mut first_after_sign = None;
-    for (i, &b) in bytes.iter().enumerate() {
-        match b {
-            b'+' if !has_sign => {
-                has_sign = true;
-                continue;
-            }
-            b'-' if !has_sign => {
-                has_minus = true;
-                has_sign = true;
-                continue;
-            }
-            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
-            _ => {
-                first_after_sign = Some(i);
-                break;
-            }
+    if bytes[0] == b'+' || bytes[0] == b'-' {
+        has_sign = true;
+        has_minus = bytes[0] == b'-';
+        bytes = misc::trim_start(&bytes[1..]);
+        if bytes.is_empty() {
+            parse_error!(ParseErrorKind::NoDigits)?;
         }
     }
-    let first_after_sign = first_after_sign.ok_or(Error {
-        kind: Kind::SignifNoDigits,
-    })?;
-    if let Some(special) =
-        parse_special(&bytes[first_after_sign..], radix <= 10, has_minus)
-    {
+
+    if let Some(special) = parse_special(bytes, radix, has_minus) {
         return special;
     }
 
-    let mut v = Vec::with_capacity(bytes.len() - first_after_sign + 2);
+    let mut v = Vec::with_capacity(bytes.len() + 2);
     if has_minus {
         v.push(b'-');
     }
     let mut has_digits = false;
     let mut has_point = false;
     let mut exp = false;
-    for &b in &bytes[first_after_sign..] {
-        if b == b'.' {
-            if exp {
-                return Err(Error {
-                    kind: Kind::PointInExp,
-                });
-            }
-            if has_point {
-                return Err(Error {
-                    kind: Kind::TooManyPoints,
-                });
-            }
-            v.push(b);
-            has_point = true;
-            continue;
-        }
-        if (radix <= 10 && (b == b'e' || b == b'E')) || b == b'@' {
-            if exp {
-                return Err(Error {
-                    kind: Kind::TooManyExp,
-                });
-            }
-            if !has_digits {
-                return Err(Error {
-                    kind: Kind::SignifNoDigits,
-                });
-            }
-            v.push(b);
-            exp = true;
-            has_sign = false;
-            has_digits = false;
-            continue;
-        }
+    for &b in bytes {
+        let b = if radix <= 10 && (b == b'e' || b == b'E') {
+            b'@'
+        } else {
+            b
+        };
         let valid_digit = match b {
+            b'.' if exp => parse_error!(ParseErrorKind::PointInExp)?,
+            b'.' if has_point => parse_error!(ParseErrorKind::TooManyPoints)?,
+            b'.' => {
+                v.push(b'.');
+                has_point = true;
+                continue;
+            }
+            b'@' if exp => parse_error!(ParseErrorKind::TooManyExp)?,
+            b'@' if !has_digits => {
+                parse_error!(ParseErrorKind::SignifNoDigits)?
+            }
+            b'@' => {
+                v.push(b'@');
+                exp = true;
+                has_sign = false;
+                has_digits = false;
+                continue;
+            }
             b'+' if exp && !has_sign && !has_digits => {
                 has_sign = true;
                 continue;
@@ -8028,28 +8015,23 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
             b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
 
-            _ if !exp && b >= b'a' => b < small_bound,
-            _ if !exp && b >= b'A' => b < capital_bound,
-            b'0'...b'9' if !exp => b < digit_bound,
-            b'0'...b'9' if exp => true,
+            b'0'...b'9' => exp || b < digit_bound,
+            b'a'...b'z' => !exp && b < small_bound,
+            b'A'...b'Z' => !exp && b < capital_bound,
             _ => false,
         };
         if !valid_digit {
-            return Err(Error {
-                kind: Kind::InvalidDigit,
-            });
+            parse_error!(ParseErrorKind::InvalidDigit)?;
         }
         v.push(b);
         has_digits = true;
     }
     if !has_digits {
-        return Err(Error {
-            kind: if exp {
-                Kind::ExpNoDigits
-            } else {
-                Kind::NoDigits
-            },
-        });
+        if exp {
+            parse_error!(ParseErrorKind::ExpNoDigits)?;
+        } else {
+            parse_error!(ParseErrorKind::NoDigits)?;
+        }
     }
     // we've only added checked bytes, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
@@ -8058,49 +8040,44 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
 
 fn parse_special(
     bytes: &[u8],
-    small_radix: bool,
+    radix: i32,
     negative: bool,
 ) -> Option<Result<ValidParse, ParseFloatError>> {
-    let invalid_digit = ParseFloatError {
-        kind: ParseErrorKind::InvalidDigit,
-    };
+    let small = if radix <= 10 { Some(()) } else { None };
 
-    let small = if small_radix { Some(()) } else { None };
     let inf10: &[&[u8]] = &[b"inf", b"infinity"];
     let inf: &[&[u8]] = &[b"@inf@", b"@infinity@"];
-    if let Some(inf_end) = small
-        .and_then(|()| lcase_match_ends(bytes, inf10))
-        .or_else(|| lcase_match_ends(bytes, inf))
+    if let Some(after_inf) = small
+        .and_then(|()| misc::skip_lcase_match(bytes, inf10))
+        .or_else(|| misc::skip_lcase_match(bytes, inf))
+        .map(misc::trim_start)
     {
-        return if first_nonwhitespace(&bytes[inf_end..]).is_some() {
-            Some(Err(invalid_digit))
-        } else if negative {
+        if !after_inf.is_empty() {
+            return Some(parse_error!(ParseErrorKind::InvalidDigit));
+        }
+        return if negative {
             Some(Ok(ValidParse::Special(Special::NegInfinity)))
         } else {
             Some(Ok(ValidParse::Special(Special::Infinity)))
         };
     }
+
     let nan10: &[&[u8]] = &[b"nan", b"+nan"];
     let nan: &[&[u8]] = &[b"@nan@", b"+@nan@"];
-    if let Some(nan_end) = small
-        .and_then(|()| lcase_match_ends(bytes, nan10))
-        .or_else(|| lcase_match_ends(bytes, nan))
+    if let Some(after_nan) = small
+        .and_then(|()| misc::skip_lcase_match(bytes, nan10))
+        .or_else(|| misc::skip_lcase_match(bytes, nan))
+        .map(misc::trim_start)
     {
-        let after_nan = &bytes[nan_end..];
-        let extra =
-            first_nonwhitespace(after_nan).map(|offset| &after_nan[offset..]);
-        let after_extra = if let Some(extra) = extra {
-            match nan_extra_ends(extra) {
-                Some(offset) => Some(&extra[offset..]),
-                None => return Some(Err(invalid_digit)),
-            }
+        let trailing = if let Some(after_extra) =
+            skip_nan_extra(after_nan).map(misc::trim_start)
+        {
+            after_extra
         } else {
-            None
+            after_nan
         };
-        if let Some(after_extra) = after_extra {
-            if first_nonwhitespace(after_extra).is_some() {
-                return Some(Err(invalid_digit));
-            }
+        if !trailing.is_empty() {
+            return Some(parse_error!(ParseErrorKind::InvalidDigit));
         }
         return if negative {
             Some(Ok(ValidParse::NegNan))
@@ -8111,54 +8088,19 @@ fn parse_special(
     None
 }
 
-fn lcase_match_ends(bytes: &[u8], patterns: &[&[u8]]) -> Option<usize> {
-    'next_pattern: for pattern in patterns {
-        if bytes.len() < pattern.len() {
-            continue 'next_pattern;
-        }
-        for (b, p) in bytes
-            .iter()
-            .cloned()
-            .map(lcase_ascii)
-            .zip(pattern.iter().cloned())
-        {
-            if b != p {
-                continue 'next_pattern;
-            }
-        }
-        return Some(pattern.len());
-    }
-    None
-}
-
-fn lcase_ascii(byte: u8) -> u8 {
-    if b'A' <= byte && byte <= b'Z' {
-        byte - b'A' + b'a'
-    } else {
-        byte
-    }
-}
-
-pub fn first_nonwhitespace(bytes: &[u8]) -> Option<usize> {
-    for (i, &b) in bytes.iter().enumerate() {
-        match b {
-            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
-            _ => return Some(i),
-        }
-    }
-    None
-}
-
-fn nan_extra_ends(bytes: &[u8]) -> Option<usize> {
+// If bytes starts with nan extras e.g. b"(stuff)", return bytes with
+// the match skipped.
+fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
     let mut iter = bytes.iter().enumerate();
     match iter.next() {
         Some((_, &b'(')) => {}
         _ => return None,
-    };
+    }
     for (i, &b) in iter {
         match b {
+            b')' => return Some(&bytes[i + 1..]),
             b'0'...b'9' | b'a'...b'z' | b'A'...b'Z' | b'_' => {}
-            b')' => return Some(i + 1),
+            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => {}
             _ => return None,
         }
     }

@@ -24,7 +24,6 @@ use float::big::{self as big_float, ValidParse as FloatValidParse};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
-#[cfg(feature = "rand")]
 use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
@@ -3567,105 +3566,70 @@ impl AssignRound<ValidParse> for Complex {
 
 macro_rules! parse_error {
     ($kind:expr) => {
-        return Err(ParseComplexError {
+        Err(ParseComplexError {
             kind: $kind
-        });
+        })
     }
 }
 
-fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseComplexError> {
-    use self::ParseErrorKind as Kind;
-
-    let bytes = match big_float::first_nonwhitespace(bytes) {
-        Some(first) => &bytes[first..],
-        None => parse_error!(Kind::NoDigits),
-    };
-    if bytes[0] != b'(' {
-        match Float::parse(&bytes, radix) {
-            Ok(re) => return Ok(ValidParse::Real(re)),
-            Err(e) => parse_error!(Kind::InvalidFloat(e)),
-        }
+fn parse(
+    mut bytes: &[u8],
+    radix: i32,
+) -> Result<ValidParse, ParseComplexError> {
+    bytes = misc::trim_start(bytes);
+    bytes = misc::trim_end(bytes);
+    if bytes.is_empty() {
+        parse_error!(ParseErrorKind::NoDigits)?;
     }
-
-    // skip whitespace after '('
-    let bytes = &bytes[1..];
-    let bytes = match big_float::first_nonwhitespace(bytes) {
-        Some(first) => &bytes[first..],
-        None => parse_error!(Kind::MissingClose),
-    };
-    let bytes = match bytes.iter().position(|&b| b == b')') {
-        Some(close) => {
-            if big_float::first_nonwhitespace(&bytes[close + 1..]).is_some() {
-                parse_error!(Kind::CloseNotLast);
-            }
-            &bytes[..close]
+    if let Some((inside, remainder)) = misc::matched_brackets(bytes) {
+        if !misc::trim_start(remainder).is_empty() {
+            parse_error!(ParseErrorKind::CloseNotLast)?;
         }
-        None => parse_error!(Kind::MissingClose),
+        bytes = misc::trim_start(inside);
+        bytes = misc::trim_end(bytes);
+    } else {
+        return match Float::parse(&bytes, radix) {
+            Ok(re) => Ok(ValidParse::Real(re)),
+            Err(e) => parse_error!(ParseErrorKind::InvalidFloat(e)),
+        };
     };
     let (real, imag) =
-        if let Some(comma) = bytes.iter().position(|&b| b == b',') {
-            let real = &bytes[..comma];
+        if let Some(comma) = misc::find_outside_brackets(bytes, b',') {
+            let real = misc::trim_end(&bytes[..comma]);
             if real.is_empty() {
-                parse_error!(Kind::NoRealDigits);
+                parse_error!(ParseErrorKind::NoRealDigits)?;
             }
-            // skip whitespace after ','
-            let bytes = &bytes[comma + 1..];
-            let imag = match big_float::first_nonwhitespace(bytes) {
-                Some(first) => &bytes[first..],
-                None => parse_error!(Kind::NoImagDigits),
-            };
-            if imag.iter().position(|&b| b == b',').is_some() {
-                parse_error!(Kind::MultipleSeparators);
+            let imag = misc::trim_start(&bytes[comma + 1..]);
+            if imag.is_empty() {
+                parse_error!(ParseErrorKind::NoImagDigits)?;
+            }
+            if misc::find_outside_brackets(imag, b',').is_some() {
+                parse_error!(ParseErrorKind::MultipleSeparators)?;
             }
             (real, imag)
-        } else if let Some(space) = first_whitespace(bytes) {
+        } else if let Some(space) = misc::find_space_outside_brackets(bytes) {
             let real = &bytes[..space];
-            if real.is_empty() {
-                parse_error!(Kind::NoRealDigits);
-            }
-            let bytes = &bytes[space + 1..];
-            let imag_plus = match big_float::first_nonwhitespace(&bytes) {
-                Some(first) => &bytes[first..],
-                None => parse_error!(Kind::NoImagDigits),
-            };
-            let imag = match first_whitespace(imag_plus) {
-                Some(space) => {
-                    // make sure space extends till ')'
-                    if big_float::first_nonwhitespace(&imag_plus[space + 1..])
-                        .is_some()
-                    {
-                        parse_error!(Kind::MultipleSeparators);
-                    }
-                    &imag_plus[..space]
-                }
-                None => imag_plus,
-            };
+            assert!(!real.is_empty());
+            let imag = misc::trim_start(&bytes[space + 1..]);
             if imag.is_empty() {
-                parse_error!(Kind::NoImagDigits);
+                parse_error!(ParseErrorKind::NoImagDigits)?;
+            }
+            if misc::find_space_outside_brackets(imag).is_some() {
+                parse_error!(ParseErrorKind::MultipleSeparators)?;
             }
             (real, imag)
         } else {
-            parse_error!(Kind::MissingSeparator);
+            parse_error!(ParseErrorKind::MissingSeparator)?
         };
     let re = match Float::parse(real, radix) {
         Ok(re) => re,
-        Err(e) => parse_error!(Kind::InvalidRealFloat(e)),
+        Err(e) => parse_error!(ParseErrorKind::InvalidRealFloat(e))?,
     };
     let im = match Float::parse(imag, radix) {
         Ok(im) => im,
-        Err(e) => parse_error!(Kind::InvalidImagFloat(e)),
+        Err(e) => parse_error!(ParseErrorKind::InvalidImagFloat(e))?,
     };
     Ok(ValidParse::Complex(re, im))
-}
-
-fn first_whitespace(bytes: &[u8]) -> Option<usize> {
-    for (i, &b) in bytes.iter().enumerate() {
-        match b {
-            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => return Some(i),
-            _ => {}
-        }
-    }
-    None
 }
 
 /// A validated string that can always be converted to a
@@ -3726,7 +3690,6 @@ enum ParseErrorKind {
     InvalidImagFloat(ParseFloatError),
     MissingSeparator,
     MultipleSeparators,
-    MissingClose,
     CloseNotLast,
 }
 
@@ -3746,7 +3709,6 @@ impl Error for ParseComplexError {
             MultipleSeparators => {
                 "string has more than one separator inside brackets"
             }
-            MissingClose => "string has no closing bracket",
             CloseNotLast => "string has more characters after closing bracket",
         }
     }
