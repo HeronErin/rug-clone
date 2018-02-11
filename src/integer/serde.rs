@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Integer;
+use {Assign, Integer};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -41,7 +41,8 @@ impl<'de> Deserialize<'de> for Integer {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        Integer::from_str_radix(&value, radix).map_err(DeError::custom)
+        let parse = Integer::parse(&value, radix).map_err(DeError::custom)?;
+        Ok(Integer::from(parse))
     }
 
     fn deserialize_in_place<D>(
@@ -52,9 +53,8 @@ impl<'de> Deserialize<'de> for Integer {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        place
-            .assign_str_radix(&value, radix)
-            .map_err(DeError::custom)
+        let parse = Integer::parse(&value, radix).map_err(DeError::custom)?;
+        Ok(place.assign(parse))
     }
 }
 

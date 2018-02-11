@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Rational;
+use {Assign, Rational};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -47,7 +47,8 @@ impl<'de> Deserialize<'de> for Rational {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        Rational::from_str_radix(&value, radix).map_err(DeError::custom)
+        let parse = Rational::parse(&value, radix).map_err(DeError::custom)?;
+        Ok(Rational::from(parse))
     }
 
     fn deserialize_in_place<D>(
@@ -58,9 +59,8 @@ impl<'de> Deserialize<'de> for Rational {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        place
-            .assign_str_radix(&value, radix)
-            .map_err(DeError::custom)
+        let parse = Rational::parse(&value, radix).map_err(DeError::custom)?;
+        Ok(place.assign(parse))
     }
 }
 

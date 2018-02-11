@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Float;
+use {Assign, Float};
 use cast::cast;
 use float::{self, OrdFloat};
 use gmp_mpfr_sys::mpfr;
@@ -46,7 +46,8 @@ impl<'de> Deserialize<'de> for Float {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        Float::from_str_radix(&value, radix, prec).map_err(DeError::custom)
+        let parse = Float::parse(&value, radix).map_err(DeError::custom)?;
+        Ok(Float::with_val(prec, parse))
     }
 
     fn deserialize_in_place<D>(
@@ -57,12 +58,11 @@ impl<'de> Deserialize<'de> for Float {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
+        let parse = Float::parse(&value, radix).map_err(DeError::custom)?;
         unsafe {
             mpfr::set_prec(place.inner_mut(), cast(prec));
         }
-        place
-            .assign_str_radix(&value, radix)
-            .map_err(DeError::custom)
+        Ok(place.assign(parse))
     }
 }
 

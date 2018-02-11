@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Complex;
+use {Assign, Complex};
 use cast::cast;
 use complex::OrdComplex;
 use float;
@@ -49,7 +49,8 @@ impl<'de> Deserialize<'de> for Complex {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        Complex::from_str_radix(&value, radix, prec).map_err(DeError::custom)
+        let parse = Complex::parse(&value, radix).map_err(DeError::custom)?;
+        Ok(Complex::with_val(prec, parse))
     }
 
     fn deserialize_in_place<D>(
@@ -60,14 +61,13 @@ impl<'de> Deserialize<'de> for Complex {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
+        let parse = Complex::parse(&value, radix).map_err(DeError::custom)?;
         unsafe {
             let parts = place.as_mut_real_imag();
             mpfr::set_prec(parts.0.inner_mut(), cast(prec.0));
             mpfr::set_prec(parts.1.inner_mut(), cast(prec.1));
         }
-        place
-            .assign_str_radix(&value, radix)
-            .map_err(DeError::custom)
+        Ok(place.assign(parse))
     }
 }
 
