@@ -14,6 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+#![allow(dead_code)]
+
 /// Casts into the destination if the value fits, otherwise panics.
 ///
 /// Floats are rounded towards zero when cast into integers.
@@ -42,7 +44,6 @@ pub trait WrappingCast<Dst> {
 }
 
 #[inline]
-#[allow(unused)]
 pub fn cast<Src, Dst>(src: Src) -> Dst
 where
     Src: Cast<Dst>,
@@ -51,7 +52,6 @@ where
 }
 
 #[inline]
-#[allow(unused)]
 pub fn checked_cast<Src, Dst>(src: Src) -> Option<Dst>
 where
     Src: CheckedCast<Dst>,
@@ -60,7 +60,6 @@ where
 }
 
 #[inline]
-#[allow(unused)]
 pub fn wrapping_cast<Src, Dst>(src: Src) -> Dst
 where
     Src: WrappingCast<Dst>,

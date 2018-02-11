@@ -19,14 +19,13 @@ use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess,
 use serde::ser::{SerializeStruct, Serializer};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[allow(unused)]
+#[allow(dead_code)]
 pub enum PrecReq {
     Zero,
     One,
     Two,
 }
 
-#[allow(unused)]
 pub enum PrecVal {
     Zero,
     One(u32),
