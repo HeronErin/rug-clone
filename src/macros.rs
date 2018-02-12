@@ -1186,27 +1186,53 @@ macro_rules! mul_op_noncommut {
 macro_rules! fold {
     { $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper:path } => {
         impl $Imp for $Big {
-            #[inline]
             fn $method<I>(mut iter: I) -> $Big
             where
                 I: ::std::iter::Iterator<Item = $Big>,
             {
-                match iter.next() {
-                    Some(first) => iter.fold(first, $oper),
-                    None => $ident,
+                let mut a = match iter.next() {
+                    Some(first) => first,
+                    None => return $ident,
+                };
+                let mut b = match iter.next() {
+                    Some(second) => $oper(second, &a),
+                    None => return a,
+                };
+                loop {
+                    match iter.next() {
+                        Some(i) => a.assign($oper(&b, &i)),
+                        None => return b,
+                    }
+                    match iter.next() {
+                        Some(i) => b.assign($oper(&a, &i)),
+                        None => return a,
+                    }
                 }
             }
         }
 
         impl<'a> $Imp<&'a $Big> for $Big {
-            #[inline]
             fn $method<I>(mut iter: I) -> $Big
             where
                 I: ::std::iter::Iterator<Item = &'a $Big>,
             {
-                match iter.next() {
-                    Some(first) => iter.fold(first.clone(), $oper),
-                    None => $ident,
+                let mut a = match iter.next() {
+                    Some(first) => first.clone(),
+                    None => return $ident,
+                };
+                let mut b = match iter.next() {
+                    Some(second) => From::from($oper(second, &a)),
+                    None => return a,
+                };
+                loop {
+                    match iter.next() {
+                        Some(i) => a.assign($oper(&b, i)),
+                        None => return b,
+                    }
+                    match iter.next() {
+                        Some(i) => b.assign($oper(&a, i)),
+                        None => return a,
+                    }
                 }
             }
         }
