@@ -98,6 +98,6 @@ for toolchain in "${toolchains[@]}"; do
 	print_eval cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
 done
 
-if [ -e target ]; then
-	rm -r target
+if [ -e cache ]; then
+	rm -r cache
 fi
