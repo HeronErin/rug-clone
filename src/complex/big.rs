@@ -424,7 +424,7 @@ impl Complex {
 
     /// Parses a `Complex` number with the specified precision,
     /// rounding to the nearest.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `with_val` and `parse` instead; \
                          `Complex::from_str(src, prec)?` can be replaced with \
                          `Complex::with_val(prec, Complex::parse(src)?)`.")]
@@ -439,7 +439,7 @@ impl Complex {
     /// Parses a `Complex` number with the specified precision,
     /// applying the specified rounding.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `with_val_round` and `parse` instead; \
                 `Complex::from_str_round(src, prec, round)?` can be replaced \
                 with \
@@ -456,7 +456,7 @@ impl Complex {
     /// Parses a `Complex` number with the specified radix and
     /// precision, rounding to the nearest.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `with_val` and `parse_radix` instead; \
                 `Complex::from_str_radix(src, radix, prec)?` can be replaced \
                 with \
@@ -473,7 +473,7 @@ impl Complex {
     /// Parses a `Complex` number with the specified radix and
     /// precision, applying the specified rounding.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `with_val_round` and `parse_radix` instead; \
                 `Complex::from_str_radix_round(src, radix, prec, round)?` can \
                 be replaced with \
@@ -582,7 +582,7 @@ impl Complex {
     }
 
     /// Checks if a `Complex` number can be parsed.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse_radix` instead; \
                          `Complex::valid_str_radix(src, radix)` can be \
                          replaced with `Complex::parse_radix(src, radix)`.")]
@@ -681,7 +681,7 @@ impl Complex {
 
     /// Parses a `Complex` number from a string, rounding to the
     /// nearest.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse` instead; `f.assign_str(src)?` can be \
                          replaced with `f.assign(Complex::parse(src)?)`.")]
     #[inline]
@@ -692,7 +692,7 @@ impl Complex {
 
     /// Parses a `Complex` number from a string, applying the specified
     /// rounding.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse` instead; \
                          `f.assign_str_round(src, round)?` can be replaced \
                          with `f.assign_round(Complex::parse(src)?, round)`.")]
@@ -707,7 +707,7 @@ impl Complex {
 
     /// Parses a `Complex` number from a string with the specified
     /// radix, rounding to the nearest.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse_radix` instead; \
                          `f.assign_str_radix(src, radix)?` can be replaced \
                          with `f.assign(Complex::parse_radix(src, radix)?)`.")]
@@ -727,7 +727,7 @@ impl Complex {
     /// Parses a `Complex` number from a string with the specified
     /// radix, applying the specified rounding.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `parse_radix` instead; \
                 `f.assign_str_radix_round(src, round)?` can be replaced with \
                 `f.assign_round(Complex::parse_radix(src, radix)?, round)`.")]
@@ -3631,7 +3631,7 @@ fn parse(
 /// A validated string that can always be converted to a
 /// [`Complex`](../struct/Complex.html).
 #[allow(deprecated)]
-#[deprecated(since = "0.9.4",
+#[deprecated(since = "0.10.0",
              note = "use the `Complex::parse_radix` method instead of \
                      `Complex::valid_str_radix`, and if for example you were \
                      storing the returned object in a struct, convert into a \

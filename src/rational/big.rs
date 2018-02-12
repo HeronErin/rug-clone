@@ -407,7 +407,7 @@ impl Rational {
     }
 
     /// Checks if a `Rational` number can be parsed.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse_radix` instead; \
                          `Rational::valid_str_radix(src, radix)` can be \
                          replaced with `Rational::parse_radix(src, radix)`.")]
@@ -585,7 +585,7 @@ impl Rational {
 
     /// Parses a `Rational` number from a string.
     #[inline]
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse` instead; `r.assign_str(src)?` can be \
                          replaced with `r.assign(Rational::parse(src)?)`.")]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
@@ -596,7 +596,7 @@ impl Rational {
     /// Parses a `Rational` number from a string with the specified
     /// radix.
     #[inline]
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse_radix` instead; \
                          `r.assign_str_radix(src, radix)?` can be replaced \
                          with `r.assign(Rational::parse_radix(src, radix)?)`.")]
@@ -2324,7 +2324,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
 /// A validated string that can always be converted to a
 /// [`Rational`](../struct.Rational.html) number.
 #[allow(deprecated)]
-#[deprecated(since = "0.9.4",
+#[deprecated(since = "0.10.0",
              note = "use the `Rational::parse_radix` method instead of \
                      `Rational::valid_str_radix`, and if for example you were \
                      storing the returned object in a struct, convert into a \

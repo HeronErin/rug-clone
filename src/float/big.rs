@@ -570,7 +570,7 @@ impl Float {
 
     /// Parses a `Float` with the specified precision, rounding to the
     /// nearest.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `with_val` and `parse` instead; \
                          `Float::from_str(src, prec)?` can be replaced with \
                          `Float::with_val(prec, Float::parse(src)?)`.")]
@@ -582,7 +582,7 @@ impl Float {
     /// Parses a `Float` with the specified precision, applying the
     /// specified rounding.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `with_val_round` and `parse` instead; \
                 `Float::from_str_round(src, prec, round)?` can be replaced \
                 with \
@@ -599,7 +599,7 @@ impl Float {
     /// Parses a `Float` with the specified radix and precision,
     /// rounding to the nearest.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `with_val` and `parse_radix` instead; \
                 `Float::from_str_radix(src, radix, prec)?` can be replaced \
                 with \
@@ -616,7 +616,7 @@ impl Float {
     /// Parses a `Float` with the specified radix and precision,
     /// applying the specified rounding.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `with_val_round` and `parse_radix` instead; \
                 `Float::from_str_radix_round(src, radix, prec, round)?` can be \
                 replaced with \
@@ -736,7 +736,7 @@ impl Float {
     }
 
     /// Checks if a `Float` can be parsed.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse_radix` instead; \
                          `Float::valid_str_radix(src, radix)` can be \
                          replaced with `Float::parse_radix(src, radix)`.")]
@@ -1261,7 +1261,7 @@ impl Float {
 
     /// Parses a `Float` from a string, rounding to the nearest.
     #[inline]
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse` instead; `f.assign_str(src)?` can be \
                          replaced with `f.assign(Float::parse(src)?)`.")]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
@@ -1271,7 +1271,7 @@ impl Float {
 
     /// Parses a `Float` from a string, applying the specified
     /// rounding.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse` instead; \
                          `f.assign_str_round(src, round)?` can be replaced \
                          with `f.assign_round(Float::parse(src)?, round)`.")]
@@ -1286,7 +1286,7 @@ impl Float {
 
     /// Parses a `Float` from a string with the specified radix,
     /// rounding to the nearest.
-    #[deprecated(since = "0.9.4",
+    #[deprecated(since = "0.10.0",
                  note = "use `parse_radix` instead; \
                          `f.assign_str_radix(src, radix)?` can be replaced \
                          with `f.assign(Float::parse_radix(src, radix)?)`.")]
@@ -1303,7 +1303,7 @@ impl Float {
     /// Parses a `Float` from a string with the specified radix,
     /// applying the specified rounding.
     #[deprecated(
-        since = "0.9.4",
+        since = "0.10.0",
         note = "use `parse_radix` instead; \
                 `f.assign_str_radix_round(src, round)?` can be replaced with \
                 `f.assign_round(Float::parse_radix(src, radix)?, round)`.")]
@@ -8115,7 +8115,7 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 /// A validated string that can always be converted to a
 /// [`Float`](../struct.Float.html).
 #[allow(deprecated)]
-#[deprecated(since = "0.9.4",
+#[deprecated(since = "0.10.0",
              note = "use the `Float::parse_radix` method instead of \
                      `Float::valid_str_radix`, and if for example you were \
                      storing the returned object in a struct, convert into a \

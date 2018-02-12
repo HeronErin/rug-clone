@@ -1,3 +1,6 @@
+Version 0.10.0 (to be determined)
+==========================
+
 * Add `Integer::parse` and `Rational::parse`, and deprecate
   `ValidInteger`, `ValidRational`, `valid_str_radix` methods, and
   `assign_str*` methods.
