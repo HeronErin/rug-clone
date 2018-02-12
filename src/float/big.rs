@@ -420,9 +420,7 @@ impl Float {
     /// Panics if `prec` is out of the allowed range.
     #[inline]
     pub fn new(prec: u32) -> Self {
-        let mut ret = Float::new_nan(prec);
-        ret.assign(Special::Zero);
-        ret
+        Self::with_val(prec, Special::Zero)
     }
 
     /// Create a new floating-point number with the specified

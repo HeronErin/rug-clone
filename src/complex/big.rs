@@ -284,10 +284,7 @@ impl Complex {
     /// Panics if the precision is out of the allowed range.
     #[inline]
     pub fn new<P: Prec>(prec: P) -> Self {
-        let mut ret = Complex::new_nan(prec);
-        ret.mut_real().assign(Special::Zero);
-        ret.mut_imag().assign(Special::Zero);
-        ret
+        Self::with_val(prec, (Special::Zero, Special::Zero))
     }
 
     /// Create a new complex number with the specified precision and
