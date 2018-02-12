@@ -20,7 +20,6 @@ use complex::big::{self, Ordering2, Round2, ordering2, raw_round2};
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
-use misc;
 use ops::AssignRound;
 #[allow(unused_imports)]
 use std::ascii::AsciiExt;
@@ -171,23 +170,6 @@ where
     #[inline]
     fn assign(&mut self, src: T) {
         self.assign_round(src, Default::default());
-    }
-}
-
-impl<T> Assign<T> for Result<Complex, Complex>
-where
-    for<'a> Result<&'a mut Complex, &'a mut Complex>: Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        let ok = {
-            let mut m = self.as_mut();
-            m.assign(src);
-            m.is_ok()
-        };
-        if self.is_ok() != ok {
-            misc::result_swap(self);
-        }
     }
 }
 

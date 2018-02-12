@@ -17,7 +17,6 @@
 #![allow(dead_code)]
 
 use std::mem;
-use std::ptr;
 
 #[allow(unknown_lints, transmute_int_to_float)]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
@@ -36,37 +35,6 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
         trunc_f as f32
     } else {
         f as f32
-    }
-}
-
-// The commented out function results in longer x86_64 asm.
-// See: https://github.com/rust-lang/rust/issues/42870
-//
-// pub fn result_swap<T>(r: &mut Result<T, T>) {
-//     unsafe {
-//         let old = ptr::read(r);
-//         let new = match old {
-//             Ok(t) => Err(t),
-//             Err(t) => Ok(t),
-//         };
-//         ptr::write(r, new);
-//     }
-// }
-pub fn result_swap<T>(r: &mut Result<T, T>) {
-    unsafe {
-        if r.is_ok() {
-            let val = match *r {
-                Ok(ref mut val) => ptr::read(val),
-                Err(_) => unreachable!(),
-            };
-            ptr::write(r, Err(val));
-        } else {
-            let val = match *r {
-                Err(ref mut val) => ptr::read(val),
-                Ok(_) => unreachable!(),
-            };
-            ptr::write(r, Ok(val));
-        }
     }
 }
 

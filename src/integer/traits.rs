@@ -21,7 +21,6 @@ use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use integer::ParseIntegerError;
 use integer::big;
-use misc;
 use std::{i32, u32};
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -68,23 +67,6 @@ impl Hash for Integer {
             let limbs: usize = cast(size.checked_abs().expect("overflow"));
             let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
             slice.hash(state);
-        }
-    }
-}
-
-impl<T> Assign<T> for Result<Integer, Integer>
-where
-    for<'a> Result<&'a mut Integer, &'a mut Integer>: Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        let ok = {
-            let mut m = self.as_mut();
-            m.assign(src);
-            m.is_ok()
-        };
-        if self.is_ok() != ok {
-            misc::result_swap(self);
         }
     }
 }

@@ -25,7 +25,6 @@ use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
 use float::big::{self, raw_round, ordering1};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
-use misc;
 use ops::AssignRound;
 use std::{i32, u32};
 use std::cmp::Ordering;
@@ -134,23 +133,6 @@ where
     #[inline]
     fn assign(&mut self, src: T) {
         self.assign_round(src, Round::Nearest);
-    }
-}
-
-impl<T> Assign<T> for Result<Float, Float>
-where
-    for<'a> Result<&'a mut Float, &'a mut Float>: Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        let ok = {
-            let mut m = self.as_mut();
-            m.assign(src);
-            m.is_ok()
-        };
-        if self.is_ok() != ok {
-            misc::result_swap(self);
-        }
     }
 }
 
