@@ -2318,41 +2318,34 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` if an inverse exists.
     ///
-    /// `Assign<Src> for Result<Integer, Integer>`,
-    /// `Assign<Src> for Result<&mut Integer, &mut Integer>` and
-    /// `From<Src> for Result<Integer, Integer>` are implemented with
-    /// the returned object as `Src`.
+    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+    /// implemented with the returned object as `Src` if it exists.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Integer};
-    /// let n = Integer::from(2);
+    /// use rug::Integer;
+    /// let two = Integer::from(2);
+    /// let four = Integer::from(4);
+    /// let five = Integer::from(5);
+    ///
     /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
     /// // For this conversion, if no inverse exists, the Integer
     /// // created is left unchanged as 0.
-    /// let mut ans = Result::from(n.invert_ref(&Integer::from(4)));
-    /// println!("a");
-    /// match ans {
-    ///     Ok(_) => unreachable!(),
-    ///     Err(ref unchanged) => assert_eq!(*unchanged, 0),
-    /// }
-    /// println!("b");
+    /// assert!(two.invert_ref(&four).is_none());
+    ///
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
-    /// ans.assign(n.invert_ref(&Integer::from(5)));
-    /// println!("c");
-    /// match ans {
-    ///     Ok(ref inverse) => assert_eq!(*inverse, 3),
-    ///     Err(_) => unreachable!(),
-    /// };
-    /// println!("d");
+    /// let r = two.invert_ref(&five).unwrap();
+    /// let inverse = Integer::from(r);
+    /// assert_eq!(inverse, 3);
     /// ```
     #[inline]
-    pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> InvertRef<'a> {
-        InvertRef {
-            ref_self: self,
-            modulo,
+    pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertRef<'a>> {
+        let (gcd, s) = <(Integer, Integer)>::from(self.gcd_coeffs_ref(modulo));
+        if gcd != 1 {
+            return None;
         }
+        Some(InvertRef { s, modulo })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -2460,43 +2453,47 @@ impl Integer {
     /// If `exponent` is negative, then the number must have an
     /// inverse modulo `modulo` for an answer to exist.
     ///
-    /// `Assign<Src> for Result<Integer, Integer>`,
-    /// `Assign<Src> for Result<&mut Integer, &mut Integer>` and
-    /// `From<Src> for Result<Integer, Integer>` are implemented with
-    /// the returned object as `Src`.
+    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+    /// implemented with the returned object as `Src` if it exists.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Integer};
-    /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
+    /// use rug::Integer;
     /// let two = Integer::from(2);
-    /// let e = Integer::from(-5);
-    /// let m = Integer::from(1000);
-    /// let mut ans = Result::from(two.pow_mod_ref(&e, &m));
-    /// match ans {
-    ///     Ok(_) => unreachable!(),
-    ///     Err(ref unchanged) => assert_eq!(*unchanged, 0),
-    /// }
+    /// let thousand = Integer::from(1000);
+    /// let minus_five = Integer::from(-5);
+    /// let seven = Integer::from(7);
+    ///
+    /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
+    /// assert!(two.pow_mod_ref(&minus_five, &thousand).is_none());
+    ///
     /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
     /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
-    /// let seven = Integer::from(7);
-    /// ans.assign(seven.pow_mod_ref(&e, &m));
-    /// match ans {
-    ///     Ok(ref power) => assert_eq!(*power, 943),
-    ///     Err(_) => unreachable!(),
-    /// }
+    /// let r = seven.pow_mod_ref(&minus_five, &thousand).unwrap();
+    /// let power = Integer::from(r);
+    /// assert_eq!(power, 943);
     /// ```
     #[inline]
     pub fn pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
         modulo: &'a Self,
-    ) -> PowModRef<'a> {
-        PowModRef {
-            ref_self: self,
-            exponent,
-            modulo,
+    ) -> Option<PowModRef<'a>> {
+        if exponent.cmp0() != Ordering::Less {
+            Some(PowModRef::PositiveExponent {
+                ref_self: self,
+                exponent,
+                modulo,
+            })
+        } else if let Some(inverse) = self.invert_ref(modulo) {
+            Some(PowModRef::NegativeExponent {
+                inverse,
+                exponent,
+                modulo,
+            })
+        } else {
+            None
         }
     }
 
@@ -3847,62 +3844,47 @@ ref_math_op1! {
 }
 
 #[derive(Debug)]
-pub struct PowModRef<'a> {
-    ref_self: &'a Integer,
-    exponent: &'a Integer,
-    modulo: &'a Integer,
+pub enum PowModRef<'a> {
+    PositiveExponent {
+        ref_self: &'a Integer,
+        exponent: &'a Integer,
+        modulo: &'a Integer,
+    },
+    NegativeExponent {
+        inverse: InvertRef<'a>,
+        exponent: &'a Integer,
+        modulo: &'a Integer,
+    },
 }
 
-impl<'a, 'b> Assign<PowModRef<'a>>
-    for Result<&'b mut Integer, &'b mut Integer>
-{
+impl<'a, 'b> Assign<PowModRef<'a>> for Integer {
     fn assign(&mut self, src: PowModRef<'a>) {
-        if src.exponent.cmp0() == Ordering::Less {
-            self.assign(src.ref_self.invert_ref(src.modulo));
-            if let Ok(ref mut inv) = *self {
-                let abs_exp = src.exponent.as_neg();
-                unsafe {
-                    gmp::mpz_powm(
-                        inv.inner_mut(),
-                        inv.inner(),
-                        abs_exp.inner(),
-                        src.modulo.inner(),
-                    );
-                }
-            }
-        } else {
-            if self.is_err() {
-                misc::result_swap(self);
-            }
-            if let Ok(ref mut dest) = *self {
-                unsafe {
-                    gmp::mpz_powm(
-                        dest.inner_mut(),
-                        src.ref_self.inner(),
-                        src.exponent.inner(),
-                        src.modulo.inner(),
-                    );
-                }
+        match src {
+            PowModRef::PositiveExponent {
+                ref_self,
+                exponent,
+                modulo,
+            } => unsafe {
+                gmp::mpz_powm(
+                    self.inner_mut(),
+                    ref_self.inner(),
+                    exponent.inner(),
+                    modulo.inner(),
+                );
+            },
+            PowModRef::NegativeExponent {
+                inverse,
+                exponent,
+                modulo,
+            } => {
+                self.assign(inverse);
+                self.pow_mod_mut(&*exponent.as_neg(), modulo);
             }
         }
     }
 }
 
-impl<'a> From<PowModRef<'a>> for Result<Integer, Integer> {
-    #[inline]
-    fn from(src: PowModRef<'a>) -> Self {
-        let mut dst = Ok(Integer::new());
-        let is_err = {
-            let mut m = dst.as_mut();
-            m.assign(src);
-            m.is_err()
-        };
-        if is_err {
-            misc::result_swap(&mut dst);
-        }
-        dst
-    }
-}
+from_assign! { PowModRef<'r> => Integer }
 
 ref_math_op0! {
     Integer; gmp::mpz_ui_pow_ui; struct UPowU { base: u32, exponent: u32 }
@@ -3959,47 +3941,25 @@ ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
 
 #[derive(Debug)]
 pub struct InvertRef<'a> {
-    ref_self: &'a Integer,
+    s: Integer,
     modulo: &'a Integer,
 }
 
-impl<'a, 'b> Assign<InvertRef<'a>>
-    for Result<&'b mut Integer, &'b mut Integer>
-{
+impl<'a> Assign<InvertRef<'a>> for Integer {
     fn assign(&mut self, src: InvertRef<'a>) {
-        let exists = {
-            let dst = match *self {
-                Ok(ref mut i) | Err(ref mut i) => i,
-            };
-            unsafe {
-                xgmp::mpz_invert_check(
-                    dst.inner_mut(),
-                    src.ref_self.inner(),
-                    src.modulo.inner(),
-                ) != 0
+        if src.s.cmp0() == Ordering::Less {
+            if src.modulo.cmp0() == Ordering::Less {
+                self.assign(&src.s - src.modulo);
+            } else {
+                self.assign(&src.s + src.modulo);
             }
-        };
-        if exists != self.is_ok() {
-            misc::result_swap(self);
+        } else {
+            self.assign(src.s);
         }
     }
 }
 
-impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
-    #[inline]
-    fn from(src: InvertRef<'a>) -> Self {
-        let mut dst = Ok(Integer::new());
-        let is_err = {
-            let mut m = dst.as_mut();
-            m.assign(src);
-            m.is_err()
-        };
-        if is_err {
-            misc::result_swap(&mut dst);
-        }
-        dst
-    }
-}
+from_assign! { InvertRef<'r> => Integer }
 
 #[derive(Debug)]
 pub struct RemoveFactorRef<'a> {
