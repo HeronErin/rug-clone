@@ -4,6 +4,8 @@
 * Add `Float::parse` and `Complex::parse`, and deprecate `ValidFloat`,
   `ValidComplex`, `from_str*` methods, `valid_str_radix` methods, and
   `assign_str*` methods.
+* `Integer::gcd_coeffs_ref` now supports computing only one
+  coefficient.
 
 Version 0.9.3 (2018-01-09)
 ==========================

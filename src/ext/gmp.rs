@@ -20,6 +20,7 @@ use std::{i16, i32, i64, i8, u16, u32, u64, u8};
 use std::cmp::Ordering;
 use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
+use std::ptr;
 
 #[inline]
 pub unsafe fn mpz_set_0(rop: *mut mpz_t) {
@@ -1415,6 +1416,16 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
     };
     mpz_set_0(rop);
     gmp::mpz_setbit(rop, bit);
+}
+
+#[inline]
+pub unsafe fn mpz_gcdext1(
+    g: *mut mpz_t,
+    s: *mut mpz_t,
+    a: *const mpz_t,
+    b: *const mpz_t,
+) {
+    gmp::mpz_gcdext(g, s, ptr::null_mut(), a, b);
 }
 
 #[inline]

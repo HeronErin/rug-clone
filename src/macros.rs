@@ -554,47 +554,6 @@ macro_rules! math_op2_3 {
     }
 }
 
-// struct Ref
-// (Big, Big, Big) = Ref
-// Ref -> (Big, Big, Big)
-#[cfg(feature = "integer")]
-macro_rules! ref_math_op2_3 {
-    {
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
-    } => {
-        $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
-        pub struct $Ref<'a> {
-            ref_self: &'a $Big,
-            $op: &'a $Big,
-            $($param: $T,)*
-        }
-
-        impl<'a, 'b, 'c, 'd> Assign<$Ref<'a>>
-            for (&'b mut $Big, &'c mut $Big, &'d mut $Big)
-        {
-            #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
-                unsafe {
-                    $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        self.2.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-
-        from_assign! { $Ref<'r> => $Big, $Big, $Big }
-    }
-}
-
 // #big -> Big
 // big #=
 // #&big -> Ref

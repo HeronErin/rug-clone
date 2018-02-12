@@ -3055,6 +3055,13 @@ impl Integer {
         /// and `From<Src> for (Integer, Integer, Integer)` are
         /// implemented with the returned object as `Src`.
         ///
+        /// In the case that only one of the two multiplication
+        /// coefficients of required,
+        /// `Assign<Src> for (Integer, Integer)`,
+        /// `Assign<Src> for (&mut Integer, &mut Integer)`
+        /// and `From<Src> for (Integer, Integer)`
+        /// are also implemented with the returned object as `Src`.
+        ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
         /// the multiplication coefficients are *s* and *t*, then
@@ -3088,7 +3095,29 @@ impl Integer {
         /// assert_eq!(s, -1);
         /// assert_eq!(t, 1);
         /// ```
-        fn gcd_coeffs_ref -> GcdCoeffsRef;
+        ///
+        /// In the case that only one of the two multiplication
+        /// coefficients are required, this can be achieved as
+        /// follows:
+        ///
+        /// ```rust
+        /// use rug::{Assign, Integer};
+        /// let a = Integer::from(4);
+        /// let b = Integer::from(6);
+        ///
+        /// // no t required
+        /// let (mut g1, mut s1) = (Integer::new(), Integer::new());
+        /// (&mut g1, &mut s1).assign(a.gcd_coeffs_ref(&b));
+        /// assert_eq!(g1, 2);
+        /// assert_eq!(s1, -1);
+        ///
+        /// // no s required
+        /// let (mut g2, mut t2) = (Integer::new(), Integer::new());
+        /// (&mut g2, &mut t2).assign(b.gcd_coeffs_ref(&a));
+        /// assert_eq!(g2, 2);
+        /// assert_eq!(t2, 1);
+        /// ```
+        fn gcd_coeffs_ref -> GcdRef;
     }
     math_op2! {
         gmp::mpz_lcm;
@@ -3890,7 +3919,42 @@ ref_math_op1! { Integer; xgmp::mpz_sqrt_check; struct SqrtRef {} }
 ref_math_op1_2! { Integer; xgmp::mpz_sqrtrem_check; struct SqrtRemRef {} }
 ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeRef {} }
 ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdRef { other } }
-ref_math_op2_3! { Integer; gmp::mpz_gcdext; struct GcdCoeffsRef { other } }
+
+impl<'a, 'b, 'c> Assign<GcdRef<'a>> for (&'b mut Integer, &'c mut Integer) {
+    #[inline]
+    fn assign(&mut self, src: GcdRef<'a>) {
+        unsafe {
+            xgmp::mpz_gcdext1(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                src.ref_self.inner(),
+                src.other.inner(),
+            );
+        }
+    }
+}
+
+from_assign! { GcdRef<'r> => Integer, Integer }
+
+impl<'a, 'b, 'c, 'd> Assign<GcdRef<'a>>
+    for (&'b mut Integer, &'c mut Integer, &'d mut Integer)
+{
+    #[inline]
+    fn assign(&mut self, src: GcdRef<'a>) {
+        unsafe {
+            gmp::mpz_gcdext(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                self.2.inner_mut(),
+                src.ref_self.inner(),
+                src.other.inner(),
+            );
+        }
+    }
+}
+
+from_assign! { GcdRef<'r> => Integer, Integer, Integer }
+
 ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
 
 #[derive(Clone, Copy)]
