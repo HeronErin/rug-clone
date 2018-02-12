@@ -573,10 +573,10 @@ impl Float {
     #[deprecated(since = "0.9.4",
                  note = "use `with_val` and `parse` instead; \
                          `Float::from_str(src, prec)?` can be replaced with \
-                         `Float::with_val(prec, Float::parse(src, 10)?)`.")]
+                         `Float::with_val(prec, Float::parse(src)?)`.")]
     #[inline]
     pub fn from_str(src: &str, prec: u32) -> Result<Self, ParseFloatError> {
-        Ok(Float::with_val(prec, Float::parse(src, 10)?))
+        Ok(Float::with_val(prec, Float::parse(src)?))
     }
 
     /// Parses a `Float` with the specified precision, applying the
@@ -586,41 +586,41 @@ impl Float {
         note = "use `with_val_round` and `parse` instead; \
                 `Float::from_str_round(src, prec, round)?` can be replaced \
                 with \
-                `Float::with_val_round(prec, Float::parse(src, 10)?, round)`.")]
+                `Float::with_val_round(prec, Float::parse(src)?, round)`.")]
     #[inline]
     pub fn from_str_round(
         src: &str,
         prec: u32,
         round: Round,
     ) -> Result<(Self, Ordering), ParseFloatError> {
-        Ok(Float::with_val_round(prec, Float::parse(src, 10)?, round))
+        Ok(Float::with_val_round(prec, Float::parse(src)?, round))
     }
 
     /// Parses a `Float` with the specified radix and precision,
     /// rounding to the nearest.
-    #[deprecated(since = "0.9.4",
-                 note = "use `with_val` and `parse` instead; \
-                         `Float::from_str_radix(src, radix, prec)?` can be \
-                         replaced with \
-                         `Float::with_val(prec, Float::parse(src, radix)?)`.")]
+    #[deprecated(
+        since = "0.9.4",
+        note = "use `with_val` and `parse_radix` instead; \
+                `Float::from_str_radix(src, radix, prec)?` can be replaced \
+                with \
+                `Float::with_val(prec, Float::parse_radix(src, radix)?)`.")]
     #[inline]
     pub fn from_str_radix(
         src: &str,
         radix: i32,
         prec: u32,
     ) -> Result<Self, ParseFloatError> {
-        Ok(Float::with_val(prec, Float::parse(src, radix)?))
+        Ok(Float::with_val(prec, Float::parse_radix(src, radix)?))
     }
 
     /// Parses a `Float` with the specified radix and precision,
     /// applying the specified rounding.
     #[deprecated(
         since = "0.9.4",
-        note =
-            "use `with_val_round` and `parse` instead; \
-             `Float::from_str_radix_round(src, radix, prec, round)?` can be \
-             replaced with \
-             `Float::with_val_round(prec, Float::parse(src, radix)?, round)`.")]
+        note = "use `with_val_round` and `parse_radix` instead; \
+                `Float::from_str_radix_round(src, radix, prec, round)?` can be \
+                replaced with \
+       `Float::with_val_round(prec, Float::parse_radix(src, radix)?, round)`.")]
     #[inline]
     pub fn from_str_radix_round(
         src: &str,
@@ -630,9 +630,54 @@ impl Float {
     ) -> Result<(Self, Ordering), ParseFloatError> {
         Ok(Float::with_val_round(
             prec,
-            Float::parse(src, radix)?,
+            Float::parse_radix(src, radix)?,
             round,
         ))
+    }
+
+    /// Parses a decimal string or byte slice into a `Float`.
+    ///
+    /// `AssignRound<Src> for Float` is implemented with the returned
+    /// object as `Src`.
+    ///
+    /// The string can start with an optional minus or plus sign and
+    /// must then have one or more significant digits with an optional
+    /// decimal point. This can optionally be followed by an exponent;
+    /// the exponent can start with a separator 'e', 'E' or '@', and
+    /// is followed by an optional minus or plus sign and by one or
+    /// more decimal digits.
+    ///
+    /// Alternatively, the string can indicate the special values
+    /// infinity or NaN. Infinity can be represented as "inf,
+    /// "infinity", "@inf@" or "@infinity@",and NaN can be represented
+    /// as "nan" or "@nan@". All of these special representations are
+    /// case insensitive. The NaN representation may also include a
+    /// possibly-empty string of ASCII letters, digits and underscores
+    /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`.
+    ///
+    /// ASCII whitespace is ignored everywhere in the string except in
+    /// the substrings specified above for special values; for example
+    /// " @inf@ " is accepted but "@ inf @" is not. Underscores are
+    /// ignored anywhere in digit strings except before the first
+    /// digit and between the exponent separator and the first digit
+    /// of the exponent.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    ///
+    /// let valid = Float::parse("12.25e-4");
+    /// let f = Float::with_val(53, valid.unwrap());
+    /// assert_eq!(f, 12.25e-4);
+    ///
+    /// let invalid = Float::parse(".e-4");
+    /// assert!(invalid.is_err());
+    /// ```
+    pub fn parse<S: AsRef<[u8]>>(
+        src: S,
+    ) -> Result<ValidParse, ParseFloatError> {
+        parse(src.as_ref(), 10)
     }
 
     /// Parses a string or byte slice into a `Float`.
@@ -650,12 +695,12 @@ impl Float {
     /// Alternatively, the string can indicate the special values
     /// infinity or NaN. If the radix ≤ 10, infinity can be
     /// represented as "inf" or "infinity", and NaN can be represented
-    /// as "nan". For any radix, infinity can be represented as
+    /// as "nan". For any radix, infinity can also be represented as
     /// "@inf@" or "@infinity@", and NaN can be represented as
-    /// "@nan@". The NaN representation may also include a
-    /// possibly-empty string of ASCII letters, digits underscores
-    /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`. All of
-    /// these special representations are case insensitive.
+    /// "@nan@". All of these special representations are case
+    /// insensitive. The NaN representation may also include a
+    /// possibly-empty string of ASCII letters, digits and underscores
+    /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`.
     ///
     /// ASCII whitespace is ignored everywhere in the string except in
     /// the substrings specified above for special values; for example
@@ -669,21 +714,21 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     ///
-    /// let valid1 = Float::parse("12.23e-4", 4);
+    /// let valid1 = Float::parse_radix("12.23e-4", 4);
     /// let f1 = Float::with_val(53, valid1.unwrap());
     /// assert_eq!(f1, (2.0 + 4.0 * 1.0 + 0.25 * (2.0 + 0.25 * 3.0)) / 256.0);
-    /// let valid2 = Float::parse("12.yz@2", 36);
+    /// let valid2 = Float::parse_radix("12.yz@2", 36);
     /// let f2 = Float::with_val(53, valid2.unwrap());
     /// assert_eq!(f2, 35 + 36 * (34 + 36 * (2 + 36 * 1)));
     ///
-    /// let invalid = Float::parse("ffe-2", 16);
+    /// let invalid = Float::parse_radix("ffe-2", 16);
     /// assert!(invalid.is_err());
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn parse<S: AsRef<[u8]>>(
+    pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
     ) -> Result<ValidParse, ParseFloatError> {
@@ -692,16 +737,16 @@ impl Float {
 
     /// Checks if a `Float` can be parsed.
     #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
+                 note = "use `parse_radix` instead; \
                          `Float::valid_str_radix(src, radix)` can be \
-                         replaced with `Float::parse(src, radix)`.")]
+                         replaced with `Float::parse_radix(src, radix)`.")]
     #[inline]
     #[allow(deprecated)]
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
     ) -> Result<ValidFloat, ParseFloatError> {
-        Float::parse(src, radix).map(|inner| ValidFloat {
+        Float::parse_radix(src, radix).map(|inner| ValidFloat {
             inner,
             phantom: PhantomData,
         })
@@ -808,7 +853,7 @@ impl Float {
     /// use std::cmp::Ordering;
     ///
     /// // Consider the number 123,456,789 / 10,000,000,000.
-    /// let parse = Float::parse("0.0123456789", 10).unwrap();
+    /// let parse = Float::parse("0.0123456789").unwrap();
     /// let (f, f_rounding) = Float::with_val_round(35, parse, Round::Down);
     /// assert_eq!(f_rounding, Ordering::Less);
     /// let r = Rational::from_str("123456789/10000000000").unwrap();
@@ -1218,9 +1263,9 @@ impl Float {
     #[inline]
     #[deprecated(since = "0.9.4",
                  note = "use `parse` instead; `f.assign_str(src)?` can be \
-                         replaced with `f.assign(Float::parse(src, 10)?)`.")]
+                         replaced with `f.assign(Float::parse(src)?)`.")]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
-        self.assign_round(Float::parse(src, 10)?, Round::Nearest);
+        self.assign_round(Float::parse(src)?, Round::Nearest);
         Ok(())
     }
 
@@ -1229,40 +1274,39 @@ impl Float {
     #[deprecated(since = "0.9.4",
                  note = "use `parse` instead; \
                          `f.assign_str_round(src, round)?` can be replaced \
-                         with \
-                         `f.assign_round(Float::parse(src, 10)?, round)`.")]
+                         with `f.assign_round(Float::parse(src)?, round)`.")]
     #[inline]
     pub fn assign_str_round(
         &mut self,
         src: &str,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::parse(src, 10)?, round))
+        Ok(self.assign_round(Float::parse(src)?, round))
     }
 
     /// Parses a `Float` from a string with the specified radix,
     /// rounding to the nearest.
     #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
+                 note = "use `parse_radix` instead; \
                          `f.assign_str_radix(src, radix)?` can be replaced \
-                         with `f.assign(Float::parse(src, radix)?)`.")]
+                         with `f.assign(Float::parse_radix(src, radix)?)`.")]
     #[inline]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
         radix: i32,
     ) -> Result<(), ParseFloatError> {
-        self.assign_round(Float::parse(src, radix)?, Round::Nearest);
+        self.assign_round(Float::parse_radix(src, radix)?, Round::Nearest);
         Ok(())
     }
 
     /// Parses a `Float` from a string with the specified radix,
     /// applying the specified rounding.
-    #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
-                         `f.assign_str_radix_round(src, round)?` can be \
-                         replaced with \
-                         `f.assign_round(Float::parse(src, radix)?, round)`.")]
+    #[deprecated(
+        since = "0.9.4",
+        note = "use `parse_radix` instead; \
+                `f.assign_str_radix_round(src, round)?` can be replaced with \
+                `f.assign_round(Float::parse_radix(src, radix)?, round)`.")]
     #[inline]
     pub fn assign_str_radix_round(
         &mut self,
@@ -1270,7 +1314,7 @@ impl Float {
         radix: i32,
         round: Round,
     ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::parse(src, radix)?, round))
+        Ok(self.assign_round(Float::parse_radix(src, radix)?, round))
     }
 
     /// Creates a `Float` from an initialized MPFR floating-point
@@ -8114,7 +8158,7 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 /// [`Float`](../struct.Float.html).
 #[allow(deprecated)]
 #[deprecated(since = "0.9.4",
-             note = "use the `Float::parse` method instead of \
+             note = "use the `Float::parse_radix` method instead of \
                      `Float::valid_str_radix`, and if for example you were \
                      storing the returned object in a struct, convert into a \
                      `Float` before storing.")]
@@ -8143,7 +8187,7 @@ impl<'a> AssignRound<ValidFloat<'a>> for Float {
 /// use rug::float::ParseFloatError;
 /// // This string is not a floating-point number.
 /// let s = "something completely different (_!_!_)";
-/// let error: ParseFloatError = match Float::parse(s, 4) {
+/// let error: ParseFloatError = match Float::parse_radix(s, 4) {
 ///     Ok(_) => unreachable!(),
 ///     Err(error) => error,
 /// };

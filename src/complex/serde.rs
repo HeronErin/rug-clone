@@ -49,8 +49,8 @@ impl<'de> Deserialize<'de> for Complex {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        let parse = Complex::parse(&value, radix).map_err(DeError::custom)?;
-        Ok(Complex::with_val(prec, parse))
+        let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
+        Ok(Complex::with_val(prec, p))
     }
 
     fn deserialize_in_place<D>(
@@ -61,13 +61,13 @@ impl<'de> Deserialize<'de> for Complex {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        let parse = Complex::parse(&value, radix).map_err(DeError::custom)?;
+        let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
             let parts = place.as_mut_real_imag();
             mpfr::set_prec(parts.0.inner_mut(), cast(prec.0));
             mpfr::set_prec(parts.1.inner_mut(), cast(prec.1));
         }
-        Ok(place.assign(parse))
+        Ok(place.assign(p))
     }
 }
 

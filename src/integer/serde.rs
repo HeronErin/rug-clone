@@ -41,8 +41,8 @@ impl<'de> Deserialize<'de> for Integer {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        let parse = Integer::parse(&value, radix).map_err(DeError::custom)?;
-        Ok(Integer::from(parse))
+        let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
+        Ok(Integer::from(p))
     }
 
     fn deserialize_in_place<D>(
@@ -53,8 +53,8 @@ impl<'de> Deserialize<'de> for Integer {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        let parse = Integer::parse(&value, radix).map_err(DeError::custom)?;
-        Ok(place.assign(parse))
+        let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
+        Ok(place.assign(p))
     }
 }
 

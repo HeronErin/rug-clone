@@ -183,7 +183,8 @@ mod tests {
         let mut i: Integer = "+134".parse().unwrap();
         assert_eq!(i, 134);
         i.assign(
-            Integer::parse("-ffFFffffFfFfffffffffffffffffffff", 16).unwrap(),
+            Integer::parse_radix("-ffFFffffFfFfffffffffffffffffffff", 16)
+                .unwrap(),
         );
         assert_eq!(i.significant_bits(), 128);
         i -= 1;
@@ -214,7 +215,7 @@ mod tests {
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(
-                Integer::parse(s, radix.unwrap_or(10)).is_err(),
+                Integer::parse_radix(s, radix.unwrap_or(10)).is_err(),
                 "{} parsed correctly",
                 s
             );
@@ -234,7 +235,7 @@ mod tests {
             ("Z0", 36, 35 * 36),
         ];
         for &(s, radix, i) in good_strings.into_iter() {
-            match Integer::parse(s, radix) {
+            match Integer::parse_radix(s, radix) {
                 Ok(ok) => assert_eq!(Integer::from(ok), i),
                 Err(_) => panic!("could not parse {}", s),
             }

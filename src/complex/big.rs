@@ -427,63 +427,57 @@ impl Complex {
     #[deprecated(since = "0.9.4",
                  note = "use `with_val` and `parse` instead; \
                          `Complex::from_str(src, prec)?` can be replaced with \
-                         `Complex::with_val(prec, Complex::parse(src, 10)?)`.")]
+                         `Complex::with_val(prec, Complex::parse(src)?)`.")]
     #[inline]
     pub fn from_str<P: Prec>(
         src: &str,
         prec: P,
     ) -> Result<Self, ParseComplexError> {
-        Ok(Complex::with_val(prec, Complex::parse(src, 10)?))
+        Ok(Complex::with_val(prec, Complex::parse(src)?))
     }
 
     /// Parses a `Complex` number with the specified precision,
     /// applying the specified rounding.
     #[deprecated(
         since = "0.9.4",
-        note =
-            "use `with_val_round` and `parse` instead; \
-             `Complex::from_str_round(src, prec, round)?` can be replaced with \
-             `Complex::with_val_round(prec, Complex::parse(src, 10)?, round)`."
-    )]
+        note = "use `with_val_round` and `parse` instead; \
+                `Complex::from_str_round(src, prec, round)?` can be replaced \
+                with \
+                `Complex::with_val_round(prec, Complex::parse(src)?, round)`.")]
     #[inline]
     pub fn from_str_round<P: Prec>(
         src: &str,
         prec: P,
         round: Round2,
     ) -> Result<(Self, Ordering2), ParseComplexError> {
-        Ok(Complex::with_val_round(
-            prec,
-            Complex::parse(src, 10)?,
-            round,
-        ))
+        Ok(Complex::with_val_round(prec, Complex::parse(src)?, round))
     }
 
     /// Parses a `Complex` number with the specified radix and
     /// precision, rounding to the nearest.
     #[deprecated(
         since = "0.9.4",
-        note = "use `with_val` and `parse` instead; \
+        note = "use `with_val` and `parse_radix` instead; \
                 `Complex::from_str_radix(src, radix, prec)?` can be replaced \
                 with \
-                `Complex::with_val(prec, Complex::parse(src, radix)?)`.")]
+                `Complex::with_val(prec, Complex::parse_radix(src, radix)?)`.")]
     #[inline]
     pub fn from_str_radix<P: Prec>(
         src: &str,
         radix: i32,
         prec: P,
     ) -> Result<Self, ParseComplexError> {
-        Ok(Complex::with_val(prec, Complex::parse(src, radix)?))
+        Ok(Complex::with_val(prec, Complex::parse_radix(src, radix)?))
     }
 
     /// Parses a `Complex` number with the specified radix and
     /// precision, applying the specified rounding.
     #[deprecated(
         since = "0.9.4",
-        note =
-        "use `with_val_round` and `parse` instead; \
-         `Complex::from_str_radix_round(src, radix, prec, round)?` can be \
-         replaced with \
-         `Complex::with_val_round(prec, Complex::parse(src, radix)?, round)`.")]
+        note = "use `with_val_round` and `parse_radix` instead; \
+                `Complex::from_str_radix_round(src, radix, prec, round)?` can \
+                be replaced with \
+   `Complex::with_val_round(prec, Complex::parse_radix(src, radix)?, round)`.")]
     #[inline]
     pub fn from_str_radix_round<P: Prec>(
         src: &str,
@@ -493,12 +487,12 @@ impl Complex {
     ) -> Result<(Self, Ordering2), ParseComplexError> {
         Ok(Complex::with_val_round(
             prec,
-            Complex::parse(src, radix)?,
+            Complex::parse_radix(src, radix)?,
             round,
         ))
     }
 
-    /// Parses a string or byte slice into a `Complex` number.
+    /// Parses a decimal string or byte slice into a `Complex` number.
     ///
     /// `AssignRound<Src> for Complex` is implemented with the
     /// returned object as `Src`.
@@ -509,8 +503,9 @@ impl Complex {
     ///    [`Float::parse`](struct.Float.html#method.parse).
     ///    Whitespace is treated in the same way as well.
     /// 2. Two floating-point numbers inside round brackets separated
-    ///    by one comma. Whitespace is treated the same as 1 above,
-    ///    and is also allowed around the brackets and the comma.
+    ///    by one comma. Whitespace is treated in the same way as 1
+    ///    above, and is also allowed around the brackets and the
+    ///    comma.
     /// 3. Two floating-point numbers inside round brackets separated
     ///    by whitespace. Since the real and imaginary parts are
     ///    separated by whitespace, they themselves cannot contain
@@ -523,21 +518,63 @@ impl Complex {
     /// use rug::Complex;
     /// use std::f64;
     ///
-    /// let valid1 = Complex::parse("(12, 1a)", 16);
+    /// let valid1 = Complex::parse("(12.5, -13.5)");
+    /// let c1 = Complex::with_val(53, valid1.unwrap());
+    /// assert_eq!(c1, (12.5, -13.5));
+    /// let valid2 = Complex::parse("(inf 0.0)");
+    /// let c2 = Complex::with_val(53, valid2.unwrap());
+    /// assert_eq!(c2, (f64::INFINITY, 0.0));
+    ///
+    /// let invalid = Complex::parse("(1 2 3)");
+    /// assert!(invalid.is_err());
+    /// ```
+    pub fn parse<S: AsRef<[u8]>>(
+        src: S,
+    ) -> Result<ValidParse, ParseComplexError> {
+        parse(src.as_ref(), 10)
+    }
+
+    /// Parses a string or byte slice into a `Complex` number.
+    ///
+    /// `AssignRound<Src> for Complex` is implemented with the
+    /// returned object as `Src`.
+    ///
+    /// The string can contain either of the following three:
+    ///
+    /// 1. One floating-point number that can be parsed by
+    ///    [`Float::parse_radix`](struct.Float.html#method.parse_radix).
+    ///    Whitespace is treated in the same way as well.
+    /// 2. Two floating-point numbers inside round brackets separated
+    ///    by one comma. Whitespace is treated in the same way as 1
+    ///    above, and is also allowed around the brackets and the
+    ///    comma.
+    /// 3. Two floating-point numbers inside round brackets separated
+    ///    by whitespace. Since the real and imaginary parts are
+    ///    separated by whitespace, they themselves cannot contain
+    ///    whitespace. Whitespace is still allowed around the brackets
+    ///    and between the two parts.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use std::f64;
+    ///
+    /// let valid1 = Complex::parse_radix("(12, 1a)", 16);
     /// let c1 = Complex::with_val(53, valid1.unwrap());
     /// assert_eq!(c1, (0x12, 0x1a));
-    /// let valid2 = Complex::parse("(@inf@ zz)", 36);
+    /// let valid2 = Complex::parse_radix("(@inf@ zz)", 36);
     /// let c2 = Complex::with_val(53, valid2.unwrap());
     /// assert_eq!(c2, (f64::INFINITY, 35 * 36 + 35));
     ///
-    /// let invalid = Complex::parse("(1 2 3)", 10);
+    /// let invalid = Complex::parse_radix("(1 2 3)", 10);
     /// assert!(invalid.is_err());
     /// ```
     ///
     /// # Panics
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
-    pub fn parse<S: AsRef<[u8]>>(
+    pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
     ) -> Result<ValidParse, ParseComplexError> {
@@ -546,16 +583,16 @@ impl Complex {
 
     /// Checks if a `Complex` number can be parsed.
     #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
+                 note = "use `parse_radix` instead; \
                          `Complex::valid_str_radix(src, radix)` can be \
-                         replaced with `Complex::parse(src, radix)`.")]
+                         replaced with `Complex::parse_radix(src, radix)`.")]
     #[inline]
     #[allow(deprecated)]
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
     ) -> Result<ValidComplex, ParseComplexError> {
-        Complex::parse(src, radix).map(|inner| ValidComplex {
+        Complex::parse_radix(src, radix).map(|inner| ValidComplex {
             inner,
             phantom: PhantomData,
         })
@@ -646,10 +683,10 @@ impl Complex {
     /// nearest.
     #[deprecated(since = "0.9.4",
                  note = "use `parse` instead; `f.assign_str(src)?` can be \
-                         replaced with `f.assign(Complex::parse(src, 10)?)`.")]
+                         replaced with `f.assign(Complex::parse(src)?)`.")]
     #[inline]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseComplexError> {
-        self.assign_round(Complex::parse(src, 10)?, Default::default());
+        self.assign_round(Complex::parse(src)?, Default::default());
         Ok(())
     }
 
@@ -658,30 +695,32 @@ impl Complex {
     #[deprecated(since = "0.9.4",
                  note = "use `parse` instead; \
                          `f.assign_str_round(src, round)?` can be replaced \
-                         with \
-                         `f.assign_round(Complex::parse(src, 10)?, round)`.")]
+                         with `f.assign_round(Complex::parse(src)?, round)`.")]
     #[inline]
     pub fn assign_str_round(
         &mut self,
         src: &str,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::parse(src, 10)?, round))
+        Ok(self.assign_round(Complex::parse(src)?, round))
     }
 
     /// Parses a `Complex` number from a string with the specified
     /// radix, rounding to the nearest.
     #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
+                 note = "use `parse_radix` instead; \
                          `f.assign_str_radix(src, radix)?` can be replaced \
-                         with `f.assign(Complex::parse(src, radix)?)`.")]
+                         with `f.assign(Complex::parse_radix(src, radix)?)`.")]
     #[inline]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
         radix: i32,
     ) -> Result<(), ParseComplexError> {
-        self.assign_round(Complex::parse(src, radix)?, Default::default());
+        self.assign_round(
+            Complex::parse_radix(src, radix)?,
+            Default::default(),
+        );
         Ok(())
     }
 
@@ -689,9 +728,9 @@ impl Complex {
     /// radix, applying the specified rounding.
     #[deprecated(
         since = "0.9.4",
-        note = "use `parse` instead; `f.assign_str_radix_round(src, round)?` \
-                can be replaced with \
-                `f.assign_round(Complex::parse(src, radix)?, round)`.")]
+        note = "use `parse_radix` instead; \
+                `f.assign_str_radix_round(src, round)?` can be replaced with \
+                `f.assign_round(Complex::parse_radix(src, radix)?, round)`.")]
     #[inline]
     pub fn assign_str_radix_round(
         &mut self,
@@ -699,7 +738,7 @@ impl Complex {
         radix: i32,
         round: Round2,
     ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::parse(src, radix)?, round))
+        Ok(self.assign_round(Complex::parse_radix(src, radix)?, round))
     }
 
     /// Creates a `Complex` from an initialized MPC complex number.
@@ -3590,7 +3629,7 @@ fn parse(
         bytes = misc::trim_start(inside);
         bytes = misc::trim_end(bytes);
     } else {
-        return match Float::parse(&bytes, radix) {
+        return match Float::parse_radix(&bytes, radix) {
             Ok(re) => Ok(ValidParse::Real(re)),
             Err(e) => parse_error!(ParseErrorKind::InvalidFloat(e)),
         };
@@ -3623,11 +3662,11 @@ fn parse(
         } else {
             parse_error!(ParseErrorKind::MissingSeparator)?
         };
-    let re = match Float::parse(real, radix) {
+    let re = match Float::parse_radix(real, radix) {
         Ok(re) => re,
         Err(e) => parse_error!(ParseErrorKind::InvalidRealFloat(e))?,
     };
-    let im = match Float::parse(imag, radix) {
+    let im = match Float::parse_radix(imag, radix) {
         Ok(im) => im,
         Err(e) => parse_error!(ParseErrorKind::InvalidImagFloat(e))?,
     };
@@ -3638,7 +3677,7 @@ fn parse(
 /// [`Complex`](../struct/Complex.html).
 #[allow(deprecated)]
 #[deprecated(since = "0.9.4",
-             note = "use the `Complex::parse` method instead of \
+             note = "use the `Complex::parse_radix` method instead of \
                      `Complex::valid_str_radix`, and if for example you were \
                      storing the returned object in a struct, convert into a \
                      `Complex` before storing.")]
@@ -3658,7 +3697,7 @@ pub struct ValidComplex<'a> {
 /// use rug::complex::ParseComplexError;
 /// // This string is not a complex number.
 /// let s = "something completely different (_!_!_)";
-/// let error: ParseComplexError = match Complex::parse(s, 4) {
+/// let error: ParseComplexError = match Complex::parse_radix(s, 4) {
 ///     Ok(_) => unreachable!(),
 ///     Err(error) => error,
 /// };

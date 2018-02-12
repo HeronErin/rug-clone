@@ -345,7 +345,39 @@ impl Integer {
         src: &str,
         radix: i32,
     ) -> Result<Self, ParseIntegerError> {
-        Ok(Integer::from(Integer::parse(src, radix)?))
+        Ok(Integer::from(Integer::parse_radix(src, radix)?))
+    }
+
+    /// Parses a decimal string or byte slice into an `Integer`.
+    ///
+    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
+    /// implemented with the returned object as `Src`.
+    ///
+    /// The string can start with an optional minus or plus sign.
+    /// ASCII whitespace is ignored everywhere in the string.
+    /// Underscores anywhere except before the first digit are ignored
+    /// as well.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// let valid1 = Integer::parse("1223");
+    /// let i1 = Integer::from(valid1.unwrap());
+    /// assert_eq!(i1, 1223);
+    /// let valid2 = Integer::parse("123 456 789");
+    /// let i2 = Integer::from(valid2.unwrap());
+    /// assert_eq!(i2, 123_456_789);
+    ///
+    /// let invalid = Integer::parse("789a");
+    /// assert!(invalid.is_err());
+    /// ```
+    #[inline]
+    pub fn parse<S: AsRef<[u8]>>(
+        src: S,
+    ) -> Result<ValidParse, ParseIntegerError> {
+        parse(src.as_ref(), 10)
     }
 
     /// Parses a string or byte slice into an `Integer`.
@@ -363,14 +395,14 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     ///
-    /// let valid1 = Integer::parse("1223", 4);
+    /// let valid1 = Integer::parse_radix("1223", 4);
     /// let i1 = Integer::from(valid1.unwrap());
     /// assert_eq!(i1, 3 + 4 * (2 + 4 * (2 + 4 * 1)));
-    /// let valid2 = Integer::parse("1234 abcd", 16);
+    /// let valid2 = Integer::parse_radix("1234 abcd", 16);
     /// let i2 = Integer::from(valid2.unwrap());
     /// assert_eq!(i2, 0x1234_abcd);
     ///
-    /// let invalid = Integer::parse("123", 3);
+    /// let invalid = Integer::parse_radix("123", 3);
     /// assert!(invalid.is_err());
     /// ```
     ///
@@ -378,7 +410,7 @@ impl Integer {
     ///
     /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
-    pub fn parse<S: AsRef<[u8]>>(
+    pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
     ) -> Result<ValidParse, ParseIntegerError> {
@@ -387,16 +419,16 @@ impl Integer {
 
     /// Checks if an `Integer` can be parsed.
     #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
+                 note = "use `parse_radix` instead; \
                          `Integer::valid_str_radix(src, radix)` can be \
-                         replaced with `Integer::parse(src, radix)`.")]
+                         replaced with `Integer::parse_radix(src, radix)`.")]
     #[inline]
     #[allow(deprecated)]
     pub fn valid_str_radix(
         src: &str,
         radix: i32,
     ) -> Result<ValidInteger, ParseIntegerError> {
-        Integer::parse(src, radix).map(|inner| ValidInteger {
+        Integer::parse_radix(src, radix).map(|inner| ValidInteger {
             inner,
             phantom: PhantomData,
         })
@@ -893,7 +925,7 @@ impl Integer {
     /// assert_eq!(i.to_string_radix(16), "-a");
     /// i.assign(0x1234cdef);
     /// assert_eq!(i.to_string_radix(4), "102031030313233");
-    /// i.assign(Integer::parse("123456789aAbBcCdDeEfF", 16).unwrap());
+    /// i.assign(Integer::parse_radix("123456789aAbBcCdDeEfF", 16).unwrap());
     /// assert_eq!(i.to_string_radix(16), "123456789aabbccddeeff");
     /// ```
     ///
@@ -957,24 +989,24 @@ impl Integer {
     #[inline]
     #[deprecated(since = "0.9.4",
                  note = "use `parse` instead; `i.assign_str(src)?` can be \
-                         replaced with `i.assign(Integer::parse(src, 10)?)`.")]
+                         replaced with `i.assign(Integer::parse(src)?)`.")]
     pub fn assign_str(&mut self, src: &str) -> Result<(), ParseIntegerError> {
-        self.assign(Integer::parse(src, 10)?);
+        self.assign(Integer::parse(src)?);
         Ok(())
     }
 
     /// Parses an `Integer` from a string with the specified radix.
     #[inline]
     #[deprecated(since = "0.9.4",
-                 note = "use `parse` instead; \
+                 note = "use `parse_radix` instead; \
                          `i.assign_str_radix(src, radix)?` can be replaced \
-                         with `i.assign(Integer::parse(src, radix)?)`.")]
+                         with `i.assign(Integer::parse_radix(src, radix)?)`.")]
     pub fn assign_str_radix(
         &mut self,
         src: &str,
         radix: i32,
     ) -> Result<(), ParseIntegerError> {
-        self.assign(Integer::parse(src, radix)?);
+        self.assign(Integer::parse_radix(src, radix)?);
         Ok(())
     }
 
@@ -4211,7 +4243,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseIntegerError> {
 /// [`Integer`](../struct.Integer.html).
 #[allow(deprecated)]
 #[deprecated(since = "0.9.4",
-             note = "use the `Integer::parse` method instead of \
+             note = "use the `Integer::parse_radix` method instead of \
                      `Integer::valid_str_radix`, and if for example you were \
                      storing the returned object in a struct, convert into an \
                      `Integer` before storing.")]
@@ -4247,7 +4279,7 @@ impl<'a> From<ValidInteger<'a>> for Integer {
 /// use rug::integer::ParseIntegerError;
 /// // This string is not an integer.
 /// let s = "something completely different (_!_!_)";
-/// let error: ParseIntegerError = match Integer::parse(s, 4) {
+/// let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
 ///     Ok(_) => unreachable!(),
 ///     Err(error) => error,
 /// };

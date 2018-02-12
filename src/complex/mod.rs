@@ -87,15 +87,15 @@ mod tests {
     #[test]
     fn check_from_str() {
         let mut c = Complex::new(53);
-        c.assign(Complex::parse("(+0 -0)", 10).unwrap());
+        c.assign(Complex::parse("(+0 -0)").unwrap());
         assert_eq!(c, (0, 0));
         assert!(c.real().is_sign_positive());
         assert!(c.imag().is_sign_negative());
-        c.assign(Complex::parse("(5 6)", 10).unwrap());
+        c.assign(Complex::parse("(5 6)").unwrap());
         assert_eq!(c, (5, 6));
-        c.assign(Complex::parse("(50 60)", 8).unwrap());
+        c.assign(Complex::parse_radix("(50 60)", 8).unwrap());
         assert_eq!(c, (0o50, 0o60));
-        c.assign(Complex::parse("33", 16).unwrap());
+        c.assign(Complex::parse_radix("33", 16).unwrap());
         assert_eq!(c, (0x33, 0));
 
         let bad_strings = [
@@ -112,7 +112,7 @@ mod tests {
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(
-                Complex::parse(s, radix.unwrap_or(10)).is_err(),
+                Complex::parse_radix(s, radix.unwrap_or(10)).is_err(),
                 "{} parsed correctly",
                 s
             );
@@ -130,7 +130,7 @@ mod tests {
             ),
         ];
         for &(s, radix, r, i) in good_strings.into_iter() {
-            match Complex::parse(s, radix) {
+            match Complex::parse_radix(s, radix) {
                 Ok(ok) => {
                     let c = Complex::with_val(53, ok);
                     assert_eq!(*c.real(), r, "real mismatch for {}", s);

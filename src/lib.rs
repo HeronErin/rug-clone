@@ -59,7 +59,7 @@
 //!     int.assign(14);
 //!     assert_eq!(int, 14);
 //!     let hex_160 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
-//!     int.assign(Integer::parse(hex_160, 16).unwrap());
+//!     int.assign(Integer::parse_radix(hex_160, 16).unwrap());
 //!     assert_eq!(int.significant_bits(), 160);
 //!     int = (int >> 128) - 1;
 //!     assert_eq!(int, 0xfffe_ffff_u32);

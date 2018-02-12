@@ -293,20 +293,17 @@ pub(crate) mod tests {
     #[test]
     fn check_from_str() {
         assert!(
-            Float::with_val(53, Float::parse("-0", 10).unwrap())
-                .is_sign_negative()
+            Float::with_val(53, Float::parse("-0").unwrap()).is_sign_negative()
         );
         assert!(
-            Float::with_val(53, Float::parse("+0", 10).unwrap())
-                .is_sign_positive()
+            Float::with_val(53, Float::parse("+0").unwrap()).is_sign_positive()
         );
         assert!(
-            Float::with_val(53, Float::parse("1e1000", 10).unwrap())
-                .is_finite()
+            Float::with_val(53, Float::parse("1e1000").unwrap()).is_finite()
         );
         let huge_hex = "1@99999999999999999999999999999999";
         assert!(
-            Float::with_val(53, Float::parse(huge_hex, 16).unwrap())
+            Float::with_val(53, Float::parse_radix(huge_hex, 16).unwrap())
                 .is_infinite()
         );
 
@@ -329,7 +326,11 @@ pub(crate) mod tests {
             ("9", 9),
         ];
         for &(s, radix) in bad_strings.into_iter() {
-            assert!(Float::parse(s, radix).is_err(), "{} parsed correctly", s);
+            assert!(
+                Float::parse_radix(s, radix).is_err(),
+                "{} parsed correctly",
+                s
+            );
         }
         let good_strings = [
             ("INF", 10, Cmp::inf(false)),
@@ -346,7 +347,7 @@ pub(crate) mod tests {
             (" - @nan@", 2, Cmp::Nan(true)),
         ];
         for &(s, radix, f) in good_strings.into_iter() {
-            match Float::parse(s, radix) {
+            match Float::parse_radix(s, radix) {
                 Ok(ok) => assert_eq!(Float::with_val(53, ok), f),
                 Err(_) => panic!("could not parse {}", s),
             }

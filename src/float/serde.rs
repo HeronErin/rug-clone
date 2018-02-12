@@ -46,8 +46,8 @@ impl<'de> Deserialize<'de> for Float {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        let parse = Float::parse(&value, radix).map_err(DeError::custom)?;
-        Ok(Float::with_val(prec, parse))
+        let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
+        Ok(Float::with_val(prec, p))
     }
 
     fn deserialize_in_place<D>(
@@ -58,11 +58,11 @@ impl<'de> Deserialize<'de> for Float {
         D: Deserializer<'de>,
     {
         let (prec, radix, value) = de_data(deserializer)?;
-        let parse = Float::parse(&value, radix).map_err(DeError::custom)?;
+        let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
             mpfr::set_prec(place.inner_mut(), cast(prec));
         }
-        Ok(place.assign(parse))
+        Ok(place.assign(p))
     }
 }
 

@@ -201,7 +201,7 @@ mod tests {
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(
-                Rational::parse(s, radix.unwrap_or(10)).is_err(),
+                Rational::parse_radix(s, radix.unwrap_or(10)).is_err(),
                 "{} parsed correctly",
                 s
             );
@@ -218,7 +218,7 @@ mod tests {
             ("Z/z0", 36, 1, 36),
         ];
         for &(s, radix, n, d) in good_strings.into_iter() {
-            match Rational::parse(s, radix) {
+            match Rational::parse_radix(s, radix) {
                 Ok(ok) => {
                     let r = Rational::from(ok);
                     assert_eq!(*r.numer(), n, "numerator mismatch for {}", s);
