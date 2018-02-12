@@ -1,7 +1,13 @@
 #!/bin/sh
 
+set -e
 shopt -s globstar
+
 SUFFIX=.original
+
+if [ -e target ]; then
+    mv target coverage_save_target
+fi
 
 # first extract docs
 EXTRACT_SCRIPT='
@@ -52,3 +58,10 @@ cargo tarpaulin -v --features serde --ignore-tests |&
 for f in src/**/*.rs$SUFFIX; do
     mv "$f" "${f%$SUFFIX}"
 done
+
+if [ -e target ]; then
+    rm -r target
+fi
+if [ -e coverage_save_target ]; then
+    mv coverage_save_target target
+fi
