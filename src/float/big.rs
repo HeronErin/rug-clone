@@ -7410,7 +7410,7 @@ impl Float {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct SumRef<'a, I>
 where
     I: Iterator<Item = &'a Float>,
@@ -7492,7 +7492,7 @@ ref_math_op1_float! { mpfr::rootn_ui; struct RootRef { k: u32 } }
 ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
 ref_math_op1_float! { xmpfr::signum; struct SignumRef {} }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct ClampRef<'a, Min, Max>
 where
     Float: PartialOrd<Min>
@@ -7751,7 +7751,7 @@ impl<'a, 'b: 'a> AssignRound<RandomExp<'a, 'b>> for Float {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct BorrowFloat<'a> {
     inner: mpfr_t,
     phantom: PhantomData<&'a Float>,

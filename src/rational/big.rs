@@ -132,7 +132,7 @@ macro_rules! ref_rat_op_int {
         struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
          $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a Rational,
             $($param: $T,)*
@@ -207,7 +207,7 @@ macro_rules! ref_rat_op_rat_int {
         struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
          $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a Rational,
             $($param: $T,)*
@@ -2073,7 +2073,7 @@ impl Rational {
 ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
 ref_rat_op_int! { xgmp::mpq_signum; struct SignumRef {} }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct ClampRef<'a, Min, Max>
 where
     Rational: PartialOrd<Min>
@@ -2137,7 +2137,7 @@ ref_math_op1! { Rational; xgmp::mpq_round_fract; struct RemRoundRef {} }
 ref_rat_op_rat_int! { xgmp::mpq_round_fract_whole; struct FractRoundRef {} }
 ref_math_op1! { Rational; xgmp::mpq_square; struct SquareRef {} }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct BorrowRational<'a> {
     inner: mpq_t,
     phantom: PhantomData<&'a Rational>,

@@ -3230,7 +3230,7 @@ impl Complex {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct SumRef<'a, I>
 where
     I: Iterator<Item = &'a Complex>,
@@ -3335,7 +3335,7 @@ ref_math_op1_complex! { mpc::sqr; struct SquareRef {} }
 ref_math_op1_complex! { mpc::sqrt; struct SqrtRef {} }
 ref_math_op1_complex! { mpc::conj; struct ConjRef {} }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct AbsRef<'a> {
     ref_self: &'a Complex,
 }
@@ -3352,7 +3352,7 @@ impl<'a> AssignRound<AbsRef<'a>> for Float {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct ArgRef<'a> {
     ref_self: &'a Complex,
 }
@@ -3372,7 +3372,7 @@ impl<'a> AssignRound<ArgRef<'a>> for Float {
 ref_math_op1_complex! { xmpc::mul_i; struct MulIRef { negative: bool } }
 ref_math_op1_complex! { xmpc::recip; struct RecipRef {} }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct NormRef<'a> {
     ref_self: &'a Complex,
 }
@@ -3458,7 +3458,7 @@ impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Complex {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct BorrowComplex<'a> {
     inner: mpc_t,
     phantom: PhantomData<&'a Complex>,

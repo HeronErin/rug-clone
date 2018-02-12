@@ -97,7 +97,7 @@ macro_rules! ref_math_op0 {
         struct $Src:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Src {
             $($param: $T,)*
         }
@@ -127,7 +127,7 @@ macro_rules! ref_math_op0_2 {
         struct $Src:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Src {
             $($param: $T,)*
         }
@@ -201,7 +201,7 @@ macro_rules! ref_math_op1 {
         struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $($param: $T,)*
@@ -288,7 +288,7 @@ macro_rules! ref_math_op1_2 {
         struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $($param: $T,)*
@@ -374,7 +374,7 @@ macro_rules! ref_math_op2 {
         struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $op: &'a $Big,
@@ -466,7 +466,7 @@ macro_rules! ref_math_op2_2 {
         struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $op: &'a $Big,
@@ -595,7 +595,7 @@ macro_rules! arith_unary {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             op: &'a $Big,
         }
@@ -704,7 +704,7 @@ macro_rules! arith_binary {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: &'a $Big,
@@ -795,7 +795,7 @@ macro_rules! arith_prim {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: $T,
@@ -964,7 +964,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $FromRef<'a> {
             lhs: $T,
             rhs: &'a $Big,
@@ -1036,7 +1036,7 @@ macro_rules! mul_op {
             }
         }
 
-        #[derive(Clone,Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: $Mul<'a>,
@@ -1164,7 +1164,7 @@ macro_rules! mul_op_noncommut {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $FromRef<'a> {
             lhs: $Mul<'a>,
             rhs: &'a $Big,
@@ -1211,7 +1211,7 @@ macro_rules! ref_math_op0_round {
         struct $Src:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Src {
             $($param: $T,)*
         }
@@ -1350,7 +1350,7 @@ macro_rules! ref_math_op1_round {
         struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $($param: $T,)*
@@ -1456,7 +1456,7 @@ macro_rules! ref_math_op1_2_round {
         struct $Ref:ident { $($param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $($param: $T,)*
@@ -1565,7 +1565,7 @@ macro_rules! ref_math_op2_round {
         struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
     } => {
         $(#[$attr_ref])*
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             ref_self: &'a $Big,
             $op: &'a $Big,
@@ -1713,7 +1713,7 @@ macro_rules! arith_binary_round {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: &'a $T,
@@ -1881,7 +1881,7 @@ macro_rules! arith_forward_round {
             }
         }
 
-        #[derive(Clone)]
+        #[derive(Debug)]
         pub struct $OwnedRef<'a> {
             lhs: &'a $Big,
             rhs: $T,
@@ -2204,7 +2204,7 @@ macro_rules! arith_noncommut_round {
         }
 
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $FromRef<'a> {
             lhs: &'a $T,
             rhs: &'a $Big,
@@ -2231,7 +2231,7 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        #[derive(Clone)]
+        #[derive(Debug)]
         pub struct $FromOwnedRef<'a> {
             lhs: $T,
             rhs: &'a $Big,
@@ -2353,7 +2353,7 @@ macro_rules! arith_prim_exact_round {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: $T,
@@ -2708,7 +2708,7 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $FromRef<'a> {
             lhs: $T,
             rhs: &'a $Big,
@@ -2810,7 +2810,7 @@ macro_rules! mul_op_round {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $Ref<'a> {
             lhs: &'a $Big,
             rhs: $Mul<'a>,
@@ -3004,7 +3004,7 @@ macro_rules! mul_op_noncommut_round {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub struct $FromRef<'a> {
             lhs: $Mul<'a>,
             rhs: &'a $Big,

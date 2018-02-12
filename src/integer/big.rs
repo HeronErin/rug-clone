@@ -3774,7 +3774,7 @@ impl Integer {
 ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
 ref_math_op1! { Integer; xgmp::mpz_signum; struct SignumRef {} }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct ClampRef<'a, Min, Max>
 where
     Integer: PartialOrd<Min>
@@ -3846,7 +3846,7 @@ ref_math_op1! {
     Integer; xgmp::mpz_divexact_ui_check; struct DivExactURef { divisor: u32 }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct PowModRef<'a> {
     ref_self: &'a Integer,
     exponent: &'a Integer,
@@ -3957,7 +3957,7 @@ from_assign! { GcdRef<'r> => Integer, Integer, Integer }
 
 ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct InvertRef<'a> {
     ref_self: &'a Integer,
     modulo: &'a Integer,
@@ -4001,7 +4001,7 @@ impl<'a> From<InvertRef<'a>> for Result<Integer, Integer> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct RemoveFactorRef<'a> {
     ref_self: &'a Integer,
     factor: &'a Integer,
@@ -4112,7 +4112,7 @@ impl<'a, 'b: 'a> From<RandomBelowRef<'a, 'b>> for Integer {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct BorrowInteger<'a> {
     inner: mpz_t,
     phantom: PhantomData<&'a Integer>,

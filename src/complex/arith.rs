@@ -56,7 +56,7 @@ impl<'a> Neg for &'a Complex {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct NegRef<'a> {
     val: &'a Complex,
 }

@@ -246,7 +246,7 @@ macro_rules! div_op {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub enum $Ref<'i> {
             Trunc(&'i Integer, &'i Integer),
             Ceil(&'i Integer, &'i Integer),
@@ -458,7 +458,7 @@ macro_rules! div_prim {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub enum $Ref<'i> {
             Trunc(&'i Integer, $T),
             Ceil(&'i Integer, $T),
@@ -629,7 +629,7 @@ macro_rules! div_prim {
             }
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Debug)]
         pub enum $FromRef<'i> {
             Trunc($T, &'i Integer),
             Ceil($T, &'i Integer),

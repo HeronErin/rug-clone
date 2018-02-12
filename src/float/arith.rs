@@ -64,7 +64,7 @@ impl<'a> Neg for &'a Float {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct NegRef<'a> {
     val: &'a Float,
 }
@@ -584,7 +584,7 @@ impl<'a> Add for MulRef<'a> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct MulAddMulRef<'a> {
     lhs: MulRef<'a>,
     rhs: MulRef<'a>,
@@ -621,7 +621,7 @@ impl<'a> Sub for MulRef<'a> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct MulSubMulRef<'a> {
     lhs: MulRef<'a>,
     rhs: MulRef<'a>,
