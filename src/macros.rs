@@ -1239,6 +1239,43 @@ macro_rules! fold {
     }
 }
 
+#[cfg(feature = "integer")]
+macro_rules! fold_in_place {
+    { $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper_assign:path } => {
+        impl $Imp for $Big {
+            fn $method<I>(mut iter: I) -> $Big
+            where
+                I: ::std::iter::Iterator<Item = $Big>,
+            {
+                let mut acc = match iter.next() {
+                    Some(first) => first,
+                    None => return $ident,
+                };
+                while let Some(i) = iter.next() {
+                    $oper_assign(&mut acc, i);
+                }
+                acc
+            }
+        }
+
+        impl<'a> $Imp<&'a $Big> for $Big {
+            fn $method<I>(mut iter: I) -> $Big
+            where
+                I: ::std::iter::Iterator<Item = &'a $Big>,
+            {
+                let mut acc = match iter.next() {
+                    Some(first) => first.clone(),
+                    None => return $ident,
+                };
+                while let Some(i) = iter.next() {
+                    $oper_assign(&mut acc, i);
+                }
+                acc
+            }
+        }
+    }
+}
+
 #[cfg(feature = "float")]
 macro_rules! assign_round_deref {
     { $Src:ty => $Dst:ty } => {

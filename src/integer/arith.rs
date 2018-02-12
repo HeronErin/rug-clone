@@ -308,7 +308,7 @@ mul_op_noncommut! {
     SubMulI32Ref SubMulFromI32Ref
 }
 
-fold! { Integer, Sum sum, Integer::new(), Add::add }
+fold_in_place! { Integer, Sum sum, Integer::new(), AddAssign::add_assign }
 fold! { Integer, Product product, Integer::from(1), Mul::mul }
 
 #[cfg(test)]
