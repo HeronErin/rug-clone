@@ -16,6 +16,7 @@
 
 use {Assign, Complex};
 
+use ext::mpfr as xmpfr;
 use float::SmallFloat;
 use float::small::{Mpfr, LIMBS_IN_SMALL_FLOAT};
 use gmp_mpfr_sys::gmp;
@@ -138,11 +139,24 @@ impl Deref for SmallComplex {
 }
 
 #[inline]
-unsafe fn semi_new() -> SmallComplex {
-    SmallComplex {
-        re: mem::uninitialized(),
-        im: mem::uninitialized(),
-        limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
+fn small_new() -> SmallComplex {
+    unsafe {
+        let mut ret = SmallComplex {
+            re: mem::uninitialized(),
+            im: mem::uninitialized(),
+            limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
+        };
+        xmpfr::custom_zero(
+            &mut ret.re as *mut _ as *mut _,
+            &mut ret.limbs[0],
+            64,
+        );
+        xmpfr::custom_zero(
+            &mut ret.im as *mut _ as *mut _,
+            &mut ret.limbs[LIMBS_IN_SMALL_FLOAT],
+            64,
+        );
+        ret
     }
 }
 
@@ -177,7 +191,7 @@ where
 {
     #[inline]
     fn from(val: Re) -> Self {
-        let mut ret = unsafe { semi_new() };
+        let mut ret = small_new();
         ret.assign(val);
         ret
     }
@@ -213,7 +227,7 @@ where
 {
     #[inline]
     fn from(val: (Re, Im)) -> Self {
-        let mut ret = unsafe { semi_new() };
+        let mut ret = small_new();
         ret.assign(val);
         ret
     }

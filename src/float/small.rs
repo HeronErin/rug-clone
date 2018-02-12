@@ -149,10 +149,18 @@ impl Deref for SmallFloat {
 }
 
 #[inline]
-unsafe fn semi_new() -> SmallFloat {
-    SmallFloat {
-        inner: mem::uninitialized(),
-        limbs: [0; LIMBS_IN_SMALL_FLOAT],
+fn small_new() -> SmallFloat {
+    unsafe {
+        let mut ret = SmallFloat {
+            inner: mem::uninitialized(),
+            limbs: [0; LIMBS_IN_SMALL_FLOAT],
+        };
+        xmpfr::custom_zero(
+            &mut ret.inner as *mut _ as *mut _,
+            &mut ret.limbs[0],
+            64,
+        );
+        ret
     }
 }
 
@@ -161,7 +169,7 @@ macro_rules! small_from_assign {
         impl<'r> From<$Src> for SmallFloat {
             #[inline]
             fn from(src: $Src) -> Self {
-                let mut dst = unsafe { semi_new() };
+                let mut dst = small_new();
                 <SmallFloat as Assign<$Src>>::assign(&mut dst, src);
                 dst
             }
