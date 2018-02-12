@@ -60,7 +60,7 @@ use std::slice;
 ///
 /// assert_eq!(pos_zero.cmp(&neg_zero), Ordering::Greater);
 /// ```
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct OrdFloat {
     inner: Float,
 }

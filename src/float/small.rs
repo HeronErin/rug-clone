@@ -95,40 +95,7 @@ impl Clone for Mpfr {
     }
 }
 
-impl Default for SmallFloat {
-    #[inline]
-    fn default() -> Self {
-        SmallFloat::new()
-    }
-}
-
 impl SmallFloat {
-    /// Creates a `SmallFloat` with value 0.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::float::SmallFloat;
-    /// let f = SmallFloat::new();
-    /// // Borrow f as if it were Float.
-    /// assert_eq!(*f, 0.0);
-    /// ```
-    #[inline]
-    pub fn new() -> Self {
-        unsafe {
-            let mut ret = SmallFloat {
-                inner: mem::uninitialized(),
-                limbs: [0; LIMBS_IN_SMALL_FLOAT],
-            };
-            xmpfr::custom_zero(
-                &mut ret.inner as *mut _ as *mut _,
-                &mut ret.limbs[0],
-                53,
-            );
-            ret
-        }
-    }
-
     /// Returns a mutable reference to a
     /// [`Float`](../struct.Float.html) for simple operations that do
     /// not need to change the precision of the number.
@@ -181,6 +148,27 @@ impl Deref for SmallFloat {
     }
 }
 
+#[inline]
+unsafe fn semi_new() -> SmallFloat {
+    SmallFloat {
+        inner: mem::uninitialized(),
+        limbs: [0; LIMBS_IN_SMALL_FLOAT],
+    }
+}
+
+macro_rules! small_from_assign {
+    { $Src:ty } => {
+        impl<'r> From<$Src> for SmallFloat {
+            #[inline]
+            fn from(src: $Src) -> Self {
+                let mut dst = unsafe { semi_new() };
+                <SmallFloat as Assign<$Src>>::assign(&mut dst, src);
+                dst
+            }
+        }
+    }
+}
+
 macro_rules! signed {
     { $I:ty, $U:ty } => {
         impl Assign<$I> for SmallFloat {
@@ -193,7 +181,7 @@ macro_rules! signed {
             }
         }
 
-        from_assign! { $I => SmallFloat }
+        small_from_assign! { $I }
     };
 }
 
@@ -219,7 +207,7 @@ macro_rules! unsigned_32 {
             }
         }
 
-        from_assign! { $U => SmallFloat }
+        small_from_assign! { $U }
     };
 }
 
@@ -259,7 +247,7 @@ impl Assign<u64> for SmallFloat {
     }
 }
 
-from_assign! { u64 => SmallFloat }
+small_from_assign! { u64 }
 
 impl Assign<usize> for SmallFloat {
     #[inline]
@@ -275,7 +263,7 @@ impl Assign<usize> for SmallFloat {
     }
 }
 
-from_assign! { usize => SmallFloat }
+small_from_assign! { usize }
 
 impl Assign<f32> for SmallFloat {
     fn assign(&mut self, val: f32) {
@@ -293,7 +281,7 @@ impl Assign<f32> for SmallFloat {
     }
 }
 
-from_assign! { f32 => SmallFloat }
+small_from_assign! { f32 }
 
 impl Assign<f64> for SmallFloat {
     fn assign(&mut self, val: f64) {
@@ -311,7 +299,7 @@ impl Assign<f64> for SmallFloat {
     }
 }
 
-from_assign! { f64 => SmallFloat }
+small_from_assign! { f64 }
 
 impl<'a> Assign<&'a Self> for SmallFloat {
     #[inline]

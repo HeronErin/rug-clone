@@ -44,13 +44,6 @@ impl Clone for Complex {
     }
 }
 
-impl Default for Complex {
-    #[inline]
-    fn default() -> Complex {
-        Complex::new(53)
-    }
-}
-
 impl Drop for Complex {
     #[inline]
     fn drop(&mut self) {

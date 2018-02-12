@@ -51,7 +51,7 @@ use std::hash::{Hash, Hasher};
 /// let zero_inf = OrdComplex::from(zero_inf_c);
 /// assert_eq!(one_pos0.cmp(&zero_inf), Ordering::Greater);
 /// ```
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct OrdComplex {
     inner: Complex,
 }

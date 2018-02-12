@@ -13,6 +13,8 @@ Version 0.10.0 (to be determined)
   `Option`, not an object that is assignable to `Result`.
 * `Float::random_bits` and `Complex::random_bits` are now assignable
   to the number values, not to `Result` objects.
+* Remove `Default` implementations from all types of `Float` and
+  `Complex`; now the precision always has to be specified.
 
 Version 0.9.3 (2018-01-09)
 ==========================

@@ -16,7 +16,6 @@
 
 use {Assign, Complex};
 
-use ext::mpfr as xmpfr;
 use float::SmallFloat;
 use float::small::{Mpfr, LIMBS_IN_SMALL_FLOAT};
 use gmp_mpfr_sys::gmp;
@@ -73,45 +72,7 @@ pub struct SmallComplex {
     limbs: [gmp::limb_t; 2 * LIMBS_IN_SMALL_FLOAT],
 }
 
-impl Default for SmallComplex {
-    fn default() -> Self {
-        SmallComplex::new()
-    }
-}
-
 impl SmallComplex {
-    /// Creates a `SmallComplex` with value 0.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::complex::SmallComplex;
-    /// let c = SmallComplex::new();
-    /// // Use c as if it were Complex.
-    /// assert_eq!(*c.real(), 0.0);
-    /// assert_eq!(*c.imag(), 0.0);
-    /// ```
-    pub fn new() -> Self {
-        unsafe {
-            let mut ret = SmallComplex {
-                re: mem::uninitialized(),
-                im: mem::uninitialized(),
-                limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
-            };
-            xmpfr::custom_zero(
-                &mut ret.re as *mut _ as *mut _,
-                &mut ret.limbs[0],
-                53,
-            );
-            xmpfr::custom_zero(
-                &mut ret.im as *mut _ as *mut _,
-                &mut ret.limbs[LIMBS_IN_SMALL_FLOAT],
-                53,
-            );
-            ret
-        }
-    }
-
     /// Returns a mutable reference to a
     /// [`Complex`](../struct.Complex.html) number for simple
     /// operations that do not need to change the precision of the
@@ -176,6 +137,15 @@ impl Deref for SmallComplex {
     }
 }
 
+#[inline]
+unsafe fn semi_new() -> SmallComplex {
+    SmallComplex {
+        re: mem::uninitialized(),
+        im: mem::uninitialized(),
+        limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
+    }
+}
+
 impl<Re> Assign<Re> for SmallComplex
 where
     SmallFloat: Assign<Re>,
@@ -207,7 +177,7 @@ where
 {
     #[inline]
     fn from(val: Re) -> Self {
-        let mut ret = SmallComplex::new();
+        let mut ret = unsafe { semi_new() };
         ret.assign(val);
         ret
     }
@@ -243,7 +213,7 @@ where
 {
     #[inline]
     fn from(val: (Re, Im)) -> Self {
-        let mut ret = SmallComplex::new();
+        let mut ret = unsafe { semi_new() };
         ret.assign(val);
         ret
     }

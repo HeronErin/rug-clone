@@ -20,7 +20,7 @@ use Integer;
 #[cfg(feature = "rational")]
 use Rational;
 use ext::mpfr as xmpfr;
-use float::{Round, Special};
+use float::Round;
 use float::big::{raw_round, ordering1};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
@@ -30,7 +30,6 @@ use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
           SubAssignRound, SubFrom, SubFromRound};
 use std::{i32, u32};
 use std::cmp::Ordering;
-use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
@@ -677,42 +676,9 @@ unsafe fn mul_sub(
     mpfr::fms(rop, mul.lhs.inner(), mul.rhs.inner(), sub, rnd)
 }
 
-// use Float::sum instead of fold! for iterator sum, to get correct rounding
-
-impl Sum for Float {
-    #[inline]
-    fn sum<I>(mut iter: I) -> Float
-    where
-        I: Iterator<Item = Float>,
-    {
-        match iter.next() {
-            Some(first) => {
-                let others = iter.collect::<Vec<_>>();
-                first + Float::sum(others.iter())
-            }
-            None => Float::with_val(53, Special::Zero),
-        }
-    }
-}
-
-impl<'a> Sum<&'a Float> for Float {
-    #[inline]
-    fn sum<I>(mut iter: I) -> Float
-    where
-        I: Iterator<Item = &'a Float>,
-    {
-        match iter.next() {
-            Some(first) => first.clone() + Float::sum(iter),
-            None => Float::with_val(53, Special::Zero),
-        }
-    }
-}
-
-fold! { Float, Product product, Float::with_val(53, 1), Mul::mul }
-
 #[cfg(test)]
 mod tests {
-    use {Assign, Float};
+    use Float;
     #[cfg(feature = "integer")]
     use Integer;
     #[cfg(feature = "rational")]
@@ -932,32 +898,5 @@ mod tests {
                 assert!(same(op.clone() / b.clone(), fop.clone() / b));
             }
         }
-    }
-
-    #[test]
-    fn check_sum() {
-        let nothing = Vec::<Float>::new();
-        let empty1: Float = nothing.iter().sum();
-        assert_eq!(empty1, 0);
-        assert_eq!(empty1.prec(), 53);
-        let empty2: Float = nothing.into_iter().sum();
-        assert_eq!(empty2, 0);
-
-        let values = vec![
-            Float::with_val(4, 5.0),
-            Float::with_val(4, 1024.0),
-            Float::with_val(4, -1024.0),
-            Float::with_val(4, -4.5),
-        ];
-        let sum1: Float = values.iter().sum();
-        assert_eq!(sum1, 0.5);
-        assert_eq!(sum1.prec(), 4);
-        let mut sum2 = Float::new(4);
-        sum2.assign(Float::sum(values.iter()));
-        assert_eq!(sum2, 0.5);
-        sum2 += Float::sum(values.iter());
-        assert_eq!(sum2, 1.0);
-        let sum3: Float = values.into_iter().sum();
-        assert_eq!(sum3, 0.5);
     }
 }

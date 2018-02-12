@@ -33,13 +33,6 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
 
-impl Default for Float {
-    #[inline]
-    fn default() -> Float {
-        Float::new(53)
-    }
-}
-
 impl Clone for Float {
     #[inline]
     fn clone(&self) -> Float {

@@ -26,7 +26,7 @@ macro_rules! assign_deref {
     }
 }
 
-#[cfg(any(feature = "integer", feature = "float"))]
+#[cfg(feature = "integer")]
 macro_rules! from_assign {
     { $Src:ty => $Dst:ty} => {
         impl<'r> From<$Src> for $Dst {
@@ -1179,6 +1179,37 @@ macro_rules! mul_op_noncommut {
         }
 
         from_assign! { $FromRef<'r> => $Big }
+    }
+}
+
+#[cfg(feature = "integer")]
+macro_rules! fold {
+    { $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper:path } => {
+        impl $Imp for $Big {
+            #[inline]
+            fn $method<I>(mut iter: I) -> $Big
+            where
+                I: ::std::iter::Iterator<Item = $Big>,
+            {
+                match iter.next() {
+                    Some(first) => iter.fold(first, $oper),
+                    None => $ident,
+                }
+            }
+        }
+
+        impl<'a> $Imp<&'a $Big> for $Big {
+            #[inline]
+            fn $method<I>(mut iter: I) -> $Big
+            where
+                I: ::std::iter::Iterator<Item = &'a $Big>,
+            {
+                match iter.next() {
+                    Some(first) => iter.fold(first.clone(), $oper),
+                    None => $ident,
+                }
+            }
+        }
     }
 }
 
@@ -3028,37 +3059,6 @@ macro_rules! mul_op_noncommut_round {
                     )
                 };
                 $ord(ret)
-            }
-        }
-    }
-}
-
-#[cfg(any(feature = "integer", feature = "float"))]
-macro_rules! fold {
-    { $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper:path } => {
-        impl $Imp for $Big {
-            #[inline]
-            fn $method<I>(mut iter: I) -> $Big
-            where
-                I: ::std::iter::Iterator<Item = $Big>,
-            {
-                match iter.next() {
-                    Some(first) => iter.fold(first, $oper),
-                    None => $ident,
-                }
-            }
-        }
-
-        impl<'a> $Imp<&'a $Big> for $Big {
-            #[inline]
-            fn $method<I>(mut iter: I) -> $Big
-            where
-                I: ::std::iter::Iterator<Item = &'a $Big>,
-            {
-                match iter.next() {
-                    Some(first) => iter.fold(first.clone(), $oper),
-                    None => $ident,
-                }
             }
         }
     }
