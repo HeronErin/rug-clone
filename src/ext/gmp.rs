@@ -778,16 +778,6 @@ pub unsafe fn mpz_divexact_ui_check(
 }
 
 #[inline]
-pub unsafe fn mpz_invert_check(
-    inv: *mut mpz_t,
-    n: *const mpz_t,
-    m: *const mpz_t,
-) -> c_int {
-    assert_ne!(gmp::mpz_sgn(m), 0, "division by zero");
-    gmp::mpz_invert(inv, n, m)
-}
-
-#[inline]
 pub unsafe fn mpz_si_pow_ui(rop: *mut mpz_t, base: c_long, exp: c_ulong) {
     if base >= 0 {
         gmp::mpz_ui_pow_ui(rop, base as c_ulong, exp);

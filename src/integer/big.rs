@@ -2303,10 +2303,6 @@ impl Integer {
     /// };
     /// assert_eq!(inv_mod_5, 3);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `modulo` is zero.
     #[inline]
     pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
         if self.invert_mut(modulo) {
@@ -2333,18 +2329,14 @@ impl Integer {
     /// assert!(exists_5);
     /// assert_eq!(n, 3);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `modulo` is zero.
     #[inline]
     pub fn invert_mut(&mut self, modulo: &Self) -> bool {
-        unsafe {
-            xgmp::mpz_invert_check(
-                self.inner_mut(),
-                self.inner(),
-                modulo.inner(),
-            ) != 0
+        match self.invert_ref(modulo) {
+            Some(InvertRef { s, .. }) => unsafe {
+                mpz_invert_ref(self.inner_mut(), s.inner(), modulo.inner());
+                true
+            },
+            None => false,
         }
     }
 
@@ -2371,8 +2363,10 @@ impl Integer {
     /// let inverse = Integer::from(r);
     /// assert_eq!(inverse, 3);
     /// ```
-    #[inline]
     pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertRef<'a>> {
+        if modulo.cmp0() == Ordering::Equal {
+            return None;
+        }
         let (gcd, s) = <(Integer, Integer)>::from(self.gcd_coeffs_ref(modulo));
         if gcd != 1 {
             return None;
@@ -2389,7 +2383,8 @@ impl Integer {
     ///
     /// # Examples
     ///
-    /// When the exponent is positive, an answer always exists.
+    /// When the exponent is positive and the modulo is not zero, an
+    /// answer always exists.
     ///
     /// ```rust
     /// use rug::Integer;
@@ -2458,25 +2453,31 @@ impl Integer {
     /// assert_eq!(n, 943);
     /// ```
     pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> bool {
-        let abs_pow;
-        let pow_inner = if exponent.cmp0() == Ordering::Less {
-            if !(self.invert_mut(modulo)) {
-                return false;
-            }
-            abs_pow = exponent.as_neg();
-            abs_pow.inner()
-        } else {
-            exponent.inner()
-        };
-        unsafe {
-            gmp::mpz_powm(
-                self.inner_mut(),
-                self.inner(),
-                pow_inner,
-                modulo.inner(),
-            );
+        match self.pow_mod_ref(exponent, modulo) {
+            Some(PowModRef::PositiveExponent { .. }) => unsafe {
+                gmp::mpz_powm(
+                    self.inner_mut(),
+                    self.inner(),
+                    exponent.inner(),
+                    modulo.inner(),
+                );
+                true
+            },
+            Some(PowModRef::NegativeExponent {
+                inverse: InvertRef { s, .. },
+                ..
+            }) => unsafe {
+                mpz_invert_ref(self.inner_mut(), s.inner(), modulo.inner());
+                gmp::mpz_powm(
+                    self.inner_mut(),
+                    self.inner(),
+                    exponent.as_neg().inner(),
+                    modulo.inner(),
+                );
+                true
+            },
+            None => false,
         }
-        true
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` if
@@ -2506,18 +2507,21 @@ impl Integer {
     /// let power = Integer::from(r);
     /// assert_eq!(power, 943);
     /// ```
-    #[inline]
     pub fn pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
         modulo: &'a Self,
     ) -> Option<PowModRef<'a>> {
         if exponent.cmp0() != Ordering::Less {
-            Some(PowModRef::PositiveExponent {
-                ref_self: self,
-                exponent,
-                modulo,
-            })
+            if modulo.cmp0() == Ordering::Equal {
+                None
+            } else {
+                Some(PowModRef::PositiveExponent {
+                    ref_self: self,
+                    exponent,
+                    modulo,
+                })
+            }
         } else if let Some(inverse) = self.invert_ref(modulo) {
             Some(PowModRef::NegativeExponent {
                 inverse,
@@ -3912,7 +3916,14 @@ impl<'a, 'b> Assign<PowModRef<'a>> for Integer {
                 modulo,
             } => {
                 self.assign(inverse);
-                self.pow_mod_mut(&*exponent.as_neg(), modulo);
+                unsafe {
+                    gmp::mpz_powm(
+                        self.inner_mut(),
+                        self.inner(),
+                        exponent.as_neg().inner(),
+                        modulo.inner(),
+                    );
+                }
             }
         }
     }
@@ -3979,16 +3990,26 @@ pub struct InvertRef<'a> {
     modulo: &'a Integer,
 }
 
+unsafe fn mpz_invert_ref(
+    rop: *mut mpz_t,
+    s: *const mpz_t,
+    modulo: *const mpz_t,
+) {
+    if gmp::mpz_sgn(s) < 0 {
+        if gmp::mpz_sgn(modulo) < 0 {
+            gmp::mpz_sub(rop, s, modulo);
+        } else {
+            gmp::mpz_add(rop, s, modulo);
+        }
+    } else {
+        gmp::mpz_set(rop, s);
+    }
+}
+
 impl<'a> Assign<InvertRef<'a>> for Integer {
     fn assign(&mut self, src: InvertRef<'a>) {
-        if src.s.cmp0() == Ordering::Less {
-            if src.modulo.cmp0() == Ordering::Less {
-                self.assign(&src.s - src.modulo);
-            } else {
-                self.assign(&src.s + src.modulo);
-            }
-        } else {
-            self.assign(src.s);
+        unsafe {
+            mpz_invert_ref(self.inner_mut(), src.s.inner(), src.modulo.inner());
         }
     }
 }
