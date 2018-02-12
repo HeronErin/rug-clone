@@ -2018,15 +2018,16 @@ impl Float {
     ///     Float::with_val(4, -1024.0),
     ///     Float::with_val(4, -4.5),
     /// ];
-    /// let sum_values = Float::sum(values.iter());
     ///
     /// // The result should still be exact if it fits.
-    /// let sum = Float::with_val(4, sum_values.clone());
+    /// let r = Float::sum(values.iter());
+    /// let sum = Float::with_val(4, r);
     /// assert_eq!(sum, 0.5);
     ///
     /// let mut f = Float::with_val(4, 15.0);
     /// // 15.5 using 4 bits of precision becomes 16.0
-    /// let dir = f.add_assign_round(sum_values, Round::Nearest);
+    /// let r = Float::sum(values.iter());
+    /// let dir = f.add_assign_round(r, Round::Nearest);
     /// assert_eq!(f, 16.0);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
@@ -4110,9 +4111,9 @@ impl Float {
         /// use rug::ops::AssignRound;
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
-        /// let sin_cos = phase.sin_cos_ref();
         ///
         /// let (mut sin, mut cos) = (Float::new(53), Float::new(53));
+        /// let sin_cos = phase.sin_cos_ref();
         /// (&mut sin, &mut cos).assign(sin_cos);
         /// let expected_sin = 0.9490_f64;
         /// let expected_cos = 0.3153_f64;
@@ -4122,6 +4123,7 @@ impl Float {
         /// // using 4 significant bits: sin = 0.9375
         /// // using 4 significant bits: cos = 0.3125
         /// let (mut sin_4, mut cos_4) = (Float::new(4), Float::new(4));
+        /// let sin_cos = phase.sin_cos_ref();
         /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
         ///     .assign_round(sin_cos, Round::Nearest);
         /// assert_eq!(sin_4, 0.9375);
@@ -4825,9 +4827,9 @@ impl Float {
         /// use rug::ops::AssignRound;
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
-        /// let sinh_cosh = phase.sinh_cosh_ref();
         ///
         /// let (mut sinh, mut cosh) = (Float::new(53), Float::new(53));
+        /// let sinh_cosh = phase.sinh_cosh_ref();
         /// (&mut sinh, &mut cosh).assign(sinh_cosh);
         /// let expected_sinh = 1.6019_f64;
         /// let expected_cosh = 1.8884_f64;
@@ -4837,6 +4839,7 @@ impl Float {
         /// // using 4 significant bits: sin = 1.625
         /// // using 4 significant bits: cos = 1.875
         /// let (mut sinh_4, mut cosh_4) = (Float::new(4), Float::new(4));
+        /// let sinh_cosh = phase.sinh_cosh_ref();
         /// let (dir_sinh, dir_cosh) = (&mut sinh_4, &mut cosh_4)
         ///     .assign_round(sinh_cosh, Round::Nearest);
         /// assert_eq!(sinh_4, 1.625);

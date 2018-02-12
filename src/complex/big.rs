@@ -1147,13 +1147,14 @@ impl Complex {
     ///     Complex::with_val(4, (-1024.0, -1024.0)),
     ///     Complex::with_val(4, (-4.5, -16.0)),
     /// ];
-    /// let sum_values = Complex::sum(values.iter());
     ///
     /// // The result should still be exact if it fits.
-    /// let sum1 = Complex::with_val(4, sum_values.clone());
+    /// let r1 = Complex::sum(values.iter());
+    /// let sum1 = Complex::with_val(4, r1);
     /// assert_eq!(sum1, (0.5, -1.0));
     ///
-    /// let sum2 = Complex::with_val(4, (1.0, -1.0)) + sum_values;
+    /// let r2 = Complex::sum(values.iter());
+    /// let sum2 = Complex::with_val(4, (1.0, -1.0)) + r2;
     /// assert_eq!(sum2, (1.5, -2.0));
     /// ```
     #[inline]
@@ -2429,9 +2430,9 @@ impl Complex {
         /// use rug::ops::AssignRound;
         /// use std::cmp::Ordering;
         /// let phase = Complex::with_val(53, (1, 1));
-        /// let sin_cos = phase.sin_cos_ref();
         ///
         /// let (mut sin, mut cos) = (Complex::new(53), Complex::new(53));
+        /// let sin_cos = phase.sin_cos_ref();
         /// (&mut sin, &mut cos).assign(sin_cos);
         /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
         /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
@@ -2441,6 +2442,7 @@ impl Complex {
         /// // using 4 significant bits: sin = (1.25 + 0.625i)
         /// // using 4 significant bits: cos = (0.8125 - i)
         /// let (mut sin_4, mut cos_4) = (Complex::new(4), Complex::new(4));
+        /// let sin_cos = phase.sin_cos_ref();
         /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
         ///     .assign_round(sin_cos, (Round::Nearest, Round::Nearest));
         /// assert_eq!(sin_4, (1.25, 0.625));

@@ -2663,12 +2663,13 @@ impl Integer {
         /// ```rust
         /// use rug::{Assign, Integer};
         /// let i = Integer::from(1004);
-        /// let r = i.root_rem_ref(3);
         /// let mut root = Integer::new();
         /// let mut rem = Integer::new();
+        /// let r = i.root_rem_ref(3);
         /// (&mut root, &mut rem).assign(r);
         /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
+        /// let r = i.root_rem_ref(3);
         /// let (other_root, other_rem) = <(Integer, Integer)>::from(r);
         /// assert_eq!(other_root, 10);
         /// assert_eq!(other_rem, 4);
@@ -2819,12 +2820,13 @@ impl Integer {
         /// ```rust
         /// use rug::{Assign, Integer};
         /// let i = Integer::from(104);
-        /// let r = i.sqrt_rem_ref();
         /// let mut sqrt = Integer::new();
         /// let mut rem = Integer::new();
+        /// let r = i.sqrt_rem_ref();
         /// (&mut sqrt, &mut rem).assign(r);
         /// assert_eq!(sqrt, 10);
         /// assert_eq!(rem, 4);
+        /// let r = i.sqrt_rem_ref();
         /// let (other_sqrt, other_rem) = <(Integer, Integer)>::from(r);
         /// assert_eq!(other_sqrt, 10);
         /// assert_eq!(other_rem, 4);
