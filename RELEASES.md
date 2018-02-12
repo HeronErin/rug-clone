@@ -8,6 +8,8 @@
   coefficient.
 * `Integer::invert_ref` and `Integer::pow_mod_ref` now return an
   `Option`, not an object that is assignable to `Result`.
+* `Float::random_bits` and `Complex::random_bits` are now assignable
+  to the number values, not to `Result` objects.
 
 Version 0.9.3 (2018-01-09)
 ==========================

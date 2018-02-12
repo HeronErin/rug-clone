@@ -457,7 +457,7 @@ pub(crate) mod tests {
     }
 
     #[test]
-    fn check_error_random_bits() {
+    fn check_nan_random_bits() {
         // Least significant 64 bits (two 32-bit words) of mantissa
         // will be ones, all others will be zeros. With 256 bits of
         // precision, the "random" number will be 0.0{192}1{64}. This
@@ -470,12 +470,11 @@ pub(crate) mod tests {
                 save_emin = mpfr::get_emin();
                 mpfr::set_emin(-192 + i);
             }
-            let mut f = Ok(Float::new(256));
-            f.assign(Float::random_bits(&mut rand));
+            let f = Float::with_val(256, Float::random_bits(&mut rand));
             if i == 0 {
-                assert_eq!(f.unwrap(), Float::with_val(64, !0u64) >> 256);
+                assert_eq!(f, Float::with_val(64, !0u64) >> 256);
             } else {
-                assert!(f.is_err());
+                assert!(f.is_nan());
             }
             unsafe {
                 mpfr::set_emin(save_emin);

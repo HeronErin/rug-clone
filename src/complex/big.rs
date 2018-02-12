@@ -3107,9 +3107,17 @@ impl Complex {
     /// set. In the smaller possible results, many bits will be zero,
     /// and not all the precision will be used.
     ///
-    /// `Assign<Src> for Result<Complex, Complex>` and
-    /// `Assign<Src> for Result<&mut Complex, &mut Complex>` are
-    /// implemented with the returned object as `Src`.
+    /// There is a corner case where the generated random number part
+    /// is converted to NaN: if the precision is very large, the
+    /// generated random number could have an exponent less than the
+    /// allowed minimum exponent, and NaN is used to indicate this.
+    /// For this to occur in practice, the minimum exponent has to be
+    /// set to have a very small magnitude using the low-level MPFR
+    /// interface, or the random number generator has to be designed
+    /// specifically to trigger this case.
+    ///
+    /// `Assign<Src> for Complex` is implemented with the returned
+    /// object as `Src`.
     ///
     /// # Examples
     ///
@@ -3117,24 +3125,14 @@ impl Complex {
     /// use rug::{Assign, Complex};
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
-    /// let mut c = Ok(Complex::new(2));
+    /// let mut c = Complex::new(2);
     /// c.assign(Complex::random_bits(&mut rand));
-    /// let c = c.unwrap();
     /// let (re, im) = c.into_real_imag();
     /// assert!(re == 0.0 || re == 0.25 || re == 0.5 || re == 0.75);
     /// assert!(im == 0.0 || im == 0.25 || im == 0.5 || im == 0.75);
     /// println!("0.0 ≤ {} < 1.0", re);
     /// println!("0.0 ≤ {} < 1.0", im);
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// In all the normal cases, the result will be exact. However, if
-    /// the precision is very large, and the generated random number
-    /// is very small, this may require an exponent smaller than
-    /// [`float::exp_min()`](float/fn.exp_min.html); in this case, the
-    /// number is set to NaN and an error is returned. This would most
-    /// likely be a programming error.
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -3145,52 +3143,21 @@ impl Complex {
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
     /// imaginary parts in the range 0 ≤ *x* < 1.
-    ///
-    /// This method is deprecated. The code
-    ///
-    /// ```rust
-    /// use rug::Complex;
-    /// let mut c: Complex;
-    /// // ...
-    /// # c = Complex::new(53);
-    /// # let mut rand = ::rug::rand::RandState::new();
-    /// # let rng = &mut rand;
-    /// # #[allow(deprecated)]
-    /// match c.assign_random_bits(rng) {
-    ///     Ok(()) => { /* ok */ }
-    ///     Err(()) => { /* error */ }
-    /// }
-    /// ```
-    ///
-    /// can be replaced with
-    ///
-    /// ```rust
-    /// use rug::{Assign, Complex};
-    /// let mut c: Complex;
-    /// // ...
-    /// # c = Complex::new(53);
-    /// # let mut rand = ::rug::rand::RandState::new();
-    /// # let rng = &mut rand;
-    /// let mut result = Ok(&mut c);
-    /// result.assign(Complex::random_bits(rng));
-    /// match result {
-    ///     Ok(_) => { /* ok */ }
-    ///     Err(_) => { /* error */ }
-    /// };
-    /// ```
     #[deprecated(since = "0.9.2",
-                 note = "use `random_bits` instead; see documentation for an \
-                         example replacement.")]
+                 note = "use `random_bits` instead; \
+                         `c.assign_random_bits(rng)` can be replaced with \
+                         `c.assign(Complex::random_bits(rng))`, and testing \
+                         the result can be replaced with testing for NaN.")]
     #[inline]
     pub fn assign_random_bits(
         &mut self,
         rng: &mut RandState,
     ) -> Result<(), ()> {
-        let mut r = Ok(self);
-        r.assign(Complex::random_bits(rng));
-        match r {
-            Ok(_) => Ok(()),
-            Err(_) => Err(()),
+        self.assign(Complex::random_bits(rng));
+        if self.real().is_nan() || self.imag().is_nan() {
+            Err(())
+        } else {
+            Ok(())
         }
     }
 
@@ -3456,23 +3423,11 @@ pub struct RandomBits<'a, 'b: 'a> {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>>
-    for Result<&'c mut Complex, &'c mut Complex>
-{
+impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>> for Complex {
     #[inline]
     fn assign(&mut self, src: RandomBits<'a, 'b>) {
-        let err = match *self {
-            Ok(ref mut dst) | Err(ref mut dst) => {
-                let (real, imag) = dst.as_mut_real_imag();
-                let (mut rreal, mut rimag) = (Ok(real), Ok(imag));
-                rreal.assign(Float::random_bits(src.rng));
-                rimag.assign(Float::random_bits(src.rng));
-                rreal.is_err() || rimag.is_err()
-            }
-        };
-        if err != self.is_err() {
-            misc::result_swap(self)
-        }
+        self.mut_real().assign(Float::random_bits(src.rng));
+        self.mut_imag().assign(Float::random_bits(src.rng));
     }
 }
 
@@ -3491,11 +3446,11 @@ impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Complex {
         src: RandomCont<'a, 'b>,
         round: Round2,
     ) -> Ordering2 {
-        let (real, imag) = self.as_mut_real_imag();
-        (
-            real.assign_round(Float::random_cont(src.rng), round.0),
-            imag.assign_round(Float::random_cont(src.rng), round.1),
-        )
+        let real_dir = self.mut_real()
+            .assign_round(Float::random_cont(src.rng), round.0);
+        let imag_dir = self.mut_imag()
+            .assign_round(Float::random_cont(src.rng), round.1);
+        (real_dir, imag_dir)
     }
 }
 
