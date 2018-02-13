@@ -4014,7 +4014,21 @@ impl<'a> Assign<InvertRef<'a>> for Integer {
     }
 }
 
-from_assign! { InvertRef<'r> => Integer }
+// specialize (no macro) From<InvertRef> for Integer to reuse s
+impl<'r> From<InvertRef<'r>> for Integer {
+    #[inline]
+    fn from(src: InvertRef) -> Self {
+        if src.s.cmp0() == Ordering::Less {
+            if src.modulo.cmp0() == Ordering::Less {
+                src.s - src.modulo
+            } else {
+                src.s + src.modulo
+            }
+        } else {
+            src.s
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct RemoveFactorRef<'a> {
