@@ -2332,8 +2332,8 @@ impl Integer {
     #[inline]
     pub fn invert_mut(&mut self, modulo: &Self) -> bool {
         match self.invert_ref(modulo) {
-            Some(InvertRef { s, .. }) => unsafe {
-                mpz_invert_ref(self.inner_mut(), s.inner(), modulo.inner());
+            Some(InvertRef { sinverse, .. }) => unsafe {
+                mpz_invert_ref(self.inner_mut(), &sinverse, modulo);
                 true
             },
             None => false,
@@ -2367,11 +2367,12 @@ impl Integer {
         if modulo.cmp0() == Ordering::Equal {
             return None;
         }
-        let (gcd, s) = <(Integer, Integer)>::from(self.gcd_coeffs_ref(modulo));
+        let (gcd, sinverse) =
+            <(Integer, Integer)>::from(self.gcd_coeffs_ref(modulo));
         if gcd != 1 {
             return None;
         }
-        Some(InvertRef { s, modulo })
+        Some(InvertRef { sinverse, modulo })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -2453,31 +2454,20 @@ impl Integer {
     /// assert_eq!(n, 943);
     /// ```
     pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> bool {
-        match self.pow_mod_ref(exponent, modulo) {
-            Some(PowModRef::PositiveExponent { .. }) => unsafe {
-                gmp::mpz_powm(
-                    self.inner_mut(),
-                    self.inner(),
-                    exponent.inner(),
-                    modulo.inner(),
-                );
-                true
-            },
-            Some(PowModRef::NegativeExponent {
-                inverse: InvertRef { s, .. },
-                ..
-            }) => unsafe {
-                mpz_invert_ref(self.inner_mut(), s.inner(), modulo.inner());
-                gmp::mpz_powm(
-                    self.inner_mut(),
-                    self.inner(),
-                    exponent.as_neg().inner(),
-                    modulo.inner(),
-                );
-                true
-            },
-            None => false,
+        let sinverse = match self.pow_mod_ref(exponent, modulo) {
+            Some(PowModRef { sinverse, .. }) => sinverse,
+            None => return false,
+        };
+        unsafe {
+            mpz_pow_mod_ref(
+                self.inner_mut(),
+                self,
+                sinverse.as_ref(),
+                exponent,
+                modulo,
+            );
         }
+        true
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` if
@@ -2516,15 +2506,17 @@ impl Integer {
             if modulo.cmp0() == Ordering::Equal {
                 None
             } else {
-                Some(PowModRef::PositiveExponent {
+                Some(PowModRef {
                     ref_self: self,
+                    sinverse: None,
                     exponent,
                     modulo,
                 })
             }
         } else if let Some(inverse) = self.invert_ref(modulo) {
-            Some(PowModRef::NegativeExponent {
-                inverse,
+            Some(PowModRef {
+                ref_self: self,
+                sinverse: Some(inverse.sinverse),
                 exponent,
                 modulo,
             })
@@ -3882,54 +3874,65 @@ ref_math_op1! {
 }
 
 #[derive(Debug)]
-pub enum PowModRef<'a> {
-    PositiveExponent {
-        ref_self: &'a Integer,
-        exponent: &'a Integer,
-        modulo: &'a Integer,
-    },
-    NegativeExponent {
-        inverse: InvertRef<'a>,
-        exponent: &'a Integer,
-        modulo: &'a Integer,
-    },
+pub struct PowModRef<'a> {
+    ref_self: &'a Integer,
+    sinverse: Option<Integer>,
+    exponent: &'a Integer,
+    modulo: &'a Integer,
 }
 
-impl<'a, 'b> Assign<PowModRef<'a>> for Integer {
-    fn assign(&mut self, src: PowModRef<'a>) {
-        match src {
-            PowModRef::PositiveExponent {
-                ref_self,
-                exponent,
-                modulo,
-            } => unsafe {
-                gmp::mpz_powm(
-                    self.inner_mut(),
-                    ref_self.inner(),
-                    exponent.inner(),
-                    modulo.inner(),
-                );
-            },
-            PowModRef::NegativeExponent {
-                inverse,
-                exponent,
-                modulo,
-            } => {
-                self.assign(inverse);
-                unsafe {
-                    gmp::mpz_powm(
-                        self.inner_mut(),
-                        self.inner(),
-                        exponent.as_neg().inner(),
-                        modulo.inner(),
-                    );
-                }
-            }
+unsafe fn mpz_pow_mod_ref(
+    rop: *mut mpz_t,
+    op: &Integer,
+    sinverse: Option<&Integer>,
+    exponent: &Integer,
+    modulo: &Integer,
+) {
+    match sinverse {
+        Some(sinverse) => {
+            mpz_invert_ref(rop, sinverse, modulo);
+            gmp::mpz_powm(rop, rop, exponent.as_neg().inner(), modulo.inner());
+        }
+        None => {
+            gmp::mpz_powm(rop, op.inner(), exponent.inner(), modulo.inner());
         }
     }
 }
 
-from_assign! { PowModRef<'r> => Integer }
+impl<'a, 'b> Assign<PowModRef<'a>> for Integer {
+    fn assign(&mut self, src: PowModRef<'a>) {
+        unsafe {
+            mpz_pow_mod_ref(
+                self.inner_mut(),
+                src.ref_self,
+                src.sinverse.as_ref(),
+                src.exponent,
+                src.modulo,
+            );
+        }
+    }
+}
+
+// do not use from_assign! macro to reuse sinverse
+impl<'r> From<PowModRef<'r>> for Integer {
+    #[inline]
+    fn from(src: PowModRef) -> Self {
+        let (mut dst, has_sinverse) = match src.sinverse {
+            Some(s) => (s, true),
+            None => (Integer::new(), false),
+        };
+        unsafe {
+            mpz_pow_mod_ref(
+                dst.inner_mut(),
+                src.ref_self,
+                if has_sinverse { Some(&dst) } else { None },
+                src.exponent,
+                src.modulo,
+            );
+        }
+        dst
+    }
+}
 
 ref_math_op0! {
     Integer; gmp::mpz_ui_pow_ui; struct UPowU { base: u32, exponent: u32 }
@@ -3986,47 +3989,38 @@ ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
 
 #[derive(Debug)]
 pub struct InvertRef<'a> {
-    s: Integer,
+    sinverse: Integer,
     modulo: &'a Integer,
 }
 
-unsafe fn mpz_invert_ref(
-    rop: *mut mpz_t,
-    s: *const mpz_t,
-    modulo: *const mpz_t,
-) {
-    if gmp::mpz_sgn(s) < 0 {
-        if gmp::mpz_sgn(modulo) < 0 {
-            gmp::mpz_sub(rop, s, modulo);
+unsafe fn mpz_invert_ref(rop: *mut mpz_t, s: &Integer, modulo: &Integer) {
+    if s.cmp0() == Ordering::Less {
+        if modulo.cmp0() == Ordering::Less {
+            gmp::mpz_sub(rop, s.inner(), modulo.inner());
         } else {
-            gmp::mpz_add(rop, s, modulo);
+            gmp::mpz_add(rop, s.inner(), modulo.inner());
         }
-    } else {
-        gmp::mpz_set(rop, s);
+    } else if rop as *const mpz_t != s.inner() {
+        gmp::mpz_set(rop, s.inner());
     }
 }
 
 impl<'a> Assign<InvertRef<'a>> for Integer {
     fn assign(&mut self, src: InvertRef<'a>) {
         unsafe {
-            mpz_invert_ref(self.inner_mut(), src.s.inner(), src.modulo.inner());
+            mpz_invert_ref(self.inner_mut(), &src.sinverse, src.modulo);
         }
     }
 }
 
-// specialize (no macro) From<InvertRef> for Integer to reuse s
+// do not use from_assign! macro to reuse sinverse
 impl<'r> From<InvertRef<'r>> for Integer {
     #[inline]
-    fn from(src: InvertRef) -> Self {
-        if src.s.cmp0() == Ordering::Less {
-            if src.modulo.cmp0() == Ordering::Less {
-                src.s - src.modulo
-            } else {
-                src.s + src.modulo
-            }
-        } else {
-            src.s
+    fn from(mut src: InvertRef) -> Self {
+        unsafe {
+            mpz_invert_ref(src.sinverse.inner_mut(), &src.sinverse, src.modulo);
         }
+        src.sinverse
     }
 }
 
