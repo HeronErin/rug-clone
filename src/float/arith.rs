@@ -81,7 +81,7 @@ impl<'a> AssignRound<NegRef<'a>> for Float {
 }
 
 macro_rules! arith_binary_self_float {
-    {
+    (
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
@@ -89,7 +89,7 @@ macro_rules! arith_binary_self_float {
         $ImpFrom:ident $method_from:ident;
         $ImpFromRound:ident $method_from_round:ident;
         $Ref:ident
-    } => {
+    ) => {
         arith_binary_self_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
@@ -100,19 +100,19 @@ macro_rules! arith_binary_self_float {
             $ImpFromRound $method_from_round;
             $Ref
         }
-    }
+    };
 }
 
 #[cfg(feature = "integer")]
 macro_rules! arith_forward_float {
-    {
+    (
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
         $ImpAssignRound:ident $method_assign_round:ident;
         $T:ty;
         $Ref:ident $OwnedRef:ident
-    } => {
+    ) => {
         arith_forward_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
@@ -122,12 +122,12 @@ macro_rules! arith_forward_float {
             $T;
             $Ref $OwnedRef
         }
-    }
+    };
 }
 
 #[cfg(feature = "integer")]
 macro_rules! arith_commut_float {
-    {
+    (
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
@@ -136,7 +136,7 @@ macro_rules! arith_commut_float {
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $OwnedRef:ident
-    } => {
+    ) => {
         arith_commut_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
@@ -148,12 +148,12 @@ macro_rules! arith_commut_float {
             $T;
             $Ref $OwnedRef
         }
-    }
+    };
 }
 
 #[cfg(feature = "integer")]
 macro_rules! arith_noncommut_float {
-    {
+    (
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
@@ -162,7 +162,7 @@ macro_rules! arith_noncommut_float {
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $FromRef:ident $OwnedRef:ident $FromOwnedRef:ident
-    } => {
+    ) => {
         arith_noncommut_round! {
             Float, Round => Ordering;
             $func, $func_from, raw_round => ordering1;
@@ -174,7 +174,7 @@ macro_rules! arith_noncommut_float {
             $T;
             $Ref $FromRef $OwnedRef $FromOwnedRef
         }
-    }
+    };
 }
 
 arith_binary_self_float! {
@@ -325,13 +325,13 @@ arith_noncommut_float! {
 }
 
 macro_rules! arith_prim_exact_float {
-    {
+    (
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
         $T:ty;
         $Ref:ident
-    } => {
+    ) => {
         arith_prim_exact_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
@@ -340,11 +340,11 @@ macro_rules! arith_prim_exact_float {
             $T;
             $Ref
         }
-    }
+    };
 }
 
 macro_rules! arith_prim_commut_float {
-    {
+    (
         $func:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
@@ -353,7 +353,7 @@ macro_rules! arith_prim_commut_float {
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident
-    } => {
+    ) => {
         arith_prim_commut_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
@@ -365,11 +365,11 @@ macro_rules! arith_prim_commut_float {
             $T;
             $Ref
         }
-    }
+    };
 }
 
 macro_rules! arith_prim_noncommut_float {
-    {
+    (
         $func:path, $func_from:path;
         $Imp:ident $method:ident;
         $ImpAssign:ident $method_assign:ident;
@@ -378,7 +378,7 @@ macro_rules! arith_prim_noncommut_float {
         $ImpFromRound:ident $method_from_round:ident;
         $T:ty;
         $Ref:ident $FromRef:ident
-    } => {
+    ) => {
         arith_prim_noncommut_round! {
             Float, Round => Ordering;
             $func, $func_from, raw_round => ordering1;
@@ -390,11 +390,11 @@ macro_rules! arith_prim_noncommut_float {
             $T;
             $Ref $FromRef
         }
-    }
+    };
 }
 
 macro_rules! arith_ops {
-    {
+    (
         $T:ty,
         ($AddRef:ident $add:path,
          $SubRef:ident $sub:path,
@@ -402,7 +402,7 @@ macro_rules! arith_ops {
         ($MulRef:ident $mul:path,
          $DivRef:ident $div: path,
          $DivFromRef:ident $div_from:path)
-    } => {
+    ) => {
         arith_prim_commut_float! {
             $add;
             Add add;
@@ -443,7 +443,7 @@ macro_rules! arith_ops {
             $T;
             $DivRef $DivFromRef
         }
-    }
+    };
 }
 
 arith_ops! {

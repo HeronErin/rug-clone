@@ -32,7 +32,7 @@ use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
 // Ref -> Big
 // big = Ref
 macro_rules! div_op {
-    {
+    (
         $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
         $Imp:ident $trunc:ident $ceil:ident $floor:ident $euc:ident;
         $ImpAssign:ident
@@ -46,7 +46,7 @@ macro_rules! div_op {
             $floor_from:ident
             $euc_from:ident;
         $Ref:ident
-    } => {
+    ) => {
         impl $Imp for Integer {
             type Output = Integer;
             #[inline]
@@ -282,7 +282,7 @@ macro_rules! div_op {
                 dst
             }
         }
-    }
+    };
 }
 
 // big / prim -> Big
@@ -304,7 +304,7 @@ macro_rules! div_op {
 // FromRef -> Big
 // big = FromRef
 macro_rules! div_prim {
-    {
+    (
         $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
         $trunc_from_fn:path,
         $ceil_from_fn:path,
@@ -323,7 +323,7 @@ macro_rules! div_prim {
             $euc_from:ident;
         $T:ty;
         $Ref:ident $FromRef:ident
-    } => {
+    ) => {
         impl $Imp<$T> for Integer {
             type Output = Integer;
             #[inline]
@@ -677,7 +677,7 @@ macro_rules! div_prim {
                 dst
             }
         }
-    }
+    };
 }
 
 div_op! {

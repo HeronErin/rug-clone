@@ -67,7 +67,7 @@ impl PartialOrd for Float {
 }
 
 macro_rules! cmp {
-    { $T:ty } => {
+    ( $T:ty ) => {
         impl PartialEq<$T> for Float {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -91,11 +91,11 @@ macro_rules! cmp {
                     .map(Ordering::reverse)
             }
         }
-    }
+    };
 }
 
 macro_rules! cmp_i {
-    { $T:ty, $eval:expr } => {
+    ( $T:ty, $eval:expr ) => {
         cmp! { $T }
 
         impl PartialOrd<$T> for Float {
@@ -108,11 +108,11 @@ macro_rules! cmp_i {
                 }
             }
         }
-    }
+    };
 }
 
 macro_rules! cmp_f {
-    { $T:ty, $eval:expr } => {
+    ( $T:ty, $eval:expr ) => {
         cmp! { $T }
 
         impl PartialOrd<$T> for Float {
@@ -125,7 +125,7 @@ macro_rules! cmp_f {
                 }
             }
         }
-    }
+    };
 }
 
 #[cfg(feature = "integer")]

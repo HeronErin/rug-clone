@@ -23,7 +23,7 @@ use std::borrow::Cow;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 
 macro_rules! assign_from {
-    { $T:ty; $op:ident; $Imp:ident $method:ident } => {
+    ( $T:ty; $op:ident; $Imp:ident $method:ident ) => {
         impl $Imp for $T {
             #[inline]
             fn $method(&mut self, lhs: $T) {
@@ -36,10 +36,10 @@ macro_rules! assign_from {
                 *self = (*lhs).$op(*self);
             }
         }
-    }
+    };
 }
 macro_rules! int_ops {
-    { $($T:ty)* } => {
+    ( $($T:ty)* ) => {
         $(
             impl Assign for $T {
                 #[inline]
@@ -110,10 +110,10 @@ macro_rules! int_ops {
             assign_from! { $T; shl; ShlFrom shl_from }
             assign_from! { $T; shr; ShrFrom shr_from }
         )*
-    }
+    };
 }
 macro_rules! int_neg {
-    { $($T:ty)* } => {
+    ( $($T:ty)* ) => {
         $(
             impl NegAssign for $T {
                 #[inline]
@@ -122,10 +122,10 @@ macro_rules! int_neg {
                 }
             }
         )*
-    }
+    };
 }
 macro_rules! float_ops {
-    { $($T:ty)* } => {
+    ( $($T:ty)* ) => {
         $(
             impl Assign for $T {
                 #[inline]
@@ -225,11 +225,11 @@ macro_rules! float_ops {
             assign_from!{ $T; div; DivFrom div_from }
             assign_from!{ $T; pow; PowFrom pow_from }
         )*
-    }
+    };
 }
 
 macro_rules! div_signed {
-    { $($T:ty)* } => {
+    ( $($T:ty)* ) => {
         $(
             impl DivRounding for $T {
                 type Output = $T;
@@ -505,7 +505,7 @@ macro_rules! div_signed {
                 }
             }
         )*
-    }
+    };
 }
 
 int_ops!{ i8 i16 i32 i64 isize u8 u16 u32 u64 usize }

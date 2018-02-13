@@ -165,7 +165,7 @@ fn small_new() -> SmallFloat {
 }
 
 macro_rules! small_from_assign {
-    { $Src:ty } => {
+    ( $Src:ty ) => {
         impl<'r> From<$Src> for SmallFloat {
             #[inline]
             fn from(src: $Src) -> Self {
@@ -174,11 +174,11 @@ macro_rules! small_from_assign {
                 dst
             }
         }
-    }
+    };
 }
 
 macro_rules! signed {
-    { $I:ty, $U:ty } => {
+    ( $I:ty, $U:ty ) => {
         impl Assign<$I> for SmallFloat {
             #[inline]
             fn assign(&mut self, val: $I) {
@@ -194,7 +194,7 @@ macro_rules! signed {
 }
 
 macro_rules! unsigned_32 {
-    { $U:ty, $bits:expr } => {
+    ( $U:ty, $bits:expr ) => {
         impl Assign<$U> for SmallFloat {
             fn assign(&mut self, val: $U) {
                 self.update_d();

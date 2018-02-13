@@ -46,7 +46,7 @@ impl PartialOrd for Integer {
 }
 
 macro_rules! cmp {
-    { $T:ty, $func:path } => {
+    ( $T:ty, $func:path ) => {
         impl PartialEq<$T> for Integer {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -82,7 +82,7 @@ macro_rules! cmp {
 }
 
 macro_rules! cmp_cast {
-    { $New:ty, $Existing:ty } => {
+    ( $New:ty, $Existing:ty ) => {
         impl PartialEq<$New> for Integer {
             #[inline]
             fn eq(&self, other: &$New) -> bool {
@@ -122,7 +122,7 @@ macro_rules! cmp_cast {
                 ).map(Ordering::reverse)
             }
         }
-    }
+    };
 }
 
 cmp_cast! { i8, i32 }

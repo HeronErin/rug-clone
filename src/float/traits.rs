@@ -304,7 +304,7 @@ impl<'a> AssignRound<&'a Float> for Float {
 
 #[cfg(feature = "integer")]
 macro_rules! assign {
-    { $T:ty, $func:path } => {
+    ( $T:ty, $func:path ) => {
         impl<'a> AssignRound<&'a $T> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -334,7 +334,7 @@ assign! { Integer, mpfr::set_z }
 assign! { Rational, mpfr::set_q }
 
 macro_rules! conv_ops {
-    { $T:ty, $set:path } => {
+    ( $T:ty, $set:path ) => {
         impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -348,11 +348,11 @@ macro_rules! conv_ops {
         }
 
         assign_round_deref!{ $T => Float }
-    }
+    };
 }
 
 macro_rules! conv_ops_cast {
-    { $New:ty, $Existing:ty } => {
+    ( $New:ty, $Existing:ty ) => {
         impl AssignRound<$New> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -367,7 +367,7 @@ macro_rules! conv_ops_cast {
         }
 
         assign_round_deref!{ $New => Float }
-    }
+    };
 }
 
 conv_ops!{ i8, mpfr::set_si }

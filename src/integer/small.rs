@@ -172,7 +172,7 @@ impl Deref for SmallInteger {
 }
 
 macro_rules! signed {
-    { $I:ty, $U:ty } => {
+    ( $I:ty, $U:ty ) => {
         impl Assign<$I> for SmallInteger {
             #[inline]
             fn assign(&mut self, val: $I) {
@@ -184,11 +184,11 @@ macro_rules! signed {
         }
 
         from_assign! { $I => SmallInteger }
-    }
+    };
 }
 
 macro_rules! one_limb {
-    { $U:ty } => {
+    ( $U:ty ) => {
         impl Assign<$U> for SmallInteger {
             #[inline]
             fn assign(&mut self, val: $U) {
@@ -205,7 +205,7 @@ macro_rules! one_limb {
         }
 
         from_assign! { $U => SmallInteger }
-    }
+    };
 }
 
 signed! { i8, u8 }

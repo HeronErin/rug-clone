@@ -149,22 +149,22 @@ pub struct Complex {
 }
 
 macro_rules! ref_math_op0_complex {
-    {
+    (
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Ref:ident { $($param:ident: $T:ty),* }
-    } => {
+    ) => {
         ref_math_op0_round! {
             Complex, Round2 => Ordering2;
             $func, raw_round2 => ordering2;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
-    }
+    };
 }
 
 macro_rules! math_op1_complex {
-    {
+    (
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
@@ -174,7 +174,7 @@ macro_rules! math_op1_complex {
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-    } => {
+    ) => {
         math_op1_round! {
             Round2 => Ordering2;
             $func, raw_round2 => ordering2;
@@ -187,26 +187,26 @@ macro_rules! math_op1_complex {
             $(#[$attr_ref])*
             fn $method_ref -> $Ref;
         }
-    }
+    };
 }
 
 macro_rules! ref_math_op1_complex {
-    {
+    (
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Ref:ident { $($param:ident: $T:ty),* }
-    } => {
+    ) => {
         ref_math_op1_round! {
             Complex, Round2 => Ordering2;
             $func, raw_round2 => ordering2;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
-    }
+    };
 }
 
 macro_rules! math_op1_2_complex {
-    {
+    (
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
@@ -216,7 +216,7 @@ macro_rules! math_op1_2_complex {
         fn $method_round:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-    } => {
+    ) => {
         math_op1_2_round! {
             Round2 => (Ordering2, Ordering2);
             $func, raw_round2, raw_round2 => ordering4;
@@ -229,22 +229,22 @@ macro_rules! math_op1_2_complex {
             $(#[$attr_ref])*
             fn $method_ref -> $Ref;
         }
-    }
+    };
 }
 
 macro_rules! ref_math_op1_2_complex {
-    {
+    (
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Ref:ident { $($param:ident: $T:ty),* }
-    } => {
+    ) => {
         ref_math_op1_2_round! {
             Complex, Round2 => (Ordering2, Ordering2);
             $func, raw_round2, raw_round2 => ordering4;
             $(#[$attr_ref])*
             struct $Ref { $($param: $T),* }
         }
-    }
+    };
 }
 
 impl Complex {
@@ -3562,7 +3562,7 @@ macro_rules! parse_error {
         Err(ParseComplexError {
             kind: $kind
         })
-    }
+    };
 }
 
 fn parse(

@@ -83,7 +83,7 @@ pub struct Rational {
 }
 
 macro_rules! rat_op_int {
-    {
+    (
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
@@ -91,7 +91,7 @@ macro_rules! rat_op_int {
         fn $method_mut:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-    } => {
+    ) => {
         $(#[$attr])*
         #[inline]
         pub fn $method(mut self, $($param: $T),*) -> Integer {
@@ -122,15 +122,15 @@ macro_rules! rat_op_int {
                 $($param,)*
             }
         }
-    }
+    };
 }
 
 macro_rules! ref_rat_op_int {
-    {
+    (
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Ref:ident { $($param:ident: $T:ty),* }
-    } => {
+    ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
         pub struct $Ref<'a> {
@@ -152,11 +152,11 @@ macro_rules! ref_rat_op_int {
         }
 
         from_assign! { $Ref<'r> => Integer }
-    }
+    };
 }
 
 macro_rules! rat_op_rat_int {
-    {
+    (
         $func:path;
         $(#[$attr:meta])*
         fn $method:ident($int:ident $(, $param:ident: $T:ty),*);
@@ -164,7 +164,7 @@ macro_rules! rat_op_rat_int {
         fn $method_mut:ident;
         $(#[$attr_ref:meta])*
         fn $method_ref:ident -> $Ref:ident;
-    } => {
+    ) => {
         $(#[$attr])*
         #[inline]
         pub fn $method(
@@ -197,15 +197,15 @@ macro_rules! rat_op_rat_int {
                 $($param,)*
             }
         }
-    }
+    };
 }
 
 macro_rules! ref_rat_op_rat_int {
-    {
+    (
         $func:path;
         $(#[$attr_ref:meta])*
         struct $Ref:ident { $($param:ident: $T:ty),* }
-    } => {
+    ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
         pub struct $Ref<'a> {
@@ -237,7 +237,7 @@ macro_rules! ref_rat_op_rat_int {
                 dst
             }
         }
-    }
+    };
 }
 
 impl Rational {

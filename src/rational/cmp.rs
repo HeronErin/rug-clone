@@ -82,7 +82,7 @@ impl PartialOrd<Rational> for Integer {
 }
 
 macro_rules! cmp {
-    { $T:ty, $cmp:path } => {
+    ( $T:ty, $cmp:path ) => {
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -112,7 +112,7 @@ macro_rules! cmp {
                     .map(Ordering::reverse)
             }
         }
-    }
+    };
 }
 
 cmp! { i8, gmp::mpq_cmp_si }
@@ -134,7 +134,7 @@ cmp! { usize, gmp::mpq_cmp_ui }
 cmp! { usize, xgmp::mpq_cmp_u64 }
 
 macro_rules! cross {
-    { $Num:ty; $Den:ty } => {
+    ( $Num:ty; $Den:ty ) => {
         impl PartialEq<($Num, $Den)> for Rational {
             #[inline]
             fn eq(&self, other: &($Num, $Den)) -> bool {
@@ -165,16 +165,16 @@ macro_rules! cross {
                 )
             }
         }
-    }
+    };
 }
 
 // (Major, Major), (Major, Minor*), (Minor*, Major)
 macro_rules! matrix {
-    { $Major:ty $(; $Minor:ty)* } => {
+    ( $Major:ty $(; $Minor:ty)* ) => {
         cross! { $Major; $Major }
         $( cross! { $Major; $Minor } )*
         $( cross! { $Minor; $Major } )*
-    }
+    };
 }
 
 matrix! { u8 }
@@ -190,7 +190,7 @@ matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
 
 #[cfg(feature = "float")]
 macro_rules! cmp_f {
-    { $T:ty } => {
+    ( $T:ty ) => {
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -230,7 +230,7 @@ macro_rules! cmp_f {
                 )
             }
         }
-    }
+    };
 }
 
 #[cfg(feature = "float")]

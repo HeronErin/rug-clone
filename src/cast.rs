@@ -68,7 +68,7 @@ where
 }
 
 macro_rules! cast_int_to_int {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl Cast<$Dst> for $Src {
             #[inline]
             fn cast(self) -> $Dst {
@@ -76,11 +76,11 @@ macro_rules! cast_int_to_int {
                     .expect("overflow")
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! cast_float_to_int {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl Cast<$Dst> for $Src {
             #[inline]
             fn cast(self) -> $Dst {
@@ -89,11 +89,11 @@ macro_rules! cast_float_to_int {
                     .expect("overflow")
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! cast_as {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl Cast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -101,23 +101,23 @@ macro_rules! cast_as {
                 self as $Dst
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! cast_int {
-    { $($Src:ty)* } => { $(
+    ( $($Src:ty)* ) => { $(
         cast_int_to_int! { $Src => i8 i16 i32 i64 isize }
         cast_int_to_int! { $Src => u8 u16 u32 u64 usize }
         cast_as! { $Src => f32 f64 }
-    )* }
+    )* };
 }
 
 macro_rules! cast_float {
-    { $($Src:ty)* } => { $(
+    ( $($Src:ty)* ) => { $(
         cast_float_to_int! { $Src => i8 i16 i32 i64 isize }
         cast_float_to_int! { $Src => u8 u16 u32 u64 usize }
         cast_as! { $Src => f32 f64 }
-    )* }
+    )* };
 }
 
 cast_int! { i8 i16 i32 i64 isize }
@@ -125,7 +125,7 @@ cast_int! { u8 u16 u32 u64 usize }
 cast_float! { f32 f64 }
 
 macro_rules! checked_same_signedness {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -138,11 +138,11 @@ macro_rules! checked_same_signedness {
                 }
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! checked_signed_to_unsigned {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -155,11 +155,11 @@ macro_rules! checked_signed_to_unsigned {
                 }
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! checked_unsigned_to_signed {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -172,11 +172,11 @@ macro_rules! checked_unsigned_to_signed {
                 }
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! checked_float_via {
-    { $Src:ty, $ViaU:ty, $ViaI:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty, $ViaU:ty, $ViaI:ty => $($Dst:ty)* ) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -197,11 +197,11 @@ macro_rules! checked_float_via {
                 }
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! checked_as {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -209,27 +209,27 @@ macro_rules! checked_as {
                 Some(self as $Dst)
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! checked_signed {
-    { $($Src:ty)* } => { $(
+    ( $($Src:ty)* ) => { $(
         checked_same_signedness! { $Src => i8 i16 i32 i64 isize }
         checked_signed_to_unsigned! { $Src => u8 u16 u32 u64 usize }
         checked_as! { $Src => f32 f64 }
-    )* }
+    )* };
 }
 
 macro_rules! checked_unsigned {
-    { $($Src:ty)* } => { $(
+    ( $($Src:ty)* ) => { $(
         checked_unsigned_to_signed! { $Src => i8 i16 i32 i64 isize }
         checked_same_signedness! { $Src => u8 u16 u32 u64 usize }
         checked_as! { $Src => f32 f64 }
-    )* }
+    )* };
 }
 
 macro_rules! checked_float {
-    { $Src:ty, $ViaU32:ty, $ViaI32:ty, $ViaU64:ty, $ViaI64:ty } => {
+    ( $Src:ty, $ViaU32:ty, $ViaI32:ty, $ViaU64:ty, $ViaI64:ty ) => {
         checked_float_via! {$Src, $ViaU32, $ViaI32 => i8 i16 i32 }
         checked_float_via! {$Src, $ViaU64, $ViaI64 => i64 }
         #[cfg(target_pointer_width = "32")]
@@ -243,7 +243,7 @@ macro_rules! checked_float {
         #[cfg(target_pointer_width = "64")]
         checked_float_via! { $Src, $ViaU64, $ViaI64 => usize }
         checked_as! { $Src => f32 f64 }
-    }
+    };
 }
 
 checked_signed! { i8 i16 i32 i64 isize }
@@ -252,7 +252,7 @@ checked_float! { f32, u32, i32, u64, i64 }
 checked_float! { f64, u64, i64, u64, i64 }
 
 macro_rules! wrapping_as {
-    { $Src:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty => $($Dst:ty)* ) => { $(
         impl WrappingCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -260,11 +260,11 @@ macro_rules! wrapping_as {
                 self as $Dst
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! wrapping_float_via {
-    { $Src:ty, $Via:ty => $($Dst:ty)* } => { $(
+    ( $Src:ty, $Via:ty => $($Dst:ty)* ) => { $(
         impl WrappingCast<$Dst> for $Src {
             #[inline]
             fn wrapping_cast(self) -> $Dst {
@@ -274,19 +274,19 @@ macro_rules! wrapping_float_via {
                 n as $Dst
             }
         }
-    )* }
+    )* };
 }
 
 macro_rules! wrapping_int {
-    { $($Src:ty)* } => { $(
+    ( $($Src:ty)* ) => { $(
         wrapping_as! { $Src => i8 i16 i32 i64 isize }
         wrapping_as! { $Src => u8 u16 u32 u64 usize }
         wrapping_as! { $Src => f32 f64 }
-    )* }
+    )* };
 }
 
 macro_rules! wrapping_float {
-    { $Src:ty, $Via32:ty, $Via64:ty } => {
+    ( $Src:ty, $Via32:ty, $Via64:ty ) => {
         wrapping_float_via! { $Src, $Via32 => i8 i16 i32 }
         wrapping_float_via! { $Src, $Via64 => i64 }
         #[cfg(target_pointer_width = "32")]
@@ -300,7 +300,7 @@ macro_rules! wrapping_float {
         #[cfg(target_pointer_width = "64")]
         wrapping_float_via! { $Src, $Via64 => usize }
         wrapping_as! { $Src => f32 f64 }
-    }
+    };
 }
 
 wrapping_int! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
@@ -328,10 +328,10 @@ impl YesNo for () {
 }
 
 macro_rules! from_for_float {
-    {
+    (
         $Src:ty, $Uns:ty, $exp_bits:expr, $mant_bits:expr;
         $($Fit:ty, $Dst:ty, $dst_bits:expr);*
-    } => { $(
+    ) => { $(
         impl From<$Src> for Float<$Dst, $Fit> {
             fn from(src: $Src) -> Self {
                 const EXP_BITS: i32 = $exp_bits;
@@ -389,7 +389,7 @@ macro_rules! from_for_float {
                 Float { neg, fits, wrapped }
             }
         }
-    )* }
+    )* };
 }
 
 from_for_float! {
