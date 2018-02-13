@@ -511,41 +511,6 @@ macro_rules! rounding_unsigned {
             div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign,
             div_trunc_from div_ceil_from div_floor_from div_euc_from
         }
-
-        impl RemRounding for $T {
-            type Output = $T;
-            #[inline]
-            fn rem_trunc(self, rhs: $T) -> $T {
-                self % rhs
-            }
-            #[inline]
-            fn rem_ceil(self, rhs: $T) -> $T {
-                let r = self % rhs;
-                // actual remainder is r - rhs, but we need to return unsigned
-                if r > 0 {
-                    rhs - r
-                } else {
-                    0
-                }
-            }
-            #[inline]
-            fn rem_floor(self, rhs: $T) -> $T {
-                self % rhs
-            }
-            #[inline]
-            fn rem_euc(self, rhs: $T) -> $T {
-                self % rhs
-            }
-        }
-
-        rounding_fill! {
-            $T,
-            RemRounding RemRoundingAssign RemRoundingFrom,
-            rem_trunc rem_ceil rem_floor rem_euc,
-            rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign,
-            rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from
-        }
-
     )* };
 }
 
@@ -554,9 +519,16 @@ int_neg!{ i8 i16 i32 i64 isize }
 assign_from! { u32; pow; PowFrom pow_from }
 float_ops!{ f32 f64 }
 
-// For unsigned primitives, rem_ceil returns the absolute value of the
-// remainder.
 rounding_signed!{ i8 i16 i32 i64 isize }
+
+// For unsigned primitives, RemRounding is not implemented. Ignoring
+// the issue that we cannot have negative numbers, if r == n % d then
+//
+// n.rem_trunc(d) -> r
+// n.rem_ceil(d) -> if r > 0 { r - d } else { 0 }
+// n.rem_floor(d) -> r
+// n.rem_eud(d) -> r
+
 rounding_unsigned!{ u8 u16 u32 u64 usize }
 
 impl<'a> AddFrom<&'a str> for String {
