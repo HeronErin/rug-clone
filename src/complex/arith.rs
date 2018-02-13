@@ -73,13 +73,13 @@ impl<'a> AssignRound<NegRef<'a>> for Complex {
 
 macro_rules! arith_binary_self_complex {
     (
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $Ref:ident
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $Ref: ident
     ) => {
         arith_binary_self_round! {
             Complex, Round2 => Ordering2;
@@ -96,12 +96,12 @@ macro_rules! arith_binary_self_complex {
 
 macro_rules! arith_forward_complex {
     (
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident $OwnedRef:ident
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $T: ty;
+        $Ref: ident $OwnedRef: ident
     ) => {
         arith_forward_round! {
             Complex, Round2 => Ordering2;
@@ -117,14 +117,14 @@ macro_rules! arith_forward_complex {
 
 macro_rules! arith_commut_complex {
     (
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident $OwnedRef:ident
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident $OwnedRef: ident
     ) => {
         arith_commut_round! {
             Complex, Round2 => Ordering2;
@@ -142,14 +142,14 @@ macro_rules! arith_commut_complex {
 
 macro_rules! arith_noncommut_complex {
     (
-        $func:path, $func_from:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident $FromRef:ident $OwnedRef:ident $FromOwnedRef:ident
+        $func: path, $func_from: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident $FromRef: ident $OwnedRef: ident $FromOwnedRef: ident
     ) => {
         arith_noncommut_round! {
             Complex, Round2 => Ordering2;
@@ -271,12 +271,12 @@ arith_forward_complex! {
 
 macro_rules! arith_prim_complex {
     (
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         arith_prim_round! {
             Complex, Round2 => Ordering2;
@@ -292,11 +292,11 @@ macro_rules! arith_prim_complex {
 
 macro_rules! arith_prim_exact_complex {
     (
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $T:ty;
-        $Ref:ident
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         arith_prim_exact_round! {
             Complex, Round2 => Ordering2;
@@ -311,14 +311,14 @@ macro_rules! arith_prim_exact_complex {
 
 macro_rules! arith_prim_commut_complex {
     (
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         arith_prim_commut_round! {
             Complex, Round2 => Ordering2;
@@ -336,14 +336,14 @@ macro_rules! arith_prim_commut_complex {
 
 macro_rules! arith_prim_noncommut_complex {
     (
-        $func:path, $func_from:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident $FromRef:ident
+        $func: path, $func_from: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident $FromRef: ident
     ) => {
         arith_prim_noncommut_round! {
             Complex, Round2 => Ordering2;

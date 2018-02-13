@@ -33,19 +33,19 @@ use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
 // big = Ref
 macro_rules! div_op {
     (
-        $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
-        $Imp:ident $trunc:ident $ceil:ident $floor:ident $euc:ident;
-        $ImpAssign:ident
-            $trunc_assign:ident
-            $ceil_assign:ident
-            $floor_assign:ident
-            $euc_assign:ident;
-        $ImpFrom:ident
-            $trunc_from:ident
-            $ceil_from:ident
-            $floor_from:ident
-            $euc_from:ident;
-        $Ref:ident
+        $trunc_fn: path, $ceil_fn: path, $floor_fn: path, $euc_fn: path;
+        $Imp: ident $trunc: ident $ceil: ident $floor: ident $euc: ident;
+        $ImpAssign: ident
+            $trunc_assign: ident
+            $ceil_assign: ident
+            $floor_assign: ident
+            $euc_assign: ident;
+        $ImpFrom: ident
+            $trunc_from: ident
+            $ceil_from: ident
+            $floor_from: ident
+            $euc_from: ident;
+        $Ref: ident
     ) => {
         impl $Imp for Integer {
             type Output = Integer;
@@ -305,24 +305,24 @@ macro_rules! div_op {
 // big = FromRef
 macro_rules! div_prim {
     (
-        $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
-        $trunc_from_fn:path,
-        $ceil_from_fn:path,
-        $floor_from_fn:path,
-        $euc_from_fn:path;
-        $Imp:ident $trunc:ident $ceil:ident $floor:ident $euc:ident;
-        $ImpAssign:ident
-            $trunc_assign:ident
-            $ceil_assign:ident
-            $floor_assign:ident
-            $euc_assign:ident;
-        $ImpFrom:ident
-            $trunc_from:ident
-            $ceil_from:ident
-            $floor_from:ident
-            $euc_from:ident;
-        $T:ty;
-        $Ref:ident $FromRef:ident
+        $trunc_fn: path, $ceil_fn: path, $floor_fn: path, $euc_fn: path;
+        $trunc_from_fn: path,
+        $ceil_from_fn: path,
+        $floor_from_fn: path,
+        $euc_from_fn: path;
+        $Imp: ident $trunc: ident $ceil: ident $floor: ident $euc: ident;
+        $ImpAssign: ident
+            $trunc_assign: ident
+            $ceil_assign: ident
+            $floor_assign: ident
+            $euc_assign: ident;
+        $ImpFrom: ident
+            $trunc_from: ident
+            $ceil_from: ident
+            $floor_from: ident
+            $euc_from: ident;
+        $T: ty;
+        $Ref: ident $FromRef: ident
     ) => {
         impl $Imp<$T> for Integer {
             type Output = Integer;

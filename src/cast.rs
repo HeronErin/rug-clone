@@ -229,7 +229,7 @@ macro_rules! checked_unsigned {
 }
 
 macro_rules! checked_float {
-    ( $Src:ty, $ViaU32:ty, $ViaI32:ty, $ViaU64:ty, $ViaI64:ty ) => {
+    ($Src: ty, $ViaU32: ty, $ViaI32: ty, $ViaU64: ty, $ViaI64: ty) => {
         checked_float_via! {$Src, $ViaU32, $ViaI32 => i8 i16 i32 }
         checked_float_via! {$Src, $ViaU64, $ViaI64 => i64 }
         #[cfg(target_pointer_width = "32")]
@@ -286,7 +286,7 @@ macro_rules! wrapping_int {
 }
 
 macro_rules! wrapping_float {
-    ( $Src:ty, $Via32:ty, $Via64:ty ) => {
+    ($Src: ty, $Via32: ty, $Via64: ty) => {
         wrapping_float_via! { $Src, $Via32 => i8 i16 i32 }
         wrapping_float_via! { $Src, $Via64 => i64 }
         #[cfg(target_pointer_width = "32")]

@@ -304,7 +304,7 @@ impl<'a> AssignRound<&'a Float> for Float {
 
 #[cfg(feature = "integer")]
 macro_rules! assign {
-    ( $T:ty, $func:path ) => {
+    ($T: ty, $func: path) => {
         impl<'a> AssignRound<&'a $T> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -321,7 +321,7 @@ macro_rules! assign {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $T, round: Round,) -> Ordering {
+            fn assign_round(&mut self, src: $T, round: Round) -> Ordering {
                 <Float as AssignRound<&$T>>::assign_round(self, &src, round)
             }
         }
@@ -334,12 +334,12 @@ assign! { Integer, mpfr::set_z }
 assign! { Rational, mpfr::set_q }
 
 macro_rules! conv_ops {
-    ( $T:ty, $set:path ) => {
+    ($T: ty, $set: path) => {
         impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $T, round: Round,) -> Ordering {
+            fn assign_round(&mut self, src: $T, round: Round) -> Ordering {
                 let ret = unsafe {
                     $set(self.inner_mut(), src.into(), raw_round(round))
                 };
@@ -352,16 +352,16 @@ macro_rules! conv_ops {
 }
 
 macro_rules! conv_ops_cast {
-    ( $New:ty, $Existing:ty ) => {
+    ($New: ty, $Existing: ty) => {
         impl AssignRound<$New> for Float {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $New, round: Round,) -> Ordering {
+            fn assign_round(&mut self, src: $New, round: Round) -> Ordering {
                 <Float as AssignRound<$Existing>>::assign_round(
                     self,
                     cast(src),
-                    round
+                    round,
                 )
             }
         }

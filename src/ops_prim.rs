@@ -23,7 +23,7 @@ use std::borrow::Cow;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 
 macro_rules! assign_from {
-    ( $T:ty; $op:ident; $Imp:ident $method:ident ) => {
+    ($T: ty; $op: ident; $Imp: ident $method: ident) => {
         impl $Imp for $T {
             #[inline]
             fn $method(&mut self, lhs: $T) {

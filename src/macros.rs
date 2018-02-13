@@ -16,7 +16,7 @@
 
 #[cfg(feature = "integer")]
 macro_rules! assign_deref {
-    ( $Src:ty => $Dst:ty ) => {
+    ($Src: ty => $Dst: ty) => {
         impl<'a> Assign<&'a $Src> for $Dst {
             #[inline]
             fn assign(&mut self, src: &'a $Src) {
@@ -28,7 +28,7 @@ macro_rules! assign_deref {
 
 #[cfg(feature = "integer")]
 macro_rules! from_assign {
-    ( $Src:ty => $Dst:ty) => {
+    ($Src: ty => $Dst: ty) => {
         impl<'r> From<$Src> for $Dst {
             #[inline]
             fn from(src: $Src) -> Self {
@@ -39,7 +39,7 @@ macro_rules! from_assign {
         }
     };
 
-    ( $Src:ty => $Dst1:ty, $Dst2:ty) => {
+    ($Src: ty => $Dst1: ty, $Dst2: ty) => {
         impl<'r> From<$Src> for ($Dst1, $Dst2) {
             #[inline]
             fn from(src: $Src) -> Self {
@@ -53,7 +53,7 @@ macro_rules! from_assign {
         }
     };
 
-    ( $Src:ty => $Dst1:ty, $Dst2:ty, $Dst3: ty) => {
+    ($Src: ty => $Dst1: ty, $Dst2: ty, $Dst3: ty) => {
         impl<'r> From<$Src> for ($Dst1, $Dst2, $Dst3) {
             #[inline]
             fn from(src: $Src) -> Self {
@@ -72,8 +72,8 @@ macro_rules! from_assign {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! math_op0 {
     (
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*) -> $Src:ident;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*) -> $Src: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -91,10 +91,10 @@ macro_rules! math_op0 {
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op0 {
     (
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Src:ident { $($param:ident: $T:ty),* }
+        $Big: ty;
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Src: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -121,10 +121,10 @@ macro_rules! ref_math_op0 {
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op0_2 {
     (
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Src:ident { $($param:ident: $T:ty),* }
+        $Big: ty;
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Src: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -155,13 +155,13 @@ macro_rules! ref_math_op0_2 {
 #[cfg(feature = "integer")]
 macro_rules! math_op1 {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -195,10 +195,10 @@ macro_rules! math_op1 {
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op1 {
     (
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $Big: ty;
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -230,13 +230,13 @@ macro_rules! ref_math_op1 {
 #[cfg(feature = "integer")]
 macro_rules! math_op1_2 {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($rop: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -282,10 +282,10 @@ macro_rules! math_op1_2 {
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op1_2 {
     (
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $Big: ty;
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -318,13 +318,13 @@ macro_rules! ref_math_op1_2 {
 #[cfg(feature = "integer")]
 macro_rules! math_op2 {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($op: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -368,10 +368,10 @@ macro_rules! math_op2 {
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2 {
     (
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
+        $Big: ty;
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $op: ident $(, $param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -405,13 +405,13 @@ macro_rules! ref_math_op2 {
 #[cfg(feature = "integer")]
 macro_rules! math_op2_2 {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($op: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -460,10 +460,10 @@ macro_rules! math_op2_2 {
 #[cfg(feature = "integer")]
 macro_rules! ref_math_op2_2 {
     (
-        $Big:ty;
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
+        $Big: ty;
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $op: ident $(, $param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -498,13 +498,13 @@ macro_rules! ref_math_op2_2 {
 #[cfg(feature = "integer")]
 macro_rules! math_op2_3 {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident, $rop: ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($op: ident, $rop: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -563,11 +563,11 @@ macro_rules! math_op2_3 {
 #[cfg(feature = "integer")]
 macro_rules! arith_unary {
     (
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $Ref:ident
+        $Big: ty;
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $Ref: ident
     ) => {
         impl $Imp for $Big {
             type Output = $Big;
@@ -627,12 +627,12 @@ macro_rules! arith_unary {
 #[cfg(feature = "integer")]
 macro_rules! arith_binary {
     (
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFrom:ident $method_from:ident;
-        $Ref:ident
+        $Big: ty;
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpFrom: ident $method_from: ident;
+        $Ref: ident
     ) => {
         impl $Imp<$Big> for $Big {
             type Output = $Big;
@@ -665,10 +665,7 @@ macro_rules! arith_binary {
             type Output = $Ref<'a>;
             #[inline]
             fn $method(self, rhs: &'a $Big) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+                $Ref { lhs: self, rhs }
             }
         }
 
@@ -735,12 +732,12 @@ macro_rules! arith_binary {
 #[cfg(feature = "integer")]
 macro_rules! arith_prim {
     (
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $T:ty;
-        $Ref:ident
+        $Big: ty;
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         impl $Imp<$T> for $Big {
             type Output = $Big;
@@ -764,10 +761,7 @@ macro_rules! arith_prim {
             type Output = $Ref<'b>;
             #[inline]
             fn $method(self, rhs: $T) -> $Ref<'b> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+                $Ref { lhs: self, rhs }
             }
         }
 
@@ -824,13 +818,13 @@ macro_rules! arith_prim {
 #[cfg(feature = "integer")]
 macro_rules! arith_prim_commut {
     (
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFrom:ident $method_from:ident;
-        $T:ty;
-        $Ref:ident
+        $Big: ty;
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpFrom: ident $method_from: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         arith_prim! {
             $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
@@ -899,13 +893,13 @@ macro_rules! arith_prim_commut {
 #[cfg(feature = "integer")]
 macro_rules! arith_prim_noncommut {
     (
-        $Big:ty;
-        $func:path, $func_from:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFrom:ident $method_from:ident;
-        $T:ty;
-        $Ref:ident $FromRef:ident
+        $Big: ty;
+        $func: path, $func_from: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpFrom: ident $method_from: ident;
+        $T: ty;
+        $Ref: ident $FromRef: ident
     ) => {
         arith_prim! {
             $Big; $func; $Imp $method; $ImpAssign $method_assign; $T; $Ref
@@ -924,10 +918,7 @@ macro_rules! arith_prim_noncommut {
             type Output = $FromRef<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> $FromRef<'b> {
-                $FromRef {
-                    lhs: self,
-                    rhs,
-                }
+                $FromRef { lhs: self, rhs }
             }
         }
 
@@ -977,7 +968,7 @@ macro_rules! arith_prim_noncommut {
                     $func_from(
                         self.inner_mut(),
                         src.lhs.into(),
-                        src.rhs.inner()
+                        src.rhs.inner(),
                     );
                 }
             }
@@ -996,12 +987,12 @@ macro_rules! arith_prim_noncommut {
 #[cfg(feature = "integer")]
 macro_rules! mul_op {
     (
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $Mul:ident, $rhs_method:ident;
-        $Ref:ident
+        $Big: ty;
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $Mul: ident, $rhs_method: ident;
+        $Ref: ident
     ) => {
         impl<'a> $Imp<$Mul<'a>> for $Big {
             type Output = $Big;
@@ -1016,14 +1007,11 @@ macro_rules! mul_op {
             type Output = $Ref<'a>;
             #[inline]
             fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+                $Ref { lhs: self, rhs }
             }
         }
 
-        impl<'a> $ImpAssign<$Mul<'a>> for $Big  {
+        impl<'a> $ImpAssign<$Mul<'a>> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $Mul) {
                 unsafe {
@@ -1061,13 +1049,13 @@ macro_rules! mul_op {
 #[cfg(feature = "integer")]
 macro_rules! mul_op_commut {
     (
-        $Big:ty;
-        $func:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFrom:ident $method_from:ident;
-        $Mul:ident, $rhs_method:ident;
-        $Ref:ident
+        $Big: ty;
+        $func: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpFrom: ident $method_from: ident;
+        $Mul: ident, $rhs_method: ident;
+        $Ref: ident
     ) => {
         mul_op! {
             $Big;
@@ -1114,13 +1102,13 @@ macro_rules! mul_op_commut {
 #[cfg(feature = "integer")]
 macro_rules! mul_op_noncommut {
     (
-        $Big:ty;
-        $func:path, $func_from:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpFrom:ident $method_from:ident;
-        $Mul:ident, $rhs_method:ident;
-        $Ref:ident $FromRef:ident
+        $Big: ty;
+        $func: path, $func_from: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpFrom: ident $method_from: ident;
+        $Mul: ident, $rhs_method: ident;
+        $Ref: ident $FromRef: ident
     ) => {
         mul_op! {
             $Big;
@@ -1144,10 +1132,7 @@ macro_rules! mul_op_noncommut {
             type Output = $FromRef<'a>;
             #[inline]
             fn $method(self, rhs: &'a $Big) -> $FromRef<'a> {
-                $FromRef {
-                    lhs: self,
-                    rhs,
-                }
+                $FromRef { lhs: self, rhs }
             }
         }
 
@@ -1158,7 +1143,7 @@ macro_rules! mul_op_noncommut {
                     $func_from(
                         self.inner_mut(),
                         lhs.lhs.inner(),
-                        lhs.rhs.$rhs_method()
+                        lhs.rhs.$rhs_method(),
                     );
                 }
             }
@@ -1184,7 +1169,7 @@ macro_rules! mul_op_noncommut {
 
 #[cfg(feature = "integer")]
 macro_rules! fold {
-    ( $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper:path ) => {
+    ($Big: ty, $Imp: ident $method: ident, $ident: expr, $oper: path) => {
         impl $Imp for $Big {
             fn $method<I>(mut iter: I) -> $Big
             where
@@ -1241,7 +1226,7 @@ macro_rules! fold {
 
 #[cfg(feature = "integer")]
 macro_rules! fold_in_place {
-    ( $Big:ty, $Imp:ident $method:ident, $ident:expr, $oper_assign:path ) => {
+    ($Big: ty, $Imp: ident $method: ident, $ident: expr, $op_assign: path) => {
         impl $Imp for $Big {
             fn $method<I>(mut iter: I) -> $Big
             where
@@ -1252,7 +1237,7 @@ macro_rules! fold_in_place {
                     None => return $ident,
                 };
                 while let Some(i) = iter.next() {
-                    $oper_assign(&mut acc, i);
+                    $op_assign(&mut acc, i);
                 }
                 acc
             }
@@ -1268,7 +1253,7 @@ macro_rules! fold_in_place {
                     None => return $ident,
                 };
                 while let Some(i) = iter.next() {
-                    $oper_assign(&mut acc, i);
+                    $op_assign(&mut acc, i);
                 }
                 acc
             }
@@ -1278,7 +1263,7 @@ macro_rules! fold_in_place {
 
 #[cfg(feature = "float")]
 macro_rules! assign_round_deref {
-    ( $Src:ty => $Dst:ty ) => {
+    ($Src: ty => $Dst: ty) => {
         impl<'a> AssignRound<&'a $Src> for $Dst {
             type Round = <$Dst as AssignRound<$Src>>::Round;
             type Ordering = <$Dst as AssignRound<$Src>>::Ordering;
@@ -1299,10 +1284,10 @@ macro_rules! assign_round_deref {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op0_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $(#[$attr_ref:meta])*
-        struct $Src:ident { $($param:ident: $T:ty),* }
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $(#[$attr_ref: meta])*
+        struct $Src: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -1335,16 +1320,16 @@ macro_rules! ref_math_op0_round {
 #[cfg(feature = "float")]
 macro_rules! math_op1_round {
     (
-        $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -1394,13 +1379,13 @@ macro_rules! math_op1_round {
 #[cfg(feature = "float")]
 macro_rules! math_op1_no_round {
     (
-        $func:path, $raw_round:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path, $raw_round: path;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -1438,10 +1423,10 @@ macro_rules! math_op1_no_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -1480,16 +1465,16 @@ macro_rules! ref_math_op1_round {
 #[cfg(feature = "float")]
 macro_rules! math_op1_2_round {
     (
-        $Round:ty => $Ordering:ty;
-        $func:path, $($raw_round:path),* => $ord:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $Round: ty => $Ordering: ty;
+        $func: path, $($raw_round: path),* => $ord: path;
+        $(#[$attr: meta])*
+        fn $method: ident($rop: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -1544,10 +1529,10 @@ macro_rules! math_op1_2_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op1_2_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $($raw_round:path),* => $ord:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $($raw_round: path),* => $ord: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -1588,16 +1573,16 @@ macro_rules! ref_math_op1_2_round {
 #[cfg(feature = "float")]
 macro_rules! math_op2_round {
     (
-        $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $(#[$attr: meta])*
+        fn $method: ident($op: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -1653,10 +1638,10 @@ macro_rules! math_op2_round {
 #[cfg(feature = "float")]
 macro_rules! ref_math_op2_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $op: ident $(, $param: ident: $T: ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
@@ -1702,13 +1687,13 @@ macro_rules! ref_math_op2_round {
 #[cfg(feature = "float")]
 macro_rules! arith_binary_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         impl $Imp<$T> for $Big {
             type Output = $Big;
@@ -1740,10 +1725,7 @@ macro_rules! arith_binary_round {
             type Output = $Ref<'a>;
             #[inline]
             fn $method(self, rhs: &'a $T) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+                $Ref { lhs: self, rhs }
             }
         }
 
@@ -1845,14 +1827,14 @@ macro_rules! arith_binary_round {
 #[cfg(feature = "float")]
 macro_rules! arith_binary_self_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $Ref: ident
     ) => {
         arith_binary_round! {
             $Big, $Round => $Ordering;
@@ -1946,13 +1928,13 @@ macro_rules! arith_binary_self_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_forward_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident $OwnedRef:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $T: ty;
+        $Ref: ident $OwnedRef: ident
     ) => {
         arith_binary_round! {
             $Big, $Round => $Ordering;
@@ -1968,10 +1950,7 @@ macro_rules! arith_forward_round {
             type Output = $OwnedRef<'a>;
             #[inline]
             fn $method(self, rhs: $T) -> $OwnedRef<'a> {
-                $OwnedRef {
-                    lhs: self,
-                    rhs,
-                }
+                $OwnedRef { lhs: self, rhs }
             }
         }
 
@@ -2033,15 +2012,15 @@ macro_rules! arith_forward_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_commut_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident $OwnedRef:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident $OwnedRef: ident
     ) => {
         arith_forward_round! {
             $Big, $Round => $Ordering;
@@ -2129,7 +2108,7 @@ macro_rules! arith_commut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     self,
                     &lhs,
-                    round
+                    round,
                 )
             }
         }
@@ -2169,15 +2148,15 @@ macro_rules! arith_commut_round {
 #[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
 macro_rules! arith_noncommut_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $func_from:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident $OwnedRef:ident $FromRef:ident $FromOwnedRef:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $func_from: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident $OwnedRef: ident $FromRef: ident $FromOwnedRef: ident
     ) => {
         arith_forward_round! {
             $Big, $Round => $Ordering;
@@ -2206,10 +2185,7 @@ macro_rules! arith_noncommut_round {
             type Output = $FromOwnedRef<'a>;
             #[inline]
             fn $method(self, rhs: &'a $Big) -> $FromOwnedRef<'a> {
-                $FromOwnedRef {
-                    lhs: self,
-                    rhs,
-                }
+                $FromOwnedRef { lhs: self, rhs }
             }
         }
 
@@ -2230,10 +2206,7 @@ macro_rules! arith_noncommut_round {
             type Output = $FromRef<'a>;
             #[inline]
             fn $method(self, rhs: &'a $Big) -> $FromRef<'a> {
-                $FromRef {
-                    lhs: self,
-                    rhs,
-                }
+                $FromRef { lhs: self, rhs }
             }
         }
 
@@ -2296,7 +2269,6 @@ macro_rules! arith_noncommut_round {
                 $ord(ret)
             }
         }
-
 
         #[derive(Debug)]
         pub struct $FromRef<'a> {
@@ -2382,12 +2354,12 @@ macro_rules! arith_noncommut_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_exact_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $T:ty;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         impl $Imp<$T> for $Big {
             type Output = $Big;
@@ -2411,10 +2383,7 @@ macro_rules! arith_prim_exact_round {
             type Output = $Ref<'b>;
             #[inline]
             fn $method(self, rhs: $T) -> $Ref<'b> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+                $Ref { lhs: self, rhs }
             }
         }
 
@@ -2482,13 +2451,13 @@ macro_rules! arith_prim_exact_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $T:ty;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         arith_prim_exact_round! {
             $Big, $Round => $Ordering;
@@ -2551,15 +2520,15 @@ macro_rules! arith_prim_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_commut_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident
     ) => {
         arith_prim_round! {
             $Big, $Round => $Ordering;
@@ -2677,15 +2646,15 @@ macro_rules! arith_prim_commut_round {
 #[cfg(feature = "float")]
 macro_rules! arith_prim_noncommut_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $func_from:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $T:ty;
-        $Ref:ident $FromRef:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $func_from: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $T: ty;
+        $Ref: ident $FromRef: ident
     ) => {
         arith_prim_round! {
             $Big, $Round => $Ordering;
@@ -2714,10 +2683,7 @@ macro_rules! arith_prim_noncommut_round {
             type Output = $FromRef<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> $FromRef<'b> {
-                $FromRef {
-                    lhs: self,
-                    rhs,
-                }
+                $FromRef { lhs: self, rhs }
             }
         }
 
@@ -2840,13 +2806,13 @@ macro_rules! arith_prim_noncommut_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $Mul:ident;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $Mul: ident;
+        $Ref: ident
     ) => {
         impl<'a> $Imp<$Mul<'a>> for $Big {
             type Output = $Big;
@@ -2865,10 +2831,7 @@ macro_rules! mul_op_round {
             type Output = $Ref<'a>;
             #[inline]
             fn $method(self, rhs: $Mul<'a>) -> $Ref<'a> {
-                $Ref {
-                    lhs: self,
-                    rhs,
-                }
+                $Ref { lhs: self, rhs }
             }
         }
 
@@ -2941,15 +2904,15 @@ macro_rules! mul_op_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_commut_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $Mul:ident;
-        $Ref:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $Mul: ident;
+        $Ref: ident
     ) => {
         mul_op_round! {
             $Big, $Round => $Ordering;
@@ -3022,15 +2985,15 @@ macro_rules! mul_op_commut_round {
 #[cfg(feature = "float")]
 macro_rules! mul_op_noncommut_round {
     (
-        $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $func_from:path, $raw_round:path => $ord:path;
-        $Imp:ident $method:ident;
-        $ImpAssign:ident $method_assign:ident;
-        $ImpAssignRound:ident $method_assign_round:ident;
-        $ImpFrom:ident $method_from:ident;
-        $ImpFromRound:ident $method_from_round:ident;
-        $Mul:ident;
-        $Ref:ident $FromRef:ident
+        $Big: ty, $Round: ty => $Ordering: ty;
+        $func: path, $func_from: path, $raw_round: path => $ord: path;
+        $Imp: ident $method: ident;
+        $ImpAssign: ident $method_assign: ident;
+        $ImpAssignRound: ident $method_assign_round: ident;
+        $ImpFrom: ident $method_from: ident;
+        $ImpFromRound: ident $method_from_round: ident;
+        $Mul: ident;
+        $Ref: ident $FromRef: ident
     ) => {
         mul_op_round! {
             $Big, $Round => $Ordering;
@@ -3059,10 +3022,7 @@ macro_rules! mul_op_noncommut_round {
             type Output = $FromRef<'a>;
             #[inline]
             fn $method(self, rhs: &'a $Big) -> $FromRef<'a> {
-                $FromRef {
-                    lhs: self,
-                    rhs,
-                }
+                $FromRef { lhs: self, rhs }
             }
         }
 

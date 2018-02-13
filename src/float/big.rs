@@ -7939,10 +7939,8 @@ impl AssignRound<ValidParse> for Float {
 }
 
 macro_rules! parse_error {
-    ($kind:expr) => {
-        Err(ParseFloatError {
-            kind: $kind
-        })
+    ($kind: expr) => {
+        Err(ParseFloatError { kind: $kind })
     };
 }
 

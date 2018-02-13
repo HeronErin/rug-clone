@@ -3558,10 +3558,8 @@ impl AssignRound<ValidParse> for Complex {
 }
 
 macro_rules! parse_error {
-    ($kind:expr) => {
-        Err(ParseComplexError {
-            kind: $kind
-        })
+    ($kind: expr) => {
+        Err(ParseComplexError { kind: $kind })
     };
 }
 

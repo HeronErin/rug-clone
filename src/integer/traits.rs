@@ -130,7 +130,7 @@ impl<'a> From<&'a Integer> for Integer {
 }
 
 macro_rules! assign {
-    ( $T:ty, $set:path, $init_set:path ) => {
+    ($T: ty, $set: path, $init_set: path) => {
         impl Assign<$T> for Integer {
             #[inline]
             fn assign(&mut self, src: $T) {
@@ -156,7 +156,7 @@ macro_rules! assign {
 }
 
 macro_rules! assign_cast {
-    ( $New:ty, $Existing:ty ) => {
+    ($New: ty, $Existing: ty) => {
         impl Assign<$New> for Integer {
             #[inline]
             fn assign(&mut self, src: $New) {

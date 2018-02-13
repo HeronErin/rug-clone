@@ -29,7 +29,7 @@ impl PartialEq for Complex {
 }
 
 macro_rules! eq_tuple {
-    ( $T:ty, $U:ty ) => {
+    ($T: ty, $U: ty) => {
         impl PartialEq<Complex> for ($T, $U) {
             #[inline]
             fn eq(&self, other: &Complex) -> bool {
@@ -46,7 +46,7 @@ macro_rules! eq_tuple {
 }
 
 macro_rules! eq {
-    ( $T:ty ) => {
+    ($T: ty) => {
         #[cfg(feature = "integer")]
         eq_tuple! { $T, Integer }
         #[cfg(feature = "rational")]
