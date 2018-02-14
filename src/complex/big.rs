@@ -150,9 +150,9 @@ pub struct Complex {
 
 macro_rules! ref_math_op0_complex {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op0_round! {
             Complex, Round2 => Ordering2;
@@ -165,15 +165,15 @@ macro_rules! ref_math_op0_complex {
 
 macro_rules! math_op1_complex {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         math_op1_round! {
             Round2 => Ordering2;
@@ -192,9 +192,9 @@ macro_rules! math_op1_complex {
 
 macro_rules! ref_math_op1_complex {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_round! {
             Complex, Round2 => Ordering2;
@@ -207,15 +207,15 @@ macro_rules! ref_math_op1_complex {
 
 macro_rules! math_op1_2_complex {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($rop: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         math_op1_2_round! {
             Round2 => (Ordering2, Ordering2);
@@ -234,9 +234,9 @@ macro_rules! math_op1_2_complex {
 
 macro_rules! ref_math_op1_2_complex {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_2_round! {
             Complex, Round2 => (Ordering2, Ordering2);

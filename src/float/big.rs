@@ -263,9 +263,9 @@ pub struct Float {
 
 macro_rules! ref_math_op0_float {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op0_round! {
             Float, Round => Ordering;
@@ -278,15 +278,15 @@ macro_rules! ref_math_op0_float {
 
 macro_rules! math_op1_float {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         math_op1_round! {
             Round => Ordering;
@@ -305,9 +305,9 @@ macro_rules! math_op1_float {
 
 macro_rules! ref_math_op1_float {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_round! {
             Float, Round => Ordering;
@@ -320,15 +320,15 @@ macro_rules! ref_math_op1_float {
 
 macro_rules! math_op1_2_float {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($rop: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         math_op1_2_round! {
             Round => (Ordering, Ordering);
@@ -347,9 +347,9 @@ macro_rules! math_op1_2_float {
 
 macro_rules! ref_math_op1_2_float {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_2_round! {
             Float, Round => (Ordering, Ordering);
@@ -362,15 +362,15 @@ macro_rules! ref_math_op1_2_float {
 
 macro_rules! math_op2_float {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_round:meta])*
-        fn $method_round:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($op: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_round: meta])*
+        fn $method_round: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         math_op2_round! {
             Round => Ordering;
@@ -389,9 +389,9 @@ macro_rules! math_op2_float {
 
 macro_rules! ref_math_op2_float {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $op:ident $(, $param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $op: ident $(, $param: ident: $T: ty),* }
     ) => {
         ref_math_op2_round! {
             Float, Round => Ordering;

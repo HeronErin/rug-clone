@@ -726,14 +726,12 @@ struct Funcs {
 }
 
 macro_rules! c_callback {
-    ( $(fn $func:ident($($param:tt)*) $body:block)* ) => {
-        $(
-            unsafe extern "C" fn $func($($param)*) {
-                panic::catch_unwind(AssertUnwindSafe(|| $body))
-                    .unwrap_or_else(|_| process::abort())
-            }
-        )*
-    };
+    ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
+        unsafe extern "C" fn $func($($param)*) {
+            panic::catch_unwind(AssertUnwindSafe(|| $body))
+                .unwrap_or_else(|_| process::abort())
+        }
+    )* };
 }
 
 c_callback! {

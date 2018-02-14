@@ -170,10 +170,10 @@ macro_rules! cross {
 
 // (Major, Major), (Major, Minor*), (Minor*, Major)
 macro_rules! matrix {
-    ( $Major:ty $(; $Minor:ty)* ) => {
+    ($Major: ty $(; $Minor: ty)*) => {
         cross! { $Major; $Major }
-        $( cross! { $Major; $Minor } )*
-        $( cross! { $Minor; $Major } )*
+        $(cross! { $Major; $Minor })*
+        $(cross! { $Minor; $Major })*
     };
 }
 

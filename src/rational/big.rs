@@ -84,13 +84,13 @@ pub struct Rational {
 
 macro_rules! rat_op_int {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($($param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($($param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -127,9 +127,9 @@ macro_rules! rat_op_int {
 
 macro_rules! ref_rat_op_int {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
@@ -157,13 +157,13 @@ macro_rules! ref_rat_op_int {
 
 macro_rules! rat_op_rat_int {
     (
-        $func:path;
-        $(#[$attr:meta])*
-        fn $method:ident($int:ident $(, $param:ident: $T:ty),*);
-        $(#[$attr_mut:meta])*
-        fn $method_mut:ident;
-        $(#[$attr_ref:meta])*
-        fn $method_ref:ident -> $Ref:ident;
+        $func: path;
+        $(#[$attr: meta])*
+        fn $method: ident($int: ident $(, $param: ident: $T: ty),*);
+        $(#[$attr_mut: meta])*
+        fn $method_mut: ident;
+        $(#[$attr_ref: meta])*
+        fn $method_ref: ident -> $Ref: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -202,9 +202,9 @@ macro_rules! rat_op_rat_int {
 
 macro_rules! ref_rat_op_rat_int {
     (
-        $func:path;
-        $(#[$attr_ref:meta])*
-        struct $Ref:ident { $($param:ident: $T:ty),* }
+        $func: path;
+        $(#[$attr_ref: meta])*
+        struct $Ref: ident { $($param: ident: $T: ty),* }
     ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
