@@ -234,7 +234,7 @@ impl AssignRound<Constant> for Float {
     }
 }
 
-assign_round_deref!{ Constant => Float }
+assign_round_deref! { Constant => Float }
 
 impl AssignRound<Special> for Float {
     type Round = Round;
@@ -274,7 +274,7 @@ impl AssignRound<Special> for Float {
     }
 }
 
-assign_round_deref!{ Special => Float }
+assign_round_deref! { Special => Float }
 
 impl AssignRound for Float {
     type Round = Round;
@@ -347,7 +347,7 @@ macro_rules! conv_ops {
             }
         }
 
-        assign_round_deref!{ $T => Float }
+        assign_round_deref! { $T => Float }
     };
 }
 
@@ -366,30 +366,30 @@ macro_rules! conv_ops_cast {
             }
         }
 
-        assign_round_deref!{ $New => Float }
+        assign_round_deref! { $New => Float }
     };
 }
 
-conv_ops!{ i8, mpfr::set_si }
-conv_ops!{ i16, mpfr::set_si }
-conv_ops!{ i32, mpfr::set_si }
-conv_ops!{ i64, xmpfr::set_i64 }
+conv_ops! { i8, mpfr::set_si }
+conv_ops! { i16, mpfr::set_si }
+conv_ops! { i32, mpfr::set_si }
+conv_ops! { i64, xmpfr::set_i64 }
 #[cfg(target_pointer_width = "32")]
 conv_ops_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 conv_ops_cast! { isize, i64 }
 
-conv_ops!{ u8, mpfr::set_ui }
-conv_ops!{ u16, mpfr::set_ui }
-conv_ops!{ u32, mpfr::set_ui }
-conv_ops!{ u64, xmpfr::set_u64 }
+conv_ops! { u8, mpfr::set_ui }
+conv_ops! { u16, mpfr::set_ui }
+conv_ops! { u32, mpfr::set_ui }
+conv_ops! { u64, xmpfr::set_u64 }
 #[cfg(target_pointer_width = "32")]
 conv_ops_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
 conv_ops_cast! { usize, u64 }
 
-conv_ops!{ f32, xmpfr::set_f32 }
-conv_ops!{ f64, xmpfr::set_f64 }
+conv_ops! { f32, xmpfr::set_f32 }
+conv_ops! { f64, xmpfr::set_f64 }
 
 fn fmt_radix(
     flt: &Float,

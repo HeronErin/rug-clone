@@ -3484,7 +3484,7 @@ impl Integer {
         /// ```
         fn binomial_ref -> BinomialRef;
     }
-    math_op0!{
+    math_op0! {
         /// Computes the binomial coefficient *n* over *k*.
         ///
         /// `Assign<Src> for Integer` and `From<Src> for Integer` are

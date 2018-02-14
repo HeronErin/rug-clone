@@ -6031,7 +6031,7 @@ impl Float {
         /// ```
         fn zeta_ref -> ZetaRef;
     }
-    math_op0!{
+    math_op0! {
         /// Computes the Riemann Zeta function on *u*.
         ///
         /// `AssignRound<Src> for Float` is implemented with the

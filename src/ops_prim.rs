@@ -39,193 +39,187 @@ macro_rules! assign_from {
     };
 }
 macro_rules! int_ops {
-    ($($T: ty)*) => {
-        $(
-            impl Assign for $T {
-                #[inline]
-                fn assign(&mut self, src: $T) {
-                    *self = src;
-                }
+    ($($T: ty)*) => { $(
+        impl Assign for $T {
+            #[inline]
+            fn assign(&mut self, src: $T) {
+                *self = src;
             }
-            impl<'a> Assign<&'a $T> for $T {
-                #[inline]
-                fn assign(&mut self, src: &'a $T) {
-                    *self = *src;
-                }
+        }
+        impl<'a> Assign<&'a $T> for $T {
+            #[inline]
+            fn assign(&mut self, src: &'a $T) {
+                *self = *src;
             }
-            impl NotAssign for $T {
-                #[inline]
-                fn not_assign(&mut self) {
-                    *self = !*self;
-                }
+        }
+        impl NotAssign for $T {
+            #[inline]
+            fn not_assign(&mut self) {
+                *self = !*self;
             }
-            impl Pow<u32> for $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: u32) -> $T {
-                    self.pow(rhs)
-                }
+        }
+        impl Pow<u32> for $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: u32) -> $T {
+                self.pow(rhs)
             }
-            impl<'a> Pow<u32> for &'a $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: u32) -> $T {
-                    (*self).pow(rhs)
-                }
+        }
+        impl<'a> Pow<u32> for &'a $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: u32) -> $T {
+                (*self).pow(rhs)
             }
-            impl<'a> Pow<&'a u32> for $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: &'a u32) -> $T {
-                    self.pow(*rhs)
-                }
+        }
+        impl<'a> Pow<&'a u32> for $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: &'a u32) -> $T {
+                self.pow(*rhs)
             }
-            impl<'a, 'b> Pow<&'a u32> for &'b $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: &'a u32) -> $T {
-                    (*self).pow(*rhs)
-                }
+        }
+        impl<'a, 'b> Pow<&'a u32> for &'b $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: &'a u32) -> $T {
+                (*self).pow(*rhs)
             }
-            impl PowAssign<u32> for $T {
-                #[inline]
-                fn pow_assign(&mut self, rhs: u32) {
-                    *self = self.pow(rhs);
-                }
+        }
+        impl PowAssign<u32> for $T {
+            #[inline]
+            fn pow_assign(&mut self, rhs: u32) {
+                *self = self.pow(rhs);
             }
-            impl<'a> PowAssign<&'a u32> for $T {
-                #[inline]
-                fn pow_assign(&mut self, rhs: &'a u32) {
-                    *self = self.pow(*rhs);
-                }
+        }
+        impl<'a> PowAssign<&'a u32> for $T {
+            #[inline]
+            fn pow_assign(&mut self, rhs: &'a u32) {
+                *self = self.pow(*rhs);
             }
-            assign_from! { $T; add; AddFrom add_from }
-            assign_from! { $T; sub; SubFrom sub_from }
-            assign_from! { $T; mul; MulFrom mul_from }
-            assign_from! { $T; div; DivFrom div_from }
-            assign_from! { $T; rem; RemFrom rem_from }
-            assign_from! { $T; bitand; BitAndFrom bitand_from }
-            assign_from! { $T; bitor; BitOrFrom bitor_from }
-            assign_from! { $T; bitxor; BitXorFrom bitxor_from }
-            assign_from! { $T; shl; ShlFrom shl_from }
-            assign_from! { $T; shr; ShrFrom shr_from }
-        )*
-    };
+        }
+        assign_from! { $T; add; AddFrom add_from }
+        assign_from! { $T; sub; SubFrom sub_from }
+        assign_from! { $T; mul; MulFrom mul_from }
+        assign_from! { $T; div; DivFrom div_from }
+        assign_from! { $T; rem; RemFrom rem_from }
+        assign_from! { $T; bitand; BitAndFrom bitand_from }
+        assign_from! { $T; bitor; BitOrFrom bitor_from }
+        assign_from! { $T; bitxor; BitXorFrom bitxor_from }
+        assign_from! { $T; shl; ShlFrom shl_from }
+        assign_from! { $T; shr; ShrFrom shr_from }
+    )* };
 }
 macro_rules! int_neg {
-    ($($T: ty)*) => {
-        $(
-            impl NegAssign for $T {
-                #[inline]
-                fn neg_assign(&mut self) {
-                    *self = -*self;
-                }
+    ($($T: ty)*) => { $(
+        impl NegAssign for $T {
+            #[inline]
+            fn neg_assign(&mut self) {
+                *self = -*self;
             }
-        )*
-    };
+        }
+    )* };
 }
 macro_rules! float_ops {
-    ($($T: ty)*) => {
-        $(
-            impl Assign for $T {
-                #[inline]
-                fn assign(&mut self, src: $T) {
-                    *self = src;
-                }
+    ($($T: ty)*) => { $(
+        impl Assign for $T {
+            #[inline]
+            fn assign(&mut self, src: $T) {
+                *self = src;
             }
-            impl<'a> Assign<&'a $T> for $T {
-                #[inline]
-                fn assign(&mut self, src: &'a $T) {
-                    *self = *src;
-                }
+        }
+        impl<'a> Assign<&'a $T> for $T {
+            #[inline]
+            fn assign(&mut self, src: &'a $T) {
+                *self = *src;
             }
-            impl Pow<i32> for $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: i32) -> $T {
-                    self.powi(rhs)
-                }
+        }
+        impl Pow<i32> for $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: i32) -> $T {
+                self.powi(rhs)
             }
-            impl<'a> Pow<i32> for &'a $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: i32) -> $T {
-                    self.powi(rhs)
-                }
+        }
+        impl<'a> Pow<i32> for &'a $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: i32) -> $T {
+                self.powi(rhs)
             }
-            impl<'a> Pow<&'a i32> for $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: &'a i32) -> $T {
-                    self.powi(*rhs)
-                }
+        }
+        impl<'a> Pow<&'a i32> for $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: &'a i32) -> $T {
+                self.powi(*rhs)
             }
-            impl<'a, 'b> Pow<&'a i32> for &'b $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: &'a i32) -> $T {
-                    self.powi(*rhs)
-                }
+        }
+        impl<'a, 'b> Pow<&'a i32> for &'b $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: &'a i32) -> $T {
+                self.powi(*rhs)
             }
-            impl PowAssign<i32> for $T {
-                #[inline]
-                fn pow_assign(&mut self, rhs: i32) {
-                    *self = self.powi(rhs);
-                }
+        }
+        impl PowAssign<i32> for $T {
+            #[inline]
+            fn pow_assign(&mut self, rhs: i32) {
+                *self = self.powi(rhs);
             }
-            impl<'a> PowAssign<&'a i32> for $T {
-                #[inline]
-                fn pow_assign(&mut self, rhs: &'a i32) {
-                    *self = self.powi(*rhs);
-                }
+        }
+        impl<'a> PowAssign<&'a i32> for $T {
+            #[inline]
+            fn pow_assign(&mut self, rhs: &'a i32) {
+                *self = self.powi(*rhs);
             }
-            impl Pow<$T> for $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: $T) -> $T {
-                    self.powf(rhs)
-                }
+        }
+        impl Pow<$T> for $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: $T) -> $T {
+                self.powf(rhs)
             }
-            impl<'a> Pow<$T> for &'a $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: $T) -> $T {
-                    self.powf(rhs)
-                }
+        }
+        impl<'a> Pow<$T> for &'a $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: $T) -> $T {
+                self.powf(rhs)
             }
-            impl<'a> Pow<&'a $T> for $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: &'a $T) -> $T {
-                    self.powf(*rhs)
-                }
+        }
+        impl<'a> Pow<&'a $T> for $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: &'a $T) -> $T {
+                self.powf(*rhs)
             }
-            impl<'a, 'b> Pow<&'a $T> for &'b $T {
-                type Output = $T;
-                #[inline]
-                fn pow(self, rhs: &'a $T) -> $T {
-                    self.powf(*rhs)
-                }
+        }
+        impl<'a, 'b> Pow<&'a $T> for &'b $T {
+            type Output = $T;
+            #[inline]
+            fn pow(self, rhs: &'a $T) -> $T {
+                self.powf(*rhs)
             }
-            impl PowAssign<$T> for $T {
-                #[inline]
-                fn pow_assign(&mut self, rhs: $T) {
-                    *self = self.powf(rhs);
-                }
+        }
+        impl PowAssign<$T> for $T {
+            #[inline]
+            fn pow_assign(&mut self, rhs: $T) {
+                *self = self.powf(rhs);
             }
-            impl<'a> PowAssign<&'a $T> for $T {
-                #[inline]
-                fn pow_assign(&mut self, rhs: &'a $T) {
-                    *self = self.powf(*rhs);
-                }
+        }
+        impl<'a> PowAssign<&'a $T> for $T {
+            #[inline]
+            fn pow_assign(&mut self, rhs: &'a $T) {
+                *self = self.powf(*rhs);
             }
-            assign_from!{ $T; add; AddFrom add_from }
-            assign_from!{ $T; sub; SubFrom sub_from }
-            assign_from!{ $T; mul; MulFrom mul_from }
-            assign_from!{ $T; div; DivFrom div_from }
-            assign_from!{ $T; pow; PowFrom pow_from }
-        )*
-    };
+        }
+        assign_from! { $T; add; AddFrom add_from }
+        assign_from! { $T; sub; SubFrom sub_from }
+        assign_from! { $T; mul; MulFrom mul_from }
+        assign_from! { $T; div; DivFrom div_from }
+        assign_from! { $T; pow; PowFrom pow_from }
+    )* };
 }
 
 macro_rules! rounding_fill {
@@ -514,12 +508,12 @@ macro_rules! rounding_unsigned {
     )* };
 }
 
-int_ops!{ i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
-int_neg!{ i8 i16 i32 i64 isize }
+int_ops! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+int_neg! { i8 i16 i32 i64 isize }
 assign_from! { u32; pow; PowFrom pow_from }
-float_ops!{ f32 f64 }
+float_ops! { f32 f64 }
 
-rounding_signed!{ i8 i16 i32 i64 isize }
+rounding_signed! { i8 i16 i32 i64 isize }
 
 // For unsigned primitives, RemRounding is not implemented. Ignoring
 // the issue that we cannot have negative numbers, if r == n % d then
@@ -529,7 +523,7 @@ rounding_signed!{ i8 i16 i32 i64 isize }
 // n.rem_floor(d) -> r
 // n.rem_eud(d) -> r
 
-rounding_unsigned!{ u8 u16 u32 u64 usize }
+rounding_unsigned! { u8 u16 u32 u64 usize }
 
 impl<'a> AddFrom<&'a str> for String {
     #[inline]

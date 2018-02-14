@@ -497,7 +497,7 @@ arith_prim_exact_float! {
     u32;
     ShrU32Ref
 }
-arith_prim_noncommut_float!{
+arith_prim_noncommut_float! {
     mpfr::pow_ui, mpfr::ui_pow;
     Pow pow;
     PowAssign pow_assign;
@@ -521,7 +521,7 @@ arith_prim_exact_float! {
     i32;
     ShrI32Ref
 }
-arith_prim_noncommut_float!{
+arith_prim_noncommut_float! {
     mpfr::pow_si, xmpfr::si_pow;
     Pow pow;
     PowAssign pow_assign;
@@ -531,7 +531,7 @@ arith_prim_noncommut_float!{
     i32;
     PowI32Ref PowFromI32Ref
 }
-arith_prim_noncommut_float!{
+arith_prim_noncommut_float! {
     xmpfr::pow_f64, xmpfr::f64_pow;
     Pow pow;
     PowAssign pow_assign;
@@ -541,7 +541,7 @@ arith_prim_noncommut_float!{
     f64;
     PowF64Ref PowFromF64Ref
 }
-arith_prim_noncommut_float!{
+arith_prim_noncommut_float! {
     xmpfr::pow_f32, xmpfr::f32_pow;
     Pow pow;
     PowAssign pow_assign;
