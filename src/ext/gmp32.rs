@@ -47,13 +47,13 @@ pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
 
 #[inline]
 pub unsafe fn mpz_init_set_u64(rop: *mut mpz_t, u: u64) {
-    gmp::mpz_init(rop);
+    gmp::mpz_init2(rop, 64);
     mpz_set_u64(rop, u);
 }
 
 #[inline]
 pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
-    gmp::mpz_init(rop);
+    gmp::mpz_init2(rop, 64);
     mpz_set_i64(rop, i);
 }
 

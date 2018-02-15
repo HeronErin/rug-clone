@@ -56,7 +56,6 @@ mod tests {
     use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
     use std::mem;
-    use std::os::raw::c_ulong;
 
     #[test]
     fn check_int_conversions() {
@@ -279,14 +278,12 @@ mod tests {
     #[cfg(gmp_limb_bits_64)]
     #[test]
     fn check_limbs() {
-        assert!(mem::size_of::<c_ulong>() == mem::size_of::<u64>());
         assert_eq!(gmp::NUMB_BITS, 64);
     }
 
     #[cfg(gmp_limb_bits_32)]
     #[test]
     fn check_limbs() {
-        assert!(mem::size_of::<c_ulong>() == mem::size_of::<u32>());
         assert_eq!(gmp::NUMB_BITS, 32);
     }
 }

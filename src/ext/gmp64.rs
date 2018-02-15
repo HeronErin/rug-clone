@@ -14,7 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use ext::gmp::{limb, limb_mut, ord_int};
+use cast;
+use ext::gmp::{limb, limb_mut, ord_int, mpz_set_i64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
 use std::{i32, i64, u32};
@@ -42,12 +43,22 @@ pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
 
 #[inline]
 pub unsafe fn mpz_init_set_u64(rop: *mut mpz_t, u: u64) {
-    gmp::mpz_init_set_ui(rop, u);
+    if let Some(u) = cast::checked_cast(u) {
+        gmp::mpz_init_set_ui(rop, u);
+    } else {
+        gmp::mpz_init2(rop, 64);
+        mpz_set_u64(rop, u);
+    }
 }
 
 #[inline]
 pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
-    gmp::mpz_init_set_si(rop, i);
+    if let Some(i) = cast::checked_cast(i) {
+        gmp::mpz_init_set_si(rop, i);
+    } else {
+        gmp::mpz_init2(rop, 64);
+        mpz_set_i64(rop, i);
+    }
 }
 
 #[inline]
