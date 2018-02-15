@@ -287,18 +287,16 @@ pub mod test {
         T: Serialize + for<'de> Deserialize<'de>,
         F: Fn(&T, &T),
     {
-        use bincode::{self, Deserializer, Infinite};
-        use bincode::read_types::SliceReader;
-        let enc = bincode::serialize(&t, Infinite).unwrap();
+        use bincode::{self, SliceReader};
+        let enc = bincode::serialize(&t).unwrap();
         let dec: T = bincode::deserialize(&enc).unwrap();
         test(t, &dec);
 
         assert_eq!(enc, val);
 
-        let mut in_place = in_place;
+        let mut in_place: T = in_place;
         let reader = SliceReader::new(&enc);
-        let mut de = Deserializer::new(reader, Infinite);
-        Deserialize::deserialize_in_place(&mut de, &mut in_place).unwrap();
+        bincode::deserialize_in_place(reader, &mut in_place).unwrap();
         test(t, &in_place);
     }
 
