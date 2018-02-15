@@ -182,6 +182,7 @@ pub use self::rational::*;
 mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
+    use inner::Inner;
     use rational::SmallRational;
 
     #[inline]
