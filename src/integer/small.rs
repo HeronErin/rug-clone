@@ -18,6 +18,7 @@ use {Assign, Integer};
 
 use cast::cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
+use misc::NegAbs;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
@@ -172,23 +173,24 @@ impl Deref for SmallInteger {
 }
 
 macro_rules! signed {
-    ($I: ty, $U: ty) => {
+    ($($I: ty)*) => { $(
         impl Assign<$I> for SmallInteger {
             #[inline]
             fn assign(&mut self, val: $I) {
-                self.assign(val.wrapping_abs() as $U);
-                if val < 0 {
+                let (neg_val, abs_val) = val.neg_abs();
+                self.assign(abs_val);
+                if neg_val {
                     self.inner.size = -self.inner.size;
                 }
             }
         }
 
         from_assign! { $I => SmallInteger }
-    };
+    )* };
 }
 
 macro_rules! one_limb {
-    ($U: ty) => {
+    ($($U: ty)*) => { $(
         impl Assign<$U> for SmallInteger {
             #[inline]
             fn assign(&mut self, val: $U) {
@@ -205,18 +207,11 @@ macro_rules! one_limb {
         }
 
         from_assign! { $U => SmallInteger }
-    };
+    )* };
 }
 
-signed! { i8, u8 }
-signed! { i16, u16 }
-signed! { i32, u32 }
-signed! { i64, u64 }
-signed! { isize, usize }
-
-one_limb! { u8 }
-one_limb! { u16 }
-one_limb! { u32 }
+signed! { i8 i16 i32 i64 isize }
+one_limb! { u8 u16 u32 }
 
 #[cfg(gmp_limb_bits_64)]
 one_limb! { u64 }

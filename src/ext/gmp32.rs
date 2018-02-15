@@ -16,6 +16,7 @@
 
 use ext::gmp::{limb, limb_mut, ord_int, mpz_set_i64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
+use misc::neg_abs;
 use std::{i32, i64};
 use std::os::raw::c_int;
 
@@ -60,7 +61,7 @@ pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
 pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
     match (*op).size {
         0 => 0,
-        -1 | 1 => u64::from(limb(op, 0),
+        -1 | 1 => u64::from(limb(op, 0)),
         _ => u64::from(limb(op, 1)) << 32 | u64::from(limb(op, 0)),
     }
 }
@@ -91,18 +92,18 @@ pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
 #[inline]
 pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
     let neg1 = (*op1).size < 0;
-    let mag1 = match (*op1).size {
+    let abs1 = match (*op1).size {
         0 => 0,
         -1 | 1 => u64::from(limb(op1, 0)),
         -2 | 2 => u64::from(limb(op1, 1)) << 32 | u64::from(limb(op1, 0)),
         _ => return if neg1 { -1 } else { 1 },
     };
-    let mag2 = u64::from(op2.wrapping_abs());
-    match (neg1, op2 < 0) {
-        (false, false) => ord_int(mag1.cmp(&mag2)),
+    let (neg2, abs2) = op2.neg_abs();
+    match (neg1, neg2) {
+        (false, false) => ord_int(abs1.cmp(&abs2)),
         (false, true) => 1,
         (true, false) => -1,
-        (true, true) => ord_int(mag2.cmp(&mag1)),
+        (true, true) => ord_int(abs2.cmp(&abs1)),
     }
 }
 
@@ -123,13 +124,13 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
     match (*op1).size {
         0 => ord_int(0.cmp(&op2)),
         -1 | 1 => {
-            let mag1 = limb(op1, 0);
-            let mag2 = op2.wrapping_abs() as u32;
-            match (neg1, op2 < 0) {
-                (false, false) => ord_int(mag1.cmp(&mag2)),
+            let abs1 = limb(op1, 0);
+            let (neg2, abs2) = op2.neg_abs();
+            match (neg1, neg2) {
+                (false, false) => ord_int(abs1.cmp(&abs2)),
                 (false, true) => 1,
                 (true, false) => -1,
-                (true, true) => ord_int(mag2.cmp(&mag1)),
+                (true, true) => ord_int(abs2.cmp(&abs1)),
             }
         }
         _ if neg1 => -1,

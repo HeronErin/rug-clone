@@ -21,6 +21,7 @@ use cast::cast;
 use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
+use misc::NegAbs;
 use std::{i32, u32};
 use std::mem;
 use std::ops::Deref;
@@ -178,19 +179,20 @@ macro_rules! small_from_assign {
 }
 
 macro_rules! signed {
-    ($I: ty, $U: ty) => {
+    ($($I: ty)*) => { $(
         impl Assign<$I> for SmallFloat {
             #[inline]
             fn assign(&mut self, val: $I) {
-                self.assign(val.wrapping_abs() as $U);
-                if val < 0 {
+                let (neg_val, abs_val) = val.neg_abs();
+                self.assign(abs_val);
+                if neg_val {
                     self.inner.sign = -1;
                 }
             }
         }
 
         small_from_assign! { $I }
-    };
+    )* };
 }
 
 macro_rules! unsigned_32 {
@@ -219,11 +221,7 @@ macro_rules! unsigned_32 {
     };
 }
 
-signed! { i8, u8 }
-signed! { i16, u16 }
-signed! { i32, u32 }
-signed! { i64, u64 }
-signed! { isize, usize }
+signed! { i8 i16 i32 i64 isize }
 
 unsigned_32! { u8, 8 }
 unsigned_32! { u16, 16 }

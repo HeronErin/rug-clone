@@ -16,7 +16,8 @@
 
 use cast::cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use std::{i16, i32, i64, i8, u16, u32, u64, u8};
+use misc::NegAbs;
+use std::{i16, i8, u16, u8};
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
@@ -202,8 +203,9 @@ pub unsafe fn mpz_tdiv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_tdiv_q_ui_check(q, n, d.wrapping_abs() as c_ulong);
-    if d < 0 {
+    let (neg_d, abs_d) = d.neg_abs();
+    mpz_tdiv_q_ui_check(q, n, abs_d);
+    if neg_d {
         gmp::mpz_neg(q, q);
     }
 }
@@ -214,7 +216,7 @@ pub unsafe fn mpz_tdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_tdiv_r_ui_check(r, n, d.wrapping_abs() as c_ulong);
+    mpz_tdiv_r_ui_check(r, n, d.neg_abs().1);
 }
 
 #[inline]
@@ -223,8 +225,9 @@ pub unsafe fn mpz_si_tdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_ui_tdiv_q_check(q, n.wrapping_abs() as c_ulong, d);
-    if n < 0 {
+    let (neg_n, abs_n) = n.neg_abs();
+    mpz_ui_tdiv_q_check(q, abs_n, d);
+    if neg_n {
         gmp::mpz_neg(q, q);
     }
 }
@@ -235,8 +238,9 @@ pub unsafe fn mpz_si_tdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    mpz_ui_tdiv_r_check(r, n.wrapping_abs() as c_ulong, d);
-    if n < 0 {
+    let (neg_n, abs_n) = n.neg_abs();
+    mpz_ui_tdiv_r_check(r, abs_n, d);
+    if neg_n {
         gmp::mpz_neg(r, r);
     }
 }
@@ -353,8 +357,9 @@ pub unsafe fn mpz_cdiv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-    let some_r = mpz_cdiv_q_ui_check(q, n, d.wrapping_abs() as c_ulong) != 0;
-    if d < 0 {
+    let (neg_d, abs_d) = d.neg_abs();
+    let some_r = mpz_cdiv_q_ui_check(q, n, abs_d) != 0;
+    if neg_d {
         if some_r {
             gmp::mpz_ui_sub(q, 1, q);
         } else {
@@ -369,8 +374,9 @@ pub unsafe fn mpz_cdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / -abs_d -> -abs_q, +abs_r
     // -abs_n / +abs_d -> -abs_q, -abs_r
     // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-    let some_r = mpz_cdiv_r_ui_check(r, n, d.wrapping_abs() as c_ulong) != 0;
-    if d < 0 && some_r {
+    let (neg_d, abs_d) = d.neg_abs();
+    let some_r = mpz_cdiv_r_ui_check(r, n, abs_d) != 0;
+    if neg_d && some_r {
         mpz_sub_si(r, r, d);
     }
 }
@@ -378,12 +384,13 @@ pub unsafe fn mpz_cdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
 pub unsafe fn mpz_si_cdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+    let (neg_n, abs_n) = n.neg_abs();
+    if gmp::mpz_cmpabs_ui(d, abs_n) > 0 {
         // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
         // +abs_n / -abs_d -> 0, +abs_n
         // -abs_n / +abs_d -> 0, -abs_n
         // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
-        if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
+        if (n > 0 && sgn_d > 0) || (neg_n && sgn_d < 0) {
             mpz_set_1(q);
         } else {
             mpz_set_0(q);
@@ -393,10 +400,9 @@ pub unsafe fn mpz_si_cdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
         // +abs_n / -abs_d -> -abs_q, +abs_r
         // -abs_n / +abs_d -> -abs_q, -abs_r
         // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-        let abs_n = n.wrapping_abs() as c_ulong;
         let abs_d = gmp::mpz_get_ui(d);
         let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
-        if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
+        if (n > 0 && sgn_d < 0) || (neg_n && sgn_d > 0) {
             gmp::mpz_set_ui(q, abs_q);
             gmp::mpz_neg(q, q);
         } else {
@@ -411,12 +417,13 @@ pub unsafe fn mpz_si_cdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
 pub unsafe fn mpz_si_cdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+    let (neg_n, abs_n) = n.neg_abs();
+    if gmp::mpz_cmpabs_ui(d, abs_n) > 0 {
         // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
         // +abs_n / -abs_d -> 0, +abs_n
         // -abs_n / +abs_d -> 0, -abs_n
         // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
-        if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
+        if (n > 0 && sgn_d > 0) || (neg_n && sgn_d < 0) {
             mpz_si_sub(r, n, d);
         } else {
             gmp::mpz_set_si(r, n);
@@ -426,12 +433,11 @@ pub unsafe fn mpz_si_cdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
         // +abs_n / -abs_d -> -abs_q, +abs_r
         // -abs_n / +abs_d -> -abs_q, -abs_r
         // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-        let abs_n = n.wrapping_abs() as c_ulong;
         let abs_d = gmp::mpz_get_ui(d);
         let abs_r = abs_n % abs_d;
         if n > 0 && sgn_d < 0 {
             gmp::mpz_set_ui(r, abs_r);
-        } else if n < 0 && sgn_d > 0 {
+        } else if neg_n && sgn_d > 0 {
             gmp::mpz_set_ui(r, abs_r);
             gmp::mpz_neg(r, r);
         } else if abs_r > 0 {
@@ -557,8 +563,9 @@ pub unsafe fn mpz_fdiv_q_si_check(q: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
     // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    let some_r = mpz_fdiv_q_ui_check(q, n, d.wrapping_abs() as c_ulong) != 0;
-    if d < 0 {
+    let (neg_d, abs_d) = d.neg_abs();
+    let some_r = mpz_fdiv_q_ui_check(q, n, abs_d) != 0;
+    if neg_d {
         if some_r {
             mpz_si_sub(q, -1, q);
         } else {
@@ -573,8 +580,9 @@ pub unsafe fn mpz_fdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
     // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
     // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
     // -abs_n / -abs_d -> +abs_q, -abs_r
-    let some_r = mpz_fdiv_r_ui_check(r, n, d.wrapping_abs() as c_ulong) != 0;
-    if d < 0 && some_r {
+    let (neg_d, abs_d) = d.neg_abs();
+    let some_r = mpz_fdiv_r_ui_check(r, n, abs_d) != 0;
+    if neg_d && some_r {
         mpz_add_si(r, r, d);
     }
 }
@@ -582,12 +590,13 @@ pub unsafe fn mpz_fdiv_r_si_check(r: *mut mpz_t, n: *const mpz_t, d: c_long) {
 pub unsafe fn mpz_si_fdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+    let (neg_n, abs_n) = n.neg_abs();
+    if gmp::mpz_cmpabs_ui(d, abs_n) > 0 {
         // +abs_n / +abs_d -> 0, +abs_n
         // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
         // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> 0, -abs_n
-        if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
+        if (n > 0 && sgn_d < 0) || (neg_n && sgn_d > 0) {
             mpz_set_m1(q);
         } else {
             mpz_set_0(q);
@@ -597,10 +606,9 @@ pub unsafe fn mpz_si_fdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
         // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
         // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> +abs_q, -abs_r
-        let abs_n = n.wrapping_abs() as c_ulong;
         let abs_d = gmp::mpz_get_ui(d);
         let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
-        if (n > 0 && sgn_d > 0) || (n < 0 && sgn_d < 0) {
+        if (n > 0 && sgn_d > 0) || (neg_n && sgn_d < 0) {
             gmp::mpz_set_ui(q, abs_q);
         } else {
             if abs_r > 0 {
@@ -615,12 +623,13 @@ pub unsafe fn mpz_si_fdiv_q_check(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
 pub unsafe fn mpz_si_fdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let sgn_d = gmp::mpz_sgn(d);
     assert_ne!(sgn_d, 0, "division by zero");
-    if gmp::mpz_cmpabs_ui(d, n.wrapping_abs() as c_ulong) > 0 {
+    let (neg_n, abs_n) = n.neg_abs();
+    if gmp::mpz_cmpabs_ui(d, abs_n) > 0 {
         // +abs_n / +abs_d -> 0, +abs_n
         // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
         // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> 0, -abs_n
-        if (n > 0 && sgn_d < 0) || (n < 0 && sgn_d > 0) {
+        if (n > 0 && sgn_d < 0) || (neg_n && sgn_d > 0) {
             mpz_add_si(r, d, n);
         } else {
             gmp::mpz_set_si(r, n);
@@ -630,12 +639,11 @@ pub unsafe fn mpz_si_fdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
         // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
         // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> +abs_q, -abs_r
-        let abs_n = n.wrapping_abs() as c_ulong;
         let abs_d = gmp::mpz_get_ui(d);
         let abs_r = abs_n % abs_d;
         if n > 0 && sgn_d > 0 {
             gmp::mpz_set_ui(r, abs_r);
-        } else if n < 0 && sgn_d < 0 {
+        } else if neg_n && sgn_d < 0 {
             gmp::mpz_set_ui(r, abs_r);
             gmp::mpz_neg(r, r);
         } else if abs_r > 0 {
@@ -1046,16 +1054,18 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 
 #[inline]
 pub unsafe fn mpz_set_i64(rop: *mut mpz_t, i: i64) {
-    mpz_set_u64(rop, i.wrapping_abs() as u64);
-    if i < 0 {
+    let (neg_i, abs_i) = i.neg_abs();
+    mpz_set_u64(rop, abs_i);
+    if neg_i {
         (*rop).size = -(*rop).size;
     }
 }
 
 #[inline]
 pub unsafe fn mpz_set_i32(rop: *mut mpz_t, i: i32) {
-    mpz_set_u32(rop, i.wrapping_abs() as u32);
-    if i < 0 {
+    let (neg_i, abs_i) = i.neg_abs();
+    mpz_set_u32(rop, abs_i);
+    if neg_i {
         (*rop).size = -(*rop).size;
     }
 }
@@ -1144,7 +1154,8 @@ pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     if (*op).size >= 0 {
         c_ulong::max_value()
     } else {
-        let abs_size = gmp::size_t::from((*op).size).wrapping_abs();
+        let size = gmp::size_t::from((*op).size);
+        let abs_size = size.wrapping_neg();
         let abs_popcount = gmp::mpn_popcount((*op).d, abs_size);
         let first_one = gmp::mpn_scan1((*op).d, 0);
         abs_popcount + first_one - 1
