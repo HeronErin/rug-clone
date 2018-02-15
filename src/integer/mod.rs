@@ -56,6 +56,7 @@ mod tests {
     use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
     use std::mem;
+    use std::os::raw::c_ulong;
 
     #[test]
     fn check_int_conversions() {
@@ -265,12 +266,27 @@ mod tests {
         assert_eq!(gmp::NAIL_BITS, 0);
         assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
         assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
-        // we assume that a limb has 32 or 64 bits.
-        assert!(gmp::NUMB_BITS == 32 || gmp::NUMB_BITS == 64);
+
+        // we check that we have either 64 or 32, but not both
+        assert!(cfg!(gmp_limb_bits_64) != cfg!(gmp_limb_bits_32));
 
         // check that target_pointer_width is 32 or 64
         #[cfg(not(any(target_pointer_width = "32",
                       target_pointer_width = "64")))]
         panic!("target_pointer_width is not 32 or 64");
+    }
+
+    #[cfg(gmp_limb_bits_64)]
+    #[test]
+    fn check_limbs() {
+        assert!(mem::size_of::<c_ulong>() == mem::size_of::<u64>());
+        assert_eq!(gmp::NUMB_BITS, 64);
+    }
+
+    #[cfg(gmp_limb_bits_32)]
+    #[test]
+    fn check_limbs() {
+        assert!(mem::size_of::<c_ulong>() == mem::size_of::<u32>());
+        assert_eq!(gmp::NUMB_BITS, 32);
     }
 }

@@ -16,6 +16,10 @@
 
 #[cfg(feature = "integer")]
 pub mod gmp;
+#[cfg(all(feature = "integer", gmp_limb_bits_32))]
+pub(self) mod gmp32;
+#[cfg(all(feature = "integer", gmp_limb_bits_64))]
+pub(self) mod gmp64;
 #[cfg(feature = "float")]
 pub mod mpfr;
 #[cfg(feature = "complex")]

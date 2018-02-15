@@ -18,9 +18,13 @@ use cast::cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i16, i32, i64, i8, u16, u32, u64, u8};
 use std::cmp::Ordering;
-use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
+
+#[cfg(gmp_limb_bits_32)]
+pub use ext::gmp32::*;
+#[cfg(gmp_limb_bits_64)]
+pub use ext::gmp64::*;
 
 #[inline]
 pub unsafe fn mpz_set_0(rop: *mut mpz_t) {
@@ -1041,33 +1045,6 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 #[inline]
-pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
-    #[cfg(gmp_limb_bits_64)]
-    {
-        if u == 0 {
-            (*rop).size = 0;
-        } else {
-            (*rop).size = 1;
-            *limb_mut(rop, 0) = cast(u);
-        }
-    }
-    #[cfg(gmp_limb_bits_32)]
-    {
-        if u == 0 {
-            (*rop).size = 0;
-        } else if u <= 0xffff_ffff {
-            (*rop).size = 1;
-            *limb_mut(rop, 0) = cast(u);
-        } else {
-            gmp::_mpz_realloc(rop, 2);
-            (*rop).size = 2;
-            *limb_mut(rop, 0) = cast(u as u32);
-            *limb_mut(rop, 1) = cast((u >> 32) as u32);
-        }
-    }
-}
-
-#[inline]
 pub unsafe fn mpz_set_i64(rop: *mut mpz_t, i: i64) {
     mpz_set_u64(rop, i.wrapping_abs() as u64);
     if i < 0 {
@@ -1076,162 +1053,10 @@ pub unsafe fn mpz_set_i64(rop: *mut mpz_t, i: i64) {
 }
 
 #[inline]
-pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
-    if u == 0 {
-        (*rop).size = 0;
-    } else {
-        (*rop).size = 1;
-        *limb_mut(rop, 0) = u.into();
-    }
-}
-
-#[inline]
 pub unsafe fn mpz_set_i32(rop: *mut mpz_t, i: i32) {
     mpz_set_u32(rop, i.wrapping_abs() as u32);
     if i < 0 {
         (*rop).size = -(*rop).size;
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_init_set_u64(rop: *mut mpz_t, u: u64) {
-    if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
-        gmp::mpz_init_set_ui(rop, u as c_ulong);
-    } else {
-        gmp::mpz_init(rop);
-        mpz_set_u64(rop, u);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
-    if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
-        gmp::mpz_init_set_si(rop, i as c_long);
-    } else {
-        gmp::mpz_init(rop);
-        mpz_set_i64(rop, i);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
-    #[cfg(gmp_limb_bits_64)]
-    {
-        match (*op).size {
-            0 => 0,
-            _ => limb(op, 0) as u64,
-        }
-    }
-    #[cfg(gmp_limb_bits_32)]
-    {
-        match (*op).size {
-            0 => 0,
-            -1 | 1 => limb(op, 0) as u64,
-            _ => (limb(op, 1) as u64) << 32 | limb(op, 0) as u64,
-        }
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_get_abs_u32(op: *const mpz_t) -> u32 {
-    match (*op).size {
-        0 => 0,
-        _ => limb(op, 0) as u32,
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
-    #[cfg(gmp_limb_bits_64)]
-    {
-        match (*op1).size {
-            0 if op2 == 0 => 0,
-            0 => -1,
-            size if size < 0 => -1,
-            1 => ord_int(limb(op1, 0).cmp(&cast::<_, gmp::limb_t>(op2))),
-            _ => 1,
-        }
-    }
-    #[cfg(gmp_limb_bits_32)]
-    {
-        let op1_u = match (*op1).size {
-            0 => return if op2 == 0 { 0 } else { -1 },
-            size if size < 0 => return -1,
-            1 => limb(op1, 0) as u64,
-            2 => (limb(op1, 1) as u64) << 32 | limb(op1, 0) as u64,
-            _ => return 1,
-        };
-        ord_int(op1_u.cmp(&op2))
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
-    let neg1 = (*op1).size < 0;
-    #[cfg(gmp_limb_bits_64)]
-    {
-        match (*op1).size {
-            0 => ord_int(0.cmp(&op2)),
-            -1 | 1 => {
-                let mag1 = limb(op1, 0);
-                let mag2: gmp::limb_t = cast(op2.wrapping_abs() as u64);
-                match (neg1, op2 < 0) {
-                    (false, false) => ord_int(mag1.cmp(&mag2)),
-                    (false, true) => 1,
-                    (true, false) => -1,
-                    (true, true) => ord_int(mag2.cmp(&mag1)),
-                }
-            }
-            _ if neg1 => -1,
-            _ => 1,
-        }
-    }
-    #[cfg(gmp_limb_bits_32)]
-    {
-        let mag1 = match (*op1).size {
-            0 => 0,
-            -1 | 1 => limb(op1, 0) as u64,
-            -2 | 2 => (limb(op1, 1) as u64) << 32 | limb(op1, 0) as u64,
-            _ => return if neg1 { -1 } else { 1 },
-        };
-        let ord = match (neg1, op2 < 0) {
-            (false, false) => mag1.cmp(&(op2 as u64)),
-            (false, true) => Ordering::Greater,
-            (true, false) => Ordering::Less,
-            (true, true) => (op2.wrapping_neg() as u64).cmp(&mag1),
-        };
-        ord_int(ord)
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
-    match (*op1).size {
-        0 if op2 == 0 => 0,
-        0 => -1,
-        size if size < 0 => -1,
-        1 => ord_int(limb(op1, 0).cmp(&gmp::limb_t::from(op2))),
-        _ => 1,
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
-    let neg1 = (*op1).size < 0;
-    match (*op1).size {
-        0 => ord_int(0.cmp(&op2)),
-        -1 | 1 => {
-            let mag1 = limb(op1, 0);
-            let mag2: gmp::limb_t = cast(op2.wrapping_abs() as u32);
-            match (neg1, op2 < 0) {
-                (false, false) => ord_int(mag1.cmp(&mag2)),
-                (false, true) => 1,
-                (true, false) => -1,
-                (true, true) => ord_int(mag2.cmp(&mag1)),
-            }
-        }
-        _ if neg1 => -1,
-        _ => 1,
     }
 }
 
@@ -1269,67 +1094,6 @@ pub unsafe fn mpz_fits_i16(op: *const mpz_t) -> bool {
         0 => true,
         1 => limb(op, 0) <= gmp::limb_t::from(i16::MAX as u16),
         -1 => limb(op, 0) <= gmp::limb_t::from(i16::MIN as u16),
-        _ => false,
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
-    #[cfg(gmp_limb_bits_64)]
-    match (*op).size {
-        0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(u32::MAX),
-        _ => false,
-    }
-    #[cfg(gmp_limb_bits_32)]
-    match (*op).size {
-        0 | 1 => true,
-        _ => false,
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_fits_i32(op: *const mpz_t) -> bool {
-    match (*op).size {
-        0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(i32::MAX as u32),
-        -1 => limb(op, 0) <= gmp::limb_t::from(i32::MIN as u32),
-        _ => false,
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_fits_u64(op: *const mpz_t) -> bool {
-    #[cfg(gmp_limb_bits_64)]
-    match (*op).size {
-        0 | 1 => true,
-        _ => false,
-    }
-    #[cfg(gmp_limb_bits_32)]
-    match (*op).size {
-        0 | 1 | 2 => true,
-        _ => false,
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
-    #[cfg(gmp_limb_bits_64)]
-    match (*op).size {
-        0 => true,
-        1 => limb(op, 0) <= cast::<_, gmp::limb_t>(i64::MAX as u64),
-        -1 => limb(op, 0) <= cast::<_, gmp::limb_t>(i64::MIN as u64),
-        _ => false,
-    }
-    #[cfg(gmp_limb_bits_32)]
-    match (*op).size {
-        0 | 1 | -1 => true,
-        2 => limb(op, 1) <= cast::<_, gmp::limb_t>(i32::MAX as u32),
-        -2 => {
-            limb(op, 1) < cast::<_, gmp::limb_t>(i32::MIN as u32)
-                || (limb(op, 1) == cast::<_, gmp::limb_t>(i32::MIN as u32)
-                    && limb(op, 0) == 0)
-        }
         _ => false,
     }
 }
@@ -1419,17 +1183,17 @@ pub unsafe fn mpz_gcdext1(
 }
 
 #[inline]
-unsafe fn limb(z: *const mpz_t, index: isize) -> gmp::limb_t {
+pub unsafe fn limb(z: *const mpz_t, index: isize) -> gmp::limb_t {
     *(*z).d.offset(index)
 }
 
 #[inline]
-unsafe fn limb_mut(z: *const mpz_t, index: isize) -> *mut gmp::limb_t {
+pub unsafe fn limb_mut(z: *const mpz_t, index: isize) -> *mut gmp::limb_t {
     (*z).d.offset(index)
 }
 
 #[inline]
-fn ord_int(o: Ordering) -> c_int {
+pub fn ord_int(o: Ordering) -> c_int {
     match o {
         Ordering::Less => -1,
         Ordering::Equal => 0,
@@ -1443,8 +1207,7 @@ pub use self::rational::*;
 mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
-    use inner::Inner;
-    use rational::SmallRational;
+    use std::mem;
 
     #[inline]
     pub unsafe fn mpq_signum(signum: *mut mpz_t, op: *const mpq_t) {
@@ -1718,26 +1481,6 @@ mod rational {
         if neg {
             gmp::mpz_neg(fract_num, fract_num);
             gmp::mpz_neg(round, round);
-        }
-    }
-
-    #[inline]
-    pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
-        if mem::size_of::<c_ulong>() >= mem::size_of::<u64>() {
-            gmp::mpq_cmp_ui(op1, n2 as c_ulong, d2 as c_ulong)
-        } else {
-            let small = SmallRational::from((n2, d2));
-            gmp::mpq_cmp(op1, (*small).inner())
-        }
-    }
-
-    #[inline]
-    pub unsafe fn mpq_cmp_i64(op1: *const mpq_t, n2: i64, d2: i64) -> c_int {
-        if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
-            gmp::mpq_cmp_si(op1, n2 as c_long, d2 as c_ulong)
-        } else {
-            let small = SmallRational::from((n2, d2));
-            gmp::mpq_cmp(op1, (*small).inner())
         }
     }
 }
