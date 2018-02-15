@@ -649,6 +649,7 @@ impl<'a> AssignRound<MulSubMulRef<'a>> for Float {
     }
 }
 
+#[allow(unknown_lints, needless_pass_by_value)]
 unsafe fn add_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
@@ -658,6 +659,7 @@ unsafe fn add_mul(
     mpfr::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
 }
 
+#[allow(unknown_lints, needless_pass_by_value)]
 unsafe fn sub_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
@@ -667,6 +669,7 @@ unsafe fn sub_mul(
     xmpfr::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
 }
 
+#[allow(unknown_lints, needless_pass_by_value)]
 unsafe fn mul_sub(
     rop: *mut mpfr_t,
     mul: MulRef,

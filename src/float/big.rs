@@ -8100,8 +8100,16 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
     for (i, &b) in iter {
         match b {
             b')' => return Some(&bytes[i + 1..]),
-            b'0'...b'9' | b'a'...b'z' | b'A'...b'Z' | b'_' => {}
-            b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => {}
+            b'0'...b'9'
+            | b'a'...b'z'
+            | b'A'...b'Z'
+            | b'_'
+            | b' '
+            | b'\t'
+            | b'\n'
+            | 0x0b
+            | 0x0c
+            | 0x0d => {}
             _ => return None,
         }
     }

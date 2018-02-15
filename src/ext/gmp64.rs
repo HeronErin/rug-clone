@@ -35,7 +35,7 @@ pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
         (*rop).size = 0;
     } else {
         (*rop).size = 1;
-        *limb_mut(rop, 0) = u as u64;
+        *limb_mut(rop, 0) = u64::from(u);
     }
 }
 
@@ -102,7 +102,7 @@ pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
         0 if op2 == 0 => 0,
         0 => -1,
         size if size < 0 => -1,
-        1 => ord_int(limb(op1, 0).cmp(&(op2 as u64))),
+        1 => ord_int(limb(op1, 0).cmp(&u64::from(op2))),
         _ => 1,
     }
 }
@@ -114,7 +114,7 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
         0 => ord_int(0.cmp(&op2)),
         -1 | 1 => {
             let mag1 = limb(op1, 0);
-            let mag2 = op2.wrapping_abs() as u32 as u64;
+            let mag2 = u64::from(op2.wrapping_abs() as u32);
             match (neg1, op2 < 0) {
                 (false, false) => ord_int(mag1.cmp(&mag2)),
                 (false, true) => 1,
@@ -131,7 +131,7 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
 pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= u32::MAX as u64,
+        1 => limb(op, 0) <= u64::from(u32::MAX),
         _ => false,
     }
 }
@@ -140,8 +140,8 @@ pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
 pub unsafe fn mpz_fits_i32(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= i32::MAX as u32 as u64,
-        -1 => limb(op, 0) <= i32::MIN as u32 as u64,
+        1 => limb(op, 0) <= u64::from(i32::MAX as u32),
+        -1 => limb(op, 0) <= u64::from(i32::MIN as u32),
         _ => false,
     }
 }
@@ -173,7 +173,7 @@ mod rational {
 
     #[inline]
     pub unsafe fn mpq_cmp_u32(op1: *const mpq_t, n2: u32, d2: u32) -> c_int {
-        gmp::mpq_cmp_ui(op1, n2 as u64, d2 as u64)
+        gmp::mpq_cmp_ui(op1, u64::from(n2), u64::from(d2))
     }
 
     #[inline]

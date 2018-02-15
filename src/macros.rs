@@ -1236,7 +1236,7 @@ macro_rules! fold_in_place {
                     Some(first) => first,
                     None => return $ident,
                 };
-                while let Some(i) = iter.next() {
+                for i in iter {
                     $op_assign(&mut acc, i);
                 }
                 acc
@@ -1252,7 +1252,7 @@ macro_rules! fold_in_place {
                     Some(first) => first.clone(),
                     None => return $ident,
                 };
-                while let Some(i) = iter.next() {
+                for i in iter {
                     $op_assign(&mut acc, i);
                 }
                 acc

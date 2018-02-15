@@ -60,8 +60,8 @@ pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
 pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
     match (*op).size {
         0 => 0,
-        -1 | 1 => limb(op, 0) as u64,
-        _ => (limb(op, 1) as u64) << 32 | limb(op, 0) as u64,
+        -1 | 1 => u64::from(limb(op, 0),
+        _ => u64::from(limb(op, 1)) << 32 | u64::from(limb(op, 0)),
     }
 }
 
@@ -79,9 +79,9 @@ pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
         0 if op2 == 0 => 0,
         0 => -1,
         size if size < 0 => -1,
-        1 => ord_int((limb(op1, 0) as u64).cmp(&op2)),
+        1 => ord_int(u64::from(limb(op1, 0)).cmp(&op2)),
         2 => {
-            let op1_u = (limb(op1, 1) as u64) << 32 | limb(op1, 0) as u64;
+            let op1_u = u64::from(limb(op1, 1)) << 32 | u64::from(limb(op1, 0));
             ord_int(op1_u.cmp(&op2))
         }
         _ => 1,
@@ -93,11 +93,11 @@ pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
     let neg1 = (*op1).size < 0;
     let mag1 = match (*op1).size {
         0 => 0,
-        -1 | 1 => limb(op1, 0) as u64,
-        -2 | 2 => (limb(op1, 1) as u64) << 32 | limb(op1, 0) as u64,
+        -1 | 1 => u64::from(limb(op1, 0)),
+        -2 | 2 => u64::from(limb(op1, 1)) << 32 | u64::from(limb(op1, 0)),
         _ => return if neg1 { -1 } else { 1 },
     };
-    let mag2 = op2.wrapping_abs() as u64;
+    let mag2 = u64::from(op2.wrapping_abs());
     match (neg1, op2 < 0) {
         (false, false) => ord_int(mag1.cmp(&mag2)),
         (false, true) => 1,
