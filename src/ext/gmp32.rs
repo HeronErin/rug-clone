@@ -14,9 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use ext::gmp::{limb, limb_mut, ord_int};
+use ext::gmp::{limb, limb_mut, ord_int, mpz_set_i64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i32, i64};
+use std::cmp::Ordering;
 use std::os::raw::c_int;
 
 #[inline]
