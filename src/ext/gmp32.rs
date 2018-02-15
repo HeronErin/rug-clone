@@ -17,7 +17,6 @@
 use ext::gmp::{limb, limb_mut, ord_int, mpz_set_i64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{i32, i64};
-use std::cmp::Ordering;
 use std::os::raw::c_int;
 
 #[inline]
@@ -101,8 +100,8 @@ pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
     let mag2 = op2.wrapping_abs() as u64;
     match (neg1, op2 < 0) {
         (false, false) => ord_int(mag1.cmp(&mag2)),
-        (false, true) => Ordering::Greater,
-        (true, false) => Ordering::Less,
+        (false, true) => 1,
+        (true, false) => -1,
         (true, true) => ord_int(mag2.cmp(&mag1)),
     }
 }
