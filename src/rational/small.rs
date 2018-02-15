@@ -347,11 +347,7 @@ where
         self.den.alloc = cast(LIMBS_IN_SMALL_INTEGER);
 
         unsafe {
-            assert_ne!(
-                *self.den.d.load(Ordering::Relaxed),
-                0,
-                "division by zero"
-            );
+            assert_ne!(self.den.size, 0, "division by zero");
             gmp::mpq_canonicalize(
                 self.as_nonreallocating_rational().inner_mut(),
             );
