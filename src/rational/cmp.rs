@@ -23,7 +23,7 @@ use ext::gmp as xgmp;
 use float::SmallFloat;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
-use rational::SmallRational;
+use misc::NegAbs;
 use std::cmp::Ordering;
 use std::i32;
 
@@ -134,35 +134,67 @@ cmp! { usize, gmp::mpq_cmp_ui }
 cmp! { usize, xgmp::mpq_cmp_u64 }
 
 macro_rules! cross {
-    ($Num: ty; $Den: ty) => {
+    ($func: path; $Num: ty; $Den: ty) => {
         impl PartialEq<($Num, $Den)> for Rational {
-            #[inline]
             fn eq(&self, other: &($Num, $Den)) -> bool {
-                <Rational as PartialEq>::eq(self, &*SmallRational::from(*other))
+                assert_ne!(other.1, 0, "division by zero");
+                let neg = self.cmp0() == Ordering::Less;
+                let (neg_num, abs_num) = other.0.neg_abs();
+                let (neg_den, abs_den) = other.1.neg_abs();
+                let as_neg;
+                let abs = if neg {
+                    if abs_num == 0 || neg_num == neg_den {
+                        return false;
+                    }
+                    as_neg = self.as_neg();
+                    &*as_neg
+                } else {
+                    if abs_num != 0 && neg_num != neg_den {
+                        return false;
+                    }
+                    &self
+                };
+                unsafe {
+                    $func(abs.inner(), cast(abs_num), cast(abs_den)) == 0
+                }
             }
         }
         impl PartialEq<Rational> for ($Num, $Den) {
             #[inline]
             fn eq(&self, other: &Rational) -> bool {
-                <Rational as PartialEq>::eq(&*SmallRational::from(*self), other)
+                <Rational as PartialEq<($Num, $Den)>>::eq(other, self)
             }
         }
         impl PartialOrd<($Num, $Den)> for Rational {
-            #[inline]
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
-                <Rational as PartialOrd>::partial_cmp(
-                    self,
-                    &*SmallRational::from(*other),
-                )
+                assert_ne!(other.1, 0, "division by zero");
+                let neg = self.cmp0() == Ordering::Less;
+                let (neg_num, abs_num) = other.0.neg_abs();
+                let (neg_den, abs_den) = other.1.neg_abs();
+                let as_neg;
+                let abs = if neg {
+                    if abs_num == 0 || neg_num == neg_den {
+                        return Some(Ordering::Less);
+                    }
+                    as_neg = self.as_neg();
+                    &*as_neg
+                } else {
+                    if abs_num != 0 && neg_num != neg_den {
+                        return Some(Ordering::Greater);
+                    }
+                    &self
+                };
+                let cmp_abs =
+                    unsafe { $func(abs.inner(), cast(abs_num), cast(abs_den)) };
+                let cmp = if neg { -cmp_abs } else { cmp_abs };
+                Some(cmp.cmp(&0))
             }
         }
         impl PartialOrd<Rational> for ($Num, $Den) {
             #[inline]
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-                <Rational as PartialOrd>::partial_cmp(
-                    &*SmallRational::from(*self),
-                    other,
-                )
+                <Rational as PartialOrd<($Num, $Den)>>::partial_cmp(other, self)
+                    .map(Ordering::reverse)
             }
         }
     };
@@ -170,23 +202,31 @@ macro_rules! cross {
 
 // (Major, Major), (Major, Minor*), (Minor*, Major)
 macro_rules! matrix {
-    ($Major: ty $(; $Minor: ty)*) => {
-        cross! { $Major; $Major }
-        $(cross! { $Major; $Minor })*
-        $(cross! { $Minor; $Major })*
+    ($func: path; $Major: ty $(; $Minor: ty)*) => {
+        cross! { $func; $Major; $Major }
+        $(cross! { $func; $Major; $Minor })*
+        $(cross! { $func; $Minor; $Major })*
     };
 }
 
-matrix! { u8 }
-matrix! { i8; u8 }
-matrix! { u16; i8; u8 }
-matrix! { i16; u16; i8; u8 }
-matrix! { u32; i16; u16; i8; u8 }
-matrix! { i32; u32; i16; u16; i8; u8 }
-matrix! { usize; i32; u32; i16; u16; i8; u8 }
-matrix! { isize; usize; i32; u32; i16; u16; i8; u8 }
-matrix! { u64; isize; usize; i32; u32; i16; u16; i8; u8 }
-matrix! { i64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { xgmp::mpq_cmp_u32; u8 }
+matrix! { xgmp::mpq_cmp_u32; i8; u8 }
+matrix! { xgmp::mpq_cmp_u32; u16; i8; u8 }
+matrix! { xgmp::mpq_cmp_u32; i16; u16; i8; u8 }
+matrix! { xgmp::mpq_cmp_u32; u32; i16; u16; i8; u8 }
+matrix! { xgmp::mpq_cmp_u32; i32; u32; i16; u16; i8; u8 }
+#[cfg(target_pointer_width = "32")]
+matrix! { xgmp::mpq_cmp_u32; usize; i32; u32; i16; u16; i8; u8 }
+#[cfg(target_pointer_width = "32")]
+matrix! { xgmp::mpq_cmp_u32; isize; usize; i32; u32; i16; u16; i8; u8 }
+#[cfg(target_pointer_width = "64")]
+matrix! { xgmp::mpq_cmp_u64; usize; i32; u32; i16; u16; i8; u8 }
+#[cfg(target_pointer_width = "64")]
+matrix! { xgmp::mpq_cmp_u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! { xgmp::mpq_cmp_u64; u64; isize; usize; i32; u32; i16; u16; i8; u8 }
+matrix! {
+    xgmp::mpq_cmp_u64; i64; u64; isize; usize; i32; u32; i16; u16; i8; u8
+}
 
 #[cfg(feature = "float")]
 macro_rules! cmp_f {
@@ -244,7 +284,7 @@ mod tests {
     #[cfg(feature = "float")]
     use std::{f32, f64};
     use std::cmp::Ordering;
-    use std::ops::Neg;
+    use std::ops::{Neg, Sub};
     use tests::{I32, I64, U32, U64};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
@@ -288,6 +328,75 @@ mod tests {
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
         check_cmp_prim(I64, &against);
+    }
+
+    fn check_cmp_prim_tuple<N, D>(num: &[N], den: &[D], against: &[Rational])
+    where
+        Rational: From<(N, D)> + PartialEq<(N, D)> + PartialOrd<(N, D)>,
+        N: Copy,
+        D: Copy + Eq + Sub<Output = D>,
+        (N, D): PartialEq<Rational> + PartialOrd<Rational>,
+    {
+        for n in num {
+            for d in den {
+                if *d == *d - *d {
+                    continue;
+                }
+                let op = (*n, *d);
+                let iop = Rational::from(op);
+                for b in against {
+                    assert_eq!(
+                        b.eq(&op),
+                        <Rational as PartialEq>::eq(&b, &iop)
+                    );
+                    assert_eq!(
+                        op.eq(&b),
+                        <Rational as PartialEq>::eq(&iop, &b)
+                    );
+                    assert_eq!(b.eq(&op), op.eq(&b));
+                    assert_eq!(
+                        b.partial_cmp(&op),
+                        <Rational as PartialOrd>::partial_cmp(&b, &iop)
+                    );
+                    assert_eq!(
+                        op.partial_cmp(&b),
+                        <Rational as PartialOrd>::partial_cmp(&iop, &b)
+                    );
+                    assert_eq!(
+                        b.partial_cmp(&op).unwrap(),
+                        op.partial_cmp(&b).unwrap().reverse()
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn check_cmp_tuple() {
+        let large = &[(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
+        let against =
+            (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
+                .chain(U32.iter().map(|&x| Rational::from(x)))
+                .chain(I32.iter().map(|&x| Rational::from(x)))
+                .chain(U64.iter().map(|&x| Rational::from(x)))
+                .chain(I64.iter().map(|&x| Rational::from(x)))
+                .collect::<Vec<Rational>>();
+        check_cmp_prim_tuple(U32, U32, &against);
+        check_cmp_prim_tuple(U32, I32, &against);
+        check_cmp_prim_tuple(U32, U64, &against);
+        check_cmp_prim_tuple(U32, I64, &against);
+        check_cmp_prim_tuple(I32, U32, &against);
+        check_cmp_prim_tuple(I32, I32, &against);
+        check_cmp_prim_tuple(I32, U64, &against);
+        check_cmp_prim_tuple(I32, I64, &against);
+        check_cmp_prim_tuple(U64, U32, &against);
+        check_cmp_prim_tuple(U64, I32, &against);
+        check_cmp_prim_tuple(U64, U64, &against);
+        check_cmp_prim_tuple(U64, I64, &against);
+        check_cmp_prim_tuple(I64, U32, &against);
+        check_cmp_prim_tuple(I64, I32, &against);
+        check_cmp_prim_tuple(I64, U64, &against);
+        check_cmp_prim_tuple(I64, I64, &against);
     }
 
     #[cfg(feature = "float")]

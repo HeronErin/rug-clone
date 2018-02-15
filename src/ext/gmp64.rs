@@ -172,6 +172,11 @@ mod rational {
     use gmp_mpfr_sys::gmp::mpq_t;
 
     #[inline]
+    pub unsafe fn mpq_cmp_u32(op1: *const mpq_t, n2: u32, d2: u32) -> c_int {
+        gmp::mpq_cmp_ui(op1, n2 as u64, d2 as u64)
+    }
+
+    #[inline]
     pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
         gmp::mpq_cmp_ui(op1, n2, d2)
     }

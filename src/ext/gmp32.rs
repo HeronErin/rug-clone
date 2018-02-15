@@ -185,6 +185,11 @@ mod rational {
     use rational::SmallRational;
 
     #[inline]
+    pub unsafe fn mpq_cmp_u32(op1: *const mpq_t, n2: u32, d2: u32) -> c_int {
+        gmp::mpq_cmp_ui(op1, n2, d2)
+    }
+
+    #[inline]
     pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
         let small = SmallRational::from((n2, d2));
         gmp::mpq_cmp(op1, (*small).inner())

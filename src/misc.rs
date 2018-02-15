@@ -18,6 +18,37 @@
 
 use std::mem;
 
+pub trait NegAbs {
+    type Abs;
+    fn neg_abs(self) -> (bool, Self::Abs);
+}
+macro_rules! neg_abs_unsigned {
+    ($($U: ty)*) => { $(
+        impl NegAbs for $U {
+            type Abs = $U;
+            fn neg_abs(self) -> (bool, $U) {
+                (false, self)
+            }
+        }
+    )* };
+}
+macro_rules! neg_abs_signed {
+    ($(($I: ty, $U: ty))*) => { $(
+        impl NegAbs for $I {
+            type Abs = $U;
+            fn neg_abs(self) -> (bool, $U) {
+                if self < 0 {
+                    (true, self.wrapping_neg() as $U)
+                } else {
+                    (false, self as $U)
+                }
+            }
+        }
+    )* };
+}
+neg_abs_unsigned! { u8 u16 u32 u64 usize }
+neg_abs_signed! { (i8, u8) (i16, u16) (i32, u32) (i64, u64) (isize, usize) }
+
 #[allow(unknown_lints, transmute_int_to_float)]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
