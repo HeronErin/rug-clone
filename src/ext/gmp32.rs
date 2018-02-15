@@ -16,7 +16,7 @@
 
 use ext::gmp::{limb, limb_mut, ord_int, mpz_set_i64};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use misc::neg_abs;
+use misc::NegAbs;
 use std::{i32, i64};
 use std::os::raw::c_int;
 
