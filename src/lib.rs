@@ -17,7 +17,7 @@
 //! # Arbitrary-precision numbers
 //!
 //! The Rug crate provides integers and floating-point numbers with
-//! arbitrary precision and correct rounding. Its main features are:
+//! arbitrary precision and correct rounding. Its main features are
 //!
 //! * bignum [integers][rug int] with arbitrary precision,
 //! * bignum [rational numbers][rug rat] with arbitrary precision,
@@ -93,24 +93,161 @@
 //! }
 //! ```
 //!
-//! Some points from this example:
+//! Some points from this example follow:
 //!
-//! * `Integer::new()` creates a new [`Integer`][rug int] intialized
-//!   to zero.
+//! * [`Integer::new()`][rug int new] creates a new
+//!   [`Integer`][rug int] intialized to zero.
 //! * To assign values to Rug types, we use the
-//!   [`Assign`][rug assign] trait and it method
-//!   [`assign`][rug assign method]. We do not use the
+//!   [`Assign`][rug assign] trait and its method
+//!   [`assign`][rug assign assign]. We do not use the
 //!   [assignment operator `=`][rust assignment] as that would move
 //!   the left-hand-side operand, which would have the same type.
-//! * Since arbitrary precision numbers can hold numbers that are too
-//!   large to fit in a primitive type, we can also initialize them
-//!   using strings.
+//! * Arbitrary precision numbers can hold numbers that are too large
+//!   to fit in a primitive type. To assign such a number to the large
+//!   types, we use strings rather than primitives; in the example
+//!   this is done using both [`Integer::parse`][rug int parse] and
+//!   [`Integer::parse_radix`][rug int parseradix].
 //! * We can compare Rug types with primitive types or with other Rug
 //!   types using the normal comparison operators, for example
 //!   `int > 100_000_000_000`.
 //! * Most arithmetic operations are supported with Rug types and
 //!   primitive types on either side of the operator, for example
 //!   `int >> 128`.
+//!
+//! ## Operators
+//!
+//! With Rust primitive types, arithmetic operators usually operate on
+//! two values of the same type, for example `12i32 + 5i32`. Unlike
+//! primitive types, conversion to and from Rug types can be
+//! expensive, so the arithmetic operators are overloaded to work on
+//! many combinations of Rug types and primitives.
+//!
+//! When at least one operand is an owned Rug type, the operation will
+//! consume that type and return a Rug type. For example
+//!
+//! ```rust
+//! # #[cfg(feature = "integer")] {
+//! use rug::Integer;
+//! let a = Integer::from(10);
+//! let b = 5 - a;
+//! assert_eq!(b, 5 - 10);
+//! # }
+//! ```
+//!
+//! Here, `a` is consumed by the subtraction, and `b` is an owned
+//! [`Integer`][rug int].
+//!
+//! If on the other hand there are no owned Rug types and there are
+//! references instead, the returned value is not a final value, but
+//! an intermediate value. For example
+//!
+//! ```rust
+//! # #[cfg(feature = "integer")] {
+//! use rug::Integer;
+//! let (a, b) = (Integer::from(10), Integer::from(20));
+//! let intermediate = &a - &b;
+//! // This would fail to compile: assert_eq!(intermediate, -10);
+//! let sub = Integer::from(intermediate);
+//! assert_eq!(sub, -10);
+//! # }
+//! ```
+//!
+//! Here, `a` and `b` are not consumed, and `intermediate` is not a
+//! final value. It still needs to be converted or assigned into an
+//! [`Integer`][rug int]. The reason is explained in the
+//! [next](#intermediate-values) section.
+//!
+//! ## Intermediate values
+//!
+//! There are two main reasons why operations `&a - &b` do not return
+//! a Rug type:
+//!
+//! 1. Sometimes we need to assign the result to an object that
+//!    already exists. Since Rug types require memory allocations,
+//!    this can help reduce the number of allocations.
+//! 2. For the [`Float`][rug flo] type, we need to know the precision
+//!    when we create a value, and the operation itself cannot convey
+//!    information about what precision is desired for the result. The
+//!    same holds for the [`Complex`][rug com] type.
+//!
+//! There are two things that can be done with intermediate values:
+//!
+//! 1. Assign them using the [`Assign`][rug assign] trait or a similar
+//!    trait, for example
+//!    [`int.assign(intermediate)`][rug assign assign] and
+//!    [`float.assign_round(intermediate, Round::Up)`][rug assr assr].
+//! 2. Convert them to a final value using the [`From`][rust from]
+//!    trait or a similar method, for example
+//!    [`Integer::from(intermediate)`][rust from from] and
+//!    [`Float::with_val(53, intermediate)`][rug flo withval].
+//!
+//! Let us consider a couple of examples.
+//!
+//! ```rust
+//! # #[cfg(feature = "integer")] {
+//! use rug::{Assign, Integer};
+//! let mut buffer = Integer::new();
+//! // ... buffer can be used and reused ...
+//! let (a, b) = (Integer::from(10), Integer::from(20));
+//! let intermediate = &a - &b;
+//! buffer.assign(intermediate);
+//! assert_eq!(buffer, -10);
+//! # }
+//! ```
+//!
+//! Here the assignment from `intermediate` into `buffer` does not
+//! require an allocation unless the result does not fit in the
+//! current capacity of `buffer`. If `&a - &b` returns an
+//! [`Integer`][rug int] instead, then an allocation takes place even
+//! if it is not required.
+//!
+//! ```rust
+//! # #[cfg(feature = "float")] {
+//! use rug::Float;
+//! use rug::float::Constant;
+//! // x has precision of 10, y has precision of 50
+//! let x = Float::with_val(10, 180);
+//! let y = Float::with_val(50, Constant::Pi);
+//! let intermediate = &x / &y;
+//! // z has a precision of 45
+//! let z = Float::with_val(45, intermediate);
+//! assert!(57.295 < z && z < 57.296);
+//! # }
+//! ```
+//!
+//! The precision to use for the result depends on the requirements of
+//! the algorithm being implemented. Here `c` is created with a
+//! precision of 45.
+//!
+//! In these two examples, we could have left out the `intermediate`
+//! variables altogether and used `buffer.assign(&a - &b)` and
+//! `Float::with_val(45, &x / &y)` directly.
+//!
+//! Many operations can return intermediate values. Some examples are
+//!
+//! * string parsing, for example
+//!   [`Integer::parse("12")`][rug int parse];
+//! * unary operators applied to references, for example `-&int`;
+//! * binary operators applied to two references, for example
+//!   `&int1 + &int2`;
+//! * binary operators applied to a primitive and a reference, for
+//!   example `&int * 10`;
+//! * methods that take a reference, for example
+//!   [`int.abs_ref()`][rug int absref]; and
+//! * methods that take two references, for example
+//!   [`int1.div_rem_ref(&int2)`][rug int divremref].
+//!
+//! These operations return objects that can be stored in temporary
+//! variables like `intermediate` in the last few examples. However,
+//! the names of the types are not public. For example the
+//! [documentation][rug int negref] for the [`Neg`][rust neg]
+//! implementation of the reference [`&Integer`][rug int] shows a
+//! return type called [`NegRef`][rug int negref], but the name is
+//! blacked out and not linkable in the documentation, as the
+//! intermediate type cannot be named. Consequently, the intermediate
+//! values cannot be for example stored in a struct. If you need to
+//! store the value in a struct, convert it to a final value, in this
+//! case an [`Integer`][rug int].
 //!
 //! ## Crate usage
 //!
@@ -152,8 +289,8 @@
 //!    [`Float`][rug flo] and [`Complex`][rug com] types, providing
 //!    that they are enabled.
 //!
-//! The first five optional features are enabled by default; to
-//! use features selectively, you can add this to
+//! The first five optional features are enabled by default; to use
+//! features selectively, you can add the dependency like this to
 //! [*Cargo.toml*][cargo deps]:
 //!
 //! ```toml
@@ -163,10 +300,13 @@
 //! features = ["integer", "float", "rand"]
 //! ```
 //!
-//! In this example, only the `integer`, `float` and `rand` features
-//! are enabled. If none of the features are selected, the
-//! [gmp-mpfr-sys crate][sys] is not required and thus not enabled.
+//! Here only the `integer`, `float` and `rand` features are enabled.
+//! If none of the features are selected, the
+//! [gmp-mpfr-sys crate][sys] is not required and thus not enabled. In
+//! that case, only the [`Assign`][rug assign] trait and some
+//! [other traits][rug ops] are provided by the crate.
 //!
+//! [cargo deps]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 //! [gmp doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
 //! [gmp]: https://gmplib.org/
 //! [gpl]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -175,23 +315,34 @@
 //! [mpc]: http://www.multiprecision.org/
 //! [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 //! [mpfr]: http://www.mpfr.org/
+//! [rug assign assign]: trait.Assign.html#tymethod.assign
 //! [rug assign]: trait.Assign.html
-//! [rug assign method]: trait.Assign.html#tymethod.assign
+//! [rug assr assr]: ops/trait.AssignRound.html#tymethod.assign_round
+//! [rug assr]: ops/trait.AssignRound.html
 //! [rug com]: struct.Complex.html
+//! [rug flo withval]: struct.Float.html#method.with_val
 //! [rug flo]: struct.Float.html
+//! [rug int absref]: struct.Integer.html#method.abs_ref
+//! [rug int divremref]: struct.Integer.html#method.div_rem_ref
+//! [rug int negref]: struct.Integer.html#impl-Neg-1
+//! [rug int new]: struct.Integer.html#method.new
+//! [rug int parse]: struct.Integer.html#method.parse
+//! [rug int parseradix]: struct.Integer.html#method.parse_radix
 //! [rug int]: struct.Integer.html
 //! [rug ops]: ops/index.html
-//! [rug rat]: struct.Rational.html
 //! [rug rand]: rand/struct.RandState.html
+//! [rug rat]: struct.Rational.html
 //! [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 //! [rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
+//! [rust from from]: https://doc.rust-lang.org/std/convert/trait.From.html#tymethod.from
+//! [rust from]: https://doc.rust-lang.org/std/convert/trait.From.html
 //! [rust i32]: https://doc.rust-lang.org/std/primitive.i32.html
+//! [rust neg]: https://doc.rust-lang.org/std/ops/trait.Neg.html
 //! [sys crate]: https://crates.io/crates/gmp-mpfr-sys
 //! [sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-gnulinux
 //! [sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-macos
 //! [sys win]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-windows
 //! [sys]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
-//! [cargo deps]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/0.10.0")]
 #![doc(test(attr(deny(warnings))))]

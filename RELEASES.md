@@ -7,7 +7,8 @@ Version 0.10.0 (to be determined)
 * Add `Float::parse` and `Complex::parse`, and deprecate `ValidFloat`,
   `ValidComplex`, `from_str*` methods, `valid_str_radix` methods, and
   `assign_str*` methods.
-* `Integer::gcd_coeffs_ref` now supports computing only one
+* Rename `Integer::gcd_coeffs*` methods to `Integer::gcd_cofactors*`.
+* `Integer::gcd_cofactors_ref` now supports computing only one
   coefficient.
 * `Integer::invert_ref` and `Integer::pow_mod_ref` now return an
   `Option`, not an object that is assignable to `Result`.
@@ -15,7 +16,7 @@ Version 0.10.0 (to be determined)
   to the number values, not to `Result` objects.
 * Remove `Default` implementations from all types of `Float` and
   `Complex`; now the precision always has to be specified.
-* Rename `Integer::gcd_coeffs*` methods to `Integer::gcd_cofactors*`.
+* Improve documentation.
 
 Version 0.9.3 (2018-01-09)
 ==========================
