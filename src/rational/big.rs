@@ -94,13 +94,9 @@ macro_rules! rat_op_int {
     ) => {
         $(#[$attr])*
         #[inline]
-        pub fn $method(mut self, $($param: $T),*) -> Integer {
-            unsafe {
-                let num = gmp::mpq_numref(self.inner_mut());
-                $func(num, self.inner(), $($param.into()),*);
-                // not canonicalized, so do not exit unsafe before consuming
-                self.into_numer_denom().0
-            }
+        pub fn $method(mut self, $($param: $T),*) -> Rational {
+            self.$method_mut($($param),*);
+            self
         }
 
         $(#[$attr_mut])*
@@ -1367,12 +1363,12 @@ impl Rational {
         /// use rug::Rational;
         /// // -3.7
         /// let r1 = Rational::from((-37, 10));
-        /// let i1 = r1.trunc();
-        /// assert_eq!(i1, -3);
+        /// let trunc1 = r1.trunc();
+        /// assert_eq!(trunc1, -3);
         /// // 3.3
         /// let r2 = Rational::from((33, 10));
-        /// let i2 = r2.trunc();
-        /// assert_eq!(i2, 3);
+        /// let trunc2 = r2.trunc();
+        /// assert_eq!(trunc2, 3);
         /// ```
         fn trunc();
         /// Rounds the number towards zero.
@@ -1542,12 +1538,12 @@ impl Rational {
         /// use rug::Rational;
         /// // -3.7
         /// let r1 = Rational::from((-37, 10));
-        /// let i1 = r1.ceil();
-        /// assert_eq!(i1, -3);
+        /// let ceil1 = r1.ceil();
+        /// assert_eq!(ceil1, -3);
         /// // 3.3
         /// let r2 = Rational::from((33, 10));
-        /// let i2 = r2.ceil();
-        /// assert_eq!(i2, 4);
+        /// let ceil2 = r2.ceil();
+        /// assert_eq!(ceil2, 4);
         /// ```
         fn ceil();
         /// Rounds the number upwards (towards plus infinity).
@@ -1699,12 +1695,12 @@ impl Rational {
         /// use rug::Rational;
         /// // -3.7
         /// let r1 = Rational::from((-37, 10));
-        /// let i1 = r1.floor();
-        /// assert_eq!(i1, -4);
+        /// let floor1 = r1.floor();
+        /// assert_eq!(floor1, -4);
         /// // 3.3
         /// let r2 = Rational::from((33, 10));
-        /// let i2 = r2.floor();
-        /// assert_eq!(i2, 3);
+        /// let floor2 = r2.floor();
+        /// assert_eq!(floor2, 3);
         /// ```
         fn floor();
         /// Rounds the number downwards (towards minus infinity).
@@ -1857,12 +1853,12 @@ impl Rational {
         /// use rug::Rational;
         /// // -3.5
         /// let r1 = Rational::from((-35, 10));
-        /// let i1 = r1.round();
-        /// assert_eq!(i1, -4);
+        /// let round1 = r1.round();
+        /// assert_eq!(round1, -4);
         /// // 3.7
         /// let r2 = Rational::from((37, 10));
-        /// let i2 = r2.round();
-        /// assert_eq!(i2, 4);
+        /// let round2 = r2.round();
+        /// assert_eq!(round2, 4);
         /// ```
         fn round();
         /// Rounds the number to the nearest integer.

@@ -13,6 +13,8 @@ Version 0.10.0 (to be determined)
 * `Integer::invert_ref` and `Integer::pow_mod_ref` now return an
   `Option`, not an object that is assignable to `Result`.
 * Deprecate `Rational::to_integer` and `Rational::as_numer_denom`.
+* `Rational::signum`, `Rational::trunc`, `Rational::ceil`,
+  `Rational::floor` and `Rational::round` now return `Rational`.
 * `Float::random_bits` and `Complex::random_bits` are now assignable
   to the number values, not to `Result` objects.
 * Remove `Default` implementations from all types of `Float` and
