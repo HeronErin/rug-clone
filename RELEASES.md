@@ -18,6 +18,8 @@ Version 0.10.0 (to be determined)
 * `Float::random_bits` and `Complex::random_bits` are now assignable
   to the number values, not to `Result` objects.
 * Deprecate `Complex::as_real_imag`.
+* `Complex::abs`, `Complex::arg` and `Complex::norm` now return
+  `Complex`.
 * Remove `Default` implementations from all types of `Float` and
   `Complex`; now the precision always has to be specified.
 * Improve top-level documentation.
