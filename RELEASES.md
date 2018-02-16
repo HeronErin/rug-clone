@@ -16,9 +16,9 @@ Version 0.10.0 (to be determined)
   to the number values, not to `Result` objects.
 * Remove `Default` implementations from all types of `Float` and
   `Complex`; now the precision always has to be specified.
-* Improve documentation.
+* Improve top-level documentation.
 
-Version 0.9.3 (2018-01-09)
+Version 0.9.3 (2018-02-09)
 ==========================
 
 * Add `Integer::square` and `Rational::square` methods.

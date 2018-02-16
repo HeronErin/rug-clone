@@ -15,6 +15,12 @@ by the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version. See the full text of the
 [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 
+## Version 1.0.0 coming soon
+
+Version 0.10.0 is meant to be the last release before version 1.0.0.
+Unless some major issue is discovered, version 1.0.0 will be like
+version 0.10.0 with all the deprecated items removed.
+
 ## Getting started
 
 ### Setting up the crate
