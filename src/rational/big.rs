@@ -425,23 +425,10 @@ impl Rational {
 
     /// Converts to an [`Integer`](struct.Integer.html), rounding
     /// towards zero.
-    ///
-    /// Note that this method does not consume `self`, and allocates a
-    /// new `Integer`. If `self` can be consumed, you should use
-    /// [`trunc`](#method.trunc) instead.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// let pos = Rational::from((139, 10));
-    /// let posi = pos.to_integer();
-    /// assert_eq!(posi, 13);
-    /// let neg = Rational::from((-139, 10));
-    /// let negi = neg.to_integer();
-    /// assert_eq!(negi, -13);
-    /// ```
     #[inline]
+    #[deprecated(since = "0.10.0",
+                 note = "use `trunc_ref` instead; `r.to_integer()` can be \
+                         replaced with `Integer::from(r.trunc_ref())`.")]
     pub fn to_integer(&self) -> Integer {
         Integer::from(self.trunc_ref())
     }
