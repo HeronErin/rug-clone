@@ -15,6 +15,7 @@ Version 0.10.0 (to be determined)
   to the number values, not to `Result` objects.
 * Remove `Default` implementations from all types of `Float` and
   `Complex`; now the precision always has to be specified.
+* Rename `Integer::gcd_coeffs*` methods to `Integer::gcd_cofactors*`.
 
 Version 0.9.3 (2018-01-09)
 ==========================

@@ -2377,7 +2377,7 @@ impl Integer {
             return None;
         }
         let (gcd, sinverse) =
-            <(Integer, Integer)>::from(self.gcd_coeffs_ref(modulo));
+            <(Integer, Integer)>::from(self.gcd_cofactors_ref(modulo));
         if gcd != 1 {
             return None;
         }
@@ -3015,12 +3015,12 @@ impl Integer {
     math_op2_3! {
         gmp::mpz_gcdext;
         /// Finds the greatest common divisor (GCD) of the two inputs
-        /// (`self` and `other`), and two multiplication coefficients
-        /// to obtain the GCD from the two inputs.
+        /// (`self` and `other`), and two cofactors to obtain the GCD
+        /// from the two inputs.
         ///
         /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
-        /// the multiplication coefficients are *s* and *t*, then
+        /// zero. If the inputs are *a* and *b*, then the GCD is *g*
+        /// and the cofactors are *s* and *t* such that
         ///
         /// *a* × *s* + *b* × *t* = *g*
         ///
@@ -3040,22 +3040,22 @@ impl Integer {
         /// use rug::Integer;
         /// let a = Integer::from(4);
         /// let b = Integer::from(6);
-        /// let (g, s, t) = a.gcd_coeffs(b, Integer::new());
+        /// let (g, s, t) = a.gcd_cofactors(b, Integer::new());
         /// assert_eq!(g, 2);
         /// assert_eq!(s, -1);
         /// assert_eq!(t, 1);
         /// ```
-        fn gcd_coeffs(other, rop);
+        fn gcd_cofactors(other, rop);
         /// Finds the greatest common divisor (GCD) of the two inputs
-        /// (`self` and `other`), and two multiplication coefficients
-        /// to obtain the GCD from the two inputs.
+        /// (`self` and `other`), and two cofactors to obtain the GCD
+        /// from the two inputs.
         ///
-        /// The GCD is stored in `self`, and the two multiplication
-        /// coefficients are stored in `other` and `rop`.
+        /// The GCD is stored in `self`, and the two cofactors are
+        /// stored in `other` and `rop`.
         ///
         /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
-        /// the multiplication coefficients are *s* and *t*, then
+        /// zero. If the inputs are *a* and *b*, then the GCD is *g*
+        /// and the cofactors are *s* and *t* such that
         ///
         /// *a* × *s* + *b* × *t* = *g*
         ///
@@ -3076,31 +3076,30 @@ impl Integer {
         /// let mut a_g = Integer::from(4);
         /// let mut b_s = Integer::from(6);
         /// let mut t = Integer::new();
-        /// a_g.gcd_coeffs_mut(&mut b_s, &mut t);
+        /// a_g.gcd_cofactors_mut(&mut b_s, &mut t);
         /// assert_eq!(a_g, 2);
         /// assert_eq!(b_s, -1);
         /// assert_eq!(t, 1);
         /// ```
-        fn gcd_coeffs_mut;
+        fn gcd_cofactors_mut;
         /// Finds the greatest common divisor (GCD) of the two inputs
-        /// (`self` and `other`), and two multiplication coefficients
-        /// to obtain the GCD from the two inputs.
+        /// (`self` and `other`), and two cofactors to obtain the GCD
+        /// from the two inputs.
         ///
         /// `Assign<Src> for (Integer, Integer, Integer)`,
         /// `Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`
         /// and `From<Src> for (Integer, Integer, Integer)` are
         /// implemented with the returned object as `Src`.
         ///
-        /// In the case that only one of the two multiplication
-        /// coefficients of required,
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)`
-        /// and `From<Src> for (Integer, Integer)`
-        /// are also implemented with the returned object as `Src`.
+        /// In the case that only one of the two cofactors is
+        /// required, `Assign<Src> for (Integer, Integer)`,
+        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// `From<Src> for (Integer, Integer)` are also implemented
+        /// with the returned object as `Src`.
         ///
         /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are *a* and *b*, the GCD is *g*, and
-        /// the multiplication coefficients are *s* and *t*, then
+        /// zero. If the inputs are *a* and *b*, then the GCD is *g*
+        /// and the cofactors are *s* and *t* such that
         ///
         /// *a* × *s* + *b* × *t* = *g*
         ///
@@ -3120,7 +3119,7 @@ impl Integer {
         /// use rug::{Assign, Integer};
         /// let a = Integer::from(4);
         /// let b = Integer::from(6);
-        /// let r = a.gcd_coeffs_ref(&b);
+        /// let r = a.gcd_cofactors_ref(&b);
         /// let mut g = Integer::new();
         /// let mut s = Integer::new();
         /// let mut t = Integer::new();
@@ -3132,9 +3131,8 @@ impl Integer {
         /// assert_eq!(t, 1);
         /// ```
         ///
-        /// In the case that only one of the two multiplication
-        /// coefficients are required, this can be achieved as
-        /// follows:
+        /// In the case that only one of the two cofactors is
+        /// required, this can be achieved as follows:
         ///
         /// ```rust
         /// use rug::{Assign, Integer};
@@ -3143,18 +3141,50 @@ impl Integer {
         ///
         /// // no t required
         /// let (mut g1, mut s1) = (Integer::new(), Integer::new());
-        /// (&mut g1, &mut s1).assign(a.gcd_coeffs_ref(&b));
+        /// (&mut g1, &mut s1).assign(a.gcd_cofactors_ref(&b));
         /// assert_eq!(g1, 2);
         /// assert_eq!(s1, -1);
         ///
         /// // no s required
         /// let (mut g2, mut t2) = (Integer::new(), Integer::new());
-        /// (&mut g2, &mut t2).assign(b.gcd_coeffs_ref(&a));
+        /// (&mut g2, &mut t2).assign(b.gcd_cofactors_ref(&a));
         /// assert_eq!(g2, 2);
         /// assert_eq!(t2, 1);
         /// ```
-        fn gcd_coeffs_ref -> GcdRef;
+        fn gcd_cofactors_ref -> GcdRef;
     }
+
+    /// Finds the greatest common divisor (GCD) of the two inputs
+    /// (`self` and `other`), and two cofactors to obtain the GCD from
+    /// the two inputs.
+    #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors`")]
+    #[inline]
+    pub fn gcd_coeffs(
+        self,
+        other: Self,
+        rop: Self,
+    ) -> (Integer, Integer, Integer) {
+        self.gcd_cofactors(other, rop)
+    }
+
+    /// Finds the greatest common divisor (GCD) of the two inputs
+    /// (`self` and `other`), and two cofactors to obtain the GCD from
+    /// the two inputs.
+    #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors_mut`")]
+    #[inline]
+    pub fn gcd_coeffs_mut(&mut self, other: &mut Self, rop: &mut Self) {
+        self.gcd_cofactors_mut(other, rop);
+    }
+
+    /// Finds the greatest common divisor (GCD) of the two inputs
+    /// (`self` and `other`), and two cofactors to obtain the GCD from
+    /// the two inputs.
+    #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors_ref`")]
+    #[inline]
+    pub fn gcd_coeffs_ref<'a>(&'a self, other: &'a Self) -> GcdRef<'a> {
+        self.gcd_cofactors_ref(other)
+    }
+
     math_op2! {
         gmp::mpz_lcm;
         /// Finds the least common multiple.
