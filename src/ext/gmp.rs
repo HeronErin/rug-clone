@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use cast::cast;
+use cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
 use std::{i16, i8, u16, u8};
@@ -848,7 +848,7 @@ pub unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2: gmp::limb_t = cast(op2);
+    let lop2: gmp::limb_t = cast::cast(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             (*rop).size = 0;
@@ -865,7 +865,7 @@ pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2: gmp::limb_t = cast(op2);
+    let lop2: gmp::limb_t = cast::cast(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => if op2 == 0 {
             (*rop).size = 0;
@@ -891,7 +891,7 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2: gmp::limb_t = cast(op2);
+    let lop2: gmp::limb_t = cast::cast(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => if op2 == 0 {
             (*rop).size = 0;
@@ -926,9 +926,9 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 
 pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     let lop2: gmp::limb_t = if op2 >= 0 {
-        cast(op2 as c_ulong)
+        cast::cast(op2 as c_ulong)
     } else {
-        !cast::<_, gmp::limb_t>(!op2 as c_ulong)
+        !cast::cast::<_, gmp::limb_t>(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -964,9 +964,9 @@ pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 
 pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     let lop2: gmp::limb_t = if op2 >= 0 {
-        cast(op2 as c_ulong)
+        cast::cast(op2 as c_ulong)
     } else {
-        !cast::<_, gmp::limb_t>(!op2 as c_ulong)
+        !cast::cast::<_, gmp::limb_t>(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -999,9 +999,9 @@ pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 
 pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     let lop2: gmp::limb_t = if op2 >= 0 {
-        cast(op2 as c_ulong)
+        cast::cast(op2 as c_ulong)
     } else {
-        !cast::<_, gmp::limb_t>(!op2 as c_ulong)
+        !cast::cast::<_, gmp::limb_t>(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -1169,7 +1169,7 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
         return;
     }
     let significant: gmp::bitcnt_t =
-        cast(gmp::mpn_sizeinbase((*op).d, cast(size), 2));
+        cast::cast(gmp::mpn_sizeinbase((*op).d, cast::cast(size), 2));
     let first_one = gmp::mpn_scan1((*op).d, 0);
     let bit = if significant - 1 == first_one {
         if rop as *const mpz_t == op {
@@ -1218,6 +1218,8 @@ pub use self::rational::*;
 mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
+    use inner::Inner;
+    use rational::SmallRational;
     use std::mem;
 
     #[inline]
@@ -1407,9 +1409,9 @@ mod rational {
         // The remainder cannot be larger than the divisor, but we
         // allocate an extra limb because the GMP docs say we should,
         // and also because we have to multiply by 2.
-        let limbs = cast::<_, gmp::bitcnt_t>((*den).size.abs()) + 1;
+        let limbs = cast::cast::<_, gmp::bitcnt_t>((*den).size.abs()) + 1;
         let bits = limbs
-            .checked_mul(cast::<_, gmp::bitcnt_t>(gmp::LIMB_BITS))
+            .checked_mul(cast::cast::<_, gmp::bitcnt_t>(gmp::LIMB_BITS))
             .expect("overflow");
         let mut rem: mpz_t = mem::uninitialized();
         gmp::mpz_init2(&mut rem, bits);
@@ -1493,5 +1495,32 @@ mod rational {
             gmp::mpz_neg(fract_num, fract_num);
             gmp::mpz_neg(round, round);
         }
+    }
+
+    #[inline]
+    pub unsafe fn mpq_cmp_u32(op1: *const mpq_t, n2: u32, d2: u32) -> c_int {
+        gmp::mpq_cmp_ui(op1, cast::cast(n2), cast::cast(d2))
+    }
+
+    #[inline]
+    pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
+        if let Some(n2) = cast::checked_cast(n2) {
+            if let Some(d2) = cast::checked_cast(d2) {
+                return gmp::mpq_cmp_ui(op1, n2, d2);
+            }
+        }
+        let small = SmallRational::from((n2, d2));
+        gmp::mpq_cmp(op1, (*small).inner())
+    }
+
+    #[inline]
+    pub unsafe fn mpq_cmp_i64(op1: *const mpq_t, n2: i64, d2: u64) -> c_int {
+        if let Some(n2) = cast::checked_cast(n2) {
+            if let Some(d2) = cast::checked_cast(d2) {
+                return gmp::mpq_cmp_si(op1, n2, d2);
+            }
+        }
+        let small = SmallRational::from((n2, d2));
+        gmp::mpq_cmp(op1, (*small).inner())
     }
 }

@@ -176,30 +176,3 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
         _ => false,
     }
 }
-
-#[cfg(feature = "rational")]
-pub use self::rational::*;
-#[cfg(feature = "rational")]
-mod rational {
-    use super::*;
-    use gmp_mpfr_sys::gmp::mpq_t;
-    use inner::Inner;
-    use rational::SmallRational;
-
-    #[inline]
-    pub unsafe fn mpq_cmp_u32(op1: *const mpq_t, n2: u32, d2: u32) -> c_int {
-        gmp::mpq_cmp_ui(op1, n2, d2)
-    }
-
-    #[inline]
-    pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
-        let small = SmallRational::from((n2, d2));
-        gmp::mpq_cmp(op1, (*small).inner())
-    }
-
-    #[inline]
-    pub unsafe fn mpq_cmp_i64(op1: *const mpq_t, n2: i64, d2: u64) -> c_int {
-        let small = SmallRational::from((n2, d2));
-        gmp::mpq_cmp(op1, (*small).inner())
-    }
-}
