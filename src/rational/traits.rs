@@ -60,9 +60,8 @@ impl Drop for Rational {
 
 impl Hash for Rational {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let (num, den) = self.as_numer_denom();
-        num.hash(state);
-        den.hash(state);
+        self.numer().hash(state);
+        self.denom().hash(state);
     }
 }
 

@@ -819,17 +819,9 @@ impl Rational {
 
     /// Borrows the numerator and denominator as
     /// [`Integer`](struct.Integer.html) values.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// let r = Rational::from((12, -20));
-    /// // r will be canonicalized to -3 / 5
-    /// let (num, den) = r.as_numer_denom();
-    /// assert_eq!(*num, -3);
-    /// assert_eq!(*den, 5);
-    /// ```
+    #[deprecated(since = "0.10.0",
+                 note = "use `numer` and `denom` instead; `r.as_numer_denom()` \
+                         can be replaced with `(r.numer(), r.denom())`.")]
     #[inline]
     pub fn as_numer_denom(&self) -> (&Integer, &Integer) {
         (self.numer(), self.denom())
@@ -852,9 +844,8 @@ impl Rational {
     ///     *num_den.den() += 3;
     ///     // borrow ends here
     /// }
-    /// let num_den = r.as_numer_denom();
-    /// assert_eq!(*num_den.0, 1);
-    /// assert_eq!(*num_den.1, 2);
+    /// assert_eq!(*r.numer(), 1);
+    /// assert_eq!(*r.denom(), 2);
     /// ```
     ///
     /// If the mutable value is leaked, the denominator is lost when
@@ -875,9 +866,8 @@ impl Rational {
     ///     // borrow ends here, but nothing happens
     /// }
     /// // because of the leak, 4/8 has become 4/1
-    /// let num_den = r.as_numer_denom();
-    /// assert_eq!(*num_den.0, 4);
-    /// assert_eq!(*num_den.1, 1);
+    /// assert_eq!(*r.numer(), 4);
+    /// assert_eq!(*r.denom(), 1);
     /// ```
     ///
     /// # Panics
@@ -2188,7 +2178,7 @@ pub fn append_to_string(
     radix: i32,
     to_upper: bool,
 ) {
-    let (num, den) = r.as_numer_denom();
+    let (num, den) = (r.numer(), r.denom());
     let is_whole = *den == 1;
     let cap_for_den_nul = if is_whole {
         1
@@ -2408,9 +2398,8 @@ impl Error for ParseRationalError {
 ///     *num_den.den() += 3;
 ///     // borrow ends here
 /// }
-/// let num_den = r.as_numer_denom();
-/// assert_eq!(*num_den.0, 1);
-/// assert_eq!(*num_den.1, 2);
+/// assert_eq!(*r.numer(), 1);
+/// assert_eq!(*r.denom(), 2);
 /// ```
 ///
 /// [mutnumden]: ../struct.Rational.html#method.as_mut_numer_denom
