@@ -168,16 +168,16 @@ assert_eq!(buffer, -10);
 Here the assignment from `intermediate` into `buffer` does not require
 an allocation unless the result does not fit in the current capacity
 of `buffer`. If `&a - &b` returns an [`Integer`][rug int] instead,
-then an allocation takes place even if it is not required.
+then an allocation takes place even if it is not necessary.
 
 ```rust
 use rug::Float;
 use rug::float::Constant;
-// x has precision of 10, y has precision of 50
+// x has a precision of 10 bits, y has a precision of 50 bits
 let x = Float::with_val(10, 180);
 let y = Float::with_val(50, Constant::Pi);
 let intermediate = &x / &y;
-// z has a precision of 45
+// z has a precision of 45 bits
 let z = Float::with_val(45, intermediate);
 assert!(57.295 < z && z < 57.296);
 ```
@@ -251,7 +251,7 @@ The Rug crate has six optional features:
    requires the `float` feature.
 5. `rand`, enabled by default. Required for the
    [`RandState`][rug rand] type and its supporting features. This
-   features requires the `integer` feature.
+   feature requires the `integer` feature.
 6. `serde`, disabled by default. This provides serialization support
    for the [`Integer`][rug int], [`Rational`][rug rat],
    [`Float`][rug flo] and [`Complex`][rug com] types, providing that
