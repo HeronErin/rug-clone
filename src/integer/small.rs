@@ -127,6 +127,10 @@ impl SmallInteger {
     /// [`Integer`](../struct.Integer.html) or to swap it with another
     /// number.
     ///
+    /// Some GMP functions swap the allocations of their target
+    /// operands; calling such functions with the mutable reference
+    /// returned by this method can lead to undefined behaviour.
+    ///
     /// # Examples
     ///
     /// ```rust

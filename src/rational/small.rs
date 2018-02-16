@@ -110,7 +110,14 @@ impl SmallRational {
     /// It is undefined behaviour to perform operations that
     /// reallocate the internal data of the referenced
     /// [`Rational`](../struct.Rational.html) number or to swap it
-    /// with another number.
+    /// with another number, although it is allowed to swap the
+    /// numerator and denominator allocations, such as in the
+    /// reciprocal operation
+    /// [`recip_mut`](../struct.Rational.html#method.recip_mut).
+    ///
+    /// Some GMP functions swap the allocations of their target
+    /// operands; calling such functions with the mutable reference
+    /// returned by this method can lead to undefined behaviour.
     ///
     /// # Examples
     ///

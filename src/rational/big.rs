@@ -1345,6 +1345,11 @@ impl Rational {
         fn recip();
         /// Computes the reciprocal.
         ///
+        /// This method never reallocates or copies the heap data. It
+        /// simply swaps the allocated data of the numerator and
+        /// denominator and makes sure the denominator is stored as
+        /// positive.
+        ///
         /// # Examples
         ///
         /// ```rust
