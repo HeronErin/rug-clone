@@ -256,9 +256,9 @@
 //! [`&Integer`][rug int] shows a return type called
 //! [`NegRef`][rug int negref], but the name is blacked out and not
 //! linkable in the documentation, as the intermediate type cannot be
-//! named. Most of the intermediate values are called similar to
-//! `NegRef`, that is `OpRef` where `Op` indicates what the operation
-//! is.
+//! named. The intermediate types obtained by operating on references
+//! are named similar to `NegRef`, that is `OpRef` where `Op`
+//! indicates what the operation is.
 //!
 //! ## Crate usage
 //!
