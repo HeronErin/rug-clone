@@ -121,12 +121,12 @@ pub type Ordering2 = (Ordering, Ordering);
 /// // 1. consume the operand, round to nearest
 /// let a = Complex::with_val(53, (1, 1));
 /// let sin_a = a.sin();
-/// assert!((sin_a - &expected).abs().real() < &0.0001);
+/// assert!(*(sin_a - &expected).abs().real() < 0.0001);
 ///
 /// // 2. mutate the operand, round to nearest
 /// let mut b = Complex::with_val(53, (1, 1));
 /// b.sin_mut();
-/// assert!((b - &expected).abs().real() < &0.0001);
+/// assert!(*(b - &expected).abs().real() < 0.0001);
 ///
 /// // 3. mutate the operand, apply specified rounding
 /// let mut c = Complex::with_val(4, (1, 1));
@@ -140,7 +140,7 @@ pub type Ordering2 = (Ordering, Ordering);
 /// let d = Complex::with_val(53, (1, 1));
 /// let r = d.sin_ref();
 /// let sin_d = Complex::with_val(53, r);
-/// assert!((sin_d - &expected).abs().real() < &0.0001);
+/// assert!(*(sin_d - &expected).abs().real() < 0.0001);
 /// // d was not consumed
 /// assert_eq!(d, (1, 1));
 /// ```
@@ -2040,7 +2040,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1.5, -0.5));
         /// let ln = c.ln();
         /// let expected = Complex::with_val(53, (0.4581, -0.3218));
-        /// assert!((ln - expected).abs().real() < &0.0001);
+        /// assert!(*(ln - expected).abs().real() < 0.0001);
         /// ```
         fn ln();
         /// Computes the natural logarithm, rounding to the nearest.
@@ -2052,7 +2052,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1.5, -0.5));
         /// c.ln_mut();
         /// let expected = Complex::with_val(53, (0.4581, -0.3218));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn ln_mut;
         /// Computes the natural logarithm, applying the specified
@@ -2085,7 +2085,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1.5, -0.5));
         /// let ln = Complex::with_val(53, c.ln_ref());
         /// let expected = Complex::with_val(53, (0.4581, -0.3218));
-        /// assert!((ln - expected).abs().real() < &0.0001);
+        /// assert!(*(ln - expected).abs().real() < 0.0001);
         /// ```
         fn ln_ref -> LnRef;
     }
@@ -2100,7 +2100,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1.5, -0.5));
         /// let log10 = c.log10();
         /// let expected = Complex::with_val(53, (0.1990, -0.1397));
-        /// assert!((log10 - expected).abs().real() < &0.0001);
+        /// assert!(*(log10 - expected).abs().real() < 0.0001);
         /// ```
         fn log10();
         /// Computes the logarithm to base 10, rounding to the nearest.
@@ -2112,7 +2112,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1.5, -0.5));
         /// c.log10_mut();
         /// let expected = Complex::with_val(53, (0.1990, -0.1397));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn log10_mut;
         /// Computes the logarithm to base 10, applying the specified
@@ -2145,7 +2145,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1.5, -0.5));
         /// let log10 = Complex::with_val(53, c.log10_ref());
         /// let expected = Complex::with_val(53, (0.1990, -0.1397));
-        /// assert!((log10 - expected).abs().real() < &0.0001);
+        /// assert!(*(log10 - expected).abs().real() < 0.0001);
         /// ```
         fn log10_ref -> Log10Ref;
     }
@@ -2166,7 +2166,7 @@ impl Complex {
         /// let r = Complex::root_of_unity(3, 2);
         /// let c = Complex::with_val(53, r);
         /// let expected = Complex::with_val(53, (-0.5, -0.8660));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn root_of_unity(n: u32, k: u32) -> RootOfUnity;
     }
@@ -2181,7 +2181,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (0.5, -0.75));
         /// let exp = c.exp();
         /// let expected = Complex::with_val(53, (1.2064, -1.1238));
-        /// assert!((exp - expected).abs().real() < &0.0001);
+        /// assert!(*(exp - expected).abs().real() < 0.0001);
         /// ```
         fn exp();
         /// Computes the exponential, rounding to the nearest.
@@ -2193,7 +2193,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (0.5, -0.75));
         /// c.exp_mut();
         /// let expected = Complex::with_val(53, (1.2064, -1.1238));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn exp_mut;
         /// Computes the exponential, applying the specified rounding
@@ -2226,7 +2226,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (0.5, -0.75));
         /// let exp = Complex::with_val(53, c.exp_ref());
         /// let expected = Complex::with_val(53, (1.2064, -1.1238));
-        /// assert!((exp - expected).abs().real() < &0.0001);
+        /// assert!(*(exp - expected).abs().real() < 0.0001);
         /// ```
         fn exp_ref -> ExpRef;
     }
@@ -2241,7 +2241,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let sin = c.sin();
         /// let expected = Complex::with_val(53, (1.2985, 0.6350));
-        /// assert!((sin - expected).abs().real() < &0.0001);
+        /// assert!(*(sin - expected).abs().real() < 0.0001);
         /// ```
         fn sin();
         /// Computes the sine, rounding to the nearest.
@@ -2253,7 +2253,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.sin_mut();
         /// let expected = Complex::with_val(53, (1.2985, 0.6350));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn sin_mut;
         /// Computes the sine, applying the specified rounding method.
@@ -2285,7 +2285,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let sin = Complex::with_val(53, c.sin_ref());
         /// let expected = Complex::with_val(53, (1.2985, 0.6350));
-        /// assert!((sin - expected).abs().real() < &0.0001);
+        /// assert!(*(sin - expected).abs().real() < 0.0001);
         /// ```
         fn sin_ref -> SinRef;
     }
@@ -2300,7 +2300,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let cos = c.cos();
         /// let expected = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!((cos - expected).abs().real() < &0.0001);
+        /// assert!(*(cos - expected).abs().real() < 0.0001);
         /// ```
         fn cos();
         /// Computes the cosine, rounding to the nearest.
@@ -2312,7 +2312,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.cos_mut();
         /// let expected = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn cos_mut;
         /// Computes the cosine, applying the specified rounding method.
@@ -2344,7 +2344,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let cos = Complex::with_val(53, c.cos_ref());
         /// let expected = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!((cos - expected).abs().real() < &0.0001);
+        /// assert!(*(cos - expected).abs().real() < 0.0001);
         /// ```
         fn cos_ref -> CosRef;
     }
@@ -2364,8 +2364,8 @@ impl Complex {
         /// let (sin, cos) = c.sin_cos(Complex::new(53));
         /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
         /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!((sin - expected_sin).abs().real() < &0.0001);
-        /// assert!((cos - expected_cos).abs().real() < &0.0001);
+        /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
+        /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
         /// ```
         fn sin_cos(cos);
         /// Computes the sine and cosine of `self`, rounding to the
@@ -2383,8 +2383,8 @@ impl Complex {
         /// sin.sin_cos_mut(&mut cos);
         /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
         /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!((sin - expected_sin).abs().real() < &0.0001);
-        /// assert!((cos - expected_cos).abs().real() < &0.0001);
+        /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
+        /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
         /// ```
         fn sin_cos_mut;
         /// Computes the sine and cosine of `self`, applying the
@@ -2434,8 +2434,8 @@ impl Complex {
         /// (&mut sin, &mut cos).assign(sin_cos);
         /// let expected_sin = Complex::with_val(53, (1.2985, 0.6350));
         /// let expected_cos = Complex::with_val(53, (0.8337, -0.9889));
-        /// assert!((sin - expected_sin).abs().real() < &0.0001);
-        /// assert!((cos - expected_cos).abs().real() < &0.0001);
+        /// assert!(*(sin - expected_sin).abs().real() < 0.0001);
+        /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
         ///
         /// // using 4 significant bits: sin = (1.25 + 0.625i)
         /// // using 4 significant bits: cos = (0.8125 - i)
@@ -2461,7 +2461,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let tan = c.tan();
         /// let expected = Complex::with_val(53, (0.2718, 1.0839));
-        /// assert!((tan - expected).abs().real() < &0.0001);
+        /// assert!(*(tan - expected).abs().real() < 0.0001);
         /// ```
         fn tan();
         /// Computes the tangent, rounding to the nearest.
@@ -2473,7 +2473,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.tan_mut();
         /// let expected = Complex::with_val(53, (0.2718, 1.0839));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn tan_mut;
         /// Computes the tangent, applying the specified rounding method.
@@ -2505,7 +2505,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let tan = Complex::with_val(53, c.tan_ref());
         /// let expected = Complex::with_val(53, (0.2718, 1.0839));
-        /// assert!((tan - expected).abs().real() < &0.0001);
+        /// assert!(*(tan - expected).abs().real() < 0.0001);
         /// ```
         fn tan_ref -> TanRef;
     }
@@ -2520,7 +2520,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let sinh = c.sinh();
         /// let expected = Complex::with_val(53, (0.6350, 1.2985));
-        /// assert!((sinh - expected).abs().real() < &0.0001);
+        /// assert!(*(sinh - expected).abs().real() < 0.0001);
         /// ```
         fn sinh();
         /// Computes the hyperbolic sine, rounding to the nearest.
@@ -2532,7 +2532,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.sinh_mut();
         /// let expected = Complex::with_val(53, (0.6350, 1.2985));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn sinh_mut;
         /// Computes the hyperbolic sine, applying the specified rounding
@@ -2565,7 +2565,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let sinh = Complex::with_val(53, c.sinh_ref());
         /// let expected = Complex::with_val(53, (0.6350, 1.2985));
-        /// assert!((sinh - expected).abs().real() < &0.0001);
+        /// assert!(*(sinh - expected).abs().real() < 0.0001);
         /// ```
         fn sinh_ref -> SinhRef;
     }
@@ -2580,7 +2580,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let cosh = c.cosh();
         /// let expected = Complex::with_val(53, (0.8337, 0.9889));
-        /// assert!((cosh - expected).abs().real() < &0.0001);
+        /// assert!(*(cosh - expected).abs().real() < 0.0001);
         /// ```
         fn cosh();
         /// Computes the hyperbolic cosine, rounding to the nearest.
@@ -2592,7 +2592,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.cosh_mut();
         /// let expected = Complex::with_val(53, (0.8337, 0.9889));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn cosh_mut;
         /// Computes the hyperbolic cosine, applying the specified rounding
@@ -2625,7 +2625,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let cosh = Complex::with_val(53, c.cosh_ref());
         /// let expected = Complex::with_val(53, (0.8337, 0.9889));
-        /// assert!((cosh - expected).abs().real() < &0.0001);
+        /// assert!(*(cosh - expected).abs().real() < 0.0001);
         /// ```
         fn cosh_ref -> CoshRef;
     }
@@ -2640,7 +2640,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let tanh = c.tanh();
         /// let expected = Complex::with_val(53, (1.0839, 0.2718));
-        /// assert!((tanh - expected).abs().real() < &0.0001);
+        /// assert!(*(tanh - expected).abs().real() < 0.0001);
         /// ```
         fn tanh();
         /// Computes the hyperbolic tangent, rounding to the nearest.
@@ -2652,7 +2652,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.tanh_mut();
         /// let expected = Complex::with_val(53, (1.0839, 0.2718));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn tanh_mut;
         /// Computes the hyperbolic tangent, applying the specified
@@ -2685,7 +2685,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let tanh = Complex::with_val(53, c.tanh_ref());
         /// let expected = Complex::with_val(53, (1.0839, 0.2718));
-        /// assert!((tanh - expected).abs().real() < &0.0001);
+        /// assert!(*(tanh - expected).abs().real() < 0.0001);
         /// ```
         fn tanh_ref -> TanhRef;
     }
@@ -2700,7 +2700,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let asin = c.asin();
         /// let expected = Complex::with_val(53, (0.6662, 1.0613));
-        /// assert!((asin - expected).abs().real() < &0.0001);
+        /// assert!(*(asin - expected).abs().real() < 0.0001);
         /// ```
         fn asin();
         /// Computes the inverse sine, rounding to the nearest.
@@ -2712,7 +2712,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.asin_mut();
         /// let expected = Complex::with_val(53, (0.6662, 1.0613));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn asin_mut;
         /// Computes the inverse sine, applying the specified rounding
@@ -2745,7 +2745,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let asin = Complex::with_val(53, c.asin_ref());
         /// let expected = Complex::with_val(53, (0.6662, 1.0613));
-        /// assert!((asin - expected).abs().real() < &0.0001);
+        /// assert!(*(asin - expected).abs().real() < 0.0001);
         /// ```
         fn asin_ref -> AsinRef;
     }
@@ -2760,7 +2760,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let acos = c.acos();
         /// let expected = Complex::with_val(53, (0.9046, -1.0613));
-        /// assert!((acos - expected).abs().real() < &0.0001);
+        /// assert!(*(acos - expected).abs().real() < 0.0001);
         /// ```
         fn acos();
         /// Computes the inverse cosine, rounding to the nearest.
@@ -2772,7 +2772,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.acos_mut();
         /// let expected = Complex::with_val(53, (0.9046, -1.0613));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn acos_mut;
         /// Computes the inverse cosine, applying the specified rounding
@@ -2805,7 +2805,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let acos = Complex::with_val(53, c.acos_ref());
         /// let expected = Complex::with_val(53, (0.9046, -1.0613));
-        /// assert!((acos - expected).abs().real() < &0.0001);
+        /// assert!(*(acos - expected).abs().real() < 0.0001);
         /// ```
         fn acos_ref -> AcosRef;
     }
@@ -2820,7 +2820,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let atan = c.atan();
         /// let expected = Complex::with_val(53, (1.0172, 0.4024));
-        /// assert!((atan - expected).abs().real() < &0.0001);
+        /// assert!(*(atan - expected).abs().real() < 0.0001);
         /// ```
         fn atan();
         /// Computes the inverse tangent, rounding to the nearest.
@@ -2832,7 +2832,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.atan_mut();
         /// let expected = Complex::with_val(53, (1.0172, 0.4024));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn atan_mut;
         /// Computes the inverse tangent, applying the specified rounding
@@ -2865,7 +2865,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let atan = Complex::with_val(53, c.atan_ref());
         /// let expected = Complex::with_val(53, (1.0172, 0.4024));
-        /// assert!((atan - expected).abs().real() < &0.0001);
+        /// assert!(*(atan - expected).abs().real() < 0.0001);
         /// ```
         fn atan_ref -> AtanRef;
     }
@@ -2880,7 +2880,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let asinh = c.asinh();
         /// let expected = Complex::with_val(53, (1.0613, 0.6662));
-        /// assert!((asinh - expected).abs().real() < &0.0001);
+        /// assert!(*(asinh - expected).abs().real() < 0.0001);
         /// ```
         fn asinh();
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
@@ -2892,7 +2892,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.asinh_mut();
         /// let expected = Complex::with_val(53, (1.0613, 0.6662));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn asinh_mut;
         /// Computes the inverse hyperbolic sine, applying the specified
@@ -2925,7 +2925,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let asinh = Complex::with_val(53, c.asinh_ref());
         /// let expected = Complex::with_val(53, (1.0613, 0.6662));
-        /// assert!((asinh - expected).abs().real() < &0.0001);
+        /// assert!(*(asinh - expected).abs().real() < 0.0001);
         /// ```
         fn asinh_ref -> AsinhRef;
     }
@@ -2941,7 +2941,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let acosh = c.acosh();
         /// let expected = Complex::with_val(53, (1.0613, 0.9046));
-        /// assert!((acosh - expected).abs().real() < &0.0001);
+        /// assert!(*(acosh - expected).abs().real() < 0.0001);
         /// ```
         fn acosh();
         /// Computes the inverse hyperbolic cosine, rounding to the
@@ -2954,7 +2954,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.acosh_mut();
         /// let expected = Complex::with_val(53, (1.0613, 0.9046));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn acosh_mut;
         /// Computes the inverse hyperbolic cosine, applying the specified
@@ -2987,7 +2987,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let acosh = Complex::with_val(53, c.acosh_ref());
         /// let expected = Complex::with_val(53, (1.0613, 0.9046));
-        /// assert!((acosh - expected).abs().real() < &0.0001);
+        /// assert!(*(acosh - expected).abs().real() < 0.0001);
         /// ```
         fn acosh_ref -> AcoshRef;
     }
@@ -3003,7 +3003,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let atanh = c.atanh();
         /// let expected = Complex::with_val(53, (0.4024, 1.0172));
-        /// assert!((atanh - expected).abs().real() < &0.0001);
+        /// assert!(*(atanh - expected).abs().real() < 0.0001);
         /// ```
         fn atanh();
         /// Computes the inverse hyperbolic tangent, rounding to the
@@ -3016,7 +3016,7 @@ impl Complex {
         /// let mut c = Complex::with_val(53, (1, 1));
         /// c.atanh_mut();
         /// let expected = Complex::with_val(53, (0.4024, 1.0172));
-        /// assert!((c - expected).abs().real() < &0.0001);
+        /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
         fn atanh_mut;
         /// Computes the inverse hyperbolic tangent, applying the
@@ -3049,7 +3049,7 @@ impl Complex {
         /// let c = Complex::with_val(53, (1, 1));
         /// let atanh = Complex::with_val(53, c.atanh_ref());
         /// let expected = Complex::with_val(53, (0.4024, 1.0172));
-        /// assert!((atanh - expected).abs().real() < &0.0001);
+        /// assert!(*(atanh - expected).abs().real() < 0.0001);
         /// ```
         fn atanh_ref -> AtanhRef;
     }
