@@ -16,11 +16,11 @@
 
 //! # Arbitrary-precision numbers
 //!
-//! The `rug` crate provides integers and floating-point numbers with
+//! The Rug crate provides integers and floating-point numbers with
 //! arbitrary precision and correct rounding. Its main features are:
 //!
-//! * big [integers][rug int] with arbitrary precision,
-//! * big [rational numbers][rug rat] with arbitrary precision,
+//! * bignum [integers][rug int] with arbitrary precision,
+//! * bignum [rational numbers][rug rat] with arbitrary precision,
 //! * multi-precision [floating-point numbers][rug flo] with correct
 //!   rounding, and
 //! * multi-precision [complex numbers][rug com] with correct
@@ -32,19 +32,44 @@
 //! License, or (at your option) any later version. See the full text
 //! of the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
 //!
+//! ## Getting started
+//!
+//! ### Setting up the crate
+//!
+//! To use Rug in your crate, add it as a dependency inside
+//! [*Cargo.toml*][cargo deps]:
+//!
+//! ```toml
+//! [dependencies]
+//! rug = "0.10.0"
+//! ```
+//!
 //! This crate depends on the low-level bindings in the
-//! [`gmp-mpfr-sys`][sys] crate, which provides Rust FFI bindings for:
+//! [gmp-mpfr-sys crate][sys crate] which needs some setup to build;
+//! the [gmp-mpfr-sys documentation][sys] has some details on usage
+//! under [GNU/Linux][sys gnu], [macOS][sys mac] and
+//! [Windows][sys win].
 //!
-//! * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
-//! * the [GNU MPFR Library][mpfr], a library for multiple-precision
-//!   floating-point computations, and
-//! * [GNU MPC][mpc], a library for the arithmetic of complex numbers
-//!   with arbitrarily high precision.
+//! You also need to declare Rug by adding this to your crate root:
 //!
-//! It can be helpful to refer to the documentation of the
-//! [GMP][gmp doc], [MPFR][mpfr doc] and [MPC][mpc doc] libraries.
+//! ```rust
+//! extern crate rug;
+//! # fn main() {}
+//! ```
 //!
-//! ## Examples
+//! More details are available in the [Crate usage](#crate-usage)
+//! section below.
+//!
+//! ### Basic example
+//!
+//! For many operations, you can use the arbitrary-precision types
+//! such as [`Integer`][rug int] like you use primitive types such as
+//! [`i32`][rust i32]. The main difference is that the Rug types do
+//! not implement [`Copy`][rust copy]. This is because they store
+//! their digits in the heap, not on the stack, and copying them could
+//! involve an expensive deep copy.
+//!
+//! This code uses the [`Integer`][rug int] type:
 //!
 //! ```rust
 //! extern crate rug;
@@ -53,11 +78,12 @@
 //!
 //! fn main() {
 //! # #[cfg(feature = "integer")] {
-//!     // Create an integer initialized as zero.
 //!     let mut int = Integer::new();
 //!     assert_eq!(int, 0);
 //!     int.assign(14);
 //!     assert_eq!(int, 14);
+//!     int.assign(Integer::parse("12_345_678_901_234_567_890").unwrap());
+//!     assert!(int > 100_000_000);
 //!     let hex_160 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
 //!     int.assign(Integer::parse_radix(hex_160, 16).unwrap());
 //!     assert_eq!(int.significant_bits(), 160);
@@ -67,75 +93,105 @@
 //! }
 //! ```
 //!
-//! ## Usage
+//! Some points from this example:
 //!
-//! This crate requires rustc version 1.18.0 or later.
+//! * `Integer::new()` creates a new [`Integer`][rug int] intialized
+//!   to zero.
+//! * To assign values to Rug types, we use the
+//!   [`Assign`][rug assign] trait and it method
+//!   [`assign`][rug assign method]. We do not use the
+//!   [assignment operator `=`][rust assignment] as that would move
+//!   the left-hand-side operand, which would have the same type.
+//! * Since arbitrary precision numbers can hold numbers that are too
+//!   large to fit in a primitive type, we can also initialize them
+//!   using strings.
+//! * We can compare Rug types with primitive types or with other Rug
+//!   types using the normal comparison operators, for example
+//!   `int > 100_000_000_000`.
+//! * Most arithmetic operations are supported with Rug types and
+//!   primitive types on either side of the operator, for example
+//!   `int >> 128`.
 //!
-//! To use `rug` in your crate, add `extern crate rug;` to the crate
-//! root and add `rug` as a dependency in `Cargo.toml`:
+//! ## Crate usage
 //!
-//! ```toml
-//! [dependencies]
-//! rug = "0.10.0"
-//! ```
+//! The Rug crate requires rustc version 1.18.0 or later.
 //!
-//! The `rug` crate depends on the low-level bindings in the
-//! [`gmp-mpfr-sys`][sys] crate. This should be transparent on
-//! GNU/Linux and macOS, but may need some work on Windows. See the
-//! [`gmp-mpfr-sys`][sys] documentation for some details.
+//! This crate depends on the low-level bindings in the
+//! [gmp-mpfr-sys crate][sys crate], which provides Rust FFI
+//! bindings for:
+//!
+//! * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
+//! * the [GNU MPFR Library][mpfr], a library for multiple-precision
+//!   floating-point computations, and
+//! * [GNU MPC][mpc], a library for the arithmetic of complex numbers
+//!   with arbitrarily high precision.
+//!
+//! It can be helpful to refer to the documentation of the
+//! [gmp-mpfr-sys crate][sys] and of the [GMP][gmp doc],
+//! [MPFR][mpfr doc] and [MPC][mpc doc] libraries.
 //!
 //! ### Optional features
 //!
-//! The `rug` crate has six optional features:
+//! The Rug crate has six optional features:
 //!
-//! 1. `integer`, enabled by default.
-//! 2. `rational`, enabled by default. This feature requires the
-//!    `integer` feature.
-//! 3. `float`, enabled by default.
-//! 4. `complex`, enabled by default. This feature requires the
-//!    `float` feature.
-//! 5. `rand`, enabled by default. This features requires the
-//!    `integer` feature.
+//! 1. `integer`, enabled by default. Required for the
+//!    [`Integer`][rug int] type and its supporting features.
+//! 2. `rational`, enabled by default. Required for the
+//!    [`Rational`][rug rat] type and its supporting features. This
+//!    feature requires the `integer` feature.
+//! 3. `float`, enabled by default. Required for the
+//!    [`Float`][rug flo] type and its supporting features.
+//! 4. `complex`, enabled by default. Required for the
+//!    [`Complex`][rug flo] type and its supporting features. This
+//!    feature requires the `float` feature.
+//! 5. `rand`, enabled by default. Required for the
+//!    [`RandState`][rug rand] type and its supporting features. This
+//!    features requires the `integer` feature.
 //! 6. `serde`, disabled by default. This provides serialization
-//!    support for the `Integer`, `Rational`, `Float` and `Complex`
-//!    types, providing that they are enabled.
+//!    support for the [`Integer`][rug int], [`Rational`][rug rat],
+//!    [`Float`][rug flo] and [`Complex`][rug com] types, providing
+//!    that they are enabled.
 //!
 //! The first five optional features are enabled by default; to
-//! disable them add this to `Cargo.toml`:
+//! use features selectively, you can add this to
+//! [*Cargo.toml*][cargo deps]:
 //!
 //! ```toml
 //! [dependencies.rug]
 //! version = "0.10.0"
 //! default-features = false
-//! ```
-//!
-//! If none of the first five optional features are selected, the
-//! [`gmp-mpfr-sys`][sys] crate is not required and thus not enabled.
-//!
-//! To use features selectively, you can add this to `Cargo.toml`:
-//!
-//! ```toml
-//! [dependencies.rug]
-//! version = "0.10.0"
-//! default-features = false
-//! # Pick which features to use
 //! features = ["integer", "float", "rand"]
 //! ```
 //!
-//! [gmp doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
-//! [gmp]:      https://gmplib.org/
-//! [gpl]:      https://www.gnu.org/licenses/gpl-3.0.html
-//! [lgpl]:     https://www.gnu.org/licenses/lgpl-3.0.en.html
-//! [mpc doc]:  https://tspiteri.gitlab.io/gmp-mpfr-sys/mpc/index.html
-//! [mpc]:      http://www.multiprecision.org/
+//! In this example, only the `integer`, `float` and `rand` features
+//! are enabled. If none of the features are selected, the
+//! [gmp-mpfr-sys crate][sys] is not required and thus not enabled.
+//!
+//! [gmp doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/index.html
+//! [gmp]: https://gmplib.org/
+//! [gpl]: https://www.gnu.org/licenses/gpl-3.0.html
+//! [lgpl]: https://www.gnu.org/licenses/lgpl-3.0.en.html
+//! [mpc doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpc/index.html
+//! [mpc]: http://www.multiprecision.org/
 //! [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
-//! [mpfr]:     http://www.mpfr.org/
-//! [rug com]:  struct.Complex.html
-//! [rug flo]:  struct.Float.html
-//! [rug int]:  struct.Integer.html
-//! [rug ops]:  ops/index.html
-//! [rug rat]:  struct.Rational.html
-//! [sys]:      https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
+//! [mpfr]: http://www.mpfr.org/
+//! [rug assign]: trait.Assign.html
+//! [rug assign method]: trait.Assign.html#tymethod.assign
+//! [rug com]: struct.Complex.html
+//! [rug flo]: struct.Float.html
+//! [rug int]: struct.Integer.html
+//! [rug ops]: ops/index.html
+//! [rug rat]: struct.Rational.html
+//! [rug rand]: rand/struct.RandState.html
+//! [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
+//! [rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
+//! [rust i32]: https://doc.rust-lang.org/std/primitive.i32.html
+//! [sys crate]: https://crates.io/crates/gmp-mpfr-sys
+//! [sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-gnulinux
+//! [sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-macos
+//! [sys win]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-windows
+//! [sys]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
+//! [cargo deps]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/0.10.0")]
 #![doc(test(attr(deny(warnings))))]
