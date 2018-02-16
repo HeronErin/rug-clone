@@ -134,11 +134,11 @@
 //! # }
 //! ```
 //!
-//! Here, `a` is consumed by the subtraction, and `b` is an owned
+//! Here `a` is consumed by the subtraction, and `b` is an owned
 //! [`Integer`][rug int].
 //!
 //! If on the other hand there are no owned Rug types and there are
-//! references instead, the returned value is not a final value, but
+//! references instead, the returned value is not the final value, but
 //! an intermediate value. For example
 //!
 //! ```rust
@@ -152,15 +152,15 @@
 //! # }
 //! ```
 //!
-//! Here, `a` and `b` are not consumed, and `intermediate` is not a
+//! Here `a` and `b` are not consumed, and `intermediate` is not the
 //! final value. It still needs to be converted or assigned into an
 //! [`Integer`][rug int]. The reason is explained in the
 //! [next](#intermediate-values) section.
 //!
 //! ## Intermediate values
 //!
-//! There are two main reasons why operations `&a - &b` do not return
-//! a Rug type:
+//! There are two main reasons why operations like `&a - &b` do not
+//! return a Rug type:
 //!
 //! 1. Sometimes we need to assign the result to an object that
 //!    already exists. Since Rug types require memory allocations,
@@ -176,7 +176,7 @@
 //!    trait, for example
 //!    [`int.assign(intermediate)`][rug assign assign] and
 //!    [`float.assign_round(intermediate, Round::Up)`][rug assr assr].
-//! 2. Convert them to a final value using the [`From`][rust from]
+//! 2. Convert them to the final value using the [`From`][rust from]
 //!    trait or a similar method, for example
 //!    [`Integer::from(intermediate)`][rust from from] and
 //!    [`Float::with_val(53, intermediate)`][rug flo withval].
@@ -223,31 +223,36 @@
 //! variables altogether and used `buffer.assign(&a - &b)` and
 //! `Float::with_val(45, &x / &y)` directly.
 //!
-//! Many operations can return intermediate values. Some examples are
+//! Many operations can return intermediate values:
 //!
-//! * string parsing, for example
-//!   [`Integer::parse("12")`][rug int parse];
 //! * unary operators applied to references, for example `-&int`;
 //! * binary operators applied to two references, for example
 //!   `&int1 + &int2`;
 //! * binary operators applied to a primitive and a reference, for
 //!   example `&int * 10`;
 //! * methods that take a reference, for example
-//!   [`int.abs_ref()`][rug int absref]; and
+//!   [`int.abs_ref()`][rug int absref];
 //! * methods that take two references, for example
-//!   [`int1.div_rem_ref(&int2)`][rug int divremref].
+//!   [`int1.div_rem_ref(&int2)`][rug int divremref];
+//! * string parsing, for example
+//!   [`Integer::parse("12")`][rug int parse];
+//! * and more…
 //!
 //! These operations return objects that can be stored in temporary
 //! variables like `intermediate` in the last few examples. However,
-//! the names of the types are not public. For example the
-//! [documentation][rug int negref] for the [`Neg`][rust neg]
-//! implementation of the reference [`&Integer`][rug int] shows a
-//! return type called [`NegRef`][rug int negref], but the name is
-//! blacked out and not linkable in the documentation, as the
-//! intermediate type cannot be named. Consequently, the intermediate
-//! values cannot be for example stored in a struct. If you need to
-//! store the value in a struct, convert it to a final value, in this
-//! case an [`Integer`][rug int].
+//! the names of the types are not public, and consequently, the
+//! intermediate values cannot be for example stored in a struct. If
+//! you need to store the value in a struct, convert it to its final
+//! type and value.
+//!
+//! As an example, the [documentation][rug int negref] for the
+//! [`Neg`][rust neg] implementation of the reference
+//! [`&Integer`][rug int] shows a return type called
+//! [`NegRef`][rug int negref], but the name is blacked out and not
+//! linkable in the documentation, as the intermediate type cannot be
+//! named. Most of the intermediate values are called similar to
+//! `NegRef`, that is `OpRef` where `Op` indicates what the operation
+//! is.
 //!
 //! ## Crate usage
 //!
