@@ -926,17 +926,9 @@ impl Complex {
     }
 
     /// Borrows the real and imaginary parts.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Complex;
-    /// let c = Complex::with_val(53, (12.5, -20.75));
-    /// assert_eq!(c, (12.5, -20.75));
-    /// let (re, im) = c.as_real_imag();
-    /// assert_eq!(*re, 12.5);
-    /// assert_eq!(*im, -20.75);
-    /// ```
+    #[deprecated(since = "0.10.0",
+                 note = "use `real` and `imag` instead; `c.as_real_imag()` can \
+                         be replaced with `(c.real(), c.imag())`.")]
     #[inline]
     pub fn as_real_imag(&self) -> (&Float, &Float) {
         (self.real(), self.imag())
@@ -985,7 +977,7 @@ impl Complex {
     pub fn into_real_imag(self) -> (Float, Float) {
         let (mut real, mut imag) = unsafe { mem::uninitialized() };
         unsafe {
-            let real_imag = self.as_real_imag();
+            let real_imag = (self.real(), self.imag());
             ptr::copy_nonoverlapping(real_imag.0, &mut real, 1);
             ptr::copy_nonoverlapping(real_imag.1, &mut imag, 1);
         }
@@ -3257,9 +3249,8 @@ where
             }
         };
         for value in src.values {
-            let (real, imag) = value.as_real_imag();
-            reals.push(real.inner() as *const mpfr::mpfr_t);
-            imags.push(imag.inner() as *const mpfr::mpfr_t);
+            reals.push(value.real().inner() as *const mpfr::mpfr_t);
+            imags.push(value.imag().inner() as *const mpfr::mpfr_t);
         }
         let tab_real = reals.as_ptr() as *mut *mut mpfr::mpfr_t;
         let tab_imag = imags.as_ptr() as *mut *mut mpfr::mpfr_t;
@@ -3317,9 +3308,8 @@ where
         reals.push(self.real().inner() as *const mpfr::mpfr_t);
         imags.push(self.imag().inner() as *const mpfr::mpfr_t);
         for value in src.values {
-            let (real, imag) = value.as_real_imag();
-            reals.push(real.inner() as *const mpfr::mpfr_t);
-            imags.push(imag.inner() as *const mpfr::mpfr_t);
+            reals.push(value.real().inner() as *const mpfr::mpfr_t);
+            imags.push(value.imag().inner() as *const mpfr::mpfr_t);
         }
         let tab_real = reals.as_ptr() as *mut *mut mpfr::mpfr_t;
         let tab_imag = imags.as_ptr() as *mut *mut mpfr::mpfr_t;
@@ -3474,7 +3464,7 @@ pub fn append_to_string(
     round: Round2,
     (to_upper, sign_plus, prefix): (bool, bool, &str),
 ) {
-    let (re, im) = c.as_real_imag();
+    let (re, im) = (c.real(), c.imag());
     let re_plus = sign_plus && re.is_sign_positive();
     let im_plus = sign_plus && im.is_sign_positive();
     let re_prefix = !prefix.is_empty() && (re.is_finite() || re.is_zero());

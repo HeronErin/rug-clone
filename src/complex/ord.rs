@@ -67,9 +67,8 @@ impl OrdComplex {
     /// let c = Complex::with_val(53, (1.5, 2.5));
     /// let ord = OrdComplex::from(c);
     /// let c_ref = ord.as_complex();
-    /// let (re, im) = c_ref.as_real_imag();
-    /// assert_eq!(*re, 1.5);
-    /// assert_eq!(*im, 2.5);
+    /// assert_eq!(*c_ref.real(), 1.5);
+    /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
     pub fn as_complex(&self) -> &Complex {
         &self.inner
@@ -85,9 +84,9 @@ impl OrdComplex {
     /// let c = Complex::with_val(53, (1.5, -2.5));
     /// let mut ord = OrdComplex::from(c);
     /// ord.as_complex_mut().conj_mut();
-    /// let (re, im) = ord.as_complex().as_real_imag();
-    /// assert_eq!(*re, 1.5);
-    /// assert_eq!(*im, 2.5);
+    /// let c_ref = ord.as_complex();
+    /// assert_eq!(*c_ref.real(), 1.5);
+    /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
     pub fn as_complex_mut(&mut self) -> &mut Complex {
         &mut self.inner
@@ -97,10 +96,8 @@ impl OrdComplex {
 impl Hash for OrdComplex {
     #[inline]
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let (re, im) = self.inner.as_real_imag();
-        let (re, im) = (re.as_ord(), im.as_ord());
-        re.hash(state);
-        im.hash(state);
+        self.inner.real().as_ord().hash(state);
+        self.inner.imag().as_ord().hash(state);
     }
 }
 
@@ -109,22 +106,18 @@ impl Eq for OrdComplex {}
 impl Ord for OrdComplex {
     #[inline]
     fn cmp(&self, other: &OrdComplex) -> Ordering {
-        let (re, im) = self.inner.as_real_imag();
-        let (re, im) = (re.as_ord(), im.as_ord());
-        let (other_re, other_im) = other.inner.as_real_imag();
-        let (other_re, other_im) = (other_re.as_ord(), other_im.as_ord());
-        re.cmp(other_re).then(im.cmp(other_im))
+        let real = self.inner.real().as_ord().cmp(other.inner.real().as_ord());
+        let imag = self.inner.imag().as_ord().cmp(other.inner.imag().as_ord());
+        real.then(imag)
     }
 }
 
 impl PartialEq for OrdComplex {
     #[inline]
     fn eq(&self, other: &OrdComplex) -> bool {
-        let (re, im) = self.inner.as_real_imag();
-        let (re, im) = (re.as_ord(), im.as_ord());
-        let (other_re, other_im) = other.inner.as_real_imag();
-        let (other_re, other_im) = (other_re.as_ord(), other_im.as_ord());
-        re.eq(other_re) && im.eq(other_im)
+        let real = self.inner.real().as_ord().eq(other.inner.real().as_ord());
+        let imag = self.inner.imag().as_ord().eq(other.inner.imag().as_ord());
+        real && imag
     }
 }
 
