@@ -2283,6 +2283,9 @@ impl Integer {
     /// Finds the inverse modulo `modulo` and returns `Ok(inverse)` if
     /// it exists, or `Err(unchanged)` if the inverse does not exist.
     ///
+    /// The inverse exists if the modulo is not zero, and `self` and
+    /// the modulo are co-prime, that is their GCD is 1.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2315,6 +2318,9 @@ impl Integer {
     /// Finds the inverse modulo `modulo` and returns `true` if an
     /// inverse exists.
     ///
+    /// The inverse exists if the modulo is not zero, and `self` and
+    /// the modulo are co-prime, that is their GCD is 1.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2341,6 +2347,9 @@ impl Integer {
     }
 
     /// Finds the inverse modulo `modulo` if an inverse exists.
+    ///
+    /// The inverse exists if the modulo is not zero, and `self` and
+    /// the modulo are co-prime, that is their GCD is 1.
     ///
     /// `Assign<Src> for Integer` and `From<Src> for Integer` are
     /// implemented with the returned object as `Src` if it exists.
@@ -2379,8 +2388,8 @@ impl Integer {
     /// returns `Ok(power)` if an answer exists, or `Err(unchanged)`
     /// if it does not.
     ///
-    /// If `exponent` is negative, then the number must have an
-    /// inverse modulo `modulo` for an answer to exist.
+    /// If the exponent is negative, then the number must have an
+    /// inverse for an answer to exist.
     ///
     /// # Examples
     ///
@@ -2432,8 +2441,8 @@ impl Integer {
     /// Raises a number to the power of `exponent` modulo `modulo` and
     /// returns `true` if an answer exists.
     ///
-    /// If `exponent` is negative, then the number must have an
-    /// inverse modulo `modulo` for an answer to exist.
+    /// If the exponent is negative, then the number must have an
+    /// inverse for an answer to exist.
     ///
     /// # Examples
     ///
@@ -2473,8 +2482,8 @@ impl Integer {
     /// Raises a number to the power of `exponent` modulo `modulo` if
     /// an answer exists.
     ///
-    /// If `exponent` is negative, then the number must have an
-    /// inverse modulo `modulo` for an answer to exist.
+    /// If the exponent is negative, then the number must have an
+    /// inverse for an answer to exist.
     ///
     /// `Assign<Src> for Integer` and `From<Src> for Integer` are
     /// implemented with the returned object as `Src` if it exists.
