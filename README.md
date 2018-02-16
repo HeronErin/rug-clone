@@ -151,9 +151,11 @@ a Rug type:
 
 There are two things that can be done with intermediate values:
 
-1. Assign them using the [`Assign`][rug assign] trait or a similar
-   trait, for example [`int.assign(intermediate)`][rug assign assign]
-   and [`float.assign_round(intermediate, Round::Up)`][rug assr assr].
+1. Assign them to an existing object without unnecessary allocations.
+   This is usually achieved using the [`Assign`][rug assign] trait or
+   a similar method, for example
+   [`int.assign(intermediate)`][rug assign assign] and
+   [`float.assign_round(intermediate, Round::Up)`][rug assr assr].
 2. Convert them to the final value using the [`From`][rust from] trait
    or a similar method, for example
    [`Integer::from(intermediate)`][rust from from] and
