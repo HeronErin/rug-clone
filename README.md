@@ -103,7 +103,27 @@ With Rust primitive types, arithmetic operators usually operate on two
 values of the same type, for example `12i32 + 5i32`. Unlike primitive
 types, conversion to and from Rug types can be expensive, so the
 arithmetic operators are overloaded to work on many combinations of
-Rug types and primitives.
+Rug types and primitives. The following are provided:
+
+1. Where they make sense, all arithmetic operators are overloaded to
+   work with Rug types and the primitives [`i32`][rust i32],
+   [`u32`][rust u32], [`f32`][rust f32] and [`f64`][rust f64].
+2. Conversions using the [`From`][rust from] trait and assignments
+   using the [`Assign`][rug assign] trait are supported for all the
+   primitives in 1. above as well as the other primitives
+   [`i8`][rust i8], [`i16`][rust i16], [`i64`][rust i64],
+   [`isize`][rust isize], [`u8`][rust u8], [`u16`][rust u16],
+   [`u64`][rust u64] and [`usize`][rust usize].
+3. Comparisons between Rug types and all the primitives listed in
+   1. and 2. above are supported.
+4. For [`Rational`][rug rat] numbers, operations are also supported
+   for tuples containing two primitives: the first is the numerator
+   and the second is the denominator which cannot be zero. The two
+   primitives do not need to have the same type.
+5. For [`Complex`][rug com] numbers, operations are also supported for
+   tuples containing two primitives: the first is the real part and
+   the second is the imaginary part. The two primitives do not need to
+   have the same type.
 
 When at least one operand is an owned Rug type, the operation will
 consume that type and return a Rug type. For example
@@ -133,8 +153,14 @@ assert_eq!(sub, -10);
 
 Here `a` and `b` are not consumed, and `incomplete` is not the final
 value. It still needs to be converted or assigned into an
-[`Integer`][rug int]. The reason is explained in the
-[next](#incomplete-computation-values) section.
+[`Integer`][rug int]. The reason is explained in the section about
+[incomplete computation values](#incomplete-computation-values).
+
+The left shift `<<` and right shift `>>` operators support shifting by
+negative values, for example `a << 5` is equivalent to `a >> -5`. The
+shifting operators are also supported for the [`Float`][rug flo] and
+[`Complex`][rug com] types, where they are equivalent to
+multiplication or division by a power of two.
 
 ## Incomplete computation values
 
@@ -306,10 +332,21 @@ provided by the crate.
 [rug rat]: https://docs.rs/rug/0.9.3/rug/struct.Rational.html
 [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
+[rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
+[rust f64]: https://doc.rust-lang.org/std/primitive.f64.html
 [rust from from]: https://doc.rust-lang.org/std/convert/trait.From.html#tymethod.from
 [rust from]: https://doc.rust-lang.org/std/convert/trait.From.html
+[rust i16]: https://doc.rust-lang.org/std/primitive.i16.html
 [rust i32]: https://doc.rust-lang.org/std/primitive.i32.html
+[rust i64]: https://doc.rust-lang.org/std/primitive.i64.html
+[rust i8]: https://doc.rust-lang.org/std/primitive.i8.html
+[rust isize]: https://doc.rust-lang.org/std/primitive.isize.html
 [rust neg]: https://doc.rust-lang.org/std/ops/trait.Neg.html
+[rust u16]: https://doc.rust-lang.org/std/primitive.u16.html
+[rust u32]: https://doc.rust-lang.org/std/primitive.u32.html
+[rust u64]: https://doc.rust-lang.org/std/primitive.u64.html
+[rust u8]: https://doc.rust-lang.org/std/primitive.u8.html
+[rust usize]: https://doc.rust-lang.org/std/primitive.usize.html
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
 [sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-gnulinux
 [sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-macos
