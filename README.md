@@ -97,7 +97,7 @@ Some points from this example follow:
   primitive types on either side of the operator, for example
   `int >> 128`.
 
-## Operators
+## Using primitive types
 
 With Rust primitive types, arithmetic operators usually operate on two
 values of the same type, for example `12i32 + 5i32`. Unlike primitive
@@ -125,8 +125,12 @@ Rug types and primitives. The following are provided:
    the second is the imaginary part. The two primitives do not need to
    have the same type.
 
-When at least one operand is an owned Rug type, the operation will
-consume that type and return a Rug type. For example
+## Operators
+
+Operators are overloaded to work on Rug types alone or on a
+combination of Rug types and Rust primitives. When at least one
+operand is an owned Rug type, the operation will consume that type and
+return a Rug type. For example
 
 ```rust
 use rug::Integer;
