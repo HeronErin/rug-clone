@@ -2170,7 +2170,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (-0.5, -0.8660));
         /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
-        fn root_of_unity(n: u32, k: u32) -> RootOfUnity;
+        fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete;
     }
     math_op1_complex! {
         mpc::exp;
@@ -3375,7 +3375,7 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
 ref_math_op1_complex! { mpc::log; struct LnIncomplete {} }
 ref_math_op1_complex! { mpc::log10; struct Log10Incomplete {} }
 ref_math_op0_complex! {
-    mpc::rootofunity; struct RootOfUnity { n: u32, k: u32 }
+    mpc::rootofunity; struct RootOfUnityIncomplete { n: u32, k: u32 }
 }
 ref_math_op1_complex! { mpc::exp; struct ExpIncomplete {} }
 ref_math_op1_complex! { mpc::sin; struct SinIncomplete {} }

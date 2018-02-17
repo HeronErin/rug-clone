@@ -2554,7 +2554,7 @@ impl Integer {
         /// let i = Integer::from(p);
         /// assert_eq!(i, 13_u64.pow(12));
         /// ```
-        fn u_pow_u(base: u32, exponent: u32) -> UPowU;
+        fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
     }
 
     /// Raises `base` to the power of `exponent`.
@@ -2584,7 +2584,7 @@ impl Integer {
         /// let i2 = Integer::from(p2);
         /// assert_eq!(i2, (13_i64).pow(13));
         /// ```
-        fn i_pow_u(base: i32, exponent: u32) -> IPowU;
+        fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
     }
 
     /// Raises `base` to the power of `exponent`.
@@ -3392,7 +3392,7 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 3628800);
         /// ```
-        fn factorial(n: u32) -> Factorial;
+        fn factorial(n: u32) -> FactorialIncomplete;
     }
 
     /// Computes the factorial of *n*.
@@ -3419,7 +3419,7 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 3840);
         /// ```
-        fn factorial_2(n: u32) -> Factorial2;
+        fn factorial_2(n: u32) -> Factorial2Incomplete;
     }
 
     /// Computes the double factorial of *n*.
@@ -3447,7 +3447,7 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 280);
         /// ```
-        fn factorial_m(n: u32, m: u32) -> FactorialM;
+        fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete;
     }
 
     /// Computes the *m*-multi factorial of *n*.
@@ -3476,7 +3476,7 @@ impl Integer {
         /// assert_eq!(i, 210);
         /// ```
         #[inline]
-        fn primorial(n: u32) -> Primorial;
+        fn primorial(n: u32) -> PrimorialIncomplete;
     }
 
     /// Computes the primorial of *n*.
@@ -3544,7 +3544,7 @@ impl Integer {
         /// let i = Integer::from(b);
         /// assert_eq!(i, 21);
         /// ```
-        fn binomial_u(n: u32, k: u32) -> BinomialU;
+        fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete;
     }
 
     /// Computes the binomial coefficient *n* over *k*.
@@ -3577,7 +3577,7 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 144);
         /// ```
-        fn fibonacci(n: u32) -> Fibonacci;
+        fn fibonacci(n: u32) -> FibonacciIncomplete;
     }
 
     /// Computes the Fibonacci number.
@@ -3616,7 +3616,7 @@ impl Integer {
         /// assert_eq!(pair.0, 0);
         /// assert_eq!(pair.1, 1);
         /// ```
-        fn fibonacci_2(n: u32) -> Fibonacci2;
+        fn fibonacci_2(n: u32) -> Fibonacci2Incomplete;
     }
 
     /// Computes a Fibonacci number, and the previous Fibonacci number.
@@ -3649,7 +3649,7 @@ impl Integer {
         /// let i = Integer::from(l);
         /// assert_eq!(i, 322);
         /// ```
-        fn lucas(n: u32) -> Lucas;
+        fn lucas(n: u32) -> LucasIncomplete;
     }
 
     /// Computes the Lucas number.
@@ -3686,7 +3686,7 @@ impl Integer {
         /// assert_eq!(pair.0, 2);
         /// assert_eq!(pair.1, -1);
         /// ```
-        fn lucas_2(n: u32) -> Lucas2;
+        fn lucas_2(n: u32) -> Lucas2Incomplete;
     }
 
     /// Computes a Lucas number, and the previous Lucas number.
@@ -3984,10 +3984,14 @@ impl<'r> From<PowModIncomplete<'r>> for Integer {
 }
 
 ref_math_op0! {
-    Integer; gmp::mpz_ui_pow_ui; struct UPowU { base: u32, exponent: u32 }
+    Integer;
+    gmp::mpz_ui_pow_ui;
+    struct UPowUIncomplete { base: u32, exponent: u32 }
 }
 ref_math_op0! {
-    Integer; xgmp::mpz_si_pow_ui; struct IPowU { base: i32, exponent: u32 }
+    Integer;
+    xgmp::mpz_si_pow_ui;
+    struct IPowUIncomplete { base: i32, exponent: u32 }
 }
 ref_math_op1! {
     Integer; xgmp::mpz_root_check; struct RootIncomplete { n: u32 }
@@ -4110,20 +4114,34 @@ impl<'a> From<RemoveFactorIncomplete<'a>> for (Integer, u32) {
     }
 }
 
-ref_math_op0! { Integer; gmp::mpz_fac_ui; struct Factorial { n: u32 } }
-ref_math_op0! { Integer; gmp::mpz_2fac_ui; struct Factorial2 { n: u32 } }
 ref_math_op0! {
-    Integer; gmp::mpz_mfac_uiui; struct FactorialM { n: u32, m: u32 }
+    Integer; gmp::mpz_fac_ui; struct FactorialIncomplete { n: u32 }
 }
-ref_math_op0! { Integer; gmp::mpz_primorial_ui; struct Primorial { n: u32 } }
+ref_math_op0! {
+    Integer; gmp::mpz_2fac_ui; struct Factorial2Incomplete { n: u32 }
+}
+ref_math_op0! {
+    Integer; gmp::mpz_mfac_uiui; struct FactorialMIncomplete { n: u32, m: u32 }
+}
+ref_math_op0! {
+    Integer; gmp::mpz_primorial_ui; struct PrimorialIncomplete { n: u32 }
+}
 ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialIncomplete { k: u32 } }
 ref_math_op0! {
-    Integer; gmp::mpz_bin_uiui; struct BinomialU { n: u32, k: u32 }
+    Integer; gmp::mpz_bin_uiui; struct BinomialUIncomplete { n: u32, k: u32 }
 }
-ref_math_op0! { Integer; gmp::mpz_fib_ui; struct Fibonacci { n: u32 } }
-ref_math_op0_2! { Integer; gmp::mpz_fib2_ui; struct Fibonacci2 { n: u32 } }
-ref_math_op0! { Integer; gmp::mpz_lucnum_ui; struct Lucas { n: u32 } }
-ref_math_op0_2! { Integer; gmp::mpz_lucnum2_ui; struct Lucas2 { n: u32 } }
+ref_math_op0! {
+    Integer; gmp::mpz_fib_ui; struct FibonacciIncomplete { n: u32 }
+}
+ref_math_op0_2! {
+    Integer; gmp::mpz_fib2_ui; struct Fibonacci2Incomplete { n: u32 }
+}
+ref_math_op0! {
+    Integer; gmp::mpz_lucnum_ui; struct LucasIncomplete { n: u32 }
+}
+ref_math_op0_2! {
+    Integer; gmp::mpz_lucnum2_ui; struct Lucas2Incomplete { n: u32 }
+}
 
 #[cfg(feature = "rand")]
 pub struct RandomBits<'a, 'b: 'a> {

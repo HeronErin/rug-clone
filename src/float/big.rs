@@ -2739,7 +2739,7 @@ impl Float {
         /// let f = Float::with_val(53, s);
         /// assert_eq!(f, 5.0);
         /// ```
-        fn sqrt_u(u: u32) -> SqrtU;
+        fn sqrt_u(u: u32) -> SqrtUIncomplete;
     }
 
     /// Sets `self` to the square root of `u`, rounding to the
@@ -3607,7 +3607,7 @@ impl Float {
         /// let expected = 1.0986f64;
         /// assert!((f - expected).abs() < 0.0001);
         /// ```
-        fn ln_u(u: u32) -> LnU;
+        fn ln_u(u: u32) -> LnUIncomplete;
     }
 
     math_op1_float! {
@@ -5282,7 +5282,7 @@ impl Float {
         /// let f = Float::with_val(53, n);
         /// assert_eq!(f, 3628800.0);
         /// ```
-        fn factorial(n: u32) -> Factorial;
+        fn factorial(n: u32) -> FactorialIncomplete;
     }
 
     /// Sets `self` to the factorial of *u*, rounding to the nearest.
@@ -6058,7 +6058,7 @@ impl Float {
         /// let expected = 1.2021_f64;
         /// assert!((f - expected).abs() < 0.0001);
         /// ```
-        fn zeta_u(u: u32) -> ZetaU;
+        fn zeta_u(u: u32) -> ZetaUIncomplete;
     }
 
     /// Sets `self` to the value of the Riemann Zeta function on *u*,
@@ -7510,7 +7510,7 @@ where
 
 ref_math_op1_float! { mpfr::sqr; struct SquareIncomplete {} }
 ref_math_op1_float! { mpfr::sqrt; struct SqrtIncomplete {} }
-ref_math_op0_float! { mpfr::sqrt_ui; struct SqrtU { u: u32 } }
+ref_math_op0_float! { mpfr::sqrt_ui; struct SqrtUIncomplete { u: u32 } }
 ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtIncomplete {} }
 ref_math_op1_float! { mpfr::cbrt; struct CbrtIncomplete {} }
 ref_math_op1_float! { mpfr::rootn_ui; struct RootIncomplete { k: u32 } }
@@ -7584,7 +7584,7 @@ ref_math_op2_float! { mpfr::min; struct MinIncomplete { other } }
 ref_math_op2_float! { mpfr::max; struct MaxIncomplete { other } }
 ref_math_op2_float! { mpfr::dim; struct PositiveDiffIncomplete { other } }
 ref_math_op1_float! { mpfr::log; struct LnIncomplete {} }
-ref_math_op0_float! { mpfr::log_ui; struct LnU { u: u32 } }
+ref_math_op0_float! { mpfr::log_ui; struct LnUIncomplete { u: u32 } }
 ref_math_op1_float! { mpfr::log2; struct Log2Incomplete {} }
 ref_math_op1_float! { mpfr::log10; struct Log10Incomplete {} }
 ref_math_op1_float! { mpfr::exp; struct ExpIncomplete {} }
@@ -7611,7 +7611,7 @@ ref_math_op1_float! { mpfr::coth; struct CothIncomplete {} }
 ref_math_op1_float! { mpfr::acosh; struct AcoshIncomplete {} }
 ref_math_op1_float! { mpfr::asinh; struct AsinhIncomplete {} }
 ref_math_op1_float! { mpfr::atanh; struct AtanhIncomplete {} }
-ref_math_op0_float! { mpfr::fac_ui; struct Factorial { n: u32 } }
+ref_math_op0_float! { mpfr::fac_ui; struct FactorialIncomplete { n: u32 } }
 ref_math_op1_float! { mpfr::log1p; struct Ln1pIncomplete {} }
 ref_math_op1_float! { mpfr::expm1; struct ExpM1Incomplete {} }
 ref_math_op1_float! { mpfr::eint; struct EintIncomplete {} }
@@ -7656,7 +7656,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
 
 ref_math_op1_float! { mpfr::digamma; struct DigammaIncomplete {} }
 ref_math_op1_float! { mpfr::zeta; struct ZetaIncomplete {} }
-ref_math_op0_float! { mpfr::zeta_ui; struct ZetaU { u: u32 } }
+ref_math_op0_float! { mpfr::zeta_ui; struct ZetaUIncomplete { u: u32 } }
 ref_math_op1_float! { mpfr::erf; struct ErfIncomplete {} }
 ref_math_op1_float! { mpfr::erfc; struct ErfcIncomplete {} }
 ref_math_op1_float! { mpfr::j0; struct J0Incomplete {} }
