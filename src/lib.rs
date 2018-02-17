@@ -16,8 +16,8 @@
 
 //! # Arbitrary-precision numbers
 //!
-//! The Rug crate provides integers and floating-point numbers with
-//! arbitrary precision and correct rounding. Its main features are
+//! Rug provides integers and floating-point numbers with arbitrary
+//! precision and correct rounding. Its main features are
 //!
 //! * bignum [integers][rug int] with arbitrary precision,
 //! * bignum [rational numbers][rug rat] with arbitrary precision,
@@ -35,8 +35,8 @@
 //! ## Version 1.0.0 coming soon
 //!
 //! Version 0.10.0 is meant to be the last release before version
-//! 1.0.0. Unless some major issue is discovered, version 1.0.0 will
-//! be like version 0.10.0 with all the deprecated items removed.
+//! 1.0.0. Unless some issue is discovered, version 1.0.0 will be like
+//! version 0.10.0 with all the deprecated items removed.
 //!
 //! ## Getting started
 //!
@@ -56,7 +56,8 @@
 //! under [GNU/Linux][sys gnu], [macOS][sys mac] and
 //! [Windows][sys win].
 //!
-//! You also need to declare Rug by adding this to your crate root:
+//! You also need to declare the crate by adding this to your crate
+//! root:
 //!
 //! ```rust
 //! extern crate rug;
@@ -288,11 +289,11 @@
 //!
 //! ## Crate usage
 //!
-//! The Rug crate requires rustc version 1.18.0 or later.
+//! Rug requires rustc version 1.18.0 or later.
 //!
 //! This crate depends on the low-level bindings in the
-//! [gmp-mpfr-sys crate][sys crate], which provides Rust FFI
-//! bindings for:
+//! [gmp-mpfr-sys crate][sys crate], which provides Rust FFI bindings
+//! for:
 //!
 //! * the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
 //! * the [GNU MPFR Library][mpfr], a library for multiple-precision

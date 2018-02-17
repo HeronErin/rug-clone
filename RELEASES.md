@@ -1,6 +1,21 @@
-Version 0.10.0 (to be determined)
-==========================
+Version 0.10.0 (2018-02-17)
+===========================
 
+* `Integer::invert_ref` and `Integer::pow_mod_ref` now return an
+  `Option`, not an object that is assignable to `Result`.
+* `Float::random_bits` and `Complex::random_bits` are now assignable
+  to the number values, not to `Result` objects.
+* `Rational::signum`, `Rational::trunc`, `Rational::ceil`,
+  `Rational::floor` and `Rational::round` now return `Rational`.
+* `Complex::abs`, `Complex::arg` and `Complex::norm` now return
+  `Complex`.
+* Remove `Default` implementations from all types of `Float` and
+  `Complex`; now the precision always has to be specified.
+* Remove `Sum` and `Product` implementations for `Float` and
+  `Complex`.
+* Remove `Clone` and `Copy` implementations from all incomplete
+  computation types.
+* Revamp top-level crate documentation.
 * Add `Integer::parse` and `Rational::parse`, and deprecate
   `ValidInteger`, `ValidRational`, `valid_str_radix` methods, and
   `assign_str*` methods.
@@ -10,24 +25,10 @@ Version 0.10.0 (to be determined)
 * Rename `Integer::gcd_coeffs*` methods to `Integer::gcd_cofactors*`.
 * `Integer::gcd_cofactors_ref` now supports computing only one
   cofactor.
-* `Integer::invert_ref` and `Integer::pow_mod_ref` now return an
-  `Option`, not an object that is assignable to `Result`.
 * Deprecate `Rational::to_integer` and `Rational::as_numer_denom`.
-* `Rational::signum`, `Rational::trunc`, `Rational::ceil`,
-  `Rational::floor` and `Rational::round` now return `Rational`.
 * Deprecate `Rational::as_mut_numer_denom` and replace with
   `Rational::mutate_numer_denom`.
-* `Float::random_bits` and `Complex::random_bits` are now assignable
-  to the number values, not to `Result` objects.
 * Deprecate `Complex::as_real_imag`.
-* `Complex::abs`, `Complex::arg` and `Complex::norm` now return
-  `Complex`.
-* Remove `Default` implementations from all types of `Float` and
-  `Complex`; now the precision always has to be specified.
-* Remove `Sum` and `Product` implementations for `Float` and
-  `Complex`.
-* Improve top-level documentation, especially about incomplete
-  computation values.
 
 Version 0.9.3 (2018-02-09)
 ==========================

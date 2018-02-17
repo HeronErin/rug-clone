@@ -1,7 +1,7 @@
 # Arbitrary-precision numbers
 
-The Rug crate provides integers and floating-point numbers with
-arbitrary precision and correct rounding. Its main features are
+Rug provides integers and floating-point numbers with arbitrary
+precision and correct rounding. Its main features are
 
 * bignum [integers][rug int] with arbitrary precision,
 * bignum [rational numbers][rug rat] with arbitrary precision,
@@ -18,8 +18,8 @@ by the Free Software Foundation, either version 3 of the License, or
 ## Version 1.0.0 coming soon
 
 Version 0.10.0 is meant to be the last release before version 1.0.0.
-Unless some major issue is discovered, version 1.0.0 will be like
-version 0.10.0 with all the deprecated items removed.
+Unless some issue is discovered, version 1.0.0 will be like version
+0.10.0 with all the deprecated items removed.
 
 ## Getting started
 
@@ -30,7 +30,7 @@ To use Rug in your crate, add it as a dependency inside
 
 ```toml
 [dependencies]
-rug = "0.9.3"
+rug = "0.10.0"
 ```
 
 This crate depends on the low-level bindings in the
@@ -38,7 +38,7 @@ This crate depends on the low-level bindings in the
 [gmp-mpfr-sys documentation][sys] has some details on usage under
 [GNU/Linux][sys gnu], [macOS][sys mac] and [Windows][sys win].
 
-You also need to declare Rug by adding this to your crate root:
+You also need to declare the crate by adding this to your crate root:
 
 ```rust
 extern crate rug;
@@ -254,7 +254,7 @@ value.
 
 ## Crate usage
 
-The Rug crate requires rustc version 1.18.0 or later.
+Rug requires rustc version 1.18.0 or later.
 
 This crate depends on the low-level bindings in the
 [gmp-mpfr-sys crate][sys crate], which provides Rust FFI bindings for:
@@ -298,7 +298,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "0.9.3"
+version = "0.10.0"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -318,23 +318,23 @@ provided by the crate.
 [mpc]: http://www.multiprecision.org/
 [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 [mpfr]: http://www.mpfr.org/
-[rug assign assign]: https://docs.rs/rug/0.9.3/rug/trait.Assign.html#tymethod.assign
-[rug assign]: https://docs.rs/rug/0.9.3/rug/trait.Assign.html
-[rug assr assr]: https://docs.rs/rug/0.9.3/rug/ops/trait.AssignRound.html#tymethod.assign_round
-[rug assr]: https://docs.rs/rug/0.9.3/rug/ops/trait.AssignRound.html
-[rug com]: https://docs.rs/rug/0.9.3/rug/struct.Complex.html
-[rug flo withval]: https://docs.rs/rug/0.9.3/rug/struct.Float.html#method.with_val
-[rug flo]: https://docs.rs/rug/0.9.3/rug/struct.Float.html
-[rug int absref]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html#method.abs_ref
-[rug int divremref]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html#method.div_rem_ref
-[rug int negref]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html#impl-Neg-1
-[rug int new]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html#method.new
-[rug int parse]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html#method.parse
-[rug int parseradix]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html#method.parse_radix
-[rug int]: https://docs.rs/rug/0.9.3/rug/struct.Integer.html
-[rug ops]: https://docs.rs/rug/0.9.3/rug/ops/index.html
-[rug rand]: https://docs.rs/rug/0.9.3/rug/rand/struct.RandState.html
-[rug rat]: https://docs.rs/rug/0.9.3/rug/struct.Rational.html
+[rug assign assign]: https://docs.rs/rug/0.10.0/rug/trait.Assign.html#tymethod.assign
+[rug assign]: https://docs.rs/rug/0.10.0/rug/trait.Assign.html
+[rug assr assr]: https://docs.rs/rug/0.10.0/rug/ops/trait.AssignRound.html#tymethod.assign_round
+[rug assr]: https://docs.rs/rug/0.10.0/rug/ops/trait.AssignRound.html
+[rug com]: https://docs.rs/rug/0.10.0/rug/struct.Complex.html
+[rug flo withval]: https://docs.rs/rug/0.10.0/rug/struct.Float.html#method.with_val
+[rug flo]: https://docs.rs/rug/0.10.0/rug/struct.Float.html
+[rug int absref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.abs_ref
+[rug int divremref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.div_rem_ref
+[rug int negref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#impl-Neg-1
+[rug int new]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.new
+[rug int parse]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.parse
+[rug int parseradix]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.parse_radix
+[rug int]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html
+[rug ops]: https://docs.rs/rug/0.10.0/rug/ops/index.html
+[rug rand]: https://docs.rs/rug/0.10.0/rug/rand/struct.RandState.html
+[rug rat]: https://docs.rs/rug/0.10.0/rug/struct.Rational.html
 [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
 [rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
