@@ -189,9 +189,10 @@ where
 {
     #[inline]
     fn assign(&mut self, src: (Num, Den)) {
-        let mut num_den = self.as_mut_numer_denom();
-        num_den.num().assign(src.0);
-        num_den.den().assign(src.1);
+        self.mutate_numer_denom(|num, den| {
+            num.assign(src.0);
+            den.assign(src.1);
+        })
     }
 }
 
@@ -201,17 +202,16 @@ where
 {
     #[inline]
     fn from(src: (Num, Den)) -> Self {
-        let den = Integer::from(src.1);
-        assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
-        let num = Integer::from(src.0);
+        let src_den = Integer::from(src.1);
+        assert_ne!(src_den.cmp0(), Ordering::Equal, "division by zero");
+        let src_num = Integer::from(src.0);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        unsafe {
-            let mut num_den = dst.as_mut_numer_denom();
-            ptr::copy_nonoverlapping(&num, num_den.num(), 1);
-            ptr::copy_nonoverlapping(&den, num_den.den(), 1);
-        }
-        mem::forget(num);
-        mem::forget(den);
+        dst.mutate_numer_denom(|num, den| unsafe {
+            ptr::copy_nonoverlapping(&src_num, num, 1);
+            ptr::copy_nonoverlapping(&src_den, den, 1);
+        });
+        mem::forget(src_num);
+        mem::forget(src_den);
         dst
     }
 }
@@ -222,9 +222,10 @@ where
 {
     #[inline]
     fn assign(&mut self, src: &'a (Num, Den)) {
-        let mut num_den = self.as_mut_numer_denom();
-        num_den.num().assign(&src.0);
-        num_den.den().assign(&src.1);
+        self.mutate_numer_denom(|num, den| {
+            num.assign(&src.0);
+            den.assign(&src.1);
+        });
     }
 }
 
@@ -234,17 +235,16 @@ where
 {
     #[inline]
     fn from(src: &'a (Num, Den)) -> Self {
-        let den = Integer::from(&src.1);
-        assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
-        let num = Integer::from(&src.0);
+        let src_den = Integer::from(&src.1);
+        assert_ne!(src_den.cmp0(), Ordering::Equal, "division by zero");
+        let src_num = Integer::from(&src.0);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        unsafe {
-            let mut num_den = dst.as_mut_numer_denom();
-            ptr::copy_nonoverlapping(&num, num_den.num(), 1);
-            ptr::copy_nonoverlapping(&den, num_den.den(), 1);
-        }
-        mem::forget(num);
-        mem::forget(den);
+        dst.mutate_numer_denom(|num, den| unsafe {
+            ptr::copy_nonoverlapping(&src_num, num, 1);
+            ptr::copy_nonoverlapping(&src_den, den, 1);
+        });
+        mem::forget(src_num);
+        mem::forget(src_den);
         dst
     }
 }

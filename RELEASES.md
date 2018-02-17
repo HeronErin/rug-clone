@@ -15,6 +15,8 @@ Version 0.10.0 (to be determined)
 * Deprecate `Rational::to_integer` and `Rational::as_numer_denom`.
 * `Rational::signum`, `Rational::trunc`, `Rational::ceil`,
   `Rational::floor` and `Rational::round` now return `Rational`.
+* Deprecate `Rational::as_mut_numer_denom` and replace with
+  `Rational::mutate_numer_denom`.
 * `Float::random_bits` and `Complex::random_bits` are now assignable
   to the number values, not to `Result` objects.
 * Deprecate `Complex::as_real_imag`.

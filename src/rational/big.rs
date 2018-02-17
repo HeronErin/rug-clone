@@ -823,52 +823,52 @@ impl Rational {
         (self.numer(), self.denom())
     }
 
-    /// Borrows the numerator and denominator mutably. The number is
-    /// canonicalized when the borrow ends. The denominator must not
-    /// be zero when the borrow ends.
+    /// Calls a function with mutable references to the numerator and
+    /// denominator mutably, then canonicalizes the number.
+    ///
+    /// The denominator must not be zero when the function returns.
     ///
     /// # Examples
     ///
     /// ```rust
     /// use rug::Rational;
-    ///
     /// let mut r = Rational::from((3, 5));
-    /// {
-    ///     let mut num_den = r.as_mut_numer_denom();
+    /// r.mutate_numer_denom(|num, den| {
     ///     // change r from 3/5 to 4/8, which is equal to 1/2
-    ///     *num_den.num() += 1;
-    ///     *num_den.den() += 3;
-    ///     // borrow ends here
-    /// }
+    ///     *num += 1;
+    ///     *den += 3;
+    /// });
     /// assert_eq!(*r.numer(), 1);
     /// assert_eq!(*r.denom(), 2);
     /// ```
     ///
-    /// If the mutable value is leaked, the denominator is lost when
-    /// the borrow ends.
-    ///
-    /// ```rust
-    /// use rug::Rational;
-    /// use std::mem;
-    ///
-    /// let mut r = Rational::from((3, 5));
-    /// {
-    ///     let mut num_den = r.as_mut_numer_denom();
-    ///     // try change r from 3/5 to 4/8
-    ///     *num_den.num() += 1;
-    ///     *num_den.den() += 3;
-    ///     // forget num_den, so no canonicalization takes place
-    ///     mem::forget(num_den)
-    ///     // borrow ends here, but nothing happens
-    /// }
-    /// // because of the leak, 4/8 has become 4/1
-    /// assert_eq!(*r.numer(), 4);
-    /// assert_eq!(*r.denom(), 1);
-    /// ```
-    ///
     /// # Panics
     ///
-    /// Panics if the denominator is zero when the borrow ends.
+    /// Panics if the denominator is zero when the function returns.
+    pub fn mutate_numer_denom<F>(&mut self, func: F)
+    where
+        F: FnOnce(&mut Integer, &mut Integer),
+    {
+        unsafe {
+            let numer_ptr = gmp::mpq_numref(self.inner_mut()) as *mut Integer;
+            let denom_ptr = gmp::mpq_denref(self.inner_mut()) as *mut Integer;
+            func(&mut *numer_ptr, &mut *denom_ptr);
+            assert_ne!(
+                self.denom().cmp0(),
+                Ordering::Equal,
+                "division by zero"
+            );
+            gmp::mpq_canonicalize(self.inner_mut());
+        }
+    }
+
+    /// Borrows the numerator and denominator mutably. The number is
+    /// canonicalized when the borrow ends. The denominator must not
+    /// be zero when the borrow ends.
+    #[deprecated(since = "0.10.0",
+                 note = "use the `Rational::mutate_numer_denom` method instead \
+                         of `Rational::as_mut_numer_denom`.")]
+    #[allow(deprecated)]
     pub fn as_mut_numer_denom(&mut self) -> MutNumerDenom {
         // We swap in a denominator of 1 so that if the
         // `MutNumerDenom` is leaked, we don't end up with a
@@ -2375,36 +2375,16 @@ impl Error for ParseRationalError {
 
 /// Used to borrow the numerator and denominator of a
 /// [`Rational`](../struct.Rational.html) number mutably.
-///
-/// The [`Rational`](../struct.Rational.html) number is canonicalized
-/// when the borrow ends.
-///
-/// See the [`Rational::as_mut_numer_denom`][mutnumden] method.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Rational;
-///
-/// let mut r = Rational::from((3, 5));
-/// {
-///     let mut num_den = r.as_mut_numer_denom();
-///     // change r from 3/5 to 4/8, which is equal to 1/2
-///     *num_den.num() += 1;
-///     *num_den.den() += 3;
-///     // borrow ends here
-/// }
-/// assert_eq!(*r.numer(), 1);
-/// assert_eq!(*r.denom(), 2);
-/// ```
-///
-/// [mutnumden]: ../struct.Rational.html#method.as_mut_numer_denom
+#[deprecated(since = "0.10.0",
+             note = "use the `Rational::mutate_numer_denom` method instead of \
+                     `Rational::as_mut_numer_denom`.")]
 pub struct MutNumerDenom<'a> {
     num: &'a mut Integer,
     den_place: &'a mut Integer,
     den_actual: Integer,
 }
 
+#[allow(deprecated)]
 impl<'a> MutNumerDenom<'a> {
     /// Gets the mutable numerator.
     #[inline]
@@ -2423,6 +2403,7 @@ impl<'a> MutNumerDenom<'a> {
     }
 }
 
+#[allow(deprecated)]
 impl<'a> Drop for MutNumerDenom<'a> {
     #[inline]
     fn drop(&mut self) {

@@ -27,9 +27,9 @@ mod serde;
 mod small;
 mod traits;
 
-pub use rational::big::{MutNumerDenom, ParseRationalError};
 #[allow(deprecated)]
-pub use rational::big::ValidRational;
+pub use rational::big::{MutNumerDenom, ValidRational};
+pub use rational::big::ParseRationalError;
 pub use rational::small::SmallRational;
 
 #[cfg(test)]
