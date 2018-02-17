@@ -110,12 +110,12 @@ Rug types and primitives. The following are provided:
    [`u32`][rust u32], [`f32`][rust f32] and [`f64`][rust f64].
 2. Conversions using the [`From`][rust from] trait and assignments
    using the [`Assign`][rug assign] trait are supported for all the
-   primitives in 1. above as well as the other primitives
+   primitives in 1 above as well as the other primitives
    [`i8`][rust i8], [`i16`][rust i16], [`i64`][rust i64],
    [`isize`][rust isize], [`u8`][rust u8], [`u16`][rust u16],
    [`u64`][rust u64] and [`usize`][rust usize].
 3. Comparisons between Rug types and all the primitives listed in
-   1. and 2. above are supported.
+   1 and 2 above are supported.
 4. For [`Rational`][rug rat] numbers, operations are also supported
    for tuples containing two primitives: the first is the numerator
    and the second is the denominator which cannot be zero. The two
