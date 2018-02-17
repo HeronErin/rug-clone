@@ -9,7 +9,7 @@ Version 0.10.0 (to be determined)
   `assign_str*` methods.
 * Rename `Integer::gcd_coeffs*` methods to `Integer::gcd_cofactors*`.
 * `Integer::gcd_cofactors_ref` now supports computing only one
-  coefficient.
+  cofactor.
 * `Integer::invert_ref` and `Integer::pow_mod_ref` now return an
   `Option`, not an object that is assignable to `Result`.
 * Deprecate `Rational::to_integer` and `Rational::as_numer_denom`.
@@ -24,6 +24,8 @@ Version 0.10.0 (to be determined)
   `Complex`.
 * Remove `Default` implementations from all types of `Float` and
   `Complex`; now the precision always has to be specified.
+* Remove `Sum` and `Product` implementations for `Float` and
+  `Complex`.
 * Improve top-level documentation, especially about incomplete
   computation values.
 

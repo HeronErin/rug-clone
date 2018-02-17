@@ -47,7 +47,7 @@ extern crate rug;
 More details are available in the [Crate usage](#crate-usage) section
 below.
 
-### Basic example
+### Quick example
 
 For many operations, you can use the arbitrary-precision types such as
 [`Integer`][rug int] like you use primitive types such as
@@ -108,10 +108,10 @@ Rug types and primitives. The following are provided:
 1. Where they make sense, all arithmetic operators are overloaded to
    work with Rug types and the primitives [`i32`][rust i32],
    [`u32`][rust u32], [`f32`][rust f32] and [`f64`][rust f64].
-2. Conversions using the [`From`][rust from] trait and assignments
-   using the [`Assign`][rug assign] trait are supported for all the
-   primitives in 1 above as well as the other primitives
-   [`i8`][rust i8], [`i16`][rust i16], [`i64`][rust i64],
+2. Where they make sense, conversions using the [`From`][rust from]
+   trait and assignments using the [`Assign`][rug assign] trait are
+   supported for all the primitives in 1 above as well as the other
+   primitives [`i8`][rust i8], [`i16`][rust i16], [`i64`][rust i64],
    [`isize`][rust isize], [`u8`][rust u8], [`u16`][rust u16],
    [`u64`][rust u64] and [`usize`][rust usize].
 3. Comparisons between Rug types and all the primitives listed in
@@ -289,7 +289,8 @@ The Rug crate has six optional features:
 6. `serde`, disabled by default. This provides serialization support
    for the [`Integer`][rug int], [`Rational`][rug rat],
    [`Float`][rug flo] and [`Complex`][rug com] types, providing that
-   they are enabled.
+   they are enabled. This feature requires the
+   [serde crate][serde crate].
 
 The first five optional features are enabled by default; to use
 features selectively, you can add the dependency like this to
@@ -351,6 +352,7 @@ provided by the crate.
 [rust u64]: https://doc.rust-lang.org/std/primitive.u64.html
 [rust u8]: https://doc.rust-lang.org/std/primitive.u8.html
 [rust usize]: https://doc.rust-lang.org/std/primitive.usize.html
+[serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
 [sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-gnulinux
 [sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-macos
