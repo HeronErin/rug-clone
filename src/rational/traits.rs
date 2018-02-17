@@ -189,7 +189,7 @@ where
 {
     #[inline]
     fn assign(&mut self, src: (Num, Den)) {
-        self.mutate_numer_denom(|num, den| {
+        self.mutate_numer_denom(move |num, den| {
             num.assign(src.0);
             den.assign(src.1);
         })
