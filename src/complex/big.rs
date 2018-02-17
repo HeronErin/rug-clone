@@ -494,7 +494,7 @@ impl Complex {
     /// Parses a decimal string or byte slice into a `Complex` number.
     ///
     /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// unwrapped returned object as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
@@ -536,7 +536,7 @@ impl Complex {
     /// Parses a string or byte slice into a `Complex` number.
     ///
     /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// unwrapped returned object as `Src`.
     ///
     /// The string can contain either of the following three:
     ///

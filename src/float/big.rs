@@ -641,8 +641,8 @@ impl Float {
 
     /// Parses a decimal string or byte slice into a `Float`.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// `AssignRound<Src> for Float` is implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
@@ -686,8 +686,8 @@ impl Float {
 
     /// Parses a string or byte slice into a `Float`.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// `AssignRound<Src> for Float` is implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional

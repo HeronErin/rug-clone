@@ -354,7 +354,7 @@ impl Integer {
     /// Parses a decimal string or byte slice into an `Integer`.
     ///
     /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src`.
+    /// implemented with the unwrapped returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -386,7 +386,7 @@ impl Integer {
     /// Parses a string or byte slice into an `Integer`.
     ///
     /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src`.
+    /// implemented with the unwrapped returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.

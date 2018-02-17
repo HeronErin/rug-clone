@@ -326,7 +326,7 @@ impl Rational {
     /// number.
     ///
     /// `Assign<Src> for Rational` and `From<Src> for Rational` are
-    /// implemented with the returned object as `Src`.
+    /// implemented with the unwrapped returned object as `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -363,7 +363,7 @@ impl Rational {
     /// Parses a string or byte slice into a `Rational` number.
     ///
     /// `Assign<Src> for Rational` and `From<Src> for Rational` are
-    /// implemented with the returned object as `Src`.
+    /// implemented with the unwrapped returned object as `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
