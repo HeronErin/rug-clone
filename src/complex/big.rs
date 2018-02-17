@@ -17,10 +17,10 @@
 use {Assign, Float};
 use cast::cast;
 use complex::{OrdComplex, Prec};
-use complex::arith::{AddMulRef, SubMulFromRef};
+use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use ext::mpc as xmpc;
 use float::{self, ParseFloatError, Round, Special};
-use float::big::{self as big_float, ValidParse as FloatValidParse};
+use float::big::{self as big_float, ParseIncomplete as FloatParseIncomplete};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
@@ -61,8 +61,8 @@ pub type Ordering2 = (Ordering, Ordering);
 /// ```
 ///
 /// Operations on two borrowed `Complex` numbers result in an
-/// intermediate value that has to be assigned to a new `Complex`
-/// value.
+/// [incomplete computation value][incomplete] that has to be assigned
+/// to a new `Complex` value.
 ///
 /// ```rust
 /// use rug::Complex;
@@ -73,7 +73,8 @@ pub type Ordering2 = (Ordering, Ordering);
 /// assert_eq!(a_b, (9.25, -12.5));
 /// ```
 ///
-/// As a special case, when an intermediate value is obtained from
+/// As a special case, when an
+/// [incomplete computation value][incomplete] is obtained from
 /// multiplying two `Complex` references, it can be added to or
 /// subtracted from another `Complex` (or reference). This will result
 /// in a fused multiply-accumulate operation, with only one rounding
@@ -97,7 +98,6 @@ pub type Ordering2 = (Ordering, Ordering);
 ///    representable value.
 /// 2. The second method has a `_mut` suffix, mutates the operand and
 ///    rounds it the nearest representable value.
-
 /// 3. The third method has a `_round` suffix, mutates the operand,
 ///    applies the specified [rounding method](float/enum.Round.html)
 ///    to the real and imaginary parts, and returns the rounding
@@ -144,6 +144,8 @@ pub type Ordering2 = (Ordering, Ordering);
 /// // d was not consumed
 /// assert_eq!(d, (1, 1));
 /// ```
+///
+/// [incomplete]: index.html#incomplete-computation-values
 pub struct Complex {
     inner: mpc_t,
 }
@@ -152,13 +154,13 @@ macro_rules! ref_math_op0_complex {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op0_round! {
             Complex, Round2 => Ordering2;
             $func, raw_round2 => ordering2;
             $(#[$attr_ref])*
-            struct $Ref { $($param: $T),* }
+            struct $Incomplete { $($param: $T),* }
         }
     };
 }
@@ -173,7 +175,7 @@ macro_rules! math_op1_complex {
         $(#[$attr_round: meta])*
         fn $method_round: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         math_op1_round! {
             Round2 => Ordering2;
@@ -185,7 +187,7 @@ macro_rules! math_op1_complex {
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
-            fn $method_ref -> $Ref;
+            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -194,13 +196,13 @@ macro_rules! ref_math_op1_complex {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_round! {
             Complex, Round2 => Ordering2;
             $func, raw_round2 => ordering2;
             $(#[$attr_ref])*
-            struct $Ref { $($param: $T),* }
+            struct $Incomplete { $($param: $T),* }
         }
     };
 }
@@ -215,7 +217,7 @@ macro_rules! math_op1_2_complex {
         $(#[$attr_round: meta])*
         fn $method_round: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         math_op1_2_round! {
             Round2 => (Ordering2, Ordering2);
@@ -227,7 +229,7 @@ macro_rules! math_op1_2_complex {
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
-            fn $method_ref -> $Ref;
+            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -236,13 +238,13 @@ macro_rules! ref_math_op1_2_complex {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_2_round! {
             Complex, Round2 => (Ordering2, Ordering2);
             $func, raw_round2, raw_round2 => ordering4;
             $(#[$attr_ref])*
-            struct $Ref { $($param: $T),* }
+            struct $Incomplete { $($param: $T),* }
         }
     };
 }
@@ -527,7 +529,7 @@ impl Complex {
     /// ```
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
-    ) -> Result<ValidParse, ParseComplexError> {
+    ) -> Result<ParseIncomplete, ParseComplexError> {
         parse(src.as_ref(), 10)
     }
 
@@ -574,7 +576,7 @@ impl Complex {
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
-    ) -> Result<ValidParse, ParseComplexError> {
+    ) -> Result<ParseIncomplete, ParseComplexError> {
         parse(src.as_ref(), radix)
     }
 
@@ -1186,11 +1188,11 @@ impl Complex {
     /// assert_eq!(sum2, (1.5, -2.0));
     /// ```
     #[inline]
-    pub fn sum<'a, I>(values: I) -> SumRef<'a, I>
+    pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
         I: Iterator<Item = &'a Self>,
     {
-        SumRef { values }
+        SumIncomplete { values }
     }
 
     /// Multiplies and adds in one fused operation, rounding to the
@@ -1299,7 +1301,7 @@ impl Complex {
         &'a self,
         mul: &'a Self,
         add: &'a Self,
-    ) -> AddMulRef<'a> {
+    ) -> AddMulIncomplete<'a> {
         self * mul + add
     }
 
@@ -1408,7 +1410,7 @@ impl Complex {
         &'a self,
         mul: &'a Self,
         sub: &'a Self,
-    ) -> SubMulFromRef<'a> {
+    ) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
 
@@ -1487,7 +1489,7 @@ impl Complex {
         /// // imaginary was negative, so now it is minus zero
         /// assert!(proj2.imag().is_sign_negative());
         /// ```
-        fn proj_ref -> ProjRef;
+        fn proj_ref -> ProjIncomplete;
     }
     math_op1_complex! {
         mpc::sqr;
@@ -1551,7 +1553,7 @@ impl Complex {
         /// assert_eq!(square, (0, 3));
         /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
         /// ```
-        fn square_ref -> SquareRef;
+        fn square_ref -> SquareIncomplete;
     }
     math_op1_complex! {
         mpc::sqrt;
@@ -1616,7 +1618,7 @@ impl Complex {
         /// assert_eq!(sqrt, (1.625, 0.6875));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
         /// ```
-        fn sqrt_ref -> SqrtRef;
+        fn sqrt_ref -> SqrtIncomplete;
     }
     math_op1_no_round! {
         mpc::conj, raw_round2;
@@ -1655,7 +1657,7 @@ impl Complex {
         /// let conj = Complex::with_val(53, c.conj_ref());
         /// assert_eq!(conj, (1.5, -2.5));
         /// ```
-        fn conj_ref -> ConjRef;
+        fn conj_ref -> ConjIncomplete;
     }
 
     /// Computes the absolute value.
@@ -1708,8 +1710,8 @@ impl Complex {
     /// assert_eq!(f, 50);
     /// ```
     #[inline]
-    pub fn abs_ref(&self) -> AbsRef {
-        AbsRef { ref_self: self }
+    pub fn abs_ref(&self) -> AbsIncomplete {
+        AbsIncomplete { ref_self: self }
     }
 
     /// Computes the argument, rounding to the nearest.
@@ -1813,8 +1815,8 @@ impl Complex {
     /// assert_eq!(arg, f64::consts::FRAC_PI_4);
     /// ```
     #[inline]
-    pub fn arg_ref(&self) -> ArgRef {
-        ArgRef { ref_self: self }
+    pub fn arg_ref(&self) -> ArgIncomplete {
+        ArgIncomplete { ref_self: self }
     }
 
     math_op1_complex! {
@@ -1884,7 +1886,7 @@ impl Complex {
         /// let rotated = Complex::with_val(53, c.mul_i_ref(false));
         /// assert_eq!(rotated, (-24, 13));
         /// ```
-        fn mul_i_ref -> MulIRef;
+        fn mul_i_ref -> MulIIncomplete;
     }
     math_op1_complex! {
         xmpc::recip;
@@ -1943,7 +1945,7 @@ impl Complex {
         /// let recip = Complex::with_val(53, c.recip_ref());
         /// assert_eq!(recip, (0.5, -0.5));
         /// ```
-        fn recip_ref -> RecipRef;
+        fn recip_ref -> RecipIncomplete;
     }
 
     /// Computes the norm, that is the square of the absolute value,
@@ -2025,8 +2027,8 @@ impl Complex {
     /// assert_eq!(f, 25);
     /// ```
     #[inline]
-    pub fn norm_ref(&self) -> NormRef {
-        NormRef { ref_self: self }
+    pub fn norm_ref(&self) -> NormIncomplete {
+        NormIncomplete { ref_self: self }
     }
 
     math_op1_complex! {
@@ -2087,7 +2089,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.4581, -0.3218));
         /// assert!(*(ln - expected).abs().real() < 0.0001);
         /// ```
-        fn ln_ref -> LnRef;
+        fn ln_ref -> LnIncomplete;
     }
     math_op1_complex! {
         mpc::log10;
@@ -2147,7 +2149,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.1990, -0.1397));
         /// assert!(*(log10 - expected).abs().real() < 0.0001);
         /// ```
-        fn log10_ref -> Log10Ref;
+        fn log10_ref -> Log10Incomplete;
     }
     math_op0! {
         /// Generates a root of unity, rounding to the nearest.
@@ -2228,7 +2230,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.2064, -1.1238));
         /// assert!(*(exp - expected).abs().real() < 0.0001);
         /// ```
-        fn exp_ref -> ExpRef;
+        fn exp_ref -> ExpIncomplete;
     }
     math_op1_complex! {
         mpc::sin;
@@ -2287,7 +2289,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.2985, 0.6350));
         /// assert!(*(sin - expected).abs().real() < 0.0001);
         /// ```
-        fn sin_ref -> SinRef;
+        fn sin_ref -> SinIncomplete;
     }
     math_op1_complex! {
         mpc::cos;
@@ -2346,7 +2348,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.8337, -0.9889));
         /// assert!(*(cos - expected).abs().real() < 0.0001);
         /// ```
-        fn cos_ref -> CosRef;
+        fn cos_ref -> CosIncomplete;
     }
     math_op1_2_complex! {
         mpc::sin_cos;
@@ -2448,7 +2450,7 @@ impl Complex {
         /// assert_eq!(cos_4, (0.8125, -1));
         /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
         /// ```
-        fn sin_cos_ref -> SinCosRef;
+        fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_complex! {
         mpc::tan;
@@ -2507,7 +2509,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.2718, 1.0839));
         /// assert!(*(tan - expected).abs().real() < 0.0001);
         /// ```
-        fn tan_ref -> TanRef;
+        fn tan_ref -> TanIncomplete;
     }
     math_op1_complex! {
         mpc::sinh;
@@ -2567,7 +2569,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.6350, 1.2985));
         /// assert!(*(sinh - expected).abs().real() < 0.0001);
         /// ```
-        fn sinh_ref -> SinhRef;
+        fn sinh_ref -> SinhIncomplete;
     }
     math_op1_complex! {
         mpc::cosh;
@@ -2627,7 +2629,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.8337, 0.9889));
         /// assert!(*(cosh - expected).abs().real() < 0.0001);
         /// ```
-        fn cosh_ref -> CoshRef;
+        fn cosh_ref -> CoshIncomplete;
     }
     math_op1_complex! {
         mpc::tanh;
@@ -2687,7 +2689,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0839, 0.2718));
         /// assert!(*(tanh - expected).abs().real() < 0.0001);
         /// ```
-        fn tanh_ref -> TanhRef;
+        fn tanh_ref -> TanhIncomplete;
     }
     math_op1_complex! {
         mpc::asin;
@@ -2747,7 +2749,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.6662, 1.0613));
         /// assert!(*(asin - expected).abs().real() < 0.0001);
         /// ```
-        fn asin_ref -> AsinRef;
+        fn asin_ref -> AsinIncomplete;
     }
     math_op1_complex! {
         mpc::acos;
@@ -2807,7 +2809,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.9046, -1.0613));
         /// assert!(*(acos - expected).abs().real() < 0.0001);
         /// ```
-        fn acos_ref -> AcosRef;
+        fn acos_ref -> AcosIncomplete;
     }
     math_op1_complex! {
         mpc::atan;
@@ -2867,7 +2869,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0172, 0.4024));
         /// assert!(*(atan - expected).abs().real() < 0.0001);
         /// ```
-        fn atan_ref -> AtanRef;
+        fn atan_ref -> AtanIncomplete;
     }
     math_op1_complex! {
         mpc::asinh;
@@ -2927,7 +2929,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0613, 0.6662));
         /// assert!(*(asinh - expected).abs().real() < 0.0001);
         /// ```
-        fn asinh_ref -> AsinhRef;
+        fn asinh_ref -> AsinhIncomplete;
     }
     math_op1_complex! {
         mpc::acosh;
@@ -2989,7 +2991,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0613, 0.9046));
         /// assert!(*(acosh - expected).abs().real() < 0.0001);
         /// ```
-        fn acosh_ref -> AcoshRef;
+        fn acosh_ref -> AcoshIncomplete;
     }
     math_op1_complex! {
         mpc::atanh;
@@ -3051,7 +3053,7 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.4024, 1.0172));
         /// assert!(*(atanh - expected).abs().real() < 0.0001);
         /// ```
-        fn atanh_ref -> AtanhRef;
+        fn atanh_ref -> AtanhIncomplete;
     }
 
     #[cfg(feature = "rand")]
@@ -3198,20 +3200,24 @@ impl Complex {
 }
 
 #[derive(Debug)]
-pub struct SumRef<'a, I>
+pub struct SumIncomplete<'a, I>
 where
     I: Iterator<Item = &'a Complex>,
 {
     values: I,
 }
 
-impl<'a, I> AssignRound<SumRef<'a, I>> for Complex
+impl<'a, I> AssignRound<SumIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = &'a Self>,
 {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn assign_round(&mut self, src: SumRef<'a, I>, round: Round2) -> Ordering2 {
+    fn assign_round(
+        &mut self,
+        src: SumIncomplete<'a, I>,
+        round: Round2,
+    ) -> Ordering2 {
         let (mut reals, mut imags) = match src.values.size_hint() {
             (_, None) => (Vec::new(), Vec::new()),
             (_, Some(upper)) => {
@@ -3236,29 +3242,29 @@ where
     }
 }
 
-impl<'a, I> Add<SumRef<'a, I>> for Complex
+impl<'a, I> Add<SumIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = &'a Self>,
 {
     type Output = Self;
     #[inline]
-    fn add(mut self, rhs: SumRef<'a, I>) -> Self {
+    fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
         self.add_assign_round(rhs, Default::default());
         self
     }
 }
 
-impl<'a, I> AddAssign<SumRef<'a, I>> for Complex
+impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = &'a Self>,
 {
     #[inline]
-    fn add_assign(&mut self, rhs: SumRef<'a, I>) {
+    fn add_assign(&mut self, rhs: SumIncomplete<'a, I>) {
         self.add_assign_round(rhs, Default::default());
     }
 }
 
-impl<'a, I> AddAssignRound<SumRef<'a, I>> for Complex
+impl<'a, I> AddAssignRound<SumIncomplete<'a, I>> for Complex
 where
     I: Iterator<Item = &'a Self>,
 {
@@ -3266,7 +3272,7 @@ where
     type Ordering = Ordering2;
     fn add_assign_round(
         &mut self,
-        src: SumRef<'a, I>,
+        src: SumIncomplete<'a, I>,
         round: Round2,
     ) -> Ordering2 {
         let (mut reals, mut imags) = match src.values.size_hint() {
@@ -3295,21 +3301,25 @@ where
     }
 }
 
-ref_math_op1_complex! { mpc::proj; struct ProjRef {} }
-ref_math_op1_complex! { mpc::sqr; struct SquareRef {} }
-ref_math_op1_complex! { mpc::sqrt; struct SqrtRef {} }
-ref_math_op1_complex! { mpc::conj; struct ConjRef {} }
+ref_math_op1_complex! { mpc::proj; struct ProjIncomplete {} }
+ref_math_op1_complex! { mpc::sqr; struct SquareIncomplete {} }
+ref_math_op1_complex! { mpc::sqrt; struct SqrtIncomplete {} }
+ref_math_op1_complex! { mpc::conj; struct ConjIncomplete {} }
 
 #[derive(Debug)]
-pub struct AbsRef<'a> {
+pub struct AbsIncomplete<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<AbsRef<'a>> for Float {
+impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: AbsRef<'a>, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: AbsIncomplete<'a>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpc::abs(self.inner_mut(), src.ref_self.inner(), raw_round(round))
         };
@@ -3318,15 +3328,19 @@ impl<'a> AssignRound<AbsRef<'a>> for Float {
 }
 
 #[derive(Debug)]
-pub struct ArgRef<'a> {
+pub struct ArgIncomplete<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<ArgRef<'a>> for Float {
+impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: ArgRef<'a>, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: ArgIncomplete<'a>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpc::arg(self.inner_mut(), src.ref_self.inner(), raw_round(round))
         };
@@ -3334,19 +3348,23 @@ impl<'a> AssignRound<ArgRef<'a>> for Float {
     }
 }
 
-ref_math_op1_complex! { xmpc::mul_i; struct MulIRef { negative: bool } }
-ref_math_op1_complex! { xmpc::recip; struct RecipRef {} }
+ref_math_op1_complex! { xmpc::mul_i; struct MulIIncomplete { negative: bool } }
+ref_math_op1_complex! { xmpc::recip; struct RecipIncomplete {} }
 
 #[derive(Debug)]
-pub struct NormRef<'a> {
+pub struct NormIncomplete<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<NormRef<'a>> for Float {
+impl<'a> AssignRound<NormIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: NormRef<'a>, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: NormIncomplete<'a>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpc::norm(self.inner_mut(), src.ref_self.inner(), raw_round(round))
         };
@@ -3354,25 +3372,25 @@ impl<'a> AssignRound<NormRef<'a>> for Float {
     }
 }
 
-ref_math_op1_complex! { mpc::log; struct LnRef {} }
-ref_math_op1_complex! { mpc::log10; struct Log10Ref {} }
+ref_math_op1_complex! { mpc::log; struct LnIncomplete {} }
+ref_math_op1_complex! { mpc::log10; struct Log10Incomplete {} }
 ref_math_op0_complex! {
     mpc::rootofunity; struct RootOfUnity { n: u32, k: u32 }
 }
-ref_math_op1_complex! { mpc::exp; struct ExpRef {} }
-ref_math_op1_complex! { mpc::sin; struct SinRef {} }
-ref_math_op1_complex! { mpc::cos; struct CosRef {} }
-ref_math_op1_2_complex! { mpc::sin_cos; struct SinCosRef {} }
-ref_math_op1_complex! { mpc::tan; struct TanRef {} }
-ref_math_op1_complex! { mpc::sinh; struct SinhRef {} }
-ref_math_op1_complex! { mpc::cosh; struct CoshRef {} }
-ref_math_op1_complex! { mpc::tanh; struct TanhRef {} }
-ref_math_op1_complex! { mpc::asin; struct AsinRef {} }
-ref_math_op1_complex! { mpc::acos; struct AcosRef {} }
-ref_math_op1_complex! { mpc::atan; struct AtanRef {} }
-ref_math_op1_complex! { mpc::asinh; struct AsinhRef {} }
-ref_math_op1_complex! { mpc::acosh; struct AcoshRef {} }
-ref_math_op1_complex! { mpc::atanh; struct AtanhRef {} }
+ref_math_op1_complex! { mpc::exp; struct ExpIncomplete {} }
+ref_math_op1_complex! { mpc::sin; struct SinIncomplete {} }
+ref_math_op1_complex! { mpc::cos; struct CosIncomplete {} }
+ref_math_op1_2_complex! { mpc::sin_cos; struct SinCosIncomplete {} }
+ref_math_op1_complex! { mpc::tan; struct TanIncomplete {} }
+ref_math_op1_complex! { mpc::sinh; struct SinhIncomplete {} }
+ref_math_op1_complex! { mpc::cosh; struct CoshIncomplete {} }
+ref_math_op1_complex! { mpc::tanh; struct TanhIncomplete {} }
+ref_math_op1_complex! { mpc::asin; struct AsinIncomplete {} }
+ref_math_op1_complex! { mpc::acos; struct AcosIncomplete {} }
+ref_math_op1_complex! { mpc::atan; struct AtanIncomplete {} }
+ref_math_op1_complex! { mpc::asinh; struct AsinhIncomplete {} }
+ref_math_op1_complex! { mpc::acosh; struct AcoshIncomplete {} }
+ref_math_op1_complex! { mpc::atanh; struct AtanhIncomplete {} }
 
 #[cfg(feature = "rand")]
 pub struct RandomBits<'a, 'b: 'a> {
@@ -3492,23 +3510,27 @@ pub fn append_to_string(
 }
 
 #[derive(Clone, Debug)]
-pub enum ValidParse {
-    Real(FloatValidParse),
-    Complex(FloatValidParse, FloatValidParse),
+pub enum ParseIncomplete {
+    Real(FloatParseIncomplete),
+    Complex(FloatParseIncomplete, FloatParseIncomplete),
 }
 
-impl AssignRound<ValidParse> for Complex {
+impl AssignRound<ParseIncomplete> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, src: ValidParse, round: Round2) -> Ordering2 {
+    fn assign_round(
+        &mut self,
+        src: ParseIncomplete,
+        round: Round2,
+    ) -> Ordering2 {
         match src {
-            ValidParse::Real(re) => {
+            ParseIncomplete::Real(re) => {
                 let real_ord = self.mut_real().assign_round(re, round.0);
                 self.mut_imag().assign(Special::Zero);
                 (real_ord, Ordering::Equal)
             }
-            ValidParse::Complex(re, im) => {
+            ParseIncomplete::Complex(re, im) => {
                 let real_ord = self.mut_real().assign_round(re, round.0);
                 let imag_ord = self.mut_imag().assign_round(im, round.1);
                 (real_ord, imag_ord)
@@ -3526,7 +3548,7 @@ macro_rules! parse_error {
 fn parse(
     mut bytes: &[u8],
     radix: i32,
-) -> Result<ValidParse, ParseComplexError> {
+) -> Result<ParseIncomplete, ParseComplexError> {
     bytes = misc::trim_start(bytes);
     bytes = misc::trim_end(bytes);
     if bytes.is_empty() {
@@ -3540,7 +3562,7 @@ fn parse(
         bytes = misc::trim_end(bytes);
     } else {
         return match Float::parse_radix(&bytes, radix) {
-            Ok(re) => Ok(ValidParse::Real(re)),
+            Ok(re) => Ok(ParseIncomplete::Real(re)),
             Err(e) => parse_error!(ParseErrorKind::InvalidFloat(e)),
         };
     };
@@ -3580,7 +3602,7 @@ fn parse(
         Ok(im) => im,
         Err(e) => parse_error!(ParseErrorKind::InvalidImagFloat(e))?,
     };
-    Ok(ValidParse::Complex(re, im))
+    Ok(ParseIncomplete::Complex(re, im))
 }
 
 /// A validated string that can always be converted to a
@@ -3593,7 +3615,7 @@ fn parse(
                      `Complex` before storing.")]
 #[derive(Clone, Debug)]
 pub struct ValidComplex<'a> {
-    inner: ValidParse,
+    inner: ParseIncomplete,
     phantom: PhantomData<&'a ()>,
 }
 

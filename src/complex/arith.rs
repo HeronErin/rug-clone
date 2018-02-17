@@ -47,23 +47,27 @@ impl NegAssign for Complex {
 }
 
 impl<'a> Neg for &'a Complex {
-    type Output = NegRef<'a>;
+    type Output = NegIncomplete<'a>;
     #[inline]
-    fn neg(self) -> NegRef<'a> {
-        NegRef { val: self }
+    fn neg(self) -> NegIncomplete<'a> {
+        NegIncomplete { val: self }
     }
 }
 
 #[derive(Debug)]
-pub struct NegRef<'a> {
+pub struct NegIncomplete<'a> {
     val: &'a Complex,
 }
 
-impl<'a> AssignRound<NegRef<'a>> for Complex {
+impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, src: NegRef<'a>, round: Round2) -> Ordering2 {
+    fn assign_round(
+        &mut self,
+        src: NegIncomplete<'a>,
+        round: Round2,
+    ) -> Ordering2 {
         let ret = unsafe {
             mpc::neg(self.inner_mut(), src.val.inner(), raw_round2(round))
         };
@@ -79,7 +83,7 @@ macro_rules! arith_binary_self_complex {
         $ImpAssignRound: ident $method_assign_round: ident;
         $ImpFrom: ident $method_from: ident;
         $ImpFromRound: ident $method_from_round: ident;
-        $Ref: ident
+        $Incomplete: ident
     ) => {
         arith_binary_self_round! {
             Complex, Round2 => Ordering2;
@@ -89,7 +93,7 @@ macro_rules! arith_binary_self_complex {
             $ImpAssignRound $method_assign_round;
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
-            $Ref
+            $Incomplete
         }
     };
 }
@@ -101,7 +105,7 @@ macro_rules! arith_forward_complex {
         $ImpAssign: ident $method_assign: ident;
         $ImpAssignRound: ident $method_assign_round: ident;
         $T: ty;
-        $Ref: ident $OwnedRef: ident
+        $Incomplete: ident $OwnedIncomplete: ident
     ) => {
         arith_forward_round! {
             Complex, Round2 => Ordering2;
@@ -110,7 +114,7 @@ macro_rules! arith_forward_complex {
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
             $T;
-            $Ref $OwnedRef
+            $Incomplete $OwnedIncomplete
         }
     };
 }
@@ -124,7 +128,7 @@ macro_rules! arith_commut_complex {
         $ImpFrom: ident $method_from: ident;
         $ImpFromRound: ident $method_from_round: ident;
         $T: ty;
-        $Ref: ident $OwnedRef: ident
+        $Incomplete: ident $OwnedIncomplete: ident
     ) => {
         arith_commut_round! {
             Complex, Round2 => Ordering2;
@@ -135,7 +139,7 @@ macro_rules! arith_commut_complex {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref $OwnedRef
+            $Incomplete $OwnedIncomplete
         }
     };
 }
@@ -149,7 +153,8 @@ macro_rules! arith_noncommut_complex {
         $ImpFrom: ident $method_from: ident;
         $ImpFromRound: ident $method_from_round: ident;
         $T: ty;
-        $Ref: ident $FromRef: ident $OwnedRef: ident $FromOwnedRef: ident
+        $Incomplete: ident $FromIncomplete: ident;
+        $OwnedIncomplete: ident $FromOwnedIncomplete: ident
     ) => {
         arith_noncommut_round! {
             Complex, Round2 => Ordering2;
@@ -160,7 +165,8 @@ macro_rules! arith_noncommut_complex {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref $FromRef $OwnedRef $FromOwnedRef
+            $Incomplete $FromIncomplete;
+            $OwnedIncomplete $FromOwnedIncomplete
         }
     };
 }
@@ -172,7 +178,7 @@ arith_binary_self_complex! {
     AddAssignRound add_assign_round;
     AddFrom add_from;
     AddFromRound add_from_round;
-    AddRef
+    AddIncomplete
 }
 arith_binary_self_complex! {
     mpc::sub;
@@ -181,7 +187,7 @@ arith_binary_self_complex! {
     SubAssignRound sub_assign_round;
     SubFrom sub_from;
     SubFromRound sub_from_round;
-    SubRef
+    SubIncomplete
 }
 arith_binary_self_complex! {
     mpc::mul;
@@ -190,7 +196,7 @@ arith_binary_self_complex! {
     MulAssignRound mul_assign_round;
     MulFrom mul_from;
     MulFromRound mul_from_round;
-    MulRef
+    MulIncomplete
 }
 arith_binary_self_complex! {
     mpc::div;
@@ -199,7 +205,7 @@ arith_binary_self_complex! {
     DivAssignRound div_assign_round;
     DivFrom div_from;
     DivFromRound div_from_round;
-    DivRef
+    DivIncomplete
 }
 arith_binary_self_complex! {
     mpc::pow;
@@ -208,7 +214,7 @@ arith_binary_self_complex! {
     PowAssignRound pow_assign_round;
     PowFrom pow_from;
     PowFromRound pow_from_round;
-    PowRef
+    PowIncomplete
 }
 
 arith_commut_complex! {
@@ -219,7 +225,7 @@ arith_commut_complex! {
     AddFrom add_from;
     AddFromRound add_from_round;
     Float;
-    AddFloatRef AddOwnedFloatRef
+    AddFloatIncomplete AddOwnedFloatIncomplete
 }
 arith_noncommut_complex! {
     mpc::sub_fr, mpc::fr_sub;
@@ -229,7 +235,8 @@ arith_noncommut_complex! {
     SubFrom sub_from;
     SubFromRound sub_from_round;
     Float;
-    SubFloatRef SubFromFloatRef SubOwnedFloatRef SubFromOwnedFloatRef
+    SubFloatIncomplete SubFromFloatIncomplete;
+    SubOwnedFloatIncomplete SubFromOwnedFloatIncomplete
 }
 arith_commut_complex! {
     mpc::mul_fr;
@@ -239,7 +246,7 @@ arith_commut_complex! {
     MulFrom mul_from;
     MulFromRound mul_from_round;
     Float;
-    MulFloatRef MulOwnedFloatRef
+    MulFloatIncomplete MulOwnedFloatIncomplete
 }
 arith_noncommut_complex! {
     mpc::div_fr, mpc::fr_div;
@@ -249,7 +256,8 @@ arith_noncommut_complex! {
     DivFrom div_from;
     DivFromRound div_from_round;
     Float;
-    DivFloatRef DivFromFloatRef DivOwnedFloatRef DivFromOwnedFloatRef
+    DivFloatIncomplete DivFromFloatIncomplete;
+    DivOwnedFloatIncomplete DivFromOwnedFloatIncomplete
 }
 arith_forward_complex! {
     mpc::pow_fr;
@@ -257,7 +265,7 @@ arith_forward_complex! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     Float;
-    PowFloatRef PowOwnedFloatRef
+    PowFloatIncomplete PowOwnedFloatIncomplete
 }
 #[cfg(feature = "integer")]
 arith_forward_complex! {
@@ -266,7 +274,7 @@ arith_forward_complex! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     Integer;
-    PowIntegerRef PowOwnedIntegerRef
+    PowIntegerIncomplete PowOwnedIntegerIncomplete
 }
 
 macro_rules! arith_prim_complex {
@@ -276,7 +284,7 @@ macro_rules! arith_prim_complex {
         $ImpAssign: ident $method_assign: ident;
         $ImpAssignRound: ident $method_assign_round: ident;
         $T: ty;
-        $Ref: ident
+        $Incomplete: ident
     ) => {
         arith_prim_round! {
             Complex, Round2 => Ordering2;
@@ -285,7 +293,7 @@ macro_rules! arith_prim_complex {
             $ImpAssign $method_assign;
             $ImpAssignRound $method_assign_round;
             $T;
-            $Ref
+            $Incomplete
         }
     };
 }
@@ -296,7 +304,7 @@ macro_rules! arith_prim_exact_complex {
         $Imp: ident $method: ident;
         $ImpAssign: ident $method_assign: ident;
         $T: ty;
-        $Ref: ident
+        $Incomplete: ident
     ) => {
         arith_prim_exact_round! {
             Complex, Round2 => Ordering2;
@@ -304,7 +312,7 @@ macro_rules! arith_prim_exact_complex {
             $Imp $method;
             $ImpAssign $method_assign;
             $T;
-            $Ref
+            $Incomplete
         }
     };
 }
@@ -318,7 +326,7 @@ macro_rules! arith_prim_commut_complex {
         $ImpFrom: ident $method_from: ident;
         $ImpFromRound: ident $method_from_round: ident;
         $T: ty;
-        $Ref: ident
+        $Incomplete: ident
     ) => {
         arith_prim_commut_round! {
             Complex, Round2 => Ordering2;
@@ -329,7 +337,7 @@ macro_rules! arith_prim_commut_complex {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref
+            $Incomplete
         }
     };
 }
@@ -343,7 +351,7 @@ macro_rules! arith_prim_noncommut_complex {
         $ImpFrom: ident $method_from: ident;
         $ImpFromRound: ident $method_from_round: ident;
         $T: ty;
-        $Ref: ident $FromRef: ident
+        $Incomplete: ident $FromIncomplete: ident
     ) => {
         arith_prim_noncommut_round! {
             Complex, Round2 => Ordering2;
@@ -354,7 +362,7 @@ macro_rules! arith_prim_noncommut_complex {
             $ImpFrom $method_from;
             $ImpFromRound $method_from_round;
             $T;
-            $Ref $FromRef
+            $Incomplete $FromIncomplete
         }
     };
 }
@@ -367,7 +375,7 @@ arith_prim_commut_complex! {
     AddFrom add_from;
     AddFromRound add_from_round;
     u32;
-    AddU32Ref
+    AddU32Incomplete
 }
 arith_prim_noncommut_complex! {
     mpc::sub_ui, xmpc::ui_sub;
@@ -377,7 +385,7 @@ arith_prim_noncommut_complex! {
     SubFrom sub_from;
     SubFromRound sub_from_round;
     u32;
-    SubU32Ref SubFromU32Ref
+    SubU32Incomplete SubFromU32Incomplete
 }
 arith_prim_commut_complex! {
     mpc::mul_ui;
@@ -387,7 +395,7 @@ arith_prim_commut_complex! {
     MulFrom mul_from;
     MulFromRound mul_from_round;
     u32;
-    MulU32Ref
+    MulU32Incomplete
 }
 arith_prim_noncommut_complex! {
     mpc::div_ui, xmpc::ui_div;
@@ -397,7 +405,7 @@ arith_prim_noncommut_complex! {
     DivFrom div_from;
     DivFromRound div_from_round;
     u32;
-    DivU32Ref DivFromU32Ref
+    DivU32Incomplete DivFromU32Incomplete
 }
 arith_prim_commut_complex! {
     xmpc::add_si;
@@ -407,7 +415,7 @@ arith_prim_commut_complex! {
     AddFrom add_from;
     AddFromRound add_from_round;
     i32;
-    AddI32Ref
+    AddI32Incomplete
 }
 arith_prim_noncommut_complex! {
     xmpc::sub_si, xmpc::si_sub;
@@ -417,7 +425,7 @@ arith_prim_noncommut_complex! {
     SubFrom sub_from;
     SubFromRound sub_from_round;
     i32;
-    SubI32Ref SubFromI32Ref
+    SubI32Incomplete SubFromI32Incomplete
 }
 arith_prim_commut_complex! {
     mpc::mul_si;
@@ -427,7 +435,7 @@ arith_prim_commut_complex! {
     MulFrom mul_from;
     MulFromRound mul_from_round;
     i32;
-    MulI32Ref
+    MulI32Incomplete
 }
 arith_prim_noncommut_complex! {
     xmpc::div_si, xmpc::si_div;
@@ -437,7 +445,7 @@ arith_prim_noncommut_complex! {
     DivFrom div_from;
     DivFromRound div_from_round;
     i32;
-    DivI32Ref DivFromI32Ref
+    DivI32Incomplete DivFromI32Incomplete
 }
 
 arith_prim_exact_complex! {
@@ -445,14 +453,14 @@ arith_prim_exact_complex! {
     Shl shl;
     ShlAssign shl_assign;
     u32;
-    ShlU32Ref
+    ShlU32Incomplete
 }
 arith_prim_exact_complex! {
     mpc::div_2ui;
     Shr shr;
     ShrAssign shr_assign;
     u32;
-    ShrU32Ref
+    ShrU32Incomplete
 }
 arith_prim_complex! {
     mpc::pow_ui;
@@ -460,21 +468,21 @@ arith_prim_complex! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     u32;
-    PowU32Ref
+    PowU32Incomplete
 }
 arith_prim_exact_complex! {
     mpc::mul_2si;
     Shl shl;
     ShlAssign shl_assign;
     i32;
-    ShlI32Ref
+    ShlI32Incomplete
 }
 arith_prim_exact_complex! {
     mpc::div_2si;
     Shr shr;
     ShrAssign shr_assign;
     i32;
-    ShrI32Ref
+    ShrI32Incomplete
 }
 arith_prim_complex! {
     mpc::pow_si;
@@ -482,7 +490,7 @@ arith_prim_complex! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     i32;
-    PowI32Ref
+    PowI32Incomplete
 }
 arith_prim_complex! {
     mpc::pow_d;
@@ -490,7 +498,7 @@ arith_prim_complex! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     f64;
-    PowF64Ref
+    PowF64Incomplete
 }
 arith_prim_complex! {
     xmpc::pow_f32;
@@ -498,7 +506,7 @@ arith_prim_complex! {
     PowAssign pow_assign;
     PowAssignRound pow_assign_round;
     f32;
-    PowF32Ref
+    PowF32Incomplete
 }
 
 mul_op_commut_round! {
@@ -509,8 +517,8 @@ mul_op_commut_round! {
     AddAssignRound add_assign_round;
     AddFrom add_from;
     AddFromRound add_from_round;
-    MulRef;
-    AddMulRef
+    MulIncomplete;
+    AddMulIncomplete
 }
 mul_op_noncommut_round! {
     Complex, Round2 => Ordering2;
@@ -520,15 +528,15 @@ mul_op_noncommut_round! {
     SubAssignRound sub_assign_round;
     SubFrom sub_from;
     SubFromRound sub_from_round;
-    MulRef;
-    SubMulRef SubMulFromRef
+    MulIncomplete;
+    SubMulIncomplete SubMulFromIncomplete
 }
 
 #[allow(unknown_lints, needless_pass_by_value)]
 unsafe fn add_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
-    mul: MulRef,
+    mul: MulIncomplete,
     rnd: mpc::rnd_t,
 ) -> c_int {
     mpc::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
@@ -538,7 +546,7 @@ unsafe fn add_mul(
 unsafe fn sub_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
-    mul: MulRef,
+    mul: MulIncomplete,
     rnd: mpc::rnd_t,
 ) -> c_int {
     xmpc::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
@@ -547,7 +555,7 @@ unsafe fn sub_mul(
 #[allow(unknown_lints, needless_pass_by_value)]
 unsafe fn mul_sub(
     rop: *mut mpc_t,
-    mul: MulRef,
+    mul: MulIncomplete,
     sub: *const mpc_t,
     rnd: mpc::rnd_t,
 ) -> c_int {

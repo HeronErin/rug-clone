@@ -114,8 +114,8 @@ use std::slice;
 /// ```
 ///
 /// Operations on two borrowed `Integer` values result in an
-/// intermediate value that has to be assigned to a new `Integer`
-/// value.
+/// [incomplete computation value][incomplete] that has to be assigned
+/// to a new `Integer` value.
 ///
 /// ```rust
 /// use rug::Integer;
@@ -126,7 +126,8 @@ use std::slice;
 /// assert_eq!(a_b, 13);
 /// ```
 ///
-/// As a special case, when an intermediate value is obtained from
+/// As a special case, when an
+/// [incomplete computation value][incomplete] is obtained from
 /// multiplying two `Integer` references, it can be added to or
 /// subtracted from another `Integer` (or reference). This can be
 /// useful for multiply-accumulate operations.
@@ -171,6 +172,8 @@ use std::slice;
 /// // c was not consumed
 /// assert_eq!(c, -17);
 /// ```
+///
+/// [incomplete]: index.html#incomplete-computation-values
 pub struct Integer {
     inner: mpz_t,
 }
@@ -376,7 +379,7 @@ impl Integer {
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
-    ) -> Result<ValidParse, ParseIntegerError> {
+    ) -> Result<ParseIncomplete, ParseIntegerError> {
         parse(src.as_ref(), 10)
     }
 
@@ -413,7 +416,7 @@ impl Integer {
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
-    ) -> Result<ValidParse, ParseIntegerError> {
+    ) -> Result<ParseIncomplete, ParseIntegerError> {
         parse(src.as_ref(), radix)
     }
 
@@ -1619,7 +1622,7 @@ impl Integer {
         /// assert_eq!(abs, 100);
         /// assert_eq!(i, -100);
         /// ```
-        fn abs_ref -> AbsRef;
+        fn abs_ref -> AbsIncomplete;
     }
     math_op1! {
         xgmp::mpz_signum;
@@ -1672,7 +1675,7 @@ impl Integer {
         /// assert_eq!(signum, -1);
         /// assert_eq!(i, -100);
         /// ```
-        fn signum_ref -> SignumRef;
+        fn signum_ref -> SignumIncomplete;
     }
 
     /// Clamps the value within the specified bounds.
@@ -1770,14 +1773,14 @@ impl Integer {
         &'a self,
         min: &'a Min,
         max: &'a Max,
-    ) -> ClampRef<'a, Min, Max>
+    ) -> ClampIncomplete<'a, Min, Max>
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'a Max>,
     {
-        ClampRef {
+        ClampIncomplete {
             ref_self: self,
             min,
             max,
@@ -1822,7 +1825,7 @@ impl Integer {
         /// let eight_bits = Integer::from(r);
         /// assert_eq!(eight_bits, 0xff);
         /// ```
-        fn keep_bits_ref -> KeepBitsRef;
+        fn keep_bits_ref -> KeepBitsIncomplete;
     }
     math_op1! {
         xgmp::mpz_next_pow_of_two;
@@ -1865,7 +1868,7 @@ impl Integer {
         /// let next = Integer::from(r);
         /// assert_eq!(next, 64);
         /// ```
-        fn next_power_of_two_ref -> NextPowerOfTwoRef;
+        fn next_power_of_two_ref -> NextPowerOfTwoIncomplete;
     }
     math_op2_2! {
         xgmp::mpz_tdiv_qr_check;
@@ -1933,7 +1936,7 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        fn div_rem_ref -> DivRemRef;
+        fn div_rem_ref -> DivRemIncomplete;
     }
     math_op2_2! {
         xgmp::mpz_cdiv_qr_check;
@@ -2004,7 +2007,7 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        fn div_rem_ceil_ref -> DivRemCeilRef;
+        fn div_rem_ceil_ref -> DivRemCeilIncomplete;
     }
     math_op2_2! {
         xgmp::mpz_fdiv_qr_check;
@@ -2072,7 +2075,7 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        fn div_rem_floor_ref -> DivRemFloorRef;
+        fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
     math_op2_2! {
         xgmp::mpz_ediv_qr_check;
@@ -2134,7 +2137,7 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        fn div_rem_euc_ref -> DivRemEucRef;
+        fn div_rem_euc_ref -> DivRemEucIncomplete;
     }
 
     /// Returns the modulo, or the remainder of Euclidean division by
@@ -2221,7 +2224,7 @@ impl Integer {
         /// let quotient = Integer::from(r);
         /// assert_eq!(quotient, 54321);
         /// ```
-        fn div_exact_ref -> DivExactRef;
+        fn div_exact_ref -> DivExactIncomplete;
     }
     math_op1! {
         xgmp::mpz_divexact_ui_check;
@@ -2277,7 +2280,7 @@ impl Integer {
         /// let r = i.div_exact_u_ref(12345);
         /// assert_eq!(Integer::from(r), 54321);
         /// ```
-        fn div_exact_u_ref -> DivExactURef;
+        fn div_exact_u_ref -> DivExactUIncomplete;
     }
 
     /// Finds the inverse modulo `modulo` and returns `Ok(inverse)` if
@@ -2338,7 +2341,7 @@ impl Integer {
     #[inline]
     pub fn invert_mut(&mut self, modulo: &Self) -> bool {
         match self.invert_ref(modulo) {
-            Some(InvertRef { sinverse, .. }) => unsafe {
+            Some(InvertIncomplete { sinverse, .. }) => unsafe {
                 mpz_invert_ref(self.inner_mut(), &sinverse, modulo);
                 true
             },
@@ -2372,7 +2375,10 @@ impl Integer {
     /// let inverse = Integer::from(r);
     /// assert_eq!(inverse, 3);
     /// ```
-    pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertRef<'a>> {
+    pub fn invert_ref<'a>(
+        &'a self,
+        modulo: &'a Self,
+    ) -> Option<InvertIncomplete<'a>> {
         if modulo.cmp0() == Ordering::Equal {
             return None;
         }
@@ -2381,7 +2387,7 @@ impl Integer {
         if gcd != 1 {
             return None;
         }
-        Some(InvertRef { sinverse, modulo })
+        Some(InvertIncomplete { sinverse, modulo })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -2464,7 +2470,7 @@ impl Integer {
     /// ```
     pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> bool {
         let sinverse = match self.pow_mod_ref(exponent, modulo) {
-            Some(PowModRef { sinverse, .. }) => sinverse,
+            Some(PowModIncomplete { sinverse, .. }) => sinverse,
             None => return false,
         };
         unsafe {
@@ -2510,12 +2516,12 @@ impl Integer {
         &'a self,
         exponent: &'a Self,
         modulo: &'a Self,
-    ) -> Option<PowModRef<'a>> {
+    ) -> Option<PowModIncomplete<'a>> {
         if exponent.cmp0() != Ordering::Less {
             if modulo.cmp0() == Ordering::Equal {
                 None
             } else {
-                Some(PowModRef {
+                Some(PowModIncomplete {
                     ref_self: self,
                     sinverse: None,
                     exponent,
@@ -2523,7 +2529,7 @@ impl Integer {
                 })
             }
         } else if let Some(inverse) = self.invert_ref(modulo) {
-            Some(PowModRef {
+            Some(PowModIncomplete {
                 ref_self: self,
                 sinverse: Some(inverse.sinverse),
                 exponent,
@@ -2635,7 +2641,7 @@ impl Integer {
         /// let i = Integer::from(1004);
         /// assert_eq!(Integer::from(i.root_ref(3)), 10);
         /// ```
-        fn root_ref -> RootRef;
+        fn root_ref -> RootIncomplete;
     }
     math_op1_2! {
         xgmp::mpz_rootrem_check;
@@ -2711,7 +2717,7 @@ impl Integer {
         /// assert_eq!(other_root, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
-        fn root_rem_ref -> RootRemRef;
+        fn root_rem_ref -> RootRemIncomplete;
     }
     math_op1! {
         xgmp::mpz_square;
@@ -2749,7 +2755,7 @@ impl Integer {
         /// let i = Integer::from(13);
         /// assert_eq!(Integer::from(i.square_ref()), 169);
         /// ```
-        fn square_ref -> SquareRef;
+        fn square_ref -> SquareIncomplete;
     }
     math_op1! {
         xgmp::mpz_sqrt_check;
@@ -2795,7 +2801,7 @@ impl Integer {
         /// let i = Integer::from(104);
         /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
         /// ```
-        fn sqrt_ref -> SqrtRef;
+        fn sqrt_ref -> SqrtIncomplete;
     }
     math_op1_2! {
         xgmp::mpz_sqrtrem_check;
@@ -2868,7 +2874,7 @@ impl Integer {
         /// assert_eq!(other_sqrt, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
-        fn sqrt_rem_ref -> SqrtRemRef;
+        fn sqrt_rem_ref -> SqrtRemIncomplete;
     }
 
     /// Determines wheter a number is prime using some trial
@@ -2940,7 +2946,7 @@ impl Integer {
         /// let prime = Integer::from(r);
         /// assert_eq!(prime, 800_000_011);
         /// ```
-        fn next_prime_ref -> NextPrimeRef;
+        fn next_prime_ref -> NextPrimeIncomplete;
     }
     math_op2! {
         gmp::mpz_gcd;
@@ -3010,7 +3016,7 @@ impl Integer {
         /// // gcd of 100, 125 is 25
         /// assert_eq!(Integer::from(r), 25);
         /// ```
-        fn gcd_ref -> GcdRef;
+        fn gcd_ref -> GcdIncomplete;
     }
     math_op2_3! {
         gmp::mpz_gcdext;
@@ -3151,7 +3157,7 @@ impl Integer {
         /// assert_eq!(g2, 2);
         /// assert_eq!(t2, 1);
         /// ```
-        fn gcd_cofactors_ref -> GcdRef;
+        fn gcd_cofactors_ref -> GcdIncomplete;
     }
 
     /// Finds the greatest common divisor (GCD) of the two inputs
@@ -3181,7 +3187,7 @@ impl Integer {
     /// the two inputs.
     #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors_ref`")]
     #[inline]
-    pub fn gcd_coeffs_ref<'a>(&'a self, other: &'a Self) -> GcdRef<'a> {
+    pub fn gcd_coeffs_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'a> {
         self.gcd_cofactors_ref(other)
     }
 
@@ -3245,7 +3251,7 @@ impl Integer {
         /// // lcm of 100, 125 is 500
         /// assert_eq!(Integer::from(r), 500);
         /// ```
-        fn lcm_ref -> LcmRef;
+        fn lcm_ref -> LcmIncomplete;
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>).
@@ -3364,8 +3370,8 @@ impl Integer {
     pub fn remove_factor_ref<'a>(
         &'a self,
         factor: &'a Self,
-    ) -> RemoveFactorRef<'a> {
-        RemoveFactorRef {
+    ) -> RemoveFactorIncomplete<'a> {
+        RemoveFactorIncomplete {
             ref_self: self,
             factor,
         }
@@ -3521,7 +3527,7 @@ impl Integer {
         /// let i = Integer::from(7);
         /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
         /// ```
-        fn binomial_ref -> BinomialRef;
+        fn binomial_ref -> BinomialIncomplete;
     }
     math_op0! {
         /// Computes the binomial coefficient *n* over *k*.
@@ -3809,8 +3815,8 @@ impl Integer {
     pub fn random_below_ref<'a, 'b: 'a>(
         &'a self,
         rng: &'a mut RandState<'b>,
-    ) -> RandomBelowRef<'a, 'b> {
-        RandomBelowRef {
+    ) -> RandomBelowIncomplete<'a, 'b> {
+        RandomBelowIncomplete {
             ref_self: self,
             rng,
         }
@@ -3837,11 +3843,11 @@ impl Integer {
     }
 }
 
-ref_math_op1! { Integer; gmp::mpz_abs; struct AbsRef {} }
-ref_math_op1! { Integer; xgmp::mpz_signum; struct SignumRef {} }
+ref_math_op1! { Integer; gmp::mpz_abs; struct AbsIncomplete {} }
+ref_math_op1! { Integer; xgmp::mpz_signum; struct SignumIncomplete {} }
 
 #[derive(Debug)]
-pub struct ClampRef<'a, Min, Max>
+pub struct ClampIncomplete<'a, Min, Max>
 where
     Integer: PartialOrd<Min>
         + PartialOrd<Max>
@@ -3855,14 +3861,14 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Integer
+impl<'a, Min, Max> Assign<ClampIncomplete<'a, Min, Max>> for Integer
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
     #[inline]
-    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
+    fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
             assert!(!(&*self).gt(src.max), "minimum larger than maximum");
@@ -3875,45 +3881,49 @@ where
     }
 }
 
-impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Integer
+impl<'a, Min, Max> From<ClampIncomplete<'a, Min, Max>> for Integer
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
     #[inline]
-    fn from(src: ClampRef<'a, Min, Max>) -> Self {
+    fn from(src: ClampIncomplete<'a, Min, Max>) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
     }
 }
 
-ref_math_op1! { Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsRef { n: u32 } }
 ref_math_op1! {
-    Integer; xgmp::mpz_next_pow_of_two; struct NextPowerOfTwoRef {}
+    Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsIncomplete { n: u32 }
+}
+ref_math_op1! {
+    Integer; xgmp::mpz_next_pow_of_two; struct NextPowerOfTwoIncomplete {}
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_tdiv_qr_check; struct DivRemRef { divisor }
+    Integer; xgmp::mpz_tdiv_qr_check; struct DivRemIncomplete { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_cdiv_qr_check; struct DivRemCeilRef { divisor }
+    Integer; xgmp::mpz_cdiv_qr_check; struct DivRemCeilIncomplete { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_fdiv_qr_check; struct DivRemFloorRef { divisor }
+    Integer; xgmp::mpz_fdiv_qr_check; struct DivRemFloorIncomplete { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_ediv_qr_check; struct DivRemEucRef { divisor }
+    Integer; xgmp::mpz_ediv_qr_check; struct DivRemEucIncomplete { divisor }
 }
 ref_math_op2! {
-    Integer; xgmp::mpz_divexact_check; struct DivExactRef { divisor }
+    Integer; xgmp::mpz_divexact_check; struct DivExactIncomplete { divisor }
 }
 ref_math_op1! {
-    Integer; xgmp::mpz_divexact_ui_check; struct DivExactURef { divisor: u32 }
+    Integer;
+    xgmp::mpz_divexact_ui_check;
+    struct DivExactUIncomplete { divisor: u32 }
 }
 
 #[derive(Debug)]
-pub struct PowModRef<'a> {
+pub struct PowModIncomplete<'a> {
     ref_self: &'a Integer,
     sinverse: Option<Integer>,
     exponent: &'a Integer,
@@ -3938,8 +3948,8 @@ unsafe fn mpz_pow_mod_ref(
     }
 }
 
-impl<'a, 'b> Assign<PowModRef<'a>> for Integer {
-    fn assign(&mut self, src: PowModRef<'a>) {
+impl<'a, 'b> Assign<PowModIncomplete<'a>> for Integer {
+    fn assign(&mut self, src: PowModIncomplete<'a>) {
         unsafe {
             mpz_pow_mod_ref(
                 self.inner_mut(),
@@ -3953,9 +3963,9 @@ impl<'a, 'b> Assign<PowModRef<'a>> for Integer {
 }
 
 // do not use from_assign! macro to reuse sinverse
-impl<'r> From<PowModRef<'r>> for Integer {
+impl<'r> From<PowModIncomplete<'r>> for Integer {
     #[inline]
-    fn from(src: PowModRef) -> Self {
+    fn from(src: PowModIncomplete) -> Self {
         let (mut dst, has_sinverse) = match src.sinverse {
             Some(s) => (s, true),
             None => (Integer::new(), false),
@@ -3979,19 +3989,25 @@ ref_math_op0! {
 ref_math_op0! {
     Integer; xgmp::mpz_si_pow_ui; struct IPowU { base: i32, exponent: u32 }
 }
-ref_math_op1! { Integer; xgmp::mpz_root_check; struct RootRef { n: u32 } }
-ref_math_op1_2! {
-    Integer; xgmp::mpz_rootrem_check; struct RootRemRef { n: u32 }
+ref_math_op1! {
+    Integer; xgmp::mpz_root_check; struct RootIncomplete { n: u32 }
 }
-ref_math_op1! { Integer; xgmp::mpz_square; struct SquareRef {} }
-ref_math_op1! { Integer; xgmp::mpz_sqrt_check; struct SqrtRef {} }
-ref_math_op1_2! { Integer; xgmp::mpz_sqrtrem_check; struct SqrtRemRef {} }
-ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeRef {} }
-ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdRef { other } }
+ref_math_op1_2! {
+    Integer; xgmp::mpz_rootrem_check; struct RootRemIncomplete { n: u32 }
+}
+ref_math_op1! { Integer; xgmp::mpz_square; struct SquareIncomplete {} }
+ref_math_op1! { Integer; xgmp::mpz_sqrt_check; struct SqrtIncomplete {} }
+ref_math_op1_2! {
+    Integer; xgmp::mpz_sqrtrem_check; struct SqrtRemIncomplete {}
+}
+ref_math_op1! { Integer; gmp::mpz_nextprime; struct NextPrimeIncomplete {} }
+ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdIncomplete { other } }
 
-impl<'a, 'b, 'c> Assign<GcdRef<'a>> for (&'b mut Integer, &'c mut Integer) {
+impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
+    for (&'b mut Integer, &'c mut Integer)
+{
     #[inline]
-    fn assign(&mut self, src: GcdRef<'a>) {
+    fn assign(&mut self, src: GcdIncomplete<'a>) {
         unsafe {
             xgmp::mpz_gcdext1(
                 self.0.inner_mut(),
@@ -4003,13 +4019,13 @@ impl<'a, 'b, 'c> Assign<GcdRef<'a>> for (&'b mut Integer, &'c mut Integer) {
     }
 }
 
-from_assign! { GcdRef<'r> => Integer, Integer }
+from_assign! { GcdIncomplete<'r> => Integer, Integer }
 
-impl<'a, 'b, 'c, 'd> Assign<GcdRef<'a>>
+impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
     for (&'b mut Integer, &'c mut Integer, &'d mut Integer)
 {
     #[inline]
-    fn assign(&mut self, src: GcdRef<'a>) {
+    fn assign(&mut self, src: GcdIncomplete<'a>) {
         unsafe {
             gmp::mpz_gcdext(
                 self.0.inner_mut(),
@@ -4022,12 +4038,12 @@ impl<'a, 'b, 'c, 'd> Assign<GcdRef<'a>>
     }
 }
 
-from_assign! { GcdRef<'r> => Integer, Integer, Integer }
+from_assign! { GcdIncomplete<'r> => Integer, Integer, Integer }
 
-ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmRef { other } }
+ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmIncomplete { other } }
 
 #[derive(Debug)]
-pub struct InvertRef<'a> {
+pub struct InvertIncomplete<'a> {
     sinverse: Integer,
     modulo: &'a Integer,
 }
@@ -4044,8 +4060,8 @@ unsafe fn mpz_invert_ref(rop: *mut mpz_t, s: &Integer, modulo: &Integer) {
     }
 }
 
-impl<'a> Assign<InvertRef<'a>> for Integer {
-    fn assign(&mut self, src: InvertRef<'a>) {
+impl<'a> Assign<InvertIncomplete<'a>> for Integer {
+    fn assign(&mut self, src: InvertIncomplete<'a>) {
         unsafe {
             mpz_invert_ref(self.inner_mut(), &src.sinverse, src.modulo);
         }
@@ -4053,9 +4069,9 @@ impl<'a> Assign<InvertRef<'a>> for Integer {
 }
 
 // do not use from_assign! macro to reuse sinverse
-impl<'r> From<InvertRef<'r>> for Integer {
+impl<'r> From<InvertIncomplete<'r>> for Integer {
     #[inline]
-    fn from(mut src: InvertRef) -> Self {
+    fn from(mut src: InvertIncomplete) -> Self {
         unsafe {
             mpz_invert_ref(src.sinverse.inner_mut(), &src.sinverse, src.modulo);
         }
@@ -4064,16 +4080,16 @@ impl<'r> From<InvertRef<'r>> for Integer {
 }
 
 #[derive(Debug)]
-pub struct RemoveFactorRef<'a> {
+pub struct RemoveFactorIncomplete<'a> {
     ref_self: &'a Integer,
     factor: &'a Integer,
 }
 
-impl<'a, 'b, 'c> Assign<RemoveFactorRef<'a>>
+impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
     for (&'b mut Integer, &'c mut u32)
 {
     #[inline]
-    fn assign(&mut self, src: RemoveFactorRef<'a>) {
+    fn assign(&mut self, src: RemoveFactorIncomplete<'a>) {
         let cnt = unsafe {
             gmp::mpz_remove(
                 self.0.inner_mut(),
@@ -4085,9 +4101,9 @@ impl<'a, 'b, 'c> Assign<RemoveFactorRef<'a>>
     }
 }
 
-impl<'a> From<RemoveFactorRef<'a>> for (Integer, u32) {
+impl<'a> From<RemoveFactorIncomplete<'a>> for (Integer, u32) {
     #[inline]
-    fn from(src: RemoveFactorRef<'a>) -> Self {
+    fn from(src: RemoveFactorIncomplete<'a>) -> Self {
         let mut dst = (Integer::new(), 0u32);
         (&mut dst.0, &mut dst.1).assign(src);
         dst
@@ -4100,7 +4116,7 @@ ref_math_op0! {
     Integer; gmp::mpz_mfac_uiui; struct FactorialM { n: u32, m: u32 }
 }
 ref_math_op0! { Integer; gmp::mpz_primorial_ui; struct Primorial { n: u32 } }
-ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialRef { k: u32 } }
+ref_math_op1! { Integer; gmp::mpz_bin_ui; struct BinomialIncomplete { k: u32 } }
 ref_math_op0! {
     Integer; gmp::mpz_bin_uiui; struct BinomialU { n: u32, k: u32 }
 }
@@ -4140,15 +4156,15 @@ impl<'a, 'b: 'a> From<RandomBits<'a, 'b>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomBelowRef<'a, 'b: 'a> {
+pub struct RandomBelowIncomplete<'a, 'b: 'a> {
     ref_self: &'a Integer,
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> Assign<RandomBelowRef<'a, 'b>> for Integer {
+impl<'a, 'b: 'a> Assign<RandomBelowIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn assign(&mut self, src: RandomBelowRef<'a, 'b>) {
+    fn assign(&mut self, src: RandomBelowIncomplete<'a, 'b>) {
         assert_eq!(
             src.ref_self.cmp0(),
             Ordering::Greater,
@@ -4165,9 +4181,9 @@ impl<'a, 'b: 'a> Assign<RandomBelowRef<'a, 'b>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> From<RandomBelowRef<'a, 'b>> for Integer {
+impl<'a, 'b: 'a> From<RandomBelowIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn from(src: RandomBelowRef<'a, 'b>) -> Self {
+    fn from(src: RandomBelowIncomplete<'a, 'b>) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -4222,14 +4238,14 @@ pub fn append_to_string(
 }
 
 #[derive(Clone, Debug)]
-pub struct ValidParse {
+pub struct ParseIncomplete {
     c_string: CString,
     radix: i32,
 }
 
-impl Assign<ValidParse> for Integer {
+impl Assign<ParseIncomplete> for Integer {
     #[inline]
-    fn assign(&mut self, src: ValidParse) {
+    fn assign(&mut self, src: ParseIncomplete) {
         unsafe {
             let err = gmp::mpz_set_str(
                 self.inner_mut(),
@@ -4241,9 +4257,9 @@ impl Assign<ValidParse> for Integer {
     }
 }
 
-impl<'a> From<ValidParse> for Integer {
+impl<'a> From<ParseIncomplete> for Integer {
     #[inline]
-    fn from(src: ValidParse) -> Self {
+    fn from(src: ParseIncomplete) -> Self {
         unsafe {
             let mut i: Integer = mem::uninitialized();
             let err = gmp::mpz_init_set_str(
@@ -4257,7 +4273,10 @@ impl<'a> From<ValidParse> for Integer {
     }
 }
 
-fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseIntegerError> {
+fn parse(
+    bytes: &[u8],
+    radix: i32,
+) -> Result<ParseIncomplete, ParseIntegerError> {
     use self::ParseErrorKind as Kind;
     use self::ParseIntegerError as Error;
 
@@ -4304,7 +4323,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseIntegerError> {
     }
     // we've only added b'-' and digits, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ValidParse { c_string, radix })
+    Ok(ParseIncomplete { c_string, radix })
 }
 
 /// A validated string that can always be converted to an
@@ -4317,7 +4336,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseIntegerError> {
                      `Integer` before storing.")]
 #[derive(Clone, Debug)]
 pub struct ValidInteger<'a> {
-    inner: ValidParse,
+    inner: ParseIncomplete,
     phantom: PhantomData<&'a ()>,
 }
 

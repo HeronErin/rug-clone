@@ -145,48 +145,49 @@
 //!
 //! If on the other hand there are no owned Rug types and there are
 //! references instead, the returned value is not the final value, but
-//! an intermediate value. For example
+//! an incomplete computation value. For example
 //!
 //! ```rust
 //! # #[cfg(feature = "integer")] {
 //! use rug::Integer;
 //! let (a, b) = (Integer::from(10), Integer::from(20));
-//! let intermediate = &a - &b;
-//! // This would fail to compile: assert_eq!(intermediate, -10);
-//! let sub = Integer::from(intermediate);
+//! let incomplete = &a - &b;
+//! // This would fail to compile: assert_eq!(incomplete, -10);
+//! let sub = Integer::from(incomplete);
 //! assert_eq!(sub, -10);
 //! # }
 //! ```
 //!
-//! Here `a` and `b` are not consumed, and `intermediate` is not the
+//! Here `a` and `b` are not consumed, and `incomplete` is not the
 //! final value. It still needs to be converted or assigned into an
 //! [`Integer`][rug int]. The reason is explained in the
-//! [next](#intermediate-values) section.
+//! [next](#incomplete-computation-values) section.
 //!
-//! ## Intermediate values
+//! ## Incomplete computation values
 //!
 //! There are two main reasons why operations like `&a - &b` do not
-//! return a Rug type:
+//! perform a complete computation and return a Rug type:
 //!
 //! 1. Sometimes we need to assign the result to an object that
 //!    already exists. Since Rug types require memory allocations,
 //!    this can help reduce the number of allocations.
 //! 2. For the [`Float`][rug flo] type, we need to know the precision
-//!    when we create a value, and the operation itself cannot convey
-//!    information about what precision is desired for the result. The
-//!    same holds for the [`Complex`][rug com] type.
+//!    when we create a value, and the operation itself does not
+//!    convey information about what precision is desired for the
+//!    result. The same holds for the [`Complex`][rug com] type.
 //!
-//! There are two things that can be done with intermediate values:
+//! There are two things that can be done with incomplete computatin
+//! values:
 //!
 //! 1. Assign them to an existing object without unnecessary
 //!    allocations. This is usually achieved using the
 //!    [`Assign`][rug assign] trait or a similar method, for example
-//!    [`int.assign(intermediate)`][rug assign assign] and
-//!    [`float.assign_round(intermediate, Round::Up)`][rug assr assr].
+//!    [`int.assign(incomplete)`][rug assign assign] and
+//!    [`float.assign_round(incomplete, Round::Up)`][rug assr assr].
 //! 2. Convert them to the final value using the [`From`][rust from]
 //!    trait or a similar method, for example
-//!    [`Integer::from(intermediate)`][rust from from] and
-//!    [`Float::with_val(53, intermediate)`][rug flo withval].
+//!    [`Integer::from(incomplete)`][rust from from] and
+//!    [`Float::with_val(53, incomplete)`][rug flo withval].
 //!
 //! Let us consider a couple of examples.
 //!
@@ -196,17 +197,18 @@
 //! let mut buffer = Integer::new();
 //! // ... buffer can be used and reused ...
 //! let (a, b) = (Integer::from(10), Integer::from(20));
-//! let intermediate = &a - &b;
-//! buffer.assign(intermediate);
+//! let incomplete = &a - &b;
+//! buffer.assign(incomplete);
 //! assert_eq!(buffer, -10);
 //! # }
 //! ```
 //!
-//! Here the assignment from `intermediate` into `buffer` does not
+//! Here the assignment from `incomplete` into `buffer` does not
 //! require an allocation unless the result does not fit in the
-//! current capacity of `buffer`. If `&a - &b` returns an
-//! [`Integer`][rug int] instead, then an allocation takes place even
-//! if it is not necessary.
+//! current capacity of `buffer`. And even then, the reallocation
+//! would take place before the computation, so no copies are
+//! involved. If `&a - &b` returned an [`Integer`][rug int] instead,
+//! then an allocation would take place even if it is not necessary.
 //!
 //! ```rust
 //! # #[cfg(feature = "float")] {
@@ -215,9 +217,9 @@
 //! // x has a precision of 10 bits, y has a precision of 50 bits
 //! let x = Float::with_val(10, 180);
 //! let y = Float::with_val(50, Constant::Pi);
-//! let intermediate = &x / &y;
+//! let incomplete = &x / &y;
 //! // z has a precision of 45 bits
-//! let z = Float::with_val(45, intermediate);
+//! let z = Float::with_val(45, incomplete);
 //! assert!(57.295 < z && z < 57.296);
 //! # }
 //! ```
@@ -226,11 +228,11 @@
 //! the algorithm being implemented. Here `c` is created with a
 //! precision of 45.
 //!
-//! In these two examples, we could have left out the `intermediate`
+//! In these two examples, we could have left out the `incomplete`
 //! variables altogether and used `buffer.assign(&a - &b)` and
 //! `Float::with_val(45, &x / &y)` directly.
 //!
-//! Many operations can return intermediate values:
+//! Many operations can return incomplete computation values:
 //!
 //! * unary operators applied to references, for example `-&int`;
 //! * binary operators applied to two references, for example
@@ -246,20 +248,11 @@
 //! * and more…
 //!
 //! These operations return objects that can be stored in temporary
-//! variables like `intermediate` in the last few examples. However,
-//! the names of the types are not public, and consequently, the
-//! intermediate values cannot be for example stored in a struct. If
-//! you need to store the value in a struct, convert it to its final
-//! type and value.
-//!
-//! As an example, the [documentation][rug int negref] for the
-//! [`Neg`][rust neg] implementation of the reference
-//! [`&Integer`][rug int] shows a return type called
-//! [`NegRef`][rug int negref], but the name is blacked out and not
-//! linkable in the documentation, as the intermediate type cannot be
-//! named. The intermediate types obtained by operating on references
-//! are named similar to `NegRef`, that is `OpRef` where `Op`
-//! indicates what the operation is.
+//! variables like `incomplete` in the last few examples. However, the
+//! names of the types are not public, and consequently, the
+//! incomplete computation values cannot be for example stored in a
+//! struct. If you need to store the value in a struct, convert it to
+//! its final type and value.
 //!
 //! ## Crate usage
 //!

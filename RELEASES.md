@@ -24,7 +24,8 @@ Version 0.10.0 (to be determined)
   `Complex`.
 * Remove `Default` implementations from all types of `Float` and
   `Complex`; now the precision always has to be specified.
-* Improve top-level documentation.
+* Improve top-level documentation, especially about incomplete
+  computation values.
 
 Version 0.9.3 (2018-02-09)
 ==========================

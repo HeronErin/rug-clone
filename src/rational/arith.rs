@@ -24,14 +24,16 @@ use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 
-arith_unary! { Rational; gmp::mpq_neg; Neg neg; NegAssign neg_assign; NegRef }
+arith_unary! {
+    Rational; gmp::mpq_neg; Neg neg; NegAssign neg_assign; NegIncomplete
+}
 arith_binary! {
     Rational;
     gmp::mpq_add;
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    AddRef
+    AddIncomplete
 }
 arith_binary! {
     Rational;
@@ -39,7 +41,7 @@ arith_binary! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    SubRef
+    SubIncomplete
 }
 arith_binary! {
     Rational;
@@ -47,7 +49,7 @@ arith_binary! {
     Mul mul;
     MulAssign mul_assign;
     MulFrom mul_from;
-    MulRef
+    MulIncomplete
 }
 arith_binary! {
     Rational;
@@ -55,7 +57,7 @@ arith_binary! {
     Div div;
     DivAssign div_assign;
     DivFrom div_from;
-    DivRef
+    DivIncomplete
 }
 
 arith_prim! {
@@ -64,7 +66,7 @@ arith_prim! {
     Shl shl;
     ShlAssign shl_assign;
     i32;
-    ShlI32Ref
+    ShlI32Incomplete
 }
 arith_prim! {
     Rational;
@@ -72,20 +74,40 @@ arith_prim! {
     Shr shr;
     ShrAssign shr_assign;
     i32;
-    ShrI32Ref
+    ShrI32Incomplete
 }
 arith_prim! {
-    Rational; xgmp::mpq_pow_si; Pow pow; PowAssign pow_assign; i32; PowI32Ref
+    Rational;
+    xgmp::mpq_pow_si;
+    Pow pow;
+    PowAssign pow_assign;
+    i32;
+    PowI32Incomplete
 }
 
 arith_prim! {
-    Rational; gmp::mpq_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlU32Ref
+    Rational;
+    gmp::mpq_mul_2exp;
+    Shl shl;
+    ShlAssign shl_assign;
+    u32;
+    ShlU32Incomplete
 }
 arith_prim! {
-    Rational; gmp::mpq_div_2exp; Shr shr; ShrAssign shr_assign; u32; ShrU32Ref
+    Rational;
+    gmp::mpq_div_2exp;
+    Shr shr;
+    ShrAssign shr_assign;
+    u32;
+    ShrU32Incomplete
 }
 arith_prim! {
-    Rational; xgmp::mpq_pow_ui; Pow pow; PowAssign pow_assign; u32; PowU32Ref
+    Rational;
+    xgmp::mpq_pow_ui;
+    Pow pow;
+    PowAssign pow_assign;
+    u32;
+    PowU32Incomplete
 }
 
 fold! { Rational, Sum sum, Rational::new(), Add::add }

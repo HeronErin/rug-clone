@@ -23,14 +23,14 @@ use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
 // big / big -> Big
 // big / &big -> Big
 // &big / big -> Big
-// &big / &big -> Ref
+// &big / &big -> Incomplete
 // big /= big
 // big /= &big
 // big /-> big
 // &big /-> big
-// struct Ref
-// Ref -> Big
-// big = Ref
+// struct Incomplete
+// Incomplete -> Big
+// big = Incomplete
 macro_rules! div_op {
     (
         $trunc_fn: path, $ceil_fn: path, $floor_fn: path, $euc_fn: path;
@@ -45,7 +45,7 @@ macro_rules! div_op {
             $ceil_from: ident
             $floor_from: ident
             $euc_from: ident;
-        $Ref: ident
+        $Incomplete: ident
     ) => {
         impl $Imp for Integer {
             type Output = Integer;
@@ -135,22 +135,22 @@ macro_rules! div_op {
         }
 
         impl<'i> $Imp for &'i Integer {
-            type Output = $Ref<'i>;
+            type Output = $Incomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $Ref {
-                $Ref::Trunc(self, rhs)
+            fn $trunc(self, rhs: &'i Integer) -> $Incomplete {
+                $Incomplete::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $Ref {
-                $Ref::Ceil(self, rhs)
+            fn $ceil(self, rhs: &'i Integer) -> $Incomplete {
+                $Incomplete::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $Ref {
-                $Ref::Floor(self, rhs)
+            fn $floor(self, rhs: &'i Integer) -> $Incomplete {
+                $Incomplete::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $Ref {
-                $Ref::Euc(self, rhs)
+            fn $euc(self, rhs: &'i Integer) -> $Incomplete {
+                $Incomplete::Euc(self, rhs)
             }
         }
 
@@ -247,36 +247,36 @@ macro_rules! div_op {
         }
 
         #[derive(Debug)]
-        pub enum $Ref<'i> {
+        pub enum $Incomplete<'i> {
             Trunc(&'i Integer, &'i Integer),
             Ceil(&'i Integer, &'i Integer),
             Floor(&'i Integer, &'i Integer),
             Euc(&'i Integer, &'i Integer),
         }
 
-        impl<'i> Assign<$Ref<'i>> for Integer {
+        impl<'i> Assign<$Incomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Ref<'i>) {
+            fn assign(&mut self, src: $Incomplete<'i>) {
                 match src {
-                    $Ref::Trunc(lhs, rhs) => unsafe {
+                    $Incomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
                     },
-                    $Ref::Ceil(lhs, rhs) => unsafe {
+                    $Incomplete::Ceil(lhs, rhs) => unsafe {
                         $ceil_fn(self.inner_mut(), lhs.inner(), rhs.inner());
                     },
-                    $Ref::Floor(lhs, rhs) => unsafe {
+                    $Incomplete::Floor(lhs, rhs) => unsafe {
                         $floor_fn(self.inner_mut(), lhs.inner(), rhs.inner());
                     },
-                    $Ref::Euc(lhs, rhs) => unsafe {
+                    $Incomplete::Euc(lhs, rhs) => unsafe {
                         $euc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
                     },
                 }
             }
         }
 
-        impl<'i> From<$Ref<'i>> for Integer {
+        impl<'i> From<$Incomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $Ref<'i>) -> Self {
+            fn from(src: $Incomplete<'i>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -287,22 +287,22 @@ macro_rules! div_op {
 
 // big / prim -> Big
 // big / &prim -> Big
-// &big / prim -> Ref
-// &big / &prim -> Ref
+// &big / prim -> Incomplete
+// &big / &prim -> Incomplete
 // big /= prim
 // big /= &prim
-// struct Ref
-// Ref -> Big
-// big = Ref
+// struct Incomplete
+// Incomplete -> Big
+// big = Incomplete
 // prim / big -> Big
-// prim / &big -> FromRef
+// prim / &big -> FromIncomplete
 // &prim / big -> Big
-// &prim / &big -> FromRef
+// &prim / &big -> FromIncomplete
 // prim /-> big
 // &prim /-> big
-// struct FromRef
-// FromRef -> Big
-// big = FromRef
+// struct FromIncomplete
+// FromIncomplete -> Big
+// big = FromIncomplete
 macro_rules! div_prim {
     (
         $trunc_fn: path, $ceil_fn: path, $floor_fn: path, $euc_fn: path;
@@ -322,7 +322,7 @@ macro_rules! div_prim {
             $floor_from: ident
             $euc_from: ident;
         $T: ty;
-        $Ref: ident $FromRef: ident
+        $Incomplete: ident $FromIncomplete: ident
     ) => {
         impl $Imp<$T> for Integer {
             type Output = Integer;
@@ -373,41 +373,41 @@ macro_rules! div_prim {
         }
 
         impl<'i> $Imp<$T> for &'i Integer {
-            type Output = $Ref<'i>;
+            type Output = $Incomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: $T) -> $Ref<'i> {
-                $Ref::Trunc(self, rhs)
+            fn $trunc(self, rhs: $T) -> $Incomplete<'i> {
+                $Incomplete::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: $T) -> $Ref<'i> {
-                $Ref::Ceil(self, rhs)
+            fn $ceil(self, rhs: $T) -> $Incomplete<'i> {
+                $Incomplete::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: $T) -> $Ref<'i> {
-                $Ref::Floor(self, rhs)
+            fn $floor(self, rhs: $T) -> $Incomplete<'i> {
+                $Incomplete::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: $T) -> $Ref<'i> {
-                $Ref::Euc(self, rhs)
+            fn $euc(self, rhs: $T) -> $Incomplete<'i> {
+                $Incomplete::Euc(self, rhs)
             }
         }
 
         impl<'t, 'i> $Imp<&'t $T> for &'i Integer {
-            type Output = $Ref<'i>;
+            type Output = $Incomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'t $T) -> $Ref<'i> {
+            fn $trunc(self, rhs: &'t $T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$trunc(self, *rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'t $T) -> $Ref<'i> {
+            fn $ceil(self, rhs: &'t $T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$ceil(self, *rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'t $T) -> $Ref<'i> {
+            fn $floor(self, rhs: &'t $T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$floor(self, *rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'t $T) -> $Ref<'i> {
+            fn $euc(self, rhs: &'t $T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$euc(self, *rhs)
             }
         }
@@ -459,36 +459,36 @@ macro_rules! div_prim {
         }
 
         #[derive(Debug)]
-        pub enum $Ref<'i> {
+        pub enum $Incomplete<'i> {
             Trunc(&'i Integer, $T),
             Ceil(&'i Integer, $T),
             Floor(&'i Integer, $T),
             Euc(&'i Integer, $T),
         }
 
-        impl<'i> Assign<$Ref<'i>> for Integer {
+        impl<'i> Assign<$Incomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Ref<'i>) {
+            fn assign(&mut self, src: $Incomplete<'i>) {
                 match src {
-                    $Ref::Trunc(lhs, rhs) => unsafe {
+                    $Incomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_fn(self.inner_mut(), lhs.inner(), rhs.into());
                     },
-                    $Ref::Ceil(lhs, rhs) => unsafe {
+                    $Incomplete::Ceil(lhs, rhs) => unsafe {
                         $ceil_fn(self.inner_mut(), lhs.inner(), rhs.into());
                     },
-                    $Ref::Floor(lhs, rhs) => unsafe {
+                    $Incomplete::Floor(lhs, rhs) => unsafe {
                         $floor_fn(self.inner_mut(), lhs.inner(), rhs.into());
                     },
-                    $Ref::Euc(lhs, rhs) => unsafe {
+                    $Incomplete::Euc(lhs, rhs) => unsafe {
                         $euc_fn(self.inner_mut(), lhs.inner(), rhs.into());
                     },
                 }
             }
         }
 
-        impl<'i> From<$Ref<'i>> for Integer {
+        impl<'i> From<$Incomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $Ref<'i>) -> Self {
+            fn from(src: $Incomplete<'i>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -520,22 +520,22 @@ macro_rules! div_prim {
         }
 
         impl<'i> $Imp<&'i Integer> for $T {
-            type Output = $FromRef<'i>;
+            type Output = $FromIncomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $FromRef<'i> {
-                $FromRef::Trunc(self, rhs)
+            fn $trunc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+                $FromIncomplete::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $FromRef<'i> {
-                $FromRef::Ceil(self, rhs)
+            fn $ceil(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+                $FromIncomplete::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $FromRef<'i> {
-                $FromRef::Floor(self, rhs)
+            fn $floor(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+                $FromIncomplete::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $FromRef<'i> {
-                $FromRef::Euc(self, rhs)
+            fn $euc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+                $FromIncomplete::Euc(self, rhs)
             }
         }
 
@@ -564,21 +564,21 @@ macro_rules! div_prim {
         }
 
         impl<'i, 't> $Imp<&'i Integer> for &'t $T {
-            type Output = $FromRef<'i>;
+            type Output = $FromIncomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $FromRef<'i> {
+            fn $trunc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
                 <$T as $Imp<&Integer>>::$trunc(*self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $FromRef<'i> {
+            fn $ceil(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
                 <$T as $Imp<&Integer>>::$ceil(*self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $FromRef<'i> {
+            fn $floor(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
                 <$T as $Imp<&Integer>>::$floor(*self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $FromRef<'i> {
+            fn $euc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
                 <$T as $Imp<&Integer>>::$euc(*self, rhs)
             }
         }
@@ -630,48 +630,48 @@ macro_rules! div_prim {
         }
 
         #[derive(Debug)]
-        pub enum $FromRef<'i> {
+        pub enum $FromIncomplete<'i> {
             Trunc($T, &'i Integer),
             Ceil($T, &'i Integer),
             Floor($T, &'i Integer),
             Euc($T, &'i Integer),
         }
 
-        impl<'i> Assign<$FromRef<'i>> for Integer {
+        impl<'i> Assign<$FromIncomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $FromRef<'i>) {
+            fn assign(&mut self, src: $FromIncomplete<'i>) {
                 match src {
-                    $FromRef::Trunc(lhs, rhs) => unsafe {
+                    $FromIncomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_from_fn(
                             self.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
-                    $FromRef::Ceil(lhs, rhs) => unsafe {
+                    $FromIncomplete::Ceil(lhs, rhs) => unsafe {
                         $ceil_from_fn(
                             self.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
-                    $FromRef::Floor(lhs, rhs) => unsafe {
+                    $FromIncomplete::Floor(lhs, rhs) => unsafe {
                         $floor_from_fn(
                             self.inner_mut(),
                             lhs.into(),
                             rhs.inner(),
                         );
                     },
-                    $FromRef::Euc(lhs, rhs) => unsafe {
+                    $FromIncomplete::Euc(lhs, rhs) => unsafe {
                         $euc_from_fn(self.inner_mut(), lhs.into(), rhs.inner());
                     },
                 }
             }
         }
 
-        impl<'i> From<$FromRef<'i>> for Integer {
+        impl<'i> From<$FromIncomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $FromRef<'i>) -> Self {
+            fn from(src: $FromIncomplete<'i>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -690,7 +690,7 @@ div_op! {
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
     DivRoundingFrom
         div_trunc_from div_ceil_from div_floor_from div_euc_from;
-    DivRoundingRef
+    DivRoundingIncomplete
 }
 div_op! {
     xgmp::mpz_tdiv_r_check,
@@ -702,7 +702,7 @@ div_op! {
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
     RemRoundingFrom
         rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
-    RemRoundingRef
+    RemRoundingIncomplete
 }
 
 div_prim! {
@@ -720,7 +720,7 @@ div_prim! {
     DivRoundingFrom
         div_trunc_from div_ceil_from div_floor_from div_euc_from;
     i32;
-    DivRoundingI32Ref DivRoundingFromI32Ref
+    DivRoundingI32Incomplete DivRoundingFromI32Incomplete
 }
 div_prim! {
     xgmp::mpz_tdiv_r_si_check,
@@ -737,7 +737,7 @@ div_prim! {
     RemRoundingFrom
         rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
     i32;
-    RemRoundingI32Ref RemRoundingFromI32Ref
+    RemRoundingI32Incomplete RemRoundingFromI32Incomplete
 }
 div_prim! {
     xgmp::mpz_tdiv_q_ui_check,
@@ -754,7 +754,7 @@ div_prim! {
     DivRoundingFrom
         div_trunc_from div_ceil_from div_floor_from div_euc_from;
     u32;
-    DivRoundingU32Ref DivRoundingFromU32Ref
+    DivRoundingU32Incomplete DivRoundingFromU32Incomplete
 }
 div_prim! {
     xgmp::mpz_tdiv_r_ui_check,
@@ -771,7 +771,7 @@ div_prim! {
     RemRoundingFrom
         rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
     u32;
-    RemRoundingU32Ref RemRoundingFromU32Ref
+    RemRoundingU32Incomplete RemRoundingFromU32Incomplete
 }
 
 #[cfg(test)]

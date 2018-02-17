@@ -90,7 +90,7 @@ macro_rules! rat_op_int {
         $(#[$attr_mut: meta])*
         fn $method_mut: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -112,8 +112,8 @@ macro_rules! rat_op_int {
 
         $(#[$attr_ref])*
         #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
-            $Ref {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete {
+            $Incomplete {
                 ref_self: self,
                 $($param,)*
             }
@@ -125,18 +125,18 @@ macro_rules! ref_rat_op_int {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
-        pub struct $Ref<'a> {
+        pub struct $Incomplete<'a> {
             ref_self: &'a Rational,
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Ref<'a>> for Integer {
+        impl<'a> Assign<$Incomplete<'a>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
+            fn assign(&mut self, src: $Incomplete<'a>) {
                 unsafe {
                     $func(
                         self.inner_mut(),
@@ -147,7 +147,7 @@ macro_rules! ref_rat_op_int {
             }
         }
 
-        from_assign! { $Ref<'r> => Integer }
+        from_assign! { $Incomplete<'r> => Integer }
     };
 }
 
@@ -159,7 +159,7 @@ macro_rules! rat_op_rat_int {
         $(#[$attr_mut: meta])*
         fn $method_mut: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -187,8 +187,8 @@ macro_rules! rat_op_rat_int {
 
         $(#[$attr_ref])*
         #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Ref {
-            $Ref {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete {
+            $Incomplete {
                 ref_self: self,
                 $($param,)*
             }
@@ -200,20 +200,20 @@ macro_rules! ref_rat_op_rat_int {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
-        pub struct $Ref<'a> {
+        pub struct $Incomplete<'a> {
             ref_self: &'a Rational,
             $($param: $T,)*
         }
 
         impl<'a, 'b, 'c>
-            Assign<$Ref<'a>> for (&'b mut Rational, &'c mut Integer)
+            Assign<$Incomplete<'a>> for (&'b mut Rational, &'c mut Integer)
         {
             #[inline]
-            fn assign(&mut self, src: $Ref<'a>) {
+            fn assign(&mut self, src: $Incomplete<'a>) {
                 unsafe {
                     $func(
                         self.0.inner_mut(),
@@ -225,11 +225,11 @@ macro_rules! ref_rat_op_rat_int {
             }
         }
 
-        impl<'a> From<$Ref<'a>> for (Rational, Integer) {
+        impl<'a> From<$Incomplete<'a>> for (Rational, Integer) {
             #[inline]
-            fn from(src: $Ref<'a>) -> Self {
+            fn from(src: $Incomplete<'a>) -> Self {
                 let mut dst = <Self as Default>::default();
-                <Self as Assign<$Ref>>::assign(&mut dst, src);
+                <Self as Assign<$Incomplete>>::assign(&mut dst, src);
                 dst
             }
         }
@@ -356,7 +356,7 @@ impl Rational {
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
-    ) -> Result<ValidParse, ParseRationalError> {
+    ) -> Result<ParseIncomplete, ParseRationalError> {
         parse(src.as_ref(), 10)
     }
 
@@ -398,7 +398,7 @@ impl Rational {
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
-    ) -> Result<ValidParse, ParseRationalError> {
+    ) -> Result<ParseIncomplete, ParseRationalError> {
         parse(src.as_ref(), radix)
     }
 
@@ -1158,7 +1158,7 @@ impl Rational {
         /// let abs = Rational::from(r_ref);
         /// assert_eq!(abs, (100, 17));
         /// ```
-        fn abs_ref -> AbsRef;
+        fn abs_ref -> AbsIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_signum;
@@ -1210,7 +1210,7 @@ impl Rational {
         /// let signum = Integer::from(r_ref);
         /// assert_eq!(signum, -1);
         /// ```
-        fn signum_ref -> SignumRef;
+        fn signum_ref -> SignumIncomplete;
     }
 
     /// Clamps the value within the specified bounds.
@@ -1308,14 +1308,14 @@ impl Rational {
         &'a self,
         min: &'a Min,
         max: &'a Max,
-    ) -> ClampRef<'a, Min, Max>
+    ) -> ClampIncomplete<'a, Min, Max>
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
             + Assign<&'a Min>
             + Assign<&'a Max>,
     {
-        ClampRef {
+        ClampIncomplete {
             ref_self: self,
             min,
             max,
@@ -1373,7 +1373,7 @@ impl Rational {
         /// let recip = Rational::from(r_ref);
         /// assert_eq!(recip, (-17, 100));
         /// ```
-        fn recip_ref -> RecipRef;
+        fn recip_ref -> RecipIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_trunc;
@@ -1429,7 +1429,7 @@ impl Rational {
         /// trunc.assign(r2.trunc_ref());
         /// assert_eq!(trunc, 3);
         /// ```
-        fn trunc_ref -> TruncRef;
+        fn trunc_ref -> TruncIncomplete;
     }
 
     /// Computes the fractional part of the number.
@@ -1449,7 +1449,7 @@ impl Rational {
     /// Computes the fractional part of the number.
     #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc_ref`")]
     #[inline]
-    pub fn fract_ref(&self) -> RemTruncRef {
+    pub fn fract_ref(&self) -> RemTruncIncomplete {
         self.rem_trunc_ref()
     }
 
@@ -1494,7 +1494,7 @@ impl Rational {
         /// let rem = Rational::from(r_ref);
         /// assert_eq!(rem, (-15, 17));
         /// ```
-        fn rem_trunc_ref -> RemTruncRef;
+        fn rem_trunc_ref -> RemTruncIncomplete;
     }
     rat_op_rat_int! {
         xgmp::mpq_trunc_fract_whole;
@@ -1548,7 +1548,7 @@ impl Rational {
         /// assert_eq!(fract, (-15, 17));
         /// assert_eq!(trunc, -5);
         /// ```
-        fn fract_trunc_ref -> FractTruncRef;
+        fn fract_trunc_ref -> FractTruncIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_ceil;
@@ -1604,7 +1604,7 @@ impl Rational {
         /// ceil.assign(r2.ceil_ref());
         /// assert_eq!(ceil, 4);
         /// ```
-        fn ceil_ref -> CeilRef;
+        fn ceil_ref -> CeilIncomplete;
     }
     math_op1! {
         xgmp::mpq_ceil_fract;
@@ -1647,7 +1647,7 @@ impl Rational {
         /// let rem = Rational::from(r_ref);
         /// assert_eq!(rem, (-2, 17));
         /// ```
-        fn rem_ceil_ref -> RemCeilRef;
+        fn rem_ceil_ref -> RemCeilIncomplete;
     }
     rat_op_rat_int! {
         xgmp::mpq_ceil_fract_whole;
@@ -1705,7 +1705,7 @@ impl Rational {
         /// assert_eq!(fract, (-2, 17));
         /// assert_eq!(ceil, 6);
         /// ```
-        fn fract_ceil_ref -> FractCeilRef;
+        fn fract_ceil_ref -> FractCeilIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_floor;
@@ -1759,7 +1759,7 @@ impl Rational {
         /// floor.assign(r2.floor_ref());
         /// assert_eq!(floor, 3);
         /// ```
-        fn floor_ref -> FloorRef;
+        fn floor_ref -> FloorIncomplete;
     }
     math_op1! {
         xgmp::mpq_floor_fract;
@@ -1802,7 +1802,7 @@ impl Rational {
         /// let rem = Rational::from(r_ref);
         /// assert_eq!(rem, (2, 17));
         /// ```
-        fn rem_floor_ref -> RemFloorRef;
+        fn rem_floor_ref -> RemFloorIncomplete;
     }
     rat_op_rat_int! {
         xgmp::mpq_floor_fract_whole;
@@ -1860,7 +1860,7 @@ impl Rational {
         /// assert_eq!(fract, (2, 17));
         /// assert_eq!(floor, -6);
         /// ```
-        fn fract_floor_ref -> FractFloorRef;
+        fn fract_floor_ref -> FractFloorIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_round;
@@ -1925,7 +1925,7 @@ impl Rational {
         /// round.assign(r2.round_ref());
         /// assert_eq!(round, 4);
         /// ```
-        fn round_ref -> RoundRef;
+        fn round_ref -> RoundIncomplete;
     }
     math_op1! {
         xgmp::mpq_round_fract;
@@ -1984,7 +1984,7 @@ impl Rational {
         /// let rem2 = Rational::from(r_ref2);
         /// assert_eq!(rem2, (-3, 10));
         /// ```
-        fn rem_round_ref -> RemRoundRef;
+        fn rem_round_ref -> RemRoundIncomplete;
     }
     rat_op_rat_int! {
         xgmp::mpq_round_fract_whole;
@@ -2067,7 +2067,7 @@ impl Rational {
         /// assert_eq!(fract2, (-3, 10));
         /// assert_eq!(round2, 4);
         /// ```
-        fn fract_round_ref -> FractRoundRef;
+        fn fract_round_ref -> FractRoundIncomplete;
     }
     math_op1! {
         xgmp::mpq_square;
@@ -2105,15 +2105,15 @@ impl Rational {
         /// let r = Rational::from((-13, 2));
         /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
         /// ```
-        fn square_ref -> SquareRef;
+        fn square_ref -> SquareIncomplete;
     }
 }
 
-ref_math_op1! { Rational; gmp::mpq_abs; struct AbsRef {} }
-ref_rat_op_int! { xgmp::mpq_signum; struct SignumRef {} }
+ref_math_op1! { Rational; gmp::mpq_abs; struct AbsIncomplete {} }
+ref_rat_op_int! { xgmp::mpq_signum; struct SignumIncomplete {} }
 
 #[derive(Debug)]
-pub struct ClampRef<'a, Min, Max>
+pub struct ClampIncomplete<'a, Min, Max>
 where
     Rational: PartialOrd<Min>
         + PartialOrd<Max>
@@ -2127,14 +2127,14 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> Assign<ClampRef<'a, Min, Max>> for Rational
+impl<'a, Min, Max> Assign<ClampIncomplete<'a, Min, Max>> for Rational
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
     #[inline]
-    fn assign(&mut self, src: ClampRef<'a, Min, Max>) {
+    fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
             assert!(!(&*self).gt(src.max), "minimum larger than maximum");
@@ -2147,34 +2147,42 @@ where
     }
 }
 
-impl<'a, Min, Max> From<ClampRef<'a, Min, Max>> for Rational
+impl<'a, Min, Max> From<ClampIncomplete<'a, Min, Max>> for Rational
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
     #[inline]
-    fn from(src: ClampRef<'a, Min, Max>) -> Self {
+    fn from(src: ClampIncomplete<'a, Min, Max>) -> Self {
         let mut dst = Rational::new();
         dst.assign(src);
         dst
     }
 }
 
-ref_math_op1! { Rational; xgmp::mpq_inv_check; struct RecipRef {} }
-ref_rat_op_int! { xgmp::mpq_trunc; struct TruncRef {} }
-ref_math_op1! { Rational; xgmp::mpq_trunc_fract; struct RemTruncRef {} }
-ref_rat_op_rat_int! { xgmp::mpq_trunc_fract_whole; struct FractTruncRef {} }
-ref_rat_op_int! { xgmp::mpq_ceil; struct CeilRef {} }
-ref_math_op1! { Rational; xgmp::mpq_ceil_fract; struct RemCeilRef {} }
-ref_rat_op_rat_int! { xgmp::mpq_ceil_fract_whole; struct FractCeilRef {} }
-ref_rat_op_int! { xgmp::mpq_floor; struct FloorRef {} }
-ref_math_op1! { Rational; xgmp::mpq_floor_fract; struct RemFloorRef {} }
-ref_rat_op_rat_int! { xgmp::mpq_floor_fract_whole; struct FractFloorRef {} }
-ref_rat_op_int! { xgmp::mpq_round; struct RoundRef {} }
-ref_math_op1! { Rational; xgmp::mpq_round_fract; struct RemRoundRef {} }
-ref_rat_op_rat_int! { xgmp::mpq_round_fract_whole; struct FractRoundRef {} }
-ref_math_op1! { Rational; xgmp::mpq_square; struct SquareRef {} }
+ref_math_op1! { Rational; xgmp::mpq_inv_check; struct RecipIncomplete {} }
+ref_rat_op_int! { xgmp::mpq_trunc; struct TruncIncomplete {} }
+ref_math_op1! { Rational; xgmp::mpq_trunc_fract; struct RemTruncIncomplete {} }
+ref_rat_op_rat_int! {
+    xgmp::mpq_trunc_fract_whole; struct FractTruncIncomplete {}
+}
+ref_rat_op_int! { xgmp::mpq_ceil; struct CeilIncomplete {} }
+ref_math_op1! { Rational; xgmp::mpq_ceil_fract; struct RemCeilIncomplete {} }
+ref_rat_op_rat_int! {
+    xgmp::mpq_ceil_fract_whole; struct FractCeilIncomplete {}
+}
+ref_rat_op_int! { xgmp::mpq_floor; struct FloorIncomplete {} }
+ref_math_op1! { Rational; xgmp::mpq_floor_fract; struct RemFloorIncomplete {} }
+ref_rat_op_rat_int! {
+    xgmp::mpq_floor_fract_whole; struct FractFloorIncomplete {}
+}
+ref_rat_op_int! { xgmp::mpq_round; struct RoundIncomplete {} }
+ref_math_op1! { Rational; xgmp::mpq_round_fract; struct RemRoundIncomplete {} }
+ref_rat_op_rat_int! {
+    xgmp::mpq_round_fract_whole; struct FractRoundIncomplete {}
+}
+ref_math_op1! { Rational; xgmp::mpq_square; struct SquareIncomplete {} }
 
 #[derive(Debug)]
 pub struct BorrowRational<'a> {
@@ -2214,14 +2222,14 @@ pub fn append_to_string(
 }
 
 #[derive(Clone, Debug)]
-pub struct ValidParse {
+pub struct ParseIncomplete {
     c_string: CString,
     radix: i32,
 }
 
-impl Assign<ValidParse> for Rational {
+impl Assign<ParseIncomplete> for Rational {
     #[inline]
-    fn assign(&mut self, src: ValidParse) {
+    fn assign(&mut self, src: ParseIncomplete) {
         unsafe {
             let err = gmp::mpq_set_str(
                 self.inner_mut(),
@@ -2234,16 +2242,19 @@ impl Assign<ValidParse> for Rational {
     }
 }
 
-impl<'a> From<ValidParse> for Rational {
+impl<'a> From<ParseIncomplete> for Rational {
     #[inline]
-    fn from(src: ValidParse) -> Self {
+    fn from(src: ParseIncomplete) -> Self {
         let mut dst = Rational::new();
         dst.assign(src);
         dst
     }
 }
 
-fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
+fn parse(
+    bytes: &[u8],
+    radix: i32,
+) -> Result<ParseIncomplete, ParseRationalError> {
     use self::ParseErrorKind as Kind;
     use self::ParseRationalError as Error;
 
@@ -2319,7 +2330,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
     }
     // we've only added b'-' and digits, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ValidParse { c_string, radix })
+    Ok(ParseIncomplete { c_string, radix })
 }
 
 /// A validated string that can always be converted to a
@@ -2332,7 +2343,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ValidParse, ParseRationalError> {
                      `Rational` before storing.")]
 #[derive(Clone, Debug)]
 pub struct ValidRational<'a> {
-    inner: ValidParse,
+    inner: ParseIncomplete,
     phantom: PhantomData<&'a ()>,
 }
 

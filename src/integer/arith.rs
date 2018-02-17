@@ -25,14 +25,16 @@ use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 
-arith_unary! { Integer; gmp::mpz_neg; Neg neg; NegAssign neg_assign; NegRef }
+arith_unary! {
+    Integer; gmp::mpz_neg; Neg neg; NegAssign neg_assign; NegIncomplete
+}
 arith_binary! {
     Integer;
     gmp::mpz_add;
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    AddRef
+    AddIncomplete
 }
 arith_binary! {
     Integer;
@@ -40,7 +42,7 @@ arith_binary! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    SubRef
+    SubIncomplete
 }
 arith_binary! {
     Integer;
@@ -48,7 +50,7 @@ arith_binary! {
     Mul mul;
     MulAssign mul_assign;
     MulFrom mul_from;
-    MulRef
+    MulIncomplete
 }
 arith_binary! {
     Integer;
@@ -56,7 +58,7 @@ arith_binary! {
     Div div;
     DivAssign div_assign;
     DivFrom div_from;
-    DivRef
+    DivIncomplete
 }
 arith_binary! {
     Integer;
@@ -64,16 +66,18 @@ arith_binary! {
     Rem rem;
     RemAssign rem_assign;
     RemFrom rem_from;
-    RemRef
+    RemIncomplete
 }
-arith_unary! { Integer; gmp::mpz_com; Not not; NotAssign not_assign; NotRef }
+arith_unary! {
+    Integer; gmp::mpz_com; Not not; NotAssign not_assign; NotIncomplete
+}
 arith_binary! {
     Integer;
     gmp::mpz_and;
     BitAnd bitand;
     BitAndAssign bitand_assign;
     BitAndFrom bitand_from;
-    BitAndRef
+    BitAndIncomplete
 }
 arith_binary! {
     Integer;
@@ -81,7 +85,7 @@ arith_binary! {
     BitOr bitor;
     BitOrAssign bitor_assign;
     BitOrFrom bitor_from;
-    BitOrRef
+    BitOrIncomplete
 }
 arith_binary! {
     Integer;
@@ -89,7 +93,7 @@ arith_binary! {
     BitXor bitxor;
     BitXorAssign bitxor_assign;
     BitXorFrom bitxor_from;
-    BitXorRef
+    BitXorIncomplete
 }
 
 arith_prim_commut! {
@@ -99,7 +103,7 @@ arith_prim_commut! {
     AddAssign add_assign;
     AddFrom add_from;
     i32;
-    AddI32Ref
+    AddI32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
@@ -108,7 +112,7 @@ arith_prim_noncommut! {
     SubAssign sub_assign;
     SubFrom sub_from;
     i32;
-    SubI32Ref SubFromI32Ref
+    SubI32Incomplete SubFromI32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -117,7 +121,7 @@ arith_prim_commut! {
     MulAssign mul_assign;
     MulFrom mul_from;
     i32;
-    MulI32Ref
+    MulI32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
@@ -126,7 +130,7 @@ arith_prim_noncommut! {
     DivAssign div_assign;
     DivFrom div_from;
     i32;
-    DivI32Ref DivFromI32Ref
+    DivI32Incomplete DivFromI32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
@@ -135,13 +139,23 @@ arith_prim_noncommut! {
     RemAssign rem_assign;
     RemFrom rem_from;
     i32;
-    RemI32Ref RemFromI32Ref
+    RemI32Incomplete RemFromI32Incomplete
 }
 arith_prim! {
-    Integer; xgmp::mpz_lshift_si; Shl shl; ShlAssign shl_assign; i32; ShlI32Ref
+    Integer;
+    xgmp::mpz_lshift_si;
+    Shl shl;
+    ShlAssign shl_assign;
+    i32;
+    ShlI32Incomplete
 }
 arith_prim! {
-    Integer; xgmp::mpz_rshift_si; Shr shr; ShrAssign shr_assign; i32; ShrI32Ref
+    Integer;
+    xgmp::mpz_rshift_si;
+    Shr shr;
+    ShrAssign shr_assign;
+    i32;
+    ShrI32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -150,7 +164,7 @@ arith_prim_commut! {
     BitAndAssign bitand_assign;
     BitAndFrom bitand_from;
     i32;
-    BitAndI32Ref
+    BitAndI32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -159,7 +173,7 @@ arith_prim_commut! {
     BitOrAssign bitor_assign;
     BitOrFrom bitor_from;
     i32;
-    BitOrI32Ref
+    BitOrI32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -168,7 +182,7 @@ arith_prim_commut! {
     BitXorAssign bitxor_assign;
     BitXorFrom bitxor_from;
     i32;
-    BitXorI32Ref
+    BitXorI32Incomplete
 }
 
 arith_prim_commut! {
@@ -178,7 +192,7 @@ arith_prim_commut! {
     AddAssign add_assign;
     AddFrom add_from;
     u32;
-    AddU32Ref
+    AddU32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
@@ -187,7 +201,7 @@ arith_prim_noncommut! {
     SubAssign sub_assign;
     SubFrom sub_from;
     u32;
-    SubU32Ref SubFromU32Ref
+    SubU32Incomplete SubFromU32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -196,7 +210,7 @@ arith_prim_commut! {
     MulAssign mul_assign;
     MulFrom mul_from;
     u32;
-    MulU32Ref
+    MulU32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
@@ -205,7 +219,7 @@ arith_prim_noncommut! {
     DivAssign div_assign;
     DivFrom div_from;
     u32;
-    DivU32Ref DivFromU32Ref
+    DivU32Incomplete DivFromU32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
@@ -214,16 +228,31 @@ arith_prim_noncommut! {
     RemAssign rem_assign;
     RemFrom rem_from;
     u32;
-    RemU32Ref RemFromU32Ref
+    RemU32Incomplete RemFromU32Incomplete
 }
 arith_prim! {
-    Integer; gmp::mpz_mul_2exp; Shl shl; ShlAssign shl_assign; u32; ShlU32Ref
+    Integer;
+    gmp::mpz_mul_2exp;
+    Shl shl;
+    ShlAssign shl_assign;
+    u32;
+    ShlU32Incomplete
 }
 arith_prim! {
-    Integer; gmp::mpz_fdiv_q_2exp; Shr shr; ShrAssign shr_assign; u32; ShrU32Ref
+    Integer;
+    gmp::mpz_fdiv_q_2exp;
+    Shr shr;
+    ShrAssign shr_assign;
+    u32;
+    ShrU32Incomplete
 }
 arith_prim! {
-    Integer; gmp::mpz_pow_ui; Pow pow; PowAssign pow_assign; u32; PowU32Ref
+    Integer;
+    gmp::mpz_pow_ui;
+    Pow pow;
+    PowAssign pow_assign;
+    u32;
+    PowU32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -232,7 +261,7 @@ arith_prim_commut! {
     BitAndAssign bitand_assign;
     BitAndFrom bitand_from;
     u32;
-    BitAndU32Ref
+    BitAndU32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -241,7 +270,7 @@ arith_prim_commut! {
     BitOrAssign bitor_assign;
     BitOrFrom bitor_from;
     u32;
-    BitOrU32Ref
+    BitOrU32Incomplete
 }
 arith_prim_commut! {
     Integer;
@@ -250,7 +279,7 @@ arith_prim_commut! {
     BitXorAssign bitxor_assign;
     BitXorFrom bitxor_from;
     u32;
-    BitXorU32Ref
+    BitXorU32Incomplete
 }
 
 mul_op_commut! {
@@ -259,8 +288,8 @@ mul_op_commut! {
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    MulRef, inner;
-    AddMulRef
+    MulIncomplete, inner;
+    AddMulIncomplete
 }
 mul_op_commut! {
     Integer;
@@ -268,8 +297,8 @@ mul_op_commut! {
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    MulU32Ref, into;
-    AddMulU32Ref
+    MulU32Incomplete, into;
+    AddMulU32Incomplete
 }
 mul_op_commut! {
     Integer;
@@ -277,8 +306,8 @@ mul_op_commut! {
     Add add;
     AddAssign add_assign;
     AddFrom add_from;
-    MulI32Ref, into;
-    AddMulI32Ref
+    MulI32Incomplete, into;
+    AddMulI32Incomplete
 }
 mul_op_noncommut! {
     Integer;
@@ -286,8 +315,8 @@ mul_op_noncommut! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    MulRef, inner;
-    SubMulRef SubMulFromRef
+    MulIncomplete, inner;
+    SubMulIncomplete SubMulFromIncomplete
 }
 mul_op_noncommut! {
     Integer;
@@ -295,8 +324,8 @@ mul_op_noncommut! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    MulU32Ref, into;
-    SubMulU32Ref SubMulFromU32Ref
+    MulU32Incomplete, into;
+    SubMulU32Incomplete SubMulFromU32Incomplete
 }
 mul_op_noncommut! {
     Integer;
@@ -304,8 +333,8 @@ mul_op_noncommut! {
     Sub sub;
     SubAssign sub_assign;
     SubFrom sub_from;
-    MulI32Ref, into;
-    SubMulI32Ref SubMulFromI32Ref
+    MulI32Incomplete, into;
+    SubMulI32Incomplete SubMulFromI32Incomplete
 }
 
 fold_in_place! { Integer, Sum sum, Integer::new(), AddAssign::add_assign }

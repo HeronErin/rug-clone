@@ -22,7 +22,8 @@ use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::{self, OrdFloat, Round, SmallFloat, Special};
-use float::arith::{AddMulRef, MulAddMulRef, MulSubMulRef, SubMulFromRef};
+use float::arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
+                   SubMulFromIncomplete};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use misc;
@@ -109,7 +110,8 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// ```
 ///
 /// Operations on two borrowed `Float` numbers result in an
-/// intermediate value that has to be assigned to a new `Float` value.
+/// [incomplete computation value][incomplete] that has to be assigned
+/// to a new `Float` value.
 ///
 /// ```rust
 /// use rug::Float;
@@ -120,7 +122,8 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// assert_eq!(a_b, 9.25);
 /// ```
 ///
-/// As a special case, when an intermediate value is obtained from
+/// As a special case, when an
+/// [incomplete computation value][incomplete] is obtained from
 /// multiplying two `Float` references, it can be added to or
 /// subtracted from another `Float` (or reference). This will result
 /// in a fused multiply-accumulate operation, with only one rounding
@@ -150,10 +153,11 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// assert_eq!(separate_add, 4);
 /// ```
 ///
-/// The intermediate value obtained from multiplying two `Float`
-/// references can also be added to or subtracted from another such
-/// intermediate value, so that two muliplications and an addition are
-/// fused with only one rounding operation taking place.
+/// The [incomplete computation value][incomplete] obtained from
+/// multiplying two `Float` references can also be added to or
+/// subtracted from another such incomplete value, so that two
+/// muliplications and an addition are fused with only one rounding
+/// operation taking place.
 ///
 /// ```rust
 /// use rug::Float;
@@ -257,6 +261,8 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// #   );
 /// }
 /// ```
+///
+/// [incomplete]: index.html#incomplete-computation-values
 pub struct Float {
     inner: mpfr_t,
 }
@@ -265,13 +271,13 @@ macro_rules! ref_math_op0_float {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op0_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
             $(#[$attr_ref])*
-            struct $Ref { $($param: $T),* }
+            struct $Incomplete { $($param: $T),* }
         }
     };
 }
@@ -286,7 +292,7 @@ macro_rules! math_op1_float {
         $(#[$attr_round: meta])*
         fn $method_round: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         math_op1_round! {
             Round => Ordering;
@@ -298,7 +304,7 @@ macro_rules! math_op1_float {
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
-            fn $method_ref -> $Ref;
+            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -307,13 +313,13 @@ macro_rules! ref_math_op1_float {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
             $(#[$attr_ref])*
-            struct $Ref { $($param: $T),* }
+            struct $Incomplete { $($param: $T),* }
         }
     };
 }
@@ -328,7 +334,7 @@ macro_rules! math_op1_2_float {
         $(#[$attr_round: meta])*
         fn $method_round: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         math_op1_2_round! {
             Round => (Ordering, Ordering);
@@ -340,7 +346,7 @@ macro_rules! math_op1_2_float {
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
-            fn $method_ref -> $Ref;
+            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -349,13 +355,13 @@ macro_rules! ref_math_op1_2_float {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $($param: ident: $T: ty),* }
+        struct $Incomplete: ident { $($param: ident: $T: ty),* }
     ) => {
         ref_math_op1_2_round! {
             Float, Round => (Ordering, Ordering);
             $func, raw_round => ordering2;
             $(#[$attr_ref])*
-            struct $Ref { $($param: $T),* }
+            struct $Incomplete { $($param: $T),* }
         }
     };
 }
@@ -370,7 +376,7 @@ macro_rules! math_op2_float {
         $(#[$attr_round: meta])*
         fn $method_round: ident;
         $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Ref: ident;
+        fn $method_ref: ident -> $Incomplete: ident;
     ) => {
         math_op2_round! {
             Round => Ordering;
@@ -382,7 +388,7 @@ macro_rules! math_op2_float {
             $(#[$attr_round])*
             fn $method_round;
             $(#[$attr_ref])*
-            fn $method_ref -> $Ref;
+            fn $method_ref -> $Incomplete;
         }
     };
 }
@@ -391,13 +397,13 @@ macro_rules! ref_math_op2_float {
     (
         $func: path;
         $(#[$attr_ref: meta])*
-        struct $Ref: ident { $op: ident $(, $param: ident: $T: ty),* }
+        struct $Incomplete: ident { $op: ident $(, $param: ident: $T: ty),* }
     ) => {
         ref_math_op2_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
             $(#[$attr_ref])*
-            struct $Ref { $op $(, $param: $T)* }
+            struct $Incomplete { $op $(, $param: $T)* }
         }
     };
 }
@@ -674,7 +680,7 @@ impl Float {
     /// ```
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
-    ) -> Result<ValidParse, ParseFloatError> {
+    ) -> Result<ParseIncomplete, ParseFloatError> {
         parse(src.as_ref(), 10)
     }
 
@@ -729,7 +735,7 @@ impl Float {
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
-    ) -> Result<ValidParse, ParseFloatError> {
+    ) -> Result<ParseIncomplete, ParseFloatError> {
         parse(src.as_ref(), radix)
     }
 
@@ -2074,11 +2080,11 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     #[inline]
-    pub fn sum<'a, I>(values: I) -> SumRef<'a, I>
+    pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
         I: Iterator<Item = &'a Self>,
     {
-        SumRef { values }
+        SumIncomplete { values }
     }
 
     /// Multiplies and adds in one fused operation, rounding to the
@@ -2207,7 +2213,7 @@ impl Float {
         &'a self,
         mul: &'a Self,
         add: &'a Self,
-    ) -> AddMulRef<'a> {
+    ) -> AddMulIncomplete<'a> {
         self * mul + add
     }
 
@@ -2337,7 +2343,7 @@ impl Float {
         &'a self,
         mul: &'a Self,
         sub: &'a Self,
-    ) -> SubMulFromRef<'a> {
+    ) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
 
@@ -2467,7 +2473,7 @@ impl Float {
         mul: &'a Self,
         add_mul1: &'a Self,
         add_mul2: &'a Self,
-    ) -> MulAddMulRef<'a> {
+    ) -> MulAddMulIncomplete<'a> {
         self * mul + add_mul1 * add_mul2
     }
 
@@ -2600,7 +2606,7 @@ impl Float {
         mul: &'a Self,
         sub_mul1: &'a Self,
         sub_mul2: &'a Self,
-    ) -> MulSubMulRef<'a> {
+    ) -> MulSubMulIncomplete<'a> {
         self * mul - sub_mul1 * sub_mul2
     }
 
@@ -2659,7 +2665,7 @@ impl Float {
         /// let square = Float::with_val(53, r);
         /// assert_eq!(square, 25.0);
         /// ```
-        fn square_ref -> SquareRef;
+        fn square_ref -> SquareIncomplete;
     }
     math_op1_float! {
         mpfr::sqrt;
@@ -2717,7 +2723,7 @@ impl Float {
         /// let sqrt = Float::with_val(53, r);
         /// assert_eq!(sqrt, 5.0);
         /// ```
-        fn sqrt_ref -> SqrtRef;
+        fn sqrt_ref -> SqrtIncomplete;
     }
     math_op0! {
         /// Computes the square root of `u`.
@@ -2813,7 +2819,7 @@ impl Float {
         /// let recip_sqrt = Float::with_val(53, r);
         /// assert_eq!(recip_sqrt, 0.25);
         /// ```
-        fn recip_sqrt_ref -> RecipSqrtRef;
+        fn recip_sqrt_ref -> RecipSqrtIncomplete;
     }
     math_op1_float! {
         mpfr::cbrt;
@@ -2871,7 +2877,7 @@ impl Float {
         /// let cbrt = Float::with_val(53, r);
         /// assert_eq!(cbrt, 5.0);
         /// ```
-        fn cbrt_ref -> CbrtRef;
+        fn cbrt_ref -> CbrtIncomplete;
     }
     math_op1_float! {
         mpfr::rootn_ui;
@@ -2929,7 +2935,7 @@ impl Float {
         /// let root = Float::with_val(53, r);
         /// assert_eq!(root, 5.0);
         /// ```
-        fn root_ref -> RootRef;
+        fn root_ref -> RootIncomplete;
     }
     math_op1_no_round! {
         mpfr::abs, raw_round;
@@ -2969,7 +2975,7 @@ impl Float {
         /// let abs = Float::with_val(53, r);
         /// assert_eq!(abs, 23.5);
         /// ```
-        fn abs_ref -> AbsRef;
+        fn abs_ref -> AbsIncomplete;
     }
     math_op1_no_round! {
         xmpfr::signum, raw_round;
@@ -3022,7 +3028,7 @@ impl Float {
         /// let signum = Float::with_val(53, r);
         /// assert_eq!(signum, -1);
         /// ```
-        fn signum_ref -> SignumRef;
+        fn signum_ref -> SignumIncomplete;
     }
 
     /// Clamps the value within the specified bounds, rounding to the
@@ -3195,14 +3201,14 @@ impl Float {
         &'a self,
         min: &'a Min,
         max: &'a Max,
-    ) -> ClampRef<'a, Min, Max>
+    ) -> ClampIncomplete<'a, Min, Max>
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
-        ClampRef {
+        ClampIncomplete {
             ref_self: self,
             min,
             max,
@@ -3265,7 +3271,7 @@ impl Float {
         /// let recip = Float::with_val(53, r);
         /// assert_eq!(recip, -4.0);
         /// ```
-        fn recip_ref -> RecipRef;
+        fn recip_ref -> RecipIncomplete;
     }
     math_op2_float! {
         mpfr::min;
@@ -3323,7 +3329,7 @@ impl Float {
         /// let min = Float::with_val(53, r);
         /// assert_eq!(min, -2);
         /// ```
-        fn min_ref -> MinRef;
+        fn min_ref -> MinIncomplete;
     }
     math_op2_float! {
         mpfr::max;
@@ -3381,7 +3387,7 @@ impl Float {
         /// let max = Float::with_val(53, r);
         /// assert_eq!(max, 12.5);
         /// ```
-        fn max_ref -> MaxRef;
+        fn max_ref -> MaxIncomplete;
     }
     math_op2_float! {
         mpfr::dim;
@@ -3468,7 +3474,7 @@ impl Float {
         /// let ba = Float::with_val(53, rba);
         /// assert_eq!(ba, 0);
         /// ```
-        fn positive_diff_ref -> PositiveDiffRef;
+        fn positive_diff_ref -> PositiveDiffIncomplete;
     }
 
     #[doc(hidden)]
@@ -3492,7 +3498,10 @@ impl Float {
     #[doc(hidden)]
     #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_ref`")]
     #[inline]
-    pub fn pos_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffRef<'a> {
+    pub fn pos_diff_ref<'a>(
+        &'a self,
+        other: &'a Self,
+    ) -> PositiveDiffIncomplete<'a> {
         self.positive_diff_ref(other)
     }
     #[doc(hidden)]
@@ -3516,7 +3525,10 @@ impl Float {
     #[doc(hidden)]
     #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_ref`")]
     #[inline]
-    pub fn abs_diff_ref<'a>(&'a self, other: &'a Self) -> PositiveDiffRef<'a> {
+    pub fn abs_diff_ref<'a>(
+        &'a self,
+        other: &'a Self,
+    ) -> PositiveDiffIncomplete<'a> {
         self.positive_diff_ref(other)
     }
 
@@ -3578,7 +3590,7 @@ impl Float {
         /// let expected = 0.4055_f64;
         /// assert!((ln - expected).abs() < 0.0001);
         /// ```
-        fn ln_ref -> LnRef;
+        fn ln_ref -> LnIncomplete;
     }
     math_op0! {
         /// Computes the natural logarithm of `u`.
@@ -3656,7 +3668,7 @@ impl Float {
         /// let expected = 0.5850_f64;
         /// assert!((log2 - expected).abs() < 0.0001);
         /// ```
-        fn log2_ref -> Log2Ref;
+        fn log2_ref -> Log2Incomplete;
     }
     math_op1_float! {
         mpfr::log10;
@@ -3716,7 +3728,7 @@ impl Float {
         /// let expected = 0.1761_f64;
         /// assert!((log10 - expected).abs() < 0.0001);
         /// ```
-        fn log10_ref -> Log10Ref;
+        fn log10_ref -> Log10Incomplete;
     }
     math_op1_float! {
         mpfr::exp;
@@ -3776,7 +3788,7 @@ impl Float {
         /// let expected = 4.4817_f64;
         /// assert!((exp - expected).abs() < 0.0001);
         /// ```
-        fn exp_ref -> ExpRef;
+        fn exp_ref -> ExpIncomplete;
     }
     math_op1_float! {
         mpfr::exp2;
@@ -3836,7 +3848,7 @@ impl Float {
         /// let expected = 2.8284_f64;
         /// assert!((exp2 - expected).abs() < 0.0001);
         /// ```
-        fn exp2_ref -> Exp2Ref;
+        fn exp2_ref -> Exp2Incomplete;
     }
     math_op1_float! {
         mpfr::exp10;
@@ -3896,7 +3908,7 @@ impl Float {
         /// let expected = 31.6228_f64;
         /// assert!((exp10 - expected).abs() < 0.0001);
         /// ```
-        fn exp10_ref -> Exp10Ref;
+        fn exp10_ref -> Exp10Incomplete;
     }
     math_op1_float! {
         mpfr::sin;
@@ -3955,7 +3967,7 @@ impl Float {
         /// let expected = 0.9490_f64;
         /// assert!((sin - expected).abs() < 0.0001);
         /// ```
-        fn sin_ref -> SinRef;
+        fn sin_ref -> SinIncomplete;
     }
     math_op1_float! {
         mpfr::cos;
@@ -4014,7 +4026,7 @@ impl Float {
         /// let expected = 0.3153_f64;
         /// assert!((cos - expected).abs() < 0.0001);
         /// ```
-        fn cos_ref -> CosRef;
+        fn cos_ref -> CosIncomplete;
     }
     math_op1_float! {
         mpfr::tan;
@@ -4073,7 +4085,7 @@ impl Float {
         /// let expected = 3.0096_f64;
         /// assert!((tan - expected).abs() < 0.0001);
         /// ```
-        fn tan_ref -> TanRef;
+        fn tan_ref -> TanIncomplete;
     }
     math_op1_2_float! {
         mpfr::sin_cos;
@@ -4173,7 +4185,7 @@ impl Float {
         /// assert_eq!(cos_4, 0.3125);
         /// assert_eq!(dir_cos, Ordering::Less);
         /// ```
-        fn sin_cos_ref -> SinCosRef;
+        fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_float! {
         mpfr::sec;
@@ -4232,7 +4244,7 @@ impl Float {
         /// let expected = 3.1714_f64;
         /// assert!((sec - expected).abs() < 0.0001);
         /// ```
-        fn sec_ref -> SecRef;
+        fn sec_ref -> SecIncomplete;
     }
     math_op1_float! {
         mpfr::csc;
@@ -4291,7 +4303,7 @@ impl Float {
         /// let expected = 1.0538_f64;
         /// assert!((csc - expected).abs() < 0.0001);
         /// ```
-        fn csc_ref -> CscRef;
+        fn csc_ref -> CscIncomplete;
     }
     math_op1_float! {
         mpfr::cot;
@@ -4351,7 +4363,7 @@ impl Float {
         /// let expected = 0.3323_f64;
         /// assert!((cot - expected).abs() < 0.0001);
         /// ```
-        fn cot_ref -> CotRef;
+        fn cot_ref -> CotIncomplete;
     }
     math_op1_float! {
         mpfr::asin;
@@ -4410,7 +4422,7 @@ impl Float {
         /// let expected = -0.8481_f64;
         /// assert!((asin - expected).abs() < 0.0001);
         /// ```
-        fn asin_ref -> AsinRef;
+        fn asin_ref -> AsinIncomplete;
     }
     math_op1_float! {
         mpfr::acos;
@@ -4470,7 +4482,7 @@ impl Float {
         /// let expected = 2.4189_f64;
         /// assert!((acos - expected).abs() < 0.0001);
         /// ```
-        fn acos_ref -> AcosRef;
+        fn acos_ref -> AcosIncomplete;
     }
     math_op1_float! {
         mpfr::atan;
@@ -4530,7 +4542,7 @@ impl Float {
         /// let expected = -0.6435_f64;
         /// assert!((atan - expected).abs() < 0.0001);
         /// ```
-        fn atan_ref -> AtanRef;
+        fn atan_ref -> AtanIncomplete;
     }
     math_op2_float! {
         mpfr::atan2;
@@ -4609,7 +4621,7 @@ impl Float {
         /// let expected = 2.4981_f64;
         /// assert!((atan2 - expected).abs() < 0.0001);
         /// ```
-        fn atan2_ref -> Atan2Ref;
+        fn atan2_ref -> Atan2Incomplete;
     }
     math_op1_float! {
         mpfr::sinh;
@@ -4669,7 +4681,7 @@ impl Float {
         /// let expected = 1.6019_f64;
         /// assert!((sinh - expected).abs() < 0.0001);
         /// ```
-        fn sinh_ref -> SinhRef;
+        fn sinh_ref -> SinhIncomplete;
     }
     math_op1_float! {
         mpfr::cosh;
@@ -4729,7 +4741,7 @@ impl Float {
         /// let expected = 1.8884_f64;
         /// assert!((cosh - expected).abs() < 0.0001);
         /// ```
-        fn cosh_ref -> CoshRef;
+        fn cosh_ref -> CoshIncomplete;
     }
     math_op1_float! {
         mpfr::tanh;
@@ -4789,7 +4801,7 @@ impl Float {
         /// let expected = 0.8483_f64;
         /// assert!((tanh - expected).abs() < 0.0001);
         /// ```
-        fn tanh_ref -> TanhRef;
+        fn tanh_ref -> TanhIncomplete;
     }
     math_op1_2_float! {
         mpfr::sinh_cosh;
@@ -4889,7 +4901,7 @@ impl Float {
         /// assert_eq!(cosh_4, 1.875);
         /// assert_eq!(dir_cosh, Ordering::Less);
         /// ```
-        fn sinh_cosh_ref -> SinhCoshRef;
+        fn sinh_cosh_ref -> SinhCoshIncomplete;
     }
     math_op1_float! {
         mpfr::sech;
@@ -4949,7 +4961,7 @@ impl Float {
         /// let expected = 0.5295_f64;
         /// assert!((sech - expected).abs() < 0.0001);
         /// ```
-        fn sech_ref -> SechRef;
+        fn sech_ref -> SechIncomplete;
     }
     math_op1_float! {
         mpfr::csch;
@@ -5009,7 +5021,7 @@ impl Float {
         /// let expected = 0.6243_f64;
         /// assert!((csch - expected).abs() < 0.0001);
         /// ```
-        fn csch_ref -> CschRef;
+        fn csch_ref -> CschIncomplete;
     }
     math_op1_float! {
         mpfr::coth;
@@ -5069,7 +5081,7 @@ impl Float {
         /// let expected = 1.1789_f64;
         /// assert!((coth - expected).abs() < 0.0001);
         /// ```
-        fn coth_ref -> CothRef;
+        fn coth_ref -> CothIncomplete;
     }
     math_op1_float! {
         mpfr::asinh;
@@ -5129,7 +5141,7 @@ impl Float {
         /// let expected = 1.0476_f64;
         /// assert!((asinh - expected).abs() < 0.0001);
         /// ```
-        fn asinh_ref -> AsinhRef;
+        fn asinh_ref -> AsinhIncomplete;
     }
     math_op1_float! {
         mpfr::acosh;
@@ -5191,7 +5203,7 @@ impl Float {
         /// let expected = 0.6931_f64;
         /// assert!((acosh - expected).abs() < 0.0001);
         /// ```
-        fn acosh_ref -> AcoshRef;
+        fn acosh_ref -> AcoshIncomplete;
     }
     math_op1_float! {
         mpfr::atanh;
@@ -5253,7 +5265,7 @@ impl Float {
         /// let expected = 0.9730_f64;
         /// assert!((atanh - expected).abs() < 0.0001);
         /// ```
-        fn atanh_ref -> AtanhRef;
+        fn atanh_ref -> AtanhIncomplete;
     }
     math_op0! {
         /// Computes the factorial of *n*.
@@ -5363,7 +5375,7 @@ impl Float {
         /// let expected = 1.4989_f64 * two_to_m10;
         /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
         /// ```
-        fn ln_1p_ref -> Ln1pRef;
+        fn ln_1p_ref -> Ln1pIncomplete;
     }
     math_op1_float! {
         mpfr::expm1;
@@ -5430,7 +5442,7 @@ impl Float {
         /// let expected = 1.5011_f64 * two_to_m10;
         /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
         /// ```
-        fn exp_m1_ref -> ExpM1Ref;
+        fn exp_m1_ref -> ExpM1Incomplete;
     }
     math_op1_float! {
         mpfr::eint;
@@ -5490,7 +5502,7 @@ impl Float {
         /// let expected = 2.5810_f64;
         /// assert!((eint - expected).abs() < 0.0001);
         /// ```
-        fn eint_ref -> EintRef;
+        fn eint_ref -> EintIncomplete;
     }
     math_op1_float! {
         mpfr::li2;
@@ -5553,7 +5565,7 @@ impl Float {
         /// let expected = 2.1902_f64;
         /// assert!((li2 - expected).abs() < 0.0001);
         /// ```
-        fn li2_ref -> Li2Ref;
+        fn li2_ref -> Li2Incomplete;
     }
     math_op1_float! {
         mpfr::gamma;
@@ -5615,7 +5627,7 @@ impl Float {
         /// let expected = 0.9064_f64;
         /// assert!((gamma - expected).abs() < 0.0001);
         /// ```
-        fn gamma_ref -> GammaRef;
+        fn gamma_ref -> GammaIncomplete;
     }
     math_op2_float! {
         mpfr::gamma_inc;
@@ -5681,7 +5693,7 @@ impl Float {
         /// let expected = 0.1116_f64;
         /// assert!((gamma_inc - expected).abs() < 0.0001);
         /// ```
-        fn gamma_inc_ref -> GammaIncRef;
+        fn gamma_inc_ref -> GammaIncIncomplete;
     }
     math_op1_float! {
         mpfr::lngamma;
@@ -5744,7 +5756,7 @@ impl Float {
         /// let expected = -0.0983_f64;
         /// assert!((ln_gamma - expected).abs() < 0.0001);
         /// ```
-        fn ln_gamma_ref -> LnGammaRef;
+        fn ln_gamma_ref -> LnGammaIncomplete;
     }
 
     /// Computes the logarithm of the absolute value of the gamma
@@ -5903,8 +5915,8 @@ impl Float {
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     #[inline]
-    pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaRef {
-        LnAbsGammaRef { ref_self: self }
+    pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete {
+        LnAbsGammaIncomplete { ref_self: self }
     }
 
     math_op1_float! {
@@ -5967,7 +5979,7 @@ impl Float {
         /// let expected = -0.2275_f64;
         /// assert!((digamma - expected).abs() < 0.0001);
         /// ```
-        fn digamma_ref -> DigammaRef;
+        fn digamma_ref -> DigammaIncomplete;
     }
     math_op1_float! {
         mpfr::zeta;
@@ -6029,7 +6041,7 @@ impl Float {
         /// let expected = 4.5951_f64;
         /// assert!((zeta - expected).abs() < 0.0001);
         /// ```
-        fn zeta_ref -> ZetaRef;
+        fn zeta_ref -> ZetaIncomplete;
     }
     math_op0! {
         /// Computes the Riemann Zeta function on *u*.
@@ -6130,7 +6142,7 @@ impl Float {
         /// let expected = 0.9229_f64;
         /// assert!((erf - expected).abs() < 0.0001);
         /// ```
-        fn erf_ref -> ErfRef;
+        fn erf_ref -> ErfIncomplete;
     }
     math_op1_float! {
         mpfr::erfc;
@@ -6192,7 +6204,7 @@ impl Float {
         /// let expected = 0.0771_f64;
         /// assert!((erfc - expected).abs() < 0.0001);
         /// ```
-        fn erfc_ref -> ErfcRef;
+        fn erfc_ref -> ErfcIncomplete;
     }
     math_op1_float! {
         mpfr::j0;
@@ -6254,7 +6266,7 @@ impl Float {
         /// let expected = 0.6459_f64;
         /// assert!((j0 - expected).abs() < 0.0001);
         /// ```
-        fn j0_ref -> J0Ref;
+        fn j0_ref -> J0Incomplete;
     }
     math_op1_float! {
         mpfr::j1;
@@ -6316,7 +6328,7 @@ impl Float {
         /// let expected = 0.5106_f64;
         /// assert!((j1 - expected).abs() < 0.0001);
         /// ```
-        fn j1_ref -> J1Ref;
+        fn j1_ref -> J1Incomplete;
     }
     math_op1_float! {
         xmpfr::jn;
@@ -6378,7 +6390,7 @@ impl Float {
         /// let expected = 0.1711_f64;
         /// assert!((j2 - expected).abs() < 0.0001);
         /// ```
-        fn jn_ref -> JnRef;
+        fn jn_ref -> JnIncomplete;
     }
     math_op1_float! {
         mpfr::y0;
@@ -6440,7 +6452,7 @@ impl Float {
         /// let expected = 0.2582_f64;
         /// assert!((y0 - expected).abs() < 0.0001);
         /// ```
-        fn y0_ref -> Y0Ref;
+        fn y0_ref -> Y0Incomplete;
     }
     math_op1_float! {
         mpfr::y1;
@@ -6502,7 +6514,7 @@ impl Float {
         /// let expected = -0.5844_f64;
         /// assert!((y1 - expected).abs() < 0.0001);
         /// ```
-        fn y1_ref -> Y1Ref;
+        fn y1_ref -> Y1Incomplete;
     }
     math_op1_float! {
         xmpfr::yn;
@@ -6564,7 +6576,7 @@ impl Float {
         /// let expected = -1.1932_f64;
         /// assert!((y2 - expected).abs() < 0.0001);
         /// ```
-        fn yn_ref -> YnRef;
+        fn yn_ref -> YnIncomplete;
     }
     math_op2_float! {
         mpfr::agm;
@@ -6630,7 +6642,7 @@ impl Float {
         /// let expected = 2.3295_f64;
         /// assert!((agm - expected).abs() < 0.0001);
         /// ```
-        fn agm_ref -> AgmRef;
+        fn agm_ref -> AgmIncomplete;
     }
     math_op2_float! {
         mpfr::hypot;
@@ -6696,7 +6708,7 @@ impl Float {
         /// let expected = 3.9528_f64;
         /// assert!((hypot - expected).abs() < 0.0001);
         /// ```
-        fn hypot_ref -> HypotRef;
+        fn hypot_ref -> HypotIncomplete;
     }
     math_op1_float! {
         mpfr::ai;
@@ -6758,7 +6770,7 @@ impl Float {
         /// let expected = 0.0996_f64;
         /// assert!((ai - expected).abs() < 0.0001);
         /// ```
-        fn ai_ref -> AiRef;
+        fn ai_ref -> AiIncomplete;
     }
     math_op1_no_round! {
         mpfr::rint_ceil, raw_round;
@@ -6807,7 +6819,7 @@ impl Float {
         /// let ceil2 = Float::with_val(53, f2.ceil_ref());
         /// assert_eq!(ceil2, 24);
         /// ```
-        fn ceil_ref -> CeilRef;
+        fn ceil_ref -> CeilIncomplete;
     }
     math_op1_no_round! {
         mpfr::rint_floor, raw_round;
@@ -6856,7 +6868,7 @@ impl Float {
         /// let floor2 = Float::with_val(53, f2.floor_ref());
         /// assert_eq!(floor2, 23);
         /// ```
-        fn floor_ref -> FloorRef;
+        fn floor_ref -> FloorIncomplete;
     }
     math_op1_no_round! {
         mpfr::rint_round, raw_round;
@@ -6928,7 +6940,7 @@ impl Float {
         /// dst.assign_round(r, Round::Nearest);
         /// assert_eq!(dst, 8);
         /// ```
-       fn round_ref -> RoundRef;
+       fn round_ref -> RoundIncomplete;
     }
     math_op1_no_round! {
         mpfr::rint_roundeven, raw_round;
@@ -6980,7 +6992,7 @@ impl Float {
         /// let round2 = Float::with_val(53, f2.round_even_ref());
         /// assert_eq!(round2, 24);
         /// ```
-       fn round_even_ref -> RoundEvenRef;
+       fn round_even_ref -> RoundEvenIncomplete;
     }
     math_op1_no_round! {
         mpfr::rint_trunc, raw_round;
@@ -7029,7 +7041,7 @@ impl Float {
         /// let trunc2 = Float::with_val(53, f2.trunc_ref());
         /// assert_eq!(trunc2, 23);
         /// ```
-        fn trunc_ref -> TruncRef;
+        fn trunc_ref -> TruncIncomplete;
     }
     math_op1_no_round! {
         mpfr::frac, raw_round;
@@ -7077,7 +7089,7 @@ impl Float {
         /// let fract2 = Float::with_val(53, f2.fract_ref());
         /// assert_eq!(fract2, 0.75);
         /// ```
-        fn fract_ref -> FractRef;
+        fn fract_ref -> FractIncomplete;
     }
     math_op1_2_float! {
         mpfr::modf;
@@ -7179,7 +7191,7 @@ impl Float {
         /// assert_eq!(trunc2, -23);
         /// assert_eq!(fract2, -0.75);
         /// ```
-        fn trunc_fract_ref -> TruncFractRef;
+        fn trunc_fract_ref -> TruncFractIncomplete;
     }
 
     #[cfg(feature = "rand")]
@@ -7420,20 +7432,24 @@ impl Float {
 }
 
 #[derive(Debug)]
-pub struct SumRef<'a, I>
+pub struct SumIncomplete<'a, I>
 where
     I: Iterator<Item = &'a Float>,
 {
     values: I,
 }
 
-impl<'a, I> AssignRound<SumRef<'a, I>> for Float
+impl<'a, I> AssignRound<SumIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = &'a Self>,
 {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: SumRef<'a, I>, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: SumIncomplete<'a, I>,
+        round: Round,
+    ) -> Ordering {
         let refs = src.values
             .map(|r| r.inner() as *const mpfr_t)
             .collect::<Vec<_>>();
@@ -7445,29 +7461,29 @@ where
     }
 }
 
-impl<'a, I> Add<SumRef<'a, I>> for Float
+impl<'a, I> Add<SumIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = &'a Self>,
 {
     type Output = Self;
     #[inline]
-    fn add(mut self, rhs: SumRef<'a, I>) -> Self {
+    fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
         self.add_assign_round(rhs, Round::Nearest);
         self
     }
 }
 
-impl<'a, I> AddAssign<SumRef<'a, I>> for Float
+impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = &'a Self>,
 {
     #[inline]
-    fn add_assign(&mut self, rhs: SumRef<'a, I>) {
+    fn add_assign(&mut self, rhs: SumIncomplete<'a, I>) {
         self.add_assign_round(rhs, Round::Nearest);
     }
 }
 
-impl<'a, I> AddAssignRound<SumRef<'a, I>> for Float
+impl<'a, I> AddAssignRound<SumIncomplete<'a, I>> for Float
 where
     I: Iterator<Item = &'a Self>,
 {
@@ -7475,7 +7491,7 @@ where
     type Ordering = Ordering;
     fn add_assign_round(
         &mut self,
-        src: SumRef<'a, I>,
+        src: SumIncomplete<'a, I>,
         round: Round,
     ) -> Ordering {
         let mut refs = match src.values.size_hint() {
@@ -7492,17 +7508,17 @@ where
     }
 }
 
-ref_math_op1_float! { mpfr::sqr; struct SquareRef {} }
-ref_math_op1_float! { mpfr::sqrt; struct SqrtRef {} }
+ref_math_op1_float! { mpfr::sqr; struct SquareIncomplete {} }
+ref_math_op1_float! { mpfr::sqrt; struct SqrtIncomplete {} }
 ref_math_op0_float! { mpfr::sqrt_ui; struct SqrtU { u: u32 } }
-ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtRef {} }
-ref_math_op1_float! { mpfr::cbrt; struct CbrtRef {} }
-ref_math_op1_float! { mpfr::rootn_ui; struct RootRef { k: u32 } }
-ref_math_op1_float! { mpfr::abs; struct AbsRef {} }
-ref_math_op1_float! { xmpfr::signum; struct SignumRef {} }
+ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtIncomplete {} }
+ref_math_op1_float! { mpfr::cbrt; struct CbrtIncomplete {} }
+ref_math_op1_float! { mpfr::rootn_ui; struct RootIncomplete { k: u32 } }
+ref_math_op1_float! { mpfr::abs; struct AbsIncomplete {} }
+ref_math_op1_float! { xmpfr::signum; struct SignumIncomplete {} }
 
 #[derive(Debug)]
-pub struct ClampRef<'a, Min, Max>
+pub struct ClampIncomplete<'a, Min, Max>
 where
     Float: PartialOrd<Min>
         + PartialOrd<Max>
@@ -7516,7 +7532,7 @@ where
     max: &'a Max,
 }
 
-impl<'a, Min, Max> AssignRound<ClampRef<'a, Min, Max>> for Float
+impl<'a, Min, Max> AssignRound<ClampIncomplete<'a, Min, Max>> for Float
 where
     Self: PartialOrd<Min>
         + PartialOrd<Max>
@@ -7530,7 +7546,7 @@ where
     #[inline]
     fn assign_round(
         &mut self,
-        src: ClampRef<'a, Min, Max>,
+        src: ClampIncomplete<'a, Min, Max>,
         round: Round,
     ) -> Ordering {
         if src.ref_self.lt(src.min) {
@@ -7563,52 +7579,52 @@ where
     }
 }
 
-ref_math_op1_float! { xmpfr::recip; struct RecipRef {} }
-ref_math_op2_float! { mpfr::min; struct MinRef { other } }
-ref_math_op2_float! { mpfr::max; struct MaxRef { other } }
-ref_math_op2_float! { mpfr::dim; struct PositiveDiffRef { other } }
-ref_math_op1_float! { mpfr::log; struct LnRef {} }
+ref_math_op1_float! { xmpfr::recip; struct RecipIncomplete {} }
+ref_math_op2_float! { mpfr::min; struct MinIncomplete { other } }
+ref_math_op2_float! { mpfr::max; struct MaxIncomplete { other } }
+ref_math_op2_float! { mpfr::dim; struct PositiveDiffIncomplete { other } }
+ref_math_op1_float! { mpfr::log; struct LnIncomplete {} }
 ref_math_op0_float! { mpfr::log_ui; struct LnU { u: u32 } }
-ref_math_op1_float! { mpfr::log2; struct Log2Ref {} }
-ref_math_op1_float! { mpfr::log10; struct Log10Ref {} }
-ref_math_op1_float! { mpfr::exp; struct ExpRef {} }
-ref_math_op1_float! { mpfr::exp2; struct Exp2Ref {} }
-ref_math_op1_float! { mpfr::exp10; struct Exp10Ref {} }
-ref_math_op1_float! { mpfr::sin; struct SinRef {} }
-ref_math_op1_float! { mpfr::cos; struct CosRef {} }
-ref_math_op1_float! { mpfr::tan; struct TanRef {} }
-ref_math_op1_2_float! { mpfr::sin_cos; struct SinCosRef {} }
-ref_math_op1_float! { mpfr::sec; struct SecRef {} }
-ref_math_op1_float! { mpfr::csc; struct CscRef {} }
-ref_math_op1_float! { mpfr::cot; struct CotRef {} }
-ref_math_op1_float! { mpfr::acos; struct AcosRef {} }
-ref_math_op1_float! { mpfr::asin; struct AsinRef {} }
-ref_math_op1_float! { mpfr::atan; struct AtanRef {} }
-ref_math_op2_float! { mpfr::atan2; struct Atan2Ref { x } }
-ref_math_op1_float! { mpfr::cosh; struct CoshRef {} }
-ref_math_op1_float! { mpfr::sinh; struct SinhRef {} }
-ref_math_op1_float! { mpfr::tanh; struct TanhRef {} }
-ref_math_op1_2_float! { mpfr::sinh_cosh; struct SinhCoshRef {} }
-ref_math_op1_float! { mpfr::sech; struct SechRef {} }
-ref_math_op1_float! { mpfr::csch; struct CschRef {} }
-ref_math_op1_float! { mpfr::coth; struct CothRef {} }
-ref_math_op1_float! { mpfr::acosh; struct AcoshRef {} }
-ref_math_op1_float! { mpfr::asinh; struct AsinhRef {} }
-ref_math_op1_float! { mpfr::atanh; struct AtanhRef {} }
+ref_math_op1_float! { mpfr::log2; struct Log2Incomplete {} }
+ref_math_op1_float! { mpfr::log10; struct Log10Incomplete {} }
+ref_math_op1_float! { mpfr::exp; struct ExpIncomplete {} }
+ref_math_op1_float! { mpfr::exp2; struct Exp2Incomplete {} }
+ref_math_op1_float! { mpfr::exp10; struct Exp10Incomplete {} }
+ref_math_op1_float! { mpfr::sin; struct SinIncomplete {} }
+ref_math_op1_float! { mpfr::cos; struct CosIncomplete {} }
+ref_math_op1_float! { mpfr::tan; struct TanIncomplete {} }
+ref_math_op1_2_float! { mpfr::sin_cos; struct SinCosIncomplete {} }
+ref_math_op1_float! { mpfr::sec; struct SecIncomplete {} }
+ref_math_op1_float! { mpfr::csc; struct CscIncomplete {} }
+ref_math_op1_float! { mpfr::cot; struct CotIncomplete {} }
+ref_math_op1_float! { mpfr::acos; struct AcosIncomplete {} }
+ref_math_op1_float! { mpfr::asin; struct AsinIncomplete {} }
+ref_math_op1_float! { mpfr::atan; struct AtanIncomplete {} }
+ref_math_op2_float! { mpfr::atan2; struct Atan2Incomplete { x } }
+ref_math_op1_float! { mpfr::cosh; struct CoshIncomplete {} }
+ref_math_op1_float! { mpfr::sinh; struct SinhIncomplete {} }
+ref_math_op1_float! { mpfr::tanh; struct TanhIncomplete {} }
+ref_math_op1_2_float! { mpfr::sinh_cosh; struct SinhCoshIncomplete {} }
+ref_math_op1_float! { mpfr::sech; struct SechIncomplete {} }
+ref_math_op1_float! { mpfr::csch; struct CschIncomplete {} }
+ref_math_op1_float! { mpfr::coth; struct CothIncomplete {} }
+ref_math_op1_float! { mpfr::acosh; struct AcoshIncomplete {} }
+ref_math_op1_float! { mpfr::asinh; struct AsinhIncomplete {} }
+ref_math_op1_float! { mpfr::atanh; struct AtanhIncomplete {} }
 ref_math_op0_float! { mpfr::fac_ui; struct Factorial { n: u32 } }
-ref_math_op1_float! { mpfr::log1p; struct Ln1pRef {} }
-ref_math_op1_float! { mpfr::expm1; struct ExpM1Ref {} }
-ref_math_op1_float! { mpfr::eint; struct EintRef {} }
-ref_math_op1_float! { mpfr::li2; struct Li2Ref {} }
-ref_math_op1_float! { mpfr::gamma; struct GammaRef {} }
-ref_math_op2_float! { mpfr::gamma_inc; struct GammaIncRef { x } }
-ref_math_op1_float! { mpfr::lngamma; struct LnGammaRef {} }
+ref_math_op1_float! { mpfr::log1p; struct Ln1pIncomplete {} }
+ref_math_op1_float! { mpfr::expm1; struct ExpM1Incomplete {} }
+ref_math_op1_float! { mpfr::eint; struct EintIncomplete {} }
+ref_math_op1_float! { mpfr::li2; struct Li2Incomplete {} }
+ref_math_op1_float! { mpfr::gamma; struct GammaIncomplete {} }
+ref_math_op2_float! { mpfr::gamma_inc; struct GammaIncIncomplete { x } }
+ref_math_op1_float! { mpfr::lngamma; struct LnGammaIncomplete {} }
 
-pub struct LnAbsGammaRef<'a> {
+pub struct LnAbsGammaIncomplete<'a> {
     ref_self: &'a Float,
 }
 
-impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
+impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
     for (&'b mut Float, &'c mut Ordering)
 {
     type Round = Round;
@@ -7616,7 +7632,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
     #[inline]
     fn assign_round(
         &mut self,
-        src: LnAbsGammaRef<'a>,
+        src: LnAbsGammaIncomplete<'a>,
         round: Round,
     ) -> Ordering {
         let mut sign: c_int = 0;
@@ -7638,27 +7654,27 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaRef<'a>>
     }
 }
 
-ref_math_op1_float! { mpfr::digamma; struct DigammaRef {} }
-ref_math_op1_float! { mpfr::zeta; struct ZetaRef {} }
+ref_math_op1_float! { mpfr::digamma; struct DigammaIncomplete {} }
+ref_math_op1_float! { mpfr::zeta; struct ZetaIncomplete {} }
 ref_math_op0_float! { mpfr::zeta_ui; struct ZetaU { u: u32 } }
-ref_math_op1_float! { mpfr::erf; struct ErfRef {} }
-ref_math_op1_float! { mpfr::erfc; struct ErfcRef {} }
-ref_math_op1_float! { mpfr::j0; struct J0Ref {} }
-ref_math_op1_float! { mpfr::j1; struct J1Ref {} }
-ref_math_op1_float! { xmpfr::jn; struct JnRef { n: i32 } }
-ref_math_op1_float! { mpfr::y0; struct Y0Ref {} }
-ref_math_op1_float! { mpfr::y1; struct Y1Ref {} }
-ref_math_op1_float! { xmpfr::yn; struct YnRef { n: i32 } }
-ref_math_op2_float! { mpfr::agm; struct AgmRef { other } }
-ref_math_op2_float! { mpfr::hypot; struct HypotRef { other } }
-ref_math_op1_float! { mpfr::ai; struct AiRef {} }
-ref_math_op1_float! { mpfr::rint_ceil; struct CeilRef {} }
-ref_math_op1_float! { mpfr::rint_floor; struct FloorRef {} }
-ref_math_op1_float! { mpfr::rint_round; struct RoundRef {} }
-ref_math_op1_float! { mpfr::rint_roundeven; struct RoundEvenRef {} }
-ref_math_op1_float! { mpfr::rint_trunc; struct TruncRef {} }
-ref_math_op1_float! { mpfr::frac; struct FractRef {} }
-ref_math_op1_2_float! { mpfr::modf; struct TruncFractRef {} }
+ref_math_op1_float! { mpfr::erf; struct ErfIncomplete {} }
+ref_math_op1_float! { mpfr::erfc; struct ErfcIncomplete {} }
+ref_math_op1_float! { mpfr::j0; struct J0Incomplete {} }
+ref_math_op1_float! { mpfr::j1; struct J1Incomplete {} }
+ref_math_op1_float! { xmpfr::jn; struct JnIncomplete { n: i32 } }
+ref_math_op1_float! { mpfr::y0; struct Y0Incomplete {} }
+ref_math_op1_float! { mpfr::y1; struct Y1Incomplete {} }
+ref_math_op1_float! { xmpfr::yn; struct YnIncomplete { n: i32 } }
+ref_math_op2_float! { mpfr::agm; struct AgmIncomplete { other } }
+ref_math_op2_float! { mpfr::hypot; struct HypotIncomplete { other } }
+ref_math_op1_float! { mpfr::ai; struct AiIncomplete {} }
+ref_math_op1_float! { mpfr::rint_ceil; struct CeilIncomplete {} }
+ref_math_op1_float! { mpfr::rint_floor; struct FloorIncomplete {} }
+ref_math_op1_float! { mpfr::rint_round; struct RoundIncomplete {} }
+ref_math_op1_float! { mpfr::rint_roundeven; struct RoundEvenIncomplete {} }
+ref_math_op1_float! { mpfr::rint_trunc; struct TruncIncomplete {} }
+ref_math_op1_float! { mpfr::frac; struct FractIncomplete {} }
+ref_math_op1_2_float! { mpfr::modf; struct TruncFractIncomplete {} }
 
 #[cfg(feature = "rand")]
 pub struct RandomBits<'a, 'b: 'a> {
@@ -7899,23 +7915,23 @@ pub fn append_to_string(
 }
 
 #[derive(Clone, Debug)]
-pub enum ValidParse {
+pub enum ParseIncomplete {
     CString { c_string: CString, radix: i32 },
     Special(Special),
     NegNan,
 }
 
-impl AssignRound<ValidParse> for Float {
+impl AssignRound<ParseIncomplete> for Float {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(&mut self, src: ValidParse, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: ParseIncomplete, round: Round) -> Ordering {
         let (c_string, radix) = match src {
-            ValidParse::CString { c_string, radix } => (c_string, radix),
-            ValidParse::Special(special) => {
+            ParseIncomplete::CString { c_string, radix } => (c_string, radix),
+            ParseIncomplete::Special(special) => {
                 self.assign(special);
                 return Ordering::Equal;
             }
-            ValidParse::NegNan => {
+            ParseIncomplete::NegNan => {
                 self.assign(Special::Nan);
                 self.neg_assign();
                 return Ordering::Equal;
@@ -7944,7 +7960,10 @@ macro_rules! parse_error {
     };
 }
 
-fn parse(mut bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
+fn parse(
+    mut bytes: &[u8],
+    radix: i32,
+) -> Result<ParseIncomplete, ParseFloatError> {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast(radix);
     let small_bound = b'a' - 10 + bradix;
@@ -8036,14 +8055,14 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ValidParse, ParseFloatError> {
     }
     // we've only added checked bytes, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ValidParse::CString { c_string, radix })
+    Ok(ParseIncomplete::CString { c_string, radix })
 }
 
 fn parse_special(
     bytes: &[u8],
     radix: i32,
     negative: bool,
-) -> Option<Result<ValidParse, ParseFloatError>> {
+) -> Option<Result<ParseIncomplete, ParseFloatError>> {
     let small = if radix <= 10 { Some(()) } else { None };
 
     let inf10: &[&[u8]] = &[b"inf", b"infinity"];
@@ -8057,9 +8076,9 @@ fn parse_special(
             return Some(parse_error!(ParseErrorKind::InvalidDigit));
         }
         return if negative {
-            Some(Ok(ValidParse::Special(Special::NegInfinity)))
+            Some(Ok(ParseIncomplete::Special(Special::NegInfinity)))
         } else {
-            Some(Ok(ValidParse::Special(Special::Infinity)))
+            Some(Ok(ParseIncomplete::Special(Special::Infinity)))
         };
     }
 
@@ -8081,9 +8100,9 @@ fn parse_special(
             return Some(parse_error!(ParseErrorKind::InvalidDigit));
         }
         return if negative {
-            Some(Ok(ValidParse::NegNan))
+            Some(Ok(ParseIncomplete::NegNan))
         } else {
-            Some(Ok(ValidParse::Special(Special::Nan)))
+            Some(Ok(ParseIncomplete::Special(Special::Nan)))
         };
     }
     None
@@ -8126,7 +8145,7 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
                      `Float` before storing.")]
 #[derive(Clone, Debug)]
 pub struct ValidFloat<'a> {
-    inner: ValidParse,
+    inner: ParseIncomplete,
     phantom: PhantomData<&'a ()>,
 }
 
