@@ -824,7 +824,7 @@ impl Rational {
     }
 
     /// Calls a function with mutable references to the numerator and
-    /// denominator mutably, then canonicalizes the number.
+    /// denominator, then canonicalizes the number.
     ///
     /// The denominator must not be zero when the function returns.
     ///
@@ -912,6 +912,29 @@ impl Rational {
     ///     *num += &*den;
     /// }
     /// assert_eq!(r, (8, 5));
+    /// ```
+    ///
+    /// This method can also be used to group some operations before
+    /// canonicalization. This is usually not beneficial, as early
+    /// canonicalization usually means subsequent arithmetic
+    /// operations have less work to do.
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let mut r = Rational::from((3, 5));
+    /// unsafe {
+    ///     // first operation: add 1 to numerator
+    ///     *r.as_mut_numer_denom_no_canonicalization().0 += 1;
+    ///     // second operation: subtract 13 from denominator
+    ///     *r.as_mut_numer_denom_no_canonicalization().1 -= 13;
+    /// }
+    /// // At this point, r is still not canonical: 4 / -8
+    /// assert_eq!(*r.numer(), 4);
+    /// assert_eq!(*r.denom(), -8);
+    /// r.mutate_numer_denom(|_, _| {});
+    /// // Now r is in canonical form: -1 / 2
+    /// assert_eq!(*r.numer(), -1);
+    /// assert_eq!(*r.denom(), 2);
     /// ```
     #[inline]
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
