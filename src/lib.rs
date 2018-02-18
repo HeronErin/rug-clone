@@ -213,8 +213,9 @@
 //! # #[cfg(feature = "float")] {
 //! use rug::Float;
 //! use rug::float::Constant;
-//! // x has a precision of 10 bits, y has a precision of 50 bits
+//! // x has a precision of 10 bits
 //! let x = Float::with_val(10, 180);
+//! // y has a precision of 50 bits
 //! let y = Float::with_val(50, Constant::Pi);
 //! let incomplete = &x / &y;
 //! // z has a precision of 45 bits
@@ -224,7 +225,7 @@
 //! ```
 //!
 //! The precision to use for the result depends on the requirements of
-//! the algorithm being implemented. Here `c` is created with a
+//! the algorithm being implemented. Here `z` is created with a
 //! precision of 45.
 //!
 //! In these two examples, we could have left out the `incomplete`

@@ -183,8 +183,9 @@ if it is not necessary.
 ```rust
 use rug::Float;
 use rug::float::Constant;
-// x has a precision of 10 bits, y has a precision of 50 bits
+// x has a precision of 10 bits
 let x = Float::with_val(10, 180);
+// y has a precision of 50 bits
 let y = Float::with_val(50, Constant::Pi);
 let incomplete = &x / &y;
 // z has a precision of 45 bits
@@ -193,7 +194,7 @@ assert!(57.295 < z && z < 57.296);
 ```
 
 The precision to use for the result depends on the requirements of the
-algorithm being implemented. Here `c` is created with a precision of
+algorithm being implemented. Here `z` is created with a precision of
 45.
 
 In these two examples, we could have left out the `incomplete`
