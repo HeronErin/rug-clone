@@ -38,7 +38,8 @@ let mut int = Integer::new();
 assert_eq!(int, 0);
 int.assign(14);
 assert_eq!(int, 14);
-int.assign(Integer::parse("12_345_678_901_234_567_890").unwrap());
+let decimal = "12_345_678_901_234_567_890";
+int.assign(Integer::parse(decimal).unwrap());
 assert!(int > 100_000_000);
 let hex_160 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
 int.assign(Integer::parse_radix(hex_160, 16).unwrap());
@@ -52,14 +53,14 @@ assert_eq!(int, 0xfffe_ffff_u32);
 * To assign values to Rug types, we use the [`Assign`][rug assign]
   trait and its method [`assign`][rug assign assign]. We do not use
   the [assignment operator `=`][rust assignment] as that would move
-  the left-hand-side operand, which would have the same type.
+  the left-hand-side operand, which would need to have the same type.
 * Arbitrary precision numbers can hold numbers that are too large to
   fit in a primitive type. To assign such a number to the large types,
   we use strings rather than primitives; in the example this is done
-  using both [`Integer::parse`][rug int parse] and
+  using [`Integer::parse`][rug int parse] and
   [`Integer::parse_radix`][rug int parseradix].
-* We can compare Rug types with primitive types or with other Rug
-  types using the normal comparison operators, for example
+* We can compare Rug types to primitive types or to other Rug types
+  using the normal comparison operators, for example
   `int > 100_000_000_000`.
 * Most arithmetic operations are supported with Rug types and
   primitive types on either side of the operator, for example
