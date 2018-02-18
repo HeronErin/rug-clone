@@ -38,68 +38,33 @@
 //! 1.0.0. Unless some issue is discovered, version 1.0.0 will be like
 //! version 0.10.0 with all the deprecated items removed.
 //!
-//! ## Getting started
-//!
-//! ### Setting up the crate
-//!
-//! To use Rug in your crate, add it as a dependency inside
-//! [*Cargo.toml*][cargo deps]:
-//!
-//! ```toml
-//! [dependencies]
-//! rug = "0.10.0"
-//! ```
-//!
-//! This crate depends on the low-level bindings in the
-//! [gmp-mpfr-sys crate][sys crate] which needs some setup to build;
-//! the [gmp-mpfr-sys documentation][sys] has some details on usage
-//! under [GNU/Linux][sys gnu], [macOS][sys mac] and
-//! [Windows][sys win].
-//!
-//! You also need to declare the crate by adding this to your crate
-//! root (usually *lib.rs* or *main.rs*):
-//!
-//! ```rust
-//! extern crate rug;
-//! # fn main() {}
-//! ```
-//!
-//! Rug requires rustc version 1.18.0 or later.
-//!
-//! ### Quick example
+//! ## Quick example
 //!
 //! For many operations, you can use the arbitrary-precision types
 //! such as [`Integer`][rug int] like you use primitive types such as
-//! [`i32`][rust i32]. The main difference is that the Rug types do
-//! not implement [`Copy`][rust copy]. This is because they store
-//! their digits in the heap, not on the stack, and copying them could
-//! involve an expensive deep copy.
+//! [`i32`][rust i32]. However Rug types do not implement
+//! [`Copy`][rust copy]. This is because they store their digits in
+//! the heap, not on the stack, and copying them could involve an
+//! expensive deep copy.
 //!
 //! This code uses the [`Integer`][rug int] type:
 //!
 //! ```rust
-//! extern crate rug;
-//! # #[cfg(feature = "integer")]
-//! use rug::{Assign, Integer};
-//!
-//! fn main() {
 //! # #[cfg(feature = "integer")] {
-//!     let mut int = Integer::new();
-//!     assert_eq!(int, 0);
-//!     int.assign(14);
-//!     assert_eq!(int, 14);
-//!     int.assign(Integer::parse("12_345_678_901_234_567_890").unwrap());
-//!     assert!(int > 100_000_000);
-//!     let hex_160 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
-//!     int.assign(Integer::parse_radix(hex_160, 16).unwrap());
-//!     assert_eq!(int.significant_bits(), 160);
-//!     int = (int >> 128) - 1;
-//!     assert_eq!(int, 0xfffe_ffff_u32);
+//! use rug::{Assign, Integer};
+//! let mut int = Integer::new();
+//! assert_eq!(int, 0);
+//! int.assign(14);
+//! assert_eq!(int, 14);
+//! int.assign(Integer::parse("12_345_678_901_234_567_890").unwrap());
+//! assert!(int > 100_000_000);
+//! let hex_160 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
+//! int.assign(Integer::parse_radix(hex_160, 16).unwrap());
+//! assert_eq!(int.significant_bits(), 160);
+//! int = (int >> 128) - 1;
+//! assert_eq!(int, 0xfffe_ffff_u32);
 //! # }
-//! }
 //! ```
-//!
-//! Some points from this example follow:
 //!
 //! * [`Integer::new()`][rug int new] creates a new
 //!   [`Integer`][rug int] intialized to zero.
@@ -120,7 +85,7 @@
 //!   primitive types on either side of the operator, for example
 //!   `int >> 128`.
 //!
-//! ## Using primitive types
+//! ## Using with primitive types
 //!
 //! With Rust primitive types, arithmetic operators usually operate on
 //! two values of the same type, for example `12i32 + 5i32`. Unlike
@@ -286,6 +251,32 @@
 //! struct. If you need to store the value in a struct, convert it to
 //! its final type and value.
 //!
+//! ## Using Rug
+//!
+//! Rug is available on [crates.io][rug crate]. To use Rug in your
+//! crate, add it as a dependency inside [*Cargo.toml*][cargo deps]:
+//!
+//! ```toml
+//! [dependencies]
+//! rug = "0.10.0"
+//! ```
+//!
+//! You also need to declareit by adding this to your crate root
+//! (usually *lib.rs* or *main.rs*):
+//!
+//! ```rust
+//! extern crate rug;
+//! # fn main() {}
+//! ```
+//!
+//! Rug requires rustc version 1.18.0 or later.
+//!
+//! Rug also depends on the low-level bindings in the
+//! [gmp-mpfr-sys crate][sys crate] which needs some setup to build;
+//! the [gmp-mpfr-sys documentation][sys] has some details on usage
+//! under [GNU/Linux][sys gnu], [macOS][sys mac] and
+//! [Windows][sys win].
+//!
 //! ## Optional features
 //!
 //! The Rug crate has six optional features:
@@ -340,6 +331,7 @@
 //! [rug assr assr]: ops/trait.AssignRound.html#tymethod.assign_round
 //! [rug assr]: ops/trait.AssignRound.html
 //! [rug com]: struct.Complex.html
+//! [rug crate]: https://crates.io/crates/rug
 //! [rug flo withval]: struct.Float.html#method.with_val
 //! [rug flo]: struct.Float.html
 //! [rug int absref]: struct.Integer.html#method.abs_ref
