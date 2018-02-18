@@ -38,14 +38,14 @@ This crate depends on the low-level bindings in the
 [gmp-mpfr-sys documentation][sys] has some details on usage under
 [GNU/Linux][sys gnu], [macOS][sys mac] and [Windows][sys win].
 
-You also need to declare the crate by adding this to your crate root:
+You also need to declare the crate by adding this to your crate root
+(usually *lib.rs* or *main.rs*):
 
 ```rust
 extern crate rug;
 ```
 
-More details are available in the [Crate usage](#crate-usage) section
-below.
+Rug requires rustc version 1.18.0 or later.
 
 ### Quick example
 
@@ -252,24 +252,7 @@ computation values cannot be for example stored in a struct. If you
 need to store the value in a struct, convert it to its final type and
 value.
 
-## Crate usage
-
-Rug requires rustc version 1.18.0 or later.
-
-This crate depends on the low-level bindings in the
-[gmp-mpfr-sys crate][sys crate], which provides Rust FFI bindings for:
-
-* the [GNU Multiple Precision Arithmetic Library][gmp] (GMP),
-* the [GNU MPFR Library][mpfr], a library for multiple-precision
-  floating-point computations, and
-* [GNU MPC][mpc], a library for the arithmetic of complex numbers with
-  arbitrarily high precision.
-
-It can be helpful to refer to the documentation of the
-[gmp-mpfr-sys crate][sys] and of the [GMP][gmp doc], [MPFR][mpfr doc]
-and [MPC][mpc doc] libraries.
-
-### Optional features
+## Optional features
 
 The Rug crate has six optional features:
 
