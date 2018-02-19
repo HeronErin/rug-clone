@@ -491,7 +491,7 @@ pub trait Pow<Rhs> {
     /// use rug::Integer;
     /// use rug::ops::Pow;
     /// let base = Integer::from(10);
-    /// let ans = base.pow(5);
+    /// let power = base.pow(5);
     /// assert_eq!(ans, 100_000);
     /// # }
     /// ```

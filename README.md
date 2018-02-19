@@ -129,14 +129,50 @@ assert_eq!(sub, -10);
 
 Here `a` and `b` are not consumed, and `incomplete` is not the final
 value. It still needs to be converted or assigned into an
-[`Integer`][rug int]. The reason is explained in the section about
-[incomplete computation values](#incomplete-computation-values).
+[`Integer`][rug int]. This is covered in more detail in the
+[*Incomplete computation values*](#incomplete-computation-values)
+section.
+
+### Shifting operations
 
 The left shift `<<` and right shift `>>` operators support shifting by
-negative values, for example `a << 5` is equivalent to `a >> -5`. The
-shifting operators are also supported for the [`Float`][rug flo] and
-[`Complex`][rug com] types, where they are equivalent to
-multiplication or division by a power of two.
+negative values, for example `a << 5` is equivalent to `a >> -5`.
+
+The shifting operators are also supported for the [`Float`][rug flo]
+and [`Complex`][rug com] types, where they are equivalent to
+multiplication or division by a power of two. Only the exponent of the
+value is affected; the mantissa is unchanged.
+
+### Exponentiation
+
+Exponentiation (raising to a power) does not have a dedicated operator
+in Rust. In order to perform exponentiation of Rug types, the
+[`Pow`][rug pow] trait has to be brought in scope, for example
+
+```rust
+use rug::Integer;
+use rug::ops::Pow;
+let power = Integer::from(5).pow(2);
+assert_eq!(power, 25);
+```
+
+### Compound assignments to right-hand-side operands
+
+Traits are provided for compound assignment to right-hand-side
+operands. This can be useful for non-commutative operations like
+subtraction. The names of the traits and their methods are similar
+to Rust compound assignment traits, with the suffix `Assign`
+replaced with `From`. For example the counterpart to
+[`SubAssign`][rust subassign] is [`SubFrom`][rug subfrom]:
+
+```rust
+use rug::Integer;
+use rug::ops::SubFrom;
+let mut rhs = Integer::from(10);
+// set rhs = 100 - rhs
+rhs.sub_from(100);
+assert_eq!(rhs, 90);
+```
 
 ## Incomplete computation values
 
@@ -145,7 +181,10 @@ perform a complete computation and return a Rug type:
 
 1. Sometimes we need to assign the result to an object that already
    exists. Since Rug types require memory allocations, this can help
-   reduce the number of allocations.
+   reduce the number of allocations. (While the allocations might not
+   affect performance noticeably for computationally intensive
+   functions, they can have a much more significant effect on faster
+   functions like addition.)
 2. For the [`Float`][rug flo] type, we need to know the precision when
    we create a value, and the operation itself does not convey
    information about what precision is desired for the result. The
@@ -314,8 +353,10 @@ provided by the crate.
 [rug int parseradix]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.parse_radix
 [rug int]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html
 [rug ops]: https://docs.rs/rug/0.10.0/rug/ops/index.html
+[rug pow]: https://docs.rs/rug/0.10.0/rug/ops/trait.Pow.html
 [rug rand]: https://docs.rs/rug/0.10.0/rug/rand/struct.RandState.html
 [rug rat]: https://docs.rs/rug/0.10.0/rug/struct.Rational.html
+[rug subfrom]: ops/trait.SubFrom.html
 [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
 [rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
@@ -328,6 +369,7 @@ provided by the crate.
 [rust i8]: https://doc.rust-lang.org/std/primitive.i8.html
 [rust isize]: https://doc.rust-lang.org/std/primitive.isize.html
 [rust neg]: https://doc.rust-lang.org/std/ops/trait.Neg.html
+[rust subassign]: https://doc.rust-lang.org/std/ops/trait.SubAssign.html
 [rust u16]: https://doc.rust-lang.org/std/primitive.u16.html
 [rust u32]: https://doc.rust-lang.org/std/primitive.u32.html
 [rust u64]: https://doc.rust-lang.org/std/primitive.u64.html
