@@ -310,7 +310,7 @@
 //! rug = "0.10.0"
 //! ```
 //!
-//! You also need to declareit by adding this to your crate root
+//! You also need to declare it by adding this to your crate root
 //! (usually *lib.rs* or *main.rs*):
 //!
 //! ```rust
