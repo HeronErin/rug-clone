@@ -181,7 +181,7 @@
 //! use rug::ops::Pow;
 //! let base = Integer::from(10);
 //! let power = base.pow(5);
-//! assert_eq!(ans, 100_000);
+//! assert_eq!(power, 100_000);
 //! # }
 //! ```
 //!

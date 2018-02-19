@@ -152,8 +152,9 @@ in Rust. In order to perform exponentiation of Rug types, the
 ```rust
 use rug::Integer;
 use rug::ops::Pow;
-let power = Integer::from(5).pow(2);
-assert_eq!(power, 25);
+let base = Integer::from(10);
+let power = base.pow(5);
+assert_eq!(power, 100_000);
 ```
 
 ### Compound assignments to right-hand-side operands
