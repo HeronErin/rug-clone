@@ -54,8 +54,9 @@ assert_eq!(int, 0xfffe_ffff_u32);
   intialized to zero.
 * To assign values to Rug types, we use the [`Assign`][rug assign]
   trait and its method [`assign`][rug assign assign]. We do not use
-  the [assignment operator `=`][rust assignment] as that would move
-  the left-hand-side operand, which would need to have the same type.
+  the [assignment operator `=`][rust assignment] as that would drop
+  the left-hand-side operand and replace it with the right-hand-side
+  operand, which is not what we want here.
 * Arbitrary precision numbers can hold numbers that are too large to
   fit in a primitive type. To assign such a number to the large types,
   we use strings rather than primitives; in the example this is done
