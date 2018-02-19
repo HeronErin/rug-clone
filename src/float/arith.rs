@@ -688,7 +688,7 @@ unsafe fn mul_sub(
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use Float;
     #[cfg(feature = "integer")]
     use Integer;
@@ -699,7 +699,7 @@ mod tests {
     #[cfg(feature = "integer")]
     use std::str::FromStr;
 
-    fn same(a: Float, b: Float) -> bool {
+    pub fn same(a: Float, b: Float) -> bool {
         if a.is_nan() && b.is_nan() {
             return true;
         }
@@ -889,10 +889,10 @@ mod tests {
                 assert!(same(b.clone() - op, b.clone() - &fop));
                 assert!(same(b.clone() * op, b.clone() * &fop));
                 assert!(same(b.clone() / op, b.clone() / &fop));
-                assert!(same(op.clone() + b.clone(), fop.clone() + b));
-                assert!(same(op.clone() - b.clone(), fop.clone() - b));
-                assert!(same(op.clone() * b.clone(), fop.clone() * b));
-                assert!(same(op.clone() / b.clone(), fop.clone() / b));
+                assert!(same(op + b.clone(), fop.clone() + b));
+                assert!(same(op - b.clone(), fop.clone() - b));
+                assert!(same(op * b.clone(), fop.clone() * b));
+                assert!(same(op / b.clone(), fop.clone() / b));
             }
         }
         #[cfg(feature = "rational")]
@@ -903,10 +903,10 @@ mod tests {
                 assert!(same(b.clone() - op, b.clone() - &fop));
                 assert!(same(b.clone() * op, b.clone() * &fop));
                 assert!(same(b.clone() / op, b.clone() / &fop));
-                assert!(same(op.clone() + b.clone(), fop.clone() + b));
-                assert!(same(op.clone() - b.clone(), fop.clone() - b));
-                assert!(same(op.clone() * b.clone(), fop.clone() * b));
-                assert!(same(op.clone() / b.clone(), fop.clone() / b));
+                assert!(same(op + b.clone(), fop.clone() + b));
+                assert!(same(op - b.clone(), fop.clone() - b));
+                assert!(same(op * b.clone(), fop.clone() * b));
+                assert!(same(op / b.clone(), fop.clone() / b));
             }
         }
     }

@@ -564,8 +564,22 @@ unsafe fn mul_sub(
 
 #[cfg(test)]
 mod tests {
-    use Complex;
+    use {Complex, Float};
+    #[cfg(feature = "integer")]
+    use Integer;
+    #[cfg(feature = "rational")]
+    use Rational;
+    use float::Special;
+    use float::arith::tests as float_tests;
     use ops::Pow;
+    #[cfg(feature = "integer")]
+    use std::str::FromStr;
+
+    fn same(a: Complex, b: Complex) -> bool {
+        let (re_a, im_a) = a.into_real_imag();
+        let (re_b, im_b) = b.into_real_imag();
+        float_tests::same(re_a, re_b) && float_tests::same(im_a, im_b)
+    }
 
     #[test]
     fn check_ref_op() {
@@ -613,5 +627,121 @@ mod tests {
 
         assert_eq!(Complex::with_val(53, (&lhs).pow(ps)), lhs.clone().pow(ps));
         assert_eq!(Complex::with_val(53, (&lhs).pow(pd)), lhs.clone().pow(pd));
+    }
+
+    #[test]
+    fn check_arith_others() {
+        use tests::{F32, F64, I32, I64, U32, U64};
+        let large = &[
+            Complex::with_val(20, (Special::Zero, 1.0)),
+            Complex::with_val(20, (Special::NegZero, 1.0)),
+            Complex::with_val(20, (Special::Infinity, 1.0)),
+            Complex::with_val(20, (Special::NegInfinity, 1.0)),
+            Complex::with_val(20, (Special::Nan, 1.0)),
+            Complex::with_val(20, (1, 1.0)),
+            Complex::with_val(20, (-1, 1.0)),
+            Complex::with_val(20, (999999e100, 1.0)),
+            Complex::with_val(20, (999999e-100, 1.0)),
+            Complex::with_val(20, (-999999e100, 1.0)),
+            Complex::with_val(20, (-999999e-100, 1.0)),
+        ];
+        #[cfg(feature = "integer")]
+        let z = [
+            Integer::from(0),
+            Integer::from(1),
+            Integer::from(-1),
+            Integer::from_str("-1000000000000").unwrap(),
+            Integer::from_str("1000000000000").unwrap(),
+        ];
+        #[cfg(feature = "rational")]
+        let q = [
+            Rational::from(0),
+            Rational::from(1),
+            Rational::from(-1),
+            Rational::from_str("-1000000000000/33333333333").unwrap(),
+            Rational::from_str("1000000000000/33333333333").unwrap(),
+        ];
+        let f = [
+            Float::with_val(20, 0.0),
+            Float::with_val(20, 1.0),
+            Float::with_val(20, -1.0),
+            Float::with_val(20, 12.5),
+            Float::with_val(20, 12.5) << 10000,
+            Float::with_val(20, Special::Infinity),
+        ];
+
+        let against = (large.iter().cloned())
+            .chain(U32.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(I32.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(U64.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(I64.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(F32.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(F64.iter().map(|&x| Complex::with_val(20, x)))
+            .collect::<Vec<Complex>>();
+        #[cfg(feature = "integer")]
+        let mut against = against;
+        #[cfg(feature = "integer")]
+        against.extend(z.iter().map(|x| Complex::with_val(20, x)));
+        #[cfg(feature = "rational")]
+        against.extend(q.iter().map(|x| Complex::with_val(20, x)));
+        against.extend(f.iter().map(|x| Complex::with_val(20, x)));
+
+        for op in U32 {
+            let cop = Complex::with_val(100, *op);
+            for b in &against {
+                assert!(same(b.clone() + *op, b.clone() + &cop));
+                assert!(same(*op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - *op, b.clone() - &cop));
+                assert!(same(*op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * *op, b.clone() * &cop));
+                    assert!(same(*op * b.clone(), cop.clone() * b));
+                    if *op != 0 {
+                        assert!(same(b.clone() / *op, b.clone() / &cop));
+                    }
+                    if *b != 0i32 {
+                        assert!(same(*op / b.clone(), cop.clone() / b));
+                    }
+                }
+            }
+        }
+        for op in I32 {
+            let cop = Complex::with_val(100, *op);
+            for b in &against {
+                assert!(same(b.clone() + *op, b.clone() + &cop));
+                assert!(same(*op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - *op, b.clone() - &cop));
+                assert!(same(*op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * *op, b.clone() * &cop));
+                    assert!(same(*op * b.clone(), cop.clone() * b));
+                    if *op != 0 {
+                        assert!(same(b.clone() / *op, b.clone() / &cop));
+                    }
+                    if *b != 0i32 {
+                        assert!(same(*op / b.clone(), cop.clone() / b));
+                    }
+                }
+            }
+        }
+        for op in &f {
+            let cop = Complex::with_val(100, op);
+            for b in &against {
+                assert!(same(b.clone() + op, b.clone() + &cop));
+                assert!(same(op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - op, b.clone() - &cop));
+                assert!(same(op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * op, b.clone() * &cop));
+                    assert!(same(op * b.clone(), cop.clone() * b));
+                    if *op != 0 {
+                        assert!(same(b.clone() / op, b.clone() / &cop));
+                    }
+                    if *b != 0i32 {
+                        assert!(same(op / b.clone(), cop.clone() / b));
+                    }
+                }
+            }
+        }
     }
 }
