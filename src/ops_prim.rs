@@ -508,6 +508,109 @@ macro_rules! rounding_unsigned {
     )* };
 }
 
+macro_rules! rounding_float {
+    ($($T: ty)*) => { $(
+        impl DivRounding for $T {
+            type Output = $T;
+            #[inline]
+            fn div_trunc(self, rhs: $T) -> $T {
+                (self / rhs).trunc()
+            }
+            #[inline]
+            fn div_ceil(self, rhs: $T) -> $T {
+                let (q, r) = ((self / rhs).trunc(), self % rhs);
+                let change = if rhs > 0.0 { r > 0.0 } else { r < 0.0 };
+                if change {
+                    q + 1.0
+                } else {
+                    q
+                }
+            }
+            #[inline]
+            fn div_floor(self, rhs: $T) -> $T {
+                let (q, r) = ((self / rhs).trunc(), self % rhs);
+                let change = if rhs > 0.0 { r < 0.0 } else { r > 0.0 };
+                if change {
+                    q - 1.0
+                } else {
+                    q
+                }
+            }
+            #[inline]
+            fn div_euc(self, rhs: $T) -> $T {
+                let (q, r) = ((self / rhs).trunc(), self % rhs);
+                if r < 0.0 {
+                    if rhs < 0.0 {
+                        q + 1.0
+                    } else {
+                        q - 1.0
+                    }
+                } else {
+                    q
+                }
+            }
+        }
+
+        rounding_fill! {
+            $T,
+            DivRounding DivRoundingAssign DivRoundingFrom,
+            div_trunc div_ceil div_floor div_euc,
+            div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign,
+            div_trunc_from div_ceil_from div_floor_from div_euc_from
+        }
+
+        impl RemRounding for $T {
+            type Output = $T;
+            #[inline]
+            fn rem_trunc(self, rhs: $T) -> $T {
+                self % rhs
+            }
+            #[inline]
+            fn rem_ceil(self, rhs: $T) -> $T {
+                let r = self % rhs;
+                let change = if rhs > 0.0 { r > 0.0 } else { r < 0.0 };
+                if change {
+                    r - rhs
+                } else {
+                    r
+                }
+            }
+            #[inline]
+            fn rem_floor(self, rhs: $T) -> $T {
+                let r = self % rhs;
+                let change = if rhs > 0.0 { r < 0.0 } else { r > 0.0 };
+                if change {
+                    r + rhs
+                } else {
+                    r
+                }
+            }
+            #[inline]
+            fn rem_euc(self, rhs: $T) -> $T {
+                let r = self % rhs;
+                if r < 0.0 {
+                    if rhs < 0.0 {
+                        r - rhs
+                    } else {
+                        r + rhs
+                    }
+                } else {
+                    r
+                }
+            }
+        }
+
+        rounding_fill! {
+            $T,
+            RemRounding RemRoundingAssign RemRoundingFrom,
+            rem_trunc rem_ceil rem_floor rem_euc,
+            rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign,
+            rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from
+        }
+
+    )* };
+}
+
 int_ops! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
 int_neg! { i8 i16 i32 i64 isize }
 assign_from! { u32; pow; PowFrom pow_from }
@@ -521,9 +624,11 @@ rounding_signed! { i8 i16 i32 i64 isize }
 // n.rem_trunc(d) -> r
 // n.rem_ceil(d) -> if r > 0 { r - d } else { 0 }
 // n.rem_floor(d) -> r
-// n.rem_eud(d) -> r
+// n.rem_euc(d) -> r
 
 rounding_unsigned! { u8 u16 u32 u64 usize }
+
+rounding_float! { f32 f64 }
 
 impl<'a> AddFrom<&'a str> for String {
     #[inline]
