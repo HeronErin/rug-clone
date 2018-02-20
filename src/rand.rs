@@ -31,7 +31,6 @@ use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::raw::{c_int, c_ulong, c_void};
-#[cfg(need_ffi_panic_check)]
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
 use std::ptr;
@@ -492,10 +491,6 @@ impl<'a> RandState<'a> {
 /// Custom random number generator to be used with
 /// [`RandState`](struct.RandState.html).
 ///
-/// The methods implemented for this trait, as well as possible
-/// destructors, can be used by FFI callback functions. If these
-/// methods panic, they can cause the program to abort.
-///
 /// # Examples
 ///
 /// ```rust
@@ -730,20 +725,12 @@ struct Funcs {
     iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
 }
 
-#[cfg(need_ffi_panic_check)]
 macro_rules! c_callback {
     ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
         unsafe extern "C" fn $func($($param)*) {
             panic::catch_unwind(AssertUnwindSafe(|| $body))
                 .unwrap_or_else(|_| process::abort())
         }
-    )* };
-}
-
-#[cfg(not(need_ffi_panic_check))]
-macro_rules! c_callback {
-    ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
-        unsafe extern "C" fn $func($($param)*) $body
     )* };
 }
 
