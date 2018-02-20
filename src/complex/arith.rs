@@ -17,6 +17,8 @@
 use {Complex, Float};
 #[cfg(feature = "integer")]
 use Integer;
+#[cfg(feature = "rational")]
+use Rational;
 use complex::big::{Ordering2, Round2, ordering2, raw_round2};
 use ext::mpc as xmpc;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
@@ -368,7 +370,7 @@ macro_rules! arith_prim_noncommut_complex {
 }
 
 arith_prim_commut_complex! {
-    mpc::add_ui;
+    xmpc::add_ui;
     Add add;
     AddAssign add_assign;
     AddAssignRound add_assign_round;
@@ -378,7 +380,7 @@ arith_prim_commut_complex! {
     AddU32Incomplete
 }
 arith_prim_noncommut_complex! {
-    mpc::sub_ui, xmpc::ui_sub;
+    xmpc::sub_ui, xmpc::ui_sub;
     Sub sub;
     SubAssign sub_assign;
     SubAssignRound sub_assign_round;
@@ -388,7 +390,7 @@ arith_prim_noncommut_complex! {
     SubU32Incomplete SubFromU32Incomplete
 }
 arith_prim_commut_complex! {
-    mpc::mul_ui;
+    xmpc::mul_ui;
     Mul mul;
     MulAssign mul_assign;
     MulAssignRound mul_assign_round;
@@ -398,7 +400,7 @@ arith_prim_commut_complex! {
     MulU32Incomplete
 }
 arith_prim_noncommut_complex! {
-    mpc::div_ui, xmpc::ui_div;
+    xmpc::div_ui, xmpc::ui_div;
     Div div;
     DivAssign div_assign;
     DivAssignRound div_assign_round;
@@ -428,7 +430,7 @@ arith_prim_noncommut_complex! {
     SubI32Incomplete SubFromI32Incomplete
 }
 arith_prim_commut_complex! {
-    mpc::mul_si;
+    xmpc::mul_si;
     Mul mul;
     MulAssign mul_assign;
     MulAssignRound mul_assign_round;
@@ -446,6 +448,173 @@ arith_prim_noncommut_complex! {
     DivFromRound div_from_round;
     i32;
     DivI32Incomplete DivFromI32Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::add_f32;
+    Add add;
+    AddAssign add_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
+    AddFromRound add_from_round;
+    f32;
+    AddF32Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::sub_f32, xmpc::f32_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
+    SubFromRound sub_from_round;
+    f32;
+    SubF32Incomplete SubFromF32Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::mul_f32;
+    Mul mul;
+    MulAssign mul_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
+    MulFromRound mul_from_round;
+    f32;
+    MulF32Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::div_f32, xmpc::f32_div;
+    Div div;
+    DivAssign div_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
+    DivFromRound div_from_round;
+    f32;
+    DivF32Incomplete DivFromF32Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::add_f64;
+    Add add;
+    AddAssign add_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
+    AddFromRound add_from_round;
+    f64;
+    AddF64Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::sub_f64, xmpc::f64_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
+    SubFromRound sub_from_round;
+    f64;
+    SubF64Incomplete SubFromF64Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::mul_f64;
+    Mul mul;
+    MulAssign mul_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
+    MulFromRound mul_from_round;
+    f64;
+    MulF64Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::div_f64, xmpc::f64_div;
+    Div div;
+    DivAssign div_assign;
+    DivAssignRound div_assign_round;
+    DivFrom div_from;
+    DivFromRound div_from_round;
+    f64;
+    DivF64Incomplete DivFromF64Incomplete
+}
+
+#[cfg(feature = "integer")]
+arith_commut_complex! {
+    xmpc::add_z;
+    Add add;
+    AddAssign add_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
+    AddFromRound add_from_round;
+    Integer;
+    AddIntegerIncomplete AddOwnedIntegerIncomplete
+}
+#[cfg(feature = "integer")]
+arith_noncommut_complex! {
+    xmpc::sub_z, xmpc::z_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
+    SubFromRound sub_from_round;
+    Integer;
+    SubIntegerIncomplete SubFromIntegerIncomplete;
+    SubOwnedIntegerIncomplete SubFromOwnedIntegerIncomplete
+}
+#[cfg(feature = "integer")]
+arith_commut_complex! {
+    xmpc::mul_z;
+    Mul mul;
+    MulAssign mul_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
+    MulFromRound mul_from_round;
+    Integer;
+    MulIntegerIncomplete MulOwnedIntegerIncomplete
+}
+#[cfg(feature = "integer")]
+arith_forward_complex! {
+    xmpc::div_z;
+    Div div;
+    DivAssign div_assign;
+    DivAssignRound div_assign_round;
+    Integer;
+    DivIntegerIncomplete DivOwnedIntegerIncomplete
+}
+#[cfg(feature = "rational")]
+arith_commut_complex! {
+    xmpc::add_q;
+    Add add;
+    AddAssign add_assign;
+    AddAssignRound add_assign_round;
+    AddFrom add_from;
+    AddFromRound add_from_round;
+    Rational;
+    AddRationalIncomplete AddOwnedRationalIncomplete
+}
+#[cfg(feature = "rational")]
+arith_noncommut_complex! {
+    xmpc::sub_q, xmpc::q_sub;
+    Sub sub;
+    SubAssign sub_assign;
+    SubAssignRound sub_assign_round;
+    SubFrom sub_from;
+    SubFromRound sub_from_round;
+    Rational;
+    SubRationalIncomplete SubFromRationalIncomplete;
+    SubOwnedRationalIncomplete SubFromOwnedRationalIncomplete
+}
+#[cfg(feature = "rational")]
+arith_commut_complex! {
+    xmpc::mul_q;
+    Mul mul;
+    MulAssign mul_assign;
+    MulAssignRound mul_assign_round;
+    MulFrom mul_from;
+    MulFromRound mul_from_round;
+    Rational;
+    MulRationalIncomplete MulOwnedRationalIncomplete
+}
+#[cfg(feature = "rational")]
+arith_forward_complex! {
+    xmpc::div_q;
+    Div div;
+    DivAssign div_assign;
+    DivAssignRound div_assign_round;
+    Rational;
+    DivRationalIncomplete DivOwnedRationalIncomplete
 }
 
 arith_prim_exact_complex! {
@@ -720,6 +889,78 @@ mod tests {
                     }
                     if *b != 0i32 {
                         assert!(same(*op / b.clone(), cop.clone() / b));
+                    }
+                }
+            }
+        }
+        for op in F32 {
+            let cop = Complex::with_val(100, *op);
+            for b in &against {
+                assert!(same(b.clone() + *op, b.clone() + &cop));
+                assert!(same(*op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - *op, b.clone() - &cop));
+                assert!(same(*op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * *op, b.clone() * &cop));
+                    assert!(same(*op * b.clone(), cop.clone() * b));
+                    if *op != 0.0 {
+                        assert!(same(b.clone() / *op, b.clone() / &cop));
+                    }
+                    if *b != 0i32 {
+                        assert!(same(*op / b.clone(), cop.clone() / b));
+                    }
+                }
+            }
+        }
+        for op in F64 {
+            let cop = Complex::with_val(100, *op);
+            for b in &against {
+                assert!(same(b.clone() + *op, b.clone() + &cop));
+                assert!(same(*op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - *op, b.clone() - &cop));
+                assert!(same(*op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * *op, b.clone() * &cop));
+                    assert!(same(*op * b.clone(), cop.clone() * b));
+                    if *op != 0.0 {
+                        assert!(same(b.clone() / *op, b.clone() / &cop));
+                    }
+                    if *b != 0i32 {
+                        assert!(same(*op / b.clone(), cop.clone() / b));
+                    }
+                }
+            }
+        }
+        #[cfg(feature = "integer")]
+        for op in &z {
+            let cop = Complex::with_val(100, op);
+            for b in &against {
+                assert!(same(b.clone() + op, b.clone() + &cop));
+                assert!(same(op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - op, b.clone() - &cop));
+                assert!(same(op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * op, b.clone() * &cop));
+                    assert!(same(op * b.clone(), cop.clone() * b));
+                    if *op != 0 {
+                        assert!(same(b.clone() / op, b.clone() / &cop));
+                    }
+                }
+            }
+        }
+        #[cfg(feature = "rational")]
+        for op in &q {
+            let cop = Complex::with_val(100, op);
+            for b in &against {
+                assert!(same(b.clone() + op, b.clone() + &cop));
+                assert!(same(op + b.clone(), cop.clone() + b));
+                assert!(same(b.clone() - op, b.clone() - &cop));
+                assert!(same(op - b.clone(), cop.clone() - b));
+                if b.real().is_finite() && b.imag().is_finite() {
+                    assert!(same(b.clone() * op, b.clone() * &cop));
+                    assert!(same(op * b.clone(), cop.clone() * b));
+                    if *op != 0 {
+                        assert!(same(b.clone() / op, b.clone() / &cop));
                     }
                 }
             }
