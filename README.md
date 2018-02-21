@@ -88,14 +88,14 @@ Rug types and primitives. The following are provided:
    [`u64`][rust u64] and [`usize`][rust usize].
 3. Comparisons between Rug types and all the primitives listed in
    1 and 2 above are supported.
-4. For [`Rational`][rug rat] numbers, operations are also supported
-   for tuples containing two primitives: the first is the numerator
-   and the second is the denominator which cannot be zero. The two
-   primitives do not need to have the same type.
-5. For [`Complex`][rug com] numbers, operations are also supported for
-   tuples containing two primitives: the first is the real part and
-   the second is the imaginary part. The two primitives do not need to
-   have the same type.
+4. For [`Rational`][rug rat] numbers, conversions and comparisons are
+   also supported for tuples containing two integer primitives: the
+   first is the numerator and the second is the denominator which must
+   not be zero. The two primitives do not need to be of the same type.
+5. For [`Complex`][rug com] numbers, conversions are also supported
+   for tuples containing two primitives: the first is the real part
+   and the second is the imaginary part. The two primitives do not
+   need to be of the same type.
 
 ## Operators
 
