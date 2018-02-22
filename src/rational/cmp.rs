@@ -283,8 +283,11 @@ mod tests {
     use Rational;
     #[cfg(feature = "float")]
     use std::{f32, f64};
+    #[cfg(feature = "float")]
     use std::cmp::Ordering;
-    use std::ops::{Neg, Sub};
+    #[cfg(feature = "float")]
+    use std::ops::Neg;
+    use std::ops::Sub;
     use tests::{I32, I64, U32, U64};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])

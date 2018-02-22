@@ -2,6 +2,8 @@ Version 1.0.0 (2018-??-??)
 ==========================
 
 * Remove all deprecated items.
+* Remove unsound blanket implementations for
+  `T where SmallInteger: Assign<T>` inside `SmallRational`.
 
 Version 0.10.0 (2018-02-17)
 ===========================

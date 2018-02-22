@@ -20,7 +20,7 @@ use cast::cast;
 use gmp_mpfr_sys::gmp;
 use inner::InnerMut;
 use integer::SmallInteger;
-use integer::small::{Mpz, LIMBS_IN_SMALL_INTEGER};
+use integer::small::{CopyToSmall, Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
@@ -59,7 +59,8 @@ pub struct SmallRational {
     num: Mpz,
     den: Mpz,
     // numerator is first in limbs if num.d <= den.d
-    limbs: [gmp::limb_t; 2 * LIMBS_IN_SMALL_INTEGER],
+    first_limbs: Limbs,
+    last_limbs: Limbs,
 }
 
 impl Default for SmallRational {
@@ -68,6 +69,11 @@ impl Default for SmallRational {
         SmallRational::new()
     }
 }
+
+#[cfg(gmp_limb_bits_64)]
+const LIMBS_ONE: Limbs = [1];
+#[cfg(gmp_limb_bits_32)]
+const LIMBS_ONE: Limbs = [1, 0];
 
 impl SmallRational {
     /// Creates a `SmallRational` with value 0.
@@ -83,7 +89,7 @@ impl SmallRational {
     /// ```
     #[inline]
     pub fn new() -> Self {
-        let mut ret = SmallRational {
+        SmallRational {
             num: Mpz {
                 size: 0,
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
@@ -94,10 +100,9 @@ impl SmallRational {
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
                 d: Default::default(),
             },
-            limbs: [0; 2 * LIMBS_IN_SMALL_INTEGER],
-        };
-        ret.limbs[LIMBS_IN_SMALL_INTEGER] = 1;
-        ret
+            first_limbs: [0; LIMBS_IN_SMALL_INTEGER],
+            last_limbs: LIMBS_ONE,
+        }
     }
 
     /// Returns a mutable reference to a
@@ -163,22 +168,17 @@ impl SmallRational {
     /// ```
     pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
-        SmallInteger: Assign<Num> + Assign<Den>,
+        SmallInteger: From<Num> + From<Den>,
     {
-        let mut ret = SmallRational::new();
-        ret.update_d();
-
-        // zero alloc during SmallInteger assignment so that it leaves d alone
-        ret.num.alloc = 0;
-        let num_ptr = &mut ret.num as *mut Mpz as *mut SmallInteger;
-        (*num_ptr).assign(num);
-        ret.num.alloc = cast(LIMBS_IN_SMALL_INTEGER);
-        ret.den.alloc = 0;
-        let den_ptr = &mut ret.den as *mut Mpz as *mut SmallInteger;
-        (*den_ptr).assign(den);
-        ret.den.alloc = cast(LIMBS_IN_SMALL_INTEGER);
-
-        ret
+        let (num, den) = (SmallInteger::from(num), SmallInteger::from(den));
+        assert!(num.inner.d.load(Ordering::Relaxed).is_null());
+        assert!(den.inner.d.load(Ordering::Relaxed).is_null());
+        SmallRational {
+            num: num.inner,
+            den: den.inner,
+            first_limbs: num.limbs,
+            last_limbs: den.limbs,
+        }
     }
 
     /// Creates a `SmallRational` from a 32-bit numerator and
@@ -261,22 +261,25 @@ impl SmallRational {
         }
     }
 
+    fn num_is_first(&self) -> bool {
+        (self.num.d.load(Ordering::Relaxed) as usize)
+            <= (self.den.d.load(Ordering::Relaxed) as usize)
+    }
+
     // To be used when offsetting num and den in case the struct has
     // been displaced in memory; if currently num.d <= den.d then
-    // num.d points to limbs[0] and den.d points to
-    // limbs[LIMBS_IN_SMALL_INTEGER], otherwise num.d points to
-    // limbs[LIMBS_IN_SMALL_INTEGER] and den.d points to limbs[0].
+    // num.d points to limbs[0][0] and den.d points to limbs[1][0],
+    // otherwise num.d points to limbs[1][0] and den.d points to
+    // limbs[0][0].
     #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = &self.limbs[0] as *const _ as *mut _;
-        let last = &self.limbs[LIMBS_IN_SMALL_INTEGER] as *const _ as *mut _;
-        let num_is_first = (self.num.d.load(Ordering::Relaxed) as usize)
-            <= (self.den.d.load(Ordering::Relaxed) as usize);
-        let (num_d, den_d) = if num_is_first {
+        let first = &self.first_limbs[0] as *const _ as *mut _;
+        let last = &self.last_limbs[0] as *const _ as *mut _;
+        let (num_d, den_d) = if self.num_is_first() {
             (first, last)
         } else {
             (last, first)
@@ -296,83 +299,98 @@ impl Deref for SmallRational {
     }
 }
 
-impl<Num> Assign<Num> for SmallRational
-where
-    SmallInteger: Assign<Num>,
-{
-    #[inline]
-    fn assign(&mut self, num: Num) {
-        self.update_d();
-
-        // zero alloc during SmallInteger assignment so that it leaves d alone
-        self.num.alloc = 0;
-        let num_ptr = &mut self.num as *mut Mpz as *mut SmallInteger;
-        unsafe {
-            (*num_ptr).assign(num);
-        }
-        self.num.alloc = cast(LIMBS_IN_SMALL_INTEGER);
-
-        self.den.size = 1;
-        unsafe {
-            *self.den.d.load(Ordering::Relaxed) = 1;
-        }
-    }
-}
-
 impl<Num> From<Num> for SmallRational
 where
-    SmallInteger: Assign<Num>,
+    SmallInteger: From<Num>,
 {
     #[inline]
-    fn from(val: Num) -> Self {
-        let mut ret = SmallRational::new();
-        ret.assign(val);
-        ret
-    }
-}
-
-impl<Num, Den> Assign<(Num, Den)> for SmallRational
-where
-    SmallInteger: Assign<Num> + Assign<Den>,
-{
-    #[inline]
-    fn assign(&mut self, (num, den): (Num, Den)) {
-        self.update_d();
-
-        // zero alloc during SmallInteger assignment so that it leaves d alone
-        self.num.alloc = 0;
-        let num_ptr = &mut self.num as *mut Mpz as *mut SmallInteger;
-        unsafe {
-            (*num_ptr).assign(num);
-        }
-        self.num.alloc = cast(LIMBS_IN_SMALL_INTEGER);
-        self.den.alloc = 0;
-        let den_ptr = &mut self.den as *mut Mpz as *mut SmallInteger;
-        unsafe {
-            (*den_ptr).assign(den);
-        }
-        self.den.alloc = cast(LIMBS_IN_SMALL_INTEGER);
-
-        unsafe {
-            assert_ne!(self.den.size, 0, "division by zero");
-            gmp::mpq_canonicalize(
-                self.as_nonreallocating_rational().inner_mut(),
-            );
+    fn from(src: Num) -> Self {
+        let num = SmallInteger::from(src);
+        assert!(num.inner.d.load(Ordering::Relaxed).is_null());
+        SmallRational {
+            num: num.inner,
+            den: Mpz {
+                size: 1,
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                d: Default::default(),
+            },
+            first_limbs: num.limbs,
+            last_limbs: LIMBS_ONE,
         }
     }
 }
 
 impl<Num, Den> From<(Num, Den)> for SmallRational
 where
-    SmallInteger: Assign<Num> + Assign<Den>,
+    SmallInteger: From<Num> + From<Den>,
 {
     #[inline]
-    fn from(val: (Num, Den)) -> Self {
-        let mut ret = SmallRational::new();
-        ret.assign(val);
-        ret
+    fn from(src: (Num, Den)) -> Self {
+        let (num, den) = (SmallInteger::from(src.0), SmallInteger::from(src.1));
+        assert!(num.inner.d.load(Ordering::Relaxed).is_null());
+        assert!(den.inner.d.load(Ordering::Relaxed).is_null());
+        assert_ne!(den.inner.size, 0, "division by zero");
+        let mut dst = SmallRational {
+            num: num.inner,
+            den: den.inner,
+            first_limbs: num.limbs,
+            last_limbs: den.limbs,
+        };
+        unsafe {
+            gmp::mpq_canonicalize(
+                dst.as_nonreallocating_rational().inner_mut(),
+            );
+        }
+        dst
     }
 }
+
+macro_rules! impl_assign_num_den {
+    ($Num: ty; $($Den: ty)*) => { $(
+        impl Assign<($Num, $Den)> for SmallRational {
+            #[inline]
+            fn assign(&mut self, src: ($Num, $Den)) {
+                assert_ne!(src.1, 0, "division by zero");
+                {
+                    let (num_limbs, den_limbs) = if self.num_is_first() {
+                        (&mut self.first_limbs, &mut self.last_limbs)
+                    } else {
+                        (&mut self.last_limbs, &mut self.first_limbs)
+                    };
+                    src.0.copy(&mut self.num.size, num_limbs);
+                    src.1.copy(&mut self.den.size, den_limbs);
+                }
+                unsafe {
+                    gmp::mpq_canonicalize(
+                        self.as_nonreallocating_rational().inner_mut(),
+                    );
+                }
+            }
+        }
+    )* };
+}
+
+macro_rules! impl_assign_num {
+    ($($Num: ty)*) => { $(
+        impl Assign<$Num> for SmallRational {
+            #[inline]
+            fn assign(&mut self, src: $Num) {
+                let (num_limbs, den_limbs) = if self.num_is_first() {
+                    (&mut self.first_limbs, &mut self.last_limbs)
+                } else {
+                    (&mut self.last_limbs, &mut self.first_limbs)
+                };
+                src.copy(&mut self.num.size, num_limbs);
+                self.den.size = 1;
+                den_limbs[0] = 1;
+            }
+        }
+
+        impl_assign_num_den! { $Num; i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+    )* };
+}
+
+impl_assign_num! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
 
 impl<'a> Assign<&'a Self> for SmallRational {
     #[inline]

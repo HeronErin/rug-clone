@@ -58,17 +58,17 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 #[derive(Clone)]
 #[repr(C)]
 pub struct SmallInteger {
-    inner: Mpz,
-    limbs: [gmp::limb_t; LIMBS_IN_SMALL_INTEGER],
+    pub(crate) inner: Mpz,
+    pub(crate) limbs: Limbs,
 }
 
 #[cfg(gmp_limb_bits_64)]
-pub const LIMBS_IN_SMALL_INTEGER: usize = 1;
+pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = 1;
 #[cfg(gmp_limb_bits_32)]
-pub const LIMBS_IN_SMALL_INTEGER: usize = 2;
+pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = 2;
 
-// Zero alloc means d is already set, so do nothing in update_d().
-// This is useful for SmallRational implementation.
+pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
+
 #[repr(C)]
 pub struct Mpz {
     pub alloc: c_int,
@@ -152,17 +152,14 @@ impl SmallInteger {
         &mut *ptr
     }
 
-    // Zero alloc means d is already set, so do nothing.
     #[inline]
     fn update_d(&self) {
         // sanity check
         assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
-        if self.inner.alloc != 0 {
-            // Since this is borrowed, the limbs won't move around, and we
-            // can set the d field.
-            let d = &self.limbs[0] as *const _ as *mut _;
-            self.inner.d.store(d, Ordering::Relaxed);
-        }
+        // Since this is borrowed, the limbs won't move around, and we
+        // can set the d field.
+        let d = &self.limbs[0] as *const _ as *mut _;
+        self.inner.d.store(d, Ordering::Relaxed);
     }
 }
 
@@ -176,41 +173,38 @@ impl Deref for SmallInteger {
     }
 }
 
+pub(crate) trait CopyToSmall: Copy {
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs);
+}
+
 macro_rules! signed {
     ($($I: ty)*) => { $(
-        impl Assign<$I> for SmallInteger {
+        impl CopyToSmall for $I {
             #[inline]
-            fn assign(&mut self, val: $I) {
-                let (neg_val, abs_val) = val.neg_abs();
-                self.assign(abs_val);
-                if neg_val {
-                    self.inner.size = -self.inner.size;
+            fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
+                let (neg, abs) = self.neg_abs();
+                abs.copy(size, limbs);
+                if neg {
+                    *size = -*size;
                 }
             }
         }
-
-        from_assign! { $I => SmallInteger }
     )* };
 }
 
 macro_rules! one_limb {
     ($($U: ty)*) => { $(
-        impl Assign<$U> for SmallInteger {
+        impl CopyToSmall for $U {
             #[inline]
-            fn assign(&mut self, val: $U) {
-                self.update_d();
-                if val == 0 {
-                    self.inner.size = 0;
+            fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
+                if self == 0 {
+                    *size = 0;
                 } else {
-                    self.inner.size = 1;
-                    unsafe {
-                        *self.inner.d.load(Ordering::Relaxed) = val.into();
-                    }
+                    *size = 1;
+                    limbs[0] = self.into();
                 }
             }
         }
-
-        from_assign! { $U => SmallInteger }
     )* };
 }
 
@@ -221,46 +215,50 @@ one_limb! { u8 u16 u32 }
 one_limb! { u64 }
 
 #[cfg(gmp_limb_bits_32)]
-impl Assign<u64> for SmallInteger {
+impl CopyToSmall for u64 {
     #[inline]
-    fn assign(&mut self, val: u64) {
-        self.update_d();
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if val == 0 {
-            self.inner.size = 0;
+            *size = 0;
         } else if val <= 0xffff_ffff {
-            self.inner.size = 1;
-            unsafe {
-                *self.inner.d.load(Ordering::Relaxed) = cast(val as u32);
-            }
+            *size = 1;
+            limbs[0] = val as u32;
         } else {
-            self.inner.size = 2;
-            unsafe {
-                *self.inner.d.load(Ordering::Relaxed) = cast(val as u32);
-                *self.inner.d.load(Ordering::Relaxed).offset(1) =
-                    cast((val >> 32) as u32);
-            }
+            *size = 2;
+            limbs[0] = val as u32;
+            limbs[1] = (val >> 32) as u32;
         }
     }
 }
 
-#[cfg(gmp_limb_bits_32)]
-from_assign! { u64 => SmallInteger }
-
-impl Assign<usize> for SmallInteger {
+impl CopyToSmall for usize {
     #[inline]
-    fn assign(&mut self, val: usize) {
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         #[cfg(target_pointer_width = "32")]
         {
-            self.assign(val as u32);
+            (self as u32).copy(size, limbs);
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.assign(val as u64);
+            (self as u64).copy(size, limbs);
         }
     }
 }
 
-from_assign! { usize => SmallInteger }
+macro_rules! impl_assign_from {
+    ($($T: ty)*) => { $(
+        impl Assign<$T> for SmallInteger {
+            #[inline]
+            fn assign(&mut self, src: $T) {
+                src.copy(&mut self.inner.size, &mut self.limbs);
+            }
+        }
+
+        from_assign! { $T => SmallInteger }
+    )* };
+}
+
+impl_assign_from! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
 
 impl<'a> Assign<&'a Self> for SmallInteger {
     #[inline]
