@@ -839,7 +839,7 @@ mod tests {
             Float::with_val(20, Special::Infinity),
         ];
 
-        let against = (large.iter().cloned())
+        let mut against = (large.iter().cloned())
             .chain(U32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(I32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(U64.iter().map(|&x| Complex::with_val(20, x)))
@@ -847,8 +847,6 @@ mod tests {
             .chain(F32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(F64.iter().map(|&x| Complex::with_val(20, x)))
             .collect::<Vec<Complex>>();
-        #[cfg(feature = "integer")]
-        let mut against = against;
         #[cfg(feature = "integer")]
         against.extend(z.iter().map(|x| Complex::with_val(20, x)));
         #[cfg(feature = "rational")]
