@@ -105,10 +105,10 @@
 //!    primitives: the first is the numerator and the second is the
 //!    denominator which must not be zero. The two primitives do not
 //!    need to be of the same type.
-//! 5. For [`Complex`][rug com] numbers, conversions are also
-//!    supported for tuples containing two primitives: the first is
-//!    the real part and the second is the imaginary part. The two
-//!    primitives do not need to be of the same type.
+//! 5. For [`Complex`][rug com] numbers, conversions and comparisons
+//!    are also supported for tuples containing two primitives: the
+//!    first is the real part and the second is the imaginary part.
+//!    The two primitives do not need to be of the same type.
 //!
 //! ## Operators
 //!

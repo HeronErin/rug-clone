@@ -28,73 +28,52 @@ impl PartialEq for Complex {
     }
 }
 
-macro_rules! eq_tuple {
-    ($T: ty, $U: ty) => {
-        impl PartialEq<Complex> for ($T, $U) {
+macro_rules! eq_re_im {
+    ($Re: ty; $($Im: ty)*) => { $(
+        impl PartialEq<($Re, $Im)> for Complex {
             #[inline]
-            fn eq(&self, other: &Complex) -> bool {
-                self.0.eq(other.real()) && self.1.eq(other.imag())
-            }
-        }
-        impl PartialEq<($T, $U)> for Complex {
-            #[inline]
-            fn eq(&self, other: &($T, $U)) -> bool {
+            fn eq(&self, other: &($Re, $Im)) -> bool {
                 self.real().eq(&other.0) && self.imag().eq(&other.1)
             }
         }
-    };
+
+        impl PartialEq<Complex> for ($Re, $Im) {
+            #[inline]
+            fn eq(&self, other: &Complex) -> bool {
+                other.real().eq(&self.0) && other.imag().eq(&self.1)
+            }
+        }
+    )* };
 }
 
-macro_rules! eq {
-    ($T: ty) => {
-        #[cfg(feature = "integer")]
-        eq_tuple! { $T, Integer }
-        #[cfg(feature = "rational")]
-        eq_tuple! { $T, Rational }
-        eq_tuple! { $T, Float }
-        eq_tuple! { $T, u8 }
-        eq_tuple! { $T, i8 }
-        eq_tuple! { $T, u16 }
-        eq_tuple! { $T, i16 }
-        eq_tuple! { $T, u32 }
-        eq_tuple! { $T, i32 }
-        eq_tuple! { $T, u64 }
-        eq_tuple! { $T, i64 }
-        eq_tuple! { $T, usize }
-        eq_tuple! { $T, isize }
-        eq_tuple! { $T, f32 }
-        eq_tuple! { $T, f64 }
-
-        impl PartialEq<$T> for Complex {
+macro_rules! eq_re {
+    ($($Re: ty)*) => { $(
+        impl PartialEq<$Re> for Complex {
             #[inline]
-            fn eq(&self, other: &$T) -> bool {
+            fn eq(&self, other: &$Re) -> bool {
                 self.imag().is_zero() && self.real().eq(other)
             }
         }
 
-        impl PartialEq<Complex> for $T {
+        impl PartialEq<Complex> for $Re {
             #[inline]
             fn eq(&self, other: &Complex) -> bool {
-                other.imag().is_zero() && self.eq(other.real())
+                other.imag().is_zero() && other.real().eq(self)
             }
         }
-    };
+
+        #[cfg(feature = "integer")]
+        eq_re_im! { $Re; Integer }
+        #[cfg(feature = "rational")]
+        eq_re_im! { $Re; Rational }
+        eq_re_im! { $Re; Float }
+        eq_re_im! { $Re; i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+    )* };
 }
 
 #[cfg(feature = "integer")]
-eq! { Integer }
+eq_re! { Integer }
 #[cfg(feature = "rational")]
-eq! { Rational }
-eq! { Float }
-eq! { u8 }
-eq! { i8 }
-eq! { u16 }
-eq! { i16 }
-eq! { u32 }
-eq! { i32 }
-eq! { u64 }
-eq! { i64 }
-eq! { usize }
-eq! { isize }
-eq! { f32 }
-eq! { f64 }
+eq_re! { Rational }
+eq_re! { Float }
+eq_re! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
