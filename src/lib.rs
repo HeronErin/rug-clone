@@ -40,15 +40,6 @@
 //!
 //! ## Quick example
 //!
-//! For many operations, you can use the arbitrary-precision types
-//! such as [`Integer`][rug int] like you use primitive types such as
-//! [`i32`][rust i32]. However Rug types do not implement
-//! [`Copy`][rust copy]. This is because they store their digits in
-//! the heap, not on the stack, and copying them could involve an
-//! expensive deep copy.
-//!
-//! This code uses the [`Integer`][rug int] type:
-//!
 //! ```rust
 //! # #[cfg(feature = "integer")] {
 //! use rug::{Assign, Integer};
@@ -83,7 +74,7 @@
 //!   [`Integer::parse_radix`][rug int parseradix].
 //! * We can compare Rug types to primitive types or to other Rug
 //!   types using the normal comparison operators, for example
-//!   `int > 100_000_000_000`.
+//!   `int > 100_000_000`.
 //! * Most arithmetic operations are supported with Rug types and
 //!   primitive types on either side of the operator, for example
 //!   `int >> 128`.
@@ -123,8 +114,8 @@
 //!
 //! Operators are overloaded to work on Rug types alone or on a
 //! combination of Rug types and Rust primitives. When at least one
-//! operand is an owned Rug type, the operation will consume that type
-//! and return a Rug type. For example
+//! operand is an owned value of a Rug type, the operation will
+//! consume that value and return a value of the Rug type. For example
 //!
 //! ```rust
 //! # #[cfg(feature = "integer")] {
@@ -140,7 +131,7 @@
 //!
 //! If on the other hand there are no owned Rug types and there are
 //! references instead, the returned value is not the final value, but
-//! an incomplete computation value. For example
+//! an incomplete-computation value. For example
 //!
 //! ```rust
 //! # #[cfg(feature = "integer")] {
@@ -156,7 +147,7 @@
 //! Here `a` and `b` are not consumed, and `incomplete` is not the
 //! final value. It still needs to be converted or assigned into an
 //! [`Integer`][rug int]. This is covered in more detail in the
-//! [*Incomplete computation values*](#incomplete-computation-values)
+//! [*Incomplete-computation values*](#incomplete-computation-values)
 //! section.
 //!
 //! ### Shifting operations
@@ -206,7 +197,7 @@
 //! # }
 //! ```
 //!
-//! ## Incomplete computation values
+//! ## Incomplete-computation values
 //!
 //! There are two main reasons why operations like `&a - &b` do not
 //! perform a complete computation and return a Rug type:
@@ -222,7 +213,7 @@
 //!    convey information about what precision is desired for the
 //!    result. The same holds for the [`Complex`][rug com] type.
 //!
-//! There are two things that can be done with incomplete computatin
+//! There are two things that can be done with incomplete-computation
 //! values:
 //!
 //! 1. Assign them to an existing object without unnecessary
@@ -251,10 +242,9 @@
 //!
 //! Here the assignment from `incomplete` into `buffer` does not
 //! require an allocation unless the result does not fit in the
-//! current capacity of `buffer`. And even then, the reallocation
-//! would take place before the computation, so no copies are
-//! involved. If `&a - &b` returned an [`Integer`][rug int] instead,
-//! then an allocation would take place even if it is not necessary.
+//! current capacity of `buffer`. If `&a - &b` returned an
+//! [`Integer`][rug int] instead, then an allocation would take place
+//! even if it is not necessary.
 //!
 //! ```rust
 //! # #[cfg(feature = "float")] {
@@ -275,11 +265,7 @@
 //! the algorithm being implemented. Here `z` is created with a
 //! precision of 45.
 //!
-//! In these two examples, we could have left out the `incomplete`
-//! variables altogether and used `buffer.assign(&a - &b)` and
-//! `Float::with_val(45, &x / &y)` directly.
-//!
-//! Many operations can return incomplete computation values:
+//! Many operations can return incomplete-computation values:
 //!
 //! * unary operators applied to references, for example `-&int`;
 //! * binary operators applied to two references, for example
@@ -289,7 +275,7 @@
 //! * methods that take a reference, for example
 //!   [`int.abs_ref()`][rug int absref];
 //! * methods that take two references, for example
-//!   [`int1.div_rem_ref(&int2)`][rug int divremref];
+//!   [`int1.gcd_ref(&int2)`][rug int gcdref];
 //! * string parsing, for example
 //!   [`Integer::parse("12")`][rug int parse];
 //! * and more…
@@ -297,7 +283,7 @@
 //! These operations return objects that can be stored in temporary
 //! variables like `incomplete` in the last few examples. However, the
 //! names of the types are not public, and consequently, the
-//! incomplete computation values cannot be for example stored in a
+//! incomplete-computation values cannot be for example stored in a
 //! struct. If you need to store the value in a struct, convert it to
 //! its final type and value.
 //!
@@ -385,7 +371,7 @@
 //! [rug flo withval]: struct.Float.html#method.with_val
 //! [rug flo]: struct.Float.html
 //! [rug int absref]: struct.Integer.html#method.abs_ref
-//! [rug int divremref]: struct.Integer.html#method.div_rem_ref
+//! [rug int gcdref]: struct.Integer.html#method.gcd_ref
 //! [rug int negref]: struct.Integer.html#impl-Neg-1
 //! [rug int new]: struct.Integer.html#method.new
 //! [rug int parse]: struct.Integer.html#method.parse
@@ -397,7 +383,6 @@
 //! [rug rat]: struct.Rational.html
 //! [rug subfrom]: ops/trait.SubFrom.html
 //! [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-//! [rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
 //! [rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
 //! [rust f64]: https://doc.rust-lang.org/std/primitive.f64.html
 //! [rust from from]: https://doc.rust-lang.org/std/convert/trait.From.html#tymethod.from

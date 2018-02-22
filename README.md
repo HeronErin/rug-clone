@@ -23,15 +23,6 @@ Unless some issue is discovered, version 1.0.0 will be like version
 
 ## Quick example
 
-For many operations, you can use the arbitrary-precision types such as
-[`Integer`][rug int] like you use primitive types such as
-[`i32`][rust i32]. However Rug types do not implement
-[`Copy`][rust copy]. This is because they store their digits in the
-heap, not on the stack, and copying them could involve an expensive
-deep copy.
-
-This code uses the [`Integer`][rug int] type:
-
 ```rust
 use rug::{Assign, Integer};
 let mut int = Integer::new();
@@ -64,7 +55,7 @@ assert_eq!(int, 0xfffe_ffff_u32);
   [`Integer::parse_radix`][rug int parseradix].
 * We can compare Rug types to primitive types or to other Rug types
   using the normal comparison operators, for example
-  `int > 100_000_000_000`.
+  `int > 100_000_000`.
 * Most arithmetic operations are supported with Rug types and
   primitive types on either side of the operator, for example
   `int >> 128`.
@@ -101,8 +92,8 @@ Rug types and primitives. The following are provided:
 
 Operators are overloaded to work on Rug types alone or on a
 combination of Rug types and Rust primitives. When at least one
-operand is an owned Rug type, the operation will consume that type and
-return a Rug type. For example
+operand is an owned value of a Rug type, the operation will consume
+that value and return a value of the Rug type. For example
 
 ```rust
 use rug::Integer;
@@ -116,7 +107,7 @@ Here `a` is consumed by the subtraction, and `b` is an owned
 
 If on the other hand there are no owned Rug types and there are
 references instead, the returned value is not the final value, but an
-incomplete computation value. For example
+incomplete-computation value. For example
 
 ```rust
 use rug::Integer;
@@ -130,7 +121,7 @@ assert_eq!(sub, -10);
 Here `a` and `b` are not consumed, and `incomplete` is not the final
 value. It still needs to be converted or assigned into an
 [`Integer`][rug int]. This is covered in more detail in the
-[*Incomplete computation values*](#incomplete-computation-values)
+[*Incomplete-computation values*](#incomplete-computation-values)
 section.
 
 ### Shifting operations
@@ -175,7 +166,7 @@ rhs.sub_from(100);
 assert_eq!(rhs, 90);
 ```
 
-## Incomplete computation values
+## Incomplete-computation values
 
 There are two main reasons why operations like `&a - &b` do not
 perform a complete computation and return a Rug type:
@@ -191,7 +182,7 @@ perform a complete computation and return a Rug type:
    information about what precision is desired for the result. The
    same holds for the [`Complex`][rug com] type.
 
-There are two things that can be done with incomplete computation
+There are two things that can be done with incomplete-computation
 values:
 
 1. Assign them to an existing object without unnecessary allocations.
@@ -218,10 +209,8 @@ assert_eq!(buffer, -10);
 
 Here the assignment from `incomplete` into `buffer` does not require
 an allocation unless the result does not fit in the current capacity
-of `buffer`. And even then, the reallocation would take place before
-the computation, so no copies are involved. If `&a - &b` returned an
-[`Integer`][rug int] instead, then an allocation would take place even
-if it is not necessary.
+of `buffer`. If `&a - &b` returned an [`Integer`][rug int] instead,
+then an allocation would take place even if it is not necessary.
 
 ```rust
 use rug::Float;
@@ -240,10 +229,6 @@ The precision to use for the result depends on the requirements of the
 algorithm being implemented. Here `z` is created with a precision of
 45.
 
-In these two examples, we could have left out the `incomplete`
-variables altogether and used `buffer.assign(&a - &b)` and
-`Float::with_val(45, &x / &y)` directly.
-
 Many operations can return incomplete computation values:
 
 * unary operators applied to references, for example `-&int`;
@@ -254,16 +239,16 @@ Many operations can return incomplete computation values:
 * methods that take a reference, for example
   [`int.abs_ref()`][rug int absref];
 * methods that take two references, for example
-  [`int1.div_rem_ref(&int2)`][rug int divremref];
+  [`int1.gcd_ref(&int2)`][rug int gcdref];
 * string parsing, for example [`Integer::parse("12")`][rug int parse];
 * and more…
 
 These operations return objects that can be stored in temporary
 variables like `incomplete` in the last few examples. However, the
-names of the types are not public, and consequently, the incomplete
-computation values cannot be for example stored in a struct. If you
-need to store the value in a struct, convert it to its final type and
-value.
+names of the types are not public, and consequently, the
+incomplete-computation values cannot be for example stored in a
+struct. If you need to store the value in a struct, convert it to its
+final type and value.
 
 ## Using Rug
 
@@ -347,7 +332,7 @@ provided by the crate.
 [rug flo withval]: https://docs.rs/rug/0.10.0/rug/struct.Float.html#method.with_val
 [rug flo]: https://docs.rs/rug/0.10.0/rug/struct.Float.html
 [rug int absref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.abs_ref
-[rug int divremref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.div_rem_ref
+[rug int gcdref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.gcd_ref
 [rug int negref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#impl-Neg-1
 [rug int new]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.new
 [rug int parse]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.parse
@@ -359,7 +344,6 @@ provided by the crate.
 [rug rat]: https://docs.rs/rug/0.10.0/rug/struct.Rational.html
 [rug subfrom]: ops/trait.SubFrom.html
 [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[rust copy]: https://doc.rust-lang.org/std/marker/trait.Copy.html
 [rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
 [rust f64]: https://doc.rust-lang.org/std/primitive.f64.html
 [rust from from]: https://doc.rust-lang.org/std/convert/trait.From.html#tymethod.from
