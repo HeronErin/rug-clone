@@ -2311,10 +2311,9 @@ impl Integer {
     /// ```
     #[inline]
     pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
-        if self.invert_mut(modulo) {
-            Ok(self)
-        } else {
-            Err(self)
+        match self.invert_mut(modulo) {
+            Ok(()) => Ok(self),
+            Err(()) => Err(self),
         }
     }
 
@@ -2330,22 +2329,24 @@ impl Integer {
     /// use rug::Integer;
     /// let mut n = Integer::from(2);
     /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
-    /// let exists_4 = n.invert_mut(&Integer::from(4));
-    /// assert!(!exists_4);
-    /// assert_eq!(n, 2);
+    /// match n.invert_mut(&Integer::from(4)) {
+    ///     Ok(()) => unreachable!(),
+    ///     Err(()) => assert_eq!(n, 2),
+    /// }
     /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
-    /// let exists_5 = n.invert_mut(&Integer::from(5));
-    /// assert!(exists_5);
-    /// assert_eq!(n, 3);
+    /// match n.invert_mut(&Integer::from(5)) {
+    ///     Ok(()) => assert_eq!(n, 3),
+    ///     Err(()) => unreachable!(),
+    /// }
     /// ```
     #[inline]
-    pub fn invert_mut(&mut self, modulo: &Self) -> bool {
+    pub fn invert_mut(&mut self, modulo: &Self) -> Result<(), ()> {
         match self.invert_ref(modulo) {
             Some(InvertIncomplete { sinverse, .. }) => unsafe {
                 mpz_invert_ref(self.inner_mut(), &sinverse, modulo);
-                true
+                Ok(())
             },
-            None => false,
+            None => Err(()),
         }
     }
 
@@ -2437,10 +2438,9 @@ impl Integer {
         exponent: &Self,
         modulo: &Self,
     ) -> Result<Self, Self> {
-        if self.pow_mod_mut(exponent, modulo) {
-            Ok(self)
-        } else {
-            Err(self)
+        match self.pow_mod_mut(exponent, modulo) {
+            Ok(()) => Ok(self),
+            Err(()) => Err(self),
         }
     }
 
@@ -2458,20 +2458,26 @@ impl Integer {
     /// let mut n = Integer::from(2);
     /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
-    /// let exists = n.pow_mod_mut(&e, &m);
-    /// assert!(!exists);
-    /// assert_eq!(n, 2);
+    /// match n.pow_mod_mut(&e, &m) {
+    ///     Ok(()) => unreachable!(),
+    ///     Err(()) => assert_eq!(n, 2),
+    /// }
     /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
     /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// n.assign(7);
-    /// let exists = n.pow_mod_mut(&e, &m);
-    /// assert!(exists);
-    /// assert_eq!(n, 943);
+    /// match n.pow_mod_mut(&e, &m) {
+    ///     Ok(()) => assert_eq!(n, 943),
+    ///     Err(()) => unreachable!(),
+    /// }
     /// ```
-    pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> bool {
+    pub fn pow_mod_mut(
+        &mut self,
+        exponent: &Self,
+        modulo: &Self,
+    ) -> Result<(), ()> {
         let sinverse = match self.pow_mod_ref(exponent, modulo) {
             Some(PowModIncomplete { sinverse, .. }) => sinverse,
-            None => return false,
+            None => return Err(()),
         };
         unsafe {
             mpz_pow_mod_ref(
@@ -2482,7 +2488,7 @@ impl Integer {
                 modulo,
             );
         }
-        true
+        Ok(())
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` if
