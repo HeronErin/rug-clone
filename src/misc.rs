@@ -26,6 +26,7 @@ macro_rules! neg_abs_unsigned {
     ($($U: ty)*) => { $(
         impl NegAbs for $U {
             type Abs = $U;
+            #[inline]
             fn neg_abs(self) -> (bool, $U) {
                 (false, self)
             }
@@ -36,6 +37,7 @@ macro_rules! neg_abs_signed {
     ($(($I: ty, $U: ty))*) => { $(
         impl NegAbs for $I {
             type Abs = $U;
+            #[inline]
             fn neg_abs(self) -> (bool, $U) {
                 if self < 0 {
                     (true, self.wrapping_neg() as $U)
