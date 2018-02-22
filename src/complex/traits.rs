@@ -15,7 +15,7 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Complex, Float};
-use complex::{OrdComplex, ParseComplexError};
+use complex::ParseComplexError;
 use complex::big::{self, Ordering2, Round2, ordering2, raw_round2};
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
@@ -90,13 +90,6 @@ where
         mem::forget(real);
         mem::forget(imag);
         dst
-    }
-}
-
-impl From<OrdComplex> for Complex {
-    #[inline]
-    fn from(ord: OrdComplex) -> Self {
-        unsafe { mem::transmute(ord) }
     }
 }
 

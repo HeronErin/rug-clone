@@ -130,8 +130,15 @@ impl PartialOrd for OrdComplex {
 
 impl From<Complex> for OrdComplex {
     #[inline]
-    fn from(c: Complex) -> Self {
-        OrdComplex { inner: c }
+    fn from(src: Complex) -> Self {
+        OrdComplex { inner: src }
+    }
+}
+
+impl From<OrdComplex> for Complex {
+    #[inline]
+    fn from(src: OrdComplex) -> Self {
+        src.inner
     }
 }
 

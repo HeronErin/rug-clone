@@ -21,7 +21,7 @@ use Integer;
 use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
-use float::{Constant, OrdFloat, ParseFloatError, Round, Special};
+use float::{Constant, ParseFloatError, Round, Special};
 use float::big::{self, raw_round, ordering1};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
@@ -54,12 +54,6 @@ impl Drop for Float {
         unsafe {
             mpfr::clear(self.inner_mut());
         }
-    }
-}
-
-impl From<OrdFloat> for Float {
-    fn from(ord: OrdFloat) -> Self {
-        unsafe { mem::transmute(ord) }
     }
 }
 

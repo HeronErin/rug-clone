@@ -172,8 +172,14 @@ impl PartialOrd for OrdFloat {
 
 impl From<Float> for OrdFloat {
     #[inline]
-    fn from(f: Float) -> Self {
-        OrdFloat { inner: f }
+    fn from(src: Float) -> Self {
+        OrdFloat { inner: src }
+    }
+}
+
+impl From<OrdFloat> for Float {
+    fn from(src: OrdFloat) -> Self {
+        src.inner
     }
 }
 
