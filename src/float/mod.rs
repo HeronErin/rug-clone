@@ -245,6 +245,7 @@ pub(crate) mod tests {
     use {Assign, Float};
     use float::{Round, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
+    #[cfg(feature = "rand")]
     use rand::{RandGen, RandState};
     use std::cmp::Ordering;
     use std::f64;
@@ -441,10 +442,12 @@ pub(crate) mod tests {
         );
     }
 
+    #[cfg(feature = "rand")]
     struct OnesZerosRand {
         one_words: u32,
     }
 
+    #[cfg(feature = "rand")]
     impl RandGen for OnesZerosRand {
         fn gen(&mut self) -> u32 {
             if self.one_words > 0 {
@@ -456,6 +459,7 @@ pub(crate) mod tests {
         }
     }
 
+    #[cfg(feature = "rand")]
     #[test]
     fn check_nan_random_bits() {
         // Least significant 64 bits (two 32-bit words) of mantissa

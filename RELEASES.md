@@ -2,8 +2,9 @@ Version 1.0.0 (2018-??-??)
 ==========================
 
 * Remove all deprecated items.
-* Remove unsound blanket implementations for
-  `T where SmallInteger: Assign<T>` inside `SmallRational`.
+* Remove unsound blanket implementations constrained on
+  `T where SmallInteger: Assign<T>` inside `SmallRational` and on
+  `T where SmallFloat: Assign<T>` inside `SmallComplex`.
 
 Version 0.10.0 (2018-02-17)
 ===========================

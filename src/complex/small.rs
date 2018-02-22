@@ -18,12 +18,11 @@ use {Assign, Complex};
 
 use ext::mpfr as xmpfr;
 use float::SmallFloat;
-use float::small::{Mpfr, LIMBS_IN_SMALL_FLOAT};
-use gmp_mpfr_sys::gmp;
+use float::small::{CopyToSmall, Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::ops::Deref;
-use std::os::raw::{c_long, c_ulong};
+use std::ptr;
 use std::sync::atomic::Ordering;
 
 /// A small complex number that does not require any memory
@@ -70,7 +69,8 @@ pub struct SmallComplex {
     re: Mpfr,
     im: Mpfr,
     // real part is first in limbs if re.d <= im.d
-    limbs: [gmp::limb_t; 2 * LIMBS_IN_SMALL_FLOAT],
+    first_limbs: Limbs,
+    last_limbs: Limbs,
 }
 
 impl SmallComplex {
@@ -103,6 +103,11 @@ impl SmallComplex {
         &mut *ptr
     }
 
+    fn re_is_first(&self) -> bool {
+        (self.re.d.load(Ordering::Relaxed) as usize)
+            <= (self.im.d.load(Ordering::Relaxed) as usize)
+    }
+
     // To be used when offsetting re and im in case the struct has
     // been displaced in memory; if currently re.d <= im.d then re.d
     // points to limbs[0] and im.d points to
@@ -114,11 +119,9 @@ impl SmallComplex {
         assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = &self.limbs[0] as *const _ as *mut _;
-        let last = &self.limbs[LIMBS_IN_SMALL_FLOAT] as *const _ as *mut _;
-        let re_is_first = (self.re.d.load(Ordering::Relaxed) as usize)
-            <= (self.im.d.load(Ordering::Relaxed) as usize);
-        let (re_d, im_d) = if re_is_first {
+        let first = &self.first_limbs[0] as *const _ as *mut _;
+        let last = &self.last_limbs[0] as *const _ as *mut _;
+        let (re_d, im_d) = if self.re_is_first() {
             (first, last)
         } else {
             (last, first)
@@ -138,100 +141,86 @@ impl Deref for SmallComplex {
     }
 }
 
-#[inline]
-fn small_new() -> SmallComplex {
-    unsafe {
-        let mut ret = SmallComplex {
-            re: mem::uninitialized(),
-            im: mem::uninitialized(),
-            limbs: [0; 2 * LIMBS_IN_SMALL_FLOAT],
-        };
-        xmpfr::custom_zero(
-            &mut ret.re as *mut _ as *mut _,
-            &mut ret.limbs[0],
-            64,
-        );
-        xmpfr::custom_zero(
-            &mut ret.im as *mut _ as *mut _,
-            &mut ret.limbs[LIMBS_IN_SMALL_FLOAT],
-            64,
-        );
-        ret
-    }
-}
-
-impl<Re> Assign<Re> for SmallComplex
-where
-    SmallFloat: Assign<Re>,
-{
-    #[inline]
-    fn assign(&mut self, re: Re) {
-        const EXP_MAX: c_long = ((!0 as c_ulong) >> 1) as c_long;
-        const EXP_ZERO: c_long = 0 - EXP_MAX;
-
-        self.update_d();
-
-        // zero prec during SmallFloat assignment so that it leaves d alone
-        self.re.prec = 0;
-        let re_ptr = &mut self.re as *mut Mpfr as *mut SmallFloat;
-        unsafe {
-            (*re_ptr).assign(re);
-        }
-        assert_ne!(self.re.prec, 0);
-
-        self.im.prec = self.re.prec;
-        self.im.sign = 1;
-        self.im.exp = EXP_ZERO;
-    }
-}
-
 impl<Re> From<Re> for SmallComplex
 where
-    SmallFloat: Assign<Re>,
+    SmallFloat: From<Re>,
 {
-    #[inline]
-    fn from(val: Re) -> Self {
-        let mut ret = small_new();
-        ret.assign(val);
-        ret
-    }
-}
-
-impl<Re, Im> Assign<(Re, Im)> for SmallComplex
-where
-    SmallFloat: Assign<Re> + Assign<Im>,
-{
-    #[inline]
-    fn assign(&mut self, (re, im): (Re, Im)) {
-        self.update_d();
-
-        // zero prec during SmallFloat assignment so that it leaves d alone
-        self.re.prec = 0;
-        let re_ptr = &mut self.re as *mut Mpfr as *mut SmallFloat;
+    fn from(src: Re) -> Self {
         unsafe {
-            (*re_ptr).assign(re);
+            let re = SmallFloat::from(src);
+            let mut dst = SmallComplex {
+                re: re.inner,
+                im: mem::uninitialized(),
+                first_limbs: re.limbs,
+                last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
+            };
+            dst.re
+                .d
+                .store(&mut dst.first_limbs[0] as *mut _, Ordering::Relaxed);
+            xmpfr::custom_zero(
+                &mut dst.im as *mut _ as *mut _,
+                &mut dst.last_limbs[0],
+                dst.re.prec,
+            );
+            dst
         }
-        assert_ne!(self.re.prec, 0);
-        self.im.prec = 0;
-        let im_ptr = &mut self.im as *mut Mpfr as *mut SmallFloat;
-        unsafe {
-            (*im_ptr).assign(im);
-        }
-        assert_ne!(self.im.prec, 0);
     }
 }
 
 impl<Re, Im> From<(Re, Im)> for SmallComplex
 where
-    SmallFloat: Assign<Re> + Assign<Im>,
+    SmallFloat: From<Re> + From<Im>,
 {
-    #[inline]
-    fn from(val: (Re, Im)) -> Self {
-        let mut ret = small_new();
-        ret.assign(val);
-        ret
+    fn from(src: (Re, Im)) -> Self {
+        let re = SmallFloat::from(src.0);
+        re.inner.d.store(ptr::null_mut(), Ordering::Relaxed);
+        let im = SmallFloat::from(src.1);
+        im.inner.d.store(ptr::null_mut(), Ordering::Relaxed);
+        SmallComplex {
+            re: re.inner,
+            im: im.inner,
+            first_limbs: re.limbs,
+            last_limbs: im.limbs,
+        }
     }
 }
+
+macro_rules! impl_assign_re_im {
+    ($Re: ty; $($Im: ty)*) => { $(
+        impl Assign<($Re, $Im)> for SmallComplex {
+            #[inline]
+            fn assign(&mut self, src: ($Re, $Im)) {
+                src.0.copy(&mut self.re, &mut self.first_limbs);
+                src.1.copy(&mut self.im, &mut self.last_limbs);
+            }
+        }
+
+    )* };
+}
+
+macro_rules! impl_assign_re {
+    ($($Re: ty)*) => { $(
+        impl Assign<($Re)> for SmallComplex {
+            #[inline]
+            fn assign(&mut self, src: $Re) {
+                src.copy(&mut self.re, &mut self.first_limbs);
+                unsafe {
+                    xmpfr::custom_zero(
+                        &mut self.im as *mut _ as *mut _,
+                        &mut self.last_limbs[0],
+                        self.re.prec,
+                    );
+                }
+            }
+        }
+
+        impl_assign_re_im! {
+            $Re; i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64
+        }
+    )* };
+}
+
+impl_assign_re! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
 
 impl<'a> Assign<&'a Self> for SmallComplex {
     #[inline]

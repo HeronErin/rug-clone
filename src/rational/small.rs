@@ -268,9 +268,9 @@ impl SmallRational {
 
     // To be used when offsetting num and den in case the struct has
     // been displaced in memory; if currently num.d <= den.d then
-    // num.d points to limbs[0][0] and den.d points to limbs[1][0],
-    // otherwise num.d points to limbs[1][0] and den.d points to
-    // limbs[0][0].
+    // num.d points to first_limbs and den.d points to last_limbs,
+    // otherwise num.d points to last_limbs and den.d points to
+    // first_limbs.
     #[inline]
     fn update_d(&self) {
         // sanity check
@@ -303,7 +303,6 @@ impl<Num> From<Num> for SmallRational
 where
     SmallInteger: From<Num>,
 {
-    #[inline]
     fn from(src: Num) -> Self {
         let num = SmallInteger::from(src);
         assert!(num.inner.d.load(Ordering::Relaxed).is_null());
@@ -324,7 +323,6 @@ impl<Num, Den> From<(Num, Den)> for SmallRational
 where
     SmallInteger: From<Num> + From<Den>,
 {
-    #[inline]
     fn from(src: (Num, Den)) -> Self {
         let (num, den) = (SmallInteger::from(src.0), SmallInteger::from(src.1));
         assert!(num.inner.d.load(Ordering::Relaxed).is_null());
@@ -348,7 +346,6 @@ where
 macro_rules! impl_assign_num_den {
     ($Num: ty; $($Den: ty)*) => { $(
         impl Assign<($Num, $Den)> for SmallRational {
-            #[inline]
             fn assign(&mut self, src: ($Num, $Den)) {
                 assert_ne!(src.1, 0, "division by zero");
                 {

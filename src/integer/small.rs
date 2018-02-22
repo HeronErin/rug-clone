@@ -70,7 +70,7 @@ pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = 2;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
 
 #[repr(C)]
-pub struct Mpz {
+pub(crate) struct Mpz {
     pub alloc: c_int,
     pub size: c_int,
     pub d: AtomicPtr<gmp::limb_t>,
