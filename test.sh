@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# Copyright © 2016–2018 University of Malta
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation, either version 3 of the
+# License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License and a copy of the GNU General Public License along with this
+# program. If not, see <http://www.gnu.org/licenses/>.
+
 set -e
 
 for word in "$@"; do
@@ -74,8 +90,8 @@ do
         gmp="-p gmp-mpfr-sys"
     fi
     print_eval \
-	cargo $(tc "${toolchains[0]}") \
-	check --all-targets \
+        cargo $(tc "${toolchains[0]}") \
+        check --all-targets \
         --no-default-features --features "$features" \
         $gmp -p rug
 done
@@ -86,10 +102,10 @@ rm -r target
 for toolchain in "${toolchains[@]}"; do
     for build in "" --release; do
         print_eval \
-	    cargo $(tc "$toolchain") \
-	    test $build \
+            cargo $(tc "$toolchain") \
+            test $build \
             --features serde \
-	    -p gmp-mpfr-sys -p rug
+            -p gmp-mpfr-sys -p rug
         rm -r target
     done
 done
