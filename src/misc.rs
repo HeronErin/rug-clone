@@ -22,6 +22,7 @@ pub trait NegAbs {
     type Abs;
     fn neg_abs(self) -> (bool, Self::Abs);
 }
+
 macro_rules! neg_abs_unsigned {
     ($($U: ty)*) => { $(
         impl NegAbs for $U {

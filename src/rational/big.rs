@@ -2199,7 +2199,7 @@ impl<'a> Deref for BorrowRational<'a> {
     }
 }
 
-pub fn append_to_string(
+pub(crate) fn append_to_string(
     s: &mut String,
     r: &Rational,
     radix: i32,

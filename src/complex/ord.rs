@@ -15,7 +15,6 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Complex;
-
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 

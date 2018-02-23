@@ -45,7 +45,7 @@ use std::ptr;
 use std::slice;
 
 #[inline]
-pub fn raw_round(round: Round) -> mpfr::rnd_t {
+pub(crate) fn raw_round(round: Round) -> mpfr::rnd_t {
     #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
@@ -57,7 +57,7 @@ pub fn raw_round(round: Round) -> mpfr::rnd_t {
 }
 
 #[inline]
-pub fn ordering1(ord: c_int) -> Ordering {
+pub(crate) fn ordering1(ord: c_int) -> Ordering {
     ord.cmp(&0)
 }
 
@@ -7231,8 +7231,8 @@ impl Float {
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
-    ) -> RandomBits<'a, 'b> {
-        RandomBits { rng }
+    ) -> RandomBitsIncomplete<'a, 'b> {
+        RandomBitsIncomplete { rng }
     }
 
     #[cfg(feature = "rand")]
@@ -7677,14 +7677,14 @@ ref_math_op1_float! { mpfr::frac; struct FractIncomplete {} }
 ref_math_op1_2_float! { mpfr::modf; struct TruncFractIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBits<'a, 'b: 'a> {
+pub struct RandomBitsIncomplete<'a, 'b: 'a> {
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>> for Float {
+impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Float {
     #[inline]
-    fn assign(&mut self, src: RandomBits<'a, 'b>) {
+    fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
         unsafe {
             let err = mpfr::urandomb(self.inner_mut(), src.rng.inner_mut());
             assert_eq!(self.is_nan(), err != 0);
@@ -7785,7 +7785,7 @@ impl<'a> Deref for BorrowFloat<'a> {
     }
 }
 
-pub fn req_chars(
+pub(crate) fn req_chars(
     f: &Float,
     radix: i32,
     precision: Option<usize>,
@@ -7833,7 +7833,7 @@ pub fn req_chars(
     }
 }
 
-pub fn append_to_string(
+pub(crate) fn append_to_string(
     s: &mut String,
     f: &Float,
     radix: i32,

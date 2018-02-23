@@ -24,10 +24,9 @@
 // which can eventually lead to undefined behaviour.
 
 use Integer;
-use inner::{Inner, InnerMut};
-
 use cast::cast;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
+use inner::{Inner, InnerMut};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::raw::{c_int, c_ulong, c_void};

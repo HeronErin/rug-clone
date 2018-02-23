@@ -3097,8 +3097,8 @@ impl Complex {
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
-    ) -> RandomBits<'a, 'b> {
-        RandomBits { rng }
+    ) -> RandomBitsIncomplete<'a, 'b> {
+        RandomBitsIncomplete { rng }
     }
 
     #[cfg(feature = "rand")]
@@ -3393,14 +3393,14 @@ ref_math_op1_complex! { mpc::acosh; struct AcoshIncomplete {} }
 ref_math_op1_complex! { mpc::atanh; struct AtanhIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBits<'a, 'b: 'a> {
+pub struct RandomBitsIncomplete<'a, 'b: 'a> {
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a, 'c> Assign<RandomBits<'a, 'b>> for Complex {
+impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex {
     #[inline]
-    fn assign(&mut self, src: RandomBits<'a, 'b>) {
+    fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
         self.mut_real().assign(Float::random_bits(src.rng));
         self.mut_imag().assign(Float::random_bits(src.rng));
     }
@@ -3444,7 +3444,7 @@ impl<'a> Deref for BorrowComplex<'a> {
     }
 }
 
-pub fn append_to_string(
+pub(crate) fn append_to_string(
     s: &mut String,
     c: &Complex,
     radix: i32,
@@ -3700,7 +3700,7 @@ fn raw_round(round: Round) -> mpfr::rnd_t {
 }
 
 #[inline]
-pub fn raw_round2(round: Round2) -> mpc::rnd_t {
+pub(crate) fn raw_round2(round: Round2) -> mpc::rnd_t {
     #[allow(deprecated)]
     match (round.0, round.1) {
         (Round::Nearest, Round::Nearest) => mpc::RNDNN,
@@ -3729,7 +3729,7 @@ fn ordering1(ord: c_int) -> Ordering {
 }
 
 #[inline]
-pub fn ordering2(ord: c_int) -> Ordering2 {
+pub(crate) fn ordering2(ord: c_int) -> Ordering2 {
     // ord == first + 4 * second
     let first = mpc::INEX_RE(ord).cmp(&0);
     let second = mpc::INEX_IM(ord).cmp(&0);

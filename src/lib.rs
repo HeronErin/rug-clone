@@ -435,8 +435,11 @@ mod ext;
 mod inner;
 #[cfg(any(feature = "integer", feature = "float"))]
 mod misc;
+mod ops_prim;
 #[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
 mod serdeize;
+
+pub mod ops;
 
 /// Assigns to a number from another value.
 ///
@@ -471,9 +474,6 @@ pub trait Assign<Src = Self> {
     fn assign(&mut self, src: Src);
 }
 
-pub mod ops;
-mod ops_prim;
-
 #[cfg(feature = "integer")]
 pub mod integer;
 #[cfg(feature = "integer")]
@@ -497,8 +497,7 @@ pub use complex::big::Complex;
 #[cfg(feature = "rand")]
 pub mod rand;
 
-#[cfg(test)]
-#[cfg(any(feature = "integer", feature = "float"))]
+#[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
     #[cfg(feature = "float")]
     use std::{f32, f64};

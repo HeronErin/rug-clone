@@ -15,7 +15,6 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Complex};
-
 use ext::mpfr as xmpfr;
 use float::SmallFloat;
 use float::small::{CopyToSmall, Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};

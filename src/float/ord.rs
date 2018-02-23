@@ -15,11 +15,10 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use Float;
-use inner::Inner;
-
 use cast::cast;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
+use inner::Inner;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::slice;

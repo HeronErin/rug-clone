@@ -3727,8 +3727,8 @@ impl Integer {
     pub fn random_bits<'a, 'b: 'a>(
         bits: u32,
         rng: &'a mut RandState<'b>,
-    ) -> RandomBits<'a, 'b> {
-        RandomBits { bits, rng }
+    ) -> RandomBitsIncomplete<'a, 'b> {
+        RandomBitsIncomplete { bits, rng }
     }
 
     #[cfg(feature = "rand")]
@@ -4150,15 +4150,15 @@ ref_math_op0_2! {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomBits<'a, 'b: 'a> {
+pub struct RandomBitsIncomplete<'a, 'b: 'a> {
     bits: u32,
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> Assign<RandomBits<'a, 'b>> for Integer {
+impl<'a, 'b: 'a> Assign<RandomBitsIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn assign(&mut self, src: RandomBits<'a, 'b>) {
+    fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
         unsafe {
             gmp::mpz_urandomb(
                 self.inner_mut(),
@@ -4170,9 +4170,9 @@ impl<'a, 'b: 'a> Assign<RandomBits<'a, 'b>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> From<RandomBits<'a, 'b>> for Integer {
+impl<'a, 'b: 'a> From<RandomBitsIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn from(src: RandomBits<'a, 'b>) -> Self {
+    fn from(src: RandomBitsIncomplete<'a, 'b>) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -4229,7 +4229,7 @@ impl<'a> Deref for BorrowInteger<'a> {
     }
 }
 
-pub fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
+pub(crate) fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
     let size_extra = size.checked_add(extra).expect("overflow");
@@ -4240,7 +4240,7 @@ pub fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     }
 }
 
-pub fn append_to_string(
+pub(crate) fn append_to_string(
     s: &mut String,
     i: &Integer,
     radix: i32,

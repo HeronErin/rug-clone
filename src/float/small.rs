@@ -15,10 +15,9 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Float};
-use float::Round;
-
 use cast::cast;
 use ext::mpfr as xmpfr;
+use float::Round;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use misc::NegAbs;
@@ -71,9 +70,9 @@ pub struct SmallFloat {
 }
 
 #[cfg(gmp_limb_bits_64)]
-pub const LIMBS_IN_SMALL_FLOAT: usize = 1;
+pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = 1;
 #[cfg(gmp_limb_bits_32)]
-pub const LIMBS_IN_SMALL_FLOAT: usize = 2;
+pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = 2;
 
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_FLOAT];
 

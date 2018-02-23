@@ -174,8 +174,8 @@ mod tests {
         assert_eq!(i.to_f32(), -0xff_ffff as f32);
         assert_eq!(i.to_f64(), -0xff_ffff as f64);
         i.assign(-0xfff_ffff);
-        assert_eq!(i.to_f32(), -0xff_ffff0 as f32);
-        assert_eq!(i.to_f64(), -0xff_fffff as f64);
+        assert_eq!(i.to_f32(), -0xfff_fff0 as f32);
+        assert_eq!(i.to_f64(), -0xfff_ffff as f64);
     }
 
     #[test]

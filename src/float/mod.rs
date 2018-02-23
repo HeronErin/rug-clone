@@ -253,7 +253,7 @@ pub(crate) mod tests {
     use std::mem;
 
     #[derive(Clone, Copy)]
-    pub(crate) enum Cmp {
+    pub enum Cmp {
         F64(f64),
         Nan(bool),
     }
