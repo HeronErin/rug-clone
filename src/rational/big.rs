@@ -616,17 +616,12 @@ impl Rational {
     where
         Integer: From<Num> + From<Den>,
     {
-        let num = Integer::from(num);
-        let den = Integer::from(den);
         let mut dst: Rational = mem::uninitialized();
         {
-            let (dst_num, dst_den) =
-                dst.as_mut_numer_denom_no_canonicalization();
-            ptr::copy_nonoverlapping(&num, dst_num, 1);
-            ptr::copy_nonoverlapping(&den, dst_den, 1);
+            let (dnum, dden) = dst.as_mut_numer_denom_no_canonicalization();
+            ptr::write(dnum, Integer::from(num));
+            ptr::write(dden, Integer::from(den));
         }
-        mem::forget(num);
-        mem::forget(den);
         dst
     }
 
@@ -963,13 +958,12 @@ impl Rational {
     /// ```
     #[inline]
     pub fn into_numer_denom(self) -> (Integer, Integer) {
-        let (mut numer, mut denom) = unsafe { mem::uninitialized() };
+        let raw = self.into_raw();
         unsafe {
-            ptr::copy_nonoverlapping(self.numer(), &mut numer, 1);
-            ptr::copy_nonoverlapping(self.denom(), &mut denom, 1);
+            let num = ptr::read(gmp::mpq_numref_const(&raw));
+            let den = ptr::read(gmp::mpq_denref_const(&raw));
+            (Integer::from_raw(num), Integer::from_raw(den))
         }
-        mem::forget(self);
-        (numer, denom)
     }
 
     /// Borrows a negated copy of the `Rational` number.
@@ -1061,22 +1055,21 @@ impl Rational {
     /// Panics if the value is zero.
     pub fn as_recip(&self) -> BorrowRational {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
-        let mut ret = BorrowRational {
-            inner: unsafe { mem::uninitialized() },
-            phantom: PhantomData,
-        };
-        let (ret_num, ret_den) = unsafe {
-            let num = &mut *gmp::mpq_numref(&mut ret.inner);
-            let den = &mut *gmp::mpq_denref(&mut ret.inner);
-            ptr::copy_nonoverlapping(self.denom().inner(), num, 1);
-            ptr::copy_nonoverlapping(self.numer().inner(), den, 1);
-            (num, den)
-        };
-        if self.cmp0() == Ordering::Less {
-            ret_num.size = ret_num.size.checked_neg().expect("overflow");
-            ret_den.size = ret_den.size.checked_neg().expect("overflow");
+        let mut inner: mpq_t = unsafe { mem::uninitialized() };
+        unsafe {
+            let mut dst_num = ptr::read(self.denom().inner());
+            let mut dst_den = ptr::read(self.numer().inner());
+            if dst_den.size < 0 {
+                dst_den.size = dst_den.size.wrapping_neg();
+                dst_num.size = dst_num.size.checked_neg().expect("overflow");
+            }
+            ptr::write(gmp::mpq_numref(&mut inner), dst_num);
+            ptr::write(gmp::mpq_denref(&mut inner), dst_den);
         }
-        ret
+        BorrowRational {
+            inner,
+            phantom: PhantomData,
+        }
     }
 
     /// Returns the same result as `self.partial_cmp(&0).unwrap()`,

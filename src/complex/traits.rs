@@ -59,16 +59,12 @@ where
 {
     #[inline]
     fn from(re: Re) -> Self {
-        let real = Float::from(re);
-        let imag = Float::new(real.prec());
         let mut dst: Complex = unsafe { mem::uninitialized() };
         unsafe {
-            let real_imag = dst.as_mut_real_imag();
-            ptr::copy_nonoverlapping(&real, real_imag.0, 1);
-            ptr::copy_nonoverlapping(&imag, real_imag.1, 1);
+            let (real, imag) = dst.as_mut_real_imag();
+            ptr::write(real, Float::from(re));
+            ptr::write(imag, Float::new(real.prec()));
         }
-        mem::forget(real);
-        mem::forget(imag);
         dst
     }
 }
@@ -79,16 +75,12 @@ where
 {
     #[inline]
     fn from((re, im): (Re, Im)) -> Self {
-        let real = Float::from(re);
-        let imag = Float::from(im);
         let mut dst: Complex = unsafe { mem::uninitialized() };
         unsafe {
-            let real_imag = dst.as_mut_real_imag();
-            ptr::copy_nonoverlapping(&real, real_imag.0, 1);
-            ptr::copy_nonoverlapping(&imag, real_imag.1, 1);
+            let (real, imag) = dst.as_mut_real_imag();
+            ptr::write(real, Float::from(re));
+            ptr::write(imag, Float::from(im));
         }
-        mem::forget(real);
-        mem::forget(imag);
         dst
     }
 }

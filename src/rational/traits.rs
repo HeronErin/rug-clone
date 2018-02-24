@@ -38,14 +38,18 @@ impl Default for Rational {
 impl Clone for Rational {
     #[inline]
     fn clone(&self) -> Rational {
-        let mut ret = Rational::new();
-        ret.assign(self);
-        ret
+        let mut dst: Rational = unsafe { mem::uninitialized() };
+        unsafe {
+            let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
+            gmp::mpz_init_set(num.inner_mut(), self.numer().inner());
+            gmp::mpz_init_set(den.inner_mut(), self.denom().inner());
+        }
+        dst
     }
 
     #[inline]
-    fn clone_from(&mut self, source: &Rational) {
-        self.assign(source);
+    fn clone_from(&mut self, src: &Rational) {
+        self.assign(src);
     }
 }
 
@@ -169,16 +173,12 @@ where
 {
     #[inline]
     fn from(src: Num) -> Self {
-        let num = Integer::from(src);
-        let den = <Integer as From<u32>>::from(1);
         let mut dst: Rational = unsafe { mem::uninitialized() };
         unsafe {
-            let num_den = dst.as_mut_numer_denom_no_canonicalization();
-            ptr::copy_nonoverlapping(&num, num_den.0, 1);
-            ptr::copy_nonoverlapping(&den, num_den.1, 1);
+            let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
+            ptr::write(num, Integer::from(src));
+            gmp::mpz_init_set_ui(den.inner_mut(), 1);
         }
-        mem::forget(num);
-        mem::forget(den);
         dst
     }
 }
@@ -202,16 +202,12 @@ where
 {
     #[inline]
     fn from(src: (Num, Den)) -> Self {
-        let src_den = Integer::from(src.1);
-        assert_ne!(src_den.cmp0(), Ordering::Equal, "division by zero");
-        let src_num = Integer::from(src.0);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        dst.mutate_numer_denom(|num, den| unsafe {
-            ptr::copy_nonoverlapping(&src_num, num, 1);
-            ptr::copy_nonoverlapping(&src_den, den, 1);
+        dst.mutate_numer_denom(move |num, den| unsafe {
+            ptr::write(num, Integer::from(src.0));
+            ptr::write(den, Integer::from(src.1));
+            assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
         });
-        mem::forget(src_num);
-        mem::forget(src_den);
         dst
     }
 }
@@ -235,16 +231,12 @@ where
 {
     #[inline]
     fn from(src: &'a (Num, Den)) -> Self {
-        let src_den = Integer::from(&src.1);
-        assert_ne!(src_den.cmp0(), Ordering::Equal, "division by zero");
-        let src_num = Integer::from(&src.0);
         let mut dst: Rational = unsafe { mem::uninitialized() };
-        dst.mutate_numer_denom(|num, den| unsafe {
-            ptr::copy_nonoverlapping(&src_num, num, 1);
-            ptr::copy_nonoverlapping(&src_den, den, 1);
+        dst.mutate_numer_denom(move |num, den| unsafe {
+            ptr::write(num, Integer::from(&src.0));
+            ptr::write(den, Integer::from(&src.1));
+            assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
         });
-        mem::forget(src_num);
-        mem::forget(src_den);
         dst
     }
 }

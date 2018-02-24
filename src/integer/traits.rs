@@ -39,9 +39,11 @@ impl Default for Integer {
 impl Clone for Integer {
     #[inline]
     fn clone(&self) -> Integer {
-        let mut ret = Integer::new();
-        ret.assign(self);
-        ret
+        unsafe {
+            let mut ret: Integer = mem::uninitialized();
+            gmp::mpz_init_set(ret.inner_mut(), self.inner());
+            ret
+        }
     }
 
     #[inline]

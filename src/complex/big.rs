@@ -977,14 +977,12 @@ impl Complex {
     /// ```
     #[inline]
     pub fn into_real_imag(self) -> (Float, Float) {
-        let (mut real, mut imag) = unsafe { mem::uninitialized() };
+        let raw = self.into_raw();
         unsafe {
-            let real_imag = (self.real(), self.imag());
-            ptr::copy_nonoverlapping(real_imag.0, &mut real, 1);
-            ptr::copy_nonoverlapping(real_imag.1, &mut imag, 1);
+            let real = ptr::read(mpc::realref_const(&raw));
+            let imag = ptr::read(mpc::imagref_const(&raw));
+            (Float::from_raw(real), Float::from_raw(imag))
         }
-        mem::forget(self);
-        (real, imag)
     }
 
     /// Borrows a negated copy of the `Complex` number.
@@ -1079,28 +1077,27 @@ impl Complex {
     /// assert_eq!(*mul_1_c, c);
     /// ```
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
-        let mut ret = BorrowComplex {
-            inner: unsafe { mem::uninitialized() },
-            phantom: PhantomData,
-        };
-        let (ret_re, ret_im) = unsafe {
-            let re = &mut *mpc::realref(&mut ret.inner);
-            let im = &mut *mpc::imagref(&mut ret.inner);
-            ptr::copy_nonoverlapping(self.real().inner(), im, 1);
-            ptr::copy_nonoverlapping(self.imag().inner(), re, 1);
-            (re, im)
-        };
-        if negative {
-            ret_im.sign.neg_assign();
-        } else {
-            ret_re.sign.neg_assign();
+        let mut inner: mpc_t = unsafe { mem::uninitialized() };
+        unsafe {
+            let mut dst_re = ptr::read(self.imag().inner());
+            let mut dst_im = ptr::read(self.real().inner());
+            if negative {
+                dst_im.sign.neg_assign();
+            } else {
+                dst_re.sign.neg_assign();
+            }
+            ptr::write(mpc::realref(&mut inner), dst_re);
+            ptr::write(mpc::imagref(&mut inner), dst_im);
         }
         if self.real().is_nan() || self.imag().is_nan() {
             unsafe {
                 mpfr::set_nanflag();
             }
         }
-        ret
+        BorrowComplex {
+            inner,
+            phantom: PhantomData,
+        }
     }
 
     /// Borrows the `Complex` as an ordered complex number of type
