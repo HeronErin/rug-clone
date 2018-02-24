@@ -84,13 +84,17 @@ pub(crate) struct Mpfr {
     pub d: AtomicPtr<gmp::limb_t>,
 }
 
+// Mpfr is only used inside SmallFloat and SmallComplex. The d field
+// does not need to be copied from self. SmallComplex::clone is
+// responsible to keep real and imag parts ordered.
 impl Clone for Mpfr {
+    #[inline]
     fn clone(&self) -> Mpfr {
         Mpfr {
             prec: self.prec,
             sign: self.sign,
             exp: self.exp,
-            d: AtomicPtr::new(self.d.load(Ordering::Relaxed)),
+            d: Default::default(),
         }
     }
 }

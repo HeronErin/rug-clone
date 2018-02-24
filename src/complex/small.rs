@@ -21,7 +21,6 @@ use float::small::{CopyToSmall, Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::ops::Deref;
-use std::ptr;
 use std::sync::atomic::Ordering;
 
 /// A small complex number that does not require any memory
@@ -62,7 +61,6 @@ use std::sync::atomic::Ordering;
 /// assert_eq!(*a.real(), -9);
 /// assert_eq!(*a.imag(), -18.5);
 /// ```
-#[derive(Clone)]
 #[repr(C)]
 pub struct SmallComplex {
     re: Mpfr,
@@ -70,6 +68,33 @@ pub struct SmallComplex {
     // real part is first in limbs if re.d <= im.d
     first_limbs: Limbs,
     last_limbs: Limbs,
+}
+
+impl Clone for SmallComplex {
+    #[inline]
+    fn clone(&self) -> SmallComplex {
+        let (first_limbs, last_limbs) = if self.re_is_first() {
+            (&self.first_limbs, &self.last_limbs)
+        } else {
+            (&self.last_limbs, &self.first_limbs)
+        };
+        SmallComplex {
+            re: Mpfr {
+                prec: self.re.prec,
+                sign: self.re.sign,
+                exp: self.re.exp,
+                d: Default::default(),
+            },
+            im: Mpfr {
+                prec: self.im.prec,
+                sign: self.im.sign,
+                exp: self.im.exp,
+                d: Default::default(),
+            },
+            first_limbs: first_limbs.clone(),
+            last_limbs: last_limbs.clone(),
+        }
+    }
 }
 
 impl SmallComplex {
@@ -145,23 +170,30 @@ where
     SmallFloat: From<Re>,
 {
     fn from(src: Re) -> Self {
+        let re = SmallFloat::from(src);
+        let mut im: SmallFloat = unsafe { mem::uninitialized() };
         unsafe {
-            let re = SmallFloat::from(src);
-            let mut dst = SmallComplex {
-                re: re.inner,
-                im: mem::uninitialized(),
-                first_limbs: re.limbs,
-                last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
-            };
-            dst.re
-                .d
-                .store(&mut dst.first_limbs[0] as *mut _, Ordering::Relaxed);
             xmpfr::custom_zero(
-                &mut dst.im as *mut _ as *mut _,
-                &mut dst.last_limbs[0],
-                dst.re.prec,
+                &mut im.inner as *mut Mpfr as *mut _,
+                &mut im.limbs[0],
+                re.inner.prec,
             );
-            dst
+        }
+        SmallComplex {
+            re: Mpfr {
+                prec: re.inner.prec,
+                sign: re.inner.sign,
+                exp: re.inner.exp,
+                d: Default::default(),
+            },
+            im: Mpfr {
+                prec: im.inner.prec,
+                sign: im.inner.sign,
+                exp: im.inner.exp,
+                d: Default::default(),
+            },
+            first_limbs: re.limbs,
+            last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
         }
     }
 }
@@ -172,12 +204,20 @@ where
 {
     fn from(src: (Re, Im)) -> Self {
         let re = SmallFloat::from(src.0);
-        re.inner.d.store(ptr::null_mut(), Ordering::Relaxed);
         let im = SmallFloat::from(src.1);
-        im.inner.d.store(ptr::null_mut(), Ordering::Relaxed);
         SmallComplex {
-            re: re.inner,
-            im: im.inner,
+            re: Mpfr {
+                prec: re.inner.prec,
+                sign: re.inner.sign,
+                exp: re.inner.exp,
+                d: Default::default(),
+            },
+            im: Mpfr {
+                prec: im.inner.prec,
+                sign: im.inner.sign,
+                exp: im.inner.exp,
+                d: Default::default(),
+            },
             first_limbs: re.limbs,
             last_limbs: im.limbs,
         }
@@ -205,7 +245,7 @@ macro_rules! impl_assign_re {
                 src.copy(&mut self.re, &mut self.first_limbs);
                 unsafe {
                     xmpfr::custom_zero(
-                        &mut self.im as *mut _ as *mut _,
+                        &mut self.im as *mut Mpfr as *mut _,
                         &mut self.last_limbs[0],
                         self.re.prec,
                     );

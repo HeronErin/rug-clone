@@ -52,7 +52,6 @@ use std::sync::atomic::Ordering;
 /// assert_eq!(*a.numer(), -21);
 /// assert_eq!(*a.denom(), 13);
 /// ```
-#[derive(Clone)]
 #[repr(C)]
 pub struct SmallRational {
     num: Mpz,
@@ -60,6 +59,31 @@ pub struct SmallRational {
     // numerator is first in limbs if num.d <= den.d
     first_limbs: Limbs,
     last_limbs: Limbs,
+}
+
+impl Clone for SmallRational {
+    #[inline]
+    fn clone(&self) -> SmallRational {
+        let (first_limbs, last_limbs) = if self.num_is_first() {
+            (&self.first_limbs, &self.last_limbs)
+        } else {
+            (&self.last_limbs, &self.first_limbs)
+        };
+        SmallRational {
+            num: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: self.num.size,
+                d: Default::default(),
+            },
+            den: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: self.den.size,
+                d: Default::default(),
+            },
+            first_limbs: first_limbs.clone(),
+            last_limbs: last_limbs.clone(),
+        }
+    }
 }
 
 impl Default for SmallRational {
@@ -90,13 +114,13 @@ impl SmallRational {
     pub fn new() -> Self {
         SmallRational {
             num: Mpz {
-                size: 0,
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: 0,
                 d: Default::default(),
             },
             den: Mpz {
-                size: 1,
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: 1,
                 d: Default::default(),
             },
             first_limbs: [0; LIMBS_IN_SMALL_INTEGER],
@@ -170,11 +194,17 @@ impl SmallRational {
         SmallInteger: From<Num> + From<Den>,
     {
         let (num, den) = (SmallInteger::from(num), SmallInteger::from(den));
-        assert!(num.inner.d.load(Ordering::Relaxed).is_null());
-        assert!(den.inner.d.load(Ordering::Relaxed).is_null());
         SmallRational {
-            num: num.inner,
-            den: den.inner,
+            num: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: num.inner.size,
+                d: Default::default(),
+            },
+            den: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: den.inner.size,
+                d: Default::default(),
+            },
             first_limbs: num.limbs,
             last_limbs: den.limbs,
         }
@@ -304,12 +334,15 @@ where
 {
     fn from(src: Num) -> Self {
         let num = SmallInteger::from(src);
-        assert!(num.inner.d.load(Ordering::Relaxed).is_null());
         SmallRational {
-            num: num.inner,
-            den: Mpz {
-                size: 1,
+            num: Mpz {
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: num.inner.size,
+                d: Default::default(),
+            },
+            den: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: 1,
                 d: Default::default(),
             },
             first_limbs: num.limbs,
@@ -324,12 +357,18 @@ where
 {
     fn from(src: (Num, Den)) -> Self {
         let (num, den) = (SmallInteger::from(src.0), SmallInteger::from(src.1));
-        assert!(num.inner.d.load(Ordering::Relaxed).is_null());
-        assert!(den.inner.d.load(Ordering::Relaxed).is_null());
         assert_ne!(den.inner.size, 0, "division by zero");
         let mut dst = SmallRational {
-            num: num.inner,
-            den: den.inner,
+            num: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: num.inner.size,
+                d: Default::default(),
+            },
+            den: Mpz {
+                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: den.inner.size,
+                d: Default::default(),
+            },
             first_limbs: num.limbs,
             last_limbs: den.limbs,
         };

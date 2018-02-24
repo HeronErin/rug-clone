@@ -76,12 +76,16 @@ pub(crate) struct Mpz {
     pub d: AtomicPtr<gmp::limb_t>,
 }
 
+// Mpz is only used inside SmallInteger and SmallRational. The only
+// field that needs to be actually copied from self is size.
+// SmallRational::clone is responsible to keep num and den ordered.
 impl Clone for Mpz {
+    #[inline]
     fn clone(&self) -> Mpz {
         Mpz {
-            alloc: self.alloc,
+            alloc: cast(LIMBS_IN_SMALL_INTEGER),
             size: self.size,
-            d: AtomicPtr::new(self.d.load(Ordering::Relaxed)),
+            d: Default::default(),
         }
     }
 }
@@ -108,8 +112,8 @@ impl SmallInteger {
     pub fn new() -> Self {
         SmallInteger {
             inner: Mpz {
-                size: 0,
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                size: 0,
                 d: Default::default(),
             },
             limbs: [0; LIMBS_IN_SMALL_INTEGER],
