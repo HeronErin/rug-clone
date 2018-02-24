@@ -70,16 +70,8 @@ impl Clone for SmallRational {
             (&self.last_limbs, &self.first_limbs)
         };
         SmallRational {
-            num: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: self.num.size,
-                d: Default::default(),
-            },
-            den: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: self.den.size,
-                d: Default::default(),
-            },
+            num: self.num.clone(),
+            den: self.den.clone(),
             first_limbs: first_limbs.clone(),
             last_limbs: last_limbs.clone(),
         }
@@ -195,16 +187,8 @@ impl SmallRational {
     {
         let (num, den) = (SmallInteger::from(num), SmallInteger::from(den));
         SmallRational {
-            num: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: num.inner.size,
-                d: Default::default(),
-            },
-            den: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: den.inner.size,
-                d: Default::default(),
-            },
+            num: num.inner.clone(),
+            den: den.inner.clone(),
             first_limbs: num.limbs,
             last_limbs: den.limbs,
         }
@@ -335,11 +319,7 @@ where
     fn from(src: Num) -> Self {
         let num = SmallInteger::from(src);
         SmallRational {
-            num: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: num.inner.size,
-                d: Default::default(),
-            },
+            num: num.inner.clone(),
             den: Mpz {
                 alloc: cast(LIMBS_IN_SMALL_INTEGER),
                 size: 1,
@@ -359,16 +339,8 @@ where
         let (num, den) = (SmallInteger::from(src.0), SmallInteger::from(src.1));
         assert_ne!(den.inner.size, 0, "division by zero");
         let mut dst = SmallRational {
-            num: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: num.inner.size,
-                d: Default::default(),
-            },
-            den: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: den.inner.size,
-                d: Default::default(),
-            },
+            num: num.inner.clone(),
+            den: den.inner.clone(),
             first_limbs: num.limbs,
             last_limbs: den.limbs,
         };

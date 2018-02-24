@@ -79,18 +79,8 @@ impl Clone for SmallComplex {
             (&self.last_limbs, &self.first_limbs)
         };
         SmallComplex {
-            re: Mpfr {
-                prec: self.re.prec,
-                sign: self.re.sign,
-                exp: self.re.exp,
-                d: Default::default(),
-            },
-            im: Mpfr {
-                prec: self.im.prec,
-                sign: self.im.sign,
-                exp: self.im.exp,
-                d: Default::default(),
-            },
+            re: self.re.clone(),
+            im: self.im.clone(),
             first_limbs: first_limbs.clone(),
             last_limbs: last_limbs.clone(),
         }
@@ -171,7 +161,10 @@ where
 {
     fn from(src: Re) -> Self {
         let re = SmallFloat::from(src);
-        let mut im: SmallFloat = unsafe { mem::uninitialized() };
+        let mut im = SmallFloat {
+            inner: unsafe { mem::uninitialized() },
+            limbs: [0; LIMBS_IN_SMALL_FLOAT],
+        };
         unsafe {
             xmpfr::custom_zero(
                 &mut im.inner as *mut Mpfr as *mut _,
@@ -180,20 +173,10 @@ where
             );
         }
         SmallComplex {
-            re: Mpfr {
-                prec: re.inner.prec,
-                sign: re.inner.sign,
-                exp: re.inner.exp,
-                d: Default::default(),
-            },
-            im: Mpfr {
-                prec: im.inner.prec,
-                sign: im.inner.sign,
-                exp: im.inner.exp,
-                d: Default::default(),
-            },
+            re: re.inner.clone(),
+            im: im.inner.clone(),
             first_limbs: re.limbs,
-            last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
+            last_limbs: im.limbs,
         }
     }
 }
@@ -206,18 +189,8 @@ where
         let re = SmallFloat::from(src.0);
         let im = SmallFloat::from(src.1);
         SmallComplex {
-            re: Mpfr {
-                prec: re.inner.prec,
-                sign: re.inner.sign,
-                exp: re.inner.exp,
-                d: Default::default(),
-            },
-            im: Mpfr {
-                prec: im.inner.prec,
-                sign: im.inner.sign,
-                exp: im.inner.exp,
-                d: Default::default(),
-            },
+            re: re.inner.clone(),
+            im: im.inner.clone(),
             first_limbs: re.limbs,
             last_limbs: im.limbs,
         }
