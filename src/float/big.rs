@@ -46,13 +46,12 @@ use std::slice;
 
 #[inline]
 pub(crate) fn raw_round(round: Round) -> mpfr::rnd_t {
-    #[allow(deprecated)]
     match round {
         Round::Nearest => mpfr::rnd_t::RNDN,
         Round::Zero => mpfr::rnd_t::RNDZ,
         Round::Up => mpfr::rnd_t::RNDU,
         Round::Down => mpfr::rnd_t::RNDD,
-        Round::AwayFromZero => mpfr::rnd_t::RNDA,
+        _ => unreachable!(),
     }
 }
 
@@ -572,73 +571,6 @@ impl Float {
         ordering1(ret)
     }
 
-    /// Parses a `Float` with the specified precision, rounding to the
-    /// nearest.
-    #[deprecated(since = "0.10.0",
-                 note = "use `with_val` and `parse` instead; \
-                         `Float::from_str(src, prec)?` can be replaced with \
-                         `Float::with_val(prec, Float::parse(src)?)`.")]
-    #[inline]
-    pub fn from_str(src: &str, prec: u32) -> Result<Self, ParseFloatError> {
-        Ok(Float::with_val(prec, Float::parse(src)?))
-    }
-
-    /// Parses a `Float` with the specified precision, applying the
-    /// specified rounding.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `with_val_round` and `parse` instead; \
-                `Float::from_str_round(src, prec, round)?` can be replaced \
-                with \
-                `Float::with_val_round(prec, Float::parse(src)?, round)`.")]
-    #[inline]
-    pub fn from_str_round(
-        src: &str,
-        prec: u32,
-        round: Round,
-    ) -> Result<(Self, Ordering), ParseFloatError> {
-        Ok(Float::with_val_round(prec, Float::parse(src)?, round))
-    }
-
-    /// Parses a `Float` with the specified radix and precision,
-    /// rounding to the nearest.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `with_val` and `parse_radix` instead; \
-                `Float::from_str_radix(src, radix, prec)?` can be replaced \
-                with \
-                `Float::with_val(prec, Float::parse_radix(src, radix)?)`.")]
-    #[inline]
-    pub fn from_str_radix(
-        src: &str,
-        radix: i32,
-        prec: u32,
-    ) -> Result<Self, ParseFloatError> {
-        Ok(Float::with_val(prec, Float::parse_radix(src, radix)?))
-    }
-
-    /// Parses a `Float` with the specified radix and precision,
-    /// applying the specified rounding.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `with_val_round` and `parse_radix` instead; \
-                `Float::from_str_radix_round(src, radix, prec, round)?` can be \
-                replaced with \
-       `Float::with_val_round(prec, Float::parse_radix(src, radix)?, round)`.")]
-    #[inline]
-    pub fn from_str_radix_round(
-        src: &str,
-        radix: i32,
-        prec: u32,
-        round: Round,
-    ) -> Result<(Self, Ordering), ParseFloatError> {
-        Ok(Float::with_val_round(
-            prec,
-            Float::parse_radix(src, radix)?,
-            round,
-        ))
-    }
-
     /// Parses a decimal string or byte slice into a `Float`.
     ///
     /// `AssignRound<Src> for Float` is implemented with the unwrapped
@@ -737,23 +669,6 @@ impl Float {
         radix: i32,
     ) -> Result<ParseIncomplete, ParseFloatError> {
         parse(src.as_ref(), radix)
-    }
-
-    /// Checks if a `Float` can be parsed.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `Float::valid_str_radix(src, radix)` can be \
-                         replaced with `Float::parse_radix(src, radix)`.")]
-    #[inline]
-    #[allow(deprecated)]
-    pub fn valid_str_radix(
-        src: &str,
-        radix: i32,
-    ) -> Result<ValidFloat, ParseFloatError> {
-        Float::parse_radix(src, radix).map(|inner| ValidFloat {
-            inner,
-            phantom: PhantomData,
-        })
     }
 
     #[cfg(feature = "integer")]
@@ -1263,64 +1178,6 @@ impl Float {
         s
     }
 
-    /// Parses a `Float` from a string, rounding to the nearest.
-    #[inline]
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse` instead; `f.assign_str(src)?` can be \
-                         replaced with `f.assign(Float::parse(src)?)`.")]
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseFloatError> {
-        self.assign_round(Float::parse(src)?, Round::Nearest);
-        Ok(())
-    }
-
-    /// Parses a `Float` from a string, applying the specified
-    /// rounding.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse` instead; \
-                         `f.assign_str_round(src, round)?` can be replaced \
-                         with `f.assign_round(Float::parse(src)?, round)`.")]
-    #[inline]
-    pub fn assign_str_round(
-        &mut self,
-        src: &str,
-        round: Round,
-    ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::parse(src)?, round))
-    }
-
-    /// Parses a `Float` from a string with the specified radix,
-    /// rounding to the nearest.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `f.assign_str_radix(src, radix)?` can be replaced \
-                         with `f.assign(Float::parse_radix(src, radix)?)`.")]
-    #[inline]
-    pub fn assign_str_radix(
-        &mut self,
-        src: &str,
-        radix: i32,
-    ) -> Result<(), ParseFloatError> {
-        self.assign_round(Float::parse_radix(src, radix)?, Round::Nearest);
-        Ok(())
-    }
-
-    /// Parses a `Float` from a string with the specified radix,
-    /// applying the specified rounding.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `parse_radix` instead; \
-                `f.assign_str_radix_round(src, round)?` can be replaced with \
-                `f.assign_round(Float::parse_radix(src, radix)?, round)`.")]
-    #[inline]
-    pub fn assign_str_radix_round(
-        &mut self,
-        src: &str,
-        radix: i32,
-        round: Round,
-    ) -> Result<Ordering, ParseFloatError> {
-        Ok(self.assign_round(Float::parse_radix(src, radix)?, round))
-    }
-
     /// Creates a `Float` from an initialized MPFR floating-point
     /// number.
     ///
@@ -1701,13 +1558,6 @@ impl Float {
             let ret = unsafe { mpfr::sgn(self.inner()) };
             Some(ordering1(ret))
         }
-    }
-
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `cmp0`")]
-    #[inline]
-    pub fn sign(&self) -> Option<Ordering> {
-        self.cmp0()
     }
 
     /// Compares the absolute values of `self` and `other`.
@@ -2742,27 +2592,6 @@ impl Float {
         fn sqrt_u(u: u32) -> SqrtUIncomplete;
     }
 
-    /// Sets `self` to the square root of `u`, rounding to the
-    /// nearest.
-    #[deprecated(since = "0.9.2",
-                 note = "use `sqrt_u` instead; `f.assign_sqrt_u(u)` can be \
-                         replaced with `f.assign(Float::sqrt_u(u))`.")]
-    #[inline]
-    pub fn assign_sqrt_u(&mut self, u: u32) {
-        self.assign_round(Float::sqrt_u(u), Round::Nearest);
-    }
-
-    /// Sets `self` to the square root of `u`, applying the specified
-    /// rounding method.
-    #[deprecated(since = "0.9.2",
-                 note = "use `sqrt_u` instead; \
-                         `f.assign_sqrt_u_round(u, round)` can be replaced \
-                         with `f.assign_round(Float::sqrt_u(u), round)`.")]
-    #[inline]
-    pub fn assign_sqrt_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        self.assign_round(Float::sqrt_u(u), round)
-    }
-
     math_op1_float! {
         mpfr::rec_sqrt;
         /// Computes the reciprocal square root, rounding to the nearest.
@@ -3475,61 +3304,6 @@ impl Float {
         /// assert_eq!(ba, 0);
         /// ```
         fn positive_diff_ref -> PositiveDiffIncomplete;
-    }
-
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff`")]
-    #[inline]
-    pub fn pos_diff(self, other: &Self) -> Self {
-        self.positive_diff(other)
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_mut`")]
-    #[inline]
-    pub fn pos_diff_mut(&mut self, other: &Self) {
-        self.positive_diff_mut(other);
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_round`")]
-    #[inline]
-    pub fn pos_diff_round(&mut self, other: &Self, round: Round) -> Ordering {
-        self.positive_diff_round(other, round)
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `positive_diff_ref`")]
-    #[inline]
-    pub fn pos_diff_ref<'a>(
-        &'a self,
-        other: &'a Self,
-    ) -> PositiveDiffIncomplete<'a> {
-        self.positive_diff_ref(other)
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff`")]
-    #[inline]
-    pub fn abs_diff(self, other: &Self) -> Self {
-        self.positive_diff(other)
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_mut`")]
-    #[inline]
-    pub fn abs_diff_mut(&mut self, other: &Self) {
-        self.positive_diff_mut(other);
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_round`")]
-    #[inline]
-    pub fn abs_diff_round(&mut self, other: &Self, round: Round) -> Ordering {
-        self.positive_diff_round(other, round)
-    }
-    #[doc(hidden)]
-    #[deprecated(since = "0.6.0", note = "renamed to `positive_diff_ref`")]
-    #[inline]
-    pub fn abs_diff_ref<'a>(
-        &'a self,
-        other: &'a Self,
-    ) -> PositiveDiffIncomplete<'a> {
-        self.positive_diff_ref(other)
     }
 
     math_op1_float! {
@@ -5285,32 +5059,6 @@ impl Float {
         fn factorial(n: u32) -> FactorialIncomplete;
     }
 
-    /// Sets `self` to the factorial of *u*, rounding to the nearest.
-    #[deprecated(since = "0.9.2",
-                 note = "use `factorial` instead; `f.assign_factorial_u(u)` \
-                         can be replaced with \
-                         `f.assign(Float::factorial(u))`.")]
-    #[inline]
-    pub fn assign_factorial_u(&mut self, u: u32) {
-        self.assign_round(Float::factorial(u), Round::Nearest);
-    }
-
-    /// Sets `self` to the factorial of *u*, applying the specified
-    /// rounding method.
-    #[deprecated(since = "0.9.2",
-                 note = "use `factorial` instead; \
-                         `f.assign_factorial_u_round(u, round)` can be \
-                         replaced with \
-                         `f.assign_round(Float::factorial(u), round))`.")]
-    #[inline]
-    pub fn assign_factorial_u_round(
-        &mut self,
-        u: u32,
-        round: Round,
-    ) -> Ordering {
-        self.assign_round(Float::factorial(u), round)
-    }
-
     math_op1_float! {
         mpfr::log1p;
         /// Computes the natural logarithm of one plus `self`, rounding to
@@ -6060,28 +5808,6 @@ impl Float {
         /// ```
         fn zeta_u(u: u32) -> ZetaUIncomplete;
     }
-
-    /// Sets `self` to the value of the Riemann Zeta function on *u*,
-    /// rounding to the nearest.
-    #[deprecated(since = "0.9.2",
-                 note = "use `zeta_u` instead; `f.assign_zeta_u(u)` can be \
-                         replaced with `f.assign(Float::zeta_u(u))`.")]
-    #[inline]
-    pub fn assign_zeta_u(&mut self, u: u32) {
-        self.assign_round(Float::zeta_u(u), Round::Nearest);
-    }
-
-    /// Sets `self` to the value of the Riemann Zeta function on *u*,
-    /// applying the specified rounding method.
-    #[deprecated(since = "0.9.2",
-                 note = "use `zeta_u` instead; \
-                         `f.assign_zeta_u_round(u, round)` can be replaced \
-                         with `f.assign_round(Float::zeta_u(u), round)`.")]
-    #[inline]
-    pub fn assign_zeta_u_round(&mut self, u: u32, round: Round) -> Ordering {
-        self.assign_round(Float::zeta_u(u), round)
-    }
-
     math_op1_float! {
         mpfr::erf;
         /// Computes the value of the error function, rounding to the
@@ -7236,26 +6962,6 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the range 0 ≤ *x* < 1.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_bits` instead; \
-                         `f.assign_random_bits(rng)` can be replaced with \
-                         `f.assign(Float::random_bits(rng))`, and testing the \
-                         result can be replaced with testing for NaN.")]
-    #[inline]
-    pub fn assign_random_bits(
-        &mut self,
-        rng: &mut RandState,
-    ) -> Result<(), ()> {
-        self.assign(Float::random_bits(rng));
-        if self.is_nan() {
-            Err(())
-        } else {
-            Ok(())
-        }
-    }
-
-    #[cfg(feature = "rand")]
     /// Generates a random number in the continuous range 0 ≤ *x* < 1.
     ///
     /// The result can be rounded up to be equal to one. Unlike the
@@ -7295,35 +7001,6 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continuous range 0 ≤ *x* < 1,
-    /// and rounds to the nearest.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_cont` instead; \
-                         `f.assign_random_cont(rng)` can be replaced with \
-                         `f.assign(Float::random_cont(rng))`.")]
-    #[inline]
-    pub fn assign_random_cont(&mut self, rng: &mut RandState) {
-        self.assign_round(Float::random_cont(rng), Round::Nearest);
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random number in the continous range 0 ≤ *x* < 1,
-    /// and applies the specified rounding method.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_cont` instead; \
-                         `f.assign_random_cont_round(rng)` can be replaced \
-                         with \
-                         `f.assign_round(Float::random_cont(rng), round)`.")]
-    #[inline]
-    pub fn assign_random_cont_round(
-        &mut self,
-        rng: &mut RandState,
-        round: Round,
-    ) -> Ordering {
-        self.assign_round(Float::random_cont(rng), round)
-    }
-
-    #[cfg(feature = "rand")]
     /// Generates a random number according to a standard normal
     /// Gaussian distribution, rounding to the nearest.
     ///
@@ -7348,59 +7025,6 @@ impl Float {
         rng: &'a mut RandState<'b>,
     ) -> RandomNormal<'a, 'b> {
         RandomNormal { rng }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates two random numbers according to a standard normal
-    /// Gaussian distribution, rounding to the nearest.
-    ///
-    /// If `other` is `None`, only one value is generated.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_normal` instead; if `other` is `None` \
-                         then `f.assign_random_gaussian(other, rng)` can be \
-                         replaced with `f.assign(Float::random_normal(rng))`; \
-                         if `other` is `Some(&mut g)` instead then \
-                         `g.assign(Float::random_normal(rng))` can be added.")]
-    #[inline]
-    pub fn assign_random_gaussian(
-        &mut self,
-        other: Option<&mut Self>,
-        rng: &mut RandState,
-    ) {
-        self.assign_round(Float::random_normal(rng), Round::Nearest);
-        if let Some(other) = other {
-            other.assign_round(Float::random_normal(rng), Round::Nearest);
-        }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates two random numbers according to a standard normal
-    /// Gaussian distribution, applying the specified rounding method.
-    ///
-    /// If `other` is `None`, only one value is generated.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_normal` instead; if `other` is `None` \
-                         then \
-                         `f.assign_random_gaussian_round(other, rng, round)` \
-                         can be replaced with \
-                         `f.assign_round(Float::random_normal(rng), round)`; \
-                         if `other` is `Some(&mut g)` instead then \
-                         `g.assign_round(Float::random_normal(rng), round)` \
-                         can be added.")]
-    #[inline]
-    pub fn assign_random_gaussian_round(
-        &mut self,
-        other: Option<&mut Self>,
-        rng: &mut RandState,
-        round: Round,
-    ) -> (Ordering, Ordering) {
-        let first = self.assign_round(Float::random_normal(rng), round);
-        let second = if let Some(other) = other {
-            other.assign_round(Float::random_normal(rng), round)
-        } else {
-            Ordering::Equal
-        };
-        (first, second)
     }
 
     #[cfg(feature = "rand")]
@@ -8133,29 +7757,6 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
         }
     }
     None
-}
-
-/// A validated string that can always be converted to a
-/// [`Float`](../struct.Float.html).
-#[allow(deprecated)]
-#[deprecated(since = "0.10.0",
-             note = "use the `Float::parse_radix` method instead of \
-                     `Float::valid_str_radix`, and if for example you were \
-                     storing the returned object in a struct, convert into a \
-                     `Float` before storing.")]
-#[derive(Clone, Debug)]
-pub struct ValidFloat<'a> {
-    inner: ParseIncomplete,
-    phantom: PhantomData<&'a ()>,
-}
-
-#[allow(deprecated)]
-impl<'a> AssignRound<ValidFloat<'a>> for Float {
-    type Round = Round;
-    type Ordering = Ordering;
-    fn assign_round(&mut self, src: ValidFloat<'a>, round: Round) -> Ordering {
-        self.assign_round(src.inner, round)
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

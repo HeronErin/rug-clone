@@ -402,43 +402,6 @@ impl Rational {
         parse(src.as_ref(), radix)
     }
 
-    /// Checks if a `Rational` number can be parsed.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `Rational::valid_str_radix(src, radix)` can be \
-                         replaced with `Rational::parse_radix(src, radix)`.")]
-    #[inline]
-    #[allow(deprecated)]
-    pub fn valid_str_radix(
-        src: &str,
-        radix: i32,
-    ) -> Result<ValidRational, ParseRationalError> {
-        Rational::parse_radix(src, radix).map(|inner| ValidRational {
-            inner,
-            phantom: PhantomData,
-        })
-    }
-
-    /// Converts to an [`Integer`](struct.Integer.html), rounding
-    /// towards zero.
-    #[inline]
-    #[deprecated(since = "0.10.0",
-                 note = "use `trunc_ref` instead; `r.to_integer()` can be \
-                         replaced with `Integer::from(r.trunc_ref())`.")]
-    pub fn to_integer(&self) -> Integer {
-        Integer::from(self.trunc_ref())
-    }
-
-    /// Converts to an [`Integer`](struct.Integer.html) inside `i`,
-    /// rounding towards zero.
-    #[inline]
-    #[deprecated(since = "0.9.2",
-                 note = "use `trunc_ref` instead; `r.copy_to_integer(&mut i)` \
-                         can be replaced with `i.assign(r.trunc_ref())`.")]
-    pub fn copy_to_integer(&self, i: &mut Integer) {
-        i.assign(self.trunc_ref());
-    }
-
     /// Converts to an `f32`, rounding towards zero.
     ///
     /// # Examples
@@ -564,32 +527,6 @@ impl Rational {
         } else {
             Err(())
         }
-    }
-
-    /// Parses a `Rational` number from a string.
-    #[inline]
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse` instead; `r.assign_str(src)?` can be \
-                         replaced with `r.assign(Rational::parse(src)?)`.")]
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseRationalError> {
-        self.assign(Rational::parse(src)?);
-        Ok(())
-    }
-
-    /// Parses a `Rational` number from a string with the specified
-    /// radix.
-    #[inline]
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `r.assign_str_radix(src, radix)?` can be replaced \
-                         with `r.assign(Rational::parse_radix(src, radix)?)`.")]
-    pub fn assign_str_radix(
-        &mut self,
-        src: &str,
-        radix: i32,
-    ) -> Result<(), ParseRationalError> {
-        self.assign(Rational::parse_radix(src, radix)?);
-        Ok(())
     }
 
     /// Creates a new `Rational` from a numerator and denominator
@@ -808,16 +745,6 @@ impl Rational {
         unsafe { &*(gmp::mpq_denref_const(self.inner()) as *const _) }
     }
 
-    /// Borrows the numerator and denominator as
-    /// [`Integer`](struct.Integer.html) values.
-    #[deprecated(since = "0.10.0",
-                 note = "use `numer` and `denom` instead; `r.as_numer_denom()` \
-                         can be replaced with `(r.numer(), r.denom())`.")]
-    #[inline]
-    pub fn as_numer_denom(&self) -> (&Integer, &Integer) {
-        (self.numer(), self.denom())
-    }
-
     /// Calls a function with mutable references to the numerator and
     /// denominator, then canonicalizes the number.
     ///
@@ -854,30 +781,6 @@ impl Rational {
                 "division by zero"
             );
             gmp::mpq_canonicalize(self.inner_mut());
-        }
-    }
-
-    /// Borrows the numerator and denominator mutably. The number is
-    /// canonicalized when the borrow ends. The denominator must not
-    /// be zero when the borrow ends.
-    #[deprecated(since = "0.10.0",
-                 note = "use the `Rational::mutate_numer_denom` method instead \
-                         of `Rational::as_mut_numer_denom`.")]
-    #[allow(deprecated)]
-    pub fn as_mut_numer_denom(&mut self) -> MutNumerDenom {
-        // We swap in a denominator of 1 so that if the
-        // `MutNumerDenom` is leaked, we don't end up with a
-        // non-canonical rational number.
-        unsafe {
-            let numer_ptr = gmp::mpq_numref(self.inner_mut());
-            let denom_ptr = gmp::mpq_denref(self.inner_mut());
-            let mut acting_denom = Integer::from(1);
-            mem::swap(acting_denom.inner_mut(), &mut *denom_ptr);
-            MutNumerDenom {
-                num: &mut *(numer_ptr as *mut Integer),
-                den_place: &mut *(denom_ptr as *mut Integer),
-                den_actual: acting_denom,
-            }
         }
     }
 
@@ -1087,13 +990,6 @@ impl Rational {
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         self.numer().cmp0()
-    }
-
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `cmp0`")]
-    #[inline]
-    pub fn sign(&self) -> Ordering {
-        self.cmp0()
     }
 
     /// Compares the absolute values.
@@ -1423,27 +1319,6 @@ impl Rational {
         /// assert_eq!(trunc, 3);
         /// ```
         fn trunc_ref -> TruncIncomplete;
-    }
-
-    /// Computes the fractional part of the number.
-    #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc`")]
-    #[inline]
-    pub fn fract(self) -> Self {
-        self.rem_trunc()
-    }
-
-    /// Computes the fractional part of the number.
-    #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc_mut`")]
-    #[inline]
-    pub fn fract_mut(&mut self) {
-        self.rem_trunc_mut();
-    }
-
-    /// Computes the fractional part of the number.
-    #[deprecated(since = "0.9.0", note = "renamed to `rem_trunc_ref`")]
-    #[inline]
-    pub fn fract_ref(&self) -> RemTruncIncomplete {
-        self.rem_trunc_ref()
     }
 
     math_op1! {
@@ -2326,36 +2201,6 @@ fn parse(
     Ok(ParseIncomplete { c_string, radix })
 }
 
-/// A validated string that can always be converted to a
-/// [`Rational`](../struct.Rational.html) number.
-#[allow(deprecated)]
-#[deprecated(since = "0.10.0",
-             note = "use the `Rational::parse_radix` method instead of \
-                     `Rational::valid_str_radix`, and if for example you were \
-                     storing the returned object in a struct, convert into a \
-                     `Rational` before storing.")]
-#[derive(Clone, Debug)]
-pub struct ValidRational<'a> {
-    inner: ParseIncomplete,
-    phantom: PhantomData<&'a ()>,
-}
-
-#[allow(deprecated)]
-impl<'a> Assign<ValidRational<'a>> for Rational {
-    #[inline]
-    fn assign(&mut self, src: ValidRational<'a>) {
-        self.assign(src.inner);
-    }
-}
-
-#[allow(deprecated)]
-impl<'a> From<ValidRational<'a>> for Rational {
-    #[inline]
-    fn from(src: ValidRational<'a>) -> Self {
-        Rational::from(src.inner)
-    }
-}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Rational` number.
 ///
@@ -2396,59 +2241,6 @@ impl Error for ParseRationalError {
             DenomNoDigits => "string has no digits for denominator",
             TooManySlashes => "more than one / found in string",
             DenomZero => "string has zero denominator",
-        }
-    }
-}
-
-/// Used to borrow the numerator and denominator of a
-/// [`Rational`](../struct.Rational.html) number mutably.
-#[deprecated(since = "0.10.0",
-             note = "use the `Rational::mutate_numer_denom` method instead of \
-                     `Rational::as_mut_numer_denom`.")]
-pub struct MutNumerDenom<'a> {
-    num: &'a mut Integer,
-    den_place: &'a mut Integer,
-    den_actual: Integer,
-}
-
-#[allow(deprecated)]
-impl<'a> MutNumerDenom<'a> {
-    /// Gets the mutable numerator.
-    #[inline]
-    pub fn num(&mut self) -> &mut Integer {
-        self.num
-    }
-    /// Gets the mutable denominator.
-    #[inline]
-    pub fn den(&mut self) -> &mut Integer {
-        &mut self.den_actual
-    }
-    /// Gets the mutable numerator and denominator.
-    #[inline]
-    pub fn num_den(&mut self) -> (&mut Integer, &mut Integer) {
-        (self.num, &mut self.den_actual)
-    }
-}
-
-#[allow(deprecated)]
-impl<'a> Drop for MutNumerDenom<'a> {
-    #[inline]
-    fn drop(&mut self) {
-        assert_ne!(self.den_actual.cmp0(), Ordering::Equal, "division by zero");
-        // We can finally place the actual denominator in its
-        // proper place inside the rational number.
-        mem::swap(&mut self.den_actual, self.den_place);
-        unsafe {
-            let rat_num = self.num.inner_mut();
-            let rat_den = self.den_place.inner_mut();
-            let mut canon: mpq_t = mem::uninitialized();
-            let canon_num_ptr = gmp::mpq_numref(&mut canon);
-            let canon_den_ptr = gmp::mpq_denref(&mut canon);
-            ptr::copy_nonoverlapping(rat_num, &mut *canon_num_ptr, 1);
-            ptr::copy_nonoverlapping(rat_den, &mut *canon_den_ptr, 1);
-            gmp::mpq_canonicalize(&mut canon);
-            ptr::copy_nonoverlapping(&*canon_num_ptr, rat_num, 1);
-            ptr::copy_nonoverlapping(&*canon_den_ptr, rat_den, 1);
         }
     }
 }

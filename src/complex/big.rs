@@ -20,7 +20,8 @@ use complex::{OrdComplex, Prec};
 use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use ext::mpc as xmpc;
 use float::{self, ParseFloatError, Round, Special};
-use float::big::{self as big_float, ParseIncomplete as FloatParseIncomplete};
+use float::big::{self as big_float, raw_round,
+                 ParseIncomplete as FloatParseIncomplete};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
@@ -421,76 +422,6 @@ impl Complex {
         )
     }
 
-    /// Parses a `Complex` number with the specified precision,
-    /// rounding to the nearest.
-    #[deprecated(since = "0.10.0",
-                 note = "use `with_val` and `parse` instead; \
-                         `Complex::from_str(src, prec)?` can be replaced with \
-                         `Complex::with_val(prec, Complex::parse(src)?)`.")]
-    #[inline]
-    pub fn from_str<P: Prec>(
-        src: &str,
-        prec: P,
-    ) -> Result<Self, ParseComplexError> {
-        Ok(Complex::with_val(prec, Complex::parse(src)?))
-    }
-
-    /// Parses a `Complex` number with the specified precision,
-    /// applying the specified rounding.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `with_val_round` and `parse` instead; \
-                `Complex::from_str_round(src, prec, round)?` can be replaced \
-                with \
-                `Complex::with_val_round(prec, Complex::parse(src)?, round)`.")]
-    #[inline]
-    pub fn from_str_round<P: Prec>(
-        src: &str,
-        prec: P,
-        round: Round2,
-    ) -> Result<(Self, Ordering2), ParseComplexError> {
-        Ok(Complex::with_val_round(prec, Complex::parse(src)?, round))
-    }
-
-    /// Parses a `Complex` number with the specified radix and
-    /// precision, rounding to the nearest.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `with_val` and `parse_radix` instead; \
-                `Complex::from_str_radix(src, radix, prec)?` can be replaced \
-                with \
-                `Complex::with_val(prec, Complex::parse_radix(src, radix)?)`.")]
-    #[inline]
-    pub fn from_str_radix<P: Prec>(
-        src: &str,
-        radix: i32,
-        prec: P,
-    ) -> Result<Self, ParseComplexError> {
-        Ok(Complex::with_val(prec, Complex::parse_radix(src, radix)?))
-    }
-
-    /// Parses a `Complex` number with the specified radix and
-    /// precision, applying the specified rounding.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `with_val_round` and `parse_radix` instead; \
-                `Complex::from_str_radix_round(src, radix, prec, round)?` can \
-                be replaced with \
-   `Complex::with_val_round(prec, Complex::parse_radix(src, radix)?, round)`.")]
-    #[inline]
-    pub fn from_str_radix_round<P: Prec>(
-        src: &str,
-        radix: i32,
-        prec: P,
-        round: Round2,
-    ) -> Result<(Self, Ordering2), ParseComplexError> {
-        Ok(Complex::with_val_round(
-            prec,
-            Complex::parse_radix(src, radix)?,
-            round,
-        ))
-    }
-
     /// Parses a decimal string or byte slice into a `Complex` number.
     ///
     /// `AssignRound<Src> for Complex` is implemented with the
@@ -580,23 +511,6 @@ impl Complex {
         parse(src.as_ref(), radix)
     }
 
-    /// Checks if a `Complex` number can be parsed.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `Complex::valid_str_radix(src, radix)` can be \
-                         replaced with `Complex::parse_radix(src, radix)`.")]
-    #[inline]
-    #[allow(deprecated)]
-    pub fn valid_str_radix(
-        src: &str,
-        radix: i32,
-    ) -> Result<ValidComplex, ParseComplexError> {
-        Complex::parse_radix(src, radix).map(|inner| ValidComplex {
-            inner,
-            phantom: PhantomData,
-        })
-    }
-
     /// Returns a string representation of the value for the specified
     /// `radix` rounding to the nearest.
     ///
@@ -676,68 +590,6 @@ impl Complex {
             (false, false, ""),
         );
         s
-    }
-
-    /// Parses a `Complex` number from a string, rounding to the
-    /// nearest.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse` instead; `f.assign_str(src)?` can be \
-                         replaced with `f.assign(Complex::parse(src)?)`.")]
-    #[inline]
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseComplexError> {
-        self.assign_round(Complex::parse(src)?, Default::default());
-        Ok(())
-    }
-
-    /// Parses a `Complex` number from a string, applying the specified
-    /// rounding.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse` instead; \
-                         `f.assign_str_round(src, round)?` can be replaced \
-                         with `f.assign_round(Complex::parse(src)?, round)`.")]
-    #[inline]
-    pub fn assign_str_round(
-        &mut self,
-        src: &str,
-        round: Round2,
-    ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::parse(src)?, round))
-    }
-
-    /// Parses a `Complex` number from a string with the specified
-    /// radix, rounding to the nearest.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `f.assign_str_radix(src, radix)?` can be replaced \
-                         with `f.assign(Complex::parse_radix(src, radix)?)`.")]
-    #[inline]
-    pub fn assign_str_radix(
-        &mut self,
-        src: &str,
-        radix: i32,
-    ) -> Result<(), ParseComplexError> {
-        self.assign_round(
-            Complex::parse_radix(src, radix)?,
-            Default::default(),
-        );
-        Ok(())
-    }
-
-    /// Parses a `Complex` number from a string with the specified
-    /// radix, applying the specified rounding.
-    #[deprecated(
-        since = "0.10.0",
-        note = "use `parse_radix` instead; \
-                `f.assign_str_radix_round(src, round)?` can be replaced with \
-                `f.assign_round(Complex::parse_radix(src, radix)?, round)`.")]
-    #[inline]
-    pub fn assign_str_radix_round(
-        &mut self,
-        src: &str,
-        radix: i32,
-        round: Round2,
-    ) -> Result<Ordering2, ParseComplexError> {
-        Ok(self.assign_round(Complex::parse_radix(src, radix)?, round))
     }
 
     /// Creates a `Complex` from an initialized MPC complex number.
@@ -925,15 +777,6 @@ impl Complex {
     #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
         unsafe { &mut *(mpc::imagref(self.inner_mut()) as *mut _) }
-    }
-
-    /// Borrows the real and imaginary parts.
-    #[deprecated(since = "0.10.0",
-                 note = "use `real` and `imag` instead; `c.as_real_imag()` can \
-                         be replaced with `(c.real(), c.imag())`.")]
-    #[inline]
-    pub fn as_real_imag(&self) -> (&Float, &Float) {
-        (self.real(), self.imag())
     }
 
     /// Borrows the real and imaginary parts mutably.
@@ -3100,27 +2943,6 @@ impl Complex {
 
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
-    /// imaginary parts in the range 0 ≤ *x* < 1.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_bits` instead; \
-                         `c.assign_random_bits(rng)` can be replaced with \
-                         `c.assign(Complex::random_bits(rng))`, and testing \
-                         the result can be replaced with testing for NaN.")]
-    #[inline]
-    pub fn assign_random_bits(
-        &mut self,
-        rng: &mut RandState,
-    ) -> Result<(), ()> {
-        self.assign(Complex::random_bits(rng));
-        if self.real().is_nan() || self.imag().is_nan() {
-            Err(())
-        } else {
-            Ok(())
-        }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random complex number with both the real and
     /// imaginary parts in the continous range 0 ≤ *x* < 1, and rounds
     /// to the nearest.
     ///
@@ -3162,37 +2984,6 @@ impl Complex {
         rng: &'a mut RandState<'b>,
     ) -> RandomCont<'a, 'b> {
         RandomCont { rng }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random complex number with both the real and
-    /// imaginary parts in the continous range 0 ≤ *x* < 1, and rounds
-    /// to the nearest.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_cont` instead; \
-                         `c.assign_random_cont(rng)` can be replaced with \
-                         `c.assign(Complex::random_cont(rng))`.")]
-    #[inline]
-    pub fn assign_random_cont(&mut self, rng: &mut RandState) {
-        self.assign_round(Complex::random_cont(rng), Default::default());
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random complex number with both the real and
-    /// imaginary parts in the continous range 0 ≤ *x* < 1, and
-    /// applies the specified rounding method.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_cont` instead; \
-                         `c.assign_random_cont_round(rng, round)` can be \
-                         replaced with \
-                         `c.assign_round(Complex::random_cont(rng, round))`.")]
-    #[inline]
-    pub fn assign_random_cont_round(
-        &mut self,
-        rng: &mut RandState,
-        round: Round2,
-    ) -> Ordering2 {
-        self.assign_round(Complex::random_cont(rng), round)
     }
 }
 
@@ -3602,20 +3393,6 @@ fn parse(
     Ok(ParseIncomplete::Complex(re, im))
 }
 
-/// A validated string that can always be converted to a
-/// [`Complex`](../struct/Complex.html).
-#[allow(deprecated)]
-#[deprecated(since = "0.10.0",
-             note = "use the `Complex::parse_radix` method instead of \
-                     `Complex::valid_str_radix`, and if for example you were \
-                     storing the returned object in a struct, convert into a \
-                     `Complex` before storing.")]
-#[derive(Clone, Debug)]
-pub struct ValidComplex<'a> {
-    inner: ParseIncomplete,
-    phantom: PhantomData<&'a ()>,
-}
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 /// An error which can be returned when parsing a `Complex` number.
 ///
@@ -3634,20 +3411,6 @@ pub struct ValidComplex<'a> {
 /// ```
 pub struct ParseComplexError {
     kind: ParseErrorKind,
-}
-
-#[allow(deprecated)]
-impl<'a> AssignRound<ValidComplex<'a>> for Complex {
-    type Round = Round2;
-    type Ordering = Ordering2;
-    #[inline]
-    fn assign_round(
-        &mut self,
-        src: ValidComplex<'a>,
-        round: Round2,
-    ) -> Ordering2 {
-        self.assign_round(src.inner, round)
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -3685,20 +3448,7 @@ impl Error for ParseComplexError {
 }
 
 #[inline]
-fn raw_round(round: Round) -> mpfr::rnd_t {
-    #[allow(deprecated)]
-    match round {
-        Round::Nearest => mpfr::rnd_t::RNDN,
-        Round::Zero => mpfr::rnd_t::RNDZ,
-        Round::Up => mpfr::rnd_t::RNDU,
-        Round::Down => mpfr::rnd_t::RNDD,
-        Round::AwayFromZero => mpfr::rnd_t::RNDA,
-    }
-}
-
-#[inline]
-pub(crate) fn raw_round2(round: Round2) -> mpc::rnd_t {
-    #[allow(deprecated)]
+pub fn raw_round2(round: Round2) -> mpc::rnd_t {
     match (round.0, round.1) {
         (Round::Nearest, Round::Nearest) => mpc::RNDNN,
         (Round::Nearest, Round::Zero) => mpc::RNDNZ,
@@ -3716,7 +3466,7 @@ pub(crate) fn raw_round2(round: Round2) -> mpc::rnd_t {
         (Round::Down, Round::Zero) => mpc::RNDDZ,
         (Round::Down, Round::Up) => mpc::RNDDU,
         (Round::Down, Round::Down) => mpc::RNDDD,
-        (Round::AwayFromZero, _) | (_, Round::AwayFromZero) => unimplemented!(),
+        _ => unreachable!(),
     }
 }
 

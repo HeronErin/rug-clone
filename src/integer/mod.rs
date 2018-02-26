@@ -45,8 +45,6 @@ pub(crate) mod small;
 mod traits;
 
 pub use integer::big::{IsPrime, ParseIntegerError};
-#[allow(deprecated)]
-pub use integer::big::ValidInteger;
 pub use integer::small::SmallInteger;
 
 #[cfg(test)]

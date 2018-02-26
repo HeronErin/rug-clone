@@ -420,23 +420,6 @@ impl Integer {
         parse(src.as_ref(), radix)
     }
 
-    /// Checks if an `Integer` can be parsed.
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `Integer::valid_str_radix(src, radix)` can be \
-                         replaced with `Integer::parse_radix(src, radix)`.")]
-    #[inline]
-    #[allow(deprecated)]
-    pub fn valid_str_radix(
-        src: &str,
-        radix: i32,
-    ) -> Result<ValidInteger, ParseIntegerError> {
-        Integer::parse_radix(src, radix).map(|inner| ValidInteger {
-            inner,
-            phantom: PhantomData,
-        })
-    }
-
     /// Converts to an `i8` if the value fits.
     ///
     /// # Examples
@@ -988,31 +971,6 @@ impl Integer {
         }
     }
 
-    /// Parses an `Integer` from a string in decimal.
-    #[inline]
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse` instead; `i.assign_str(src)?` can be \
-                         replaced with `i.assign(Integer::parse(src)?)`.")]
-    pub fn assign_str(&mut self, src: &str) -> Result<(), ParseIntegerError> {
-        self.assign(Integer::parse(src)?);
-        Ok(())
-    }
-
-    /// Parses an `Integer` from a string with the specified radix.
-    #[inline]
-    #[deprecated(since = "0.10.0",
-                 note = "use `parse_radix` instead; \
-                         `i.assign_str_radix(src, radix)?` can be replaced \
-                         with `i.assign(Integer::parse_radix(src, radix)?)`.")]
-    pub fn assign_str_radix(
-        &mut self,
-        src: &str,
-        radix: i32,
-    ) -> Result<(), ParseIntegerError> {
-        self.assign(Integer::parse_radix(src, radix)?);
-        Ok(())
-    }
-
     /// Creates an `Integer` from an initialized GMP integer.
     ///
     /// # Safety
@@ -1386,13 +1344,6 @@ impl Integer {
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
-    }
-
-    #[doc(hidden)]
-    #[deprecated(since = "0.8.0", note = "renamed to `cmp0`")]
-    #[inline]
-    pub fn sign(&self) -> Ordering {
-        self.cmp0()
     }
 
     /// Compares the absolute values.
@@ -2563,16 +2514,6 @@ impl Integer {
         fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
     }
 
-    /// Raises `base` to the power of `exponent`.
-    #[deprecated(since = "0.9.2",
-                 note = "use `u_pow_u` instead; \
-                         `i.assign_u_pow_u(base, exponent)` can be replaced \
-                         with `i.assign(Integer::u_pow_u(base, exponent)`.")]
-    #[inline]
-    pub fn assign_u_pow_u(&mut self, base: u32, exponent: u32) {
-        self.assign(Integer::u_pow_u(base, exponent));
-    }
-
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
@@ -2591,16 +2532,6 @@ impl Integer {
         /// assert_eq!(i2, (13_i64).pow(13));
         /// ```
         fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
-    }
-
-    /// Raises `base` to the power of `exponent`.
-    #[deprecated(since = "0.9.2",
-                 note = "use `i_pow_u` instead; \
-                         `i.assign_i_pow_u(base, exponent)` can be replaced \
-                         with `i.assign(Integer::i_pow_u(base, exponent)`.")]
-    #[inline]
-    pub fn assign_i_pow_u(&mut self, base: i32, exponent: u32) {
-        self.assign(Integer::i_pow_u(base, exponent));
     }
 
     math_op1! {
@@ -3166,37 +3097,6 @@ impl Integer {
         fn gcd_cofactors_ref -> GcdIncomplete;
     }
 
-    /// Finds the greatest common divisor (GCD) of the two inputs
-    /// (`self` and `other`), and two cofactors to obtain the GCD from
-    /// the two inputs.
-    #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors`")]
-    #[inline]
-    pub fn gcd_coeffs(
-        self,
-        other: Self,
-        rop: Self,
-    ) -> (Integer, Integer, Integer) {
-        self.gcd_cofactors(other, rop)
-    }
-
-    /// Finds the greatest common divisor (GCD) of the two inputs
-    /// (`self` and `other`), and two cofactors to obtain the GCD from
-    /// the two inputs.
-    #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors_mut`")]
-    #[inline]
-    pub fn gcd_coeffs_mut(&mut self, other: &mut Self, rop: &mut Self) {
-        self.gcd_cofactors_mut(other, rop);
-    }
-
-    /// Finds the greatest common divisor (GCD) of the two inputs
-    /// (`self` and `other`), and two cofactors to obtain the GCD from
-    /// the two inputs.
-    #[deprecated(since = "0.10.0", note = "renamed to `gcd_cofactors_ref`")]
-    #[inline]
-    pub fn gcd_coeffs_ref<'a>(&'a self, other: &'a Self) -> GcdIncomplete<'a> {
-        self.gcd_cofactors_ref(other)
-    }
-
     math_op2! {
         gmp::mpz_lcm;
         /// Finds the least common multiple.
@@ -3401,15 +3301,6 @@ impl Integer {
         fn factorial(n: u32) -> FactorialIncomplete;
     }
 
-    /// Computes the factorial of *n*.
-    #[deprecated(since = "0.9.2",
-                 note = "use `factorial` instead; `i.assign_factorial(n)` can \
-                         be replaced with `i.assign(Integer::factorial(n))`.")]
-    #[inline]
-    pub fn assign_factorial(&mut self, n: u32) {
-        self.assign(Integer::factorial(n));
-    }
-
     math_op0! {
         /// Computes the double factorial of *n*.
         ///
@@ -3426,16 +3317,6 @@ impl Integer {
         /// assert_eq!(i, 3840);
         /// ```
         fn factorial_2(n: u32) -> Factorial2Incomplete;
-    }
-
-    /// Computes the double factorial of *n*.
-    #[deprecated(since = "0.9.2",
-                 note = "use `factorial_2` instead; `i.assign_factorial_2(n)` \
-                         can be replaced with \
-                         `i.assign(Integer::factorial_2(n))`.")]
-    #[inline]
-    pub fn assign_factorial_2(&mut self, n: u32) {
-        self.assign(Integer::factorial_2(n));
     }
 
     math_op0! {
@@ -3456,16 +3337,6 @@ impl Integer {
         fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete;
     }
 
-    /// Computes the *m*-multi factorial of *n*.
-    #[deprecated(since = "0.9.2",
-                 note = "use `factorial_m` instead; \
-                         `i.assign_factorial_m(n, m)` can be replaced with \
-                         `i.assign(Integer::factorial_m(n, m))`.")]
-    #[inline]
-    pub fn assign_factorial_m(&mut self, n: u32, m: u32) {
-        self.assign(Integer::factorial_m(n, m));
-    }
-
     math_op0! {
         /// Computes the primorial of *n*.
         ///
@@ -3483,15 +3354,6 @@ impl Integer {
         /// ```
         #[inline]
         fn primorial(n: u32) -> PrimorialIncomplete;
-    }
-
-    /// Computes the primorial of *n*.
-    #[deprecated(since = "0.9.2",
-                 note = "use `primorial` instead; `i.assign_primorial(n)` can \
-                         be replaced with `i.assign(Integer::primorial(n))`.")]
-    #[inline]
-    pub fn assign_primorial(&mut self, n: u32) {
-        self.assign(Integer::primorial(n));
     }
 
     math_op1! {
@@ -3553,16 +3415,6 @@ impl Integer {
         fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete;
     }
 
-    /// Computes the binomial coefficient *n* over *k*.
-    #[inline]
-    #[deprecated(since = "0.9.2",
-                 note = "use `binomial_u` instead; `i.assign_binomial_u(n, k)` \
-                         can be replaced with \
-                         `i.assign(Integer::binomial_u(n, k))`.")]
-    pub fn assign_binomial_u(&mut self, n: u32, k: u32) {
-        self.assign(Integer::binomial_u(n, k));
-    }
-
     math_op0! {
         /// Computes the Fibonacci number.
         ///
@@ -3584,15 +3436,6 @@ impl Integer {
         /// assert_eq!(i, 144);
         /// ```
         fn fibonacci(n: u32) -> FibonacciIncomplete;
-    }
-
-    /// Computes the Fibonacci number.
-    #[inline]
-    #[deprecated(since = "0.9.2",
-                 note = "use `fibonacci` instead; `i.assign_fibonacci(n)` can \
-                         be replaced with `i.assign(Integer::fibonacci(n))`.")]
-    pub fn assign_fibonacci(&mut self, n: u32) {
-        self.assign(Integer::fibonacci(n));
     }
 
     math_op0! {
@@ -3625,16 +3468,6 @@ impl Integer {
         fn fibonacci_2(n: u32) -> Fibonacci2Incomplete;
     }
 
-    /// Computes a Fibonacci number, and the previous Fibonacci number.
-    #[deprecated(since = "0.9.2",
-                 note = "use `fibonacci_2` instead; \
-                         `i.assign_fibonacci_2(j, n)` can be replaced with \
-                         `(i, j).assign(Integer::fibonacci_2(n))`.")]
-    #[inline]
-    pub fn assign_fibonacci_2(&mut self, previous: &mut Self, n: u32) {
-        (self, previous).assign(Integer::fibonacci_2(n));
-    }
-
     math_op0! {
         /// Computes the Lucas number.
         ///
@@ -3656,15 +3489,6 @@ impl Integer {
         /// assert_eq!(i, 322);
         /// ```
         fn lucas(n: u32) -> LucasIncomplete;
-    }
-
-    /// Computes the Lucas number.
-    #[deprecated(since = "0.9.2",
-                 note = "use `lucas` instead; `i.assign_lucas(n)` can be \
-                         replaced with `i.assign(Integer::lucas(n))`.")]
-    #[inline]
-    pub fn assign_lucas(&mut self, n: u32) {
-        self.assign(Integer::lucas(n));
     }
 
     math_op0! {
@@ -3695,16 +3519,6 @@ impl Integer {
         fn lucas_2(n: u32) -> Lucas2Incomplete;
     }
 
-    /// Computes a Lucas number, and the previous Lucas number.
-    #[deprecated(since = "0.9.2",
-                 note = "use `lucas_2` instead; `i.assign_lucas_2(j, n)` can \
-                         be replaced with \
-                         `(i, j).assign(Integer::lucas_2(n))`.")]
-    #[inline]
-    pub fn assign_lucas_2(&mut self, previous: &mut Self, n: u32) {
-        (self, previous).assign(Integer::lucas_2(n));
-    }
-
     #[cfg(feature = "rand")]
     /// Generates a random number with a specified maximum number of
     /// bits.
@@ -3729,18 +3543,6 @@ impl Integer {
         rng: &'a mut RandState<'b>,
     ) -> RandomBitsIncomplete<'a, 'b> {
         RandomBitsIncomplete { bits, rng }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a random number with a specified maximum number of
-    /// bits.
-    #[inline]
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_bits` instead; \
-                         `i.assign_random_bits(bits, rng)` can be replaced \
-                         with `i.assign(Integer::random_bits(bits, rng))`.")]
-    pub fn assign_random_bits(&mut self, bits: u32, rng: &mut RandState) {
-        self.assign(Integer::random_bits(bits, rng));
     }
 
     #[cfg(feature = "rand")]
@@ -3826,26 +3628,6 @@ impl Integer {
             ref_self: self,
             rng,
         }
-    }
-
-    #[cfg(feature = "rand")]
-    /// Generates a non-negative random number below the given
-    /// boundary value.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the boundary value is less than or equal to zero.
-    #[deprecated(since = "0.9.2",
-                 note = "use `random_below_ref` instead; \
-                         `i.assign_random_below(bound, rng)` can be replaced \
-                         with `i.assign(bound.random_below_ref(rng))`.")]
-    #[inline]
-    pub fn assign_random_below<'a, 'b: 'a>(
-        &mut self,
-        bound: &'a Self,
-        rng: &'a mut RandState<'b>,
-    ) {
-        self.assign(bound.random_below_ref(rng));
     }
 }
 
@@ -4348,36 +4130,6 @@ fn parse(
     // we've only added b'-' and digits, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
     Ok(ParseIncomplete { c_string, radix })
-}
-
-/// A validated string that can always be converted to an
-/// [`Integer`](../struct.Integer.html).
-#[allow(deprecated)]
-#[deprecated(since = "0.10.0",
-             note = "use the `Integer::parse_radix` method instead of \
-                     `Integer::valid_str_radix`, and if for example you were \
-                     storing the returned object in a struct, convert into an \
-                     `Integer` before storing.")]
-#[derive(Clone, Debug)]
-pub struct ValidInteger<'a> {
-    inner: ParseIncomplete,
-    phantom: PhantomData<&'a ()>,
-}
-
-#[allow(deprecated)]
-impl<'a> Assign<ValidInteger<'a>> for Integer {
-    #[inline]
-    fn assign(&mut self, src: ValidInteger<'a>) {
-        self.assign(src.inner);
-    }
-}
-
-#[allow(deprecated)]
-impl<'a> From<ValidInteger<'a>> for Integer {
-    #[inline]
-    fn from(src: ValidInteger<'a>) -> Self {
-        Integer::from(src.inner)
-    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

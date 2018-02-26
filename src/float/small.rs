@@ -18,6 +18,7 @@ use {Assign, Float};
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::Round;
+use float::big::raw_round;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use misc::NegAbs;
@@ -301,17 +302,5 @@ impl Assign for SmallFloat {
     #[inline]
     fn assign(&mut self, other: Self) {
         mem::drop(mem::replace(self, other));
-    }
-}
-
-#[inline]
-fn raw_round(round: Round) -> mpfr::rnd_t {
-    #[allow(deprecated)]
-    match round {
-        Round::Nearest => mpfr::rnd_t::RNDN,
-        Round::Zero => mpfr::rnd_t::RNDZ,
-        Round::Up => mpfr::rnd_t::RNDU,
-        Round::Down => mpfr::rnd_t::RNDD,
-        Round::AwayFromZero => mpfr::rnd_t::RNDA,
     }
 }

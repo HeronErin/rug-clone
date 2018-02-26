@@ -30,8 +30,6 @@ mod traits;
 
 use cast::cast;
 pub use float::big::ParseFloatError;
-#[allow(deprecated)]
-pub use float::big::ValidFloat;
 pub use float::ord::OrdFloat;
 pub use float::small::SmallFloat;
 use gmp_mpfr_sys::mpfr;
@@ -150,7 +148,6 @@ pub fn prec_max() -> u32 {
 /// assert_eq!(f4, 28);
 /// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-#[allow(deprecated)]
 pub enum Round {
     /// Round towards the nearest.
     Nearest,
@@ -160,9 +157,8 @@ pub enum Round {
     Up,
     /// Round towards minus infinity.
     Down,
-    #[deprecated(since = "0.9.2", note = "not supported at the moment")]
     #[doc(hidden)]
-    AwayFromZero,
+    __NotExhaustive,
 }
 
 impl Default for Round {

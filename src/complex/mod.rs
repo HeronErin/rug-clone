@@ -29,8 +29,6 @@ mod small;
 mod traits;
 
 pub use complex::big::ParseComplexError;
-#[allow(deprecated)]
-pub use complex::big::ValidComplex;
 pub use complex::ord::OrdComplex;
 pub use complex::small::SmallComplex;
 
