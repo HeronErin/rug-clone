@@ -1504,11 +1504,6 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_cmp_u32(op1: *const mpq_t, n2: u32, d2: u32) -> c_int {
-        gmp::mpq_cmp_ui(op1, cast::cast(n2), cast::cast(d2))
-    }
-
-    #[inline]
     pub unsafe fn mpq_cmp_u64(op1: *const mpq_t, n2: u64, d2: u64) -> c_int {
         if let Some(n2) = cast::checked_cast(n2) {
             if let Some(d2) = cast::checked_cast(d2) {
