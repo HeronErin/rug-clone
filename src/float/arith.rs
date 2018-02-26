@@ -78,7 +78,11 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
-            mpfr::neg(self.inner_mut(), src.val.inner(), raw_round(round))
+            mpfr::neg(
+                self.inner_mut(),
+                src.val.inner(),
+                raw_round(round),
+            )
         };
         ordering1(ret)
     }
@@ -674,7 +678,12 @@ unsafe fn sub_mul(
     mul: MulIncomplete,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    xmpfr::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
+    xmpfr::submul(
+        rop,
+        add,
+        (mul.lhs.inner(), mul.rhs.inner()),
+        rnd,
+    )
 }
 
 #[allow(unknown_lints, needless_pass_by_value)]

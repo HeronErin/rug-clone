@@ -161,10 +161,16 @@ mod tests {
         assert_eq!(i.to_f64(), 255.0 * 2f64.powi(80));
         i = i.clone() << 30 | i;
         assert_eq!(i.to_f32(), 255.0 * 2f32.powi(110));
-        assert_eq!(i.to_f64(), 255.0 * (2f64.powi(80) + 2f64.powi(110)));
+        assert_eq!(
+            i.to_f64(),
+            255.0 * (2f64.powi(80) + 2f64.powi(110))
+        );
         i <<= 100;
         assert_eq!(i.to_f32(), f32::INFINITY);
-        assert_eq!(i.to_f64(), 255.0 * (2f64.powi(180) + 2f64.powi(210)));
+        assert_eq!(
+            i.to_f64(),
+            255.0 * (2f64.powi(180) + 2f64.powi(210))
+        );
         i <<= 1000;
         assert_eq!(i.to_f32(), f32::INFINITY);
         assert_eq!(i.to_f64(), f64::INFINITY);
@@ -262,7 +268,10 @@ mod tests {
         // we assume no nail bits when we use limbs
         assert_eq!(gmp::NAIL_BITS, 0);
         assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
-        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(
+            gmp::NUMB_BITS as usize,
+            8 * mem::size_of::<gmp::limb_t>()
+        );
 
         // we check that we have either 64 or 32, but not both
         assert!(cfg!(gmp_limb_bits_64) != cfg!(gmp_limb_bits_32));

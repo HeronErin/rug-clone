@@ -687,7 +687,8 @@ impl Float {
     /// ```
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
-        self.to_integer_round(Round::Nearest).map(|x| x.0)
+        self.to_integer_round(Round::Nearest)
+            .map(|x| x.0)
     }
 
     #[cfg(feature = "integer")]
@@ -1576,7 +1577,10 @@ impl Float {
     pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
         unsafe {
             match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(ordering1(mpfr::cmpabs(self.inner(), other.inner()))),
+                0 => Some(ordering1(mpfr::cmpabs(
+                    self.inner(),
+                    other.inner(),
+                ))),
                 _ => None,
             }
         }
@@ -1884,7 +1888,10 @@ impl Float {
         unsafe {
             let save_emin = mpfr::get_emin();
             let save_emax = mpfr::get_emax();
-            assert!(save_emax >= exp_min, "`normal_exp_min` too large");
+            assert!(
+                save_emax >= exp_min,
+                "`normal_exp_min` too large"
+            );
             mpfr::set_emin(sub_exp_min);
             mpfr::set_emax(exp_min);
             let ret =
@@ -7425,7 +7432,9 @@ pub(crate) fn req_chars(
             3
         }
     } else {
-        let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
+        let digits = precision
+            .map(|x| if x == 1 { 2 } else { x })
+            .unwrap_or(0);
         let num_chars = if digits == 0 {
             // According to mpfr_get_str documentation, we need
             // 1 + ceil(p / log2(radix)), but in some cases, it is 1 more.
@@ -7447,7 +7456,9 @@ pub(crate) fn req_chars(
         let exp_chars = (exp_chars * 2.0f64.log10()).ceil();
         let exp_chars: usize = cast(exp_chars);
         // one for '.' and two for exponent prefix like "e-"
-        num_chars.checked_add(exp_chars + 3).expect("overflow")
+        num_chars
+            .checked_add(exp_chars + 3)
+            .expect("overflow")
     };
     let size_extra = size.checked_add(extra).expect("overflow");
     if f.is_sign_negative() {
@@ -7469,7 +7480,11 @@ pub(crate) fn append_to_string(
     let size = req_chars(f, radix, precision, 1);
     s.reserve(size);
     if f.is_zero() {
-        s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
+        s.push_str(if f.is_sign_negative() {
+            "-0.0"
+        } else {
+            "0.0"
+        });
         return;
     }
     if f.is_infinite() {
@@ -7491,7 +7506,9 @@ pub(crate) fn append_to_string(
         return;
     }
     let orig_len = s.len();
-    let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
+    let digits = precision
+        .map(|x| if x == 1 { 2 } else { x })
+        .unwrap_or(0);
     let mut exp: mpfr::exp_t;
     unsafe {
         let bytes = s.as_mut_vec();
@@ -7540,7 +7557,10 @@ pub(crate) fn append_to_string(
 
 #[derive(Clone, Debug)]
 pub enum ParseIncomplete {
-    CString { c_string: CString, radix: i32 },
+    CString {
+        c_string: CString,
+        radix: i32,
+    },
     Special(Special),
     NegNan,
 }
@@ -7550,7 +7570,10 @@ impl AssignRound<ParseIncomplete> for Float {
     type Ordering = Ordering;
     fn assign_round(&mut self, src: ParseIncomplete, round: Round) -> Ordering {
         let (c_string, radix) = match src {
-            ParseIncomplete::CString { c_string, radix } => (c_string, radix),
+            ParseIncomplete::CString {
+                c_string,
+                radix,
+            } => (c_string, radix),
             ParseIncomplete::Special(special) => {
                 self.assign(special);
                 return Ordering::Equal;
@@ -7679,7 +7702,10 @@ fn parse(
     }
     // we've only added checked bytes, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ParseIncomplete::CString { c_string, radix })
+    Ok(ParseIncomplete::CString {
+        c_string,
+        radix,
+    })
 }
 
 fn parse_special(
@@ -7687,7 +7713,11 @@ fn parse_special(
     radix: i32,
     negative: bool,
 ) -> Option<Result<ParseIncomplete, ParseFloatError>> {
-    let small = if radix <= 10 { Some(()) } else { None };
+    let small = if radix <= 10 {
+        Some(())
+    } else {
+        None
+    };
 
     let inf10: &[&[u8]] = &[b"inf", b"infinity"];
     let inf: &[&[u8]] = &[b"@inf@", b"@infinity@"];
@@ -7700,7 +7730,9 @@ fn parse_special(
             return Some(parse_error!(ParseErrorKind::InvalidDigit));
         }
         return if negative {
-            Some(Ok(ParseIncomplete::Special(Special::NegInfinity)))
+            Some(Ok(ParseIncomplete::Special(
+                Special::NegInfinity,
+            )))
         } else {
             Some(Ok(ParseIncomplete::Special(Special::Infinity)))
         };

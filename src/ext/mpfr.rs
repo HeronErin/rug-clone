@@ -389,5 +389,11 @@ pub unsafe fn custom_regular(
     prec: mpfr::prec_t,
 ) {
     mpfr::custom_init(limbs as *mut _, prec);
-    mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut _);
+    mpfr::custom_init_set(
+        f,
+        mpfr::REGULAR_KIND,
+        exp,
+        prec,
+        limbs as *mut _,
+    );
 }

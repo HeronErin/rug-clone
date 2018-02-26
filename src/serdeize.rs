@@ -167,7 +167,11 @@ impl<'de> Visitor<'de> for BigVisitor {
             .ok_or_else(|| DeError::invalid_length(prec_count, &self))?;
         let value = seq.next_element()?
             .ok_or_else(|| DeError::invalid_length(prec_count + 1, &self))?;
-        Ok(Data { prec, radix, value })
+        Ok(Data {
+            prec,
+            radix,
+            value,
+        })
     }
 
     fn visit_map<V>(self, mut map: V) -> Result<Data, V::Error>
@@ -212,7 +216,11 @@ impl<'de> Visitor<'de> for BigVisitor {
         let prec = prec.ok_or_else(|| DeError::missing_field("prec"))?;
         let radix = radix.ok_or_else(|| DeError::missing_field("radix"))?;
         let value = value.ok_or_else(|| DeError::missing_field("value"))?;
-        Ok(Data { prec, radix, value })
+        Ok(Data {
+            prec,
+            radix,
+            value,
+        })
     }
 }
 

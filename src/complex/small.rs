@@ -130,7 +130,10 @@ impl SmallComplex {
     #[inline]
     fn update_d(&self) {
         // sanity check
-        assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr::mpfr_t>());
+        assert_eq!(
+            mem::size_of::<Mpfr>(),
+            mem::size_of::<mpfr::mpfr_t>()
+        );
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
         let first = &self.first_limbs[0] as *const _ as *mut _;

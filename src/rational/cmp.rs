@@ -154,9 +154,7 @@ macro_rules! cross {
                     }
                     &self
                 };
-                unsafe {
-                    $func(abs.inner(), cast(abs_num), cast(abs_den)) == 0
-                }
+                unsafe { $func(abs.inner(), cast(abs_num), cast(abs_den)) == 0 }
             }
         }
         impl PartialEq<Rational> for ($Num, $Den) {
@@ -320,13 +318,14 @@ mod tests {
     #[test]
     fn check_cmp_u_s() {
         let large = &[(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
-        let against =
-            (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
-                .chain(U32.iter().map(|&x| Rational::from(x)))
-                .chain(I32.iter().map(|&x| Rational::from(x)))
-                .chain(U64.iter().map(|&x| Rational::from(x)))
-                .chain(I64.iter().map(|&x| Rational::from(x)))
-                .collect::<Vec<Rational>>();
+        let against = (large
+            .iter()
+            .map(|&(n, d, s)| Rational::from((n, d)) << s))
+            .chain(U32.iter().map(|&x| Rational::from(x)))
+            .chain(I32.iter().map(|&x| Rational::from(x)))
+            .chain(U64.iter().map(|&x| Rational::from(x)))
+            .chain(I64.iter().map(|&x| Rational::from(x)))
+            .collect::<Vec<Rational>>();
         check_cmp_prim(U32, &against);
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
@@ -376,14 +375,15 @@ mod tests {
 
     #[test]
     fn check_cmp_tuple() {
-        let large = &[(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
-        let against =
-            (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
-                .chain(U32.iter().map(|&x| Rational::from(x)))
-                .chain(I32.iter().map(|&x| Rational::from(x)))
-                .chain(U64.iter().map(|&x| Rational::from(x)))
-                .chain(I64.iter().map(|&x| Rational::from(x)))
-                .collect::<Vec<Rational>>();
+        let large = [(5, 17, 100), (-11, 3, 200), (33, 777, -150)]
+            .iter()
+            .map(|&(n, d, s)| Rational::from((n, d)) << s);
+        let against = large
+            .chain(U32.iter().map(|&x| Rational::from(x)))
+            .chain(I32.iter().map(|&x| Rational::from(x)))
+            .chain(U64.iter().map(|&x| Rational::from(x)))
+            .chain(I64.iter().map(|&x| Rational::from(x)))
+            .collect::<Vec<Rational>>();
         check_cmp_prim_tuple(U32, U32, &against);
         check_cmp_prim_tuple(U32, I32, &against);
         check_cmp_prim_tuple(U32, U64, &against);
@@ -443,14 +443,19 @@ mod tests {
     #[cfg(feature = "float")]
     #[test]
     fn check_cmp_f() {
-        let large = &[(5, 2, 0), (5, 17, 100), (-11, 3, 200), (33, 777, -150)];
-        let against =
-            (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
-                .chain(U32.iter().map(|&x| Rational::from(x)))
-                .chain(I32.iter().map(|&x| Rational::from(x)))
-                .chain(U64.iter().map(|&x| Rational::from(x)))
-                .chain(I64.iter().map(|&x| Rational::from(x)))
-                .collect::<Vec<Rational>>();
+        let large = [
+            (5, 2, 0),
+            (5, 17, 100),
+            (-11, 3, 200),
+            (33, 777, -150),
+        ].iter()
+            .map(|&(n, d, s)| Rational::from((n, d)) << s);
+        let against = large
+            .chain(U32.iter().map(|&x| Rational::from(x)))
+            .chain(I32.iter().map(|&x| Rational::from(x)))
+            .chain(U64.iter().map(|&x| Rational::from(x)))
+            .chain(I64.iter().map(|&x| Rational::from(x)))
+            .collect::<Vec<Rational>>();
         for b in &against {
             check_known_cmp(0.0f32, b, b.cmp0().reverse());
             check_known_cmp(0.0f64, b, b.cmp0().reverse());

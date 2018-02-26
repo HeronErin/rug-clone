@@ -782,15 +782,28 @@ mod tests {
 
     #[test]
     fn check_div_prim() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
+        let large = [(1, 100), (-11, 200), (33, 150)]
+            .iter()
+            .map(|&(n, s)| Integer::from(n) << s);
         let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
+        let s = [
+            i32::MIN,
+            -101,
+            -100,
+            -1,
+            0,
+            1,
+            100,
+            101,
+            i32::MAX,
+        ];
+        let against = large
+            .chain(s.iter().map(|&x| Integer::from(x)))
+            .chain(u.iter().map(|&x| Integer::from(x)))
+            .collect::<Vec<Integer>>();
         for &op in &u {
             let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
+            for b in &against {
                 if op != 0 {
                     assert_eq!(
                         b.clone().div_trunc(op),
@@ -806,29 +819,23 @@ mod tests {
                     );
                     assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
                 }
-                if b != 0 {
+                if *b != 0 {
                     assert_eq!(
                         op.div_trunc(b.clone()),
-                        iop.clone().div_trunc(&b)
+                        iop.clone().div_trunc(b)
                     );
-                    assert_eq!(
-                        op.div_ceil(b.clone()),
-                        iop.clone().div_ceil(&b)
-                    );
+                    assert_eq!(op.div_ceil(b.clone()), iop.clone().div_ceil(b));
                     assert_eq!(
                         op.div_floor(b.clone()),
-                        iop.clone().div_floor(&b)
+                        iop.clone().div_floor(b)
                     );
-                    assert_eq!(op.div_euc(b.clone()), iop.clone().div_euc(&b));
+                    assert_eq!(op.div_euc(b.clone()), iop.clone().div_euc(b));
                 }
             }
         }
         for &op in &s {
             let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
+            for b in &against {
                 if op != 0 {
                     assert_eq!(
                         b.clone().div_trunc(op),
@@ -844,20 +851,17 @@ mod tests {
                     );
                     assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
                 }
-                if b != 0 {
+                if *b != 0 {
                     assert_eq!(
                         op.div_trunc(b.clone()),
-                        iop.clone().div_trunc(&b)
+                        iop.clone().div_trunc(b)
                     );
-                    assert_eq!(
-                        op.div_ceil(b.clone()),
-                        iop.clone().div_ceil(&b)
-                    );
+                    assert_eq!(op.div_ceil(b.clone()), iop.clone().div_ceil(b));
                     assert_eq!(
                         op.div_floor(b.clone()),
-                        iop.clone().div_floor(&b)
+                        iop.clone().div_floor(b)
                     );
-                    assert_eq!(op.div_euc(b.clone()), iop.clone().div_euc(&b));
+                    assert_eq!(op.div_euc(b.clone()), iop.clone().div_euc(b));
                 }
             }
         }
@@ -865,15 +869,28 @@ mod tests {
 
     #[test]
     fn check_rem_prim() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
+        let large = [(1, 100), (-11, 200), (33, 150)]
+            .iter()
+            .map(|&(n, s)| Integer::from(n) << s);
         let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
+        let s = [
+            i32::MIN,
+            -101,
+            -100,
+            -1,
+            0,
+            1,
+            100,
+            101,
+            i32::MAX,
+        ];
+        let against = large
+            .chain(s.iter().map(|&x| Integer::from(x)))
+            .chain(u.iter().map(|&x| Integer::from(x)))
+            .collect::<Vec<Integer>>();
         for &op in &u {
             let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
+            for b in &against {
                 if op != 0 {
                     assert_eq!(
                         b.clone().rem_trunc(op),
@@ -889,29 +906,23 @@ mod tests {
                     );
                     assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
                 }
-                if b != 0 {
+                if *b != 0 {
                     assert_eq!(
                         op.rem_trunc(b.clone()),
-                        iop.clone().rem_trunc(&b)
+                        iop.clone().rem_trunc(b)
                     );
-                    assert_eq!(
-                        op.rem_ceil(b.clone()),
-                        iop.clone().rem_ceil(&b)
-                    );
+                    assert_eq!(op.rem_ceil(b.clone()), iop.clone().rem_ceil(b));
                     assert_eq!(
                         op.rem_floor(b.clone()),
-                        iop.clone().rem_floor(&b)
+                        iop.clone().rem_floor(b)
                     );
-                    assert_eq!(op.rem_euc(b.clone()), iop.clone().rem_euc(&b));
+                    assert_eq!(op.rem_euc(b.clone()), iop.clone().rem_euc(b));
                 }
             }
         }
         for &op in &s {
             let iop = Integer::from(op);
-            let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
-                .chain(s.iter().map(|&x| Integer::from(x)))
-                .chain(u.iter().map(|&x| Integer::from(x)));
-            for b in against {
+            for b in &against {
                 if op != 0 {
                     assert_eq!(
                         b.clone().rem_trunc(op),
@@ -927,20 +938,17 @@ mod tests {
                     );
                     assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
                 }
-                if b != 0 {
+                if *b != 0 {
                     assert_eq!(
                         op.rem_trunc(b.clone()),
-                        iop.clone().rem_trunc(&b)
+                        iop.clone().rem_trunc(b)
                     );
-                    assert_eq!(
-                        op.rem_ceil(b.clone()),
-                        iop.clone().rem_ceil(&b)
-                    );
+                    assert_eq!(op.rem_ceil(b.clone()), iop.clone().rem_ceil(b));
                     assert_eq!(
                         op.rem_floor(b.clone()),
-                        iop.clone().rem_floor(&b)
+                        iop.clone().rem_floor(b)
                     );
-                    assert_eq!(op.rem_euc(b.clone()), iop.clone().rem_euc(&b));
+                    assert_eq!(op.rem_euc(b.clone()), iop.clone().rem_euc(b));
                 }
             }
         }

@@ -39,7 +39,12 @@ impl Serialize for Complex {
         };
         let prec = PrecVal::Two(prec);
         let value = self.to_string_radix(radix, None);
-        serdeize::serialize("Complex", &Data { prec, radix, value }, serializer)
+        let data = Data {
+            prec,
+            radix,
+            value,
+        };
+        serdeize::serialize("Complex", &data, serializer)
     }
 }
 
@@ -77,8 +82,11 @@ fn de_data<'de, D>(
 where
     D: Deserializer<'de>,
 {
-    let Data { prec, radix, value } =
-        serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
+    let Data {
+        prec,
+        radix,
+        value,
+    } = serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
     let prec = match prec {
         PrecVal::Two(two) => two,
         _ => unreachable!(),
@@ -176,9 +184,15 @@ mod tests {
                 "value": value,
             });
             let mut bincode = Vec::<u8>::new();
-            bincode.write_u32::<LittleEndian>(prec.0).unwrap();
-            bincode.write_u32::<LittleEndian>(prec.1).unwrap();
-            bincode.write_i32::<LittleEndian>(radix).unwrap();
+            bincode
+                .write_u32::<LittleEndian>(prec.0)
+                .unwrap();
+            bincode
+                .write_u32::<LittleEndian>(prec.1)
+                .unwrap();
+            bincode
+                .write_i32::<LittleEndian>(radix)
+                .unwrap();
             bincode
                 .write_u64::<LittleEndian>(cast(value.len()))
                 .unwrap();
@@ -204,10 +218,14 @@ mod tests {
     #[test]
     fn check() {
         let prec_min = float::prec_min();
-        let real_prec_err =
-            format!("real precision 0 less than minimum {}", prec_min);
-        let imag_prec_err =
-            format!("imaginary precision 0 less than minimum {}", prec_min);
+        let real_prec_err = format!(
+            "real precision 0 less than minimum {}",
+            prec_min
+        );
+        let imag_prec_err = format!(
+            "imaginary precision 0 less than minimum {}",
+            prec_min
+        );
         Check::DeError((0, 32), &real_prec_err).check(10, "0");
         Check::DeError((40, 0), &imag_prec_err).check(10, "0");
         Check::DeError((40, 32), "radix 1 less than minimum 2").check(1, "0");

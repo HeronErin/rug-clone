@@ -431,7 +431,10 @@ pub(crate) mod tests {
         // we assume no nail bits when we use limbs
         assert_eq!(gmp::NAIL_BITS, 0);
         assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
-        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(
+            gmp::NUMB_BITS as usize,
+            8 * mem::size_of::<gmp::limb_t>()
+        );
         assert_eq!(unsafe { mpfr::custom_get_size(64) }, 8);
         assert!(
             unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize

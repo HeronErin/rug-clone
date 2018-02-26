@@ -319,7 +319,10 @@ impl Rational {
         src: &str,
         radix: i32,
     ) -> Result<Self, ParseRationalError> {
-        Ok(Rational::from(Rational::parse_radix(src, radix)?))
+        Ok(Rational::from(Rational::parse_radix(
+            src,
+            radix,
+        )?))
     }
 
     /// Parses a decimal string or byte slice into a `Rational`
@@ -894,7 +897,11 @@ impl Rational {
             inner: self.inner,
             phantom: PhantomData,
         };
-        let size = self.numer().inner().size.checked_neg().expect("overflow");
+        let size = self.numer()
+            .inner()
+            .size
+            .checked_neg()
+            .expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
         }
@@ -926,7 +933,11 @@ impl Rational {
             inner: self.inner,
             phantom: PhantomData,
         };
-        let size = self.numer().inner().size.checked_abs().expect("overflow");
+        let size = self.numer()
+            .inner()
+            .size
+            .checked_abs()
+            .expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
         }
@@ -2005,10 +2016,16 @@ where
     fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
-            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+            assert!(
+                !(&*self).gt(src.max),
+                "minimum larger than maximum"
+            );
         } else if src.ref_self.gt(src.max) {
             self.assign(src.max);
-            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+            assert!(
+                !(&*self).lt(src.min),
+                "minimum larger than maximum"
+            );
         } else {
             self.assign(src.ref_self);
         }
@@ -2198,7 +2215,10 @@ fn parse(
     }
     // we've only added b'-' and digits, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ParseIncomplete { c_string, radix })
+    Ok(ParseIncomplete {
+        c_string,
+        radix,
+    })
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

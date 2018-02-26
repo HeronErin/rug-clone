@@ -116,9 +116,19 @@ mod tests {
             );
         }
         let good_strings = [
-            ("(inf -@inf@)", 10, Cmp::inf(false), Cmp::inf(true)),
+            (
+                "(inf -@inf@)",
+                10,
+                Cmp::inf(false),
+                Cmp::inf(true),
+            ),
             ("(+0e99 1.)", 2, Cmp::F64(0.0), Cmp::F64(1.0)),
-            ("(+ 0 e 99, .1)", 2, Cmp::F64(0.0), Cmp::F64(0.5)),
+            (
+                "(+ 0 e 99, .1)",
+                2,
+                Cmp::F64(0.0),
+                Cmp::F64(0.5),
+            ),
             ("-9.9e1", 10, Cmp::F64(-99.0), Cmp::F64(0.0)),
             (
                 "( -@nan@( _ ) nan( 0 n ) )",
@@ -170,6 +180,9 @@ mod tests {
         // we assume no nail bits when we use limbs
         assert_eq!(gmp::NAIL_BITS, 0);
         assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
-        assert_eq!(gmp::NUMB_BITS as usize, 8 * mem::size_of::<gmp::limb_t>());
+        assert_eq!(
+            gmp::NUMB_BITS as usize,
+            8 * mem::size_of::<gmp::limb_t>()
+        );
     }
 }

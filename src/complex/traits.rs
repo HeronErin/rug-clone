@@ -291,7 +291,11 @@ fn fmt_radix(
         (
             to_upper,
             fmt.sign_plus(),
-            if fmt.alternate() { prefix } else { "" },
+            if fmt.alternate() {
+                prefix
+            } else {
+                ""
+            },
         ),
     );
     // s is ascii only, so just take len for character count

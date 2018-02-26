@@ -854,8 +854,12 @@ impl Complex {
             phantom: PhantomData,
         };
         unsafe {
-            (*mpc::realref(&mut ret.inner)).sign.neg_assign();
-            (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
+            (*mpc::realref(&mut ret.inner))
+                .sign
+                .neg_assign();
+            (*mpc::imagref(&mut ret.inner))
+                .sign
+                .neg_assign();
             if self.real().is_nan() || self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
@@ -888,7 +892,9 @@ impl Complex {
             phantom: PhantomData,
         };
         unsafe {
-            (*mpc::imagref(&mut ret.inner)).sign.neg_assign();
+            (*mpc::imagref(&mut ret.inner))
+                .sign
+                .neg_assign();
             if self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
@@ -993,7 +999,10 @@ impl Complex {
             {
                 None
             } else {
-                Some(ordering1(mpc::cmp_abs(self.inner(), other.inner())))
+                Some(ordering1(mpc::cmp_abs(
+                    self.inner(),
+                    other.inner(),
+                )))
             }
         }
     }
@@ -3008,9 +3017,10 @@ where
     ) -> Ordering2 {
         let (mut reals, mut imags) = match src.values.size_hint() {
             (_, None) => (Vec::new(), Vec::new()),
-            (_, Some(upper)) => {
-                (Vec::with_capacity(upper), Vec::with_capacity(upper))
-            }
+            (_, Some(upper)) => (
+                Vec::with_capacity(upper),
+                Vec::with_capacity(upper),
+            ),
         };
         for value in src.values {
             reals.push(value.real().inner() as *const mpfr::mpfr_t);
@@ -3022,8 +3032,18 @@ where
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
-                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
-                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
+                mpfr::sum(
+                    real.inner_mut(),
+                    tab_real,
+                    n,
+                    raw_round(round.0),
+                ),
+                mpfr::sum(
+                    imag.inner_mut(),
+                    tab_imag,
+                    n,
+                    raw_round(round.1),
+                ),
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
@@ -3065,9 +3085,10 @@ where
     ) -> Ordering2 {
         let (mut reals, mut imags) = match src.values.size_hint() {
             (_, None) => (Vec::new(), Vec::new()),
-            (_, Some(upper)) => {
-                (Vec::with_capacity(upper + 1), Vec::with_capacity(upper + 1))
-            }
+            (_, Some(upper)) => (
+                Vec::with_capacity(upper + 1),
+                Vec::with_capacity(upper + 1),
+            ),
         };
         reals.push(self.real().inner() as *const mpfr::mpfr_t);
         imags.push(self.imag().inner() as *const mpfr::mpfr_t);
@@ -3081,8 +3102,18 @@ where
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
-                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
-                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
+                mpfr::sum(
+                    real.inner_mut(),
+                    tab_real,
+                    n,
+                    raw_round(round.0),
+                ),
+                mpfr::sum(
+                    imag.inner_mut(),
+                    tab_imag,
+                    n,
+                    raw_round(round.1),
+                ),
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
@@ -3109,7 +3140,11 @@ impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
-            mpc::abs(self.inner_mut(), src.ref_self.inner(), raw_round(round))
+            mpc::abs(
+                self.inner_mut(),
+                src.ref_self.inner(),
+                raw_round(round),
+            )
         };
         ret.cmp(&0)
     }
@@ -3130,7 +3165,11 @@ impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
-            mpc::arg(self.inner_mut(), src.ref_self.inner(), raw_round(round))
+            mpc::arg(
+                self.inner_mut(),
+                src.ref_self.inner(),
+                raw_round(round),
+            )
         };
         ret.cmp(&0)
     }
@@ -3154,7 +3193,11 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
-            mpc::norm(self.inner_mut(), src.ref_self.inner(), raw_round(round))
+            mpc::norm(
+                self.inner_mut(),
+                src.ref_self.inner(),
+                raw_round(round),
+            )
         };
         ret.cmp(&0)
     }
@@ -3189,8 +3232,10 @@ pub struct RandomBitsIncomplete<'a, 'b: 'a> {
 impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
-        self.mut_real().assign(Float::random_bits(src.rng));
-        self.mut_imag().assign(Float::random_bits(src.rng));
+        self.mut_real()
+            .assign(Float::random_bits(src.rng));
+        self.mut_imag()
+            .assign(Float::random_bits(src.rng));
     }
 }
 
@@ -3485,7 +3530,10 @@ pub(crate) fn ordering2(ord: c_int) -> Ordering2 {
 
 #[inline]
 fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
-    (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
+    (
+        ordering2(mpc::INEX1(ord)),
+        ordering2(mpc::INEX2(ord)),
+    )
 }
 
 impl Inner for Complex {

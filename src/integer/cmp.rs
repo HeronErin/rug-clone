@@ -218,8 +218,10 @@ mod tests {
 
     #[test]
     fn check_cmp_u_s() {
-        let large = &[(1, 100), (-11, 200), (33, 150)];
-        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+        let large = [(1, 100), (-11, 200), (33, 150)]
+            .iter()
+            .map(|&(n, s)| Integer::from(n) << s);
+        let against = large
             .chain(U32.iter().map(|&x| Integer::from(x)))
             .chain(I32.iter().map(|&x| Integer::from(x)))
             .chain(U64.iter().map(|&x| Integer::from(x)))
@@ -269,8 +271,10 @@ mod tests {
 
     #[test]
     fn check_cmp_f() {
-        let large = &[(1, 100), (-11, 200), (33, 150)];
-        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+        let large = [(1, 100), (-11, 200), (33, 150)]
+            .iter()
+            .map(|&(n, s)| Integer::from(n) << s);
+        let against = large
             .chain(U32.iter().map(|&x| Integer::from(x)))
             .chain(I32.iter().map(|&x| Integer::from(x)))
             .chain(U64.iter().map(|&x| Integer::from(x)))

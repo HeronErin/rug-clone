@@ -256,7 +256,9 @@ impl Integer {
             return;
         }
         let used_bits = significant_bits_usize(self);
-        let req_bits = used_bits.checked_add(additional).expect("overflow");
+        let req_bits = used_bits
+            .checked_add(additional)
+            .expect("overflow");
         unsafe {
             gmp::mpz_realloc2(self.inner_mut(), cast(req_bits));
         }
@@ -2339,7 +2341,10 @@ impl Integer {
         if gcd != 1 {
             return None;
         }
-        Some(InvertIncomplete { sinverse, modulo })
+        Some(InvertIncomplete {
+            sinverse,
+            modulo,
+        })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -3591,7 +3596,11 @@ impl Integer {
     /// Panics if the boundary value is less than or equal to zero.
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut RandState) {
-        assert_eq!(self.cmp0(), Ordering::Greater, "cannot be below zero");
+        assert_eq!(
+            self.cmp0(),
+            Ordering::Greater,
+            "cannot be below zero"
+        );
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
         }
@@ -3659,10 +3668,16 @@ where
     fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
-            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
+            assert!(
+                !(&*self).gt(src.max),
+                "minimum larger than maximum"
+            );
         } else if src.ref_self.gt(src.max) {
             self.assign(src.max);
-            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
+            assert!(
+                !(&*self).lt(src.min),
+                "minimum larger than maximum"
+            );
         } else {
             self.assign(src.ref_self);
         }
@@ -3728,10 +3743,20 @@ unsafe fn mpz_pow_mod_ref(
     match sinverse {
         Some(sinverse) => {
             mpz_invert_ref(rop, sinverse, modulo);
-            gmp::mpz_powm(rop, rop, exponent.as_neg().inner(), modulo.inner());
+            gmp::mpz_powm(
+                rop,
+                rop,
+                exponent.as_neg().inner(),
+                modulo.inner(),
+            );
         }
         None => {
-            gmp::mpz_powm(rop, op.inner(), exponent.inner(), modulo.inner());
+            gmp::mpz_powm(
+                rop,
+                op.inner(),
+                exponent.inner(),
+                modulo.inner(),
+            );
         }
     }
 }
@@ -3762,7 +3787,11 @@ impl<'r> From<PowModIncomplete<'r>> for Integer {
             mpz_pow_mod_ref(
                 dst.inner_mut(),
                 src.ref_self,
-                if has_sinverse { Some(&dst) } else { None },
+                if has_sinverse {
+                    Some(&dst)
+                } else {
+                    None
+                },
                 src.exponent,
                 src.modulo,
             );
@@ -3814,7 +3843,11 @@ impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
 from_assign! { GcdIncomplete<'r> => Integer, Integer }
 
 impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
-    for (&'b mut Integer, &'c mut Integer, &'d mut Integer)
+    for (
+        &'b mut Integer,
+        &'c mut Integer,
+        &'d mut Integer,
+    )
 {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'a>) {
@@ -3865,7 +3898,11 @@ impl<'r> From<InvertIncomplete<'r>> for Integer {
     #[inline]
     fn from(mut src: InvertIncomplete) -> Self {
         unsafe {
-            mpz_invert_ref(src.sinverse.inner_mut(), &src.sinverse, src.modulo);
+            mpz_invert_ref(
+                src.sinverse.inner_mut(),
+                &src.sinverse,
+                src.modulo,
+            );
         }
         src.sinverse
     }
@@ -4036,7 +4073,11 @@ pub(crate) fn append_to_string(
     unsafe {
         let bytes = s.as_mut_vec();
         let start = bytes.as_mut_ptr().offset(orig_len as isize);
-        gmp::mpz_get_str(start as *mut c_char, case_radix as c_int, i.inner());
+        gmp::mpz_get_str(
+            start as *mut c_char,
+            case_radix as c_int,
+            i.inner(),
+        );
         let added = slice::from_raw_parts(start, size);
         let nul_index = added.iter().position(|&x| x == 0).unwrap();
         bytes.set_len(orig_len + nul_index);
@@ -4129,7 +4170,10 @@ fn parse(
     }
     // we've only added b'-' and digits, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ParseIncomplete { c_string, radix })
+    Ok(ParseIncomplete {
+        c_string,
+        radix,
+    })
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

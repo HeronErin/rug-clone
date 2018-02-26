@@ -523,16 +523,28 @@ mod tests {
         assert_eq!(checked_cast::<f32, i8>(127.9), Some(127));
         assert_eq!(checked_cast::<f32, i8>(128.0), None);
 
-        assert_eq!(checked_cast::<_, u64>(f32(1.5, 63)), Some(3 << 62));
+        assert_eq!(
+            checked_cast::<_, u64>(f32(1.5, 63)),
+            Some(3 << 62)
+        );
         assert_eq!(checked_cast::<_, i64>(f32(-1.5, 63)), None);
-        assert_eq!(checked_cast::<_, u64>(f32(1.5, 62)), Some(3 << 61));
-        assert_eq!(checked_cast::<_, i64>(f64(-1.5, 62)), Some(-3 << 61));
+        assert_eq!(
+            checked_cast::<_, u64>(f32(1.5, 62)),
+            Some(3 << 61)
+        );
+        assert_eq!(
+            checked_cast::<_, i64>(f64(-1.5, 62)),
+            Some(-3 << 61)
+        );
         assert_eq!(checked_cast::<_, u64>(f32(-1.5, 2)), None);
         assert_eq!(checked_cast::<_, i64>(f64(1.5, -1)), Some(0));
         assert_eq!(checked_cast::<_, u64>(f32(1.1, -40)), Some(0));
         assert_eq!(checked_cast::<_, i64>(f32(-1.1, -40)), Some(0));
 
-        assert_eq!(checked_cast::<_, u64>(f32(1.5, 32)), Some(3 << 31));
+        assert_eq!(
+            checked_cast::<_, u64>(f32(1.5, 32)),
+            Some(3 << 31)
+        );
         assert_eq!(checked_cast::<_, u32>(f32(1.5, 32)), None);
     }
 
@@ -644,7 +656,10 @@ mod tests {
 
         assert_eq!(wrapping_cast::<_, u64>(f32(1.5, 52)), 3 << 51);
         assert_eq!(wrapping_cast::<_, i64>(f64(-1.5, 52)), -3 << 51);
-        assert_eq!(wrapping_cast::<_, u64>(f32(-1.5, 2)), -6i64 as u64);
+        assert_eq!(
+            wrapping_cast::<_, u64>(f32(-1.5, 2)),
+            -6i64 as u64
+        );
         assert_eq!(wrapping_cast::<_, i64>(f64(1.5, -1)), 0);
         assert_eq!(wrapping_cast::<_, u64>(f32(1.1, -40)), 0);
         assert_eq!(wrapping_cast::<_, i64>(f32(-1.1, -40)), 0);

@@ -67,7 +67,10 @@ pub unsafe fn mpz_root_check(
     n: c_ulong,
 ) -> c_int {
     assert_ne!(n, 0, "zeroth root");
-    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
+    assert!(
+        n & 1 == 1 || gmp::mpz_sgn(op) >= 0,
+        "even root of negative"
+    );
     gmp::mpz_root(rop, op, n)
 }
 
@@ -79,7 +82,10 @@ pub unsafe fn mpz_rootrem_check(
     n: c_ulong,
 ) {
     assert_ne!(n, 0, "zeroth root");
-    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
+    assert!(
+        n & 1 == 1 || gmp::mpz_sgn(op) >= 0,
+        "even root of negative"
+    );
     gmp::mpz_rootrem(root, rem, op, n);
 }
 
@@ -1168,8 +1174,8 @@ pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
         mpz_set_1(rop);
         return;
     }
-    let significant: gmp::bitcnt_t =
-        cast::cast(gmp::mpn_sizeinbase((*op).d, cast::cast(size), 2));
+    let size_in_base = gmp::mpn_sizeinbase((*op).d, cast::cast(size), 2);
+    let significant: gmp::bitcnt_t = cast::cast(size_in_base);
     let first_one = gmp::mpn_scan1((*op).d, 0);
     let bit = if significant - 1 == first_one {
         if rop as *const mpz_t == op {

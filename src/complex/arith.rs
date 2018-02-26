@@ -71,7 +71,11 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
         round: Round2,
     ) -> Ordering2 {
         let ret = unsafe {
-            mpc::neg(self.inner_mut(), src.val.inner(), raw_round2(round))
+            mpc::neg(
+                self.inner_mut(),
+                src.val.inner(),
+                raw_round2(round),
+            )
         };
         ordering2(ret)
     }
@@ -718,7 +722,12 @@ unsafe fn sub_mul(
     mul: MulIncomplete,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
+    xmpc::submul(
+        rop,
+        add,
+        (mul.lhs.inner(), mul.rhs.inner()),
+        rnd,
+    )
 }
 
 #[allow(unknown_lints, needless_pass_by_value)]
@@ -728,7 +737,12 @@ unsafe fn mul_sub(
     sub: *const mpc_t,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::mulsub(rop, (mul.lhs.inner(), mul.rhs.inner()), sub, rnd)
+    xmpc::mulsub(
+        rop,
+        (mul.lhs.inner(), mul.rhs.inner()),
+        sub,
+        rnd,
+    )
 }
 
 #[cfg(test)]

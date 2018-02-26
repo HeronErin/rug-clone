@@ -207,7 +207,10 @@ impl SmallRational {
     #[inline]
     fn update_d(&self) {
         // sanity check
-        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<gmp::mpz_t>());
+        assert_eq!(
+            mem::size_of::<Mpz>(),
+            mem::size_of::<gmp::mpz_t>()
+        );
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
         let first = &self.first_limbs[0] as *const _ as *mut _;
@@ -256,7 +259,8 @@ where
     SmallInteger: From<Num> + From<Den>,
 {
     fn from(src: (Num, Den)) -> Self {
-        let (num, den) = (SmallInteger::from(src.0), SmallInteger::from(src.1));
+        let num = SmallInteger::from(src.0);
+        let den = SmallInteger::from(src.1);
         assert_ne!(den.inner.size, 0, "division by zero");
         let mut dst = SmallRational {
             num: num.inner.clone(),

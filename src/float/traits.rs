@@ -406,7 +406,11 @@ fn fmt_radix(
     } else {
         (false, &s[..])
     };
-    let prefix = if flt.is_finite() { prefix } else { "" };
+    let prefix = if flt.is_finite() {
+        prefix
+    } else {
+        ""
+    };
     fmt.pad_integral(!neg, prefix, buf)
 }
 
