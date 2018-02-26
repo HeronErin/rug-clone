@@ -750,6 +750,18 @@ mod tests {
         float_tests::same(re_a, re_b) && float_tests::same(im_a, im_b)
     }
 
+    macro_rules! test_ref_op {
+        ($first: expr, $second: expr) => {
+            assert_eq!(
+                Complex::with_val(53, $first),
+                $second,
+                "({}) != ({})",
+                stringify!($first),
+                stringify!($second)
+            );
+        };
+    }
+
     #[test]
     fn check_ref_op() {
         let lhs = Complex::with_val(53, (12.25, -1.375));
@@ -758,44 +770,41 @@ mod tests {
         let pi = -15_i32;
         let ps = 31.625_f32;
         let pd = -1.5_f64;
-        assert_eq!(Complex::with_val(53, -&lhs), -lhs.clone());
-        assert_eq!(Complex::with_val(53, &lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Complex::with_val(53, &lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Complex::with_val(53, &lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Complex::with_val(53, &lhs / &rhs), lhs.clone() / &rhs);
-        assert_eq!(
-            Complex::with_val(53, (&lhs).pow(&rhs)),
-            lhs.clone().pow(&rhs)
-        );
+        test_ref_op!(-&lhs, -lhs.clone());
+        test_ref_op!(&lhs + &rhs, lhs.clone() + &rhs);
+        test_ref_op!(&lhs - &rhs, lhs.clone() - &rhs);
+        test_ref_op!(&lhs * &rhs, lhs.clone() * &rhs);
+        test_ref_op!(&lhs / &rhs, lhs.clone() / &rhs);
+        test_ref_op!((&lhs).pow(&rhs), lhs.clone().pow(&rhs));
 
-        assert_eq!(Complex::with_val(53, &lhs + pu), lhs.clone() + pu);
-        assert_eq!(Complex::with_val(53, &lhs - pu), lhs.clone() - pu);
-        assert_eq!(Complex::with_val(53, &lhs * pu), lhs.clone() * pu);
-        assert_eq!(Complex::with_val(53, &lhs / pu), lhs.clone() / pu);
-        assert_eq!(Complex::with_val(53, &lhs << pu), lhs.clone() << pu);
-        assert_eq!(Complex::with_val(53, &lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Complex::with_val(53, (&lhs).pow(pu)), lhs.clone().pow(pu));
+        test_ref_op!(&lhs + pu, lhs.clone() + pu);
+        test_ref_op!(&lhs - pu, lhs.clone() - pu);
+        test_ref_op!(&lhs * pu, lhs.clone() * pu);
+        test_ref_op!(&lhs / pu, lhs.clone() / pu);
+        test_ref_op!(&lhs << pu, lhs.clone() << pu);
+        test_ref_op!(&lhs >> pu, lhs.clone() >> pu);
+        test_ref_op!((&lhs).pow(pu), lhs.clone().pow(pu));
 
-        assert_eq!(Complex::with_val(53, pu + &lhs), pu + lhs.clone());
-        assert_eq!(Complex::with_val(53, pu - &lhs), pu - lhs.clone());
-        assert_eq!(Complex::with_val(53, pu * &lhs), pu * lhs.clone());
-        assert_eq!(Complex::with_val(53, pu / &lhs), pu / lhs.clone());
+        test_ref_op!(pu + &lhs, pu + lhs.clone());
+        test_ref_op!(pu - &lhs, pu - lhs.clone());
+        test_ref_op!(pu * &lhs, pu * lhs.clone());
+        test_ref_op!(pu / &lhs, pu / lhs.clone());
 
-        assert_eq!(Complex::with_val(53, &lhs + pi), lhs.clone() + pi);
-        assert_eq!(Complex::with_val(53, &lhs - pi), lhs.clone() - pi);
-        assert_eq!(Complex::with_val(53, &lhs * pi), lhs.clone() * pi);
-        assert_eq!(Complex::with_val(53, &lhs / pi), lhs.clone() / pi);
-        assert_eq!(Complex::with_val(53, &lhs << pi), lhs.clone() << pi);
-        assert_eq!(Complex::with_val(53, &lhs >> pi), lhs.clone() >> pi);
-        assert_eq!(Complex::with_val(53, (&lhs).pow(pi)), lhs.clone().pow(pi));
+        test_ref_op!(&lhs + pi, lhs.clone() + pi);
+        test_ref_op!(&lhs - pi, lhs.clone() - pi);
+        test_ref_op!(&lhs * pi, lhs.clone() * pi);
+        test_ref_op!(&lhs / pi, lhs.clone() / pi);
+        test_ref_op!(&lhs << pi, lhs.clone() << pi);
+        test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
+        test_ref_op!((&lhs).pow(pi), lhs.clone().pow(pi));
 
-        assert_eq!(Complex::with_val(53, pi + &lhs), pi + lhs.clone());
-        assert_eq!(Complex::with_val(53, pi - &lhs), pi - lhs.clone());
-        assert_eq!(Complex::with_val(53, pi * &lhs), pi * lhs.clone());
-        assert_eq!(Complex::with_val(53, pi / &lhs), pi / lhs.clone());
+        test_ref_op!(pi + &lhs, pi + lhs.clone());
+        test_ref_op!(pi - &lhs, pi - lhs.clone());
+        test_ref_op!(pi * &lhs, pi * lhs.clone());
+        test_ref_op!(pi / &lhs, pi / lhs.clone());
 
-        assert_eq!(Complex::with_val(53, (&lhs).pow(ps)), lhs.clone().pow(ps));
-        assert_eq!(Complex::with_val(53, (&lhs).pow(pd)), lhs.clone().pow(pd));
+        test_ref_op!((&lhs).pow(ps), lhs.clone().pow(ps));
+        test_ref_op!((&lhs).pow(pd), lhs.clone().pow(pd));
     }
 
     #[test]

@@ -409,63 +409,75 @@ mod tests {
         }
     }
 
+    macro_rules! test_ref_op {
+        ($first: expr, $second: expr) => {
+            assert_eq!(
+                Integer::from($first),
+                $second,
+                "({}) != ({})",
+                stringify!($first),
+                stringify!($second)
+            );
+        };
+    }
+
     #[test]
     fn check_ref_op() {
         let lhs = Integer::from(0x00ff);
         let rhs = Integer::from(0x0f0f);
         let pu = 30_u32;
         let pi = -15_i32;
-        assert_eq!(Integer::from(-&lhs), -lhs.clone());
-        assert_eq!(Integer::from(&lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Integer::from(&lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Integer::from(&lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Integer::from(&lhs / &rhs), lhs.clone() / &rhs);
-        assert_eq!(Integer::from(&lhs % &rhs), lhs.clone() % &rhs);
-        assert_eq!(Integer::from(!&lhs), !lhs.clone());
-        assert_eq!(Integer::from(&lhs & &rhs), lhs.clone() & &rhs);
-        assert_eq!(Integer::from(&lhs | &rhs), lhs.clone() | &rhs);
-        assert_eq!(Integer::from(&lhs ^ &rhs), lhs.clone() ^ &rhs);
+        test_ref_op!(-&lhs, -lhs.clone());
+        test_ref_op!(&lhs + &rhs, lhs.clone() + &rhs);
+        test_ref_op!(&lhs - &rhs, lhs.clone() - &rhs);
+        test_ref_op!(&lhs * &rhs, lhs.clone() * &rhs);
+        test_ref_op!(&lhs / &rhs, lhs.clone() / &rhs);
+        test_ref_op!(&lhs % &rhs, lhs.clone() % &rhs);
+        test_ref_op!(!&lhs, !lhs.clone());
+        test_ref_op!(&lhs & &rhs, lhs.clone() & &rhs);
+        test_ref_op!(&lhs | &rhs, lhs.clone() | &rhs);
+        test_ref_op!(&lhs ^ &rhs, lhs.clone() ^ &rhs);
 
-        assert_eq!(Integer::from(&lhs + pu), lhs.clone() + pu);
-        assert_eq!(Integer::from(&lhs - pu), lhs.clone() - pu);
-        assert_eq!(Integer::from(&lhs * pu), lhs.clone() * pu);
-        assert_eq!(Integer::from(&lhs / pu), lhs.clone() / pu);
-        assert_eq!(Integer::from(&lhs % pu), lhs.clone() % pu);
-        assert_eq!(Integer::from(&lhs & pu), lhs.clone() & pu);
-        assert_eq!(Integer::from(&lhs | pu), lhs.clone() | pu);
-        assert_eq!(Integer::from(&lhs ^ pu), lhs.clone() ^ pu);
-        assert_eq!(Integer::from(&lhs << pu), lhs.clone() << pu);
-        assert_eq!(Integer::from(&lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Integer::from((&lhs).pow(pu)), lhs.clone().pow(pu));
+        test_ref_op!(&lhs + pu, lhs.clone() + pu);
+        test_ref_op!(&lhs - pu, lhs.clone() - pu);
+        test_ref_op!(&lhs * pu, lhs.clone() * pu);
+        test_ref_op!(&lhs / pu, lhs.clone() / pu);
+        test_ref_op!(&lhs % pu, lhs.clone() % pu);
+        test_ref_op!(&lhs & pu, lhs.clone() & pu);
+        test_ref_op!(&lhs | pu, lhs.clone() | pu);
+        test_ref_op!(&lhs ^ pu, lhs.clone() ^ pu);
+        test_ref_op!(&lhs << pu, lhs.clone() << pu);
+        test_ref_op!(&lhs >> pu, lhs.clone() >> pu);
+        test_ref_op!((&lhs).pow(pu), lhs.clone().pow(pu));
 
-        assert_eq!(Integer::from(&lhs + pi), lhs.clone() + pi);
-        assert_eq!(Integer::from(&lhs - pi), lhs.clone() - pi);
-        assert_eq!(Integer::from(&lhs * pi), lhs.clone() * pi);
-        assert_eq!(Integer::from(&lhs / pi), lhs.clone() / pi);
-        assert_eq!(Integer::from(&lhs % pi), lhs.clone() % pi);
-        assert_eq!(Integer::from(&lhs & pi), lhs.clone() & pi);
-        assert_eq!(Integer::from(&lhs | pi), lhs.clone() | pi);
-        assert_eq!(Integer::from(&lhs ^ pi), lhs.clone() ^ pi);
-        assert_eq!(Integer::from(&lhs << pi), lhs.clone() << pi);
-        assert_eq!(Integer::from(&lhs >> pi), lhs.clone() >> pi);
+        test_ref_op!(&lhs + pi, lhs.clone() + pi);
+        test_ref_op!(&lhs - pi, lhs.clone() - pi);
+        test_ref_op!(&lhs * pi, lhs.clone() * pi);
+        test_ref_op!(&lhs / pi, lhs.clone() / pi);
+        test_ref_op!(&lhs % pi, lhs.clone() % pi);
+        test_ref_op!(&lhs & pi, lhs.clone() & pi);
+        test_ref_op!(&lhs | pi, lhs.clone() | pi);
+        test_ref_op!(&lhs ^ pi, lhs.clone() ^ pi);
+        test_ref_op!(&lhs << pi, lhs.clone() << pi);
+        test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
 
-        assert_eq!(Integer::from(pu + &lhs), pu + lhs.clone());
-        assert_eq!(Integer::from(pu - &lhs), pu - lhs.clone());
-        assert_eq!(Integer::from(pu * &lhs), pu * lhs.clone());
-        assert_eq!(Integer::from(pu / &lhs), pu / lhs.clone());
-        assert_eq!(Integer::from(pu % &lhs), pu % lhs.clone());
-        assert_eq!(Integer::from(pu & &lhs), pu & lhs.clone());
-        assert_eq!(Integer::from(pu | &lhs), pu | lhs.clone());
-        assert_eq!(Integer::from(pu ^ &lhs), pu ^ lhs.clone());
+        test_ref_op!(pu + &lhs, pu + lhs.clone());
+        test_ref_op!(pu - &lhs, pu - lhs.clone());
+        test_ref_op!(pu * &lhs, pu * lhs.clone());
+        test_ref_op!(pu / &lhs, pu / lhs.clone());
+        test_ref_op!(pu % &lhs, pu % lhs.clone());
+        test_ref_op!(pu & &lhs, pu & lhs.clone());
+        test_ref_op!(pu | &lhs, pu | lhs.clone());
+        test_ref_op!(pu ^ &lhs, pu ^ lhs.clone());
 
-        assert_eq!(Integer::from(pi + &lhs), pi + lhs.clone());
-        assert_eq!(Integer::from(pi - &lhs), pi - lhs.clone());
-        assert_eq!(Integer::from(pi * &lhs), pi * lhs.clone());
-        assert_eq!(Integer::from(pi / &lhs), pi / lhs.clone());
-        assert_eq!(Integer::from(pi % &lhs), pi % lhs.clone());
-        assert_eq!(Integer::from(pi & &lhs), pi & lhs.clone());
-        assert_eq!(Integer::from(pi | &lhs), pi | lhs.clone());
-        assert_eq!(Integer::from(pi ^ &lhs), pi ^ lhs.clone());
+        test_ref_op!(pi + &lhs, pi + lhs.clone());
+        test_ref_op!(pi - &lhs, pi - lhs.clone());
+        test_ref_op!(pi * &lhs, pi * lhs.clone());
+        test_ref_op!(pi / &lhs, pi / lhs.clone());
+        test_ref_op!(pi % &lhs, pi % lhs.clone());
+        test_ref_op!(pi & &lhs, pi & lhs.clone());
+        test_ref_op!(pi | &lhs, pi | lhs.clone());
+        test_ref_op!(pi ^ &lhs, pi ^ lhs.clone());
     }
 
     #[test]

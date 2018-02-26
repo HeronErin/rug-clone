@@ -712,6 +712,18 @@ pub(crate) mod tests {
         a == Float::with_val(a.prec(), b)
     }
 
+    macro_rules! test_ref_op {
+        ($first: expr, $second: expr) => {
+            assert_eq!(
+                Float::with_val(53, $first),
+                $second,
+                "({}) != ({})",
+                stringify!($first),
+                stringify!($second)
+            );
+        };
+    }
+
     #[test]
     fn check_ref_op() {
         let lhs = Float::with_val(53, 12.25);
@@ -720,65 +732,59 @@ pub(crate) mod tests {
         let pi = -15_i32;
         let ps = 31.625_f32;
         let pd = -1.5_f64;
-        assert_eq!(Float::with_val(53, -&lhs), -lhs.clone());
-        assert_eq!(Float::with_val(53, &lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Float::with_val(53, &lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Float::with_val(53, &lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Float::with_val(53, &lhs / &rhs), lhs.clone() / &rhs);
-        assert_eq!(
-            Float::with_val(53, (&lhs).pow(&rhs)),
-            lhs.clone().pow(&rhs)
-        );
+        test_ref_op!(-&lhs, -lhs.clone());
+        test_ref_op!(&lhs + &rhs, lhs.clone() + &rhs);
+        test_ref_op!(&lhs - &rhs, lhs.clone() - &rhs);
+        test_ref_op!(&lhs * &rhs, lhs.clone() * &rhs);
+        test_ref_op!(&lhs / &rhs, lhs.clone() / &rhs);
+        test_ref_op!((&lhs).pow(&rhs), lhs.clone().pow(&rhs));
 
-        assert_eq!(Float::with_val(53, &lhs + pu), lhs.clone() + pu);
-        assert_eq!(Float::with_val(53, &lhs - pu), lhs.clone() - pu);
-        assert_eq!(Float::with_val(53, &lhs * pu), lhs.clone() * pu);
-        assert_eq!(Float::with_val(53, &lhs / pu), lhs.clone() / pu);
-        assert_eq!(Float::with_val(53, &lhs << pu), lhs.clone() << pu);
-        assert_eq!(Float::with_val(53, &lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Float::with_val(53, (&lhs).pow(pu)), lhs.clone().pow(pu));
+        test_ref_op!(&lhs + pu, lhs.clone() + pu);
+        test_ref_op!(&lhs - pu, lhs.clone() - pu);
+        test_ref_op!(&lhs * pu, lhs.clone() * pu);
+        test_ref_op!(&lhs / pu, lhs.clone() / pu);
+        test_ref_op!(&lhs << pu, lhs.clone() << pu);
+        test_ref_op!(&lhs >> pu, lhs.clone() >> pu);
+        test_ref_op!((&lhs).pow(pu), lhs.clone().pow(pu));
 
-        assert_eq!(Float::with_val(53, pu + &lhs), pu + lhs.clone());
-        assert_eq!(Float::with_val(53, pu - &lhs), pu - lhs.clone());
-        assert_eq!(Float::with_val(53, pu * &lhs), pu * lhs.clone());
-        assert_eq!(Float::with_val(53, pu / &lhs), pu / lhs.clone());
-        assert_eq!(
-            Float::with_val(53, Pow::pow(pu, &lhs)),
-            Pow::pow(pu, lhs.clone())
-        );
+        test_ref_op!(pu + &lhs, pu + lhs.clone());
+        test_ref_op!(pu - &lhs, pu - lhs.clone());
+        test_ref_op!(pu * &lhs, pu * lhs.clone());
+        test_ref_op!(pu / &lhs, pu / lhs.clone());
+        test_ref_op!(Pow::pow(pu, &lhs), Pow::pow(pu, lhs.clone()));
 
-        assert_eq!(Float::with_val(53, &lhs + pi), lhs.clone() + pi);
-        assert_eq!(Float::with_val(53, &lhs - pi), lhs.clone() - pi);
-        assert_eq!(Float::with_val(53, &lhs * pi), lhs.clone() * pi);
-        assert_eq!(Float::with_val(53, &lhs / pi), lhs.clone() / pi);
-        assert_eq!(Float::with_val(53, &lhs << pi), lhs.clone() << pi);
-        assert_eq!(Float::with_val(53, &lhs >> pi), lhs.clone() >> pi);
-        assert_eq!(Float::with_val(53, (&lhs).pow(pi)), lhs.clone().pow(pi));
+        test_ref_op!(&lhs + pi, lhs.clone() + pi);
+        test_ref_op!(&lhs - pi, lhs.clone() - pi);
+        test_ref_op!(&lhs * pi, lhs.clone() * pi);
+        test_ref_op!(&lhs / pi, lhs.clone() / pi);
+        test_ref_op!(&lhs << pi, lhs.clone() << pi);
+        test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
+        test_ref_op!((&lhs).pow(pi), lhs.clone().pow(pi));
 
-        assert_eq!(Float::with_val(53, pi + &lhs), pi + lhs.clone());
-        assert_eq!(Float::with_val(53, pi - &lhs), pi - lhs.clone());
-        assert_eq!(Float::with_val(53, pi * &lhs), pi * lhs.clone());
-        assert_eq!(Float::with_val(53, pi / &lhs), pi / lhs.clone());
+        test_ref_op!(pi + &lhs, pi + lhs.clone());
+        test_ref_op!(pi - &lhs, pi - lhs.clone());
+        test_ref_op!(pi * &lhs, pi * lhs.clone());
+        test_ref_op!(pi / &lhs, pi / lhs.clone());
 
-        assert_eq!(Float::with_val(53, &lhs + ps), lhs.clone() + ps);
-        assert_eq!(Float::with_val(53, &lhs - ps), lhs.clone() - ps);
-        assert_eq!(Float::with_val(53, &lhs * ps), lhs.clone() * ps);
-        assert_eq!(Float::with_val(53, &lhs / ps), lhs.clone() / ps);
+        test_ref_op!(&lhs + ps, lhs.clone() + ps);
+        test_ref_op!(&lhs - ps, lhs.clone() - ps);
+        test_ref_op!(&lhs * ps, lhs.clone() * ps);
+        test_ref_op!(&lhs / ps, lhs.clone() / ps);
 
-        assert_eq!(Float::with_val(53, ps + &lhs), ps + lhs.clone());
-        assert_eq!(Float::with_val(53, ps - &lhs), ps - lhs.clone());
-        assert_eq!(Float::with_val(53, ps * &lhs), ps * lhs.clone());
-        assert_eq!(Float::with_val(53, ps / &lhs), ps / lhs.clone());
+        test_ref_op!(ps + &lhs, ps + lhs.clone());
+        test_ref_op!(ps - &lhs, ps - lhs.clone());
+        test_ref_op!(ps * &lhs, ps * lhs.clone());
+        test_ref_op!(ps / &lhs, ps / lhs.clone());
 
-        assert_eq!(Float::with_val(53, &lhs + pd), lhs.clone() + pd);
-        assert_eq!(Float::with_val(53, &lhs - pd), lhs.clone() - pd);
-        assert_eq!(Float::with_val(53, &lhs * pd), lhs.clone() * pd);
-        assert_eq!(Float::with_val(53, &lhs / pd), lhs.clone() / pd);
+        test_ref_op!(&lhs + pd, lhs.clone() + pd);
+        test_ref_op!(&lhs - pd, lhs.clone() - pd);
+        test_ref_op!(&lhs * pd, lhs.clone() * pd);
+        test_ref_op!(&lhs / pd, lhs.clone() / pd);
 
-        assert_eq!(Float::with_val(53, pd + &lhs), pd + lhs.clone());
-        assert_eq!(Float::with_val(53, pd - &lhs), pd - lhs.clone());
-        assert_eq!(Float::with_val(53, pd * &lhs), pd * lhs.clone());
-        assert_eq!(Float::with_val(53, pd / &lhs), pd / lhs.clone());
+        test_ref_op!(pd + &lhs, pd + lhs.clone());
+        test_ref_op!(pd - &lhs, pd - lhs.clone());
+        test_ref_op!(pd * &lhs, pd * lhs.clone());
+        test_ref_op!(pd / &lhs, pd / lhs.clone());
     }
 
     #[test]

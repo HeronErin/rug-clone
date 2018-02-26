@@ -118,24 +118,36 @@ mod tests {
     use Rational;
     use ops::Pow;
 
+    macro_rules! test_ref_op {
+        ($first: expr, $second: expr) => {
+            assert_eq!(
+                Rational::from($first),
+                $second,
+                "({}) != ({})",
+                stringify!($first),
+                stringify!($second)
+            );
+        };
+    }
+
     #[test]
     fn check_ref_op() {
         let lhs = Rational::from((-13, 27));
         let rhs = Rational::from((15, 101));
         let pu = 30_u32;
         let pi = -15_i32;
-        assert_eq!(Rational::from(-&lhs), -lhs.clone());
-        assert_eq!(Rational::from(&lhs + &rhs), lhs.clone() + &rhs);
-        assert_eq!(Rational::from(&lhs - &rhs), lhs.clone() - &rhs);
-        assert_eq!(Rational::from(&lhs * &rhs), lhs.clone() * &rhs);
-        assert_eq!(Rational::from(&lhs / &rhs), lhs.clone() / &rhs);
+        test_ref_op!(-&lhs, -lhs.clone());
+        test_ref_op!(&lhs + &rhs, lhs.clone() + &rhs);
+        test_ref_op!(&lhs - &rhs, lhs.clone() - &rhs);
+        test_ref_op!(&lhs * &rhs, lhs.clone() * &rhs);
+        test_ref_op!(&lhs / &rhs, lhs.clone() / &rhs);
 
-        assert_eq!(Rational::from(&lhs << pu), lhs.clone() << pu);
-        assert_eq!(Rational::from(&lhs >> pu), lhs.clone() >> pu);
-        assert_eq!(Rational::from((&lhs).pow(pu)), lhs.clone().pow(pu));
+        test_ref_op!(&lhs << pu, lhs.clone() << pu);
+        test_ref_op!(&lhs >> pu, lhs.clone() >> pu);
+        test_ref_op!((&lhs).pow(pu), lhs.clone().pow(pu));
 
-        assert_eq!(Rational::from(&lhs << pi), lhs.clone() << pi);
-        assert_eq!(Rational::from(&lhs >> pi), lhs.clone() >> pi);
-        assert_eq!(Rational::from((&lhs).pow(pi)), lhs.clone().pow(pi));
+        test_ref_op!(&lhs << pi, lhs.clone() << pi);
+        test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
+        test_ref_op!((&lhs).pow(pi), lhs.clone().pow(pi));
     }
 }
