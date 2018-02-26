@@ -1389,6 +1389,7 @@ impl Float {
     /// let neg_zero = neg_zero_f.as_ord();
     /// assert_eq!(zero.cmp(neg_zero), Ordering::Greater);
     /// ```
+    #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
         unsafe { &*(self as *const _ as *const _) }
     }

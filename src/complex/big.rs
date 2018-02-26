@@ -974,6 +974,7 @@ impl Complex {
     /// let zero_inf = zero_inf_c.as_ord();
     /// assert_eq!(one_pos0.cmp(zero_inf), Ordering::Greater);
     /// ```
+    #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
         unsafe { &*(self as *const _ as *const _) }
     }

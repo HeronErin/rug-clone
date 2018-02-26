@@ -77,6 +77,7 @@ impl OrdFloat {
     /// let f_ref = ord.as_float();
     /// assert_eq!(f_ref.to_f64(), 1.5);
     /// ```
+    #[inline]
     pub fn as_float(&self) -> &Float {
         &self.inner
     }
@@ -93,6 +94,7 @@ impl OrdFloat {
     /// ord.as_float_mut().abs_mut();
     /// assert_eq!(ord.as_float().to_f64(), 1.5);
     /// ```
+    #[inline]
     pub fn as_float_mut(&mut self) -> &mut Float {
         &mut self.inner
     }

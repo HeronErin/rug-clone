@@ -69,6 +69,7 @@ impl OrdComplex {
     /// assert_eq!(*c_ref.real(), 1.5);
     /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
+    #[inline]
     pub fn as_complex(&self) -> &Complex {
         &self.inner
     }
@@ -87,6 +88,7 @@ impl OrdComplex {
     /// assert_eq!(*c_ref.real(), 1.5);
     /// assert_eq!(*c_ref.imag(), 2.5);
     /// ```
+    #[inline]
     pub fn as_complex_mut(&mut self) -> &mut Complex {
         &mut self.inner
     }
