@@ -88,42 +88,36 @@ impl FromStr for Rational {
 }
 
 impl Display for Rational {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Rational {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Binary for Rational {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Rational {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Rational {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Rational {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x")
     }
@@ -259,7 +253,6 @@ fn fmt_radix(
 }
 
 impl Display for ParseRationalError {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }

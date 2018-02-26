@@ -172,6 +172,7 @@ macro_rules! signed {
 macro_rules! unsigned_32 {
     ($U: ty, $bits: expr) => {
         impl CopyToSmall for $U {
+            #[inline]
             fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
                 let ptr = inner as *mut Mpfr as *mut mpfr_t;
                 let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
@@ -199,6 +200,7 @@ unsigned_32! { u16, 16 }
 unsigned_32! { u32, 32 }
 
 impl CopyToSmall for u64 {
+    #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = inner as *mut Mpfr as *mut mpfr_t;
         let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
@@ -238,6 +240,7 @@ impl CopyToSmall for usize {
 }
 
 impl CopyToSmall for f32 {
+    #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = inner as *mut Mpfr as *mut mpfr_t;
         let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
@@ -253,6 +256,7 @@ impl CopyToSmall for f32 {
 }
 
 impl CopyToSmall for f64 {
+    #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = inner as *mut Mpfr as *mut mpfr_t;
         let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
@@ -277,6 +281,7 @@ macro_rules! impl_assign_from {
         }
 
         impl From<$T> for SmallFloat {
+            #[inline]
             fn from(src: $T) -> Self {
                 let mut dst = SmallFloat {
                     inner: unsafe { mem::uninitialized() },

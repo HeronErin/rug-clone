@@ -4241,6 +4241,7 @@ pub enum IsPrime {
     Yes,
 }
 
+#[inline]
 fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     if bits == !0 {
         None
@@ -4249,6 +4250,7 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
     }
 }
 
+#[inline]
 fn significant_bits_usize(n: &Integer) -> usize {
     // sizeinbase returns 1 if number is 0, so check 0 first
     if n.cmp0() == Ordering::Equal {

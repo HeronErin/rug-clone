@@ -317,11 +317,13 @@ trait YesNo: Sized {
     fn yes_no() -> (Self, Self);
 }
 impl YesNo for bool {
+    #[inline]
     fn yes_no() -> (bool, bool) {
         (true, false)
     }
 }
 impl YesNo for () {
+    #[inline]
     fn yes_no() -> ((), ()) {
         ((), ())
     }

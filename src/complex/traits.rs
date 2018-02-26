@@ -86,56 +86,48 @@ where
 }
 
 impl Display for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl LowerExp for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl UpperExp for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 10, true, "")
     }
 }
 
 impl Binary for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Complex {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x")
     }
@@ -313,7 +305,6 @@ fn fmt_radix(
 }
 
 impl Display for ParseComplexError {
-    #[inline]
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
     }

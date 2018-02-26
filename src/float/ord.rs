@@ -177,6 +177,7 @@ impl From<Float> for OrdFloat {
 }
 
 impl From<OrdFloat> for Float {
+    #[inline]
     fn from(src: OrdFloat) -> Self {
         src.inner
     }
