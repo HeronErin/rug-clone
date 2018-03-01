@@ -17,10 +17,10 @@
 //! Aribtrary-precision integers.
 //!
 //! This module provides support for arbitrary-precision integers of
-//! type [`Integer`](../struct.Integer.html). Instances of `Integer`
+//! type [`Integer`][integer]. Instances of [`Integer`][integer]
 //! always have a heap allocation for the bit data; if you want a
 //! temporary small integer without heap allocation, you can use the
-//! [`SmallInteger`](struct.SmallInteger.html) type.
+//! [`SmallInteger`][small] type.
 //!
 //! # Examples
 //!
@@ -34,6 +34,9 @@
 //! int.assign(small.abs_ref());
 //! assert_eq!(int, 15);
 //! ```
+//!
+//! [integer]: ../struct.Integer.html
+//! [small]: struct.SmallInteger.html
 
 mod arith;
 pub(crate) mod big;

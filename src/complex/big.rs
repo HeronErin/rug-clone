@@ -422,10 +422,11 @@ impl Complex {
         )
     }
 
-    /// Parses a decimal string or byte slice into a `Complex` number.
+    /// Parses a decimal string or byte slice into a
+    /// [`Complex`](struct.Complex.html) number.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// unwrapped returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+    /// is implemented with the unwrapped returned object as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
@@ -464,10 +465,11 @@ impl Complex {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into a `Complex` number.
+    /// Parses a string or byte slice into a
+    /// [`Complex`](struct.Complex.html) number.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// unwrapped returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+    /// is implemented with the unwrapped returned object as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
@@ -592,7 +594,8 @@ impl Complex {
         s
     }
 
-    /// Creates a `Complex` from an initialized MPC complex number.
+    /// Creates a [`Complex`](struct.Complex.html) from an initialized
+    /// MPC complex number.
     ///
     /// # Safety
     ///
@@ -627,7 +630,8 @@ impl Complex {
         Complex { inner: raw }
     }
 
-    /// Converts a `Complex` into an MPC complex number.
+    /// Converts a [`Complex`](struct.Complex.html) into an MPC
+    /// complex number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -828,7 +832,8 @@ impl Complex {
         }
     }
 
-    /// Borrows a negated copy of the `Complex` number.
+    /// Borrows a negated copy of the [`Complex`](struct.Complex.html)
+    /// number.
     ///
     /// The returned object implements `Deref<Target = Complex>`.
     ///
@@ -867,7 +872,8 @@ impl Complex {
         ret
     }
 
-    /// Borrows a conjugate copy of the `Complex` number.
+    /// Borrows a conjugate copy of the
+    /// [`Complex`](struct.Complex.html) number.
     ///
     /// The returned object implements `Deref<Target = Complex>`.
     ///
@@ -902,7 +908,8 @@ impl Complex {
         ret
     }
 
-    /// Borrows a rotated copy of the `Complex` number.
+    /// Borrows a rotated copy of the [`Complex`](struct.Complex.html)
+    /// number.
     ///
     /// The returned object implements `Deref<Target = Complex>`.
     ///
@@ -949,7 +956,8 @@ impl Complex {
         }
     }
 
-    /// Borrows the `Complex` as an ordered complex number of type
+    /// Borrows the [`Complex`](struct.Complex.html) as an ordered
+    /// complex number of type
     /// [`OrdComplex`](complex/struct.OrdComplex.html).
     ///
     /// # Examples
@@ -1008,12 +1016,13 @@ impl Complex {
         }
     }
 
-    /// Adds a list of `Complex` numbers with correct rounding.
+    /// Adds a list of [`Complex`](struct.Complex.html) numbers with
+    /// correct rounding.
     ///
-    /// `AssignRound<Src> for Complex`, `Add<Src> for Complex`,
-    /// `AddAssign<Src> for Complex` and
-    /// `AddAssignRound<Src> for Complex` are implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html),
+    /// `Add<Src> for Complex`, `AddAssign<Src> for Complex` and
+    /// [`AddAssignRound<Src> for Complex`](ops/trait.AddAssignRound.html)
+    /// are implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1093,8 +1102,8 @@ impl Complex {
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another `Complex`
-    /// like `ans`.
+    /// in `a` using its precision rather than in another
+    /// [`Complex`](struct.Complex.html) like `ans`.
     ///
     /// # Examples
     ///
@@ -1130,8 +1139,8 @@ impl Complex {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
+    /// is implemented with the returned object as `Src`.
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1203,8 +1212,8 @@ impl Complex {
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another `Complex`
-    /// like `ans`.
+    /// in `a` using its precision rather than in another
+    /// [`Complex`](struct.Complex.html) like `ans`.
     ///
     /// # Examples
     ///
@@ -1239,8 +1248,8 @@ impl Complex {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
+    /// is implemented with the returned object as `Src`.
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
     /// `&a * &b - &c`.
@@ -1322,8 +1331,8 @@ impl Complex {
         /// is set to 0 with the same sign as the imaginary part of
         /// the input.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1385,8 +1394,8 @@ impl Complex {
         fn square_round;
         /// Computes the square.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1450,8 +1459,8 @@ impl Complex {
         fn sqrt_round;
         /// Computes the square root.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1496,8 +1505,8 @@ impl Complex {
         fn conj_mut;
         /// Computes the complex conjugate.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1548,8 +1557,8 @@ impl Complex {
 
     /// Computes the absolute value.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
+    /// is implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1644,8 +1653,8 @@ impl Complex {
 
     /// Computes the argument.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
+    /// is implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1725,8 +1734,8 @@ impl Complex {
         fn mul_i_round;
         /// Multiplies the complex number by ±<i>i</i>.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1783,8 +1792,8 @@ impl Complex {
         fn recip_round;
         /// Computes the reciprocal.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1865,8 +1874,8 @@ impl Complex {
 
     /// Computes the norm, that is the square of the absolute value.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
+    /// is implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1927,8 +1936,8 @@ impl Complex {
         fn ln_round;
         /// Computes the natural logarithm;
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1987,8 +1996,8 @@ impl Complex {
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2008,8 +2017,8 @@ impl Complex {
         /// raised to the power *k*, that is its magnitude is 1 and
         /// its argument is 2<i>πk</i>/<i>n</i>.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2068,8 +2077,8 @@ impl Complex {
         fn exp_round;
         /// Computes the exponential.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2127,8 +2136,8 @@ impl Complex {
         fn sin_round;
         /// Computes the sine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2186,8 +2195,8 @@ impl Complex {
         fn cos_round;
         /// Computes the cosine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2268,9 +2277,9 @@ impl Complex {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// `AssignRound<Src> for (Complex, Complex)` and
-        /// `AssignRound<Src> for (&mut Complex, &mut Complex)` are
-        /// implemented with the returned object as `Src`.
+        /// [`AssignRound<Src> for (Complex, Complex)`][ar] and
+        /// [`AssignRound<Src> for (&mut Complex, &mut Complex)`][ar]
+        /// are implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2300,6 +2309,8 @@ impl Complex {
         /// assert_eq!(cos_4, (0.8125, -1));
         /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
         /// ```
+        ///
+        /// [ar]: ops/trait.AssignRound.html
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_complex! {
@@ -2347,8 +2358,8 @@ impl Complex {
         fn tan_round;
         /// Computes the tangent.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2407,8 +2418,8 @@ impl Complex {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2467,8 +2478,8 @@ impl Complex {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2527,8 +2538,8 @@ impl Complex {
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2587,8 +2598,8 @@ impl Complex {
         fn asin_round;
         /// Computes the inverse sine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2647,8 +2658,8 @@ impl Complex {
         fn acos_round;
         /// Computes the inverse cosine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2707,8 +2718,8 @@ impl Complex {
         fn atan_round;
         /// Computes the inverse tangent.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2767,8 +2778,8 @@ impl Complex {
         fn asinh_round;
         /// Computes the inverse hyperboic sine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2829,8 +2840,8 @@ impl Complex {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2891,8 +2902,8 @@ impl Complex {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///
-        /// `AssignRound<Src> for Complex` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2927,8 +2938,8 @@ impl Complex {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// `Assign<Src> for Complex` is implemented with the returned
-    /// object as `Src`.
+    /// [`Assign<Src> for Complex`](trait.Assign.html) is implemented
+    /// with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -2969,8 +2980,8 @@ impl Complex {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// `AssignRound<Src> for Complex` is implemented with the
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
+    /// is implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -3440,7 +3451,8 @@ fn parse(
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-/// An error which can be returned when parsing a `Complex` number.
+/// An error which can be returned when parsing a
+/// [`Complex`](struct.Complex.html) number.
 ///
 /// # Examples
 ///

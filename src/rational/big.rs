@@ -255,8 +255,8 @@ impl Rational {
         }
     }
 
-    /// Creates a `Rational` from an `f32` if it is finite, losing no
-    /// precision.
+    /// Creates a [`Rational`](struct.Rational.html) from an `f32` if
+    /// it is finite, losing no precision.
     ///
     /// # Examples
     ///
@@ -273,8 +273,8 @@ impl Rational {
         Rational::from_f64(val.into())
     }
 
-    /// Creates a `Rational` from an `f64` if it is finite, losing no
-    /// precision.
+    /// Creates a [`Rational`](struct.Rational.html) from an `f64` if
+    /// it is finite, losing no precision.
     ///
     /// # Examples
     ///
@@ -297,7 +297,7 @@ impl Rational {
         }
     }
 
-    /// Parses a `Rational` number.
+    /// Parses a [`Rational`](struct.Rational.html) number.
     ///
     /// # Examples
     ///
@@ -325,11 +325,12 @@ impl Rational {
         )?))
     }
 
-    /// Parses a decimal string or byte slice into a `Rational`
-    /// number.
+    /// Parses a decimal string or byte slice into a
+    /// [`Rational`](struct.Rational.html) number.
     ///
-    /// `Assign<Src> for Rational` and `From<Src> for Rational` are
-    /// implemented with the unwrapped returned object as `Src`.
+    /// [`Assign<Src> for Rational`](trait.Assign.html) and
+    /// `From<Src> for Rational` are implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -363,10 +364,12 @@ impl Rational {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into a `Rational` number.
+    /// Parses a string or byte slice into a
+    /// [`Rational`](struct.Rational.html) number.
     ///
-    /// `Assign<Src> for Rational` and `From<Src> for Rational` are
-    /// implemented with the unwrapped returned object as `Src`.
+    /// [`Assign<Src> for Rational`](trait.Assign.html) and
+    /// `From<Src> for Rational` are implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -532,16 +535,16 @@ impl Rational {
         }
     }
 
-    /// Creates a new `Rational` from a numerator and denominator
-    /// without canonicalizing aftwerwards.
+    /// Creates a new [`Rational`](struct.Rational.html) from a
+    /// numerator and denominator without canonicalizing aftwerwards.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
     /// rational number. The caller must ensure that the numerator and
     /// denominator are in canonical form, as the rest of the library
-    /// assumes that `Rational` structures keep their numerators and
-    /// denominators in canonical form.
+    /// assumes that [`Rational`](struct.Rational.html) structures
+    /// keep their numerators and denominators in canonical form.
     ///
     /// # Examples
     ///
@@ -573,8 +576,9 @@ impl Rational {
     /// This function is unsafe because it does not canonicalize the
     /// rational number after the assignment. The caller must ensure
     /// that the numerator and denominator are in canonical form, as
-    /// the rest of the library assumes that `Rational` structures
-    /// keep their numerators and denominators in canonical form.
+    /// the rest of the library assumes that
+    /// [`Rational`](struct.Rational.html) structures keep their
+    /// numerators and denominators in canonical form.
     ///
     /// # Examples
     ///
@@ -597,7 +601,8 @@ impl Rational {
         dst_den.assign(den);
     }
 
-    /// Creates a `Rational` from an initialized GMP rational number.
+    /// Creates a [`Rational`](struct.Rational.html) from an
+    /// initialized GMP rational number.
     ///
     /// # Safety
     ///
@@ -633,7 +638,8 @@ impl Rational {
         Rational { inner: raw }
     }
 
-    /// Converts a `Rational` into a GMP rational number.
+    /// Converts a [`Rational`](struct.Rational.html) into a GMP
+    /// rational number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -717,7 +723,7 @@ impl Rational {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows the numerator as an `Integer`.
+    /// Borrows the numerator as an [`Integer`](struct.Integer.html).
     ///
     /// # Examples
     ///
@@ -795,8 +801,9 @@ impl Rational {
     /// This function is unsafe because it does not canonicalize the
     /// rational number when the borrow ends. The caller must ensure
     /// that the rational number is left in canonical form, as the
-    /// rest of the library assumes that `Rational` structures keep
-    /// their numerators and denominators in canonical form.
+    /// rest of the library assumes that
+    /// [`Rational`](struct.Rational.html) structures keep their
+    /// numerators and denominators in canonical form.
     ///
     /// # Examples
     ///
@@ -872,7 +879,8 @@ impl Rational {
         }
     }
 
-    /// Borrows a negated copy of the `Rational` number.
+    /// Borrows a negated copy of the
+    /// [`Rational`](struct.Rational.html) number.
     ///
     /// The returned object implements `Deref<Target = Rational>`.
     ///
@@ -908,7 +916,8 @@ impl Rational {
         ret
     }
 
-    /// Borrows an absolute copy of the `Rational` number.
+    /// Borrows an absolute copy of the
+    /// [`Rational`](struct.Rational.html) number.
     ///
     /// The returned object implements `Deref<Target = Rational>`.
     ///
@@ -944,7 +953,8 @@ impl Rational {
         ret
     }
 
-    /// Borrows a reciprocal copy of the `Rational` number.
+    /// Borrows a reciprocal copy of the
+    /// [`Rational`](struct.Rational.html) number.
     ///
     /// The returned object implements `Deref<Target = Rational>`.
     ///
@@ -1046,8 +1056,9 @@ impl Rational {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational`
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1100,8 +1111,9 @@ impl Rational {
         ///
         /// # Examples
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
@@ -1181,8 +1193,9 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// `Assign<Src> for Rational` and `From<Src> for Rational` are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Rational`](trait.Assign.html) and
+    /// `From<Src> for Rational` are implemented with the returned
+    /// object as `Src`.
     ///
     /// # Examples
     ///
@@ -1261,8 +1274,9 @@ impl Rational {
         fn recip_mut;
         /// Computes the reciprocal.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational`
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1312,8 +1326,9 @@ impl Rational {
         fn trunc_mut;
         /// Rounds the number towards zero.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1360,8 +1375,9 @@ impl Rational {
         fn rem_trunc_mut;
         /// Computes the fractional part of the number.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational`
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1410,10 +1426,10 @@ impl Rational {
         fn fract_trunc_mut;
         /// Computes the fractional and truncated parts of the number.
         ///
-        /// `Assign<Src> for (Rational, Integer)`,
-        /// `Assign<Src> for (&mut Rational, &mut Integer)` and
-        /// `From<Src> for (Rational, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
+        /// and `From<Src> for (Rational, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1427,6 +1443,8 @@ impl Rational {
         /// assert_eq!(fract, (-15, 17));
         /// assert_eq!(trunc, -5);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn fract_trunc_ref -> FractTruncIncomplete;
     }
     rat_op_int! {
@@ -1466,8 +1484,9 @@ impl Rational {
         fn ceil_mut;
         /// Rounds the number upwards (towards plus infinity).
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1513,8 +1532,9 @@ impl Rational {
         fn rem_ceil_mut;
         /// Computes the non-positive remainder after rounding up.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational`
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1567,10 +1587,10 @@ impl Rational {
         ///
         /// The fractional part cannot be greater than zero.
         ///
-        /// `Assign<Src> for (Rational, Integer)`,
-        /// `Assign<Src> for (&mut Rational, &mut Integer)` and
-        /// `From<Src> for (Rational, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
+        /// and `From<Src> for (Rational, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1584,6 +1604,8 @@ impl Rational {
         /// assert_eq!(fract, (-2, 17));
         /// assert_eq!(ceil, 6);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn fract_ceil_ref -> FractCeilIncomplete;
     }
     rat_op_int! {
@@ -1621,8 +1643,9 @@ impl Rational {
         fn floor_mut;
         /// Rounds the number downwards (towards minus infinity).
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1668,8 +1691,9 @@ impl Rational {
         fn rem_floor_mut;
         /// Computes the non-negative remainder after rounding down.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational`
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1722,10 +1746,10 @@ impl Rational {
         ///
         /// The fractional part cannot be negative.
         ///
-        /// `Assign<Src> for (Rational, Integer)`,
-        /// `Assign<Src> for (&mut Rational, &mut Integer)` and
-        /// `From<Src> for (Rational, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
+        /// and `From<Src> for (Rational, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1739,6 +1763,8 @@ impl Rational {
         /// assert_eq!(fract, (2, 17));
         /// assert_eq!(floor, -6);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn fract_floor_ref -> FractFloorIncomplete;
     }
     rat_op_int! {
@@ -1787,8 +1813,9 @@ impl Rational {
         /// When the number lies exactly between two integers, it is
         /// rounded away from zero.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1845,8 +1872,9 @@ impl Rational {
         /// Computes the remainder after rounding to the nearest
         /// integer.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational`
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1922,10 +1950,10 @@ impl Rational {
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
         ///
-        /// `Assign<Src> for (Rational, Integer)`,
-        /// `Assign<Src> for (&mut Rational, &mut Integer)` and
-        /// `From<Src> for (Rational, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
+        /// and `From<Src> for (Rational, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1946,6 +1974,8 @@ impl Rational {
         /// assert_eq!(fract2, (-3, 10));
         /// assert_eq!(round2, 4);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn fract_round_ref -> FractRoundIncomplete;
     }
     math_op1! {
@@ -1974,8 +2004,9 @@ impl Rational {
         fn square_mut;
         /// Computes the square.
         ///
-        /// `Assign<Src> for Rational` and `From<Src> for Rational` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Rational`](trait.Assign.html) and
+        /// `From<Src> for Rational` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2222,7 +2253,8 @@ fn parse(
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-/// An error which can be returned when parsing a `Rational` number.
+/// An error which can be returned when parsing a
+/// [`Rational`](struct.Rational.html) number.
 ///
 /// # Examples
 ///

@@ -98,7 +98,8 @@ impl Default for SmallInteger {
 }
 
 impl SmallInteger {
-    /// Creates a `SmallInteger` with value 0.
+    /// Creates a [`SmallInteger`](struct.SmallInteger.html) with
+    /// value 0.
     ///
     /// # Examples
     ///

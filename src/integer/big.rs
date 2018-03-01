@@ -232,7 +232,7 @@ impl Integer {
     }
 
     /// Reserves capacity for at least `additional` more bits in the
-    /// `Integer`.
+    /// [`Integer`](struct.Integer.html).
     ///
     /// If the integer already has enough excess capacity, this
     /// function does nothing.
@@ -264,7 +264,8 @@ impl Integer {
         }
     }
 
-    /// Shrinks the capacity of the `Integer` as much as possible.
+    /// Shrinks the capacity of the [`Integer`](struct.Integer.html)
+    /// as much as possible.
     ///
     /// The capacity can still be larger than the number of
     /// significant bits.
@@ -288,8 +289,8 @@ impl Integer {
         }
     }
 
-    /// Creates an `Integer` from an `f32` if it is finite, rounding
-    /// towards zero.
+    /// Creates an [`Integer`](struct.Integer.html) from an `f32` if
+    /// it is finite, rounding towards zero.
     ///
     /// # Examples
     ///
@@ -306,8 +307,8 @@ impl Integer {
         Integer::from_f64(val.into())
     }
 
-    /// Creates an `Integer` from an `f64` if it is finite, rounding
-    /// towards zero.
+    /// Creates an [`Integer`](struct.Integer.html) from an `f64` if
+    /// it is finite, rounding towards zero.
     ///
     /// # Examples
     ///
@@ -332,7 +333,8 @@ impl Integer {
         }
     }
 
-    /// Parses an `Integer` using the given radix.
+    /// Parses an [`Integer`](struct.Integer.html) using the given
+    /// radix.
     ///
     /// # Examples
     ///
@@ -353,10 +355,12 @@ impl Integer {
         Ok(Integer::from(Integer::parse_radix(src, radix)?))
     }
 
-    /// Parses a decimal string or byte slice into an `Integer`.
+    /// Parses a decimal string or byte slice into an
+    /// [`Integer`](struct.Integer.html).
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the unwrapped returned object as `Src`.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -385,10 +389,12 @@ impl Integer {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into an `Integer`.
+    /// Parses a string or byte slice into an
+    /// [`Integer`](struct.Integer.html).
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the unwrapped returned object as `Src`.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -973,7 +979,8 @@ impl Integer {
         }
     }
 
-    /// Creates an `Integer` from an initialized GMP integer.
+    /// Creates an [`Integer`](struct.Integer.html) from an
+    /// initialized GMP integer.
     ///
     /// # Safety
     ///
@@ -1007,7 +1014,8 @@ impl Integer {
         Integer { inner: raw }
     }
 
-    /// Converts an `Integer` into a GMP integer.
+    /// Converts an [`Integer`](struct.Integer.html) into a GMP
+    /// integer.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -1090,7 +1098,8 @@ impl Integer {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows a negated copy of the `Integer`.
+    /// Borrows a negated copy of the
+    /// [`Integer`](struct.Integer.html).
     ///
     /// The returned object implements `Deref<Target = Integer>`.
     ///
@@ -1562,8 +1571,9 @@ impl Integer {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1615,8 +1625,9 @@ impl Integer {
         /// * 1 if the value is positive
         /// * −1 if the value is negative
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1699,8 +1710,9 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the returned
+    /// object as `Src`.
     ///
     /// # Examples
     ///
@@ -1766,8 +1778,9 @@ impl Integer {
         fn keep_bits_mut;
         /// Keeps the *n* least significant bits only.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1809,8 +1822,9 @@ impl Integer {
         fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -1871,10 +1885,10 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// The remainder has the same sign as the dividend.
         ///
@@ -1889,6 +1903,8 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn div_rem_ref -> DivRemIncomplete;
     }
     math_op2_2! {
@@ -1944,10 +1960,10 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1960,6 +1976,8 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn div_rem_ceil_ref -> DivRemCeilIncomplete;
     }
     math_op2_2! {
@@ -2012,10 +2030,10 @@ impl Integer {
         ///
         /// The remainder has the same sign as the divisor.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2028,6 +2046,8 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
     math_op2_2! {
@@ -2074,10 +2094,10 @@ impl Integer {
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2090,6 +2110,8 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn div_rem_euc_ref -> DivRemEucIncomplete;
     }
 
@@ -2164,8 +2186,9 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2222,8 +2245,9 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2308,8 +2332,9 @@ impl Integer {
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src` if it exists.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -2453,8 +2478,9 @@ impl Integer {
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src` if it exists.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the unwrapped
+    /// returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -2505,8 +2531,9 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2522,8 +2549,9 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2573,8 +2601,9 @@ impl Integer {
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2638,10 +2667,10 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2659,6 +2688,8 @@ impl Integer {
         /// assert_eq!(other_root, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn root_rem_ref -> RootRemIncomplete;
     }
     math_op1! {
@@ -2687,8 +2718,9 @@ impl Integer {
         fn square_mut;
         /// Computes the square.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2733,8 +2765,9 @@ impl Integer {
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2795,10 +2828,10 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2816,6 +2849,8 @@ impl Integer {
         /// assert_eq!(other_sqrt, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn sqrt_rem_ref -> SqrtRemIncomplete;
     }
 
@@ -2876,8 +2911,9 @@ impl Integer {
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -2945,8 +2981,9 @@ impl Integer {
         /// The result is always positive except when both inputs are
         /// zero.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3034,14 +3071,14 @@ impl Integer {
         /// (`self` and `other`), and two cofactors to obtain the GCD
         /// from the two inputs.
         ///
-        /// `Assign<Src> for (Integer, Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`
-        /// and `From<Src> for (Integer, Integer, Integer)` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer, Integer)`][a],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`][a]
+        /// and `From<Src> for (Integer, Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// In the case that only one of the two cofactors is
-        /// required, `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
+        /// required, [`Assign<Src> for (Integer, Integer)`][a],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][a] and
         /// `From<Src> for (Integer, Integer)` are also implemented
         /// with the returned object as `Src`.
         ///
@@ -3099,6 +3136,8 @@ impl Integer {
         /// assert_eq!(g2, 2);
         /// assert_eq!(t2, 1);
         /// ```
+        /// 
+        /// [a]: trait.Assign.html
         fn gcd_cofactors_ref -> GcdIncomplete;
     }
 
@@ -3149,8 +3188,9 @@ impl Integer {
         /// The result is always positive except when one or both
         /// inputs are zero.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3291,8 +3331,9 @@ impl Integer {
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3309,8 +3350,9 @@ impl Integer {
     math_op0! {
         /// Computes the double factorial of *n*.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3327,8 +3369,9 @@ impl Integer {
     math_op0! {
         /// Computes the *m*-multi factorial of *n*.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3345,8 +3388,9 @@ impl Integer {
     math_op0! {
         /// Computes the primorial of *n*.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3389,8 +3433,9 @@ impl Integer {
         fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3405,8 +3450,9 @@ impl Integer {
     math_op0! {
         /// Computes the binomial coefficient *n* over *k*.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// # Examples
         ///
@@ -3423,8 +3469,9 @@ impl Integer {
     math_op0! {
         /// Computes the Fibonacci number.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3447,10 +3494,10 @@ impl Integer {
         /// Computes a Fibonacci number, and the previous Fibonacci
         /// number.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3470,14 +3517,17 @@ impl Integer {
         /// assert_eq!(pair.0, 0);
         /// assert_eq!(pair.1, 1);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn fibonacci_2(n: u32) -> Fibonacci2Incomplete;
     }
 
     math_op0! {
         /// Computes the Lucas number.
         ///
-        /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html) and
+        /// `From<Src> for Integer` are implemented with the returned
+        /// object as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Lucas numbers is required, the first two
@@ -3499,10 +3549,10 @@ impl Integer {
     math_op0! {
         /// Computes a Lucas number, and the previous Lucas number.
         ///
-        /// `Assign<Src> for (Integer, Integer)`,
-        /// `Assign<Src> for (&mut Integer, &mut Integer)` and
-        /// `From<Src> for (Integer, Integer)` are implemented with
-        /// the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Lucas numbers is required, the first two values of
@@ -3521,6 +3571,8 @@ impl Integer {
         /// assert_eq!(pair.0, 2);
         /// assert_eq!(pair.1, -1);
         /// ```
+        /// 
+        /// [assign]: trait.Assign.html
         fn lucas_2(n: u32) -> Lucas2Incomplete;
     }
 
@@ -3528,8 +3580,9 @@ impl Integer {
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the returned
+    /// object as `Src`.
     ///
     /// # Examples
     ///
@@ -3610,8 +3663,9 @@ impl Integer {
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
-    /// `Assign<Src> for Integer` and `From<Src> for Integer` are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the returned
+    /// object as `Src`.
     ///
     /// # Examples
     ///
@@ -4177,7 +4231,8 @@ fn parse(
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-/// An error which can be returned when parsing an `Integer`.
+/// An error which can be returned when parsing an
+/// [`Integer`](struct.Integer.html).
 ///
 /// # Examples
 ///

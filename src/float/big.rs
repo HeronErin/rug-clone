@@ -571,10 +571,11 @@ impl Float {
         ordering1(ret)
     }
 
-    /// Parses a decimal string or byte slice into a `Float`.
+    /// Parses a decimal string or byte slice into a
+    /// [`Float`](struct.Float.html).
     ///
-    /// `AssignRound<Src> for Float` is implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the unwrapped returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
@@ -616,10 +617,11 @@ impl Float {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into a `Float`.
+    /// Parses a string or byte slice into a
+    /// [`Float`](struct.Float.html).
     ///
-    /// `AssignRound<Src> for Float` is implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the unwrapped returned object as `Src`.
     ///
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
@@ -787,8 +789,8 @@ impl Float {
     /// assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
     /// ```
     ///
-    /// In the following example, the `Float` values can be
-    /// represented exactly.
+    /// In the following example, the [`Float`](struct.Float.html)
+    /// values can be represented exactly.
     ///
     /// ```rust
     /// use rug::Float;
@@ -1179,8 +1181,8 @@ impl Float {
         s
     }
 
-    /// Creates a `Float` from an initialized MPFR floating-point
-    /// number.
+    /// Creates a [`Float`](struct.Float.html) from an initialized
+    /// MPFR floating-point number.
     ///
     /// # Safety
     ///
@@ -1215,7 +1217,8 @@ impl Float {
         Float { inner: raw }
     }
 
-    /// Converts a `Float` into an MPFR floating-point number.
+    /// Converts a [`Float`](struct.Float.html) into an MPFR
+    /// floating-point number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -1299,7 +1302,7 @@ impl Float {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows a negated copy of the `Float`.
+    /// Borrows a negated copy of the [`Float`](struct.Float.html).
     ///
     /// The returned object implements `Deref<Target = Float>`.
     ///
@@ -1332,7 +1335,7 @@ impl Float {
         ret
     }
 
-    /// Borrows an absolute copy of the `Float`.
+    /// Borrows an absolute copy of the [`Float`](struct.Float.html).
     ///
     /// The returned object implements `Deref<Target = Float>`.
     ///
@@ -1365,8 +1368,8 @@ impl Float {
         ret
     }
 
-    /// Borrows the `Float` as an ordered float of type
-    /// [`OrdFloat`](float/struct.OrdFloat.html).
+    /// Borrows the [`Float`](struct.Float.html) as an ordered float
+    /// of type [`OrdFloat`](float/struct.OrdFloat.html).
     ///
     /// # Examples
     ///
@@ -1479,8 +1482,8 @@ impl Float {
     }
 
     /// Returns `true` if `self` is a normal number, that is neither
-    /// NaN, nor infinity, nor zero. Note that `Float` cannot be
-    /// subnormal.
+    /// NaN, nor infinity, nor zero. Note that
+    /// [`Float`](struct.Float.html) cannot be subnormal.
     ///
     /// # Examples
     ///
@@ -1502,7 +1505,7 @@ impl Float {
     }
 
     /// Returns the floating-point category of the number. Note that
-    /// `Float` cannot be subnormal.
+    /// [`Float`](struct.Float.html) cannot be subnormal.
     ///
     /// # Examples
     /// ```rust
@@ -1903,10 +1906,12 @@ impl Float {
         }
     }
 
-    /// Adds a list of `Float` values with correct rounding.
+    /// Adds a list of [`Float`](struct.Float.html) values with
+    /// correct rounding.
     ///
-    /// `AssignRound<Src> for Float`, `Add<Src> for Float`,
-    /// `AddAssign<Src> for Float` and `AddAssignRound<Src> for Float`
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html),
+    /// `Add<Src> for Float`, `AddAssign<Src> for Float` and
+    /// [`AddAssignRound<Src> for Float`](ops/trait.AddAssignRound.html),
     /// are implemented with the returned object as `Src`.
     ///
     /// # Examples
@@ -2003,8 +2008,8 @@ impl Float {
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another `Float` like
-    /// `ans`.
+    /// in `a` using its precision rather than in another
+    /// [`Float`](struct.Float.html) like `ans`.
     ///
     /// # Examples
     ///
@@ -2045,8 +2050,8 @@ impl Float {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -2133,8 +2138,8 @@ impl Float {
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another `Float` like
-    /// `ans`.
+    /// in `a` using its precision rather than in another
+    /// [`Float`](struct.Float.html) like `ans`.
     ///
     /// # Examples
     ///
@@ -2175,8 +2180,8 @@ impl Float {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
     /// `&a * &b - &c`.
@@ -2269,7 +2274,7 @@ impl Float {
     /// `a.mul_add_mul_round(&b, &c, &d, round)` produces a result
     /// like `ans.assign_round(&a * &b + &c * &d, round)`, but stores
     /// the result in `a` using its precision rather than in another
-    /// `Float` like `ans`.
+    /// [`Float`](struct.Float.html) like `ans`.
     ///
     /// # Examples
     ///
@@ -2308,8 +2313,8 @@ impl Float {
 
     /// Multiplies two products and adds them in one fused operation.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// `a.mul_add_mul_ref(&b, &c, &d)` produces the exact same result
     /// as `&a * &b + &c * &d`.
@@ -2401,7 +2406,7 @@ impl Float {
     /// `a.mul_sub_mul_round(&b, &c, &d, round)` produces a result
     /// like `ans.assign_round(&a * &b - &c * &d, round)`, but stores
     /// the result in `a` using its precision rather than in another
-    /// `Float` like `ans`.
+    /// [`Float`](struct.Float.html) like `ans`.
     ///
     /// # Examples
     ///
@@ -2441,8 +2446,8 @@ impl Float {
     /// Multiplies two products and subtracts them in one fused
     /// operation.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// `a.mul_sub_mul_ref(&b, &c, &d)` produces the exact same result
     /// as `&a * &b - &c * &d`.
@@ -2511,8 +2516,8 @@ impl Float {
         fn square_round;
         /// Computes the square.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2569,8 +2574,8 @@ impl Float {
         fn sqrt_round;
         /// Computes the square root.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2586,8 +2591,8 @@ impl Float {
     math_op0! {
         /// Computes the square root of `u`.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2644,8 +2649,8 @@ impl Float {
         fn recip_sqrt_round;
         /// Computes the reciprocal square root.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2702,8 +2707,8 @@ impl Float {
         fn cbrt_round;
         /// Computes the cube root.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2760,8 +2765,8 @@ impl Float {
         fn root_round;
         /// Computes the <i>k</i>th root.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2800,8 +2805,8 @@ impl Float {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -2853,8 +2858,8 @@ impl Float {
         /// * −1.0 if the value is negative, −0.0 or −∞
         /// * NaN if the value is NaN
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3009,8 +3014,8 @@ impl Float {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -3096,8 +3101,8 @@ impl Float {
         fn recip_round;
         /// Computes the reciprocal.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3153,8 +3158,8 @@ impl Float {
         fn min_round;
         /// Finds the minimum.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3211,8 +3216,8 @@ impl Float {
         fn max_round;
         /// Finds the maximum.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3295,8 +3300,8 @@ impl Float {
         /// `other`, zero if `self` ≤ `other`, or NaN if any operand
         /// is NaN.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3360,8 +3365,8 @@ impl Float {
         fn ln_round;
         /// Computes the natural logarithm.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3377,8 +3382,8 @@ impl Float {
     math_op0! {
         /// Computes the natural logarithm of `u`.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3438,8 +3443,8 @@ impl Float {
         fn log2_round;
         /// Computes the logarithm to base 2.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3498,8 +3503,8 @@ impl Float {
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3558,8 +3563,8 @@ impl Float {
         fn exp_round;
         /// Computes the exponential.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3618,8 +3623,8 @@ impl Float {
         fn exp2_round;
         /// Computes 2 to the power of the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3678,8 +3683,8 @@ impl Float {
         fn exp10_round;
         /// Computes 10 to the power of the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3737,8 +3742,8 @@ impl Float {
         fn sin_round;
         /// Computes the sine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3796,8 +3801,8 @@ impl Float {
         fn cos_round;
         /// Computes the cosine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3855,8 +3860,8 @@ impl Float {
         fn tan_round;
         /// Computes the tangent.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -3935,8 +3940,8 @@ impl Float {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// `AssignRound<Src> for (Float, Float)` and
-        /// `AssignRound<Src> for (&mut Float, &mut Float)` are
+        /// [`AssignRound<Src> for (Float, Float)`][ar] and
+        /// [`AssignRound<Src> for (&mut Float, &mut Float)`][ar] are
         /// implemented with the returned object as `Src`.
         ///
         /// # Examples
@@ -3967,6 +3972,8 @@ impl Float {
         /// assert_eq!(cos_4, 0.3125);
         /// assert_eq!(dir_cos, Ordering::Less);
         /// ```
+        /// 
+        /// [ar]: ops/trait.AssignRound.html
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_float! {
@@ -4014,8 +4021,8 @@ impl Float {
         fn sec_round;
         /// Computes the secant.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4073,8 +4080,8 @@ impl Float {
         fn csc_round;
         /// Computes the cosecant.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4133,8 +4140,8 @@ impl Float {
         fn cot_round;
         /// Computes the cotangent.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4192,8 +4199,8 @@ impl Float {
         fn asin_round;
         /// Computes the arc-sine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4252,8 +4259,8 @@ impl Float {
         fn acos_round;
         /// Computes the arc-cosine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4312,8 +4319,8 @@ impl Float {
         fn atan_round;
         /// Computes the arc-tangent.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4389,8 +4396,8 @@ impl Float {
         /// This is similar to the arc-tangent of `self / x`, but
         /// has an output range of 2<i>π</i> rather than *π*.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4451,8 +4458,8 @@ impl Float {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4511,8 +4518,8 @@ impl Float {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4571,8 +4578,8 @@ impl Float {
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4651,8 +4658,8 @@ impl Float {
         fn sinh_cosh_round;
         /// Computes the hyperbolic sine and cosine.
         ///
-        /// `AssignRound<Src> for (Float, Float)` and
-        /// `AssignRound<Src> for (&mut Float, &mut Float)` are
+        /// [`AssignRound<Src> for (Float, Float)`][ar] and
+        /// [`AssignRound<Src> for (&mut Float, &mut Float)`[ar] are
         /// implemented with the returned object as `Src`.
         ///
         /// # Examples
@@ -4683,6 +4690,8 @@ impl Float {
         /// assert_eq!(cosh_4, 1.875);
         /// assert_eq!(dir_cosh, Ordering::Less);
         /// ```
+        /// 
+        /// [ar]: ops/trait.AssignRound.html
         fn sinh_cosh_ref -> SinhCoshIncomplete;
     }
     math_op1_float! {
@@ -4731,8 +4740,8 @@ impl Float {
         fn sech_round;
         /// Computes the hyperbolic secant.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4791,8 +4800,8 @@ impl Float {
         fn csch_round;
         /// Computes the hyperbolic cosecant.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4851,8 +4860,8 @@ impl Float {
         fn coth_round;
         /// Computes the hyperbolic cotangent.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4911,8 +4920,8 @@ impl Float {
         fn asinh_round;
         /// Computes the inverse hyperbolic sine.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -4973,8 +4982,8 @@ impl Float {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5035,8 +5044,8 @@ impl Float {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5052,8 +5061,8 @@ impl Float {
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5118,8 +5127,8 @@ impl Float {
         fn ln_1p_round;
         /// Computes the natural logorithm of one plus the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5185,8 +5194,8 @@ impl Float {
         /// Computes one less than the exponential of the
         /// value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5246,8 +5255,8 @@ impl Float {
         fn eint_round;
         /// Computes the exponential integral.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5309,8 +5318,8 @@ impl Float {
         /// Computes the real part of the dilogarithm of the
         /// value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5371,8 +5380,8 @@ impl Float {
         fn gamma_round;
         /// Computes the gamma function on the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5436,8 +5445,8 @@ impl Float {
         fn gamma_inc_round;
         /// Computes the upper incomplete gamma function on the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5500,8 +5509,8 @@ impl Float {
         /// Computes the logarithm of the gamma function on
         /// the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5645,8 +5654,8 @@ impl Float {
     /// Computes the logarithm of the absolute value of the gamma
     /// function on `val`.
     ///
-    /// `AssignRound<Src> for (Float, Ordering)` and
-    /// `AssignRound<Src> for (&mut Float, &mut Ordering)` are
+    /// [`AssignRound<Src> for (Float, Ordering)`][ar] and
+    /// [`AssignRound<Src> for (&mut Float, &mut Ordering)`][ar] are
     /// implemented with the returned object as `Src`.
     ///
     /// # Examples
@@ -5670,6 +5679,8 @@ impl Float {
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
+    /// 
+    /// [ar]: ops/trait.AssignRound.html
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete {
         LnAbsGammaIncomplete { ref_self: self }
@@ -5723,8 +5734,8 @@ impl Float {
         fn digamma_round;
         /// Computes the Digamma function on the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5785,8 +5796,8 @@ impl Float {
         fn zeta_round;
         /// Computes the Riemann Zeta function on the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5802,8 +5813,8 @@ impl Float {
     math_op0! {
         /// Computes the Riemann Zeta function on *u*.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5864,8 +5875,8 @@ impl Float {
         fn erf_round;
         /// Computes the error function.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5926,8 +5937,8 @@ impl Float {
         fn erfc_round;
         /// Computes the complementary error function.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -5988,8 +5999,8 @@ impl Float {
         fn j0_round;
         /// Computes the first kind Bessel function of order 0.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6050,8 +6061,8 @@ impl Float {
         fn j1_round;
         /// Computes the first kind Bessel function of order 1.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6112,8 +6123,8 @@ impl Float {
         fn jn_round;
         /// Computes the first kind Bessel function of order *n*.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6174,8 +6185,8 @@ impl Float {
         fn y0_round;
         /// Computes the second kind Bessel function of order 0.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6236,8 +6247,8 @@ impl Float {
         fn y1_round;
         /// Computes the second kind Bessel function of order 1.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6298,8 +6309,8 @@ impl Float {
         fn yn_round;
         /// Computes the second kind Bessel function of order *n*.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6363,8 +6374,8 @@ impl Float {
         fn agm_round;
         /// Computes the arithmetic-geometric mean.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6429,8 +6440,8 @@ impl Float {
         fn hypot_round;
         /// Computes the Euclidean norm.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6492,8 +6503,8 @@ impl Float {
         fn ai_round;
         /// Computes the Airy function Ai on the value.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6539,8 +6550,8 @@ impl Float {
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6588,8 +6599,8 @@ impl Float {
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6640,8 +6651,8 @@ impl Float {
         /// away from zero. The result may be rounded again when
         /// assigned to the target.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6712,8 +6723,8 @@ impl Float {
         /// even. The result may be rounded again when assigned to the
         /// target.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6761,8 +6772,8 @@ impl Float {
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6809,8 +6820,8 @@ impl Float {
         fn fract_mut;
         /// Gets the fractional part of the number.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6905,8 +6916,8 @@ impl Float {
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
         ///
-        /// `AssignRound<Src> for Float` is implemented with the
-        /// returned object as `Src`.
+        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
+        /// is implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -6948,8 +6959,8 @@ impl Float {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// `Assign<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`Assign<Src> for Float`](trait.Assign.html) is implemented
+    /// with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -6985,8 +6996,8 @@ impl Float {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -7016,8 +7027,8 @@ impl Float {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -7043,8 +7054,8 @@ impl Float {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// `AssignRound<Src> for Float` is implemented with the returned
-    /// object as `Src`.
+    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -7793,7 +7804,8 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-/// An error which can be returned when parsing a `Float`.
+/// An error which can be returned when parsing a
+/// [`Float`](struct.Float.html).
 ///
 /// # Examples
 ///

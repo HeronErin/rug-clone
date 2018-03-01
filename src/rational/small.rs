@@ -29,14 +29,14 @@ use std::sync::atomic::Ordering;
 ///
 /// This can be useful when you have a numerator and denominator that
 /// are primitive integer-types such as `i64` or `u8`, and you need a
-/// reference to a [`Rational`](../struct.Rational.html).
+/// reference to a [`Rational`][rational].
 ///
 /// Although no allocation is required, setting the value of a
 /// `SmallRational` does require some computation, as the numerator
 /// and denominator need to be canonicalized.
 ///
 /// The `SmallRational` type can be coerced to a
-/// [`Rational`](../struct.Rational.html), as it implements
+/// [`Rational`][rational], as it implements
 /// `Deref<Target = Rational>`.
 ///
 /// # Examples
@@ -52,6 +52,8 @@ use std::sync::atomic::Ordering;
 /// assert_eq!(*a.numer(), -21);
 /// assert_eq!(*a.denom(), 13);
 /// ```
+///
+/// [rational]: ../struct.Rational.html
 #[repr(C)]
 pub struct SmallRational {
     num: Mpz,
@@ -91,7 +93,8 @@ const LIMBS_ONE: Limbs = [1];
 const LIMBS_ONE: Limbs = [1, 0];
 
 impl SmallRational {
-    /// Creates a `SmallRational` with value 0.
+    /// Creates a [`SmallRational`](struct.SmallRational.html) with
+    /// value 0.
     ///
     /// # Examples
     ///
@@ -161,8 +164,9 @@ impl SmallRational {
         &mut *ptr
     }
 
-    /// Creates a `SmallRational` from a numerator and denominator,
-    /// assuming they are in canonical form.
+    /// Creates a [`SmallRational`](struct.SmallRational.html) from a
+    /// numerator and denominator, assuming they are in canonical
+    /// form.
     ///
     /// # Safety
     ///
