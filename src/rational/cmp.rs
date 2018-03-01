@@ -335,10 +335,10 @@ mod tests {
 
     #[test]
     fn check_cmp_u_s() {
-        let large = &[(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
-        let against = (large
+        let large = [(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
+        let against = large
             .iter()
-            .map(|&(n, d, s)| Rational::from((n, d)) << s))
+            .map(|&(n, d, s)| Rational::from((n, d)) << s)
             .chain(U32.iter().map(|&x| Rational::from(x)))
             .chain(I32.iter().map(|&x| Rational::from(x)))
             .chain(U64.iter().map(|&x| Rational::from(x)))
@@ -393,10 +393,10 @@ mod tests {
 
     #[test]
     fn check_cmp_tuple() {
-        let large = [(5, 17, 100), (-11, 3, 200), (33, 777, -150)]
-            .iter()
-            .map(|&(n, d, s)| Rational::from((n, d)) << s);
+        let large = [(5, 17, 100), (-11, 3, 200), (33, 777, -150)];
         let against = large
+            .iter()
+            .map(|&(n, d, s)| Rational::from((n, d)) << s)
             .chain(U32.iter().map(|&x| Rational::from(x)))
             .chain(I32.iter().map(|&x| Rational::from(x)))
             .chain(U64.iter().map(|&x| Rational::from(x)))
@@ -466,9 +466,10 @@ mod tests {
             (5, 17, 100),
             (-11, 3, 200),
             (33, 777, -150),
-        ].iter()
-            .map(|&(n, d, s)| Rational::from((n, d)) << s);
+        ];
         let against = large
+            .iter()
+            .map(|&(n, d, s)| Rational::from((n, d)) << s)
             .chain(U32.iter().map(|&x| Rational::from(x)))
             .chain(I32.iter().map(|&x| Rational::from(x)))
             .chain(U64.iter().map(|&x| Rational::from(x)))

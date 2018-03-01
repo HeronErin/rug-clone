@@ -782,9 +782,7 @@ mod tests {
 
     #[test]
     fn check_div_prim() {
-        let large = [(1, 100), (-11, 200), (33, 150)]
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s);
+        let large = [(1, 100), (-11, 200), (33, 150)];
         let u = [0, 1, 100, 101, u32::MAX];
         let s = [
             i32::MIN,
@@ -798,6 +796,8 @@ mod tests {
             i32::MAX,
         ];
         let against = large
+            .iter()
+            .map(|&(n, s)| Integer::from(n) << s)
             .chain(s.iter().map(|&x| Integer::from(x)))
             .chain(u.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
@@ -869,9 +869,7 @@ mod tests {
 
     #[test]
     fn check_rem_prim() {
-        let large = [(1, 100), (-11, 200), (33, 150)]
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s);
+        let large = [(1, 100), (-11, 200), (33, 150)];
         let u = [0, 1, 100, 101, u32::MAX];
         let s = [
             i32::MIN,
@@ -885,6 +883,8 @@ mod tests {
             i32::MAX,
         ];
         let against = large
+            .iter()
+            .map(|&(n, s)| Integer::from(n) << s)
             .chain(s.iter().map(|&x| Integer::from(x)))
             .chain(u.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();

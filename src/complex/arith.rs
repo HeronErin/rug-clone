@@ -824,7 +824,7 @@ mod tests {
     #[test]
     fn check_arith_others() {
         use tests::{F32, F64, I32, I64, U32, U64};
-        let large = &[
+        let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),
             Complex::with_val(20, (Special::Infinity, 1.0)),
@@ -862,7 +862,9 @@ mod tests {
             Float::with_val(20, Special::Infinity),
         ];
 
-        let mut against = (large.iter().cloned())
+        let mut against = large
+            .iter()
+            .cloned()
             .chain(U32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(I32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(U64.iter().map(|&x| Complex::with_val(20, x)))
