@@ -21,6 +21,7 @@ use Integer;
 use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
+use float::Special;
 use float::big::ordering1;
 use gmp_mpfr_sys::mpfr;
 use inner::Inner;
@@ -156,6 +157,35 @@ cmp_i! { usize, |f, t: &usize| unsafe { xmpfr::cmp_u64(f, cast(*t)) } }
 
 cmp_f! { f32, |f, t: &f32| unsafe { mpfr::cmp_d(f, cast(*t)) } }
 cmp_f! { f64, |f, t: &f64| unsafe { mpfr::cmp_d(f, *t) } }
+
+cmp! { Special }
+
+impl PartialOrd<Special> for Float {
+    #[inline]
+    fn partial_cmp(&self, other: &Special) -> Option<Ordering> {
+        if self.is_nan() {
+            return None;
+        }
+        match *other {
+            Special::Zero | Special::NegZero => self.cmp0(),
+            Special::Infinity => {
+                if self.is_sign_positive() && self.is_infinite() {
+                    Some(Ordering::Equal)
+                } else {
+                    Some(Ordering::Less)
+                }
+            }
+            Special::NegInfinity => {
+                if self.is_sign_negative() && self.is_infinite() {
+                    Some(Ordering::Equal)
+                } else {
+                    Some(Ordering::Greater)
+                }
+            }
+            Special::Nan => None,
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
