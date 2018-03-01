@@ -81,8 +81,8 @@ impl Clone for SmallComplex {
         SmallComplex {
             re: self.re.clone(),
             im: self.im.clone(),
-            first_limbs: first_limbs.clone(),
-            last_limbs: last_limbs.clone(),
+            first_limbs: *first_limbs,
+            last_limbs: *last_limbs,
         }
     }
 }

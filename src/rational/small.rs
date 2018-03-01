@@ -72,8 +72,8 @@ impl Clone for SmallRational {
         SmallRational {
             num: self.num.clone(),
             den: self.den.clone(),
-            first_limbs: first_limbs.clone(),
-            last_limbs: last_limbs.clone(),
+            first_limbs: *first_limbs,
+            last_limbs: *last_limbs,
         }
     }
 }
