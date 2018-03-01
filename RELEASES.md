@@ -3,6 +3,8 @@ Version 1.0.0 (2018-??-??)
 
 * `Integer::invert_mut` and `Integer::pow_mod_mut` now return
   `Result<(), ()>` instead of `bool`.
+* `float::Round`, `float::Constant` and `float::Special` enums are now
+  marked as non-exhaustive.
 * Remove all deprecated items.
 * Remove unsound blanket implementations constrained on
   `T where SmallInteger: Assign<T>` inside `SmallRational` and on

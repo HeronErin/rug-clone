@@ -196,6 +196,8 @@ pub enum Constant {
     Euler,
     /// Catalan’s constant, 0.915...
     Catalan,
+    #[doc(hidden)]
+    __NotExhaustive,
 }
 
 /// Special floating-point values.
@@ -234,6 +236,8 @@ pub enum Special {
     NegInfinity,
     /// Not a number.
     Nan,
+    #[doc(hidden)]
+    __NotExhaustive,
 }
 
 #[cfg(test)]
