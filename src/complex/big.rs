@@ -3354,7 +3354,7 @@ pub(crate) fn append_to_string(
     s.push(')');
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum ParseIncomplete {
     Real(FloatParseIncomplete),
     Complex(FloatParseIncomplete, FloatParseIncomplete),
@@ -3450,7 +3450,7 @@ fn parse(
     Ok(ParseIncomplete::Complex(re, im))
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug)]
 /// An error which can be returned when parsing a
 /// [`Complex`](struct.Complex.html) number.
 ///
@@ -3471,7 +3471,7 @@ pub struct ParseComplexError {
     kind: ParseErrorKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug)]
 enum ParseErrorKind {
     NoDigits,
     NoRealDigits,

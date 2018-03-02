@@ -2137,7 +2137,7 @@ pub(crate) fn append_to_string(
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct ParseIncomplete {
     c_string: CString,
     radix: i32,
@@ -2252,7 +2252,7 @@ fn parse(
     })
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug)]
 /// An error which can be returned when parsing a
 /// [`Rational`](struct.Rational.html) number.
 ///
@@ -2273,7 +2273,7 @@ pub struct ParseRationalError {
     kind: ParseErrorKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,

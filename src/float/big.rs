@@ -7567,7 +7567,7 @@ pub(crate) fn append_to_string(
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub enum ParseIncomplete {
     CString {
         c_string: CString,
@@ -7803,7 +7803,7 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
     None
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug)]
 /// An error which can be returned when parsing a
 /// [`Float`](struct.Float.html).
 ///
@@ -7824,7 +7824,7 @@ pub struct ParseFloatError {
     kind: ParseErrorKind,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Debug)]
 enum ParseErrorKind {
     InvalidDigit,
     NoDigits,
