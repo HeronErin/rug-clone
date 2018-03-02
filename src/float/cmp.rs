@@ -183,6 +183,7 @@ impl PartialOrd<Special> for Float {
                 }
             }
             Special::Nan => None,
+            _ => unreachable!(),
         }
     }
 }

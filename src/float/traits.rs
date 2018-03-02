@@ -214,6 +214,7 @@ impl AssignRound<Constant> for Float {
                 Constant::Catalan => {
                     mpfr::const_catalan(self.inner_mut(), raw_round(round))
                 }
+                _ => unreachable!(),
             }
         };
         ordering1(ret)
@@ -254,7 +255,8 @@ impl AssignRound<Special> for Float {
                     (*ptr).sign = 1;
                     (*ptr).exp = EXP_NAN;
                 }
-            };
+                _ => unreachable!(),
+            }
         }
         Ordering::Equal
     }
