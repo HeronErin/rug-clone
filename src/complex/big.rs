@@ -63,7 +63,7 @@ pub type Ordering2 = (Ordering, Ordering);
 ///
 /// Operations on two borrowed `Complex` numbers result in an
 /// [incomplete computation value][incomplete] that has to be assigned
-/// to a new `Complex` value.
+/// to a new `Complex` number.
 ///
 /// ```rust
 /// use rug::Complex;
@@ -76,10 +76,10 @@ pub type Ordering2 = (Ordering, Ordering);
 ///
 /// As a special case, when an
 /// [incomplete computation value][incomplete] is obtained from
-/// multiplying two `Complex` references, it can be added to or
-/// subtracted from another `Complex` (or reference). This will result
-/// in a fused multiply-accumulate operation, with only one rounding
-/// operation taking place.
+/// multiplying two `Complex` number references, it can be added to or
+/// subtracted from another `Complex` number (or reference). This will
+/// result in a fused multiply-accumulate operation, with only one
+/// rounding operation taking place.
 ///
 /// ```rust
 /// use rug::Complex;
@@ -91,12 +91,13 @@ pub type Ordering2 = (Ordering, Ordering);
 /// assert_eq!(acc, (990, 1010));
 /// ```
 ///
-/// The `Complex` type supports various functions. Most methods have
-/// four versions:
+/// The `Complex` number type supports various functions. Most methods
+/// have four versions:
 ///
 /// 1. The first method consumes the operand and rounds the returned
-///    `Complex` to the [nearest](float/enum.Round.html#variant.Nearest)
-///    representable value.
+///    `Complex` number to the
+///    [nearest](float/enum.Round.html#variant.Nearest) representable
+///    value.
 /// 2. The second method has a `_mut` suffix, mutates the operand and
 ///    rounds it the nearest representable value.
 /// 3. The third method has a `_round` suffix, mutates the operand,
@@ -110,8 +111,8 @@ pub type Ordering2 = (Ordering, Ordering);
 ///    * `Ordering::Greater` if the stored part is greater than the
 ///      exact result.
 /// 4. The fourth method has a `_ref` suffix and borrows the operand.
-///    The returned item can be assigned to a `Complex`, and the
-///    rounding method is selected during the assignment.
+///    The returned item can be assigned to a `Complex` number, and
+///    the rounding method is selected during the assignment.
 ///
 /// ```rust
 /// use rug::Complex;
@@ -267,8 +268,9 @@ impl Complex {
         }
     }
 
-    /// Create a new complex number with the specified precisions for
-    /// the real and imaginary parts and with value 0.
+    /// Create a new [`Complex`](struct.Complex.html) number with the
+    /// specified precisions for the real and imaginary parts and with
+    /// value 0.
     ///
     /// # Examples
     ///
@@ -290,8 +292,9 @@ impl Complex {
         Self::with_val(prec, (Special::Zero, Special::Zero))
     }
 
-    /// Create a new complex number with the specified precision and
-    /// with the given value, rounding to the nearest.
+    /// Create a new [`Complex`](struct.Complex.html) number with the
+    /// specified precision and with the given value, rounding to the
+    /// nearest.
     ///
     /// # Examples
     ///
@@ -319,9 +322,9 @@ impl Complex {
         ret
     }
 
-    /// Create a new floating-point number with the specified
-    /// precision and with the given value, applying the specified
-    /// rounding method.
+    /// Create a new [`Complex`](struct.Complex.html) number with the
+    /// specified precision and with the given value, applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -594,8 +597,8 @@ impl Complex {
         s
     }
 
-    /// Creates a [`Complex`](struct.Complex.html) from an initialized
-    /// MPC complex number.
+    /// Creates a [`Complex`](struct.Complex.html) number from an
+    /// initialized MPC complex number.
     ///
     /// # Safety
     ///
@@ -630,7 +633,7 @@ impl Complex {
         Complex { inner: raw }
     }
 
-    /// Converts a [`Complex`](struct.Complex.html) into an MPC
+    /// Converts a [`Complex`](struct.Complex.html) number into an MPC
     /// complex number.
     ///
     /// The returned object should be freed to avoid memory leaks.
@@ -1103,7 +1106,7 @@ impl Complex {
     /// `a.mul_add_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
     /// in `a` using its precision rather than in another
-    /// [`Complex`](struct.Complex.html) like `ans`.
+    /// [`Complex`](struct.Complex.html) number like `ans`.
     ///
     /// # Examples
     ///
@@ -1213,7 +1216,7 @@ impl Complex {
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
     /// in `a` using its precision rather than in another
-    /// [`Complex`](struct.Complex.html) like `ans`.
+    /// [`Complex`](struct.Complex.html) number like `ans`.
     ///
     /// # Examples
     ///

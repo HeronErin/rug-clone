@@ -179,7 +179,8 @@ pub struct Integer {
 }
 
 impl Integer {
-    /// Constructs a new arbitrary-precision integer with value 0.
+    /// Constructs a new arbitrary-precision
+    /// [`Integer`](struct.Integer.html) with value 0.
     ///
     /// # Examples
     /// ```rust
@@ -196,8 +197,9 @@ impl Integer {
         }
     }
 
-    /// Constructs a new arbitrary-precision integer with at least the
-    /// specified capacity.
+    /// Constructs a new arbitrary-precision
+    /// [`Integer`](struct.Integer.html) with at least the specified
+    /// capacity.
     ///
     /// # Examples
     ///
@@ -4245,7 +4247,7 @@ fn parse(
 ///     Ok(_) => unreachable!(),
 ///     Err(error) => error,
 /// };
-/// println!("Parse error: {:?}", error);
+/// println!("Parse error: {}", error);
 /// ```
 pub struct ParseIntegerError {
     kind: ParseErrorKind,

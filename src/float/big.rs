@@ -408,7 +408,7 @@ macro_rules! ref_math_op2_float {
 }
 
 impl Float {
-    /// Create a new floating-point number with the specified
+    /// Create a new [`Float`](struct.Float.html) with the specified
     /// precision and with value 0.
     ///
     /// # Examples
@@ -428,7 +428,7 @@ impl Float {
         Self::with_val(prec, Special::Zero)
     }
 
-    /// Create a new floating-point number with the specified
+    /// Create a new [`Float`](struct.Float.html) with the specified
     /// precision and with the given value, rounding to the nearest.
     ///
     /// # Examples
@@ -453,7 +453,7 @@ impl Float {
         ret
     }
 
-    /// Create a new floating-point number with the specified
+    /// Create a new [`Float`](struct.Float.html) with the specified
     /// precision and with the given value, applying the specified
     /// rounding method.
     ///
@@ -674,7 +674,8 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// Converts to an integer, rounding to the nearest.
+    /// Converts to an [`Integer`](struct.Integer.html), rounding to
+    /// the nearest.
     ///
     /// # Examples
     ///
@@ -694,7 +695,8 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// Converts to an integer, applying the specified rounding method.
+    /// Converts to an [`Integer`](struct.Integer.html), applying the
+    /// specified rounding method.
     ///
     /// # Examples
     ///
@@ -1368,8 +1370,9 @@ impl Float {
         ret
     }
 
-    /// Borrows the [`Float`](struct.Float.html) as an ordered float
-    /// of type [`OrdFloat`](float/struct.OrdFloat.html).
+    /// Borrows the [`Float`](struct.Float.html) as an ordered
+    /// floating-point number of type
+    /// [`OrdFloat`](float/struct.OrdFloat.html).
     ///
     /// # Examples
     ///

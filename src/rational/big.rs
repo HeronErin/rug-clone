@@ -32,12 +32,12 @@ use std::ptr;
 
 /// An arbitrary-precision rational number.
 ///
-/// A rational number is made up of a numerator
+/// A `Rational` number is made up of a numerator
 /// [`Integer`](struct.Integer.html) and denominator
-/// [`Integer`](struct.Integer.html). After rational number functions,
-/// the number is always in canonical form, that is, the denominator
-/// is always greater than zero, and there are no common factors. Zero
-/// is stored as 0/1.
+/// [`Integer`](struct.Integer.html). After `Rational` number
+/// functions, the number is always in canonical form, that is the
+/// denominator is always greater than zero, and there are no common
+/// factors. Zero is stored as 0/1.
 ///
 /// # Examples
 ///
@@ -53,9 +53,9 @@ use std::ptr;
 /// assert_eq!(den, 5);
 /// ```
 ///
-/// The `Rational` type supports various functions. Most methods have
-/// three versions: one that consumes the operand, one that mutates
-/// the operand, and one that borrows the operand.
+/// The `Rational` number type supports various functions. Most
+/// methods have three versions: one that consumes the operand, one
+/// that mutates the operand, and one that borrows the operand.
 ///
 /// ```rust
 /// use rug::Rational;
@@ -237,8 +237,8 @@ macro_rules! ref_rat_op_rat_int {
 }
 
 impl Rational {
-    /// Constructs a new arbitrary-precision rational number with
-    /// value 0.
+    /// Constructs a new arbitrary-precision
+    /// [`Rational`](struct.Rational.html) number with value 0.
     ///
     /// # Examples
     /// ```rust
@@ -255,8 +255,8 @@ impl Rational {
         }
     }
 
-    /// Creates a [`Rational`](struct.Rational.html) from an `f32` if
-    /// it is finite, losing no precision.
+    /// Creates a [`Rational`](struct.Rational.html) number from an
+    /// `f32` if it is finite, losing no precision.
     ///
     /// # Examples
     ///
@@ -273,8 +273,8 @@ impl Rational {
         Rational::from_f64(val.into())
     }
 
-    /// Creates a [`Rational`](struct.Rational.html) from an `f64` if
-    /// it is finite, losing no precision.
+    /// Creates a [`Rational`](struct.Rational.html) number from an
+    /// `f64` if it is finite, losing no precision.
     ///
     /// # Examples
     ///
@@ -535,16 +535,15 @@ impl Rational {
         }
     }
 
-    /// Creates a new [`Rational`](struct.Rational.html) from a
+    /// Creates a new [`Rational`](struct.Rational.html) number from a
     /// numerator and denominator without canonicalizing aftwerwards.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// rational number. The caller must ensure that the numerator and
-    /// denominator are in canonical form, as the rest of the library
-    /// assumes that [`Rational`](struct.Rational.html) structures
-    /// keep their numerators and denominators in canonical form.
+    /// [`Rational`](struct.Rational.html) number. The caller must
+    /// ensure that the numerator and denominator are in canonical
+    /// form, as the rest of the library assumes that they are.
     ///
     /// # Examples
     ///
@@ -574,11 +573,10 @@ impl Rational {
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// rational number after the assignment. The caller must ensure
-    /// that the numerator and denominator are in canonical form, as
-    /// the rest of the library assumes that
-    /// [`Rational`](struct.Rational.html) structures keep their
-    /// numerators and denominators in canonical form.
+    /// [`Rational`](struct.Rational.html) number after the
+    /// assignment. The caller must ensure that the numerator and
+    /// denominator are in canonical form, as the rest of the library
+    /// assumes that they are.
     ///
     /// # Examples
     ///
@@ -601,7 +599,7 @@ impl Rational {
         dst_den.assign(den);
     }
 
-    /// Creates a [`Rational`](struct.Rational.html) from an
+    /// Creates a [`Rational`](struct.Rational.html) number from an
     /// initialized GMP rational number.
     ///
     /// # Safety
@@ -611,6 +609,11 @@ impl Rational {
     ///   kind of pointer, so there can be multiple copies of it.
     ///   Since this function takes over ownership, no other copies of
     ///   the passed value should exist.
+    /// * The numerator and denominator must be in canonical form, as
+    ///   the rest of the library assumes that they are. Most GMP
+    ///   functions leave the rational number in canonical form, but
+    ///   assignment functions do not. Check the
+    ///   [GMP documentation][gmp mpq] for details.
     ///
     /// # Examples
     ///
@@ -633,13 +636,15 @@ impl Rational {
     ///     // since r is a Rational now, deallocation is automatic
     /// }
     /// ```
+    ///
+    /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
     #[inline]
     pub unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
     }
 
-    /// Converts a [`Rational`](struct.Rational.html) into a GMP
-    /// rational number.
+    /// Converts a [`Rational`](struct.Rational.html) number into a
+    /// GMP rational number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -799,11 +804,10 @@ impl Rational {
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// rational number when the borrow ends. The caller must ensure
-    /// that the rational number is left in canonical form, as the
-    /// rest of the library assumes that
-    /// [`Rational`](struct.Rational.html) structures keep their
-    /// numerators and denominators in canonical form.
+    /// [`Rational`](struct.Rational.html) number when the borrow
+    /// ends. The caller must ensure that the numerator and
+    /// denominator are left in canonical form, as the rest of the
+    /// library assumes that they are.
     ///
     /// # Examples
     ///

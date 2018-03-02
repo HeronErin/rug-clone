@@ -18,7 +18,7 @@ use Complex;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 
-/// A complex number that supports ordering and hashing.
+/// A complex number that supports total ordering and hashing.
 ///
 /// For ordering, the real part has precedence over the imaginary
 /// part. Negative zero is ordered as less than positive zero.

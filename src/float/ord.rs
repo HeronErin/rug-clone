@@ -23,7 +23,7 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::slice;
 
-/// A float that supports ordering and hashing.
+/// A float that supports total ordering and hashing.
 ///
 /// Negative zero is ordered as less than positive zero. Negative NaN
 /// is ordered as less than negative infinity, while positive NaN is
