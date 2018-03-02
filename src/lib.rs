@@ -59,8 +59,9 @@
 //! * To assign values to Rug types, we use the [`Assign`][rug assign]
 //!   trait and its method [`assign`][rug assign assign]. We do not
 //!   use the [assignment operator `=`][rust assignment] as that would
-//!   drop the left-hand-side operand and replace it with the
-//!   right-hand-side operand, which is not what we want here.
+//!   drop the left-hand-side operand and replace it with a
+//!   right-hand-side operand of the same type, which is not what we
+//!   want here.
 //! * Arbitrary precision numbers can hold numbers that are too large
 //!   to fit in a primitive type. To assign such a number to the large
 //!   types, we use strings rather than primitives; in the example
@@ -202,10 +203,10 @@
 //!    allocations might not affect performance noticeably for
 //!    computationally intensive functions, they can have a much more
 //!    significant effect on faster functions like addition.)
-//! 2. For the [`Float`][rug flo] type, we need to know the precision
-//!    when we create a value, and the operation itself does not
-//!    convey information about what precision is desired for the
-//!    result. The same holds for the [`Complex`][rug com] type.
+//! 2. For the [`Float`][rug flo] and [`Complex`][rug com] number
+//!    types, we need to know the precision when we create a value,
+//!    and the operation itself does not convey information about what
+//!    precision is desired for the result.
 //!
 //! There are two things that can be done with incomplete-computation
 //! values:
@@ -272,7 +273,7 @@
 //!   [`int1.gcd_ref(&int2)`][rug int gcdref];
 //! * string parsing, for example
 //!   [`Integer::parse("12")`][rug int parse];
-//! * and more…
+//! * and more.
 //!
 //! These operations return objects that can be stored in temporary
 //! variables like `incomplete` in the last few examples. However, the
