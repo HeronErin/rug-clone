@@ -223,15 +223,15 @@ one_limb! { u64 }
 impl CopyToSmall for u64 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
-        if val == 0 {
+        if self == 0 {
             *size = 0;
-        } else if val <= 0xffff_ffff {
+        } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = val as u32;
+            limbs[0] = self as u32;
         } else {
             *size = 2;
-            limbs[0] = val as u32;
-            limbs[1] = (val >> 32) as u32;
+            limbs[0] = self as u32;
+            limbs[1] = (self >> 32) as u32;
         }
     }
 }
