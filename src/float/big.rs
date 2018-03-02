@@ -3972,7 +3972,7 @@ impl Float {
         /// assert_eq!(cos_4, 0.3125);
         /// assert_eq!(dir_cos, Ordering::Less);
         /// ```
-        /// 
+        ///
         /// [ar]: ops/trait.AssignRound.html
         fn sin_cos_ref -> SinCosIncomplete;
     }
@@ -4690,7 +4690,7 @@ impl Float {
         /// assert_eq!(cosh_4, 1.875);
         /// assert_eq!(dir_cosh, Ordering::Less);
         /// ```
-        /// 
+        ///
         /// [ar]: ops/trait.AssignRound.html
         fn sinh_cosh_ref -> SinhCoshIncomplete;
     }
@@ -5679,7 +5679,7 @@ impl Float {
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
-    /// 
+    ///
     /// [ar]: ops/trait.AssignRound.html
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete {

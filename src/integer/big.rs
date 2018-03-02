@@ -1903,7 +1903,7 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn div_rem_ref -> DivRemIncomplete;
     }
@@ -1976,7 +1976,7 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn div_rem_ceil_ref -> DivRemCeilIncomplete;
     }
@@ -2046,7 +2046,7 @@ impl Integer {
         /// assert_eq!(quotient, 2);
         /// assert_eq!(rem, -3);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
@@ -2110,7 +2110,7 @@ impl Integer {
         /// assert_eq!(quotient, 3);
         /// assert_eq!(rem, 7);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn div_rem_euc_ref -> DivRemEucIncomplete;
     }
@@ -2688,7 +2688,7 @@ impl Integer {
         /// assert_eq!(other_root, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn root_rem_ref -> RootRemIncomplete;
     }
@@ -2849,7 +2849,7 @@ impl Integer {
         /// assert_eq!(other_sqrt, 10);
         /// assert_eq!(other_rem, 4);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn sqrt_rem_ref -> SqrtRemIncomplete;
     }
@@ -3136,7 +3136,7 @@ impl Integer {
         /// assert_eq!(g2, 2);
         /// assert_eq!(t2, 1);
         /// ```
-        /// 
+        ///
         /// [a]: trait.Assign.html
         fn gcd_cofactors_ref -> GcdIncomplete;
     }
@@ -3517,7 +3517,7 @@ impl Integer {
         /// assert_eq!(pair.0, 0);
         /// assert_eq!(pair.1, 1);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn fibonacci_2(n: u32) -> Fibonacci2Incomplete;
     }
@@ -3571,7 +3571,7 @@ impl Integer {
         /// assert_eq!(pair.0, 2);
         /// assert_eq!(pair.1, -1);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn lucas_2(n: u32) -> Lucas2Incomplete;
     }

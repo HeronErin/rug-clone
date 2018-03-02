@@ -1443,7 +1443,7 @@ impl Rational {
         /// assert_eq!(fract, (-15, 17));
         /// assert_eq!(trunc, -5);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn fract_trunc_ref -> FractTruncIncomplete;
     }
@@ -1604,7 +1604,7 @@ impl Rational {
         /// assert_eq!(fract, (-2, 17));
         /// assert_eq!(ceil, 6);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn fract_ceil_ref -> FractCeilIncomplete;
     }
@@ -1763,7 +1763,7 @@ impl Rational {
         /// assert_eq!(fract, (2, 17));
         /// assert_eq!(floor, -6);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn fract_floor_ref -> FractFloorIncomplete;
     }
@@ -1974,7 +1974,7 @@ impl Rational {
         /// assert_eq!(fract2, (-3, 10));
         /// assert_eq!(round2, 4);
         /// ```
-        /// 
+        ///
         /// [assign]: trait.Assign.html
         fn fract_round_ref -> FractRoundIncomplete;
     }
