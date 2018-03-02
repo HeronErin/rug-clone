@@ -16,7 +16,15 @@
 # License and a copy of the GNU General Public License along with this
 # program. If not, see <http://www.gnu.org/licenses/>.
 
-printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$PWD"
+if [[ $(uname) == MINGW* ]]; then
+    work_dir="$(cmd /c cd)"
+    cache_dir="$work_dir\\cache"
+else
+    work_dir="$PWD"
+    cache_dir="$work_dir/cache"
+fi
+
+printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$work_dir"
 printf 'Compilation started at %s\n\n' "$(date)"
 
 function check_error {
@@ -39,11 +47,7 @@ for word in "$@"; do
     fi
 done
 
-if [[ $(uname) == MINGW* ]]; then
-    export GMP_MPFR_SYS_CACHE="$(cmd /c cd)\\cache"
-else
-    export GMP_MPFR_SYS_CACHE="$(pwd)/cache"
-fi
+export GMP_MPFR_SYS_CACHE="$cache_dir"
 
 if [ -e cache ]; then
     rm -r cache
