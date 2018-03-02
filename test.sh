@@ -16,14 +16,26 @@
 # License and a copy of the GNU General Public License along with this
 # program. If not, see <http://www.gnu.org/licenses/>.
 
-set -e
+printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$PWD"
+printf 'Compilation started at %s\n\n' "$(date)"
+
+function check_error {
+    code="$?"
+    if [ "$code" == "0" ]; then
+        return
+    fi
+    printf '\nCompilation exited abnormally with code %s at %s\n' \
+        "$code" "$(date)"
+    exit "$code"
+}
 
 for word in "$@"; do
     arr=(X${word}X)
     count=${#arr[*]}
     if [ $count != 1 ]; then
         printf 'Expected single parameter, got "%s"\n' "$word"
-        exit 1
+        (exit 2)
+        check_error
     fi
 done
 
@@ -52,11 +64,12 @@ else
     toolchains=("$@")
 fi
 
-function print_eval {
+function print_eval_check {
     printf '$'
     printf ' %q' "$@"
     printf '\n'
-    eval $(printf '%q ' "$@")
+    eval $(printf '%q ' "$@") 2>&1
+    check_error
 }
 
 function tc {
@@ -66,7 +79,7 @@ function tc {
 }
 
 # Cache all C libraries.
-print_eval \
+print_eval_check \
     cargo $(tc "${toolchains[0]}") \
     check \
     --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
@@ -89,7 +102,7 @@ do
     else
         gmp="-p gmp-mpfr-sys"
     fi
-    print_eval \
+    print_eval_check \
         cargo $(tc "${toolchains[0]}") \
         check --all-targets \
         --no-default-features --features "$features" \
@@ -101,7 +114,7 @@ rm -r target
 # For all toolchains (including first), test with default features and serde
 for toolchain in "${toolchains[@]}"; do
     for build in "" --release; do
-        print_eval \
+        print_eval_check \
             cargo $(tc "$toolchain") \
             test $build \
             --features serde \
@@ -112,10 +125,12 @@ done
 
 # copy C libraries to targets before clearing cache
 for toolchain in "${toolchains[@]}"; do
-    print_eval cargo $(tc "$toolchain") check -p gmp-mpfr-sys
-    print_eval cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
+    print_eval_check cargo $(tc "$toolchain") check -p gmp-mpfr-sys
+    print_eval_check cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
 done
 
 if [ -e cache ]; then
     rm -r cache
 fi
+
+printf '\nCompilation finished at %s\n' "$(date)"
