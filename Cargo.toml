@@ -16,7 +16,7 @@
 
 [package]
 name = "rug"
-version = "0.10.0"
+version = "1.0.0"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision integers, rational, floating-point and complex numbers based on GMP, MPFR and MPC"
 documentation = "https://docs.rs/rug"
@@ -26,16 +26,13 @@ keywords = ["gmp", "bignum", "mathematics", "numerics"]
 categories = ["api-bindings", "science"]
 license = "LGPL-3.0+"
 
-[badges]
-maintenance = { status = "actively-developed" }
-
 [features]
 default = ["integer", "rational", "float", "complex", "rand"]
 integer = ["gmp-mpfr-sys"]
-rational = ["integer", "gmp-mpfr-sys"]
+rational = ["integer"]
 float = ["gmp-mpfr-sys/mpfr"]
-complex = ["float", "gmp-mpfr-sys/mpfr", "gmp-mpfr-sys/mpc"]
-rand = ["integer", "gmp-mpfr-sys"]
+complex = ["float", "gmp-mpfr-sys/mpc"]
+rand = ["integer"]
 
 [dependencies.gmp-mpfr-sys]
 version = "1.1.1"
@@ -49,7 +46,8 @@ optional = true
 [dev-dependencies]
 serde_test = "1"
 serde_json = "1"
-bincode = "=1.0.0" # exact version because we use unstable API (SliceReader)
+# exact version for bincode because we use unstable API (SliceReader)
+bincode = "=1.0.0"
 byteorder = "1"
 
 [package.metadata.docs.rs]

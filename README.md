@@ -251,7 +251,7 @@ add it as a dependency inside [*Cargo.toml*][cargo deps]:
 
 ```toml
 [dependencies]
-rug = "0.10.0"
+rug = "1.0"
 ```
 
 You also need to declare it by adding this to your crate root (usually
@@ -297,7 +297,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "0.10.0"
+version = "1.0"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -317,25 +317,25 @@ provided by the crate.
 [mpc]: http://www.multiprecision.org/
 [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
 [mpfr]: http://www.mpfr.org/
-[rug assign assign]: https://docs.rs/rug/0.10.0/rug/trait.Assign.html#tymethod.assign
-[rug assign]: https://docs.rs/rug/0.10.0/rug/trait.Assign.html
-[rug assr assr]: https://docs.rs/rug/0.10.0/rug/ops/trait.AssignRound.html#tymethod.assign_round
-[rug assr]: https://docs.rs/rug/0.10.0/rug/ops/trait.AssignRound.html
-[rug com]: https://docs.rs/rug/0.10.0/rug/struct.Complex.html
+[rug assign assign]: https://docs.rs/rug/~1.0/rug/trait.Assign.html#tymethod.assign
+[rug assign]: https://docs.rs/rug/~1.0/rug/trait.Assign.html
+[rug assr assr]: https://docs.rs/rug/~1.0/rug/ops/trait.AssignRound.html#tymethod.assign_round
+[rug assr]: https://docs.rs/rug/~1.0/rug/ops/trait.AssignRound.html
+[rug com]: https://docs.rs/rug/~1.0/rug/struct.Complex.html
 [rug crate]: https://crates.io/crates/rug
-[rug flo withval]: https://docs.rs/rug/0.10.0/rug/struct.Float.html#method.with_val
-[rug flo]: https://docs.rs/rug/0.10.0/rug/struct.Float.html
-[rug int absref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.abs_ref
-[rug int gcdref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.gcd_ref
-[rug int negref]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#impl-Neg-1
-[rug int new]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.new
-[rug int parse]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.parse
-[rug int parseradix]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html#method.parse_radix
-[rug int]: https://docs.rs/rug/0.10.0/rug/struct.Integer.html
-[rug ops]: https://docs.rs/rug/0.10.0/rug/ops/index.html
-[rug pow]: https://docs.rs/rug/0.10.0/rug/ops/trait.Pow.html
-[rug rand]: https://docs.rs/rug/0.10.0/rug/rand/struct.RandState.html
-[rug rat]: https://docs.rs/rug/0.10.0/rug/struct.Rational.html
+[rug flo withval]: https://docs.rs/rug/~1.0/rug/struct.Float.html#method.with_val
+[rug flo]: https://docs.rs/rug/~1.0/rug/struct.Float.html
+[rug int absref]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.abs_ref
+[rug int gcdref]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.gcd_ref
+[rug int negref]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#impl-Neg-1
+[rug int new]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.new
+[rug int parse]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.parse
+[rug int parseradix]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.parse_radix
+[rug int]: https://docs.rs/rug/~1.0/rug/struct.Integer.html
+[rug ops]: https://docs.rs/rug/~1.0/rug/ops/index.html
+[rug pow]: https://docs.rs/rug/~1.0/rug/ops/trait.Pow.html
+[rug rand]: https://docs.rs/rug/~1.0/rug/rand/struct.RandState.html
+[rug rat]: https://docs.rs/rug/~1.0/rug/struct.Rational.html
 [rug subfrom]: ops/trait.SubFrom.html
 [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
@@ -356,7 +356,7 @@ provided by the crate.
 [rust usize]: https://doc.rust-lang.org/std/primitive.usize.html
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
+[sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-gnulinux
+[sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-macos
+[sys win]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-windows
+[sys]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html

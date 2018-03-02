@@ -158,7 +158,7 @@ pub enum Round {
     /// Round towards minus infinity.
     Down,
     #[doc(hidden)]
-    __NotExhaustive,
+    __Nonexhaustive,
 }
 
 impl Default for Round {
@@ -197,7 +197,7 @@ pub enum Constant {
     /// Catalan’s constant, 0.915...
     Catalan,
     #[doc(hidden)]
-    __NotExhaustive,
+    __Nonexhaustive,
 }
 
 /// Special floating-point values.
@@ -237,7 +237,7 @@ pub enum Special {
     /// Not a number.
     Nan,
     #[doc(hidden)]
-    __NotExhaustive,
+    __Nonexhaustive,
 }
 
 #[cfg(test)]

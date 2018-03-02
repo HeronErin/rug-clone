@@ -289,7 +289,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! rug = "0.10.0"
+//! rug = "1.0"
 //! ```
 //!
 //! You also need to declare it by adding this to your crate root
@@ -337,7 +337,7 @@
 //!
 //! ```toml
 //! [dependencies.rug]
-//! version = "0.10.0"
+//! version = "1.0"
 //! default-features = false
 //! features = ["integer", "float", "rand"]
 //! ```
@@ -396,12 +396,12 @@
 //! [rust usize]: https://doc.rust-lang.org/std/primitive.usize.html
 //! [serde crate]: https://crates.io/crates/serde
 //! [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-//! [sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-gnulinux
-//! [sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-macos
-//! [sys win]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html#building-on-windows
-//! [sys]: https://docs.rs/gmp-mpfr-sys/^1.1.0/gmp_mpfr_sys/index.html
+//! [sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-gnulinux
+//! [sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-macos
+//! [sys win]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-windows
+//! [sys]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/0.10.0")]
+#![doc(html_root_url = "https://docs.rs/rug/~1.0")]
 #![doc(test(attr(deny(warnings))))]
 
 #[cfg(any(feature = "integer", feature = "float"))]

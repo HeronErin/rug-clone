@@ -1,4 +1,4 @@
-Version 1.0.0 (2018-??-??)
+Version 1.0.0 (2018-03-03)
 ==========================
 
 * `Integer::invert_mut` and `Integer::pow_mod_mut` now return
