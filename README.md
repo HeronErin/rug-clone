@@ -336,7 +336,7 @@ provided by the crate.
 [rug pow]: https://docs.rs/rug/~1.0/rug/ops/trait.Pow.html
 [rug rand]: https://docs.rs/rug/~1.0/rug/rand/struct.RandState.html
 [rug rat]: https://docs.rs/rug/~1.0/rug/struct.Rational.html
-[rug subfrom]: ops/trait.SubFrom.html
+[rug subfrom]: https://docs.rs/rug/~1.0/rug/ops/trait.SubFrom.html
 [rust assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rust f32]: https://doc.rust-lang.org/std/primitive.f32.html
 [rust f64]: https://doc.rust-lang.org/std/primitive.f64.html
