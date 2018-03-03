@@ -26,8 +26,15 @@
 //! * multi-precision [complex numbers][rug com] with correct
 //!   rounding.
 //!
-//! This crate is free software: you can redistribute it and/or modify
-//! it under the terms of the GNU Lesser General Public License as
+//! Rug is a high-level interface to the following libraries:
+//!
+//! * the [GNU Multiple Precision Arithmetic Library (GMP)][gmp] for
+//!   integers and rational numbers,
+//! * the [GNU MPFR Library][mpfr] for floating-point numbers, and
+//! * [GNU MPC][mpc], for complex numbers.
+//!
+//! Rug is free software: you can redistribute it and/or modify it
+//! under the terms of the GNU Lesser General Public License as
 //! published by the Free Software Foundation, either version 3 of the
 //! License, or (at your option) any later version. See the full text
 //! of the [GNU LGPL][lgpl] and [GNU GPL][gpl] for details.
@@ -304,7 +311,7 @@
 //! Rug requires rustc version 1.18.0 or later.
 //!
 //! Rug also depends on the [GMP][gmp], [MPFR][mpfr] and [MPC][mpc]
-//! libraries through the low-level bindings in the
+//! libraries through the low-level FFI bindings in the
 //! [gmp-mpfr-sys crate][sys crate], which needs some setup to build;
 //! the [gmp-mpfr-sys documentation][sys] has some details on usage
 //! under [GNU/Linux][sys gnu], [macOS][sys mac] and
