@@ -62,7 +62,7 @@ pub type Ordering2 = (Ordering, Ordering);
 /// ```
 ///
 /// Operations on two borrowed `Complex` numbers result in an
-/// [incomplete computation value][incomplete] that has to be assigned
+/// [incomplete-computation value][incomplete] that has to be assigned
 /// to a new `Complex` number.
 ///
 /// ```rust
@@ -75,7 +75,7 @@ pub type Ordering2 = (Ordering, Ordering);
 /// ```
 ///
 /// As a special case, when an
-/// [incomplete computation value][incomplete] is obtained from
+/// [incomplete-computation value][incomplete] is obtained from
 /// multiplying two `Complex` number references, it can be added to or
 /// subtracted from another `Complex` number (or reference). This will
 /// result in a fused multiply-accumulate operation, with only one
@@ -111,8 +111,10 @@ pub type Ordering2 = (Ordering, Ordering);
 ///    * `Ordering::Greater` if the stored part is greater than the
 ///      exact result.
 /// 4. The fourth method has a `_ref` suffix and borrows the operand.
-///    The returned item can be assigned to a `Complex` number, and
-///    the rounding method is selected during the assignment.
+///    The returned item is an
+///    [incomplete-computation value][incomplete] that can be assigned
+///    to a `Complex` number; the rounding method is selected during
+///    the assignment.
 ///
 /// ```rust
 /// use rug::Complex;
@@ -1560,8 +1562,9 @@ impl Complex {
 
     /// Computes the absolute value.
     ///
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
-    /// is implemented with the returned object as `Src`.
+    /// [`AssignRound<Src> for Float`](trait.AssignRound.html) and
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html) are
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1656,8 +1659,9 @@ impl Complex {
 
     /// Computes the argument.
     ///
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
-    /// is implemented with the returned object as `Src`.
+    /// [`AssignRound<Src> for Float`](trait.AssignRound.html) and
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html) are
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -1877,8 +1881,9 @@ impl Complex {
 
     /// Computes the norm, that is the square of the absolute value.
     ///
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
-    /// is implemented with the returned object as `Src`.
+    /// [`AssignRound<Src> for Float`](trait.AssignRound.html) and
+    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html) are
+    /// implemented with the returned object as `Src`.
     ///
     /// # Examples
     ///
@@ -2995,13 +3000,14 @@ impl Complex {
     /// let c = Complex::with_val(2, Complex::random_cont(&mut rand));
     /// let (re, im) = c.into_real_imag();
     /// // The significand is either 0b10 or 0b11
-    /// //           10           11
-    /// assert!(re == 1.0 || re == 0.75 ||
-    ///         re == 0.5 || re == 0.375 ||
-    ///         re == 0.25 || re <= 0.1875);
-    /// assert!(im == 1.0 || im == 0.75 ||
-    ///         im == 0.5 || im == 0.375 ||
-    ///         im == 0.25 || im <= 0.1875);
+    /// assert!(
+    ///     re == 1.0 || re == 0.75 || re == 0.5 || re == 0.375
+    ///         || re == 0.25 || re <= 0.1875
+    /// );
+    /// assert!(
+    ///     im == 1.0 || im == 0.75 || im == 0.5 || im == 0.375
+    ///         || im == 0.25 || im <= 0.1875
+    /// );
     /// ```
     #[inline]
     pub fn random_cont<'a, 'b: 'a>(

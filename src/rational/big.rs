@@ -54,8 +54,14 @@ use std::ptr;
 /// ```
 ///
 /// The `Rational` number type supports various functions. Most
-/// methods have three versions: one that consumes the operand, one
-/// that mutates the operand, and one that borrows the operand.
+/// methods have three versions:
+///
+/// 1. The first method consumes the operand.
+/// 2. The second method has a `_mut` suffix and mutates the operand.
+/// 3. The third method has a `_ref` suffix and borrows the operand.
+///    The returned item is an
+///    [incomplete-computation value][incomplete] that can be assigned
+///    to a `Rational` number.
 ///
 /// ```rust
 /// use rug::Rational;
@@ -78,6 +84,8 @@ use std::ptr;
 /// // c was not consumed
 /// assert_eq!(c, (-19, 2));
 /// ```
+///
+/// [incomplete]: index.html#incomplete-computation-values
 pub struct Rational {
     inner: mpq_t,
 }
@@ -241,6 +249,7 @@ impl Rational {
     /// [`Rational`](struct.Rational.html) number with value 0.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Rational;
     /// let r = Rational::new();
@@ -778,6 +787,28 @@ impl Rational {
     /// assert_eq!(*r.denom(), 2);
     /// ```
     ///
+    /// This method does not check that the numerator and denominator
+    /// are in canonical form before calling `func`. This means that
+    /// this method can be used to canonicalize the number after some
+    /// unsafe methods that do not leave the number in cononical form.
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    /// let mut r = Rational::from((3, 5));
+    /// unsafe {
+    ///     // leave r in non-canonical form
+    ///     *r.as_mut_numer_denom_no_canonicalization().0 += 1;
+    ///     *r.as_mut_numer_denom_no_canonicalization().1 -= 13;
+    /// }
+    /// // At this point, r is still not canonical: 4 / -8
+    /// assert_eq!(*r.numer(), 4);
+    /// assert_eq!(*r.denom(), -8);
+    /// r.mutate_numer_denom(|_, _| {});
+    /// // Now r is in canonical form: -1 / 2
+    /// assert_eq!(*r.numer(), -1);
+    /// assert_eq!(*r.denom(), 2);
+    /// ```
+    ///
     /// # Panics
     ///
     /// Panics if the denominator is zero when the function returns.
@@ -1113,11 +1144,12 @@ impl Rational {
         /// * 1 if the value is positive
         /// * −1 if the value is negative
         ///
-        /// # Examples
+        /// [`Assign<Src> for Integer`](trait.Assign.html),
+        /// [`Assign<Src> for Rational`](trait.Assign.html),
+        /// `From<Src> for Integer` and `From<Src> for Rational` are
+        /// implemented with the returned object as `Src`.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// # Examples
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
@@ -1330,9 +1362,10 @@ impl Rational {
         fn trunc_mut;
         /// Rounds the number towards zero.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html),
+        /// [`Assign<Src> for Rational`](trait.Assign.html),
+        /// `From<Src> for Integer` and `From<Src> for Rational` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1488,9 +1521,10 @@ impl Rational {
         fn ceil_mut;
         /// Rounds the number upwards (towards plus infinity).
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html),
+        /// [`Assign<Src> for Rational`](trait.Assign.html),
+        /// `From<Src> for Integer` and `From<Src> for Rational` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1647,9 +1681,10 @@ impl Rational {
         fn floor_mut;
         /// Rounds the number downwards (towards minus infinity).
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html),
+        /// [`Assign<Src> for Rational`](trait.Assign.html),
+        /// `From<Src> for Integer` and `From<Src> for Rational` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///
@@ -1817,9 +1852,10 @@ impl Rational {
         /// When the number lies exactly between two integers, it is
         /// rounded away from zero.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`](trait.Assign.html),
+        /// [`Assign<Src> for Rational`](trait.Assign.html),
+        /// `From<Src> for Integer` and `From<Src> for Rational` are
+        /// implemented with the returned object as `Src`.
         ///
         /// # Examples
         ///

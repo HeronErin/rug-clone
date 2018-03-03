@@ -89,7 +89,8 @@ use std::slice;
 /// assert_eq!(i.count_ones(), Some(1000));
 ///
 /// let a = Integer::from(0xf00d);
-/// let all_ones_xor_a = Integer::from(-1) ^ &a;
+/// // -1 is all ones in two's complement
+/// let all_ones_xor_a = Integer::from(-1 ^ &a);
 /// // a is unchanged as we borrowed it
 /// let complement_a = !a;
 /// // now a has been moved, so this would cause an error:
@@ -114,7 +115,7 @@ use std::slice;
 /// ```
 ///
 /// Operations on two borrowed `Integer` values result in an
-/// [incomplete computation value][incomplete] that has to be assigned
+/// [incomplete-computation value][incomplete] that has to be assigned
 /// to a new `Integer` value.
 ///
 /// ```rust
@@ -127,7 +128,7 @@ use std::slice;
 /// ```
 ///
 /// As a special case, when an
-/// [incomplete computation value][incomplete] is obtained from
+/// [incomplete-computation value][incomplete] is obtained from
 /// multiplying two `Integer` references, it can be added to or
 /// subtracted from another `Integer` (or reference). This can be
 /// useful for multiply-accumulate operations.
@@ -148,8 +149,14 @@ use std::slice;
 /// ```
 ///
 /// The `Integer` type supports various functions. Most methods have
-/// three versions: one that consumes the operand, one that mutates
-/// the operand, and one that borrows the operand.
+/// three versions:
+///
+/// 1. The first method consumes the operand.
+/// 2. The second method has a `_mut` suffix and mutates the operand.
+/// 3. The third method has a `_ref` suffix and borrows the operand.
+///    The returned item is an
+///    [incomplete-computation value][incomplete] that can be assigned
+///    to an `Integer`.
 ///
 /// ```rust
 /// use rug::Integer;
@@ -183,6 +190,7 @@ impl Integer {
     /// [`Integer`](struct.Integer.html) with value 0.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let i = Integer::new();
@@ -433,6 +441,7 @@ impl Integer {
     /// Converts to an `i8` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(-100);
@@ -454,6 +463,7 @@ impl Integer {
     /// Converts to an `i16` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(-30_000);
@@ -475,6 +485,7 @@ impl Integer {
     /// Converts to an `i32` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(-50);
@@ -496,6 +507,7 @@ impl Integer {
     /// Converts to an `i64` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(-50);
@@ -517,6 +529,7 @@ impl Integer {
     /// Converts to an `isize` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(0x1000);
@@ -539,6 +552,7 @@ impl Integer {
     /// Converts to a `u8` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(200);
@@ -560,6 +574,7 @@ impl Integer {
     /// Converts to a `u16` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(60_000);
@@ -581,6 +596,7 @@ impl Integer {
     /// Converts to a `u32` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(1234567890);
@@ -602,6 +618,7 @@ impl Integer {
     /// Converts to a `u64` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(123456789012345_u64);
@@ -623,6 +640,7 @@ impl Integer {
     /// Converts to a `usize` if the value fits.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let fits = Integer::from(0x1000);
@@ -647,6 +665,7 @@ impl Integer {
     /// Converts to an `i8`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let large = Integer::from(0x1234);
@@ -660,6 +679,7 @@ impl Integer {
     /// Converts to an `i16`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let large = Integer::from(0x1234_5678);
@@ -673,6 +693,7 @@ impl Integer {
     /// Converts to an `i32`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let large = Integer::from(0x1234_5678_9abc_def0_u64);
@@ -686,6 +707,7 @@ impl Integer {
     /// Converts to an `i64`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
@@ -699,6 +721,7 @@ impl Integer {
     /// Converts to an `isize`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let large: Integer = (Integer::from(0x1000) << 128) | 0x1234;
@@ -712,6 +735,7 @@ impl Integer {
     /// Converts to a `u8`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let neg = Integer::from(-1);
@@ -732,6 +756,7 @@ impl Integer {
     /// Converts to a `u16`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let neg = Integer::from(-1);
@@ -752,6 +777,7 @@ impl Integer {
     /// Converts to a `u32`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let neg = Integer::from(-1);
@@ -772,6 +798,7 @@ impl Integer {
     /// Converts to a `u64`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let neg = Integer::from(-1);
@@ -792,6 +819,7 @@ impl Integer {
     /// Converts to a `usize`, wrapping if the value does not fit.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Integer;
     /// let large: Integer = (Integer::from(0x1000) << 128) | 0x1234;
@@ -2381,10 +2409,10 @@ impl Integer {
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
     ///
-    /// # Examples
-    ///
     /// When the exponent is positive and the modulo is not zero, an
     /// answer always exists.
+    ///
+    /// # Examples
     ///
     /// ```rust
     /// use rug::Integer;

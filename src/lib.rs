@@ -160,7 +160,8 @@
 //!
 //! Exponentiation (raising to a power) does not have a dedicated
 //! operator in Rust. In order to perform exponentiation of Rug types,
-//! the [`Pow`][rug pow] trait has to be brought in scope, for example
+//! the [`Pow`][rug pow] trait has to be brought into scope, for
+//! example
 //!
 //! ```rust
 //! # #[cfg(feature = "integer")] {

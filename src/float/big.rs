@@ -109,7 +109,7 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// ```
 ///
 /// Operations on two borrowed `Float` numbers result in an
-/// [incomplete computation value][incomplete] that has to be assigned
+/// [incomplete-computation value][incomplete] that has to be assigned
 /// to a new `Float` value.
 ///
 /// ```rust
@@ -122,7 +122,7 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// ```
 ///
 /// As a special case, when an
-/// [incomplete computation value][incomplete] is obtained from
+/// [incomplete-computation value][incomplete] is obtained from
 /// multiplying two `Float` references, it can be added to or
 /// subtracted from another `Float` (or reference). This will result
 /// in a fused multiply-accumulate operation, with only one rounding
@@ -152,9 +152,10 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// assert_eq!(separate_add, 4);
 /// ```
 ///
-/// The [incomplete computation value][incomplete] obtained from
+/// The [incomplete-computation value][incomplete] obtained from
 /// multiplying two `Float` references can also be added to or
-/// subtracted from another such incomplete value, so that two
+/// subtracted from another such
+/// [incomplete-computation value][incomplete], so that two
 /// muliplications and an addition are fused with only one rounding
 /// operation taking place.
 ///
@@ -190,8 +191,10 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 ///    * `Ordering::Greater` if the stored value is greater than the
 ///      exact result.
 /// 4. The fourth method has a `_ref` suffix and borrows the operand.
-///    The returned item can be assigned to a `Float`, and the
-///    rounding method is selected during the assignment.
+///    The returned item is an
+///    [incomplete-computation value][incomplete] that can be assigned
+///    to a `Float`; the rounding method is selected during the
+///    assignment.
 ///
 /// ```rust
 /// use rug::Float;
@@ -1511,6 +1514,7 @@ impl Float {
     /// [`Float`](struct.Float.html) cannot be subnormal.
     ///
     /// # Examples
+    ///
     /// ```rust
     /// use rug::Float;
     /// use rug::float::Special;
@@ -7011,8 +7015,8 @@ impl Float {
     /// let f = Float::with_val(2, Float::random_cont(&mut rand));
     /// // The significand is either 0b10 or 0b11
     /// assert!(
-    ///     f == 1.0 || f == 0.75 || f == 0.5 || f == 0.375 || f == 0.25
-    ///         || f <= 0.1875
+    ///     f == 1.0 || f == 0.75 || f == 0.5 || f == 0.375
+    ///         || f == 0.25 || f <= 0.1875
     /// );
     /// ```
     #[inline]
