@@ -43,7 +43,9 @@ impl Clone for Float {
 
     #[inline]
     fn clone_from(&mut self, source: &Float) {
-        self.set_prec(source.prec());
+        unsafe {
+            mpfr::set_prec(self.inner_mut(), cast(source.prec()));
+        }
         self.assign(source);
     }
 }
