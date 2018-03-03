@@ -303,8 +303,9 @@
 //!
 //! Rug requires rustc version 1.18.0 or later.
 //!
-//! Rug also depends on the low-level bindings in the
-//! [gmp-mpfr-sys crate][sys crate] which needs some setup to build;
+//! Rug also depends on the [GMP][gmp], [MPFR][mpfr] and [MPC][mpc]
+//! libraries through the low-level bindings in the
+//! [gmp-mpfr-sys crate][sys crate], which needs some setup to build;
 //! the [gmp-mpfr-sys documentation][sys] has some details on usage
 //! under [GNU/Linux][sys gnu], [macOS][sys mac] and
 //! [Windows][sys win].
@@ -354,9 +355,7 @@
 //! [gmp]: https://gmplib.org/
 //! [gpl]: https://www.gnu.org/licenses/gpl-3.0.html
 //! [lgpl]: https://www.gnu.org/licenses/lgpl-3.0.en.html
-//! [mpc doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpc/index.html
-//! [mpc]: http://www.multiprecision.org/
-//! [mpfr doc]: https://tspiteri.gitlab.io/gmp-mpfr-sys/mpfr/index.html
+//! [mpc]: http://www.multiprecision.org/mpc/
 //! [mpfr]: http://www.mpfr.org/
 //! [rug assign assign]: trait.Assign.html#tymethod.assign
 //! [rug assign]: trait.Assign.html
