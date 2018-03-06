@@ -309,6 +309,10 @@ pub(crate) mod tests {
         );
 
         let bad_strings = [
+            ("", 10),
+            ("-", 10),
+            ("+", 10),
+            (".", 10),
             ("inf", 11),
             ("@ nan @", 10),
             ("inf", 16),
@@ -325,6 +329,7 @@ pub(crate) mod tests {
             ("infinit", 10),
             ("1@1a", 16),
             ("9", 9),
+            ("nan(20) x", 10),
         ];
         for &(s, radix) in bad_strings.into_iter() {
             assert!(
@@ -341,7 +346,7 @@ pub(crate) mod tests {
             ("-.99e+2", 10, Cmp::F64(-99.0)),
             ("+99.e+0", 10, Cmp::F64(99.0)),
             ("-99@-1", 10, Cmp::F64(-9.9f64)),
-            ("-abc.DEF@3", 16, Cmp::F64(-0xabcdef as f64)),
+            ("-a_b__.C_d_E_@3", 16, Cmp::F64(-0xabcde as f64)),
             ("1e1023", 2, Cmp::F64(2.0f64.powi(1023))),
             (" NaN() ", 10, Cmp::Nan(false)),
             (" + NaN (20 Number_Is) ", 10, Cmp::Nan(false)),

@@ -999,11 +999,13 @@ impl Complex {
     /// ```rust
     /// use rug::Complex;
     /// use std::cmp::Ordering;
-    /// let a = Complex::with_val(53, (5, 0));
-    /// let b = Complex::with_val(53, (3, -4));
-    /// let c = Complex::with_val(53, (-4, -4));
-    /// assert_eq!(a.cmp_abs(&b), Some(Ordering::Equal));
-    /// assert_eq!(a.cmp_abs(&c), Some(Ordering::Less));
+    /// let five = Complex::with_val(53, (5, 0));
+    /// let five_rotated = Complex::with_val(53, (3, -4));
+    /// let greater_than_five = Complex::with_val(53, (-4, -4));
+    /// let has_nan = Complex::with_val(53, (5, 0.0/0.0));
+    /// assert_eq!(five.cmp_abs(&five_rotated), Some(Ordering::Equal));
+    /// assert_eq!(five.cmp_abs(&greater_than_five), Some(Ordering::Less));
+    /// assert_eq!(five.cmp_abs(&has_nan), None);
     /// ```
     #[inline]
     pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
@@ -1050,6 +1052,12 @@ impl Complex {
     /// let r2 = Complex::sum(values.iter());
     /// let sum2 = Complex::with_val(4, (1.0, -1.0)) + r2;
     /// assert_eq!(sum2, (1.5, -2.0));
+    ///
+    /// let r3 = Complex::sum(values.iter());
+    /// let mut sum3 = Complex::with_val(4, (16, 16));
+    /// sum3 += r3;
+    /// // (16.5, 15) rounded to (16, 15)
+    /// assert_eq!(sum3, (16, 15));
     /// ```
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>

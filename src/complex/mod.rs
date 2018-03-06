@@ -97,14 +97,18 @@ mod tests {
         assert_eq!(c, (0x33, 0));
 
         let bad_strings = [
+            ("", None),
+            ("(0 0) 0", None),
             ("(0 0 0)", None),
             ("(0) ", None),
             ("(, 0)", None),
+            ("(0 )", None),
             ("(0, )", None),
             ("(0,,0 )", None),
             (" ( 2)", None),
             ("+(1 1)", None),
             ("-(1. 1.)", None),
+            ("(f 1)", None),
             ("(1 1@1a)", Some(16)),
             ("(8 )", Some(9)),
         ];
@@ -131,7 +135,7 @@ mod tests {
             ),
             ("-9.9e1", 10, Cmp::F64(-99.0), Cmp::F64(0.0)),
             (
-                "( -@nan@( _ ) nan( 0 n ) )",
+                " ( -@nan@( _ ) nan( 0 n ) ) ",
                 10,
                 Cmp::Nan(true),
                 Cmp::Nan(false),

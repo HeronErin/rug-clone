@@ -77,3 +77,143 @@ eq_re! { Integer }
 eq_re! { Rational }
 eq_re! { Float }
 eq_re! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+
+#[cfg(test)]
+mod tests {
+    use {Assign, Complex, Float};
+    #[cfg(feature = "integer")]
+    use Integer;
+    #[cfg(feature = "rational")]
+    use Rational;
+    use float::Special;
+    #[cfg(feature = "integer")]
+    use std::str::FromStr;
+
+    fn check_eq_prim<T>(s: &[T], against: &[Complex])
+    where
+        Complex: Assign<T> + Assign<(T, T)> + PartialEq<T> + PartialEq<(T, T)>,
+        T: Copy + PartialEq<Complex>,
+        (T, T): Copy + PartialEq<Complex>,
+    {
+        for op in s {
+            let fop = Complex::with_val(100, *op);
+            for b in against {
+                assert_eq!(b.eq(op), <Complex as PartialEq>::eq(&b, &fop));
+                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
+                assert_eq!(b.eq(op), op.eq(&b));
+            }
+        }
+        for op in combinations(s) {
+            let fop = Complex::with_val(100, op);
+            for b in against {
+                assert_eq!(b.eq(&op), <Complex as PartialEq>::eq(&b, &fop));
+                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
+                assert_eq!(b.eq(&op), op.eq(&b));
+            }
+        }
+    }
+
+    fn check_eq_big<'a, T>(s: &'a [T], against: &[Complex])
+    where
+        Complex: for<'b> Assign<&'b T> + for<'b> Assign<&'b (T, T)>,
+        Complex: PartialEq<T> + PartialEq<(T, T)>,
+        T: Clone + PartialEq<Complex>,
+        (T, T): Clone + PartialEq<Complex>,
+    {
+        for op in s {
+            let fop = Complex::with_val(100, op);
+            for b in against {
+                assert_eq!(b.eq(op), <Complex as PartialEq>::eq(&b, &fop));
+                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
+                assert_eq!(b.eq(op), op.eq(&b));
+            }
+        }
+        for op in combinations(s) {
+            let fop = Complex::with_val(100, &op);
+            for b in against {
+                assert_eq!(b.eq(&op), <Complex as PartialEq>::eq(&b, &fop));
+                assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
+                assert_eq!(b.eq(&op), op.eq(&b));
+            }
+        }
+    }
+
+    fn combinations<T: Clone>(t: &[T]) -> Vec<(T, T)> {
+        let mut ret = Vec::with_capacity(t.len() * t.len());
+        for re in t {
+            for im in t {
+                ret.push((re.clone(), im.clone()));
+            }
+        }
+        ret
+    }
+
+    fn to_complex<T>(t: T) -> Complex
+    where
+        Complex: Assign<T>,
+    {
+        Complex::with_val(20, t)
+    }
+
+    #[test]
+    fn check_eq_others() {
+        use tests::{F32, F64, I32, I64, U32, U64};
+        #[cfg(feature = "integer")]
+        let z = [
+            Integer::from(0),
+            Integer::from(1),
+            Integer::from(-1),
+            Integer::from_str("-1000000000000").unwrap(),
+            Integer::from_str("1000000000000").unwrap(),
+        ];
+        #[cfg(feature = "rational")]
+        let q = [
+            Rational::from(0),
+            Rational::from(1),
+            Rational::from(-1),
+            Rational::from_str("-1000000000000/33333333333").unwrap(),
+            Rational::from_str("1000000000000/33333333333").unwrap(),
+        ];
+        let f = [
+            Float::with_val(20, Special::Zero),
+            Float::with_val(20, Special::NegZero),
+            Float::with_val(20, Special::Infinity),
+            Float::with_val(20, Special::NegInfinity),
+            Float::with_val(20, Special::Nan),
+            Float::with_val(20, 1),
+            Float::with_val(20, -1),
+            Float::with_val(20, 999999e100),
+            Float::with_val(20, 999999e-100),
+            Float::with_val(20, -999999e100),
+            Float::with_val(20, -999999e-100),
+        ];
+
+        let against = combinations(&f)
+            .iter()
+            .map(to_complex)
+            .chain(combinations(U32).iter().map(to_complex))
+            .chain(combinations(I32).iter().map(to_complex))
+            .chain(combinations(U64).iter().map(to_complex))
+            .chain(combinations(I64).iter().map(to_complex))
+            .chain(combinations(F32).iter().map(to_complex))
+            .chain(combinations(F64).iter().map(to_complex))
+            .collect::<Vec<Complex>>();
+        #[cfg(feature = "integer")]
+        let mut against = against;
+        #[cfg(feature = "integer")]
+        against.extend(combinations(&z).iter().map(to_complex));
+        #[cfg(feature = "rational")]
+        against.extend(combinations(&q).iter().map(to_complex));
+        check_eq_prim(U32, &against);
+        check_eq_prim(I32, &against);
+        check_eq_prim(U64, &against);
+        check_eq_prim(I64, &against);
+        check_eq_prim(F32, &against);
+        check_eq_prim(F64, &against);
+        #[cfg(feature = "integer")]
+        check_eq_big(&z, &against);
+        #[cfg(feature = "rational")]
+        check_eq_big(&q, &against);
+        check_eq_big(&f, &against);
+    }
+}
