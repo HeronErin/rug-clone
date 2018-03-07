@@ -2558,6 +2558,128 @@ impl Integer {
         }
     }
 
+    /// Raises a number to the power of `exponent` modulo `modulo`,
+    /// with resilience to side-channel attacks.
+    ///
+    /// The exponent must be greater than zero, and the modulo must be
+    /// odd.
+    ///
+    /// This method is intended for cryptographic purposes where
+    /// resilience to side-channel attacks is desired. The function is
+    /// designed to take the same time and use the same cache access
+    /// patterns for same-sized arguments, assuming that the arguments
+    /// are placed at the same position and the machine state is
+    /// identical when starting.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 ^ 4 mod 13 = 9
+    /// let n = Integer::from(7);
+    /// let e = Integer::from(4);
+    /// let m = Integer::from(13);
+    /// let power = n.secure_pow_mod(&e, &m);
+    /// assert_eq!(power, 9);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
+    pub fn secure_pow_mod(mut self, exponent: &Self, modulo: &Self) -> Self {
+        self.secure_pow_mod_mut(exponent, modulo);
+        self
+    }
+
+    /// Raises a number to the power of `exponent` modulo `modulo`,
+    /// with resilience to side-channel attacks.
+    ///
+    /// The exponent must be greater than zero, and the modulo must be
+    /// odd.
+    ///
+    /// This method is intended for cryptographic purposes where
+    /// resilience to side-channel attacks is desired. The function is
+    /// designed to take the same time and use the same cache access
+    /// patterns for same-sized arguments, assuming that the arguments
+    /// are placed at the same position and the machine state is
+    /// identical when starting.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 ^ 4 mod 13 = 9
+    /// let mut n = Integer::from(7);
+    /// let e = Integer::from(4);
+    /// let m = Integer::from(13);
+    /// n.secure_pow_mod_mut(&e, &m);
+    /// assert_eq!(n, 9);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
+    pub fn secure_pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) {
+        assert_eq!(
+            exponent.cmp0(),
+            Ordering::Greater,
+            "exponent not greater than zero"
+        );
+        assert!(modulo.is_odd(), "modulo not odd");
+        unsafe {
+            gmp::mpz_powm_sec(
+                self.inner_mut(),
+                self.inner(),
+                exponent.inner(),
+                modulo.inner(),
+            );
+        }
+    }
+
+    /// Raises a number to the power of `exponent` modulo `modulo`,
+    /// with resilience to side-channel attacks.
+    ///
+    /// The exponent must be greater than zero, and the modulo must be
+    /// odd.
+    ///
+    /// This method is intended for cryptographic purposes where
+    /// resilience to side-channel attacks is desired. The function is
+    /// designed to take the same time and use the same cache access
+    /// patterns for same-sized arguments, assuming that the arguments
+    /// are placed at the same position and the machine state is
+    /// identical when starting.
+    ///
+    /// [`Assign<Src> for Integer`](trait.Assign.html) and
+    /// `From<Src> for Integer` are implemented with the unwrapped
+    /// returned object as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// // 7 ^ 4 mod 13 = 9
+    /// let n = Integer::from(7);
+    /// let e = Integer::from(4);
+    /// let m = Integer::from(13);
+    /// let power = Integer::from(n.secure_pow_mod_ref(&e, &m));
+    /// assert_eq!(power, 9);
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
+    pub fn secure_pow_mod_ref<'a>(
+        &'a self,
+        exponent: &'a Self,
+        modulo: &'a Self,
+    ) -> SecurePowModIncomplete<'a> {
+        SecurePowModIncomplete {
+            ref_self: self,
+            exponent,
+            modulo,
+        }
+    }
+
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
@@ -3845,7 +3967,7 @@ unsafe fn mpz_pow_mod_ref(
     }
 }
 
-impl<'a, 'b> Assign<PowModIncomplete<'a>> for Integer {
+impl<'a> Assign<PowModIncomplete<'a>> for Integer {
     fn assign(&mut self, src: PowModIncomplete<'a>) {
         unsafe {
             mpz_pow_mod_ref(
@@ -3883,6 +4005,33 @@ impl<'r> From<PowModIncomplete<'r>> for Integer {
         dst
     }
 }
+
+pub struct SecurePowModIncomplete<'a> {
+    ref_self: &'a Integer,
+    exponent: &'a Integer,
+    modulo: &'a Integer,
+}
+
+impl<'a> Assign<SecurePowModIncomplete<'a>> for Integer {
+    fn assign(&mut self, src: SecurePowModIncomplete<'a>) {
+        assert_eq!(
+            src.exponent.cmp0(),
+            Ordering::Greater,
+            "exponent not greater than zero"
+        );
+        assert!(src.modulo.is_odd(), "modulo not odd");
+        unsafe {
+            gmp::mpz_powm_sec(
+                self.inner_mut(),
+                src.ref_self.inner(),
+                src.exponent.inner(),
+                src.modulo.inner(),
+            );
+        }
+    }
+}
+
+from_assign! { SecurePowModIncomplete<'r> => Integer }
 
 ref_math_op0! {
     Integer;
