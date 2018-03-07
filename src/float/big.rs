@@ -1121,9 +1121,9 @@ impl Float {
     /// Returns a string representation of `self` for the specified
     /// `radix` rounding to the nearest.
     ///
-    /// The exponent is encoded in decimal. The output string will have
-    /// enough precision such that reading it again will give the exact
-    /// same number.
+    /// The exponent is encoded in decimal. If the number of digits is
+    /// not specified, the output string will have enough precision
+    /// such that reading it again will give the exact same number.
     ///
     /// # Examples
     ///
