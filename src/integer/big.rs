@@ -3671,7 +3671,7 @@ impl Integer {
         /// ```
         ///
         /// [assign]: trait.Assign.html
-        fn fibonacci_2(n: u32) -> Fibonacci2Incomplete;
+        fn fibonacci_2(n: u32) -> FibonacciIncomplete;
     }
 
     math_op0! {
@@ -3725,7 +3725,7 @@ impl Integer {
         /// ```
         ///
         /// [assign]: trait.Assign.html
-        fn lucas_2(n: u32) -> Lucas2Incomplete;
+        fn lucas_2(n: u32) -> LucasIncomplete;
     }
 
     #[cfg(feature = "rand")]
@@ -4191,15 +4191,42 @@ ref_math_op0! {
 ref_math_op0! {
     Integer; gmp::mpz_fib_ui; struct FibonacciIncomplete { n: u32 }
 }
-ref_math_op0_2! {
-    Integer; gmp::mpz_fib2_ui; struct Fibonacci2Incomplete { n: u32 }
+
+impl<'a, 'b> Assign<FibonacciIncomplete>
+    for (&'a mut Integer, &'b mut Integer)
+{
+    #[inline]
+    fn assign(&mut self, src: FibonacciIncomplete) {
+        unsafe {
+            gmp::mpz_fib2_ui(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                src.n.into(),
+            );
+        }
+    }
 }
+
+from_assign! { FibonacciIncomplete => Integer, Integer }
+
 ref_math_op0! {
     Integer; gmp::mpz_lucnum_ui; struct LucasIncomplete { n: u32 }
 }
-ref_math_op0_2! {
-    Integer; gmp::mpz_lucnum2_ui; struct Lucas2Incomplete { n: u32 }
+
+impl<'a, 'b> Assign<LucasIncomplete> for (&'a mut Integer, &'b mut Integer) {
+    #[inline]
+    fn assign(&mut self, src: LucasIncomplete) {
+        unsafe {
+            gmp::mpz_lucnum2_ui(
+                self.0.inner_mut(),
+                self.1.inner_mut(),
+                src.n.into(),
+            );
+        }
+    }
 }
+
+from_assign! { LucasIncomplete => Integer, Integer }
 
 #[cfg(feature = "rand")]
 pub struct RandomBitsIncomplete<'a, 'b: 'a> {

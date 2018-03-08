@@ -115,40 +115,6 @@ macro_rules! ref_math_op0 {
     };
 }
 
-// struct Src
-// (Big, Big) = Src
-// Src -> (Big, Big)
-#[cfg(feature = "integer")]
-macro_rules! ref_math_op0_2 {
-    (
-        $Big: ty;
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Src: ident { $($param: ident: $T: ty),* }
-    ) => {
-        $(#[$attr_ref])*
-        #[derive(Debug)]
-        pub struct $Src {
-            $($param: $T,)*
-        }
-
-        impl<'a, 'b> Assign<$Src> for (&'a mut $Big, &'b mut $Big) {
-            #[inline]
-            fn assign(&mut self, src: $Src) {
-                unsafe {
-                    $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        $(src.$param.into(),)*
-                    );
-                }
-            }
-        }
-
-        from_assign! { $Src => $Big, $Big }
-    };
-}
-
 // method(self, param*) -> Self
 // method_mut(&mut self, param*)
 // method_ref(&self, param*) -> Incomplete
