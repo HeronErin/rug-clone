@@ -2081,6 +2081,85 @@ impl Integer {
         fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
     math_op2_2! {
+        xgmp::mpz_rdiv_qr_check;
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded to the nearest
+        /// integer.
+        ///
+        /// When the quotient before rounding lies exactly between two
+        /// integers, it is rounded away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // 23 / -10 -> -2 rem 3
+        /// let (q, rem) = Integer::from(23).div_rem_round((-10).into());
+        /// assert!(q == -2 && rem == 3);
+        /// // 25 / 10 -> 3 rem -5
+        /// let (q, rem) = Integer::from(25).div_rem_round(10.into());
+        /// assert!(q == 3 && rem == -5);
+        /// // -27 / 10 -> -3 rem 3
+        /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
+        /// assert!(q == -3 && rem == 3);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_rem_round(divisor);
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded to the nearest
+        /// integer.
+        ///
+        /// When the quotient before rounding lies exactly between two
+        /// integers, it is rounded away from zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // -25 / -10 -> 3 rem 5
+        /// let mut dividend_quotient = Integer::from(-25);
+        /// let mut divisor_rem = Integer::from(-10);
+        /// dividend_quotient.div_rem_round_mut(&mut divisor_rem);
+        /// assert_eq!(dividend_quotient, 3);
+        /// assert_eq!(divisor_rem, 5);
+        /// ```
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        fn div_rem_round_mut;
+        /// Performs a division producing both the quotient and
+        /// remainder, with the quotient rounded to the nearest
+        /// integer.
+        ///
+        /// When the quotient before rounding lies exactly between two
+        /// integers, it is rounded away from zero.
+        ///
+        /// [`Assign<Src> for (Integer, Integer)`][assign],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
+        /// and `From<Src> for (Integer, Integer)` are implemented
+        /// with the returned object as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// // -28 / -10 -> 3 rem 2
+        /// let dividend = Integer::from(-28);
+        /// let divisor = Integer::from(-10);
+        /// let r = dividend.div_rem_round_ref(&divisor);
+        /// let (quotient, rem) = <(Integer, Integer)>::from(r);
+        /// assert_eq!(quotient, 3);
+        /// assert_eq!(rem, 2);
+        /// ```
+        ///
+        /// [assign]: trait.Assign.html
+        fn div_rem_round_ref -> DivRemRoundIncomplete;
+    }
+    math_op2_2! {
         xgmp::mpz_ediv_qr_check;
         /// Performs Euclidean division producing both the quotient
         /// and remainder, with a positive remainder.
@@ -3918,6 +3997,9 @@ ref_math_op2_2! {
 }
 ref_math_op2_2! {
     Integer; xgmp::mpz_fdiv_qr_check; struct DivRemFloorIncomplete { divisor }
+}
+ref_math_op2_2! {
+    Integer; xgmp::mpz_rdiv_qr_check; struct DivRemRoundIncomplete { divisor }
 }
 ref_math_op2_2! {
     Integer; xgmp::mpz_ediv_qr_check; struct DivRemEucIncomplete { divisor }

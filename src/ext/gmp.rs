@@ -14,11 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use Integer;
 use cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
+use inner::Inner;
 use misc::NegAbs;
 use std::{i16, i8, u16, u8};
 use std::cmp::Ordering;
+use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
 
@@ -775,6 +778,36 @@ pub unsafe fn mpz_si_ediv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     }
 }
 
+pub unsafe fn mpz_rdiv_qr_check(
+    q: *mut mpz_t,
+    r: *mut mpz_t,
+    n: *const mpz_t,
+    d: *const mpz_t,
+) {
+    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
+    let den;
+    // make sure d is not going to be aliased and overwritten
+    let d = if d == r || d == q {
+        let mut den_z = mem::uninitialized();
+        gmp::mpz_init_set(&mut den_z, d);
+        den = Integer::from_raw(den_z);
+        den.inner()
+    } else {
+        d
+    };
+    gmp::mpz_tdiv_qr(q, r, n, d);
+    let neg = (gmp::mpz_sgn(d) < 0) != (gmp::mpz_sgn(r) < 0);
+    if round_away(r, d) {
+        if neg {
+            gmp::mpz_sub_ui(q, q, 1);
+            gmp::mpz_add(r, r, d);
+        } else {
+            gmp::mpz_add_ui(q, q, 1);
+            gmp::mpz_sub(r, r, d);
+        }
+    }
+}
+
 #[inline]
 pub unsafe fn mpz_divexact_check(
     q: *mut mpz_t,
@@ -1218,6 +1251,51 @@ pub fn ord_int(o: Ordering) -> c_int {
     }
 }
 
+// dividend must not be zero
+unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
+    #[cfg(gmp_limb_bits_32)]
+    const LIMB_BITS: u32 = 32;
+    #[cfg(gmp_limb_bits_64)]
+    const LIMB_BITS: u32 = 64;
+
+    let s_rem = (*rem).size.checked_abs().expect("overflow");
+    if s_rem == 0 {
+        return false;
+    }
+    let s_dividend = (*dividend)
+        .size
+        .checked_abs()
+        .expect("overflow");
+    debug_assert!(s_dividend > 0);
+    debug_assert!(s_rem <= s_dividend);
+    if s_rem < s_dividend - 1 {
+        return false;
+    }
+
+    let mut rem_limb = 0;
+    if s_rem == s_dividend {
+        let rem_next_limb = limb(rem, cast::cast(s_rem - 1));
+        if (rem_next_limb >> (LIMB_BITS - 1)) != 0 {
+            return true;
+        }
+        rem_limb = rem_next_limb << 1;
+    }
+    for i in (1..s_dividend).rev() {
+        let div_limb = limb(dividend, cast::cast(i));
+        let rem_next_limb = limb(rem, cast::cast(i - 1));
+        rem_limb |= (rem_next_limb >> (LIMB_BITS - 1)) & 1;
+        if rem_limb > div_limb {
+            return true;
+        }
+        if rem_limb < div_limb {
+            return false;
+        }
+        rem_limb = rem_next_limb << 1;
+    }
+    let div_limb = limb(dividend, 0);
+    rem_limb >= div_limb
+}
+
 #[cfg(feature = "rational")]
 pub use self::rational::*;
 #[cfg(feature = "rational")]
@@ -1226,7 +1304,6 @@ mod rational {
     use gmp_mpfr_sys::gmp::mpq_t;
     use inner::Inner;
     use rational::SmallRational;
-    use std::mem;
 
     #[inline]
     pub unsafe fn mpq_signum(signum: *mut mpz_t, op: *const mpq_t) {
