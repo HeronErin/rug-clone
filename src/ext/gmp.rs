@@ -796,14 +796,15 @@ pub unsafe fn mpz_rdiv_qr_check(
         d
     };
     gmp::mpz_tdiv_qr(q, r, n, d);
-    let neg = (gmp::mpz_sgn(d) < 0) != (gmp::mpz_sgn(r) < 0);
     if round_away(r, d) {
-        if neg {
-            gmp::mpz_sub_ui(q, q, 1);
-            gmp::mpz_add(r, r, d);
-        } else {
+        if (gmp::mpz_sgn(r) < 0) == (gmp::mpz_sgn(d) < 0) {
+            // positive q
             gmp::mpz_add_ui(q, q, 1);
             gmp::mpz_sub(r, r, d);
+        } else {
+            // negative q
+            gmp::mpz_sub_ui(q, q, 1);
+            gmp::mpz_add(r, r, d);
         }
     }
 }
@@ -1488,10 +1489,8 @@ mod rational {
             gmp::mpz_set(round, num);
             return;
         }
-        let neg = gmp::mpz_sgn(num) < 0;
         // The remainder cannot be larger than the divisor, but we
-        // allocate an extra limb because the GMP docs say we should,
-        // and also because we have to multiply by 2.
+        // allocate an extra limb because the GMP docs suggest we should.
         let limbs = cast::cast::<_, gmp::bitcnt_t>((*den).size.abs()) + 1;
         let bits = limbs
             .checked_mul(cast::cast::<_, gmp::bitcnt_t>(gmp::LIMB_BITS))
@@ -1499,17 +1498,13 @@ mod rational {
         let mut rem: mpz_t = mem::uninitialized();
         gmp::mpz_init2(&mut rem, bits);
         gmp::mpz_tdiv_qr(round, &mut rem, num, den);
-        if neg {
-            gmp::mpz_neg(&mut rem, &rem);
-        }
-        // if 2 * abs(rem) >= den, move one away from zero
-        gmp::mpz_mul_2exp(&mut rem, &rem, 1);
-        let away = gmp::mpz_cmp(&rem, den) >= 0;
-        if away {
-            if neg {
-                gmp::mpz_sub_ui(round, round, 1);
-            } else {
+        if round_away(&rem, den) {
+            if gmp::mpz_sgn(&rem) >= 0 {
+                // positive number
                 gmp::mpz_add_ui(round, round, 1);
+            } else {
+                // negative number
+                gmp::mpz_sub_ui(round, round, 1);
             }
         }
         gmp::mpz_clear(&mut rem);
@@ -1525,21 +1520,16 @@ mod rational {
             mpz_set_1(fract_den);
             return;
         }
-        let neg = gmp::mpz_sgn(num) < 0;
         gmp::mpz_tdiv_r(fract_num, num, den);
-        if neg {
-            gmp::mpz_neg(fract_num, fract_num);
-        }
         gmp::mpz_set(fract_den, den);
-        // if 2 * abs(rem) >= den, move one away from zero
-        gmp::mpz_mul_2exp(fract_num, fract_num, 1);
-        let away = gmp::mpz_cmp(fract_num, fract_den) >= 0;
-        gmp::mpz_tdiv_q_2exp(fract_num, fract_num, 1);
-        if away {
-            gmp::mpz_sub(fract_num, fract_num, fract_den);
-        }
-        if neg {
-            gmp::mpz_neg(fract_num, fract_num);
+        if round_away(fract_num, fract_den) {
+            if gmp::mpz_sgn(fract_num) >= 0 {
+                // positive number
+                gmp::mpz_sub(fract_num, fract_num, fract_den);
+            } else {
+                // negative number
+                gmp::mpz_add(fract_num, fract_num, fract_den);
+            }
         }
     }
 
@@ -1559,24 +1549,18 @@ mod rational {
             mpz_set_1(fract_den);
             return;
         }
-        let neg = gmp::mpz_sgn(num) < 0;
         gmp::mpz_tdiv_qr(round, fract_num, num, den);
-        if neg {
-            gmp::mpz_neg(fract_num, fract_num);
-            gmp::mpz_neg(round, round);
-        }
         gmp::mpz_set(fract_den, den);
-        // if 2 * abs(rem) >= den, round away from zero
-        gmp::mpz_mul_2exp(fract_num, fract_num, 1);
-        let away = gmp::mpz_cmp(fract_num, fract_den) >= 0;
-        gmp::mpz_tdiv_q_2exp(fract_num, fract_num, 1);
-        if away {
-            gmp::mpz_sub(fract_num, fract_num, fract_den);
-            gmp::mpz_add_ui(round, round, 1);
-        }
-        if neg {
-            gmp::mpz_neg(fract_num, fract_num);
-            gmp::mpz_neg(round, round);
+        if round_away(fract_num, fract_den) {
+            if gmp::mpz_sgn(fract_num) >= 0 {
+                // positive number
+                gmp::mpz_sub(fract_num, fract_num, fract_den);
+                gmp::mpz_add_ui(round, round, 1);
+            } else {
+                // negative number
+                gmp::mpz_add(fract_num, fract_num, fract_den);
+                gmp::mpz_sub_ui(round, round, 1);
+            }
         }
     }
 
