@@ -172,7 +172,7 @@ impl<'a> RandState<'a> {
     /// mod 2<sup>*bits*</sup>, *a*, *c* and *bits* are selected from
     /// a table such that at least *size* bits of each *X* will be
     /// used, that is *bits* ≥ *size*. The table only has values for a
-    /// size of up to 256 bits; [`None`][No] will be returned if the
+    /// size of up to 256 bits; [`None`] will be returned if the
     /// requested size is larger.
     ///
     /// # Examples
@@ -187,7 +187,7 @@ impl<'a> RandState<'a> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
@@ -207,7 +207,7 @@ impl<'a> RandState<'a> {
     ///
     /// If the custom random generator is cloned, the implemented
     /// trait method [`RandGen::boxed_clone`] is called; this leads to
-    /// panic if the method returns [`None`][No].
+    /// panic if the method returns [`None`].
     ///
     /// # Examples
     ///
@@ -226,7 +226,7 @@ impl<'a> RandState<'a> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom(custom: &'a mut RandGen) -> RandState<'a> {
         let b: Box<&'a mut RandGen> = Box::new(custom);
@@ -250,7 +250,7 @@ impl<'a> RandState<'a> {
     ///
     /// If the custom random generator is cloned, the implemented
     /// trait method [`RandGen::boxed_clone`] is called;
-    /// this leads to panic if the method returns [`None`][No].
+    /// this leads to panic if the method returns [`None`].
     ///
     /// # Examples
     ///
@@ -269,7 +269,7 @@ impl<'a> RandState<'a> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom_boxed(custom: Box<RandGen>) -> RandState<'a> {
         let b: Box<Box<RandGen>> = Box::new(custom);
@@ -684,7 +684,7 @@ pub trait RandGen: Send + Sync {
 
     /// Optionally clones the random number generator.
     ///
-    /// The default implementation returns [`None`][No].
+    /// The default implementation returns [`None`].
     ///
     /// # Examples
     ///
@@ -717,7 +717,7 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(second_other, 3232861391);
     /// ```
     ///
-    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     #[inline]
     fn boxed_clone(&self) -> Option<Box<RandGen>> {
         None

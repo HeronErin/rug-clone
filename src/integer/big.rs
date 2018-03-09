@@ -2539,7 +2539,7 @@ impl Integer {
 
     /// Finds the inverse modulo `modulo` and returns
     /// [`Ok(inverse)`][`Ok`] if it exists, or
-    /// [`Err(unchanged)`][Err] if the inverse does not exist.
+    /// [`Err(unchanged)`][`Err`] if the inverse does not exist.
     ///
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
@@ -2565,7 +2565,7 @@ impl Integer {
     /// assert_eq!(inv_mod_5, 3);
     /// ```
     ///
-    /// [Err]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err
+    /// [`Err`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err
     /// [`Ok`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
@@ -2659,7 +2659,7 @@ impl Integer {
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
     /// returns [`Ok(power)`][`Ok`] if an answer exists, or
-    /// [`Err(unchanged)`][Err] if it does not.
+    /// [`Err(unchanged)`][`Err`] if it does not.
     ///
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
@@ -2699,7 +2699,7 @@ impl Integer {
     /// assert_eq!(power, 943);
     /// ```
     ///
-    /// [Err]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err
+    /// [`Err`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err
     /// [`Ok`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn pow_mod(
@@ -3524,15 +3524,15 @@ impl Integer {
         /// (`self` and `other`), and two cofactors to obtain the GCD
         /// from the two inputs.
         ///
-        /// [`Assign<Src> for (Integer, Integer, Integer)`][A],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`][A]
+        /// [`Assign<Src> for (Integer, Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`][`Assign`]
         /// and [`From<Src> for (Integer, Integer, Integer)`][`From`]
         /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// In the case that only one of the two cofactors is
-        /// required, [`Assign<Src> for (Integer, Integer)`][A],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][A] and
+        /// required, [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`] and
         /// [`From<Src> for (Integer, Integer)`][`From`] are also
         /// implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
@@ -3593,7 +3593,7 @@ impl Integer {
         /// ```
         ///
         /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
-        /// [A]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
         /// [icv]: index.html#incomplete-computation-values
         fn gcd_cofactors_ref -> GcdIncomplete;
     }
