@@ -1247,16 +1247,16 @@ impl Float {
         s
     }
 
-    /// Creates a [`Float`] from an initialized MPFR floating-point
-    /// number.
+    /// Creates a [`Float`] from an initialized
+    /// [MPFR floating-point number][`mpfr_t`].
     ///
     /// # Safety
     ///
     /// * The value must be initialized.
-    /// * The `gmp_mpfr_sys::mpfr::mpfr_t` type can be considered as a
-    ///   kind of pointer, so there can be multiple copies of it.
-    ///   Since this function takes over ownership, no other copies of
-    ///   the passed value should exist.
+    /// * The [`gmp_mpfr_sys::mpfr::mpfr_t`][`mpfr_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -1280,12 +1280,14 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }
     }
 
-    /// Converts a [`Float`] into an MPFR floating-point number.
+    /// Converts a [`Float`] into an
+    /// [MPFR floating-point number][`mpfr_t`].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -1309,6 +1311,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn into_raw(self) -> mpfr_t {
         let ret = self.inner;
@@ -1316,7 +1319,8 @@ impl Float {
         ret
     }
 
-    /// Returns a pointer to the internal MPFR floating-point number.
+    /// Returns a pointer to the inner
+    /// [MPFR floating-point number][`mpfr_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -1339,13 +1343,15 @@ impl Float {
     ///     assert_eq!(f, -14.5);
     /// }
     /// ```
+    ///
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpfr_t {
         self.inner()
     }
 
-    /// Returns an unsafe mutable pointer to the internal MPFR
-    /// floating-point number.
+    /// Returns an unsafe mutable pointer to the inner
+    /// [MPFR floating-point number][`mpfr_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -1366,6 +1372,8 @@ impl Float {
     ///     assert_eq!(f, -4.5);
     /// }
     /// ```
+    ///
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpfr_t {
         unsafe { self.inner_mut() }

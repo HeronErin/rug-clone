@@ -1091,15 +1091,16 @@ impl Integer {
         }
     }
 
-    /// Creates an [`Integer`] from an initialized GMP integer.
+    /// Creates an [`Integer`] from an initialized
+    /// [GMP integer][`mpz_t`].
     ///
     /// # Safety
     ///
     /// * The value must be initialized.
-    /// * The `gmp_mpfr_sys::gmp::mpz_t` type can be considered as a
-    ///   kind of pointer, so there can be multiple copies of it.
-    ///   Since this function takes over ownership, no other copies of
-    ///   the passed value should exist.
+    /// * The [`gmp_mpfr_sys::gmp::mpz_t`][`mpz_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -1122,12 +1123,13 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
     }
 
-    /// Converts an [`Integer`] into a GMP integer.
+    /// Converts an [`Integer`] into a [GMP integer][`mpz_t`].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -1151,6 +1153,7 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn into_raw(self) -> mpz_t {
         let ret = self.inner;
@@ -1158,7 +1161,7 @@ impl Integer {
         ret
     }
 
-    /// Returns a pointer to the internal GMP integer.
+    /// Returns a pointer to the inner [GMP integer][`mpz_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -1181,12 +1184,15 @@ impl Integer {
     ///     assert_eq!(i, 15);
     /// }
     /// ```
+    ///
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpz_t {
         self.inner()
     }
 
-    /// Returns an unsafe mutable pointer to the internal GMP integer.
+    /// Returns an unsafe mutable pointer to the inner
+    /// [GMP integer][`mpz_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -1207,6 +1213,8 @@ impl Integer {
     ///     assert_eq!(i, 35);
     /// }
     /// ```
+    ///
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpz_t {
         unsafe { self.inner_mut() }

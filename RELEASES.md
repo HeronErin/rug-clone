@@ -65,7 +65,7 @@ Version 0.9.2 (2018-01-12)
 ==========================
 
 * Require rustc version 1.18.0.
-* Require `gmp-mpfr-sys` version 1.1.0.
+* Require gmp-mpfr-sys version 1.1.0.
 * Deprecate most `assign_*` methods, and replace with static methods
   that return an assignable object.
 * Deprecate `Rational::copy_to_integer` method.

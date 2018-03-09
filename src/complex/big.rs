@@ -620,16 +620,16 @@ impl Complex {
         s
     }
 
-    /// Creates a [`Complex`] number from an initialized MPC complex
-    /// number.
+    /// Creates a [`Complex`] number from an initialized
+    /// [MPC complex number][`mpc_t`].
     ///
     /// # Safety
     ///
     /// * The value must be initialized.
-    /// * The `gmp_mpfr_sys::mpc::mpc_t` type can be considered as a
-    ///   kind of pointer, so there can be multiple copies of it.
-    ///   Since this function takes over ownership, no other copies of
-    ///   the passed value should exist.
+    /// * The [`gmp_mpfr_sys::mpc::mpc_t`][`mpc_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -653,12 +653,14 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
     }
 
-    /// Converts a [`Complex`] number into an MPC complex number.
+    /// Converts a [`Complex`] number into an
+    /// [MPC complex number][`mpc_t`].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -686,6 +688,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
         let ret = self.inner;
@@ -693,7 +696,7 @@ impl Complex {
         ret
     }
 
-    /// Returns a pointer to the internal MPC complex number.
+    /// Returns a pointer to the inner [MPC complex number][`mpc_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -720,13 +723,15 @@ impl Complex {
     ///     assert_eq!(c, (-14.5, 3.25));
     /// }
     /// ```
+    ///
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpc_t {
         self.inner()
     }
 
-    /// Returns an unsafe mutable pointer to the internal MPC complex
-    /// number.
+    /// Returns an unsafe mutable pointer to the inner
+    /// [MPC complex number][`mpc_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -747,6 +752,8 @@ impl Complex {
     ///     assert_eq!(c, (-14.5, -3.25));
     /// }
     /// ```
+    ///
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpc_t {
         unsafe { self.inner_mut() }

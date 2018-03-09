@@ -646,16 +646,16 @@ impl Rational {
         dst_den.assign(den);
     }
 
-    /// Creates a [`Rational`] number from an initialized GMP rational
-    /// number.
+    /// Creates a [`Rational`] number from an initialized
+    /// [GMP rational number][`mpq_t`].
     ///
     /// # Safety
     ///
     /// * The value must be initialized.
-    /// * The `gmp_mpfr_sys::gmp::mpq_t` type can be considered as a
-    ///   kind of pointer, so there can be multiple copies of it.
-    ///   Since this function takes over ownership, no other copies of
-    ///   the passed value should exist.
+    /// * The [`gmp_mpfr_sys::gmp::mpq_t`][`mpq_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
     /// * The numerator and denominator must be in canonical form, as
     ///   the rest of the library assumes that they are. Most GMP
     ///   functions leave the rational number in canonical form, but
@@ -685,13 +685,15 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
     #[inline]
     pub unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
     }
 
-    /// Converts a [`Rational`] number into a GMP rational number.
+    /// Converts a [`Rational`] number into a
+    /// [GMP rational number][`mpq_t`].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -715,6 +717,7 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn into_raw(self) -> mpq_t {
         let ret = self.inner;
@@ -722,7 +725,7 @@ impl Rational {
         ret
     }
 
-    /// Returns a pointer to the internal GMP rational number.
+    /// Returns a pointer to the inner [GMP rational number][`mpq_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -745,13 +748,15 @@ impl Rational {
     ///     assert_eq!(r, (-145, 10));
     /// }
     /// ```
+    ///
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpq_t {
         self.inner()
     }
 
-    /// Returns an unsafe mutable pointer to the internal GMP rational
-    /// number.
+    /// Returns an unsafe mutable pointer to the inner
+    /// [GMP rational number][`mpq_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -772,6 +777,8 @@ impl Rational {
     ///     assert_eq!(r, (-10, 145));
     /// }
     /// ```
+    ///
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpq_t {
         unsafe { self.inner_mut() }
@@ -1320,7 +1327,7 @@ impl Rational {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
-        /// [icv]: index.html#incomplete-computation-values
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'a, Min, Max>(
         &'a self,

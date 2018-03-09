@@ -363,25 +363,26 @@ impl<'a> RandState<'a> {
         unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
     }
 
-    /// Creates a random generator from an initialized GMP random
-    /// generator.
+    /// Creates a random generator from an initialized
+    /// [GMP random generator][`randstate_t`].
     ///
     /// # Safety
     ///
     /// * The value must be initialized. Note that the GMP functions
     ///   do not initialize all fields of the
-    ///   `gmp_mpfr_sys::gmp::randstate_t` object, which can
-    ///   eventually lead to reading uninitialized memory, and that is
-    ///   undefined behaviour in Rust even if no decision is made
-    ///   using the read value. One way to ensure that there is no
-    ///   uninitialized memory inside `raw` is to use `mem::zeroed` to
-    ///   initialize `raw` before initializing with a function such as
-    ///   `gmp_mpfr_sys::gmp::randinit_default`, like in the example
-    ///   below.
-    /// * The `gmp_mpfr_sys::gmp::randstate_t` type can be considered
-    ///   as a kind of pointer, so there can be multiple copies of it.
-    ///   Since this function takes over ownership, no other copies of
-    ///   the passed value should exist.
+    ///   [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] object,
+    ///   which can eventually lead to reading uninitialized memory,
+    ///   and that is undefined behaviour in Rust even if no decision
+    ///   is made using the read value. One way to ensure that there
+    ///   is no uninitialized memory inside `raw` is to use
+    ///   [`mem::zeroed`] to initialize `raw` before initializing with
+    ///   a function such as
+    ///   [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
+    ///   like in the example below.
+    /// * The [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] type
+    ///   can be considered as a kind of pointer, so there can be
+    ///   multiple copies of it. Since this function takes over
+    ///   ownership, no other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -405,6 +406,10 @@ impl<'a> RandState<'a> {
     ///     // since rand is a RandState now, deallocation is automatic
     /// }
     /// ```
+    ///
+    /// [`mem::zeroed`]: https://doc.rust-lang.org/std/mem/fn.zeroed.html
+    /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
         RandState {
@@ -413,7 +418,8 @@ impl<'a> RandState<'a> {
         }
     }
 
-    /// Converts a random generator into a GMP random generator.
+    /// Converts a random generator into a
+    /// [GMP random generator][`randstate_t`].
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -435,6 +441,8 @@ impl<'a> RandState<'a> {
     ///     }
     /// }
     /// ```
+    ///
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
@@ -442,7 +450,8 @@ impl<'a> RandState<'a> {
         ret
     }
 
-    /// Returns a pointer to the internal GMP random generator.
+    /// Returns a pointer to the inner
+    /// [GMP random generator][`randstate_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -458,13 +467,15 @@ impl<'a> RandState<'a> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
+    ///
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&mut self) -> *const randstate_t {
         self.inner()
     }
 
-    /// Returns an unsafe mutable pointer to the internal GMP random
-    /// generator.
+    /// Returns an unsafe mutable pointer to the inner
+    /// [GMP random generator][`randstate_t`].
     ///
     /// The returned pointer will be valid for as long as `self` is
     /// valid.
@@ -487,6 +498,8 @@ impl<'a> RandState<'a> {
     ///     println!("another 32 random bits: {:032b}", u2);
     /// }
     /// ```
+    ///
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         unsafe { self.inner_mut() }
