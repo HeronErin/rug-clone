@@ -189,7 +189,7 @@ values:
    and [`float.assign_round(incomplete, Round::Up)`][`assign_round`].
 2. Convert them to the final value using the [`From`] trait or a
    similar method, for example
-   [`Integer::from(incomplete)`][`From::from`] from] and
+   [`Integer::from(incomplete)`][`From::from`] and
    [`Float::with_val(53, incomplete)`][`Float::with_val`].
 
 Let us consider a couple of examples.
