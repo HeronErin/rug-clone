@@ -1,6 +1,8 @@
 Version 1.0.1
 =============
 
+* Add `Integer::is_pow_of_two` method.
+* Add `Integer::signed_bits` method.
 * Add `Integer::secure_pow_mod` methods.
 * Add `Integer::div_rem_round` methods.
 * Add `Complex::eq0` method.

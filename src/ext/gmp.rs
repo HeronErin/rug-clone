@@ -1202,16 +1202,48 @@ pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     }
 }
 
+#[inline]
+pub unsafe fn mpz_significant_bits(op: *const mpz_t) -> gmp::bitcnt_t {
+    let size = (*op).size;
+    if size == 0 {
+        return 0;
+    }
+    let size = size.neg_abs().1;
+    let size_in_base = gmp::mpn_sizeinbase((*op).d, cast::cast(size), 2);
+    cast::cast(size_in_base)
+}
+
+pub unsafe fn mpz_signed_bits(op: *const mpz_t) -> gmp::bitcnt_t {
+    let size = (*op).size;
+    let significant = mpz_significant_bits(op);
+    if size < 0 {
+        let first_one = gmp::mpn_scan1((*op).d, 0);
+        if first_one == significant - 1 {
+            return significant;
+        }
+    }
+    significant.checked_add(1).expect("overflow")
+}
+
+pub unsafe fn is_pow_of_two(op: *const mpz_t) -> bool {
+    let size = (*op).size;
+    if size <= 0 {
+        return false;
+    }
+    let significant = mpz_significant_bits(op);
+    let first_one = gmp::mpn_scan1((*op).d, 0);
+    first_one == significant - 1
+}
+
 pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
     let size = (*op).size;
     if size <= 0 {
         mpz_set_1(rop);
         return;
     }
-    let size_in_base = gmp::mpn_sizeinbase((*op).d, cast::cast(size), 2);
-    let significant: gmp::bitcnt_t = cast::cast(size_in_base);
+    let significant = mpz_significant_bits(op);
     let first_one = gmp::mpn_scan1((*op).d, 0);
-    let bit = if significant - 1 == first_one {
+    let bit = if first_one == significant - 1 {
         if rop as *const mpz_t == op {
             return;
         }

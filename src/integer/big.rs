@@ -39,7 +39,7 @@ use std::slice;
 /// you can mix `Integer` and primitive integer types; the result will
 /// be an `Integer`.
 ///
-/// Internally the integer is not stored using two’s-complement
+/// Internally the integer is not stored using a two’s-complement
 /// representation, however, for bitwise operations and shifts, the
 /// functionality is the same as if the representation was using two’s
 /// complement.
@@ -74,7 +74,7 @@ use std::slice;
 /// ```
 ///
 /// Bitwise operations on `Integer` values behave as if the value uses
-/// two’s-complement representation.
+/// a two’s-complement representation.
 ///
 /// ```rust
 /// use rug::Integer;
@@ -228,7 +228,8 @@ impl Integer {
         }
     }
 
-    /// Returns the capacity in bits that can be stored without reallocating.
+    /// Returns the capacity in bits that can be stored without
+    /// reallocating.
     ///
     /// # Examples
     ///
@@ -256,10 +257,11 @@ impl Integer {
     /// use rug::Integer;
     /// // 0x2000_0000 needs 30 bits.
     /// let mut i = Integer::from(0x2000_0000);
+    /// assert_eq!(i.significant_bits(), 30);
     /// i.reserve(34);
     /// let capacity = i.capacity();
     /// assert!(capacity >= 64);
-    /// i.reserve(34);
+    /// i.reserve(0);
     /// assert!(i.capacity() == capacity);
     /// i.reserve(35);
     /// assert!(i.capacity() >= 65);
@@ -270,7 +272,8 @@ impl Integer {
         if additional == 0 {
             return;
         }
-        let used_bits = significant_bits_usize(self);
+        let used_bits: usize =
+            cast(unsafe { xgmp::mpz_significant_bits(self.inner()) });
         let req_bits = used_bits
             .checked_add(additional)
             .expect("overflow");
@@ -291,6 +294,7 @@ impl Integer {
     /// // let i be 100 bits wide
     /// let mut i = Integer::from_str_radix("fffff12345678901234567890", 16)
     ///     .unwrap();
+    /// assert_eq!(i.significant_bits(), 100);
     /// assert!(i.capacity() >= 100);
     /// i >>= 80;
     /// i.shrink_to_fit();
@@ -299,7 +303,8 @@ impl Integer {
     ///
     /// [`Integer`]: struct.Integer.html
     pub fn shrink_to_fit(&mut self) {
-        let used_bits = significant_bits_usize(self);
+        let used_bits: usize =
+            cast(unsafe { xgmp::mpz_significant_bits(self.inner()) });
         unsafe {
             gmp::mpz_realloc2(self.inner_mut(), cast(used_bits));
         }
@@ -1454,16 +1459,16 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Integer};
+    /// use rug::Integer;
     /// // 0 is 0 to the power of anything
-    /// let mut i = Integer::from(0);
-    /// assert!(i.is_perfect_power());
-    /// // 243 is 3 to the power of 5
-    /// i.assign(243);
-    /// assert!(i.is_perfect_power());
-    /// // 10 is not a perfect power
-    /// i.assign(10);
-    /// assert!(!i.is_perfect_power());
+    /// assert!(Integer::from(0).is_perfect_power());
+    /// // 25 is 5 to the power of 2
+    /// assert!(Integer::from(25).is_perfect_power());
+    /// // -243 is -3 to the power of 5
+    /// assert!(Integer::from(243).is_perfect_power());
+    ///
+    /// assert!(!Integer::from(24).is_perfect_power());
+    /// assert!(!Integer::from(-100).is_perfect_power());
     /// ```
     ///
     /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
@@ -1477,19 +1482,41 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Integer};
-    /// let mut i = Integer::from(1);
-    /// assert!(i.is_perfect_square());
-    /// i.assign(9);
-    /// assert!(i.is_perfect_square());
-    /// i.assign(15);
-    /// assert!(!i.is_perfect_square());
+    /// use rug::Integer;
+    /// assert!(Integer::from(0).is_perfect_square());
+    /// assert!(Integer::from(1).is_perfect_square());
+    /// assert!(Integer::from(4).is_perfect_square());
+    /// assert!(Integer::from(9).is_perfect_square());
+    ///
+    /// assert!(!Integer::from(15).is_perfect_square());
+    /// assert!(!Integer::from(-9).is_perfect_square());
     /// ```
     ///
     /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_square(&self) -> bool {
         unsafe { gmp::mpz_perfect_square_p(self.inner()) != 0 }
+    }
+
+    /// Returns [`true`] if the number is a power of two.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// assert!(Integer::from(1).is_pow_of_two());
+    /// assert!(Integer::from(4).is_pow_of_two());
+    /// assert!(Integer::from(1 << 30).is_pow_of_two());
+    ///
+    /// assert!(!Integer::from(7).is_pow_of_two());
+    /// assert!(!Integer::from(0).is_pow_of_two());
+    /// assert!(!Integer::from(-1).is_pow_of_two());
+    /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    #[inline]
+    pub fn is_pow_of_two(&self) -> bool {
+        unsafe { xgmp::is_pow_of_two(self.inner()) }
     }
 
     /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
@@ -1536,17 +1563,47 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     ///
-    /// assert_eq!(Integer::from(0).significant_bits(), 0);
-    /// assert_eq!(Integer::from(1).significant_bits(), 1);
-    /// assert_eq!(Integer::from(-1).significant_bits(), 1);
-    /// assert_eq!(Integer::from(4).significant_bits(), 3);
-    /// assert_eq!(Integer::from(-4).significant_bits(), 3);
-    /// assert_eq!(Integer::from(7).significant_bits(), 3);
-    /// assert_eq!(Integer::from(-7).significant_bits(), 3);
+    /// assert_eq!(Integer::from(0).significant_bits(), 0);  //    “”
+    /// assert_eq!(Integer::from(1).significant_bits(), 1);  //   “1”
+    /// assert_eq!(Integer::from(4).significant_bits(), 3);  // “100”
+    /// assert_eq!(Integer::from(7).significant_bits(), 3);  // “111”
+    /// assert_eq!(Integer::from(-1).significant_bits(), 1); //   “1”
+    /// assert_eq!(Integer::from(-4).significant_bits(), 3); // “100”
+    /// assert_eq!(Integer::from(-7).significant_bits(), 3); // “111”
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        cast(significant_bits_usize(self))
+        cast(unsafe { xgmp::mpz_significant_bits(self.inner()) })
+    }
+
+    /// Returns the number of bits required to represent the value
+    /// using a two’s-complement representation.
+    ///
+    /// For non-negative numbers, this method returns one more than
+    /// the [`significant_bits`] method, since an extra zero is needed
+    /// before the most significant bit.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// assert_eq!(Integer::from(-5).signed_bits(), 4); // “1011”
+    /// assert_eq!(Integer::from(-4).signed_bits(), 3); //  “100”
+    /// assert_eq!(Integer::from(-3).signed_bits(), 3); //  “101”
+    /// assert_eq!(Integer::from(-2).signed_bits(), 2); //   “10”
+    /// assert_eq!(Integer::from(-1).signed_bits(), 1); //    “1”
+    /// assert_eq!(Integer::from(0).signed_bits(), 1);  //    “0”
+    /// assert_eq!(Integer::from(1).signed_bits(), 2);  //   “01”
+    /// assert_eq!(Integer::from(2).signed_bits(), 3);  //  “010”
+    /// assert_eq!(Integer::from(3).signed_bits(), 3);  //  “011”
+    /// assert_eq!(Integer::from(4).signed_bits(), 4);  // “0100”
+    /// ```
+    ///
+    /// [`significant_bits`]: #method.significant_bits
+    #[inline]
+    pub fn signed_bits(&self) -> u32 {
+        cast(unsafe { xgmp::mpz_signed_bits(self.inner()) })
     }
 
     /// Returns the number of one bits if the value ≥ 0.
@@ -4874,16 +4931,6 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
         None
     } else {
         Some(cast(bits))
-    }
-}
-
-#[inline]
-fn significant_bits_usize(n: &Integer) -> usize {
-    // sizeinbase returns 1 if number is 0, so check 0 first
-    if n.cmp0() == Ordering::Equal {
-        0
-    } else {
-        unsafe { gmp::mpz_sizeinbase(n.inner(), 2) }
     }
 }
 
