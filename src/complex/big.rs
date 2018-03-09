@@ -1041,6 +1041,29 @@ impl Complex {
         unsafe { &*(self as *const _ as *const _) }
     }
 
+    /// Returns the same result as [`self.eq(&0)`][`eq`], but is
+    /// faster.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{Assign, Complex};
+    /// use rug::float::Special;
+    /// let mut c = Complex::with_val(53, (Special::NegZero, Special::Zero));
+    /// assert!(c.eq0());
+    /// c += 5.2;
+    /// assert!(!c.eq0());
+    /// c.mut_real().assign(Special::Nan);
+    /// assert!(!c.eq0());
+    /// ```
+    ///
+    /// [`eq`]: https://doc.rust-lang.org/std/cmp/trait.PartialEq.html#tymethod.eq
+    #[inline]
+    pub fn eq0(&self) -> bool {
+        self.real().cmp0() == Some(Ordering::Equal)
+            && self.imag().cmp0() == Some(Ordering::Equal)
+    }
+
     /// Compares the absolute values of `self` and `other`.
     ///
     /// # Examples

@@ -3,6 +3,7 @@ Version 1.0.1
 
 * Add `Integer::secure_pow_mod` methods.
 * Add `Integer::div_rem_round` methods.
+* Add `Complex::eq0` method.
 
 Version 1.0.0 (2018-03-03)
 ==========================
