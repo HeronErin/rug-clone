@@ -172,7 +172,7 @@ impl<'a> RandState<'a> {
     /// mod 2<sup>*bits*</sup>, *a*, *c* and *bits* are selected from
     /// a table such that at least *size* bits of each *X* will be
     /// used, that is *bits* ≥ *size*. The table only has values for a
-    /// size of up to 256 bits; `None` will be returned if the
+    /// size of up to 256 bits; [`None`][No] will be returned if the
     /// requested size is larger.
     ///
     /// # Examples
@@ -187,6 +187,7 @@ impl<'a> RandState<'a> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
+    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     /// [cong]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
@@ -206,7 +207,7 @@ impl<'a> RandState<'a> {
     ///
     /// If the custom random generator is cloned, the implemented
     /// trait method [`RandGen::boxed_clone`][boxed clone] is called;
-    /// this leads to panic if the method returns `None`.
+    /// this leads to panic if the method returns [`None`][No].
     ///
     /// # Examples
     ///
@@ -225,6 +226,7 @@ impl<'a> RandState<'a> {
     /// assert!(i < 15);
     /// ```
     ///
+    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     /// [boxed_clone]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom(custom: &'a mut RandGen) -> RandState<'a> {
         let b: Box<&'a mut RandGen> = Box::new(custom);
@@ -248,7 +250,7 @@ impl<'a> RandState<'a> {
     ///
     /// If the custom random generator is cloned, the implemented
     /// trait method [`RandGen::boxed_clone`][boxed clone] is called;
-    /// this leads to panic if the method returns `None`.
+    /// this leads to panic if the method returns [No].
     ///
     /// # Examples
     ///
@@ -267,6 +269,7 @@ impl<'a> RandState<'a> {
     /// assert!(i < 15);
     /// ```
     ///
+    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     /// [boxed_clone]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom_boxed(custom: Box<RandGen>) -> RandState<'a> {
         let b: Box<Box<RandGen>> = Box::new(custom);
@@ -314,6 +317,10 @@ impl<'a> RandState<'a> {
 
     /// Generates a random number with the specified number of bits.
     ///
+    /// # Panics
+    ///
+    /// Panics if `bits` is greater than 32.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -323,10 +330,6 @@ impl<'a> RandState<'a> {
     /// assert!(u < (1 << 16));
     /// println!("16 random bits: {:016b}", u);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `bits` is greater than 32.
     #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
         assert!(bits <= 32, "bits out of range");
@@ -337,8 +340,11 @@ impl<'a> RandState<'a> {
     ///
     /// This function can never return the maximum 32-bit value; in
     /// order to generate a 32-bit random value that covers the whole
-    /// range, use the [`bits`](#method.bits) method with `bits` set
-    /// to 32.
+    /// range, use the [`bits`] method with `bits` set to 32.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is zero.
     ///
     /// # Examples
     ///
@@ -350,9 +356,7 @@ impl<'a> RandState<'a> {
     /// println!("0 ≤ {} < 10000", u);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the boundary value is zero.
+    /// [`bits`]: #method.bits
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
@@ -489,8 +493,7 @@ impl<'a> RandState<'a> {
     }
 }
 
-/// Custom random number generator to be used with
-/// [`RandState`](struct.RandState.html).
+/// Custom random number generator to be used with [`RandState`].
 ///
 /// # Examples
 ///
@@ -514,6 +517,8 @@ impl<'a> RandState<'a> {
 /// assert_eq!(rand.gen(), 1481765933);
 /// assert_eq!(rand.seed, 6364136223846793006);
 /// ```
+///
+/// [`RandState`]: struct.RandState.html
 pub trait RandGen: Send + Sync {
     /// Gets a random 32-bit unsigned integer.
     ///
@@ -543,9 +548,8 @@ pub trait RandGen: Send + Sync {
 
     /// Gets up to 32 random bits.
     ///
-    /// The default implementation simply calls the
-    /// [`gen`](#tymethod.gen) method once and returns the most
-    /// significant required bits.
+    /// The default implementation simply calls the [`gen`] method
+    /// once and returns the most significant required bits.
     ///
     /// This method can be overridden to store any unused bits for
     /// later use. This can be useful for example if the random number
@@ -591,6 +595,8 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(rand.gen_bits(32), (full >> 16) as u32);
     /// assert_eq!(rand.gen_bits(16), full as u32 & 0xffff);
     /// ```
+    ///
+    /// [`gen`]: #tymethod.gen
     fn gen_bits(&mut self, bits: u32) -> u32 {
         let gen = self.gen();
         match bits {
@@ -665,7 +671,7 @@ pub trait RandGen: Send + Sync {
 
     /// Optionally clones the random number generator.
     ///
-    /// The default implementation returns `None`.
+    /// The default implementation returns [`None`][No].
     ///
     /// # Examples
     ///
@@ -697,6 +703,8 @@ pub trait RandGen: Send + Sync {
     /// let second_other = other.gen();
     /// assert_eq!(second_other, 3232861391);
     /// ```
+    ///
+    /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     #[inline]
     fn boxed_clone(&self) -> Option<Box<RandGen>> {
         None

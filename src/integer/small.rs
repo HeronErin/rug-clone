@@ -27,18 +27,17 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// A small integer that does not require any memory allocation.
 ///
 /// This can be useful when you have a primitive integer type such as
-/// `u64` or `i8`, but need a reference to an
-/// [`Integer`](../struct.Integer.html).
+/// [`u64`] or [`i8`], but need a reference to an
+/// [`Integer`].
 ///
-/// If there are functions that take a `u32` or `i32` directly instead
-/// of an [`Integer`](../struct.Integer.html) reference, using them can
-/// still be faster than using a `SmallInteger`; the functions would
-/// still need to check for the size of an `Integer` obtained using
+/// If there are functions that take a [`u32`] or [`i32`] directly
+/// instead of an [`Integer`] reference, using them can still be
+/// faster than using a `SmallInteger`; the functions would still need
+/// to check for the size of an [`Integer`] obtained using
 /// `SmallInteger`.
 ///
-/// The `SmallInteger` type can be coerced to an
-/// [`Integer`](../struct.Integer.html), as it implements
-/// `Deref<Target = Integer>`.
+/// The `SmallInteger` type can be coerced to an [`Integer`], as it
+/// implements [`Deref<Target = Integer>`][`Deref`].
 ///
 /// # Examples
 ///
@@ -55,6 +54,13 @@ use std::sync::atomic::{AtomicPtr, Ordering};
 /// a.lcm_mut(&SmallInteger::from(30));
 /// assert_eq!(a, 1500);
 /// ```
+///
+/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+/// [`Integer`]: ../struct.Integer.html
+/// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
+/// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
+/// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+/// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
 #[derive(Clone)]
 #[repr(C)]
 pub struct SmallInteger {
@@ -98,8 +104,7 @@ impl Default for SmallInteger {
 }
 
 impl SmallInteger {
-    /// Creates a [`SmallInteger`](struct.SmallInteger.html) with
-    /// value 0.
+    /// Creates a [`SmallInteger`] with value 0.
     ///
     /// # Examples
     ///
@@ -109,6 +114,8 @@ impl SmallInteger {
     /// // Borrow i as if it were Integer.
     /// assert_eq!(*i, 0);
     /// ```
+    ///
+    /// [`SmallInteger`]: struct.SmallInteger.html
     #[inline]
     pub fn new() -> Self {
         SmallInteger {
@@ -121,16 +128,15 @@ impl SmallInteger {
         }
     }
 
-    /// Returns a mutable reference to an
-    /// [`Integer`](../struct.Integer.html) for simple operations that
-    /// do not need to allocate more space for the number.
+    /// Returns a mutable reference to an [`Integer`] for simple
+    /// operations that do not need to allocate more space for the
+    /// number.
     ///
     /// # Safety
     ///
     /// It is undefined behaviour to perform operations that
-    /// reallocate the internal data of the referenced
-    /// [`Integer`](../struct.Integer.html) or to swap it with another
-    /// number.
+    /// reallocate the internal data of the referenced [`Integer`] or
+    /// to swap it with another number.
     ///
     /// Some GMP functions swap the allocations of their target
     /// operands; calling such functions with the mutable reference
@@ -150,6 +156,8 @@ impl SmallInteger {
     /// assert_eq!(*i, 2);
     /// assert_eq!(i.capacity(), capacity);
     /// ```
+    ///
+    /// [`Integer`]: ../struct.Integer.html
     #[inline]
     pub unsafe fn as_nonreallocating_integer(&mut self) -> &mut Integer {
         self.update_d();

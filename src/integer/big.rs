@@ -152,8 +152,9 @@ use std::slice;
 /// three versions:
 ///
 /// 1. The first method consumes the operand.
-/// 2. The second method has a `_mut` suffix and mutates the operand.
-/// 3. The third method has a `_ref` suffix and borrows the operand.
+/// 2. The second method has a “`_mut`” suffix and mutates the
+///    operand.
+/// 3. The third method has a “`_ref`” suffix and borrows the operand.
 ///    The returned item is an
 ///    [incomplete-computation value][incomplete] that can be assigned
 ///    to an `Integer`.
@@ -186,8 +187,7 @@ pub struct Integer {
 }
 
 impl Integer {
-    /// Constructs a new arbitrary-precision
-    /// [`Integer`](struct.Integer.html) with value 0.
+    /// Constructs a new arbitrary-precision [`Integer`] with value 0.
     ///
     /// # Examples
     ///
@@ -196,6 +196,8 @@ impl Integer {
     /// let i = Integer::new();
     /// assert_eq!(i, 0);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn new() -> Self {
         unsafe {
@@ -205,9 +207,8 @@ impl Integer {
         }
     }
 
-    /// Constructs a new arbitrary-precision
-    /// [`Integer`](struct.Integer.html) with at least the specified
-    /// capacity.
+    /// Constructs a new arbitrary-precision [`Integer`] with at least
+    /// the specified capacity.
     ///
     /// # Examples
     ///
@@ -216,6 +217,8 @@ impl Integer {
     /// let i = Integer::with_capacity(137);
     /// assert!(i.capacity() >= 137);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         unsafe {
@@ -242,7 +245,7 @@ impl Integer {
     }
 
     /// Reserves capacity for at least `additional` more bits in the
-    /// [`Integer`](struct.Integer.html).
+    /// [`Integer`].
     ///
     /// If the integer already has enough excess capacity, this
     /// function does nothing.
@@ -261,6 +264,8 @@ impl Integer {
     /// i.reserve(35);
     /// assert!(i.capacity() >= 65);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     pub fn reserve(&mut self, additional: usize) {
         if additional == 0 {
             return;
@@ -274,8 +279,7 @@ impl Integer {
         }
     }
 
-    /// Shrinks the capacity of the [`Integer`](struct.Integer.html)
-    /// as much as possible.
+    /// Shrinks the capacity of the [`Integer`] as much as possible.
     ///
     /// The capacity can still be larger than the number of
     /// significant bits.
@@ -292,6 +296,8 @@ impl Integer {
     /// i.shrink_to_fit();
     /// assert!(i.capacity() >= 20);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     pub fn shrink_to_fit(&mut self) {
         let used_bits = significant_bits_usize(self);
         unsafe {
@@ -299,8 +305,8 @@ impl Integer {
         }
     }
 
-    /// Creates an [`Integer`](struct.Integer.html) from an `f32` if
-    /// it is finite, rounding towards zero.
+    /// Creates an [`Integer`] from an [`f32`] if it is finite,
+    /// rounding towards zero.
     ///
     /// # Examples
     ///
@@ -312,13 +318,16 @@ impl Integer {
     /// let neg_inf = Integer::from_f32(f32::NEG_INFINITY);
     /// assert!(neg_inf.is_none());
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn from_f32(val: f32) -> Option<Self> {
         Integer::from_f64(val.into())
     }
 
-    /// Creates an [`Integer`](struct.Integer.html) from an `f64` if
-    /// it is finite, rounding towards zero.
+    /// Creates an [`Integer`] from an [`f64`] if it is finite,
+    /// rounding towards zero.
     ///
     /// # Examples
     ///
@@ -330,6 +339,9 @@ impl Integer {
     /// let inf = Integer::from_f64(f64::INFINITY);
     /// assert!(inf.is_none());
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
@@ -343,8 +355,11 @@ impl Integer {
         }
     }
 
-    /// Parses an [`Integer`](struct.Integer.html) using the given
-    /// radix.
+    /// Parses an [`Integer`] using the given radix.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -354,9 +369,7 @@ impl Integer {
     /// assert_eq!(i, -0xff);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn from_str_radix(
         src: &str,
@@ -365,12 +378,13 @@ impl Integer {
         Ok(Integer::from(Integer::parse_radix(src, radix)?))
     }
 
-    /// Parses a decimal string or byte slice into an
-    /// [`Integer`](struct.Integer.html).
+    /// Parses a decimal string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into an [`Integer`].
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -392,6 +406,13 @@ impl Integer {
     /// let invalid = Integer::parse("789a");
     /// assert!(invalid.is_err());
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
@@ -399,17 +420,22 @@ impl Integer {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into an
-    /// [`Integer`](struct.Integer.html).
+    /// Parses a string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into an [`Integer`].
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
     /// Underscores anywhere except before the first digit are ignored
     /// as well.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -427,9 +453,12 @@ impl Integer {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
@@ -438,7 +467,7 @@ impl Integer {
         parse(src.as_ref(), radix)
     }
 
-    /// Converts to an `i8` if the value fits.
+    /// Converts to an [`i8`] if the value fits.
     ///
     /// # Examples
     ///
@@ -451,6 +480,8 @@ impl Integer {
     /// let large = Integer::from(200);
     /// assert_eq!(large.to_i8(), None);
     /// ```
+    ///
+    /// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
         if unsafe { xgmp::mpz_fits_i8(self.inner()) } {
@@ -460,7 +491,7 @@ impl Integer {
         }
     }
 
-    /// Converts to an `i16` if the value fits.
+    /// Converts to an [`i16`] if the value fits.
     ///
     /// # Examples
     ///
@@ -473,6 +504,8 @@ impl Integer {
     /// let large = Integer::from(40_000);
     /// assert_eq!(large.to_i16(), None);
     /// ```
+    ///
+    /// [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
         if unsafe { xgmp::mpz_fits_i16(self.inner()) } {
@@ -482,7 +515,7 @@ impl Integer {
         }
     }
 
-    /// Converts to an `i32` if the value fits.
+    /// Converts to an [`i32`] if the value fits.
     ///
     /// # Examples
     ///
@@ -495,6 +528,8 @@ impl Integer {
     /// let large = Integer::from(123456789012345_i64);
     /// assert_eq!(large.to_i32(), None);
     /// ```
+    ///
+    /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
         if unsafe { xgmp::mpz_fits_i32(self.inner()) } {
@@ -504,7 +539,7 @@ impl Integer {
         }
     }
 
-    /// Converts to an `i64` if the value fits.
+    /// Converts to an [`i64`] if the value fits.
     ///
     /// # Examples
     ///
@@ -517,6 +552,8 @@ impl Integer {
     /// let large = Integer::from_str_radix("fedcba9876543210", 16).unwrap();
     /// assert_eq!(large.to_i64(), None);
     /// ```
+    ///
+    /// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
         if unsafe { xgmp::mpz_fits_i64(self.inner()) } {
@@ -526,7 +563,7 @@ impl Integer {
         }
     }
 
-    /// Converts to an `isize` if the value fits.
+    /// Converts to an [`isize`] if the value fits.
     ///
     /// # Examples
     ///
@@ -537,6 +574,8 @@ impl Integer {
     /// let large: Integer = Integer::from(0x1000) << 128;
     /// assert_eq!(large.to_isize(), None);
     /// ```
+    ///
+    /// [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
         #[cfg(target_pointer_width = "32")]
@@ -549,7 +588,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u8` if the value fits.
+    /// Converts to a [`u8`] if the value fits.
     ///
     /// # Examples
     ///
@@ -562,6 +601,8 @@ impl Integer {
     /// let large = Integer::from(300);
     /// assert_eq!(large.to_u8(), None);
     /// ```
+    ///
+    /// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
         if unsafe { xgmp::mpz_fits_u8(self.inner()) } {
@@ -571,7 +612,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u16` if the value fits.
+    /// Converts to a [`u16`] if the value fits.
     ///
     /// # Examples
     ///
@@ -584,6 +625,8 @@ impl Integer {
     /// let large = Integer::from(70_000);
     /// assert_eq!(large.to_u16(), None);
     /// ```
+    ///
+    /// [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
         if unsafe { xgmp::mpz_fits_u16(self.inner()) } {
@@ -593,7 +636,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u32` if the value fits.
+    /// Converts to a [`u32`] if the value fits.
     ///
     /// # Examples
     ///
@@ -606,6 +649,8 @@ impl Integer {
     /// let large = Integer::from(123456789012345_u64);
     /// assert_eq!(large.to_u32(), None);
     /// ```
+    ///
+    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
         if unsafe { xgmp::mpz_fits_u32(self.inner()) } {
@@ -615,7 +660,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u64` if the value fits.
+    /// Converts to a [`u64`] if the value fits.
     ///
     /// # Examples
     ///
@@ -628,6 +673,8 @@ impl Integer {
     /// let large = "1234567890123456789012345".parse::<Integer>().unwrap();
     /// assert_eq!(large.to_u64(), None);
     /// ```
+    ///
+    /// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
         if unsafe { xgmp::mpz_fits_u64(self.inner()) } {
@@ -637,7 +684,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `usize` if the value fits.
+    /// Converts to a [`usize`] if the value fits.
     ///
     /// # Examples
     ///
@@ -650,6 +697,8 @@ impl Integer {
     /// let large: Integer = Integer::from(0x1000) << 128;
     /// assert_eq!(large.to_usize(), None);
     /// ```
+    ///
+    /// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
         #[cfg(target_pointer_width = "32")]
@@ -662,7 +711,7 @@ impl Integer {
         }
     }
 
-    /// Converts to an `i8`, wrapping if the value does not fit.
+    /// Converts to an [`i8`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -671,12 +720,14 @@ impl Integer {
     /// let large = Integer::from(0x1234);
     /// assert_eq!(large.to_i8_wrapping(), 0x34);
     /// ```
+    ///
+    /// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
     #[inline]
     pub fn to_i8_wrapping(&self) -> i8 {
         self.to_u8_wrapping() as i8
     }
 
-    /// Converts to an `i16`, wrapping if the value does not fit.
+    /// Converts to an [`i16`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -685,12 +736,14 @@ impl Integer {
     /// let large = Integer::from(0x1234_5678);
     /// assert_eq!(large.to_i16_wrapping(), 0x5678);
     /// ```
+    ///
+    /// [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
     #[inline]
     pub fn to_i16_wrapping(&self) -> i16 {
         self.to_u16_wrapping() as i16
     }
 
-    /// Converts to an `i32`, wrapping if the value does not fit.
+    /// Converts to an [`i32`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -699,12 +752,14 @@ impl Integer {
     /// let large = Integer::from(0x1234_5678_9abc_def0_u64);
     /// assert_eq!(large.to_i32_wrapping(), 0x9abc_def0_u32 as i32);
     /// ```
+    ///
+    /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
     #[inline]
     pub fn to_i32_wrapping(&self) -> i32 {
         self.to_u32_wrapping() as i32
     }
 
-    /// Converts to an `i64`, wrapping if the value does not fit.
+    /// Converts to an [`i64`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -713,12 +768,14 @@ impl Integer {
     /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
     /// assert_eq!(large.to_i64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
+    ///
+    /// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
     #[inline]
     pub fn to_i64_wrapping(&self) -> i64 {
         self.to_u64_wrapping() as i64
     }
 
-    /// Converts to an `isize`, wrapping if the value does not fit.
+    /// Converts to an [`isize`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -727,12 +784,14 @@ impl Integer {
     /// let large: Integer = (Integer::from(0x1000) << 128) | 0x1234;
     /// assert_eq!(large.to_isize_wrapping(), 0x1234);
     /// ```
+    ///
+    /// [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
     #[inline]
     pub fn to_isize_wrapping(&self) -> isize {
         self.to_usize_wrapping() as isize
     }
 
-    /// Converts to a `u8`, wrapping if the value does not fit.
+    /// Converts to a [`u8`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -743,6 +802,8 @@ impl Integer {
     /// let large = Integer::from(0x1234);
     /// assert_eq!(large.to_u8_wrapping(), 0x34);
     /// ```
+    ///
+    /// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
     #[inline]
     pub fn to_u8_wrapping(&self) -> u8 {
         let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) as u8 };
@@ -753,7 +814,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u16`, wrapping if the value does not fit.
+    /// Converts to a [`u16`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -764,6 +825,8 @@ impl Integer {
     /// let large = Integer::from(0x1234_5678);
     /// assert_eq!(large.to_u16_wrapping(), 0x5678);
     /// ```
+    ///
+    /// [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
     #[inline]
     pub fn to_u16_wrapping(&self) -> u16 {
         let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) as u16 };
@@ -774,7 +837,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u32`, wrapping if the value does not fit.
+    /// Converts to a [`u32`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -785,6 +848,8 @@ impl Integer {
     /// let large = Integer::from(0x1234_5678_9abc_def0_u64);
     /// assert_eq!(large.to_u32_wrapping(), 0x9abc_def0);
     /// ```
+    ///
+    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
         let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) };
@@ -795,7 +860,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `u64`, wrapping if the value does not fit.
+    /// Converts to a [`u64`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -806,6 +871,8 @@ impl Integer {
     /// let large = Integer::from_str_radix("f123456789abcdef0", 16).unwrap();
     /// assert_eq!(large.to_u64_wrapping(), 0x1234_5678_9abc_def0);
     /// ```
+    ///
+    /// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
         let u = unsafe { xgmp::mpz_get_abs_u64(self.inner()) };
@@ -816,7 +883,7 @@ impl Integer {
         }
     }
 
-    /// Converts to a `usize`, wrapping if the value does not fit.
+    /// Converts to a [`usize`], wrapping if the value does not fit.
     ///
     /// # Examples
     ///
@@ -825,6 +892,8 @@ impl Integer {
     /// let large: Integer = (Integer::from(0x1000) << 128) | 0x1234;
     /// assert_eq!(large.to_usize_wrapping(), 0x1234);
     /// ```
+    ///
+    /// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
     #[inline]
     pub fn to_usize_wrapping(&self) -> usize {
         #[cfg(target_pointer_width = "32")]
@@ -837,7 +906,7 @@ impl Integer {
         }
     }
 
-    /// Converts to an `f32`, rounding towards zero.
+    /// Converts to an [`f32`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -852,12 +921,14 @@ impl Integer {
     /// // times_two is too small
     /// assert_eq!(times_two.to_f32(), f32::NEG_INFINITY);
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
         misc::trunc_f64_to_f32(self.to_f64())
     }
 
-    /// Converts to an `f64`, rounding towards zero.
+    /// Converts to an [`f64`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -885,15 +956,17 @@ impl Integer {
     /// // times_two is too large
     /// assert_eq!(times_two.to_f64(), f64::INFINITY);
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpz_get_d(self.inner()) }
     }
 
-    /// Converts to an `f32` and an exponent, rounding towards zero.
+    /// Converts to an [`f32`] and an exponent, rounding towards zero.
     ///
-    /// The returned `f32` is in the range 0.5 ≤ *x* < 1. If the value
-    /// is zero, `(0.0, 0)` is returned.
+    /// The returned [`f32`] is in the range 0.5 ≤ *x* < 1. If the
+    /// value is zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -906,6 +979,8 @@ impl Integer {
     /// let (d15, exp15) = fifteen.to_f32_exp();
     /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, u32) {
         let (f, exp) = self.to_f64_exp();
@@ -913,10 +988,10 @@ impl Integer {
         (trunc_f, exp)
     }
 
-    /// Converts to an `f64` and an exponent, rounding towards zero.
+    /// Converts to an [`f64`] and an exponent, rounding towards zero.
     ///
-    /// The returned `f64` is in the range 0.5 ≤ *x* < 1. If the value
-    /// is zero, `(0.0, 0)` is returned.
+    /// The returned [`f64`] is in the range 0.5 ≤ *x* < 1. If the
+    /// value is zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -929,6 +1004,8 @@ impl Integer {
     /// let (d15, exp15) = fifteen.to_f64_exp();
     /// assert_eq!((d15, exp15), (15.0 / 16.0, 4));
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let mut exp: c_long = 0;
@@ -938,6 +1015,10 @@ impl Integer {
 
     /// Returns a string representation of the number for the
     /// specified `radix`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -952,10 +1033,6 @@ impl Integer {
     /// i.assign(Integer::parse_radix("123456789aAbBcCdDeEfF", 16).unwrap());
     /// assert_eq!(i.to_string_radix(16), "123456789aabbccddeeff");
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
         let mut s = String::new();
@@ -963,7 +1040,7 @@ impl Integer {
         s
     }
 
-    /// Assigns from an `f32` if it is finite, rounding towards zero.
+    /// Assigns from an [`f32`] if it is finite, rounding towards zero.
     ///
     /// # Examples
     ///
@@ -978,12 +1055,15 @@ impl Integer {
     /// assert!(ret.is_err());
     /// assert_eq!(i, -12);
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an `f64` if it is finite, rounding towards zero.
+    /// Assigns from an [`f64`] if it is finite, rounding towards
+    /// zero.
     ///
     /// # Examples
     ///
@@ -997,6 +1077,8 @@ impl Integer {
     /// assert!(ret.is_err());
     /// assert_eq!(i, 12);
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
@@ -1009,8 +1091,7 @@ impl Integer {
         }
     }
 
-    /// Creates an [`Integer`](struct.Integer.html) from an
-    /// initialized GMP integer.
+    /// Creates an [`Integer`] from an initialized GMP integer.
     ///
     /// # Safety
     ///
@@ -1039,13 +1120,14 @@ impl Integer {
     ///     // since i is an Integer now, deallocation is automatic
     /// }
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
     }
 
-    /// Converts an [`Integer`](struct.Integer.html) into a GMP
-    /// integer.
+    /// Converts an [`Integer`] into a GMP integer.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -1067,6 +1149,8 @@ impl Integer {
     ///     }
     /// }
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn into_raw(self) -> mpz_t {
         let ret = self.inner;
@@ -1128,10 +1212,10 @@ impl Integer {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows a negated copy of the
-    /// [`Integer`](struct.Integer.html).
+    /// Borrows a negated copy of the [`Integer`].
     ///
-    /// The returned object implements `Deref<Target = Integer>`.
+    /// The returned object implements
+    /// [`Deref<Target = Integer>`][`Deref`].
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1148,6 +1232,9 @@ impl Integer {
     /// assert_eq!(*reneg_i, 42);
     /// assert_eq!(*reneg_i, i);
     /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn as_neg(&self) -> BorrowInteger {
         let mut ret = BorrowInteger {
@@ -1160,7 +1247,8 @@ impl Integer {
 
     /// Borrows an absolute copy of the `Integer`.
     ///
-    /// The returned object implements `Deref<Target = Integer>`.
+    /// The returned object implements
+    /// [`Deref<Target = Integer>`][`Deref`].
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1177,6 +1265,8 @@ impl Integer {
     /// assert_eq!(*reabs_i, 42);
     /// assert_eq!(*reabs_i, *abs_i);
     /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
     #[inline]
     pub fn as_abs(&self) -> BorrowInteger {
         let mut ret = BorrowInteger {
@@ -1187,7 +1277,7 @@ impl Integer {
         ret
     }
 
-    /// Returns `true` if the number is even.
+    /// Returns [`true`] if the number is even.
     ///
     /// # Examples
     ///
@@ -1196,12 +1286,14 @@ impl Integer {
     /// assert!(!(Integer::from(13).is_even()));
     /// assert!(Integer::from(-14).is_even());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_even(&self) -> bool {
         unsafe { gmp::mpz_even_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if the number is odd.
+    /// Returns [`true`] if the number is odd.
     ///
     /// # Examples
     ///
@@ -1210,12 +1302,14 @@ impl Integer {
     /// assert!(Integer::from(13).is_odd());
     /// assert!(!Integer::from(-14).is_odd());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_odd(&self) -> bool {
         unsafe { gmp::mpz_odd_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if the number is divisible by `divisor`. Unlike
+    /// Returns [`true`] if the number is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
     ///
     /// # Examples
@@ -1227,12 +1321,14 @@ impl Integer {
     /// assert!(!i.is_divisible(&Integer::from(100)));
     /// assert!(!i.is_divisible(&Integer::new()));
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_divisible(&self, divisor: &Self) -> bool {
         unsafe { gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0 }
     }
 
-    /// Returns `true` if the number is divisible by `divisor`. Unlike
+    /// Returns [`true`] if the number is divisible by `divisor`. Unlike
     /// other division functions, `divisor` can be zero.
     ///
     /// # Examples
@@ -1244,12 +1340,14 @@ impl Integer {
     /// assert!(!i.is_divisible_u(100));
     /// assert!(!i.is_divisible_u(0));
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
         unsafe { gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0 }
     }
 
-    /// Returns `true` if the number is divisible by 2<sup>*b*</sup>.
+    /// Returns [`true`] if the number is divisible by 2<sup>*b*</sup>.
     ///
     /// # Examples
     ///
@@ -1260,19 +1358,20 @@ impl Integer {
     /// assert!(i.is_divisible_2pow(17));
     /// assert!(!i.is_divisible_2pow(18));
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_2pow(&self, b: u32) -> bool {
         unsafe { gmp::mpz_divisible_2exp_p(self.inner(), b.into()) != 0 }
     }
 
-    /// Returns `true` if the number is congruent to *c* mod
+    /// Returns [`true`] if the number is congruent to *c* mod
     /// *divisor*, that is, if there exists a *q* such that `self` =
     /// *c* + *q* × *divisor*. Unlike other division functions,
     /// `divisor` can be zero.
     ///
     /// # Examples
     ///
-
     /// ```rust
     /// use rug::Integer;
     /// let n = Integer::from(105);
@@ -1283,6 +1382,8 @@ impl Integer {
     /// // n is congruent to itself if divisor is 0
     /// assert!(n.is_congruent(&n, &Integer::from(0)));
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_congruent(&self, c: &Self, divisor: &Self) -> bool {
         unsafe {
@@ -1290,7 +1391,7 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is congruent to *c* mod
+    /// Returns [`true`] if the number is congruent to *c* mod
     /// *divisor*, that is, if there exists a *q* such that `self` =
     /// *c* + *q* × *divisor*. Unlike other division functions,
     /// `divisor` can be zero.
@@ -1305,6 +1406,8 @@ impl Integer {
     /// // n is congruent to itself if divisor is 0
     /// assert!(n.is_congruent_u(105, 0));
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
         unsafe {
@@ -1312,7 +1415,7 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is congruent to *c* mod
+    /// Returns [`true`] if the number is congruent to *c* mod
     /// 2<sup>*b*</sup>, that is, if there exists a *q* such that
     /// `self` = *c* + *q* × 2<sup>*b*</sup>.
     ///
@@ -1324,6 +1427,8 @@ impl Integer {
     /// assert!(n.is_congruent_2pow(&Integer::from(7 << 17 | 21), 17));
     /// assert!(!n.is_congruent_2pow(&Integer::from(13 << 17 | 22), 17));
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
         unsafe {
@@ -1331,7 +1436,7 @@ impl Integer {
         }
     }
 
-    /// Returns `true` if the number is a perfect power.
+    /// Returns [`true`] if the number is a perfect power.
     ///
     /// # Examples
     ///
@@ -1347,12 +1452,14 @@ impl Integer {
     /// i.assign(10);
     /// assert!(!i.is_perfect_power());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_power(&self) -> bool {
         unsafe { gmp::mpz_perfect_power_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if the number is a perfect square.
+    /// Returns [`true`] if the number is a perfect square.
     ///
     /// # Examples
     ///
@@ -1365,6 +1472,8 @@ impl Integer {
     /// i.assign(15);
     /// assert!(!i.is_perfect_square());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_square(&self) -> bool {
         unsafe { gmp::mpz_perfect_square_p(self.inner()) != 0 }
@@ -1492,8 +1601,8 @@ impl Integer {
         bitcount_to_u32(unsafe { gmp::mpz_scan1(self.inner(), start.into()) })
     }
 
-    /// Sets the bit at location `index` to 1 if `val` is `true` or 0
-    /// if `val` is `false`.
+    /// Sets the bit at location `index` to 1 if `val` is [`true`] or
+    /// 0 if `val` is [`false`].
     ///
     /// # Examples
     ///
@@ -1504,6 +1613,9 @@ impl Integer {
     /// i.assign(0xff);
     /// assert_eq!(*i.set_bit(11, true), 0x8ff);
     /// ```
+    ///
+    /// [`false`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Self {
         unsafe {
@@ -1516,8 +1628,8 @@ impl Integer {
         self
     }
 
-    /// Returns `true` if the bit at location `index` is 1 or `false`
-    /// if the bit is 0.
+    /// Returns [`true`] if the bit at location `index` is 1 or
+    /// [`false`] if the bit is 0.
     ///
     /// # Examples
     ///
@@ -1530,6 +1642,9 @@ impl Integer {
     /// let neg = Integer::from(-1);
     /// assert!(neg.get_bit(1000));
     /// ```
+    ///
+    /// [`false`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn get_bit(&self, index: u32) -> bool {
         unsafe { gmp::mpz_tstbit(self.inner(), index.into()) != 0 }
@@ -1601,9 +1716,9 @@ impl Integer {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1615,6 +1730,10 @@ impl Integer {
         /// assert_eq!(abs, 100);
         /// assert_eq!(i, -100);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn abs_ref -> AbsIncomplete;
     }
     math_op1! {
@@ -1655,9 +1774,9 @@ impl Integer {
         /// * 1 if the value is positive
         /// * −1 if the value is negative
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1669,10 +1788,18 @@ impl Integer {
         /// assert_eq!(signum, -1);
         /// assert_eq!(i, -100);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn signum_ref -> SignumIncomplete;
     }
 
     /// Clamps the value within the specified bounds.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
     ///
     /// # Examples
     ///
@@ -1687,10 +1814,6 @@ impl Integer {
     /// let clamped2 = in_range.clamp(&min, &max);
     /// assert_eq!(clamped2, 3);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value.
     #[inline]
     pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
@@ -1705,6 +1828,10 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1718,10 +1845,6 @@ impl Integer {
     /// in_range.clamp_mut(&min, &max);
     /// assert_eq!(in_range, 3);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value.
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
         Self: PartialOrd<Min>
@@ -1740,9 +1863,13 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the returned
-    /// object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
     ///
     /// # Examples
     ///
@@ -1760,9 +1887,9 @@ impl Integer {
     /// assert_eq!(clamped2, 3);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value.
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'a, Min, Max>(
         &'a self,
@@ -1808,9 +1935,9 @@ impl Integer {
         fn keep_bits_mut;
         /// Keeps the *n* least significant bits only.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1821,6 +1948,10 @@ impl Integer {
         /// let eight_bits = Integer::from(r);
         /// assert_eq!(eight_bits, 0xff);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn keep_bits_ref -> KeepBitsIncomplete;
     }
     math_op1! {
@@ -1852,9 +1983,9 @@ impl Integer {
         fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1865,6 +1996,10 @@ impl Integer {
         /// let next = Integer::from(r);
         /// assert_eq!(next, 64);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn next_power_of_two_ref -> NextPowerOfTwoIncomplete;
     }
     math_op2_2! {
@@ -1873,6 +2008,10 @@ impl Integer {
         /// remainder.
         ///
         /// The remainder has the same sign as the dividend.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -1884,10 +2023,6 @@ impl Integer {
         /// assert_eq!(quotient, -2);
         /// assert_eq!(rem, 3);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem(divisor);
         /// Performs a division producing both the quotient and
         /// remainder.
@@ -1896,6 +2031,10 @@ impl Integer {
         ///
         /// The quotient is stored in `self` and the remainder is
         /// stored in `divisor`.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -1907,18 +2046,15 @@ impl Integer {
         /// assert_eq!(dividend_quotient, -2);
         /// assert_eq!(divisor_rem, -3);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_mut;
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// The remainder has the same sign as the dividend.
         ///
@@ -1934,7 +2070,9 @@ impl Integer {
         /// assert_eq!(rem, -3);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_rem_ref -> DivRemIncomplete;
     }
     math_op2_2! {
@@ -1944,6 +2082,10 @@ impl Integer {
         ///
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -1955,10 +2097,6 @@ impl Integer {
         /// assert_eq!(quotient, -2);
         /// assert_eq!(rem, 3);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_ceil(divisor);
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
@@ -1968,6 +2106,10 @@ impl Integer {
         ///
         /// The quotient is stored in `self` and the remainder is
         /// stored in `divisor`.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -1979,10 +2121,6 @@ impl Integer {
         /// assert_eq!(dividend_quotient, -2);
         /// assert_eq!(divisor_rem, -3);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_ceil_mut;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
@@ -1990,10 +2128,11 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2007,7 +2146,9 @@ impl Integer {
         /// assert_eq!(rem, 7);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_rem_ceil_ref -> DivRemCeilIncomplete;
     }
     math_op2_2! {
@@ -2016,6 +2157,10 @@ impl Integer {
         /// remainder, with the quotient rounded down.
         ///
         /// The remainder has the same sign as the divisor.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2027,10 +2172,6 @@ impl Integer {
         /// assert_eq!(quotient, -3);
         /// assert_eq!(rem, -7);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_floor(divisor);
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
@@ -2039,6 +2180,10 @@ impl Integer {
         ///
         /// The quotient is stored in `self` and the remainder is
         /// stored in `divisor`.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2050,20 +2195,17 @@ impl Integer {
         /// assert_eq!(dividend_quotient, -3);
         /// assert_eq!(divisor_rem, 7);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_floor_mut;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
         ///
         /// The remainder has the same sign as the divisor.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2077,7 +2219,9 @@ impl Integer {
         /// assert_eq!(rem, -3);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
     math_op2_2! {
@@ -2088,6 +2232,10 @@ impl Integer {
         ///
         /// When the quotient before rounding lies exactly between two
         /// integers, it is rounded away from zero.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2103,10 +2251,6 @@ impl Integer {
         /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
         /// assert!(q == -3 && rem == 3);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_round(divisor);
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded to the nearest
@@ -2114,6 +2258,10 @@ impl Integer {
         ///
         /// When the quotient before rounding lies exactly between two
         /// integers, it is rounded away from zero.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2126,10 +2274,6 @@ impl Integer {
         /// assert_eq!(dividend_quotient, 3);
         /// assert_eq!(divisor_rem, 5);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_round_mut;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded to the nearest
@@ -2138,10 +2282,11 @@ impl Integer {
         /// When the quotient before rounding lies exactly between two
         /// integers, it is rounded away from zero.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2156,13 +2301,19 @@ impl Integer {
         /// assert_eq!(rem, 2);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_rem_round_ref -> DivRemRoundIncomplete;
     }
     math_op2_2! {
         xgmp::mpz_ediv_qr_check;
         /// Performs Euclidean division producing both the quotient
         /// and remainder, with a positive remainder.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2174,16 +2325,16 @@ impl Integer {
         /// assert_eq!(quotient, -2);
         /// assert_eq!(rem, 3);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_euc(divisor);
         /// Performs Euclidean division producing both the quotient
         /// and remainder, with a positive remainder.
         ///
         /// The quotient is stored in `self` and the remainder is
         /// stored in `divisor`.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2195,18 +2346,15 @@ impl Integer {
         /// assert_eq!(dividend_quotient, -3);
         /// assert_eq!(divisor_rem, 7);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_rem_euc_mut;
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2220,14 +2368,20 @@ impl Integer {
         /// assert_eq!(rem, 7);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_rem_euc_ref -> DivRemEucIncomplete;
     }
 
     /// Returns the modulo, or the remainder of Euclidean division by
-    /// a `u32`.
+    /// a [`u32`].
     ///
     /// The result is always zero or positive.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `modulo` is zero.
     ///
     /// # Examples
     ///
@@ -2243,9 +2397,7 @@ impl Integer {
     /// assert_eq!(neg.mod_u(100), 77);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `modulo` is zero.
+    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
     #[inline]
     pub fn mod_u(&self, modulo: u32) -> u32 {
         assert_ne!(modulo, 0, "division by zero");
@@ -2259,6 +2411,10 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2267,15 +2423,15 @@ impl Integer {
         /// let quotient = i.div_exact(&Integer::from(12345));
         /// assert_eq!(quotient, 54321);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_exact(divisor);
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2285,19 +2441,15 @@ impl Integer {
         /// i.div_exact_mut(&Integer::from(12345));
         /// assert_eq!(i, 54321);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_exact_mut;
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2309,6 +2461,10 @@ impl Integer {
         /// let quotient = Integer::from(r);
         /// assert_eq!(quotient, 54321);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_exact_ref -> DivExactIncomplete;
     }
     math_op1! {
@@ -2318,6 +2474,10 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2326,15 +2486,15 @@ impl Integer {
         /// let q = i.div_exact_u(12345);
         /// assert_eq!(q, 54321);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_exact_u(divisor: u32);
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
+        ///
+        /// # Panics
+        ///
+        /// Panics if `divisor` is zero.
         ///
         /// # Examples
         ///
@@ -2344,19 +2504,15 @@ impl Integer {
         /// i.div_exact_u_mut(12345);
         /// assert_eq!(i, 54321);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if `divisor` is zero.
         fn div_exact_u_mut;
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2366,11 +2522,16 @@ impl Integer {
         /// let r = i.div_exact_u_ref(12345);
         /// assert_eq!(Integer::from(r), 54321);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn div_exact_u_ref -> DivExactUIncomplete;
     }
 
-    /// Finds the inverse modulo `modulo` and returns `Ok(inverse)` if
-    /// it exists, or `Err(unchanged)` if the inverse does not exist.
+    /// Finds the inverse modulo `modulo` and returns
+    /// [`Ok(inverse)`][`Ok`] if it exists, or
+    /// [`Err(unchanged)`][Err] if the inverse does not exist.
     ///
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
@@ -2395,6 +2556,9 @@ impl Integer {
     /// };
     /// assert_eq!(inv_mod_5, 3);
     /// ```
+    ///
+    /// [Err]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err
+    /// [`Ok`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
         match self.invert_mut(modulo) {
@@ -2403,8 +2567,7 @@ impl Integer {
         }
     }
 
-    /// Finds the inverse modulo `modulo` and returns `true` if an
-    /// inverse exists.
+    /// Finds the inverse modulo `modulo` if an inverse exists.
     ///
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
@@ -2441,9 +2604,10 @@ impl Integer {
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// # Examples
     ///
@@ -2463,6 +2627,10 @@ impl Integer {
     /// let inverse = Integer::from(r);
     /// assert_eq!(inverse, 3);
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn invert_ref<'a>(
         &'a self,
         modulo: &'a Self,
@@ -2482,8 +2650,8 @@ impl Integer {
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
-    /// returns `Ok(power)` if an answer exists, or `Err(unchanged)`
-    /// if it does not.
+    /// returns [`Ok(power)`][`Ok`] if an answer exists, or
+    /// [`Err(unchanged)`][Err] if it does not.
     ///
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
@@ -2522,6 +2690,9 @@ impl Integer {
     /// };
     /// assert_eq!(power, 943);
     /// ```
+    ///
+    /// [Err]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err
+    /// [`Ok`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn pow_mod(
         mut self,
@@ -2534,8 +2705,8 @@ impl Integer {
         }
     }
 
-    /// Raises a number to the power of `exponent` modulo `modulo` and
-    /// returns `true` if an answer exists.
+    /// Raises a number to the power of `exponent` modulo `modulo` if
+    /// an answer exists.
     ///
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
@@ -2587,9 +2758,10 @@ impl Integer {
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// # Examples
     ///
@@ -2609,6 +2781,10 @@ impl Integer {
     /// let power = Integer::from(r);
     /// assert_eq!(power, 943);
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
@@ -2650,6 +2826,10 @@ impl Integer {
     /// are placed at the same position and the machine state is
     /// identical when starting.
     ///
+    /// # Panics
+    ///
+    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2661,10 +2841,6 @@ impl Integer {
     /// let power = n.secure_pow_mod(&e, &m);
     /// assert_eq!(power, 9);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
     pub fn secure_pow_mod(mut self, exponent: &Self, modulo: &Self) -> Self {
         self.secure_pow_mod_mut(exponent, modulo);
         self
@@ -2683,6 +2859,10 @@ impl Integer {
     /// are placed at the same position and the machine state is
     /// identical when starting.
     ///
+    /// # Panics
+    ///
+    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2694,10 +2874,6 @@ impl Integer {
     /// n.secure_pow_mod_mut(&e, &m);
     /// assert_eq!(n, 9);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
     pub fn secure_pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) {
         assert_eq!(
             exponent.cmp0(),
@@ -2728,9 +2904,13 @@ impl Integer {
     /// are placed at the same position and the machine state is
     /// identical when starting.
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
     ///
     /// # Examples
     ///
@@ -2744,9 +2924,9 @@ impl Integer {
     /// assert_eq!(power, 9);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `exponent` ≤ 0 or if `modulo` is even.
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn secure_pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
@@ -2762,9 +2942,9 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2774,15 +2954,19 @@ impl Integer {
         /// let i = Integer::from(p);
         /// assert_eq!(i, 13_u64.pow(12));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
     }
 
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2795,12 +2979,20 @@ impl Integer {
         /// let i2 = Integer::from(p2);
         /// assert_eq!(i2, (13_i64).pow(13));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
     }
 
     math_op1! {
         xgmp::mpz_root_check;
         /// Computes the <i>n</i>th root and truncates the result.
+        ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
         ///
         /// # Examples
         ///
@@ -2810,12 +3002,12 @@ impl Integer {
         /// let root = i.root(3);
         /// assert_eq!(root, 10);
         /// ```
+        fn root(n: u32);
+        /// Computes the <i>n</i>th root and truncates the result.
         ///
         /// # Panics
         ///
         /// Panics if *n* is even and the value is negative.
-        fn root(n: u32);
-        /// Computes the <i>n</i>th root and truncates the result.
         ///
         /// # Examples
         ///
@@ -2825,16 +3017,12 @@ impl Integer {
         /// i.root_mut(3);
         /// assert_eq!(i, 10);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if *n* is even and the value is negative.
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2843,6 +3031,10 @@ impl Integer {
         /// let i = Integer::from(1004);
         /// assert_eq!(Integer::from(i.root_ref(3)), 10);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn root_ref -> RootIncomplete;
     }
     math_op1_2! {
@@ -2855,6 +3047,10 @@ impl Integer {
         ///
         /// The initial value of `remainder` is ignored.
         ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2864,10 +3060,6 @@ impl Integer {
         /// assert_eq!(root, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if *n* is even and the value is negative.
         fn root_rem(remainder, n: u32);
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
@@ -2876,6 +3068,10 @@ impl Integer {
         /// root raised to the power of *n*.
         ///
         /// The initial value of `remainder` is ignored.
+        ///
+        /// # Panics
+        ///
+        /// Panics if *n* is even and the value is negative.
         ///
         /// # Examples
         ///
@@ -2887,10 +3083,6 @@ impl Integer {
         /// assert_eq!(i, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if *n* is even and the value is negative.
         fn root_rem_mut;
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
@@ -2898,10 +3090,11 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2920,7 +3113,9 @@ impl Integer {
         /// assert_eq!(other_rem, 4);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn root_rem_ref -> RootRemIncomplete;
     }
     math_op1! {
@@ -2949,9 +3144,9 @@ impl Integer {
         fn square_mut;
         /// Computes the square.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2960,11 +3155,19 @@ impl Integer {
         /// let i = Integer::from(13);
         /// assert_eq!(Integer::from(i.square_ref()), 169);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
     }
     math_op1! {
         xgmp::mpz_sqrt_check;
         /// Computes the square root and truncates the result.
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
         ///
         /// # Examples
         ///
@@ -2974,12 +3177,12 @@ impl Integer {
         /// let sqrt = i.sqrt();
         /// assert_eq!(sqrt, 10);
         /// ```
+        fn sqrt();
+        /// Computes the square root and truncates the result.
         ///
         /// # Panics
         ///
         /// Panics if the value is negative.
-        fn sqrt();
-        /// Computes the square root and truncates the result.
         ///
         /// # Examples
         ///
@@ -2989,16 +3192,12 @@ impl Integer {
         /// i.sqrt_mut();
         /// assert_eq!(i, 10);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3007,6 +3206,10 @@ impl Integer {
         /// let i = Integer::from(104);
         /// assert_eq!(Integer::from(i.sqrt_ref()), 10);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sqrt_ref -> SqrtIncomplete;
     }
     math_op1_2! {
@@ -3018,6 +3221,10 @@ impl Integer {
         ///
         /// The initial value of `remainder` is ignored.
         ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -3027,10 +3234,6 @@ impl Integer {
         /// assert_eq!(sqrt, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
         fn sqrt_rem(remainder);
         /// Computes the square root and the remainder.
         ///
@@ -3038,6 +3241,10 @@ impl Integer {
         /// root squared.
         ///
         /// The initial value of `remainder` is ignored.
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is negative.
         ///
         /// # Examples
         ///
@@ -3049,20 +3256,17 @@ impl Integer {
         /// assert_eq!(i, 10);
         /// assert_eq!(rem, 4);
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is negative.
         fn sqrt_rem_mut;
         /// Computes the square root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3081,7 +3285,9 @@ impl Integer {
         /// assert_eq!(other_rem, 4);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sqrt_rem_ref -> SqrtRemIncomplete;
     }
 
@@ -3142,9 +3348,9 @@ impl Integer {
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3155,6 +3361,10 @@ impl Integer {
         /// let prime = Integer::from(r);
         /// assert_eq!(prime, 800_000_011);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn next_prime_ref -> NextPrimeIncomplete;
     }
     math_op2! {
@@ -3212,9 +3422,9 @@ impl Integer {
         /// The result is always positive except when both inputs are
         /// zero.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3226,6 +3436,10 @@ impl Integer {
         /// // gcd of 100, 125 is 25
         /// assert_eq!(Integer::from(r), 25);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn gcd_ref -> GcdIncomplete;
     }
     math_op2_3! {
@@ -3302,16 +3516,18 @@ impl Integer {
         /// (`self` and `other`), and two cofactors to obtain the GCD
         /// from the two inputs.
         ///
-        /// [`Assign<Src> for (Integer, Integer, Integer)`][a],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`][a]
-        /// and `From<Src> for (Integer, Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer, Integer)`][A],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`][A]
+        /// and [`From<Src> for (Integer, Integer, Integer)`][`From`]
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// In the case that only one of the two cofactors is
-        /// required, [`Assign<Src> for (Integer, Integer)`][a],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][a] and
-        /// `From<Src> for (Integer, Integer)` are also implemented
-        /// with the returned object as `Src`.
+        /// required, [`Assign<Src> for (Integer, Integer)`][A],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][A] and
+        /// [`From<Src> for (Integer, Integer)`][`From`] are also
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, then the GCD is *g*
@@ -3368,7 +3584,9 @@ impl Integer {
         /// assert_eq!(t2, 1);
         /// ```
         ///
-        /// [a]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [A]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn gcd_cofactors_ref -> GcdIncomplete;
     }
 
@@ -3419,9 +3637,9 @@ impl Integer {
         /// The result is always positive except when one or both
         /// inputs are zero.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3433,6 +3651,10 @@ impl Integer {
         /// // lcm of 100, 125 is 500
         /// assert_eq!(Integer::from(r), 500);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn lcm_ref -> LcmIncomplete;
     }
 
@@ -3562,9 +3784,9 @@ impl Integer {
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3575,15 +3797,19 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 3628800);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn factorial(n: u32) -> FactorialIncomplete;
     }
 
     math_op0! {
         /// Computes the double factorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3594,15 +3820,19 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 3840);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn factorial_2(n: u32) -> Factorial2Incomplete;
     }
 
     math_op0! {
         /// Computes the *m*-multi factorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3613,15 +3843,19 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 280);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete;
     }
 
     math_op0! {
         /// Computes the primorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3632,6 +3866,10 @@ impl Integer {
         /// let i = Integer::from(p);
         /// assert_eq!(i, 210);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         #[inline]
         fn primorial(n: u32) -> PrimorialIncomplete;
     }
@@ -3664,9 +3902,9 @@ impl Integer {
         fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3676,14 +3914,18 @@ impl Integer {
         /// let i = Integer::from(7);
         /// assert_eq!(Integer::from(i.binomial_ref(2)), 21);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn binomial_ref -> BinomialIncomplete;
     }
     math_op0! {
         /// Computes the binomial coefficient *n* over *k*.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3694,21 +3936,24 @@ impl Integer {
         /// let i = Integer::from(b);
         /// assert_eq!(i, 21);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete;
     }
 
     math_op0! {
         /// Computes the Fibonacci number.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Fibonacci numbers is required, the first two
         /// values of the sequence should be computed with the
-        /// [`fibonacci_2`](#method.fibonacci_2) method, then
-        /// iterations should be used.
+        /// [`fibonacci_2`] method, then iterations should be used.
         ///
         /// # Examples
         ///
@@ -3718,6 +3963,11 @@ impl Integer {
         /// let i = Integer::from(f);
         /// assert_eq!(i, 144);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [`fibonacci_2`]: #method.fibonacci_2
+        /// [icv]: index.html#incomplete-computation-values
         fn fibonacci(n: u32) -> FibonacciIncomplete;
     }
 
@@ -3725,10 +3975,11 @@ impl Integer {
         /// Computes a Fibonacci number, and the previous Fibonacci
         /// number.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -3749,22 +4000,23 @@ impl Integer {
         /// assert_eq!(pair.1, 1);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn fibonacci_2(n: u32) -> FibonacciIncomplete;
     }
 
     math_op0! {
         /// Computes the Lucas number.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html) and
-        /// `From<Src> for Integer` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Lucas numbers is required, the first two
         /// values of the sequence should be computed with the
-        /// [`lucas_2`](#method.lucas_2) method, then iterations
-        /// should be used.
+        /// [`lucas_2`] method, then iterations should be used.
         ///
         /// # Examples
         ///
@@ -3774,16 +4026,22 @@ impl Integer {
         /// let i = Integer::from(l);
         /// assert_eq!(i, 322);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [`lucas_2`]: #method.lucas_2
+        /// [icv]: index.html#incomplete-computation-values
         fn lucas(n: u32) -> LucasIncomplete;
     }
 
     math_op0! {
         /// Computes a Lucas number, and the previous Lucas number.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][assign]
-        /// and `From<Src> for (Integer, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Integer, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Lucas numbers is required, the first two values of
@@ -3803,7 +4061,9 @@ impl Integer {
         /// assert_eq!(pair.1, -1);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn lucas_2(n: u32) -> LucasIncomplete;
     }
 
@@ -3811,9 +4071,9 @@ impl Integer {
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the returned
-    /// object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -3826,6 +4086,10 @@ impl Integer {
     /// i.assign(Integer::random_bits(80, &mut rand));
     /// assert!(i.significant_bits() <= 80);
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         bits: u32,
@@ -3838,6 +4102,10 @@ impl Integer {
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -3849,10 +4117,6 @@ impl Integer {
     /// println!("0 ≤ {} < 15", below);
     /// assert!(below < 15);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the boundary value is less than or equal to zero.
     #[inline]
     pub fn random_below(mut self, rng: &mut RandState) -> Self {
         self.random_below_mut(rng);
@@ -3862,6 +4126,10 @@ impl Integer {
     #[cfg(feature = "rand")]
     /// Generates a non-negative random number below the given
     /// boundary value.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
     ///
     /// # Examples
     ///
@@ -3874,10 +4142,6 @@ impl Integer {
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the boundary value is less than or equal to zero.
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut RandState) {
         assert_eq!(
@@ -3894,9 +4158,13 @@ impl Integer {
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
-    /// [`Assign<Src> for Integer`](trait.Assign.html) and
-    /// `From<Src> for Integer` are implemented with the returned
-    /// object as `Src`.
+    /// [`Assign<Src> for Integer`][`Assign`] and
+    /// [`From<Src> for Integer`][`From`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
     ///
     /// # Examples
     ///
@@ -3910,9 +4178,9 @@ impl Integer {
     /// assert!(i < bound);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the boundary value is less than or equal to zero.
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_below_ref<'a, 'b: 'a>(
         &'a self,
@@ -4519,8 +4787,7 @@ fn parse(
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing an
-/// [`Integer`](struct.Integer.html).
+/// An error which can be returned when parsing an [`Integer`].
 ///
 /// # Examples
 ///
@@ -4535,6 +4802,8 @@ fn parse(
 /// };
 /// println!("Parse error: {}", error);
 /// ```
+///
+/// [`Integer`]: ../struct.Integer.html
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
 }

@@ -28,16 +28,15 @@ use std::sync::atomic::Ordering;
 /// allocation.
 ///
 /// This can be useful when you have a numerator and denominator that
-/// are primitive integer-types such as `i64` or `u8`, and you need a
-/// reference to a [`Rational`][rational].
+/// are primitive integer-types such as [`i64`] or [`u8`], and you
+/// need a reference to a [`Rational`].
 ///
 /// Although no allocation is required, setting the value of a
 /// `SmallRational` does require some computation, as the numerator
 /// and denominator need to be canonicalized.
 ///
-/// The `SmallRational` type can be coerced to a
-/// [`Rational`][rational], as it implements
-/// `Deref<Target = Rational>`.
+/// The `SmallRational` type can be coerced to a [`Rational`], as it
+/// implements [`Deref<Target = Rational>`][`Deref`].
 ///
 /// # Examples
 ///
@@ -53,7 +52,10 @@ use std::sync::atomic::Ordering;
 /// assert_eq!(*a.denom(), 13);
 /// ```
 ///
-/// [rational]: ../struct.Rational.html
+/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+/// [`Rational`]: ../struct.Rational.html
+/// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
+/// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
 #[repr(C)]
 pub struct SmallRational {
     num: Mpz,
@@ -93,8 +95,7 @@ const LIMBS_ONE: Limbs = [1];
 const LIMBS_ONE: Limbs = [1, 0];
 
 impl SmallRational {
-    /// Creates a [`SmallRational`](struct.SmallRational.html) with
-    /// value 0.
+    /// Creates a [`SmallRational`] with value 0.
     ///
     /// # Examples
     ///
@@ -105,6 +106,8 @@ impl SmallRational {
     /// assert_eq!(*r.numer(), 0);
     /// assert_eq!(*r.denom(), 1);
     /// ```
+    ///
+    /// [`SmallRational`]: struct.SmallRational.html
     #[inline]
     pub fn new() -> Self {
         SmallRational {
@@ -123,20 +126,17 @@ impl SmallRational {
         }
     }
 
-    /// Returns a mutable reference to a
-    /// [`Rational`](../struct.Rational.html) number for simple
-    /// operations that do not need to allocate more space for the
-    /// numerator or denominator.
+    /// Returns a mutable reference to a [`Rational`] number for
+    /// simple operations that do not need to allocate more space for
+    /// the numerator or denominator.
     ///
     /// # Safety
     ///
     /// It is undefined behaviour to perform operations that
-    /// reallocate the internal data of the referenced
-    /// [`Rational`](../struct.Rational.html) number or to swap it
-    /// with another number, although it is allowed to swap the
-    /// numerator and denominator allocations, such as in the
-    /// reciprocal operation
-    /// [`recip_mut`](../struct.Rational.html#method.recip_mut).
+    /// reallocate the internal data of the referenced [`Rational`]
+    /// number or to swap it with another number, although it is
+    /// allowed to swap the numerator and denominator allocations,
+    /// such as in the reciprocal operation [`recip_mut`].
     ///
     /// Some GMP functions swap the allocations of their target
     /// operands; calling such functions with the mutable reference
@@ -157,6 +157,9 @@ impl SmallRational {
     /// assert_eq!(r.numer().capacity(), num_capacity);
     /// assert_eq!(r.denom().capacity(), den_capacity);
     /// ```
+    ///
+    /// [`Rational`]: ../struct.Rational.html
+    /// [`recip_mut`]: ../struct.Rational.html#method.recip_mut
     #[inline]
     pub unsafe fn as_nonreallocating_rational(&mut self) -> &mut Rational {
         self.update_d();
@@ -164,9 +167,8 @@ impl SmallRational {
         &mut *ptr
     }
 
-    /// Creates a [`SmallRational`](struct.SmallRational.html) from a
-    /// numerator and denominator, assuming they are in canonical
-    /// form.
+    /// Creates a [`SmallRational`] from a numerator and denominator,
+    /// assuming they are in canonical form.
     ///
     /// # Safety
     ///
@@ -185,6 +187,8 @@ impl SmallRational {
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());
     /// assert_eq!(from_unsafe.denom(), from_safe.denom());
     /// ```
+    ///
+    /// [`SmallRational`]: struct.SmallRational.html
     pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
         SmallInteger: From<Num> + From<Den>,

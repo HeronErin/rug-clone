@@ -17,7 +17,9 @@
 //! Multi-precision floating-point numbers with correct rounding.
 //!
 //! This module provides support for floating-point numbers of type
-//! [`Float`](../struct.Float.html).
+//! [`Float`].
+//!
+//! [`Float`]: ../struct.Float.html
 
 pub(crate) mod arith;
 pub(crate) mod big;

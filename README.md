@@ -120,8 +120,7 @@ assert_eq!(sub, -10);
 Here `a` and `b` are not consumed, and `incomplete` is not the final
 value. It still needs to be converted or assigned into an [`Integer`].
 This is covered in more detail in the
-[*Incomplete-computation values*](#incomplete-computation-values)
-section.
+[*Incomplete-computation values*] section.
 
 ### Shifting operations
 
@@ -312,15 +311,18 @@ not required and thus not enabled. In that case, only the [`Assign`]
 trait and some [other traits][`ops`] are provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
+[*Incomplete-computation values*]: #incomplete-computation-values
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: http://www.mpfr.org/
+[`Assign::assign`]: https://docs.rs/rug/~1.0/rug/trait.Assign.html#tymethod.assign
 [`Assign`]: https://docs.rs/rug/~1.0/rug/trait.Assign.html
 [`Complex`]: https://docs.rs/rug/~1.0/rug/struct.Complex.html
 [`Float::with_val`]: https://docs.rs/rug/~1.0/rug/struct.Float.html#method.with_val
 [`Float`]: https://docs.rs/rug/~1.0/rug/struct.Float.html
+[`From::from`]: https://doc.rust-lang.org/std/convert/trait.From.html#tymethod.from
 [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
 [`Integer::abs_ref`]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.abs_ref
 [`Integer::gcd_ref`]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.gcd_ref
@@ -334,10 +336,8 @@ trait and some [other traits][`ops`] are provided by the crate.
 [`SubAssign`]: https://doc.rust-lang.org/std/ops/trait.SubAssign.html
 [`SubFrom`]: https://docs.rs/rug/~1.0/rug/ops/trait.SubFrom.html
 [`assign_round`]: https://docs.rs/rug/~1.0/rug/ops/trait.AssignRound.html#tymethod.assign_round
-[`Assign::assign`]: https://docs.rs/rug/~1.0/rug/trait.Assign.html#tymethod.assign
 [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
-[`From::from`]: https://doc.rust-lang.org/std/convert/trait.From.html#tymethod.from
 [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html

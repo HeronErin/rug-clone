@@ -177,21 +177,20 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// four versions:
 ///
 /// 1. The first method consumes the operand and rounds the returned
-///    `Float` to the [nearest](float/enum.Round.html#variant.Nearest)
-///    representable value.
-/// 2. The second method has a `_mut` suffix, mutates the operand and
-///    rounds it the nearest representable value.
-/// 3. The third method has a `_round` suffix, mutates the operand,
-///    applies the specified [rounding method](float/enum.Round.html),
-///    and returns the rounding direction:
+///    `Float` to the [nearest][`Nearest`] representable value.
+/// 2. The second method has a “`_mut`” suffix, mutates the operand
+///    and rounds it the nearest representable value.
+/// 3. The third method has a “`_round`” suffix, mutates the operand,
+///    applies the specified [rounding method][`Round`], and returns
+///    the rounding direction:
 ///    * `Ordering::Less` if the stored value is less than the exact
 ///      result,
 ///    * `Ordering::Equal` if the stored value is equal to the exact
 ///      result,
 ///    * `Ordering::Greater` if the stored value is greater than the
 ///      exact result.
-/// 4. The fourth method has a `_ref` suffix and borrows the operand.
-///    The returned item is an
+/// 4. The fourth method has a “`_ref`” suffix and borrows the
+///    operand. The returned item is an
 ///    [incomplete-computation value][incomplete] that can be assigned
 ///    to a `Float`; the rounding method is selected during the
 ///    assignment.
@@ -228,11 +227,10 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// assert_eq!(d, 1.25);
 /// ```
 ///
-/// The following example is a translation of the [MPFR
-/// sample](http://www.mpfr.org/sample.html) found on the MPFR
-/// website. The program computes a lower bound on
-/// 1 + 1/1! + 1/2! + … + 1/100!
-/// using 200-bit precision. The program writes:
+/// The following example is a translation of the [MPFR sample] found
+/// on the MPFR website. The program computes a lower bound on 1 +
+/// 1/1! + 1/2! + … + 1/100! using 200-bit precision. The program
+/// writes:
 ///
 /// `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 ///
@@ -264,6 +262,9 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
 /// }
 /// ```
 ///
+/// [`Nearest`]: float/enum.Round.html#variant.Nearest
+/// [`Round`]: float/enum.Round.html
+/// [MPFR sample]: http://www.mpfr.org/sample.html
 /// [incomplete]: index.html#incomplete-computation-values
 pub struct Float {
     inner: mpfr_t,
@@ -411,8 +412,12 @@ macro_rules! ref_math_op2_float {
 }
 
 impl Float {
-    /// Create a new [`Float`](struct.Float.html) with the specified
-    /// precision and with value 0.
+    /// Create a new [`Float`] with the specified precision and with
+    /// value 0.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -423,16 +428,18 @@ impl Float {
     /// assert_eq!(f, 0);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn new(prec: u32) -> Self {
         Self::with_val(prec, Special::Zero)
     }
 
-    /// Create a new [`Float`](struct.Float.html) with the specified
-    /// precision and with the given value, rounding to the nearest.
+    /// Create a new [`Float`] with the specified precision and with
+    /// the given value, rounding to the nearest.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -443,9 +450,7 @@ impl Float {
     /// assert_eq!(f, 1.3);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn with_val<T>(prec: u32, val: T) -> Self
     where
@@ -456,9 +461,12 @@ impl Float {
         ret
     }
 
-    /// Create a new [`Float`](struct.Float.html) with the specified
-    /// precision and with the given value, applying the specified
-    /// rounding method.
+    /// Create a new [`Float`] with the specified precision and with
+    /// the given value, applying the specified rounding method.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -478,9 +486,7 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn with_val_round<T>(
         prec: u32,
@@ -524,6 +530,10 @@ impl Float {
 
     /// Sets the precision, rounding to the nearest.
     ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -534,16 +544,16 @@ impl Float {
     /// assert_eq!(f, 16);
     /// assert_eq!(f.prec(), 5);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
     #[inline]
     pub fn set_prec(&mut self, prec: u32) {
         self.set_prec_round(prec, Round::Nearest);
     }
 
     /// Sets the precision, applying the specified rounding method.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -558,10 +568,6 @@ impl Float {
     /// assert_eq!(dir, Ordering::Greater);
     /// assert_eq!(f.prec(), 5);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
     #[inline]
     pub fn set_prec_round(&mut self, prec: u32, round: Round) -> Ordering {
         assert!(
@@ -574,11 +580,12 @@ impl Float {
         ordering1(ret)
     }
 
-    /// Parses a decimal string or byte slice into a
-    /// [`Float`](struct.Float.html).
+    /// Parses a decimal string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into a [`Float`].
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the unwrapped returned object as `Src`.
+    /// [`AssignRound<Src> for Float`][`AssignRound`] is implemented
+    /// with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
@@ -614,17 +621,24 @@ impl Float {
     /// let invalid = Float::parse(".e-4");
     /// assert!(invalid.is_err());
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
     ) -> Result<ParseIncomplete, ParseFloatError> {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into a
-    /// [`Float`](struct.Float.html).
+    /// Parses a string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into a [`Float`].
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the unwrapped returned object as `Src`.
+    /// [`AssignRound<Src> for Float`][`AssignRound`] is implemented
+    /// with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
@@ -650,6 +664,10 @@ impl Float {
     /// digit and between the exponent separator and the first digit
     /// of the exponent.
     ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -666,9 +684,11 @@ impl Float {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
@@ -677,8 +697,7 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// Converts to an [`Integer`](struct.Integer.html), rounding to
-    /// the nearest.
+    /// Converts to an [`Integer`], rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -691,6 +710,8 @@ impl Float {
     /// };
     /// assert_eq!(i, 14);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
         self.to_integer_round(Round::Nearest)
@@ -698,8 +719,8 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// Converts to an [`Integer`](struct.Integer.html), applying the
-    /// specified rounding method.
+    /// Converts to an [`Integer`], applying the specified rounding
+    /// method.
     ///
     /// # Examples
     ///
@@ -715,6 +736,8 @@ impl Float {
     /// assert_eq!(i, 13);
     /// assert_eq!(dir, Ordering::Less);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn to_integer_round(
         &self,
@@ -731,10 +754,10 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// If the value is a [finite number](#method.is_finite), returns
-    /// an [`Integer`](struct.Integer.html) and exponent such that
-    /// `self` is exactly equal to the integer multiplied by two
-    /// raised to the power of the exponent.
+    /// If the value is a [finite number][`is_finite`], returns an
+    /// [`Integer`] and exponent such that `self` is exactly equal to
+    /// the integer multiplied by two raised to the power of the
+    /// exponent.
     ///
     /// # Examples
     ///
@@ -756,6 +779,9 @@ impl Float {
     /// float.assign(Special::Infinity);
     /// assert!(float.to_integer_exp().is_none());
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_integer_exp(&self) -> Option<(Integer, i32)> {
         if !self.is_finite() {
@@ -767,9 +793,8 @@ impl Float {
     }
 
     #[cfg(feature = "rational")]
-    /// If the value is a [finite number](#method.is_finite), returns
-    /// a [`Rational`](struct.Rational.html) number preserving all the
-    /// precision of the value.
+    /// If the value is a [finite number][`is_finite`], returns a
+    /// [`Rational`] number preserving all the precision of the value.
     ///
     /// # Examples
     ///
@@ -794,8 +819,8 @@ impl Float {
     /// assert_eq!(format!("{:.9}", frf), "1.23456789e-2");
     /// ```
     ///
-    /// In the following example, the [`Float`](struct.Float.html)
-    /// values can be represented exactly.
+    /// In the following example, the [`Float`] values can be
+    /// represented exactly.
     ///
     /// ```rust
     /// use rug::Float;
@@ -810,6 +835,10 @@ impl Float {
     /// assert_eq!(*small_r.numer(), -1);
     /// assert_eq!(*small_r.denom(), 8);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`Rational`]: struct.Rational.html
+    /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
         if !self.is_finite() {
@@ -822,11 +851,11 @@ impl Float {
         Some(r)
     }
 
-    /// Converts to an `i32`, rounding to the nearest.
+    /// Converts to an [`i32`], rounding to the nearest.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
+    /// If the value is a NaN, [`None`] is returned.
     ///
     /// # Examples
     ///
@@ -840,16 +869,19 @@ impl Float {
     /// f.assign(u32::MAX);
     /// assert_eq!(f.to_i32_saturating(), Some(i32::MAX));
     /// ```
+    ///
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating(&self) -> Option<i32> {
         self.to_i32_saturating_round(Round::Nearest)
     }
 
-    /// Converts to an `i32`, applying the specified rounding method.
+    /// Converts to an [`i32`], applying the specified rounding method.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
+    /// If the value is a NaN, [`None`] is returned.
     ///
     /// # Examples
     ///
@@ -859,6 +891,9 @@ impl Float {
     /// let f = Float::with_val(53, -13.7);
     /// assert_eq!(f.to_i32_saturating_round(Round::Up), Some(-13));
     /// ```
+    ///
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
@@ -874,11 +909,11 @@ impl Float {
         }
     }
 
-    /// Converts to a `u32`, rounding to the nearest.
+    /// Converts to a [`u32`], rounding to the nearest.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
+    /// If the value is a NaN, [`None`] is returned.
     ///
     /// # Examples
     ///
@@ -892,16 +927,19 @@ impl Float {
     /// f.assign(1e40);
     /// assert_eq!(f.to_u32_saturating(), Some(u32::MAX));
     /// ```
+    ///
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating(&self) -> Option<u32> {
         self.to_u32_saturating_round(Round::Nearest)
     }
 
-    /// Converts to a `u32`, applying the specified rounding method.
+    /// Converts to a [`u32`], applying the specified rounding method.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
-    /// If the value is a NaN, `None` is returned.
+    /// If the value is a NaN, [`None`] is returned.
     ///
     /// # Examples
     ///
@@ -911,6 +949,9 @@ impl Float {
     /// let f = Float::with_val(53, 13.7);
     /// assert_eq!(f.to_u32_saturating_round(Round::Down), Some(13));
     /// ```
+    ///
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
@@ -924,7 +965,7 @@ impl Float {
         }
     }
 
-    /// Converts to an `f32`, rounding to the nearest.
+    /// Converts to an [`f32`], rounding to the nearest.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -941,12 +982,15 @@ impl Float {
     /// f.assign(1e-300);
     /// assert_eq!(f.to_f32(), 0.0);
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.to_f32_round(Round::Nearest)
     }
 
-    /// Converts to an `f32`, applying the specified rounding method.
+    /// Converts to an [`f32`], applying the specified rounding
+    /// method.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -960,12 +1004,14 @@ impl Float {
     /// let f = Float::with_val(53, 1.0 + (-50f64).exp2());
     /// assert_eq!(f.to_f32_round(Round::Up), 1.0 + f32::EPSILON);
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32_round(&self, round: Round) -> f32 {
         unsafe { xmpfr::get_f32(self.inner(), raw_round(round)) }
     }
 
-    /// Converts to an `f64`, rounding to the nearest.
+    /// Converts to an [`f64`], rounding to the nearest.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -981,12 +1027,15 @@ impl Float {
     /// f.square_mut();
     /// assert_eq!(f.to_f64(), f64::INFINITY);
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.to_f64_round(Round::Nearest)
     }
 
-    /// Converts to an `f64`, applying the specified rounding method.
+    /// Converts to an [`f64`], applying the specified rounding
+    /// method.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1001,14 +1050,17 @@ impl Float {
     /// let f: Float = Float::with_val(100, -90).exp2() + 1;
     /// assert_eq!(f.to_f64_round(Round::Up), 1.0 + f64::EPSILON);
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64_round(&self, round: Round) -> f64 {
         unsafe { mpfr::get_d(self.inner(), raw_round(round)) }
     }
 
-    /// Converts to an `f32` and an exponent, rounding to the nearest.
+    /// Converts to an [`f32`] and an exponent, rounding to the
+    /// nearest.
     ///
-    /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f32`] is in the range 0.5 ≤ *x* < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1024,15 +1076,17 @@ impl Float {
     /// let (d3_8, exp3_8) = three_eighths.to_f32_exp();
     /// assert_eq!((d3_8, exp3_8), (0.75, -1));
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, i32) {
         self.to_f32_exp_round(Round::Nearest)
     }
 
-    /// Converts to an `f32` and an exponent, applying the specified
+    /// Converts to an [`f32`] and an exponent, applying the specified
     /// rounding method.
     ///
-    /// The returned `f32` is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f32`] is in the range 0.5 ≤ *x* < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1048,6 +1102,8 @@ impl Float {
     /// let (f_up, exp_up) = frac_10_3.to_f32_exp_round(Round::Up);
     /// assert_eq!((f_up, exp_up), (0.8333334, 2));
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp_round(&self, round: Round) -> (f32, i32) {
         let mut sf = SmallFloat::from(0.0f32);
@@ -1067,9 +1123,10 @@ impl Float {
         (f as f32, cast(exp))
     }
 
-    /// Converts to an `f64` and an exponent, rounding to the nearest.
+    /// Converts to an [`f64`] and an exponent, rounding to the
+    /// nearest.
     ///
-    /// The returned `f64` is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f64`] is in the range 0.5 ≤ *x* < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1085,15 +1142,17 @@ impl Float {
     /// let (d3_8, exp3_8) = three_eighths.to_f64_exp();
     /// assert_eq!((d3_8, exp3_8), (0.75, -1));
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, i32) {
         self.to_f64_exp_round(Round::Nearest)
     }
 
-    /// Converts to an `f64` and an exponent, applying the specified
+    /// Converts to an [`f64`] and an exponent, applying the specified
     /// rounding method.
     ///
-    /// The returned `f64` is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f64`] is in the range 0.5 ≤ *x* < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1109,6 +1168,8 @@ impl Float {
     /// let (f_up, exp_up) = frac_10_3.to_f64_exp_round(Round::Up);
     /// assert_eq!((f_up, exp_up), (0.8333333333333334, 2));
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
@@ -1125,6 +1186,10 @@ impl Float {
     /// not specified, the output string will have enough precision
     /// such that reading it again will give the exact same number.
     ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1139,10 +1204,6 @@ impl Float {
     /// assert_eq!(twentythree.to_string_radix(10, Some(2)), "2.3e1");
     /// assert_eq!(twentythree.to_string_radix(16, Some(4)), "1.700@1");
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(
         &self,
@@ -1159,6 +1220,10 @@ impl Float {
     /// enough precision such that reading it again will give the exact
     /// same number.
     ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1170,10 +1235,6 @@ impl Float {
     /// let up = twentythree.to_string_radix_round(10, Some(2), Round::Up);
     /// assert_eq!(up, "2.4e1");
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix_round(
         &self,
@@ -1186,8 +1247,8 @@ impl Float {
         s
     }
 
-    /// Creates a [`Float`](struct.Float.html) from an initialized
-    /// MPFR floating-point number.
+    /// Creates a [`Float`] from an initialized MPFR floating-point
+    /// number.
     ///
     /// # Safety
     ///
@@ -1217,13 +1278,14 @@ impl Float {
     ///     // since f is a Float now, deallocation is automatic
     /// }
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }
     }
 
-    /// Converts a [`Float`](struct.Float.html) into an MPFR
-    /// floating-point number.
+    /// Converts a [`Float`] into an MPFR floating-point number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -1245,6 +1307,8 @@ impl Float {
     ///     }
     /// }
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn into_raw(self) -> mpfr_t {
         let ret = self.inner;
@@ -1307,9 +1371,10 @@ impl Float {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows a negated copy of the [`Float`](struct.Float.html).
+    /// Borrows a negated copy of the [`Float`].
     ///
-    /// The returned object implements `Deref<Target = Float>`.
+    /// The returned object implements
+    /// [`Deref<Target = Float>`][`Deref`].
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1326,6 +1391,9 @@ impl Float {
     /// assert_eq!(*reneg_f, 4.2);
     /// assert_eq!(*reneg_f, f);
     /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat {
         let mut ret = BorrowFloat {
             inner: self.inner,
@@ -1340,9 +1408,10 @@ impl Float {
         ret
     }
 
-    /// Borrows an absolute copy of the [`Float`](struct.Float.html).
+    /// Borrows an absolute copy of the [`Float`].
     ///
-    /// The returned object implements `Deref<Target = Float>`.
+    /// The returned object implements
+    /// [`Deref<Target = Float>`][`Deref`].
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1359,6 +1428,9 @@ impl Float {
     /// assert_eq!(*reabs_f, 4.2);
     /// assert_eq!(*reabs_f, *abs_f);
     /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat {
         let mut ret = BorrowFloat {
             inner: self.inner,
@@ -1373,9 +1445,8 @@ impl Float {
         ret
     }
 
-    /// Borrows the [`Float`](struct.Float.html) as an ordered
-    /// floating-point number of type
-    /// [`OrdFloat`](float/struct.OrdFloat.html).
+    /// Borrows the [`Float`] as an ordered floating-point number of
+    /// type [`OrdFloat`].
     ///
     /// # Examples
     ///
@@ -1398,12 +1469,15 @@ impl Float {
     /// let neg_zero = neg_zero_f.as_ord();
     /// assert_eq!(zero.cmp(neg_zero), Ordering::Greater);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`OrdFloat`]: float/struct.OrdFloat.html
     #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
         unsafe { &*(self as *const _ as *const _) }
     }
 
-    /// Returns `true` if `self` is an integer.
+    /// Returns [`true`] if `self` is an integer.
     ///
     /// # Examples
     ///
@@ -1414,12 +1488,14 @@ impl Float {
     /// f *= 2;
     /// assert!(f.is_integer());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_integer(&self) -> bool {
         unsafe { mpfr::integer_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is not a number.
+    /// Returns [`true`] if `self` is not a number.
     ///
     /// # Examples
     ///
@@ -1430,12 +1506,14 @@ impl Float {
     /// f /= 0;
     /// assert!(f.is_nan());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_nan(&self) -> bool {
         unsafe { mpfr::nan_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is plus or minus infinity.
+    /// Returns [`true`] if `self` is plus or minus infinity.
     ///
     /// # Examples
     ///
@@ -1446,13 +1524,15 @@ impl Float {
     /// f /= 0;
     /// assert!(f.is_infinite());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_infinite(&self) -> bool {
         unsafe { mpfr::inf_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is a finite number,
-    /// that is neither NaN nor infinity.
+    /// Returns [`true`] if `self` is a finite number, that is neither
+    /// NaN nor infinity.
     ///
     /// # Examples
     ///
@@ -1463,12 +1543,14 @@ impl Float {
     /// f /= 0;
     /// assert!(!f.is_finite());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_finite(&self) -> bool {
         unsafe { mpfr::number_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is plus or minus zero.
+    /// Returns [`true`] if `self` is plus or minus zero.
     ///
     /// # Examples
     ///
@@ -1482,14 +1564,16 @@ impl Float {
     /// f += 1;
     /// assert!(!f.is_zero());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_zero(&self) -> bool {
         unsafe { mpfr::zero_p(self.inner()) != 0 }
     }
 
-    /// Returns `true` if `self` is a normal number, that is neither
-    /// NaN, nor infinity, nor zero. Note that
-    /// [`Float`](struct.Float.html) cannot be subnormal.
+    /// Returns [`true`] if `self` is a normal number, that is neither
+    /// NaN, nor infinity, nor zero. Note that [`Float`] cannot be
+    /// subnormal.
     ///
     /// # Examples
     ///
@@ -1505,13 +1589,16 @@ impl Float {
     /// f.assign(Special::Nan);
     /// assert!(!f.is_normal());
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_normal(&self) -> bool {
         unsafe { mpfr::regular_p(self.inner()) != 0 }
     }
 
     /// Returns the floating-point category of the number. Note that
-    /// [`Float`](struct.Float.html) cannot be subnormal.
+    /// [`Float`] cannot be subnormal.
     ///
     /// # Examples
     ///
@@ -1528,6 +1615,8 @@ impl Float {
     /// assert_eq!(zero.classify(), FpCategory::Zero);
     /// assert_eq!(normal.classify(), FpCategory::Normal);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn classify(&self) -> FpCategory {
         let inner: *const mpfr_t = self.inner();
@@ -1598,7 +1687,7 @@ impl Float {
     }
 
     /// Returns the exponent of `self` if `self` is a normal number,
-    /// otherwise `None`.
+    /// otherwise [`None`].
     ///
     /// The significand is assumed to be in the range 0.5 ≤ *x* < 1.
     ///
@@ -1615,6 +1704,8 @@ impl Float {
     /// f.assign(0);
     /// assert_eq!(f.get_exp(), None);
     /// ```
+    ///
+    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
@@ -1625,7 +1716,7 @@ impl Float {
         }
     }
 
-    /// Returns `true` if the value is positive, +0 or NaN without a
+    /// Returns [`true`] if the value is positive, +0 or NaN without a
     /// negative sign.
     ///
     /// # Examples
@@ -1637,12 +1728,14 @@ impl Float {
     /// assert!(pos.is_sign_positive());
     /// assert!(!neg.is_sign_positive());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_sign_positive(&self) -> bool {
         !self.is_sign_negative()
     }
 
-    /// Returns `true` if the value is negative, −0 or NaN with a
+    /// Returns [`true`] if the value is negative, −0 or NaN with a
     /// negative sign.
     ///
     /// # Examples
@@ -1654,6 +1747,8 @@ impl Float {
     /// assert!(neg.is_sign_negative());
     /// assert!(!pos.is_sign_negative());
     /// ```
+    ///
+    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
     pub fn is_sign_negative(&self) -> bool {
         unsafe { mpfr::signbit(self.inner()) != 0 }
@@ -1913,13 +2008,14 @@ impl Float {
         }
     }
 
-    /// Adds a list of [`Float`](struct.Float.html) values with
-    /// correct rounding.
+    /// Adds a list of [`Float`] values with correct rounding.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html),
-    /// `Add<Src> for Float`, `AddAssign<Src> for Float` and
-    /// [`AddAssignRound<Src> for Float`](ops/trait.AddAssignRound.html),
-    /// are implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`],
+    /// [`AssignRound<Src> for Float`][`AssignRound`],
+    /// [`AddAssign<Src> for Float`][`AddAssign`],
+    /// [`AddAssignRound<Src> for Float`][`AddAssignRound`] and
+    /// [`Add<Src> for Float`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -1949,6 +2045,14 @@ impl Float {
     /// assert_eq!(f, 16.0);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
+    ///
+    /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/std/ops/trait.Add.html
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -2015,8 +2119,8 @@ impl Float {
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another
-    /// [`Float`](struct.Float.html) like `ans`.
+    /// in `a` using its precision rather than in another [`Float`]
+    /// like `ans`.
     ///
     /// # Examples
     ///
@@ -2037,6 +2141,8 @@ impl Float {
     /// assert_eq!(mul1, 4.5);
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     pub fn mul_add_round(
         &mut self,
         mul: &Self,
@@ -2057,8 +2163,10 @@ impl Float {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -2079,6 +2187,10 @@ impl Float {
     /// let ans = Float::with_val(4, mul1.mul_add_ref(&mul2, &add));
     /// assert_eq!(ans, 4.5);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn mul_add_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -2145,8 +2257,8 @@ impl Float {
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another
-    /// [`Float`](struct.Float.html) like `ans`.
+    /// in `a` using its precision rather than in another [`Float`]
+    /// like `ans`.
     ///
     /// # Examples
     ///
@@ -2167,6 +2279,8 @@ impl Float {
     /// assert_eq!(mul1, -44);
     /// assert_eq!(dir, Ordering::Less);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     pub fn mul_sub_round(
         &mut self,
         mul: &Self,
@@ -2187,8 +2301,10 @@ impl Float {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
     /// `&a * &b - &c`.
@@ -2209,6 +2325,10 @@ impl Float {
     /// let ans = Float::with_val(4, mul1.mul_sub_ref(&mul2, &sub));
     /// assert_eq!(ans, -44);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn mul_sub_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -2281,7 +2401,7 @@ impl Float {
     /// `a.mul_add_mul_round(&b, &c, &d, round)` produces a result
     /// like `ans.assign_round(&a * &b + &c * &d, round)`, but stores
     /// the result in `a` using its precision rather than in another
-    /// [`Float`](struct.Float.html) like `ans`.
+    /// [`Float`] like `ans`.
     ///
     /// # Examples
     ///
@@ -2298,6 +2418,8 @@ impl Float {
     /// assert_eq!(a, 60);
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     pub fn mul_add_mul_round(
         &mut self,
         mul: &Self,
@@ -2320,8 +2442,10 @@ impl Float {
 
     /// Multiplies two products and adds them in one fused operation.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// `a.mul_add_mul_ref(&b, &c, &d)` produces the exact same result
     /// as `&a * &b + &c * &d`.
@@ -2338,6 +2462,10 @@ impl Float {
     /// let ans = Float::with_val(53, a.mul_add_mul_ref(&b, &c, &d));
     /// assert_eq!(ans, 60);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn mul_add_mul_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -2413,7 +2541,7 @@ impl Float {
     /// `a.mul_sub_mul_round(&b, &c, &d, round)` produces a result
     /// like `ans.assign_round(&a * &b - &c * &d, round)`, but stores
     /// the result in `a` using its precision rather than in another
-    /// [`Float`](struct.Float.html) like `ans`.
+    /// [`Float`] like `ans`.
     ///
     /// # Examples
     ///
@@ -2430,6 +2558,8 @@ impl Float {
     /// assert_eq!(a, 12);
     /// assert_eq!(dir, Ordering::Equal);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     pub fn mul_sub_mul_round(
         &mut self,
         mul: &Self,
@@ -2453,8 +2583,10 @@ impl Float {
     /// Multiplies two products and subtracts them in one fused
     /// operation.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// `a.mul_sub_mul_ref(&b, &c, &d)` produces the exact same result
     /// as `&a * &b - &c * &d`.
@@ -2471,6 +2603,10 @@ impl Float {
     /// let ans = Float::with_val(53, a.mul_sub_mul_ref(&b, &c, &d));
     /// assert_eq!(ans, 12);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn mul_sub_mul_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -2523,8 +2659,10 @@ impl Float {
         fn square_round;
         /// Computes the square.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2535,6 +2673,10 @@ impl Float {
         /// let square = Float::with_val(53, r);
         /// assert_eq!(square, 25.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
     }
     math_op1_float! {
@@ -2581,8 +2723,10 @@ impl Float {
         fn sqrt_round;
         /// Computes the square root.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2593,13 +2737,19 @@ impl Float {
         /// let sqrt = Float::with_val(53, r);
         /// assert_eq!(sqrt, 5.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sqrt_ref -> SqrtIncomplete;
     }
     math_op0! {
         /// Computes the square root of `u`.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2609,6 +2759,10 @@ impl Float {
         /// let f = Float::with_val(53, s);
         /// assert_eq!(f, 5.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sqrt_u(u: u32) -> SqrtUIncomplete;
     }
 
@@ -2656,8 +2810,10 @@ impl Float {
         fn recip_sqrt_round;
         /// Computes the reciprocal square root.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2668,6 +2824,10 @@ impl Float {
         /// let recip_sqrt = Float::with_val(53, r);
         /// assert_eq!(recip_sqrt, 0.25);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn recip_sqrt_ref -> RecipSqrtIncomplete;
     }
     math_op1_float! {
@@ -2714,8 +2874,10 @@ impl Float {
         fn cbrt_round;
         /// Computes the cube root.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2726,6 +2888,10 @@ impl Float {
         /// let cbrt = Float::with_val(53, r);
         /// assert_eq!(cbrt, 5.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn cbrt_ref -> CbrtIncomplete;
     }
     math_op1_float! {
@@ -2772,8 +2938,10 @@ impl Float {
         fn root_round;
         /// Computes the <i>k</i>th root.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2784,6 +2952,10 @@ impl Float {
         /// let root = Float::with_val(53, r);
         /// assert_eq!(root, 5.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn root_ref -> RootIncomplete;
     }
     math_op1_no_round! {
@@ -2812,8 +2984,10 @@ impl Float {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2824,6 +2998,10 @@ impl Float {
         /// let abs = Float::with_val(53, r);
         /// assert_eq!(abs, 23.5);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn abs_ref -> AbsIncomplete;
     }
     math_op1_no_round! {
@@ -2865,8 +3043,10 @@ impl Float {
         /// * −1.0 if the value is negative, −0.0 or −∞
         /// * NaN if the value is NaN
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2877,11 +3057,21 @@ impl Float {
         /// let signum = Float::with_val(53, r);
         /// assert_eq!(signum, -1);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn signum_ref -> SignumIncomplete;
     }
 
     /// Clamps the value within the specified bounds, rounding to the
     /// nearest.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to `self` produces the same value
+    /// with the same rounding direction.
     ///
     /// # Examples
     ///
@@ -2896,12 +3086,6 @@ impl Float {
     /// let clamped2 = in_range.clamp(&min, &max);
     /// assert_eq!(clamped2, 0.5);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to `self` produces the same value
-    /// with the same rounding direction.
     #[inline]
     pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
@@ -2917,6 +3101,12 @@ impl Float {
     /// Clamps the value within the specified bounds, rounding to the
     /// nearest.
     ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to `self` produces the same value
+    /// with the same rounding direction.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -2930,12 +3120,6 @@ impl Float {
     /// in_range.clamp_mut(&min, &max);
     /// assert_eq!(in_range, 0.5);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to `self` produces the same value
-    /// with the same rounding direction.
     #[inline]
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
@@ -2949,6 +3133,12 @@ impl Float {
 
     /// Clamps the value within the specified bounds, applying the
     /// specified rounding method.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to `self` produces the same value
+    /// with the same rounding direction.
     ///
     /// # Examples
     ///
@@ -2967,12 +3157,6 @@ impl Float {
     /// assert_eq!(in_range, 0.5);
     /// assert_eq!(dir2, Ordering::Equal);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to `self` produces the same value
-    /// with the same rounding direction.
     pub fn clamp_round<'a, 'b, Min, Max>(
         &mut self,
         min: &'a Min,
@@ -3021,8 +3205,16 @@ impl Float {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value,
+    /// unless assigning any of them to the target produces the same
+    /// value with the same rounding direction.
     ///
     /// # Examples
     ///
@@ -3040,11 +3232,9 @@ impl Float {
     /// assert_eq!(clamped2, 0.5);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value,
-    /// unless assigning any of them to the target produces the same
-    /// value with the same rounding direction.
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'a, Min, Max>(
         &'a self,
@@ -3108,8 +3298,10 @@ impl Float {
         fn recip_round;
         /// Computes the reciprocal.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3120,6 +3312,10 @@ impl Float {
         /// let recip = Float::with_val(53, r);
         /// assert_eq!(recip, -4.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn recip_ref -> RecipIncomplete;
     }
     math_op2_float! {
@@ -3165,8 +3361,10 @@ impl Float {
         fn min_round;
         /// Finds the minimum.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3178,6 +3376,10 @@ impl Float {
         /// let min = Float::with_val(53, r);
         /// assert_eq!(min, -2);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn min_ref -> MinIncomplete;
     }
     math_op2_float! {
@@ -3223,8 +3425,10 @@ impl Float {
         fn max_round;
         /// Finds the maximum.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3236,6 +3440,10 @@ impl Float {
         /// let max = Float::with_val(53, r);
         /// assert_eq!(max, 12.5);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn max_ref -> MaxIncomplete;
     }
     math_op2_float! {
@@ -3307,8 +3515,10 @@ impl Float {
         /// `other`, zero if `self` ≤ `other`, or NaN if any operand
         /// is NaN.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3323,6 +3533,10 @@ impl Float {
         /// let ba = Float::with_val(53, rba);
         /// assert_eq!(ba, 0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn positive_diff_ref -> PositiveDiffIncomplete;
     }
 
@@ -3372,8 +3586,10 @@ impl Float {
         fn ln_round;
         /// Computes the natural logarithm.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3384,13 +3600,19 @@ impl Float {
         /// let expected = 0.4055_f64;
         /// assert!((ln - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ln_ref -> LnIncomplete;
     }
     math_op0! {
         /// Computes the natural logarithm of `u`.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3401,6 +3623,10 @@ impl Float {
         /// let expected = 1.0986f64;
         /// assert!((f - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ln_u(u: u32) -> LnUIncomplete;
     }
 
@@ -3450,8 +3676,10 @@ impl Float {
         fn log2_round;
         /// Computes the logarithm to base 2.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3462,6 +3690,10 @@ impl Float {
         /// let expected = 0.5850_f64;
         /// assert!((log2 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn log2_ref -> Log2Incomplete;
     }
     math_op1_float! {
@@ -3510,8 +3742,10 @@ impl Float {
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3522,6 +3756,10 @@ impl Float {
         /// let expected = 0.1761_f64;
         /// assert!((log10 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn log10_ref -> Log10Incomplete;
     }
     math_op1_float! {
@@ -3570,8 +3808,10 @@ impl Float {
         fn exp_round;
         /// Computes the exponential.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3582,6 +3822,10 @@ impl Float {
         /// let expected = 4.4817_f64;
         /// assert!((exp - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn exp_ref -> ExpIncomplete;
     }
     math_op1_float! {
@@ -3630,8 +3874,10 @@ impl Float {
         fn exp2_round;
         /// Computes 2 to the power of the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3642,6 +3888,10 @@ impl Float {
         /// let expected = 2.8284_f64;
         /// assert!((exp2 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn exp2_ref -> Exp2Incomplete;
     }
     math_op1_float! {
@@ -3690,8 +3940,10 @@ impl Float {
         fn exp10_round;
         /// Computes 10 to the power of the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3702,6 +3954,10 @@ impl Float {
         /// let expected = 31.6228_f64;
         /// assert!((exp10 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn exp10_ref -> Exp10Incomplete;
     }
     math_op1_float! {
@@ -3749,8 +4005,10 @@ impl Float {
         fn sin_round;
         /// Computes the sine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3761,6 +4019,10 @@ impl Float {
         /// let expected = 0.9490_f64;
         /// assert!((sin - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sin_ref -> SinIncomplete;
     }
     math_op1_float! {
@@ -3808,8 +4070,10 @@ impl Float {
         fn cos_round;
         /// Computes the cosine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3820,6 +4084,10 @@ impl Float {
         /// let expected = 0.3153_f64;
         /// assert!((cos - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn cos_ref -> CosIncomplete;
     }
     math_op1_float! {
@@ -3867,8 +4135,10 @@ impl Float {
         fn tan_round;
         /// Computes the tangent.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3879,6 +4149,10 @@ impl Float {
         /// let expected = 3.0096_f64;
         /// assert!((tan - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn tan_ref -> TanIncomplete;
     }
     math_op1_2_float! {
@@ -3947,9 +4221,12 @@ impl Float {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// [`AssignRound<Src> for (Float, Float)`][ar] and
-        /// [`AssignRound<Src> for (&mut Float, &mut Float)`][ar] are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for (Float, Float)`][`Assign`],
+        /// [`Assign<Src> for (&mut Float, &mut Float)`][`Assign`],
+        /// [`AssignRound<Src> for (Float, Float)`][`AssignRound`] and
+        /// [`AssignRound<Src> for (&mut Float, &mut Float)`][`AssignRound`]
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3980,7 +4257,9 @@ impl Float {
         /// assert_eq!(dir_cos, Ordering::Less);
         /// ```
         ///
-        /// [ar]: ops/trait.AssignRound.html
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_float! {
@@ -4028,8 +4307,10 @@ impl Float {
         fn sec_round;
         /// Computes the secant.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4040,6 +4321,10 @@ impl Float {
         /// let expected = 3.1714_f64;
         /// assert!((sec - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sec_ref -> SecIncomplete;
     }
     math_op1_float! {
@@ -4087,8 +4372,10 @@ impl Float {
         fn csc_round;
         /// Computes the cosecant.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4099,6 +4386,10 @@ impl Float {
         /// let expected = 1.0538_f64;
         /// assert!((csc - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn csc_ref -> CscIncomplete;
     }
     math_op1_float! {
@@ -4147,8 +4438,10 @@ impl Float {
         fn cot_round;
         /// Computes the cotangent.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4159,6 +4452,10 @@ impl Float {
         /// let expected = 0.3323_f64;
         /// assert!((cot - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn cot_ref -> CotIncomplete;
     }
     math_op1_float! {
@@ -4206,8 +4503,10 @@ impl Float {
         fn asin_round;
         /// Computes the arc-sine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4218,6 +4517,10 @@ impl Float {
         /// let expected = -0.8481_f64;
         /// assert!((asin - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn asin_ref -> AsinIncomplete;
     }
     math_op1_float! {
@@ -4266,8 +4569,10 @@ impl Float {
         fn acos_round;
         /// Computes the arc-cosine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4278,6 +4583,10 @@ impl Float {
         /// let expected = 2.4189_f64;
         /// assert!((acos - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn acos_ref -> AcosIncomplete;
     }
     math_op1_float! {
@@ -4326,8 +4635,10 @@ impl Float {
         fn atan_round;
         /// Computes the arc-tangent.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4338,6 +4649,10 @@ impl Float {
         /// let expected = -0.6435_f64;
         /// assert!((atan - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn atan_ref -> AtanIncomplete;
     }
     math_op2_float! {
@@ -4403,8 +4718,10 @@ impl Float {
         /// This is similar to the arc-tangent of `self / x`, but
         /// has an output range of 2<i>π</i> rather than *π*.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4417,6 +4734,10 @@ impl Float {
         /// let expected = 2.4981_f64;
         /// assert!((atan2 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn atan2_ref -> Atan2Incomplete;
     }
     math_op1_float! {
@@ -4465,8 +4786,10 @@ impl Float {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4477,6 +4800,10 @@ impl Float {
         /// let expected = 1.6019_f64;
         /// assert!((sinh - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sinh_ref -> SinhIncomplete;
     }
     math_op1_float! {
@@ -4525,8 +4852,10 @@ impl Float {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4537,6 +4866,10 @@ impl Float {
         /// let expected = 1.8884_f64;
         /// assert!((cosh - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn cosh_ref -> CoshIncomplete;
     }
     math_op1_float! {
@@ -4585,8 +4918,10 @@ impl Float {
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4597,6 +4932,10 @@ impl Float {
         /// let expected = 0.8483_f64;
         /// assert!((tanh - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn tanh_ref -> TanhIncomplete;
     }
     math_op1_2_float! {
@@ -4665,9 +5004,12 @@ impl Float {
         fn sinh_cosh_round;
         /// Computes the hyperbolic sine and cosine.
         ///
-        /// [`AssignRound<Src> for (Float, Float)`][ar] and
-        /// [`AssignRound<Src> for (&mut Float, &mut Float)`[ar] are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for (Float, Float)`][`Assign`],
+        /// [`Assign<Src> for (&mut Float, &mut Float)`][`Assign`],
+        /// [`AssignRound<Src> for (Float, Float)`][`AssignRound`] and
+        /// [`AssignRound<Src> for (&mut Float, &mut Float)`][`AssignRound`]
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4698,7 +5040,9 @@ impl Float {
         /// assert_eq!(dir_cosh, Ordering::Less);
         /// ```
         ///
-        /// [ar]: ops/trait.AssignRound.html
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sinh_cosh_ref -> SinhCoshIncomplete;
     }
     math_op1_float! {
@@ -4747,8 +5091,10 @@ impl Float {
         fn sech_round;
         /// Computes the hyperbolic secant.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4759,6 +5105,10 @@ impl Float {
         /// let expected = 0.5295_f64;
         /// assert!((sech - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sech_ref -> SechIncomplete;
     }
     math_op1_float! {
@@ -4807,8 +5157,10 @@ impl Float {
         fn csch_round;
         /// Computes the hyperbolic cosecant.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4819,6 +5171,10 @@ impl Float {
         /// let expected = 0.6243_f64;
         /// assert!((csch - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn csch_ref -> CschIncomplete;
     }
     math_op1_float! {
@@ -4867,8 +5223,10 @@ impl Float {
         fn coth_round;
         /// Computes the hyperbolic cotangent.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4879,6 +5237,10 @@ impl Float {
         /// let expected = 1.1789_f64;
         /// assert!((coth - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn coth_ref -> CothIncomplete;
     }
     math_op1_float! {
@@ -4927,8 +5289,10 @@ impl Float {
         fn asinh_round;
         /// Computes the inverse hyperbolic sine.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4939,6 +5303,10 @@ impl Float {
         /// let expected = 1.0476_f64;
         /// assert!((asinh - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn asinh_ref -> AsinhIncomplete;
     }
     math_op1_float! {
@@ -4989,8 +5357,10 @@ impl Float {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5001,6 +5371,10 @@ impl Float {
         /// let expected = 0.6931_f64;
         /// assert!((acosh - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn acosh_ref -> AcoshIncomplete;
     }
     math_op1_float! {
@@ -5051,8 +5425,10 @@ impl Float {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5063,13 +5439,19 @@ impl Float {
         /// let expected = 0.9730_f64;
         /// assert!((atanh - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn atanh_ref -> AtanhIncomplete;
     }
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5080,6 +5462,10 @@ impl Float {
         /// let f = Float::with_val(53, n);
         /// assert_eq!(f, 3628800.0);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn factorial(n: u32) -> FactorialIncomplete;
     }
 
@@ -5134,8 +5520,10 @@ impl Float {
         fn ln_1p_round;
         /// Computes the natural logorithm of one plus the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5147,6 +5535,10 @@ impl Float {
         /// let expected = 1.4989_f64 * two_to_m10;
         /// assert!((ln_1p - expected).abs() < 0.0001 * two_to_m10);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ln_1p_ref -> Ln1pIncomplete;
     }
     math_op1_float! {
@@ -5201,8 +5593,10 @@ impl Float {
         /// Computes one less than the exponential of the
         /// value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5214,6 +5608,10 @@ impl Float {
         /// let expected = 1.5011_f64 * two_to_m10;
         /// assert!((exp_m1 - expected).abs() < 0.0001 * two_to_m10);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn exp_m1_ref -> ExpM1Incomplete;
     }
     math_op1_float! {
@@ -5262,8 +5660,10 @@ impl Float {
         fn eint_round;
         /// Computes the exponential integral.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5274,6 +5674,10 @@ impl Float {
         /// let expected = 2.5810_f64;
         /// assert!((eint - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn eint_ref -> EintIncomplete;
     }
     math_op1_float! {
@@ -5325,8 +5729,10 @@ impl Float {
         /// Computes the real part of the dilogarithm of the
         /// value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5337,6 +5743,10 @@ impl Float {
         /// let expected = 2.1902_f64;
         /// assert!((li2 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn li2_ref -> Li2Incomplete;
     }
     math_op1_float! {
@@ -5387,8 +5797,10 @@ impl Float {
         fn gamma_round;
         /// Computes the gamma function on the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5399,6 +5811,10 @@ impl Float {
         /// let expected = 0.9064_f64;
         /// assert!((gamma - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn gamma_ref -> GammaIncomplete;
     }
     math_op2_float! {
@@ -5452,8 +5868,10 @@ impl Float {
         fn gamma_inc_round;
         /// Computes the upper incomplete gamma function on the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5465,6 +5883,10 @@ impl Float {
         /// let expected = 0.1116_f64;
         /// assert!((gamma_inc - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn gamma_inc_ref -> GammaIncIncomplete;
     }
     math_op1_float! {
@@ -5516,8 +5938,10 @@ impl Float {
         /// Computes the logarithm of the gamma function on
         /// the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5528,6 +5952,10 @@ impl Float {
         /// let expected = -0.0983_f64;
         /// assert!((ln_gamma - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ln_gamma_ref -> LnGammaIncomplete;
     }
 
@@ -5661,9 +6089,12 @@ impl Float {
     /// Computes the logarithm of the absolute value of the gamma
     /// function on `val`.
     ///
-    /// [`AssignRound<Src> for (Float, Ordering)`][ar] and
-    /// [`AssignRound<Src> for (&mut Float, &mut Ordering)`][ar] are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for (Float, Ordering)`][`Assign`],
+    /// [`Assign<Src> for (&mut Float, &mut Ordering)`][`Assign`],
+    /// [`AssignRound<Src> for (Float, Ordering)`][`AssignRound`] and
+    /// [`AssignRound<Src> for (&mut Float, &mut Ordering)`][`AssignRound`]
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -5687,7 +6118,9 @@ impl Float {
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [ar]: ops/trait.AssignRound.html
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete {
         LnAbsGammaIncomplete { ref_self: self }
@@ -5741,8 +6174,10 @@ impl Float {
         fn digamma_round;
         /// Computes the Digamma function on the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5753,6 +6188,10 @@ impl Float {
         /// let expected = -0.2275_f64;
         /// assert!((digamma - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn digamma_ref -> DigammaIncomplete;
     }
     math_op1_float! {
@@ -5803,8 +6242,10 @@ impl Float {
         fn zeta_round;
         /// Computes the Riemann Zeta function on the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5815,13 +6256,19 @@ impl Float {
         /// let expected = 4.5951_f64;
         /// assert!((zeta - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn zeta_ref -> ZetaIncomplete;
     }
     math_op0! {
         /// Computes the Riemann Zeta function on *u*.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5832,6 +6279,10 @@ impl Float {
         /// let expected = 1.2021_f64;
         /// assert!((f - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn zeta_u(u: u32) -> ZetaUIncomplete;
     }
     math_op1_float! {
@@ -5882,8 +6333,10 @@ impl Float {
         fn erf_round;
         /// Computes the error function.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5894,6 +6347,10 @@ impl Float {
         /// let expected = 0.9229_f64;
         /// assert!((erf - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn erf_ref -> ErfIncomplete;
     }
     math_op1_float! {
@@ -5944,8 +6401,10 @@ impl Float {
         fn erfc_round;
         /// Computes the complementary error function.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -5956,6 +6415,10 @@ impl Float {
         /// let expected = 0.0771_f64;
         /// assert!((erfc - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn erfc_ref -> ErfcIncomplete;
     }
     math_op1_float! {
@@ -6006,8 +6469,10 @@ impl Float {
         fn j0_round;
         /// Computes the first kind Bessel function of order 0.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6018,6 +6483,10 @@ impl Float {
         /// let expected = 0.6459_f64;
         /// assert!((j0 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn j0_ref -> J0Incomplete;
     }
     math_op1_float! {
@@ -6068,8 +6537,10 @@ impl Float {
         fn j1_round;
         /// Computes the first kind Bessel function of order 1.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6080,6 +6551,10 @@ impl Float {
         /// let expected = 0.5106_f64;
         /// assert!((j1 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn j1_ref -> J1Incomplete;
     }
     math_op1_float! {
@@ -6130,8 +6605,10 @@ impl Float {
         fn jn_round;
         /// Computes the first kind Bessel function of order *n*.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6142,6 +6619,10 @@ impl Float {
         /// let expected = 0.1711_f64;
         /// assert!((j2 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn jn_ref -> JnIncomplete;
     }
     math_op1_float! {
@@ -6192,8 +6673,10 @@ impl Float {
         fn y0_round;
         /// Computes the second kind Bessel function of order 0.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6204,6 +6687,10 @@ impl Float {
         /// let expected = 0.2582_f64;
         /// assert!((y0 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn y0_ref -> Y0Incomplete;
     }
     math_op1_float! {
@@ -6254,8 +6741,10 @@ impl Float {
         fn y1_round;
         /// Computes the second kind Bessel function of order 1.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6266,6 +6755,10 @@ impl Float {
         /// let expected = -0.5844_f64;
         /// assert!((y1 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn y1_ref -> Y1Incomplete;
     }
     math_op1_float! {
@@ -6316,8 +6809,10 @@ impl Float {
         fn yn_round;
         /// Computes the second kind Bessel function of order *n*.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6328,6 +6823,10 @@ impl Float {
         /// let expected = -1.1932_f64;
         /// assert!((y2 - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn yn_ref -> YnIncomplete;
     }
     math_op2_float! {
@@ -6381,8 +6880,10 @@ impl Float {
         fn agm_round;
         /// Computes the arithmetic-geometric mean.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6394,6 +6895,10 @@ impl Float {
         /// let expected = 2.3295_f64;
         /// assert!((agm - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn agm_ref -> AgmIncomplete;
     }
     math_op2_float! {
@@ -6447,8 +6952,10 @@ impl Float {
         fn hypot_round;
         /// Computes the Euclidean norm.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6460,6 +6967,10 @@ impl Float {
         /// let expected = 3.9528_f64;
         /// assert!((hypot - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn hypot_ref -> HypotIncomplete;
     }
     math_op1_float! {
@@ -6510,8 +7021,10 @@ impl Float {
         fn ai_round;
         /// Computes the Airy function Ai on the value.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6522,6 +7035,10 @@ impl Float {
         /// let expected = 0.0996_f64;
         /// assert!((ai - expected).abs() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ai_ref -> AiIncomplete;
     }
     math_op1_no_round! {
@@ -6557,8 +7074,10 @@ impl Float {
         /// Rounds up to the next higher integer. The result may be
         /// rounded again when assigned to the target.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6571,6 +7090,10 @@ impl Float {
         /// let ceil2 = Float::with_val(53, f2.ceil_ref());
         /// assert_eq!(ceil2, 24);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ceil_ref -> CeilIncomplete;
     }
     math_op1_no_round! {
@@ -6606,8 +7129,10 @@ impl Float {
         /// Rounds down to the next lower integer. The result may be
         /// rounded again when assigned to the target.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6620,6 +7145,10 @@ impl Float {
         /// let floor2 = Float::with_val(53, f2.floor_ref());
         /// assert_eq!(floor2, 23);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn floor_ref -> FloorIncomplete;
     }
     math_op1_no_round! {
@@ -6658,8 +7187,10 @@ impl Float {
         /// away from zero. The result may be rounded again when
         /// assigned to the target.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6692,6 +7223,10 @@ impl Float {
         /// dst.assign_round(r, Round::Nearest);
         /// assert_eq!(dst, 8);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
        fn round_ref -> RoundIncomplete;
     }
     math_op1_no_round! {
@@ -6730,8 +7265,10 @@ impl Float {
         /// even. The result may be rounded again when assigned to the
         /// target.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6744,6 +7281,10 @@ impl Float {
         /// let round2 = Float::with_val(53, f2.round_even_ref());
         /// assert_eq!(round2, 24);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
        fn round_even_ref -> RoundEvenIncomplete;
     }
     math_op1_no_round! {
@@ -6779,8 +7320,10 @@ impl Float {
         /// Rounds to the next integer towards zero. The result may be
         /// rounded again when assigned to the target.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6793,6 +7336,10 @@ impl Float {
         /// let trunc2 = Float::with_val(53, f2.trunc_ref());
         /// assert_eq!(trunc2, 23);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn trunc_ref -> TruncIncomplete;
     }
     math_op1_no_round! {
@@ -6827,8 +7374,10 @@ impl Float {
         fn fract_mut;
         /// Gets the fractional part of the number.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6841,6 +7390,10 @@ impl Float {
         /// let fract2 = Float::with_val(53, f2.fract_ref());
         /// assert_eq!(fract2, 0.75);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn fract_ref -> FractIncomplete;
     }
     math_op1_2_float! {
@@ -6923,8 +7476,10 @@ impl Float {
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
         ///
-        /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -6943,6 +7498,10 @@ impl Float {
         /// assert_eq!(trunc2, -23);
         /// assert_eq!(fract2, -0.75);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn trunc_fract_ref -> TruncFractIncomplete;
     }
 
@@ -6966,8 +7525,8 @@ impl Float {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// [`Assign<Src> for Float`](trait.Assign.html) is implemented
-    /// with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] is implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -6980,6 +7539,9 @@ impl Float {
     /// assert!(f == 0.0 || f == 0.25 || f == 0.5 || f == 0.75);
     /// println!("0.0 ≤ {} < 1.0", f);
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -6991,20 +7553,22 @@ impl Float {
     /// Generates a random number in the continuous range 0 ≤ *x* < 1.
     ///
     /// The result can be rounded up to be equal to one. Unlike the
-    /// [`random_bits`](#method.random_bits) method which generates a
-    /// discrete random number at intervals depending on the
-    /// precision, this method is equivalent to generating a
-    /// continuous random number with infinite precision and then
-    /// rounding the result. This means that even the smaller numbers
-    /// will be using all the available precision bits, and rounding
-    /// is performed in all cases, not in some corner case.
+    /// [`random_bits`] method which generates a discrete random
+    /// number at intervals depending on the precision, this method is
+    /// equivalent to generating a continuous random number with
+    /// infinite precision and then rounding the result. This means
+    /// that even the smaller numbers will be using all the available
+    /// precision bits, and rounding is performed in all cases, not in
+    /// some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// # Examples
     ///
@@ -7019,6 +7583,10 @@ impl Float {
     ///         || f == 0.25 || f <= 0.1875
     /// );
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`random_bits`]: #method.random_bits
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_cont<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -7034,8 +7602,10 @@ impl Float {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// # Examples
     ///
@@ -7046,6 +7616,10 @@ impl Float {
     /// let f = Float::with_val(53, Float::random_normal(&mut rand));
     /// println!("Normal random number: {}", f);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_normal<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -7061,8 +7635,10 @@ impl Float {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// [`AssignRound<Src> for Float`](ops/trait.AssignRound.html) is
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`] and
+    /// [`AssignRound<Src> for Float`][`AssignRound`] are implemented
+    /// with the returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// # Examples
     ///
@@ -7073,6 +7649,10 @@ impl Float {
     /// let f = Float::with_val(53, Float::random_exp(&mut rand));
     /// println!("Exponential random number: {}", f);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_exp<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -7811,8 +8391,7 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing a
-/// [`Float`](struct.Float.html).
+/// An error which can be returned when parsing a [`Float`].
 ///
 /// # Examples
 ///
@@ -7827,6 +8406,8 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 /// };
 /// println!("Parse error: {:?}", error);
 /// ```
+///
+/// [`Float`]: ../struct.Float.html
 pub struct ParseFloatError {
     kind: ParseErrorKind,
 }

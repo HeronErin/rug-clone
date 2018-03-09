@@ -95,23 +95,22 @@ pub type Ordering2 = (Ordering, Ordering);
 /// have four versions:
 ///
 /// 1. The first method consumes the operand and rounds the returned
-///    `Complex` number to the
-///    [nearest](float/enum.Round.html#variant.Nearest) representable
+///    `Complex` number to the [nearest][`Nearest`] representable
 ///    value.
-/// 2. The second method has a `_mut` suffix, mutates the operand and
-///    rounds it the nearest representable value.
-/// 3. The third method has a `_round` suffix, mutates the operand,
-///    applies the specified [rounding method](float/enum.Round.html)
-///    to the real and imaginary parts, and returns the rounding
-///    direction for both:
+/// 2. The second method has a “`_mut`” suffix, mutates the operand
+///    and rounds it the nearest representable value.
+/// 3. The third method has a “`_round`” suffix, mutates the operand,
+///    applies the specified [rounding method][`Round`] to the real
+///    and imaginary parts, and returns the rounding direction for
+///    both:
 ///    * `Ordering::Less` if the stored part is less than the exact
 ///      result,
 ///    * `Ordering::Equal` if the stored part is equal to the exact
 ///      result,
 ///    * `Ordering::Greater` if the stored part is greater than the
 ///      exact result.
-/// 4. The fourth method has a `_ref` suffix and borrows the operand.
-///    The returned item is an
+/// 4. The fourth method has a “`_ref`” suffix and borrows the
+///    operand. The returned item is an
 ///    [incomplete-computation value][incomplete] that can be assigned
 ///    to a `Complex` number; the rounding method is selected during
 ///    the assignment.
@@ -149,6 +148,8 @@ pub type Ordering2 = (Ordering, Ordering);
 /// assert_eq!(d, (1, 1));
 /// ```
 ///
+/// [`Nearest`]: float/enum.Round.html#variant.Nearest
+/// [`Round`]: float/enum.Round.html
 /// [incomplete]: index.html#incomplete-computation-values
 pub struct Complex {
     inner: mpc_t,
@@ -270,9 +271,12 @@ impl Complex {
         }
     }
 
-    /// Create a new [`Complex`](struct.Complex.html) number with the
-    /// specified precisions for the real and imaginary parts and with
-    /// value 0.
+    /// Create a new [`Complex`] number with the specified precisions
+    /// for the real and imaginary parts and with value 0.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the precision is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -286,17 +290,18 @@ impl Complex {
     /// assert_eq!(c2, 0);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the precision is out of the allowed range.
+    /// [`Complex`]: struct.Complex.html
     #[inline]
     pub fn new<P: Prec>(prec: P) -> Self {
         Self::with_val(prec, (Special::Zero, Special::Zero))
     }
 
-    /// Create a new [`Complex`](struct.Complex.html) number with the
-    /// specified precision and with the given value, rounding to the
-    /// nearest.
+    /// Create a new [`Complex`] number with the specified precision
+    /// and with the given value, rounding to the nearest.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -311,9 +316,7 @@ impl Complex {
     /// assert_eq!(c2, (42, 0));
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
+    /// [`Complex`]: struct.Complex.html
     #[inline]
     pub fn with_val<P: Prec, T>(prec: P, val: T) -> Self
     where
@@ -324,9 +327,13 @@ impl Complex {
         ret
     }
 
-    /// Create a new [`Complex`](struct.Complex.html) number with the
-    /// specified precision and with the given value, applying the
-    /// specified rounding method.
+    /// Create a new [`Complex`] number with the specified precision
+    /// and with the given value, applying the specified rounding
+    /// method.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `prec` is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -342,9 +349,7 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `prec` is out of the allowed range.
+    /// [`Complex`]: struct.Complex.html
     #[inline]
     pub fn with_val_round<P: Prec, T>(
         prec: P,
@@ -376,6 +381,10 @@ impl Complex {
     /// Sets the precision of the real and imaginary parts, rounding
     /// to the nearest.
     ///
+    /// # Panics
+    ///
+    /// Panics if the precision is out of the allowed range.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -385,10 +394,6 @@ impl Complex {
     /// r.set_prec(4);
     /// assert_eq!(r, (5.0, 4.5));
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the precision is out of the allowed range.
     #[inline]
     pub fn set_prec<P: Prec>(&mut self, prec: P) {
         self.set_prec_round(prec, Default::default());
@@ -396,6 +401,10 @@ impl Complex {
 
     /// Sets the precision of the real and imaginary parts, applying
     /// the specified rounding method.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the precision is out of the allowed range.
     ///
     /// # Examples
     ///
@@ -409,10 +418,6 @@ impl Complex {
     /// assert_eq!(r, (4.5, 5.0));
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the precision is out of the allowed range.
     #[inline]
     pub fn set_prec_round<P: Prec>(
         &mut self,
@@ -427,17 +432,18 @@ impl Complex {
         )
     }
 
-    /// Parses a decimal string or byte slice into a
-    /// [`Complex`](struct.Complex.html) number.
+    /// Parses a decimal string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into a [`Complex`] number.
     ///
-    /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-    /// is implemented with the unwrapped returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] is implemented
+    /// with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
     /// 1. One floating-point number that can be parsed by
-    ///    [`Float::parse`](struct.Float.html#method.parse).
-    ///    Whitespace is treated in the same way as well.
+    ///    [`Float::parse`]. Whitespace is treated in the same way as
+    ///    well.
     /// 2. Two floating-point numbers inside round brackets separated
     ///    by one comma. Whitespace is treated in the same way as 1
     ///    above, and is also allowed around the brackets and the
@@ -464,23 +470,31 @@ impl Complex {
     /// let invalid = Complex::parse("(1 2 3)");
     /// assert!(invalid.is_err());
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Complex`]: struct.Complex.html
+    /// [`Float::parse`]: struct.Float.html#method.parse
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
     ) -> Result<ParseIncomplete, ParseComplexError> {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into a
-    /// [`Complex`](struct.Complex.html) number.
+    /// Parses a string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into a [`Complex`] number.
     ///
-    /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-    /// is implemented with the unwrapped returned object as `Src`.
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] is implemented
+    /// with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can contain either of the following three:
     ///
     /// 1. One floating-point number that can be parsed by
-    ///    [`Float::parse_radix`](struct.Float.html#method.parse_radix).
-    ///    Whitespace is treated in the same way as well.
+    ///    [`Float::parse_radix`]. Whitespace is treated in the same
+    ///    way as well.
     /// 2. Two floating-point numbers inside round brackets separated
     ///    by one comma. Whitespace is treated in the same way as 1
     ///    above, and is also allowed around the brackets and the
@@ -490,6 +504,10 @@ impl Complex {
     ///    separated by whitespace, they themselves cannot contain
     ///    whitespace. Whitespace is still allowed around the brackets
     ///    and between the two parts.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -508,9 +526,12 @@ impl Complex {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Complex`]: struct.Complex.html
+    /// [`Float::parse_radix`]: struct.Float.html#method.parse_radix
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
@@ -525,6 +546,10 @@ impl Complex {
     /// not specified, the output string will have enough precision
     /// such that reading it again will give the exact same number.
     ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -537,10 +562,6 @@ impl Complex {
     /// assert_eq!(c3.to_string_radix(10, Some(3)), "(1.00e1 -4.00)");
     /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00)");
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(
         &self,
@@ -556,6 +577,10 @@ impl Complex {
     /// The exponent is encoded in decimal. If the number of digits is
     /// not specified, the output string will have enough precision
     /// such that reading it again will give the exact same number.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -577,10 +602,6 @@ impl Complex {
     /// let su = c.to_string_radix_round(10, Some(2), up);
     /// assert_eq!(su, "(1.1e1 0.0)");
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     pub fn to_string_radix_round(
         &self,
         radix: i32,
@@ -599,8 +620,8 @@ impl Complex {
         s
     }
 
-    /// Creates a [`Complex`](struct.Complex.html) number from an
-    /// initialized MPC complex number.
+    /// Creates a [`Complex`] number from an initialized MPC complex
+    /// number.
     ///
     /// # Safety
     ///
@@ -630,13 +651,14 @@ impl Complex {
     ///     // since c is a Complex now, deallocation is automatic
     /// }
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
     }
 
-    /// Converts a [`Complex`](struct.Complex.html) number into an MPC
-    /// complex number.
+    /// Converts a [`Complex`] number into an MPC complex number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -662,6 +684,8 @@ impl Complex {
     ///     }
     /// }
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
         let ret = self.inner;
@@ -728,7 +752,7 @@ impl Complex {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows the real part as a [`Float`](struct.Float.html).
+    /// Borrows the real part as a [`Float`].
     ///
     /// # Examples
     ///
@@ -737,12 +761,14 @@ impl Complex {
     /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.real(), 12.5)
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn real(&self) -> &Float {
         unsafe { &*(mpc::realref_const(self.inner()) as *const _) }
     }
 
-    /// Borrows the imaginary part as a [`Float`](struct.Float.html).
+    /// Borrows the imaginary part as a [`Float`].
     ///
     /// # Examples
     ///
@@ -751,6 +777,8 @@ impl Complex {
     /// let c = Complex::with_val(53, (12.5, -20.75));
     /// assert_eq!(*c.imag(), -20.75)
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn imag(&self) -> &Float {
         unsafe { &*(mpc::imagref_const(self.inner()) as *const _) }
@@ -815,7 +843,7 @@ impl Complex {
     }
 
     /// Consumes and converts the value into real and imaginary
-    /// [`Float`](struct.Float.html) values.
+    /// [`Float`] values.
     ///
     /// This function reuses the allocated memory and does not
     /// allocate any new memory.
@@ -827,6 +855,8 @@ impl Complex {
     /// assert_eq!(real, 12.5);
     /// assert_eq!(imag, -20.75);
     /// ```
+    ///
+    /// [`Float`]: struct.Float.html
     #[inline]
     pub fn into_real_imag(self) -> (Float, Float) {
         let raw = self.into_raw();
@@ -837,10 +867,10 @@ impl Complex {
         }
     }
 
-    /// Borrows a negated copy of the [`Complex`](struct.Complex.html)
-    /// number.
+    /// Borrows a negated copy of the [`Complex`] number.
     ///
-    /// The returned object implements `Deref<Target = Complex>`.
+    /// The returned object implements
+    /// [`Deref<Target = Complex>`][`Deref`].
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -857,6 +887,9 @@ impl Complex {
     /// assert_eq!(*reneg_c, (4.2, -2.3));
     /// assert_eq!(*reneg_c, c);
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
     pub fn as_neg(&self) -> BorrowComplex {
         // shallow copy
         let mut ret = BorrowComplex {
@@ -877,10 +910,10 @@ impl Complex {
         ret
     }
 
-    /// Borrows a conjugate copy of the
-    /// [`Complex`](struct.Complex.html) number.
+    /// Borrows a conjugate copy of the [`Complex`] number.
     ///
-    /// The returned object implements `Deref<Target = Complex>`.
+    /// The returned object implements
+    /// [`Deref<Target = Complex>`][`Deref`].
     ///
     /// This method performs a shallow copy and negates its imaginary
     /// part, and negation does not change the allocated data.
@@ -897,6 +930,9 @@ impl Complex {
     /// assert_eq!(*reconj_c, (4.2, -2.3));
     /// assert_eq!(*reconj_c, c);
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
     pub fn as_conj(&self) -> BorrowComplex {
         let mut ret = BorrowComplex {
             inner: self.inner,
@@ -913,15 +949,15 @@ impl Complex {
         ret
     }
 
-    /// Borrows a rotated copy of the [`Complex`](struct.Complex.html)
-    /// number.
+    /// Borrows a rotated copy of the [`Complex`] number.
     ///
-    /// The returned object implements `Deref<Target = Complex>`.
+    /// The returned object implements
+    /// [`Deref<Target = Complex>`][`Deref`].
     ///
     /// This method operates by performing some shallow copying;
-    /// unlike the [`mul_i`](#method.mul_i) method and friends, this
-    /// method swaps the precision of the real and imaginary parts if
-    /// they have unequal precisions.
+    /// unlike the [`mul_i`] method and friends, this method swaps the
+    /// precision of the real and imaginary parts if they have unequal
+    /// precisions.
     ///
     /// # Examples
     ///
@@ -937,6 +973,10 @@ impl Complex {
     /// assert_eq!(*mul_1_c, (4.2, -2.3));
     /// assert_eq!(*mul_1_c, c);
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
         let mut inner: mpc_t = unsafe { mem::uninitialized() };
         unsafe {
@@ -961,9 +1001,8 @@ impl Complex {
         }
     }
 
-    /// Borrows the [`Complex`](struct.Complex.html) as an ordered
-    /// complex number of type
-    /// [`OrdComplex`](complex/struct.OrdComplex.html).
+    /// Borrows the [`Complex`] number as an ordered complex number of
+    /// type [`OrdComplex`].
     ///
     /// # Examples
     ///
@@ -987,6 +1026,9 @@ impl Complex {
     /// let zero_inf = zero_inf_c.as_ord();
     /// assert_eq!(one_pos0.cmp(zero_inf), Ordering::Greater);
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
+    /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
         unsafe { &*(self as *const _ as *const _) }
@@ -1023,13 +1065,14 @@ impl Complex {
         }
     }
 
-    /// Adds a list of [`Complex`](struct.Complex.html) numbers with
-    /// correct rounding.
+    /// Adds a list of [`Complex`] numbers with correct rounding.
     ///
-    /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html),
-    /// `Add<Src> for Complex`, `AddAssign<Src> for Complex` and
-    /// [`AddAssignRound<Src> for Complex`](ops/trait.AddAssignRound.html)
-    /// are implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Complex`][`Assign`],
+    /// [`AssignRound<Src> for Complex`][`AssignRound`],
+    /// [`AddAssign<Src> for Complex`][`AddAssign`],
+    /// [`AddAssignRound<Src> for Complex`][`AddAssignRound`] and
+    /// [`Add<Src> for Complex`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -1059,6 +1102,14 @@ impl Complex {
     /// // (16.5, 15) rounded to (16, 15)
     /// assert_eq!(sum3, (16, 15));
     /// ```
+    ///
+    /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/std/ops/trait.Add.html
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
     where
@@ -1115,8 +1166,8 @@ impl Complex {
     ///
     /// `a.mul_add_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b + &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another
-    /// [`Complex`](struct.Complex.html) number like `ans`.
+    /// in `a` using its precision rather than in another [`Complex`]
+    /// number like `ans`.
     ///
     /// # Examples
     ///
@@ -1132,6 +1183,8 @@ impl Complex {
     /// assert_eq!(a, (1010, 990));
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
     pub fn mul_add_round(
         &mut self,
         mul: &Self,
@@ -1152,8 +1205,10 @@ impl Complex {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
-    /// is implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Complex`][`Assign`] and
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+    /// implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1169,6 +1224,10 @@ impl Complex {
     /// let ans = Complex::with_val(53, a.mul_add_ref(&b, &c));
     /// assert_eq!(ans, (1010, 990));
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn mul_add_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -1225,8 +1284,8 @@ impl Complex {
     ///
     /// `a.mul_sub_round(&b, &c, round)` produces a result like
     /// `ans.assign_round(&a * &b - &c, round)`, but stores the result
-    /// in `a` using its precision rather than in another
-    /// [`Complex`](struct.Complex.html) number like `ans`.
+    /// in `a` using its precision rather than in another [`Complex`]
+    /// number like `ans`.
     ///
     /// # Examples
     ///
@@ -1242,6 +1301,8 @@ impl Complex {
     /// assert_eq!(a, (-990, -1010));
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
     /// ```
+    ///
+    /// [`Complex`]: struct.Complex.html
     pub fn mul_sub_round(
         &mut self,
         mul: &Self,
@@ -1261,8 +1322,10 @@ impl Complex {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
-    /// is implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Complex`][`Assign`] and
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+    /// implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
     /// `&a * &b - &c`.
@@ -1278,6 +1341,10 @@ impl Complex {
     /// let ans = Complex::with_val(53, a.mul_sub_ref(&b, &c));
     /// assert_eq!(ans, (-990, -1010));
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     pub fn mul_sub_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -1344,8 +1411,10 @@ impl Complex {
         /// is set to 0 with the same sign as the imaginary part of
         /// the input.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1361,6 +1430,10 @@ impl Complex {
         /// // imaginary was negative, so now it is minus zero
         /// assert!(proj2.imag().is_sign_negative());
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn proj_ref -> ProjIncomplete;
     }
     math_op1_complex! {
@@ -1407,8 +1480,10 @@ impl Complex {
         fn square_round;
         /// Computes the square.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1425,6 +1500,10 @@ impl Complex {
         /// assert_eq!(square, (0, 3));
         /// assert_eq!(dir, (Ordering::Equal, Ordering::Less));
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
     }
     math_op1_complex! {
@@ -1472,8 +1551,10 @@ impl Complex {
         fn sqrt_round;
         /// Computes the square root.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1490,6 +1571,10 @@ impl Complex {
         /// assert_eq!(sqrt, (1.625, 0.6875));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sqrt_ref -> SqrtIncomplete;
     }
     math_op1_no_round! {
@@ -1518,8 +1603,10 @@ impl Complex {
         fn conj_mut;
         /// Computes the complex conjugate.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1529,6 +1616,10 @@ impl Complex {
         /// let conj = Complex::with_val(53, c.conj_ref());
         /// assert_eq!(conj, (1.5, -2.5));
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn conj_ref -> ConjIncomplete;
     }
 
@@ -1570,9 +1661,12 @@ impl Complex {
 
     /// Computes the absolute value.
     ///
-    /// [`AssignRound<Src> for Float`](trait.AssignRound.html) and
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html) are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`],
+    /// [`Assign<Src> for Complex`][`Assign`],
+    /// [`AssignRound<Src> for Float`][`AssignRound`] and
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+    /// implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -1582,6 +1676,10 @@ impl Complex {
     /// let f = Float::with_val(53, c.abs_ref());
     /// assert_eq!(f, 50);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete {
         AbsIncomplete { ref_self: self }
@@ -1667,9 +1765,12 @@ impl Complex {
 
     /// Computes the argument.
     ///
-    /// [`AssignRound<Src> for Float`](trait.AssignRound.html) and
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html) are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`],
+    /// [`Assign<Src> for Complex`][`Assign`],
+    /// [`AssignRound<Src> for Float`][`AssignRound`] and
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+    /// implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -1688,6 +1789,10 @@ impl Complex {
     /// arg.assign(c_pi_4.arg_ref());
     /// assert_eq!(arg, f64::consts::FRAC_PI_4);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn arg_ref(&self) -> ArgIncomplete {
         ArgIncomplete { ref_self: self }
@@ -1749,8 +1854,10 @@ impl Complex {
         fn mul_i_round;
         /// Multiplies the complex number by ±<i>i</i>.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1760,6 +1867,10 @@ impl Complex {
         /// let rotated = Complex::with_val(53, c.mul_i_ref(false));
         /// assert_eq!(rotated, (-24, 13));
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn mul_i_ref -> MulIIncomplete;
     }
     math_op1_complex! {
@@ -1807,8 +1918,10 @@ impl Complex {
         fn recip_round;
         /// Computes the reciprocal.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1819,6 +1932,10 @@ impl Complex {
         /// let recip = Complex::with_val(53, c.recip_ref());
         /// assert_eq!(recip, (0.5, -0.5));
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn recip_ref -> RecipIncomplete;
     }
 
@@ -1889,9 +2006,12 @@ impl Complex {
 
     /// Computes the norm, that is the square of the absolute value.
     ///
-    /// [`AssignRound<Src> for Float`](trait.AssignRound.html) and
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html) are
-    /// implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Float`][`Assign`],
+    /// [`Assign<Src> for Complex`][`Assign`],
+    /// [`AssignRound<Src> for Float`][`AssignRound`] and
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+    /// implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -1901,6 +2021,10 @@ impl Complex {
     /// let f = Float::with_val(53, c.norm_ref());
     /// assert_eq!(f, 25);
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn norm_ref(&self) -> NormIncomplete {
         NormIncomplete { ref_self: self }
@@ -1952,8 +2076,10 @@ impl Complex {
         fn ln_round;
         /// Computes the natural logarithm;
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1964,6 +2090,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.4581, -0.3218));
         /// assert!(*(ln - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ln_ref -> LnIncomplete;
     }
     math_op1_complex! {
@@ -2012,8 +2142,10 @@ impl Complex {
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2024,6 +2156,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.1990, -0.1397));
         /// assert!(*(log10 - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn log10_ref -> Log10Incomplete;
     }
     math_op0! {
@@ -2033,8 +2169,10 @@ impl Complex {
         /// raised to the power *k*, that is its magnitude is 1 and
         /// its argument is 2<i>πk</i>/<i>n</i>.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2045,6 +2183,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (-0.5, -0.8660));
         /// assert!(*(c - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete;
     }
     math_op1_complex! {
@@ -2093,8 +2235,10 @@ impl Complex {
         fn exp_round;
         /// Computes the exponential.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2105,6 +2249,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.2064, -1.1238));
         /// assert!(*(exp - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn exp_ref -> ExpIncomplete;
     }
     math_op1_complex! {
@@ -2152,8 +2300,10 @@ impl Complex {
         fn sin_round;
         /// Computes the sine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2164,6 +2314,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.2985, 0.6350));
         /// assert!(*(sin - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sin_ref -> SinIncomplete;
     }
     math_op1_complex! {
@@ -2211,8 +2365,10 @@ impl Complex {
         fn cos_round;
         /// Computes the cosine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2223,6 +2379,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.8337, -0.9889));
         /// assert!(*(cos - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn cos_ref -> CosIncomplete;
     }
     math_op1_2_complex! {
@@ -2293,9 +2453,12 @@ impl Complex {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// [`AssignRound<Src> for (Complex, Complex)`][ar] and
-        /// [`AssignRound<Src> for (&mut Complex, &mut Complex)`][ar]
-        /// are implemented with the returned object as `Src`.
+        /// [`Assign<Src> for (Complex, Complex)`][`Assign`],
+        /// [`Assign<Src> for (&mut Complex, &mut Complex)`][`Assign`],
+        /// [`AssignRound<Src> for (Complex, Complex)`][`AssignRound`] and
+        /// [`AssignRound<Src> for (&mut Complex, &mut Complex)`][`AssignRound`]
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2326,7 +2489,9 @@ impl Complex {
         /// assert_eq!(dir_cos, (Ordering::Less, Ordering::Less));
         /// ```
         ///
-        /// [ar]: ops/trait.AssignRound.html
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_complex! {
@@ -2374,8 +2539,10 @@ impl Complex {
         fn tan_round;
         /// Computes the tangent.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2386,6 +2553,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.2718, 1.0839));
         /// assert!(*(tan - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn tan_ref -> TanIncomplete;
     }
     math_op1_complex! {
@@ -2434,8 +2605,10 @@ impl Complex {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2446,6 +2619,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.6350, 1.2985));
         /// assert!(*(sinh - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn sinh_ref -> SinhIncomplete;
     }
     math_op1_complex! {
@@ -2494,8 +2671,10 @@ impl Complex {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2506,6 +2685,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.8337, 0.9889));
         /// assert!(*(cosh - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn cosh_ref -> CoshIncomplete;
     }
     math_op1_complex! {
@@ -2554,8 +2737,10 @@ impl Complex {
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2566,6 +2751,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0839, 0.2718));
         /// assert!(*(tanh - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn tanh_ref -> TanhIncomplete;
     }
     math_op1_complex! {
@@ -2614,8 +2803,10 @@ impl Complex {
         fn asin_round;
         /// Computes the inverse sine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2626,6 +2817,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.6662, 1.0613));
         /// assert!(*(asin - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn asin_ref -> AsinIncomplete;
     }
     math_op1_complex! {
@@ -2674,8 +2869,10 @@ impl Complex {
         fn acos_round;
         /// Computes the inverse cosine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2686,6 +2883,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.9046, -1.0613));
         /// assert!(*(acos - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn acos_ref -> AcosIncomplete;
     }
     math_op1_complex! {
@@ -2734,8 +2935,10 @@ impl Complex {
         fn atan_round;
         /// Computes the inverse tangent.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2746,6 +2949,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0172, 0.4024));
         /// assert!(*(atan - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn atan_ref -> AtanIncomplete;
     }
     math_op1_complex! {
@@ -2794,8 +3001,10 @@ impl Complex {
         fn asinh_round;
         /// Computes the inverse hyperboic sine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2806,6 +3015,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0613, 0.6662));
         /// assert!(*(asinh - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn asinh_ref -> AsinhIncomplete;
     }
     math_op1_complex! {
@@ -2856,8 +3069,10 @@ impl Complex {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2868,6 +3083,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (1.0613, 0.9046));
         /// assert!(*(acosh - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn acosh_ref -> AcoshIncomplete;
     }
     math_op1_complex! {
@@ -2918,8 +3137,10 @@ impl Complex {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///
-        /// [`AssignRound<Src> for Complex`](ops/trait.AssignRound.html)
-        /// is implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Complex`][`Assign`] and
+        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2930,6 +3151,10 @@ impl Complex {
         /// let expected = Complex::with_val(53, (0.4024, 1.0172));
         /// assert!(*(atanh - expected).abs().real() < 0.0001);
         /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
         fn atanh_ref -> AtanhIncomplete;
     }
 
@@ -2954,8 +3179,8 @@ impl Complex {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// [`Assign<Src> for Complex`](trait.Assign.html) is implemented
-    /// with the returned object as `Src`.
+    /// [`Assign<Src> for Complex`][`Assign`] is implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -2971,6 +3196,9 @@ impl Complex {
     /// println!("0.0 ≤ {} < 1.0", re);
     /// println!("0.0 ≤ {} < 1.0", im);
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -2984,20 +3212,22 @@ impl Complex {
     /// to the nearest.
     ///
     /// The result parts can be rounded up to be equal to one. Unlike
-    /// the [`assign_random_bits`](#method.assign_random_bits) method
-    /// which generates a discrete random number at intervals
-    /// depending on the precision, this method is equivalent to
-    /// generating a continuous random number with infinite precision
-    /// and then rounding the result. This means that even the smaller
-    /// numbers will be using all the available precision bits, and
-    /// rounding is performed in all cases, not in some corner case.
+    /// the [`assign_random_bits`] method which generates a discrete
+    /// random number at intervals depending on the precision, this
+    /// method is equivalent to generating a continuous random number
+    /// with infinite precision and then rounding the result. This
+    /// means that even the smaller numbers will be using all the
+    /// available precision bits, and rounding is performed in all
+    /// cases, not in some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// [`AssignRound<Src> for Complex`](trait.AssignRound.html)
-    /// is implemented with the returned object as `Src`.
+    /// [`Assign<Src> for Complex`][`Assign`] and
+    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
+    /// implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -3017,6 +3247,11 @@ impl Complex {
     ///         || im == 0.25 || im <= 0.1875
     /// );
     /// ```
+    ///
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`assign_random_bits`]: #method.assign_random_bits
+    /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_cont<'a, 'b: 'a>(
         rng: &'a mut RandState<'b>,
@@ -3468,8 +3703,7 @@ fn parse(
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing a
-/// [`Complex`](struct.Complex.html) number.
+/// An error which can be returned when parsing a [`Complex`] number.
 ///
 /// # Examples
 ///
@@ -3484,6 +3718,8 @@ fn parse(
 /// };
 /// println!("Parse error: {:?}", error);
 /// ```
+///
+/// [`Complex`]: ../struct.Complex.html
 pub struct ParseComplexError {
     kind: ParseErrorKind,
 }

@@ -32,12 +32,11 @@ use std::ptr;
 
 /// An arbitrary-precision rational number.
 ///
-/// A `Rational` number is made up of a numerator
-/// [`Integer`](struct.Integer.html) and denominator
-/// [`Integer`](struct.Integer.html). After `Rational` number
-/// functions, the number is always in canonical form, that is the
-/// denominator is always greater than zero, and there are no common
-/// factors. Zero is stored as 0/1.
+/// A `Rational` number is made up of a numerator [`Integer`] and
+/// denominator [`Integer`]. After `Rational` number functions, the
+/// number is always in canonical form, that is the denominator is
+/// always greater than zero, and there are no common factors. Zero is
+/// stored as 0/1.
 ///
 /// # Examples
 ///
@@ -57,8 +56,9 @@ use std::ptr;
 /// methods have three versions:
 ///
 /// 1. The first method consumes the operand.
-/// 2. The second method has a `_mut` suffix and mutates the operand.
-/// 3. The third method has a `_ref` suffix and borrows the operand.
+/// 2. The second method has a “`_mut`” suffix and mutates the
+///    operand.
+/// 3. The third method has a “`_ref`” suffix and borrows the operand.
 ///    The returned item is an
 ///    [incomplete-computation value][incomplete] that can be assigned
 ///    to a `Rational` number.
@@ -85,6 +85,7 @@ use std::ptr;
 /// assert_eq!(c, (-19, 2));
 /// ```
 ///
+/// [`Integer`]: struct.Integer.html
 /// [incomplete]: index.html#incomplete-computation-values
 pub struct Rational {
     inner: mpq_t,
@@ -245,8 +246,8 @@ macro_rules! ref_rat_op_rat_int {
 }
 
 impl Rational {
-    /// Constructs a new arbitrary-precision
-    /// [`Rational`](struct.Rational.html) number with value 0.
+    /// Constructs a new arbitrary-precision [`Rational`] number with
+    /// value 0.
     ///
     /// # Examples
     ///
@@ -255,6 +256,8 @@ impl Rational {
     /// let r = Rational::new();
     /// assert_eq!(r, 0);
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn new() -> Self {
         unsafe {
@@ -264,8 +267,8 @@ impl Rational {
         }
     }
 
-    /// Creates a [`Rational`](struct.Rational.html) number from an
-    /// `f32` if it is finite, losing no precision.
+    /// Creates a [`Rational`] number from an [`f32`] if it is finite,
+    /// losing no precision.
     ///
     /// # Examples
     ///
@@ -277,13 +280,16 @@ impl Rational {
     /// let inf = Rational::from_f32(f32::INFINITY);
     /// assert!(inf.is_none());
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn from_f32(val: f32) -> Option<Self> {
         Rational::from_f64(val.into())
     }
 
-    /// Creates a [`Rational`](struct.Rational.html) number from an
-    /// `f64` if it is finite, losing no precision.
+    /// Creates a [`Rational`] number from an [`f64`] if it is finite,
+    /// losing no precision.
     ///
     /// # Examples
     ///
@@ -295,6 +301,9 @@ impl Rational {
     /// let inf = Rational::from_f64(f64::INFINITY);
     /// assert!(inf.is_none());
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
@@ -306,7 +315,11 @@ impl Rational {
         }
     }
 
-    /// Parses a [`Rational`](struct.Rational.html) number.
+    /// Parses a [`Rational`] number.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -320,9 +333,7 @@ impl Rational {
     /// assert_eq!(*r2.denom(), 2);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn from_str_radix(
         src: &str,
@@ -334,12 +345,13 @@ impl Rational {
         )?))
     }
 
-    /// Parses a decimal string or byte slice into a
-    /// [`Rational`](struct.Rational.html) number.
+    /// Parses a decimal string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into a [`Rational`] number.
     ///
-    /// [`Assign<Src> for Rational`](trait.Assign.html) and
-    /// `From<Src> for Rational` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Rational`][`Assign`] and
+    /// [`From<Src> for Rational`][`From`] are implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -366,6 +378,13 @@ impl Rational {
     /// let invalid = Rational::parse("12/");
     /// assert!(invalid.is_err());
     /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     #[inline]
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
@@ -373,12 +392,13 @@ impl Rational {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string or byte slice into a
-    /// [`Rational`](struct.Rational.html) number.
+    /// Parses a string slice ([`&str`][str]) or byte slice
+    /// ([`&[u8]`][slice]) into a [`Rational`] number.
     ///
-    /// [`Assign<Src> for Rational`](trait.Assign.html) and
-    /// `From<Src> for Rational` are implemented with the unwrapped
-    /// returned object as `Src`.
+    /// [`Assign<Src> for Rational`][`Assign`] and
+    /// [`From<Src> for Rational`][`From`] are implemented with the
+    /// unwrapped returned [incomplete-computation value][icv] as
+    /// `Src`.
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -389,6 +409,10 @@ impl Rational {
     /// Underscores are ignored anywhere except before the first digit
     /// of the numerator and between the `'/'` and the the first digit
     /// of the denominator.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -406,9 +430,12 @@ impl Rational {
     /// assert!(invalid.is_err());
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
     #[inline]
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
@@ -417,7 +444,7 @@ impl Rational {
         parse(src.as_ref(), radix)
     }
 
-    /// Converts to an `f32`, rounding towards zero.
+    /// Converts to an [`f32`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -433,12 +460,14 @@ impl Rational {
     /// // times_three_two is too small
     /// assert_eq!(times_three_two.to_f32(), f32::NEG_INFINITY);
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
         misc::trunc_f64_to_f32(self.to_f64())
     }
 
-    /// Converts to an `f64`, rounding towards zero.
+    /// Converts to an [`f64`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -468,12 +497,18 @@ impl Rational {
     /// // times_three_two is too large
     /// assert_eq!(times_three_two.to_f64(), f64::INFINITY);
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
         unsafe { gmp::mpq_get_d(self.inner()) }
     }
 
     /// Returns a string representation for the specified `radix`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `radix` is less than 2 or greater than 36.
     ///
     /// # Examples
     ///
@@ -487,10 +522,6 @@ impl Rational {
     /// assert_eq!(r3.to_string_radix(10), "-5/3");
     /// assert_eq!(r3.to_string_radix(5), "-10/3");
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if `radix` is less than 2 or greater than 36.
     #[inline]
     pub fn to_string_radix(&self, radix: i32) -> String {
         let mut s = String::new();
@@ -498,7 +529,7 @@ impl Rational {
         s
     }
 
-    /// Assigns from an `f32` if it is finite, losing no precision.
+    /// Assigns from an [`f32`] if it is finite, losing no precision.
     ///
     /// # Examples
     ///
@@ -513,12 +544,14 @@ impl Rational {
     /// assert!(ret.is_err());
     /// assert_eq!(r, (1275, 100));
     /// ```
+    ///
+    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an `f64` if it is finite, losing no precision.
+    /// Assigns from an [`f64`] if it is finite, losing no precision.
     ///
     /// # Examples
     ///
@@ -532,6 +565,8 @@ impl Rational {
     /// assert!(ret.is_err());
     /// assert_eq!(r, (1275, 100));
     /// ```
+    ///
+    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
@@ -544,15 +579,15 @@ impl Rational {
         }
     }
 
-    /// Creates a new [`Rational`](struct.Rational.html) number from a
-    /// numerator and denominator without canonicalizing aftwerwards.
+    /// Creates a new [`Rational`] number from a numerator and
+    /// denominator without canonicalizing aftwerwards.
     ///
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// [`Rational`](struct.Rational.html) number. The caller must
-    /// ensure that the numerator and denominator are in canonical
-    /// form, as the rest of the library assumes that they are.
+    /// [`Rational`] number. The caller must ensure that the numerator
+    /// and denominator are in canonical form, as the rest of the
+    /// library assumes that they are.
     ///
     /// # Examples
     ///
@@ -563,6 +598,8 @@ impl Rational {
     /// let r = unsafe { Rational::from_canonical(-3, 5) };
     /// assert_eq!(r, (-3, 5));
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
     pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
         Integer: From<Num> + From<Den>,
@@ -582,10 +619,9 @@ impl Rational {
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// [`Rational`](struct.Rational.html) number after the
-    /// assignment. The caller must ensure that the numerator and
-    /// denominator are in canonical form, as the rest of the library
-    /// assumes that they are.
+    /// [`Rational`] number after the assignment. The caller must
+    /// ensure that the numerator and denominator are in canonical
+    /// form, as the rest of the library assumes that they are.
     ///
     /// # Examples
     ///
@@ -599,6 +635,8 @@ impl Rational {
     /// }
     /// assert_eq!(r, (-3, 5));
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
     pub unsafe fn assign_canonical<Num, Den>(&mut self, num: Num, den: Den)
     where
         Integer: Assign<Num> + Assign<Den>,
@@ -608,8 +646,8 @@ impl Rational {
         dst_den.assign(den);
     }
 
-    /// Creates a [`Rational`](struct.Rational.html) number from an
-    /// initialized GMP rational number.
+    /// Creates a [`Rational`] number from an initialized GMP rational
+    /// number.
     ///
     /// # Safety
     ///
@@ -646,14 +684,14 @@ impl Rational {
     /// }
     /// ```
     ///
+    /// [`Rational`]: struct.Rational.html
     /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
     #[inline]
     pub unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
     }
 
-    /// Converts a [`Rational`](struct.Rational.html) number into a
-    /// GMP rational number.
+    /// Converts a [`Rational`] number into a GMP rational number.
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
@@ -675,6 +713,8 @@ impl Rational {
     ///     }
     /// }
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn into_raw(self) -> mpq_t {
         let ret = self.inner;
@@ -737,7 +777,7 @@ impl Rational {
         unsafe { self.inner_mut() }
     }
 
-    /// Borrows the numerator as an [`Integer`](struct.Integer.html).
+    /// Borrows the numerator as an [`Integer`].
     ///
     /// # Examples
     ///
@@ -747,13 +787,14 @@ impl Rational {
     /// // r will be canonicalized to -3 / 5
     /// assert_eq!(*r.numer(), -3)
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn numer(&self) -> &Integer {
         unsafe { &*(gmp::mpq_numref_const(self.inner()) as *const _) }
     }
 
-    /// Borrows the denominator as an
-    /// [`Integer`](struct.Integer.html).
+    /// Borrows the denominator as an [`Integer`].
     ///
     /// # Examples
     ///
@@ -763,6 +804,8 @@ impl Rational {
     /// // r will be canonicalized to -3 / 5
     /// assert_eq!(*r.denom(), 5);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn denom(&self) -> &Integer {
         unsafe { &*(gmp::mpq_denref_const(self.inner()) as *const _) }
@@ -772,6 +815,10 @@ impl Rational {
     /// denominator, then canonicalizes the number.
     ///
     /// The denominator must not be zero when the function returns.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the denominator is zero when the function returns.
     ///
     /// # Examples
     ///
@@ -808,10 +855,6 @@ impl Rational {
     /// assert_eq!(*r.numer(), -1);
     /// assert_eq!(*r.denom(), 2);
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the denominator is zero when the function returns.
     pub fn mutate_numer_denom<F>(&mut self, func: F)
     where
         F: FnOnce(&mut Integer, &mut Integer),
@@ -835,10 +878,10 @@ impl Rational {
     /// # Safety
     ///
     /// This function is unsafe because it does not canonicalize the
-    /// [`Rational`](struct.Rational.html) number when the borrow
-    /// ends. The caller must ensure that the numerator and
-    /// denominator are left in canonical form, as the rest of the
-    /// library assumes that they are.
+    /// [`Rational`] number when the borrow ends. The caller must
+    /// ensure that the numerator and denominator are left in
+    /// canonical form, as the rest of the library assumes that they
+    /// are.
     ///
     /// # Examples
     ///
@@ -879,6 +922,8 @@ impl Rational {
     /// assert_eq!(*r.numer(), -1);
     /// assert_eq!(*r.denom(), 2);
     /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
     #[inline]
     pub unsafe fn as_mut_numer_denom_no_canonicalization(
         &mut self,
@@ -889,7 +934,7 @@ impl Rational {
         )
     }
 
-    /// Converts into numerator and denominator integers.
+    /// Converts into numerator and denominator [`Integer`] values.
     ///
     /// This function reuses the allocated memory and does not
     /// allocate any new memory.
@@ -904,6 +949,8 @@ impl Rational {
     /// assert_eq!(num, -3);
     /// assert_eq!(den, 5);
     /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn into_numer_denom(self) -> (Integer, Integer) {
         let raw = self.into_raw();
@@ -914,10 +961,10 @@ impl Rational {
         }
     }
 
-    /// Borrows a negated copy of the
-    /// [`Rational`](struct.Rational.html) number.
+    /// Borrows a negated copy of the [`Rational`] number.
     ///
-    /// The returned object implements `Deref<Target = Rational>`.
+    /// The returned object implements
+    /// [`Deref<Target = Rational>`][`Deref`].
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -934,6 +981,9 @@ impl Rational {
     /// assert_eq!(*reneg_r, (7, 11));
     /// assert_eq!(*reneg_r, r);
     /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn as_neg(&self) -> BorrowRational {
         let mut ret = BorrowRational {
@@ -951,10 +1001,10 @@ impl Rational {
         ret
     }
 
-    /// Borrows an absolute copy of the
-    /// [`Rational`](struct.Rational.html) number.
+    /// Borrows an absolute copy of the [`Rational`] number.
     ///
-    /// The returned object implements `Deref<Target = Rational>`.
+    /// The returned object implements
+    /// [`Deref<Target = Rational>`][`Deref`].
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -971,6 +1021,9 @@ impl Rational {
     /// assert_eq!(*reabs_r, (7, 11));
     /// assert_eq!(*reabs_r, *abs_r);
     /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn as_abs(&self) -> BorrowRational {
         let mut ret = BorrowRational {
@@ -988,13 +1041,17 @@ impl Rational {
         ret
     }
 
-    /// Borrows a reciprocal copy of the
-    /// [`Rational`](struct.Rational.html) number.
+    /// Borrows a reciprocal copy of the [`Rational`] number.
     ///
-    /// The returned object implements `Deref<Target = Rational>`.
+    /// The returned object implements
+    /// [`Deref<Target = Rational>`][`Deref`].
     ///
     /// This method performs some shallow copying, swapping numerator
     /// and denominator and making sure the sign is in the numerator.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the value is zero.
     ///
     /// # Examples
     ///
@@ -1009,9 +1066,8 @@ impl Rational {
     /// assert_eq!(*rerecip_r, r);
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the value is zero.
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Rational`]: struct.Rational.html
     pub fn as_recip(&self) -> BorrowRational {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
@@ -1091,9 +1147,9 @@ impl Rational {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1104,6 +1160,10 @@ impl Rational {
         /// let abs = Rational::from(r_ref);
         /// assert_eq!(abs, (100, 17));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn abs_ref -> AbsIncomplete;
     }
     rat_op_int! {
@@ -1144,10 +1204,11 @@ impl Rational {
         /// * 1 if the value is positive
         /// * −1 if the value is negative
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html),
-        /// [`Assign<Src> for Rational`](trait.Assign.html),
-        /// `From<Src> for Integer` and `From<Src> for Rational` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`],
+        /// [`Assign<Src> for Rational`][`Assign`],
+        /// [`From<Src> for Integer`][`From`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1158,10 +1219,18 @@ impl Rational {
         /// let signum = Integer::from(r_ref);
         /// assert_eq!(signum, -1);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn signum_ref -> SignumIncomplete;
     }
 
     /// Clamps the value within the specified bounds.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
     ///
     /// # Examples
     ///
@@ -1176,10 +1245,6 @@ impl Rational {
     /// let clamped2 = in_range.clamp(&min, &max);
     /// assert_eq!(clamped2, (1, 2));
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value.
     #[inline]
     pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
@@ -1194,6 +1259,10 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -1207,10 +1276,6 @@ impl Rational {
     /// in_range.clamp_mut(&min, &max);
     /// assert_eq!(in_range, (1, 2));
     /// ```
-    ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value.
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
         Self: PartialOrd<Min>
@@ -1229,9 +1294,13 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// [`Assign<Src> for Rational`](trait.Assign.html) and
-    /// `From<Src> for Rational` are implemented with the returned
-    /// object as `Src`.
+    /// [`Assign<Src> for Rational`][`Assign`] and
+    /// [`From<Src> for Rational`][`From`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the maximum value is less than the minimum value.
     ///
     /// # Examples
     ///
@@ -1249,9 +1318,9 @@ impl Rational {
     /// assert_eq!(clamped2, (1, 2));
     /// ```
     ///
-    /// # Panics
-    ///
-    /// Panics if the maximum value is less than the minimum value.
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'a, Min, Max>(
         &'a self,
@@ -1275,6 +1344,10 @@ impl Rational {
         xgmp::mpq_inv_check;
         /// Computes the reciprocal.
         ///
+        /// # Panics
+        ///
+        /// Panics if the value is zero.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -1283,10 +1356,6 @@ impl Rational {
         /// let recip = r.recip();
         /// assert_eq!(recip, (-17, 100));
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is zero.
         fn recip();
         /// Computes the reciprocal.
         ///
@@ -1294,6 +1363,10 @@ impl Rational {
         /// simply swaps the allocated data of the numerator and
         /// denominator and makes sure the denominator is stored as
         /// positive.
+        ///
+        /// # Panics
+        ///
+        /// Panics if the value is zero.
         ///
         /// # Examples
         ///
@@ -1303,16 +1376,12 @@ impl Rational {
         /// r.recip_mut();
         /// assert_eq!(r, (-17, 100));
         /// ```
-        ///
-        /// # Panics
-        ///
-        /// Panics if the value is zero.
         fn recip_mut;
         /// Computes the reciprocal.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1323,12 +1392,15 @@ impl Rational {
         /// let recip = Rational::from(r_ref);
         /// assert_eq!(recip, (-17, 100));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn recip_ref -> RecipIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_trunc;
-        /// Rounds the number towards zero and returns it as an
-        /// [`Integer`](struct.Integer.html).
+        /// Rounds the number towards zero.
         ///
         /// # Examples
         ///
@@ -1362,10 +1434,11 @@ impl Rational {
         fn trunc_mut;
         /// Rounds the number towards zero.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html),
-        /// [`Assign<Src> for Rational`](trait.Assign.html),
-        /// `From<Src> for Integer` and `From<Src> for Rational` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`],
+        /// [`Assign<Src> for Rational`][`Assign`],
+        /// [`From<Src> for Integer`][`From`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1381,6 +1454,10 @@ impl Rational {
         /// trunc.assign(r2.trunc_ref());
         /// assert_eq!(trunc, 3);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn trunc_ref -> TruncIncomplete;
     }
 
@@ -1412,9 +1489,9 @@ impl Rational {
         fn rem_trunc_mut;
         /// Computes the fractional part of the number.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1426,6 +1503,10 @@ impl Rational {
         /// let rem = Rational::from(r_ref);
         /// assert_eq!(rem, (-15, 17));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn rem_trunc_ref -> RemTruncIncomplete;
     }
     rat_op_rat_int! {
@@ -1463,10 +1544,11 @@ impl Rational {
         fn fract_trunc_mut;
         /// Computes the fractional and truncated parts of the number.
         ///
-        /// [`Assign<Src> for (Rational, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
-        /// and `From<Src> for (Rational, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Rational, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1481,13 +1563,14 @@ impl Rational {
         /// assert_eq!(trunc, -5);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn fract_trunc_ref -> FractTruncIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_ceil;
-        /// Rounds the number upwards (towards plus infinity) and returns
-        /// it as an [`Integer`](struct.Integer.html).
+        /// Rounds the number upwards (towards plus infinity).
         ///
         /// # Examples
         ///
@@ -1521,10 +1604,11 @@ impl Rational {
         fn ceil_mut;
         /// Rounds the number upwards (towards plus infinity).
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html),
-        /// [`Assign<Src> for Rational`](trait.Assign.html),
-        /// `From<Src> for Integer` and `From<Src> for Rational` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`],
+        /// [`Assign<Src> for Rational`][`Assign`],
+        /// [`From<Src> for Integer`][`From`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1540,6 +1624,10 @@ impl Rational {
         /// ceil.assign(r2.ceil_ref());
         /// assert_eq!(ceil, 4);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn ceil_ref -> CeilIncomplete;
     }
     math_op1! {
@@ -1570,9 +1658,9 @@ impl Rational {
         fn rem_ceil_mut;
         /// Computes the non-positive remainder after rounding up.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1584,6 +1672,10 @@ impl Rational {
         /// let rem = Rational::from(r_ref);
         /// assert_eq!(rem, (-2, 17));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn rem_ceil_ref -> RemCeilIncomplete;
     }
     rat_op_rat_int! {
@@ -1625,10 +1717,11 @@ impl Rational {
         ///
         /// The fractional part cannot be greater than zero.
         ///
-        /// [`Assign<Src> for (Rational, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
-        /// and `From<Src> for (Rational, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Rational, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1643,13 +1736,14 @@ impl Rational {
         /// assert_eq!(ceil, 6);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn fract_ceil_ref -> FractCeilIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_floor;
-        /// Rounds the number downwards (towards minus infinity) and
-        /// returns it as an [`Integer`](struct.Integer.html).
+        /// Rounds the number downwards (towards minus infinity).
         ///
         /// # Examples
         ///
@@ -1681,10 +1775,11 @@ impl Rational {
         fn floor_mut;
         /// Rounds the number downwards (towards minus infinity).
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html),
-        /// [`Assign<Src> for Rational`](trait.Assign.html),
-        /// `From<Src> for Integer` and `From<Src> for Rational` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`],
+        /// [`Assign<Src> for Rational`][`Assign`],
+        /// [`From<Src> for Integer`][`From`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1700,6 +1795,10 @@ impl Rational {
         /// floor.assign(r2.floor_ref());
         /// assert_eq!(floor, 3);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn floor_ref -> FloorIncomplete;
     }
     math_op1! {
@@ -1730,9 +1829,9 @@ impl Rational {
         fn rem_floor_mut;
         /// Computes the non-negative remainder after rounding down.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1744,6 +1843,10 @@ impl Rational {
         /// let rem = Rational::from(r_ref);
         /// assert_eq!(rem, (2, 17));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn rem_floor_ref -> RemFloorIncomplete;
     }
     rat_op_rat_int! {
@@ -1785,10 +1888,11 @@ impl Rational {
         ///
         /// The fractional part cannot be negative.
         ///
-        /// [`Assign<Src> for (Rational, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
-        /// and `From<Src> for (Rational, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Rational, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1803,13 +1907,14 @@ impl Rational {
         /// assert_eq!(floor, -6);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn fract_floor_ref -> FractFloorIncomplete;
     }
     rat_op_int! {
         xgmp::mpq_round;
-        /// Rounds the number to the nearest integer and returns it as an
-        /// [`Integer`](struct.Integer.html).
+        /// Rounds the number to the nearest integer.
         ///
         /// When the number lies exactly between two integers, it is
         /// rounded away from zero.
@@ -1852,10 +1957,11 @@ impl Rational {
         /// When the number lies exactly between two integers, it is
         /// rounded away from zero.
         ///
-        /// [`Assign<Src> for Integer`](trait.Assign.html),
-        /// [`Assign<Src> for Rational`](trait.Assign.html),
-        /// `From<Src> for Integer` and `From<Src> for Rational` are
-        /// implemented with the returned object as `Src`.
+        /// [`Assign<Src> for Integer`][`Assign`],
+        /// [`Assign<Src> for Rational`][`Assign`],
+        /// [`From<Src> for Integer`][`From`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1871,6 +1977,10 @@ impl Rational {
         /// round.assign(r2.round_ref());
         /// assert_eq!(round, 4);
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn round_ref -> RoundIncomplete;
     }
     math_op1! {
@@ -1912,9 +2022,9 @@ impl Rational {
         /// Computes the remainder after rounding to the nearest
         /// integer.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -1931,6 +2041,10 @@ impl Rational {
         /// let rem2 = Rational::from(r_ref2);
         /// assert_eq!(rem2, (-3, 10));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn rem_round_ref -> RemRoundIncomplete;
     }
     rat_op_rat_int! {
@@ -1990,10 +2104,11 @@ impl Rational {
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
         ///
-        /// [`Assign<Src> for (Rational, Integer)`][assign],
-        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][assign]
-        /// and `From<Src> for (Rational, Integer)` are implemented
-        /// with the returned object as `Src`.
+        /// [`Assign<Src> for (Rational, Integer)`][`Assign`],
+        /// [`Assign<Src> for (&mut Rational, &mut Integer)`][`Assign`]
+        /// and [`From<Src> for (Rational, Integer)`][`From`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2015,7 +2130,9 @@ impl Rational {
         /// assert_eq!(round2, 4);
         /// ```
         ///
-        /// [assign]: trait.Assign.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn fract_round_ref -> FractRoundIncomplete;
     }
     math_op1! {
@@ -2044,9 +2161,9 @@ impl Rational {
         fn square_mut;
         /// Computes the square.
         ///
-        /// [`Assign<Src> for Rational`](trait.Assign.html) and
-        /// `From<Src> for Rational` are implemented with the returned
-        /// object as `Src`.
+        /// [`Assign<Src> for Rational`][`Assign`] and
+        /// [`From<Src> for Rational`][`From`] are implemented with
+        /// the returned [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2055,6 +2172,10 @@ impl Rational {
         /// let r = Rational::from((-13, 2));
         /// assert_eq!(Rational::from(r.square_ref()), (169, 4));
         /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
     }
 }
@@ -2293,8 +2414,7 @@ fn parse(
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing a
-/// [`Rational`](struct.Rational.html) number.
+/// An error which can be returned when parsing a [`Rational`] number.
 ///
 /// # Examples
 ///
@@ -2309,6 +2429,8 @@ fn parse(
 /// };
 /// println!("Parse error: {:?}", error);
 /// ```
+///
+/// [`Rational`]: ../struct.Rational.html
 pub struct ParseRationalError {
     kind: ParseErrorKind,
 }

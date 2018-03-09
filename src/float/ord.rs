@@ -65,7 +65,7 @@ pub struct OrdFloat {
 }
 
 impl OrdFloat {
-    /// Extracts the underlying [`Float`](../struct.Float.html).
+    /// Extracts the underlying [`Float`].
     ///
     /// # Examples
     ///
@@ -77,12 +77,14 @@ impl OrdFloat {
     /// let f_ref = ord.as_float();
     /// assert_eq!(f_ref.to_f64(), 1.5);
     /// ```
+    ///
+    /// [`Float`]: ../struct.Float.html
     #[inline]
     pub fn as_float(&self) -> &Float {
         &self.inner
     }
 
-    /// Extracts the underlying [`Float`](../struct.Float.html).
+    /// Extracts the underlying [`Float`].
     ///
     /// # Examples
     ///
@@ -94,6 +96,8 @@ impl OrdFloat {
     /// ord.as_float_mut().abs_mut();
     /// assert_eq!(ord.as_float().to_f64(), 1.5);
     /// ```
+    ///
+    /// [`Float`]: ../struct.Float.html
     #[inline]
     pub fn as_float_mut(&mut self) -> &mut Float {
         &mut self.inner

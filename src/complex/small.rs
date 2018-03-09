@@ -28,25 +28,24 @@ use std::sync::atomic::Ordering;
 ///
 /// This can be useful when you have real and imaginary numbers that
 /// are primitive integers or floats and you need a reference to a
-/// [`Complex`](../struct.Complex.html).
+/// [`Complex`].
 ///
 /// The `SmallComplex` will have a precision according to the types of
 /// the primitives used to set its real and imaginary parts. Note that
 /// if different types are used to set the parts, the parts can have
 /// different precisions.
 ///
-/// * `i8`, `u8`: the part will have eight bits of precision.
-/// * `i16`, `u16`: the part will have 16 bits of precision.
-/// * `i32`, `u32`: the part will have 32 bits of precision.
-/// * `i64`, `u64`: the part will have 64 bits of precision.
-/// * `isize`, `usize`: the part will have 32 or 64 bits of precision,
+/// * [`i8`], [`u8`]: the part will have eight bits of precision.
+/// * [`i16`], [`u16`]: the part will have 16 bits of precision.
+/// * [`i32`], [`u32`]: the part will have 32 bits of precision.
+/// * [`i64`], [`u64`]: the part will have 64 bits of precision.
+/// * [`isize`], [`usize`]: the part will have 32 or 64 bits of precision,
 ///   depending on the platform.
-/// * `f32`: the part will have 24 bits of precision.
-/// * `f64`: the part will have 53 bits of precision.
+/// * [`f32`]: the part will have 24 bits of precision.
+/// * [`f64`]: the part will have 53 bits of precision.
 ///
-/// The `SmallComplex` type can be coerced to a
-/// [`Complex`](../struct.Complex.html), as it implements
-/// `Deref<Target = Complex>`.
+/// The `SmallComplex` type can be coerced to a [`Complex`], as it
+/// implements [`Deref<Target = Complex>`][`Deref`].
 ///
 /// # Examples
 ///
@@ -61,6 +60,21 @@ use std::sync::atomic::Ordering;
 /// assert_eq!(*a.real(), -9);
 /// assert_eq!(*a.imag(), -18.5);
 /// ```
+///
+/// [`Complex`]: ../struct.Complex.html
+/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+/// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+/// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+/// [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
+/// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
+/// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
+/// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
+/// [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
+/// [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
+/// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+/// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
+/// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
+/// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
 #[repr(C)]
 pub struct SmallComplex {
     re: Mpfr,
@@ -88,16 +102,15 @@ impl Clone for SmallComplex {
 }
 
 impl SmallComplex {
-    /// Returns a mutable reference to a
-    /// [`Complex`](../struct.Complex.html) number for simple
+    /// Returns a mutable reference to a [`Complex`] number for simple
     /// operations that do not need to change the precision of the
     /// real or imaginary part.
     ///
     /// # Safety
     ///
     /// It is undefined behaviour to modify the precision of the
-    /// referenced [`Complex`](../struct.Complex.html) number or to
-    /// swap it with another number.
+    /// referenced [`Complex`] number or to swap it with another
+    /// number.
     ///
     /// # Examples
     ///
@@ -110,6 +123,8 @@ impl SmallComplex {
     /// }
     /// assert_eq!(*c, (-3.0, 1.0));
     /// ```
+    ///
+    /// [`Complex`]: ../struct.Complex.html
     #[inline]
     pub unsafe fn as_nonreallocating_complex(&mut self) -> &mut Complex {
         self.update_d();
