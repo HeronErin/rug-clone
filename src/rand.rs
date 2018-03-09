@@ -250,7 +250,7 @@ impl<'a> RandState<'a> {
     ///
     /// If the custom random generator is cloned, the implemented
     /// trait method [`RandGen::boxed_clone`] is called;
-    /// this leads to panic if the method returns [No].
+    /// this leads to panic if the method returns [`None`][No].
     ///
     /// # Examples
     ///
