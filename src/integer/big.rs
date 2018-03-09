@@ -1042,7 +1042,8 @@ impl Integer {
         s
     }
 
-    /// Assigns from an [`f32`] if it is finite, rounding towards zero.
+    /// Assigns from an [`f32`] if it is [finite][`f32::is_finite`],
+    /// rounding towards zero.
     ///
     /// # Examples
     ///
@@ -1058,14 +1059,15 @@ impl Integer {
     /// assert_eq!(i, -12);
     /// ```
     ///
+    /// [`f32::is_finite`]: https://doc.rust-lang.org/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an [`f64`] if it is finite, rounding towards
-    /// zero.
+    /// Assigns from an [`f64`] if it is [finite][`f64::is_finite`],
+    /// rounding towards zero.
     ///
     /// # Examples
     ///
@@ -1080,6 +1082,7 @@ impl Integer {
     /// assert_eq!(i, 12);
     /// ```
     ///
+    /// [`f64::is_finite`]: https://doc.rust-lang.org/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
