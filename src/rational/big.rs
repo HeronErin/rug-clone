@@ -267,8 +267,8 @@ impl Rational {
         }
     }
 
-    /// Creates a [`Rational`] number from an [`f32`] if it is finite,
-    /// losing no precision.
+    /// Creates a [`Rational`] number from an [`f32`] if it is
+    /// [finite][`f32::is_finite`], losing no precision.
     ///
     /// # Examples
     ///
@@ -282,14 +282,15 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`f32::is_finite`]: https://doc.rust-lang.org/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn from_f32(val: f32) -> Option<Self> {
         Rational::from_f64(val.into())
     }
 
-    /// Creates a [`Rational`] number from an [`f64`] if it is finite,
-    /// losing no precision.
+    /// Creates a [`Rational`] number from an [`f64`] if it is
+    /// [finite][`f64::is_finite`], losing no precision.
     ///
     /// # Examples
     ///
@@ -303,6 +304,7 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
+    /// [`f64::is_finite`]: https://doc.rust-lang.org/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {

@@ -305,8 +305,8 @@ impl Integer {
         }
     }
 
-    /// Creates an [`Integer`] from an [`f32`] if it is finite,
-    /// rounding towards zero.
+    /// Creates an [`Integer`] from an [`f32`] if it is
+    /// [finite][`f32::is_finite`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -320,14 +320,15 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`f32::is_finite`]: https://doc.rust-lang.org/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
     #[inline]
     pub fn from_f32(val: f32) -> Option<Self> {
         Integer::from_f64(val.into())
     }
 
-    /// Creates an [`Integer`] from an [`f64`] if it is finite,
-    /// rounding towards zero.
+    /// Creates an [`Integer`] from an [`f64`] if it is
+    /// [finite][`f64::is_finite`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -341,6 +342,7 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`f64::is_finite`]: https://doc.rust-lang.org/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {
