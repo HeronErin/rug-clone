@@ -206,8 +206,8 @@ impl<'a> RandState<'a> {
     /// Creates a new custom random generator.
     ///
     /// If the custom random generator is cloned, the implemented
-    /// trait method [`RandGen::boxed_clone`][boxed clone] is called;
-    /// this leads to panic if the method returns [`None`][No].
+    /// trait method [`RandGen::boxed_clone`] is called; this leads to
+    /// panic if the method returns [`None`][No].
     ///
     /// # Examples
     ///
@@ -227,7 +227,7 @@ impl<'a> RandState<'a> {
     /// ```
     ///
     /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [boxed_clone]: trait.RandGen.html#method.boxed_clone
+    /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom(custom: &'a mut RandGen) -> RandState<'a> {
         let b: Box<&'a mut RandGen> = Box::new(custom);
         let r_ptr: *mut &mut RandGen = Box::into_raw(b);
@@ -249,7 +249,7 @@ impl<'a> RandState<'a> {
     /// Creates a new custom random generator.
     ///
     /// If the custom random generator is cloned, the implemented
-    /// trait method [`RandGen::boxed_clone`][boxed clone] is called;
+    /// trait method [`RandGen::boxed_clone`] is called;
     /// this leads to panic if the method returns [No].
     ///
     /// # Examples
@@ -270,7 +270,7 @@ impl<'a> RandState<'a> {
     /// ```
     ///
     /// [No]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [boxed_clone]: trait.RandGen.html#method.boxed_clone
+    /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom_boxed(custom: Box<RandGen>) -> RandState<'a> {
         let b: Box<Box<RandGen>> = Box::new(custom);
         let r_ptr: *mut Box<RandGen> = Box::into_raw(b);
