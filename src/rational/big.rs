@@ -1094,8 +1094,8 @@ impl Rational {
         }
     }
 
-    /// Returns the same result as `self.partial_cmp(&0).unwrap()`,
-    /// but is faster.
+    /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
+    /// is faster.
     ///
     /// # Examples
     ///
@@ -1106,6 +1106,8 @@ impl Rational {
     /// assert_eq!(Rational::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Rational::from((5, 7)).cmp0(), Ordering::Greater);
     /// ```
+    ///
+    /// [`cmp`]: https://doc.rust-lang.org/std/cmp/trait.Ord.html#tymethod.cmp
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         self.numer().cmp0()

@@ -697,7 +697,8 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// Converts to an [`Integer`], rounding to the nearest.
+    /// If the value is a [finite number][`is_finite`], converts it to
+    /// an [`Integer`] rounding to the nearest.
     ///
     /// # Examples
     ///
@@ -712,6 +713,7 @@ impl Float {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
         self.to_integer_round(Round::Nearest)
@@ -719,8 +721,8 @@ impl Float {
     }
 
     #[cfg(feature = "integer")]
-    /// Converts to an [`Integer`], applying the specified rounding
-    /// method.
+    /// If the value is a [finite number][`is_finite`], converts it to
+    /// an [`Integer`] applying the specified rounding method.
     ///
     /// # Examples
     ///
@@ -738,6 +740,7 @@ impl Float {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
+    /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_integer_round(
         &self,
@@ -755,9 +758,8 @@ impl Float {
 
     #[cfg(feature = "integer")]
     /// If the value is a [finite number][`is_finite`], returns an
-    /// [`Integer`] and exponent such that `self` is exactly equal to
-    /// the integer multiplied by two raised to the power of the
-    /// exponent.
+    /// [`Integer`] and exponent such that it is exactly equal to the
+    /// integer multiplied by two raised to the power of the exponent.
     ///
     /// # Examples
     ///
@@ -1641,8 +1643,8 @@ impl Float {
         }
     }
 
-    /// Returns the same result as `self.partial_cmp(&0)`, but is
-    /// faster.
+    /// Returns the same result as
+    /// [`self.partial_cmp(&0)`][`partial_cmp`], but is faster.
     ///
     /// # Examples
     ///
@@ -1659,6 +1661,8 @@ impl Float {
     /// f.assign(Special::Nan);
     /// assert_eq!(f.cmp0(), None);
     /// ```
+    ///
+    /// [`partial_cmp`]: https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html#tymethod.partial_cmp
     #[inline]
     pub fn cmp0(&self) -> Option<Ordering> {
         if self.is_nan() {
@@ -1694,8 +1698,8 @@ impl Float {
         }
     }
 
-    /// Returns the exponent of `self` if `self` is a normal number,
-    /// otherwise [`None`].
+    /// If the value is a [normal number][`is_normal`], returns its
+    /// exponent.
     ///
     /// The significand is assumed to be in the range 0.5 ≤ *x* < 1.
     ///
@@ -1713,7 +1717,7 @@ impl Float {
     /// assert_eq!(f.get_exp(), None);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`is_normal`]: #method.is_normal
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {

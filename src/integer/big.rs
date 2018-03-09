@@ -1487,8 +1487,8 @@ impl Integer {
         unsafe { gmp::mpz_perfect_square_p(self.inner()) != 0 }
     }
 
-    /// Returns the same result as `self.partial_cmp(&0).unwrap()`,
-    /// but is faster.
+    /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
+    /// is faster.
     ///
     /// # Examples
     ///
@@ -1499,6 +1499,8 @@ impl Integer {
     /// assert_eq!(Integer::from(0).cmp0(), Ordering::Equal);
     /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
     /// ```
+    ///
+    /// [`cmp`]: https://doc.rust-lang.org/std/cmp/trait.Ord.html#tymethod.cmp
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
