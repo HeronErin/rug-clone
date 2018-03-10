@@ -590,22 +590,23 @@ impl Float {
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
     /// decimal point. This can optionally be followed by an exponent;
-    /// the exponent can start with a separator 'e', 'E' or '@', and
-    /// is followed by an optional minus or plus sign and by one or
-    /// more decimal digits.
+    /// the exponent can start with a separator ‘`e`’, ‘`E`’ or ‘`@`’,
+    /// and is followed by an optional minus or plus sign and by one
+    /// or more decimal digits.
     ///
     /// Alternatively, the string can indicate the special values
-    /// infinity or NaN. Infinity can be represented as "inf,
-    /// "infinity", "@inf@" or "@infinity@",and NaN can be represented
-    /// as "nan" or "@nan@". All of these special representations are
-    /// case insensitive. The NaN representation may also include a
-    /// possibly-empty string of ASCII letters, digits and underscores
-    /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`.
+    /// infinity or NaN. Infinity can be represented as `"inf"`,
+    /// `"infinity"`, `"@inf@"` or `"@infinity@"`,and NaN can be
+    /// represented as `"nan"` or `"@nan@"`. All of these special
+    /// representations are case insensitive. The NaN representation
+    /// may also include a possibly-empty string of ASCII letters,
+    /// digits and underscores enclosed in brackets, for example
+    /// `"nan(char_sequence_1)"`.
     ///
     /// ASCII whitespace is ignored everywhere in the string except in
     /// the substrings specified above for special values; for example
-    /// " @inf@ " is accepted but "@ inf @" is not. Underscores are
-    /// ignored anywhere in digit strings except before the first
+    /// `" @inf@ "` is accepted but `"@ inf @"` is not. Underscores
+    /// are ignored anywhere in digit strings except before the first
     /// digit and between the exponent separator and the first digit
     /// of the exponent.
     ///
@@ -643,24 +644,25 @@ impl Float {
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
     /// point. This can optionally be followed by an exponent; the
-    /// exponent can start with a separator 'e' or 'E' if the radix ≤
-    /// 10, or '@' for any radix, and is followed by an optional minus
-    /// or plus sign and by one or more decimal digits.
+    /// exponent can start with a separator ‘`e`’ or ‘`E`’ if the
+    /// radix ≤ 10, or ‘`@`’ for any radix, and is followed by an
+    /// optional minus or plus sign and by one or more decimal digits.
     ///
     /// Alternatively, the string can indicate the special values
     /// infinity or NaN. If the radix ≤ 10, infinity can be
-    /// represented as "inf" or "infinity", and NaN can be represented
-    /// as "nan". For any radix, infinity can also be represented as
-    /// "@inf@" or "@infinity@", and NaN can be represented as
-    /// "@nan@". All of these special representations are case
-    /// insensitive. The NaN representation may also include a
-    /// possibly-empty string of ASCII letters, digits and underscores
-    /// enclosed in brackets, e.g. `"nan(char_sequence_1)"`.
+    /// represented as `"inf"` or `"infinity"`, and NaN can be
+    /// represented as `"nan"`. For any radix, infinity can also be
+    /// represented as `"@inf@"` or `"@infinity@"`, and NaN can be
+    /// represented as `"@nan@"`. All of these special representations
+    /// are case insensitive. The NaN representation may also include
+    /// a possibly-empty string of ASCII letters, digits and
+    /// underscores enclosed in brackets, for example
+    /// `"nan(char_sequence_1)"`.
     ///
     /// ASCII whitespace is ignored everywhere in the string except in
     /// the substrings specified above for special values; for example
-    /// " @inf@ " is accepted but "@ inf @" is not. Underscores are
-    /// ignored anywhere in digit strings except before the first
+    /// `" @inf@ "` is accepted but `"@ inf @"` is not. Underscores
+    /// are ignored anywhere in digit strings except before the first
     /// digit and between the exponent separator and the first digit
     /// of the exponent.
     ///
@@ -8405,6 +8407,9 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 #[derive(Debug)]
 /// An error which can be returned when parsing a [`Float`].
 ///
+/// See the [`Float::parse_radix`] method for details on what strings
+/// are accepted.
+///
 /// # Examples
 ///
 /// ```rust
@@ -8419,6 +8424,7 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 /// println!("Parse error: {:?}", error);
 /// ```
 ///
+/// [`Float::parse_radix`]: ../struct.Float.html#method.parse_radix
 /// [`Float`]: ../struct.Float.html
 pub struct ParseFloatError {
     kind: ParseErrorKind,

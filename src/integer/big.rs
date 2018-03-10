@@ -89,7 +89,7 @@ use std::slice;
 /// assert_eq!(i.count_ones(), Some(1000));
 ///
 /// let a = Integer::from(0xf00d);
-/// // -1 is all ones in two's complement
+/// // -1 is all ones in two’s complement
 /// let all_ones_xor_a = Integer::from(-1 ^ &a);
 /// // a is unchanged as we borrowed it
 /// let complement_a = !a;
@@ -4861,6 +4861,9 @@ fn parse(
 #[derive(Debug)]
 /// An error which can be returned when parsing an [`Integer`].
 ///
+/// See the [`Integer::parse_radix`] method for details on what
+/// strings are accepted.
+///
 /// # Examples
 ///
 /// ```rust
@@ -4875,6 +4878,7 @@ fn parse(
 /// println!("Parse error: {}", error);
 /// ```
 ///
+/// [`Integer::parse_radix`]: ../struct.Integer.html#method.parse_radix
 /// [`Integer`]: ../struct.Integer.html
 pub struct ParseIntegerError {
     kind: ParseErrorKind,

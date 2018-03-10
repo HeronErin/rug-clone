@@ -3735,6 +3735,9 @@ fn parse(
 #[derive(Debug)]
 /// An error which can be returned when parsing a [`Complex`] number.
 ///
+/// See the [`Complex::parse_radix`] method for details on what
+/// strings are accepted.
+///
 /// # Examples
 ///
 /// ```rust
@@ -3749,6 +3752,7 @@ fn parse(
 /// println!("Parse error: {:?}", error);
 /// ```
 ///
+/// [`Complex::parse_radix`]: ../struct.Complex.html#method.parse_radix
 /// [`Complex`]: ../struct.Complex.html
 pub struct ParseComplexError {
     kind: ParseErrorKind,

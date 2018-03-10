@@ -26,12 +26,11 @@
 //! * multi-precision [complex numbers][`Complex`] with correct
 //!   rounding.
 //!
-//! Rug is a high-level interface to the following libraries:
+//! Rug is a high-level interface to the following [GNU] libraries:
 //!
-//! * the [GNU Multiple Precision Arithmetic Library (GMP)][GMP] for
-//!   integers and rational numbers,
-//! * the [GNU MPFR Library][MPFR] for floating-point numbers, and
-//! * [GNU MPC][MPC], for complex numbers.
+//! * [GMP] for integers and rational numbers,
+//! * [MPFR] for floating-point numbers, and
+//! * [MPC] for complex numbers.
 //!
 //! Rug is free software: you can redistribute it and/or modify it
 //! under the terms of the GNU Lesser General Public License as
@@ -156,9 +155,9 @@
 //! `a >> -5`.
 //!
 //! The shifting operators are also supported for the [`Float`] and
-//! [`Complex`] types, where they are equivalent to multiplication or
-//! division by a power of two. Only the exponent of the value is
-//! affected; the mantissa is unchanged.
+//! [`Complex`] number types, where they are equivalent to
+//! multiplication or division by a power of two. Only the exponent of
+//! the value is affected; the mantissa is unchanged.
 //!
 //! ### Exponentiation
 //!
@@ -319,19 +318,19 @@
 //! 1. `integer`, enabled by default. Required for the [`Integer`]
 //!    type and its supporting features.
 //! 2. `rational`, enabled by default. Required for the [`Rational`]
-//!    type and its supporting features. This feature requires the
-//!    `integer` feature.
+//!    number type and its supporting features. This feature requires
+//!    the `integer` feature.
 //! 3. `float`, enabled by default. Required for the [`Float`] type
 //!    and its supporting features.
 //! 4. `complex`, enabled by default. Required for the [`Complex`]
-//!    type and its supporting features. This feature requires the
-//!    `float` feature.
+//!    number type and its supporting features. This feature requires
+//!    the `float` feature.
 //! 5. `rand`, enabled by default. Required for the [`RandState`] type
 //!    and its supporting features. This feature requires the
 //!    `integer` feature.
 //! 6. `serde`, disabled by default. This provides serialization
 //!    support for the [`Integer`], [`Rational`], [`Float`] and
-//!    [`Complex`] types, providing that they are enabled. This
+//!    [`Complex`] number types, providing that they are enabled. This
 //!    features requires the [serde crate].
 //!
 //! The first five optional features are enabled by default; to use
@@ -356,6 +355,7 @@
 //! [GMP]: https://gmplib.org/
 //! [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 //! [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html
+//! [GNU]: https://www.gnu.org/
 //! [MPC]: http://www.multiprecision.org/mpc/
 //! [MPFR]: http://www.mpfr.org/
 //! [`Assign::assign`]: trait.Assign.html#tymethod.assign
