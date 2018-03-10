@@ -1,5 +1,5 @@
-Version 1.0.1
-=============
+Version 1.0.1 (2018-03-10)
+==========================
 
 * Add `Integer::is_power_of_two` method.
 * Add `Integer::signed_bits` method.
