@@ -1504,19 +1504,19 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// assert!(Integer::from(1).is_pow_of_two());
-    /// assert!(Integer::from(4).is_pow_of_two());
-    /// assert!(Integer::from(1 << 30).is_pow_of_two());
+    /// assert!(Integer::from(1).is_power_of_two());
+    /// assert!(Integer::from(4).is_power_of_two());
+    /// assert!(Integer::from(1 << 30).is_power_of_two());
     ///
-    /// assert!(!Integer::from(7).is_pow_of_two());
-    /// assert!(!Integer::from(0).is_pow_of_two());
-    /// assert!(!Integer::from(-1).is_pow_of_two());
+    /// assert!(!Integer::from(7).is_power_of_two());
+    /// assert!(!Integer::from(0).is_power_of_two());
+    /// assert!(!Integer::from(-1).is_power_of_two());
     /// ```
     ///
     /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
     #[inline]
-    pub fn is_pow_of_two(&self) -> bool {
-        unsafe { xgmp::is_pow_of_two(self.inner()) }
+    pub fn is_power_of_two(&self) -> bool {
+        unsafe { xgmp::mpz_is_pow_of_two(self.inner()) }
     }
 
     /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but

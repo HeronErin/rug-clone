@@ -1225,7 +1225,7 @@ pub unsafe fn mpz_signed_bits(op: *const mpz_t) -> gmp::bitcnt_t {
     significant.checked_add(1).expect("overflow")
 }
 
-pub unsafe fn is_pow_of_two(op: *const mpz_t) -> bool {
+pub unsafe fn mpz_is_pow_of_two(op: *const mpz_t) -> bool {
     let size = (*op).size;
     if size <= 0 {
         return false;
