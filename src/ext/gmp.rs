@@ -1305,14 +1305,15 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
         return false;
     }
 
-    let mut rem_limb = 0;
-    if s_rem == s_dividend {
+    let mut rem_limb = if s_rem == s_dividend {
         let rem_next_limb = limb(rem, cast::cast(s_rem - 1));
         if (rem_next_limb >> (LIMB_BITS - 1)) != 0 {
             return true;
         }
-        rem_limb = rem_next_limb << 1;
-    }
+        rem_next_limb << 1
+    } else {
+        0
+    };
     for i in (1..s_dividend).rev() {
         let div_limb = limb(dividend, cast::cast(i));
         let rem_next_limb = limb(rem, cast::cast(i - 1));
