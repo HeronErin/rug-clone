@@ -265,35 +265,4 @@ mod tests {
         assert_eq!(format!("{:#08x}", i), "-0x0000b");
         assert_eq!(format!("{:#8X}", i), "    -0xB");
     }
-
-    #[test]
-    fn check_assumptions() {
-        // we assume no nail bits when we use limbs
-        assert_eq!(gmp::NAIL_BITS, 0);
-        assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
-        assert_eq!(
-            gmp::NUMB_BITS as usize,
-            8 * mem::size_of::<gmp::limb_t>()
-        );
-
-        // we check that we have either 64 or 32, but not both
-        assert!(cfg!(gmp_limb_bits_64) != cfg!(gmp_limb_bits_32));
-
-        // check that target_pointer_width is 32 or 64
-        #[cfg(not(any(target_pointer_width = "32",
-                      target_pointer_width = "64")))]
-        panic!("target_pointer_width is not 32 or 64");
-    }
-
-    #[cfg(gmp_limb_bits_64)]
-    #[test]
-    fn check_limbs() {
-        assert_eq!(gmp::NUMB_BITS, 64);
-    }
-
-    #[cfg(gmp_limb_bits_32)]
-    #[test]
-    fn check_limbs() {
-        assert_eq!(gmp::NUMB_BITS, 32);
-    }
 }

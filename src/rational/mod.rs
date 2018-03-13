@@ -245,15 +245,4 @@ mod tests {
         assert_eq!(format!("{:#08x}", r), "-0x00b/f");
         assert_eq!(format!("{:#8X}", r), "  -0xB/F");
     }
-
-    #[test]
-    fn check_assumptions() {
-        // we assume no nail bits when we use limbs
-        assert_eq!(gmp::NAIL_BITS, 0);
-        assert_eq!(gmp::NUMB_BITS, gmp::LIMB_BITS);
-        assert_eq!(
-            gmp::NUMB_BITS as usize,
-            8 * mem::size_of::<gmp::limb_t>()
-        );
-    }
 }

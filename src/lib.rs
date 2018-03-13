@@ -490,6 +490,26 @@ pub use complex::big::Complex;
 #[cfg(feature = "rand")]
 pub mod rand;
 
+// some static assertions
+#[allow(dead_code)]
+#[cfg(any(feature = "integer", feature = "float"))]
+fn check_assumptions() {
+    use gmp_mpfr_sys::gmp::{limb_t, LIMB_BITS, NAIL_BITS, NUMB_BITS};
+
+    static_assert!(NAIL_BITS == 0);
+    static_assert!(NUMB_BITS == LIMB_BITS);
+    static_assert!(
+        cfg!(target_pointer_width = "32") != cfg!(target_pointer_width = "64")
+    );
+    static_assert!(cfg!(gmp_limb_bits_32) != cfg!(gmp_limb_bits_64));
+    #[cfg(gmp_limb_bits_64)]
+    static_assert!(NUMB_BITS == 64);
+    #[cfg(gmp_limb_bits_32)]
+    static_assert!(NUMB_BITS == 32);
+    static_assert!(NUMB_BITS % 8 == 0);
+    static_assert_size!(limb_t, NUMB_BITS / 8);
+}
+
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
     #[cfg(feature = "float")]
