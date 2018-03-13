@@ -35,8 +35,6 @@ pub use rational::small::SmallRational;
 #[cfg(test)]
 mod tests {
     use {Integer, Rational};
-    use gmp_mpfr_sys::gmp;
-    use std::mem;
 
     #[test]
     fn check_fract_trunc() {

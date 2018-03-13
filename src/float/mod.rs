@@ -252,7 +252,6 @@ pub(crate) mod tests {
     use std::cmp::Ordering;
     use std::f64;
     use std::fmt::{Debug, Error as FmtError, Formatter};
-    use std::mem;
 
     #[derive(Clone, Copy)]
     pub enum Cmp {

@@ -85,9 +85,7 @@ mod tests {
     use {Assign, Complex};
     use float::Special;
     use float::tests::Cmp;
-    use gmp_mpfr_sys::gmp;
     use std::f64;
-    use std::mem;
 
     #[test]
     fn check_from_str() {

@@ -53,10 +53,8 @@ pub use integer::small::SmallInteger;
 #[cfg(test)]
 mod tests {
     use {Assign, Integer};
-    use gmp_mpfr_sys::gmp;
     use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
-    use std::mem;
 
     #[test]
     fn check_int_conversions() {
