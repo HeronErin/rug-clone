@@ -24,8 +24,12 @@ use ext::mpfr as xmpfr;
 use float::{self, OrdFloat, Round, SmallFloat, Special};
 use float::arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
                    SubMulFromIncomplete};
+#[cfg(feature = "integer")]
+use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
+#[cfg(feature = "integer")]
+use integer::big::BorrowInteger;
 use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
@@ -1725,6 +1729,73 @@ impl Float {
         if self.is_normal() {
             let e = unsafe { mpfr::get_exp(self.inner()) };
             Some(cast(e))
+        } else {
+            None
+        }
+    }
+
+    #[cfg(feature = "integer")]
+    /// If the value is a [normal number][`is_normal`], returns a
+    /// reference to its significand as an [`Integer`].
+    ///
+    /// The unwrapped returned object implements
+    /// [`Deref<Target = Integer>`][`Deref`].
+    ///
+    /// The number of [significant bits][`significant_bits`] of a
+    /// returned significand is at least equal to the
+    /// [precision][`prec`], but can be larger. It is usually rounded
+    /// up to a multiple of 32 or 64 depending on the implementation;
+    /// in this case, the extra least significant bits will be zero.
+    /// The value of `self` is exactly equal to the returned
+    /// [`Integer`] divided by two raised to the power of the number
+    /// of [significant bits][`significant_bits`] and multiplied by
+    /// two raised to the power of the [exponent][`get_exp`] of
+    /// `self`.
+    ///
+    /// Unlike the [`to_integer_exp`] method which returns an owned
+    /// [`Integer`], this method only performs a shallow copy and does
+    /// not allocate any memory.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    /// let float = Float::with_val(16, 6.5);
+    /// // 6.5 in binary is 110.1 = 0.1101 times two to the power of 3
+    /// let exp = float.get_exp().unwrap();
+    /// assert_eq!(exp, 3);
+    /// let significand = float.get_significand().unwrap();
+    /// let sig_bits = significand.significant_bits();
+    /// // sig_bits must be greater or equal to precision
+    /// assert!(sig_bits >= 16);
+    /// let (check_int, check_exp) = float.to_integer_exp().unwrap();
+    /// assert_eq!(check_int << sig_bits << (check_exp - exp), *significand);
+    /// ```
+    ///
+    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`get_exp`]: #method.get_exp
+    /// [`is_normal`]: #method.is_normal
+    /// [`prec`]: #method.prec
+    /// [`significant_bits`]: struct.Integer.html#method.significant_bits
+    /// [`to_integer_exp`]: #method.to_integer_exp
+    #[inline]
+    pub fn get_significand(&self) -> Option<BorrowInteger> {
+        if self.is_normal() {
+            #[cfg(gmp_limb_bits_64)]
+            let limb_bits = 64;
+            #[cfg(gmp_limb_bits_32)]
+            let limb_bits = 32;
+
+            let limbs = (self.inner.prec - 1) / limb_bits + 1;
+            Some(BorrowInteger {
+                inner: gmp::mpz_t {
+                    alloc: cast(limbs),
+                    size: cast(limbs),
+                    d: self.inner.d,
+                },
+                phantom: PhantomData,
+            })
         } else {
             None
         }

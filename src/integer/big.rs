@@ -4717,8 +4717,8 @@ impl<'a, 'b: 'a> From<RandomBelowIncomplete<'a, 'b>> for Integer {
 
 #[derive(Debug)]
 pub struct BorrowInteger<'a> {
-    inner: mpz_t,
-    phantom: PhantomData<&'a Integer>,
+    pub(crate) inner: mpz_t,
+    pub(crate) phantom: PhantomData<&'a Integer>,
 }
 
 impl<'a> Deref for BorrowInteger<'a> {
