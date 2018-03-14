@@ -28,7 +28,7 @@ use inner::InnerMut;
 #[cfg(feature = "integer")]
 use std::cmp;
 use std::mem;
-use std::os::raw::{c_int, c_long, c_ulong};
+use std::os::raw::{c_int, c_long, c_ulong, c_void};
 #[cfg(feature = "integer")]
 use std::u32;
 
@@ -116,8 +116,8 @@ pub unsafe fn q_div(
     rhs: *const mpfr_t,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    let lhs_num = gmp::mpq_numref(lhs as *mut _) as *const _;
-    let lhs_den = gmp::mpq_denref(lhs as *mut _) as *const _;
+    let lhs_num = gmp::mpq_numref_const(lhs);
+    let lhs_den = gmp::mpq_denref_const(lhs);
     divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
 }
 
@@ -160,7 +160,7 @@ unsafe fn divf_mulz_divz(
         prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
         mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
-        denom_buf.inner() as *const _
+        denom_buf.inner() as *const mpfr_t
     } else {
         f
     };
@@ -377,8 +377,14 @@ pub unsafe fn custom_zero(
     limbs: *mut gmp::limb_t,
     prec: mpfr::prec_t,
 ) {
-    mpfr::custom_init(limbs as *mut _, prec);
-    mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut _);
+    mpfr::custom_init(limbs as *mut c_void, prec);
+    mpfr::custom_init_set(
+        f,
+        mpfr::ZERO_KIND,
+        0,
+        prec,
+        limbs as *mut c_void,
+    );
 }
 
 #[inline]
@@ -388,12 +394,12 @@ pub unsafe fn custom_regular(
     exp: mpfr::exp_t,
     prec: mpfr::prec_t,
 ) {
-    mpfr::custom_init(limbs as *mut _, prec);
+    mpfr::custom_init(limbs as *mut c_void, prec);
     mpfr::custom_init_set(
         f,
         mpfr::REGULAR_KIND,
         exp,
         prec,
-        limbs as *mut _,
+        limbs as *mut c_void,
     );
 }

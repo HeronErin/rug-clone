@@ -1286,11 +1286,6 @@ pub fn ord_int(o: Ordering) -> c_int {
 
 // dividend must not be zero
 unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
-    #[cfg(gmp_limb_bits_32)]
-    const LIMB_BITS: u32 = 32;
-    #[cfg(gmp_limb_bits_64)]
-    const LIMB_BITS: u32 = 64;
-
     let s_rem = (*rem).size.checked_abs().expect("overflow");
     if s_rem == 0 {
         return false;
@@ -1307,7 +1302,7 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
 
     let mut rem_limb = if s_rem == s_dividend {
         let rem_next_limb = limb(rem, cast::cast(s_rem - 1));
-        if (rem_next_limb >> (LIMB_BITS - 1)) != 0 {
+        if (rem_next_limb >> (gmp::LIMB_BITS - 1)) != 0 {
             return true;
         }
         rem_next_limb << 1
@@ -1317,7 +1312,7 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
     for i in (1..s_dividend).rev() {
         let div_limb = limb(dividend, cast::cast(i));
         let rem_next_limb = limb(rem, cast::cast(i - 1));
-        rem_limb |= (rem_next_limb >> (LIMB_BITS - 1)) & 1;
+        rem_limb |= (rem_next_limb >> (gmp::LIMB_BITS - 1)) & 1;
         if rem_limb > div_limb {
             return true;
         }

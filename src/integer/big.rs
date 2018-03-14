@@ -186,6 +186,10 @@ pub struct Integer {
     inner: mpz_t,
 }
 
+fn _static_assertions() {
+    static_assert_size!(Integer, mpz_t);
+}
+
 impl Integer {
     /// Constructs a new arbitrary-precision [`Integer`] with value 0.
     ///
@@ -4271,10 +4275,8 @@ ref_math_op1! { Integer; xgmp::mpz_signum; struct SignumIncomplete {} }
 #[derive(Debug)]
 pub struct ClampIncomplete<'a, Min, Max>
 where
-    Integer: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
+    Integer:
+        PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -4725,7 +4727,7 @@ impl<'a> Deref for BorrowInteger<'a> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        let ptr = (&self.inner) as *const _ as *const _;
+        let ptr = (&self.inner) as *const mpz_t as *const Integer;
         unsafe { &*ptr }
     }
 }

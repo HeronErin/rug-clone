@@ -64,6 +64,10 @@ pub struct OrdFloat {
     inner: Float,
 }
 
+fn _static_assertions() {
+    static_assert_size!(OrdFloat, Float);
+}
+
 impl OrdFloat {
     /// Extracts the underlying [`Float`].
     ///

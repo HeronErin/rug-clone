@@ -55,6 +55,10 @@ pub struct OrdComplex {
     inner: Complex,
 }
 
+fn _static_assertions() {
+    static_assert_size!(OrdComplex, Complex);
+}
+
 impl OrdComplex {
     /// Extracts the underlying [`Complex`].
     ///

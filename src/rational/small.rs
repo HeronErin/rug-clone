@@ -58,9 +58,8 @@ use std::sync::atomic::Ordering;
 /// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
 #[repr(C)]
 pub struct SmallRational {
-    num: Mpz,
-    den: Mpz,
-    // numerator is first in limbs if num.d <= den.d
+    inner: Mpq,
+    // numerator is first in limbs if inner.num.d <= inner.den.d
     first_limbs: Limbs,
     last_limbs: Limbs,
 }
@@ -74,12 +73,22 @@ impl Clone for SmallRational {
             (&self.last_limbs, &self.first_limbs)
         };
         SmallRational {
-            num: self.num.clone(),
-            den: self.den.clone(),
+            inner: self.inner.clone(),
             first_limbs: *first_limbs,
             last_limbs: *last_limbs,
         }
     }
+}
+
+#[derive(Clone)]
+#[repr(C)]
+struct Mpq {
+    num: Mpz,
+    den: Mpz,
+}
+
+fn _static_assertions() {
+    static_assert_size!(Mpq, gmp::mpq_t);
 }
 
 impl Default for SmallRational {
@@ -111,15 +120,17 @@ impl SmallRational {
     #[inline]
     pub fn new() -> Self {
         SmallRational {
-            num: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: 0,
-                d: Default::default(),
-            },
-            den: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: 1,
-                d: Default::default(),
+            inner: Mpq {
+                num: Mpz {
+                    alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                    size: 0,
+                    d: Default::default(),
+                },
+                den: Mpz {
+                    alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                    size: 1,
+                    d: Default::default(),
+                },
             },
             first_limbs: [0; LIMBS_IN_SMALL_INTEGER],
             last_limbs: LIMBS_ONE,
@@ -163,7 +174,7 @@ impl SmallRational {
     #[inline]
     pub unsafe fn as_nonreallocating_rational(&mut self) -> &mut Rational {
         self.update_d();
-        let ptr = (&mut self.num) as *mut _ as *mut _;
+        let ptr = (&mut self.inner) as *mut Mpq as *mut Rational;
         &mut *ptr
     }
 
@@ -195,16 +206,18 @@ impl SmallRational {
     {
         let (num, den) = (SmallInteger::from(num), SmallInteger::from(den));
         SmallRational {
-            num: num.inner.clone(),
-            den: den.inner.clone(),
+            inner: Mpq {
+                num: num.inner.clone(),
+                den: den.inner.clone(),
+            },
             first_limbs: num.limbs,
             last_limbs: den.limbs,
         }
     }
 
     fn num_is_first(&self) -> bool {
-        (self.num.d.load(Ordering::Relaxed) as usize)
-            <= (self.den.d.load(Ordering::Relaxed) as usize)
+        (self.inner.num.d.load(Ordering::Relaxed) as usize)
+            <= (self.inner.den.d.load(Ordering::Relaxed) as usize)
     }
 
     // To be used when offsetting num and den in case the struct has
@@ -214,22 +227,19 @@ impl SmallRational {
     // first_limbs.
     #[inline]
     fn update_d(&self) {
-        // sanity check
-        assert_eq!(
-            mem::size_of::<Mpz>(),
-            mem::size_of::<gmp::mpz_t>()
-        );
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = &self.first_limbs[0] as *const _ as *mut _;
-        let last = &self.last_limbs[0] as *const _ as *mut _;
+        let first =
+            &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let last =
+            &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
         let (num_d, den_d) = if self.num_is_first() {
             (first, last)
         } else {
             (last, first)
         };
-        self.num.d.store(num_d, Ordering::Relaxed);
-        self.den.d.store(den_d, Ordering::Relaxed);
+        self.inner.num.d.store(num_d, Ordering::Relaxed);
+        self.inner.den.d.store(den_d, Ordering::Relaxed);
     }
 }
 
@@ -238,7 +248,7 @@ impl Deref for SmallRational {
     #[inline]
     fn deref(&self) -> &Rational {
         self.update_d();
-        let ptr = (&self.num) as *const _ as *const _;
+        let ptr = (&self.inner) as *const Mpq as *const Rational;
         unsafe { &*ptr }
     }
 }
@@ -250,11 +260,13 @@ where
     fn from(src: Num) -> Self {
         let num = SmallInteger::from(src);
         SmallRational {
-            num: num.inner.clone(),
-            den: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                size: 1,
-                d: Default::default(),
+            inner: Mpq {
+                num: num.inner.clone(),
+                den: Mpz {
+                    alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                    size: 1,
+                    d: Default::default(),
+                },
             },
             first_limbs: num.limbs,
             last_limbs: LIMBS_ONE,
@@ -271,8 +283,10 @@ where
         let den = SmallInteger::from(src.1);
         assert_ne!(den.inner.size, 0, "division by zero");
         let mut dst = SmallRational {
-            num: num.inner.clone(),
-            den: den.inner.clone(),
+            inner: Mpq {
+                num: num.inner.clone(),
+                den: den.inner.clone(),
+            },
             first_limbs: num.limbs,
             last_limbs: den.limbs,
         };
@@ -296,8 +310,8 @@ macro_rules! impl_assign_num_den {
                     } else {
                         (&mut self.last_limbs, &mut self.first_limbs)
                     };
-                    src.0.copy(&mut self.num.size, num_limbs);
-                    src.1.copy(&mut self.den.size, den_limbs);
+                    src.0.copy(&mut self.inner.num.size, num_limbs);
+                    src.1.copy(&mut self.inner.den.size, den_limbs);
                 }
                 unsafe {
                     gmp::mpq_canonicalize(
@@ -319,8 +333,8 @@ macro_rules! impl_assign_num {
                 } else {
                     (&mut self.last_limbs, &mut self.first_limbs)
                 };
-                src.copy(&mut self.num.size, num_limbs);
-                self.den.size = 1;
+                src.copy(&mut self.inner.num.size, num_limbs);
+                self.inner.den.size = 1;
                 den_limbs[0] = 1;
             }
         }

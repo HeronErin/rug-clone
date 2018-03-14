@@ -63,7 +63,7 @@ impl<'a> Clone for RandState<'a> {
             let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.inner());
             // If d is null, then boxed_clone must have returned None.
-            let ptr = &inner as *const _ as *const MpRandState;
+            let ptr = &inner as *const randstate_t as *const MpRandState;
             if (*ptr).seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
@@ -238,7 +238,7 @@ impl<'a> RandState<'a> {
                 d: r_ptr as *mut gmp::limb_t,
             },
             alg: 0,
-            algdata: &CUSTOM_FUNCS as *const _ as *mut _,
+            algdata: &CUSTOM_FUNCS as *const Funcs as *mut c_void,
         };
         RandState {
             inner: unsafe { mem::transmute(inner) },
@@ -281,7 +281,7 @@ impl<'a> RandState<'a> {
                 d: r_ptr as *mut gmp::limb_t,
             },
             alg: 0,
-            algdata: &CUSTOM_BOXED_FUNCS as *const _ as *mut _,
+            algdata: &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
         };
         RandState {
             inner: unsafe { mem::transmute(inner) },
@@ -737,6 +737,10 @@ struct MpRandState {
     algdata: *mut c_void,
 }
 
+fn _static_assertions() {
+    static_assert_size!(MpRandState, randstate_t);
+}
+
 #[repr(C)]
 struct Funcs {
     seed: Option<unsafe extern "C" fn(*mut randstate_t, *const gmp::mpz_t)>,
@@ -868,12 +872,12 @@ unsafe fn gen_copy(gen: &RandGen, dst: *mut randstate_t) {
     let (dst_r_ptr, funcs) = if let Some(other) = other {
         let b: Box<Box<RandGen>> = Box::new(other);
         let dst_r_ptr: *mut Box<RandGen> = Box::into_raw(b);
-        let funcs = &CUSTOM_BOXED_FUNCS as *const _ as *mut _;
+        let funcs = &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
         (dst_r_ptr, funcs)
     } else {
         (
             ptr::null_mut(),
-            &ABORT_FUNCS as *const _ as *mut _,
+            &ABORT_FUNCS as *const Funcs as *mut c_void,
         )
     };
     let dst_ptr = dst as *mut MpRandState;

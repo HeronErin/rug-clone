@@ -155,6 +155,10 @@ pub struct Complex {
     inner: mpc_t,
 }
 
+fn _static_assertions() {
+    static_assert_size!(Complex, mpc_t);
+}
+
 macro_rules! ref_math_op0_complex {
     (
         $func: path;
@@ -772,7 +776,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn real(&self) -> &Float {
-        unsafe { &*(mpc::realref_const(self.inner()) as *const _) }
+        unsafe { &*(mpc::realref_const(self.inner()) as *const Float) }
     }
 
     /// Borrows the imaginary part as a [`Float`].
@@ -788,7 +792,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn imag(&self) -> &Float {
-        unsafe { &*(mpc::imagref_const(self.inner()) as *const _) }
+        unsafe { &*(mpc::imagref_const(self.inner()) as *const Float) }
     }
 
     /// Borrows the real part mutably.
@@ -804,7 +808,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_real(&mut self) -> &mut Float {
-        unsafe { &mut *(mpc::realref(self.inner_mut()) as *mut _) }
+        unsafe { &mut *(mpc::realref(self.inner_mut()) as *mut Float) }
     }
 
     /// Borrows the imaginary part mutably.
@@ -820,7 +824,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
-        unsafe { &mut *(mpc::imagref(self.inner_mut()) as *mut _) }
+        unsafe { &mut *(mpc::imagref(self.inner_mut()) as *mut Float) }
     }
 
     /// Borrows the real and imaginary parts mutably.
@@ -843,8 +847,8 @@ impl Complex {
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
             (
-                &mut *(mpc::realref(self.inner_mut()) as *mut _),
-                &mut *(mpc::imagref(self.inner_mut()) as *mut _),
+                &mut *(mpc::realref(self.inner_mut()) as *mut Float),
+                &mut *(mpc::imagref(self.inner_mut()) as *mut Float),
             )
         }
     }
@@ -1038,7 +1042,7 @@ impl Complex {
     /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
-        unsafe { &*(self as *const _ as *const _) }
+        unsafe { &*(self as *const Complex as *const OrdComplex) }
     }
 
     /// Returns the same result as [`self.eq(&0)`][`eq`], but is
@@ -3566,7 +3570,7 @@ impl<'a> Deref for BorrowComplex<'a> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        let ptr = (&self.inner) as *const _ as *const _;
+        let ptr = (&self.inner) as *const mpc_t as *const Complex;
         unsafe { &*ptr }
     }
 }
@@ -3608,7 +3612,7 @@ pub(crate) fn append_to_string(
     if re_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
             let bytes =
-                slice::from_raw_parts_mut(s.as_ptr() as *mut _, s.len());
+                slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
             bytes[prefix_start + 1..prefix_end + 1]
                 .copy_from_slice(prefix.as_bytes());
@@ -3627,7 +3631,7 @@ pub(crate) fn append_to_string(
     if im_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
             let bytes =
-                slice::from_raw_parts_mut(s.as_ptr() as *mut _, s.len());
+                slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
             bytes[prefix_start + 1..prefix_end + 1]
                 .copy_from_slice(prefix.as_bytes());

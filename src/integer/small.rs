@@ -68,11 +68,7 @@ pub struct SmallInteger {
     pub(crate) limbs: Limbs,
 }
 
-#[cfg(gmp_limb_bits_64)]
-pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = 1;
-#[cfg(gmp_limb_bits_32)]
-pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = 2;
-
+pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = (64 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
 
 #[repr(C)]
@@ -80,6 +76,11 @@ pub(crate) struct Mpz {
     pub alloc: c_int,
     pub size: c_int,
     pub d: AtomicPtr<gmp::limb_t>,
+}
+
+fn _static_assertions() {
+    static_assert_size!(Limbs: 8);
+    static_assert_size!(Mpz, mpz_t);
 }
 
 // Mpz is only used inside SmallInteger and SmallRational. The only
@@ -161,17 +162,15 @@ impl SmallInteger {
     #[inline]
     pub unsafe fn as_nonreallocating_integer(&mut self) -> &mut Integer {
         self.update_d();
-        let ptr = (&mut self.inner) as *mut _ as *mut _;
+        let ptr = (&mut self.inner) as *mut Mpz as *mut Integer;
         &mut *ptr
     }
 
     #[inline]
     fn update_d(&self) {
-        // sanity check
-        assert_eq!(mem::size_of::<Mpz>(), mem::size_of::<mpz_t>());
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d field.
-        let d = &self.limbs[0] as *const _ as *mut _;
+        let d = &self.limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
         self.inner.d.store(d, Ordering::Relaxed);
     }
 }
@@ -181,7 +180,7 @@ impl Deref for SmallInteger {
     #[inline]
     fn deref(&self) -> &Integer {
         self.update_d();
-        let ptr = (&self.inner) as *const _ as *const _;
+        let ptr = (&self.inner) as *const Mpz as *const Integer;
         unsafe { &*ptr }
     }
 }

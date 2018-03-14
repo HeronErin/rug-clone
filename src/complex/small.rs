@@ -18,6 +18,8 @@ use {Assign, Complex};
 use ext::mpfr as xmpfr;
 use float::SmallFloat;
 use float::small::{CopyToSmall, Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
+use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::ops::Deref;
@@ -77,9 +79,8 @@ use std::sync::atomic::Ordering;
 /// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
 #[repr(C)]
 pub struct SmallComplex {
-    re: Mpfr,
-    im: Mpfr,
-    // real part is first in limbs if re.d <= im.d
+    inner: Mpc,
+    // real part is first in limbs if inner.re.d <= inner.im.d
     first_limbs: Limbs,
     last_limbs: Limbs,
 }
@@ -93,12 +94,22 @@ impl Clone for SmallComplex {
             (&self.last_limbs, &self.first_limbs)
         };
         SmallComplex {
-            re: self.re.clone(),
-            im: self.im.clone(),
+            inner: self.inner.clone(),
             first_limbs: *first_limbs,
             last_limbs: *last_limbs,
         }
     }
+}
+
+#[derive(Clone)]
+#[repr(C)]
+struct Mpc {
+    re: Mpfr,
+    im: Mpfr,
+}
+
+fn _static_assertions() {
+    static_assert_size!(Mpc, mpc::mpc_t);
 }
 
 impl SmallComplex {
@@ -128,38 +139,34 @@ impl SmallComplex {
     #[inline]
     pub unsafe fn as_nonreallocating_complex(&mut self) -> &mut Complex {
         self.update_d();
-        let ptr = (&mut self.re) as *mut _ as *mut _;
+        let ptr = (&mut self.inner) as *mut Mpc as *mut Complex;
         &mut *ptr
     }
 
     fn re_is_first(&self) -> bool {
-        (self.re.d.load(Ordering::Relaxed) as usize)
-            <= (self.im.d.load(Ordering::Relaxed) as usize)
+        (self.inner.re.d.load(Ordering::Relaxed) as usize)
+            <= (self.inner.im.d.load(Ordering::Relaxed) as usize)
     }
 
     // To be used when offsetting re and im in case the struct has
     // been displaced in memory; if currently re.d <= im.d then re.d
-    // points to limbs[0] and im.d points to
-    // limbs[LIMBS_IN_SMALL_FLOAT], otherwise re.d points to
-    // limbs[LIMBS_IN_SMALL_FLOAT] and im.d points to limbs[0].
+    // points to first_limbs and im.d points to last_limbs, otherwise
+    // re.d points to last_limbs and im.d points to first_limbs.
     #[inline]
     fn update_d(&self) {
-        // sanity check
-        assert_eq!(
-            mem::size_of::<Mpfr>(),
-            mem::size_of::<mpfr::mpfr_t>()
-        );
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = &self.first_limbs[0] as *const _ as *mut _;
-        let last = &self.last_limbs[0] as *const _ as *mut _;
+        let first =
+            &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let last =
+            &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
         let (re_d, im_d) = if self.re_is_first() {
             (first, last)
         } else {
             (last, first)
         };
-        self.re.d.store(re_d, Ordering::Relaxed);
-        self.im.d.store(im_d, Ordering::Relaxed);
+        self.inner.re.d.store(re_d, Ordering::Relaxed);
+        self.inner.im.d.store(im_d, Ordering::Relaxed);
     }
 }
 
@@ -168,7 +175,7 @@ impl Deref for SmallComplex {
     #[inline]
     fn deref(&self) -> &Complex {
         self.update_d();
-        let ptr = (&self.re) as *const _ as *const _;
+        let ptr = (&self.inner) as *const Mpc as *const Complex;
         unsafe { &*ptr }
     }
 }
@@ -185,14 +192,16 @@ where
         };
         unsafe {
             xmpfr::custom_zero(
-                &mut im.inner as *mut Mpfr as *mut _,
+                &mut im.inner as *mut Mpfr as *mut mpfr::mpfr_t,
                 &mut im.limbs[0],
                 re.inner.prec,
             );
         }
         SmallComplex {
-            re: re.inner.clone(),
-            im: im.inner.clone(),
+            inner: Mpc {
+                re: re.inner.clone(),
+                im: im.inner.clone(),
+            },
             first_limbs: re.limbs,
             last_limbs: im.limbs,
         }
@@ -207,8 +216,10 @@ where
         let re = SmallFloat::from(src.0);
         let im = SmallFloat::from(src.1);
         SmallComplex {
-            re: re.inner.clone(),
-            im: im.inner.clone(),
+            inner: Mpc {
+                re: re.inner.clone(),
+                im: im.inner.clone(),
+            },
             first_limbs: re.limbs,
             last_limbs: im.limbs,
         }
@@ -220,8 +231,8 @@ macro_rules! impl_assign_re_im {
         impl Assign<($Re, $Im)> for SmallComplex {
             #[inline]
             fn assign(&mut self, src: ($Re, $Im)) {
-                src.0.copy(&mut self.re, &mut self.first_limbs);
-                src.1.copy(&mut self.im, &mut self.last_limbs);
+                src.0.copy(&mut self.inner.re, &mut self.first_limbs);
+                src.1.copy(&mut self.inner.im, &mut self.last_limbs);
             }
         }
 
@@ -233,12 +244,12 @@ macro_rules! impl_assign_re {
         impl Assign<($Re)> for SmallComplex {
             #[inline]
             fn assign(&mut self, src: $Re) {
-                src.copy(&mut self.re, &mut self.first_limbs);
+                src.copy(&mut self.inner.re, &mut self.first_limbs);
                 unsafe {
                     xmpfr::custom_zero(
-                        &mut self.im as *mut Mpfr as *mut _,
+                        &mut self.inner.im as *mut Mpfr as *mut mpfr::mpfr_t,
                         &mut self.last_limbs[0],
-                        self.re.prec,
+                        self.inner.re.prec,
                     );
                 }
             }

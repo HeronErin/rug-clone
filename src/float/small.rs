@@ -87,11 +87,7 @@ pub struct SmallFloat {
     pub(crate) limbs: Limbs,
 }
 
-#[cfg(gmp_limb_bits_64)]
-pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = 1;
-#[cfg(gmp_limb_bits_32)]
-pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = 2;
-
+pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (64 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_FLOAT];
 
 #[repr(C)]
@@ -100,6 +96,11 @@ pub(crate) struct Mpfr {
     pub sign: c_int,
     pub exp: mpfr::exp_t,
     pub d: AtomicPtr<gmp::limb_t>,
+}
+
+fn _static_assertions() {
+    static_assert_size!(Limbs: 8);
+    static_assert_size!(Mpfr, mpfr_t);
 }
 
 // Mpfr is only used inside SmallFloat and SmallComplex. The d field
@@ -144,17 +145,15 @@ impl SmallFloat {
     #[inline]
     pub unsafe fn as_nonreallocating_float(&mut self) -> &mut Float {
         self.update_d();
-        let ptr = (&mut self.inner) as *mut _ as *mut _;
+        let ptr = (&mut self.inner) as *mut Mpfr as *mut Float;
         &mut *ptr
     }
 
     #[inline]
     fn update_d(&self) {
-        // sanity check
-        assert_eq!(mem::size_of::<Mpfr>(), mem::size_of::<mpfr_t>());
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
-        let d = &self.limbs[0] as *const _ as *mut _;
+        let d = &self.limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
         self.inner.d.store(d, Ordering::Relaxed);
     }
 }
@@ -164,7 +163,7 @@ impl Deref for SmallFloat {
     #[inline]
     fn deref(&self) -> &Float {
         self.update_d();
-        let ptr = (&self.inner) as *const _ as *const _;
+        let ptr = (&self.inner) as *const Mpfr as *const Float;
         unsafe { &*ptr }
     }
 }

@@ -95,8 +95,11 @@ where
 
 impl<T> Assign<T> for (Integer, Integer, Integer)
 where
-    for<'a, 'b, 'c>
-        (&'a mut Integer, &'b mut Integer, &'c mut Integer): Assign<T>,
+    for<'a, 'b, 'c> (
+        &'a mut Integer,
+        &'b mut Integer,
+        &'c mut Integer,
+    ): Assign<T>,
 {
     #[inline]
     fn assign(&mut self, src: T) {

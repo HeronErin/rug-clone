@@ -274,6 +274,10 @@ pub struct Float {
     inner: mpfr_t,
 }
 
+fn _static_assertions() {
+    static_assert_size!(Float, mpfr_t);
+}
+
 macro_rules! ref_math_op0_float {
     (
         $func: path;
@@ -1490,7 +1494,7 @@ impl Float {
     /// [`OrdFloat`]: float/struct.OrdFloat.html
     #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
-        unsafe { &*(self as *const _ as *const _) }
+        unsafe { &*(self as *const Float as *const OrdFloat) }
     }
 
     /// Returns [`true`] if `self` is an integer.
@@ -1782,11 +1786,7 @@ impl Float {
     #[inline]
     pub fn get_significand(&self) -> Option<BorrowInteger> {
         if self.is_normal() {
-            #[cfg(gmp_limb_bits_64)]
-            let limb_bits = 64;
-            #[cfg(gmp_limb_bits_32)]
-            let limb_bits = 32;
-
+            let limb_bits: mpfr::prec_t = cast(gmp::LIMB_BITS);
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
             Some(BorrowInteger {
                 inner: gmp::mpz_t {
@@ -8095,7 +8095,7 @@ impl<'a> Deref for BorrowFloat<'a> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {
-        let ptr = (&self.inner) as *const _ as *const _;
+        let ptr = (&self.inner) as *const mpfr_t as *const Float;
         unsafe { &*ptr }
     }
 }
@@ -8273,12 +8273,12 @@ impl AssignRound<ParseIncomplete> for Float {
             mpfr::strtofr(
                 self.inner_mut(),
                 c_string.as_ptr(),
-                &mut c_str_end as *mut _ as *mut *mut c_char,
+                &mut c_str_end as *mut *const c_char as *mut *mut c_char,
                 cast(radix),
                 raw_round(round),
             )
         };
-        let nul = c_string.as_bytes_with_nul().last().unwrap() as *const _
+        let nul = c_string.as_bytes_with_nul().last().unwrap() as *const u8
             as *const c_char;
         assert_eq!(c_str_end, nul);
         ordering1(ret)

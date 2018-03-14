@@ -91,6 +91,10 @@ pub struct Rational {
     inner: mpq_t,
 }
 
+fn _static_assertions() {
+    static_assert_size!(Rational, mpq_t);
+}
+
 macro_rules! rat_op_int {
     (
         $func: path;
@@ -804,7 +808,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn numer(&self) -> &Integer {
-        unsafe { &*(gmp::mpq_numref_const(self.inner()) as *const _) }
+        unsafe { &*(gmp::mpq_numref_const(self.inner()) as *const Integer) }
     }
 
     /// Borrows the denominator as an [`Integer`].
@@ -821,7 +825,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn denom(&self) -> &Integer {
-        unsafe { &*(gmp::mpq_denref_const(self.inner()) as *const _) }
+        unsafe { &*(gmp::mpq_denref_const(self.inner()) as *const Integer) }
     }
 
     /// Calls a function with mutable references to the numerator and
@@ -942,8 +946,8 @@ impl Rational {
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
         (
-            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut _),
-            &mut *(gmp::mpq_denref(self.inner_mut()) as *mut _),
+            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut Integer),
+            &mut *(gmp::mpq_denref(self.inner_mut()) as *mut Integer),
         )
     }
 
@@ -2201,10 +2205,8 @@ ref_rat_op_int! { xgmp::mpq_signum; struct SignumIncomplete {} }
 #[derive(Debug)]
 pub struct ClampIncomplete<'a, Min, Max>
 where
-    Rational: PartialOrd<Min>
-        + PartialOrd<Max>
-        + Assign<&'a Min>
-        + Assign<&'a Max>,
+    Rational:
+        PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     Min: 'a,
     Max: 'a,
 {
@@ -2286,7 +2288,7 @@ impl<'a> Deref for BorrowRational<'a> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {
-        let ptr = (&self.inner) as *const _ as *const _;
+        let ptr = (&self.inner) as *const mpq_t as *const Rational;
         unsafe { &*ptr }
     }
 }

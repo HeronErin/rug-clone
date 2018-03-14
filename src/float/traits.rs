@@ -119,11 +119,8 @@ where
 
 impl<T> Assign<T> for (Float, Ordering)
 where
-    for<'a, 'b> (&'a mut Float, &'b mut Ordering): AssignRound<
-        T,
-        Round = Round,
-        Ordering = Ordering,
-    >,
+    for<'a, 'b> (&'a mut Float, &'b mut Ordering):
+        AssignRound<T, Round = Round, Ordering = Ordering>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
@@ -133,11 +130,8 @@ where
 
 impl<T> AssignRound<T> for (Float, Ordering)
 where
-    for<'a, 'b> (&'a mut Float, &'b mut Ordering): AssignRound<
-        T,
-        Round = Round,
-        Ordering = Ordering,
-    >,
+    for<'a, 'b> (&'a mut Float, &'b mut Ordering):
+        AssignRound<T, Round = Round, Ordering = Ordering>,
 {
     type Round = Round;
     type Ordering = Ordering;
@@ -159,11 +153,8 @@ where
 
 impl<T> Assign<T> for (Float, Float)
 where
-    for<'a, 'b> (&'a mut Float, &'b mut Float): AssignRound<
-        T,
-        Round = Round,
-        Ordering = (Ordering, Ordering),
-    >,
+    for<'a, 'b> (&'a mut Float, &'b mut Float):
+        AssignRound<T, Round = Round, Ordering = (Ordering, Ordering)>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
@@ -183,11 +174,8 @@ where
 
 impl<T> AssignRound<T> for (Float, Float)
 where
-    for<'a, 'b> (&'a mut Float, &'b mut Float): AssignRound<
-        T,
-        Round = Round,
-        Ordering = (Ordering, Ordering),
-    >,
+    for<'a, 'b> (&'a mut Float, &'b mut Float):
+        AssignRound<T, Round = Round, Ordering = (Ordering, Ordering)>,
 {
     type Round = Round;
     type Ordering = (Ordering, Ordering);

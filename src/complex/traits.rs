@@ -155,11 +155,8 @@ where
 
 impl<T> Assign<T> for (Complex, Complex)
 where
-    for<'a, 'b> (&'a mut Complex, &'b mut Complex): AssignRound<
-        T,
-        Round = Round2,
-        Ordering = (Ordering2, Ordering2),
-    >,
+    for<'a, 'b> (&'a mut Complex, &'b mut Complex):
+        AssignRound<T, Round = Round2, Ordering = (Ordering2, Ordering2)>,
 {
     #[inline]
     fn assign(&mut self, src: T) {
@@ -169,11 +166,8 @@ where
 
 impl<T> AssignRound<T> for (Complex, Complex)
 where
-    for<'a, 'b> (&'a mut Complex, &'b mut Complex): AssignRound<
-        T,
-        Round = Round2,
-        Ordering = (Ordering2, Ordering2),
-    >,
+    for<'a, 'b> (&'a mut Complex, &'b mut Complex):
+        AssignRound<T, Round = Round2, Ordering = (Ordering2, Ordering2)>,
 {
     type Round = Round2;
     type Ordering = (Ordering2, Ordering2);
