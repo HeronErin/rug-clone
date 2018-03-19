@@ -776,7 +776,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn real(&self) -> &Float {
-        unsafe { &*(mpc::realref_const(self.inner()) as *const Float) }
+        unsafe { &*cast_ptr!(mpc::realref_const(self.inner()), Float) }
     }
 
     /// Borrows the imaginary part as a [`Float`].
@@ -792,7 +792,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn imag(&self) -> &Float {
-        unsafe { &*(mpc::imagref_const(self.inner()) as *const Float) }
+        unsafe { &*cast_ptr!(mpc::imagref_const(self.inner()), Float) }
     }
 
     /// Borrows the real part mutably.
@@ -808,7 +808,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_real(&mut self) -> &mut Float {
-        unsafe { &mut *(mpc::realref(self.inner_mut()) as *mut Float) }
+        unsafe { &mut *cast_ptr_mut!(mpc::realref(self.inner_mut()), Float) }
     }
 
     /// Borrows the imaginary part mutably.
@@ -824,7 +824,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
-        unsafe { &mut *(mpc::imagref(self.inner_mut()) as *mut Float) }
+        unsafe { &mut *cast_ptr_mut!(mpc::imagref(self.inner_mut()), Float) }
     }
 
     /// Borrows the real and imaginary parts mutably.
@@ -847,8 +847,8 @@ impl Complex {
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
             (
-                &mut *(mpc::realref(self.inner_mut()) as *mut Float),
-                &mut *(mpc::imagref(self.inner_mut()) as *mut Float),
+                &mut *cast_ptr_mut!(mpc::realref(self.inner_mut()), Float),
+                &mut *cast_ptr_mut!(mpc::imagref(self.inner_mut()), Float),
             )
         }
     }
@@ -1042,7 +1042,7 @@ impl Complex {
     /// [`OrdComplex`]: complex/struct.OrdComplex.html
     #[inline]
     pub fn as_ord(&self) -> &OrdComplex {
-        unsafe { &*(self as *const Complex as *const OrdComplex) }
+        unsafe { &*cast_ptr!(self, OrdComplex) }
     }
 
     /// Returns the same result as [`self.eq(&0)`][`eq`], but is
@@ -3321,11 +3321,11 @@ where
             ),
         };
         for value in src.values {
-            reals.push(value.real().inner() as *const mpfr::mpfr_t);
-            imags.push(value.imag().inner() as *const mpfr::mpfr_t);
+            reals.push(cast_ptr!(value.real().inner(), mpfr::mpfr_t));
+            imags.push(cast_ptr!(value.imag().inner(), mpfr::mpfr_t));
         }
-        let tab_real = reals.as_ptr() as *mut *mut mpfr::mpfr_t;
-        let tab_imag = imags.as_ptr() as *mut *mut mpfr::mpfr_t;
+        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
+        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
         let n = cast(reals.len());
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
@@ -3388,14 +3388,14 @@ where
                 Vec::with_capacity(upper + 1),
             ),
         };
-        reals.push(self.real().inner() as *const mpfr::mpfr_t);
-        imags.push(self.imag().inner() as *const mpfr::mpfr_t);
+        reals.push(cast_ptr!(self.real().inner(), mpfr::mpfr_t));
+        imags.push(cast_ptr!(self.imag().inner(), mpfr::mpfr_t));
         for value in src.values {
-            reals.push(value.real().inner() as *const mpfr::mpfr_t);
-            imags.push(value.imag().inner() as *const mpfr::mpfr_t);
+            reals.push(cast_ptr!(value.real().inner(), mpfr::mpfr_t));
+            imags.push(cast_ptr!(value.imag().inner(), mpfr::mpfr_t));
         }
-        let tab_real = reals.as_ptr() as *mut *mut mpfr::mpfr_t;
-        let tab_imag = imags.as_ptr() as *mut *mut mpfr::mpfr_t;
+        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
+        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
         let n = cast(reals.len());
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
@@ -3570,7 +3570,7 @@ impl<'a> Deref for BorrowComplex<'a> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        let ptr = (&self.inner) as *const mpc_t as *const Complex;
+        let ptr = cast_ptr!(&self.inner, Complex);
         unsafe { &*ptr }
     }
 }

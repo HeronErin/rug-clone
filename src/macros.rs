@@ -3085,3 +3085,43 @@ macro_rules! static_assert_size {
         static_assert_size!($T, [u8; $size as usize]);
     };
 }
+
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! cast_ptr {
+    ($src: expr, $T: ty) => {{
+        struct Ptr<T>(*const T);
+        impl<T> Ptr<T> {
+            fn get(&self) -> T {
+                unreachable!()
+            }
+        }
+        let ptr = Ptr($src);
+        if false {
+            #[allow(unused_unsafe)]
+            unsafe {
+                let _ = ::std::mem::transmute::<_, $T>(ptr.get());
+            }
+        }
+        ptr.0 as *const $T
+    }};
+}
+
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! cast_ptr_mut {
+    ($src: expr, $T: ty) => {{
+        struct Ptr<T>(*mut T);
+        impl<T> Ptr<T> {
+            fn get(&self) -> T {
+                unreachable!()
+            }
+        }
+        let ptr = Ptr($src);
+        if false {
+            #[allow(unused_unsafe)]
+            unsafe {
+                let _ = ::std::mem::transmute::<_, $T>(ptr.get());
+            }
+        }
+        ptr.0 as *mut $T
+    }};
+}

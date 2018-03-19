@@ -160,7 +160,7 @@ unsafe fn divf_mulz_divz(
         prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
         mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
-        denom_buf.inner() as *const mpfr_t
+        cast_ptr!(denom_buf.inner(), mpfr_t)
     } else {
         f
     };

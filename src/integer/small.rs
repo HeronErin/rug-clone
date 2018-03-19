@@ -162,7 +162,7 @@ impl SmallInteger {
     #[inline]
     pub unsafe fn as_nonreallocating_integer(&mut self) -> &mut Integer {
         self.update_d();
-        let ptr = (&mut self.inner) as *mut Mpz as *mut Integer;
+        let ptr = cast_ptr_mut!(&mut self.inner, Integer);
         &mut *ptr
     }
 
@@ -180,7 +180,7 @@ impl Deref for SmallInteger {
     #[inline]
     fn deref(&self) -> &Integer {
         self.update_d();
-        let ptr = (&self.inner) as *const Mpz as *const Integer;
+        let ptr = cast_ptr!(&self.inner, Integer);
         unsafe { &*ptr }
     }
 }

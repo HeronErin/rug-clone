@@ -145,7 +145,7 @@ impl SmallFloat {
     #[inline]
     pub unsafe fn as_nonreallocating_float(&mut self) -> &mut Float {
         self.update_d();
-        let ptr = (&mut self.inner) as *mut Mpfr as *mut Float;
+        let ptr = cast_ptr_mut!(&mut self.inner, Float);
         &mut *ptr
     }
 
@@ -163,7 +163,7 @@ impl Deref for SmallFloat {
     #[inline]
     fn deref(&self) -> &Float {
         self.update_d();
-        let ptr = (&self.inner) as *const Mpfr as *const Float;
+        let ptr = cast_ptr!(&self.inner, Float);
         unsafe { &*ptr }
     }
 }
@@ -192,8 +192,8 @@ macro_rules! unsigned_32 {
         impl CopyToSmall for $U {
             #[inline]
             fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
-                let ptr = inner as *mut Mpfr as *mut mpfr_t;
-                let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
+                let ptr = cast_ptr_mut!(inner, mpfr_t);
+                let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
                 unsafe {
                     if self == 0 {
                         xmpfr::custom_zero(ptr, limbs_ptr, $bits);
@@ -220,8 +220,8 @@ unsigned_32! { u32, 32 }
 impl CopyToSmall for u64 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
-        let ptr = inner as *mut Mpfr as *mut mpfr_t;
-        let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
+        let ptr = cast_ptr_mut!(inner, mpfr_t);
+        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         unsafe {
             if self == 0 {
                 xmpfr::custom_zero(ptr, limbs_ptr, 64);
@@ -260,8 +260,8 @@ impl CopyToSmall for usize {
 impl CopyToSmall for f32 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
-        let ptr = inner as *mut Mpfr as *mut mpfr_t;
-        let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
+        let ptr = cast_ptr_mut!(inner, mpfr_t);
+        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         unsafe {
             xmpfr::custom_zero(ptr, limbs_ptr, 24);
             mpfr::set_d(ptr, self.into(), raw_round(Round::Nearest));
@@ -276,8 +276,8 @@ impl CopyToSmall for f32 {
 impl CopyToSmall for f64 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
-        let ptr = inner as *mut Mpfr as *mut mpfr_t;
-        let limbs_ptr = (&mut limbs[0]) as *mut gmp::limb_t;
+        let ptr = cast_ptr_mut!(inner, mpfr_t);
+        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         unsafe {
             xmpfr::custom_zero(ptr, limbs_ptr, 53);
             mpfr::set_d(ptr, self, raw_round(Round::Nearest));

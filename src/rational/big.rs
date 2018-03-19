@@ -808,7 +808,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn numer(&self) -> &Integer {
-        unsafe { &*(gmp::mpq_numref_const(self.inner()) as *const Integer) }
+        unsafe { &*cast_ptr!(gmp::mpq_numref_const(self.inner()), Integer) }
     }
 
     /// Borrows the denominator as an [`Integer`].
@@ -825,7 +825,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn denom(&self) -> &Integer {
-        unsafe { &*(gmp::mpq_denref_const(self.inner()) as *const Integer) }
+        unsafe { &*cast_ptr!(gmp::mpq_denref_const(self.inner()), Integer) }
     }
 
     /// Calls a function with mutable references to the numerator and
@@ -877,8 +877,10 @@ impl Rational {
         F: FnOnce(&mut Integer, &mut Integer),
     {
         unsafe {
-            let numer_ptr = gmp::mpq_numref(self.inner_mut()) as *mut Integer;
-            let denom_ptr = gmp::mpq_denref(self.inner_mut()) as *mut Integer;
+            let numer_ptr =
+                cast_ptr_mut!(gmp::mpq_numref(self.inner_mut()), Integer);
+            let denom_ptr =
+                cast_ptr_mut!(gmp::mpq_denref(self.inner_mut()), Integer);
             func(&mut *numer_ptr, &mut *denom_ptr);
             assert_ne!(
                 self.denom().cmp0(),
@@ -946,8 +948,8 @@ impl Rational {
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
         (
-            &mut *(gmp::mpq_numref(self.inner_mut()) as *mut Integer),
-            &mut *(gmp::mpq_denref(self.inner_mut()) as *mut Integer),
+            &mut *cast_ptr_mut!(gmp::mpq_numref(self.inner_mut()), Integer),
+            &mut *cast_ptr_mut!(gmp::mpq_denref(self.inner_mut()), Integer),
         )
     }
 
@@ -2288,7 +2290,7 @@ impl<'a> Deref for BorrowRational<'a> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {
-        let ptr = (&self.inner) as *const mpq_t as *const Rational;
+        let ptr = cast_ptr!(&self.inner, Rational);
         unsafe { &*ptr }
     }
 }

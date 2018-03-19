@@ -4727,7 +4727,7 @@ impl<'a> Deref for BorrowInteger<'a> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        let ptr = (&self.inner) as *const mpz_t as *const Integer;
+        let ptr = cast_ptr!(&self.inner, Integer);
         unsafe { &*ptr }
     }
 }
@@ -4758,7 +4758,7 @@ pub(crate) fn append_to_string(
         let bytes = s.as_mut_vec();
         let start = bytes.as_mut_ptr().offset(orig_len as isize);
         gmp::mpz_get_str(
-            start as *mut c_char,
+            cast_ptr_mut!(start, c_char),
             case_radix as c_int,
             i.inner(),
         );

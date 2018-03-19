@@ -63,7 +63,7 @@ impl<'a> Clone for RandState<'a> {
             let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.inner());
             // If d is null, then boxed_clone must have returned None.
-            let ptr = &inner as *const randstate_t as *const MpRandState;
+            let ptr = cast_ptr!(&inner, MpRandState);
             if (*ptr).seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
@@ -778,33 +778,33 @@ c_callback! {
     }
 
     fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
-        let s_ptr = s as *mut MpRandState;
+        let s_ptr = cast_ptr_mut!(s, MpRandState);
         let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
-        (*r_ptr).seed(&(*(seed as *const Integer)));
+        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
     fn custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
-        let s_ptr = s as *mut MpRandState;
+        let s_ptr = cast_ptr_mut!(s, MpRandState);
         let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
         gen_bits(*r_ptr, limb, bits);
     }
 
     fn custom_clear(s: *mut randstate_t) {
-        let s_ptr = s as *mut MpRandState;
+        let s_ptr = cast_ptr_mut!(s, MpRandState);
         let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
         drop(Box::from_raw(r_ptr));
     }
 
     fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let src_ptr = src as *const MpRandState;
+        let src_ptr = cast_ptr!(src, MpRandState);
         let r_ptr = (*src_ptr).seed.d as *const &mut RandGen;
         gen_copy(*r_ptr, dst);
     }
 
     fn custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
-        let s_ptr = s as *mut MpRandState;
+        let s_ptr = cast_ptr_mut!(s, MpRandState);
         let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
-        (*r_ptr).seed(&(*(seed as *const Integer)));
+        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
     fn custom_boxed_get(
@@ -812,19 +812,19 @@ c_callback! {
         limb: *mut gmp::limb_t,
         bits: c_ulong,
     ) {
-        let s_ptr = s as *mut MpRandState;
+        let s_ptr = cast_ptr_mut!(s, MpRandState);
         let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
         gen_bits(&mut **r_ptr, limb, bits);
     }
 
     fn custom_boxed_clear(s: *mut randstate_t) {
-        let s_ptr = s as *mut MpRandState;
+        let s_ptr = cast_ptr_mut!(s, MpRandState);
         let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
         drop(Box::from_raw(r_ptr));
     }
 
     fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let src_ptr = src as *const MpRandState;
+        let src_ptr = cast_ptr!(src, MpRandState);
         let r_ptr = (*src_ptr).seed.d as *const Box<RandGen>;
         gen_copy(&**r_ptr, dst);
     }
@@ -880,7 +880,7 @@ unsafe fn gen_copy(gen: &RandGen, dst: *mut randstate_t) {
             &ABORT_FUNCS as *const Funcs as *mut c_void,
         )
     };
-    let dst_ptr = dst as *mut MpRandState;
+    let dst_ptr = cast_ptr_mut!(dst, MpRandState);
     *dst_ptr = MpRandState {
         seed: gmp::mpz_t {
             alloc: 0,

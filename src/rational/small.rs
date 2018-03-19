@@ -174,7 +174,7 @@ impl SmallRational {
     #[inline]
     pub unsafe fn as_nonreallocating_rational(&mut self) -> &mut Rational {
         self.update_d();
-        let ptr = (&mut self.inner) as *mut Mpq as *mut Rational;
+        let ptr = cast_ptr_mut!(&mut self.inner, Rational);
         &mut *ptr
     }
 
@@ -248,7 +248,7 @@ impl Deref for SmallRational {
     #[inline]
     fn deref(&self) -> &Rational {
         self.update_d();
-        let ptr = (&self.inner) as *const Mpq as *const Rational;
+        let ptr = cast_ptr!(&self.inner, Rational);
         unsafe { &*ptr }
     }
 }

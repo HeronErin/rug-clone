@@ -229,7 +229,7 @@ pub unsafe fn mulsub(
     sub: *const mpc_t,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    let sub_complex = &*(sub as *const Complex);
+    let sub_complex = &*cast_ptr!(sub, Complex);
     let add = sub_complex.as_neg();
     mpc::fma(rop, m1, m2, add.inner(), rnd)
 }
@@ -241,7 +241,7 @@ pub unsafe fn submul(
     (m1, m2): (*const mpc_t, *const mpc_t),
     rnd: mpc::rnd_t,
 ) -> c_int {
-    let m1_complex = &*(m1 as *const Complex);
+    let m1_complex = &*cast_ptr!(m1, Complex);
     let neg_m1 = m1_complex.as_neg();
     mpc::fma(rop, neg_m1.inner(), m2, add, rnd)
 }

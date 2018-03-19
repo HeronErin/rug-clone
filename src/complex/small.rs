@@ -139,7 +139,7 @@ impl SmallComplex {
     #[inline]
     pub unsafe fn as_nonreallocating_complex(&mut self) -> &mut Complex {
         self.update_d();
-        let ptr = (&mut self.inner) as *mut Mpc as *mut Complex;
+        let ptr = cast_ptr_mut!(&mut self.inner, Complex);
         &mut *ptr
     }
 
@@ -175,7 +175,7 @@ impl Deref for SmallComplex {
     #[inline]
     fn deref(&self) -> &Complex {
         self.update_d();
-        let ptr = (&self.inner) as *const Mpc as *const Complex;
+        let ptr = cast_ptr!(&self.inner, Complex);
         unsafe { &*ptr }
     }
 }
@@ -192,7 +192,7 @@ where
         };
         unsafe {
             xmpfr::custom_zero(
-                &mut im.inner as *mut Mpfr as *mut mpfr::mpfr_t,
+                cast_ptr_mut!(&mut im.inner, mpfr::mpfr_t),
                 &mut im.limbs[0],
                 re.inner.prec,
             );
@@ -247,7 +247,7 @@ macro_rules! impl_assign_re {
                 src.copy(&mut self.inner.re, &mut self.first_limbs);
                 unsafe {
                     xmpfr::custom_zero(
-                        &mut self.inner.im as *mut Mpfr as *mut mpfr::mpfr_t,
+                        cast_ptr_mut!(&mut self.inner.im, mpfr::mpfr_t),
                         &mut self.last_limbs[0],
                         self.inner.re.prec,
                     );

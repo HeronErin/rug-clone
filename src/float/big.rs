@@ -1494,7 +1494,7 @@ impl Float {
     /// [`OrdFloat`]: float/struct.OrdFloat.html
     #[inline]
     pub fn as_ord(&self) -> &OrdFloat {
-        unsafe { &*(self as *const Float as *const OrdFloat) }
+        unsafe { &*cast_ptr!(self, OrdFloat) }
     }
 
     /// Returns [`true`] if `self` is an integer.
@@ -6154,7 +6154,7 @@ impl Float {
     #[inline]
     pub fn ln_abs_gamma_round(&mut self, round: Round) -> (Ordering, Ordering) {
         let mut sign: c_int = 0;
-        let sign_ptr = &mut sign as *mut c_int;
+        let sign_ptr: *mut c_int = &mut sign;
         let ret = unsafe {
             mpfr::lgamma(
                 self.inner_mut(),
@@ -7766,9 +7766,9 @@ where
         round: Round,
     ) -> Ordering {
         let refs = src.values
-            .map(|r| r.inner() as *const mpfr_t)
+            .map(|r| cast_ptr!(r.inner(), mpfr_t))
             .collect::<Vec<_>>();
-        let tab = refs.as_ptr() as *const *mut mpfr_t;
+        let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
         let ret =
             unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
@@ -7813,9 +7813,9 @@ where
             (_, None) => Vec::new(),
             (_, Some(upper)) => Vec::with_capacity(upper + 1),
         };
-        refs.push(self.inner() as *const mpfr_t);
-        refs.extend(src.values.map(|r| r.inner() as *const mpfr_t));
-        let tab = refs.as_ptr() as *const *mut mpfr_t;
+        refs.push(cast_ptr!(self.inner(), mpfr_t));
+        refs.extend(src.values.map(|r| cast_ptr!(r.inner(), mpfr_t)));
+        let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
         let ret =
             unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
@@ -7951,7 +7951,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
         round: Round,
     ) -> Ordering {
         let mut sign: c_int = 0;
-        let sign_ptr = &mut sign as *mut c_int;
+        let sign_ptr: *mut c_int = &mut sign;
         let ret = unsafe {
             mpfr::lgamma(
                 self.0.inner_mut(),
@@ -8095,7 +8095,7 @@ impl<'a> Deref for BorrowFloat<'a> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {
-        let ptr = (&self.inner) as *const mpfr_t as *const Float;
+        let ptr = cast_ptr!(&self.inner, Float);
         unsafe { &*ptr }
     }
 }
@@ -8200,7 +8200,7 @@ pub(crate) fn append_to_string(
         exp = mem::uninitialized();
         // write numbers starting at offset 1, to leave room for '.'
         mpfr::get_str(
-            start.offset(1) as *mut c_char,
+            cast_ptr_mut!(start.offset(1), c_char),
             &mut exp,
             cast(radix),
             digits,
@@ -8273,13 +8273,15 @@ impl AssignRound<ParseIncomplete> for Float {
             mpfr::strtofr(
                 self.inner_mut(),
                 c_string.as_ptr(),
-                &mut c_str_end as *mut *const c_char as *mut *mut c_char,
+                cast_ptr_mut!(&mut c_str_end, *mut c_char),
                 cast(radix),
                 raw_round(round),
             )
         };
-        let nul = c_string.as_bytes_with_nul().last().unwrap() as *const u8
-            as *const c_char;
+        let nul = cast_ptr!(
+            c_string.as_bytes_with_nul().last().unwrap(),
+            c_char
+        );
         assert_eq!(c_str_end, nul);
         ordering1(ret)
     }
