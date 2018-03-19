@@ -3313,16 +3313,15 @@ where
         src: SumIncomplete<'a, I>,
         round: Round2,
     ) -> Ordering2 {
-        let (mut reals, mut imags) = match src.values.size_hint() {
-            (_, None) => (Vec::new(), Vec::new()),
-            (_, Some(upper)) => (
-                Vec::with_capacity(upper),
-                Vec::with_capacity(upper),
-            ),
+        let capacity = match src.values.size_hint() {
+            (lower, None) => lower,
+            (_, Some(upper)) => upper,
         };
+        let mut reals = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
+        let mut imags = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
         for value in src.values {
-            reals.push(cast_ptr!(value.real().inner(), mpfr::mpfr_t));
-            imags.push(cast_ptr!(value.imag().inner(), mpfr::mpfr_t));
+            reals.push(value.real().inner());
+            imags.push(value.imag().inner());
         }
         let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
         let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
@@ -3381,18 +3380,17 @@ where
         src: SumIncomplete<'a, I>,
         round: Round2,
     ) -> Ordering2 {
-        let (mut reals, mut imags) = match src.values.size_hint() {
-            (_, None) => (Vec::new(), Vec::new()),
-            (_, Some(upper)) => (
-                Vec::with_capacity(upper + 1),
-                Vec::with_capacity(upper + 1),
-            ),
+        let capacity = match src.values.size_hint() {
+            (lower, None) => lower + 1,
+            (_, Some(upper)) => upper + 1,
         };
-        reals.push(cast_ptr!(self.real().inner(), mpfr::mpfr_t));
-        imags.push(cast_ptr!(self.imag().inner(), mpfr::mpfr_t));
+        let mut reals = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
+        let mut imags = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
+        reals.push(self.real().inner());
+        imags.push(self.imag().inner());
         for value in src.values {
-            reals.push(cast_ptr!(value.real().inner(), mpfr::mpfr_t));
-            imags.push(cast_ptr!(value.imag().inner(), mpfr::mpfr_t));
+            reals.push(value.real().inner());
+            imags.push(value.imag().inner());
         }
         let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
         let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);

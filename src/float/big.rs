@@ -7766,7 +7766,7 @@ where
         round: Round,
     ) -> Ordering {
         let refs = src.values
-            .map(|r| cast_ptr!(r.inner(), mpfr_t))
+            .map(|r| -> *const mpfr_t { r.inner() })
             .collect::<Vec<_>>();
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
@@ -7809,12 +7809,16 @@ where
         src: SumIncomplete<'a, I>,
         round: Round,
     ) -> Ordering {
-        let mut refs = match src.values.size_hint() {
-            (lower, None) => Vec::with_capacity(lower + 1),
-            (_, Some(upper)) => Vec::with_capacity(upper + 1),
+        let capacity = match src.values.size_hint() {
+            (lower, None) => lower + 1,
+            (_, Some(upper)) => upper + 1,
         };
-        refs.push(cast_ptr!(self.inner(), mpfr_t));
-        refs.extend(src.values.map(|r| cast_ptr!(r.inner(), mpfr_t)));
+        let mut refs = Vec::<*const mpfr_t>::with_capacity(capacity);
+        refs.push(self.inner());
+        refs.extend(
+            src.values
+                .map(|r| -> *const mpfr_t { r.inner() }),
+        );
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
         let ret =
