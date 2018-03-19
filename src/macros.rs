@@ -3099,6 +3099,7 @@ macro_rules! cast_ptr {
         if false {
             #[allow(unused_unsafe)]
             unsafe {
+                #[allow(unknown_lints, useless_transmute)]
                 let _ = ::std::mem::transmute::<_, $T>(ptr.get());
             }
         }
@@ -3119,6 +3120,7 @@ macro_rules! cast_ptr_mut {
         if false {
             #[allow(unused_unsafe)]
             unsafe {
+                #[allow(unknown_lints, useless_transmute)]
                 let _ = ::std::mem::transmute::<_, $T>(ptr.get());
             }
         }

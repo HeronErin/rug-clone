@@ -7810,7 +7810,7 @@ where
         round: Round,
     ) -> Ordering {
         let mut refs = match src.values.size_hint() {
-            (_, None) => Vec::new(),
+            (lower, None) => Vec::with_capacity(lower + 1),
             (_, Some(upper)) => Vec::with_capacity(upper + 1),
         };
         refs.push(cast_ptr!(self.inner(), mpfr_t));
