@@ -28,58 +28,56 @@ use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
-/// A small float that does not require any memory allocation.
-///
-/// This can be useful when you have a primitive number type but need
-/// a reference to a [`Float`]. The `SmallFloat` will have a precision
-/// according to the type of the primitive used to set its value.
-///
-/// * [`i8`], [`u8`]: the `SmallFloat` will have eight bits of
-///   precision.
-/// * [`i16`], [`u16`]: the `SmallFloat` will have 16 bits of
-///   precision.
-/// * [`i32`], [`u32`]: the `SmallFloat` will have 32 bits of
-///   precision.
-/// * [`i64`], [`u64`]: the `SmallFloat` will have 64 bits of
-///   precision.
-/// * [`isize`], [`usize`]: the `SmallFloat` will have 32 or 64 bits
-///   of precision, depending on the platform.
-/// * [`f32`]: the `SmallFloat` will have 24 bits of precision.
-/// * [`f64`]: the `SmallFloat` will have 53 bits of precision.
-///
-/// The `SmallFloat` type can be coerced to a [`Float`], as it
-/// implements [`Deref<Target = Float>`][`Deref`].
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::SmallFloat;
-/// // `a` requires a heap allocation, has 53-bit precision
-/// let mut a = Float::with_val(53, 250);
-/// // `b` can reside on the stack
-/// let b = SmallFloat::from(-100f64);
-/// a += &*b;
-/// assert_eq!(a, 150);
-/// // another computation:
-/// a *= &*b;
-/// assert_eq!(a, -15000);
-/// ```
-///
-/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
-/// [`Float`]: ../struct.Float.html
-/// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
-/// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
-/// [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
-/// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
-/// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
-/// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
-/// [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
-/// [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
-/// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
-/// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
-/// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
-/// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
+/**
+A small float that does not require any memory allocation.
+
+This can be useful when you have a primitive number type but need a
+reference to a [`Float`]. The `SmallFloat` will have a precision
+according to the type of the primitive used to set its value.
+
+* [`i8`], [`u8`]: the `SmallFloat` will have eight bits of precision.
+* [`i16`], [`u16`]: the `SmallFloat` will have 16 bits of precision.
+* [`i32`], [`u32`]: the `SmallFloat` will have 32 bits of precision.
+* [`i64`], [`u64`]: the `SmallFloat` will have 64 bits of precision.
+* [`isize`], [`usize`]: the `SmallFloat` will have 32 or 64 bits of
+  precision, depending on the platform.
+* [`f32`]: the `SmallFloat` will have 24 bits of precision.
+* [`f64`]: the `SmallFloat` will have 53 bits of precision.
+
+The `SmallFloat` type can be coerced to a [`Float`], as it implements
+[`Deref<Target = Float>`][`Deref`].
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::SmallFloat;
+// `a` requires a heap allocation, has 53-bit precision
+let mut a = Float::with_val(53, 250);
+// `b` can reside on the stack
+let b = SmallFloat::from(-100f64);
+a += &*b;
+assert_eq!(a, 150);
+// another computation:
+a *= &*b;
+assert_eq!(a, -15000);
+```
+
+[`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+[`Float`]: ../struct.Float.html
+[`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+[`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+[`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
+[`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
+[`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
+[`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
+[`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
+[`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
+[`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+[`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
+[`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
+[`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
+*/
 #[derive(Clone)]
 #[repr(C)]
 pub struct SmallFloat {

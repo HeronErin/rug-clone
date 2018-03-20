@@ -14,7 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! Random number generation.
+/*!
+Random number generation.
+*/
 
 // UNDEFINED BEHAVIOUR WARNING:
 //
@@ -22,7 +24,6 @@
 // initialize all the fields. So we must use mem::zeroed rather than
 // mem::uninitialized, otherwise we may have uninitialized memory
 // which can eventually lead to undefined behaviour.
-
 use Integer;
 use cast::cast;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
@@ -34,16 +35,18 @@ use std::panic::{self, AssertUnwindSafe};
 use std::process;
 use std::ptr;
 
-/// The state of a random number generator.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::rand::RandState;
-/// let mut rand = RandState::new();
-/// let u = rand.bits(32);
-/// println!("32 random bits: {:032b}", u);
-/// ```
+/**
+The state of a random number generator.
+
+# Examples
+
+```rust
+use rug::rand::RandState;
+let mut rand = RandState::new();
+let u = rand.bits(32);
+println!("32 random bits: {:032b}", u);
+```
+*/
 pub struct RandState<'a> {
     inner: randstate_t,
     phantom: PhantomData<&'a RandGen>,
@@ -506,32 +509,34 @@ impl<'a> RandState<'a> {
     }
 }
 
-/// Custom random number generator to be used with [`RandState`].
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Integer;
-/// use rug::rand::RandGen;
-/// struct SimpleGenerator {
-///     seed: u64,
-/// }
-/// impl RandGen for SimpleGenerator {
-///     fn gen(&mut self) -> u32 {
-///         self.seed =
-///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
-///         (self.seed >> 32) as u32
-///     }
-///     fn seed(&mut self, seed: &Integer) {
-///         self.seed = seed.to_u64_wrapping();
-///     }
-/// }
-/// let mut rand = SimpleGenerator { seed: 1 };
-/// assert_eq!(rand.gen(), 1481765933);
-/// assert_eq!(rand.seed, 6364136223846793006);
-/// ```
-///
-/// [`RandState`]: struct.RandState.html
+/**
+Custom random number generator to be used with [`RandState`].
+
+# Examples
+
+```rust
+use rug::Integer;
+use rug::rand::RandGen;
+struct SimpleGenerator {
+    seed: u64,
+}
+impl RandGen for SimpleGenerator {
+    fn gen(&mut self) -> u32 {
+        self.seed =
+            self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+        (self.seed >> 32) as u32
+    }
+    fn seed(&mut self, seed: &Integer) {
+        self.seed = seed.to_u64_wrapping();
+    }
+}
+let mut rand = SimpleGenerator { seed: 1 };
+assert_eq!(rand.gen(), 1481765933);
+assert_eq!(rand.seed, 6364136223846793006);
+```
+
+[`RandState`]: struct.RandState.html
+*/
 pub trait RandGen: Send + Sync {
     /// Gets a random 32-bit unsigned integer.
     ///

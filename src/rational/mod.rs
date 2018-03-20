@@ -14,12 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! Arbitrary-precision rational numbers.
-//!
-//! This module provides support for arbitrary-precision rational
-//! numbers of type [`Rational`].
-//!
-//! [`Rational`]: ../struct.Rational.html
+/*!
+Arbitrary-precision rational numbers.
+
+This module provides support for arbitrary-precision rational numbers
+of type [`Rational`].
+
+[`Rational`]: ../struct.Rational.html
+*/
 
 mod arith;
 pub(crate) mod big;

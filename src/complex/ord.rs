@@ -18,38 +18,39 @@ use Complex;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 
-/// A complex number that supports total ordering and hashing.
-///
-/// For ordering, the real part has precedence over the imaginary
-/// part. Negative zero is ordered as less than positive zero.
-/// Negative NaN is ordered as less than negative infinity, while
-/// positive NaN is ordered as greater than positive infinity.
-/// Comparing two negative NaNs or two positive NaNs produces
-/// equality.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Complex;
-/// use rug::complex::OrdComplex;
-/// use rug::float::Special;
-/// use std::cmp::Ordering;
-///
-/// let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
-/// let nan = OrdComplex::from(nan_c);
-/// assert_eq!(nan.cmp(&nan), Ordering::Equal);
-///
-/// let one_neg0_c = Complex::with_val(53, (1, Special::NegZero));
-/// let one_neg0 = OrdComplex::from(one_neg0_c);
-/// let one_pos0_c = Complex::with_val(53, (1, Special::Zero));
-/// let one_pos0 = OrdComplex::from(one_pos0_c);
-/// assert_eq!(one_neg0.cmp(&one_pos0), Ordering::Less);
-///
-/// let zero_inf_s = (Special::Zero, Special::Infinity);
-/// let zero_inf_c = Complex::with_val(53, zero_inf_s);
-/// let zero_inf = OrdComplex::from(zero_inf_c);
-/// assert_eq!(one_pos0.cmp(&zero_inf), Ordering::Greater);
-/// ```
+/**
+A complex number that supports total ordering and hashing.
+
+For ordering, the real part has precedence over the imaginary part.
+Negative zero is ordered as less than positive zero. Negative NaN is
+ordered as less than negative infinity, while positive NaN is ordered
+as greater than positive infinity. Comparing two negative NaNs or two
+positive NaNs produces equality.
+
+# Examples
+
+```rust
+use rug::Complex;
+use rug::complex::OrdComplex;
+use rug::float::Special;
+use std::cmp::Ordering;
+
+let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
+let nan = OrdComplex::from(nan_c);
+assert_eq!(nan.cmp(&nan), Ordering::Equal);
+
+let one_neg0_c = Complex::with_val(53, (1, Special::NegZero));
+let one_neg0 = OrdComplex::from(one_neg0_c);
+let one_pos0_c = Complex::with_val(53, (1, Special::Zero));
+let one_pos0 = OrdComplex::from(one_pos0_c);
+assert_eq!(one_neg0.cmp(&one_pos0), Ordering::Less);
+
+let zero_inf_s = (Special::Zero, Special::Infinity);
+let zero_inf_c = Complex::with_val(53, zero_inf_s);
+let zero_inf = OrdComplex::from(zero_inf_c);
+assert_eq!(one_pos0.cmp(&zero_inf), Ordering::Greater);
+```
+*/
 #[derive(Clone, Debug)]
 pub struct OrdComplex {
     inner: Complex,

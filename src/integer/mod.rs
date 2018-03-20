@@ -14,29 +14,31 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! Aribtrary-precision integers.
-//!
-//! This module provides support for arbitrary-precision integers of
-//! type [`Integer`][integer]. Instances of [`Integer`][integer]
-//! always have a heap allocation for the bit data; if you want a
-//! temporary small integer without heap allocation, you can use the
-//! [`SmallInteger`][small] type.
-//!
-//! # Examples
-//!
-//! ```rust
-//! use rug::{Assign, Integer};
-//! use rug::integer::SmallInteger;
-//! let mut int = Integer::from(10);
-//! assert_eq!(int, 10);
-//! let small = SmallInteger::from(-15);
-//! // `small` behaves like an `Integer` in the following line:
-//! int.assign(small.abs_ref());
-//! assert_eq!(int, 15);
-//! ```
-//!
-//! [integer]: ../struct.Integer.html
-//! [small]: struct.SmallInteger.html
+/*!
+Aribtrary-precision integers.
+
+This module provides support for arbitrary-precision integers of type
+[`Integer`][integer]. Instances of [`Integer`][integer] always have a
+heap allocation for the bit data; if you want a temporary small
+integer without heap allocation, you can use the
+[`SmallInteger`][small] type.
+
+# Examples
+
+```rust
+use rug::{Assign, Integer};
+use rug::integer::SmallInteger;
+let mut int = Integer::from(10);
+assert_eq!(int, 10);
+let small = SmallInteger::from(-15);
+// `small` behaves like an `Integer` in the following line:
+int.assign(small.abs_ref());
+assert_eq!(int, 15);
+```
+
+[integer]: ../struct.Integer.html
+[small]: struct.SmallInteger.html
+*/
 
 mod arith;
 pub(crate) mod big;

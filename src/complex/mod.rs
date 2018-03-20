@@ -14,12 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! Multi-precision complex numbers with correct rounding.
-//!
-//! This module provides support for complex numbers of type
-//! [`Complex`].
-//!
-//! [`Complex`]: ../struct.Complex.html
+/*!
+Multi-precision complex numbers with correct rounding.
+
+This module provides support for complex numbers of type [`Complex`].
+
+[`Complex`]: ../struct.Complex.html
+*/
 
 pub(crate) mod arith;
 pub(crate) mod big;
@@ -34,25 +35,26 @@ pub use complex::big::ParseComplexError;
 pub use complex::ord::OrdComplex;
 pub use complex::small::SmallComplex;
 
-/// The `Prec` trait is used to specify the precision of the real and
-/// imaginary parts of a [`Complex`] number.
-///
-/// This trait is implememented for [`u32`] and for
-/// [`(u32, u32)`][tuple].
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Complex;
-/// let c1 = Complex::new(32);
-/// assert_eq!(c1.prec(), (32, 32));
-/// let c2 = Complex::new((32, 64));
-/// assert_eq!(c2.prec(), (32, 64));
-/// ```
-///
-/// [`Complex`]: ../struct.Complex.html
-/// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
-/// [tuple]: https://doc.rust-lang.org/std/primitive.tuple.html
+/**
+The `Prec` trait is used to specify the precision of the real and
+imaginary parts of a [`Complex`] number.
+
+This trait is implememented for [`u32`] and for [`(u32, u32)`][tuple].
+
+# Examples
+
+```rust
+use rug::Complex;
+let c1 = Complex::new(32);
+assert_eq!(c1.prec(), (32, 32));
+let c2 = Complex::new((32, 64));
+assert_eq!(c2.prec(), (32, 64));
+```
+
+[`Complex`]: ../struct.Complex.html
+[`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+[tuple]: https://doc.rust-lang.org/std/primitive.tuple.html
+*/
 pub trait Prec {
     /// Returns the precision for the real and imaginary parts.
     ///

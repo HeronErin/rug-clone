@@ -25,58 +25,59 @@ use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
 
-/// A small complex number that does not require any memory
-/// allocation.
-///
-/// This can be useful when you have real and imaginary numbers that
-/// are primitive integers or floats and you need a reference to a
-/// [`Complex`].
-///
-/// The `SmallComplex` will have a precision according to the types of
-/// the primitives used to set its real and imaginary parts. Note that
-/// if different types are used to set the parts, the parts can have
-/// different precisions.
-///
-/// * [`i8`], [`u8`]: the part will have eight bits of precision.
-/// * [`i16`], [`u16`]: the part will have 16 bits of precision.
-/// * [`i32`], [`u32`]: the part will have 32 bits of precision.
-/// * [`i64`], [`u64`]: the part will have 64 bits of precision.
-/// * [`isize`], [`usize`]: the part will have 32 or 64 bits of precision,
-///   depending on the platform.
-/// * [`f32`]: the part will have 24 bits of precision.
-/// * [`f64`]: the part will have 53 bits of precision.
-///
-/// The `SmallComplex` type can be coerced to a [`Complex`], as it
-/// implements [`Deref<Target = Complex>`][`Deref`].
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Complex;
-/// use rug::complex::SmallComplex;
-/// // `a` requires a heap allocation
-/// let mut a = Complex::with_val(53, (1, 2));
-/// // `b` can reside on the stack
-/// let b = SmallComplex::from((-10f64, -20.5f64));
-/// a += &*b;
-/// assert_eq!(*a.real(), -9);
-/// assert_eq!(*a.imag(), -18.5);
-/// ```
-///
-/// [`Complex`]: ../struct.Complex.html
-/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
-/// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
-/// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
-/// [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
-/// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
-/// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
-/// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
-/// [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
-/// [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
-/// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
-/// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
-/// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
-/// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
+/**
+A small complex number that does not require any memory allocation.
+
+This can be useful when you have real and imaginary numbers that are
+primitive integers or floats and you need a reference to a
+[`Complex`].
+
+The `SmallComplex` will have a precision according to the types of the
+primitives used to set its real and imaginary parts. Note that if
+different types are used to set the parts, the parts can have
+different precisions.
+
+* [`i8`], [`u8`]: the part will have eight bits of precision.
+* [`i16`], [`u16`]: the part will have 16 bits of precision.
+* [`i32`], [`u32`]: the part will have 32 bits of precision.
+* [`i64`], [`u64`]: the part will have 64 bits of precision.
+* [`isize`], [`usize`]: the part will have 32 or 64 bits of precision,
+  depending on the platform.
+* [`f32`]: the part will have 24 bits of precision.
+* [`f64`]: the part will have 53 bits of precision.
+
+The `SmallComplex` type can be coerced to a [`Complex`], as it
+implements [`Deref<Target = Complex>`][`Deref`].
+
+# Examples
+
+```rust
+use rug::Complex;
+use rug::complex::SmallComplex;
+// `a` requires a heap allocation
+let mut a = Complex::with_val(53, (1, 2));
+// `b` can reside on the stack
+let b = SmallComplex::from((-10f64, -20.5f64));
+a += &*b;
+assert_eq!(*a.real(), -9);
+assert_eq!(*a.imag(), -18.5);
+```
+
+[`Complex`]: ../struct.Complex.html
+[`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+[`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+[`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+[`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
+[`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
+[`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
+[`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
+[`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
+[`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
+[`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+[`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
+[`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
+[`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
+*/
 #[repr(C)]
 pub struct SmallComplex {
     inner: Mpc,

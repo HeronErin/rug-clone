@@ -24,38 +24,39 @@ use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
 
-/// A small rational number that does not require any memory
-/// allocation.
-///
-/// This can be useful when you have a numerator and denominator that
-/// are primitive integer-types such as [`i64`] or [`u8`], and you
-/// need a reference to a [`Rational`].
-///
-/// Although no allocation is required, setting the value of a
-/// `SmallRational` does require some computation, as the numerator
-/// and denominator need to be canonicalized.
-///
-/// The `SmallRational` type can be coerced to a [`Rational`], as it
-/// implements [`Deref<Target = Rational>`][`Deref`].
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Rational;
-/// use rug::rational::SmallRational;
-/// // `a` requires a heap allocation
-/// let mut a = Rational::from((100, 13));
-/// // `b` can reside on the stack
-/// let b = SmallRational::from((-100, 21));
-/// a /= &*b;
-/// assert_eq!(*a.numer(), -21);
-/// assert_eq!(*a.denom(), 13);
-/// ```
-///
-/// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
-/// [`Rational`]: ../struct.Rational.html
-/// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
-/// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
+/**
+A small rational number that does not require any memory allocation.
+
+This can be useful when you have a numerator and denominator that are
+primitive integer-types such as [`i64`] or [`u8`], and you need a
+reference to a [`Rational`].
+
+Although no allocation is required, setting the value of a
+`SmallRational` does require some computation, as the numerator and
+denominator need to be canonicalized.
+
+The `SmallRational` type can be coerced to a [`Rational`], as it
+implements [`Deref<Target = Rational>`][`Deref`].
+
+# Examples
+
+```rust
+use rug::Rational;
+use rug::rational::SmallRational;
+// `a` requires a heap allocation
+let mut a = Rational::from((100, 13));
+// `b` can reside on the stack
+let b = SmallRational::from((-100, 21));
+a /= &*b;
+assert_eq!(*a.numer(), -21);
+assert_eq!(*a.denom(), 13);
+```
+
+[`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+[`Rational`]: ../struct.Rational.html
+[`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
+[`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
+*/
 #[repr(C)]
 pub struct SmallRational {
     inner: Mpq,

@@ -42,115 +42,113 @@ pub type Round2 = (Round, Round);
 
 pub type Ordering2 = (Ordering, Ordering);
 
-/// A multi-precision complex number with arbitrarily large precision
-/// and correct rounding.
-///
-/// The precision has to be set during construction. The rounding
-/// method of the required operations can be specified, and the
-/// direction of the rounding is returned.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::{Assign, Complex, Float};
-/// let c = Complex::with_val(53, (40, 30));
-/// assert_eq!(format!("{:.3}", c), "(4.00e1 3.00e1)");
-/// let mut f = Float::with_val(53, c.abs_ref());
-/// assert_eq!(f, 50);
-/// f.assign(c.arg_ref());
-/// assert_eq!(f, 0.75_f64.atan());
-/// ```
-///
-/// Operations on two borrowed `Complex` numbers result in an
-/// [incomplete-computation value][incomplete] that has to be assigned
-/// to a new `Complex` number.
-///
-/// ```rust
-/// use rug::Complex;
-/// let a = Complex::with_val(53, (10.5, -11));
-/// let b = Complex::with_val(53, (-1.25, -1.5));
-/// let a_b_ref = &a + &b;
-/// let a_b = Complex::with_val(53, a_b_ref);
-/// assert_eq!(a_b, (9.25, -12.5));
-/// ```
-///
-/// As a special case, when an
-/// [incomplete-computation value][incomplete] is obtained from
-/// multiplying two `Complex` number references, it can be added to or
-/// subtracted from another `Complex` number (or reference). This will
-/// result in a fused multiply-accumulate operation, with only one
-/// rounding operation taking place.
-///
-/// ```rust
-/// use rug::Complex;
-/// let mut acc = Complex::with_val(53, (1000, 1000));
-/// let m1 = Complex::with_val(53, (10, 0));
-/// let m2 = Complex::with_val(53, (1, -1));
-/// // (1000 + 1000i) - (10 + 0i) * (1 - i) = (990 + 1010i)
-/// acc -= &m1 * &m2;
-/// assert_eq!(acc, (990, 1010));
-/// ```
-///
-/// The `Complex` number type supports various functions. Most methods
-/// have four versions:
-///
-/// 1. The first method consumes the operand and rounds the returned
-///    `Complex` number to the [nearest][`Nearest`] representable
-///    value.
-/// 2. The second method has a “`_mut`” suffix, mutates the operand
-///    and rounds it the nearest representable value.
-/// 3. The third method has a “`_round`” suffix, mutates the operand,
-///    applies the specified [rounding method][`Round`] to the real
-///    and imaginary parts, and returns the rounding direction for
-///    both:
-///    * `Ordering::Less` if the stored part is less than the exact
-///      result,
-///    * `Ordering::Equal` if the stored part is equal to the exact
-///      result,
-///    * `Ordering::Greater` if the stored part is greater than the
-///      exact result.
-/// 4. The fourth method has a “`_ref`” suffix and borrows the
-///    operand. The returned item is an
-///    [incomplete-computation value][incomplete] that can be assigned
-///    to a `Complex` number; the rounding method is selected during
-///    the assignment.
-///
-/// ```rust
-/// use rug::Complex;
-/// use rug::float::Round;
-/// use std::cmp::Ordering;
-/// let expected = Complex::with_val(53, (1.2985, 0.6350));
-///
-/// // 1. consume the operand, round to nearest
-/// let a = Complex::with_val(53, (1, 1));
-/// let sin_a = a.sin();
-/// assert!(*(sin_a - &expected).abs().real() < 0.0001);
-///
-/// // 2. mutate the operand, round to nearest
-/// let mut b = Complex::with_val(53, (1, 1));
-/// b.sin_mut();
-/// assert!(*(b - &expected).abs().real() < 0.0001);
-///
-/// // 3. mutate the operand, apply specified rounding
-/// let mut c = Complex::with_val(4, (1, 1));
-/// // using 4 significant bits, 1.2985 is rounded down to 1.25
-/// // and 0.6350 is rounded down to 0.625.
-/// let dir = c.sin_round((Round::Nearest, Round::Nearest));
-/// assert_eq!(c, (1.25, 0.625));
-/// assert_eq!(dir, (Ordering::Less, Ordering::Less));
-///
-/// // 4. borrow the operand
-/// let d = Complex::with_val(53, (1, 1));
-/// let r = d.sin_ref();
-/// let sin_d = Complex::with_val(53, r);
-/// assert!(*(sin_d - &expected).abs().real() < 0.0001);
-/// // d was not consumed
-/// assert_eq!(d, (1, 1));
-/// ```
-///
-/// [`Nearest`]: float/enum.Round.html#variant.Nearest
-/// [`Round`]: float/enum.Round.html
-/// [incomplete]: index.html#incomplete-computation-values
+/**
+A multi-precision complex number with arbitrarily large precision and
+correct rounding.
+
+The precision has to be set during construction. The rounding method
+of the required operations can be specified, and the direction of the
+rounding is returned.
+
+# Examples
+
+```rust
+use rug::{Assign, Complex, Float};
+let c = Complex::with_val(53, (40, 30));
+assert_eq!(format!("{:.3}", c), "(4.00e1 3.00e1)");
+let mut f = Float::with_val(53, c.abs_ref());
+assert_eq!(f, 50);
+f.assign(c.arg_ref());
+assert_eq!(f, 0.75_f64.atan());
+```
+
+Operations on two borrowed `Complex` numbers result in an
+[incomplete-computation value][incomplete] that has to be assigned to
+a new `Complex` number.
+
+```rust
+use rug::Complex;
+let a = Complex::with_val(53, (10.5, -11));
+let b = Complex::with_val(53, (-1.25, -1.5));
+let a_b_ref = &a + &b;
+let a_b = Complex::with_val(53, a_b_ref);
+assert_eq!(a_b, (9.25, -12.5));
+```
+
+As a special case, when an [incomplete-computation value][incomplete]
+is obtained from multiplying two `Complex` number references, it can
+be added to or subtracted from another `Complex` number (or
+reference). This will result in a fused multiply-accumulate operation,
+with only one rounding operation taking place.
+
+```rust
+use rug::Complex;
+let mut acc = Complex::with_val(53, (1000, 1000));
+let m1 = Complex::with_val(53, (10, 0));
+let m2 = Complex::with_val(53, (1, -1));
+// (1000 + 1000i) - (10 + 0i) * (1 - i) = (990 + 1010i)
+acc -= &m1 * &m2;
+assert_eq!(acc, (990, 1010));
+```
+
+The `Complex` number type supports various functions. Most methods
+have four versions:
+
+1. The first method consumes the operand and rounds the returned
+   `Complex` number to the [nearest][`Nearest`] representable value.
+2. The second method has a “`_mut`” suffix, mutates the operand and
+   rounds it the nearest representable value.
+3. The third method has a “`_round`” suffix, mutates the operand,
+   applies the specified [rounding method][`Round`] to the real and
+   imaginary parts, and returns the rounding direction for both:
+   * `Ordering::Less` if the stored part is less than the exact
+     result,
+   * `Ordering::Equal` if the stored part is equal to the exact
+     result,
+   * `Ordering::Greater` if the stored part is greater than the exact
+     result.
+4. The fourth method has a “`_ref`” suffix and borrows the operand.
+   The returned item is an [incomplete-computation value][incomplete]
+   that can be assigned to a `Complex` number; the rounding method is
+   selected during the assignment.
+
+```rust
+use rug::Complex;
+use rug::float::Round;
+use std::cmp::Ordering;
+let expected = Complex::with_val(53, (1.2985, 0.6350));
+
+// 1. consume the operand, round to nearest
+let a = Complex::with_val(53, (1, 1));
+let sin_a = a.sin();
+assert!(*(sin_a - &expected).abs().real() < 0.0001);
+
+// 2. mutate the operand, round to nearest
+let mut b = Complex::with_val(53, (1, 1));
+b.sin_mut();
+assert!(*(b - &expected).abs().real() < 0.0001);
+
+// 3. mutate the operand, apply specified rounding
+let mut c = Complex::with_val(4, (1, 1));
+// using 4 significant bits, 1.2985 is rounded down to 1.25
+// and 0.6350 is rounded down to 0.625.
+let dir = c.sin_round((Round::Nearest, Round::Nearest));
+assert_eq!(c, (1.25, 0.625));
+assert_eq!(dir, (Ordering::Less, Ordering::Less));
+
+// 4. borrow the operand
+let d = Complex::with_val(53, (1, 1));
+let r = d.sin_ref();
+let sin_d = Complex::with_val(53, r);
+assert!(*(sin_d - &expected).abs().real() < 0.0001);
+// d was not consumed
+assert_eq!(d, (1, 1));
+```
+
+[`Nearest`]: float/enum.Round.html#variant.Nearest
+[`Round`]: float/enum.Round.html
+[incomplete]: index.html#incomplete-computation-values
+*/
 pub struct Complex {
     inner: mpc_t,
 }
@@ -3735,27 +3733,29 @@ fn parse(
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing a [`Complex`] number.
-///
-/// See the [`Complex::parse_radix`] method for details on what
-/// strings are accepted.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Complex;
-/// use rug::complex::ParseComplexError;
-/// // This string is not a complex number.
-/// let s = "something completely different (_!_!_)";
-/// let error: ParseComplexError = match Complex::parse_radix(s, 4) {
-///     Ok(_) => unreachable!(),
-///     Err(error) => error,
-/// };
-/// println!("Parse error: {:?}", error);
-/// ```
-///
-/// [`Complex::parse_radix`]: ../struct.Complex.html#method.parse_radix
-/// [`Complex`]: ../struct.Complex.html
+/**
+An error which can be returned when parsing a [`Complex`] number.
+
+See the [`Complex::parse_radix`] method for details on what strings
+are accepted.
+
+# Examples
+
+```rust
+use rug::Complex;
+use rug::complex::ParseComplexError;
+// This string is not a complex number.
+let s = "something completely different (_!_!_)";
+let error: ParseComplexError = match Complex::parse_radix(s, 4) {
+    Ok(_) => unreachable!(),
+    Err(error) => error,
+};
+println!("Parse error: {:?}", error);
+```
+
+[`Complex::parse_radix`]: ../struct.Complex.html#method.parse_radix
+[`Complex`]: ../struct.Complex.html
+*/
 pub struct ParseComplexError {
     kind: ParseErrorKind,
 }

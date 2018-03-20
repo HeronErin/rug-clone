@@ -82,194 +82,192 @@ fn ordering2(ord: c_int) -> (Ordering, Ordering) {
     (ordering1(first), ordering1(second))
 }
 
-/// A multi-precision floating-point number with arbitrarily large
-/// precision and correct rounding
-///
-/// The precision has to be set during construction. The rounding
-/// method of the required operations can be specified, and the
-/// direction of the rounding is returned.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::Round;
-/// use rug::ops::DivAssignRound;
-/// use std::cmp::Ordering;
-/// // A precision of 32 significant bits is specified here.
-/// // (The primitive `f32` has a precision of 24 and
-/// // `f64` has a precision of 53.)
-/// let mut two_thirds_down = Float::with_val(32, 2.0);
-/// let dir = two_thirds_down.div_assign_round(3.0, Round::Down);
-/// // since we rounded down, direction is Ordering::Less
-/// assert_eq!(dir, Ordering::Less);
-/// let mut two_thirds_up = Float::with_val(32, 2.0);
-/// let dir = two_thirds_up.div_assign_round(3.0, Round::Up);
-/// // since we rounded up, direction is Ordering::Greater
-/// assert_eq!(dir, Ordering::Greater);
-/// let diff_expected = 2.0_f64.powi(-32);
-/// let diff = two_thirds_up - two_thirds_down;
-/// assert_eq!(diff, diff_expected);
-/// ```
-///
-/// Operations on two borrowed `Float` numbers result in an
-/// [incomplete-computation value][incomplete] that has to be assigned
-/// to a new `Float` value.
-///
-/// ```rust
-/// use rug::Float;
-/// let a = Float::with_val(53, 10.5);
-/// let b = Float::with_val(53, -1.25);
-/// let a_b_ref = &a + &b;
-/// let a_b = Float::with_val(53, a_b_ref);
-/// assert_eq!(a_b, 9.25);
-/// ```
-///
-/// As a special case, when an
-/// [incomplete-computation value][incomplete] is obtained from
-/// multiplying two `Float` references, it can be added to or
-/// subtracted from another `Float` (or reference). This will result
-/// in a fused multiply-accumulate operation, with only one rounding
-/// operation taking place.
-///
-/// ```rust
-/// use rug::Float;
-/// // Use only 4 bits of precision for demonstration purposes.
-/// // 24 in binary is 11000.
-/// let a = Float::with_val(4, 24);
-/// // 1.5 in binary is 1.1.
-/// let mul1 = Float::with_val(4, 1.5);
-/// // -13 in binary is -1101.
-/// let mul2 = Float::with_val(4, -13);
-/// // 24 + 1.5 * -13 = 4.5
-/// let add = Float::with_val(4, &a + &mul1 * &mul2);
-/// assert_eq!(add, 4.5);
-/// // 24 - 1.5 * -13 = 43.5, rounded to 44 using four bits of precision.
-/// let sub = a - &mul1 * &mul2;
-/// assert_eq!(sub, 44);
-///
-/// // With separate addition and multiplication:
-/// let a = Float::with_val(4, 24);
-/// // No borrows, so multiplication is computed immediately.
-/// // 1.5 * -13 = -19.5 (binary -10011.1), rounded to -20.
-/// let separate_add = a + mul1 * mul2;
-/// assert_eq!(separate_add, 4);
-/// ```
-///
-/// The [incomplete-computation value][incomplete] obtained from
-/// multiplying two `Float` references can also be added to or
-/// subtracted from another such
-/// [incomplete-computation value][incomplete], so that two
-/// muliplications and an addition are fused with only one rounding
-/// operation taking place.
-///
-/// ```rust
-/// use rug::Float;
-/// let a = Float::with_val(53, 24);
-/// let b = Float::with_val(53, 1.5);
-/// let c = Float::with_val(53, 12);
-/// let d = Float::with_val(53, 2);
-/// // 24 * 1.5 + 12 * 2 = 60
-/// let add = Float::with_val(53, &a * &b + &c * &d);
-/// assert_eq!(add, 60);
-/// // 24 * 1.5 - 12 * 2 = 12
-/// let sub = Float::with_val(53, &a * &b - &c * &d);
-/// assert_eq!(sub, 12);
-/// ```
-///
-/// The `Float` type supports various functions. Most methods have
-/// four versions:
-///
-/// 1. The first method consumes the operand and rounds the returned
-///    `Float` to the [nearest][`Nearest`] representable value.
-/// 2. The second method has a “`_mut`” suffix, mutates the operand
-///    and rounds it the nearest representable value.
-/// 3. The third method has a “`_round`” suffix, mutates the operand,
-///    applies the specified [rounding method][`Round`], and returns
-///    the rounding direction:
-///    * `Ordering::Less` if the stored value is less than the exact
-///      result,
-///    * `Ordering::Equal` if the stored value is equal to the exact
-///      result,
-///    * `Ordering::Greater` if the stored value is greater than the
-///      exact result.
-/// 4. The fourth method has a “`_ref`” suffix and borrows the
-///    operand. The returned item is an
-///    [incomplete-computation value][incomplete] that can be assigned
-///    to a `Float`; the rounding method is selected during the
-///    assignment.
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::Round;
-/// use std::cmp::Ordering;
-/// let expected = 0.9490_f64;
-///
-/// // 1. consume the operand, round to nearest
-/// let a = Float::with_val(53, 1.25);
-/// let sin_a = a.sin();
-/// assert!((sin_a - expected).abs() < 0.0001);
-///
-/// // 2. mutate the operand, round to nearest
-/// let mut b = Float::with_val(53, 1.25);
-/// b.sin_mut();
-/// assert!((b - expected).abs() < 0.0001);
-///
-/// // 3. mutate the operand, apply specified rounding
-/// let mut c = Float::with_val(4, 1.25);
-/// // using 4 significant bits, 0.9490 is rounded down to 0.9375
-/// let dir = c.sin_round(Round::Nearest);
-/// assert_eq!(c, 0.9375);
-/// assert_eq!(dir, Ordering::Less);
-///
-/// // 4. borrow the operand
-/// let d = Float::with_val(53, 1.25);
-/// let r = d.sin_ref();
-/// let sin_d = Float::with_val(53, r);
-/// assert!((sin_d - expected).abs() < 0.0001);
-/// // d was not consumed
-/// assert_eq!(d, 1.25);
-/// ```
-///
-/// The following example is a translation of the [MPFR sample] found
-/// on the MPFR website. The program computes a lower bound on 1 +
-/// 1/1! + 1/2! + … + 1/100! using 200-bit precision. The program
-/// writes:
-///
-/// `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
-///
-/// ```rust
-/// extern crate rug;
-/// use rug::Float;
-/// use rug::float::{Round};
-/// use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
-///
-/// fn main() {
-///     let mut t = Float::with_val(200, 1.0);
-///     let mut s = Float::with_val(200, 1.0);
-///     let mut u = Float::new(200);
-///     for i in 1..101_u32 {
-///         // multiply t by i in place, round towards plus infinity
-///         t.mul_assign_round(i, Round::Up);
-///         // set u to 1/t, round towards minus infinity
-///         u.assign_round(t.recip_ref(), Round::Down);
-///         // increase s by u in place, round towards minus infinity
-///         s.add_assign_round(&u, Round::Down);
-///     }
-///     // `None` means the number of printed digits depends on the precision
-///     let sr = s.to_string_radix_round(10, None, Round::Down);
-///     println!("Sum is {}", sr);
-/// #   assert_eq!(
-/// #       sr,
-/// #       "2.7182818284590452353602874713526624977572470936999595749669131"
-/// #   );
-/// }
-/// ```
-///
-/// [`Nearest`]: float/enum.Round.html#variant.Nearest
-/// [`Round`]: float/enum.Round.html
-/// [MPFR sample]: http://www.mpfr.org/sample.html
-/// [incomplete]: index.html#incomplete-computation-values
+/**
+A multi-precision floating-point number with arbitrarily large
+precision and correct rounding
+
+The precision has to be set during construction. The rounding method
+of the required operations can be specified, and the direction of the
+rounding is returned.
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::Round;
+use rug::ops::DivAssignRound;
+use std::cmp::Ordering;
+// A precision of 32 significant bits is specified here.
+// (The primitive `f32` has a precision of 24 and
+// `f64` has a precision of 53.)
+let mut two_thirds_down = Float::with_val(32, 2.0);
+let dir = two_thirds_down.div_assign_round(3.0, Round::Down);
+// since we rounded down, direction is Ordering::Less
+assert_eq!(dir, Ordering::Less);
+let mut two_thirds_up = Float::with_val(32, 2.0);
+let dir = two_thirds_up.div_assign_round(3.0, Round::Up);
+// since we rounded up, direction is Ordering::Greater
+assert_eq!(dir, Ordering::Greater);
+let diff_expected = 2.0_f64.powi(-32);
+let diff = two_thirds_up - two_thirds_down;
+assert_eq!(diff, diff_expected);
+```
+
+Operations on two borrowed `Float` numbers result in an
+[incomplete-computation value][incomplete] that has to be assigned to
+a new `Float` value.
+
+```rust
+use rug::Float;
+let a = Float::with_val(53, 10.5);
+let b = Float::with_val(53, -1.25);
+let a_b_ref = &a + &b;
+let a_b = Float::with_val(53, a_b_ref);
+assert_eq!(a_b, 9.25);
+```
+
+As a special case, when an [incomplete-computation value][incomplete]
+is obtained from multiplying two `Float` references, it can be added
+to or subtracted from another `Float` (or reference). This will result
+in a fused multiply-accumulate operation, with only one rounding
+operation taking place.
+
+```rust
+use rug::Float;
+// Use only 4 bits of precision for demonstration purposes.
+// 24 in binary is 11000.
+let a = Float::with_val(4, 24);
+// 1.5 in binary is 1.1.
+let mul1 = Float::with_val(4, 1.5);
+// -13 in binary is -1101.
+let mul2 = Float::with_val(4, -13);
+// 24 + 1.5 * -13 = 4.5
+let add = Float::with_val(4, &a + &mul1 * &mul2);
+assert_eq!(add, 4.5);
+// 24 - 1.5 * -13 = 43.5, rounded to 44 using four bits of precision.
+let sub = a - &mul1 * &mul2;
+assert_eq!(sub, 44);
+
+// With separate addition and multiplication:
+let a = Float::with_val(4, 24);
+// No borrows, so multiplication is computed immediately.
+// 1.5 * -13 = -19.5 (binary -10011.1), rounded to -20.
+let separate_add = a + mul1 * mul2;
+assert_eq!(separate_add, 4);
+```
+
+The [incomplete-computation value][incomplete] obtained from
+multiplying two `Float` references can also be added to or subtracted
+from another such [incomplete-computation value][incomplete], so that
+two muliplications and an addition are fused with only one rounding
+operation taking place.
+
+```rust
+use rug::Float;
+let a = Float::with_val(53, 24);
+let b = Float::with_val(53, 1.5);
+let c = Float::with_val(53, 12);
+let d = Float::with_val(53, 2);
+// 24 * 1.5 + 12 * 2 = 60
+let add = Float::with_val(53, &a * &b + &c * &d);
+assert_eq!(add, 60);
+// 24 * 1.5 - 12 * 2 = 12
+let sub = Float::with_val(53, &a * &b - &c * &d);
+assert_eq!(sub, 12);
+```
+
+The `Float` type supports various functions. Most methods have four
+versions:
+
+1. The first method consumes the operand and rounds the returned
+   `Float` to the [nearest][`Nearest`] representable value.
+2. The second method has a “`_mut`” suffix, mutates the operand and
+   rounds it the nearest representable value.
+3. The third method has a “`_round`” suffix, mutates the operand,
+   applies the specified [rounding method][`Round`], and returns the
+   rounding direction:
+   * `Ordering::Less` if the stored value is less than the exact
+     result,
+   * `Ordering::Equal` if the stored value is equal to the exact
+     result,
+   * `Ordering::Greater` if the stored value is greater than the exact
+     result.
+4. The fourth method has a “`_ref`” suffix and borrows the operand.
+   The returned item is an [incomplete-computation value][incomplete]
+   that can be assigned to a `Float`; the rounding method is selected
+   during the assignment.
+
+```rust
+use rug::Float;
+use rug::float::Round;
+use std::cmp::Ordering;
+let expected = 0.9490_f64;
+
+// 1. consume the operand, round to nearest
+let a = Float::with_val(53, 1.25);
+let sin_a = a.sin();
+assert!((sin_a - expected).abs() < 0.0001);
+
+// 2. mutate the operand, round to nearest
+let mut b = Float::with_val(53, 1.25);
+b.sin_mut();
+assert!((b - expected).abs() < 0.0001);
+
+// 3. mutate the operand, apply specified rounding
+let mut c = Float::with_val(4, 1.25);
+// using 4 significant bits, 0.9490 is rounded down to 0.9375
+let dir = c.sin_round(Round::Nearest);
+assert_eq!(c, 0.9375);
+assert_eq!(dir, Ordering::Less);
+
+// 4. borrow the operand
+let d = Float::with_val(53, 1.25);
+let r = d.sin_ref();
+let sin_d = Float::with_val(53, r);
+assert!((sin_d - expected).abs() < 0.0001);
+// d was not consumed
+assert_eq!(d, 1.25);
+```
+
+The following example is a translation of the [MPFR sample] found on
+the MPFR website. The program computes a lower bound on 1 + 1/1! +
+1/2! + … + 1/100! using 200-bit precision. The program writes:
+
+`Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
+
+```rust
+extern crate rug;
+use rug::Float;
+use rug::float::{Round};
+use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
+
+fn main() {
+    let mut t = Float::with_val(200, 1.0);
+    let mut s = Float::with_val(200, 1.0);
+    let mut u = Float::new(200);
+    for i in 1..101_u32 {
+        // multiply t by i in place, round towards plus infinity
+        t.mul_assign_round(i, Round::Up);
+        // set u to 1/t, round towards minus infinity
+        u.assign_round(t.recip_ref(), Round::Down);
+        // increase s by u in place, round towards minus infinity
+        s.add_assign_round(&u, Round::Down);
+    }
+    // `None` means the number of printed digits depends on the precision
+    let sr = s.to_string_radix_round(10, None, Round::Down);
+    println!("Sum is {}", sr);
+#   assert_eq!(
+#       sr,
+#       "2.7182818284590452353602874713526624977572470936999595749669131"
+#   );
+}
+```
+
+[`Nearest`]: float/enum.Round.html#variant.Nearest
+[`Round`]: float/enum.Round.html
+[MPFR sample]: http://www.mpfr.org/sample.html
+[incomplete]: index.html#incomplete-computation-values
+*/
 pub struct Float {
     inner: mpfr_t,
 }
@@ -8482,27 +8480,29 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing a [`Float`].
-///
-/// See the [`Float::parse_radix`] method for details on what strings
-/// are accepted.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::ParseFloatError;
-/// // This string is not a floating-point number.
-/// let s = "something completely different (_!_!_)";
-/// let error: ParseFloatError = match Float::parse_radix(s, 4) {
-///     Ok(_) => unreachable!(),
-///     Err(error) => error,
-/// };
-/// println!("Parse error: {:?}", error);
-/// ```
-///
-/// [`Float::parse_radix`]: ../struct.Float.html#method.parse_radix
-/// [`Float`]: ../struct.Float.html
+/**
+An error which can be returned when parsing a [`Float`].
+
+See the [`Float::parse_radix`] method for details on what strings are
+accepted.
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::ParseFloatError;
+// This string is not a floating-point number.
+let s = "something completely different (_!_!_)";
+let error: ParseFloatError = match Float::parse_radix(s, 4) {
+    Ok(_) => unreachable!(),
+    Err(error) => error,
+};
+println!("Parse error: {:?}", error);
+```
+
+[`Float::parse_radix`]: ../struct.Float.html#method.parse_radix
+[`Float`]: ../struct.Float.html
+*/
 pub struct ParseFloatError {
     kind: ParseErrorKind,
 }

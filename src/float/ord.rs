@@ -23,42 +23,44 @@ use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::slice;
 
-/// A float that supports total ordering and hashing.
-///
-/// Negative zero is ordered as less than positive zero. Negative NaN
-/// is ordered as less than negative infinity, while positive NaN is
-/// ordered as greater than positive infinity. Comparing two negative
-/// NaNs or two positive NaNs produces equality.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::{OrdFloat, Special};
-/// use std::cmp::Ordering;
-///
-/// let pos_nan_f = Float::with_val(53, Special::Nan);
-/// let pos_inf_f = Float::with_val(53, Special::Infinity);
-/// let pos_zero_f = Float::with_val(53, Special::Zero);
-/// let neg_zero_f = Float::with_val(53, Special::NegZero);
-/// let neg_inf_f = Float::with_val(53, Special::NegInfinity);
-/// let neg_nan_f = Float::with_val(53, -&pos_nan_f);
-/// let pos_nan = OrdFloat::from(pos_nan_f);
-/// let pos_inf = OrdFloat::from(pos_inf_f);
-/// let pos_zero = OrdFloat::from(pos_zero_f);
-/// let neg_zero = OrdFloat::from(neg_zero_f);
-/// let neg_inf = OrdFloat::from(neg_inf_f);
-/// let neg_nan = OrdFloat::from(neg_nan_f);
-///
-/// assert_eq!(pos_nan.cmp(&pos_nan), Ordering::Equal);
-/// assert_eq!(neg_nan.cmp(&neg_nan), Ordering::Equal);
-/// assert_eq!(neg_nan.cmp(&pos_nan), Ordering::Less);
-///
-/// assert_eq!(pos_nan.cmp(&pos_inf), Ordering::Greater);
-/// assert_eq!(neg_nan.cmp(&neg_inf), Ordering::Less);
-///
-/// assert_eq!(pos_zero.cmp(&neg_zero), Ordering::Greater);
-/// ```
+/**
+A float that supports total ordering and hashing.
+
+Negative zero is ordered as less than positive zero. Negative NaN is
+ordered as less than negative infinity, while positive NaN is ordered
+as greater than positive infinity. Comparing two negative NaNs or two
+positive NaNs produces equality.
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::{OrdFloat, Special};
+use std::cmp::Ordering;
+
+let pos_nan_f = Float::with_val(53, Special::Nan);
+let pos_inf_f = Float::with_val(53, Special::Infinity);
+let pos_zero_f = Float::with_val(53, Special::Zero);
+let neg_zero_f = Float::with_val(53, Special::NegZero);
+let neg_inf_f = Float::with_val(53, Special::NegInfinity);
+let neg_nan_f = Float::with_val(53, -&pos_nan_f);
+let pos_nan = OrdFloat::from(pos_nan_f);
+let pos_inf = OrdFloat::from(pos_inf_f);
+let pos_zero = OrdFloat::from(pos_zero_f);
+let neg_zero = OrdFloat::from(neg_zero_f);
+let neg_inf = OrdFloat::from(neg_inf_f);
+let neg_nan = OrdFloat::from(neg_nan_f);
+
+assert_eq!(pos_nan.cmp(&pos_nan), Ordering::Equal);
+assert_eq!(neg_nan.cmp(&neg_nan), Ordering::Equal);
+assert_eq!(neg_nan.cmp(&pos_nan), Ordering::Less);
+
+assert_eq!(pos_nan.cmp(&pos_inf), Ordering::Greater);
+assert_eq!(neg_nan.cmp(&neg_inf), Ordering::Less);
+
+assert_eq!(pos_zero.cmp(&neg_zero), Ordering::Greater);
+```
+*/
 #[derive(Clone, Debug)]
 pub struct OrdFloat {
     inner: Float,

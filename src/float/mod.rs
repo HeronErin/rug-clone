@@ -14,12 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-//! Multi-precision floating-point numbers with correct rounding.
-//!
-//! This module provides support for floating-point numbers of type
-//! [`Float`].
-//!
-//! [`Float`]: ../struct.Float.html
+/*!
+Multi-precision floating-point numbers with correct rounding.
+
+This module provides support for floating-point numbers of type
+[`Float`].
+
+[`Float`]: ../struct.Float.html
+*/
 
 pub(crate) mod arith;
 pub(crate) mod big;
@@ -38,14 +40,16 @@ use gmp_mpfr_sys::mpfr;
 use std::{i32, u32};
 use std::mem;
 
-/// Returns the minimum value for the exponent.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::float;
-/// println!("Minimum exponent is {}", float::exp_min());
-/// ```
+/**
+Returns the minimum value for the exponent.
+
+# Examples
+
+```rust
+use rug::float;
+println!("Minimum exponent is {}", float::exp_min());
+```
+*/
 #[inline]
 pub fn exp_min() -> i32 {
     let min = unsafe { mpfr::get_emin() };
@@ -56,14 +60,16 @@ pub fn exp_min() -> i32 {
     }
 }
 
-/// Returns the maximum value for the exponent.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::float;
-/// println!("Maximum exponent is {}", float::exp_max());
-/// ```
+/**
+Returns the maximum value for the exponent.
+
+# Examples
+
+```rust
+use rug::float;
+println!("Maximum exponent is {}", float::exp_max());
+```
+*/
 #[inline]
 pub fn exp_max() -> i32 {
     let max = unsafe { mpfr::get_emax() };
@@ -74,27 +80,31 @@ pub fn exp_max() -> i32 {
     }
 }
 
-/// Returns the minimum value for the precision.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::float;
-/// println!("Minimum precision is {}", float::prec_min());
-/// ```
+/**
+Returns the minimum value for the precision.
+
+# Examples
+
+```rust
+use rug::float;
+println!("Minimum precision is {}", float::prec_min());
+```
+*/
 #[inline]
 pub fn prec_min() -> u32 {
     cast(mpfr::PREC_MIN)
 }
 
-/// Returns the maximum value for the precision.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::float;
-/// println!("Maximum precision is {}", float::prec_max());
-/// ```
+/**
+Returns the maximum value for the precision.
+
+# Examples
+
+```rust
+use rug::float;
+println!("Maximum precision is {}", float::prec_max());
+```
+*/
 #[inline]
 pub fn prec_max() -> u32 {
     let max = mpfr::PREC_MAX;
@@ -107,48 +117,49 @@ pub fn prec_max() -> u32 {
     }
 }
 
-/// The rounding methods for floating-point values.
-///
-/// When rounding to the nearest, if the number to be rounded is
-/// exactly between two representable numbers, it is rounded to
-/// the even one, that is, the one with the least significant bit
-/// set to zero.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::Round;
-/// use rug::ops::AssignRound;
-/// let mut f4 = Float::new(4);
-/// f4.assign_round(10.4, Round::Nearest);
-/// assert_eq!(f4, 10);
-/// f4.assign_round(10.6, Round::Nearest);
-/// assert_eq!(f4, 11);
-/// f4.assign_round(-10.7, Round::Zero);
-/// assert_eq!(f4, -10);
-/// f4.assign_round(10.3, Round::Up);
-/// assert_eq!(f4, 11);
-/// ```
-///
-/// Rounding to the nearest will round numbers exactly between two
-/// representable numbers to the even one.
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::Round;
-/// use rug::ops::AssignRound;
-/// // 24 is 11000 in binary
-/// // 25 is 11001 in binary
-/// // 26 is 11010 in binary
-/// // 27 is 11011 in binary
-/// // 28 is 11100 in binary
-/// let mut f4 = Float::new(4);
-/// f4.assign_round(25, Round::Nearest);
-/// assert_eq!(f4, 24);
-/// f4.assign_round(27, Round::Nearest);
-/// assert_eq!(f4, 28);
-/// ```
+/**
+The rounding methods for floating-point values.
+
+When rounding to the nearest, if the number to be rounded is exactly
+between two representable numbers, it is rounded to the even one, that
+is, the one with the least significant bit set to zero.
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::Round;
+use rug::ops::AssignRound;
+let mut f4 = Float::new(4);
+f4.assign_round(10.4, Round::Nearest);
+assert_eq!(f4, 10);
+f4.assign_round(10.6, Round::Nearest);
+assert_eq!(f4, 11);
+f4.assign_round(-10.7, Round::Zero);
+assert_eq!(f4, -10);
+f4.assign_round(10.3, Round::Up);
+assert_eq!(f4, 11);
+```
+
+Rounding to the nearest will round numbers exactly between two
+representable numbers to the even one.
+
+```rust
+use rug::Float;
+use rug::float::Round;
+use rug::ops::AssignRound;
+// 24 is 11000 in binary
+// 25 is 11001 in binary
+// 26 is 11010 in binary
+// 27 is 11011 in binary
+// 28 is 11100 in binary
+let mut f4 = Float::new(4);
+f4.assign_round(25, Round::Nearest);
+assert_eq!(f4, 24);
+f4.assign_round(27, Round::Nearest);
+assert_eq!(f4, 28);
+```
+*/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Round {
     /// Round towards the nearest.
@@ -170,24 +181,26 @@ impl Default for Round {
     }
 }
 
-/// The available floating-point constants.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::Constant;
-///
-/// let log2 = Float::with_val(53, Constant::Log2);
-/// let pi = Float::with_val(53, Constant::Pi);
-/// let euler = Float::with_val(53, Constant::Euler);
-/// let catalan = Float::with_val(53, Constant::Catalan);
-///
-/// assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
-/// assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416");
-/// assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
-/// assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
-/// ```
+/**
+The available floating-point constants.
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::Constant;
+
+let log2 = Float::with_val(53, Constant::Log2);
+let pi = Float::with_val(53, Constant::Pi);
+let euler = Float::with_val(53, Constant::Euler);
+let catalan = Float::with_val(53, Constant::Catalan);
+
+assert_eq!(log2.to_string_radix(10, Some(5)), "6.9315e-1");
+assert_eq!(pi.to_string_radix(10, Some(5)), "3.1416");
+assert_eq!(euler.to_string_radix(10, Some(5)), "5.7722e-1");
+assert_eq!(catalan.to_string_radix(10, Some(5)), "9.1597e-1");
+```
+*/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Constant {
     /// The logarithm of two, 0.693...
@@ -202,30 +215,32 @@ pub enum Constant {
     __Nonexhaustive,
 }
 
-/// Special floating-point values.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Float;
-/// use rug::float::Special;
-///
-/// let zero = Float::with_val(53, Special::Zero);
-/// let neg_zero = Float::with_val(53, Special::NegZero);
-/// let infinity = Float::with_val(53, Special::Infinity);
-/// let neg_infinity = Float::with_val(53, Special::NegInfinity);
-/// let nan = Float::with_val(53, Special::Nan);
-///
-/// assert_eq!(zero, 0);
-/// assert!(zero.is_sign_positive());
-/// assert_eq!(neg_zero, 0);
-/// assert!(neg_zero.is_sign_negative());
-/// assert!(infinity.is_infinite());
-/// assert!(infinity.is_sign_positive());
-/// assert!(neg_infinity.is_infinite());
-/// assert!(neg_infinity.is_sign_negative());
-/// assert!(nan.is_nan());
-/// ```
+/**
+Special floating-point values.
+
+# Examples
+
+```rust
+use rug::Float;
+use rug::float::Special;
+
+let zero = Float::with_val(53, Special::Zero);
+let neg_zero = Float::with_val(53, Special::NegZero);
+let infinity = Float::with_val(53, Special::Infinity);
+let neg_infinity = Float::with_val(53, Special::NegInfinity);
+let nan = Float::with_val(53, Special::Nan);
+
+assert_eq!(zero, 0);
+assert!(zero.is_sign_positive());
+assert_eq!(neg_zero, 0);
+assert!(neg_zero.is_sign_negative());
+assert!(infinity.is_infinite());
+assert!(infinity.is_sign_positive());
+assert!(neg_infinity.is_infinite());
+assert!(neg_infinity.is_sign_negative());
+assert!(nan.is_nan());
+```
+*/
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Special {
     /// Positive zero.

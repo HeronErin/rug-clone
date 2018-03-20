@@ -224,7 +224,7 @@ The precision to use for the result depends on the requirements of the
 algorithm being implemented. Here `z` is created with a precision of
 45.
 
-Many operations can return incomplete computation values:
+Many operations can return incomplete-computation values:
 
 * unary operators applied to references, for example `-&int`;
 * binary operators applied to two references, for example
@@ -307,7 +307,8 @@ features = ["integer", "float", "rand"]
 Here only the `integer`, `float` and `rand` features are enabled. If
 none of the features are selected, the [gmp-mpfr-sys crate][sys] is
 not required and thus not enabled. In that case, only the [`Assign`]
-trait and some [other traits][`ops`] are provided by the crate.
+trait and the traits that are in the [`ops`] module are provided by
+the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: #incomplete-computation-values

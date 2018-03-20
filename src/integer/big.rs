@@ -32,156 +32,155 @@ use std::ops::Deref;
 use std::os::raw::{c_char, c_int, c_long};
 use std::slice;
 
-/// An arbitrary-precision integer.
-///
-/// Standard arithmetic operations, bitwise operations and comparisons
-/// are supported. In standard arithmetic operations such as addition,
-/// you can mix `Integer` and primitive integer types; the result will
-/// be an `Integer`.
-///
-/// Internally the integer is not stored using a two’s-complement
-/// representation, however, for bitwise operations and shifts, the
-/// functionality is the same as if the representation was using two’s
-/// complement.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::{Assign, Integer};
-/// // Create an integer initialized as zero.
-/// let mut int = Integer::new();
-/// assert_eq!(int, 0);
-/// assert_eq!(int.to_u32(), Some(0));
-/// int.assign(-14);
-/// assert_eq!(int, -14);
-/// assert_eq!(int.to_u32(), None);
-/// assert_eq!(int.to_i32(), Some(-14));
-/// ```
-///
-/// Arithmetic operations with mixed arbitrary and primitive types are
-/// allowed. Note that in the following example, there is only one
-/// allocation. The `Integer` instance is moved into the shift
-/// operation so that the result can be stored in the same instance,
-/// then that result is similarly consumed by the addition operation.
-///
-/// ```rust
-/// use rug::Integer;
-/// let mut a = Integer::from(0xc);
-/// a = (a << 80) + 0xffee;
-/// assert_eq!(a.to_string_radix(16), "c0000000000000000ffee");
-/// //                                  ^   ^   ^   ^   ^
-/// //                                 80  64  48  32  16
-/// ```
-///
-/// Bitwise operations on `Integer` values behave as if the value uses
-/// a two’s-complement representation.
-///
-/// ```rust
-/// use rug::Integer;
-///
-/// let mut i = Integer::from(1);
-/// i = i << 1000;
-/// // i is now 1000000... (1000 zeros)
-/// assert_eq!(i.significant_bits(), 1001);
-/// assert_eq!(i.find_one(0), Some(1000));
-/// i -= 1;
-/// // i is now 111111... (1000 ones)
-/// assert_eq!(i.count_ones(), Some(1000));
-///
-/// let a = Integer::from(0xf00d);
-/// // -1 is all ones in two’s complement
-/// let all_ones_xor_a = Integer::from(-1 ^ &a);
-/// // a is unchanged as we borrowed it
-/// let complement_a = !a;
-/// // now a has been moved, so this would cause an error:
-/// // assert!(a > 0);
-/// assert_eq!(all_ones_xor_a, complement_a);
-/// assert_eq!(complement_a, -0xf00e);
-/// assert_eq!(format!("{:x}", complement_a), "-f00e");
-/// ```
-///
-/// To initialize a large `Integer` that does not fit in a primitive
-/// type, you can parse a string.
-///
-/// ```rust
-/// use rug::Integer;
-/// let s1 = "123456789012345678901234567890";
-/// let i1 = s1.parse::<Integer>().unwrap();
-/// assert_eq!(i1.significant_bits(), 97);
-/// let s2 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
-/// let i2 = Integer::from_str_radix(s2, 16).unwrap();
-/// assert_eq!(i2.significant_bits(), 160);
-/// assert_eq!(i2.count_ones(), Some(80));
-/// ```
-///
-/// Operations on two borrowed `Integer` values result in an
-/// [incomplete-computation value][incomplete] that has to be assigned
-/// to a new `Integer` value.
-///
-/// ```rust
-/// use rug::Integer;
-/// let a = Integer::from(10);
-/// let b = Integer::from(3);
-/// let a_b_ref = &a + &b;
-/// let a_b = Integer::from(a_b_ref);
-/// assert_eq!(a_b, 13);
-/// ```
-///
-/// As a special case, when an
-/// [incomplete-computation value][incomplete] is obtained from
-/// multiplying two `Integer` references, it can be added to or
-/// subtracted from another `Integer` (or reference). This can be
-/// useful for multiply-accumulate operations.
-///
-/// ```rust
-/// use rug::Integer;
-/// let mut acc = Integer::from(100);
-/// let m1 = Integer::from(3);
-/// let m2 = Integer::from(7);
-/// // 100 + 3 * 7 = 121
-/// acc += &m1 * &m2;
-/// assert_eq!(acc, 121);
-/// let other = Integer::from(2000);
-/// // Do not consume any values here:
-/// // 2000 - 3 * 7 = 1979
-/// let sub = Integer::from(&other - &m1 * &m2);
-/// assert_eq!(sub, 1979);
-/// ```
-///
-/// The `Integer` type supports various functions. Most methods have
-/// three versions:
-///
-/// 1. The first method consumes the operand.
-/// 2. The second method has a “`_mut`” suffix and mutates the
-///    operand.
-/// 3. The third method has a “`_ref`” suffix and borrows the operand.
-///    The returned item is an
-///    [incomplete-computation value][incomplete] that can be assigned
-///    to an `Integer`.
-///
-/// ```rust
-/// use rug::Integer;
-///
-/// // 1. consume the operand
-/// let a = Integer::from(-15);
-/// let abs_a = a.abs();
-/// assert_eq!(abs_a, 15);
-///
-/// // 2. mutate the operand
-/// let mut b = Integer::from(-16);
-/// b.abs_mut();
-/// assert_eq!(b, 16);
-///
-/// // 3. borrow the operand
-/// let c = Integer::from(-17);
-/// let r = c.abs_ref();
-/// let abs_c = Integer::from(r);
-/// assert_eq!(abs_c, 17);
-/// // c was not consumed
-/// assert_eq!(c, -17);
-/// ```
-///
-/// [incomplete]: index.html#incomplete-computation-values
+/**
+An arbitrary-precision integer.
+
+Standard arithmetic operations, bitwise operations and comparisons are
+supported. In standard arithmetic operations such as addition, you can
+mix `Integer` and primitive integer types; the result will be an
+`Integer`.
+
+Internally the integer is not stored using a two’s-complement
+representation, however, for bitwise operations and shifts, the
+functionality is the same as if the representation was using two’s
+complement.
+
+# Examples
+
+```rust
+use rug::{Assign, Integer};
+// Create an integer initialized as zero.
+let mut int = Integer::new();
+assert_eq!(int, 0);
+assert_eq!(int.to_u32(), Some(0));
+int.assign(-14);
+assert_eq!(int, -14);
+assert_eq!(int.to_u32(), None);
+assert_eq!(int.to_i32(), Some(-14));
+```
+
+Arithmetic operations with mixed arbitrary and primitive types are
+allowed. Note that in the following example, there is only one
+allocation. The `Integer` instance is moved into the shift operation
+so that the result can be stored in the same instance, then that
+result is similarly consumed by the addition operation.
+
+```rust
+use rug::Integer;
+let mut a = Integer::from(0xc);
+a = (a << 80) + 0xffee;
+assert_eq!(a.to_string_radix(16), "c0000000000000000ffee");
+//                                  ^   ^   ^   ^   ^
+//                                 80  64  48  32  16
+```
+
+Bitwise operations on `Integer` values behave as if the value uses a
+two’s-complement representation.
+
+```rust
+use rug::Integer;
+
+let mut i = Integer::from(1);
+i = i << 1000;
+// i is now 1000000... (1000 zeros)
+assert_eq!(i.significant_bits(), 1001);
+assert_eq!(i.find_one(0), Some(1000));
+i -= 1;
+// i is now 111111... (1000 ones)
+assert_eq!(i.count_ones(), Some(1000));
+
+let a = Integer::from(0xf00d);
+// -1 is all ones in two’s complement
+let all_ones_xor_a = Integer::from(-1 ^ &a);
+// a is unchanged as we borrowed it
+let complement_a = !a;
+// now a has been moved, so this would cause an error:
+// assert!(a > 0);
+assert_eq!(all_ones_xor_a, complement_a);
+assert_eq!(complement_a, -0xf00e);
+assert_eq!(format!("{:x}", complement_a), "-f00e");
+```
+
+To initialize a large `Integer` that does not fit in a primitive type,
+you can parse a string.
+
+```rust
+use rug::Integer;
+let s1 = "123456789012345678901234567890";
+let i1 = s1.parse::<Integer>().unwrap();
+assert_eq!(i1.significant_bits(), 97);
+let s2 = "ffff0000ffff0000ffff0000ffff0000ffff0000";
+let i2 = Integer::from_str_radix(s2, 16).unwrap();
+assert_eq!(i2.significant_bits(), 160);
+assert_eq!(i2.count_ones(), Some(80));
+```
+
+Operations on two borrowed `Integer` values result in an
+[incomplete-computation value][incomplete] that has to be assigned to
+a new `Integer` value.
+
+```rust
+use rug::Integer;
+let a = Integer::from(10);
+let b = Integer::from(3);
+let a_b_ref = &a + &b;
+let a_b = Integer::from(a_b_ref);
+assert_eq!(a_b, 13);
+```
+
+As a special case, when an [incomplete-computation value][incomplete]
+is obtained from multiplying two `Integer` references, it can be added
+to or subtracted from another `Integer` (or reference). This can be
+useful for multiply-accumulate operations.
+
+```rust
+use rug::Integer;
+let mut acc = Integer::from(100);
+let m1 = Integer::from(3);
+let m2 = Integer::from(7);
+// 100 + 3 * 7 = 121
+acc += &m1 * &m2;
+assert_eq!(acc, 121);
+let other = Integer::from(2000);
+// Do not consume any values here:
+// 2000 - 3 * 7 = 1979
+let sub = Integer::from(&other - &m1 * &m2);
+assert_eq!(sub, 1979);
+```
+
+The `Integer` type supports various functions. Most methods have three
+versions:
+
+1. The first method consumes the operand.
+2. The second method has a “`_mut`” suffix and mutates the operand.
+3. The third method has a “`_ref`” suffix and borrows the operand. The
+   returned item is an [incomplete-computation value][incomplete] that
+   can be assigned to an `Integer`.
+
+```rust
+use rug::Integer;
+
+// 1. consume the operand
+let a = Integer::from(-15);
+let abs_a = a.abs();
+assert_eq!(abs_a, 15);
+
+// 2. mutate the operand
+let mut b = Integer::from(-16);
+b.abs_mut();
+assert_eq!(b, 16);
+
+// 3. borrow the operand
+let c = Integer::from(-17);
+let r = c.abs_ref();
+let abs_c = Integer::from(r);
+assert_eq!(abs_c, 17);
+// c was not consumed
+assert_eq!(c, -17);
+```
+
+[incomplete]: index.html#incomplete-computation-values
+*/
 pub struct Integer {
     inner: mpz_t,
 }
@@ -4870,27 +4869,29 @@ fn parse(
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing an [`Integer`].
-///
-/// See the [`Integer::parse_radix`] method for details on what
-/// strings are accepted.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Integer;
-/// use rug::integer::ParseIntegerError;
-/// // This string is not an integer.
-/// let s = "something completely different (_!_!_)";
-/// let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
-///     Ok(_) => unreachable!(),
-///     Err(error) => error,
-/// };
-/// println!("Parse error: {}", error);
-/// ```
-///
-/// [`Integer::parse_radix`]: ../struct.Integer.html#method.parse_radix
-/// [`Integer`]: ../struct.Integer.html
+/**
+An error which can be returned when parsing an [`Integer`].
+
+See the [`Integer::parse_radix`] method for details on what strings
+are accepted.
+
+# Examples
+
+```rust
+use rug::Integer;
+use rug::integer::ParseIntegerError;
+// This string is not an integer.
+let s = "something completely different (_!_!_)";
+let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
+    Ok(_) => unreachable!(),
+    Err(error) => error,
+};
+println!("Parse error: {}", error);
+```
+
+[`Integer::parse_radix`]: ../struct.Integer.html#method.parse_radix
+[`Integer`]: ../struct.Integer.html
+*/
 pub struct ParseIntegerError {
     kind: ParseErrorKind,
 }
@@ -4912,25 +4913,27 @@ impl Error for ParseIntegerError {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-/// Whether a number is prime.
-///
-/// See the [`Integer::is_probably_prime`][ipp] method.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Integer;
-/// use rug::integer::IsPrime;
-/// let no = Integer::from(163 * 4003);
-/// assert_eq!(no.is_probably_prime(15), IsPrime::No);
-/// let yes = Integer::from(21_751);
-/// assert_eq!(yes.is_probably_prime(15), IsPrime::Yes);
-/// // 817_504_243 is actually a prime.
-/// let probably = Integer::from(817_504_243);
-/// assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
-/// ```
-///
-/// [ipp]: ../struct.Integer.html#method.is_probably_prime
+/**
+Whether a number is prime.
+
+See the [`Integer::is_probably_prime`][ipp] method.
+
+# Examples
+
+```rust
+use rug::Integer;
+use rug::integer::IsPrime;
+let no = Integer::from(163 * 4003);
+assert_eq!(no.is_probably_prime(15), IsPrime::No);
+let yes = Integer::from(21_751);
+assert_eq!(yes.is_probably_prime(15), IsPrime::Yes);
+// 817_504_243 is actually a prime.
+let probably = Integer::from(817_504_243);
+assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
+```
+
+[ipp]: ../struct.Integer.html#method.is_probably_prime
+*/
 pub enum IsPrime {
     /// The number is definitely not prime.
     No,

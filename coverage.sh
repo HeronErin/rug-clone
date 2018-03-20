@@ -29,7 +29,8 @@ fi
 EXTRACT_SCRIPT='
 p                       # print original, as sed is called quiet
 /```rust$/,/```$/{      # work between ```rust and ```
-    s, *//[/!],       ,     # uncomment lines
+    \,//[/!],!s,^,        , # indent uncommented lines
+    s, *//[/!],       ,     # uncomment commented lines
     s, *$,,                 # remove trailing spaces
     s,^\( *\)# ,\1/* # */ , # comment hiding hash
     s,    ```rust$,{,       # replace ```rust with {

@@ -16,29 +16,35 @@
 
 #![allow(dead_code)]
 
-/// Casts into the destination if the value fits, otherwise panics.
-///
-/// Floats are rounded towards zero when cast into integers.
-///
-/// # Panics
-///
-/// * If a NaN is cast into an integer type.
-/// * If the value does not fit in the destination integer type.
+/**
+Casts into the destination if the value fits, otherwise panics.
+
+Floats are rounded towards zero when cast into integers.
+
+# Panics
+
+* If a NaN is cast into an integer type.
+* If the value does not fit in the destination integer type.
+*/
 pub trait Cast<Dst> {
     fn cast(self) -> Dst;
 }
 
-/// Casts into the destination if the value fits.
-///
-/// Floats are rounded towards zero when cast into integers.
+/**
+Casts into the destination if the value fits.
+
+Floats are rounded towards zero when cast into integers.
+*/
 pub trait CheckedCast<Dst> {
     fn checked_cast(self) -> Option<Dst>;
 }
 
-/// Casts into the destination, wrapping integers around if the value
-/// does not fit.
-///
-/// Floats are rounded towards zero when cast into integers.
+/**
+Casts into the destination, wrapping integers around if the value
+does not fit.
+
+Floats are rounded towards zero when cast into integers.
+*/
 pub trait WrappingCast<Dst> {
     fn wrapping_cast(self) -> Dst;
 }

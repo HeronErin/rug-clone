@@ -30,63 +30,62 @@ use std::mem;
 use std::ops::Deref;
 use std::ptr;
 
-/// An arbitrary-precision rational number.
-///
-/// A `Rational` number is made up of a numerator [`Integer`] and
-/// denominator [`Integer`]. After `Rational` number functions, the
-/// number is always in canonical form, that is the denominator is
-/// always greater than zero, and there are no common factors. Zero is
-/// stored as 0/1.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Rational;
-/// let r = Rational::from((-12, 15));
-/// let recip = Rational::from(r.recip_ref());
-/// assert_eq!(recip, (-5, 4));
-/// assert_eq!(recip.to_f32(), -1.25);
-/// // The numerator and denominator are stored in canonical form.
-/// let (num, den) = r.into_numer_denom();
-/// assert_eq!(num, -4);
-/// assert_eq!(den, 5);
-/// ```
-///
-/// The `Rational` number type supports various functions. Most
-/// methods have three versions:
-///
-/// 1. The first method consumes the operand.
-/// 2. The second method has a “`_mut`” suffix and mutates the
-///    operand.
-/// 3. The third method has a “`_ref`” suffix and borrows the operand.
-///    The returned item is an
-///    [incomplete-computation value][incomplete] that can be assigned
-///    to a `Rational` number.
-///
-/// ```rust
-/// use rug::Rational;
-///
-/// // 1. consume the operand
-/// let a = Rational::from((-15, 2));
-/// let abs_a = a.abs();
-/// assert_eq!(abs_a, (15, 2));
-///
-/// // 2. mutate the operand
-/// let mut b = Rational::from((-17, 2));
-/// b.abs_mut();
-/// assert_eq!(b, (17, 2));
-///
-/// // 3. borrow the operand
-/// let c = Rational::from((-19, 2));
-/// let r = c.abs_ref();
-/// let abs_c = Rational::from(r);
-/// assert_eq!(abs_c, (19, 2));
-/// // c was not consumed
-/// assert_eq!(c, (-19, 2));
-/// ```
-///
-/// [`Integer`]: struct.Integer.html
-/// [incomplete]: index.html#incomplete-computation-values
+/**
+An arbitrary-precision rational number.
+
+A `Rational` number is made up of a numerator [`Integer`] and
+denominator [`Integer`]. After `Rational` number functions, the number
+is always in canonical form, that is the denominator is always greater
+than zero, and there are no common factors. Zero is stored as 0/1.
+
+# Examples
+
+```rust
+use rug::Rational;
+let r = Rational::from((-12, 15));
+let recip = Rational::from(r.recip_ref());
+assert_eq!(recip, (-5, 4));
+assert_eq!(recip.to_f32(), -1.25);
+// The numerator and denominator are stored in canonical form.
+let (num, den) = r.into_numer_denom();
+assert_eq!(num, -4);
+assert_eq!(den, 5);
+```
+
+The `Rational` number type supports various functions. Most methods
+have three versions:
+
+1. The first method consumes the operand.
+2. The second method has a “`_mut`” suffix and mutates the operand.
+3. The third method has a “`_ref`” suffix and borrows the operand. The
+   returned item is an [incomplete-computation value][incomplete] that
+   can be assigned to a `Rational` number.
+
+```rust
+use rug::Rational;
+
+// 1. consume the operand
+let a = Rational::from((-15, 2));
+let abs_a = a.abs();
+assert_eq!(abs_a, (15, 2));
+
+// 2. mutate the operand
+let mut b = Rational::from((-17, 2));
+b.abs_mut();
+assert_eq!(b, (17, 2));
+
+// 3. borrow the operand
+let c = Rational::from((-19, 2));
+let r = c.abs_ref();
+let abs_c = Rational::from(r);
+assert_eq!(abs_c, (19, 2));
+// c was not consumed
+assert_eq!(c, (-19, 2));
+```
+
+[`Integer`]: struct.Integer.html
+[incomplete]: index.html#incomplete-computation-values
+*/
 pub struct Rational {
     inner: mpq_t,
 }
@@ -2433,27 +2432,29 @@ fn parse(
 }
 
 #[derive(Debug)]
-/// An error which can be returned when parsing a [`Rational`] number.
-///
-/// See the [`Rational::parse_radix`] method for details on what
-/// strings are accepted.
-///
-/// # Examples
-///
-/// ```rust
-/// use rug::Rational;
-/// use rug::rational::ParseRationalError;
-/// // This string is not a rational number.
-/// let s = "something completely different (_!_!_)";
-/// let error: ParseRationalError = match Rational::parse_radix(s, 4) {
-///     Ok(_) => unreachable!(),
-///     Err(error) => error,
-/// };
-/// println!("Parse error: {:?}", error);
-/// ```
-///
-/// [`Rational::parse_radix`]: ../struct.Rational.html#method.parse_radix
-/// [`Rational`]: ../struct.Rational.html
+/**
+An error which can be returned when parsing a [`Rational`] number.
+
+See the [`Rational::parse_radix`] method for details on what strings
+are accepted.
+
+# Examples
+
+```rust
+use rug::Rational;
+use rug::rational::ParseRationalError;
+// This string is not a rational number.
+let s = "something completely different (_!_!_)";
+let error: ParseRationalError = match Rational::parse_radix(s, 4) {
+    Ok(_) => unreachable!(),
+    Err(error) => error,
+};
+println!("Parse error: {:?}", error);
+```
+
+[`Rational::parse_radix`]: ../struct.Rational.html#method.parse_radix
+[`Rational`]: ../struct.Rational.html
+*/
 pub struct ParseRationalError {
     kind: ParseErrorKind,
 }
