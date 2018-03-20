@@ -262,27 +262,29 @@ impl Integer {
     /// // 0x2000_0000 needs 30 bits.
     /// let mut i = Integer::from(0x2000_0000);
     /// assert_eq!(i.significant_bits(), 30);
-    /// i.reserve(34);
+    /// i.reserve(290);
     /// let capacity = i.capacity();
-    /// assert!(capacity >= 64);
+    /// assert!(capacity >= 320);
     /// i.reserve(0);
-    /// assert!(i.capacity() == capacity);
-    /// i.reserve(35);
-    /// assert!(i.capacity() >= 65);
+    /// assert_eq!(i.capacity(), capacity);
+    /// i.reserve(291);
+    /// assert!(i.capacity() >= 321);
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
     pub fn reserve(&mut self, additional: usize) {
-        if additional == 0 {
-            return;
-        }
         let used_bits: usize =
             cast(unsafe { xgmp::mpz_significant_bits(self.inner()) });
         let req_bits = used_bits
             .checked_add(additional)
             .expect("overflow");
-        unsafe {
-            gmp::mpz_realloc2(self.inner_mut(), cast(req_bits));
+        let alloc_bits = (self.inner.alloc as usize)
+            .checked_mul(gmp::LIMB_BITS as usize)
+            .expect("overflow");
+        if alloc_bits < req_bits {
+            unsafe {
+                gmp::mpz_realloc2(self.inner_mut(), cast(req_bits));
+            }
         }
     }
 
@@ -303,14 +305,21 @@ impl Integer {
     /// i >>= 80;
     /// i.shrink_to_fit();
     /// assert!(i.capacity() >= 20);
+    /// # assert!(i.capacity() < 100);
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
     pub fn shrink_to_fit(&mut self) {
-        let used_bits: usize =
-            cast(unsafe { xgmp::mpz_significant_bits(self.inner()) });
-        unsafe {
-            gmp::mpz_realloc2(self.inner_mut(), cast(used_bits));
+        let used_limbs = self.inner.size.checked_abs().expect("overflow");
+        let req_limbs = if used_limbs == 0 {
+            1
+        } else {
+            used_limbs
+        };
+        if self.inner.alloc > req_limbs {
+            unsafe {
+                gmp::_mpz_realloc(self.inner_mut(), cast(req_limbs));
+            }
         }
     }
 
