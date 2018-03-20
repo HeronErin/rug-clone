@@ -28,7 +28,9 @@ pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
         (*rop).size = 1;
         *limb_mut(rop, 0) = u as u32;
     } else {
-        gmp::_mpz_realloc(rop, 2);
+        if (*rop).alloc < 2 {
+            gmp::_mpz_realloc(rop, 2);
+        }
         (*rop).size = 2;
         *limb_mut(rop, 0) = u as u32;
         *limb_mut(rop, 1) = (u >> 32) as u32;
