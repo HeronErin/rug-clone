@@ -18,10 +18,9 @@
 Aribtrary-precision integers.
 
 This module provides support for arbitrary-precision integers of type
-[`Integer`][integer]. Instances of [`Integer`][integer] always have a
-heap allocation for the bit data; if you want a temporary small
-integer without heap allocation, you can use the
-[`SmallInteger`][small] type.
+[`Integer`]. Instances of [`Integer`] always have a heap allocation
+for the bit data; if you want a temporary small integer without heap
+allocation, you can use the [`SmallInteger`] type.
 
 # Examples
 
@@ -36,8 +35,8 @@ int.assign(small.abs_ref());
 assert_eq!(int, 15);
 ```
 
-[integer]: ../struct.Integer.html
-[small]: struct.SmallInteger.html
+[`Integer`]: ../struct.Integer.html
+[`SmallInteger`]: struct.SmallInteger.html
 */
 
 mod arith;

@@ -169,7 +169,7 @@ impl<'a> RandState<'a> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm like the [`new_linear_congruential`][cong] method.
+    /// algorithm like the [`new_linear_congruential`] method.
     ///
     /// For the linear congrentail algorithm *X* = (*a* × *X* + *c*)
     /// mod 2<sup>*bits*</sup>, *a*, *c* and *bits* are selected from
@@ -191,7 +191,7 @@ impl<'a> RandState<'a> {
     /// ```
     ///
     /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [cong]: #method.new_linear_congruential
+    /// [`new_linear_congruential`]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
             let mut inner = mem::zeroed();
@@ -628,9 +628,8 @@ pub trait RandGen: Send + Sync {
     ///
     /// The default implementation of this function does nothing.
     ///
-    /// Note that the [`RandState::seed`][seed] method will pass its
-    /// seed parameter exactly to this function without using it
-    /// otherwise.
+    /// Note that the [`RandState::seed`] method will pass its seed
+    /// parameter exactly to this function without using it otherwise.
     ///
     /// # Examples
     ///
@@ -681,7 +680,7 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(seed.num, i);
     /// ```
     ///
-    /// [seed]: struct.RandState.html#method.seed
+    /// [`RandState::seed`]: struct.RandState.html#method.seed
     #[inline]
     fn seed(&mut self, seed: &Integer) {
         let _ = seed;

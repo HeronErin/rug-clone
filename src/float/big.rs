@@ -114,8 +114,8 @@ assert_eq!(diff, diff_expected);
 ```
 
 Operations on two borrowed `Float` numbers result in an
-[incomplete-computation value][incomplete] that has to be assigned to
-a new `Float` value.
+[incomplete-computation value][icv] that has to be assigned to a new
+`Float` value.
 
 ```rust
 use rug::Float;
@@ -126,10 +126,10 @@ let a_b = Float::with_val(53, a_b_ref);
 assert_eq!(a_b, 9.25);
 ```
 
-As a special case, when an [incomplete-computation value][incomplete]
-is obtained from multiplying two `Float` references, it can be added
-to or subtracted from another `Float` (or reference). This will result
-in a fused multiply-accumulate operation, with only one rounding
+As a special case, when an [incomplete-computation value][icv] is
+obtained from multiplying two `Float` references, it can be added to
+or subtracted from another `Float` (or reference). This will result in
+a fused multiply-accumulate operation, with only one rounding
 operation taking place.
 
 ```rust
@@ -156,11 +156,11 @@ let separate_add = a + mul1 * mul2;
 assert_eq!(separate_add, 4);
 ```
 
-The [incomplete-computation value][incomplete] obtained from
-multiplying two `Float` references can also be added to or subtracted
-from another such [incomplete-computation value][incomplete], so that
-two muliplications and an addition are fused with only one rounding
-operation taking place.
+The [incomplete-computation value][icv] obtained from multiplying two
+`Float` references can also be added to or subtracted from another
+such [incomplete-computation value][icv], so that two muliplications
+and an addition are fused with only one rounding operation taking
+place.
 
 ```rust
 use rug::Float;
@@ -193,8 +193,8 @@ versions:
    * `Ordering::Greater` if the stored value is greater than the exact
      result.
 4. The fourth method has a “`_ref`” suffix and borrows the operand.
-   The returned item is an [incomplete-computation value][incomplete]
-   that can be assigned to a `Float`; the rounding method is selected
+   The returned item is an [incomplete-computation value][icv] that
+   can be assigned to a `Float`; the rounding method is selected
    during the assignment.
 
 ```rust
@@ -266,7 +266,7 @@ fn main() {
 [`Nearest`]: float/enum.Round.html#variant.Nearest
 [`Round`]: float/enum.Round.html
 [MPFR sample]: http://www.mpfr.org/sample.html
-[incomplete]: index.html#incomplete-computation-values
+[icv]: index.html#incomplete-computation-values
 */
 pub struct Float {
     inner: mpfr_t,

@@ -116,8 +116,8 @@ assert_eq!(i2.count_ones(), Some(80));
 ```
 
 Operations on two borrowed `Integer` values result in an
-[incomplete-computation value][incomplete] that has to be assigned to
-a new `Integer` value.
+[incomplete-computation value][icv] that has to be assigned to a new
+`Integer` value.
 
 ```rust
 use rug::Integer;
@@ -128,9 +128,9 @@ let a_b = Integer::from(a_b_ref);
 assert_eq!(a_b, 13);
 ```
 
-As a special case, when an [incomplete-computation value][incomplete]
-is obtained from multiplying two `Integer` references, it can be added
-to or subtracted from another `Integer` (or reference). This can be
+As a special case, when an [incomplete-computation value][icv] is
+obtained from multiplying two `Integer` references, it can be added to
+or subtracted from another `Integer` (or reference). This can be
 useful for multiply-accumulate operations.
 
 ```rust
@@ -154,8 +154,8 @@ versions:
 1. The first method consumes the operand.
 2. The second method has a “`_mut`” suffix and mutates the operand.
 3. The third method has a “`_ref`” suffix and borrows the operand. The
-   returned item is an [incomplete-computation value][incomplete] that
-   can be assigned to an `Integer`.
+   returned item is an [incomplete-computation value][icv] that can be
+   assigned to an `Integer`.
 
 ```rust
 use rug::Integer;
@@ -179,7 +179,7 @@ assert_eq!(abs_c, 17);
 assert_eq!(c, -17);
 ```
 
-[incomplete]: index.html#incomplete-computation-values
+[icv]: index.html#incomplete-computation-values
 */
 pub struct Integer {
     inner: mpz_t,
@@ -5019,7 +5019,7 @@ impl Error for ParseIntegerError {
 /**
 Whether a number is prime.
 
-See the [`Integer::is_probably_prime`][ipp] method.
+See the [`Integer::is_probably_prime`] method.
 
 # Examples
 
@@ -5035,7 +5035,7 @@ let probably = Integer::from(817_504_243);
 assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
 ```
 
-[ipp]: ../struct.Integer.html#method.is_probably_prime
+[`Integer::is_probably_prime`]: ../struct.Integer.html#method.is_probably_prime
 */
 pub enum IsPrime {
     /// The number is definitely not prime.

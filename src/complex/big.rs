@@ -63,8 +63,8 @@ assert_eq!(f, 0.75_f64.atan());
 ```
 
 Operations on two borrowed `Complex` numbers result in an
-[incomplete-computation value][incomplete] that has to be assigned to
-a new `Complex` number.
+[incomplete-computation value][icv] that has to be assigned to a new
+`Complex` number.
 
 ```rust
 use rug::Complex;
@@ -75,11 +75,11 @@ let a_b = Complex::with_val(53, a_b_ref);
 assert_eq!(a_b, (9.25, -12.5));
 ```
 
-As a special case, when an [incomplete-computation value][incomplete]
-is obtained from multiplying two `Complex` number references, it can
-be added to or subtracted from another `Complex` number (or
-reference). This will result in a fused multiply-accumulate operation,
-with only one rounding operation taking place.
+As a special case, when an [incomplete-computation value][icv] is
+obtained from multiplying two `Complex` number references, it can be
+added to or subtracted from another `Complex` number (or reference).
+This will result in a fused multiply-accumulate operation, with only
+one rounding operation taking place.
 
 ```rust
 use rug::Complex;
@@ -108,8 +108,8 @@ have four versions:
    * `Ordering::Greater` if the stored part is greater than the exact
      result.
 4. The fourth method has a “`_ref`” suffix and borrows the operand.
-   The returned item is an [incomplete-computation value][incomplete]
-   that can be assigned to a `Complex` number; the rounding method is
+   The returned item is an [incomplete-computation value][icv] that
+   can be assigned to a `Complex` number; the rounding method is
    selected during the assignment.
 
 ```rust
@@ -147,7 +147,7 @@ assert_eq!(d, (1, 1));
 
 [`Nearest`]: float/enum.Round.html#variant.Nearest
 [`Round`]: float/enum.Round.html
-[incomplete]: index.html#incomplete-computation-values
+[icv]: index.html#incomplete-computation-values
 */
 pub struct Complex {
     inner: mpc_t,

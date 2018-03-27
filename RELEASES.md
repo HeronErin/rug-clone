@@ -1,3 +1,6 @@
+Version 1.1.0 (not released yet)
+==========================
+
 * Add `i128` and `u128` support, conditional on compiler support.
 * Add `Float::get_significand` method.
 

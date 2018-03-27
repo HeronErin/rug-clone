@@ -58,8 +58,8 @@ have three versions:
 1. The first method consumes the operand.
 2. The second method has a “`_mut`” suffix and mutates the operand.
 3. The third method has a “`_ref`” suffix and borrows the operand. The
-   returned item is an [incomplete-computation value][incomplete] that
-   can be assigned to a `Rational` number.
+   returned item is an [incomplete-computation value][icv] that can be
+   assigned to a `Rational` number.
 
 ```rust
 use rug::Rational;
@@ -84,7 +84,7 @@ assert_eq!(c, (-19, 2));
 ```
 
 [`Integer`]: struct.Integer.html
-[incomplete]: index.html#incomplete-computation-values
+[icv]: index.html#incomplete-computation-values
 */
 pub struct Rational {
     inner: mpq_t,
