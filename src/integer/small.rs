@@ -272,7 +272,7 @@ impl CopyToSmall for u128 {
 #[cfg(all(int_128, gmp_limb_bits_32))]
 impl CopyToSmall for u128 {
     #[inline]
-    fn copy(mut self, size: &mut c_int, limbs: &mut Limbs) {
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if self == 0 {
             *size = 0;
         } else if self <= 0xffff_ffff {
@@ -292,7 +292,7 @@ impl CopyToSmall for u128 {
             limbs[0] = self as u32;
             limbs[1] = (self >> 32) as u32;
             limbs[2] = (self >> 64) as u32;
-            limbs[2] = (self >> 96) as u32;
+            limbs[3] = (self >> 96) as u32;
         }
     }
 }
