@@ -2,6 +2,8 @@ Version 1.1.0 (not released yet)
 ==========================
 
 * Add `i128` and `u128` support, conditional on compiler support.
+* Implement `TryFrom::<Integer>` and `TryFrom::<&Integer>` for integer
+  primitives, conditional on compiler support.
 * Add `Float::get_significand` method.
 
 Version 1.0.1 (2018-03-10)

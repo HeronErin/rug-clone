@@ -23,8 +23,13 @@ use std::process::Command;
 
 fn main() {
     let out_dir = PathBuf::from(cargo_env("OUT_DIR"));
-    if has_int_128(&out_dir) {
+    let int_128 = has_feature(&out_dir, "int_128", TRY_INT_128_RS);
+    let try_from = has_feature(&out_dir, "try_from", TRY_TRY_FROM_RS);
+    if int_128 {
         println!("cargo:rustc-cfg=int_128");
+    }
+    if try_from {
+        println!("cargo:rustc-cfg=try_from");
     }
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
@@ -38,13 +43,15 @@ fn main() {
     }
 }
 
-fn has_int_128(out_dir: &Path) -> bool {
+fn has_feature(out_dir: &Path, ident: &str, contents: &str) -> bool {
     let rustc = cargo_env("RUSTC");
-    let try_dir = out_dir.join("try_int_128");
+    let try_dir = out_dir.join(format!("try_{}", ident));
+    let filename = format!("try_{}.rs", ident);
     create_dir_or_panic(&try_dir);
-    create_file_or_panic(&try_dir.join("try_int_128.rs"), TRY_INT_128_RS);
+    create_file_or_panic(&try_dir.join(&filename), contents);
     let mut cmd = Command::new(&rustc);
-    cmd.current_dir(&try_dir).arg("try_int_128.rs");
+    cmd.current_dir(&try_dir).arg(&filename);
+    println!("$ cd {:?}", try_dir);
     println!("$ {:?}", cmd);
     let status = cmd.status()
         .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
@@ -97,9 +104,15 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }
 
-const TRY_INT_128_RS: &'static str = r#"// try_int_128.rs
+const TRY_INT_128_RS: &str = r#"// try_int_128.rs
 fn main() {
     let _ = 1i128;
     let _ = 1u128;
+}
+"#;
+
+const TRY_TRY_FROM_RS: &str = r#"// try_try_from.rs
+fn main() {
+    let _ = i8::try_from(1u64);
 }
 "#;

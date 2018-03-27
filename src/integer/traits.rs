@@ -20,8 +20,12 @@ use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use integer::ParseIntegerError;
+#[cfg(try_from)]
+use integer::TryFromIntegerError;
 use integer::big;
 use std::{i32, u32};
+#[cfg(try_from)]
+use std::error::Error;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::hash::{Hash, Hasher};
@@ -133,6 +137,41 @@ impl<'a> From<&'a Integer> for Integer {
         }
     }
 }
+
+#[cfg(try_from)]
+macro_rules! try_from {
+    ($(($T: ty, $method: ident))*) => { $(
+        impl TryFrom<Integer> for $T {
+            type Error = TryFromIntegerError;
+            fn try_from(value: Integer) -> Result<Self, TryFromIntegerError> {
+                TryFrom::try_from(&value)
+            }
+        }
+        impl<'a> TryFrom<&'a Integer> for $T {
+            type Error = TryFromIntegerError;
+            fn try_from(
+                value: &'a Integer,
+            ) -> Result<Self, TryFromIntegerError> {
+                value
+                    .$method()
+                    .ok_or(TryFromIntegerError { _unused: () })
+            }
+        }
+    )* };
+}
+
+#[cfg(try_from)]
+try_from! {
+    (i8, to_i8) (i16, to_i16) (i32, to_i32) (i64, to_i64) (isize, to_isize)
+}
+#[cfg(all(int128, try_from))]
+try_from! { (i128, to_i128) }
+#[cfg(try_from)]
+try_from! {
+    (u8, to_u8) (u16, to_u16) (u32, to_u32) (u64, to_u64) (usize, to_usize)
+}
+#[cfg(all(int128, try_from))]
+try_from! { (u128, to_u128) }
 
 macro_rules! assign {
     ($T: ty, $set: path, $init_set: path) => {
@@ -266,6 +305,20 @@ fn fmt_radix(
 impl Display for ParseIntegerError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
+    }
+}
+
+#[cfg(try_from)]
+impl Error for TryFromIntegerError {
+    fn description(&self) -> &str {
+        "out of range conversion attempted"
+    }
+}
+
+#[cfg(try_from)]
+impl Display for TryFromIntegerError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Display::fmt(self.description(), f)
     }
 }
 

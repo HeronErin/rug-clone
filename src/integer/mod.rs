@@ -51,6 +51,32 @@ mod traits;
 pub use integer::big::{IsPrime, ParseIntegerError};
 pub use integer::small::SmallInteger;
 
+#[cfg(try_from)]
+/**
+An error which can be returned when a checked conversion from
+[`Integer`] fails.
+
+# Examples
+
+```rust
+use rug::Integer;
+use rug::integer::TryFromIntegerError;
+// This is negative and cannot be converted to u32.
+let i = Integer::from(-5);
+let error: TryFromIntegerError = match u32::try_from(&i) {
+    Ok(_) => unreachable!(),
+    Err(error) => error,
+};
+println!("Error: {}", error);
+```
+
+[`Integer`]: ../struct.Integer.html
+*/
+#[derive(Clone, Copy, Debug)]
+pub struct TryFromIntegerError {
+    _unused: (),
+}
+
 #[cfg(test)]
 mod tests {
     use {Assign, Integer};
