@@ -279,6 +279,20 @@ pub unsafe fn set_u64(rop: *mut mpfr_t, val: u64, rnd: mpfr::rnd_t) -> c_int {
     }
 }
 
+#[cfg(int_128)]
+#[inline]
+pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: mpfr::rnd_t) -> c_int {
+    let small = SmallFloat::from(val);
+    mpfr::set(rop, (*small).inner(), rnd)
+}
+
+#[cfg(int_128)]
+#[inline]
+pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: mpfr::rnd_t) -> c_int {
+    let small = SmallFloat::from(val);
+    mpfr::set(rop, (*small).inner(), rnd)
+}
+
 #[inline]
 pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
     if mem::size_of::<c_long>() >= mem::size_of::<i64>() {
@@ -297,6 +311,20 @@ pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
         let small = SmallFloat::from(op2);
         mpfr::cmp(op1, (*small).inner())
     }
+}
+
+#[cfg(int_128)]
+#[inline]
+pub unsafe fn cmp_i128(op1: *const mpfr_t, op2: i128) -> c_int {
+    let small = SmallFloat::from(op2);
+    mpfr::cmp(op1, (*small).inner())
+}
+
+#[cfg(int_128)]
+#[inline]
+pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
+    let small = SmallFloat::from(op2);
+    mpfr::cmp(op1, (*small).inner())
 }
 
 #[inline]

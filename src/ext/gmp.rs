@@ -1092,6 +1092,16 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     }
 }
 
+#[cfg(int_128)]
+#[inline]
+pub unsafe fn mpz_set_i128(rop: *mut mpz_t, i: i128) {
+    let (neg_i, abs_i) = i.neg_abs();
+    mpz_set_u128(rop, abs_i);
+    if neg_i {
+        (*rop).size = -(*rop).size;
+    }
+}
+
 #[inline]
 pub unsafe fn mpz_set_i64(rop: *mut mpz_t, i: i64) {
     let (neg_i, abs_i) = i.neg_abs();
@@ -1605,6 +1615,30 @@ mod rational {
 
     #[inline]
     pub unsafe fn mpq_cmp_i64(op1: *const mpq_t, n2: i64, d2: u64) -> c_int {
+        if let Some(n2) = cast::checked_cast(n2) {
+            if let Some(d2) = cast::checked_cast(d2) {
+                return gmp::mpq_cmp_si(op1, n2, d2);
+            }
+        }
+        let small = SmallRational::from((n2, d2));
+        gmp::mpq_cmp(op1, (*small).inner())
+    }
+
+    #[cfg(int_128)]
+    #[inline]
+    pub unsafe fn mpq_cmp_u128(op1: *const mpq_t, n2: u128, d2: u128) -> c_int {
+        if let Some(n2) = cast::checked_cast(n2) {
+            if let Some(d2) = cast::checked_cast(d2) {
+                return gmp::mpq_cmp_ui(op1, n2, d2);
+            }
+        }
+        let small = SmallRational::from((n2, d2));
+        gmp::mpq_cmp(op1, (*small).inner())
+    }
+
+    #[cfg(int_128)]
+    #[inline]
+    pub unsafe fn mpq_cmp_i128(op1: *const mpq_t, n2: i128, d2: u128) -> c_int {
         if let Some(n2) = cast::checked_cast(n2) {
             if let Some(d2) = cast::checked_cast(d2) {
                 return gmp::mpq_cmp_si(op1, n2, d2);
