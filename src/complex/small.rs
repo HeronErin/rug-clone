@@ -41,6 +41,8 @@ different precisions.
 * [`i16`], [`u16`]: the part will have 16 bits of precision.
 * [`i32`], [`u32`]: the part will have 32 bits of precision.
 * [`i64`], [`u64`]: the part will have 64 bits of precision.
+* [`i128`], [`u128`]: (if supported by the compiler) the `SmallFloat`
+  will have 128 bits of precision.
 * [`isize`], [`usize`]: the part will have 32 or 64 bits of precision,
   depending on the platform.
 * [`f32`]: the part will have 24 bits of precision.
@@ -67,11 +69,13 @@ assert_eq!(*a.imag(), -18.5);
 [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
 [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
+[`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
 [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
@@ -256,13 +260,23 @@ macro_rules! impl_assign_re {
             }
         }
 
-        impl_assign_re_im! {
-            $Re; i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64
-        }
+        impl_assign_re_im! { $Re; i8 i16 i32 i64 isize }
+        #[cfg(int_128)]
+        impl_assign_re_im! { $Re; i128 }
+        impl_assign_re_im! { $Re; u8 u16 u32 u64 usize }
+        #[cfg(int_128)]
+        impl_assign_re_im! { $Re; u128 }
+        impl_assign_re_im! { $Re; f32 f64 }
     )* };
 }
 
-impl_assign_re! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+impl_assign_re! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+impl_assign_re! { i128 }
+impl_assign_re! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+impl_assign_re! { u128 }
+impl_assign_re! { f32 f64 }
 
 impl<'a> Assign<&'a Self> for SmallComplex {
     #[inline]

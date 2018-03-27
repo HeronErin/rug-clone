@@ -611,12 +611,21 @@ macro_rules! rounding_float {
     )* };
 }
 
-int_ops! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+int_ops! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+int_ops! { i128 }
+int_ops! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+int_ops! { u128 }
 int_neg! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+int_neg! { i128 }
 assign_from! { u32; pow; PowFrom pow_from }
 float_ops! { f32 f64 }
 
 rounding_signed! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+rounding_signed! { i128 }
 
 // For unsigned primitives, RemRounding is not implemented. Ignoring
 // the issue that we cannot have negative numbers, if r == n % d then
@@ -627,6 +636,8 @@ rounding_signed! { i8 i16 i32 i64 isize }
 // n.rem_euc(d) -> r
 
 rounding_unsigned! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+rounding_unsigned! { u128 }
 
 rounding_float! { f32 f64 }
 

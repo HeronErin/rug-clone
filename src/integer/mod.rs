@@ -57,6 +57,8 @@ mod tests {
     use {Assign, Integer};
     use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
+    #[cfg(int_128)]
+    use std::{i128, u128};
 
     #[test]
     fn check_int_conversions() {
@@ -149,6 +151,40 @@ mod tests {
         assert_eq!(i.to_i32(), None);
         assert_eq!(i.to_u64(), None);
         assert_eq!(i.to_i64(), None);
+
+        #[cfg(int_128)]
+        {
+            i.assign(i128::MIN);
+            assert_eq!(i.to_u64(), None);
+            assert_eq!(i.to_i64(), None);
+            assert_eq!(i.to_u128(), None);
+            assert_eq!(i.to_i128(), Some(i128::MIN));
+            i -= 1;
+            assert_eq!(i.to_u64(), None);
+            assert_eq!(i.to_i64(), None);
+            assert_eq!(i.to_u128(), None);
+            assert_eq!(i.to_i128(), None);
+            i.assign(i128::MAX);
+            assert_eq!(i.to_u64(), None);
+            assert_eq!(i.to_i64(), None);
+            assert_eq!(i.to_u128(), Some(i128::MAX as u128));
+            assert_eq!(i.to_i128(), Some(i128::MAX));
+            i += 1;
+            assert_eq!(i.to_u64(), None);
+            assert_eq!(i.to_i64(), None);
+            assert_eq!(i.to_u128(), Some(i128::MAX as u128 + 1));
+            assert_eq!(i.to_i128(), None);
+            i.assign(u128::MAX);
+            assert_eq!(i.to_u64(), None);
+            assert_eq!(i.to_i64(), None);
+            assert_eq!(i.to_u128(), Some(u128::MAX));
+            assert_eq!(i.to_i128(), None);
+            i += 1;
+            assert_eq!(i.to_u64(), None);
+            assert_eq!(i.to_i64(), None);
+            assert_eq!(i.to_u128(), None);
+            assert_eq!(i.to_i128(), None);
+        }
     }
 
     #[test]

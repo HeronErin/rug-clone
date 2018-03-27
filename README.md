@@ -74,7 +74,8 @@ Rug types and primitives. The following are provided:
    assignments using the [`Assign`] trait are supported for all the
    primitives in 1 above as well as the other primitives [`i8`],
    [`i16`], [`i64`], [`isize`], [`u8`], [`u16`], [`u64`] and
-   [`usize`].
+   [`usize`]. (This also applies to [`i128`] and [`u128`] if they are
+   supported by the compiler.)
 3. Comparisons between Rug types and all the primitives listed in 1
    and 2 above are supported.
 4. For [`Rational`] numbers, conversions and comparisons are also
@@ -339,12 +340,14 @@ the crate.
 [`assign_round`]: https://docs.rs/rug/~1.0/rug/ops/trait.AssignRound.html#tymethod.assign_round
 [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
 [`ops`]: https://docs.rs/rug/~1.0/rug/ops/index.html
+[`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
 [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html

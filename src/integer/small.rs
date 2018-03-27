@@ -68,7 +68,11 @@ pub struct SmallInteger {
     pub(crate) limbs: Limbs,
 }
 
+#[cfg(not(int_128))]
 pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = (64 / gmp::LIMB_BITS) as usize;
+#[cfg(int_128)]
+pub(crate) const LIMBS_IN_SMALL_INTEGER: usize =
+    (128 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
 
 #[repr(C)]
@@ -79,7 +83,10 @@ pub(crate) struct Mpz {
 }
 
 fn _static_assertions() {
+    #[cfg(not(int_128))]
     static_assert_size!(Limbs: 8);
+    #[cfg(int_128)]
+    static_assert_size!(Limbs: 16);
     static_assert_size!(Mpz, mpz_t);
 }
 
@@ -221,6 +228,8 @@ macro_rules! one_limb {
 }
 
 signed! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+signed! { i128 }
 one_limb! { u8 u16 u32 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -239,6 +248,51 @@ impl CopyToSmall for u64 {
             *size = 2;
             limbs[0] = self as u32;
             limbs[1] = (self >> 32) as u32;
+        }
+    }
+}
+
+#[cfg(all(int_128, gmp_limb_bits_64))]
+impl CopyToSmall for u128 {
+    #[inline]
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
+        if self == 0 {
+            *size = 0;
+        } else if self <= 0xffff_ffff_ffff_ffff {
+            *size = 1;
+            limbs[0] = self as u64;
+        } else {
+            *size = 2;
+            limbs[0] = self as u64;
+            limbs[1] = (self >> 64) as u64;
+        }
+    }
+}
+
+#[cfg(all(int_128, gmp_limb_bits_32))]
+impl CopyToSmall for u128 {
+    #[inline]
+    fn copy(mut self, size: &mut c_int, limbs: &mut Limbs) {
+        if self == 0 {
+            *size = 0;
+        } else if self <= 0xffff_ffff {
+            *size = 1;
+            limbs[0] = self as u32;
+        } else if self <= 0xffff_ffff_ffff_ffff {
+            *size = 2;
+            limbs[0] = self as u32;
+            limbs[1] = (self >> 32) as u32;
+        } else if self <= 0xffff_ffff_ffff_ffff_ffff_ffff {
+            *size = 3;
+            limbs[0] = self as u32;
+            limbs[1] = (self >> 32) as u32;
+            limbs[2] = (self >> 64) as u32;
+        } else {
+            *size = 4;
+            limbs[0] = self as u32;
+            limbs[1] = (self >> 32) as u32;
+            limbs[2] = (self >> 64) as u32;
+            limbs[2] = (self >> 96) as u32;
         }
     }
 }
@@ -270,7 +324,12 @@ macro_rules! impl_assign_from {
     )* };
 }
 
-impl_assign_from! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+impl_assign_from! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+impl_assign_from! { i128 }
+impl_assign_from! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+impl_assign_from! { u128 }
 
 impl<'a> Assign<&'a Self> for SmallInteger {
     #[inline]

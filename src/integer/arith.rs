@@ -348,6 +348,8 @@ mod tests {
 
     #[test]
     fn check_arith_u_s() {
+        #[cfg(int_128)]
+        use tests::{I128, U128};
         use tests::{I32, I64, U32, U64};
         let large = [(1, 100), (-11, 200), (33, 150)];
         let against = (large
@@ -358,6 +360,13 @@ mod tests {
             .chain(U64.iter().map(|&x| Integer::from(x)))
             .chain(I64.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
+        #[cfg(int_128)]
+        let mut against = against;
+        #[cfg(int_128)]
+        {
+            against.extend(U128.iter().map(|&x| Integer::from(x)));
+            against.extend(I128.iter().map(|&x| Integer::from(x)));
+        }
 
         for &op in U32 {
             let iop = Integer::from(op);

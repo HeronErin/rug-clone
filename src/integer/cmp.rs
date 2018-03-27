@@ -133,6 +133,8 @@ cmp! { i64, xgmp::mpz_cmp_i64 }
 cmp_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 cmp_cast! { isize, i64 }
+#[cfg(int_128)]
+cmp! { i128, xgmp::mpz_cmp_i128 }
 
 cmp_cast! { u8, u32 }
 cmp_cast! { u16, u32 }
@@ -142,6 +144,8 @@ cmp! { u64, xgmp::mpz_cmp_u64 }
 cmp_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
 cmp_cast! { usize, u64 }
+#[cfg(int_128)]
+cmp! { u128, xgmp::mpz_cmp_u128 }
 
 cmp_cast! { f32, f64 }
 
@@ -187,6 +191,8 @@ mod tests {
     use std::{f32, f64};
     use std::cmp::Ordering;
     use std::ops::Neg;
+    #[cfg(int_128)]
+    use tests::{I128, U128};
     use tests::{I32, I64, U32, U64};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
@@ -227,6 +233,15 @@ mod tests {
             .chain(U64.iter().map(|&x| Integer::from(x)))
             .chain(I64.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
+        #[cfg(int_128)]
+        let mut against = against;
+        #[cfg(int_128)]
+        {
+            against.extend(U128.iter().map(|&x| Integer::from(x)));
+            against.extend(I128.iter().map(|&x| Integer::from(x)));
+            check_cmp_prim(U128, &against);
+            check_cmp_prim(I128, &against);
+        }
         check_cmp_prim(U32, &against);
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
@@ -280,6 +295,13 @@ mod tests {
             .chain(U64.iter().map(|&x| Integer::from(x)))
             .chain(I64.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
+        #[cfg(int_128)]
+        let mut against = against;
+        #[cfg(int_128)]
+        {
+            against.extend(U128.iter().map(|&x| Integer::from(x)));
+            against.extend(I128.iter().map(|&x| Integer::from(x)));
+        }
         for b in &against {
             check_known_cmp(0.0f32, b, b.cmp0().reverse());
             check_known_cmp(0.0f64, b, b.cmp0().reverse());

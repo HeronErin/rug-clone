@@ -67,7 +67,13 @@ macro_rules! eq_re {
         #[cfg(feature = "rational")]
         eq_re_im! { $Re; Rational }
         eq_re_im! { $Re; Float }
-        eq_re_im! { $Re; i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+        eq_re_im! { $Re; i8 i16 i32 i64 isize }
+        #[cfg(int_128)]
+        eq_re_im! { $Re; i128 }
+        eq_re_im! { $Re; u8 u16 u32 u64 usize }
+        #[cfg(int_128)]
+        eq_re_im! { $Re; u128 }
+        eq_re_im! { $Re; f32 f64 }
     )* };
 }
 
@@ -76,7 +82,13 @@ eq_re! { Integer }
 #[cfg(feature = "rational")]
 eq_re! { Rational }
 eq_re! { Float }
-eq_re! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+eq_re! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+eq_re! { i128 }
+eq_re! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+eq_re! { u128 }
+eq_re! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
@@ -96,7 +108,7 @@ mod tests {
         (T, T): Copy + PartialEq<Complex>,
     {
         for op in s {
-            let fop = Complex::with_val(100, *op);
+            let fop = Complex::with_val(150, *op);
             for b in against {
                 assert_eq!(b.eq(op), <Complex as PartialEq>::eq(&b, &fop));
                 assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
@@ -104,7 +116,7 @@ mod tests {
             }
         }
         for op in combinations(s) {
-            let fop = Complex::with_val(100, op);
+            let fop = Complex::with_val(150, op);
             for b in against {
                 assert_eq!(b.eq(&op), <Complex as PartialEq>::eq(&b, &fop));
                 assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
@@ -121,7 +133,7 @@ mod tests {
         (T, T): Clone + PartialEq<Complex>,
     {
         for op in s {
-            let fop = Complex::with_val(100, op);
+            let fop = Complex::with_val(150, op);
             for b in against {
                 assert_eq!(b.eq(op), <Complex as PartialEq>::eq(&b, &fop));
                 assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
@@ -129,7 +141,7 @@ mod tests {
             }
         }
         for op in combinations(s) {
-            let fop = Complex::with_val(100, &op);
+            let fop = Complex::with_val(150, &op);
             for b in against {
                 assert_eq!(b.eq(&op), <Complex as PartialEq>::eq(&b, &fop));
                 assert_eq!(op.eq(&b), <Complex as PartialEq>::eq(&fop, &b));
@@ -158,6 +170,8 @@ mod tests {
     #[test]
     fn check_eq_others() {
         use tests::{F32, F64, I32, I64, U32, U64};
+        #[cfg(int_128)]
+        use tests::{I128, U128};
         #[cfg(feature = "integer")]
         let z = [
             Integer::from(0),
@@ -198,12 +212,19 @@ mod tests {
             .chain(combinations(F32).iter().map(to_complex))
             .chain(combinations(F64).iter().map(to_complex))
             .collect::<Vec<Complex>>();
-        #[cfg(feature = "integer")]
+        #[cfg(any(int_128, feature = "integer"))]
         let mut against = against;
         #[cfg(feature = "integer")]
         against.extend(combinations(&z).iter().map(to_complex));
         #[cfg(feature = "rational")]
         against.extend(combinations(&q).iter().map(to_complex));
+        #[cfg(int_128)]
+        {
+            against.extend(combinations(U128).iter().map(to_complex));
+            against.extend(combinations(I128).iter().map(to_complex));
+            check_eq_prim(U128, &against);
+            check_eq_prim(I128, &against);
+        }
         check_eq_prim(U32, &against);
         check_eq_prim(I32, &against);
         check_eq_prim(U64, &against);

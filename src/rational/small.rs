@@ -99,10 +99,14 @@ impl Default for SmallRational {
     }
 }
 
-#[cfg(gmp_limb_bits_64)]
+#[cfg(all(not(int_128), gmp_limb_bits_64))]
 const LIMBS_ONE: Limbs = [1];
-#[cfg(gmp_limb_bits_32)]
+#[cfg(all(not(int_128), gmp_limb_bits_32))]
 const LIMBS_ONE: Limbs = [1, 0];
+#[cfg(all(int_128, gmp_limb_bits_64))]
+const LIMBS_ONE: Limbs = [1, 0];
+#[cfg(all(int_128, gmp_limb_bits_32))]
+const LIMBS_ONE: Limbs = [1, 0, 0, 0];
 
 impl SmallRational {
     /// Creates a [`SmallRational`] with value 0.
@@ -340,11 +344,21 @@ macro_rules! impl_assign_num {
             }
         }
 
-        impl_assign_num_den! { $Num; i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+        impl_assign_num_den! { $Num; i8 i16 i32 i64 isize }
+        #[cfg(int_128)]
+        impl_assign_num_den! { $Num; i128 }
+        impl_assign_num_den! { $Num; u8 u16 u32 u64 usize }
+        #[cfg(int_128)]
+        impl_assign_num_den! { $Num; u128 }
     )* };
 }
 
-impl_assign_num! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize }
+impl_assign_num! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+impl_assign_num! { i128 }
+impl_assign_num! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+impl_assign_num! { u128 }
 
 impl<'a> Assign<&'a Self> for SmallRational {
     #[inline]

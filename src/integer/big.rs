@@ -582,6 +582,31 @@ impl Integer {
         }
     }
 
+    #[cfg(int_128)]
+    /// Converts to an [`i128`] if the value fits.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(-50);
+    /// assert_eq!(fits.to_i128(), Some(-50));
+    /// let small: Integer = Integer::from(-1) << 130;
+    /// assert_eq!(small.to_i128(), None);
+    /// let large: Integer = Integer::from(1) << 130;
+    /// assert_eq!(large.to_i128(), None);
+    /// ```
+    ///
+    /// [`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
+    #[inline]
+    pub fn to_i128(&self) -> Option<i128> {
+        if unsafe { xgmp::mpz_fits_i128(self.inner()) } {
+            Some(self.to_i128_wrapping())
+        } else {
+            None
+        }
+    }
+
     /// Converts to an [`isize`] if the value fits.
     ///
     /// # Examples
@@ -703,6 +728,32 @@ impl Integer {
         }
     }
 
+    #[cfg(int_128)]
+    /// Converts to a [`u128`] if the value fits.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let fits = Integer::from(12345678901234567890_u128);
+    /// assert_eq!(fits.to_u128(), Some(12345678901234567890));
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(neg.to_u128(), None);
+    /// let large = "1234567890123456789012345678901234567890"
+    ///     .parse::<Integer>().unwrap();
+    /// assert_eq!(large.to_u128(), None);
+    /// ```
+    ///
+    /// [`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
+    #[inline]
+    pub fn to_u128(&self) -> Option<u128> {
+        if unsafe { xgmp::mpz_fits_u128(self.inner()) } {
+            Some(self.to_u128_wrapping())
+        } else {
+            None
+        }
+    }
+
     /// Converts to a [`usize`] if the value fits.
     ///
     /// # Examples
@@ -792,6 +843,27 @@ impl Integer {
     #[inline]
     pub fn to_i64_wrapping(&self) -> i64 {
         self.to_u64_wrapping() as i64
+    }
+
+    #[cfg(int_128)]
+    /// Converts to an [`i128`], wrapping if the value does not fit.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let s = "f123456789abcdef0123456789abcdef0";
+    /// let large = Integer::from_str_radix(s, 16).unwrap();
+    /// assert_eq!(
+    ///     large.to_i128_wrapping(),
+    ///     0x1234_5678_9abc_def0_1234_5678_9abc_def0
+    /// );
+    /// ```
+    ///
+    /// [`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
+    #[inline]
+    pub fn to_i128_wrapping(&self) -> i128 {
+        self.to_u128_wrapping() as i128
     }
 
     /// Converts to an [`isize`], wrapping if the value does not fit.
@@ -895,6 +967,37 @@ impl Integer {
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
         let u = unsafe { xgmp::mpz_get_abs_u64(self.inner()) };
+        if self.cmp0() == Ordering::Less {
+            u.wrapping_neg()
+        } else {
+            u
+        }
+    }
+
+    #[cfg(int_128)]
+    /// Converts to a [`u128`], wrapping if the value does not fit.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let neg = Integer::from(-1);
+    /// assert_eq!(
+    ///     neg.to_u128_wrapping(),
+    ///     0xffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff
+    /// );
+    /// let s = "f123456789abcdef0123456789abcdef0";
+    /// let large = Integer::from_str_radix(s, 16).unwrap();
+    /// assert_eq!(
+    ///     large.to_u128_wrapping(),
+    ///     0x1234_5678_9abc_def0_1234_5678_9abc_def0
+    /// );
+    /// ```
+    ///
+    /// [`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
+    #[inline]
+    pub fn to_u128_wrapping(&self) -> u128 {
+        let u = unsafe { xgmp::mpz_get_abs_u128(self.inner()) };
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {

@@ -188,6 +188,8 @@ assign! { i64, xgmp::mpz_set_i64, xgmp::mpz_init_set_i64 }
 assign_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 assign_cast! { isize, i64 }
+#[cfg(int_128)]
+assign! { i128, xgmp::mpz_set_i128, xgmp::mpz_init_set_i128 }
 
 assign! { u8, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
 assign! { u16, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
@@ -197,6 +199,8 @@ assign! { u64, xgmp::mpz_set_u64, xgmp::mpz_init_set_u64 }
 assign_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
 assign_cast! { usize, u64 }
+#[cfg(int_128)]
+assign! { u128, xgmp::mpz_set_u128, xgmp::mpz_init_set_u128 }
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;

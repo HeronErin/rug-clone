@@ -356,6 +356,8 @@ conv_ops! { i64, xmpfr::set_i64 }
 conv_ops_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 conv_ops_cast! { isize, i64 }
+#[cfg(int_128)]
+conv_ops! { i128, xmpfr::set_i128 }
 
 conv_ops! { u8, mpfr::set_ui }
 conv_ops! { u16, mpfr::set_ui }
@@ -365,6 +367,8 @@ conv_ops! { u64, xmpfr::set_u64 }
 conv_ops_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
 conv_ops_cast! { usize, u64 }
+#[cfg(int_128)]
+conv_ops! { u128, xmpfr::set_u128 }
 
 conv_ops! { f32, xmpfr::set_f32 }
 conv_ops! { f64, xmpfr::set_f64 }

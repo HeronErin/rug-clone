@@ -39,6 +39,8 @@ according to the type of the primitive used to set its value.
 * [`i16`], [`u16`]: the `SmallFloat` will have 16 bits of precision.
 * [`i32`], [`u32`]: the `SmallFloat` will have 32 bits of precision.
 * [`i64`], [`u64`]: the `SmallFloat` will have 64 bits of precision.
+* [`i128`], [`u128`]: (if supported by the compiler) the `SmallFloat`
+  will have 128 bits of precision.
 * [`isize`], [`usize`]: the `SmallFloat` will have 32 or 64 bits of
   precision, depending on the platform.
 * [`f32`]: the `SmallFloat` will have 24 bits of precision.
@@ -67,11 +69,13 @@ assert_eq!(a, -15000);
 [`Float`]: ../struct.Float.html
 [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
+[`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
 [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
@@ -85,7 +89,10 @@ pub struct SmallFloat {
     pub(crate) limbs: Limbs,
 }
 
+#[cfg(not(int_128))]
 pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (64 / gmp::LIMB_BITS) as usize;
+#[cfg(int_128)]
+pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (128 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_FLOAT];
 
 #[repr(C)]
@@ -97,7 +104,10 @@ pub(crate) struct Mpfr {
 }
 
 fn _static_assertions() {
+    #[cfg(not(int_128))]
     static_assert_size!(Limbs: 8);
+    #[cfg(int_128)]
+    static_assert_size!(Limbs: 16);
     static_assert_size!(Mpfr, mpfr_t);
 }
 
@@ -210,6 +220,8 @@ macro_rules! unsigned_32 {
 }
 
 signed! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+signed! { i128 }
 
 unsigned_32! { u8, 8 }
 unsigned_32! { u16, 16 }
@@ -251,6 +263,36 @@ impl CopyToSmall for usize {
         #[cfg(target_pointer_width = "64")]
         {
             (self as u64).copy(inner, limbs);
+        }
+    }
+}
+
+#[cfg(int_128)]
+impl CopyToSmall for u128 {
+    #[inline]
+    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+        let ptr = cast_ptr_mut!(inner, mpfr_t);
+        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
+        unsafe {
+            if self == 0 {
+                xmpfr::custom_zero(ptr, limbs_ptr, 128);
+            } else {
+                let leading = self.leading_zeros();
+                let sval = self << leading;
+                #[cfg(gmp_limb_bits_64)]
+                {
+                    limbs[0] = sval as u64;
+                    limbs[1] = (sval >> 64) as u64;
+                }
+                #[cfg(gmp_limb_bits_32)]
+                {
+                    limbs[0] = sval as u32;
+                    limbs[1] = (sval >> 32) as u32;
+                    limbs[2] = (sval >> 64) as u32;
+                    limbs[3] = (sval >> 96) as u32;
+                }
+                xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
+            }
         }
     }
 }
@@ -310,7 +352,13 @@ macro_rules! impl_assign_from {
     )* };
 }
 
-impl_assign_from! { i8 i16 i32 i64 isize u8 u16 u32 u64 usize f32 f64 }
+impl_assign_from! { i8 i16 i32 i64 isize }
+#[cfg(int_128)]
+impl_assign_from! { i128 }
+impl_assign_from! { u8 u16 u32 u64 usize }
+#[cfg(int_128)]
+impl_assign_from! { u128 }
+impl_assign_from! { f32 f64 }
 
 impl<'a> Assign<&'a Self> for SmallFloat {
     #[inline]

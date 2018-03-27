@@ -93,7 +93,8 @@ Rug types and primitives. The following are provided:
    assignments using the [`Assign`] trait are supported for all the
    primitives in 1 above as well as the other primitives [`i8`],
    [`i16`], [`i64`], [`isize`], [`u8`], [`u16`], [`u64`] and
-   [`usize`].
+   [`usize`]. (This also applies to [`i128`] and [`u128`] if they are
+   supported by the compiler.)
 3. Comparisons between Rug types and all the primitives listed in 1
    and 2 above are supported.
 4. For [`Rational`] numbers, conversions and comparisons are also
@@ -371,12 +372,14 @@ the crate.
 [`assign_round`]: ops/trait.AssignRound.html#tymethod.assign_round
 [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
 [`ops`]: ops/index.html
+[`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
 [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
@@ -507,6 +510,8 @@ fn _static_assertions() {
 mod tests {
     #[cfg(feature = "float")]
     use std::{f32, f64};
+    #[cfg(int_128)]
+    use std::{i128, u128};
     use std::{i32, i64, u32, u64};
 
     pub const U32: &[u32] = &[0, 1, 1000, 1001, i32::MAX as u32 + 1, u32::MAX];
@@ -544,6 +549,38 @@ mod tests {
         i32::MAX as i64 + 1,
         u32::MAX as i64 + 1,
         i64::MAX,
+    ];
+    #[cfg(int_128)]
+    pub const U128: &[u128] = &[
+        0,
+        1,
+        1000,
+        1001,
+        i32::MAX as u128 + 1,
+        u32::MAX as u128 + 1,
+        i64::MAX as u128 + 1,
+        u64::MAX as u128 + 1,
+        u128::MAX,
+    ];
+    #[cfg(int_128)]
+    pub const I128: &[i128] = &[
+        i128::MIN,
+        -(u64::MAX as i128) - 1,
+        i64::MIN as i128 - 1,
+        -(u32::MAX as i128) - 1,
+        i32::MIN as i128 - 1,
+        -1001,
+        -1000,
+        -1,
+        0,
+        1,
+        1000,
+        1001,
+        i32::MAX as i128 + 1,
+        u32::MAX as i128 + 1,
+        i64::MAX as i128 + 1,
+        u64::MAX as i128 + 1,
+        i128::MAX,
     ];
     #[cfg(feature = "float")]
     pub const F32: &[f32] = &[
