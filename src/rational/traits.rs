@@ -138,7 +138,7 @@ impl Assign for Rational {
 
 impl<'a> Assign<&'a Rational> for Rational {
     #[inline]
-    fn assign(&mut self, src: &'a Rational) {
+    fn assign(&mut self, src: &Rational) {
         unsafe {
             gmp::mpq_set(self.inner_mut(), src.inner());
         }
@@ -147,7 +147,7 @@ impl<'a> Assign<&'a Rational> for Rational {
 
 impl<'a> From<&'a Rational> for Rational {
     #[inline]
-    fn from(src: &'a Rational) -> Self {
+    fn from(src: &Rational) -> Self {
         let mut dst = <Self as Default>::default();
         dst.assign(src);
         dst

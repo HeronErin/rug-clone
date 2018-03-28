@@ -148,7 +148,7 @@ macro_rules! ref_rat_op_int {
 
         impl<'a> Assign<$Incomplete<'a>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'a>) {
+            fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
                         self.inner_mut(),
@@ -225,7 +225,7 @@ macro_rules! ref_rat_op_rat_int {
             Assign<$Incomplete<'a>> for (&'b mut Rational, &'c mut Integer)
         {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'a>) {
+            fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
                         self.0.inner_mut(),
@@ -239,7 +239,7 @@ macro_rules! ref_rat_op_rat_int {
 
         impl<'a> From<$Incomplete<'a>> for (Rational, Integer) {
             #[inline]
-            fn from(src: $Incomplete<'a>) -> Self {
+            fn from(src: $Incomplete) -> Self {
                 let mut dst = <Self as Default>::default();
                 <Self as Assign<$Incomplete>>::assign(&mut dst, src);
                 dst
@@ -2345,7 +2345,7 @@ impl Assign<ParseIncomplete> for Rational {
     }
 }
 
-impl<'a> From<ParseIncomplete> for Rational {
+impl From<ParseIncomplete> for Rational {
     #[inline]
     fn from(src: ParseIncomplete) -> Self {
         let mut dst = Rational::new();

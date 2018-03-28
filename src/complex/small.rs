@@ -280,7 +280,7 @@ impl_assign_re! { f32 f64 }
 
 impl<'a> Assign<&'a Self> for SmallComplex {
     #[inline]
-    fn assign(&mut self, other: &'a Self) {
+    fn assign(&mut self, other: &Self) {
         self.clone_from(other);
     }
 }

@@ -65,11 +65,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: NegIncomplete<'a>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn assign_round(&mut self, src: NegIncomplete, round: Round2) -> Ordering2 {
         let ret = unsafe {
             mpc::neg(
                 self.inner_mut(),

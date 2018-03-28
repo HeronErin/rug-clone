@@ -32,7 +32,7 @@ macro_rules! assign_from {
         }
         impl<'a> $Imp<&'a $T> for $T {
             #[inline]
-            fn $method(&mut self, lhs: &'a $T) {
+            fn $method(&mut self, lhs: &$T) {
                 *self = (*lhs).$op(*self);
             }
         }
@@ -48,7 +48,7 @@ macro_rules! int_ops {
         }
         impl<'a> Assign<&'a $T> for $T {
             #[inline]
-            fn assign(&mut self, src: &'a $T) {
+            fn assign(&mut self, src: &$T) {
                 *self = *src;
             }
         }
@@ -75,14 +75,14 @@ macro_rules! int_ops {
         impl<'a> Pow<&'a u32> for $T {
             type Output = $T;
             #[inline]
-            fn pow(self, rhs: &'a u32) -> $T {
+            fn pow(self, rhs: &u32) -> $T {
                 self.pow(*rhs)
             }
         }
         impl<'a, 'b> Pow<&'a u32> for &'b $T {
             type Output = $T;
             #[inline]
-            fn pow(self, rhs: &'a u32) -> $T {
+            fn pow(self, rhs: &u32) -> $T {
                 (*self).pow(*rhs)
             }
         }
@@ -94,7 +94,7 @@ macro_rules! int_ops {
         }
         impl<'a> PowAssign<&'a u32> for $T {
             #[inline]
-            fn pow_assign(&mut self, rhs: &'a u32) {
+            fn pow_assign(&mut self, rhs: &u32) {
                 *self = self.pow(*rhs);
             }
         }
@@ -130,7 +130,7 @@ macro_rules! float_ops {
         }
         impl<'a> Assign<&'a $T> for $T {
             #[inline]
-            fn assign(&mut self, src: &'a $T) {
+            fn assign(&mut self, src: &$T) {
                 *self = *src;
             }
         }
@@ -151,14 +151,14 @@ macro_rules! float_ops {
         impl<'a> Pow<&'a i32> for $T {
             type Output = $T;
             #[inline]
-            fn pow(self, rhs: &'a i32) -> $T {
+            fn pow(self, rhs: &i32) -> $T {
                 self.powi(*rhs)
             }
         }
         impl<'a, 'b> Pow<&'a i32> for &'b $T {
             type Output = $T;
             #[inline]
-            fn pow(self, rhs: &'a i32) -> $T {
+            fn pow(self, rhs: &i32) -> $T {
                 self.powi(*rhs)
             }
         }
@@ -170,7 +170,7 @@ macro_rules! float_ops {
         }
         impl<'a> PowAssign<&'a i32> for $T {
             #[inline]
-            fn pow_assign(&mut self, rhs: &'a i32) {
+            fn pow_assign(&mut self, rhs: &i32) {
                 *self = self.powi(*rhs);
             }
         }
@@ -191,14 +191,14 @@ macro_rules! float_ops {
         impl<'a> Pow<&'a $T> for $T {
             type Output = $T;
             #[inline]
-            fn pow(self, rhs: &'a $T) -> $T {
+            fn pow(self, rhs: &$T) -> $T {
                 self.powf(*rhs)
             }
         }
         impl<'a, 'b> Pow<&'a $T> for &'b $T {
             type Output = $T;
             #[inline]
-            fn pow(self, rhs: &'a $T) -> $T {
+            fn pow(self, rhs: &$T) -> $T {
                 self.powf(*rhs)
             }
         }
@@ -210,7 +210,7 @@ macro_rules! float_ops {
         }
         impl<'a> PowAssign<&'a $T> for $T {
             #[inline]
-            fn pow_assign(&mut self, rhs: &'a $T) {
+            fn pow_assign(&mut self, rhs: &$T) {
                 *self = self.powf(*rhs);
             }
         }
@@ -233,19 +233,19 @@ macro_rules! rounding_fill {
         impl<'a> $Imp<&'a $T> for $T {
             type Output = <$T as $Imp>::Output;
             #[inline]
-            fn $trunc(self, rhs: &'a $T) -> Self::Output {
+            fn $trunc(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$trunc(self, *rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'a $T) -> Self::Output {
+            fn $ceil(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$ceil(self, *rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'a $T) -> Self::Output {
+            fn $floor(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$floor(self, *rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'a $T) -> Self::Output {
+            fn $euc(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$euc(self, *rhs)
             }
         }
@@ -273,19 +273,19 @@ macro_rules! rounding_fill {
         impl<'a, 'b> $Imp<&'a $T> for &'b $T {
             type Output = <$T as $Imp>::Output;
             #[inline]
-            fn $trunc(self, rhs: &'a $T) -> Self::Output {
+            fn $trunc(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$trunc(*self, *rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'a $T) -> Self::Output {
+            fn $ceil(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$ceil(*self, *rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'a $T) -> Self::Output {
+            fn $floor(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$floor(*self, *rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'a $T) -> Self::Output {
+            fn $euc(self, rhs: &$T) -> Self::Output {
                 <$T as $Imp>::$euc(*self, *rhs)
             }
         }
@@ -311,19 +311,19 @@ macro_rules! rounding_fill {
 
         impl<'a> $ImpAssign<&'a $T> for $T {
             #[inline]
-            fn $trunc_ass(&mut self, rhs: &'a $T) {
+            fn $trunc_ass(&mut self, rhs: &$T) {
                 *self = <$T as $Imp>::$trunc(*self, *rhs);
             }
             #[inline]
-            fn $ceil_ass(&mut self, rhs: &'a $T) {
+            fn $ceil_ass(&mut self, rhs: &$T) {
                 *self = <$T as $Imp>::$ceil(*self, *rhs);
             }
             #[inline]
-            fn $floor_ass(&mut self, rhs: &'a $T) {
+            fn $floor_ass(&mut self, rhs: &$T) {
                 *self = <$T as $Imp>::$floor(*self, *rhs);
             }
             #[inline]
-            fn $euc_ass(&mut self, rhs: &'a $T) {
+            fn $euc_ass(&mut self, rhs: &$T) {
                 *self = <$T as $Imp>::$euc(*self, *rhs);
             }
         }
@@ -349,19 +349,19 @@ macro_rules! rounding_fill {
 
         impl<'a> $ImpFrom<&'a $T> for $T {
             #[inline]
-            fn $trunc_from(&mut self, lhs: &'a $T) {
+            fn $trunc_from(&mut self, lhs: &$T) {
                 *self = <$T as $Imp>::$trunc(*lhs, *self);
             }
             #[inline]
-            fn $ceil_from(&mut self, lhs: &'a $T) {
+            fn $ceil_from(&mut self, lhs: &$T) {
                 *self = <$T as $Imp>::$ceil(*lhs, *self);
             }
             #[inline]
-            fn $floor_from(&mut self, lhs: &'a $T) {
+            fn $floor_from(&mut self, lhs: &$T) {
                 *self = <$T as $Imp>::$floor(*lhs, *self);
             }
             #[inline]
-            fn $euc_from(&mut self, lhs: &'a $T) {
+            fn $euc_from(&mut self, lhs: &$T) {
                 *self = <$T as $Imp>::$euc(*lhs, *self);
             }
         }

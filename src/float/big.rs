@@ -7954,7 +7954,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
     #[inline]
     fn assign_round(
         &mut self,
-        src: LnAbsGammaIncomplete<'a>,
+        src: LnAbsGammaIncomplete,
         round: Round,
     ) -> Ordering {
         let mut sign: c_int = 0;
@@ -8006,7 +8006,7 @@ pub struct RandomBitsIncomplete<'a, 'b: 'a> {
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Float {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
+    fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
             let err = mpfr::urandomb(self.inner_mut(), src.rng.inner_mut());
             assert_eq!(self.is_nan(), err != 0);
@@ -8024,11 +8024,7 @@ impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomCont<'a, 'b>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: RandomCont, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::urandom(
                 self.inner_mut(),
@@ -8050,11 +8046,7 @@ impl<'a, 'b: 'a> AssignRound<RandomNormal<'a, 'b>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomNormal<'a, 'b>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: RandomNormal, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::nrandom(
                 self.inner_mut(),
@@ -8076,11 +8068,7 @@ impl<'a, 'b: 'a> AssignRound<RandomExp<'a, 'b>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomExp<'a, 'b>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: RandomExp, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::erandom(
                 self.inner_mut(),

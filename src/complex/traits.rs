@@ -208,7 +208,7 @@ impl<'a> AssignRound<&'a Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, src: &'a Complex, round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, src: &Complex, round: Round2) -> Ordering2 {
         let ret = unsafe {
             mpc::set(self.inner_mut(), src.inner(), raw_round2(round))
         };

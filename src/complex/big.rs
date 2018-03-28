@@ -3428,11 +3428,7 @@ impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: AbsIncomplete<'a>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: AbsIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
             mpc::abs(
                 self.inner_mut(),
@@ -3453,11 +3449,7 @@ impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: ArgIncomplete<'a>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: ArgIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
             mpc::arg(
                 self.inner_mut(),
@@ -3481,11 +3473,7 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: NormIncomplete<'a>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: NormIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
             mpc::norm(
                 self.inner_mut(),
@@ -3525,7 +3513,7 @@ pub struct RandomBitsIncomplete<'a, 'b: 'a> {
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
+    fn assign(&mut self, src: RandomBitsIncomplete) {
         self.mut_real()
             .assign(Float::random_bits(src.rng));
         self.mut_imag()
@@ -3543,11 +3531,7 @@ impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomCont<'a, 'b>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn assign_round(&mut self, src: RandomCont, round: Round2) -> Ordering2 {
         let real_dir = self.mut_real()
             .assign_round(Float::random_cont(src.rng), round.0);
         let imag_dir = self.mut_imag()

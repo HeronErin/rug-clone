@@ -272,7 +272,7 @@ impl<'a> AssignRound<&'a Float> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: &'a Float, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: &Float, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::set(self.inner_mut(), src.inner(), raw_round(round))
         };
@@ -287,7 +287,7 @@ macro_rules! assign {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
-            fn assign_round(&mut self, src: &'a $T, round: Round) -> Ordering {
+            fn assign_round(&mut self, src: &$T, round: Round) -> Ordering {
                 let ret = unsafe {
                     $func(self.inner_mut(), src.inner(), raw_round(round))
                 };

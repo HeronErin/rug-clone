@@ -362,7 +362,7 @@ impl_assign_num! { u128 }
 
 impl<'a> Assign<&'a Self> for SmallRational {
     #[inline]
-    fn assign(&mut self, other: &'a Self) {
+    fn assign(&mut self, other: &Self) {
         self.clone_from(other);
     }
 }

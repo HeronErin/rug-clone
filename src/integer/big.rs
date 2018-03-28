@@ -4575,7 +4575,7 @@ unsafe fn mpz_pow_mod_ref(
 }
 
 impl<'a> Assign<PowModIncomplete<'a>> for Integer {
-    fn assign(&mut self, src: PowModIncomplete<'a>) {
+    fn assign(&mut self, src: PowModIncomplete) {
         unsafe {
             mpz_pow_mod_ref(
                 self.inner_mut(),
@@ -4620,7 +4620,7 @@ pub struct SecurePowModIncomplete<'a> {
 }
 
 impl<'a> Assign<SecurePowModIncomplete<'a>> for Integer {
-    fn assign(&mut self, src: SecurePowModIncomplete<'a>) {
+    fn assign(&mut self, src: SecurePowModIncomplete) {
         assert_eq!(
             src.exponent.cmp0(),
             Ordering::Greater,
@@ -4668,7 +4668,7 @@ impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
     for (&'b mut Integer, &'c mut Integer)
 {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete<'a>) {
+    fn assign(&mut self, src: GcdIncomplete) {
         unsafe {
             xgmp::mpz_gcdext1(
                 self.0.inner_mut(),
@@ -4690,7 +4690,7 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
     )
 {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete<'a>) {
+    fn assign(&mut self, src: GcdIncomplete) {
         unsafe {
             gmp::mpz_gcdext(
                 self.0.inner_mut(),
@@ -4726,7 +4726,7 @@ unsafe fn mpz_invert_ref(rop: *mut mpz_t, s: &Integer, modulo: &Integer) {
 }
 
 impl<'a> Assign<InvertIncomplete<'a>> for Integer {
-    fn assign(&mut self, src: InvertIncomplete<'a>) {
+    fn assign(&mut self, src: InvertIncomplete) {
         unsafe {
             mpz_invert_ref(self.inner_mut(), &src.sinverse, src.modulo);
         }
@@ -4758,7 +4758,7 @@ impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
     for (&'b mut Integer, &'c mut u32)
 {
     #[inline]
-    fn assign(&mut self, src: RemoveFactorIncomplete<'a>) {
+    fn assign(&mut self, src: RemoveFactorIncomplete) {
         let cnt = unsafe {
             gmp::mpz_remove(
                 self.0.inner_mut(),
@@ -4772,7 +4772,7 @@ impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
 
 impl<'a> From<RemoveFactorIncomplete<'a>> for (Integer, u32) {
     #[inline]
-    fn from(src: RemoveFactorIncomplete<'a>) -> Self {
+    fn from(src: RemoveFactorIncomplete) -> Self {
         let mut dst = (Integer::new(), 0u32);
         (&mut dst.0, &mut dst.1).assign(src);
         dst
@@ -4844,7 +4844,7 @@ pub struct RandomBitsIncomplete<'a, 'b: 'a> {
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a> Assign<RandomBitsIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete<'a, 'b>) {
+    fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
             gmp::mpz_urandomb(
                 self.inner_mut(),
@@ -4858,7 +4858,7 @@ impl<'a, 'b: 'a> Assign<RandomBitsIncomplete<'a, 'b>> for Integer {
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a> From<RandomBitsIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn from(src: RandomBitsIncomplete<'a, 'b>) -> Self {
+    fn from(src: RandomBitsIncomplete) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -4874,7 +4874,7 @@ pub struct RandomBelowIncomplete<'a, 'b: 'a> {
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a> Assign<RandomBelowIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn assign(&mut self, src: RandomBelowIncomplete<'a, 'b>) {
+    fn assign(&mut self, src: RandomBelowIncomplete) {
         assert_eq!(
             src.ref_self.cmp0(),
             Ordering::Greater,
@@ -4893,7 +4893,7 @@ impl<'a, 'b: 'a> Assign<RandomBelowIncomplete<'a, 'b>> for Integer {
 #[cfg(feature = "rand")]
 impl<'a, 'b: 'a> From<RandomBelowIncomplete<'a, 'b>> for Integer {
     #[inline]
-    fn from(src: RandomBelowIncomplete<'a, 'b>) -> Self {
+    fn from(src: RandomBelowIncomplete) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -4971,7 +4971,7 @@ impl Assign<ParseIncomplete> for Integer {
     }
 }
 
-impl<'a> From<ParseIncomplete> for Integer {
+impl From<ParseIncomplete> for Integer {
     #[inline]
     fn from(src: ParseIncomplete) -> Self {
         unsafe {

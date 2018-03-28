@@ -120,7 +120,7 @@ impl Assign for Integer {
 
 impl<'a> Assign<&'a Integer> for Integer {
     #[inline]
-    fn assign(&mut self, src: &'a Integer) {
+    fn assign(&mut self, src: &Integer) {
         unsafe {
             gmp::mpz_set(self.inner_mut(), src.inner());
         }
@@ -149,9 +149,7 @@ macro_rules! try_from {
         }
         impl<'a> TryFrom<&'a Integer> for $T {
             type Error = TryFromIntegerError;
-            fn try_from(
-                value: &'a Integer,
-            ) -> Result<Self, TryFromIntegerError> {
+            fn try_from(value: &Integer) -> Result<Self, TryFromIntegerError> {
                 value
                     .$method()
                     .ok_or(TryFromIntegerError { _unused: () })

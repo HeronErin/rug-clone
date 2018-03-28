@@ -83,7 +83,7 @@ macro_rules! div_op {
         impl<'i> $Imp<&'i Integer> for Integer {
             type Output = Integer;
             #[inline]
-            fn $trunc(mut self, rhs: &'i Integer) -> Integer {
+            fn $trunc(mut self, rhs: &Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$trunc_assign(
                     &mut self,
                     rhs,
@@ -91,12 +91,12 @@ macro_rules! div_op {
                 self
             }
             #[inline]
-            fn $ceil(mut self, rhs: &'i Integer) -> Integer {
+            fn $ceil(mut self, rhs: &Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$ceil_assign(&mut self, rhs);
                 self
             }
             #[inline]
-            fn $floor(mut self, rhs: &'i Integer) -> Integer {
+            fn $floor(mut self, rhs: &Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$floor_assign(
                     &mut self,
                     rhs,
@@ -104,7 +104,7 @@ macro_rules! div_op {
                 self
             }
             #[inline]
-            fn $euc(mut self, rhs: &'i Integer) -> Integer {
+            fn $euc(mut self, rhs: &Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$euc_assign(&mut self, rhs);
                 self
             }
@@ -175,25 +175,25 @@ macro_rules! div_op {
 
         impl<'i> $ImpAssign<&'i Integer> for Integer {
             #[inline]
-            fn $trunc_assign(&mut self, rhs: &'i Integer) {
+            fn $trunc_assign(&mut self, rhs: &Integer) {
                 unsafe {
                     $trunc_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
             #[inline]
-            fn $ceil_assign(&mut self, rhs: &'i Integer) {
+            fn $ceil_assign(&mut self, rhs: &Integer) {
                 unsafe {
                     $ceil_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
             #[inline]
-            fn $floor_assign(&mut self, rhs: &'i Integer) {
+            fn $floor_assign(&mut self, rhs: &Integer) {
                 unsafe {
                     $floor_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
             }
             #[inline]
-            fn $euc_assign(&mut self, rhs: &'i Integer) {
+            fn $euc_assign(&mut self, rhs: &Integer) {
                 unsafe {
                     $euc_fn(self.inner_mut(), self.inner(), rhs.inner());
                 }
@@ -221,25 +221,25 @@ macro_rules! div_op {
 
         impl<'i> $ImpFrom<&'i Integer> for Integer {
             #[inline]
-            fn $trunc_from(&mut self, lhs: &'i Integer) {
+            fn $trunc_from(&mut self, lhs: &Integer) {
                 unsafe {
                     $trunc_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
             #[inline]
-            fn $ceil_from(&mut self, lhs: &'i Integer) {
+            fn $ceil_from(&mut self, lhs: &Integer) {
                 unsafe {
                     $ceil_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
             #[inline]
-            fn $floor_from(&mut self, lhs: &'i Integer) {
+            fn $floor_from(&mut self, lhs: &Integer) {
                 unsafe {
                     $floor_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
             }
             #[inline]
-            fn $euc_from(&mut self, lhs: &'i Integer) {
+            fn $euc_from(&mut self, lhs: &Integer) {
                 unsafe {
                     $euc_fn(self.inner_mut(), lhs.inner(), self.inner());
                 }
@@ -256,7 +256,7 @@ macro_rules! div_op {
 
         impl<'i> Assign<$Incomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'i>) {
+            fn assign(&mut self, src: $Incomplete) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
@@ -276,7 +276,7 @@ macro_rules! div_op {
 
         impl<'i> From<$Incomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $Incomplete<'i>) -> Self {
+            fn from(src: $Incomplete) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -351,22 +351,22 @@ macro_rules! div_prim {
         impl<'t> $Imp<&'t $T> for Integer {
             type Output = Integer;
             #[inline]
-            fn $trunc(mut self, rhs: &'t $T) -> Integer {
+            fn $trunc(mut self, rhs: &$T) -> Integer {
                 <Integer as $ImpAssign<$T>>::$trunc_assign(&mut self, *rhs);
                 self
             }
             #[inline]
-            fn $ceil(mut self, rhs: &'t $T) -> Integer {
+            fn $ceil(mut self, rhs: &$T) -> Integer {
                 <Integer as $ImpAssign<$T>>::$ceil_assign(&mut self, *rhs);
                 self
             }
             #[inline]
-            fn $floor(mut self, rhs: &'t $T) -> Integer {
+            fn $floor(mut self, rhs: &$T) -> Integer {
                 <Integer as $ImpAssign<$T>>::$floor_assign(&mut self, *rhs);
                 self
             }
             #[inline]
-            fn $euc(mut self, rhs: &'t $T) -> Integer {
+            fn $euc(mut self, rhs: &$T) -> Integer {
                 <Integer as $ImpAssign<$T>>::$euc_assign(&mut self, *rhs);
                 self
             }
@@ -395,19 +395,19 @@ macro_rules! div_prim {
         impl<'t, 'i> $Imp<&'t $T> for &'i Integer {
             type Output = $Incomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'t $T) -> $Incomplete<'i> {
+            fn $trunc(self, rhs: &$T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$trunc(self, *rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'t $T) -> $Incomplete<'i> {
+            fn $ceil(self, rhs: &$T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$ceil(self, *rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'t $T) -> $Incomplete<'i> {
+            fn $floor(self, rhs: &$T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$floor(self, *rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'t $T) -> $Incomplete<'i> {
+            fn $euc(self, rhs: &$T) -> $Incomplete<'i> {
                 <&Integer as $Imp<$T>>::$euc(self, *rhs)
             }
         }
@@ -441,19 +441,19 @@ macro_rules! div_prim {
 
         impl<'t> $ImpAssign<&'t $T> for Integer {
             #[inline]
-            fn $trunc_assign(&mut self, rhs: &'t $T) {
+            fn $trunc_assign(&mut self, rhs: &$T) {
                 <Integer as $ImpAssign<$T>>::$trunc_assign(self, *rhs);
             }
             #[inline]
-            fn $ceil_assign(&mut self, rhs: &'t $T) {
+            fn $ceil_assign(&mut self, rhs: &$T) {
                 <Integer as $ImpAssign<$T>>::$ceil_assign(self, *rhs);
             }
             #[inline]
-            fn $floor_assign(&mut self, rhs: &'t $T) {
+            fn $floor_assign(&mut self, rhs: &$T) {
                 <Integer as $ImpAssign<$T>>::$floor_assign(self, *rhs);
             }
             #[inline]
-            fn $euc_assign(&mut self, rhs: &'t $T) {
+            fn $euc_assign(&mut self, rhs: &$T) {
                 <Integer as $ImpAssign<$T>>::$euc_assign(self, *rhs);
             }
         }
@@ -468,7 +468,7 @@ macro_rules! div_prim {
 
         impl<'i> Assign<$Incomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'i>) {
+            fn assign(&mut self, src: $Incomplete) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_fn(self.inner_mut(), lhs.inner(), rhs.into());
@@ -488,7 +488,7 @@ macro_rules! div_prim {
 
         impl<'i> From<$Incomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $Incomplete<'i>) -> Self {
+            fn from(src: $Incomplete) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -522,19 +522,19 @@ macro_rules! div_prim {
         impl<'i> $Imp<&'i Integer> for $T {
             type Output = $FromIncomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+            fn $trunc(self, rhs: &Integer) -> $FromIncomplete {
                 $FromIncomplete::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+            fn $ceil(self, rhs: &Integer) -> $FromIncomplete {
                 $FromIncomplete::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+            fn $floor(self, rhs: &Integer) -> $FromIncomplete {
                 $FromIncomplete::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
+            fn $euc(self, rhs: &Integer) -> $FromIncomplete {
                 $FromIncomplete::Euc(self, rhs)
             }
         }
@@ -612,19 +612,19 @@ macro_rules! div_prim {
 
         impl<'t> $ImpFrom<&'t $T> for Integer {
             #[inline]
-            fn $trunc_from(&mut self, lhs: &'t $T) {
+            fn $trunc_from(&mut self, lhs: &$T) {
                 <Integer as $ImpFrom<$T>>::$trunc_from(self, *lhs);
             }
             #[inline]
-            fn $ceil_from(&mut self, lhs: &'t $T) {
+            fn $ceil_from(&mut self, lhs: &$T) {
                 <Integer as $ImpFrom<$T>>::$ceil_from(self, *lhs);
             }
             #[inline]
-            fn $floor_from(&mut self, lhs: &'t $T) {
+            fn $floor_from(&mut self, lhs: &$T) {
                 <Integer as $ImpFrom<$T>>::$floor_from(self, *lhs);
             }
             #[inline]
-            fn $euc_from(&mut self, lhs: &'t $T) {
+            fn $euc_from(&mut self, lhs: &$T) {
                 <Integer as $ImpFrom<$T>>::$euc_from(self, *lhs);
             }
         }
@@ -639,7 +639,7 @@ macro_rules! div_prim {
 
         impl<'i> Assign<$FromIncomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $FromIncomplete<'i>) {
+            fn assign(&mut self, src: $FromIncomplete) {
                 match src {
                     $FromIncomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_from_fn(
@@ -671,7 +671,7 @@ macro_rules! div_prim {
 
         impl<'i> From<$FromIncomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $FromIncomplete<'i>) -> Self {
+            fn from(src: $FromIncomplete) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst

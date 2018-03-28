@@ -72,11 +72,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: NegIncomplete<'a>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: NegIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::neg(
                 self.inner_mut(),
@@ -590,7 +586,7 @@ mul_op_noncommut_round! {
 impl<'a> Add for MulIncomplete<'a> {
     type Output = MulAddMulIncomplete<'a>;
     #[inline]
-    fn add(self, rhs: MulIncomplete<'a>) -> MulAddMulIncomplete<'a> {
+    fn add(self, rhs: MulIncomplete<'a>) -> MulAddMulIncomplete {
         MulAddMulIncomplete { lhs: self, rhs }
     }
 }
@@ -607,7 +603,7 @@ impl<'a> AssignRound<MulAddMulIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(
         &mut self,
-        src: MulAddMulIncomplete<'a>,
+        src: MulAddMulIncomplete,
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
@@ -627,7 +623,7 @@ impl<'a> AssignRound<MulAddMulIncomplete<'a>> for Float {
 impl<'a> Sub for MulIncomplete<'a> {
     type Output = MulSubMulIncomplete<'a>;
     #[inline]
-    fn sub(self, rhs: MulIncomplete<'a>) -> MulSubMulIncomplete<'a> {
+    fn sub(self, rhs: MulIncomplete<'a>) -> MulSubMulIncomplete {
         MulSubMulIncomplete { lhs: self, rhs }
     }
 }
@@ -644,7 +640,7 @@ impl<'a> AssignRound<MulSubMulIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(
         &mut self,
-        src: MulSubMulIncomplete<'a>,
+        src: MulSubMulIncomplete,
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
