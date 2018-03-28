@@ -43,10 +43,10 @@ floating-point number to a [`Rational`] number fails.
 
 ```rust
 use rug::Rational;
-use rug::rational::RationalTryFromFloatError;
+use rug::rational::TryFromFloatError;
 // This is not finite and cannot be converted to Rational.
 let inf = 1.0f32 / 0.0;
-let error: RationalTryFromFloatError = match Rational::try_from(inf) {
+let error: TryFromFloatError = match Rational::try_from(inf) {
     Ok(_) => unreachable!(),
     Err(error) => error,
 };
@@ -56,7 +56,7 @@ println!("Error: {}", error);
 [`Rational`]: ../struct.Rational.html
 */
 #[derive(Clone, Copy, Debug)]
-pub struct RationalTryFromFloatError {
+pub struct TryFromFloatError {
     _unused: (),
 }
 
