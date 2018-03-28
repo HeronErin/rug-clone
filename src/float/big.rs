@@ -806,6 +806,10 @@ impl Float {
     /// If the value is a [finite number][`is_finite`], returns a
     /// [`Rational`] number preserving all the precision of the value.
     ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `Rational::try_from(&float)` or
+    /// `Rational::try_from(float)`.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -848,6 +852,7 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     /// [`Rational`]: struct.Rational.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {

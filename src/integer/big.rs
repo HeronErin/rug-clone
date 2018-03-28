@@ -488,6 +488,10 @@ impl Integer {
 
     /// Converts to an [`i8`] if the value fits.
     ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `i8::try_from(&integer)` or
+    /// `i8::try_from(integer)`.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -500,6 +504,7 @@ impl Integer {
     /// assert_eq!(large.to_i8(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
@@ -511,6 +516,10 @@ impl Integer {
     }
 
     /// Converts to an [`i16`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `i16::try_from(&integer)` or
+    /// `i16::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -524,6 +533,7 @@ impl Integer {
     /// assert_eq!(large.to_i16(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
@@ -535,6 +545,10 @@ impl Integer {
     }
 
     /// Converts to an [`i32`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `i32::try_from(&integer)` or
+    /// `i32::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -548,6 +562,7 @@ impl Integer {
     /// assert_eq!(large.to_i32(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
@@ -559,6 +574,10 @@ impl Integer {
     }
 
     /// Converts to an [`i64`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `i64::try_from(&integer)` or
+    /// `i64::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -572,6 +591,7 @@ impl Integer {
     /// assert_eq!(large.to_i64(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
@@ -585,6 +605,10 @@ impl Integer {
     #[cfg(int_128)]
     /// Converts to an [`i128`] if the value fits.
     ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `i128::try_from(&integer)` or
+    /// `i128::try_from(integer)`.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -597,6 +621,7 @@ impl Integer {
     /// assert_eq!(large.to_i128(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
@@ -609,6 +634,10 @@ impl Integer {
 
     /// Converts to an [`isize`] if the value fits.
     ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `isize::try_from(&integer)` or
+    /// `isize::try_from(integer)`.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -619,6 +648,7 @@ impl Integer {
     /// assert_eq!(large.to_isize(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
@@ -634,6 +664,10 @@ impl Integer {
 
     /// Converts to a [`u8`] if the value fits.
     ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `u8::try_from(&integer)` or
+    /// `u8::try_from(integer)`.
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -646,6 +680,7 @@ impl Integer {
     /// assert_eq!(large.to_u8(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
@@ -657,6 +692,10 @@ impl Integer {
     }
 
     /// Converts to a [`u16`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `u16::try_from(&integer)` or
+    /// `u16::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -670,6 +709,7 @@ impl Integer {
     /// assert_eq!(large.to_u16(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
@@ -681,6 +721,10 @@ impl Integer {
     }
 
     /// Converts to a [`u32`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `u32::try_from(&integer)` or
+    /// `u32::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -694,6 +738,7 @@ impl Integer {
     /// assert_eq!(large.to_u32(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
@@ -705,6 +750,10 @@ impl Integer {
     }
 
     /// Converts to a [`u64`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `u64::try_from(&integer)` or
+    /// `u64::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -718,6 +767,7 @@ impl Integer {
     /// assert_eq!(large.to_u64(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
@@ -730,6 +780,10 @@ impl Integer {
 
     #[cfg(int_128)]
     /// Converts to a [`u128`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `u128::try_from(&integer)` or
+    /// `u128::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -744,6 +798,7 @@ impl Integer {
     /// assert_eq!(large.to_u128(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
@@ -755,6 +810,10 @@ impl Integer {
     }
 
     /// Converts to a [`usize`] if the value fits.
+    ///
+    /// If the compiler supports [`TryFrom`], this conversion can also
+    /// be performed using `usize::try_from(&integer)` or
+    /// `usize::try_from(integer)`.
     ///
     /// # Examples
     ///
@@ -768,6 +827,7 @@ impl Integer {
     /// assert_eq!(large.to_usize(), None);
     /// ```
     ///
+    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     /// [`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
