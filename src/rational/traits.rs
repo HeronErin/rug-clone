@@ -15,11 +15,17 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer, Rational};
+#[cfg(all(try_from, feature = "float"))]
+use Float;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use rational::ParseRationalError;
+#[cfg(try_from)]
+use rational::RationalTryFromFloatError;
 use rational::big;
 use std::cmp::Ordering;
+#[cfg(try_from)]
+use std::error::Error;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
 use std::hash::{Hash, Hasher};
@@ -235,6 +241,42 @@ where
     }
 }
 
+#[cfg(try_from)]
+impl TryFrom<f32> for Rational {
+    type Error = RationalTryFromFloatError;
+    fn try_from(value: f32) -> Result<Self, RationalTryFromFloatError> {
+        Rational::from_f32(value)
+            .ok_or(RationalTryFromFloatError { _unused: () })
+    }
+}
+
+#[cfg(try_from)]
+impl TryFrom<f64> for Rational {
+    type Error = RationalTryFromFloatError;
+    fn try_from(value: f64) -> Result<Self, RationalTryFromFloatError> {
+        Rational::from_f64(value)
+            .ok_or(RationalTryFromFloatError { _unused: () })
+    }
+}
+
+#[cfg(all(try_from, feature = "float"))]
+impl TryFrom<Float> for Rational {
+    type Error = RationalTryFromFloatError;
+    fn try_from(value: Float) -> Result<Self, RationalTryFromFloatError> {
+        TryFrom::try_from(&value)
+    }
+}
+
+#[cfg(all(try_from, feature = "float"))]
+impl<'a> TryFrom<&'a Float> for Rational {
+    type Error = RationalTryFromFloatError;
+    fn try_from(value: &Float) -> Result<Self, RationalTryFromFloatError> {
+        value
+            .to_rational()
+            .ok_or(RationalTryFromFloatError { _unused: () })
+    }
+}
+
 fn fmt_radix(
     r: &Rational,
     f: &mut Formatter,
@@ -255,6 +297,20 @@ fn fmt_radix(
 impl Display for ParseRationalError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         Debug::fmt(self, f)
+    }
+}
+
+#[cfg(try_from)]
+impl Error for RationalTryFromFloatError {
+    fn description(&self) -> &str {
+        "conversion of infinite or NaN value attempted"
+    }
+}
+
+#[cfg(try_from)]
+impl Display for RationalTryFromFloatError {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        Display::fmt(self.description(), f)
     }
 }
 
