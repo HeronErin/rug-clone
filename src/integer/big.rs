@@ -605,6 +605,9 @@ impl Integer {
     #[cfg(int_128)]
     /// Converts to an [`i128`] if the value fits.
     ///
+    /// This method is only present if the compiler supports the
+    /// [`i128`] primitive.
+    ///
     /// If the compiler supports [`TryFrom`], this conversion can also
     /// be performed using `i128::try_from(&integer)` or
     /// `i128::try_from(integer)`.
@@ -781,6 +784,9 @@ impl Integer {
     #[cfg(int_128)]
     /// Converts to a [`u128`] if the value fits.
     ///
+    /// This method is only present if the compiler supports the
+    /// [`u128`] primitive.
+    ///
     /// If the compiler supports [`TryFrom`], this conversion can also
     /// be performed using `u128::try_from(&integer)` or
     /// `u128::try_from(integer)`.
@@ -907,6 +913,9 @@ impl Integer {
 
     #[cfg(int_128)]
     /// Converts to an [`i128`], wrapping if the value does not fit.
+    ///
+    /// This method is only present if the compiler supports the
+    /// [`i128`] primitive.
     ///
     /// # Examples
     ///
@@ -1036,6 +1045,9 @@ impl Integer {
 
     #[cfg(int_128)]
     /// Converts to a [`u128`], wrapping if the value does not fit.
+    ///
+    /// This method is only present if the compiler supports the
+    /// [`u128`] primitive.
     ///
     /// # Examples
     ///
