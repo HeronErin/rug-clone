@@ -1,4 +1,4 @@
-Version 1.1.0 (not released yet)
+Version 1.1.0 (unreleased)
 ==========================
 
 * Add `i128` and `u128` support, conditional on compiler support.
@@ -7,6 +7,8 @@ Version 1.1.0 (not released yet)
 * Implement `TryFrom::<f32>`, `TryFrom::<f64>`, `TryFrom::<Float>` and
   `TryFrom::<&Float>` for `Rational`, conditional on compiler support.
 * Add `Float::get_significand` method.
+* Bug fix: `Integer::reserve` was shrinking the allocation in some
+  cases.
 
 Version 1.0.1 (2018-03-10)
 ==========================
