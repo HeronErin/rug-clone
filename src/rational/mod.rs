@@ -57,7 +57,7 @@ println!("Error: {}", error);
 */
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromFloatError {
-    _unused: (),
+    pub(crate) _unused: (),
 }
 
 #[cfg(test)]

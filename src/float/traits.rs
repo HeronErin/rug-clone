@@ -26,6 +26,8 @@ use float::big::{self, raw_round, ordering1};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use ops::AssignRound;
+#[cfg(all(try_from, feature = "rational"))]
+use rational::TryFromFloatError;
 use std::{i32, u32};
 use std::cmp::Ordering;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
@@ -373,6 +375,24 @@ conv_ops! { u128, xmpfr::set_u128 }
 conv_ops! { f32, xmpfr::set_f32 }
 conv_ops! { f64, xmpfr::set_f64 }
 
+#[cfg(all(try_from, feature = "rational"))]
+impl TryFrom<Float> for Rational {
+    type Error = TryFromFloatError;
+    fn try_from(value: Float) -> Result<Self, TryFromFloatError> {
+        TryFrom::try_from(&value)
+    }
+}
+
+#[cfg(all(try_from, feature = "rational"))]
+impl<'a> TryFrom<&'a Float> for Rational {
+    type Error = TryFromFloatError;
+    fn try_from(value: &Float) -> Result<Self, TryFromFloatError> {
+        value
+            .to_rational()
+            .ok_or(TryFromFloatError { _unused: () })
+    }
+}
+
 fn fmt_radix(
     flt: &Float,
     fmt: &mut Formatter,
@@ -410,3 +430,33 @@ impl Display for ParseFloatError {
 
 unsafe impl Send for Float {}
 unsafe impl Sync for Float {}
+
+#[cfg(test)]
+mod tests {
+    #[cfg(all(try_from, feature = "rational"))]
+    #[test]
+    fn check_fallible_conversions() {
+        use {Float, Rational};
+        use float::Special;
+        let large = [
+            Float::with_val(20, Special::Zero),
+            Float::with_val(20, Special::NegZero),
+            Float::with_val(20, Special::Infinity),
+            Float::with_val(20, Special::NegInfinity),
+            Float::with_val(20, Special::Nan),
+            Float::with_val(20, 1),
+            Float::with_val(20, -1),
+            Float::with_val(20, 999999e100),
+            Float::with_val(20, 999999e-100),
+            Float::with_val(20, -999999e100),
+            Float::with_val(20, -999999e-100),
+        ];
+        for f in &large {
+            let r = Rational::try_from(f);
+            assert_eq!(r.is_ok(), f.is_finite());
+            if let Ok(r) = r {
+                assert_eq!(r, *f);
+            }
+        }
+    }
+}

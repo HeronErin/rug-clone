@@ -508,7 +508,7 @@ fn _static_assertions() {
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
-    #[cfg(feature = "float")]
+    #[cfg(any(feature = "float", all(try_from, feature = "rational")))]
     use std::{f32, f64};
     #[cfg(int_128)]
     use std::{i128, u128};
@@ -582,38 +582,46 @@ mod tests {
         u64::MAX as i128 + 1,
         i128::MAX,
     ];
-    #[cfg(feature = "float")]
+    #[cfg(any(feature = "float", all(try_from, feature = "rational")))]
     pub const F32: &[f32] = &[
         -f32::NAN,
         f32::NEG_INFINITY,
         f32::MIN,
         -12.0e30,
         -2.0,
+        -1.0 - f32::EPSILON,
         -1.0,
         -f32::MIN_POSITIVE,
+        -f32::MIN_POSITIVE * f32::EPSILON,
         -0.0,
         0.0,
+        f32::MIN_POSITIVE * f32::EPSILON,
         f32::MIN_POSITIVE,
         1.0,
+        1.0 + f32::EPSILON,
         2.0,
         12.0e30,
         f32::MAX,
         f32::INFINITY,
         f32::NAN,
     ];
-    #[cfg(feature = "float")]
+    #[cfg(any(feature = "float", all(try_from, feature = "rational")))]
     pub const F64: &[f64] = &[
         -f64::NAN,
         f64::NEG_INFINITY,
         f64::MIN,
         -12.0e43,
         -2.0,
+        -1.0 - f64::EPSILON,
         -1.0,
         -f64::MIN_POSITIVE,
+        -f64::MIN_POSITIVE * f64::EPSILON,
         -0.0,
         0.0,
+        f64::MIN_POSITIVE * f64::EPSILON,
         f64::MIN_POSITIVE,
         1.0,
+        1.0 + f64::EPSILON,
         2.0,
         12.0e43,
         f64::MAX,

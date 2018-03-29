@@ -162,13 +162,13 @@ macro_rules! try_from {
 try_from! {
     (i8, to_i8) (i16, to_i16) (i32, to_i32) (i64, to_i64) (isize, to_isize)
 }
-#[cfg(all(int128, try_from))]
+#[cfg(all(int_128, try_from))]
 try_from! { (i128, to_i128) }
 #[cfg(try_from)]
 try_from! {
     (u8, to_u8) (u16, to_u16) (u32, to_u32) (u64, to_u64) (usize, to_usize)
 }
-#[cfg(all(int128, try_from))]
+#[cfg(all(int_128, try_from))]
 try_from! { (u128, to_u128) }
 
 macro_rules! assign {
@@ -322,3 +322,81 @@ impl Display for TryFromIntegerError {
 
 unsafe impl Send for Integer {}
 unsafe impl Sync for Integer {}
+
+#[cfg(test)]
+mod tests {
+    #[cfg(try_from)]
+    #[test]
+    fn check_fallible_conversions() {
+        use {Assign, Integer};
+        let mut i = Integer::from(0x7f);
+        assert_eq!(i8::try_from(&i).unwrap(), 0x7f);
+        i <<= 1;
+        assert!(i8::try_from(&i).is_err());
+        assert_eq!(u8::try_from(&i).unwrap(), 0xfe);
+        i <<= 1;
+        assert!(u8::try_from(&i).is_err());
+        i <<= 6;
+        assert_eq!(i16::try_from(&i).unwrap(), 0x7f << 8);
+        i <<= 1;
+        assert!(i16::try_from(&i).is_err());
+        assert_eq!(u16::try_from(&i).unwrap(), 0xfe << 8);
+        i <<= 1;
+        assert!(u16::try_from(&i).is_err());
+        i <<= 14;
+        assert_eq!(i32::try_from(&i).unwrap(), 0x7f << 24);
+        i <<= 1;
+        assert!(i32::try_from(&i).is_err());
+        assert_eq!(u32::try_from(&i).unwrap(), 0xfe << 24);
+        i <<= 1;
+        assert!(u32::try_from(&i).is_err());
+        i <<= 30;
+        assert_eq!(i64::try_from(&i).unwrap(), 0x7f << 56);
+        i <<= 1;
+        assert!(i64::try_from(&i).is_err());
+        assert_eq!(u64::try_from(&i).unwrap(), 0xfe << 56);
+        i <<= 1;
+        assert!(u64::try_from(&i).is_err());
+        #[cfg(int_128)]
+        {
+            i <<= 62;
+            assert_eq!(i128::try_from(&i).unwrap(), 0x7f << 120);
+            i <<= 1;
+            assert!(i128::try_from(&i).is_err());
+            assert_eq!(u128::try_from(&i).unwrap(), 0xfe << 120);
+            i <<= 1;
+            assert!(u128::try_from(&i).is_err());
+        }
+
+        i.assign(-1);
+        assert!(u8::try_from(&i).is_err());
+        assert!(u16::try_from(&i).is_err());
+        assert!(u32::try_from(&i).is_err());
+        assert!(u64::try_from(&i).is_err());
+        #[cfg(int_128)]
+        assert!(u128::try_from(&i).is_err());
+        i <<= 7;
+        assert_eq!(i8::try_from(&i).unwrap(), -0x80);
+        i <<= 1;
+        assert!(i8::try_from(&i).is_err());
+        i <<= 7;
+        assert_eq!(i16::try_from(&i).unwrap(), -0x80 << 8);
+        i <<= 1;
+        assert!(i16::try_from(&i).is_err());
+        i <<= 15;
+        assert_eq!(i32::try_from(&i).unwrap(), -0x80 << 24);
+        i <<= 1;
+        assert!(i32::try_from(&i).is_err());
+        i <<= 31;
+        assert_eq!(i64::try_from(&i).unwrap(), -0x80 << 56);
+        i <<= 1;
+        assert!(i64::try_from(&i).is_err());
+        #[cfg(int_128)]
+        {
+            i <<= 63;
+            assert_eq!(i128::try_from(&i).unwrap(), -0x80 << 120);
+            i <<= 1;
+            assert!(i128::try_from(&i).is_err());
+        }
+    }
+}

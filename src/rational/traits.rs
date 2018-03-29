@@ -15,8 +15,6 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Assign, Integer, Rational};
-#[cfg(all(try_from, feature = "float"))]
-use Float;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
 use rational::ParseRationalError;
@@ -257,24 +255,6 @@ impl TryFrom<f64> for Rational {
     }
 }
 
-#[cfg(all(try_from, feature = "float"))]
-impl TryFrom<Float> for Rational {
-    type Error = TryFromFloatError;
-    fn try_from(value: Float) -> Result<Self, TryFromFloatError> {
-        TryFrom::try_from(&value)
-    }
-}
-
-#[cfg(all(try_from, feature = "float"))]
-impl<'a> TryFrom<&'a Float> for Rational {
-    type Error = TryFromFloatError;
-    fn try_from(value: &Float) -> Result<Self, TryFromFloatError> {
-        value
-            .to_rational()
-            .ok_or(TryFromFloatError { _unused: () })
-    }
-}
-
 fn fmt_radix(
     r: &Rational,
     f: &mut Formatter,
@@ -314,3 +294,33 @@ impl Display for TryFromFloatError {
 
 unsafe impl Send for Rational {}
 unsafe impl Sync for Rational {}
+
+#[cfg(test)]
+mod tests {
+    #[cfg(try_from)]
+    #[test]
+    fn check_fallible_conversions() {
+        use Rational;
+        use tests::{F32, F64};
+        for &f in F32 {
+            let r = Rational::try_from(f);
+            assert_eq!(r.is_ok(), f.is_finite());
+            #[cfg(feature = "float")]
+            {
+                if let Ok(r) = r {
+                    assert_eq!(r, f);
+                }
+            }
+        }
+        for &f in F64 {
+            let r = Rational::try_from(f);
+            assert_eq!(r.is_ok(), f.is_finite());
+            #[cfg(feature = "float")]
+            {
+                if let Ok(r) = r {
+                    assert_eq!(r, f);
+                }
+            }
+        }
+    }
+}
