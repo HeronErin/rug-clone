@@ -163,11 +163,11 @@ extern "C" {
     pub fn signal(signum: i32, handler: Handler) -> Handler;
 }
 extern "C" fn handler(_: i32) {
-    std::process::exit(1);
+    std::process::exit(3);
 }
 
 fn main() {
-    // catch some signals and exit(1) instead
+    // catch some signals and exit(3) instead
     unsafe {
         // SIGILL
         signal(4, Some(handler));

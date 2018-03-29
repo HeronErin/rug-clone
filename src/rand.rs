@@ -770,7 +770,7 @@ macro_rules! c_callback {
     )* };
 }
 
-#[cfg(ffi_panic_aborts))]
+#[cfg(ffi_panic_aborts)]
 macro_rules! c_callback {
     ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
         unsafe extern "C" fn $func($($param)*) $body
