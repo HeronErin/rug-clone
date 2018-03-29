@@ -15,12 +15,8 @@
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
 use {Integer, Rational};
-#[cfg(feature = "float")]
-use Float;
 use cast::cast;
 use ext::gmp as xgmp;
-#[cfg(feature = "float")]
-use float::SmallFloat;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
 use misc::NegAbs;
@@ -306,42 +302,44 @@ cmp_unum_64! { usize }
 #[cfg(int_128)]
 cmp_unum_128! { u128 }
 
-#[cfg(feature = "float")]
 macro_rules! cmp_f {
     ($($T: ty)*) => { $(
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                <Float as PartialOrd<Rational>>::partial_cmp(
-                    &*SmallFloat::from(*other),
-                    self,
-                ) == Some(Ordering::Equal)
+                other.is_finite() && unsafe {
+                    xgmp::mpq_cmp_finite_d(self.inner(), cast(*other)) == 0
+                }
             }
         }
         impl PartialOrd<$T> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                <Float as PartialOrd<Rational>>::partial_cmp(
-                    &*SmallFloat::from(*other),
-                    self,
-                ).map(Ordering::reverse)
+                if other.is_finite() {
+                    let ord = unsafe {
+                        xgmp::mpq_cmp_finite_d(self.inner(), cast(*other))
+                    };
+                    Some(ord.cmp(&0))
+                } else if other.is_nan() {
+                    None
+                } else if other.is_sign_negative() {
+                    Some(Ordering::Greater)
+                } else {
+                    Some(Ordering::Less)
+                }
             }
         }
         cmp_rev! { $T }
     )* };
 }
 
-#[cfg(feature = "float")]
 cmp_f! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
     use Rational;
-    #[cfg(feature = "float")]
     use std::{f32, f64};
-    #[cfg(feature = "float")]
     use std::cmp::Ordering;
-    #[cfg(feature = "float")]
     use std::ops::Neg;
     use std::ops::Sub;
     #[cfg(int_128)]
@@ -482,7 +480,6 @@ mod tests {
         check_cmp_prim_tuple(I64, I64, &against);
     }
 
-    #[cfg(feature = "float")]
     fn check_known_cmp<T>(t: T, against: &Rational, ord: Ordering)
     where
         Rational: PartialEq<T> + PartialEq<<T as Neg>::Output>,
@@ -501,7 +498,6 @@ mod tests {
         assert_eq!(neg.partial_cmp(&-t), Some(ord));
     }
 
-    #[cfg(feature = "float")]
     fn check_nan_cmp<T>(t: T, against: &Rational)
     where
         Rational: PartialEq<T> + PartialEq<<T as Neg>::Output>,
@@ -520,7 +516,6 @@ mod tests {
         assert!(neg.partial_cmp(&-t).is_none());
     }
 
-    #[cfg(feature = "float")]
     #[test]
     fn check_cmp_f() {
         let large = [
