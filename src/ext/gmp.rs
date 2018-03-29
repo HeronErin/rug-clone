@@ -1654,9 +1654,9 @@ mod rational {
         let den1_bits = gmp::mpz_sizeinbase(den1, 2);
         // cmp(num1, op2 * den1)
         let mut op2_f = mem::uninitialized();
-        gmp::mpf_init2(&mut op2_f, 64);
-        gmp::mpf_set_d(&mut op2_f, op2);
         let mut rhs = mem::uninitialized();
+        gmp::mpf_init2(&mut op2_f, 53);
+        gmp::mpf_set_d(&mut op2_f, op2);
         gmp::mpf_init2(&mut rhs, cast::cast(den1_bits + 53));
         gmp::mpf_set_z(&mut rhs, den1);
         gmp::mpf_mul(&mut rhs, &rhs, &op2_f);
