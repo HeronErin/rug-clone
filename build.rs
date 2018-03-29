@@ -21,15 +21,27 @@ use std::io::{Result as IoResult, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+struct Environment {
+    out_dir: PathBuf,
+    rustc: OsString,
+}
+
 fn main() {
-    let out_dir = PathBuf::from(cargo_env("OUT_DIR"));
-    let int_128 = has_feature(&out_dir, "int_128", TRY_INT_128_RS);
-    let try_from = has_feature(&out_dir, "try_from", TRY_TRY_FROM_RS);
+    let env = Environment {
+        out_dir: PathBuf::from(cargo_env("OUT_DIR")),
+        rustc: cargo_env("RUSTC"),
+    };
+    let int_128 = has_feature(&env, "int_128", TRY_INT_128_RS);
+    let try_from = has_feature(&env, "try_from", TRY_TRY_FROM_RS);
+    let ffi_panic_aborts = ffi_panic_aborts(&env);
     if int_128 {
         println!("cargo:rustc-cfg=int_128");
     }
     if try_from {
         println!("cargo:rustc-cfg=try_from");
+    }
+    if ffi_panic_aborts {
+        println!("cargo:rustc-cfg=ffi_panic_aborts");
     }
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
@@ -43,13 +55,12 @@ fn main() {
     }
 }
 
-fn has_feature(out_dir: &Path, ident: &str, contents: &str) -> bool {
-    let rustc = cargo_env("RUSTC");
-    let try_dir = out_dir.join(format!("try_{}", ident));
+fn has_feature(env: &Environment, ident: &str, contents: &str) -> bool {
+    let try_dir = env.out_dir.join(format!("try_{}", ident));
     let filename = format!("try_{}.rs", ident);
     create_dir_or_panic(&try_dir);
     create_file_or_panic(&try_dir.join(&filename), contents);
-    let mut cmd = Command::new(&rustc);
+    let mut cmd = Command::new(&env.rustc);
     cmd.current_dir(&try_dir).arg(&filename);
     println!("$ cd {:?}", try_dir);
     println!("$ {:?}", cmd);
@@ -57,6 +68,31 @@ fn has_feature(out_dir: &Path, ident: &str, contents: &str) -> bool {
         .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
     remove_dir_or_panic(&try_dir);
     status.success()
+}
+
+fn ffi_panic_aborts(env: &Environment) -> bool {
+    let ident = "ffi_panic_aborts";
+    let contents = TRY_FFI_PANIC_ABORTS_RS;
+    let try_dir = env.out_dir.join(format!("try_{}", ident));
+    let filename = format!("try_{}.rs", ident);
+    create_dir_or_panic(&try_dir);
+    create_file_or_panic(&try_dir.join(&filename), contents);
+    let mut cmd = Command::new(&env.rustc);
+    cmd.current_dir(&try_dir)
+        .args(&[&filename, "-o", "out.exe"]);
+    println!("$ cd {:?}", try_dir);
+    println!("$ {:?}", cmd);
+    let status = cmd.status()
+        .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+    assert!(status.success(), "Compiling failed: {:?}", cmd);
+    cmd = Command::new(try_dir.join("out.exe"));
+    println!("$ {:?}", cmd);
+    let status = cmd.status()
+        .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+    remove_dir_or_panic(&try_dir);
+    // If panic aborts, status.success() is false.
+    // If panic does not abort, the program succeeds
+    !status.success()
 }
 
 fn cargo_env(name: &str) -> OsString {
@@ -114,5 +150,32 @@ fn main() {
 const TRY_TRY_FROM_RS: &str = r#"// try_try_from.rs
 fn main() {
     let _ = i8::try_from(1u64);
+}
+"#;
+
+const TRY_FFI_PANIC_ABORTS_RS: &str = r#"// try_ffi_panic_aborts.rs
+extern "C" fn ffi_panic() {
+    panic!();
+}
+
+type Handler = Option<unsafe extern "C" fn(i: i32)>;
+extern "C" {
+    pub fn signal(signum: i32, handler: Handler) -> Handler;
+}
+extern "C" fn handler(_: i32) {
+    std::process::exit(1);
+}
+
+fn main() {
+    // catch some signals and exit(1) instead
+    unsafe {
+        // SIGILL
+        signal(4, Some(handler));
+        // unix SIGABRT
+        signal(6, Some(handler));
+        // windows SIGABRT
+        signal(22, Some(handler));
+    }
+    let _ = std::panic::catch_unwind(|| ffi_panic());
 }
 "#;

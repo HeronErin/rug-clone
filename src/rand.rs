@@ -31,6 +31,7 @@ use inner::{Inner, InnerMut};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::raw::{c_int, c_ulong, c_void};
+#[cfg(not(ffi_panic_aborts))]
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
 use std::ptr;
@@ -512,6 +513,10 @@ impl<'a> RandState<'a> {
 /**
 Custom random number generator to be used with [`RandState`].
 
+The methods implemented for this trait, as well as possible
+destructors, can be used by FFI callback functions. If these methods
+panic, they can cause the program to abort.
+
 # Examples
 
 ```rust
@@ -755,12 +760,20 @@ struct Funcs {
     iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
 }
 
+#[cfg(not(ffi_panic_aborts))]
 macro_rules! c_callback {
     ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
         unsafe extern "C" fn $func($($param)*) {
             panic::catch_unwind(AssertUnwindSafe(|| $body))
                 .unwrap_or_else(|_| process::abort())
         }
+    )* };
+}
+
+#[cfg(ffi_panic_aborts))]
+macro_rules! c_callback {
+    ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
+        unsafe extern "C" fn $func($($param)*) $body
     )* };
 }
 
