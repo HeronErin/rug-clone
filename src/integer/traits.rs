@@ -326,77 +326,42 @@ unsafe impl Sync for Integer {}
 #[cfg(test)]
 mod tests {
     #[cfg(try_from)]
+    macro_rules! check_fallible_conversions_helper {
+        ($int: ident, $bits: expr, $I: ty, $U: ty) => {{
+            const I_MIN: $I = -1 << ($bits - 1);
+            const I_MAX: $I = -1 - I_MIN;
+            $int.assign(I_MIN);
+            assert_eq!(<$I>::try_from(&$int).ok(), Some(I_MIN));
+            $int -= 1;
+            assert!(<$I>::try_from(&$int).is_err());
+            $int.assign(I_MAX);
+            assert_eq!(<$I>::try_from(&$int).ok(), Some(I_MAX));
+            $int += 1;
+            assert!(<$I>::try_from(&$int).is_err());
+
+            const U_MIN: $U = 0;
+            const U_MAX: $U = !0;
+            $int.assign(U_MIN);
+            assert_eq!(<$U>::try_from(&$int).ok(), Some(U_MIN));
+            $int -= 1;
+            assert!(<$U>::try_from(&$int).is_err());
+            $int.assign(U_MAX);
+            assert_eq!(<$U>::try_from(&$int).ok(), Some(U_MAX));
+            $int += 1;
+            assert!(<$U>::try_from(&$int).is_err());
+        }};
+    }
+
+    #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
         use {Assign, Integer};
-        let mut i = Integer::from(0x7f);
-        assert_eq!(i8::try_from(&i).unwrap(), 0x7f);
-        i <<= 1;
-        assert!(i8::try_from(&i).is_err());
-        assert_eq!(u8::try_from(&i).unwrap(), 0xfe);
-        i <<= 1;
-        assert!(u8::try_from(&i).is_err());
-        i <<= 6;
-        assert_eq!(i16::try_from(&i).unwrap(), 0x7f << 8);
-        i <<= 1;
-        assert!(i16::try_from(&i).is_err());
-        assert_eq!(u16::try_from(&i).unwrap(), 0xfe << 8);
-        i <<= 1;
-        assert!(u16::try_from(&i).is_err());
-        i <<= 14;
-        assert_eq!(i32::try_from(&i).unwrap(), 0x7f << 24);
-        i <<= 1;
-        assert!(i32::try_from(&i).is_err());
-        assert_eq!(u32::try_from(&i).unwrap(), 0xfe << 24);
-        i <<= 1;
-        assert!(u32::try_from(&i).is_err());
-        i <<= 30;
-        assert_eq!(i64::try_from(&i).unwrap(), 0x7f << 56);
-        i <<= 1;
-        assert!(i64::try_from(&i).is_err());
-        assert_eq!(u64::try_from(&i).unwrap(), 0xfe << 56);
-        i <<= 1;
-        assert!(u64::try_from(&i).is_err());
+        let mut int = Integer::new();
+        check_fallible_conversions_helper!(int, 8, i8, u8);
+        check_fallible_conversions_helper!(int, 16, i16, u16);
+        check_fallible_conversions_helper!(int, 32, i32, u32);
+        check_fallible_conversions_helper!(int, 64, i64, u64);
         #[cfg(int_128)]
-        {
-            i <<= 62;
-            assert_eq!(i128::try_from(&i).unwrap(), 0x7f << 120);
-            i <<= 1;
-            assert!(i128::try_from(&i).is_err());
-            assert_eq!(u128::try_from(&i).unwrap(), 0xfe << 120);
-            i <<= 1;
-            assert!(u128::try_from(&i).is_err());
-        }
-
-        i.assign(-1);
-        assert!(u8::try_from(&i).is_err());
-        assert!(u16::try_from(&i).is_err());
-        assert!(u32::try_from(&i).is_err());
-        assert!(u64::try_from(&i).is_err());
-        #[cfg(int_128)]
-        assert!(u128::try_from(&i).is_err());
-        i <<= 7;
-        assert_eq!(i8::try_from(&i).unwrap(), -0x80);
-        i <<= 1;
-        assert!(i8::try_from(&i).is_err());
-        i <<= 7;
-        assert_eq!(i16::try_from(&i).unwrap(), -0x80 << 8);
-        i <<= 1;
-        assert!(i16::try_from(&i).is_err());
-        i <<= 15;
-        assert_eq!(i32::try_from(&i).unwrap(), -0x80 << 24);
-        i <<= 1;
-        assert!(i32::try_from(&i).is_err());
-        i <<= 31;
-        assert_eq!(i64::try_from(&i).unwrap(), -0x80 << 56);
-        i <<= 1;
-        assert!(i64::try_from(&i).is_err());
-        #[cfg(int_128)]
-        {
-            i <<= 63;
-            assert_eq!(i128::try_from(&i).unwrap(), -0x80 << 120);
-            i <<= 1;
-            assert!(i128::try_from(&i).is_err());
-        }
+        check_fallible_conversions_helper!(int, 128, i128, u128);
     }
 }
