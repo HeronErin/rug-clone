@@ -63,6 +63,7 @@ An error which can be returned when a checked conversion from
 ```rust
 use rug::Integer;
 use rug::integer::TryFromIntegerError;
+use std::convert::TryFrom;
 // This is negative and cannot be converted to u32.
 let i = Integer::from(-5);
 let error: TryFromIntegerError = match u32::try_from(&i) {

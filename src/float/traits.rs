@@ -30,6 +30,8 @@ use ops::AssignRound;
 use rational::TryFromFloatError;
 use std::{i32, u32};
 use std::cmp::Ordering;
+#[cfg(try_from)]
+use std::convert::TryFrom;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::mem;
@@ -438,6 +440,7 @@ mod tests {
     fn check_fallible_conversions() {
         use {Float, Rational};
         use float::Special;
+        use std::convert::TryFrom;
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

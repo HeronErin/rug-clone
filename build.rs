@@ -148,6 +148,7 @@ fn main() {
 "#;
 
 const TRY_TRY_FROM_RS: &str = r#"// try_try_from.rs
+use std::convert::TryFrom;
 fn main() {
     let _ = i8::try_from(1u64);
 }

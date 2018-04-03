@@ -44,6 +44,7 @@ floating-point number to a [`Rational`] number fails.
 ```rust
 use rug::Rational;
 use rug::rational::TryFromFloatError;
+use std::convert::TryFrom;
 // This is not finite and cannot be converted to Rational.
 let inf = 1.0f32 / 0.0;
 let error: TryFromFloatError = match Rational::try_from(inf) {

@@ -25,6 +25,8 @@ use integer::TryFromIntegerError;
 use integer::big;
 use std::{i32, u32};
 #[cfg(try_from)]
+use std::convert::TryFrom;
+#[cfg(try_from)]
 use std::error::Error;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -325,6 +327,8 @@ unsafe impl Sync for Integer {}
 
 #[cfg(test)]
 mod tests {
+    use std::convert::TryFrom;
+
     #[cfg(try_from)]
     macro_rules! check_fallible_conversions_helper {
         ($int: ident, $bits: expr, $I: ty, $U: ty) => {{

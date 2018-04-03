@@ -23,6 +23,8 @@ use rational::TryFromFloatError;
 use rational::big;
 use std::cmp::Ordering;
 #[cfg(try_from)]
+use std::convert::TryFrom;
+#[cfg(try_from)]
 use std::error::Error;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
                UpperHex};
@@ -297,6 +299,9 @@ unsafe impl Sync for Rational {}
 
 #[cfg(test)]
 mod tests {
+    #[cfg(try_from)]
+    use std::convert::TryFrom;
+
     #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
