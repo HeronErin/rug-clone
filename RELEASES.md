@@ -7,6 +7,9 @@ Version 1.1.0 (unreleased)
 * Implement `TryFrom::<f32>`, `TryFrom::<f64>`, `TryFrom::<Float>` and
   `TryFrom::<&Float>` for `Rational`, conditional on compiler support.
 * Add `Float::get_significand` method.
+* Add `Integer::import_digits`, `Integer::export_digits`,
+  `Integer::from_digits`, `Integer::to_digits` and
+  `Integer::significant_digits` methods.
 * Bug fix: `Integer::reserve` was shrinking the allocation in some
   cases.
 

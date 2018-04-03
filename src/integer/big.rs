@@ -19,7 +19,9 @@ use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::{Inner, InnerMut};
-use misc;
+use integer::Order;
+use misc::{self, NegAbs};
+use ops::DivRounding;
 #[cfg(feature = "rand")]
 use rand::RandState;
 use std::{i32, u32};
@@ -29,7 +31,8 @@ use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
-use std::os::raw::{c_char, c_int, c_long};
+use std::os::raw::{c_char, c_int, c_long, c_void};
+use std::ptr;
 use std::slice;
 
 /**
@@ -484,6 +487,186 @@ impl Integer {
         radix: i32,
     ) -> Result<ParseIncomplete, ParseIntegerError> {
         parse(src.as_ref(), radix)
+    }
+
+    /// Sets the value from a [slice] of digits of type `T`.
+    ///
+    /// The resulting value can never be negative.
+    ///
+    /// `T` can be any of the unsigned integer primitive types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::integer::Order;
+    /// let digits = [ 0x5678u16, 0x1234u16 ];
+    /// let mut i = Integer::new();
+    /// i.import_digits(Order::Lsf, &digits);
+    /// assert_eq!(i, 0x1234_5678);
+    /// ```
+    ///
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    pub fn import_digits<T: UnsignedPrimitive>(
+        &mut self,
+        order: Order,
+        digits: &[T],
+    ) {
+        let bytes = mem::size_of::<T>();
+        let bits = bytes * 8;
+        let capacity = digits
+            .len()
+            .checked_mul(bits)
+            .expect("overflow");
+        if capacity > self.capacity() {
+            let additional = self.capacity() - capacity;
+            self.reserve(additional);
+        }
+        unsafe {
+            gmp::mpz_import(
+                self.inner_mut(),
+                digits.len(),
+                order.order(),
+                bytes,
+                order.endian(),
+                0,
+                digits.as_ptr() as *const c_void,
+            );
+        }
+    }
+
+    /// Writes the absolute value into a [slice] of digits of type
+    /// `T`.
+    ///
+    /// The slice must be large enough to hold the digits; the size
+    /// can be obtained using the [`significant_digits`] method.
+    ///
+    /// The contents of the slice can be uninitialized before this
+    /// method is called; this method sets all the elements of the
+    /// slice, padding with zeros if the slice is larger than
+    /// required.
+    ///
+    /// `T` can be any of the unsigned integer primitive types.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the slice does not have sufficient capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::integer::Order;
+    /// use std::slice;
+    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let len = i.significant_digits::<u32>();
+    /// assert_eq!(len, 2);
+    /// let mut digits: Vec<u32> = Vec::with_capacity(len);
+    /// // Since the vector is constructed with capacity = len, the
+    /// // dst slice points to allocated but uninitialized memory.
+    /// // All the len digits are initialized by export_digits.
+    /// unsafe {
+    ///     let ptr = digits.as_mut_ptr();
+    ///     let dst = slice::from_raw_parts_mut(ptr, len);
+    ///     i.export_digits(Order::MsfBe, dst);
+    ///     digits.set_len(len);
+    /// }
+    /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
+    /// ```
+    ///
+    /// [`significant_digits`]: #method.significant_digits
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    pub fn export_digits<T: UnsignedPrimitive>(
+        &self,
+        order: Order,
+        digits: &mut [T],
+    ) {
+        let bytes = mem::size_of::<T>();
+        let digit_count = self.significant_digits::<T>();
+        let zero_count = digits
+            .len()
+            .checked_sub(digit_count)
+            .expect("not enough capacity");
+        let (zeros, digits) = if order.order() < 0 {
+            let (digits, zeros) = digits.split_at_mut(digit_count);
+            (zeros, digits)
+        } else {
+            digits.split_at_mut(zero_count)
+        };
+        unsafe {
+            ptr::write_bytes(zeros.as_mut_ptr(), 0, zeros.len());
+            let mut count = mem::uninitialized();
+            gmp::mpz_export(
+                digits.as_mut_ptr() as *mut c_void,
+                &mut count,
+                order.order(),
+                bytes,
+                order.endian(),
+                0,
+                self.inner(),
+            );
+            assert_eq!(count, digit_count);
+        }
+    }
+
+    /// Construct an [`Integer`] from a [slice] of digits of type `T`.
+    ///
+    /// The resulting value can never be negative.
+    ///
+    /// `T` can be any of the unsigned integer primitive types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::integer::Order;
+    /// let digits = [ 0x5678u16, 0x1234u16 ];
+    /// let i = Integer::from_digits(Order::Lsf, &digits);
+    /// assert_eq!(i, 0x1234_5678);
+    /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
+    pub fn from_digits<T: UnsignedPrimitive>(
+        order: Order,
+        digits: &[T],
+    ) -> Self {
+        let bytes = mem::size_of::<T>();
+        let bits = bytes * 8;
+        let capacity = digits
+            .len()
+            .checked_mul(bits)
+            .expect("overflow");
+        let mut i = Integer::with_capacity(capacity);
+        i.import_digits(order, digits);
+        i
+    }
+
+    /// Writes the absolute value into a [`Vec`] of digits of type
+    /// `T`.
+    ///
+    /// `T` can be any of the unsigned integer primitive types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// use rug::integer::Order;
+    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let digits: Vec<u32> = i.to_digits(Order::MsfBe);
+    /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
+    /// ```
+    ///
+    /// [`Vec`]: https://doc.rust-lang.org/std/vec/struct.Vec.html
+    pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
+        let digit_count = self.significant_digits::<T>();
+        let mut v = Vec::with_capacity(digit_count);
+        unsafe {
+            let digits = slice::from_raw_parts_mut(v.as_mut_ptr(), digit_count);
+            self.export_digits(order, digits);
+            v.set_len(digit_count);
+        }
+        v
     }
 
     /// Converts to an [`i8`] if the value fits.
@@ -1791,6 +1974,39 @@ impl Integer {
     #[inline]
     pub fn signed_bits(&self) -> u32 {
         cast(unsafe { xgmp::mpz_signed_bits(self.inner()) })
+    }
+
+    /// Returns the number of digits of type `T` required to represent
+    /// the absolute value.
+    ///
+    /// `T` can be any of the unsigned integer primitive types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// let i: Integer = Integer::from(1) << 256;
+    /// assert_eq!(i.significant_digits::<u8>(), 33);
+    /// assert_eq!(i.significant_digits::<u16>(), 17);
+    /// assert_eq!(i.significant_digits::<u32>(), 9);
+    /// assert_eq!(i.significant_digits::<u64>(), 5);
+    /// ```
+    pub fn significant_digits<T>(&self) -> usize
+    where
+        T: UnsignedPrimitive,
+    {
+        let bytes = mem::size_of::<T>();
+        let bits = bytes * 8;
+
+        let op = self.inner();
+        let size = op.size;
+        if size == 0 {
+            return 0;
+        }
+        let size = size.neg_abs().1;
+        let size_in_base = unsafe { gmp::mpn_sizeinbase(op.d, cast(size), 2) };
+        size_in_base.div_ceil(bits)
     }
 
     /// Returns the number of one bits if the value ≥ 0.
@@ -5141,3 +5357,12 @@ impl InnerMut for Integer {
         &mut self.inner
     }
 }
+
+pub unsafe trait UnsignedPrimitive {}
+unsafe impl UnsignedPrimitive for u8 {}
+unsafe impl UnsignedPrimitive for u16 {}
+unsafe impl UnsignedPrimitive for u32 {}
+unsafe impl UnsignedPrimitive for u64 {}
+unsafe impl UnsignedPrimitive for usize {}
+#[cfg(int_128)]
+unsafe impl UnsignedPrimitive for u128 {}

@@ -51,6 +51,8 @@ mod traits;
 pub use integer::big::{IsPrime, ParseIntegerError};
 pub use integer::small::SmallInteger;
 
+use std::os::raw::c_int;
+
 #[cfg(try_from)]
 /**
 An error which can be returned when a checked conversion from
@@ -77,9 +79,68 @@ pub struct TryFromIntegerError {
     _unused: (),
 }
 
+/**
+The ordering of digits inside a [slice], and bytes inside a digit.
+
+# Examples
+
+```rust
+use rug::Integer;
+use rug::integer::Order;
+
+let i = Integer::from(0x0102_0304);
+let mut buf: [u16; 4] = [0; 4];
+
+// most significant 16-bit digit first, little endian digits
+i.export_digits(Order::MsfLe, &mut buf[..]);
+assert_eq!(buf, [0, 0, 0x0102u16.to_le(), 0x0304u16.to_le()]);
+// least significant 16-bit digit first, big endian digits
+i.export_digits(Order::LsfBe, &mut buf[..]);
+assert_eq!(buf, [0x0304u16.to_be(), 0x0102u16.to_be(), 0, 0]);
+```
+
+[slice]: https://doc.rust-lang.org/std/primitive.slice.html
+*/
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Order {
+    /// Least significant digit first, with each digit in the target’s
+    /// endianness.
+    Lsf,
+    /// Least significant digit first, with little endian digits.
+    LsfLe,
+    /// Least significant digit first, with big endian digits.
+    LsfBe,
+    /// Most significant digit first, with each digit in the target’s
+    /// endianness.
+    Msf,
+    /// Most significant digit first, with little endian digits.
+    MsfLe,
+    /// Most significant digit first, with big endian digits.
+    MsfBe,
+}
+
+impl Order {
+    #[inline]
+    fn order(self) -> c_int {
+        match self {
+            Order::Lsf | Order::LsfLe | Order::LsfBe => -1,
+            Order::Msf | Order::MsfLe | Order::MsfBe => 1,
+        }
+    }
+    #[inline]
+    fn endian(self) -> c_int {
+        match self {
+            Order::Lsf | Order::Msf => 0,
+            Order::LsfLe | Order::MsfLe => -1,
+            Order::LsfBe | Order::MsfBe => 1,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use {Assign, Integer};
+    use integer::Order;
     use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
     #[cfg(int_128)]
@@ -325,5 +386,191 @@ mod tests {
         assert_eq!(format!("{:08X}", i), "-000000B");
         assert_eq!(format!("{:#08x}", i), "-0x0000b");
         assert_eq!(format!("{:#8X}", i), "    -0xB");
+    }
+
+    #[test]
+    fn check_to_u8() {
+        let i = Integer::from(0x01_02_03_04_05_06_07_08u64);
+        assert_eq!(i.significant_digits::<u8>(), 8);
+        let mut buf: [u8; 10] = [0xff; 10];
+
+        i.export_digits(Order::Lsf, &mut buf[..]);
+        assert_eq!(buf, [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]);
+        i.export_digits(Order::LsfLe, &mut buf[..]);
+        assert_eq!(buf, [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]);
+        i.export_digits(Order::LsfBe, &mut buf[..]);
+        assert_eq!(buf, [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]);
+        i.export_digits(Order::Msf, &mut buf[..]);
+        assert_eq!(buf, [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        i.export_digits(Order::MsfLe, &mut buf[..]);
+        assert_eq!(buf, [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        i.export_digits(Order::MsfBe, &mut buf[..]);
+        assert_eq!(buf, [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+
+        let vec: Vec<u8> = i.to_digits(Order::MsfBe);
+        assert_eq!(vec, [1, 2, 3, 4, 5, 6, 7, 8]);
+    }
+
+    #[test]
+    fn check_from_u8() {
+        let mut i = Integer::from_digits(
+            Order::MsfBe,
+            &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+        );
+        assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
+
+        i.import_digits(Order::Lsf, &[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8]);
+        assert_eq!(i, 0x08_07_06_05_04_03_02_01u64);
+        i.import_digits(Order::Msf, &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
+        i.import_digits(Order::LsfLe, &[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8]);
+        assert_eq!(i, 0x08_07_06_05_04_03_02_01u64);
+        i.import_digits(Order::MsfLe, &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
+        i.import_digits(Order::LsfBe, &[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8]);
+        assert_eq!(i, 0x08_07_06_05_04_03_02_01u64);
+        i.import_digits(Order::MsfBe, &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
+    }
+
+    #[test]
+    fn check_to_u16() {
+        let le_0708 = 0x0708u16.to_le();
+        let le_0506 = 0x0506u16.to_le();
+        let le_0304 = 0x0304u16.to_le();
+        let le_0102 = 0x0102u16.to_le();
+        let be_0708 = 0x0708u16.to_be();
+        let be_0506 = 0x0506u16.to_be();
+        let be_0304 = 0x0304u16.to_be();
+        let be_0102 = 0x0102u16.to_be();
+
+        let i = Integer::from(0x0102_0304_0506_0708u64);
+        assert_eq!(i.significant_digits::<u16>(), 4);
+        let mut buf: [u16; 5] = [0xffff; 5];
+
+        i.export_digits(Order::Lsf, &mut buf[..]);
+        assert_eq!(buf, [0x0708, 0x0506, 0x0304, 0x0102, 0]);
+        i.export_digits(Order::LsfLe, &mut buf[..]);
+        assert_eq!(buf, [le_0708, le_0506, le_0304, le_0102, 0]);
+        i.export_digits(Order::LsfBe, &mut buf[..]);
+        assert_eq!(buf, [be_0708, be_0506, be_0304, be_0102, 0]);
+        i.export_digits(Order::Msf, &mut buf[..]);
+        assert_eq!(buf, [0, 0x0102, 0x0304, 0x0506, 0x0708]);
+        i.export_digits(Order::MsfLe, &mut buf[..]);
+        assert_eq!(buf, [0, le_0102, le_0304, le_0506, le_0708]);
+        i.export_digits(Order::MsfBe, &mut buf[..]);
+        assert_eq!(buf, [0, be_0102, be_0304, be_0506, be_0708]);
+
+        let vec: Vec<u16> = i.to_digits(Order::MsfBe);
+        assert_eq!(*vec, [be_0102, be_0304, be_0506, be_0708]);
+    }
+
+    #[test]
+    fn check_from_u16() {
+        let le_0708 = 0x0708u16.to_le();
+        let le_0506 = 0x0506u16.to_le();
+        let le_0304 = 0x0304u16.to_le();
+        let le_0102 = 0x0102u16.to_le();
+        let be_0708 = 0x0708u16.to_be();
+        let be_0506 = 0x0506u16.to_be();
+        let be_0304 = 0x0304u16.to_be();
+        let be_0102 = 0x0102u16.to_be();
+
+        let mut i = Integer::from_digits(
+            Order::MsfBe,
+            &[0u16, be_0102, be_0304, be_0506, be_0708],
+        );
+        assert_eq!(i, 0x0102_0304_0506_0708u64);
+
+        i.import_digits(
+            Order::Lsf,
+            &[0x0102, 0x0304, 0x0506, 0x0708, 0u16],
+        );
+        assert_eq!(i, 0x0708_0506_0304_0102u64);
+        i.import_digits(
+            Order::Msf,
+            &[0u16, 0x0102, 0x0304, 0x0506, 0x0708],
+        );
+        assert_eq!(i, 0x0102_0304_0506_0708u64);
+        i.import_digits(
+            Order::LsfLe,
+            &[le_0102, le_0304, le_0506, le_0708, 0u16],
+        );
+        assert_eq!(i, 0x0708_0506_0304_0102u64);
+        i.import_digits(
+            Order::MsfLe,
+            &[0u16, le_0102, le_0304, le_0506, le_0708],
+        );
+        assert_eq!(i, 0x0102_0304_0506_0708u64);
+        i.import_digits(
+            Order::LsfBe,
+            &[be_0102, be_0304, be_0506, be_0708, 0u16],
+        );
+        assert_eq!(i, 0x0708_0506_0304_0102u64);
+        i.import_digits(
+            Order::MsfBe,
+            &[0u16, be_0102, be_0304, be_0506, be_0708],
+        );
+        assert_eq!(i, 0x0102_0304_0506_0708u64);
+    }
+
+    #[cfg(int_128)]
+    #[test]
+    fn check_to_u128() {
+        let le_2222 = 0x2222u128.to_le();
+        let le_1111 = 0x1111u128.to_le();
+        let be_2222 = 0x2222u128.to_be();
+        let be_1111 = 0x1111u128.to_be();
+
+        let i: Integer = (Integer::from(0x1111) << 256) | 0x2222;
+        assert_eq!(i.significant_digits::<u128>(), 3);
+        let mut buf: [u128; 5] = [0xffff; 5];
+
+        i.export_digits(Order::Lsf, &mut buf[..]);
+        assert_eq!(buf, [0x2222, 0, 0x1111, 0, 0]);
+        i.export_digits(Order::LsfLe, &mut buf[..]);
+        assert_eq!(buf, [le_2222, 0, le_1111, 0, 0]);
+        i.export_digits(Order::LsfBe, &mut buf[..]);
+        assert_eq!(buf, [be_2222, 0, be_1111, 0, 0]);
+        i.export_digits(Order::Msf, &mut buf[..]);
+        assert_eq!(buf, [0, 0, 0x1111, 0, 0x2222]);
+        i.export_digits(Order::MsfLe, &mut buf[..]);
+        assert_eq!(buf, [0, 0, le_1111, 0, le_2222]);
+        i.export_digits(Order::MsfBe, &mut buf[..]);
+        assert_eq!(buf, [0, 0, be_1111, 0, be_2222]);
+
+        let vec: Vec<u128> = i.to_digits(Order::MsfBe);
+        assert_eq!(*vec, [be_1111, 0, be_2222]);
+    }
+
+    #[cfg(int_128)]
+    #[test]
+    fn check_from_u128() {
+        let le_2222 = 0x2222u128.to_le();
+        let le_1111 = 0x1111u128.to_le();
+        let be_2222 = 0x2222u128.to_be();
+        let be_1111 = 0x1111u128.to_be();
+
+        let i102: Integer = (Integer::from(0x1111) << 256) | 0x2222;
+        let i201: Integer = (Integer::from(0x2222) << 256) | 0x1111;
+
+        let mut i = Integer::from_digits(
+            Order::MsfBe,
+            &[0u128, 0, be_1111, 0, be_2222],
+        );
+        assert_eq!(i, i102);
+
+        i.import_digits(Order::Lsf, &[0x1111, 0, 0x2222, 0, 0u128]);
+        assert_eq!(i, i201);
+        i.import_digits(Order::Msf, &[0u128, 0, 0x1111, 0, 0x2222]);
+        assert_eq!(i, i102);
+        i.import_digits(Order::LsfLe, &[le_1111, 0, le_2222, 0, 0u128]);
+        assert_eq!(i, i201);
+        i.import_digits(Order::MsfLe, &[0u128, 0, le_1111, 0, le_2222]);
+        assert_eq!(i, i102);
+        i.import_digits(Order::LsfBe, &[be_1111, 0, be_2222, 0, 0u128]);
+        assert_eq!(i, i201);
+        i.import_digits(Order::MsfBe, &[0u128, 0, be_1111, 0, be_2222]);
+        assert_eq!(i, i102);
     }
 }
