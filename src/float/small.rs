@@ -65,22 +65,22 @@ a *= &*b;
 assert_eq!(a, -15000);
 ```
 
-[`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+[`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
 [`Float`]: ../struct.Float.html
-[`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
-[`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
-[`i128`]: https://doc.rust-lang.org/std/primitive.i128.html
-[`i16`]: https://doc.rust-lang.org/std/primitive.i16.html
-[`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
-[`i64`]: https://doc.rust-lang.org/std/primitive.i64.html
-[`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
-[`isize`]: https://doc.rust-lang.org/std/primitive.isize.html
-[`u128`]: https://doc.rust-lang.org/std/primitive.u128.html
-[`u16`]: https://doc.rust-lang.org/std/primitive.u16.html
-[`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
-[`u8`]: https://doc.rust-lang.org/std/primitive.u8.html
-[`usize`]: https://doc.rust-lang.org/std/primitive.usize.html
+[`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+[`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+[`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
+[`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
+[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
+[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
+[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+[`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
+[`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
+[`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
+[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
+[`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 */
 #[derive(Clone)]
 #[repr(C)]

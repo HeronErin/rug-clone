@@ -632,8 +632,8 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
     ) -> Result<ParseIncomplete, ParseFloatError> {
@@ -695,8 +695,8 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
@@ -852,7 +852,7 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     /// [`Rational`]: struct.Rational.html
-    /// [`TryFrom`]: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
     /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
@@ -885,8 +885,8 @@ impl Float {
     /// assert_eq!(f.to_i32_saturating(), Some(i32::MAX));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating(&self) -> Option<i32> {
         self.to_i32_saturating_round(Round::Nearest)
@@ -907,8 +907,8 @@ impl Float {
     /// assert_eq!(f.to_i32_saturating_round(Round::Up), Some(-13));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
@@ -943,8 +943,8 @@ impl Float {
     /// assert_eq!(f.to_u32_saturating(), Some(u32::MAX));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating(&self) -> Option<u32> {
         self.to_u32_saturating_round(Round::Nearest)
@@ -965,8 +965,8 @@ impl Float {
     /// assert_eq!(f.to_u32_saturating_round(Round::Down), Some(13));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
-    /// [`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
@@ -998,7 +998,7 @@ impl Float {
     /// assert_eq!(f.to_f32(), 0.0);
     /// ```
     ///
-    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
         self.to_f32_round(Round::Nearest)
@@ -1020,7 +1020,7 @@ impl Float {
     /// assert_eq!(f.to_f32_round(Round::Up), 1.0 + f32::EPSILON);
     /// ```
     ///
-    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_round(&self, round: Round) -> f32 {
         unsafe { xmpfr::get_f32(self.inner(), raw_round(round)) }
@@ -1043,7 +1043,7 @@ impl Float {
     /// assert_eq!(f.to_f64(), f64::INFINITY);
     /// ```
     ///
-    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
         self.to_f64_round(Round::Nearest)
@@ -1066,7 +1066,7 @@ impl Float {
     /// assert_eq!(f.to_f64_round(Round::Up), 1.0 + f64::EPSILON);
     /// ```
     ///
-    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_round(&self, round: Round) -> f64 {
         unsafe { mpfr::get_d(self.inner(), raw_round(round)) }
@@ -1092,7 +1092,7 @@ impl Float {
     /// assert_eq!((d3_8, exp3_8), (0.75, -1));
     /// ```
     ///
-    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, i32) {
         self.to_f32_exp_round(Round::Nearest)
@@ -1118,7 +1118,7 @@ impl Float {
     /// assert_eq!((f_up, exp_up), (0.8333334, 2));
     /// ```
     ///
-    /// [`f32`]: https://doc.rust-lang.org/std/primitive.f32.html
+    /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp_round(&self, round: Round) -> (f32, i32) {
         let mut sf = SmallFloat::from(0.0f32);
@@ -1158,7 +1158,7 @@ impl Float {
     /// assert_eq!((d3_8, exp3_8), (0.75, -1));
     /// ```
     ///
-    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, i32) {
         self.to_f64_exp_round(Round::Nearest)
@@ -1184,7 +1184,7 @@ impl Float {
     /// assert_eq!((f_up, exp_up), (0.8333333333333334, 2));
     /// ```
     ///
-    /// [`f64`]: https://doc.rust-lang.org/std/primitive.f64.html
+    /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
@@ -1415,7 +1415,7 @@ impl Float {
     /// assert_eq!(*reneg_f, f);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat {
         let mut ret = BorrowFloat {
@@ -1452,7 +1452,7 @@ impl Float {
     /// assert_eq!(*reabs_f, *abs_f);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat {
         let mut ret = BorrowFloat {
@@ -1512,7 +1512,7 @@ impl Float {
     /// assert!(f.is_integer());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_integer(&self) -> bool {
         unsafe { mpfr::integer_p(self.inner()) != 0 }
@@ -1530,7 +1530,7 @@ impl Float {
     /// assert!(f.is_nan());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_nan(&self) -> bool {
         unsafe { mpfr::nan_p(self.inner()) != 0 }
@@ -1548,7 +1548,7 @@ impl Float {
     /// assert!(f.is_infinite());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_infinite(&self) -> bool {
         unsafe { mpfr::inf_p(self.inner()) != 0 }
@@ -1567,7 +1567,7 @@ impl Float {
     /// assert!(!f.is_finite());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_finite(&self) -> bool {
         unsafe { mpfr::number_p(self.inner()) != 0 }
@@ -1588,7 +1588,7 @@ impl Float {
     /// assert!(!f.is_zero());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_zero(&self) -> bool {
         unsafe { mpfr::zero_p(self.inner()) != 0 }
@@ -1614,7 +1614,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_normal(&self) -> bool {
         unsafe { mpfr::regular_p(self.inner()) != 0 }
@@ -1675,7 +1675,7 @@ impl Float {
     /// assert_eq!(f.cmp0(), None);
     /// ```
     ///
-    /// [`partial_cmp`]: https://doc.rust-lang.org/std/cmp/trait.PartialOrd.html#tymethod.partial_cmp
+    /// [`partial_cmp`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialOrd.html#tymethod.partial_cmp
     #[inline]
     pub fn cmp0(&self) -> Option<Ordering> {
         if self.is_nan() {
@@ -1779,7 +1779,7 @@ impl Float {
     /// assert_eq!(check_int << sig_bits << (check_exp - exp), *significand);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Integer`]: struct.Integer.html
     /// [`get_exp`]: #method.get_exp
     /// [`is_normal`]: #method.is_normal
@@ -1817,7 +1817,7 @@ impl Float {
     /// assert!(!neg.is_sign_positive());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_sign_positive(&self) -> bool {
         !self.is_sign_negative()
@@ -1836,7 +1836,7 @@ impl Float {
     /// assert!(!pos.is_sign_negative());
     /// ```
     ///
-    /// [`true`]: https://doc.rust-lang.org/std/primitive.bool.html
+    /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_sign_negative(&self) -> bool {
         unsafe { mpfr::signbit(self.inner()) != 0 }
@@ -2135,8 +2135,8 @@ impl Float {
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Float`]: struct.Float.html

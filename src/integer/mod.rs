@@ -100,7 +100,7 @@ i.export_digits(Order::LsfBe, &mut buf[..]);
 assert_eq!(buf, [0x0304u16.to_be(), 0x0102u16.to_be(), 0, 0]);
 ```
 
-[slice]: https://doc.rust-lang.org/std/primitive.slice.html
+[slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Order {

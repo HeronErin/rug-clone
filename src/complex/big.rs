@@ -477,8 +477,8 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [`Float::parse`]: struct.Float.html#method.parse
     /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     pub fn parse<S: AsRef<[u8]>>(
         src: S,
     ) -> Result<ParseIncomplete, ParseComplexError> {
@@ -532,8 +532,8 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [`Float::parse_radix`]: struct.Float.html#method.parse_radix
     /// [icv]: index.html#incomplete-computation-values
-    /// [slice]: https://doc.rust-lang.org/std/primitive.slice.html
-    /// [str]: https://doc.rust-lang.org/std/primitive.str.html
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     pub fn parse_radix<S: AsRef<[u8]>>(
         src: S,
         radix: i32,
@@ -898,7 +898,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_neg(&self) -> BorrowComplex {
         // shallow copy
         let mut ret = BorrowComplex {
@@ -941,7 +941,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_conj(&self) -> BorrowComplex {
         let mut ret = BorrowComplex {
             inner: self.inner,
@@ -984,7 +984,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
         let mut inner: mpc_t = unsafe { mem::uninitialized() };
@@ -1059,7 +1059,7 @@ impl Complex {
     /// assert!(!c.eq0());
     /// ```
     ///
-    /// [`eq`]: https://doc.rust-lang.org/std/cmp/trait.PartialEq.html#tymethod.eq
+    /// [`eq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html#tymethod.eq
     #[inline]
     pub fn eq0(&self) -> bool {
         self.real().cmp0() == Some(Ordering::Equal)
@@ -1136,8 +1136,8 @@ impl Complex {
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Complex`]: struct.Complex.html

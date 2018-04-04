@@ -52,8 +52,8 @@ assert_eq!(c2.prec(), (32, 64));
 ```
 
 [`Complex`]: ../struct.Complex.html
-[`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
-[tuple]: https://doc.rust-lang.org/std/primitive.tuple.html
+[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+[tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
 */
 pub trait Prec {
     /// Returns the precision for the real and imaginary parts.

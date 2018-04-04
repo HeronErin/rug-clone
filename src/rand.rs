@@ -191,7 +191,7 @@ impl<'a> RandState<'a> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`new_linear_congruential`]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
         unsafe {
@@ -230,7 +230,7 @@ impl<'a> RandState<'a> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom(custom: &'a mut RandGen) -> RandState<'a> {
         let b: Box<&'a mut RandGen> = Box::new(custom);
@@ -273,7 +273,7 @@ impl<'a> RandState<'a> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom_boxed(custom: Box<RandGen>) -> RandState<'a> {
         let b: Box<Box<RandGen>> = Box::new(custom);
@@ -411,7 +411,7 @@ impl<'a> RandState<'a> {
     /// }
     /// ```
     ///
-    /// [`mem::zeroed`]: https://doc.rust-lang.org/std/mem/fn.zeroed.html
+    /// [`mem::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/fn.zeroed.html
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
@@ -726,7 +726,7 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(second_other, 3232861391);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     #[inline]
     fn boxed_clone(&self) -> Option<Box<RandGen>> {
         None

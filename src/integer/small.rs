@@ -54,12 +54,12 @@ a.lcm_mut(&SmallInteger::from(30));
 assert_eq!(a, 1500);
 ```
 
-[`Deref`]: https://doc.rust-lang.org/std/ops/trait.Deref.html
+[`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
 [`Integer`]: ../struct.Integer.html
-[`i32`]: https://doc.rust-lang.org/std/primitive.i32.html
-[`i8`]: https://doc.rust-lang.org/std/primitive.i8.html
-[`u32`]: https://doc.rust-lang.org/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/std/primitive.u64.html
+[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
+[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 */
 #[derive(Clone)]
 #[repr(C)]
