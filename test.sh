@@ -63,7 +63,7 @@ if [[ "$1" == "-"* ]]; then
 fi
 
 if [ $# == 0 ]; then
-    toolchains=(stable beta nightly 1.18.0)
+    toolchains=(beta stable nightly 1.18.0)
 else
     toolchains=("$@")
 fi
