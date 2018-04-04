@@ -30,7 +30,7 @@ use ops::AssignRound;
 use rational::TryFromFloatError;
 use std::{i32, u32};
 use std::cmp::Ordering;
-#[cfg(try_from)]
+#[cfg(all(try_from, feature = "rational"))]
 use std::convert::TryFrom;
 use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
