@@ -93,10 +93,10 @@ let i = Integer::from(0x0102_0304);
 let mut buf: [u16; 4] = [0; 4];
 
 // most significant 16-bit digit first, little endian digits
-i.export_digits(Order::MsfLe, &mut buf[..]);
+i.write_digits(&mut buf, Order::MsfLe);
 assert_eq!(buf, [0, 0, 0x0102u16.to_le(), 0x0304u16.to_le()]);
 // least significant 16-bit digit first, big endian digits
-i.export_digits(Order::LsfBe, &mut buf[..]);
+i.write_digits(&mut buf, Order::LsfBe);
 assert_eq!(buf, [0x0304u16.to_be(), 0x0102u16.to_be(), 0, 0]);
 ```
 
@@ -390,22 +390,22 @@ mod tests {
     }
 
     #[test]
-    fn check_to_u8() {
+    fn check_to_digits_u8() {
         let i = Integer::from(0x01_02_03_04_05_06_07_08u64);
         assert_eq!(i.significant_digits::<u8>(), 8);
         let mut buf: [u8; 10] = [0xff; 10];
 
-        i.export_digits(Order::Lsf, &mut buf[..]);
+        i.write_digits(&mut buf, Order::Lsf);
         assert_eq!(buf, [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]);
-        i.export_digits(Order::LsfLe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::LsfLe);
         assert_eq!(buf, [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]);
-        i.export_digits(Order::LsfBe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::LsfBe);
         assert_eq!(buf, [8, 7, 6, 5, 4, 3, 2, 1, 0, 0]);
-        i.export_digits(Order::Msf, &mut buf[..]);
+        i.write_digits(&mut buf, Order::Msf);
         assert_eq!(buf, [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
-        i.export_digits(Order::MsfLe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::MsfLe);
         assert_eq!(buf, [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
-        i.export_digits(Order::MsfBe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::MsfBe);
         assert_eq!(buf, [0, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
 
         let vec: Vec<u8> = i.to_digits(Order::MsfBe);
@@ -413,29 +413,29 @@ mod tests {
     }
 
     #[test]
-    fn check_from_u8() {
+    fn check_from_digits_u8() {
         let mut i = Integer::from_digits(
-            Order::MsfBe,
             &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8],
+            Order::MsfBe,
         );
         assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
 
-        i.import_digits(Order::Lsf, &[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8]);
+        i.assign_digits(&[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8], Order::Lsf);
         assert_eq!(i, 0x08_07_06_05_04_03_02_01u64);
-        i.import_digits(Order::Msf, &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        i.assign_digits(&[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8], Order::Msf);
         assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
-        i.import_digits(Order::LsfLe, &[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8]);
+        i.assign_digits(&[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8], Order::LsfLe);
         assert_eq!(i, 0x08_07_06_05_04_03_02_01u64);
-        i.import_digits(Order::MsfLe, &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        i.assign_digits(&[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8], Order::MsfLe);
         assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
-        i.import_digits(Order::LsfBe, &[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8]);
+        i.assign_digits(&[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8], Order::LsfBe);
         assert_eq!(i, 0x08_07_06_05_04_03_02_01u64);
-        i.import_digits(Order::MsfBe, &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8]);
+        i.assign_digits(&[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8], Order::MsfBe);
         assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
     }
 
     #[test]
-    fn check_to_u16() {
+    fn check_to_digits_u16() {
         let le_0708 = 0x0708u16.to_le();
         let le_0506 = 0x0506u16.to_le();
         let le_0304 = 0x0304u16.to_le();
@@ -449,17 +449,17 @@ mod tests {
         assert_eq!(i.significant_digits::<u16>(), 4);
         let mut buf: [u16; 5] = [0xffff; 5];
 
-        i.export_digits(Order::Lsf, &mut buf[..]);
+        i.write_digits(&mut buf, Order::Lsf);
         assert_eq!(buf, [0x0708, 0x0506, 0x0304, 0x0102, 0]);
-        i.export_digits(Order::LsfLe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::LsfLe);
         assert_eq!(buf, [le_0708, le_0506, le_0304, le_0102, 0]);
-        i.export_digits(Order::LsfBe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::LsfBe);
         assert_eq!(buf, [be_0708, be_0506, be_0304, be_0102, 0]);
-        i.export_digits(Order::Msf, &mut buf[..]);
+        i.write_digits(&mut buf, Order::Msf);
         assert_eq!(buf, [0, 0x0102, 0x0304, 0x0506, 0x0708]);
-        i.export_digits(Order::MsfLe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::MsfLe);
         assert_eq!(buf, [0, le_0102, le_0304, le_0506, le_0708]);
-        i.export_digits(Order::MsfBe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::MsfBe);
         assert_eq!(buf, [0, be_0102, be_0304, be_0506, be_0708]);
 
         let vec: Vec<u16> = i.to_digits(Order::MsfBe);
@@ -467,7 +467,7 @@ mod tests {
     }
 
     #[test]
-    fn check_from_u16() {
+    fn check_from_digits_u16() {
         let le_0708 = 0x0708u16.to_le();
         let le_0506 = 0x0506u16.to_le();
         let le_0304 = 0x0304u16.to_le();
@@ -478,46 +478,46 @@ mod tests {
         let be_0102 = 0x0102u16.to_be();
 
         let mut i = Integer::from_digits(
-            Order::MsfBe,
             &[0u16, be_0102, be_0304, be_0506, be_0708],
+            Order::MsfBe,
         );
         assert_eq!(i, 0x0102_0304_0506_0708u64);
 
-        i.import_digits(
-            Order::Lsf,
+        i.assign_digits(
             &[0x0102, 0x0304, 0x0506, 0x0708, 0u16],
+            Order::Lsf,
         );
         assert_eq!(i, 0x0708_0506_0304_0102u64);
-        i.import_digits(
-            Order::Msf,
+        i.assign_digits(
             &[0u16, 0x0102, 0x0304, 0x0506, 0x0708],
+            Order::Msf,
         );
         assert_eq!(i, 0x0102_0304_0506_0708u64);
-        i.import_digits(
-            Order::LsfLe,
+        i.assign_digits(
             &[le_0102, le_0304, le_0506, le_0708, 0u16],
+            Order::LsfLe,
         );
         assert_eq!(i, 0x0708_0506_0304_0102u64);
-        i.import_digits(
-            Order::MsfLe,
+        i.assign_digits(
             &[0u16, le_0102, le_0304, le_0506, le_0708],
+            Order::MsfLe,
         );
         assert_eq!(i, 0x0102_0304_0506_0708u64);
-        i.import_digits(
-            Order::LsfBe,
+        i.assign_digits(
             &[be_0102, be_0304, be_0506, be_0708, 0u16],
+            Order::LsfBe,
         );
         assert_eq!(i, 0x0708_0506_0304_0102u64);
-        i.import_digits(
-            Order::MsfBe,
+        i.assign_digits(
             &[0u16, be_0102, be_0304, be_0506, be_0708],
+            Order::MsfBe,
         );
         assert_eq!(i, 0x0102_0304_0506_0708u64);
     }
 
     #[cfg(int_128)]
     #[test]
-    fn check_to_u128() {
+    fn check_to_digits_u128() {
         let le_2222 = 0x2222u128.to_le();
         let le_1111 = 0x1111u128.to_le();
         let be_2222 = 0x2222u128.to_be();
@@ -527,17 +527,17 @@ mod tests {
         assert_eq!(i.significant_digits::<u128>(), 3);
         let mut buf: [u128; 5] = [0xffff; 5];
 
-        i.export_digits(Order::Lsf, &mut buf[..]);
+        i.write_digits(&mut buf, Order::Lsf);
         assert_eq!(buf, [0x2222, 0, 0x1111, 0, 0]);
-        i.export_digits(Order::LsfLe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::LsfLe);
         assert_eq!(buf, [le_2222, 0, le_1111, 0, 0]);
-        i.export_digits(Order::LsfBe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::LsfBe);
         assert_eq!(buf, [be_2222, 0, be_1111, 0, 0]);
-        i.export_digits(Order::Msf, &mut buf[..]);
+        i.write_digits(&mut buf, Order::Msf);
         assert_eq!(buf, [0, 0, 0x1111, 0, 0x2222]);
-        i.export_digits(Order::MsfLe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::MsfLe);
         assert_eq!(buf, [0, 0, le_1111, 0, le_2222]);
-        i.export_digits(Order::MsfBe, &mut buf[..]);
+        i.write_digits(&mut buf, Order::MsfBe);
         assert_eq!(buf, [0, 0, be_1111, 0, be_2222]);
 
         let vec: Vec<u128> = i.to_digits(Order::MsfBe);
@@ -546,7 +546,7 @@ mod tests {
 
     #[cfg(int_128)]
     #[test]
-    fn check_from_u128() {
+    fn check_from_digits_u128() {
         let le_2222 = 0x2222u128.to_le();
         let le_1111 = 0x1111u128.to_le();
         let be_2222 = 0x2222u128.to_be();
@@ -556,22 +556,22 @@ mod tests {
         let i201: Integer = (Integer::from(0x2222) << 256) | 0x1111;
 
         let mut i = Integer::from_digits(
-            Order::MsfBe,
             &[0u128, 0, be_1111, 0, be_2222],
+            Order::MsfBe,
         );
         assert_eq!(i, i102);
 
-        i.import_digits(Order::Lsf, &[0x1111, 0, 0x2222, 0, 0u128]);
+        i.assign_digits(&[0x1111, 0, 0x2222, 0, 0u128], Order::Lsf);
         assert_eq!(i, i201);
-        i.import_digits(Order::Msf, &[0u128, 0, 0x1111, 0, 0x2222]);
+        i.assign_digits(&[0u128, 0, 0x1111, 0, 0x2222], Order::Msf);
         assert_eq!(i, i102);
-        i.import_digits(Order::LsfLe, &[le_1111, 0, le_2222, 0, 0u128]);
+        i.assign_digits(&[le_1111, 0, le_2222, 0, 0u128], Order::LsfLe);
         assert_eq!(i, i201);
-        i.import_digits(Order::MsfLe, &[0u128, 0, le_1111, 0, le_2222]);
+        i.assign_digits(&[0u128, 0, le_1111, 0, le_2222], Order::MsfLe);
         assert_eq!(i, i102);
-        i.import_digits(Order::LsfBe, &[be_1111, 0, be_2222, 0, 0u128]);
+        i.assign_digits(&[be_1111, 0, be_2222, 0, 0u128], Order::LsfBe);
         assert_eq!(i, i201);
-        i.import_digits(Order::MsfBe, &[0u128, 0, be_1111, 0, be_2222]);
+        i.assign_digits(&[0u128, 0, be_1111, 0, be_2222], Order::MsfBe);
         assert_eq!(i, i102);
     }
 }

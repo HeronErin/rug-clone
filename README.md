@@ -33,9 +33,10 @@ option) any later version. See the full text of the [GNU LGPL] and
   * from floating-point primitives to [`Rational`] numbers, and
   * from [`Float`] values to [`Rational`] numbers.
 * A new [`Float::get_significand`] method was added.
-* New methods [`import_digits`], [`export_digits`], [`from_digits`]
-  and [`to_digits`] were added to [`Integer`], providing import/export
-  from/to slices of unsigned integer primitives.
+* New methods [`from_digits`], [`to_digits`], [`assign_digits`],
+  [`write_digits`] and [`significant_digits`] were added to
+  [`Integer`], providing reading from and writing to slices of
+  unsigned integer primitives.
 * A bug in [`Integer::reserve`], which was shrinking the capacity in
   some cases, was fixed.
 
@@ -47,10 +48,10 @@ Details on older releases can be found in [*RELEASES.md*].
 [`Float::get_significand`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.get_significand
 [`Integer::reserve`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.reserve
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
-[`export_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.export_digits
+[`assign_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.assign_digits
 [`from_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.from_digits
-[`import_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.import_digits
 [`to_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.to_digits
+[`write_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.write_digits
 
 ## Quick example
 
