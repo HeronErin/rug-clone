@@ -327,6 +327,7 @@ unsafe impl Sync for Integer {}
 
 #[cfg(test)]
 mod tests {
+    #[cfg(try_from)]
     use std::convert::TryFrom;
 
     #[cfg(try_from)]
