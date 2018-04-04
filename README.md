@@ -50,6 +50,7 @@ Details on older releases can be found in [*RELEASES.md*].
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
 [`assign_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.assign_digits
 [`from_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.from_digits
+[`significant_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.significant_digits
 [`to_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.to_digits
 [`write_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.write_digits
 
