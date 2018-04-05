@@ -355,7 +355,7 @@ macro_rules! conv_ops_cast {
 conv_ops! { i8, mpfr::set_si }
 conv_ops! { i16, mpfr::set_si }
 conv_ops! { i32, mpfr::set_si }
-conv_ops! { i64, xmpfr::set_i64 }
+conv_ops! { i64, mpfr::set_sj }
 #[cfg(target_pointer_width = "32")]
 conv_ops_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
@@ -366,7 +366,7 @@ conv_ops! { i128, xmpfr::set_i128 }
 conv_ops! { u8, mpfr::set_ui }
 conv_ops! { u16, mpfr::set_ui }
 conv_ops! { u32, mpfr::set_ui }
-conv_ops! { u64, xmpfr::set_u64 }
+conv_ops! { u64, mpfr::set_uj }
 #[cfg(target_pointer_width = "32")]
 conv_ops_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
