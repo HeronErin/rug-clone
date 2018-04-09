@@ -408,8 +408,8 @@ impl<'a> RandState<'a> {
     /// ```
     ///
     /// [`mem::zeroed`]: https://doc.rust-lang.org/std/mem/fn.zeroed.html
-    /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
         RandState {
@@ -442,7 +442,7 @@ impl<'a> RandState<'a> {
     /// }
     /// ```
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
@@ -468,7 +468,7 @@ impl<'a> RandState<'a> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&mut self) -> *const randstate_t {
         self.inner()
@@ -499,7 +499,7 @@ impl<'a> RandState<'a> {
     /// }
     /// ```
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         unsafe { self.inner_mut() }

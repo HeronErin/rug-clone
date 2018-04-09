@@ -691,7 +691,7 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
     #[inline]
     pub unsafe fn from_raw(raw: mpq_t) -> Self {
@@ -723,7 +723,7 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn into_raw(self) -> mpq_t {
         let ret = self.inner;
@@ -755,7 +755,7 @@ impl Rational {
     /// }
     /// ```
     ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpq_t {
         self.inner()
@@ -784,7 +784,7 @@ impl Rational {
     /// }
     /// ```
     ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpq_t {
         unsafe { self.inner_mut() }

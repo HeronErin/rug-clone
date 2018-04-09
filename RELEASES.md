@@ -3,6 +3,8 @@ Version 1.0.2 (unreleased)
 
 * Bug fix: `Integer::reserve` was shrinking the allocation in some
   cases.
+* Bug fix: Change gmp-mpfr-sys dependency from caret to tilde, since
+  Rug uses internal implementation details.
 
 Version 1.0.1 (2018-03-10)
 ==========================
