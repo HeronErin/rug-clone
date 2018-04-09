@@ -31,6 +31,9 @@ pub unsafe fn mpz_set_u128(rop: *mut mpz_t, u: u128) {
     if u == 0 {
         (*rop).size = 0;
     } else if u <= 0xffff_ffff_ffff_ffff {
+        if (*rop).alloc < 1 {
+            gmp::_mpz_realloc(rop, 1);
+        }
         (*rop).size = 1;
         *limb_mut(rop, 0) = u as u64;
     } else {
@@ -48,6 +51,9 @@ pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
     if u == 0 {
         (*rop).size = 0;
     } else {
+        if (*rop).alloc < 1 {
+            gmp::_mpz_realloc(rop, 1);
+        }
         (*rop).size = 1;
         *limb_mut(rop, 0) = u;
     }
@@ -58,6 +64,9 @@ pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
     if u == 0 {
         (*rop).size = 0;
     } else {
+        if (*rop).alloc < 1 {
+            gmp::_mpz_realloc(rop, 1);
+        }
         (*rop).size = 1;
         *limb_mut(rop, 0) = u64::from(u);
     }
