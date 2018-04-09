@@ -31,12 +31,11 @@ option) any later version. See the full text of the [GNU LGPL] and
   to use tilde instead of caret, since Rug uses internal
   implementation details.
 
+[`Integer::reserve`]: https://docs.rs/rug/~1.0/rug/struct.Integer.html#method.reserve
+
 ### Older releases
 
 Details on older releases can be found in [*RELEASES.md*].
-
-[*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
-[`Integer::reserve`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.reserve
 
 ## Quick example
 
@@ -328,6 +327,7 @@ trait and some [other traits][`ops`] are provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: #incomplete-computation-values
+[*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html
