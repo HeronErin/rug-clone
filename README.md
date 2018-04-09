@@ -37,8 +37,6 @@ option) any later version. See the full text of the [GNU LGPL] and
   [`write_digits`] and [`significant_digits`] were added to
   [`Integer`], providing reading from and writing to slices of
   unsigned integer primitives.
-* A bug in [`Integer::reserve`], which was shrinking the capacity in
-  some cases, was fixed.
 
 ### Older releases
 
@@ -46,7 +44,6 @@ Details on older releases can be found in [*RELEASES.md*].
 
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [`Float::get_significand`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.get_significand
-[`Integer::reserve`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.reserve
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
 [`assign_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.assign_digits
 [`from_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.from_digits
@@ -390,7 +387,7 @@ the crate.
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
-[sys gnu]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-gnulinux
-[sys mac]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-macos
-[sys win]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html#building-on-windows
-[sys]: https://docs.rs/gmp-mpfr-sys/^1.1/gmp_mpfr_sys/index.html
+[sys gnu]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-gnulinux
+[sys mac]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-macos
+[sys win]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html#building-on-windows
+[sys]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html

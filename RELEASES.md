@@ -10,8 +10,14 @@ Version 1.1.0 (unreleased)
 * Add `Integer::from_digits`, `Integer::to_digits`,
   `Integer::assign_digits`, `Integer::write_digits` and
   `Integer::significant_digits` methods.
+
+Version 1.0.2 (2018-04-09)
+==========================
+
 * Bug fix: `Integer::reserve` was shrinking the allocation in some
   cases.
+* Bug fix: Change gmp-mpfr-sys dependency from caret to tilde, since
+  Rug uses internal implementation details.
 
 Version 1.0.1 (2018-03-10)
 ==========================

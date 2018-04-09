@@ -655,7 +655,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }
@@ -690,7 +690,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn into_raw(self) -> mpc_t {
         let ret = self.inner;
@@ -726,7 +726,7 @@ impl Complex {
     /// }
     /// ```
     ///
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpc_t {
         self.inner()
@@ -755,7 +755,7 @@ impl Complex {
     /// }
     /// ```
     ///
-    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/1.1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
+    /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpc_t {
         unsafe { self.inner_mut() }
