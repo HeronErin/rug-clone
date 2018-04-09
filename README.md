@@ -38,11 +38,6 @@ option) any later version. See the full text of the [GNU LGPL] and
   [`Integer`], providing reading from and writing to slices of
   unsigned integer primitives.
 
-### Older releases
-
-Details on older releases can be found in [*RELEASES.md*].
-
-[*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [`Float::get_significand`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.get_significand
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
 [`assign_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.assign_digits
@@ -50,6 +45,10 @@ Details on older releases can be found in [*RELEASES.md*].
 [`significant_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.significant_digits
 [`to_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.to_digits
 [`write_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.write_digits
+
+### Older releases
+
+Details on older releases can be found in [*RELEASES.md*].
 
 ## Quick example
 
@@ -343,6 +342,7 @@ the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: #incomplete-computation-values
+[*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html
