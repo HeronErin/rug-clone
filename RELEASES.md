@@ -1,4 +1,4 @@
-Version 1.0.2 (unreleased)
+Version 1.0.2 (2018-04-09)
 ==========================
 
 * Bug fix: `Integer::reserve` was shrinking the allocation in some

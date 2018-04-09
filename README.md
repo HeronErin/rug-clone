@@ -21,6 +21,23 @@ Free Software Foundation, either version 3 of the License, or (at your
 option) any later version. See the full text of the [GNU LGPL] and
 [GNU GPL] for details.
 
+## What’s new
+
+### Version 1.0.2 news
+
+* A bug in [`Integer::reserve`], which was shrinking the capacity in
+  some cases, was fixed.
+* The [gmp-mpfr-sys][sys crate] dependency in [*Cargo.toml*] was fixed
+  to use tilde instead of caret, since Rug uses internal
+  implementation details.
+
+### Older releases
+
+Details on older releases can be found in [*RELEASES.md*].
+
+[*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
+[`Integer::reserve`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.reserve
+
 ## Quick example
 
 ```rust
