@@ -46,9 +46,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`to_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.to_digits
 [`write_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.write_digits
 
-### Older releases
+### Other releases
 
-Details on older releases can be found in [*RELEASES.md*].
+Details on other releases can be found in [*RELEASES.md*].
 
 ## Quick example
 
@@ -103,8 +103,8 @@ Rug types and primitives. The following are provided:
    assignments using the [`Assign`] trait are supported for all the
    primitives in 1 above as well as the other primitives [`i8`],
    [`i16`], [`i64`], [`isize`], [`u8`], [`u16`], [`u64`] and
-   [`usize`]. (This also applies to [`i128`] and [`u128`] if they are
-   supported by the compiler.)
+   [`usize`]. This also applies to [`i128`] and [`u128`] if they are
+   supported by the compiler.
 3. Comparisons between Rug types and all the primitives listed in 1
    and 2 above are supported.
 4. For [`Rational`] numbers, conversions and comparisons are also
