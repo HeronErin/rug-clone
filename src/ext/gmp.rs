@@ -855,59 +855,61 @@ pub unsafe fn mpz_divexact_ui_check(
 
 #[inline]
 pub unsafe fn mpz_si_pow_ui(rop: *mut mpz_t, base: c_long, exp: c_ulong) {
-    if base >= 0 {
-        gmp::mpz_ui_pow_ui(rop, base as c_ulong, exp);
-    } else {
-        gmp::mpz_ui_pow_ui(rop, base.wrapping_neg() as c_ulong, exp);
-        if (exp & 1) == 1 {
-            (*rop).size = -(*rop).size;
-        }
+    let (base_neg, base_abs) = base.neg_abs();
+    gmp::mpz_ui_pow_ui(rop, base_abs, exp);
+    if base_neg && (exp & 1) == 1 {
+        gmp::mpz_neg(rop, rop);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_add_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_add_ui(rop, op1, op2 as c_ulong);
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        gmp::mpz_add_ui(rop, op1, op2_abs);
     } else {
-        gmp::mpz_sub_ui(rop, op1, op2.wrapping_neg() as c_ulong);
+        gmp::mpz_sub_ui(rop, op1, op2_abs);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_sub_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_sub_ui(rop, op1, op2 as c_ulong);
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        gmp::mpz_sub_ui(rop, op1, op2_abs);
     } else {
-        gmp::mpz_add_ui(rop, op1, op2.wrapping_neg() as c_ulong);
+        gmp::mpz_add_ui(rop, op1, op2_abs);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_si_sub(rop: *mut mpz_t, op1: c_long, op2: *const mpz_t) {
-    if op1 >= 0 {
-        gmp::mpz_ui_sub(rop, op1 as c_ulong, op2);
+    let (op1_neg, op1_abs) = op1.neg_abs();
+    if !op1_neg {
+        gmp::mpz_ui_sub(rop, op1_abs, op2);
     } else {
         gmp::mpz_neg(rop, op2);
-        gmp::mpz_sub_ui(rop, rop, op1.wrapping_neg() as c_ulong);
+        gmp::mpz_sub_ui(rop, rop, op1_abs);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_lshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_mul_2exp(rop, op1, op2 as c_ulong);
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        gmp::mpz_mul_2exp(rop, op1, op2_abs);
     } else {
-        gmp::mpz_fdiv_q_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
+        gmp::mpz_fdiv_q_2exp(rop, op1, op2_abs);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_fdiv_q_2exp(rop, op1, op2 as c_ulong);
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        gmp::mpz_fdiv_q_2exp(rop, op1, op2_abs);
     } else {
-        gmp::mpz_mul_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
+        gmp::mpz_mul_2exp(rop, op1, op2_abs);
     }
 }
 
@@ -1171,19 +1173,21 @@ pub unsafe fn mpz_fits_i16(op: *const mpz_t) -> bool {
 
 #[inline]
 pub unsafe fn mpz_addmul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_addmul_ui(rop, op1, op2 as c_ulong);
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        gmp::mpz_addmul_ui(rop, op1, op2_abs);
     } else {
-        gmp::mpz_submul_ui(rop, op1, op2.wrapping_neg() as c_ulong);
+        gmp::mpz_submul_ui(rop, op1, op2_abs);
     }
 }
 
 #[inline]
 pub unsafe fn mpz_submul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    if op2 >= 0 {
-        gmp::mpz_submul_ui(rop, op1, op2 as c_ulong);
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        gmp::mpz_submul_ui(rop, op1, op2_abs);
     } else {
-        gmp::mpz_addmul_ui(rop, op1, op2.wrapping_neg() as c_ulong);
+        gmp::mpz_addmul_ui(rop, op1, op2_abs);
     }
 }
 
@@ -1379,10 +1383,11 @@ mod rational {
         op1: *const mpq_t,
         op2: c_long,
     ) {
-        if op2 >= 0 {
-            gmp::mpq_mul_2exp(rop, op1, op2 as c_ulong);
+        let (op2_neg, op2_abs) = op2.neg_abs();
+        if !op2_neg {
+            gmp::mpq_mul_2exp(rop, op1, op2_abs);
         } else {
-            gmp::mpq_div_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
+            gmp::mpq_div_2exp(rop, op1, op2_abs);
         }
     }
 
@@ -1392,10 +1397,11 @@ mod rational {
         op1: *const mpq_t,
         op2: c_long,
     ) {
-        if op2 >= 0 {
-            gmp::mpq_div_2exp(rop, op1, op2 as c_ulong);
+        let (op2_neg, op2_abs) = op2.neg_abs();
+        if !op2_neg {
+            gmp::mpq_div_2exp(rop, op1, op2_abs);
         } else {
-            gmp::mpq_mul_2exp(rop, op1, op2.wrapping_neg() as c_ulong);
+            gmp::mpq_mul_2exp(rop, op1, op2_abs);
         }
     }
 
@@ -1411,13 +1417,14 @@ mod rational {
 
     #[inline]
     pub unsafe fn mpq_pow_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
-        if op2 < 0 {
-            assert_ne!(gmp::mpq_sgn(op1), 0, "division by zero");
-            mpq_pow_ui(rop, op1, op2.wrapping_neg() as c_ulong);
-            gmp::mpq_inv(rop, rop);
+        let (op2_neg, op2_abs) = op2.neg_abs();
+        if !op2_neg {
+            mpq_pow_ui(rop, op1, op2_abs);
         } else {
-            mpq_pow_ui(rop, op1, op2 as c_ulong);
-        };
+            assert_ne!(gmp::mpq_sgn(op1), 0, "division by zero");
+            mpq_pow_ui(rop, op1, op2_abs);
+            gmp::mpq_inv(rop, rop);
+        }
     }
 
     #[inline]
