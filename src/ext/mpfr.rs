@@ -25,6 +25,7 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::Inner;
 #[cfg(feature = "integer")]
 use inner::InnerMut;
+use misc::NegAbs;
 #[cfg(feature = "integer")]
 use std::cmp;
 use std::mem;
@@ -338,6 +339,28 @@ pub unsafe fn si_pow(
 ) -> c_int {
     let small = SmallFloat::from(op1);
     mpfr::pow(rop, (*small).inner(), op2, rnd)
+}
+
+#[inline]
+pub unsafe fn si_pow_ui(
+    rop: *mut mpfr_t,
+    op1: c_long,
+    op2: c_ulong,
+    rnd: mpfr::rnd_t,
+) -> c_int {
+    let (op1_neg, op1_abs) = op1.neg_abs();
+    if !op1_neg || (op2 & 1) == 0 {
+        mpfr::ui_pow_ui(rop, op1_abs, op2, rnd)
+    } else {
+        let reverse_rnd = match rnd {
+            mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
+            mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
+            unchanged => unchanged,
+        };
+        let reverse_ord = mpfr::ui_pow_ui(rop, op1_abs, op2, reverse_rnd);
+        (*rop).sign = -(*rop).sign;
+        -reverse_ord
+    }
 }
 
 #[inline]

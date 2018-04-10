@@ -2704,6 +2704,50 @@ impl Float {
         self * mul - sub_mul1 * sub_mul2
     }
 
+    math_op0! {
+        /// Raises `base` to the power of `exponent`.
+        ///
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let p = Float::u_pow_u(13, 6);
+        /// let f = Float::with_val(53, p);
+        /// assert_eq!(f, 13u32.pow(6));
+        /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
+    }
+    math_op0! {
+        /// Raises `base` to the power of `exponent`.
+        ///
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let p = Float::i_pow_u(-13, 5);
+        /// let f = Float::with_val(53, p);
+        /// assert_eq!(f, -13i32.pow(5));
+        /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
+    }
     math_op1_float! {
         mpfr::sqr;
         /// Computes the square, rounding to the nearest.
@@ -7830,6 +7874,12 @@ where
     }
 }
 
+ref_math_op0_float! {
+    mpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 }
+}
+ref_math_op0_float! {
+    xmpfr::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 }
+}
 ref_math_op1_float! { mpfr::sqr; struct SquareIncomplete {} }
 ref_math_op1_float! { mpfr::sqrt; struct SqrtIncomplete {} }
 ref_math_op0_float! { mpfr::sqrt_ui; struct SqrtUIncomplete { u: u32 } }

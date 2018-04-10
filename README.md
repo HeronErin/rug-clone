@@ -33,12 +33,15 @@ option) any later version. See the full text of the [GNU LGPL] and
   * from floating-point primitives to [`Rational`] numbers, and
   * from [`Float`] values to [`Rational`] numbers.
 * A new [`Float::get_significand`] method was added.
+* New methods [`Float::u_pow_u`] and [`Float::i_pow_u`] were added.
 * New methods [`from_digits`], [`to_digits`], [`assign_digits`],
   [`write_digits`] and [`significant_digits`] were added to
   [`Integer`], providing reading from and writing to slices of
   unsigned integer primitives.
 
 [`Float::get_significand`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.get_significand
+[`Float::i_pow_u`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.i_pow_u
+[`Float::u_pow_u`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.u_pow_u
 [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
 [`assign_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.assign_digits
 [`from_digits`]: https://docs.rs/rug/~1.1/rug/struct.Integer.html#method.from_digits
