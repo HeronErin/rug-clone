@@ -1,4 +1,4 @@
-Version 1.1.0 (unreleased)
+Version 1.1.0 (2018-04-23)
 ==========================
 
 * Add `i128` and `u128` support, conditional on compiler support.

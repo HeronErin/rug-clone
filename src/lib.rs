@@ -395,7 +395,7 @@ the crate.
 [sys]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html
 */
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/~1.0")]
+#![doc(html_root_url = "https://docs.rs/rug/~1.1")]
 #![doc(test(attr(deny(warnings))))]
 
 #[cfg(any(feature = "integer", feature = "float"))]
