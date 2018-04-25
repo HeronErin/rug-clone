@@ -508,7 +508,7 @@ fn _static_assertions() {
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
-    #[cfg(any(feature = "rational", feature = "float"))]
+    #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
     use std::{f32, f64};
     #[cfg(int_128)]
     use std::{i128, u128};
@@ -582,7 +582,7 @@ mod tests {
         u64::MAX as i128 + 1,
         i128::MAX,
     ];
-    #[cfg(any(feature = "rational", feature = "float"))]
+    #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
     pub const F32: &[f32] = &[
         -f32::NAN,
         f32::NEG_INFINITY,
@@ -605,7 +605,7 @@ mod tests {
         f32::INFINITY,
         f32::NAN,
     ];
-    #[cfg(any(feature = "rational", feature = "float"))]
+    #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
     pub const F64: &[f64] = &[
         -f64::NAN,
         f64::NEG_INFINITY,
