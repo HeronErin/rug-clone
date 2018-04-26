@@ -1422,7 +1422,7 @@ impl Float {
             inner: self.inner,
             phantom: PhantomData,
         };
-        ret.inner.sign.neg_assign();
+        NegAssign::neg_assign(&mut ret.inner.sign);
         if self.is_nan() {
             unsafe {
                 mpfr::set_nanflag();
