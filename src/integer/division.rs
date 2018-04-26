@@ -821,15 +821,21 @@ mod tests {
                 }
                 if *b != 0 {
                     assert_eq!(
-                        op.div_trunc(b.clone()),
+                        DivRounding::div_trunc(op, b.clone()),
                         iop.clone().div_trunc(b)
                     );
-                    assert_eq!(op.div_ceil(b.clone()), iop.clone().div_ceil(b));
                     assert_eq!(
-                        op.div_floor(b.clone()),
+                        DivRounding::div_ceil(op, b.clone()),
+                        iop.clone().div_ceil(b)
+                    );
+                    assert_eq!(
+                        DivRounding::div_floor(op, b.clone()),
                         iop.clone().div_floor(b)
                     );
-                    assert_eq!(op.div_euc(b.clone()), iop.clone().div_euc(b));
+                    assert_eq!(
+                        DivRounding::div_euc(op, b.clone()),
+                        iop.clone().div_euc(b)
+                    );
                 }
             }
         }
@@ -853,15 +859,21 @@ mod tests {
                 }
                 if *b != 0 {
                     assert_eq!(
-                        op.div_trunc(b.clone()),
+                        DivRounding::div_trunc(op, b.clone()),
                         iop.clone().div_trunc(b)
                     );
-                    assert_eq!(op.div_ceil(b.clone()), iop.clone().div_ceil(b));
                     assert_eq!(
-                        op.div_floor(b.clone()),
+                        DivRounding::div_ceil(op, b.clone()),
+                        iop.clone().div_ceil(b)
+                    );
+                    assert_eq!(
+                        DivRounding::div_floor(op, b.clone()),
                         iop.clone().div_floor(b)
                     );
-                    assert_eq!(op.div_euc(b.clone()), iop.clone().div_euc(b));
+                    assert_eq!(
+                        DivRounding::div_euc(op, b.clone()),
+                        iop.clone().div_euc(b)
+                    );
                 }
             }
         }
@@ -908,15 +920,21 @@ mod tests {
                 }
                 if *b != 0 {
                     assert_eq!(
-                        op.rem_trunc(b.clone()),
+                        RemRounding::rem_trunc(op, b.clone()),
                         iop.clone().rem_trunc(b)
                     );
-                    assert_eq!(op.rem_ceil(b.clone()), iop.clone().rem_ceil(b));
                     assert_eq!(
-                        op.rem_floor(b.clone()),
+                        RemRounding::rem_ceil(op, b.clone()),
+                        iop.clone().rem_ceil(b)
+                    );
+                    assert_eq!(
+                        RemRounding::rem_floor(op, b.clone()),
                         iop.clone().rem_floor(b)
                     );
-                    assert_eq!(op.rem_euc(b.clone()), iop.clone().rem_euc(b));
+                    assert_eq!(
+                        RemRounding::rem_euc(op, b.clone()),
+                        iop.clone().rem_euc(b)
+                    );
                 }
             }
         }
@@ -940,15 +958,21 @@ mod tests {
                 }
                 if *b != 0 {
                     assert_eq!(
-                        op.rem_trunc(b.clone()),
+                        RemRounding::rem_trunc(op, b.clone()),
                         iop.clone().rem_trunc(b)
                     );
-                    assert_eq!(op.rem_ceil(b.clone()), iop.clone().rem_ceil(b));
                     assert_eq!(
-                        op.rem_floor(b.clone()),
+                        RemRounding::rem_ceil(op, b.clone()),
+                        iop.clone().rem_ceil(b)
+                    );
+                    assert_eq!(
+                        RemRounding::rem_floor(op, b.clone()),
                         iop.clone().rem_floor(b)
                     );
-                    assert_eq!(op.rem_euc(b.clone()), iop.clone().rem_euc(b));
+                    assert_eq!(
+                        RemRounding::rem_euc(op, b.clone()),
+                        iop.clone().rem_euc(b)
+                    );
                 }
             }
         }

@@ -906,12 +906,8 @@ impl Complex {
             phantom: PhantomData,
         };
         unsafe {
-            (*mpc::realref(&mut ret.inner))
-                .sign
-                .neg_assign();
-            (*mpc::imagref(&mut ret.inner))
-                .sign
-                .neg_assign();
+            NegAssign::neg_assign(&mut (*mpc::realref(&mut ret.inner)).sign);
+            NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
             if self.real().is_nan() || self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
@@ -948,9 +944,7 @@ impl Complex {
             phantom: PhantomData,
         };
         unsafe {
-            (*mpc::imagref(&mut ret.inner))
-                .sign
-                .neg_assign();
+            NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
             if self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
@@ -992,9 +986,9 @@ impl Complex {
             let mut dst_re = ptr::read(self.imag().inner());
             let mut dst_im = ptr::read(self.real().inner());
             if negative {
-                dst_im.sign.neg_assign();
+                NegAssign::neg_assign(&mut dst_im.sign);
             } else {
-                dst_re.sign.neg_assign();
+                NegAssign::neg_assign(&mut dst_re.sign);
             }
             ptr::write(mpc::realref(&mut inner), dst_re);
             ptr::write(mpc::imagref(&mut inner), dst_im);
