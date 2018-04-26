@@ -14,16 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Complex};
 use ext::mpfr as xmpfr;
-use float::SmallFloat;
 use float::small::{CopyToSmall, Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
+use float::SmallFloat;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
+use {Assign, Complex};
 
 /**
 A small complex number that does not require any memory allocation.
@@ -232,7 +232,7 @@ where
 }
 
 macro_rules! impl_assign_re_im {
-    ($Re: ty; $($Im: ty)*) => { $(
+    ($Re:ty; $($Im:ty)*) => { $(
         impl Assign<($Re, $Im)> for SmallComplex {
             #[inline]
             fn assign(&mut self, src: ($Re, $Im)) {
@@ -245,7 +245,7 @@ macro_rules! impl_assign_re_im {
 }
 
 macro_rules! impl_assign_re {
-    ($($Re: ty)*) => { $(
+    ($($Re:ty)*) => { $(
         impl Assign<($Re)> for SmallComplex {
             #[inline]
             fn assign(&mut self, src: $Re) {

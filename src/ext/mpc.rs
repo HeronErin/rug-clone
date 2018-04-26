@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Complex;
 use complex::SmallComplex;
 #[cfg(feature = "rational")]
 use ext::mpfr as xmpfr;
@@ -25,6 +24,7 @@ use gmp_mpfr_sys::mpfr;
 use inner::Inner;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
+use Complex;
 
 #[inline]
 pub unsafe fn mul_i(
@@ -46,7 +46,7 @@ pub unsafe fn recip(
 }
 
 macro_rules! into_forward {
-    (fn $name: ident($T: ty) -> $func: path) => {
+    (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
         pub unsafe fn $name(
             rop: *mut mpc_t,
@@ -60,7 +60,7 @@ macro_rules! into_forward {
 }
 
 macro_rules! into_reverse {
-    (fn $name: ident($T: ty) -> $func: path) => {
+    (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
         pub unsafe fn $name(
             rop: *mut mpc_t,
@@ -74,7 +74,7 @@ macro_rules! into_reverse {
 }
 
 macro_rules! sum_forward {
-    (fn $name: ident($T: ty) -> $func: path) => {
+    (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
         pub unsafe fn $name(
             rop: *mut mpc_t,
@@ -101,7 +101,7 @@ macro_rules! sum_forward {
 }
 
 macro_rules! sub_reverse {
-    (fn $name: ident($T: ty) -> $func: path) => {
+    (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
         pub unsafe fn $name(
             rop: *mut mpc_t,
@@ -128,7 +128,7 @@ macro_rules! sub_reverse {
 }
 
 macro_rules! prod_forward {
-    (fn $name: ident($T: ty) -> $func: path) => {
+    (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
         pub unsafe fn $name(
             rop: *mut mpc_t,
@@ -156,7 +156,7 @@ macro_rules! prod_forward {
 }
 
 macro_rules! div_reverse {
-    (fn $name: ident($T: ty) -> $func: path) => {
+    (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
         pub unsafe fn $name(
             rop: *mut mpc_t,

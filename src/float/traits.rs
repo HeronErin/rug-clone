@@ -14,21 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Float};
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
+use float::big::{self, ordering1, raw_round};
 use float::{Constant, ParseFloatError, Round, Special};
-use float::big::{self, raw_round, ordering1};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
 use ops::AssignRound;
 #[cfg(all(try_from, feature = "rational"))]
 use rational::TryFromFloatError;
-use std::{i32, u32};
 use std::cmp::Ordering;
 #[cfg(all(try_from, feature = "rational"))]
 use std::convert::TryFrom;
@@ -36,6 +30,12 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
+use std::{i32, u32};
+#[cfg(feature = "integer")]
+use Integer;
+#[cfg(feature = "rational")]
+use Rational;
+use {Assign, Float};
 
 impl Clone for Float {
     #[inline]
@@ -286,7 +286,7 @@ impl<'a> AssignRound<&'a Float> for Float {
 
 #[cfg(feature = "integer")]
 macro_rules! assign {
-    ($T: ty, $func: path) => {
+    ($T:ty, $func:path) => {
         impl<'a> AssignRound<&'a $T> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -316,7 +316,7 @@ assign! { Integer, mpfr::set_z }
 assign! { Rational, mpfr::set_q }
 
 macro_rules! conv_ops {
-    ($T: ty, $set: path) => {
+    ($T:ty, $set:path) => {
         impl AssignRound<$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -334,7 +334,7 @@ macro_rules! conv_ops {
 }
 
 macro_rules! conv_ops_cast {
-    ($New: ty, $Existing: ty) => {
+    ($New:ty, $Existing:ty) => {
         impl AssignRound<$New> for Float {
             type Round = Round;
             type Ordering = Ordering;
@@ -438,9 +438,9 @@ mod tests {
     #[cfg(all(try_from, feature = "rational"))]
     #[test]
     fn check_fallible_conversions() {
-        use {Float, Rational};
         use float::Special;
         use std::convert::TryFrom;
+        use {Float, Rational};
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

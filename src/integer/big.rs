@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Assign;
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
@@ -24,7 +23,6 @@ use misc::{self, NegAbs};
 use ops::DivRounding;
 #[cfg(feature = "rand")]
 use rand::RandState;
-use std::{i32, u32};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::CString;
@@ -34,6 +32,8 @@ use std::ops::Deref;
 use std::os::raw::{c_char, c_int, c_long, c_void};
 use std::ptr;
 use std::slice;
+use std::{i32, u32};
+use Assign;
 
 /**
 An arbitrary-precision integer.

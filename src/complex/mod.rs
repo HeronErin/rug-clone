@@ -84,10 +84,10 @@ impl Prec for (u32, u32) {
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Complex};
-    use float::Special;
     use float::tests::Cmp;
+    use float::Special;
     use std::f64;
+    use {Assign, Complex};
 
     #[test]
     fn check_from_str() {

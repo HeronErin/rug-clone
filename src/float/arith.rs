@@ -14,25 +14,25 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Float;
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 use ext::mpfr as xmpfr;
+use float::big::{ordering1, raw_round};
 use float::Round;
-use float::big::{raw_round, ordering1};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
 use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
           DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
           NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
           SubAssignRound, SubFrom, SubFromRound};
-use std::{i32, u32};
 use std::cmp::Ordering;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
                ShlAssign, Shr, ShrAssign, Sub, SubAssign};
 use std::os::raw::c_int;
+use std::{i32, u32};
+use Float;
+#[cfg(feature = "integer")]
+use Integer;
+#[cfg(feature = "rational")]
+use Rational;
 
 impl Neg for Float {
     type Output = Float;
@@ -86,22 +86,22 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
 
 macro_rules! arith_binary_self_float {
     (
-        $func: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $ImpAssignRound: ident $method_assign_round: ident;
-        $ImpFrom: ident $method_from: ident;
-        $ImpFromRound: ident $method_from_round: ident;
-        $Incomplete: ident
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpAssignRound:ident { $method_assign_round:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $ImpFromRound:ident { $method_from_round:ident }
+        $Incomplete:ident
     ) => {
         arith_binary_self_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
-            $ImpAssignRound $method_assign_round;
-            $ImpFrom $method_from;
-            $ImpFromRound $method_from_round;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $ImpAssignRound { $method_assign_round }
+            $ImpFrom { $method_from }
+            $ImpFromRound { $method_from_round }
             $Incomplete
         }
     };
@@ -110,21 +110,22 @@ macro_rules! arith_binary_self_float {
 #[cfg(feature = "integer")]
 macro_rules! arith_forward_float {
     (
-        $func: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $ImpAssignRound: ident $method_assign_round: ident;
-        $T: ty;
-        $Incomplete: ident $OwnedIncomplete: ident
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpAssignRound:ident { $method_assign_round:ident }
+        $T:ty;
+        $Incomplete:ident,
+        $OwnedIncomplete:ident
     ) => {
         arith_forward_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
-            $ImpAssignRound $method_assign_round;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $ImpAssignRound { $method_assign_round }
             $T;
-            $Incomplete $OwnedIncomplete
+            $Incomplete, $OwnedIncomplete
         }
     };
 }
@@ -132,25 +133,26 @@ macro_rules! arith_forward_float {
 #[cfg(feature = "integer")]
 macro_rules! arith_commut_float {
     (
-        $func: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $ImpAssignRound: ident $method_assign_round: ident;
-        $ImpFrom: ident $method_from: ident;
-        $ImpFromRound: ident $method_from_round: ident;
-        $T: ty;
-        $Incomplete: ident $OwnedIncomplete: ident
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpAssignRound:ident { $method_assign_round:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $ImpFromRound:ident { $method_from_round:ident }
+        $T:ty;
+        $Incomplete:ident,
+        $OwnedIncomplete:ident
     ) => {
         arith_commut_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
-            $ImpAssignRound $method_assign_round;
-            $ImpFrom $method_from;
-            $ImpFromRound $method_from_round;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $ImpAssignRound { $method_assign_round }
+            $ImpFrom { $method_from }
+            $ImpFromRound { $method_from_round }
             $T;
-            $Incomplete $OwnedIncomplete
+            $Incomplete, $OwnedIncomplete
         }
     };
 }
@@ -158,193 +160,196 @@ macro_rules! arith_commut_float {
 #[cfg(feature = "integer")]
 macro_rules! arith_noncommut_float {
     (
-        $func: path, $func_from: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $ImpAssignRound: ident $method_assign_round: ident;
-        $ImpFrom: ident $method_from: ident;
-        $ImpFromRound: ident $method_from_round: ident;
-        $T: ty;
-        $Incomplete: ident $FromIncomplete: ident;
-        $OwnedIncomplete: ident $FromOwnedIncomplete: ident
+        $func:path,
+        $func_from:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpAssignRound:ident { $method_assign_round:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $ImpFromRound:ident { $method_from_round:ident }
+        $T:ty;
+        $Incomplete:ident,
+        $FromIncomplete:ident;
+        $OwnedIncomplete:ident,
+        $FromOwnedIncomplete:ident
     ) => {
         arith_noncommut_round! {
             Float, Round => Ordering;
             $func, $func_from, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
-            $ImpAssignRound $method_assign_round;
-            $ImpFrom $method_from;
-            $ImpFromRound $method_from_round;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $ImpAssignRound { $method_assign_round }
+            $ImpFrom { $method_from }
+            $ImpFromRound { $method_from_round }
             $T;
-            $Incomplete $FromIncomplete;
-            $OwnedIncomplete $FromOwnedIncomplete
+            $Incomplete, $FromIncomplete;
+            $OwnedIncomplete, $FromOwnedIncomplete
         }
     };
 }
 
 arith_binary_self_float! {
     mpfr::add;
-    Add add;
-    AddAssign add_assign;
-    AddAssignRound add_assign_round;
-    AddFrom add_from;
-    AddFromRound add_from_round;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
     AddIncomplete
 }
 arith_binary_self_float! {
     mpfr::sub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubAssignRound sub_assign_round;
-    SubFrom sub_from;
-    SubFromRound sub_from_round;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
     SubIncomplete
 }
 arith_binary_self_float! {
     mpfr::mul;
-    Mul mul;
-    MulAssign mul_assign;
-    MulAssignRound mul_assign_round;
-    MulFrom mul_from;
-    MulFromRound mul_from_round;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulAssignRound { mul_assign_round }
+    MulFrom { mul_from }
+    MulFromRound { mul_from_round }
     MulIncomplete
 }
 arith_binary_self_float! {
     mpfr::div;
-    Div div;
-    DivAssign div_assign;
-    DivAssignRound div_assign_round;
-    DivFrom div_from;
-    DivFromRound div_from_round;
+    Div { div }
+    DivAssign { div_assign }
+    DivAssignRound { div_assign_round }
+    DivFrom { div_from }
+    DivFromRound { div_from_round }
     DivIncomplete
 }
 arith_binary_self_float! {
     mpfr::pow;
-    Pow pow;
-    PowAssign pow_assign;
-    PowAssignRound pow_assign_round;
-    PowFrom pow_from;
-    PowFromRound pow_from_round;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
+    PowFrom { pow_from }
+    PowFromRound { pow_from_round }
     PowIncomplete
 }
 
 #[cfg(feature = "integer")]
 arith_commut_float! {
     mpfr::add_z;
-    Add add;
-    AddAssign add_assign;
-    AddAssignRound add_assign_round;
-    AddFrom add_from;
-    AddFromRound add_from_round;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
     Integer;
-    AddIntegerIncomplete AddOwnedIntegerIncomplete
+    AddIntegerIncomplete, AddOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_noncommut_float! {
     mpfr::sub_z, mpfr::z_sub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubAssignRound sub_assign_round;
-    SubFrom sub_from;
-    SubFromRound sub_from_round;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
     Integer;
-    SubIntegerIncomplete SubFromIntegerIncomplete;
-    SubOwnedIntegerIncomplete SubFromOwnedIntegerIncomplete
+    SubIntegerIncomplete, SubFromIntegerIncomplete;
+    SubOwnedIntegerIncomplete, SubFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_commut_float! {
     mpfr::mul_z;
-    Mul mul;
-    MulAssign mul_assign;
-    MulAssignRound mul_assign_round;
-    MulFrom mul_from;
-    MulFromRound mul_from_round;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulAssignRound { mul_assign_round }
+    MulFrom { mul_from }
+    MulFromRound { mul_from_round }
     Integer;
-    MulIntegerIncomplete MulOwnedIntegerIncomplete
+    MulIntegerIncomplete, MulOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_noncommut_float! {
     mpfr::div_z, xmpfr::z_div;
-    Div div;
-    DivAssign div_assign;
-    DivAssignRound div_assign_round;
-    DivFrom div_from;
-    DivFromRound div_from_round;
+    Div { div }
+    DivAssign { div_assign }
+    DivAssignRound { div_assign_round }
+    DivFrom { div_from }
+    DivFromRound { div_from_round }
     Integer;
-    DivIntegerIncomplete DivFromIntegerIncomplete;
-    DivOwnedIntegerIncomplete DivFromOwnedIntegerIncomplete
+    DivIntegerIncomplete, DivFromIntegerIncomplete;
+    DivOwnedIntegerIncomplete, DivFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_forward_float! {
     mpfr::pow_z;
-    Pow pow;
-    PowAssign pow_assign;
-    PowAssignRound pow_assign_round;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
     Integer;
-    PowIntegerIncomplete PowOwnedIntegerIncomplete
+    PowIntegerIncomplete, PowOwnedIntegerIncomplete
 }
 
 #[cfg(feature = "rational")]
 arith_commut_float! {
     mpfr::add_q;
-    Add add;
-    AddAssign add_assign;
-    AddAssignRound add_assign_round;
-    AddFrom add_from;
-    AddFromRound add_from_round;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
     Rational;
-    AddRationalIncomplete AddOwnedRationalIncomplete
+    AddRationalIncomplete, AddOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
 arith_noncommut_float! {
     mpfr::sub_q, xmpfr::q_sub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubAssignRound sub_assign_round;
-    SubFrom sub_from;
-    SubFromRound sub_from_round;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
     Rational;
-    SubRationalIncomplete SubFromRationalIncomplete;
-    SubOwnedRationalIncomplete SubFromOwnedRationalIncomplete
+    SubRationalIncomplete, SubFromRationalIncomplete;
+    SubOwnedRationalIncomplete, SubFromOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
 arith_commut_float! {
     mpfr::mul_q;
-    Mul mul;
-    MulAssign mul_assign;
-    MulAssignRound mul_assign_round;
-    MulFrom mul_from;
-    MulFromRound mul_from_round;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulAssignRound { mul_assign_round }
+    MulFrom { mul_from }
+    MulFromRound { mul_from_round }
     Rational;
-    MulRationalIncomplete MulOwnedRationalIncomplete
+    MulRationalIncomplete, MulOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
 arith_noncommut_float! {
     mpfr::div_q, xmpfr::q_div;
-    Div div;
-    DivAssign div_assign;
-    DivAssignRound div_assign_round;
-    DivFrom div_from;
-    DivFromRound div_from_round;
+    Div { div }
+    DivAssign { div_assign }
+    DivAssignRound { div_assign_round }
+    DivFrom { div_from }
+    DivFromRound { div_from_round }
     Rational;
-    DivRationalIncomplete DivFromRationalIncomplete;
-    DivOwnedRationalIncomplete DivFromOwnedRationalIncomplete
+    DivRationalIncomplete, DivFromRationalIncomplete;
+    DivOwnedRationalIncomplete, DivFromOwnedRationalIncomplete
 }
 
 macro_rules! arith_prim_exact_float {
     (
-        $func: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $T: ty;
-        $Incomplete: ident
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $T:ty;
+        $Incomplete:ident
     ) => {
         arith_prim_exact_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
             $T;
             $Incomplete
         }
@@ -353,23 +358,23 @@ macro_rules! arith_prim_exact_float {
 
 macro_rules! arith_prim_commut_float {
     (
-        $func: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $ImpAssignRound: ident $method_assign_round: ident;
-        $ImpFrom: ident $method_from: ident;
-        $ImpFromRound: ident $method_from_round: ident;
-        $T: ty;
-        $Incomplete: ident
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpAssignRound:ident { $method_assign_round:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $ImpFromRound:ident { $method_from_round:ident }
+        $T:ty;
+        $Incomplete:ident
     ) => {
         arith_prim_commut_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
-            $ImpAssignRound $method_assign_round;
-            $ImpFrom $method_from;
-            $ImpFromRound $method_from_round;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $ImpAssignRound { $method_assign_round }
+            $ImpFrom { $method_from }
+            $ImpFromRound { $method_from_round }
             $T;
             $Incomplete
         }
@@ -378,78 +383,88 @@ macro_rules! arith_prim_commut_float {
 
 macro_rules! arith_prim_noncommut_float {
     (
-        $func: path, $func_from: path;
-        $Imp: ident $method: ident;
-        $ImpAssign: ident $method_assign: ident;
-        $ImpAssignRound: ident $method_assign_round: ident;
-        $ImpFrom: ident $method_from: ident;
-        $ImpFromRound: ident $method_from_round: ident;
-        $T: ty;
-        $Incomplete: ident $FromIncomplete: ident
+        $func:path,
+        $func_from:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpAssignRound:ident { $method_assign_round:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $ImpFromRound:ident { $method_from_round:ident }
+        $T:ty;
+        $Incomplete:ident,
+        $FromIncomplete:ident
     ) => {
         arith_prim_noncommut_round! {
             Float, Round => Ordering;
             $func, $func_from, raw_round => ordering1;
-            $Imp $method;
-            $ImpAssign $method_assign;
-            $ImpAssignRound $method_assign_round;
-            $ImpFrom $method_from;
-            $ImpFromRound $method_from_round;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $ImpAssignRound { $method_assign_round }
+            $ImpFrom { $method_from }
+            $ImpFromRound { $method_from_round }
             $T;
-            $Incomplete $FromIncomplete
+            $Incomplete, $FromIncomplete
         }
     };
 }
 
 macro_rules! arith_ops {
     (
-        $T: ty,
-        ($AddIncomplete: ident $add: path,
-         $SubIncomplete: ident $sub: path,
-         $SubFromIncomplete: ident $sub_from: path),
-        ($MulIncomplete: ident $mul: path,
-         $DivIncomplete: ident $div: path,
-         $DivFromIncomplete: ident $div_from: path)
+        $T:ty,(
+            $AddIncomplete:ident
+            $add:path,
+            $SubIncomplete:ident
+            $sub:path,
+            $SubFromIncomplete:ident
+            $sub_from:path
+        ),(
+            $MulIncomplete:ident
+            $mul:path,
+            $DivIncomplete:ident
+            $div:path,
+            $DivFromIncomplete:ident
+            $div_from:path
+        )
     ) => {
         arith_prim_commut_float! {
             $add;
-            Add add;
-            AddAssign add_assign;
-            AddAssignRound add_assign_round;
-            AddFrom add_from;
-            AddFromRound add_from_round;
+            Add { add }
+            AddAssign { add_assign }
+            AddAssignRound { add_assign_round }
+            AddFrom { add_from }
+            AddFromRound { add_from_round }
             $T;
             $AddIncomplete
         }
         arith_prim_noncommut_float! {
             $sub, $sub_from;
-            Sub sub;
-            SubAssign sub_assign;
-            SubAssignRound sub_assign_round;
-            SubFrom sub_from;
-            SubFromRound sub_from_round;
+            Sub { sub }
+            SubAssign { sub_assign }
+            SubAssignRound { sub_assign_round }
+            SubFrom { sub_from }
+            SubFromRound { sub_from_round }
             $T;
-            $SubIncomplete $SubFromIncomplete
+            $SubIncomplete, $SubFromIncomplete
         }
         arith_prim_commut_float! {
             $mul;
-            Mul mul;
-            MulAssign mul_assign;
-            MulAssignRound mul_assign_round;
-            MulFrom mul_from;
-            MulFromRound mul_from_round;
+            Mul { mul }
+            MulAssign { mul_assign }
+            MulAssignRound { mul_assign_round }
+            MulFrom { mul_from }
+            MulFromRound { mul_from_round }
             $T;
             $MulIncomplete
         }
         arith_prim_noncommut_float! {
             $div, $div_from;
-            Div div;
-            DivAssign div_assign;
-            DivAssignRound div_assign_round;
-            DivFrom div_from;
-            DivFromRound div_from_round;
+            Div { div }
+            DivAssign { div_assign }
+            DivAssignRound { div_assign_round }
+            DivFrom { div_from }
+            DivFromRound { div_from_round }
             $T;
-            $DivIncomplete $DivFromIncomplete
+            $DivIncomplete, $DivFromIncomplete
         }
     };
 }
@@ -493,94 +508,94 @@ arith_ops! {
 
 arith_prim_exact_float! {
     mpfr::mul_2ui;
-    Shl shl;
-    ShlAssign shl_assign;
+    Shl { shl }
+    ShlAssign { shl_assign }
     u32;
     ShlU32Incomplete
 }
 arith_prim_exact_float! {
     mpfr::div_2ui;
-    Shr shr;
-    ShrAssign shr_assign;
+    Shr { shr }
+    ShrAssign { shr_assign }
     u32;
     ShrU32Incomplete
 }
 arith_prim_noncommut_float! {
     mpfr::pow_ui, mpfr::ui_pow;
-    Pow pow;
-    PowAssign pow_assign;
-    PowAssignRound pow_assign_round;
-    PowFrom pow_from;
-    PowFromRound pow_from_round;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
+    PowFrom { pow_from }
+    PowFromRound { pow_from_round }
     u32;
-    PowU32Incomplete PowFromU32Incomplete
+    PowU32Incomplete, PowFromU32Incomplete
 }
 arith_prim_exact_float! {
     mpfr::mul_2si;
-    Shl shl;
-    ShlAssign shl_assign;
+    Shl { shl }
+    ShlAssign { shl_assign }
     i32;
     ShlI32Incomplete
 }
 arith_prim_exact_float! {
     mpfr::div_2si;
-    Shr shr;
-    ShrAssign shr_assign;
+    Shr { shr }
+    ShrAssign { shr_assign }
     i32;
     ShrI32Incomplete
 }
 arith_prim_noncommut_float! {
     mpfr::pow_si, xmpfr::si_pow;
-    Pow pow;
-    PowAssign pow_assign;
-    PowAssignRound pow_assign_round;
-    PowFrom pow_from;
-    PowFromRound pow_from_round;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
+    PowFrom { pow_from }
+    PowFromRound { pow_from_round }
     i32;
-    PowI32Incomplete PowFromI32Incomplete
+    PowI32Incomplete, PowFromI32Incomplete
 }
 arith_prim_noncommut_float! {
     xmpfr::pow_f64, xmpfr::f64_pow;
-    Pow pow;
-    PowAssign pow_assign;
-    PowAssignRound pow_assign_round;
-    PowFrom pow_from;
-    PowFromRound pow_from_round;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
+    PowFrom { pow_from }
+    PowFromRound { pow_from_round }
     f64;
-    PowF64Incomplete PowFromF64Incomplete
+    PowF64Incomplete, PowFromF64Incomplete
 }
 arith_prim_noncommut_float! {
     xmpfr::pow_f32, xmpfr::f32_pow;
-    Pow pow;
-    PowAssign pow_assign;
-    PowAssignRound pow_assign_round;
-    PowFrom pow_from;
-    PowFromRound pow_from_round;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
+    PowFrom { pow_from }
+    PowFromRound { pow_from_round }
     f32;
-    PowF32Incomplete PowFromF32Incomplete
+    PowF32Incomplete, PowFromF32Incomplete
 }
 
 mul_op_commut_round! {
     Float, Round => Ordering;
     add_mul, raw_round => ordering1;
-    Add add;
-    AddAssign add_assign;
-    AddAssignRound add_assign_round;
-    AddFrom add_from;
-    AddFromRound add_from_round;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
     MulIncomplete;
     AddMulIncomplete
 }
 mul_op_noncommut_round! {
     Float, Round => Ordering;
     sub_mul, mul_sub, raw_round => ordering1;
-    Sub sub;
-    SubAssign sub_assign;
-    SubAssignRound sub_assign_round;
-    SubFrom sub_from;
-    SubFromRound sub_from_round;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
     MulIncomplete;
-    SubMulIncomplete SubMulFromIncomplete
+    SubMulIncomplete, SubMulFromIncomplete
 }
 
 impl<'a> Add for MulIncomplete<'a> {
@@ -694,15 +709,15 @@ unsafe fn mul_sub(
 
 #[cfg(test)]
 pub(crate) mod tests {
+    use float::Special;
+    use ops::Pow;
+    #[cfg(feature = "integer")]
+    use std::str::FromStr;
     use Float;
     #[cfg(feature = "integer")]
     use Integer;
     #[cfg(feature = "rational")]
     use Rational;
-    use float::Special;
-    use ops::Pow;
-    #[cfg(feature = "integer")]
-    use std::str::FromStr;
 
     pub fn same(a: Float, b: Float) -> bool {
         if a.is_nan() && b.is_nan() {
@@ -718,7 +733,7 @@ pub(crate) mod tests {
     }
 
     macro_rules! test_ref_op {
-        ($first: expr, $second: expr) => {
+        ($first:expr, $second:expr) => {
             assert_eq!(
                 Float::with_val(53, $first),
                 $second,

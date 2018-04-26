@@ -14,19 +14,19 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use cast::cast;
+use ext::mpfr as xmpfr;
+use float::big::ordering1;
+use float::Special;
+use gmp_mpfr_sys::mpfr;
+use inner::Inner;
+use std::cmp::Ordering;
+use std::{i32, u32};
 use Float;
 #[cfg(feature = "integer")]
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use cast::cast;
-use ext::mpfr as xmpfr;
-use float::Special;
-use float::big::ordering1;
-use gmp_mpfr_sys::mpfr;
-use inner::Inner;
-use std::{i32, u32};
-use std::cmp::Ordering;
 
 impl PartialEq for Float {
     #[inline]
@@ -71,7 +71,7 @@ impl PartialOrd for Float {
 }
 
 macro_rules! cmp {
-    ($T: ty) => {
+    ($T:ty) => {
         impl PartialEq<$T> for Float {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -99,7 +99,7 @@ macro_rules! cmp {
 }
 
 macro_rules! cmp_i {
-    ($T: ty, $eval: expr) => {
+    ($T:ty, $eval:expr) => {
         cmp! { $T }
 
         impl PartialOrd<$T> for Float {
@@ -116,7 +116,7 @@ macro_rules! cmp_i {
 }
 
 macro_rules! cmp_f {
-    ($T: ty, $eval: expr) => {
+    ($T:ty, $eval:expr) => {
         cmp! { $T }
 
         impl PartialOrd<$T> for Float {
@@ -194,14 +194,14 @@ impl PartialOrd<Special> for Float {
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Float};
+    use float::Special;
+    #[cfg(feature = "integer")]
+    use std::str::FromStr;
     #[cfg(feature = "integer")]
     use Integer;
     #[cfg(feature = "rational")]
     use Rational;
-    use float::Special;
-    #[cfg(feature = "integer")]
-    use std::str::FromStr;
+    use {Assign, Float};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Float])
     where

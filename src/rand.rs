@@ -24,7 +24,6 @@ Random number generation.
 // initialize all the fields. So we must use mem::zeroed rather than
 // mem::uninitialized, otherwise we may have uninitialized memory
 // which can eventually lead to undefined behaviour.
-use Integer;
 use cast::cast;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use inner::{Inner, InnerMut};
@@ -35,6 +34,7 @@ use std::os::raw::{c_int, c_ulong, c_void};
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
 use std::ptr;
+use Integer;
 
 /**
 The state of a random number generator.
@@ -762,7 +762,7 @@ struct Funcs {
 
 #[cfg(not(ffi_panic_aborts))]
 macro_rules! c_callback {
-    ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
+    ($(fn $func:ident($($param:tt)*) $body:block)*) => { $(
         unsafe extern "C" fn $func($($param)*) {
             panic::catch_unwind(AssertUnwindSafe(|| $body))
                 .unwrap_or_else(|_| process::abort())
@@ -772,7 +772,7 @@ macro_rules! c_callback {
 
 #[cfg(ffi_panic_aborts)]
 macro_rules! c_callback {
-    ($(fn $func: ident($($param: tt)*) $body: block)*) => { $(
+    ($(fn $func:ident($($param:tt)*) $body:block)*) => { $(
         unsafe extern "C" fn $func($($param)*) $body
     )* };
 }

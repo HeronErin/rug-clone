@@ -197,7 +197,7 @@ pub(crate) trait CopyToSmall: Copy {
 }
 
 macro_rules! signed {
-    ($($I: ty)*) => { $(
+    ($($I:ty)*) => { $(
         impl CopyToSmall for $I {
             #[inline]
             fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
@@ -212,7 +212,7 @@ macro_rules! signed {
 }
 
 macro_rules! one_limb {
-    ($($U: ty)*) => { $(
+    ($($U:ty)*) => { $(
         impl CopyToSmall for $U {
             #[inline]
             fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
@@ -312,7 +312,7 @@ impl CopyToSmall for usize {
 }
 
 macro_rules! impl_assign_from {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl Assign<$T> for SmallInteger {
             #[inline]
             fn assign(&mut self, src: $T) {

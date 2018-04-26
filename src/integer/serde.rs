@@ -14,10 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
+use {Assign, Integer};
 
 impl Serialize for Integer {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -82,8 +82,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Integer};
     use cast::cast;
+    use {Assign, Integer};
 
     fn assert(a: &Integer, b: &Integer) {
         assert_eq!(a, b);

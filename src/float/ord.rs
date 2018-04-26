@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Float;
 use cast::cast;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
@@ -22,6 +21,7 @@ use inner::Inner;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::slice;
+use Float;
 
 /**
 A float that supports total ordering and hashing.
@@ -197,10 +197,10 @@ impl From<OrdFloat> for Float {
 
 #[cfg(test)]
 mod tests {
-    use Float;
     use float::Special;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
+    use Float;
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();

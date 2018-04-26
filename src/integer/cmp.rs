@@ -14,12 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Integer;
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::Inner;
 use std::cmp::Ordering;
+use Integer;
 
 impl Eq for Integer {}
 
@@ -46,7 +46,7 @@ impl PartialOrd for Integer {
 }
 
 macro_rules! cmp {
-    ($T: ty, $func: path) => {
+    ($T:ty, $func:path) => {
         impl PartialEq<$T> for Integer {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -82,7 +82,7 @@ macro_rules! cmp {
 }
 
 macro_rules! cmp_cast {
-    ($New: ty, $Existing: ty) => {
+    ($New:ty, $Existing:ty) => {
         impl PartialEq<$New> for Integer {
             #[inline]
             fn eq(&self, other: &$New) -> bool {
@@ -187,13 +187,13 @@ impl PartialOrd<Integer> for f64 {
 
 #[cfg(test)]
 mod tests {
-    use Integer;
-    use std::{f32, f64};
     use std::cmp::Ordering;
     use std::ops::Neg;
+    use std::{f32, f64};
     #[cfg(int_128)]
     use tests::{I128, U128};
     use tests::{I32, I64, U32, U64};
+    use Integer;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
     where
