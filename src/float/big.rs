@@ -2149,6 +2149,51 @@ impl Float {
         SumIncomplete { values }
     }
 
+    /// Finds the dot product of a list of [`Float`] value pairs with
+    /// correct rounding.
+    ///
+    /// [`Assign<Src> for Float`][`Assign`],
+    /// [`AssignRound<Src> for Float`][`AssignRound`],
+    /// [`AddAssign<Src> for Float`][`AddAssign`],
+    /// [`AddAssignRound<Src> for Float`][`AddAssignRound`] and
+    /// [`Add<Src> for Float`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Float;
+    ///
+    /// let a = [
+    ///     Float::with_val(53, 2.75),
+    ///     Float::with_val(53, -1.25),
+    /// ];
+    /// let b = [
+    ///     Float::with_val(53, 10.5),
+    ///     Float::with_val(53, 0.5),
+    /// ];
+    ///
+    /// let r = Float::dot(a.iter().zip(b.iter()));
+    /// let dot = Float::with_val(53, r);
+    /// let expected = 2.75 * 10.5 - 1.25 * 0.5;
+    /// assert_eq!(dot, expected);
+    /// ```
+    ///
+    /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
+    where
+        I: Iterator<Item = (&'a Self, &'a Self)>,
+    {
+        DotIncomplete { values }
+    }
+
     /// Multiplies and adds in one fused operation, rounding to the
     /// nearest with only one rounding error.
     ///
@@ -7871,6 +7916,82 @@ where
         let ret =
             unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
+    }
+}
+
+#[derive(Debug)]
+pub struct DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    values: I,
+}
+
+fn exact_prods<'a, I>(i: I) -> Vec<Float>
+where
+    I: Iterator<Item = (&'a Float, &'a Float)>,
+{
+    i.map(|(a, b)| {
+        let prec = a.prec()
+            .checked_add(b.prec())
+            .expect("overflow");
+        Float::with_val(prec, a * b)
+    }).collect()
+}
+
+impl<'a, I> AssignRound<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn assign_round(
+        &mut self,
+        src: DotIncomplete<'a, I>,
+        round: Round,
+    ) -> Ordering {
+        let prods = exact_prods(src.values);
+        let sum = Float::sum(prods.iter());
+        self.assign_round(sum, round)
+    }
+}
+
+impl<'a, I> Add<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Output = Self;
+    #[inline]
+    fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.add_assign_round(rhs, Round::Nearest);
+        self
+    }
+}
+
+impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: DotIncomplete<'a, I>) {
+        self.add_assign_round(rhs, Round::Nearest);
+    }
+}
+
+impl<'a, I> AddAssignRound<DotIncomplete<'a, I>> for Float
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round;
+    type Ordering = Ordering;
+    fn add_assign_round(
+        &mut self,
+        src: DotIncomplete<'a, I>,
+        round: Round,
+    ) -> Ordering {
+        let prods = exact_prods(src.values);
+        let sum = Float::sum(prods.iter());
+        self.add_assign_round(sum, round)
     }
 }
 

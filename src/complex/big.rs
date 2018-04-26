@@ -1150,6 +1150,51 @@ impl Complex {
         SumIncomplete { values }
     }
 
+    /// Finds the dot product of a list of [`Complex`] numbers pairs
+    /// with correct rounding.
+    ///
+    /// [`Assign<Src> for Complex`][`Assign`],
+    /// [`AssignRound<Src> for Complex`][`AssignRound`],
+    /// [`AddAssign<Src> for Complex`][`AddAssign`],
+    /// [`AddAssignRound<Src> for Complex`][`AddAssignRound`] and
+    /// [`Add<Src> for Complex`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    ///
+    /// let a = [
+    ///     Complex::with_val(53, (5.0, 10.25)),
+    ///     Complex::with_val(53, (10.25, 5.0)),
+    /// ];
+    /// let b = [
+    ///     Complex::with_val(53, (-2.75, -11.5)),
+    ///     Complex::with_val(53, (-4.5, 16.0)),
+    /// ];
+    ///
+    /// let r = Complex::dot(a.iter().zip(b.iter()));
+    /// let dot = Complex::with_val(53, r);
+    /// let expected = Complex::with_val(53, &a[0] * &b[0]) + &a[1] * &b[1];
+    /// assert_eq!(dot, expected);
+    /// ```
+    ///
+    /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AssignRound`]: ops/trait.AssignRound.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
+    where
+        I: Iterator<Item = (&'a Self, &'a Self)>,
+    {
+        DotIncomplete { values }
+    }
+
     /// Multiplies and adds in one fused operation, rounding to the
     /// nearest with only one rounding error.
     ///
@@ -3411,6 +3456,103 @@ where
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
+    }
+}
+
+#[derive(Debug)]
+pub struct DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    values: I,
+}
+
+fn exact_prod(a: &Complex, b: &Complex) -> (Complex, Complex) {
+    let (ar, ai) = (a.real(), a.imag());
+    let (br, bi) = (b.real(), b.imag());
+    let (arp, aip) = (ar.prec(), ai.prec());
+    let (brp, bip) = (br.prec(), bi.prec());
+    let xrp = arp.checked_add(brp).expect("overflow");
+    let xip = arp.checked_add(bip).expect("overflow");
+    let yrp = aip.checked_add(bip).expect("overflow");
+    let yip = aip.checked_add(brp).expect("overflow");
+    let x = Complex::with_val((xrp, xip), (ar * br, ar * bi));
+    let mut y = Complex::with_val((yrp, yip), (ai * bi, ai * br));
+    y.mut_real().neg_assign();
+    (x, y)
+}
+
+fn exact_prods<'a, I>(i: I) -> Vec<Complex>
+where
+    I: Iterator<Item = (&'a Complex, &'a Complex)>,
+{
+    let capacity = match i.size_hint() {
+        (lower, None) => lower,
+        (_, Some(upper)) => upper,
+    };
+    let capacity = capacity.checked_mul(2).expect("overflow");
+    let mut v = Vec::with_capacity(capacity);
+    for (a, b) in i {
+        let (x, y) = exact_prod(a, b);
+        v.push(x);
+        v.push(y);
+    }
+    v
+}
+
+impl<'a, I> AssignRound<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn assign_round(
+        &mut self,
+        src: DotIncomplete<'a, I>,
+        round: Round2,
+    ) -> Ordering2 {
+        let prods = exact_prods(src.values);
+        let sum = Complex::sum(prods.iter());
+        self.assign_round(sum, round)
+    }
+}
+
+impl<'a, I> Add<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Output = Self;
+    #[inline]
+    fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.add_assign_round(rhs, Default::default());
+        self
+    }
+}
+
+impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    #[inline]
+    fn add_assign(&mut self, rhs: DotIncomplete<'a, I>) {
+        self.add_assign_round(rhs, Default::default());
+    }
+}
+
+impl<'a, I> AddAssignRound<DotIncomplete<'a, I>> for Complex
+where
+    I: Iterator<Item = (&'a Self, &'a Self)>,
+{
+    type Round = Round2;
+    type Ordering = Ordering2;
+    fn add_assign_round(
+        &mut self,
+        src: DotIncomplete<'a, I>,
+        round: Round2,
+    ) -> Ordering2 {
+        let prods = exact_prods(src.values);
+        let sum = Complex::sum(prods.iter());
+        self.add_assign_round(sum, round)
     }
 }
 
