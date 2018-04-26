@@ -37,8 +37,8 @@ pub use float::big::ParseFloatError;
 pub use float::ord::OrdFloat;
 pub use float::small::SmallFloat;
 use gmp_mpfr_sys::mpfr;
-use std::{i32, u32};
 use std::mem;
+use std::{i32, u32};
 
 /**
 Returns the minimum value for the exponent.
@@ -259,7 +259,6 @@ pub enum Special {
 
 #[cfg(test)]
 pub(crate) mod tests {
-    use {Assign, Float};
     use float::{Round, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
     #[cfg(feature = "rand")]
@@ -267,6 +266,7 @@ pub(crate) mod tests {
     use std::cmp::Ordering;
     use std::f64;
     use std::fmt::{Debug, Error as FmtError, Formatter};
+    use {Assign, Float};
 
     #[derive(Clone, Copy)]
     pub enum Cmp {

@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
@@ -24,163 +23,172 @@ use std::iter::{Product, Sum};
 use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
                BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
                Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use {Assign, Integer};
 
 arith_unary! {
-    Integer; gmp::mpz_neg; Neg neg; NegAssign neg_assign; NegIncomplete
+    Integer;
+    gmp::mpz_neg;
+    Neg { neg }
+    NegAssign { neg_assign }
+    NegIncomplete
 }
 arith_binary! {
     Integer;
     gmp::mpz_add;
-    Add add;
-    AddAssign add_assign;
-    AddFrom add_from;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
     AddIncomplete
 }
 arith_binary! {
     Integer;
     gmp::mpz_sub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubFrom sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
     SubIncomplete
 }
 arith_binary! {
     Integer;
     gmp::mpz_mul;
-    Mul mul;
-    MulAssign mul_assign;
-    MulFrom mul_from;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
     MulIncomplete
 }
 arith_binary! {
     Integer;
     xgmp::mpz_tdiv_q_check;
-    Div div;
-    DivAssign div_assign;
-    DivFrom div_from;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
     DivIncomplete
 }
 arith_binary! {
     Integer;
     xgmp::mpz_tdiv_r_check;
-    Rem rem;
-    RemAssign rem_assign;
-    RemFrom rem_from;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemFrom { rem_from }
     RemIncomplete
 }
 arith_unary! {
-    Integer; gmp::mpz_com; Not not; NotAssign not_assign; NotIncomplete
+    Integer;
+    gmp::mpz_com;
+    Not { not }
+    NotAssign { not_assign }
+    NotIncomplete
 }
 arith_binary! {
     Integer;
     gmp::mpz_and;
-    BitAnd bitand;
-    BitAndAssign bitand_assign;
-    BitAndFrom bitand_from;
+    BitAnd { bitand }
+    BitAndAssign { bitand_assign }
+    BitAndFrom { bitand_from }
     BitAndIncomplete
 }
 arith_binary! {
     Integer;
     gmp::mpz_ior;
-    BitOr bitor;
-    BitOrAssign bitor_assign;
-    BitOrFrom bitor_from;
+    BitOr { bitor }
+    BitOrAssign { bitor_assign }
+    BitOrFrom { bitor_from }
     BitOrIncomplete
 }
 arith_binary! {
     Integer;
     gmp::mpz_xor;
-    BitXor bitxor;
-    BitXorAssign bitxor_assign;
-    BitXorFrom bitxor_from;
+    BitXor { bitxor }
+    BitXorAssign { bitxor_assign }
+    BitXorFrom { bitxor_from }
     BitXorIncomplete
 }
 
 arith_prim_commut! {
     Integer;
     xgmp::mpz_add_si;
-    Add add;
-    AddAssign add_assign;
-    AddFrom add_from;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
     i32;
     AddI32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
     xgmp::mpz_sub_si, xgmp::mpz_si_sub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubFrom sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
     i32;
-    SubI32Incomplete SubFromI32Incomplete
+    SubI32Incomplete, SubFromI32Incomplete
 }
 arith_prim_commut! {
     Integer;
     gmp::mpz_mul_si;
-    Mul mul;
-    MulAssign mul_assign;
-    MulFrom mul_from;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
     i32;
     MulI32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
     xgmp::mpz_tdiv_q_si_check, xgmp::mpz_si_tdiv_q_check;
-    Div div;
-    DivAssign div_assign;
-    DivFrom div_from;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
     i32;
-    DivI32Incomplete DivFromI32Incomplete
+    DivI32Incomplete, DivFromI32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
     xgmp::mpz_tdiv_r_si_check, xgmp::mpz_si_tdiv_r_check;
-    Rem rem;
-    RemAssign rem_assign;
-    RemFrom rem_from;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemFrom { rem_from }
     i32;
-    RemI32Incomplete RemFromI32Incomplete
+    RemI32Incomplete, RemFromI32Incomplete
 }
 arith_prim! {
     Integer;
     xgmp::mpz_lshift_si;
-    Shl shl;
-    ShlAssign shl_assign;
+    Shl { shl }
+    ShlAssign { shl_assign }
     i32;
     ShlI32Incomplete
 }
 arith_prim! {
     Integer;
     xgmp::mpz_rshift_si;
-    Shr shr;
-    ShrAssign shr_assign;
+    Shr { shr }
+    ShrAssign { shr_assign }
     i32;
     ShrI32Incomplete
 }
 arith_prim_commut! {
     Integer;
     xgmp::bitand_si;
-    BitAnd bitand;
-    BitAndAssign bitand_assign;
-    BitAndFrom bitand_from;
+    BitAnd { bitand }
+    BitAndAssign { bitand_assign }
+    BitAndFrom { bitand_from }
     i32;
     BitAndI32Incomplete
 }
 arith_prim_commut! {
     Integer;
     xgmp::bitor_si;
-    BitOr bitor;
-    BitOrAssign bitor_assign;
-    BitOrFrom bitor_from;
+    BitOr { bitor }
+    BitOrAssign { bitor_assign }
+    BitOrFrom { bitor_from }
     i32;
     BitOrI32Incomplete
 }
 arith_prim_commut! {
     Integer;
     xgmp::bitxor_si;
-    BitXor bitxor;
-    BitXorAssign bitxor_assign;
-    BitXorFrom bitxor_from;
+    BitXor { bitxor }
+    BitXorAssign { bitxor_assign }
+    BitXorFrom { bitxor_from }
     i32;
     BitXorI32Incomplete
 }
@@ -188,96 +196,96 @@ arith_prim_commut! {
 arith_prim_commut! {
     Integer;
     gmp::mpz_add_ui;
-    Add add;
-    AddAssign add_assign;
-    AddFrom add_from;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
     u32;
     AddU32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
     gmp::mpz_sub_ui, gmp::mpz_ui_sub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubFrom sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
     u32;
-    SubU32Incomplete SubFromU32Incomplete
+    SubU32Incomplete, SubFromU32Incomplete
 }
 arith_prim_commut! {
     Integer;
     gmp::mpz_mul_ui;
-    Mul mul;
-    MulAssign mul_assign;
-    MulFrom mul_from;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
     u32;
     MulU32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
     xgmp::mpz_tdiv_q_ui_check, xgmp::mpz_ui_tdiv_q_check;
-    Div div;
-    DivAssign div_assign;
-    DivFrom div_from;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
     u32;
-    DivU32Incomplete DivFromU32Incomplete
+    DivU32Incomplete, DivFromU32Incomplete
 }
 arith_prim_noncommut! {
     Integer;
     xgmp::mpz_tdiv_r_ui_check, xgmp::mpz_ui_tdiv_r_check;
-    Rem rem;
-    RemAssign rem_assign;
-    RemFrom rem_from;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemFrom { rem_from }
     u32;
-    RemU32Incomplete RemFromU32Incomplete
+    RemU32Incomplete, RemFromU32Incomplete
 }
 arith_prim! {
     Integer;
     gmp::mpz_mul_2exp;
-    Shl shl;
-    ShlAssign shl_assign;
+    Shl { shl }
+    ShlAssign { shl_assign }
     u32;
     ShlU32Incomplete
 }
 arith_prim! {
     Integer;
     gmp::mpz_fdiv_q_2exp;
-    Shr shr;
-    ShrAssign shr_assign;
+    Shr { shr }
+    ShrAssign { shr_assign }
     u32;
     ShrU32Incomplete
 }
 arith_prim! {
     Integer;
     gmp::mpz_pow_ui;
-    Pow pow;
-    PowAssign pow_assign;
+    Pow { pow }
+    PowAssign { pow_assign }
     u32;
     PowU32Incomplete
 }
 arith_prim_commut! {
     Integer;
     xgmp::bitand_ui;
-    BitAnd bitand;
-    BitAndAssign bitand_assign;
-    BitAndFrom bitand_from;
+    BitAnd { bitand }
+    BitAndAssign { bitand_assign }
+    BitAndFrom { bitand_from }
     u32;
     BitAndU32Incomplete
 }
 arith_prim_commut! {
     Integer;
     xgmp::bitor_ui;
-    BitOr bitor;
-    BitOrAssign bitor_assign;
-    BitOrFrom bitor_from;
+    BitOr { bitor }
+    BitOrAssign { bitor_assign }
+    BitOrFrom { bitor_from }
     u32;
     BitOrU32Incomplete
 }
 arith_prim_commut! {
     Integer;
     xgmp::bitxor_ui;
-    BitXor bitxor;
-    BitXorAssign bitxor_assign;
-    BitXorFrom bitxor_from;
+    BitXor { bitxor }
+    BitXorAssign { bitxor_assign }
+    BitXorFrom { bitxor_from }
     u32;
     BitXorU32Incomplete
 }
@@ -285,66 +293,66 @@ arith_prim_commut! {
 mul_op_commut! {
     Integer;
     gmp::mpz_addmul;
-    Add add;
-    AddAssign add_assign;
-    AddFrom add_from;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
     MulIncomplete, inner;
     AddMulIncomplete
 }
 mul_op_commut! {
     Integer;
     gmp::mpz_addmul_ui;
-    Add add;
-    AddAssign add_assign;
-    AddFrom add_from;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
     MulU32Incomplete, into;
     AddMulU32Incomplete
 }
 mul_op_commut! {
     Integer;
     xgmp::mpz_addmul_si;
-    Add add;
-    AddAssign add_assign;
-    AddFrom add_from;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
     MulI32Incomplete, into;
     AddMulI32Incomplete
 }
 mul_op_noncommut! {
     Integer;
     gmp::mpz_submul, xgmp::mpz_mulsub;
-    Sub sub;
-    SubAssign sub_assign;
-    SubFrom sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
     MulIncomplete, inner;
-    SubMulIncomplete SubMulFromIncomplete
+    SubMulIncomplete, SubMulFromIncomplete
 }
 mul_op_noncommut! {
     Integer;
     gmp::mpz_submul_ui, xgmp::mpz_mulsub_ui;
-    Sub sub;
-    SubAssign sub_assign;
-    SubFrom sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
     MulU32Incomplete, into;
-    SubMulU32Incomplete SubMulFromU32Incomplete
+    SubMulU32Incomplete, SubMulFromU32Incomplete
 }
 mul_op_noncommut! {
     Integer;
     xgmp::mpz_submul_si, xgmp::mpz_mulsub_si;
-    Sub sub;
-    SubAssign sub_assign;
-    SubFrom sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
     MulI32Incomplete, into;
-    SubMulI32Incomplete SubMulFromI32Incomplete
+    SubMulI32Incomplete, SubMulFromI32Incomplete
 }
 
-fold_in_place! { Integer, Sum sum, Integer::new(), AddAssign::add_assign }
-fold! { Integer, Product product, Integer::from(1), Mul::mul }
+fold_in_place! { Integer, Sum { sum }, Integer::new(), AddAssign::add_assign }
+fold! { Integer, Product { product }, Integer::from(1), Mul::mul }
 
 #[cfg(test)]
 mod tests {
-    use Integer;
     use ops::Pow;
     use std::cmp::Ordering;
+    use Integer;
 
     #[test]
     fn check_arith_u_s() {
@@ -421,7 +429,7 @@ mod tests {
     }
 
     macro_rules! test_ref_op {
-        ($first: expr, $second: expr) => {
+        ($first:expr, $second:expr) => {
             assert_eq!(
                 Integer::from($first),
                 $second,

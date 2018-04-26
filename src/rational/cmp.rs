@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Integer, Rational};
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
@@ -22,6 +21,7 @@ use inner::Inner;
 use misc::NegAbs;
 use std::cmp::Ordering;
 use std::i32;
+use {Integer, Rational};
 
 impl Eq for Rational {}
 
@@ -78,7 +78,7 @@ impl PartialOrd<Rational> for Integer {
 }
 
 macro_rules! cmp_rev {
-    ($T: ty) => {
+    ($T:ty) => {
         impl PartialEq<Rational> for $T {
             #[inline]
             fn eq(&self, other: &Rational) -> bool {
@@ -97,7 +97,7 @@ macro_rules! cmp_rev {
 }
 
 macro_rules! cmp_num {
-    ($cmp: path; $($Num: ty)*) => { $(
+    ($cmp:path; $($Num:ty)*) => { $(
         impl PartialEq<$Num> for Rational {
             #[inline]
             fn eq(&self, other: &$Num) -> bool {
@@ -134,7 +134,7 @@ cmp_num! { xgmp::mpq_cmp_u64; usize }
 cmp_num! { xgmp::mpq_cmp_u128; u128 }
 
 macro_rules! cmp_num_iden {
-    ($func: path; $Num: ty; $($Den: ty)*) => { $(
+    ($func:path; $Num:ty; $($Den:ty)*) => { $(
         impl PartialEq<($Num, $Den)> for Rational {
             #[inline]
             fn eq(&self, other: &($Num, $Den)) -> bool {
@@ -179,7 +179,7 @@ macro_rules! cmp_num_iden {
 }
 
 macro_rules! cmp_num_uden {
-    ($func: path; $Num: ty; $($Den: ty)*) => { $(
+    ($func:path; $Num:ty; $($Den:ty)*) => { $(
         impl PartialEq<($Num, $Den)> for Rational {
             #[inline]
             fn eq(&self, other: &($Num, $Den)) -> bool {
@@ -203,7 +203,7 @@ macro_rules! cmp_num_uden {
 }
 
 macro_rules! cmp_inum_32 {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         cmp_num_iden! { gmp::mpq_cmp_si; $Num; i8 i16 i32 }
         cmp_num_iden! { xgmp::mpq_cmp_i64; $Num; i64 }
         #[cfg(target_pointer_width = "32")]
@@ -225,7 +225,7 @@ macro_rules! cmp_inum_32 {
 }
 
 macro_rules! cmp_inum_64 {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         cmp_num_iden! { xgmp::mpq_cmp_i64; $Num; i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         cmp_num_iden! { xgmp::mpq_cmp_i128; $Num; i128 }
@@ -237,14 +237,14 @@ macro_rules! cmp_inum_64 {
 
 #[cfg(int_128)]
 macro_rules! cmp_inum_128 {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         cmp_num_iden! { xgmp::mpq_cmp_i128; $Num; i8 i16 i32 i64 isize i128 }
         cmp_num_uden! { xgmp::mpq_cmp_i128; $Num; u8 u16 u32 u64 usize u128 }
     )* };
 }
 
 macro_rules! cmp_unum_32 {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         cmp_num_iden! { gmp::mpq_cmp_ui; $Num; i8 i16 i32 }
         cmp_num_iden! { xgmp::mpq_cmp_u64; $Num; i64 }
         #[cfg(target_pointer_width = "32")]
@@ -266,7 +266,7 @@ macro_rules! cmp_unum_32 {
 }
 
 macro_rules! cmp_unum_64 {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         cmp_num_iden! { xgmp::mpq_cmp_u64; $Num; i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         cmp_num_iden! { xgmp::mpq_cmp_u128; $Num; i128 }
@@ -278,7 +278,7 @@ macro_rules! cmp_unum_64 {
 
 #[cfg(int_128)]
 macro_rules! cmp_unum_128 {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         cmp_num_iden! { xgmp::mpq_cmp_u128; $Num; i8 i16 i32 i64 isize i128 }
         cmp_num_uden! { xgmp::mpq_cmp_u128; $Num; u8 u16 u32 u64 usize u128 }
     )* };
@@ -303,7 +303,7 @@ cmp_unum_64! { usize }
 cmp_unum_128! { u128 }
 
 macro_rules! cmp_f {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
@@ -337,14 +337,14 @@ cmp_f! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
-    use Rational;
-    use std::{f32, f64};
     use std::cmp::Ordering;
     use std::ops::Neg;
     use std::ops::Sub;
+    use std::{f32, f64};
     #[cfg(int_128)]
     use tests::{I128, U128};
     use tests::{I32, I64, U32, U64};
+    use Rational;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
     where

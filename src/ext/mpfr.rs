@@ -14,8 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-#[cfg(feature = "integer")]
-use Float;
 use cast::cast;
 #[cfg(feature = "integer")]
 use float;
@@ -32,6 +30,8 @@ use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong, c_void};
 #[cfg(feature = "integer")]
 use std::u32;
+#[cfg(feature = "integer")]
+use Float;
 
 #[inline]
 pub unsafe fn signum(

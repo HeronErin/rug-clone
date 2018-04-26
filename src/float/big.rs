@@ -14,16 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Assign;
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 use cast::cast;
 use ext::mpfr as xmpfr;
-use float::{self, OrdFloat, Round, SmallFloat, Special};
 use float::arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
                    SubMulFromIncomplete};
+use float::{self, OrdFloat, Round, SmallFloat, Special};
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
@@ -34,7 +29,6 @@ use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
-use std::{i32, u32};
 #[allow(deprecated, unused_imports)]
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
@@ -47,6 +41,12 @@ use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
 use std::slice;
+use std::{i32, u32};
+use Assign;
+#[cfg(feature = "integer")]
+use Integer;
+#[cfg(feature = "rational")]
+use Rational;
 
 #[inline]
 pub(crate) fn raw_round(round: Round) -> mpfr::rnd_t {
@@ -278,9 +278,9 @@ fn _static_assertions() {
 
 macro_rules! ref_math_op0_float {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op0_round! {
             Float, Round => Ordering;
@@ -293,15 +293,15 @@ macro_rules! ref_math_op0_float {
 
 macro_rules! math_op1_float {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($($param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_round: meta])*
-        fn $method_round: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         math_op1_round! {
             Round => Ordering;
@@ -320,9 +320,9 @@ macro_rules! math_op1_float {
 
 macro_rules! ref_math_op1_float {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_round! {
             Float, Round => Ordering;
@@ -335,15 +335,15 @@ macro_rules! ref_math_op1_float {
 
 macro_rules! math_op1_2_float {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($rop: ident $(, $param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_round: meta])*
-        fn $method_round: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         math_op1_2_round! {
             Round => (Ordering, Ordering);
@@ -362,9 +362,9 @@ macro_rules! math_op1_2_float {
 
 macro_rules! ref_math_op1_2_float {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_2_round! {
             Float, Round => (Ordering, Ordering);
@@ -377,15 +377,15 @@ macro_rules! ref_math_op1_2_float {
 
 macro_rules! math_op2_float {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($op: ident $(, $param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_round: meta])*
-        fn $method_round: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         math_op2_round! {
             Round => Ordering;
@@ -404,9 +404,9 @@ macro_rules! math_op2_float {
 
 macro_rules! ref_math_op2_float {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $op: ident $(, $param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $op:ident $(, $param:ident: $T:ty),* }
     ) => {
         ref_math_op2_round! {
             Float, Round => Ordering;
@@ -8333,7 +8333,7 @@ impl AssignRound<ParseIncomplete> for Float {
 }
 
 macro_rules! parse_error {
-    ($kind: expr) => {
+    ($kind:expr) => {
         Err(ParseFloatError { kind: $kind })
     };
 }

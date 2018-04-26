@@ -14,10 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Rational};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
+use {Assign, Rational};
 
 impl Serialize for Rational {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -84,8 +84,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Rational};
     use cast::cast;
+    use {Assign, Rational};
 
     fn assert(a: &Rational, b: &Rational) {
         assert_eq!(a, b);
@@ -140,8 +140,7 @@ mod tests {
                 }
                 Check::DeError(msg) => {
                     serde_test::assert_de_tokens_error::<Rational>(
-                        &tokens,
-                        msg,
+                        &tokens, msg,
                     );
                 }
             }

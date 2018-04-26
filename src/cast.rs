@@ -74,7 +74,7 @@ where
 }
 
 macro_rules! cast_int_to_int {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl Cast<$Dst> for $Src {
             #[inline]
             fn cast(self) -> $Dst {
@@ -86,7 +86,7 @@ macro_rules! cast_int_to_int {
 }
 
 macro_rules! cast_float_to_int {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl Cast<$Dst> for $Src {
             #[inline]
             fn cast(self) -> $Dst {
@@ -99,7 +99,7 @@ macro_rules! cast_float_to_int {
 }
 
 macro_rules! cast_as {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl Cast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -111,7 +111,7 @@ macro_rules! cast_as {
 }
 
 macro_rules! cast_int {
-    ($($Src: ty)*) => { $(
+    ($($Src:ty)*) => { $(
         cast_int_to_int! { $Src => i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         cast_int_to_int! { $Src => i128 }
@@ -123,7 +123,7 @@ macro_rules! cast_int {
 }
 
 macro_rules! cast_float {
-    ($($Src: ty)*) => { $(
+    ($($Src:ty)*) => { $(
         cast_float_to_int! { $Src => i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         cast_float_to_int! { $Src => i128 }
@@ -143,7 +143,7 @@ cast_int! { u128 }
 cast_float! { f32 f64 }
 
 macro_rules! checked_same_signedness {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -160,7 +160,7 @@ macro_rules! checked_same_signedness {
 }
 
 macro_rules! checked_signed_to_unsigned {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -177,7 +177,7 @@ macro_rules! checked_signed_to_unsigned {
 }
 
 macro_rules! checked_unsigned_to_signed {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -194,7 +194,7 @@ macro_rules! checked_unsigned_to_signed {
 }
 
 macro_rules! checked_float_via {
-    ($Src: ty, $ViaU: ty, $ViaI: ty => $($Dst: ty)*) => { $(
+    ($Src:ty, $ViaU:ty, $ViaI:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -219,7 +219,7 @@ macro_rules! checked_float_via {
 }
 
 macro_rules! checked_as {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -231,7 +231,7 @@ macro_rules! checked_as {
 }
 
 macro_rules! checked_signed {
-    ($($Src: ty)*) => { $(
+    ($($Src:ty)*) => { $(
         checked_same_signedness! { $Src => i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         checked_same_signedness! { $Src => i128 }
@@ -243,7 +243,7 @@ macro_rules! checked_signed {
 }
 
 macro_rules! checked_unsigned {
-    ($($Src: ty)*) => { $(
+    ($($Src:ty)*) => { $(
         checked_unsigned_to_signed! { $Src => i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         checked_unsigned_to_signed! { $Src => i128 }
@@ -288,7 +288,7 @@ checked_float_via! { f64, u128, i128 => u128 }
 checked_as! { f64 => f32 f64 }
 
 macro_rules! wrapping_as {
-    ($Src: ty => $($Dst: ty)*) => { $(
+    ($Src:ty => $($Dst:ty)*) => { $(
         impl WrappingCast<$Dst> for $Src {
             #[allow(unknown_lints, cast_lossless)]
             #[inline]
@@ -300,7 +300,7 @@ macro_rules! wrapping_as {
 }
 
 macro_rules! wrapping_float_via {
-    ($Src: ty, $Via: ty => $($Dst: ty)*) => { $(
+    ($Src:ty, $Via:ty => $($Dst:ty)*) => { $(
         impl WrappingCast<$Dst> for $Src {
             #[inline]
             fn wrapping_cast(self) -> $Dst {
@@ -314,7 +314,7 @@ macro_rules! wrapping_float_via {
 }
 
 macro_rules! wrapping_int {
-    ($($Src: ty)*) => { $(
+    ($($Src:ty)*) => { $(
         wrapping_as! { $Src => i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         wrapping_as! { $Src => i128 }
@@ -382,8 +382,8 @@ impl YesNo for () {
 
 macro_rules! from_for_float {
     (
-        $Src: ty, $Uns: ty, $exp_bits: expr, $mant_bits: expr;
-        $($Fit: ty, $Dst: ty, $dst_bits: expr);*
+        $Src:ty, $Uns:ty, $exp_bits:expr, $mant_bits:expr;
+        $($Fit:ty, $Dst:ty, $dst_bits:expr);*
     ) => { $(
         impl From<$Src> for Float<$Dst, $Fit> {
             fn from(src: $Src) -> Self {

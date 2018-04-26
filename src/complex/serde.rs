@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Complex};
 use cast::cast;
 use complex::OrdComplex;
 use float;
@@ -23,6 +22,7 @@ use inner::InnerMut;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
+use {Assign, Complex};
 
 impl Serialize for Complex {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -137,9 +137,9 @@ impl<'de> Deserialize<'de> for OrdComplex {
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Complex};
     use cast::cast;
     use float::{self, Special};
+    use {Assign, Complex};
 
     fn assert(a: &Complex, b: &Complex) {
         assert_eq!(a.prec(), b.prec());

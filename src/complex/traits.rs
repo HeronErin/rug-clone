@@ -14,9 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Complex, Float};
+use complex::big::{self, ordering2, raw_round2, Ordering2, Round2};
 use complex::ParseComplexError;
-use complex::big::{self, Ordering2, Round2, ordering2, raw_round2};
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
@@ -28,6 +27,7 @@ use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
                Octal, UpperExp, UpperHex};
 use std::mem;
 use std::ptr;
+use {Assign, Complex, Float};
 
 impl Clone for Complex {
     #[inline]

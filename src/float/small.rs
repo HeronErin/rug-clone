@@ -14,19 +14,19 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Float};
 use cast::cast;
 use ext::mpfr as xmpfr;
-use float::Round;
 use float::big::raw_round;
+use float::Round;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use misc::NegAbs;
-use std::{i32, u32};
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
+use std::{i32, u32};
+use {Assign, Float};
 
 /**
 A small float that does not require any memory allocation.
@@ -181,7 +181,7 @@ pub(crate) trait CopyToSmall: Copy {
 }
 
 macro_rules! signed {
-    ($($I: ty)*) => { $(
+    ($($I:ty)*) => { $(
         impl CopyToSmall for $I {
             #[inline]
             fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
@@ -196,7 +196,7 @@ macro_rules! signed {
 }
 
 macro_rules! unsigned_32 {
-    ($U: ty, $bits: expr) => {
+    ($U:ty, $bits:expr) => {
         impl CopyToSmall for $U {
             #[inline]
             fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
@@ -330,7 +330,7 @@ impl CopyToSmall for f64 {
 }
 
 macro_rules! impl_assign_from {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl Assign<$T> for SmallFloat {
             #[inline]
             fn assign(&mut self, src: $T) {

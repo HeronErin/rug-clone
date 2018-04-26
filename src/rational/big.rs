@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
@@ -29,6 +28,7 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::Deref;
 use std::ptr;
+use {Assign, Integer};
 
 /**
 An arbitrary-precision rational number.
@@ -96,13 +96,13 @@ fn _static_assertions() {
 
 macro_rules! rat_op_int {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($($param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -135,9 +135,9 @@ macro_rules! rat_op_int {
 
 macro_rules! ref_rat_op_int {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
@@ -165,13 +165,13 @@ macro_rules! ref_rat_op_int {
 
 macro_rules! rat_op_rat_int {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($int: ident $(, $param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($int:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         $(#[$attr])*
         #[inline]
@@ -210,9 +210,9 @@ macro_rules! rat_op_rat_int {
 
 macro_rules! ref_rat_op_rat_int {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
          $(#[$attr_ref])*
         #[derive(Debug)]
@@ -353,8 +353,7 @@ impl Rational {
         radix: i32,
     ) -> Result<Self, ParseRationalError> {
         Ok(Rational::from(Rational::parse_radix(
-            src,
-            radix,
+            src, radix,
         )?))
     }
 

@@ -14,16 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
+use integer::big;
 use integer::ParseIntegerError;
 #[cfg(try_from)]
 use integer::TryFromIntegerError;
-use integer::big;
-use std::{i32, u32};
 #[cfg(try_from)]
 use std::convert::TryFrom;
 #[cfg(try_from)]
@@ -34,6 +32,8 @@ use std::hash::{Hash, Hasher};
 use std::mem;
 use std::slice;
 use std::str::FromStr;
+use std::{i32, u32};
+use {Assign, Integer};
 
 impl Default for Integer {
     #[inline]
@@ -142,7 +142,7 @@ impl<'a> From<&'a Integer> for Integer {
 
 #[cfg(try_from)]
 macro_rules! try_from {
-    ($(($T: ty, $method: ident))*) => { $(
+    ($(($T:ty, $method:ident))*) => { $(
         impl TryFrom<Integer> for $T {
             type Error = TryFromIntegerError;
             fn try_from(value: Integer) -> Result<Self, TryFromIntegerError> {
@@ -174,7 +174,7 @@ try_from! {
 try_from! { (u128, to_u128) }
 
 macro_rules! assign {
-    ($T: ty, $set: path, $init_set: path) => {
+    ($T:ty, $set:path, $init_set:path) => {
         impl Assign<$T> for Integer {
             #[inline]
             fn assign(&mut self, src: $T) {
@@ -200,7 +200,7 @@ macro_rules! assign {
 }
 
 macro_rules! assign_cast {
-    ($New: ty, $Existing: ty) => {
+    ($New:ty, $Existing:ty) => {
         impl Assign<$New> for Integer {
             #[inline]
             fn assign(&mut self, src: $New) {
@@ -332,7 +332,7 @@ mod tests {
 
     #[cfg(try_from)]
     macro_rules! check_fallible_conversions_helper {
-        ($int: ident, $bits: expr, $I: ty, $U: ty) => {{
+        ($int:ident, $bits:expr, $I:ty, $U:ty) => {{
             const I_MIN: $I = -1 << ($bits - 1);
             const I_MAX: $I = -1 - I_MIN;
             $int.assign(I_MIN);

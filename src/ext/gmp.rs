@@ -14,16 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Integer;
 use cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use inner::Inner;
 use misc::NegAbs;
-use std::{i16, i8, u16, u8};
 use std::cmp::Ordering;
 use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
+use std::{i16, i8, u16, u8};
+use Integer;
 
 #[cfg(gmp_limb_bits_32)]
 pub use ext::gmp32::*;

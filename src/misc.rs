@@ -24,7 +24,7 @@ pub trait NegAbs {
 }
 
 macro_rules! neg_abs_unsigned {
-    ($($U: ty)*) => { $(
+    ($($U:ty)*) => { $(
         impl NegAbs for $U {
             type Abs = $U;
             #[inline]
@@ -35,7 +35,7 @@ macro_rules! neg_abs_unsigned {
     )* };
 }
 macro_rules! neg_abs_signed {
-    ($(($I: ty, $U: ty))*) => { $(
+    ($(($I:ty, $U:ty))*) => { $(
         impl NegAbs for $I {
             type Abs = $U;
             #[inline]

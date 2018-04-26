@@ -14,12 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Complex, Float};
+use std::i32;
 #[cfg(feature = "integer")]
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-use std::i32;
+use {Complex, Float};
 
 impl PartialEq for Complex {
     #[inline]
@@ -29,7 +29,7 @@ impl PartialEq for Complex {
 }
 
 macro_rules! eq_re_im {
-    ($Re: ty; $($Im: ty)*) => { $(
+    ($Re:ty; $($Im:ty)*) => { $(
         impl PartialEq<($Re, $Im)> for Complex {
             #[inline]
             fn eq(&self, other: &($Re, $Im)) -> bool {
@@ -47,7 +47,7 @@ macro_rules! eq_re_im {
 }
 
 macro_rules! eq_re {
-    ($($Re: ty)*) => { $(
+    ($($Re:ty)*) => { $(
         impl PartialEq<$Re> for Complex {
             #[inline]
             fn eq(&self, other: &$Re) -> bool {
@@ -92,14 +92,14 @@ eq_re! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Complex, Float};
+    use float::Special;
+    #[cfg(feature = "integer")]
+    use std::str::FromStr;
     #[cfg(feature = "integer")]
     use Integer;
     #[cfg(feature = "rational")]
     use Rational;
-    use float::Special;
-    #[cfg(feature = "integer")]
-    use std::str::FromStr;
+    use {Assign, Complex, Float};
 
     fn check_eq_prim<T>(s: &[T], against: &[Complex])
     where

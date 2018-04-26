@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Float};
 use cast::cast;
 use float::{self, OrdFloat};
 use gmp_mpfr_sys::mpfr;
@@ -22,6 +21,7 @@ use inner::InnerMut;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
+use {Assign, Float};
 
 impl Serialize for Float {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -124,9 +124,9 @@ impl<'de> Deserialize<'de> for OrdFloat {
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Float};
     use cast::cast;
     use float::{self, Special};
+    use {Assign, Float};
 
     fn assert(a: &Float, b: &Float) {
         assert_eq!(a.prec(), b.prec());

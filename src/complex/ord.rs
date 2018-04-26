@@ -14,9 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Complex;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
+use Complex;
 
 /**
 A complex number that supports total ordering and hashing.
@@ -166,10 +166,10 @@ impl From<OrdComplex> for Complex {
 
 #[cfg(test)]
 mod tests {
-    use Complex;
     use float::Special;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
+    use Complex;
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();

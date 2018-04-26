@@ -140,12 +140,12 @@ impl Order {
 
 #[cfg(test)]
 mod tests {
-    use {Assign, Integer};
     use integer::Order;
     use ops::NegAssign;
     use std::{f32, f64, i32, i64, u32, u64};
     #[cfg(int_128)]
     use std::{i128, u128};
+    use {Assign, Integer};
 
     #[test]
     fn check_int_conversions() {

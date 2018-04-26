@@ -14,11 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
 use ext::gmp as xgmp;
 use inner::{Inner, InnerMut};
 use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
           RemRoundingAssign, RemRoundingFrom};
+use {Assign, Integer};
 
 // big / big -> Big
 // big / &big -> Big
@@ -33,43 +33,47 @@ use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
 // big = Incomplete
 macro_rules! div_op {
     (
-        $trunc_fn: path, $ceil_fn: path, $floor_fn: path, $euc_fn: path;
-        $Imp: ident $trunc: ident $ceil: ident $floor: ident $euc: ident;
-        $ImpAssign: ident
-            $trunc_assign: ident
-            $ceil_assign: ident
-            $floor_assign: ident
-            $euc_assign: ident;
-        $ImpFrom: ident
-            $trunc_from: ident
-            $ceil_from: ident
-            $floor_from: ident
-            $euc_from: ident;
-        $Incomplete: ident
+        $trunc_fn:path,
+        $ceil_fn:path,
+        $floor_fn:path,
+        $euc_fn:path;
+        $Imp:ident
+        $trunc:ident
+        $ceil:ident
+        $floor:ident
+        $euc:ident;
+        $ImpAssign:ident
+        $trunc_assign:ident
+        $ceil_assign:ident
+        $floor_assign:ident
+        $euc_assign:ident;
+        $ImpFrom:ident
+        $trunc_from:ident
+        $ceil_from:ident
+        $floor_from:ident
+        $euc_from:ident;
+        $Incomplete:ident
     ) => {
         impl $Imp for Integer {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$trunc_assign(
-                    &mut self,
-                    &rhs,
+                    &mut self, &rhs,
                 );
                 self
             }
             #[inline]
             fn $ceil(mut self, rhs: Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$ceil_assign(
-                    &mut self,
-                    &rhs,
+                    &mut self, &rhs,
                 );
                 self
             }
             #[inline]
             fn $floor(mut self, rhs: Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$floor_assign(
-                    &mut self,
-                    &rhs,
+                    &mut self, &rhs,
                 );
                 self
             }
@@ -85,8 +89,7 @@ macro_rules! div_op {
             #[inline]
             fn $trunc(mut self, rhs: &Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$trunc_assign(
-                    &mut self,
-                    rhs,
+                    &mut self, rhs,
                 );
                 self
             }
@@ -98,8 +101,7 @@ macro_rules! div_op {
             #[inline]
             fn $floor(mut self, rhs: &Integer) -> Integer {
                 <Integer as $ImpAssign<&Integer>>::$floor_assign(
-                    &mut self,
-                    rhs,
+                    &mut self, rhs,
                 );
                 self
             }
@@ -305,24 +307,32 @@ macro_rules! div_op {
 // big = FromIncomplete
 macro_rules! div_prim {
     (
-        $trunc_fn: path, $ceil_fn: path, $floor_fn: path, $euc_fn: path;
-        $trunc_from_fn: path,
-        $ceil_from_fn: path,
-        $floor_from_fn: path,
-        $euc_from_fn: path;
-        $Imp: ident $trunc: ident $ceil: ident $floor: ident $euc: ident;
-        $ImpAssign: ident
-            $trunc_assign: ident
-            $ceil_assign: ident
-            $floor_assign: ident
-            $euc_assign: ident;
-        $ImpFrom: ident
-            $trunc_from: ident
-            $ceil_from: ident
-            $floor_from: ident
-            $euc_from: ident;
-        $T: ty;
-        $Incomplete: ident $FromIncomplete: ident
+        $trunc_fn:path,
+        $ceil_fn:path,
+        $floor_fn:path,
+        $euc_fn:path;
+        $trunc_from_fn:path,
+        $ceil_from_fn:path,
+        $floor_from_fn:path,
+        $euc_from_fn:path;
+        $Imp:ident
+        $trunc:ident
+        $ceil:ident
+        $floor:ident
+        $euc:ident;
+        $ImpAssign:ident
+        $trunc_assign:ident
+        $ceil_assign:ident
+        $floor_assign:ident
+        $euc_assign:ident;
+        $ImpFrom:ident
+        $trunc_from:ident
+        $ceil_from:ident
+        $floor_from:ident
+        $euc_from:ident;
+        $T:ty;
+        $Incomplete:ident
+        $FromIncomplete:ident
     ) => {
         impl $Imp<$T> for Integer {
             type Output = Integer;
@@ -776,9 +786,9 @@ div_prim! {
 
 #[cfg(test)]
 mod tests {
-    use Integer;
     use ops::{DivRounding, RemRounding};
     use std::{i32, u32};
+    use Integer;
 
     #[test]
     fn check_div_prim() {

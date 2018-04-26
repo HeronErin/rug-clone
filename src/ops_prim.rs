@@ -14,16 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use Assign;
 use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding,
           DivRoundingAssign, DivRoundingFrom, MulFrom, NegAssign, NotAssign,
           Pow, PowAssign, PowFrom, RemFrom, RemRounding, RemRoundingAssign,
           RemRoundingFrom, ShlFrom, ShrFrom, SubFrom};
 use std::borrow::Cow;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
+use Assign;
 
 macro_rules! assign_from {
-    ($T: ty; $op: ident; $Imp: ident $method: ident) => {
+    ($T:ty; $op:ident; $Imp:ident $method:ident) => {
         impl $Imp for $T {
             #[inline]
             fn $method(&mut self, lhs: $T) {
@@ -39,7 +39,7 @@ macro_rules! assign_from {
     };
 }
 macro_rules! int_ops {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl Assign for $T {
             #[inline]
             fn assign(&mut self, src: $T) {
@@ -111,7 +111,7 @@ macro_rules! int_ops {
     )* };
 }
 macro_rules! int_neg {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl NegAssign for $T {
             #[inline]
             fn neg_assign(&mut self) {
@@ -121,7 +121,7 @@ macro_rules! int_neg {
     )* };
 }
 macro_rules! float_ops {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl Assign for $T {
             #[inline]
             fn assign(&mut self, src: $T) {
@@ -224,11 +224,22 @@ macro_rules! float_ops {
 
 macro_rules! rounding_fill {
     (
-        $T: ty,
-        $Imp: ident $ImpAssign: ident $ImpFrom: ident,
-        $trunc: ident $ceil: ident $floor: ident $euc: ident,
-        $trunc_ass: ident $ceil_ass: ident $floor_ass: ident $euc_ass: ident,
-        $trunc_from: ident $ceil_from: ident $floor_from: ident $euc_from: ident
+        $T:ty,
+        $Imp:ident
+        $ImpAssign:ident
+        $ImpFrom:ident,
+        $trunc:ident
+        $ceil:ident
+        $floor:ident
+        $euc:ident,
+        $trunc_ass:ident
+        $ceil_ass:ident
+        $floor_ass:ident
+        $euc_ass:ident,
+        $trunc_from:ident
+        $ceil_from:ident
+        $floor_from:ident
+        $euc_from:ident
     ) => {
         impl<'a> $Imp<&'a $T> for $T {
             type Output = <$T as $Imp>::Output;
@@ -369,7 +380,7 @@ macro_rules! rounding_fill {
 }
 
 macro_rules! rounding_signed {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl DivRounding for $T {
             type Output = $T;
             #[inline]
@@ -472,7 +483,7 @@ macro_rules! rounding_signed {
 }
 
 macro_rules! rounding_unsigned {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl DivRounding for $T {
             type Output = $T;
             #[inline]
@@ -509,7 +520,7 @@ macro_rules! rounding_unsigned {
 }
 
 macro_rules! rounding_float {
-    ($($T: ty)*) => { $(
+    ($($T:ty)*) => { $(
         impl DivRounding for $T {
             type Output = $T;
             #[inline]

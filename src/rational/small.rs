@@ -14,15 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Rational};
 use cast::cast;
 use gmp_mpfr_sys::gmp;
 use inner::InnerMut;
-use integer::SmallInteger;
 use integer::small::{CopyToSmall, Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
+use integer::SmallInteger;
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
+use {Assign, Rational};
 
 /**
 A small rational number that does not require any memory allocation.
@@ -305,7 +305,7 @@ where
 }
 
 macro_rules! impl_assign_num_den {
-    ($Num: ty; $($Den: ty)*) => { $(
+    ($Num:ty; $($Den:ty)*) => { $(
         impl Assign<($Num, $Den)> for SmallRational {
             fn assign(&mut self, src: ($Num, $Den)) {
                 assert_ne!(src.1, 0, "division by zero");
@@ -329,7 +329,7 @@ macro_rules! impl_assign_num_den {
 }
 
 macro_rules! impl_assign_num {
-    ($($Num: ty)*) => { $(
+    ($($Num:ty)*) => { $(
         impl Assign<$Num> for SmallRational {
             #[inline]
             fn assign(&mut self, src: $Num) {

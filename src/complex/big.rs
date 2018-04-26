@@ -14,14 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Float};
 use cast::cast;
-use complex::{OrdComplex, Prec};
 use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
+use complex::{OrdComplex, Prec};
 use ext::mpc as xmpc;
-use float::{self, ParseFloatError, Round, Special};
 use float::big::{self as big_float, raw_round,
                  ParseIncomplete as FloatParseIncomplete};
+use float::{self, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
@@ -37,6 +36,7 @@ use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::c_int;
 use std::ptr;
 use std::slice;
+use {Assign, Float};
 
 pub type Round2 = (Round, Round);
 
@@ -159,9 +159,9 @@ fn _static_assertions() {
 
 macro_rules! ref_math_op0_complex {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op0_round! {
             Complex, Round2 => Ordering2;
@@ -174,15 +174,15 @@ macro_rules! ref_math_op0_complex {
 
 macro_rules! math_op1_complex {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($($param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_round: meta])*
-        fn $method_round: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($($param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         math_op1_round! {
             Round2 => Ordering2;
@@ -201,9 +201,9 @@ macro_rules! math_op1_complex {
 
 macro_rules! ref_math_op1_complex {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_round! {
             Complex, Round2 => Ordering2;
@@ -216,15 +216,15 @@ macro_rules! ref_math_op1_complex {
 
 macro_rules! math_op1_2_complex {
     (
-        $func: path;
-        $(#[$attr: meta])*
-        fn $method: ident($rop: ident $(, $param: ident: $T: ty),*);
-        $(#[$attr_mut: meta])*
-        fn $method_mut: ident;
-        $(#[$attr_round: meta])*
-        fn $method_round: ident;
-        $(#[$attr_ref: meta])*
-        fn $method_ref: ident -> $Incomplete: ident;
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_round:meta])*
+        fn $method_round:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
     ) => {
         math_op1_2_round! {
             Round2 => (Ordering2, Ordering2);
@@ -243,9 +243,9 @@ macro_rules! math_op1_2_complex {
 
 macro_rules! ref_math_op1_2_complex {
     (
-        $func: path;
-        $(#[$attr_ref: meta])*
-        struct $Incomplete: ident { $($param: ident: $T: ty),* }
+        $func:path;
+        $(#[$attr_ref:meta])*
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         ref_math_op1_2_round! {
             Complex, Round2 => (Ordering2, Ordering2);
@@ -3645,7 +3645,7 @@ impl AssignRound<ParseIncomplete> for Complex {
 }
 
 macro_rules! parse_error {
-    ($kind: expr) => {
+    ($kind:expr) => {
         Err(ParseComplexError { kind: $kind })
     };
 }

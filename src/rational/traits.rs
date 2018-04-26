@@ -14,13 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use {Assign, Integer, Rational};
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
+use rational::big;
 use rational::ParseRationalError;
 #[cfg(try_from)]
 use rational::TryFromFloatError;
-use rational::big;
 use std::cmp::Ordering;
 #[cfg(try_from)]
 use std::convert::TryFrom;
@@ -33,6 +32,7 @@ use std::i32;
 use std::mem;
 use std::ptr;
 use std::str::FromStr;
+use {Assign, Integer, Rational};
 
 impl Default for Rational {
     #[inline]
@@ -305,8 +305,8 @@ mod tests {
     #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
-        use Rational;
         use tests::{F32, F64};
+        use Rational;
         for &f in F32 {
             let r = Rational::try_from(f);
             assert_eq!(r.is_ok(), f.is_finite());
