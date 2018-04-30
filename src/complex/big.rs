@@ -28,7 +28,7 @@ use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
-use std::cmp::Ordering;
+use std::cmp::{self, Ordering};
 use std::error::Error;
 use std::marker::PhantomData;
 use std::mem;
@@ -3461,37 +3461,49 @@ where
     values: I,
 }
 
-fn exact_prod(a: &Complex, b: &Complex) -> (Complex, Complex) {
-    let (ar, ai) = (a.real(), a.imag());
-    let (br, bi) = (b.real(), b.imag());
-    let (arp, aip) = (ar.prec(), ai.prec());
-    let (brp, bip) = (br.prec(), bi.prec());
-    let xrp = arp.checked_add(brp).expect("overflow");
-    let xip = arp.checked_add(bip).expect("overflow");
-    let yrp = aip.checked_add(bip).expect("overflow");
-    let yip = aip.checked_add(brp).expect("overflow");
-    let x = Complex::with_val((xrp, xip), (ar * br, ar * bi));
-    let mut y = Complex::with_val((yrp, yip), (ai * bi, ai * br));
-    y.mut_real().neg_assign();
-    (x, y)
+fn prods_real(pairs: &[(&Complex, &Complex)]) -> Vec<Float> {
+    let mut prods = Vec::with_capacity(pairs.len() * 2);
+    for &(a, b) in pairs {
+        let (ar, ai) = (a.real(), a.imag());
+        let (br, bi) = (b.real(), b.imag());
+        let (arp, aip) = (ar.prec(), ai.prec());
+        let (brp, bip) = (br.prec(), bi.prec());
+        let bp = cmp::max(brp, bip);
+        let mut r = Float::new(arp.checked_add(bp).expect("overflow"));
+        unsafe {
+            mpfr::set_prec(r.inner_mut(), cast(arp + brp));
+        }
+        r.assign(ar * br);
+        prods.push(r);
+        r = Float::new(aip.checked_add(bp).expect("overflow"));
+        unsafe {
+            mpfr::set_prec(r.inner_mut(), cast(aip + bip));
+        }
+        r.assign(ai * bi);
+        r.neg_assign();
+        prods.push(r);
+    }
+    prods
 }
 
-fn exact_prods<'a, I>(i: I) -> Vec<Complex>
-where
-    I: Iterator<Item = (&'a Complex, &'a Complex)>,
-{
-    let capacity = match i.size_hint() {
-        (lower, None) => lower,
-        (_, Some(upper)) => upper,
-    };
-    let capacity = capacity.checked_mul(2).expect("overflow");
-    let mut v = Vec::with_capacity(capacity);
-    for (a, b) in i {
-        let (x, y) = exact_prod(a, b);
-        v.push(x);
-        v.push(y);
+fn prods_imag(prods: &mut Vec<Float>, pairs: &[(&Complex, &Complex)]) {
+    let mut i = 0;
+    for &(a, b) in pairs {
+        let (ar, ai) = (a.real(), a.imag());
+        let (br, bi) = (b.real(), b.imag());
+        let (arp, aip) = (ar.prec(), ai.prec());
+        let (brp, bip) = (br.prec(), bi.prec());
+        unsafe {
+            mpfr::set_prec(prods[i].inner_mut(), cast(arp + bip));
+        }
+        prods[i].assign(ar * bi);
+        i += 1;
+        unsafe {
+            mpfr::set_prec(prods[i].inner_mut(), cast(aip + brp));
+        }
+        prods[i].assign(ai * br);
+        i += 1;
     }
-    v
 }
 
 impl<'a, I> AssignRound<DotIncomplete<'a, I>> for Complex
@@ -3505,9 +3517,14 @@ where
         src: DotIncomplete<'a, I>,
         round: Round2,
     ) -> Ordering2 {
-        let prods = exact_prods(src.values);
-        let sum = Complex::sum(prods.iter());
-        self.assign_round(sum, round)
+        let pairs = src.values.collect::<Vec<_>>();
+        let mut prods = prods_real(&pairs);
+        let ret_real = self.mut_real()
+            .assign_round(Float::sum(prods.iter()), round.0);
+        prods_imag(&mut prods, &pairs);
+        let ret_imag = self.mut_imag()
+            .assign_round(Float::sum(prods.iter()), round.1);
+        (ret_real, ret_imag)
     }
 }
 
@@ -3544,9 +3561,14 @@ where
         src: DotIncomplete<'a, I>,
         round: Round2,
     ) -> Ordering2 {
-        let prods = exact_prods(src.values);
-        let sum = Complex::sum(prods.iter());
-        self.add_assign_round(sum, round)
+        let pairs = src.values.collect::<Vec<_>>();
+        let mut prods = prods_real(&pairs);
+        let ret_real = self.mut_real()
+            .add_assign_round(Float::sum(prods.iter()), round.0);
+        prods_imag(&mut prods, &pairs);
+        let ret_imag = self.mut_imag()
+            .add_assign_round(Float::sum(prods.iter()), round.1);
+        (ret_real, ret_imag)
     }
 }
 
