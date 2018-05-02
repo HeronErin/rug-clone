@@ -23,6 +23,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.1.1 news
+
+* New methods [`Float::dot`] and [`Complex::dot`] were added.
+
+[`Complex::dot`]: https://docs.rs/rug/~1.1/rug/struct.Complex.html#method.dot
+[`Float::dot`]: https://docs.rs/rug/~1.1/rug/struct.Float.html#method.dot
+
 ### Version 1.1.0 news
 
 * Support for [`i128`] and [`u128`] conversions and comparisons was
