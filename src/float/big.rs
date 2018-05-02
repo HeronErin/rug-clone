@@ -2159,6 +2159,21 @@ impl Float {
     /// [`Add<Src> for Float`][`Add`] are implemented with the
     /// returned [incomplete-computation value][icv] as `Src`.
     ///
+    /// This method will produce a result with correct rounding,
+    /// except for the case where overflow occurs in intermediate
+    /// products but not in the final result, because of
+    /// implementation details. Consider the dot product of the two
+    /// vectors [<i>a</i><sub>0</sub> <i>a</i><sub>1</sub>] and
+    /// [<i>b</i><sub>0</sub> <i>b</i><sub>1</sub>]. If for example
+    /// <i>a</i><sub>0</sub><i>b</i><sub>0</sub> overflows in the
+    /// positive direction (+∞) and
+    /// <i>a</i><sub>1</sub><i>b</i><sub>1</sub> overflows in the
+    /// negative direction (−∞) but the sum
+    /// <i>a</i><sub>0</sub><i>b</i><sub>0</sub> +
+    /// <i>a</i><sub>1</sub><i>b</i><sub>1</sub> does *not* overflow,
+    /// the result will not be correct with the current
+    /// implementation, but will be NaN (∞ − ∞).
+    ///
     /// # Examples
     ///
     /// ```rust
