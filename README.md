@@ -254,8 +254,8 @@ assert!(57.295 < z && z < 57.296);
 ```
 
 The precision to use for the result depends on the requirements of the
-algorithm being implemented. Here `z` is created with a precision of
-45.
+algorithm being implemented. Here `z` is created with a precision
+of 45.
 
 Many operations can return incomplete-computation values:
 
