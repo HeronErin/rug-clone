@@ -1155,20 +1155,8 @@ impl Complex {
     /// returned [incomplete-computation value][icv] as `Src`.
     ///
     /// This method will produce a result with correct rounding,
-    /// except for the case where overflow occurs in intermediate
-    /// products but not in the final result, because of
-    /// implementation details. Consider the dot product of the two
-    /// complex vectors [<i>a</i><sub>0</sub> <i>a</i><sub>1</sub>]
-    /// and [<i>b</i><sub>0</sub> <i>b</i><sub>1</sub>]. If for
-    /// example the real part of
-    /// <i>a</i><sub>0</sub><i>b</i><sub>0</sub> overflows in the
-    /// positive direction (+∞) and the real part of
-    /// <i>a</i><sub>1</sub><i>b</i><sub>1</sub> overflows in the
-    /// negative direction (−∞) but the real part of the sum
-    /// <i>a</i><sub>0</sub><i>b</i><sub>0</sub> +
-    /// <i>a</i><sub>1</sub><i>b</i><sub>1</sub> does *not* overflow,
-    /// the result will not be correct with the current
-    /// implementation, but the real part will be NaN (∞ − ∞).
+    /// except for some cases where underflow and/or overflow occur in
+    /// intermediate products.
     ///
     /// # Examples
     ///
