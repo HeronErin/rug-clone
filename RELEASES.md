@@ -1,4 +1,4 @@
-Version 1.1.1 (unreleased)
+Version 1.2.0 (unreleased)
 ==========================
 
 * Add `Float::dot` and `Complex::dot`.
