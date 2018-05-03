@@ -26,8 +26,9 @@ use integer::TryFromIntegerError;
 use std::convert::TryFrom;
 #[cfg(try_from)]
 use std::error::Error;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
-               UpperHex};
+use std::fmt::{
+    self, Binary, Debug, Display, Formatter, LowerHex, Octal, UpperHex,
+};
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::slice;
@@ -101,11 +102,8 @@ where
 
 impl<T> Assign<T> for (Integer, Integer, Integer)
 where
-    for<'a, 'b, 'c> (
-        &'a mut Integer,
-        &'b mut Integer,
-        &'c mut Integer,
-    ): Assign<T>,
+    for<'a, 'b, 'c> (&'a mut Integer, &'b mut Integer, &'c mut Integer):
+        Assign<T>,
 {
     #[inline]
     fn assign(&mut self, src: T) {

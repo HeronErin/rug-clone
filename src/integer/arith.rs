@@ -17,12 +17,16 @@
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
 use inner::{Inner, InnerMut};
-use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom,
-          NegAssign, NotAssign, Pow, PowAssign, RemFrom, SubFrom};
+use ops::{
+    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
+    NotAssign, Pow, PowAssign, RemFrom, SubFrom,
+};
 use std::iter::{Product, Sum};
-use std::ops::{Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign,
-               BitXor, BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not,
-               Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
+    BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign,
+    Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
+};
 use {Assign, Integer};
 
 arith_unary! {
@@ -360,9 +364,7 @@ mod tests {
         use tests::{I128, U128};
         use tests::{I32, I64, U32, U64};
         let large = [(1, 100), (-11, 200), (33, 150)];
-        let against = (large
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s))
+        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
             .chain(U32.iter().map(|&x| Integer::from(x)))
             .chain(I32.iter().map(|&x| Integer::from(x)))
             .chain(U64.iter().map(|&x| Integer::from(x)))

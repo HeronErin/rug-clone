@@ -18,8 +18,9 @@ use cast::cast;
 use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use complex::{OrdComplex, Prec};
 use ext::mpc as xmpc;
-use float::big::{self as big_float, raw_round,
-                 ParseIncomplete as FloatParseIncomplete};
+use float::big::{
+    self as big_float, raw_round, ParseIncomplete as FloatParseIncomplete,
+};
 use float::{self, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
@@ -1083,10 +1084,7 @@ impl Complex {
             {
                 None
             } else {
-                Some(ordering1(mpc::cmp_abs(
-                    self.inner(),
-                    other.inner(),
-                )))
+                Some(ordering1(mpc::cmp_abs(self.inner(), other.inner())))
             }
         }
     }
@@ -3370,18 +3368,8 @@ where
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
-                mpfr::sum(
-                    real.inner_mut(),
-                    tab_real,
-                    n,
-                    raw_round(round.0),
-                ),
-                mpfr::sum(
-                    imag.inner_mut(),
-                    tab_imag,
-                    n,
-                    raw_round(round.1),
-                ),
+                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
+                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
@@ -3439,18 +3427,8 @@ where
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
-                mpfr::sum(
-                    real.inner_mut(),
-                    tab_real,
-                    n,
-                    raw_round(round.0),
-                ),
-                mpfr::sum(
-                    imag.inner_mut(),
-                    tab_imag,
-                    n,
-                    raw_round(round.1),
-                ),
+                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
+                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
@@ -3592,11 +3570,7 @@ impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: AbsIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::abs(
-                self.inner_mut(),
-                src.ref_self.inner(),
-                raw_round(round),
-            )
+            mpc::abs(self.inner_mut(), src.ref_self.inner(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3613,11 +3587,7 @@ impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: ArgIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::arg(
-                self.inner_mut(),
-                src.ref_self.inner(),
-                raw_round(round),
-            )
+            mpc::arg(self.inner_mut(), src.ref_self.inner(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3637,11 +3607,7 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: NormIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::norm(
-                self.inner_mut(),
-                src.ref_self.inner(),
-                raw_round(round),
-            )
+            mpc::norm(self.inner_mut(), src.ref_self.inner(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3676,10 +3642,8 @@ pub struct RandomBitsIncomplete<'a, 'b: 'a> {
 impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
-        self.mut_real()
-            .assign(Float::random_bits(src.rng));
-        self.mut_imag()
-            .assign(Float::random_bits(src.rng));
+        self.mut_real().assign(Float::random_bits(src.rng));
+        self.mut_imag().assign(Float::random_bits(src.rng));
     }
 }
 
@@ -3978,10 +3942,7 @@ pub(crate) fn ordering2(ord: c_int) -> Ordering2 {
 
 #[inline]
 fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
-    (
-        ordering2(mpc::INEX1(ord)),
-        ordering2(mpc::INEX2(ord)),
-    )
+    (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
 }
 
 impl Inner for Complex {

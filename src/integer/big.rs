@@ -277,9 +277,7 @@ impl Integer {
     pub fn reserve(&mut self, additional: usize) {
         let used_bits: usize =
             cast(unsafe { xgmp::mpz_significant_bits(self.inner()) });
-        let req_bits = used_bits
-            .checked_add(additional)
-            .expect("overflow");
+        let req_bits = used_bits.checked_add(additional).expect("overflow");
         let alloc_bits = (self.inner.alloc as usize)
             .checked_mul(gmp::LIMB_BITS as usize)
             .expect("overflow");
@@ -313,11 +311,7 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     pub fn shrink_to_fit(&mut self) {
         let used_limbs = self.inner.size.checked_abs().expect("overflow");
-        let req_limbs = if used_limbs == 0 {
-            1
-        } else {
-            used_limbs
-        };
+        let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
         if self.inner.alloc > req_limbs {
             unsafe {
                 gmp::_mpz_realloc(self.inner_mut(), cast(req_limbs));
@@ -400,10 +394,7 @@ impl Integer {
     ) -> Self {
         let bytes = mem::size_of::<T>();
         let bits = bytes * 8;
-        let capacity = digits
-            .len()
-            .checked_mul(bits)
-            .expect("overflow");
+        let capacity = digits.len().checked_mul(bits).expect("overflow");
         let mut i = Integer::with_capacity(capacity);
         i.assign_digits(digits, order);
         i
@@ -1372,10 +1363,7 @@ impl Integer {
     ) {
         let bytes = mem::size_of::<T>();
         let bits = bytes * 8;
-        let capacity = digits
-            .len()
-            .checked_mul(bits)
-            .expect("overflow");
+        let capacity = digits.len().checked_mul(bits).expect("overflow");
         if capacity > self.capacity() {
             let additional = self.capacity() - capacity;
             self.reserve(additional);
@@ -3132,10 +3120,7 @@ impl Integer {
         if gcd != 1 {
             return None;
         }
-        Some(InvertIncomplete {
-            sinverse,
-            modulo,
-        })
+        Some(InvertIncomplete { sinverse, modulo })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -4633,11 +4618,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut RandState) {
-        assert_eq!(
-            self.cmp0(),
-            Ordering::Greater,
-            "cannot be below zero"
-        );
+        assert_eq!(self.cmp0(), Ordering::Greater, "cannot be below zero");
         unsafe {
             gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
         }
@@ -4708,16 +4689,10 @@ where
     fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
-            assert!(
-                !(&*self).gt(src.max),
-                "minimum larger than maximum"
-            );
+            assert!(!(&*self).gt(src.max), "minimum larger than maximum");
         } else if src.ref_self.gt(src.max) {
             self.assign(src.max);
-            assert!(
-                !(&*self).lt(src.min),
-                "minimum larger than maximum"
-            );
+            assert!(!(&*self).lt(src.min), "minimum larger than maximum");
         } else {
             self.assign(src.ref_self);
         }
@@ -4786,20 +4761,10 @@ unsafe fn mpz_pow_mod_ref(
     match sinverse {
         Some(sinverse) => {
             mpz_invert_ref(rop, sinverse, modulo);
-            gmp::mpz_powm(
-                rop,
-                rop,
-                exponent.as_neg().inner(),
-                modulo.inner(),
-            );
+            gmp::mpz_powm(rop, rop, exponent.as_neg().inner(), modulo.inner());
         }
         None => {
-            gmp::mpz_powm(
-                rop,
-                op.inner(),
-                exponent.inner(),
-                modulo.inner(),
-            );
+            gmp::mpz_powm(rop, op.inner(), exponent.inner(), modulo.inner());
         }
     }
 }
@@ -4830,11 +4795,7 @@ impl<'r> From<PowModIncomplete<'r>> for Integer {
             mpz_pow_mod_ref(
                 dst.inner_mut(),
                 src.ref_self,
-                if has_sinverse {
-                    Some(&dst)
-                } else {
-                    None
-                },
+                if has_sinverse { Some(&dst) } else { None },
                 src.exponent,
                 src.modulo,
             );
@@ -4913,11 +4874,7 @@ impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
 from_assign! { GcdIncomplete<'r> => Integer, Integer }
 
 impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
-    for (
-        &'b mut Integer,
-        &'c mut Integer,
-        &'d mut Integer,
-    )
+    for (&'b mut Integer, &'c mut Integer, &'d mut Integer)
 {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete) {
@@ -4968,11 +4925,7 @@ impl<'r> From<InvertIncomplete<'r>> for Integer {
     #[inline]
     fn from(mut src: InvertIncomplete) -> Self {
         unsafe {
-            mpz_invert_ref(
-                src.sinverse.inner_mut(),
-                &src.sinverse,
-                src.modulo,
-            );
+            mpz_invert_ref(src.sinverse.inner_mut(), &src.sinverse, src.modulo);
         }
         src.sinverse
     }
@@ -5267,10 +5220,7 @@ fn parse(
     }
     // we've only added b'-' and digits, so we know there are no nuls
     let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ParseIncomplete {
-        c_string,
-        radix,
-    })
+    Ok(ParseIncomplete { c_string, radix })
 }
 
 #[derive(Debug)]

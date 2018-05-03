@@ -287,16 +287,10 @@ mod tests {
         assert_eq!(i.to_f64(), 255.0 * 2f64.powi(80));
         i = i.clone() << 30 | i;
         assert_eq!(i.to_f32(), 255.0 * 2f32.powi(110));
-        assert_eq!(
-            i.to_f64(),
-            255.0 * (2f64.powi(80) + 2f64.powi(110))
-        );
+        assert_eq!(i.to_f64(), 255.0 * (2f64.powi(80) + 2f64.powi(110)));
         i <<= 100;
         assert_eq!(i.to_f32(), f32::INFINITY);
-        assert_eq!(
-            i.to_f64(),
-            255.0 * (2f64.powi(180) + 2f64.powi(210))
-        );
+        assert_eq!(i.to_f64(), 255.0 * (2f64.powi(180) + 2f64.powi(210)));
         i <<= 1000;
         assert_eq!(i.to_f32(), f32::INFINITY);
         assert_eq!(i.to_f64(), f64::INFINITY);
@@ -483,15 +477,9 @@ mod tests {
         );
         assert_eq!(i, 0x0102_0304_0506_0708u64);
 
-        i.assign_digits(
-            &[0x0102, 0x0304, 0x0506, 0x0708, 0u16],
-            Order::Lsf,
-        );
+        i.assign_digits(&[0x0102, 0x0304, 0x0506, 0x0708, 0u16], Order::Lsf);
         assert_eq!(i, 0x0708_0506_0304_0102u64);
-        i.assign_digits(
-            &[0u16, 0x0102, 0x0304, 0x0506, 0x0708],
-            Order::Msf,
-        );
+        i.assign_digits(&[0u16, 0x0102, 0x0304, 0x0506, 0x0708], Order::Msf);
         assert_eq!(i, 0x0102_0304_0506_0708u64);
         i.assign_digits(
             &[le_0102, le_0304, le_0506, le_0708, 0u16],

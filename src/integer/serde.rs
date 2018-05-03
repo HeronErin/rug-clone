@@ -31,11 +31,7 @@ impl Serialize for Integer {
             16
         };
         let value = self.to_string_radix(radix);
-        let data = Data {
-            prec,
-            radix,
-            value,
-        };
+        let data = Data { prec, radix, value };
         serdeize::serialize("Integer", &data, serializer)
     }
 }
@@ -67,11 +63,8 @@ fn de_data<'de, D>(deserializer: D) -> Result<(i32, String), D::Error>
 where
     D: Deserializer<'de>,
 {
-    let Data {
-        prec,
-        radix,
-        value,
-    } = serdeize::deserialize("Integer", PrecReq::Zero, deserializer)?;
+    let Data { prec, radix, value } =
+        serdeize::deserialize("Integer", PrecReq::Zero, deserializer)?;
     match prec {
         PrecVal::Zero => {}
         _ => unreachable!(),
@@ -117,9 +110,7 @@ mod tests {
                 "value": value,
             });
             let mut bincode = Vec::<u8>::new();
-            bincode
-                .write_i32::<LittleEndian>(radix)
-                .unwrap();
+            bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
                 .write_u64::<LittleEndian>(cast(value.len()))
                 .unwrap();

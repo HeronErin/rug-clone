@@ -40,10 +40,7 @@ impl PartialOrd for Float {
     fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
         unsafe {
             match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(ordering1(mpfr::cmp(
-                    self.inner(),
-                    other.inner(),
-                ))),
+                0 => Some(ordering1(mpfr::cmp(self.inner(), other.inner()))),
                 _ => None,
             }
         }

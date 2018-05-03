@@ -26,8 +26,10 @@ use rational::TryFromFloatError;
 use std::cmp::Ordering;
 #[cfg(all(try_from, feature = "rational"))]
 use std::convert::TryFrom;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
-               Octal, UpperExp, UpperHex};
+use std::fmt::{
+    self, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
+    UpperExp, UpperHex,
+};
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
 use std::{i32, u32};
@@ -389,9 +391,7 @@ impl TryFrom<Float> for Rational {
 impl<'a> TryFrom<&'a Float> for Rational {
     type Error = TryFromFloatError;
     fn try_from(value: &Float) -> Result<Self, TryFromFloatError> {
-        value
-            .to_rational()
-            .ok_or(TryFromFloatError { _unused: () })
+        value.to_rational().ok_or(TryFromFloatError { _unused: () })
     }
 }
 
@@ -416,11 +416,7 @@ fn fmt_radix(
     } else {
         (false, &s[..])
     };
-    let prefix = if flt.is_finite() {
-        prefix
-    } else {
-        ""
-    };
+    let prefix = if flt.is_finite() { prefix } else { "" };
     fmt.pad_integral(!neg, prefix, buf)
 }
 

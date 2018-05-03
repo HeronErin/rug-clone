@@ -94,10 +94,7 @@ pub unsafe fn mpz_root_check(
     n: c_ulong,
 ) -> c_int {
     assert_ne!(n, 0, "zeroth root");
-    assert!(
-        n & 1 == 1 || gmp::mpz_sgn(op) >= 0,
-        "even root of negative"
-    );
+    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
     gmp::mpz_root(rop, op, n)
 }
 
@@ -109,10 +106,7 @@ pub unsafe fn mpz_rootrem_check(
     n: c_ulong,
 ) {
     assert_ne!(n, 0, "zeroth root");
-    assert!(
-        n & 1 == 1 || gmp::mpz_sgn(op) >= 0,
-        "even root of negative"
-    );
+    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
     gmp::mpz_rootrem(root, rem, op, n);
 }
 
@@ -1315,10 +1309,7 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
     if s_rem == 0 {
         return false;
     }
-    let s_dividend = (*dividend)
-        .size
-        .checked_abs()
-        .expect("overflow");
+    let s_dividend = (*dividend).size.checked_abs().expect("overflow");
     debug_assert!(s_dividend > 0);
     debug_assert!(s_rem <= s_dividend);
     if s_rem < s_dividend - 1 {

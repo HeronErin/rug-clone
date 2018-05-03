@@ -18,12 +18,16 @@ use complex::big::{ordering2, raw_round2, Ordering2, Round2};
 use ext::mpc as xmpc;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use inner::{Inner, InnerMut};
-use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
-          DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
-          NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
-          SubAssignRound, SubFrom, SubFromRound};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
-               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use ops::{
+    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
+    DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
+    Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
+    SubFrom, SubFromRound,
+};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
+    ShrAssign, Sub, SubAssign,
+};
 use std::os::raw::c_int;
 #[cfg(feature = "integer")]
 use Integer;
@@ -67,11 +71,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete, round: Round2) -> Ordering2 {
         let ret = unsafe {
-            mpc::neg(
-                self.inner_mut(),
-                src.val.inner(),
-                raw_round2(round),
-            )
+            mpc::neg(self.inner_mut(), src.val.inner(), raw_round2(round))
         };
         ordering2(ret)
     }
@@ -725,12 +725,7 @@ unsafe fn sub_mul(
     mul: MulIncomplete,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::submul(
-        rop,
-        add,
-        (mul.lhs.inner(), mul.rhs.inner()),
-        rnd,
-    )
+    xmpc::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
 }
 
 #[allow(unknown_lints, needless_pass_by_value)]
@@ -740,12 +735,7 @@ unsafe fn mul_sub(
     sub: *const mpc_t,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::mulsub(
-        rop,
-        (mul.lhs.inner(), mul.rhs.inner()),
-        sub,
-        rnd,
-    )
+    xmpc::mulsub(rop, (mul.lhs.inner(), mul.rhs.inner()), sub, rnd)
 }
 
 #[cfg(test)]

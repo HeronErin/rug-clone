@@ -23,8 +23,10 @@ use ops::AssignRound;
 #[allow(deprecated, unused_imports)]
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerExp, LowerHex,
-               Octal, UpperExp, UpperHex};
+use std::fmt::{
+    self, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
+    UpperExp, UpperHex,
+};
 use std::mem;
 use std::ptr;
 use {Assign, Complex, Float};
@@ -277,11 +279,7 @@ fn fmt_radix(
         (
             to_upper,
             fmt.sign_plus(),
-            if fmt.alternate() {
-                prefix
-            } else {
-                ""
-            },
+            if fmt.alternate() { prefix } else { "" },
         ),
     );
     // s is ascii only, so just take len for character count

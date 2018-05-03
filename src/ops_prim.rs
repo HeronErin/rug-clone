@@ -14,10 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use ops::{AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding,
-          DivRoundingAssign, DivRoundingFrom, MulFrom, NegAssign, NotAssign,
-          Pow, PowAssign, PowFrom, RemFrom, RemRounding, RemRoundingAssign,
-          RemRoundingFrom, ShlFrom, ShrFrom, SubFrom};
+use ops::{
+    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding,
+    DivRoundingAssign, DivRoundingFrom, MulFrom, NegAssign, NotAssign, Pow,
+    PowAssign, PowFrom, RemFrom, RemRounding, RemRoundingAssign,
+    RemRoundingFrom, ShlFrom, ShrFrom, SubFrom,
+};
 use std::borrow::Cow;
 use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 use Assign;

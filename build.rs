@@ -97,10 +97,7 @@ fn ffi_panic_aborts(env: &Environment) -> bool {
 
 fn cargo_env(name: &str) -> OsString {
     env::var_os(name).unwrap_or_else(|| {
-        panic!(
-            "environment variable not found: {}, please use cargo",
-            name
-        )
+        panic!("environment variable not found: {}, please use cargo", name)
     })
 }
 
@@ -129,11 +126,7 @@ fn create_dir_or_panic(dir: &Path) {
 }
 
 fn create_file_or_panic(filename: &Path, contents: &str) {
-    println!(
-        "$ printf '%s' {:?}... > {:?}",
-        &contents[0..20],
-        filename
-    );
+    println!("$ printf '%s' {:?}... > {:?}", &contents[0..20], filename);
     let mut file = File::create(filename)
         .unwrap_or_else(|_| panic!("Unable to create file: {:?}", filename));
     file.write_all(contents.as_bytes())

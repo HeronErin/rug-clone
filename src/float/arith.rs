@@ -19,13 +19,17 @@ use float::big::{ordering1, raw_round};
 use float::Round;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use inner::{Inner, InnerMut};
-use ops::{AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
-          DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound,
-          NegAssign, Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound,
-          SubAssignRound, SubFrom, SubFromRound};
+use ops::{
+    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
+    DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
+    Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
+    SubFrom, SubFromRound,
+};
 use std::cmp::Ordering;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl,
-               ShlAssign, Shr, ShrAssign, Sub, SubAssign};
+use std::ops::{
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
+    ShrAssign, Sub, SubAssign,
+};
 use std::os::raw::c_int;
 use std::{i32, u32};
 use Float;
@@ -74,11 +78,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::neg(
-                self.inner_mut(),
-                src.val.inner(),
-                raw_round(round),
-            )
+            mpfr::neg(self.inner_mut(), src.val.inner(), raw_round(round))
         };
         ordering1(ret)
     }
@@ -689,12 +689,7 @@ unsafe fn sub_mul(
     mul: MulIncomplete,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    xmpfr::submul(
-        rop,
-        add,
-        (mul.lhs.inner(), mul.rhs.inner()),
-        rnd,
-    )
+    xmpfr::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
 }
 
 #[allow(unknown_lints, needless_pass_by_value)]
