@@ -1007,6 +1007,6 @@ mod tests {
     fn check_custom_no_clone() {
         let mut gen = NoCloneGenerator;
         let rand1 = RandState::new_custom(&mut gen);
-        rand1.clone();
+        let _ = rand1.clone();
     }
 }
