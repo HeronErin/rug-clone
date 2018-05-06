@@ -2388,7 +2388,8 @@ impl Integer {
 
     math_op1! {
         gmp::mpz_fdiv_r_2exp;
-        /// Keeps the *n* least significant bits only.
+        /// Keeps the *n* least significant bits only, producting a
+        /// result that is greater or equal to 0.
         ///
         /// # Examples
         ///
@@ -2399,7 +2400,8 @@ impl Integer {
         /// assert_eq!(keep_8, 0xff);
         /// ```
         fn keep_bits(n: u32);
-        /// Keeps the *n* least significant bits only.
+        /// Keeps the *n* least significant bits only, producting a
+        /// result that is greater or equal to 0.
         ///
         /// # Examples
         ///
@@ -2410,7 +2412,8 @@ impl Integer {
         /// assert_eq!(i, 0xff);
         /// ```
         fn keep_bits_mut;
-        /// Keeps the *n* least significant bits only.
+        /// Keeps the *n* least significant bits only, producting a
+        /// result that is greater or equal to 0.
         ///
         /// [`Assign<Src> for Integer`][`Assign`] and
         /// [`From<Src> for Integer`][`From`] are implemented with the
@@ -2430,6 +2433,64 @@ impl Integer {
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
         /// [icv]: index.html#incomplete-computation-values
         fn keep_bits_ref -> KeepBitsIncomplete;
+    }
+
+    math_op1! {
+        xgmp::mpz_keep_signed_bits;
+        /// Keeps the *n* least significant bits only, producting a
+        /// negative result if the <i>n</i>th least significant bit is
+        /// one.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(-1);
+        /// let i_keep_8 = i.keep_signed_bits(8);
+        /// assert_eq!(i_keep_8, -1);
+        /// let j = Integer::from(15 << 8 | 15);
+        /// let j_keep_8 = j.keep_signed_bits(8);
+        /// assert_eq!(j_keep_8, 15);
+        /// ```
+        fn keep_signed_bits(n: u32);
+        /// Keeps the *n* least significant bits only, producting a
+        /// negative result if the <i>n</i>th least significant bit is
+        /// one.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(-1);
+        /// i.keep_signed_bits_mut(8);
+        /// assert_eq!(i, -1);
+        /// let mut j = Integer::from(15 << 8 | 15);
+        /// j.keep_signed_bits_mut(8);
+        /// assert_eq!(j, 15);
+        /// ```
+        fn keep_signed_bits_mut;
+        /// Keeps the *n* least significant bits only, producting a
+        /// negative result if the <i>n</i>th least significant bit is
+        /// one.
+        ///
+        /// [`Assign<Src> for Integer`][`Assign`] and
+        /// [`From<Src> for Integer`][`From`] are implemented with the
+        /// returned [incomplete-computation value][icv] as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(-1);
+        /// let r = i.keep_signed_bits_ref(8);
+        /// let eight_bits = Integer::from(r);
+        /// assert_eq!(eight_bits, -1);
+        /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn keep_signed_bits_ref -> KeepSignedBitsIncomplete;
     }
     math_op1! {
         xgmp::mpz_next_pow_of_two;
@@ -4715,6 +4776,11 @@ where
 
 ref_math_op1! {
     Integer; gmp::mpz_fdiv_r_2exp; struct KeepBitsIncomplete { n: u32 }
+}
+ref_math_op1! {
+    Integer;
+    xgmp::mpz_keep_signed_bits;
+    struct KeepSignedBitsIncomplete { n: u32 }
 }
 ref_math_op1! {
     Integer; xgmp::mpz_next_pow_of_two; struct NextPowerOfTwoIncomplete {}

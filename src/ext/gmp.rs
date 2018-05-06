@@ -827,6 +827,18 @@ pub unsafe fn mpz_rdiv_qr_check(
     }
 }
 
+pub unsafe fn mpz_keep_signed_bits(
+    r: *mut mpz_t,
+    n: *const mpz_t,
+    b: gmp::bitcnt_t,
+) {
+    if b > 0 && gmp::mpz_tstbit(n, b - 1) != 0 {
+        gmp::mpz_cdiv_r_2exp(r, n, b);
+    } else {
+        gmp::mpz_fdiv_r_2exp(r, n, b);
+    }
+}
+
 #[inline]
 pub unsafe fn mpz_divexact_check(
     q: *mut mpz_t,
