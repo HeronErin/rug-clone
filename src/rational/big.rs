@@ -26,7 +26,7 @@ use std::ffi::CString;
 use std::i32;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Add, AddAssign, Deref};
 use std::ptr;
 use {Assign, Integer};
 
@@ -1138,6 +1138,87 @@ impl Rational {
         self.as_abs().cmp(&*other.as_abs())
     }
 
+    /// Adds a list of [`Rational`] values.
+    ///
+    /// [`Assign<Src> for Rational`][`Assign`],
+    /// [`From<Src> for Rational`][`From`],
+    /// [`AddAssign<Src> for Rational`][`AddAssign`] and
+    /// [`Add<Src> for Rational`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    ///
+    /// let values = [
+    ///     Rational::from((5, 2)),
+    ///     Rational::from((-100_000, 7)),
+    ///     Rational::from(-4),
+    /// ];
+    ///
+    /// let r = Rational::sum(values.iter());
+    /// let sum = Rational::from(r);
+    /// let expected = (5 * 7 - 100_000 * 2 - 4 * 14, 14);
+    /// assert_eq!(sum, expected);
+    /// ```
+    ///
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
+    where
+        I: Iterator<Item = &'a Self>,
+    {
+        SumIncomplete { values }
+    }
+
+    /// Finds the dot product of a list of [`Rational`] value pairs.
+    ///
+    /// [`Assign<Src> for Rational`][`Assign`],
+    /// [`From<Src> for Rational`][`From`],
+    /// [`AddAssign<Src> for Rational`][`AddAssign`] and
+    /// [`Add<Src> for Rational`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    ///
+    /// let a = [
+    ///     Rational::from((270, 7)),
+    ///     Rational::from((-11, 10)),
+    /// ];
+    /// let b = [
+    ///     Rational::from(7),
+    ///     Rational::from((1, 2)),
+    /// ];
+    ///
+    /// let r = Rational::dot(a.iter().zip(b.iter()));
+    /// let dot = Rational::from(r);
+    /// let expected = (270 * 20 - 11, 20);
+    /// assert_eq!(dot, expected);
+    /// ```
+    ///
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
+    where
+        I: Iterator<Item = (&'a Self, &'a Self)>,
+    {
+        DotIncomplete { values }
+    }
+
     math_op1! {
         gmp::mpq_abs;
         /// Computes the absolute value.
@@ -2194,6 +2275,124 @@ impl Rational {
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
         /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
+    }
+}
+
+#[derive(Debug)]
+pub struct SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    values: I,
+}
+
+impl<'a, I> Assign<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn assign(&mut self, mut src: SumIncomplete<'a, I>) {
+        match src.values.next() {
+            Some(first) => self.assign(first),
+            None => self.assign(0u32),
+        }
+        self.add_assign(src);
+    }
+}
+
+impl<'a, I> From<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn from(mut src: SumIncomplete<'a, I>) -> Self {
+        let mut dst = match src.values.next() {
+            Some(first) => first.clone(),
+            None => return Rational::new(),
+        };
+        dst.add_assign(src);
+        dst
+    }
+}
+
+impl<'a, I> Add<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
+        self.add_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn add_assign(&mut self, src: SumIncomplete<'a, I>) {
+        for i in src.values {
+            AddAssign::add_assign(self, i);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    values: I,
+}
+
+impl<'a, I> Assign<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    fn assign(&mut self, mut src: DotIncomplete<'a, I>) {
+        match src.values.next() {
+            Some(first) => self.assign(first.0 * first.1),
+            None => self.assign(0u32),
+        }
+        self.add_assign(src);
+    }
+}
+
+impl<'a, I> From<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    fn from(mut src: DotIncomplete<'a, I>) -> Self {
+        let mut dst = match src.values.next() {
+            Some(first) => Rational::from(first.0 * first.1),
+            None => return Rational::new(),
+        };
+        dst.add_assign(src);
+        dst
+    }
+}
+
+impl<'a, I> Add<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    type Output = Self;
+    #[inline]
+    fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.add_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = (&'a Rational, &'a Rational)>,
+{
+    fn add_assign(&mut self, src: DotIncomplete<'a, I>) {
+        let mut mul = Rational::new();
+        for i in src.values {
+            mul.assign(i.0 * i.1);
+            AddAssign::add_assign(self, &mul);
+        }
     }
 }
 

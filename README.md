@@ -28,8 +28,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 * New methods [`Integer::keep_signed_bits`],
   [`Integer::keep_signed_bits_mut`] and
   [`Integer::keep_signed_bits_ref`] were added.
-* New methods [`Integer::sum`] and [`Integer::dot`] were added.
-* New methods [`Float::dot`] and [`Complex::dot`] were added.
+* New methods [`Integer::sum`] and [`Rational::sum`] were added.
+* New methods [`Integer::dot`], [`Rational::dot`], [`Float::dot`] and
+  [`Complex::dot`] were added.
 
 [`Complex::dot`]: https://docs.rs/rug/~1.2/rug/struct.Complex.html#method.dot
 [`Float::dot`]: https://docs.rs/rug/~1.2/rug/struct.Float.html#method.dot
@@ -38,6 +39,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Integer::keep_signed_bits_ref`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_ref
 [`Integer::keep_signed_bits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits
 [`Integer::sum`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.sum
+[`Rational::dot`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.dot
+[`Rational::sum`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
 
 ### Version 1.1.0 news
 
