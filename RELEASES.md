@@ -2,6 +2,7 @@ Version 1.2.0 (unreleased)
 ==========================
 
 * Add `Integer::keep_signed_bits` methods.
+* Add `Integer::sum` and `Integer::dot` methods.
 * Add `Float::dot` and `Complex::dot`.
 
 Version 1.1.0 (2018-04-23)

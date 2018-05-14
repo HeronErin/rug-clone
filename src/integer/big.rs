@@ -28,7 +28,7 @@ use std::error::Error;
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::Deref;
+use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::{c_char, c_int, c_long, c_void};
 use std::ptr;
 use std::slice;
@@ -2165,6 +2165,88 @@ impl Integer {
         bitcount_to_u32(unsafe {
             gmp::mpz_hamdist(self.inner(), other.inner())
         })
+    }
+
+    /// Adds a list of [`Integer`] values.
+    ///
+    /// [`Assign<Src> for Integer`][`Assign`],
+    /// [`From<Src> for Integer`][`From`],
+    /// [`AddAssign<Src> for Integer`][`AddAssign`] and
+    /// [`Add<Src> for Integer`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// let values = [
+    ///     Integer::from(5),
+    ///     Integer::from(1024),
+    ///     Integer::from(-100_000),
+    ///     Integer::from(-4),
+    /// ];
+    ///
+    /// let r = Integer::sum(values.iter());
+    /// let sum = Integer::from(r);
+    /// let expected = 5 + 1024 - 100_000 - 4;
+    /// assert_eq!(sum, expected);
+    /// ```
+    ///
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn sum<'a, I>(values: I) -> SumIncomplete<'a, I>
+    where
+        I: Iterator<Item = &'a Self>,
+    {
+        SumIncomplete { values }
+    }
+
+    /// Finds the dot product of a list of [`Integer`] value pairs.
+    ///
+    /// [`Assign<Src> for Integer`][`Assign`],
+    /// [`From<Src> for Integer`][`From`],
+    /// [`AddAssign<Src> for Integer`][`AddAssign`] and
+    /// [`Add<Src> for Integer`][`Add`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// let a = [
+    ///     Integer::from(270),
+    ///     Integer::from(-11),
+    /// ];
+    /// let b = [
+    ///     Integer::from(100),
+    ///     Integer::from(5),
+    /// ];
+    ///
+    /// let r = Integer::dot(a.iter().zip(b.iter()));
+    /// let dot = Integer::from(r);
+    /// let expected = 270 * 100 - 11 * 5;
+    /// assert_eq!(dot, expected);
+    /// ```
+    ///
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn dot<'a, I>(values: I) -> DotIncomplete<'a, I>
+    where
+        I: Iterator<Item = (&'a Self, &'a Self)>,
+    {
+        DotIncomplete { values }
     }
 
     math_op1! {
@@ -4720,6 +4802,122 @@ impl Integer {
         RandomBelowIncomplete {
             ref_self: self,
             rng,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct SumIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    values: I,
+}
+
+impl<'a, I> Assign<SumIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn assign(&mut self, mut src: SumIncomplete<'a, I>) {
+        match src.values.next() {
+            Some(first) => self.assign(first),
+            None => self.assign(0u32),
+        }
+        self.add_assign(src);
+    }
+}
+
+impl<'a, I> From<SumIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn from(mut src: SumIncomplete<'a, I>) -> Self {
+        let mut dst = match src.values.next() {
+            Some(first) => first.clone(),
+            None => return Integer::new(),
+        };
+        dst.add_assign(src);
+        dst
+    }
+}
+
+impl<'a, I> Add<SumIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
+        self.add_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> AddAssign<SumIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn add_assign(&mut self, src: SumIncomplete<'a, I>) {
+        for i in src.values {
+            AddAssign::add_assign(self, i);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct DotIncomplete<'a, I>
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    values: I,
+}
+
+impl<'a, I> Assign<DotIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    fn assign(&mut self, mut src: DotIncomplete<'a, I>) {
+        match src.values.next() {
+            Some(first) => self.assign(first.0 * first.1),
+            None => self.assign(0u32),
+        }
+        self.add_assign(src);
+    }
+}
+
+impl<'a, I> From<DotIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    fn from(mut src: DotIncomplete<'a, I>) -> Self {
+        let mut dst = match src.values.next() {
+            Some(first) => Integer::from(first.0 * first.1),
+            None => return Integer::new(),
+        };
+        dst.add_assign(src);
+        dst
+    }
+}
+
+impl<'a, I> Add<DotIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    type Output = Self;
+    #[inline]
+    fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
+        self.add_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> AddAssign<DotIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = (&'a Integer, &'a Integer)>,
+{
+    fn add_assign(&mut self, src: DotIncomplete<'a, I>) {
+        for i in src.values {
+            AddAssign::add_assign(self, i.0 * i.1);
         }
     }
 }
