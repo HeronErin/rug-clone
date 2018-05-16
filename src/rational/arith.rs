@@ -121,7 +121,6 @@ where
     Rational: AddAssign<T>,
     T: Into<Rational>,
 {
-    #[inline]
     fn sum<I>(mut iter: I) -> Rational
     where
         I: Iterator<Item = T>,
@@ -144,7 +143,6 @@ where
     for<'a> Rational: Assign<<&'a Rational as Mul<T>>::Output>,
     T: Into<Rational>,
 {
-    #[inline]
     fn product<I>(mut iter: I) -> Rational
     where
         I: Iterator<Item = T>,

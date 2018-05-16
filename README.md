@@ -25,6 +25,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.2.0 news
 
+* The implementations of [`Sum`] and [`Product`] for [`Integer`] and
+  [`Rational`] were generalized to accept more types of iterator
+  items.
 * New methods [`Integer::keep_signed_bits`],
   [`Integer::keep_signed_bits_mut`] and
   [`Integer::keep_signed_bits_ref`] were added.
@@ -39,8 +42,10 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Integer::keep_signed_bits_ref`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_ref
 [`Integer::keep_signed_bits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits
 [`Integer::sum`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.sum
+[`Product`]: https://doc.rust-lang.org/nightly/std/iter/trait.Product.html
 [`Rational::dot`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.dot
 [`Rational::sum`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
+[`Sum`]: https://doc.rust-lang.org/nightly/std/iter/trait.Sum.html
 
 ### Version 1.1.0 news
 

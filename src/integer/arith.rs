@@ -354,7 +354,6 @@ where
     Integer: AddAssign<T>,
     T: Into<Integer>,
 {
-    #[inline]
     fn sum<I>(mut iter: I) -> Integer
     where
         I: Iterator<Item = T>,
@@ -377,7 +376,6 @@ where
     for<'a> Integer: Assign<<&'a Integer as Mul<T>>::Output>,
     T: Into<Integer>,
 {
-    #[inline]
     fn product<I>(mut iter: I) -> Integer
     where
         I: Iterator<Item = T>,
