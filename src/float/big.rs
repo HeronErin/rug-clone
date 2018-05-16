@@ -7856,7 +7856,8 @@ where
         src: SumIncomplete<'a, I>,
         round: Round,
     ) -> Ordering {
-        let refs = src.values
+        let refs = src
+            .values
             .map(|r| -> *const mpfr_t { r.inner() })
             .collect::<Vec<_>>();
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);

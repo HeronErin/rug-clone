@@ -46,7 +46,8 @@ fn main() {
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
             .expect("DEP_GMP_LIMB_BITS not set by gmp-mfpr-sys");
-        let bits = bits.to_str()
+        let bits = bits
+            .to_str()
             .expect("DEP_GMP_LIMB_BITS contains unexpected characters");
         if bits != "32" && bits != "64" {
             panic!("Limb bits not 32 or 64: \"{}\"", bits);
@@ -65,7 +66,8 @@ fn has_feature(env: &Environment, ident: &str, contents: &str) -> bool {
         .args(&[&filename, "--emit=dep-info,metadata"]);
     println!("$ cd {:?}", try_dir);
     println!("$ {:?}", cmd);
-    let status = cmd.status()
+    let status = cmd
+        .status()
         .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
     remove_dir_or_panic(&try_dir);
     status.success()
@@ -83,12 +85,14 @@ fn ffi_panic_aborts(env: &Environment) -> bool {
         .args(&[&filename, "-o", "out.exe"]);
     println!("$ cd {:?}", try_dir);
     println!("$ {:?}", cmd);
-    let status = cmd.status()
+    let status = cmd
+        .status()
         .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
     assert!(status.success(), "Compiling failed: {:?}", cmd);
     cmd = Command::new(try_dir.join("out.exe"));
     println!("$ {:?}", cmd);
-    let status = cmd.status()
+    let status = cmd
+        .status()
         .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
     remove_dir_or_panic(&try_dir);
     // If panic aborts, status.success() is false.

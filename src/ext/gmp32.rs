@@ -126,11 +126,13 @@ pub unsafe fn mpz_get_abs_u128(op: *const mpz_t) -> u128 {
         -1 | 1 => u128::from(limb(op, 0)),
         -2 | 2 => u128::from(limb(op, 1)) << 32 | u128::from(limb(op, 0)),
         -3 | 3 => {
-            u128::from(limb(op, 2)) << 64 | u128::from(limb(op, 1)) << 32
+            u128::from(limb(op, 2)) << 64
+                | u128::from(limb(op, 1)) << 32
                 | u128::from(limb(op, 0))
         }
         _ => {
-            u128::from(limb(op, 3)) << 96 | u128::from(limb(op, 2)) << 64
+            u128::from(limb(op, 3)) << 96
+                | u128::from(limb(op, 2)) << 64
                 | u128::from(limb(op, 1)) << 32
                 | u128::from(limb(op, 0))
         }
@@ -305,8 +307,10 @@ pub unsafe fn mpz_fits_i128(op: *const mpz_t) -> bool {
         4 => limb(op, 3) <= i32::MAX as u32,
         -4 => {
             limb(op, 3) < i32::MIN as u32
-                || (limb(op, 3) == i32::MIN as u32 && limb(op, 2) == 0
-                    && limb(op, 1) == 0 && limb(op, 0) == 0)
+                || (limb(op, 3) == i32::MIN as u32
+                    && limb(op, 2) == 0
+                    && limb(op, 1) == 0
+                    && limb(op, 0) == 0)
         }
         _ => false,
     }
