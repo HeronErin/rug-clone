@@ -116,8 +116,59 @@ arith_prim! {
     PowU32Incomplete
 }
 
-fold! { Rational, Sum { sum }, Rational::new(), Add::add }
-fold! { Rational, Product { product }, Rational::from(1), Mul::mul }
+impl<T> Sum<T> for Rational
+where
+    Rational: AddAssign<T>,
+    T: Into<Rational>,
+{
+    #[inline]
+    fn sum<I>(mut iter: I) -> Rational
+    where
+        I: Iterator<Item = T>,
+    {
+        let mut val = match iter.next() {
+            Some(t) => t.into(),
+            None => return Rational::new(),
+        };
+        for i in iter {
+            val.add_assign(i);
+        }
+        val
+    }
+}
+
+impl<T> Product<T> for Rational
+where
+    for<'a> &'a Rational: Mul<T>,
+    for<'a> <&'a Rational as Mul<T>>::Output: Into<Rational>,
+    for<'a> Rational: Assign<<&'a Rational as Mul<T>>::Output>,
+    T: Into<Rational>,
+{
+    #[inline]
+    fn product<I>(mut iter: I) -> Rational
+    where
+        I: Iterator<Item = T>,
+    {
+        let mut a = match iter.next() {
+            Some(first) => first.into(),
+            None => return Rational::from(1),
+        };
+        let mut b = match iter.next() {
+            Some(second) => ((&a).mul(second)).into(),
+            None => return a,
+        };
+        loop {
+            match iter.next() {
+                Some(i) => a.assign((&b).mul(i)),
+                None => return b,
+            }
+            match iter.next() {
+                Some(i) => b.assign((&a).mul(i)),
+                None => return a,
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {

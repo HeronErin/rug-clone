@@ -1,6 +1,8 @@
 Version 1.2.0 (unreleased)
 ==========================
 
+* Generalize implementations of `Sum` and `Prod` for `Integer` and
+  `Rational`.
 * Add `Integer::keep_signed_bits` methods.
 * Add `Integer::sum` and `Rational::sum` methods.
 * Add `Integer::dot`, `Rational::dot`, `Float::dot` and

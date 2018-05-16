@@ -349,8 +349,59 @@ mul_op_noncommut! {
     SubMulI32Incomplete, SubMulFromI32Incomplete
 }
 
-fold_in_place! { Integer, Sum { sum }, Integer::new(), AddAssign::add_assign }
-fold! { Integer, Product { product }, Integer::from(1), Mul::mul }
+impl<T> Sum<T> for Integer
+where
+    Integer: AddAssign<T>,
+    T: Into<Integer>,
+{
+    #[inline]
+    fn sum<I>(mut iter: I) -> Integer
+    where
+        I: Iterator<Item = T>,
+    {
+        let mut val = match iter.next() {
+            Some(t) => t.into(),
+            None => return Integer::new(),
+        };
+        for i in iter {
+            val.add_assign(i);
+        }
+        val
+    }
+}
+
+impl<T> Product<T> for Integer
+where
+    for<'a> &'a Integer: Mul<T>,
+    for<'a> <&'a Integer as Mul<T>>::Output: Into<Integer>,
+    for<'a> Integer: Assign<<&'a Integer as Mul<T>>::Output>,
+    T: Into<Integer>,
+{
+    #[inline]
+    fn product<I>(mut iter: I) -> Integer
+    where
+        I: Iterator<Item = T>,
+    {
+        let mut a = match iter.next() {
+            Some(first) => first.into(),
+            None => return Integer::from(1),
+        };
+        let mut b = match iter.next() {
+            Some(second) => ((&a).mul(second)).into(),
+            None => return a,
+        };
+        loop {
+            match iter.next() {
+                Some(i) => a.assign((&b).mul(i)),
+                None => return b,
+            }
+            match iter.next() {
+                Some(i) => b.assign((&a).mul(i)),
+                None => return a,
+            }
+        }
+    }
+}
 
 #[cfg(test)]
 mod tests {
