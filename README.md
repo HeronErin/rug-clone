@@ -26,8 +26,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 ### Version 1.2.0 news
 
 * The implementations of [`Sum`] and [`Product`] for [`Integer`] and
-  [`Rational`] were generalized to accept more types of iterator
-  items.
+  [`Rational`] were generalized to accept more types of elements.
 * New methods [`Integer::keep_signed_bits`],
   [`Integer::keep_signed_bits_mut`] and
   [`Integer::keep_signed_bits_ref`] were added.
