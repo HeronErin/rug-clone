@@ -52,12 +52,12 @@ impl Environment {
         let try_dir = self.out_dir.join(format!("try_{}", name));
         let filename = format!("try_{}.rs", name);
         create_dir_or_panic(&try_dir);
+        println!("$ cd {:?}", try_dir);
 
         enum Iteration {
             Stable,
             Unstable,
         }
-
         for i in &[Iteration::Stable, Iteration::Unstable] {
             let s;
             let file_contents = match *i {
@@ -71,7 +71,6 @@ impl Environment {
             let mut cmd = Command::new(&self.rustc);
             cmd.current_dir(&try_dir)
                 .args(&[&filename, "--emit=dep-info,metadata"]);
-            println!("$ cd {:?}", try_dir);
             println!("$ {:?}", cmd);
             let status = cmd
                 .status()
@@ -109,11 +108,11 @@ impl Environment {
         let status = cmd
             .status()
             .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-        remove_dir_or_panic(&try_dir);
         // If panic aborts, status.success() is false.
         if !status.success() {
             println!("cargo:rustc-cfg=ffi_panic_aborts");
         }
+        remove_dir_or_panic(&try_dir);
     }
 }
 

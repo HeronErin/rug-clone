@@ -285,7 +285,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.0"
+rug = "1.1"
 ```
 
 You also need to declare it by adding this to your crate root (usually
@@ -332,7 +332,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.0"
+version = "1.1"
 default-features = false
 features = ["integer", "float", "rand"]
 ```

@@ -1,7 +1,7 @@
 Version 1.1.1 (2018-05-20)
 ==========================
 
-* Enable unstable `i128`, `u128` and `TryFrom` in nighty.
+* Enable unstable `i128`, `u128` and `TryFrom` in nightly.
 
 Version 1.1.0 (2018-04-23)
 ==========================
