@@ -34,7 +34,10 @@ mod traits;
 pub use rational::big::ParseRationalError;
 pub use rational::small::SmallRational;
 
-#[cfg(try_from)]
+// UGH: two versions of TryFromFloatError so that the example opens
+// the feature gate if needed (this comment is at the start).
+
+#[cfg(all(try_from, not(nightly_try_from)))]
 /**
 An error which can be returned when a checked conversion from a
 floating-point number to a [`Rational`] number fails.
@@ -60,6 +63,43 @@ println!("Error: {}", error);
 pub struct TryFromFloatError {
     pub(crate) _unused: (),
 }
+
+// UGH: two versions of TryFromFloatError so that the example opens
+// the feature gate if needed (this comment is between the versions).
+
+#[cfg(all(try_from, nightly_try_from))]
+/**
+An error which can be returned when a checked conversion from a
+floating-point number to a [`Rational`] number fails.
+
+# Examples
+
+```rust
+# #![feature(try_from)]
+# extern crate rug;
+# fn main() {
+use rug::Rational;
+use rug::rational::TryFromFloatError;
+use std::convert::TryFrom;
+// This is not finite and cannot be converted to Rational.
+let inf = 1.0f32 / 0.0;
+let error: TryFromFloatError = match Rational::try_from(inf) {
+    Ok(_) => unreachable!(),
+    Err(error) => error,
+};
+println!("Error: {}", error);
+# }
+```
+
+[`Rational`]: ../struct.Rational.html
+*/
+#[derive(Clone, Copy, Debug)]
+pub struct TryFromFloatError {
+    pub(crate) _unused: (),
+}
+
+// UGH: two versions of TryFromFloatError so that the example opens
+// the feature gate if needed (this comment is at the end).
 
 #[cfg(test)]
 mod tests {

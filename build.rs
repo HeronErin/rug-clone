@@ -31,18 +31,9 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    let int_128 = has_feature(&env, "int_128", TRY_INT_128_RS);
-    let try_from = has_feature(&env, "try_from", TRY_TRY_FROM_RS);
-    let ffi_panic_aborts = ffi_panic_aborts(&env);
-    if int_128 {
-        println!("cargo:rustc-cfg=int_128");
-    }
-    if try_from {
-        println!("cargo:rustc-cfg=try_from");
-    }
-    if ffi_panic_aborts {
-        println!("cargo:rustc-cfg=ffi_panic_aborts");
-    }
+    env.check_feature("int_128", TRY_INT_128, "i128_type, i128");
+    env.check_feature("try_from", TRY_TRY_FROM, "try_from");
+    env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
             .expect("DEP_GMP_LIMB_BITS not set by gmp-mfpr-sys");
@@ -56,48 +47,74 @@ fn main() {
     }
 }
 
-fn has_feature(env: &Environment, ident: &str, contents: &str) -> bool {
-    let try_dir = env.out_dir.join(format!("try_{}", ident));
-    let filename = format!("try_{}.rs", ident);
-    create_dir_or_panic(&try_dir);
-    create_file_or_panic(&try_dir.join(&filename), contents);
-    let mut cmd = Command::new(&env.rustc);
-    cmd.current_dir(&try_dir)
-        .args(&[&filename, "--emit=dep-info,metadata"]);
-    println!("$ cd {:?}", try_dir);
-    println!("$ {:?}", cmd);
-    let status = cmd
-        .status()
-        .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-    remove_dir_or_panic(&try_dir);
-    status.success()
-}
+impl Environment {
+    fn check_feature(&self, name: &str, contents: &str, features: &str) {
+        let try_dir = self.out_dir.join(format!("try_{}", name));
+        let filename = format!("try_{}.rs", name);
+        create_dir_or_panic(&try_dir);
 
-fn ffi_panic_aborts(env: &Environment) -> bool {
-    let ident = "ffi_panic_aborts";
-    let contents = TRY_FFI_PANIC_ABORTS_RS;
-    let try_dir = env.out_dir.join(format!("try_{}", ident));
-    let filename = format!("try_{}.rs", ident);
-    create_dir_or_panic(&try_dir);
-    create_file_or_panic(&try_dir.join(&filename), contents);
-    let mut cmd = Command::new(&env.rustc);
-    cmd.current_dir(&try_dir)
-        .args(&[&filename, "-o", "out.exe"]);
-    println!("$ cd {:?}", try_dir);
-    println!("$ {:?}", cmd);
-    let status = cmd
-        .status()
-        .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-    assert!(status.success(), "Compiling failed: {:?}", cmd);
-    cmd = Command::new(try_dir.join("out.exe"));
-    println!("$ {:?}", cmd);
-    let status = cmd
-        .status()
-        .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-    remove_dir_or_panic(&try_dir);
-    // If panic aborts, status.success() is false.
-    // If panic does not abort, the program succeeds
-    !status.success()
+        enum Iteration {
+            Stable,
+            Unstable,
+        }
+
+        for i in &[Iteration::Stable, Iteration::Unstable] {
+            let s;
+            let file_contents = match *i {
+                Iteration::Stable => contents,
+                Iteration::Unstable => {
+                    s = format!("#![feature({})]\n{}", features, contents);
+                    &s
+                }
+            };
+            create_file_or_panic(&try_dir.join(&filename), file_contents);
+            let mut cmd = Command::new(&self.rustc);
+            cmd.current_dir(&try_dir)
+                .args(&[&filename, "--emit=dep-info,metadata"]);
+            println!("$ cd {:?}", try_dir);
+            println!("$ {:?}", cmd);
+            let status = cmd
+                .status()
+                .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+            if status.success() {
+                println!("cargo:rustc-cfg={}", name);
+                if let Iteration::Unstable = *i {
+                    println!("cargo:rustc-cfg=nightly_{}", name);
+                }
+                break;
+            }
+        }
+
+        remove_dir_or_panic(&try_dir);
+    }
+
+    fn check_ffi_panic_aborts(&self) {
+        let ident = "ffi_panic_aborts";
+        let contents = TRY_FFI_PANIC_ABORTS;
+        let try_dir = self.out_dir.join(format!("try_{}", ident));
+        let filename = format!("try_{}.rs", ident);
+        create_dir_or_panic(&try_dir);
+        create_file_or_panic(&try_dir.join(&filename), contents);
+        let mut cmd = Command::new(&self.rustc);
+        cmd.current_dir(&try_dir)
+            .args(&[&filename, "-o", "out.exe"]);
+        println!("$ cd {:?}", try_dir);
+        println!("$ {:?}", cmd);
+        let status = cmd
+            .status()
+            .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+        assert!(status.success(), "Compiling failed: {:?}", cmd);
+        cmd = Command::new(try_dir.join("out.exe"));
+        println!("$ {:?}", cmd);
+        let status = cmd
+            .status()
+            .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+        remove_dir_or_panic(&try_dir);
+        // If panic aborts, status.success() is false.
+        if !status.success() {
+            println!("cargo:rustc-cfg=ffi_panic_aborts");
+        }
+    }
 }
 
 fn cargo_env(name: &str) -> OsString {
@@ -138,21 +155,23 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }
 
-const TRY_INT_128_RS: &str = r#"// try_int_128.rs
+const TRY_INT_128: &str = r#"// try_int_128.rs
+use std::i128;
 fn main() {
-    let _ = 1i128;
-    let _ = 1u128;
+    let _: i128 = 1i128;
+    let _: u128 = 1u128;
+    let _ = i128::MIN;
 }
 "#;
 
-const TRY_TRY_FROM_RS: &str = r#"// try_try_from.rs
+const TRY_TRY_FROM: &str = r#"// try_try_from.rs
 use std::convert::TryFrom;
 fn main() {
     let _ = i8::try_from(1u64);
 }
 "#;
 
-const TRY_FFI_PANIC_ABORTS_RS: &str = r#"// try_ffi_panic_aborts.rs
+const TRY_FFI_PANIC_ABORTS: &str = r#"// try_ffi_panic_aborts.rs
 extern "C" fn ffi_panic() {
     panic!();
 }

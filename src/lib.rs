@@ -397,6 +397,8 @@ the crate.
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/~1.1")]
 #![doc(test(attr(deny(warnings))))]
+#![cfg_attr(nightly_int_128, feature(i128_type, i128))]
+#![cfg_attr(nightly_try_from, feature(try_from))]
 
 #[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;
