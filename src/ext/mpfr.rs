@@ -409,13 +409,7 @@ pub unsafe fn custom_zero(
     prec: mpfr::prec_t,
 ) {
     mpfr::custom_init(limbs as *mut c_void, prec);
-    mpfr::custom_init_set(
-        f,
-        mpfr::ZERO_KIND,
-        0,
-        prec,
-        limbs as *mut c_void,
-    );
+    mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut c_void);
 }
 
 #[inline]

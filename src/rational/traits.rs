@@ -25,8 +25,9 @@ use std::cmp::Ordering;
 use std::convert::TryFrom;
 #[cfg(try_from)]
 use std::error::Error;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal,
-               UpperHex};
+use std::fmt::{
+    self, Binary, Debug, Display, Formatter, LowerHex, Octal, UpperHex,
+};
 use std::hash::{Hash, Hasher};
 use std::i32;
 use std::mem;

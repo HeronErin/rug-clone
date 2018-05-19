@@ -518,12 +518,7 @@ mod tests {
 
     #[test]
     fn check_cmp_f() {
-        let large = [
-            (5, 2, 0),
-            (5, 17, 100),
-            (-11, 3, 200),
-            (33, 777, -150),
-        ];
+        let large = [(5, 2, 0), (5, 17, 100), (-11, 3, 200), (33, 777, -150)];
         let against = large
             .iter()
             .map(|&(n, d, s)| Rational::from((n, d)) << s)

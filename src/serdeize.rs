@@ -14,8 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess,
-                SeqAccess, Visitor};
+use serde::de::{
+    Deserialize, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor,
+};
 use serde::ser::{SerializeStruct, Serializer};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -154,24 +155,24 @@ impl<'de> Visitor<'de> for BigVisitor {
     {
         let prec = match self.1 {
             PrecReq::Zero => PrecVal::Zero,
-            PrecReq::One => PrecVal::One(seq.next_element()?
+            PrecReq::One => PrecVal::One(seq
+                .next_element()?
                 .ok_or_else(|| DeError::invalid_length(0, &self))?),
-            PrecReq::Two => PrecVal::Two(seq.next_element()?
+            PrecReq::Two => PrecVal::Two(seq
+                .next_element()?
                 .ok_or_else(|| DeError::invalid_length(0, &self))?),
         };
         let prec_count = match self.1 {
             PrecReq::Zero => 0,
             PrecReq::One | PrecReq::Two => 1,
         };
-        let radix = seq.next_element()?
+        let radix = seq
+            .next_element()?
             .ok_or_else(|| DeError::invalid_length(prec_count, &self))?;
-        let value = seq.next_element()?
+        let value = seq
+            .next_element()?
             .ok_or_else(|| DeError::invalid_length(prec_count + 1, &self))?;
-        Ok(Data {
-            prec,
-            radix,
-            value,
-        })
+        Ok(Data { prec, radix, value })
     }
 
     fn visit_map<V>(self, mut map: V) -> Result<Data, V::Error>
@@ -216,11 +217,7 @@ impl<'de> Visitor<'de> for BigVisitor {
         let prec = prec.ok_or_else(|| DeError::missing_field("prec"))?;
         let radix = radix.ok_or_else(|| DeError::missing_field("radix"))?;
         let value = value.ok_or_else(|| DeError::missing_field("value"))?;
-        Ok(Data {
-            prec,
-            radix,
-            value,
-        })
+        Ok(Data { prec, radix, value })
     }
 }
 

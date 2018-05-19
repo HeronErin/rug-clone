@@ -681,11 +681,7 @@ macro_rules! arith_binary {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'a>) {
                 unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
-                    );
+                    $func(self.inner_mut(), src.lhs.inner(), src.rhs.inner());
                 }
             }
         }
@@ -773,11 +769,7 @@ macro_rules! arith_prim {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
-                    $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.into(),
-                    );
+                    $func(self.inner_mut(), src.lhs.inner(), src.rhs.into());
                 }
             }
         }

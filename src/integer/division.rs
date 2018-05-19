@@ -16,8 +16,10 @@
 
 use ext::gmp as xgmp;
 use inner::{Inner, InnerMut};
-use ops::{DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
-          RemRoundingAssign, RemRoundingFrom};
+use ops::{
+    DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
+    RemRoundingAssign, RemRoundingFrom,
+};
 use {Assign, Integer};
 
 // big / big -> Big
@@ -794,17 +796,7 @@ mod tests {
     fn check_div_prim() {
         let large = [(1, 100), (-11, 200), (33, 150)];
         let u = [0, 1, 100, 101, u32::MAX];
-        let s = [
-            i32::MIN,
-            -101,
-            -100,
-            -1,
-            0,
-            1,
-            100,
-            101,
-            i32::MAX,
-        ];
+        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
         let against = large
             .iter()
             .map(|&(n, s)| Integer::from(n) << s)
@@ -893,17 +885,7 @@ mod tests {
     fn check_rem_prim() {
         let large = [(1, 100), (-11, 200), (33, 150)];
         let u = [0, 1, 100, 101, u32::MAX];
-        let s = [
-            i32::MIN,
-            -101,
-            -100,
-            -1,
-            0,
-            1,
-            100,
-            101,
-            i32::MAX,
-        ];
+        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
         let against = large
             .iter()
             .map(|&(n, s)| Integer::from(n) << s)

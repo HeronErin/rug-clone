@@ -84,17 +84,8 @@ macro_rules! sum_forward {
         ) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
-                $func(
-                    mpc::realref(rop),
-                    mpc::realref_const(op1),
-                    op2,
-                    rnd_re,
-                ),
-                mpfr::set(
-                    mpc::imagref(rop),
-                    mpc::imagref_const(op1),
-                    rnd_im,
-                ),
+                $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
+                mpfr::set(mpc::imagref(rop), mpc::imagref_const(op1), rnd_im),
             )
         }
     };
@@ -111,17 +102,8 @@ macro_rules! sub_reverse {
         ) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
-                $func(
-                    mpc::realref(rop),
-                    op1,
-                    mpc::realref_const(op2),
-                    rnd_re,
-                ),
-                mpfr::neg(
-                    mpc::imagref(rop),
-                    mpc::imagref_const(op2),
-                    rnd_im,
-                ),
+                $func(mpc::realref(rop), op1, mpc::realref_const(op2), rnd_re),
+                mpfr::neg(mpc::imagref(rop), mpc::imagref_const(op2), rnd_im),
             )
         }
     };
@@ -138,18 +120,8 @@ macro_rules! prod_forward {
         ) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
-                $func(
-                    mpc::realref(rop),
-                    mpc::realref_const(op1),
-                    op2,
-                    rnd_re,
-                ),
-                $func(
-                    mpc::imagref(rop),
-                    mpc::imagref_const(op1),
-                    op2,
-                    rnd_im,
-                ),
+                $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
+                $func(mpc::imagref(rop), mpc::imagref_const(op1), op2, rnd_im),
             )
         }
     };

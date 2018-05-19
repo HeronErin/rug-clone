@@ -892,10 +892,7 @@ unsafe fn gen_copy(gen: &RandGen, dst: *mut randstate_t) {
         let funcs = &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
         (dst_r_ptr, funcs)
     } else {
-        (
-            ptr::null_mut(),
-            &ABORT_FUNCS as *const Funcs as *mut c_void,
-        )
+        (ptr::null_mut(), &ABORT_FUNCS as *const Funcs as *mut c_void)
     };
     let dst_ptr = cast_ptr_mut!(dst, MpRandState);
     *dst_ptr = MpRandState {
@@ -955,15 +952,12 @@ mod tests {
 
     impl RandGen for SimpleGenerator {
         fn gen(&mut self) -> u32 {
-            self.seed = self.seed
-                .wrapping_mul(6364136223846793005)
-                .wrapping_add(1);
+            self.seed =
+                self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
             (self.seed >> 32) as u32
         }
         fn boxed_clone(&self) -> Option<Box<RandGen>> {
-            let other = SimpleGenerator {
-                seed: self.seed,
-            };
+            let other = SimpleGenerator { seed: self.seed };
             let boxed = Box::new(other);
             Some(boxed)
         }
