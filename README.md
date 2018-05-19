@@ -46,6 +46,11 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Rational::sum`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
 [`Sum`]: https://doc.rust-lang.org/nightly/std/iter/trait.Sum.html
 
+### Version 1.1.1 news
+
+* Support for [`i128`], [`u128`] and [`TryFrom`] was enabled in
+  nightly versions when the compiler needs a feature flag.
+
 ### Version 1.1.0 news
 
 * Support for [`i128`] and [`u128`] conversions and comparisons was
@@ -309,7 +314,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.0"
+rug = "1.1"
 ```
 
 You also need to declare it by adding this to your crate root (usually
@@ -355,7 +360,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.0"
+version = "1.1"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
