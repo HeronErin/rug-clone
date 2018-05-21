@@ -14,6 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
+use float::Special;
 use std::i32;
 #[cfg(feature = "integer")]
 use Integer;
@@ -66,7 +67,7 @@ macro_rules! eq_re {
         eq_re_im! { $Re; Integer }
         #[cfg(feature = "rational")]
         eq_re_im! { $Re; Rational }
-        eq_re_im! { $Re; Float }
+        eq_re_im! { $Re; Float Special }
         eq_re_im! { $Re; i8 i16 i32 i64 isize }
         #[cfg(int_128)]
         eq_re_im! { $Re; i128 }
@@ -81,7 +82,7 @@ macro_rules! eq_re {
 eq_re! { Integer }
 #[cfg(feature = "rational")]
 eq_re! { Rational }
-eq_re! { Float }
+eq_re! { Float Special }
 eq_re! { i8 i16 i32 i64 isize }
 #[cfg(int_128)]
 eq_re! { i128 }
