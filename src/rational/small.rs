@@ -41,8 +41,8 @@ implements [`Deref<Target = Rational>`][`Deref`].
 # Examples
 
 ```rust
-use rug::Rational;
 use rug::rational::SmallRational;
+use rug::Rational;
 // `a` requires a heap allocation
 let mut a = Rational::from((100, 13));
 // `b` can reside on the stack
@@ -195,9 +195,7 @@ impl SmallRational {
     ///
     /// ```rust
     /// use rug::rational::SmallRational;
-    /// let from_unsafe = unsafe {
-    ///     SmallRational::from_canonical(-13, 10)
-    /// };
+    /// let from_unsafe = unsafe { SmallRational::from_canonical(-13, 10) };
     /// // from_safe is canonicalized to the same form as from_unsafe
     /// let from_safe = SmallRational::from((130, -100));
     /// assert_eq!(from_unsafe.numer(), from_safe.numer());

@@ -54,8 +54,8 @@ implements [`Deref<Target = Complex>`][`Deref`].
 # Examples
 
 ```rust
-use rug::Complex;
 use rug::complex::SmallComplex;
+use rug::Complex;
 // `a` requires a heap allocation
 let mut a = Complex::with_val(53, (1, 2));
 // `b` can reside on the stack

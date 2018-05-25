@@ -25,8 +25,8 @@ allocation, you can use the [`SmallInteger`] type.
 # Examples
 
 ```rust
-use rug::{Assign, Integer};
 use rug::integer::SmallInteger;
+use rug::{Assign, Integer};
 let mut int = Integer::from(10);
 assert_eq!(int, 10);
 let small = SmallInteger::from(-15);
@@ -64,8 +64,8 @@ An error which can be returned when a checked conversion from
 # Examples
 
 ```rust
-use rug::Integer;
 use rug::integer::TryFromIntegerError;
+use rug::Integer;
 use std::convert::TryFrom;
 // This is negative and cannot be converted to u32.
 let i = Integer::from(-5);
@@ -97,8 +97,8 @@ An error which can be returned when a checked conversion from
 # #![feature(try_from)]
 # extern crate rug;
 # fn main() {
-use rug::Integer;
 use rug::integer::TryFromIntegerError;
+use rug::Integer;
 use std::convert::TryFrom;
 // This is negative and cannot be converted to u32.
 let i = Integer::from(-5);
@@ -126,8 +126,8 @@ The ordering of digits inside a [slice], and bytes inside a digit.
 # Examples
 
 ```rust
-use rug::Integer;
 use rug::integer::Order;
+use rug::Integer;
 
 let i = Integer::from(0x0102_0304);
 let mut buf: [u16; 4] = [0; 4];

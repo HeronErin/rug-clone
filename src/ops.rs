@@ -413,8 +413,8 @@ Compound left shift and assignment to the rhs operand.
 
 ```rust
 # #[cfg(feature = "integer")] {
-use rug::Integer;
 use rug::ops::ShlFrom;
+use rug::Integer;
 use std::mem;
 struct I(Integer);
 impl ShlFrom for I {
@@ -455,8 +455,8 @@ Compound right shift and assignment to the rhs operand.
 
 ```rust
 # #[cfg(feature = "integer")] {
-use rug::Integer;
 use rug::ops::ShrFrom;
+use rug::Integer;
 use std::mem;
 struct I(Integer);
 impl ShrFrom for I {
@@ -661,9 +661,9 @@ Compound addition and assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::AddAssignRound;
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl AddAssignRound<f64> for F {
@@ -722,9 +722,9 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::{AddAssignRound, AddFromRound};
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl AddFromRound<f64> for F {
@@ -783,9 +783,9 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::SubAssignRound;
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl SubAssignRound<f64> for F {
@@ -844,9 +844,9 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::{SubAssignRound, SubFromRound};
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl SubFromRound<f64> for F {
@@ -905,9 +905,9 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::MulAssignRound;
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl MulAssignRound<f64> for F {
@@ -966,9 +966,9 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::{MulAssignRound, MulFromRound};
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl MulFromRound<f64> for F {
@@ -1026,9 +1026,9 @@ Compound division and assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::DivAssignRound;
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl DivAssignRound<f64> for F {
@@ -1087,9 +1087,9 @@ rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::{DivAssignRound, DivFromRound};
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl DivFromRound<f64> for F {
@@ -1209,9 +1209,9 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
 use rug::float::Round;
 use rug::ops::{PowAssignRound, PowFromRound};
+use rug::Float;
 use std::cmp::Ordering;
 struct F(f64);
 impl PowFromRound<f64> for F {
@@ -1278,17 +1278,29 @@ impl DivRounding<i32> for I {
     fn div_ceil(self, rhs: i32) -> i32 {
         let (q, r) = (self.0 / rhs, self.0 % rhs);
         let change = if rhs > 0 { r > 0 } else { r < 0 };
-        if change { q + 1 } else { q }
+        if change {
+            q + 1
+        } else {
+            q
+        }
     }
     fn div_floor(self, rhs: i32) -> i32 {
         let (q, r) = (self.0 / rhs, self.0 % rhs);
         let change = if rhs > 0 { r < 0 } else { r > 0 };
-        if change { q - 1 } else { q }
+        if change {
+            q - 1
+        } else {
+            q
+        }
     }
     fn div_euc(self, rhs: i32) -> i32 {
         let (q, r) = (self.0 / rhs, self.0 % rhs);
         if r < 0 {
-            if rhs < 0 { q + 1 } else { q - 1 }
+            if rhs < 0 {
+                q + 1
+            } else {
+                q - 1
+            }
         } else {
             q
         }
@@ -1339,7 +1351,11 @@ impl DivRoundingAssign<i32> for I {
     fn div_euc_assign(&mut self, rhs: i32) {
         let (q, r) = (self.0 / rhs, self.0 % rhs);
         self.0 = if r < 0 {
-            if rhs < 0 { q + 1 } else { q - 1 }
+            if rhs < 0 {
+                q + 1
+            } else {
+                q - 1
+            }
         } else {
             q
         };
@@ -1388,7 +1404,11 @@ impl DivRoundingFrom<i32> for I {
     fn div_euc_from(&mut self, lhs: i32) {
         let (q, r) = (lhs / self.0, lhs % self.0);
         self.0 = if r < 0 {
-            if self.0 < 0 { q + 1 } else { q - 1 }
+            if self.0 < 0 {
+                q + 1
+            } else {
+                q - 1
+            }
         } else {
             q
         };
@@ -1427,17 +1447,29 @@ impl RemRounding<i32> for I {
     fn rem_ceil(self, rhs: i32) -> i32 {
         let r = self.0 % rhs;
         let change = if rhs > 0 { r > 0 } else { r < 0 };
-        if change { r - rhs } else { r }
+        if change {
+            r - rhs
+        } else {
+            r
+        }
     }
     fn rem_floor(self, rhs: i32) -> i32 {
         let r = self.0 % rhs;
         let change = if rhs > 0 { r < 0 } else { r > 0 };
-        if change { r + rhs } else { r }
+        if change {
+            r + rhs
+        } else {
+            r
+        }
     }
     fn rem_euc(self, rhs: i32) -> i32 {
         let r = self.0 % rhs;
         if r < 0 {
-            if rhs < 0 { r - rhs } else { r + rhs }
+            if rhs < 0 {
+                r - rhs
+            } else {
+                r + rhs
+            }
         } else {
             r
         }
@@ -1487,7 +1519,11 @@ impl RemRoundingAssign<i32> for I {
     fn rem_euc_assign(&mut self, rhs: i32) {
         let r = self.0 % rhs;
         self.0 = if r < 0 {
-            if rhs < 0 { r - rhs } else { r + rhs }
+            if rhs < 0 {
+                r - rhs
+            } else {
+                r + rhs
+            }
         } else {
             r
         };
@@ -1535,7 +1571,11 @@ impl RemRoundingFrom<i32> for I {
     fn rem_euc_from(&mut self, lhs: i32) {
         let r = lhs % self.0;
         self.0 = if r < 0 {
-            if self.0 < 0 { r - self.0 } else { r + self.0 }
+            if self.0 < 0 {
+                r - self.0
+            } else {
+                r + self.0
+            }
         } else {
             r
         };

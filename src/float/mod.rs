@@ -127,9 +127,9 @@ is, the one with the least significant bit set to zero.
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::Round;
 use rug::ops::AssignRound;
+use rug::Float;
 let mut f4 = Float::new(4);
 f4.assign_round(10.4, Round::Nearest);
 assert_eq!(f4, 10);
@@ -145,9 +145,9 @@ Rounding to the nearest will round numbers exactly between two
 representable numbers to the even one.
 
 ```rust
-use rug::Float;
 use rug::float::Round;
 use rug::ops::AssignRound;
+use rug::Float;
 // 24 is 11000 in binary
 // 25 is 11001 in binary
 // 26 is 11010 in binary
@@ -187,8 +187,8 @@ The available floating-point constants.
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::Constant;
+use rug::Float;
 
 let log2 = Float::with_val(53, Constant::Log2);
 let pi = Float::with_val(53, Constant::Pi);
@@ -221,8 +221,8 @@ Special floating-point values.
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::Special;
+use rug::Float;
 
 let zero = Float::with_val(53, Special::Zero);
 let neg_zero = Float::with_val(53, Special::NegZero);

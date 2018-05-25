@@ -95,9 +95,9 @@ rounding is returned.
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::Round;
 use rug::ops::DivAssignRound;
+use rug::Float;
 use std::cmp::Ordering;
 // A precision of 32 significant bits is specified here.
 // (The primitive `f32` has a precision of 24 and
@@ -200,8 +200,8 @@ versions:
    during the assignment.
 
 ```rust
-use rug::Float;
 use rug::float::Round;
+use rug::Float;
 use std::cmp::Ordering;
 let expected = 0.9490_f64;
 
@@ -239,8 +239,8 @@ the MPFR website. The program computes a lower bound on 1 + 1/1! +
 
 ```rust
 extern crate rug;
-use rug::Float;
 use rug::float::{Round};
+use rug::Float;
 use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
 
 fn main() {
@@ -479,8 +479,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// let (f1, dir) = Float::with_val_round(4, 3.3, Round::Nearest);
     /// // 3.3 with precision 4 is rounded down to 3.25
@@ -566,8 +566,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// // 16.25 has seven significant bits (binary 10000.01)
     /// let mut f = Float::with_val(53, 16.25);
@@ -736,8 +736,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// let f = Float::with_val(53, 13.7);
     /// let (i, dir) = match f.to_integer_round(Round::Down) {
@@ -773,8 +773,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
     /// use rug::float::Special;
+    /// use rug::{Assign, Float};
     /// let mut float = Float::with_val(16, 6.5);
     /// // 6.5 in binary is 110.1
     /// // Since the precision is 16 bits, this becomes
@@ -814,10 +814,10 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Float, Rational};
     /// use rug::float::Round;
-    /// use std::str::FromStr;
+    /// use rug::{Float, Rational};
     /// use std::cmp::Ordering;
+    /// use std::str::FromStr;
     ///
     /// // Consider the number 123,456,789 / 10,000,000,000.
     /// let parse = Float::parse("0.0123456789").unwrap();
@@ -902,8 +902,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// let f = Float::with_val(53, -13.7);
     /// assert_eq!(f.to_i32_saturating_round(Round::Up), Some(-13));
     /// ```
@@ -960,8 +960,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// let f = Float::with_val(53, 13.7);
     /// assert_eq!(f.to_u32_saturating_round(Round::Down), Some(13));
     /// ```
@@ -1014,8 +1014,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::f32;
     /// let f = Float::with_val(53, 1.0 + (-50f64).exp2());
     /// assert_eq!(f.to_f32_round(Round::Up), 1.0 + f32::EPSILON);
@@ -1059,8 +1059,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::f64;
     /// // (2.0 ^ -90) + 1
     /// let f: Float = Float::with_val(100, -90).exp2() + 1;
@@ -1110,8 +1110,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// let frac_10_3 = Float::with_val(64, 10) / 3u32;
     /// let (f_down, exp_down) = frac_10_3.to_f32_exp_round(Round::Down);
     /// assert_eq!((f_down, exp_down), (0.8333333, 2));
@@ -1176,8 +1176,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// let frac_10_3 = Float::with_val(64, 10) / 3u32;
     /// let (f_down, exp_down) = frac_10_3.to_f64_exp_round(Round::Down);
     /// assert_eq!((f_down, exp_down), (0.8333333333333333, 2));
@@ -1209,8 +1209,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Special;
+    /// use rug::Float;
     /// let neg_inf = Float::with_val(53, Special::NegInfinity);
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
@@ -1243,8 +1243,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// let twentythree = Float::with_val(8, 23.3);
     /// let down = twentythree.to_string_radix_round(10, Some(2), Round::Down);
     /// assert_eq!(down, "2.3e1");
@@ -1475,8 +1475,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Special;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
     /// let nan_f = Float::with_val(53, Special::Nan);
@@ -1579,8 +1579,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
     /// use rug::float::Special;
+    /// use rug::{Assign, Float};
     /// let mut f = Float::with_val(53, Special::Zero);
     /// assert!(f.is_zero());
     /// f.assign(Special::NegZero);
@@ -1602,8 +1602,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
     /// use rug::float::Special;
+    /// use rug::{Assign, Float};
     /// let mut f = Float::with_val(53, Special::Zero);
     /// assert!(!f.is_normal());
     /// f += 5.2;
@@ -1627,8 +1627,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Special;
+    /// use rug::Float;
     /// use std::num::FpCategory;
     /// let nan = Float::with_val(53, Special::Nan);
     /// let infinite = Float::with_val(53, Special::Infinity);
@@ -1663,8 +1663,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
     /// use rug::float::Special;
+    /// use rug::{Assign, Float};
     /// use std::cmp::Ordering;
     /// let mut f = Float::with_val(53, Special::NegZero);
     /// assert_eq!(f.cmp0(), Some(Ordering::Equal));
@@ -1958,8 +1958,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// use std::f32;
     /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
@@ -2040,8 +2040,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// use std::f32;
     /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
@@ -2103,9 +2103,9 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
     /// use rug::ops::AddAssignRound;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
     /// // Give each value only 4 bits of precision for example purposes.
@@ -2163,14 +2163,8 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     ///
-    /// let a = [
-    ///     Float::with_val(53, 2.75),
-    ///     Float::with_val(53, -1.25),
-    /// ];
-    /// let b = [
-    ///     Float::with_val(53, 10.5),
-    ///     Float::with_val(53, 0.5),
-    /// ];
+    /// let a = [Float::with_val(53, 2.75), Float::with_val(53, -1.25)];
+    /// let b = [Float::with_val(53, 10.5), Float::with_val(53, 0.5)];
     ///
     /// let r = Float::dot(a.iter().zip(b.iter()));
     /// let dot = Float::with_val(53, r);
@@ -2257,8 +2251,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
@@ -2395,8 +2389,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
@@ -2538,8 +2532,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// let mut a = Float::with_val(53, 24);
     /// let b = Float::with_val(53, 1.5);
@@ -2678,8 +2672,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// let mut a = Float::with_val(53, 24);
     /// let b = Float::with_val(53, 1.5);
@@ -3319,8 +3313,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Round;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     /// let min = Float::with_val(53, -1.5);
     /// let max = Float::with_val(53, 1.5);
@@ -6144,8 +6138,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Constant;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
     /// // gamma of 1/2 is sqrt(pi)
@@ -6163,8 +6157,8 @@ impl Float {
     /// `Ordering::Less`.
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Constant;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
@@ -6193,8 +6187,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::Constant;
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
@@ -6224,8 +6218,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::{Constant, Round};
+    /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
     /// // gamma of -1/2 is -2 * sqrt(pi)
@@ -6275,8 +6269,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
     /// use rug::float::Constant;
+    /// use rug::{Assign, Float};
     /// use std::cmp::Ordering;
     ///
     /// let neg1_2 = Float::with_val(53, -0.5);
@@ -7707,8 +7701,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Float};
     /// use rug::rand::RandState;
+    /// use rug::{Assign, Float};
     /// let mut rand = RandState::new();
     /// let mut f = Float::new(2);
     /// f.assign(Float::random_bits(&mut rand));
@@ -7749,14 +7743,18 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::rand::RandState;
+    /// use rug::Float;
     /// let mut rand = RandState::new();
     /// let f = Float::with_val(2, Float::random_cont(&mut rand));
     /// // The significand is either 0b10 or 0b11
     /// assert!(
-    ///     f == 1.0 || f == 0.75 || f == 0.5 || f == 0.375
-    ///         || f == 0.25 || f <= 0.1875
+    ///     f == 1.0
+    ///         || f == 0.75
+    ///         || f == 0.5
+    ///         || f == 0.375
+    ///         || f == 0.25
+    ///         || f <= 0.1875
     /// );
     /// ```
     ///
@@ -7786,8 +7784,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::rand::RandState;
+    /// use rug::Float;
     /// let mut rand = RandState::new();
     /// let f = Float::with_val(53, Float::random_normal(&mut rand));
     /// println!("Normal random number: {}", f);
@@ -7819,8 +7817,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::rand::RandState;
+    /// use rug::Float;
     /// let mut rand = RandState::new();
     /// let f = Float::with_val(53, Float::random_exp(&mut rand));
     /// println!("Exponential random number: {}", f);
@@ -8621,8 +8619,8 @@ accepted.
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::ParseFloatError;
+use rug::Float;
 // This string is not a floating-point number.
 let s = "something completely different (_!_!_)";
 let error: ParseFloatError = match Float::parse_radix(s, 4) {

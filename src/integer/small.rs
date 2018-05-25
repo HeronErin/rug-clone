@@ -41,8 +41,8 @@ implements [`Deref<Target = Integer>`][`Deref`].
 # Examples
 
 ```rust
-use rug::Integer;
 use rug::integer::SmallInteger;
+use rug::Integer;
 // `a` requires a heap allocation
 let mut a = Integer::from(250);
 // `b` can reside on the stack
@@ -153,8 +153,8 @@ impl SmallInteger {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Assign;
     /// use rug::integer::SmallInteger;
+    /// use rug::Assign;
     /// let mut i = SmallInteger::from(1u64);
     /// let capacity = i.capacity();
     /// // another u64 will not require a reallocation

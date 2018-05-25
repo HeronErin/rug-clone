@@ -114,8 +114,8 @@ have four versions:
    selected during the assignment.
 
 ```rust
-use rug::Complex;
 use rug::float::Round;
+use rug::Complex;
 use std::cmp::Ordering;
 let expected = Complex::with_val(53, (1.2985, 0.6350));
 
@@ -342,8 +342,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     /// let round = (Round::Down, Round::Up);
     /// let (c, dir) = Complex::with_val_round(4, (3.3, 2.3), round);
@@ -413,8 +413,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     /// let mut r = Complex::with_val(6, (4.875, 4.625));
     /// assert_eq!(r, (4.875, 4.625));
@@ -589,8 +589,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// let c = Complex::with_val(10, 10.4);
     /// let down = (Round::Down, Round::Down);
     /// let nearest = (Round::Nearest, Round::Nearest);
@@ -1012,8 +1012,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Special;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     ///
     /// let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
@@ -1045,8 +1045,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Complex};
     /// use rug::float::Special;
+    /// use rug::{Assign, Complex};
     /// let mut c = Complex::with_val(53, (Special::NegZero, Special::Zero));
     /// assert!(c.eq0());
     /// c += 5.2;
@@ -1072,7 +1072,7 @@ impl Complex {
     /// let five = Complex::with_val(53, (5, 0));
     /// let five_rotated = Complex::with_val(53, (3, -4));
     /// let greater_than_five = Complex::with_val(53, (-4, -4));
-    /// let has_nan = Complex::with_val(53, (5, 0.0/0.0));
+    /// let has_nan = Complex::with_val(53, (5, 0.0 / 0.0));
     /// assert_eq!(five.cmp_abs(&five_rotated), Some(Ordering::Equal));
     /// assert_eq!(five.cmp_abs(&greater_than_five), Some(Ordering::Less));
     /// assert_eq!(five.cmp_abs(&has_nan), None);
@@ -1248,8 +1248,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
@@ -1366,8 +1366,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
@@ -1812,8 +1812,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     /// // use only 4 bits of precision
     /// let mut c = Complex::with_val(4, (3, 4));
@@ -2060,8 +2060,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::float::Round;
+    /// use rug::Complex;
     /// use std::cmp::Ordering;
     /// // use only 4 bits of precision
     /// let mut c = Complex::with_val(4, (3, 4));
@@ -3261,8 +3261,8 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Complex};
     /// use rug::rand::RandState;
+    /// use rug::{Assign, Complex};
     /// let mut rand = RandState::new();
     /// let mut c = Complex::new(2);
     /// c.assign(Complex::random_bits(&mut rand));
@@ -3308,19 +3308,27 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
     /// use rug::rand::RandState;
+    /// use rug::Complex;
     /// let mut rand = RandState::new();
     /// let c = Complex::with_val(2, Complex::random_cont(&mut rand));
     /// let (re, im) = c.into_real_imag();
     /// // The significand is either 0b10 or 0b11
     /// assert!(
-    ///     re == 1.0 || re == 0.75 || re == 0.5 || re == 0.375
-    ///         || re == 0.25 || re <= 0.1875
+    ///     re == 1.0
+    ///         || re == 0.75
+    ///         || re == 0.5
+    ///         || re == 0.375
+    ///         || re == 0.25
+    ///         || re <= 0.1875
     /// );
     /// assert!(
-    ///     im == 1.0 || im == 0.75 || im == 0.5 || im == 0.375
-    ///         || im == 0.25 || im <= 0.1875
+    ///     im == 1.0
+    ///         || im == 0.75
+    ///         || im == 0.5
+    ///         || im == 0.375
+    ///         || im == 0.25
+    ///         || im <= 0.1875
     /// );
     /// ```
     ///
@@ -3861,8 +3869,8 @@ are accepted.
 # Examples
 
 ```rust
-use rug::Complex;
 use rug::complex::ParseComplexError;
+use rug::Complex;
 // This string is not a complex number.
 let s = "something completely different (_!_!_)";
 let error: ParseComplexError = match Complex::parse_radix(s, 4) {

@@ -52,8 +52,8 @@ The `SmallFloat` type can be coerced to a [`Float`], as it implements
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::SmallFloat;
+use rug::Float;
 // `a` requires a heap allocation, has 53-bit precision
 let mut a = Float::with_val(53, 250);
 // `b` can reside on the stack

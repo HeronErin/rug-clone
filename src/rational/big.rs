@@ -459,8 +459,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
     /// use rug::rational::SmallRational;
+    /// use rug::Rational;
     /// use std::f32;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
     /// let minus_small = min - &*SmallRational::from((7, 2));
@@ -482,8 +482,8 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Rational;
     /// use rug::rational::SmallRational;
+    /// use rug::Rational;
     /// use std::f64;
     ///
     /// // An `f64` has 53 bits of precision.
@@ -913,9 +913,7 @@ impl Rational {
     ///
     /// let mut r = Rational::from((3, 5));
     /// {
-    ///     let (num, den) = unsafe {
-    ///         r.as_mut_numer_denom_no_canonicalization()
-    ///     };
+    ///     let (num, den) = unsafe { r.as_mut_numer_denom_no_canonicalization() };
     ///     // Add one to r by adding den to num. Since num and den
     ///     // are relatively prime, r remains in canonical form.
     ///     *num += &*den;
@@ -1190,14 +1188,8 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     ///
-    /// let a = [
-    ///     Rational::from((270, 7)),
-    ///     Rational::from((-11, 10)),
-    /// ];
-    /// let b = [
-    ///     Rational::from(7),
-    ///     Rational::from((1, 2)),
-    /// ];
+    /// let a = [Rational::from((270, 7)), Rational::from((-11, 10))];
+    /// let b = [Rational::from(7), Rational::from((1, 2))];
     ///
     /// let r = Rational::dot(a.iter().zip(b.iter()));
     /// let dot = Rational::from(r);
@@ -2628,8 +2620,8 @@ are accepted.
 # Examples
 
 ```rust
-use rug::Rational;
 use rug::rational::ParseRationalError;
+use rug::Rational;
 // This string is not a rational number.
 let s = "something completely different (_!_!_)";
 let error: ParseRationalError = match Rational::parse_radix(s, 4) {

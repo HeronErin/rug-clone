@@ -142,8 +142,8 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
     /// use rug::rand::RandState;
+    /// use rug::Integer;
     /// let a = match Integer::from_str_radix("292787ebd3329ad7e7575e2fd", 16) {
     ///     Ok(i) => i,
     ///     Err(_) => unreachable!(),
@@ -216,11 +216,13 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
     /// use rug::rand::{RandGen, RandState};
+    /// use rug::Integer;
     /// struct Seed;
     /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
+    ///     fn gen(&mut self) -> u32 {
+    ///         0x8cef7310
+    ///     }
     /// }
     /// let mut seed = Seed;
     /// let mut rand = RandState::new_custom(&mut seed);
@@ -259,11 +261,13 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
     /// use rug::rand::{RandGen, RandState};
+    /// use rug::Integer;
     /// struct Seed;
     /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
+    ///     fn gen(&mut self) -> u32 {
+    ///         0x8cef7310
+    ///     }
     /// }
     /// let seed = Box::new(Seed);
     /// let mut rand = RandState::new_custom_boxed(seed);
@@ -298,8 +302,8 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Integer;
     /// use rug::rand::RandState;
+    /// use rug::Integer;
     /// let seed = Integer::from(123456);
     /// let mut rand = RandState::new();
     /// rand.seed(&seed);
@@ -520,8 +524,8 @@ panic, they can cause the program to abort.
 # Examples
 
 ```rust
-use rug::Integer;
 use rug::rand::RandGen;
+use rug::Integer;
 struct SimpleGenerator {
     seed: u64,
 }
@@ -612,7 +616,11 @@ pub trait RandGen: Send + Sync {
     ///         ret
     ///     }
     /// }
-    /// let mut rand = SimpleGenerator { seed: 1, buffer: 0, len: 0 };
+    /// let mut rand = SimpleGenerator {
+    ///     seed: 1,
+    ///     buffer: 0,
+    ///     len: 0,
+    /// };
     /// let full = 6364136223846793006_u64;
     /// assert_eq!(rand.gen_bits(16), (full >> 48) as u32);
     /// assert_eq!(rand.gen_bits(32), (full >> 16) as u32);
@@ -639,16 +647,22 @@ pub trait RandGen: Send + Sync {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::{Assign, Integer};
     /// use rug::rand::{RandGen, RandState};
-    /// struct Seed { inner: Integer };
+    /// use rug::{Assign, Integer};
+    /// struct Seed {
+    ///     inner: Integer,
+    /// };
     /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 { self.inner.to_u32_wrapping() }
+    ///     fn gen(&mut self) -> u32 {
+    ///         self.inner.to_u32_wrapping()
+    ///     }
     ///     fn seed(&mut self, seed: &Integer) {
     ///         self.inner.assign(seed);
     ///     }
     /// }
-    /// let mut seed = Seed { inner: Integer::from(12) };
+    /// let mut seed = Seed {
+    ///     inner: Integer::from(12),
+    /// };
     /// let i = Integer::from(12345);
     /// {
     ///     let mut rand = RandState::new_custom(&mut seed);
@@ -663,12 +677,16 @@ pub trait RandGen: Send + Sync {
     /// function.
     ///
     /// ```rust
-    /// use rug::Integer;
     /// use rug::rand::{RandGen, RandState};
+    /// use rug::Integer;
     /// use std::mem;
-    /// struct Seed { num: isize };
+    /// struct Seed {
+    ///     num: isize,
+    /// };
     /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 { 0x8cef7310 }
+    ///     fn gen(&mut self) -> u32 {
+    ///         0x8cef7310
+    ///     }
     ///     fn seed(&mut self, seed: &Integer) {
     ///         // unsafe code to transmute from &Integer to isize
     ///         self.num = unsafe { mem::transmute(seed) };

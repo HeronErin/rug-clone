@@ -34,8 +34,8 @@ positive NaNs produces equality.
 # Examples
 
 ```rust
-use rug::Float;
 use rug::float::{OrdFloat, Special};
+use rug::Float;
 use std::cmp::Ordering;
 
 let pos_nan_f = Float::with_val(53, Special::Nan);
@@ -76,8 +76,8 @@ impl OrdFloat {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::OrdFloat;
+    /// use rug::Float;
     /// let f = Float::with_val(53, 1.5);
     /// let ord = OrdFloat::from(f);
     /// let f_ref = ord.as_float();
@@ -95,8 +95,8 @@ impl OrdFloat {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Float;
     /// use rug::float::OrdFloat;
+    /// use rug::Float;
     /// let f = Float::with_val(53, -1.5);
     /// let mut ord = OrdFloat::from(f);
     /// ord.as_float_mut().abs_mut();
