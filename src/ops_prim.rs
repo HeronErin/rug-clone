@@ -654,6 +654,28 @@ rounding_unsigned! { u128 }
 
 rounding_float! { f32 f64 }
 
+impl<'a> Assign<&'a str> for String {
+    #[inline]
+    fn assign(&mut self, src: &str) {
+        self.clear();
+        self.push_str(src);
+    }
+}
+
+impl<'a> Assign<&'a str> for Cow<'a, str> {
+    #[inline]
+    fn assign(&mut self, src: &'a str) {
+        *self = Cow::Borrowed(src);
+    }
+}
+
+impl<'a> Assign<Cow<'a, str>> for Cow<'a, str> {
+    #[inline]
+    fn assign(&mut self, src: Cow<'a, str>) {
+        *self = src;
+    }
+}
+
 impl<'a> AddFrom<&'a str> for String {
     #[inline]
     fn add_from(&mut self, lhs: &str) {
