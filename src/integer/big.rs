@@ -388,10 +388,10 @@ impl Integer {
     ///
     /// [`Integer`]: struct.Integer.html
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    pub fn from_digits<T: UnsignedPrimitive>(
-        digits: &[T],
-        order: Order,
-    ) -> Self {
+    pub fn from_digits<T>(digits: &[T], order: Order) -> Self
+    where
+        T: UnsignedPrimitive,
+    {
         let bytes = mem::size_of::<T>();
         let bits = bytes * 8;
         let capacity = digits.len().checked_mul(bits).expect("overflow");
@@ -459,9 +459,10 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse<S: AsRef<[u8]>>(
-        src: S,
-    ) -> Result<ParseIncomplete, ParseIntegerError> {
+    pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseIntegerError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), 10)
     }
 
@@ -505,10 +506,13 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse_radix<S: AsRef<[u8]>>(
+    pub fn parse_radix<S>(
         src: S,
         radix: i32,
-    ) -> Result<ParseIncomplete, ParseIntegerError> {
+    ) -> Result<ParseIncomplete, ParseIntegerError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), radix)
     }
 
@@ -1295,7 +1299,10 @@ impl Integer {
     /// ```
     ///
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
-    pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
+    pub fn to_digits<T>(&self, order: Order) -> Vec<T>
+    where
+        T: UnsignedPrimitive,
+    {
         let digit_count = self.significant_digits::<T>();
         let mut v = Vec::with_capacity(digit_count);
         unsafe {
@@ -1404,11 +1411,10 @@ impl Integer {
     /// ```
     ///
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    pub fn assign_digits<T: UnsignedPrimitive>(
-        &mut self,
-        digits: &[T],
-        order: Order,
-    ) {
+    pub fn assign_digits<T>(&mut self, digits: &[T], order: Order)
+    where
+        T: UnsignedPrimitive,
+    {
         let bytes = mem::size_of::<T>();
         let bits = bytes * 8;
         let capacity = digits.len().checked_mul(bits).expect("overflow");
@@ -1488,11 +1494,10 @@ impl Integer {
     /// [`significant_digits`]: #method.significant_digits
     /// [`to_digits`]: #method.to_digits
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    pub fn write_digits<T: UnsignedPrimitive>(
-        &self,
-        digits: &mut [T],
-        order: Order,
-    ) {
+    pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
+    where
+        T: UnsignedPrimitive,
+    {
         let bytes = mem::size_of::<T>();
         let digit_count = self.significant_digits::<T>();
         let zero_count = digits
@@ -4750,10 +4755,13 @@ impl Integer {
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b: 'a>(
+    pub fn random_bits<'a, 'b>(
         bits: u32,
         rng: &'a mut RandState<'b>,
-    ) -> RandomBitsIncomplete<'a, 'b> {
+    ) -> RandomBitsIncomplete<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomBitsIncomplete { bits, rng }
     }
 
@@ -4837,10 +4845,13 @@ impl Integer {
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_below_ref<'a, 'b: 'a>(
+    pub fn random_below_ref<'a, 'b>(
         &'a self,
         rng: &'a mut RandState<'b>,
-    ) -> RandomBelowIncomplete<'a, 'b> {
+    ) -> RandomBelowIncomplete<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomBelowIncomplete {
             ref_self: self,
             rng,
@@ -5325,13 +5336,19 @@ impl<'a, 'b> Assign<LucasIncomplete> for (&'a mut Integer, &'b mut Integer) {
 from_assign! { LucasIncomplete => Integer, Integer }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, 'b: 'a> {
+pub struct RandomBitsIncomplete<'a, 'b>
+where
+    'b: 'a,
+{
     bits: u32,
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> Assign<RandomBitsIncomplete<'a, 'b>> for Integer {
+impl<'a, 'b> Assign<RandomBitsIncomplete<'a, 'b>> for Integer
+where
+    'b: 'a,
+{
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
@@ -5345,7 +5362,10 @@ impl<'a, 'b: 'a> Assign<RandomBitsIncomplete<'a, 'b>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> From<RandomBitsIncomplete<'a, 'b>> for Integer {
+impl<'a, 'b> From<RandomBitsIncomplete<'a, 'b>> for Integer
+where
+    'b: 'a,
+{
     #[inline]
     fn from(src: RandomBitsIncomplete) -> Self {
         let mut dst = Integer::new();
@@ -5355,13 +5375,19 @@ impl<'a, 'b: 'a> From<RandomBitsIncomplete<'a, 'b>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomBelowIncomplete<'a, 'b: 'a> {
+pub struct RandomBelowIncomplete<'a, 'b>
+where
+    'b: 'a,
+{
     ref_self: &'a Integer,
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> Assign<RandomBelowIncomplete<'a, 'b>> for Integer {
+impl<'a, 'b> Assign<RandomBelowIncomplete<'a, 'b>> for Integer
+where
+    'b: 'a,
+{
     #[inline]
     fn assign(&mut self, src: RandomBelowIncomplete) {
         assert_eq!(
@@ -5380,7 +5406,10 @@ impl<'a, 'b: 'a> Assign<RandomBelowIncomplete<'a, 'b>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> From<RandomBelowIncomplete<'a, 'b>> for Integer {
+impl<'a, 'b> From<RandomBelowIncomplete<'a, 'b>> for Integer
+where
+    'b: 'a,
+{
     #[inline]
     fn from(src: RandomBelowIncomplete) -> Self {
         let mut dst = Integer::new();

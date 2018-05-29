@@ -259,7 +259,10 @@ macro_rules! ref_math_op1_2_complex {
 
 impl Complex {
     #[inline]
-    fn new_nan<P: Prec>(prec: P) -> Self {
+    fn new_nan<P>(prec: P) -> Self
+    where
+        P: Prec,
+    {
         let p = prec.prec();
         assert!(
             p.0 >= float::prec_min()
@@ -296,7 +299,10 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     #[inline]
-    pub fn new<P: Prec>(prec: P) -> Self {
+    pub fn new<P>(prec: P) -> Self
+    where
+        P: Prec,
+    {
         Self::with_val(prec, (Special::Zero, Special::Zero))
     }
 
@@ -322,9 +328,10 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     #[inline]
-    pub fn with_val<P: Prec, T>(prec: P, val: T) -> Self
+    pub fn with_val<P, T>(prec: P, val: T) -> Self
     where
         Self: Assign<T>,
+        P: Prec,
     {
         let mut ret = Complex::new_nan(prec);
         ret.assign(val);
@@ -355,13 +362,14 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     #[inline]
-    pub fn with_val_round<P: Prec, T>(
+    pub fn with_val_round<P, T>(
         prec: P,
         val: T,
         round: Round2,
     ) -> (Self, Ordering2)
     where
         Self: AssignRound<T, Round = Round2, Ordering = Ordering2>,
+        P: Prec,
     {
         let mut ret = Complex::new_nan(prec);
         let ord = ret.assign_round(val, round);
@@ -399,7 +407,10 @@ impl Complex {
     /// assert_eq!(r, (5.0, 4.5));
     /// ```
     #[inline]
-    pub fn set_prec<P: Prec>(&mut self, prec: P) {
+    pub fn set_prec<P>(&mut self, prec: P)
+    where
+        P: Prec,
+    {
         self.set_prec_round(prec, Default::default());
     }
 
@@ -423,11 +434,10 @@ impl Complex {
     /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));
     /// ```
     #[inline]
-    pub fn set_prec_round<P: Prec>(
-        &mut self,
-        prec: P,
-        round: Round2,
-    ) -> Ordering2 {
+    pub fn set_prec_round<P>(&mut self, prec: P, round: Round2) -> Ordering2
+    where
+        P: Prec,
+    {
         let p = prec.prec();
         let (real, imag) = self.as_mut_real_imag();
         (
@@ -481,9 +491,10 @@ impl Complex {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
-    pub fn parse<S: AsRef<[u8]>>(
-        src: S,
-    ) -> Result<ParseIncomplete, ParseComplexError> {
+    pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseComplexError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), 10)
     }
 
@@ -536,10 +547,13 @@ impl Complex {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
-    pub fn parse_radix<S: AsRef<[u8]>>(
+    pub fn parse_radix<S>(
         src: S,
         radix: i32,
-    ) -> Result<ParseIncomplete, ParseComplexError> {
+    ) -> Result<ParseIncomplete, ParseComplexError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), radix)
     }
 
@@ -3276,9 +3290,12 @@ impl Complex {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b: 'a>(
+    pub fn random_bits<'a, 'b>(
         rng: &'a mut RandState<'b>,
-    ) -> RandomBitsIncomplete<'a, 'b> {
+    ) -> RandomBitsIncomplete<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomBitsIncomplete { rng }
     }
 
@@ -3337,9 +3354,10 @@ impl Complex {
     /// [`assign_random_bits`]: #method.assign_random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_cont<'a, 'b: 'a>(
-        rng: &'a mut RandState<'b>,
-    ) -> RandomCont<'a, 'b> {
+    pub fn random_cont<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomCont<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomCont { rng }
     }
 }
@@ -3649,12 +3667,18 @@ ref_math_op1_complex! { mpc::acosh; struct AcoshIncomplete {} }
 ref_math_op1_complex! { mpc::atanh; struct AtanhIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, 'b: 'a> {
+pub struct RandomBitsIncomplete<'a, 'b>
+where
+    'b: 'a,
+{
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex {
+impl<'a, 'b, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex
+where
+    'b: 'a,
+{
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
         self.mut_real().assign(Float::random_bits(src.rng));
@@ -3663,12 +3687,18 @@ impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomCont<'a, 'b: 'a> {
+pub struct RandomCont<'a, 'b>
+where
+    'b: 'a,
+{
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Complex {
+impl<'a, 'b> AssignRound<RandomCont<'a, 'b>> for Complex
+where
+    'b: 'a,
+{
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]

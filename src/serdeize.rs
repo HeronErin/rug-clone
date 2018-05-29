@@ -155,12 +155,14 @@ impl<'de> Visitor<'de> for BigVisitor {
     {
         let prec = match self.1 {
             PrecReq::Zero => PrecVal::Zero,
-            PrecReq::One => PrecVal::One(seq
-                .next_element()?
-                .ok_or_else(|| DeError::invalid_length(0, &self))?),
-            PrecReq::Two => PrecVal::Two(seq
-                .next_element()?
-                .ok_or_else(|| DeError::invalid_length(0, &self))?),
+            PrecReq::One => PrecVal::One(
+                seq.next_element()?
+                    .ok_or_else(|| DeError::invalid_length(0, &self))?,
+            ),
+            PrecReq::Two => PrecVal::Two(
+                seq.next_element()?
+                    .ok_or_else(|| DeError::invalid_length(0, &self))?,
+            ),
         };
         let prec_count = match self.1 {
             PrecReq::Zero => 0,

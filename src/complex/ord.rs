@@ -105,7 +105,10 @@ impl OrdComplex {
 
 impl Hash for OrdComplex {
     #[inline]
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
         self.inner.real().as_ord().hash(state);
         self.inner.imag().as_ord().hash(state);
     }
@@ -159,7 +162,10 @@ mod tests {
     use std::hash::{Hash, Hasher};
     use Complex;
 
-    fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    fn calculate_hash<T>(t: &T) -> u64
+    where
+        T: Hash,
+    {
         let mut s = DefaultHasher::new();
         t.hash(&mut s);
         s.finish()

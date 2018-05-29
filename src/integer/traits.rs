@@ -69,7 +69,10 @@ impl Drop for Integer {
 }
 
 impl Hash for Integer {
-    fn hash<H: Hasher>(&self, state: &mut H) {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
         let size = self.inner().size;
         size.hash(state);
         if size != 0 {

@@ -636,9 +636,10 @@ impl Float {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
-    pub fn parse<S: AsRef<[u8]>>(
-        src: S,
-    ) -> Result<ParseIncomplete, ParseFloatError> {
+    pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseFloatError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), 10)
     }
 
@@ -699,10 +700,13 @@ impl Float {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
-    pub fn parse_radix<S: AsRef<[u8]>>(
+    pub fn parse_radix<S>(
         src: S,
         radix: i32,
-    ) -> Result<ParseIncomplete, ParseFloatError> {
+    ) -> Result<ParseIncomplete, ParseFloatError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), radix)
     }
 
@@ -7713,9 +7717,12 @@ impl Float {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b: 'a>(
+    pub fn random_bits<'a, 'b>(
         rng: &'a mut RandState<'b>,
-    ) -> RandomBitsIncomplete<'a, 'b> {
+    ) -> RandomBitsIncomplete<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomBitsIncomplete { rng }
     }
 
@@ -7762,9 +7769,10 @@ impl Float {
     /// [`random_bits`]: #method.random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_cont<'a, 'b: 'a>(
-        rng: &'a mut RandState<'b>,
-    ) -> RandomCont<'a, 'b> {
+    pub fn random_cont<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomCont<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomCont { rng }
     }
 
@@ -7795,9 +7803,12 @@ impl Float {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_normal<'a, 'b: 'a>(
+    pub fn random_normal<'a, 'b>(
         rng: &'a mut RandState<'b>,
-    ) -> RandomNormal<'a, 'b> {
+    ) -> RandomNormal<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomNormal { rng }
     }
 
@@ -7828,9 +7839,10 @@ impl Float {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_exp<'a, 'b: 'a>(
-        rng: &'a mut RandState<'b>,
-    ) -> RandomExp<'a, 'b> {
+    pub fn random_exp<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomExp<'a, 'b>
+    where
+        'b: 'a,
+    {
         RandomExp { rng }
     }
 }
@@ -8163,12 +8175,18 @@ ref_math_op1_float! { mpfr::frac; struct FractIncomplete {} }
 ref_math_op1_2_float! { mpfr::modf; struct TruncFractIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, 'b: 'a> {
+pub struct RandomBitsIncomplete<'a, 'b>
+where
+    'b: 'a,
+{
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Float {
+impl<'a, 'b, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Float
+where
+    'b: 'a,
+{
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
@@ -8179,12 +8197,18 @@ impl<'a, 'b: 'a, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomCont<'a, 'b: 'a> {
+pub struct RandomCont<'a, 'b>
+where
+    'b: 'a,
+{
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Float {
+impl<'a, 'b> AssignRound<RandomCont<'a, 'b>> for Float
+where
+    'b: 'a,
+{
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8201,12 +8225,18 @@ impl<'a, 'b: 'a> AssignRound<RandomCont<'a, 'b>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomNormal<'a, 'b: 'a> {
+pub struct RandomNormal<'a, 'b>
+where
+    'b: 'a,
+{
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRound<RandomNormal<'a, 'b>> for Float {
+impl<'a, 'b> AssignRound<RandomNormal<'a, 'b>> for Float
+where
+    'b: 'a,
+{
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8223,12 +8253,18 @@ impl<'a, 'b: 'a> AssignRound<RandomNormal<'a, 'b>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomExp<'a, 'b: 'a> {
+pub struct RandomExp<'a, 'b>
+where
+    'b: 'a,
+{
     rng: &'a mut RandState<'b>,
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b: 'a> AssignRound<RandomExp<'a, 'b>> for Float {
+impl<'a, 'b> AssignRound<RandomExp<'a, 'b>> for Float
+where
+    'b: 'a,
+{
     type Round = Round;
     type Ordering = Ordering;
     #[inline]

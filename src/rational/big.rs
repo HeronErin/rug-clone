@@ -396,9 +396,10 @@ impl Rational {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse<S: AsRef<[u8]>>(
-        src: S,
-    ) -> Result<ParseIncomplete, ParseRationalError> {
+    pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseRationalError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), 10)
     }
 
@@ -447,10 +448,13 @@ impl Rational {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse_radix<S: AsRef<[u8]>>(
+    pub fn parse_radix<S>(
         src: S,
         radix: i32,
-    ) -> Result<ParseIncomplete, ParseRationalError> {
+    ) -> Result<ParseIncomplete, ParseRationalError>
+    where
+        S: AsRef<[u8]>,
+    {
         parse(src.as_ref(), radix)
     }
 
