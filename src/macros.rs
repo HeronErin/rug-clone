@@ -264,7 +264,7 @@ macro_rules! ref_math_op1_2 {
             for (&'b mut $Big, &'c mut $Big)
         {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'a>) {
+            fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
                         self.0.inner_mut(),
@@ -273,6 +273,16 @@ macro_rules! ref_math_op1_2 {
                         $(src.$param.into(),)*
                     );
                 }
+            }
+        }
+
+        impl<'a> Assign<$Incomplete<'a>> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                <(&mut $Big, &mut $Big) as Assign<$Incomplete>>::assign(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                );
             }
         }
 
@@ -455,6 +465,16 @@ macro_rules! ref_math_op2_2 {
                         $(src.$param.into(),)*
                     );
                 }
+            }
+        }
+
+        impl<'a> Assign<$Incomplete<'a>> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                <(&mut $Big, &mut $Big) as Assign<$Incomplete>>::assign(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                );
             }
         }
 
@@ -1455,6 +1475,47 @@ macro_rules! ref_math_op1_2_round {
                     )
                 };
                 $ord(ret)
+            }
+        }
+
+        impl<'a> AssignRound<$Incomplete<'a>> for ($Big, $Big) {
+            type Round = $Round;
+            type Ordering = $Ordering;
+            #[inline]
+            fn assign_round(
+                &mut self,
+                src: $Incomplete,
+                round: $Round,
+            ) -> $Ordering {
+                <
+                    (&mut $Big, &mut $Big) as AssignRound<$Incomplete>
+                >::assign_round(&mut (&mut self.0, &mut self.1), src, round)
+            }
+        }
+
+        impl<'a, 'b, 'c> Assign<$Incomplete<'a>>
+            for (&'b mut $Big, &'c mut $Big)
+        {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                <Self as AssignRound<$Incomplete>>::assign_round(
+                    self,
+                    src,
+                    Default::default(),
+                );
+            }
+        }
+
+        impl<'a> Assign<$Incomplete<'a>> for ($Big, $Big) {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                <
+                    (&mut $Big, &mut $Big) as AssignRound<$Incomplete>
+                >::assign_round(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                    Default::default(),
+                );
             }
         }
     };

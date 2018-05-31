@@ -79,16 +79,6 @@ impl Hash for Rational {
     }
 }
 
-impl<T> Assign<T> for (Rational, Integer)
-where
-    for<'a, 'b> (&'a mut Rational, &'b mut Integer): Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
 impl FromStr for Rational {
     type Err = ParseRationalError;
     #[inline]

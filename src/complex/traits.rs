@@ -145,44 +145,6 @@ where
     }
 }
 
-impl<'a, 'b, T> Assign<T> for (&'a mut Complex, &'b mut Complex)
-where
-    Self: AssignRound<T, Round = Round2, Ordering = (Ordering2, Ordering2)>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        self.assign_round(src, Default::default());
-    }
-}
-
-impl<T> Assign<T> for (Complex, Complex)
-where
-    for<'a, 'b> (&'a mut Complex, &'b mut Complex):
-        AssignRound<T, Round = Round2, Ordering = (Ordering2, Ordering2)>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        (&mut self.0, &mut self.1).assign_round(src, Default::default());
-    }
-}
-
-impl<T> AssignRound<T> for (Complex, Complex)
-where
-    for<'a, 'b> (&'a mut Complex, &'b mut Complex):
-        AssignRound<T, Round = Round2, Ordering = (Ordering2, Ordering2)>,
-{
-    type Round = Round2;
-    type Ordering = (Ordering2, Ordering2);
-    #[inline]
-    fn assign_round(
-        &mut self,
-        src: T,
-        round: Round2,
-    ) -> (Ordering2, Ordering2) {
-        (&mut self.0, &mut self.1).assign_round(src, round)
-    }
-}
-
 impl AssignRound for Complex {
     type Round = Round2;
     type Ordering = Ordering2;

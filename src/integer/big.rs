@@ -5188,6 +5188,13 @@ impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
     }
 }
 
+impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer) {
+    #[inline]
+    fn assign(&mut self, src: GcdIncomplete) {
+        (&mut self.0, &mut self.1).assign(src);
+    }
+}
+
 from_assign! { GcdIncomplete<'r> => Integer, Integer }
 
 impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
@@ -5204,6 +5211,13 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
                 src.other.inner(),
             );
         }
+    }
+}
+
+impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer, Integer) {
+    #[inline]
+    fn assign(&mut self, src: GcdIncomplete) {
+        (&mut self.0, &mut self.1, &mut self.2).assign(src);
     }
 }
 
@@ -5270,6 +5284,13 @@ impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
     }
 }
 
+impl<'a> Assign<RemoveFactorIncomplete<'a>> for (Integer, u32) {
+    #[inline]
+    fn assign(&mut self, src: RemoveFactorIncomplete) {
+        (&mut self.0, &mut self.1).assign(src);
+    }
+}
+
 impl<'a> From<RemoveFactorIncomplete<'a>> for (Integer, u32) {
     #[inline]
     fn from(src: RemoveFactorIncomplete) -> Self {
@@ -5314,6 +5335,13 @@ impl<'a, 'b> Assign<FibonacciIncomplete>
     }
 }
 
+impl Assign<FibonacciIncomplete> for (Integer, Integer) {
+    #[inline]
+    fn assign(&mut self, src: FibonacciIncomplete) {
+        (&mut self.0, &mut self.1).assign(src);
+    }
+}
+
 from_assign! { FibonacciIncomplete => Integer, Integer }
 
 ref_math_op0! {
@@ -5330,6 +5358,13 @@ impl<'a, 'b> Assign<LucasIncomplete> for (&'a mut Integer, &'b mut Integer) {
                 src.n.into(),
             );
         }
+    }
+}
+
+impl Assign<LucasIncomplete> for (Integer, Integer) {
+    #[inline]
+    fn assign(&mut self, src: LucasIncomplete) {
+        (&mut self.0, &mut self.1).assign(src);
     }
 }
 

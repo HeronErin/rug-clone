@@ -237,6 +237,16 @@ macro_rules! ref_rat_op_rat_int {
             }
         }
 
+        impl<'a> Assign<$Incomplete<'a>> for (Rational, Integer) {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete) {
+                <(&mut Rational, &mut Integer) as Assign<$Incomplete>>::assign(
+                    &mut (&mut self.0, &mut self.1),
+                    src,
+                );
+            }
+        }
+
         impl<'a> From<$Incomplete<'a>> for (Rational, Integer) {
             #[inline]
             fn from(src: $Incomplete) -> Self {

@@ -83,37 +83,6 @@ impl Hash for Integer {
     }
 }
 
-impl<T> Assign<T> for (Integer, u32)
-where
-    for<'a, 'b> (&'a mut Integer, &'b mut u32): Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
-impl<T> Assign<T> for (Integer, Integer)
-where
-    for<'a, 'b> (&'a mut Integer, &'b mut Integer): Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        (&mut self.0, &mut self.1).assign(src);
-    }
-}
-
-impl<T> Assign<T> for (Integer, Integer, Integer)
-where
-    for<'a, 'b, 'c> (&'a mut Integer, &'b mut Integer, &'c mut Integer):
-        Assign<T>,
-{
-    #[inline]
-    fn assign(&mut self, src: T) {
-        (&mut self.0, &mut self.1, &mut self.2).assign(src);
-    }
-}
-
 impl Assign for Integer {
     #[inline]
     fn assign(&mut self, src: Integer) {

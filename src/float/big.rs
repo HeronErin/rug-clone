@@ -8152,6 +8152,35 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
     }
 }
 
+impl<'a> AssignRound<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(
+        &mut self,
+        src: LnAbsGammaIncomplete,
+        round: Round,
+    ) -> Ordering {
+        (&mut self.0, &mut self.1).assign_round(src, round)
+    }
+}
+
+impl<'a, 'b, 'c> Assign<LnAbsGammaIncomplete<'a>>
+    for (&'b mut Float, &'c mut Ordering)
+{
+    #[inline]
+    fn assign(&mut self, src: LnAbsGammaIncomplete) {
+        self.assign_round(src, Round::Nearest);
+    }
+}
+
+impl<'a> Assign<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
+    #[inline]
+    fn assign(&mut self, src: LnAbsGammaIncomplete) {
+        (&mut self.0, &mut self.1).assign_round(src, Round::Nearest);
+    }
+}
+
 ref_math_op1_float! { mpfr::digamma; struct DigammaIncomplete {} }
 ref_math_op1_float! { mpfr::zeta; struct ZetaIncomplete {} }
 ref_math_op0_float! { mpfr::zeta_ui; struct ZetaUIncomplete { u: u32 } }
