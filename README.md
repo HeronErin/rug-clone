@@ -379,7 +379,7 @@ the crate.
 [GNU LGPL]: https://www.gnu.org/licenses/lgpl-3.0.en.html
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
-[MPFR]: http://www.mpfr.org/
+[MPFR]: https://www.mpfr.org/
 [`Assign::assign`]: https://docs.rs/rug/~1.1/rug/trait.Assign.html#tymethod.assign
 [`Assign`]: https://docs.rs/rug/~1.1/rug/trait.Assign.html
 [`Complex`]: https://docs.rs/rug/~1.1/rug/struct.Complex.html

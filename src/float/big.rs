@@ -267,7 +267,7 @@ fn main() {
 
 [`Nearest`]: float/enum.Round.html#variant.Nearest
 [`Round`]: float/enum.Round.html
-[MPFR sample]: http://www.mpfr.org/sample.html
+[MPFR sample]: https://www.mpfr.org/sample.html
 [icv]: index.html#incomplete-computation-values
 */
 pub struct Float {
