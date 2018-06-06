@@ -352,52 +352,32 @@ mul_op_noncommut! {
 impl<T> Sum<T> for Integer
 where
     Integer: AddAssign<T>,
-    T: Into<Integer>,
 {
-    fn sum<I>(mut iter: I) -> Integer
+    fn sum<I>(iter: I) -> Integer
     where
         I: Iterator<Item = T>,
     {
-        let mut val = match iter.next() {
-            Some(t) => t.into(),
-            None => return Integer::new(),
-        };
+        let mut ret = Integer::new();
         for i in iter {
-            val.add_assign(i);
+            ret.add_assign(i);
         }
-        val
+        ret
     }
 }
 
 impl<T> Product<T> for Integer
 where
-    for<'a> &'a Integer: Mul<T>,
-    for<'a> <&'a Integer as Mul<T>>::Output: Into<Integer>,
-    for<'a> Integer: Assign<<&'a Integer as Mul<T>>::Output>,
-    T: Into<Integer>,
+    Integer: MulAssign<T>,
 {
-    fn product<I>(mut iter: I) -> Integer
+    fn product<I>(iter: I) -> Integer
     where
         I: Iterator<Item = T>,
     {
-        let mut a = match iter.next() {
-            Some(first) => first.into(),
-            None => return Integer::from(1),
-        };
-        let mut b = match iter.next() {
-            Some(second) => ((&a).mul(second)).into(),
-            None => return a,
-        };
-        loop {
-            match iter.next() {
-                Some(i) => a.assign((&b).mul(i)),
-                None => return b,
-            }
-            match iter.next() {
-                Some(i) => b.assign((&a).mul(i)),
-                None => return a,
-            }
+        let mut ret = Integer::from(1);
+        for i in iter {
+            ret.mul_assign(i);
         }
+        ret
     }
 }
 
