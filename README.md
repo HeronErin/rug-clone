@@ -23,7 +23,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.2.0 news
+### Version 1.2.0 news (unreleased)
 
 * The implementations of [`Sum`] and [`Product`] for [`Integer`] and
   [`Rational`] were generalized to accept more types of elements.
@@ -46,12 +46,12 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Rational::sum`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
 [`Sum`]: https://doc.rust-lang.org/nightly/std/iter/trait.Sum.html
 
-### Version 1.1.1 news
+### Version 1.1.1 news (2018-05-20)
 
 * Support for [`i128`], [`u128`] and [`TryFrom`] was enabled in
   nightly versions when the compiler needs a feature flag.
 
-### Version 1.1.0 news
+### Version 1.1.0 news (2018-04-23)
 
 * Support for [`i128`] and [`u128`] conversions and comparisons was
   added, conditional on compiler support.
