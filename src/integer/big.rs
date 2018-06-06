@@ -2557,7 +2557,7 @@ impl Integer {
 
     math_op1! {
         gmp::mpz_fdiv_r_2exp;
-        /// Keeps the *n* least significant bits only, producting a
+        /// Keeps the *n* least significant bits only, producing a
         /// result that is greater or equal to 0.
         ///
         /// # Examples
@@ -2569,7 +2569,7 @@ impl Integer {
         /// assert_eq!(keep_8, 0xff);
         /// ```
         fn keep_bits(n: u32);
-        /// Keeps the *n* least significant bits only, producting a
+        /// Keeps the *n* least significant bits only, producing a
         /// result that is greater or equal to 0.
         ///
         /// # Examples
@@ -2581,7 +2581,7 @@ impl Integer {
         /// assert_eq!(i, 0xff);
         /// ```
         fn keep_bits_mut;
-        /// Keeps the *n* least significant bits only, producting a
+        /// Keeps the *n* least significant bits only, producing a
         /// result that is greater or equal to 0.
         ///
         /// [`Assign<Src> for Integer`][`Assign`] and
@@ -2606,7 +2606,7 @@ impl Integer {
 
     math_op1! {
         xgmp::mpz_keep_signed_bits;
-        /// Keeps the *n* least significant bits only, producting a
+        /// Keeps the *n* least significant bits only, producing a
         /// negative result if the <i>n</i>th least significant bit is
         /// one.
         ///
@@ -2622,7 +2622,7 @@ impl Integer {
         /// assert_eq!(j_keep_8, 15);
         /// ```
         fn keep_signed_bits(n: u32);
-        /// Keeps the *n* least significant bits only, producting a
+        /// Keeps the *n* least significant bits only, producing a
         /// negative result if the <i>n</i>th least significant bit is
         /// one.
         ///
@@ -2638,7 +2638,7 @@ impl Integer {
         /// assert_eq!(j, 15);
         /// ```
         fn keep_signed_bits_mut;
-        /// Keeps the *n* least significant bits only, producting a
+        /// Keeps the *n* least significant bits only, producing a
         /// negative result if the <i>n</i>th least significant bit is
         /// one.
         ///
