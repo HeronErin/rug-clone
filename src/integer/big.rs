@@ -28,7 +28,7 @@ use std::error::Error;
 use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::{Add, AddAssign, Deref};
+use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
 use std::os::raw::{c_char, c_int, c_long, c_void};
 use std::ptr;
 use std::slice;
@@ -2294,6 +2294,46 @@ impl Integer {
         I: Iterator<Item = (&'a Self, &'a Self)>,
     {
         DotIncomplete { values }
+    }
+
+    /// Multiplies a list of [`Integer`] values.
+    ///
+    /// [`Assign<Src> for Integer`][`Assign`],
+    /// [`From<Src> for Integer`][`From`],
+    /// [`MulAssign<Src> for Integer`][`MulAssign`] and
+    /// [`Mul<Src> for Integer`][`Mul`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// let values = [
+    ///     Integer::from(5),
+    ///     Integer::from(1024),
+    ///     Integer::from(-100_000),
+    ///     Integer::from(-4),
+    /// ];
+    ///
+    /// let r = Integer::product(values.iter());
+    /// let product = Integer::from(r);
+    /// let expected = 5 * 1024 * -100_000 * -4;
+    /// assert_eq!(product, expected);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
+    /// [`MulAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.MulAssign.html
+    /// [`Mul`]: https://doc.rust-lang.org/nightly/std/ops/trait.Mul.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
+    where
+        I: Iterator<Item = &'a Self>,
+    {
+        ProductIncomplete { values }
     }
 
     math_op1! {
@@ -4873,8 +4913,13 @@ where
 {
     fn assign(&mut self, mut src: SumIncomplete<'a, I>) {
         match src.values.next() {
-            Some(first) => self.assign(first),
-            None => self.assign(0u32),
+            Some(first) => {
+                self.assign(first);
+            }
+            None => {
+                self.assign(0u32);
+                return;
+            }
         }
         self.add_assign(src);
     }
@@ -4912,7 +4957,7 @@ where
 {
     fn add_assign(&mut self, src: SumIncomplete<'a, I>) {
         for i in src.values {
-            AddAssign::add_assign(self, i);
+            self.add_assign(i);
         }
     }
 }
@@ -4931,8 +4976,13 @@ where
 {
     fn assign(&mut self, mut src: DotIncomplete<'a, I>) {
         match src.values.next() {
-            Some(first) => self.assign(first.0 * first.1),
-            None => self.assign(0u32),
+            Some(first) => {
+                self.assign(first.0 * first.1);
+            }
+            None => {
+                self.assign(0u32);
+                return;
+            }
         }
         self.add_assign(src);
     }
@@ -4971,6 +5021,92 @@ where
     fn add_assign(&mut self, src: DotIncomplete<'a, I>) {
         for i in src.values {
             AddAssign::add_assign(self, i.0 * i.1);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ProductIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Integer>,
+{
+    values: I,
+}
+
+impl<'a, I> Assign<ProductIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn assign(&mut self, mut src: ProductIncomplete<'a, I>) {
+        match src.values.next() {
+            Some(first) => {
+                self.assign(first);
+            }
+            None => {
+                self.assign(1u32);
+                return;
+            }
+        }
+        self.mul_assign(src);
+    }
+}
+
+impl<'a, I> From<ProductIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn from(mut src: ProductIncomplete<'a, I>) -> Self {
+        let mut dst = match src.values.next() {
+            Some(first) => first.clone(),
+            None => return Integer::from(1),
+        };
+        dst.mul_assign(src);
+        dst
+    }
+}
+
+impl<'a, I> Mul<ProductIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn mul(mut self, rhs: ProductIncomplete<'a, I>) -> Self {
+        self.mul_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> MulAssign<ProductIncomplete<'a, I>> for Integer
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn mul_assign(&mut self, mut src: ProductIncomplete<'a, I>) {
+        let mut other = match src.values.next() {
+            Some(next) => Integer::from(&*self * next),
+            None => return,
+        };
+        loop {
+            match src.values.next() {
+                Some(next) => {
+                    self.assign(&other * next);
+                }
+                None => {
+                    self.assign(other);
+                    return;
+                }
+            }
+            match src.values.next() {
+                Some(next) => {
+                    other.assign(&*self * next);
+                }
+                None => {
+                    return;
+                }
+            }
+            if self.cmp0() == Ordering::Equal {
+                return;
+            }
         }
     }
 }

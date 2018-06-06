@@ -26,7 +26,7 @@ use std::ffi::CString;
 use std::i32;
 use std::marker::PhantomData;
 use std::mem;
-use std::ops::{Add, AddAssign, Deref};
+use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
 use std::ptr;
 use {Assign, Integer};
 
@@ -1225,6 +1225,45 @@ impl Rational {
         DotIncomplete { values }
     }
 
+    /// Multiplies a list of [`Rational`] values.
+    ///
+    /// [`Assign<Src> for Rational`][`Assign`],
+    /// [`From<Src> for Rational`][`From`],
+    /// [`MulAssign<Src> for Rational`][`MulAssign`] and
+    /// [`Mul<Src> for Rational`][`Mul`] are implemented with the
+    /// returned [incomplete-computation value][icv] as `Src`.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Rational;
+    ///
+    /// let values = [
+    ///     Rational::from((5, 2)),
+    ///     Rational::from((-100_000, 7)),
+    ///     Rational::from(-4),
+    /// ];
+    ///
+    /// let r = Rational::product(values.iter());
+    /// let product = Rational::from(r);
+    /// let expected = (5 * -100_000 * -4, 2 * 7);
+    /// assert_eq!(product, expected);
+    /// ```
+    ///
+    /// [`Assign`]: trait.Assign.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`MulAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.MulAssign.html
+    /// [`Mul`]: https://doc.rust-lang.org/nightly/std/ops/trait.Mul.html
+    /// [`Rational`]: struct.Rational.html
+    /// [icv]: index.html#incomplete-computation-values
+    #[inline]
+    pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
+    where
+        I: Iterator<Item = &'a Self>,
+    {
+        ProductIncomplete { values }
+    }
+
     math_op1! {
         gmp::mpq_abs;
         /// Computes the absolute value.
@@ -2298,8 +2337,13 @@ where
 {
     fn assign(&mut self, mut src: SumIncomplete<'a, I>) {
         match src.values.next() {
-            Some(first) => self.assign(first),
-            None => self.assign(0u32),
+            Some(first) => {
+                self.assign(first);
+            }
+            None => {
+                self.assign(0u32);
+                return;
+            }
         }
         self.add_assign(src);
     }
@@ -2337,7 +2381,7 @@ where
 {
     fn add_assign(&mut self, src: SumIncomplete<'a, I>) {
         for i in src.values {
-            AddAssign::add_assign(self, i);
+            self.add_assign(i);
         }
     }
 }
@@ -2356,8 +2400,13 @@ where
 {
     fn assign(&mut self, mut src: DotIncomplete<'a, I>) {
         match src.values.next() {
-            Some(first) => self.assign(first.0 * first.1),
-            None => self.assign(0u32),
+            Some(first) => {
+                self.assign(first.0 * first.1);
+            }
+            None => {
+                self.assign(0u32);
+                return;
+            }
         }
         self.add_assign(src);
     }
@@ -2398,6 +2447,92 @@ where
         for i in src.values {
             mul.assign(i.0 * i.1);
             AddAssign::add_assign(self, &mul);
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ProductIncomplete<'a, I>
+where
+    I: Iterator<Item = &'a Rational>,
+{
+    values: I,
+}
+
+impl<'a, I> Assign<ProductIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn assign(&mut self, mut src: ProductIncomplete<'a, I>) {
+        match src.values.next() {
+            Some(first) => {
+                self.assign(first);
+            }
+            None => {
+                self.assign(1u32);
+                return;
+            }
+        }
+        self.mul_assign(src);
+    }
+}
+
+impl<'a, I> From<ProductIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn from(mut src: ProductIncomplete<'a, I>) -> Self {
+        let mut dst = match src.values.next() {
+            Some(first) => first.clone(),
+            None => return Rational::from(1),
+        };
+        dst.mul_assign(src);
+        dst
+    }
+}
+
+impl<'a, I> Mul<ProductIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    type Output = Self;
+    #[inline]
+    fn mul(mut self, rhs: ProductIncomplete<'a, I>) -> Self {
+        self.mul_assign(rhs);
+        self
+    }
+}
+
+impl<'a, I> MulAssign<ProductIncomplete<'a, I>> for Rational
+where
+    I: Iterator<Item = &'a Self>,
+{
+    fn mul_assign(&mut self, mut src: ProductIncomplete<'a, I>) {
+        let mut other = match src.values.next() {
+            Some(next) => Rational::from(&*self * next),
+            None => return,
+        };
+        loop {
+            match src.values.next() {
+                Some(next) => {
+                    self.assign(&other * next);
+                }
+                None => {
+                    self.assign(other);
+                    return;
+                }
+            }
+            match src.values.next() {
+                Some(next) => {
+                    other.assign(&*self * next);
+                }
+                None => {
+                    return;
+                }
+            }
+            if self.cmp0() == Ordering::Equal {
+                return;
+            }
         }
     }
 }

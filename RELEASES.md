@@ -4,9 +4,10 @@ Version 1.2.0 (unreleased)
 * Generalize implementations of `Sum` and `Product` for `Integer` and
   `Rational`.
 * Add `Integer::keep_signed_bits` methods.
-* Add `Integer::sum` and `Rational::sum` methods.
-* Add `Integer::dot`, `Rational::dot`, `Float::dot` and
-  `Complex::dot`.
+* Add `Integer::sum`, `Integer::dot` and `Integer::product` methods.
+* Add `Rational::sum`, `Rational::dot` and `Rational::product`
+  methods.
+* Add `Float::dot` and `Complex::dot` methods.
 
 Version 1.1.1 (2018-05-20)
 ==========================

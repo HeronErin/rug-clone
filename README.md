@@ -30,9 +30,11 @@ option) any later version. See the full text of the [GNU LGPL] and
 * New methods [`Integer::keep_signed_bits`],
   [`Integer::keep_signed_bits_mut`] and
   [`Integer::keep_signed_bits_ref`] were added.
-* New methods [`Integer::sum`] and [`Rational::sum`] were added.
-* New methods [`Integer::dot`], [`Rational::dot`], [`Float::dot`] and
-  [`Complex::dot`] were added.
+* New methods [`Integer::sum`], [`Integer::dot`] and
+  [`Integer::product`] were added.
+* New methods [`Rational::sum`], [`Rational::dot`] and
+  [`Rational::product`] were added.
+* New methods [`Float::dot`] and [`Complex::dot`] were added.
 
 [`Complex::dot`]: https://docs.rs/rug/~1.2/rug/struct.Complex.html#method.dot
 [`Float::dot`]: https://docs.rs/rug/~1.2/rug/struct.Float.html#method.dot
@@ -40,9 +42,11 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Integer::keep_signed_bits_mut`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_mut
 [`Integer::keep_signed_bits_ref`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_ref
 [`Integer::keep_signed_bits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits
+[`Integer::product`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.product
 [`Integer::sum`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.sum
 [`Product`]: https://doc.rust-lang.org/nightly/std/iter/trait.Product.html
 [`Rational::dot`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.dot
+[`Rational::product`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.product
 [`Rational::sum`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
 [`Sum`]: https://doc.rust-lang.org/nightly/std/iter/trait.Sum.html
 
