@@ -291,3 +291,24 @@ impl Assign for SmallComplex {
         mem::drop(mem::replace(self, other));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use complex::SmallComplex;
+    use Assign;
+
+    #[test]
+    fn check_assign() {
+        let mut c = SmallComplex::from((1.0, 2.0));
+        assert_eq!(*c, (1.0, 2.0));
+        c.assign(3.0);
+        assert_eq!(*c, (3.0, 0.0));
+        let other = SmallComplex::from((4.0, 5.0));
+        c.assign(&other);
+        assert_eq!(*c, (4.0, 5.0));
+        c.assign((6.0, 7.0));
+        assert_eq!(*c, (6.0, 7.0));
+        c.assign(other);
+        assert_eq!(*c, (4.0, 5.0));
+    }
+}

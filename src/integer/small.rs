@@ -344,3 +344,49 @@ impl<'a> Assign for SmallInteger {
         mem::drop(mem::replace(self, other));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use integer::SmallInteger;
+    use Assign;
+
+    #[test]
+    fn check_assign() {
+        let mut i = SmallInteger::from(-1i32);
+        assert_eq!(*i, -1);
+        let other = SmallInteger::from(2i32);
+        i.assign(&other);
+        assert_eq!(*i, 2);
+        i.assign(6u8);
+        assert_eq!(*i, 6);
+        i.assign(-6i8);
+        assert_eq!(*i, -6);
+        i.assign(other);
+        assert_eq!(*i, 2);
+        i.assign(6u16);
+        assert_eq!(*i, 6);
+        i.assign(-6i16);
+        assert_eq!(*i, -6);
+        i.assign(6u32);
+        assert_eq!(*i, 6);
+        i.assign(-6i32);
+        assert_eq!(*i, -6);
+        i.assign(0xf_0000_0006u64);
+        assert_eq!(*i, 0xf_0000_0006u64);
+        i.assign(-0xf_0000_0006i64);
+        assert_eq!(*i, -0xf_0000_0006i64);
+        #[cfg(int_128)]
+        {
+            i.assign(6u128 << 64 | 7u128);
+            assert_eq!(*i, 6u128 << 64 | 7u128);
+            i.assign(-6i128 << 64 | 7i128);
+            assert_eq!(*i, -6i128 << 64 | 7i128);
+        }
+        i.assign(6usize);
+        assert_eq!(*i, 6);
+        i.assign(-6isize);
+        assert_eq!(*i, -6);
+        i.assign(0u32);
+        assert_eq!(*i, 0);
+    }
+}

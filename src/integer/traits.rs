@@ -299,6 +299,18 @@ unsafe impl Sync for Integer {}
 mod tests {
     #[cfg(try_from)]
     use std::convert::TryFrom;
+    use {Assign, Integer};
+
+    #[test]
+    fn check_assign() {
+        let mut i = Integer::from(1);
+        assert_eq!(i, 1);
+        let other = Integer::from(2);
+        i.assign(&other);
+        assert_eq!(i, 2);
+        i.assign(-other);
+        assert_eq!(i, -2);
+    }
 
     #[cfg(try_from)]
     macro_rules! check_fallible_conversions_helper {

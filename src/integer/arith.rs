@@ -383,8 +383,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use ops::Pow;
+    use ops::{AddFrom, Pow, SubFrom};
     use std::cmp::Ordering;
+    use std::ops::{AddAssign, SubAssign};
     use Integer;
 
     #[test]
@@ -542,5 +543,61 @@ mod tests {
         assert_eq!(neg.clone() << 10, Integer::from(-33) << 60);
         assert_eq!(neg.clone() << -100, neg.clone() >> 100);
         assert_eq!(neg.clone() << -100, -1);
+    }
+
+    fn check_single_addmul<F, T>(i: &mut Integer, j: &mut i32, f: F, u: i32)
+    where
+        F: Fn() -> T,
+        Integer: AddAssign<T> + AddFrom<T>,
+    {
+        *i += f();
+        *j += u;
+        assert_eq!(i, j);
+        i.add_from(f());
+        j.add_from(u);
+        assert_eq!(i, j);
+    }
+
+    fn check_single_submul<F, T>(i: &mut Integer, j: &mut i32, f: F, u: i32)
+    where
+        F: Fn() -> T,
+        Integer: SubAssign<T> + SubFrom<T>,
+    {
+        *i -= f();
+        *j -= u;
+        assert_eq!(i, j);
+        i.sub_from(f());
+        j.sub_from(u);
+        assert_eq!(i, j);
+    }
+
+    #[test]
+    fn check_addmul() {
+        let mut i = Integer::from(10);
+        let mut j = 10i32;
+        let two = Integer::from(2);
+
+        check_single_addmul(&mut i, &mut j, || &two * &two, 2 * 2);
+        check_single_addmul(&mut i, &mut j, || &two * 12u32, 2 * 12);
+        check_single_addmul(&mut i, &mut j, || 13u32 * &two, 13 * 2);
+        check_single_addmul(&mut i, &mut j, || &two * 14i32, 2 * 14);
+        check_single_addmul(&mut i, &mut j, || 15i32 * &two, 15 * 2);
+        check_single_addmul(&mut i, &mut j, || &two * -16i32, 2 * -16);
+        check_single_addmul(&mut i, &mut j, || -17i32 * &two, -17 * 2);
+    }
+
+    #[test]
+    fn check_submul() {
+        let mut i = Integer::from(10);
+        let mut j = 10i32;
+        let two = Integer::from(2);
+
+        check_single_submul(&mut i, &mut j, || &two * &two, 2 * 2);
+        check_single_submul(&mut i, &mut j, || &two * 12u32, 2 * 12);
+        check_single_submul(&mut i, &mut j, || 13u32 * &two, 13 * 2);
+        check_single_submul(&mut i, &mut j, || &two * 14i32, 2 * 14);
+        check_single_submul(&mut i, &mut j, || 15i32 * &two, 15 * 2);
+        check_single_submul(&mut i, &mut j, || &two * -16i32, 2 * -16);
+        check_single_submul(&mut i, &mut j, || -17i32 * &two, -17 * 2);
     }
 }

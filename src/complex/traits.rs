@@ -266,3 +266,30 @@ impl Display for ParseComplexError {
 
 unsafe impl Send for Complex {}
 unsafe impl Sync for Complex {}
+
+#[cfg(test)]
+mod tests {
+    use float::Round;
+    use ops::AssignRound;
+    use std::cmp::Ordering;
+    use {Assign, Complex};
+
+    #[test]
+    fn check_assign() {
+        let nearest = (Round::Nearest, Round::Nearest);
+        let mut c = Complex::with_val(4, (1.0, 2.0));
+        assert_eq!(c, (1.0, 2.0));
+
+        let other = Complex::with_val(53, (14.75, 15.25));
+        let mut dir = c.assign_round(&other, nearest);
+        assert_eq!(c, (15.0, 15.0));
+        assert_eq!(dir, (Ordering::Greater, Ordering::Less));
+
+        dir = c.assign_round(3.0, nearest);
+        assert_eq!(c, (3.0, 0.0));
+        assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
+
+        c.assign(other);
+        assert_eq!(c, (15.0, 15.0));
+    }
+}

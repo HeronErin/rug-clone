@@ -295,6 +295,18 @@ unsafe impl Sync for Rational {}
 mod tests {
     #[cfg(try_from)]
     use std::convert::TryFrom;
+    use {Assign, Rational};
+
+    #[test]
+    fn check_assign() {
+        let mut r = Rational::from((1, 2));
+        assert_eq!(r, (1, 2));
+        let other = Rational::from((-2, 3));
+        r.assign(&other);
+        assert_eq!(r, (-2, 3));
+        r.assign(-other);
+        assert_eq!(r, (2, 3));
+    }
 
     #[cfg(try_from)]
     #[test]

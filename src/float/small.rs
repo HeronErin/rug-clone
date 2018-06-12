@@ -373,3 +373,49 @@ impl Assign for SmallFloat {
         mem::drop(mem::replace(self, other));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use float::SmallFloat;
+    use Assign;
+
+    #[test]
+    fn check_assign() {
+        let mut f = SmallFloat::from(-1.0f32);
+        assert_eq!(*f, -1.0);
+        f.assign(-2.0f64);
+        assert_eq!(*f, -2.0);
+        let other = SmallFloat::from(4u8);
+        f.assign(&other);
+        assert_eq!(*f, 4);
+        f.assign(5i8);
+        assert_eq!(*f, 5);
+        f.assign(other);
+        assert_eq!(*f, 4);
+        f.assign(6u16);
+        assert_eq!(*f, 6);
+        f.assign(-6i16);
+        assert_eq!(*f, -6);
+        f.assign(6u32);
+        assert_eq!(*f, 6);
+        f.assign(-6i32);
+        assert_eq!(*f, -6);
+        f.assign(6u64);
+        assert_eq!(*f, 6);
+        f.assign(-6i64);
+        assert_eq!(*f, -6);
+        #[cfg(int_128)]
+        {
+            f.assign(6u128);
+            assert_eq!(*f, 6);
+            f.assign(-6i128);
+            assert_eq!(*f, -6);
+        }
+        f.assign(6usize);
+        assert_eq!(*f, 6);
+        f.assign(-6isize);
+        assert_eq!(*f, -6);
+        f.assign(0u32);
+        assert_eq!(*f, 0);
+    }
+}

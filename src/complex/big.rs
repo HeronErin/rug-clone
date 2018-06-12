@@ -1191,6 +1191,16 @@ impl Complex {
     /// let dot = Complex::with_val(53, r);
     /// let expected = Complex::with_val(53, &a[0] * &b[0]) + &a[1] * &b[1];
     /// assert_eq!(dot, expected);
+    ///
+    /// let r = Complex::dot(a.iter().zip(b.iter()));
+    /// let add_dot = Complex::with_val(53, (1.0, 2.0)) + r;
+    /// let add_expected = Complex::with_val(53, (1.0, 2.0)) + &expected;
+    /// assert_eq!(add_dot, add_expected);
+    ///
+    /// let r = Complex::dot(a.iter().zip(b.iter()));
+    /// let mut add_dot2 = Complex::with_val(53, (1.0, 2.0));
+    /// add_dot2 += r;
+    /// assert_eq!(add_dot2, add_expected);
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
@@ -3868,9 +3878,7 @@ fn parse(
             let real = &bytes[..space];
             assert!(!real.is_empty());
             let imag = misc::trim_start(&bytes[space + 1..]);
-            if imag.is_empty() {
-                parse_error!(ParseErrorKind::NoImagDigits)?;
-            }
+            assert!(!imag.is_empty());
             if misc::find_space_outside_brackets(imag).is_some() {
                 parse_error!(ParseErrorKind::MultipleSeparators)?;
             }

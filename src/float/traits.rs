@@ -363,6 +363,29 @@ unsafe impl Sync for Float {}
 
 #[cfg(test)]
 mod tests {
+    use float::Round;
+    use ops::AssignRound;
+    use std::cmp::Ordering;
+    use {Assign, Float};
+
+    #[test]
+    fn check_assign() {
+        let mut f = Float::with_val(4, 1.0);
+        assert_eq!(f, 1.0);
+
+        let other = Float::with_val(53, 14.75);
+        let mut dir = f.assign_round(&other, Round::Nearest);
+        assert_eq!(f, 15.0);
+        assert_eq!(dir, Ordering::Greater);
+
+        dir = f.assign_round(14.25, Round::Nearest);
+        assert_eq!(f, 14.0);
+        assert_eq!(dir, Ordering::Less);
+
+        f.assign(other);
+        assert_eq!(f, 15.0);
+    }
+
     #[cfg(all(try_from, feature = "rational"))]
     #[test]
     fn check_fallible_conversions() {

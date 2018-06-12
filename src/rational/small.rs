@@ -371,3 +371,24 @@ impl Assign for SmallRational {
         mem::drop(mem::replace(self, other));
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use rational::SmallRational;
+    use Assign;
+
+    #[test]
+    fn check_assign() {
+        let mut r = SmallRational::from((1, 2));
+        assert_eq!(*r, (1, 2));
+        r.assign(3);
+        assert_eq!(*r, 3);
+        let other = SmallRational::from((4, 5));
+        r.assign(&other);
+        assert_eq!(*r, (4, 5));
+        r.assign((6, 7));
+        assert_eq!(*r, (6, 7));
+        r.assign(other);
+        assert_eq!(*r, (4, 5));
+    }
+}

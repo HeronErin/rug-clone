@@ -742,7 +742,7 @@ unsafe fn mul_sub(
 mod tests {
     use float::arith::tests as float_tests;
     use float::Special;
-    use ops::Pow;
+    use ops::{NegAssign, Pow};
     #[cfg(feature = "integer")]
     use std::str::FromStr;
     #[cfg(feature = "integer")]
@@ -750,6 +750,18 @@ mod tests {
     #[cfg(feature = "rational")]
     use Rational;
     use {Complex, Float};
+
+    #[test]
+    fn check_neg() {
+        let mut a = Complex::with_val(53, (Special::Zero, Special::NegZero));
+        assert!(a.real().is_sign_positive() && a.imag().is_sign_negative());
+        a.neg_assign();
+        assert!(a.real().is_sign_negative() && a.imag().is_sign_positive());
+        let a = -a;
+        assert!(a.real().is_sign_positive() && a.imag().is_sign_negative());
+        let a = Complex::with_val(53, -&a);
+        assert!(a.real().is_sign_negative() && a.imag().is_sign_positive());
+    }
 
     fn same(a: Complex, b: Complex) -> bool {
         let (re_a, im_a) = a.into_real_imag();
