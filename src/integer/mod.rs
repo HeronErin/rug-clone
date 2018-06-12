@@ -53,10 +53,7 @@ pub use integer::small::SmallInteger;
 
 use std::os::raw::c_int;
 
-// UGH: two versions of TryFromIntegerError so that the example opens
-// the feature gate if needed (this comment is at the start).
-
-#[cfg(all(try_from, not(nightly_try_from)))]
+#[cfg(try_from)]
 /**
 An error which can be returned when a checked conversion from
 [`Integer`] fails.
@@ -64,39 +61,7 @@ An error which can be returned when a checked conversion from
 # Examples
 
 ```rust
-use rug::integer::TryFromIntegerError;
-use rug::Integer;
-use std::convert::TryFrom;
-// This is negative and cannot be converted to u32.
-let i = Integer::from(-5);
-let error: TryFromIntegerError = match u32::try_from(&i) {
-    Ok(_) => unreachable!(),
-    Err(error) => error,
-};
-println!("Error: {}", error);
-```
-
-[`Integer`]: ../struct.Integer.html
-*/
-#[derive(Clone, Copy, Debug)]
-pub struct TryFromIntegerError {
-    _unused: (),
-}
-
-// UGH: two versions of TryFromIntegerError so that the example opens
-// the feature gate if needed (this comment is between the versions).
-
-#[cfg(all(try_from, nightly_try_from))]
-/**
-An error which can be returned when a checked conversion from
-[`Integer`] fails.
-
-# Examples
-
-```rust
-# #![feature(try_from)]
-# extern crate rug;
-# fn main() {
+# #[cfg(disable_as_this_is_tested_elsewhere)] {
 use rug::integer::TryFromIntegerError;
 use rug::Integer;
 use std::convert::TryFrom;
@@ -116,9 +81,6 @@ println!("Error: {}", error);
 pub struct TryFromIntegerError {
     _unused: (),
 }
-
-// UGH: two versions of TryFromIntegerError so that the example opens
-// the feature gate if needed (this comment is at the end).
 
 /**
 The ordering of digits inside a [slice], and bytes inside a digit.
@@ -186,6 +148,22 @@ mod tests {
     #[cfg(int_128)]
     use std::{i128, u128};
     use {Assign, Integer};
+
+    // This is copied here from example of TryFromIntegerError as
+    // potentially needing a feature gate makes it cumbersome there.
+    #[cfg(try_from)]
+    #[test]
+    fn check_try_from_integer_error() {
+        use integer::TryFromIntegerError;
+        use std::convert::TryFrom;
+        // This is negative and cannot be converted to u32.
+        let i = Integer::from(-5);
+        let error: TryFromIntegerError = match u32::try_from(&i) {
+            Ok(_) => unreachable!(),
+            Err(error) => error,
+        };
+        println!("Error: {}", error);
+    }
 
     #[test]
     fn check_int_conversions() {

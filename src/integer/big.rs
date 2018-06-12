@@ -811,10 +811,7 @@ impl Integer {
         }
     }
 
-    // UGH: two versions of to_u128 so that the example opens the
-    // feature gate if needed (this comment is at the start).
-
-    #[cfg(all(int_128, not(nightly_int_128)))]
+    #[cfg(int_128)]
     /// Converts to a [`u128`] if the value fits.
     ///
     /// This method is only present if the compiler supports the
@@ -848,50 +845,6 @@ impl Integer {
             None
         }
     }
-
-    // UGH: two versions of to_u128 so that the example opens the
-    // feature gate if needed (this comment is between the versions).
-
-    #[cfg(all(int_128, nightly_int_128))]
-    /// Converts to a [`u128`] if the value fits.
-    ///
-    /// This method is only present if the compiler supports the
-    /// [`u128`] primitive.
-    ///
-    /// If the compiler supports [`TryFrom`], this conversion can also
-    /// be performed using `u128::try_from(&integer)` or
-    /// `u128::try_from(integer)`.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// # #![feature(i128_type)]
-    /// # extern crate rug;
-    /// # fn main() {
-    /// use rug::Integer;
-    /// let fits = Integer::from(12345678901234567890_u128);
-    /// assert_eq!(fits.to_u128(), Some(12345678901234567890));
-    /// let neg = Integer::from(-1);
-    /// assert_eq!(neg.to_u128(), None);
-    /// let large = "1234567890123456789012345678901234567890"
-    ///     .parse::<Integer>().unwrap();
-    /// assert_eq!(large.to_u128(), None);
-    /// # }
-    /// ```
-    ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
-    /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-    #[inline]
-    pub fn to_u128(&self) -> Option<u128> {
-        if unsafe { xgmp::mpz_fits_u128(self.inner()) } {
-            Some(self.to_u128_wrapping())
-        } else {
-            None
-        }
-    }
-
-    // UGH: two versions of to_u128 so that the example opens the
-    // feature gate if needed (this comment is at the end).
 
     /// Converts to a [`usize`] if the value fits.
     ///
