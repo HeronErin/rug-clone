@@ -91,11 +91,16 @@ print_eval_check \
 
 # For all toolchains, check with default features and serde.
 for toolchain in "${toolchains[@]}"; do
+    if [ "$toolchain" != "1.18.0" ]; then
+        all_targets="--all-targets"
+    else
+        all_targets=""
+    fi
     print_eval_check \
         cargo $(tc "$toolchain") \
-	check \
+        check $all_targets \
         --features serde \
-	-p gmp-mpfr-sys -p rug
+        -p gmp-mpfr-sys -p rug
 done
 
 # For first toolchain, check with all feature combinations.
@@ -111,6 +116,11 @@ for features in \
     rand{,\,serde} \
     serde
 do
+    if [ "${toolchains[0]}" != "1.18.0" ]; then
+        all_targets="--all-targets"
+    else
+        all_targets=""
+    fi
     if [[ "$features" =~ ^(()|serde)$ ]]; then
         gmp=""
     else
@@ -118,7 +128,7 @@ do
     fi
     print_eval_check \
         cargo $(tc "${toolchains[0]}") \
-        check --all-targets \
+        check $all_targets \
         --no-default-features --features "$features" \
         $gmp -p rug
 done
