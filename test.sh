@@ -89,6 +89,16 @@ print_eval_check \
     --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
     -p gmp-mpfr-sys -p rug
 
+# For all toolchains, check with default features and serde.
+for toolchain in "${toolchains[@]}"; do
+    print_eval_check \
+        cargo $(tc "$toolchain") \
+	check \
+        --features serde \
+	-p gmp-mpfr-sys -p rug
+done
+
+# For first toolchain, check with all feature combinations.
 # integer,rational = rational
 # integer,rand = rand
 # float,complex = complex
@@ -133,8 +143,6 @@ for toolchain in "${toolchains[@]}"; do
     print_eval_check cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
 done
 
-if [ -e cache ]; then
-    rm -r cache
-fi
+rm -r cache
 
 printf '\nCompilation finished at %s\n' "$(date)"
