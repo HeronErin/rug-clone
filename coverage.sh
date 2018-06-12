@@ -70,7 +70,7 @@ ${x;p}                  # at the end of the file, print the hold
     printf 'Compilation started at %s\n\n' "$(date)"
     cargo tarpaulin -v --features serde --ignore-tests |&
         sed -n -e "$FILTER_SCRIPT"
-    printf '\nCompilation finished at %s\n' "$(date)\n"
+    printf '\nCompilation finished at %s\n' "$(date)"
 ) > coverage.report
 
 # restore original sources
