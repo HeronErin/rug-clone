@@ -4973,6 +4973,7 @@ where
 {
     fn add_assign(&mut self, src: DotIncomplete<'a, I>) {
         for i in src.values {
+            #[allow(unknown_lints, suspicious_op_assign_impl)]
             AddAssign::add_assign(self, i.0 * i.1);
         }
     }
