@@ -237,7 +237,7 @@ fn fmt_radix(
         c,
         radix,
         fmt.precision(),
-        (Round::Nearest, Round::Nearest),
+        Default::default(),
         (
             to_upper,
             fmt.sign_plus(),

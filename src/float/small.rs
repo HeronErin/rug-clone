@@ -17,7 +17,6 @@
 use cast::cast;
 use ext::mpfr as xmpfr;
 use float::big::raw_round;
-use float::Round;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use misc::NegAbs;
@@ -304,7 +303,7 @@ impl CopyToSmall for f32 {
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         unsafe {
             xmpfr::custom_zero(ptr, limbs_ptr, 24);
-            mpfr::set_d(ptr, self.into(), raw_round(Round::Nearest));
+            mpfr::set_d(ptr, self.into(), raw_round(Default::default()));
         }
         // retain sign in case of NaN
         if self.is_sign_negative() {
@@ -320,7 +319,7 @@ impl CopyToSmall for f64 {
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         unsafe {
             xmpfr::custom_zero(ptr, limbs_ptr, 53);
-            mpfr::set_d(ptr, self, raw_round(Round::Nearest));
+            mpfr::set_d(ptr, self, raw_round(Default::default()));
         }
         // retain sign in case of NaN
         if self.is_sign_negative() {

@@ -556,7 +556,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn set_prec(&mut self, prec: u32) {
-        self.set_prec_round(prec, Round::Nearest);
+        self.set_prec_round(prec, Default::default());
     }
 
     /// Sets the precision, applying the specified rounding method.
@@ -732,7 +732,7 @@ impl Float {
     /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_integer(&self) -> Option<Integer> {
-        self.to_integer_round(Round::Nearest).map(|x| x.0)
+        self.to_integer_round(Default::default()).map(|x| x.0)
     }
 
     #[cfg(feature = "integer")]
@@ -896,7 +896,7 @@ impl Float {
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating(&self) -> Option<i32> {
-        self.to_i32_saturating_round(Round::Nearest)
+        self.to_i32_saturating_round(Default::default())
     }
 
     /// Converts to an [`i32`], applying the specified rounding method.
@@ -954,7 +954,7 @@ impl Float {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating(&self) -> Option<u32> {
-        self.to_u32_saturating_round(Round::Nearest)
+        self.to_u32_saturating_round(Default::default())
     }
 
     /// Converts to a [`u32`], applying the specified rounding method.
@@ -1008,7 +1008,7 @@ impl Float {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32(&self) -> f32 {
-        self.to_f32_round(Round::Nearest)
+        self.to_f32_round(Default::default())
     }
 
     /// Converts to an [`f32`], applying the specified rounding
@@ -1053,7 +1053,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        self.to_f64_round(Round::Nearest)
+        self.to_f64_round(Default::default())
     }
 
     /// Converts to an [`f64`], applying the specified rounding
@@ -1102,7 +1102,7 @@ impl Float {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_exp(&self) -> (f32, i32) {
-        self.to_f32_exp_round(Round::Nearest)
+        self.to_f32_exp_round(Default::default())
     }
 
     /// Converts to an [`f32`] and an exponent, applying the specified
@@ -1168,7 +1168,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, i32) {
-        self.to_f64_exp_round(Round::Nearest)
+        self.to_f64_exp_round(Default::default())
     }
 
     /// Converts to an [`f64`] and an exponent, applying the specified
@@ -1232,7 +1232,7 @@ impl Float {
         radix: i32,
         num_digits: Option<usize>,
     ) -> String {
-        self.to_string_radix_round(radix, num_digits, Round::Nearest)
+        self.to_string_radix_round(radix, num_digits, Default::default())
     }
 
     /// Returns a string representation of `self` for the specified
@@ -1939,7 +1939,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn subnormalize_ieee(&mut self) -> &mut Self {
-        self.subnormalize_ieee_round(Ordering::Equal, Round::Nearest);
+        self.subnormalize_ieee_round(Ordering::Equal, Default::default());
         self
     }
 
@@ -2025,7 +2025,7 @@ impl Float {
         self.subnormalize_round(
             normal_exp_min,
             Ordering::Equal,
-            Round::Nearest,
+            Default::default(),
         );
         self
     }
@@ -3270,7 +3270,7 @@ impl Float {
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
     {
-        self.clamp_round(min, max, Round::Nearest);
+        self.clamp_round(min, max, Default::default());
         self
     }
 
@@ -3304,7 +3304,7 @@ impl Float {
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
     {
-        self.clamp_round(min, max, Round::Nearest);
+        self.clamp_round(min, max, Default::default());
     }
 
     /// Clamps the value within the specified bounds, applying the
@@ -6180,7 +6180,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_abs_gamma(mut self) -> (Self, Ordering) {
-        let sign = self.ln_abs_gamma_round(Round::Nearest).0;
+        let sign = self.ln_abs_gamma_round(Default::default()).0;
         (self, sign)
     }
 
@@ -6210,7 +6210,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn ln_abs_gamma_mut(&mut self) -> Ordering {
-        self.ln_abs_gamma_round(Round::Nearest).0
+        self.ln_abs_gamma_round(Default::default()).0
     }
 
     /// Computes the logarithm of the absolute value of the gamma
@@ -7887,7 +7887,7 @@ where
     type Output = Self;
     #[inline]
     fn add(mut self, rhs: SumIncomplete<'a, I>) -> Self {
-        self.add_assign_round(rhs, Round::Nearest);
+        self.add_assign_round(rhs, Default::default());
         self
     }
 }
@@ -7898,7 +7898,7 @@ where
 {
     #[inline]
     fn add_assign(&mut self, rhs: SumIncomplete<'a, I>) {
-        self.add_assign_round(rhs, Round::Nearest);
+        self.add_assign_round(rhs, Default::default());
     }
 }
 
@@ -7970,7 +7970,7 @@ where
     type Output = Self;
     #[inline]
     fn add(mut self, rhs: DotIncomplete<'a, I>) -> Self {
-        self.add_assign_round(rhs, Round::Nearest);
+        self.add_assign_round(rhs, Default::default());
         self
     }
 }
@@ -7981,7 +7981,7 @@ where
 {
     #[inline]
     fn add_assign(&mut self, rhs: DotIncomplete<'a, I>) {
-        self.add_assign_round(rhs, Round::Nearest);
+        self.add_assign_round(rhs, Default::default());
     }
 }
 
@@ -8172,14 +8172,14 @@ impl<'a, 'b, 'c> Assign<LnAbsGammaIncomplete<'a>>
 {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaIncomplete) {
-        self.assign_round(src, Round::Nearest);
+        self.assign_round(src, Default::default());
     }
 }
 
 impl<'a> Assign<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaIncomplete) {
-        (&mut self.0, &mut self.1).assign_round(src, Round::Nearest);
+        (&mut self.0, &mut self.1).assign_round(src, Default::default());
     }
 }
 

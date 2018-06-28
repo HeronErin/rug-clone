@@ -119,7 +119,7 @@ where
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        self.assign_round(src, Round::Nearest);
+        self.assign_round(src, Default::default());
     }
 }
 
@@ -340,7 +340,7 @@ fn fmt_radix(
         flt,
         radix,
         fmt.precision(),
-        Round::Nearest,
+        Default::default(),
         to_upper,
     );
     let (neg, buf) = if s.starts_with('-') {
@@ -363,7 +363,6 @@ unsafe impl Sync for Float {}
 
 #[cfg(test)]
 mod tests {
-    use float::Round;
     use ops::AssignRound;
     use std::cmp::Ordering;
     use {Assign, Float};
@@ -374,11 +373,11 @@ mod tests {
         assert_eq!(f, 1.0);
 
         let other = Float::with_val(53, 14.75);
-        let mut dir = f.assign_round(&other, Round::Nearest);
+        let mut dir = f.assign_round(&other, Default::default());
         assert_eq!(f, 15.0);
         assert_eq!(dir, Ordering::Greater);
 
-        dir = f.assign_round(14.25, Round::Nearest);
+        dir = f.assign_round(14.25, Default::default());
         assert_eq!(f, 14.0);
         assert_eq!(dir, Ordering::Less);
 
