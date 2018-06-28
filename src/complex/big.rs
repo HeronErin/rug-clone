@@ -150,12 +150,14 @@ assert_eq!(d, (1, 1));
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Complex {
     inner: mpc_t,
 }
 
 fn _static_assertions() {
     static_assert_size!(Complex, mpc_t);
+    static_assert_size!(BorrowComplex, mpc_t);
 }
 
 macro_rules! ref_math_op0_complex {
@@ -3724,6 +3726,7 @@ where
 }
 
 #[derive(Debug)]
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct BorrowComplex<'a> {
     inner: mpc_t,
     phantom: PhantomData<&'a Complex>,

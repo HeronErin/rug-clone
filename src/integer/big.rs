@@ -184,12 +184,14 @@ assert_eq!(c, -17);
 
 [icv]: index.html#incomplete-computation-values
 */
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Integer {
     inner: mpz_t,
 }
 
 fn _static_assertions() {
     static_assert_size!(Integer, mpz_t);
+    static_assert_size!(BorrowInteger, mpz_t);
 }
 
 impl Integer {
@@ -5544,6 +5546,7 @@ where
 }
 
 #[derive(Debug)]
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct BorrowInteger<'a> {
     pub(crate) inner: mpz_t,
     pub(crate) phantom: PhantomData<&'a Integer>,

@@ -270,12 +270,14 @@ fn main() {
 [MPFR sample]: https://www.mpfr.org/sample.html
 [icv]: index.html#incomplete-computation-values
 */
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Float {
     inner: mpfr_t,
 }
 
 fn _static_assertions() {
     static_assert_size!(Float, mpfr_t);
+    static_assert_size!(BorrowFloat, mpfr_t);
 }
 
 macro_rules! ref_math_op0_float {
@@ -8310,6 +8312,7 @@ where
 }
 
 #[derive(Debug)]
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct BorrowFloat<'a> {
     inner: mpfr_t,
     phantom: PhantomData<&'a Float>,

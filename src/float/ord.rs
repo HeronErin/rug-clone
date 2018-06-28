@@ -62,6 +62,7 @@ assert_eq!(pos_zero.cmp(&neg_zero), Ordering::Greater);
 ```
 */
 #[derive(Clone, Debug)]
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct OrdFloat {
     inner: Float,
 }

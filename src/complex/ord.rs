@@ -52,6 +52,7 @@ assert_eq!(one_pos0.cmp(&zero_inf), Ordering::Greater);
 ```
 */
 #[derive(Clone, Debug)]
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct OrdComplex {
     inner: Complex,
 }

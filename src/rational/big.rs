@@ -86,12 +86,14 @@ assert_eq!(c, (-19, 2));
 [`Integer`]: struct.Integer.html
 [icv]: index.html#incomplete-computation-values
 */
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Rational {
     inner: mpq_t,
 }
 
 fn _static_assertions() {
     static_assert_size!(Rational, mpq_t);
+    static_assert_size!(BorrowRational, mpq_t);
 }
 
 macro_rules! rat_op_int {
@@ -2612,6 +2614,7 @@ ref_rat_op_rat_int! {
 ref_math_op1! { Rational; xgmp::mpq_square; struct SquareIncomplete {} }
 
 #[derive(Debug)]
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct BorrowRational<'a> {
     inner: mpq_t,
     phantom: PhantomData<&'a Rational>,

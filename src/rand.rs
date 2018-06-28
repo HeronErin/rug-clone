@@ -48,6 +48,7 @@ let u = rand.bits(32);
 println!("32 random bits: {:032b}", u);
 ```
 */
+#[cfg_attr(repr_transparent, repr(transparent))]
 pub struct RandState<'a> {
     inner: randstate_t,
     phantom: PhantomData<&'a RandGen>,
@@ -765,6 +766,7 @@ struct MpRandState {
 }
 
 fn _static_assertions() {
+    static_assert_size!(RandState, randstate_t);
     static_assert_size!(MpRandState, randstate_t);
 }
 

@@ -23,6 +23,11 @@ fn main() {
         rustc: cargo_env("RUSTC"),
     };
     env.check_feature("int_128", TRY_INT_128, "i128_type, i128");
+    env.check_feature(
+        "repr_transparent",
+        TRY_REPR_TRANSPARENT,
+        "repr_transparent",
+    );
     env.check_feature("try_from", TRY_TRY_FROM, "try_from");
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
@@ -151,6 +156,14 @@ fn main() {
     let _: i128 = 1i128;
     let _: u128 = 1u128;
     let _ = i128::MIN;
+}
+"#;
+
+const TRY_REPR_TRANSPARENT: &str = r#"// try_repr_transparent.rs
+#[repr(transparent)]
+struct Foo(i32);
+fn main() {
+    let _ = Foo(12);
 }
 "#;
 
