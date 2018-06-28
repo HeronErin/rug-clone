@@ -1247,14 +1247,14 @@ macro_rules! math_op1_round {
         $(#[$attr])*
         #[inline]
         pub fn $method(mut self, $($param: $T),*) -> Self {
-            self.$method_round($($param,)* Default::default());
+            self.$method_round($($param,)* <$Round as Default>::default());
             self
         }
 
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $($param: $T),*) {
-            self.$method_round($($param,)* Default::default());
+            self.$method_round($($param,)* <$Round as Default>::default());
         }
 
         $(#[$attr_round])*
@@ -1396,14 +1396,22 @@ macro_rules! math_op1_2_round {
             mut $rop: Self,
             $($param: $T,)*
         ) -> (Self, Self) {
-            self.$method_round(&mut $rop, $($param,)* Default::default());
+            self.$method_round(
+                &mut $rop,
+                $($param,)*
+                <$Round as Default>::default(),
+            );
             (self, $rop)
         }
 
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
-            self.$method_round($rop, $($param,)* Default::default());
+            self.$method_round(
+                $rop,
+                $($param,)*
+                <$Round as Default>::default(),
+            );
         }
 
         $(#[$attr_round])*
@@ -1501,7 +1509,7 @@ macro_rules! ref_math_op1_2_round {
                 <Self as AssignRound<$Incomplete>>::assign_round(
                     self,
                     src,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -1514,7 +1522,7 @@ macro_rules! ref_math_op1_2_round {
                 >::assign_round(
                     &mut (&mut self.0, &mut self.1),
                     src,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -1542,14 +1550,22 @@ macro_rules! math_op2_round {
         $(#[$attr])*
         #[inline]
         pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
-            self.$method_round($op, $($param.into(),)* Default::default());
+            self.$method_round(
+                $op,
+                $($param.into(),)*
+                <$Round as Default>::default(),
+            );
             self
         }
 
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
-            self.$method_round($op, $($param.into(),)* Default::default());
+            self.$method_round(
+                $op,
+                $($param.into(),)*
+                <$Round as Default>::default(),
+            );
         }
 
         $(#[$attr_round])*
@@ -1661,7 +1677,7 @@ macro_rules! arith_binary_round {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
                     &mut self,
                     &rhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 self
             }
@@ -1674,7 +1690,7 @@ macro_rules! arith_binary_round {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
                     &mut self,
                     rhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 self
             }
@@ -1694,7 +1710,7 @@ macro_rules! arith_binary_round {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
                     self,
                     &rhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -1705,7 +1721,7 @@ macro_rules! arith_binary_round {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
                     self,
                     rhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -1814,7 +1830,7 @@ macro_rules! arith_binary_self_round {
                 <$Big as $ImpFromRound<&$Big>>::$method_from_round(
                     &mut rhs,
                     self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -1826,7 +1842,7 @@ macro_rules! arith_binary_self_round {
                 <$Big as $ImpFromRound<&$Big>>::$method_from_round(
                     self,
                     &lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -1837,7 +1853,7 @@ macro_rules! arith_binary_self_round {
                 <$Big as $ImpFromRound<&$Big>>::$method_from_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2006,7 +2022,7 @@ macro_rules! arith_commut_round {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
                     &mut rhs,
                     &self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2027,7 +2043,7 @@ macro_rules! arith_commut_round {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
                     &mut rhs,
                     self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2047,7 +2063,7 @@ macro_rules! arith_commut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     self,
                     &lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2058,7 +2074,7 @@ macro_rules! arith_commut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2146,7 +2162,7 @@ macro_rules! arith_noncommut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     &mut rhs,
                     &self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2167,7 +2183,7 @@ macro_rules! arith_noncommut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     &mut rhs,
                     self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2187,7 +2203,7 @@ macro_rules! arith_noncommut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     self,
                     &lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2198,7 +2214,7 @@ macro_rules! arith_noncommut_round {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2374,7 +2390,7 @@ macro_rules! arith_prim_exact_round {
                         self.inner_mut(),
                         self.inner(),
                         rhs.into(),
-                        $raw_round(Default::default()),
+                        $raw_round(<$Round as Default>::default()),
                     );
                 }
             }
@@ -2557,7 +2573,7 @@ macro_rules! arith_prim_commut_round {
                 <$Big as $ImpAssignRound<$T>>::$method_assign_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2568,7 +2584,7 @@ macro_rules! arith_prim_commut_round {
                 <$Big as $ImpAssignRound<$T>>::$method_assign_round(
                     self,
                     *lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2652,7 +2668,7 @@ macro_rules! arith_prim_noncommut_round {
                 <$Big as $ImpFromRound<$T>>::$method_from_round(
                     &mut rhs,
                     self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2673,7 +2689,7 @@ macro_rules! arith_prim_noncommut_round {
                 <$Big as $ImpFromRound<$T>>::$method_from_round(
                     &mut rhs,
                     *self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2693,7 +2709,7 @@ macro_rules! arith_prim_noncommut_round {
                 <$Big as $ImpFromRound<$T>>::$method_from_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2704,7 +2720,7 @@ macro_rules! arith_prim_noncommut_round {
                 <$Big as $ImpFromRound<$T>>::$method_from_round(
                     self,
                     *lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2802,7 +2818,7 @@ macro_rules! mul_op_round {
                 <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
                     &mut self,
                     rhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 self
             }
@@ -2822,7 +2838,7 @@ macro_rules! mul_op_round {
                 <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
                     self,
                     rhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -2916,7 +2932,7 @@ macro_rules! mul_op_commut_round {
                 <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
                     &mut rhs,
                     self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -2936,7 +2952,7 @@ macro_rules! mul_op_commut_round {
                 <$Big as $ImpAssignRound<$Mul>>::$method_assign_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
@@ -3001,7 +3017,7 @@ macro_rules! mul_op_noncommut_round {
                 <$Big as $ImpFromRound<$Mul>>::$method_from_round(
                     &mut rhs,
                     self,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
                 rhs
             }
@@ -3021,7 +3037,7 @@ macro_rules! mul_op_noncommut_round {
                 <$Big as $ImpFromRound<$Mul>>::$method_from_round(
                     self,
                     lhs,
-                    Default::default(),
+                    <$Round as Default>::default(),
                 );
             }
         }
