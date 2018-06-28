@@ -55,7 +55,8 @@ impl<'de> Deserialize<'de> for Integer {
     {
         let (radix, value) = de_data(deserializer)?;
         let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
-        Ok(place.assign(p))
+        place.assign(p);
+        Ok(())
     }
 }
 

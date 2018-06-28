@@ -63,7 +63,8 @@ impl<'de> Deserialize<'de> for Float {
         unsafe {
             mpfr::set_prec(place.inner_mut(), cast(prec));
         }
-        Ok(place.assign(p))
+        place.assign(p);
+        Ok(())
     }
 }
 

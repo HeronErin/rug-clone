@@ -57,7 +57,8 @@ impl<'de> Deserialize<'de> for Rational {
     {
         let (radix, value) = de_data(deserializer)?;
         let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
-        Ok(place.assign(p))
+        place.assign(p);
+        Ok(())
     }
 }
 

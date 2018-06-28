@@ -68,7 +68,8 @@ impl<'de> Deserialize<'de> for Complex {
             mpfr::set_prec(parts.0.inner_mut(), cast(prec.0));
             mpfr::set_prec(parts.1.inner_mut(), cast(prec.1));
         }
-        Ok(place.assign(p))
+        place.assign(p);
+        Ok(())
     }
 }
 
