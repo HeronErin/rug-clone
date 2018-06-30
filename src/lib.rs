@@ -285,7 +285,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.1"
+rug = "1.2"
 ```
 
 You also need to declare it by adding this to your crate root (usually
@@ -332,7 +332,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.1"
+version = "1.2"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -395,7 +395,7 @@ the crate.
 [sys]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html
 */
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/~1.1")]
+#![doc(html_root_url = "https://docs.rs/rug/~1.2")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(nightly_int_128, feature(i128_type, i128))]
 #![cfg_attr(nightly_repr_transparent, feature(repr_transparent))]
