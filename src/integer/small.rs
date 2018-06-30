@@ -227,9 +227,10 @@ macro_rules! one_limb {
     )* };
 }
 
-signed! { i8 i16 i32 i64 isize }
+signed! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 signed! { i128 }
+signed! { isize }
 one_limb! { u8 u16 u32 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -324,12 +325,14 @@ macro_rules! impl_assign_from {
     )* };
 }
 
-impl_assign_from! { i8 i16 i32 i64 isize }
+impl_assign_from! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 impl_assign_from! { i128 }
-impl_assign_from! { u8 u16 u32 u64 usize }
+impl_assign_from! { isize }
+impl_assign_from! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 impl_assign_from! { u128 }
+impl_assign_from! { usize }
 
 impl<'a> Assign<&'a Self> for SmallInteger {
     #[inline]

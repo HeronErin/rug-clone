@@ -68,12 +68,14 @@ macro_rules! eq_re {
         #[cfg(feature = "rational")]
         eq_re_im! { $Re; Rational }
         eq_re_im! { $Re; Float Special }
-        eq_re_im! { $Re; i8 i16 i32 i64 isize }
+        eq_re_im! { $Re; i8 i16 i32 i64 }
         #[cfg(int_128)]
         eq_re_im! { $Re; i128 }
-        eq_re_im! { $Re; u8 u16 u32 u64 usize }
+        eq_re_im! { $Re; isize }
+        eq_re_im! { $Re; u8 u16 u32 u64 }
         #[cfg(int_128)]
         eq_re_im! { $Re; u128 }
+        eq_re_im! { $Re; usize }
         eq_re_im! { $Re; f32 f64 }
     )* };
 }
@@ -83,12 +85,14 @@ eq_re! { Integer }
 #[cfg(feature = "rational")]
 eq_re! { Rational }
 eq_re! { Float Special }
-eq_re! { i8 i16 i32 i64 isize }
+eq_re! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 eq_re! { i128 }
-eq_re! { u8 u16 u32 u64 usize }
+eq_re! { isize }
+eq_re! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 eq_re! { u128 }
+eq_re! { usize }
 eq_re! { f32 f64 }
 
 #[cfg(test)]

@@ -132,16 +132,24 @@ macro_rules! try_from {
 
 #[cfg(try_from)]
 try_from! {
-    (i8, to_i8) (i16, to_i16) (i32, to_i32) (i64, to_i64) (isize, to_isize)
+    (i8, to_i8) (i16, to_i16) (i32, to_i32) (i64, to_i64)
 }
 #[cfg(all(int_128, try_from))]
 try_from! { (i128, to_i128) }
 #[cfg(try_from)]
 try_from! {
-    (u8, to_u8) (u16, to_u16) (u32, to_u32) (u64, to_u64) (usize, to_usize)
+    (isize, to_isize)
+}
+#[cfg(try_from)]
+try_from! {
+    (u8, to_u8) (u16, to_u16) (u32, to_u32) (u64, to_u64)
 }
 #[cfg(all(int_128, try_from))]
 try_from! { (u128, to_u128) }
+#[cfg(try_from)]
+try_from! {
+    (usize, to_usize)
+}
 
 macro_rules! assign {
     ($T:ty, $set:path, $init_set:path) => {
@@ -193,23 +201,23 @@ assign! { i8, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
 assign! { i16, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
 assign! { i32, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
 assign! { i64, xgmp::mpz_set_i64, xgmp::mpz_init_set_i64 }
+#[cfg(int_128)]
+assign! { i128, xgmp::mpz_set_i128, xgmp::mpz_init_set_i128 }
 #[cfg(target_pointer_width = "32")]
 assign_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
 assign_cast! { isize, i64 }
-#[cfg(int_128)]
-assign! { i128, xgmp::mpz_set_i128, xgmp::mpz_init_set_i128 }
 
 assign! { u8, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
 assign! { u16, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
 assign! { u32, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
 assign! { u64, xgmp::mpz_set_u64, xgmp::mpz_init_set_u64 }
+#[cfg(int_128)]
+assign! { u128, xgmp::mpz_set_u128, xgmp::mpz_init_set_u128 }
 #[cfg(target_pointer_width = "32")]
 assign_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]
 assign_cast! { usize, u64 }
-#[cfg(int_128)]
-assign! { u128, xgmp::mpz_set_u128, xgmp::mpz_init_set_u128 }
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;

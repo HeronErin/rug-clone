@@ -342,21 +342,25 @@ macro_rules! impl_assign_num {
             }
         }
 
-        impl_assign_num_den! { $Num; i8 i16 i32 i64 isize }
+        impl_assign_num_den! { $Num; i8 i16 i32 i64 }
         #[cfg(int_128)]
         impl_assign_num_den! { $Num; i128 }
-        impl_assign_num_den! { $Num; u8 u16 u32 u64 usize }
+        impl_assign_num_den! { $Num; isize }
+        impl_assign_num_den! { $Num; u8 u16 u32 u64 }
         #[cfg(int_128)]
         impl_assign_num_den! { $Num; u128 }
+        impl_assign_num_den! { $Num; usize }
     )* };
 }
 
-impl_assign_num! { i8 i16 i32 i64 isize }
+impl_assign_num! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 impl_assign_num! { i128 }
-impl_assign_num! { u8 u16 u32 u64 usize }
+impl_assign_num! { isize }
+impl_assign_num! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 impl_assign_num! { u128 }
+impl_assign_num! { usize }
 
 impl<'a> Assign<&'a Self> for SmallRational {
     #[inline]

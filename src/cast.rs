@@ -112,34 +112,40 @@ macro_rules! cast_as {
 
 macro_rules! cast_int {
     ($($Src:ty)*) => { $(
-        cast_int_to_int! { $Src => i8 i16 i32 i64 isize }
+        cast_int_to_int! { $Src => i8 i16 i32 i64 }
         #[cfg(int_128)]
         cast_int_to_int! { $Src => i128 }
-        cast_int_to_int! { $Src => u8 u16 u32 u64 usize }
+        cast_int_to_int! { $Src => isize }
+        cast_int_to_int! { $Src => u8 u16 u32 u64 }
         #[cfg(int_128)]
         cast_int_to_int! { $Src => u128 }
+        cast_int_to_int! { $Src => usize }
         cast_as! { $Src => f32 f64 }
     )* };
 }
 
 macro_rules! cast_float {
     ($($Src:ty)*) => { $(
-        cast_float_to_int! { $Src => i8 i16 i32 i64 isize }
+        cast_float_to_int! { $Src => i8 i16 i32 i64 }
         #[cfg(int_128)]
         cast_float_to_int! { $Src => i128 }
-        cast_float_to_int! { $Src => u8 u16 u32 u64 usize }
+        cast_float_to_int! { $Src => isize }
+        cast_float_to_int! { $Src => u8 u16 u32 u64 }
         #[cfg(int_128)]
         cast_float_to_int! { $Src => u128 }
+        cast_float_to_int! { $Src => usize }
         cast_as! { $Src => f32 f64 }
     )* };
 }
 
-cast_int! { i8 i16 i32 i64 isize }
+cast_int! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 cast_int! { i128 }
-cast_int! { u8 u16 u32 u64 usize }
+cast_int! { isize }
+cast_int! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 cast_int! { u128 }
+cast_int! { usize }
 cast_float! { f32 f64 }
 
 macro_rules! checked_same_signedness {
@@ -232,59 +238,67 @@ macro_rules! checked_as {
 
 macro_rules! checked_signed {
     ($($Src:ty)*) => { $(
-        checked_same_signedness! { $Src => i8 i16 i32 i64 isize }
+        checked_same_signedness! { $Src => i8 i16 i32 i64 }
         #[cfg(int_128)]
         checked_same_signedness! { $Src => i128 }
-        checked_signed_to_unsigned! { $Src => u8 u16 u32 u64 usize }
+        checked_same_signedness! { $Src => isize }
+        checked_signed_to_unsigned! { $Src => u8 u16 u32 u64 }
         #[cfg(int_128)]
         checked_signed_to_unsigned! { $Src => u128 }
+        checked_signed_to_unsigned! { $Src => usize }
         checked_as! { $Src => f32 f64 }
     )* };
 }
 
 macro_rules! checked_unsigned {
     ($($Src:ty)*) => { $(
-        checked_unsigned_to_signed! { $Src => i8 i16 i32 i64 isize }
+        checked_unsigned_to_signed! { $Src => i8 i16 i32 i64 }
         #[cfg(int_128)]
         checked_unsigned_to_signed! { $Src => i128 }
-        checked_same_signedness! { $Src => u8 u16 u32 u64 usize }
+        checked_unsigned_to_signed! { $Src => isize }
+        checked_same_signedness! { $Src => u8 u16 u32 u64 }
         #[cfg(int_128)]
         checked_same_signedness! { $Src => u128 }
+        checked_same_signedness! { $Src => usize }
         checked_as! { $Src => f32 f64 }
     )* };
 }
 
-checked_signed! { i8 i16 i32 i64 isize }
+checked_signed! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 checked_signed! { i128 }
-checked_unsigned! { u8 u16 u32 u64 usize }
+checked_signed! { isize }
+checked_unsigned! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 checked_unsigned! { u128 }
+checked_unsigned! { usize }
 
 checked_float_via! { f32, u32, i32 => i8 i16 i32 }
 checked_float_via! { f32, u64, i64 => i64 }
+#[cfg(int_128)]
+checked_float_via! { f32, u128, i128 => i128 }
 #[cfg(target_pointer_width = "32")]
 checked_float_via! { f32, u32, i32 => isize }
 #[cfg(target_pointer_width = "64")]
 checked_float_via! { f32, u64, i64 => isize }
-#[cfg(int_128)]
-checked_float_via! { f32, u128, i128 => i128 }
 checked_float_via! { f32, u32, i32 => u8 u16 u32 }
 checked_float_via! { f32, u64, i64 => u64 }
+#[cfg(int_128)]
+checked_float_via! { f32, u128, i128 => u128 }
 #[cfg(target_pointer_width = "32")]
 checked_float_via! { f32, u32, i32 => usize }
 #[cfg(target_pointer_width = "64")]
 checked_float_via! { f32, u64, i64 => usize }
-#[cfg(int_128)]
-checked_float_via! { f32, u128, i128 => u128 }
 checked_as! { f32 => f32 f64 }
 
-checked_float_via! { f64, u64, i64 => i8 i16 i32 i64 isize }
+checked_float_via! { f64, u64, i64 => i8 i16 i32 i64 }
 #[cfg(int_128)]
 checked_float_via! { f64, u128, i128 => i128 }
-checked_float_via! { f64, u64, i64 => u8 u16 u32 u64 usize }
+checked_float_via! { f64, u64, i64 => isize }
+checked_float_via! { f64, u64, i64 => u8 u16 u32 u64 }
 #[cfg(int_128)]
 checked_float_via! { f64, u128, i128 => u128 }
+checked_float_via! { f64, u64, i64 => usize }
 checked_as! { f64 => f32 f64 }
 
 macro_rules! wrapping_as {
@@ -315,47 +329,53 @@ macro_rules! wrapping_float_via {
 
 macro_rules! wrapping_int {
     ($($Src:ty)*) => { $(
-        wrapping_as! { $Src => i8 i16 i32 i64 isize }
+        wrapping_as! { $Src => i8 i16 i32 i64 }
         #[cfg(int_128)]
         wrapping_as! { $Src => i128 }
-        wrapping_as! { $Src => u8 u16 u32 u64 usize }
+        wrapping_as! { $Src => isize }
+        wrapping_as! { $Src => u8 u16 u32 u64 }
         #[cfg(int_128)]
         wrapping_as! { $Src => u128 }
+        wrapping_as! { $Src => usize }
         wrapping_as! { $Src => f32 f64 }
     )* };
 }
 
-wrapping_int! { i8 i16 i32 i64 isize }
+wrapping_int! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 wrapping_int! { i128 }
-wrapping_int! { u8 u16 u32 u64 usize }
+wrapping_int! { isize }
+wrapping_int! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 wrapping_int! { u128 }
+wrapping_int! { usize }
 
 wrapping_float_via! { f32, u32 => i8 i16 i32 }
 wrapping_float_via! { f32, u64 => i64 }
+#[cfg(int_128)]
+wrapping_float_via! { f32, u128 => i128 }
 #[cfg(target_pointer_width = "32")]
 wrapping_float_via! { f32, u32 => isize }
 #[cfg(target_pointer_width = "64")]
 wrapping_float_via! { f32, u64 => isize }
-#[cfg(int_128)]
-wrapping_float_via! { f32, u128 => i128 }
 wrapping_float_via! { f32, u32 => u8 u16 u32 }
 wrapping_float_via! { f32, u64 => u64 }
+#[cfg(int_128)]
+wrapping_float_via! { f32, u128 => u128 }
 #[cfg(target_pointer_width = "32")]
 wrapping_float_via! { f32, u32 => usize }
 #[cfg(target_pointer_width = "64")]
 wrapping_float_via! { f32, u64 => usize }
-#[cfg(int_128)]
-wrapping_float_via! { f32, u128 => u128 }
 wrapping_as! { f32 => f32 f64 }
 
-wrapping_float_via! { f64, u64 => i8 i16 i32 i64 isize }
+wrapping_float_via! { f64, u64 => i8 i16 i32 i64 }
 #[cfg(int_128)]
 wrapping_float_via! { f64, u128 => i128 }
-wrapping_float_via! { f64, u64 => u8 u16 u32 u64 usize }
+wrapping_float_via! { f64, u64 => isize }
+wrapping_float_via! { f64, u64 => u8 u16 u32 u64 }
 #[cfg(int_128)]
 wrapping_float_via! { f64, u128 => u128 }
+wrapping_float_via! { f64, u64 => usize }
 wrapping_as! { f64 => f32 f64 }
 
 struct Float<Uns, Fit> {

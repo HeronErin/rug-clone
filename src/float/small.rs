@@ -218,9 +218,10 @@ macro_rules! unsigned_32 {
     };
 }
 
-signed! { i8 i16 i32 i64 isize }
+signed! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 signed! { i128 }
+signed! { isize }
 
 unsigned_32! { u8, 8 }
 unsigned_32! { u16, 16 }
@@ -252,20 +253,6 @@ impl CopyToSmall for u64 {
     }
 }
 
-impl CopyToSmall for usize {
-    #[inline]
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
-        #[cfg(target_pointer_width = "32")]
-        {
-            (self as u32).copy(inner, limbs);
-        }
-        #[cfg(target_pointer_width = "64")]
-        {
-            (self as u64).copy(inner, limbs);
-        }
-    }
-}
-
 #[cfg(int_128)]
 impl CopyToSmall for u128 {
     #[inline]
@@ -292,6 +279,20 @@ impl CopyToSmall for u128 {
                 }
                 xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
             }
+        }
+    }
+}
+
+impl CopyToSmall for usize {
+    #[inline]
+    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+        #[cfg(target_pointer_width = "32")]
+        {
+            (self as u32).copy(inner, limbs);
+        }
+        #[cfg(target_pointer_width = "64")]
+        {
+            (self as u64).copy(inner, limbs);
         }
     }
 }
@@ -351,12 +352,14 @@ macro_rules! impl_assign_from {
     )* };
 }
 
-impl_assign_from! { i8 i16 i32 i64 isize }
+impl_assign_from! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 impl_assign_from! { i128 }
-impl_assign_from! { u8 u16 u32 u64 usize }
+impl_assign_from! { isize }
+impl_assign_from! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 impl_assign_from! { u128 }
+impl_assign_from! { usize }
 impl_assign_from! { f32 f64 }
 
 impl<'a> Assign<&'a Self> for SmallFloat {

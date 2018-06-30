@@ -260,22 +260,26 @@ macro_rules! impl_assign_re {
             }
         }
 
-        impl_assign_re_im! { $Re; i8 i16 i32 i64 isize }
+        impl_assign_re_im! { $Re; i8 i16 i32 i64 }
         #[cfg(int_128)]
         impl_assign_re_im! { $Re; i128 }
-        impl_assign_re_im! { $Re; u8 u16 u32 u64 usize }
+        impl_assign_re_im! { $Re; isize }
+        impl_assign_re_im! { $Re; u8 u16 u32 u64 }
         #[cfg(int_128)]
         impl_assign_re_im! { $Re; u128 }
+        impl_assign_re_im! { $Re; usize }
         impl_assign_re_im! { $Re; f32 f64 }
     )* };
 }
 
-impl_assign_re! { i8 i16 i32 i64 isize }
+impl_assign_re! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 impl_assign_re! { i128 }
-impl_assign_re! { u8 u16 u32 u64 usize }
+impl_assign_re! { isize }
+impl_assign_re! { u8 u16 u32 u64 }
 #[cfg(int_128)]
 impl_assign_re! { u128 }
+impl_assign_re! { usize }
 impl_assign_re! { f32 f64 }
 
 impl<'a> Assign<&'a Self> for SmallComplex {
