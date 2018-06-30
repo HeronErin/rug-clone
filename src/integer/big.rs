@@ -450,6 +450,228 @@ impl Integer {
         unsafe { self.inner_mut() }
     }
 
+    /// Creates an [`Integer`] from a [slice] of digits of type `T`,
+    /// where `T` can be any of the unsigned integer primitive types.
+    ///
+    /// The resulting value cannot be negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
+    /// let digits = [0x5678u16, 0x1234u16];
+    /// let i = Integer::from_digits(&digits, Order::Lsf);
+    /// assert_eq!(i, 0x1234_5678);
+    /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    pub fn from_digits<T>(digits: &[T], order: Order) -> Self
+    where
+        T: UnsignedPrimitive,
+    {
+        let bytes = mem::size_of::<T>();
+        let bits = bytes * 8;
+        let capacity = digits.len().checked_mul(bits).expect("overflow");
+        let mut i = Integer::with_capacity(capacity);
+        i.assign_digits(digits, order);
+        i
+    }
+
+    /// Assigns from a [slice] of digits of type `T`, where `T` can be
+    /// any of the unsigned integer primitive types.
+    ///
+    /// The resulting value cannot be negative.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
+    /// let digits = [0x5678u16, 0x1234u16];
+    /// let mut i = Integer::new();
+    /// i.assign_digits(&digits, Order::Lsf);
+    /// assert_eq!(i, 0x1234_5678);
+    /// ```
+    ///
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    pub fn assign_digits<T>(&mut self, digits: &[T], order: Order)
+    where
+        T: UnsignedPrimitive,
+    {
+        let bytes = mem::size_of::<T>();
+        let bits = bytes * 8;
+        let capacity = digits.len().checked_mul(bits).expect("overflow");
+        if capacity > self.capacity() {
+            let additional = self.capacity() - capacity;
+            self.reserve(additional);
+        }
+        unsafe {
+            gmp::mpz_import(
+                self.inner_mut(),
+                digits.len(),
+                order.order(),
+                bytes,
+                order.endian(),
+                0,
+                digits.as_ptr() as *const c_void,
+            );
+        }
+    }
+
+    /// Returns the number of digits of type `T` required to represent
+    /// the absolute value.
+    ///
+    /// `T` can be any of the unsigned integer primitive types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    ///
+    /// let i: Integer = Integer::from(1) << 256;
+    /// assert_eq!(i.significant_digits::<u8>(), 33);
+    /// assert_eq!(i.significant_digits::<u16>(), 17);
+    /// assert_eq!(i.significant_digits::<u32>(), 9);
+    /// assert_eq!(i.significant_digits::<u64>(), 5);
+    /// ```
+    pub fn significant_digits<T>(&self) -> usize
+    where
+        T: UnsignedPrimitive,
+    {
+        let bytes = mem::size_of::<T>();
+        let bits = bytes * 8;
+
+        let op = self.inner();
+        let size = op.size;
+        if size == 0 {
+            return 0;
+        }
+        let size = size.neg_abs().1;
+        let size_in_base = unsafe { gmp::mpn_sizeinbase(op.d, cast(size), 2) };
+        size_in_base.div_ceil(bits)
+    }
+
+    /// Converts to a [`Vec`] of digits of type `T`, where `T` can be
+    /// any of the unsigned integer primitive types.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
+    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let digits = i.to_digits::<u32>(Order::MsfBe);
+    /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
+    /// ```
+    ///
+    /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
+    pub fn to_digits<T>(&self, order: Order) -> Vec<T>
+    where
+        T: UnsignedPrimitive,
+    {
+        let digit_count = self.significant_digits::<T>();
+        let mut v = Vec::with_capacity(digit_count);
+        unsafe {
+            let digits = slice::from_raw_parts_mut(v.as_mut_ptr(), digit_count);
+            self.write_digits(digits, order);
+            v.set_len(digit_count);
+        }
+        v
+    }
+
+    /// Writes the absolute value into a [slice] of digits of type
+    /// `T`, where `T` can be any of the unsigned integer primitive
+    /// types.
+    ///
+    /// The slice must be large enough to hold the digits; the minimum
+    /// size can be obtained using the [`significant_digits`] method.
+    ///
+    /// The contents of the slice can be uninitialized before this
+    /// method is called; this method sets all the elements of the
+    /// slice, padding with zeros if the slice is larger than
+    /// required.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the slice does not have sufficient capacity.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
+    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let mut digits = [0xffff_ffffu32; 4];
+    /// i.write_digits(&mut digits, Order::MsfBe);
+    /// let word0 = 0x9abc_def0u32;
+    /// let word1 = 0x1234_5678u32;
+    /// assert_eq!(digits, [0, 0, word1.to_be(), word0.to_be()]);
+    /// ```
+    ///
+    /// The following example shows how to write into uninitialized
+    /// memory. In practice, the following code could be replaced by a
+    /// call to [`to_digits`].
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
+    /// use std::slice;
+    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let len = i.significant_digits::<u32>();
+    /// assert_eq!(len, 2);
+    ///
+    /// // The following code is equivalent to:
+    /// //     let digits = i.to_digits::<u32>(Order::MsfBe);
+    /// let mut digits = Vec::<u32>::with_capacity(len);
+    /// // The dst slice points to allocated but uninitialized memory.
+    /// // All the digits will be initialized by write_digits.
+    /// unsafe {
+    ///     let ptr = digits.as_mut_ptr();
+    ///     let dst = slice::from_raw_parts_mut(ptr, len);
+    ///     i.write_digits(dst, Order::MsfBe);
+    ///     digits.set_len(len);
+    /// }
+    ///
+    /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
+    /// ```
+    ///
+    /// [`significant_digits`]: #method.significant_digits
+    /// [`to_digits`]: #method.to_digits
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
+    where
+        T: UnsignedPrimitive,
+    {
+        let bytes = mem::size_of::<T>();
+        let digit_count = self.significant_digits::<T>();
+        let zero_count = digits
+            .len()
+            .checked_sub(digit_count)
+            .expect("not enough capacity");
+        let (zeros, digits) = if order.order() < 0 {
+            let (digits, zeros) = digits.split_at_mut(digit_count);
+            (zeros, digits)
+        } else {
+            digits.split_at_mut(zero_count)
+        };
+        unsafe {
+            ptr::write_bytes(zeros.as_mut_ptr(), 0, zeros.len());
+            let mut count = mem::uninitialized();
+            gmp::mpz_export(
+                digits.as_mut_ptr() as *mut c_void,
+                &mut count,
+                order.order(),
+                bytes,
+                order.endian(),
+                0,
+                self.inner(),
+            );
+            assert_eq!(count, digit_count);
+        }
+    }
+
     /// Creates an [`Integer`] from an [`f32`] if it is
     /// [finite][`f32::is_finite`], rounding towards zero.
     ///
@@ -500,35 +722,6 @@ impl Integer {
         } else {
             None
         }
-    }
-
-    /// Creates an [`Integer`] from a [slice] of digits of type `T`,
-    /// where `T` can be any of the unsigned integer primitive types.
-    ///
-    /// The resulting value cannot be negative.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
-    /// let digits = [0x5678u16, 0x1234u16];
-    /// let i = Integer::from_digits(&digits, Order::Lsf);
-    /// assert_eq!(i, 0x1234_5678);
-    /// ```
-    ///
-    /// [`Integer`]: struct.Integer.html
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    pub fn from_digits<T>(digits: &[T], order: Order) -> Self
-    where
-        T: UnsignedPrimitive,
-    {
-        let bytes = mem::size_of::<T>();
-        let bits = bytes * 8;
-        let capacity = digits.len().checked_mul(bits).expect("overflow");
-        let mut i = Integer::with_capacity(capacity);
-        i.assign_digits(digits, order);
-        i
     }
 
     /// Parses an [`Integer`] using the given radix.
@@ -1369,34 +1562,6 @@ impl Integer {
         (f, cast(exp))
     }
 
-    /// Converts to a [`Vec`] of digits of type `T`, where `T` can be
-    /// any of the unsigned integer primitive types.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
-    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
-    /// let digits = i.to_digits::<u32>(Order::MsfBe);
-    /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
-    /// ```
-    ///
-    /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
-    pub fn to_digits<T>(&self, order: Order) -> Vec<T>
-    where
-        T: UnsignedPrimitive,
-    {
-        let digit_count = self.significant_digits::<T>();
-        let mut v = Vec::with_capacity(digit_count);
-        unsafe {
-            let digits = slice::from_raw_parts_mut(v.as_mut_ptr(), digit_count);
-            self.write_digits(digits, order);
-            v.set_len(digit_count);
-        }
-        v
-    }
-
     /// Returns a string representation of the number for the
     /// specified `radix`.
     ///
@@ -1475,138 +1640,6 @@ impl Integer {
             Ok(())
         } else {
             Err(())
-        }
-    }
-
-    /// Assigns from a [slice] of digits of type `T`, where `T` can be
-    /// any of the unsigned integer primitive types.
-    ///
-    /// The resulting value cannot be negative.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
-    /// let digits = [0x5678u16, 0x1234u16];
-    /// let mut i = Integer::new();
-    /// i.assign_digits(&digits, Order::Lsf);
-    /// assert_eq!(i, 0x1234_5678);
-    /// ```
-    ///
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    pub fn assign_digits<T>(&mut self, digits: &[T], order: Order)
-    where
-        T: UnsignedPrimitive,
-    {
-        let bytes = mem::size_of::<T>();
-        let bits = bytes * 8;
-        let capacity = digits.len().checked_mul(bits).expect("overflow");
-        if capacity > self.capacity() {
-            let additional = self.capacity() - capacity;
-            self.reserve(additional);
-        }
-        unsafe {
-            gmp::mpz_import(
-                self.inner_mut(),
-                digits.len(),
-                order.order(),
-                bytes,
-                order.endian(),
-                0,
-                digits.as_ptr() as *const c_void,
-            );
-        }
-    }
-
-    /// Writes the absolute value into a [slice] of digits of type
-    /// `T`, where `T` can be any of the unsigned integer primitive
-    /// types.
-    ///
-    /// The slice must be large enough to hold the digits; the minimum
-    /// size can be obtained using the [`significant_digits`] method.
-    ///
-    /// The contents of the slice can be uninitialized before this
-    /// method is called; this method sets all the elements of the
-    /// slice, padding with zeros if the slice is larger than
-    /// required.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the slice does not have sufficient capacity.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
-    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
-    /// let mut digits = [0xffff_ffffu32; 4];
-    /// i.write_digits(&mut digits, Order::MsfBe);
-    /// let word0 = 0x9abc_def0u32;
-    /// let word1 = 0x1234_5678u32;
-    /// assert_eq!(digits, [0, 0, word1.to_be(), word0.to_be()]);
-    /// ```
-    ///
-    /// The following example shows how to write into uninitialized
-    /// memory. In practice, the following code could be replaced by a
-    /// call to [`to_digits`].
-    ///
-    /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
-    /// use std::slice;
-    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
-    /// let len = i.significant_digits::<u32>();
-    /// assert_eq!(len, 2);
-    ///
-    /// // The following code is equivalent to:
-    /// //     let digits = i.to_digits::<u32>(Order::MsfBe);
-    /// let mut digits = Vec::<u32>::with_capacity(len);
-    /// // The dst slice points to allocated but uninitialized memory.
-    /// // All the digits will be initialized by write_digits.
-    /// unsafe {
-    ///     let ptr = digits.as_mut_ptr();
-    ///     let dst = slice::from_raw_parts_mut(ptr, len);
-    ///     i.write_digits(dst, Order::MsfBe);
-    ///     digits.set_len(len);
-    /// }
-    ///
-    /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
-    /// ```
-    ///
-    /// [`significant_digits`]: #method.significant_digits
-    /// [`to_digits`]: #method.to_digits
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
-    pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
-    where
-        T: UnsignedPrimitive,
-    {
-        let bytes = mem::size_of::<T>();
-        let digit_count = self.significant_digits::<T>();
-        let zero_count = digits
-            .len()
-            .checked_sub(digit_count)
-            .expect("not enough capacity");
-        let (zeros, digits) = if order.order() < 0 {
-            let (digits, zeros) = digits.split_at_mut(digit_count);
-            (zeros, digits)
-        } else {
-            digits.split_at_mut(zero_count)
-        };
-        unsafe {
-            ptr::write_bytes(zeros.as_mut_ptr(), 0, zeros.len());
-            let mut count = mem::uninitialized();
-            gmp::mpz_export(
-                digits.as_mut_ptr() as *mut c_void,
-                &mut count,
-                order.order(),
-                bytes,
-                order.endian(),
-                0,
-                self.inner(),
-            );
-            assert_eq!(count, digit_count);
         }
     }
 
@@ -1984,39 +2017,6 @@ impl Integer {
     #[inline]
     pub fn signed_bits(&self) -> u32 {
         cast(unsafe { xgmp::mpz_signed_bits(self.inner()) })
-    }
-
-    /// Returns the number of digits of type `T` required to represent
-    /// the absolute value.
-    ///
-    /// `T` can be any of the unsigned integer primitive types.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::Integer;
-    ///
-    /// let i: Integer = Integer::from(1) << 256;
-    /// assert_eq!(i.significant_digits::<u8>(), 33);
-    /// assert_eq!(i.significant_digits::<u16>(), 17);
-    /// assert_eq!(i.significant_digits::<u32>(), 9);
-    /// assert_eq!(i.significant_digits::<u64>(), 5);
-    /// ```
-    pub fn significant_digits<T>(&self) -> usize
-    where
-        T: UnsignedPrimitive,
-    {
-        let bytes = mem::size_of::<T>();
-        let bits = bytes * 8;
-
-        let op = self.inner();
-        let size = op.size;
-        if size == 0 {
-            return 0;
-        }
-        let size = size.neg_abs().1;
-        let size_in_base = unsafe { gmp::mpn_sizeinbase(op.d, cast(size), 2) };
-        size_in_base.div_ceil(bits)
     }
 
     /// Returns the number of one bits if the value ≥ 0.
