@@ -321,6 +321,135 @@ impl Integer {
         }
     }
 
+    /// Creates an [`Integer`] from an initialized
+    /// [GMP integer][`mpz_t`].
+    ///
+    /// # Safety
+    ///
+    /// * The value must be initialized.
+    /// * The [`gmp_mpfr_sys::gmp::mpz_t`][`mpz_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Integer;
+    /// use std::mem;
+    /// fn main() {
+    ///     let i = unsafe {
+    ///         let mut z = mem::uninitialized();
+    ///         gmp::mpz_init_set_ui(&mut z, 15);
+    ///         // z is initialized and unique
+    ///         Integer::from_raw(z)
+    ///     };
+    ///     assert_eq!(i, 15);
+    ///     // since i is an Integer now, deallocation is automatic
+    /// }
+    /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    #[inline]
+    pub unsafe fn from_raw(raw: mpz_t) -> Self {
+        Integer { inner: raw }
+    }
+
+    /// Converts an [`Integer`] into a [GMP integer][`mpz_t`].
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Integer;
+    /// fn main() {
+    ///     let i = Integer::from(15);
+    ///     let mut z = i.into_raw();
+    ///     unsafe {
+    ///         let u = gmp::mpz_get_ui(&z);
+    ///         assert_eq!(u, 15);
+    ///         // free object to prevent memory leak
+    ///         gmp::mpz_clear(&mut z);
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// [`Integer`]: struct.Integer.html
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    #[inline]
+    pub fn into_raw(self) -> mpz_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    /// Returns a pointer to the inner [GMP integer][`mpz_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Integer;
+    /// fn main() {
+    ///     let i = Integer::from(15);
+    ///     let z_ptr = i.as_raw();
+    ///     unsafe {
+    ///         let u = gmp::mpz_get_ui(z_ptr);
+    ///         assert_eq!(u, 15);
+    ///     }
+    ///     // i is still valid
+    ///     assert_eq!(i, 15);
+    /// }
+    /// ```
+    ///
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    #[inline]
+    pub fn as_raw(&self) -> *const mpz_t {
+        self.inner()
+    }
+
+    /// Returns an unsafe mutable pointer to the inner
+    /// [GMP integer][`mpz_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Integer;
+    /// fn main() {
+    ///     let mut i = Integer::from(15);
+    ///     let z_ptr = i.as_raw_mut();
+    ///     unsafe {
+    ///         gmp::mpz_add_ui(z_ptr, z_ptr, 20);
+    ///     }
+    ///     assert_eq!(i, 35);
+    /// }
+    /// ```
+    ///
+    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
+    #[inline]
+    pub fn as_raw_mut(&mut self) -> *mut mpz_t {
+        unsafe { self.inner_mut() }
+    }
+
     /// Creates an [`Integer`] from an [`f32`] if it is
     /// [finite][`f32::is_finite`], rounding towards zero.
     ///
@@ -1479,135 +1608,6 @@ impl Integer {
             );
             assert_eq!(count, digit_count);
         }
-    }
-
-    /// Creates an [`Integer`] from an initialized
-    /// [GMP integer][`mpz_t`].
-    ///
-    /// # Safety
-    ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::gmp::mpz_t`][`mpz_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Integer;
-    /// use std::mem;
-    /// fn main() {
-    ///     let i = unsafe {
-    ///         let mut z = mem::uninitialized();
-    ///         gmp::mpz_init_set_ui(&mut z, 15);
-    ///         // z is initialized and unique
-    ///         Integer::from_raw(z)
-    ///     };
-    ///     assert_eq!(i, 15);
-    ///     // since i is an Integer now, deallocation is automatic
-    /// }
-    /// ```
-    ///
-    /// [`Integer`]: struct.Integer.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
-    #[inline]
-    pub unsafe fn from_raw(raw: mpz_t) -> Self {
-        Integer { inner: raw }
-    }
-
-    /// Converts an [`Integer`] into a [GMP integer][`mpz_t`].
-    ///
-    /// The returned object should be freed to avoid memory leaks.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Integer;
-    /// fn main() {
-    ///     let i = Integer::from(15);
-    ///     let mut z = i.into_raw();
-    ///     unsafe {
-    ///         let u = gmp::mpz_get_ui(&z);
-    ///         assert_eq!(u, 15);
-    ///         // free object to prevent memory leak
-    ///         gmp::mpz_clear(&mut z);
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// [`Integer`]: struct.Integer.html
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
-    #[inline]
-    pub fn into_raw(self) -> mpz_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
-    }
-
-    /// Returns a pointer to the inner [GMP integer][`mpz_t`].
-    ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Integer;
-    /// fn main() {
-    ///     let i = Integer::from(15);
-    ///     let z_ptr = i.as_raw();
-    ///     unsafe {
-    ///         let u = gmp::mpz_get_ui(z_ptr);
-    ///         assert_eq!(u, 15);
-    ///     }
-    ///     // i is still valid
-    ///     assert_eq!(i, 15);
-    /// }
-    /// ```
-    ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
-    #[inline]
-    pub fn as_raw(&self) -> *const mpz_t {
-        self.inner()
-    }
-
-    /// Returns an unsafe mutable pointer to the inner
-    /// [GMP integer][`mpz_t`].
-    ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Integer;
-    /// fn main() {
-    ///     let mut i = Integer::from(15);
-    ///     let z_ptr = i.as_raw_mut();
-    ///     unsafe {
-    ///         gmp::mpz_add_ui(z_ptr, z_ptr, 20);
-    ///     }
-    ///     assert_eq!(i, 35);
-    /// }
-    /// ```
-    ///
-    /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
-    #[inline]
-    pub fn as_raw_mut(&mut self) -> *mut mpz_t {
-        unsafe { self.inner_mut() }
     }
 
     /// Borrows a negated copy of the [`Integer`].

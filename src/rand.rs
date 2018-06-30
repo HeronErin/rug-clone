@@ -298,80 +298,6 @@ impl<'a> RandState<'a> {
         }
     }
 
-    /// Seeds the random generator.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Integer;
-    /// let seed = Integer::from(123456);
-    /// let mut rand = RandState::new();
-    /// rand.seed(&seed);
-    /// let u1a = rand.bits(32);
-    /// let u1b = rand.bits(32);
-    /// // reseed with the same seed
-    /// rand.seed(&seed);
-    /// let u2a = rand.bits(32);
-    /// let u2b = rand.bits(32);
-    /// assert_eq!(u1a, u2a);
-    /// assert_eq!(u1b, u2b);
-    /// ```
-    #[inline]
-    pub fn seed(&mut self, seed: &Integer) {
-        unsafe {
-            gmp::randseed(self.inner_mut(), seed.inner());
-        }
-    }
-
-    /// Generates a random number with the specified number of bits.
-    ///
-    /// # Panics
-    ///
-    /// Panics if `bits` is greater than 32.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::rand::RandState;
-    /// let mut rand = RandState::new();
-    /// let u = rand.bits(16);
-    /// assert!(u < (1 << 16));
-    /// println!("16 random bits: {:016b}", u);
-    /// ```
-    #[inline]
-    pub fn bits(&mut self, bits: u32) -> u32 {
-        assert!(bits <= 32, "bits out of range");
-        unsafe { gmp::urandomb_ui(self.inner_mut(), bits.into()) as u32 }
-    }
-
-    /// Generates a random number below the given boundary value.
-    ///
-    /// This function can never return the maximum 32-bit value; in
-    /// order to generate a 32-bit random value that covers the whole
-    /// range, use the [`bits`] method with `bits` set to 32.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the boundary value is zero.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// use rug::rand::RandState;
-    /// let mut rand = RandState::new();
-    /// let u = rand.below(10000);
-    /// assert!(u < 10000);
-    /// println!("0 ≤ {} < 10000", u);
-    /// ```
-    ///
-    /// [`bits`]: #method.bits
-    #[inline]
-    pub fn below(&mut self, bound: u32) -> u32 {
-        assert_ne!(bound, 0, "cannot be below zero");
-        unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
-    }
-
     /// Creates a random generator from an initialized
     /// [GMP random generator][`randstate_t`].
     ///
@@ -512,6 +438,80 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         unsafe { self.inner_mut() }
+    }
+
+    /// Seeds the random generator.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// use rug::Integer;
+    /// let seed = Integer::from(123456);
+    /// let mut rand = RandState::new();
+    /// rand.seed(&seed);
+    /// let u1a = rand.bits(32);
+    /// let u1b = rand.bits(32);
+    /// // reseed with the same seed
+    /// rand.seed(&seed);
+    /// let u2a = rand.bits(32);
+    /// let u2b = rand.bits(32);
+    /// assert_eq!(u1a, u2a);
+    /// assert_eq!(u1b, u2b);
+    /// ```
+    #[inline]
+    pub fn seed(&mut self, seed: &Integer) {
+        unsafe {
+            gmp::randseed(self.inner_mut(), seed.inner());
+        }
+    }
+
+    /// Generates a random number with the specified number of bits.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `bits` is greater than 32.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let u = rand.bits(16);
+    /// assert!(u < (1 << 16));
+    /// println!("16 random bits: {:016b}", u);
+    /// ```
+    #[inline]
+    pub fn bits(&mut self, bits: u32) -> u32 {
+        assert!(bits <= 32, "bits out of range");
+        unsafe { gmp::urandomb_ui(self.inner_mut(), bits.into()) as u32 }
+    }
+
+    /// Generates a random number below the given boundary value.
+    ///
+    /// This function can never return the maximum 32-bit value; in
+    /// order to generate a 32-bit random value that covers the whole
+    /// range, use the [`bits`] method with `bits` set to 32.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::RandState;
+    /// let mut rand = RandState::new();
+    /// let u = rand.below(10000);
+    /// assert!(u < 10000);
+    /// println!("0 ≤ {} < 10000", u);
+    /// ```
+    ///
+    /// [`bits`]: #method.bits
+    #[inline]
+    pub fn below(&mut self, bound: u32) -> u32 {
+        assert_ne!(bound, 0, "cannot be below zero");
+        unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
     }
 }
 

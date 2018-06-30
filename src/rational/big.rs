@@ -282,6 +282,144 @@ impl Rational {
         }
     }
 
+    /// Creates a [`Rational`] number from an initialized
+    /// [GMP rational number][`mpq_t`].
+    ///
+    /// # Safety
+    ///
+    /// * The value must be initialized.
+    /// * The [`gmp_mpfr_sys::gmp::mpq_t`][`mpq_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
+    /// * The numerator and denominator must be in canonical form, as
+    ///   the rest of the library assumes that they are. Most GMP
+    ///   functions leave the rational number in canonical form, but
+    ///   assignment functions do not. Check the
+    ///   [GMP documentation][gmp mpq] for details.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Rational;
+    /// use std::mem;
+    /// fn main() {
+    ///     let r = unsafe {
+    ///         let mut q = mem::uninitialized();
+    ///         gmp::mpq_init(&mut q);
+    ///         gmp::mpq_set_si(&mut q, -145, 10);
+    ///         gmp::mpq_canonicalize(&mut q);
+    ///         // q is initialized and unique
+    ///         Rational::from_raw(q)
+    ///     };
+    ///     assert_eq!(r, (-145, 10));
+    ///     // since r is a Rational now, deallocation is automatic
+    /// }
+    /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
+    #[inline]
+    pub unsafe fn from_raw(raw: mpq_t) -> Self {
+        Rational { inner: raw }
+    }
+
+    /// Converts a [`Rational`] number into a
+    /// [GMP rational number][`mpq_t`].
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Rational;
+    /// fn main() {
+    ///     let r = Rational::from((-145, 10));
+    ///     let mut q = r.into_raw();
+    ///     unsafe {
+    ///         let d = gmp::mpq_get_d(&q);
+    ///         assert_eq!(d, -14.5);
+    ///         // free object to prevent memory leak
+    ///         gmp::mpq_clear(&mut q);
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// [`Rational`]: struct.Rational.html
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    #[inline]
+    pub fn into_raw(self) -> mpq_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    /// Returns a pointer to the inner [GMP rational number][`mpq_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Rational;
+    /// fn main() {
+    ///     let r = Rational::from((-145, 10));
+    ///     let q_ptr = r.as_raw();
+    ///     unsafe {
+    ///         let d = gmp::mpq_get_d(q_ptr);
+    ///         assert_eq!(d, -14.5);
+    ///     }
+    ///     // r is still valid
+    ///     assert_eq!(r, (-145, 10));
+    /// }
+    /// ```
+    ///
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    #[inline]
+    pub fn as_raw(&self) -> *const mpq_t {
+        self.inner()
+    }
+
+    /// Returns an unsafe mutable pointer to the inner
+    /// [GMP rational number][`mpq_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::Rational;
+    /// fn main() {
+    ///     let mut r = Rational::from((-145, 10));
+    ///     let q_ptr = r.as_raw_mut();
+    ///     unsafe {
+    ///         gmp::mpq_inv(q_ptr, q_ptr);
+    ///     }
+    ///     assert_eq!(r, (-10, 145));
+    /// }
+    /// ```
+    ///
+    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
+    #[inline]
+    pub fn as_raw_mut(&mut self) -> *mut mpq_t {
+        unsafe { self.inner_mut() }
+    }
+
     /// Creates a [`Rational`] number from an [`f32`] if it is
     /// [finite][`f32::is_finite`], losing no precision.
     ///
@@ -674,144 +812,6 @@ impl Rational {
         let (dst_num, dst_den) = self.as_mut_numer_denom_no_canonicalization();
         dst_num.assign(num);
         dst_den.assign(den);
-    }
-
-    /// Creates a [`Rational`] number from an initialized
-    /// [GMP rational number][`mpq_t`].
-    ///
-    /// # Safety
-    ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::gmp::mpq_t`][`mpq_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
-    /// * The numerator and denominator must be in canonical form, as
-    ///   the rest of the library assumes that they are. Most GMP
-    ///   functions leave the rational number in canonical form, but
-    ///   assignment functions do not. Check the
-    ///   [GMP documentation][gmp mpq] for details.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Rational;
-    /// use std::mem;
-    /// fn main() {
-    ///     let r = unsafe {
-    ///         let mut q = mem::uninitialized();
-    ///         gmp::mpq_init(&mut q);
-    ///         gmp::mpq_set_si(&mut q, -145, 10);
-    ///         gmp::mpq_canonicalize(&mut q);
-    ///         // q is initialized and unique
-    ///         Rational::from_raw(q)
-    ///     };
-    ///     assert_eq!(r, (-145, 10));
-    ///     // since r is a Rational now, deallocation is automatic
-    /// }
-    /// ```
-    ///
-    /// [`Rational`]: struct.Rational.html
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
-    #[inline]
-    pub unsafe fn from_raw(raw: mpq_t) -> Self {
-        Rational { inner: raw }
-    }
-
-    /// Converts a [`Rational`] number into a
-    /// [GMP rational number][`mpq_t`].
-    ///
-    /// The returned object should be freed to avoid memory leaks.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Rational;
-    /// fn main() {
-    ///     let r = Rational::from((-145, 10));
-    ///     let mut q = r.into_raw();
-    ///     unsafe {
-    ///         let d = gmp::mpq_get_d(&q);
-    ///         assert_eq!(d, -14.5);
-    ///         // free object to prevent memory leak
-    ///         gmp::mpq_clear(&mut q);
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// [`Rational`]: struct.Rational.html
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    #[inline]
-    pub fn into_raw(self) -> mpq_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
-    }
-
-    /// Returns a pointer to the inner [GMP rational number][`mpq_t`].
-    ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Rational;
-    /// fn main() {
-    ///     let r = Rational::from((-145, 10));
-    ///     let q_ptr = r.as_raw();
-    ///     unsafe {
-    ///         let d = gmp::mpq_get_d(q_ptr);
-    ///         assert_eq!(d, -14.5);
-    ///     }
-    ///     // r is still valid
-    ///     assert_eq!(r, (-145, 10));
-    /// }
-    /// ```
-    ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    #[inline]
-    pub fn as_raw(&self) -> *const mpq_t {
-        self.inner()
-    }
-
-    /// Returns an unsafe mutable pointer to the inner
-    /// [GMP rational number][`mpq_t`].
-    ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::gmp;
-    /// use rug::Rational;
-    /// fn main() {
-    ///     let mut r = Rational::from((-145, 10));
-    ///     let q_ptr = r.as_raw_mut();
-    ///     unsafe {
-    ///         gmp::mpq_inv(q_ptr, q_ptr);
-    ///     }
-    ///     assert_eq!(r, (-10, 145));
-    /// }
-    /// ```
-    ///
-    /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
-    #[inline]
-    pub fn as_raw_mut(&mut self) -> *mut mpq_t {
-        unsafe { self.inner_mut() }
     }
 
     /// Borrows the numerator as an [`Integer`].

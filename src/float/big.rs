@@ -590,6 +590,138 @@ impl Float {
         ordering1(ret)
     }
 
+    /// Creates a [`Float`] from an initialized
+    /// [MPFR floating-point number][`mpfr_t`].
+    ///
+    /// # Safety
+    ///
+    /// * The value must be initialized.
+    /// * The [`gmp_mpfr_sys::mpfr::mpfr_t`][`mpfr_t`] type can be
+    ///   considered as a kind of pointer, so there can be multiple
+    ///   copies of it. Since this function takes over ownership, no
+    ///   other copies of the passed value should exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// use std::mem;
+    /// fn main() {
+    ///     let f = unsafe {
+    ///         let mut m = mem::uninitialized();
+    ///         mpfr::init2(&mut m, 53);
+    ///         mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
+    ///         // m is initialized and unique
+    ///         Float::from_raw(m)
+    ///     };
+    ///     assert_eq!(f, -14.5);
+    ///     // since f is a Float now, deallocation is automatic
+    /// }
+    /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    #[inline]
+    pub unsafe fn from_raw(raw: mpfr_t) -> Self {
+        Float { inner: raw }
+    }
+
+    /// Converts a [`Float`] into an
+    /// [MPFR floating-point number][`mpfr_t`].
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// fn main() {
+    ///     let f = Float::with_val(53, -14.5);
+    ///     let mut m = f.into_raw();
+    ///     unsafe {
+    ///         let d = mpfr::get_d(&m, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(d, -14.5);
+    ///         // free object to prevent memory leak
+    ///         mpfr::clear(&mut m);
+    ///     }
+    /// }
+    /// ```
+    ///
+    /// [`Float`]: struct.Float.html
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    #[inline]
+    pub fn into_raw(self) -> mpfr_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    /// Returns a pointer to the inner
+    /// [MPFR floating-point number][`mpfr_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// fn main() {
+    ///     let f = Float::with_val(53, -14.5);
+    ///     let m_ptr = f.as_raw();
+    ///     unsafe {
+    ///         let d = mpfr::get_d(m_ptr, mpfr::rnd_t::RNDN);
+    ///         assert_eq!(d, -14.5);
+    ///     }
+    ///     // f is still valid
+    ///     assert_eq!(f, -14.5);
+    /// }
+    /// ```
+    ///
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    #[inline]
+    pub fn as_raw(&self) -> *const mpfr_t {
+        self.inner()
+    }
+
+    /// Returns an unsafe mutable pointer to the inner
+    /// [MPFR floating-point number][`mpfr_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// extern crate gmp_mpfr_sys;
+    /// extern crate rug;
+    /// use gmp_mpfr_sys::mpfr;
+    /// use rug::Float;
+    /// fn main() {
+    ///     let mut f = Float::with_val(53, -14.5);
+    ///     let m_ptr = f.as_raw_mut();
+    ///     unsafe {
+    ///         mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
+    ///     }
+    ///     assert_eq!(f, -4.5);
+    /// }
+    /// ```
+    ///
+    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
+    #[inline]
+    pub fn as_raw_mut(&mut self) -> *mut mpfr_t {
+        unsafe { self.inner_mut() }
+    }
+
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into a [`Float`].
     ///
@@ -1267,138 +1399,6 @@ impl Float {
         let mut s = String::new();
         append_to_string(&mut s, self, radix, num_digits, round, false);
         s
-    }
-
-    /// Creates a [`Float`] from an initialized
-    /// [MPFR floating-point number][`mpfr_t`].
-    ///
-    /// # Safety
-    ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::mpfr::mpfr_t`][`mpfr_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::mpfr;
-    /// use rug::Float;
-    /// use std::mem;
-    /// fn main() {
-    ///     let f = unsafe {
-    ///         let mut m = mem::uninitialized();
-    ///         mpfr::init2(&mut m, 53);
-    ///         mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
-    ///         // m is initialized and unique
-    ///         Float::from_raw(m)
-    ///     };
-    ///     assert_eq!(f, -14.5);
-    ///     // since f is a Float now, deallocation is automatic
-    /// }
-    /// ```
-    ///
-    /// [`Float`]: struct.Float.html
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
-    #[inline]
-    pub unsafe fn from_raw(raw: mpfr_t) -> Self {
-        Float { inner: raw }
-    }
-
-    /// Converts a [`Float`] into an
-    /// [MPFR floating-point number][`mpfr_t`].
-    ///
-    /// The returned object should be freed to avoid memory leaks.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::mpfr;
-    /// use rug::Float;
-    /// fn main() {
-    ///     let f = Float::with_val(53, -14.5);
-    ///     let mut m = f.into_raw();
-    ///     unsafe {
-    ///         let d = mpfr::get_d(&m, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(d, -14.5);
-    ///         // free object to prevent memory leak
-    ///         mpfr::clear(&mut m);
-    ///     }
-    /// }
-    /// ```
-    ///
-    /// [`Float`]: struct.Float.html
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
-    #[inline]
-    pub fn into_raw(self) -> mpfr_t {
-        let ret = self.inner;
-        mem::forget(self);
-        ret
-    }
-
-    /// Returns a pointer to the inner
-    /// [MPFR floating-point number][`mpfr_t`].
-    ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::mpfr;
-    /// use rug::Float;
-    /// fn main() {
-    ///     let f = Float::with_val(53, -14.5);
-    ///     let m_ptr = f.as_raw();
-    ///     unsafe {
-    ///         let d = mpfr::get_d(m_ptr, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(d, -14.5);
-    ///     }
-    ///     // f is still valid
-    ///     assert_eq!(f, -14.5);
-    /// }
-    /// ```
-    ///
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
-    #[inline]
-    pub fn as_raw(&self) -> *const mpfr_t {
-        self.inner()
-    }
-
-    /// Returns an unsafe mutable pointer to the inner
-    /// [MPFR floating-point number][`mpfr_t`].
-    ///
-    /// The returned pointer will be valid for as long as `self` is
-    /// valid.
-    ///
-    /// # Examples
-    ///
-    /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
-    /// use gmp_mpfr_sys::mpfr;
-    /// use rug::Float;
-    /// fn main() {
-    ///     let mut f = Float::with_val(53, -14.5);
-    ///     let m_ptr = f.as_raw_mut();
-    ///     unsafe {
-    ///         mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
-    ///     }
-    ///     assert_eq!(f, -4.5);
-    /// }
-    /// ```
-    ///
-    /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
-    #[inline]
-    pub fn as_raw_mut(&mut self) -> *mut mpfr_t {
-        unsafe { self.inner_mut() }
     }
 
     /// Borrows a negated copy of the [`Float`].
