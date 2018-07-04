@@ -553,8 +553,9 @@ impl Integer {
         size_in_base.div_ceil(bits)
     }
 
-    /// Converts to a [`Vec`] of digits of type `T`, where `T` can be
-    /// any of the unsigned integer primitive types.
+    /// Converts the absolute value to a [`Vec`] of digits of type
+    /// `T`, where `T` can be any of the unsigned integer primitive
+    /// types.
     ///
     /// # Examples
     ///
@@ -5790,6 +5791,6 @@ unsafe impl UnsignedPrimitive for u8 {}
 unsafe impl UnsignedPrimitive for u16 {}
 unsafe impl UnsignedPrimitive for u32 {}
 unsafe impl UnsignedPrimitive for u64 {}
-unsafe impl UnsignedPrimitive for usize {}
 #[cfg(int_128)]
 unsafe impl UnsignedPrimitive for u128 {}
+unsafe impl UnsignedPrimitive for usize {}
