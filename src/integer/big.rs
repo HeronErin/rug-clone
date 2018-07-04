@@ -565,6 +565,10 @@ impl Integer {
     /// let i = Integer::from(0x1234_5678_9abc_def0u64);
     /// let digits = i.to_digits::<u32>(Order::MsfBe);
     /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
+    ///
+    /// let zero = Integer::new();
+    /// let digits_zero = zero.to_digits::<u32>(Order::MsfBe);
+    /// assert!(digits_zero.is_empty());
     /// ```
     ///
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
@@ -572,11 +576,22 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
+        let bytes = mem::size_of::<T>();
         let digit_count = self.significant_digits::<T>();
         let mut v = Vec::with_capacity(digit_count);
         unsafe {
-            let digits = slice::from_raw_parts_mut(v.as_mut_ptr(), digit_count);
-            self.write_digits(digits, order);
+            let digits_ptr = v.as_mut_ptr();
+            let mut count = mem::uninitialized();
+            gmp::mpz_export(
+                digits_ptr as *mut c_void,
+                &mut count,
+                order.order(),
+                bytes,
+                order.endian(),
+                0,
+                self.inner(),
+            );
+            assert_eq!(count, digit_count);
             v.set_len(digit_count);
         }
         v
