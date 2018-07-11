@@ -22,13 +22,13 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    env.check_feature("int_128", TRY_INT_128, "i128_type, i128");
+    env.check_feature("int_128", TRY_INT_128, None);
     env.check_feature(
         "repr_transparent",
         TRY_REPR_TRANSPARENT,
-        "repr_transparent",
+        Some("repr_transparent"),
     );
-    env.check_feature("try_from", TRY_TRY_FROM, "try_from");
+    env.check_feature("try_from", TRY_TRY_FROM, Some("try_from"));
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
@@ -44,7 +44,12 @@ fn main() {
 }
 
 impl Environment {
-    fn check_feature(&self, name: &str, contents: &str, features: &str) {
+    fn check_feature(
+        &self,
+        name: &str,
+        contents: &str,
+        nightly_features: Option<&str>,
+    ) {
         let try_dir = self.out_dir.join(format!("try_{}", name));
         let filename = format!("try_{}.rs", name);
         create_dir_or_panic(&try_dir);
@@ -58,10 +63,13 @@ impl Environment {
             let s;
             let file_contents = match *i {
                 Iteration::Stable => contents,
-                Iteration::Unstable => {
-                    s = format!("#![feature({})]\n{}", features, contents);
-                    &s
-                }
+                Iteration::Unstable => match nightly_features {
+                    Some(features) => {
+                        s = format!("#![feature({})]\n{}", features, contents);
+                        &s
+                    }
+                    None => continue,
+                },
             };
             create_file_or_panic(&try_dir.join(&filename), file_contents);
             let mut cmd = Command::new(&self.rustc);
