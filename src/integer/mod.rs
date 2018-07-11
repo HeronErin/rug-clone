@@ -63,8 +63,8 @@ An error which can be returned when a checked conversion from
 ```rust
 # #![cfg_attr(nightly_try_from, feature(try_from))]
 # extern crate rug;
-# #[cfg(feature = "try_from")] {
 # fn main() {
+# #[cfg(feature = "try_from")] {
 use rug::integer::TryFromIntegerError;
 use rug::Integer;
 use std::convert::TryFrom;
