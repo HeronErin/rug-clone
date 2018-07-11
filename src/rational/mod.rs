@@ -42,7 +42,10 @@ floating-point number to a [`Rational`] number fails.
 # Examples
 
 ```rust
-# #[cfg(disable_as_this_is_tested_elsewhere)] {
+# #![cfg_attr(nightly_try_from, feature(try_from))]
+# extern crate rug;
+# #[cfg(feature = "try_from")] {
+# fn main() {
 use rug::rational::TryFromFloatError;
 use rug::Rational;
 use std::convert::TryFrom;
@@ -53,6 +56,7 @@ let error: TryFromFloatError = match Rational::try_from(inf) {
     Err(error) => error,
 };
 println!("Error: {}", error);
+# }
 # }
 ```
 
@@ -66,22 +70,6 @@ pub struct TryFromFloatError {
 #[cfg(test)]
 mod tests {
     use {Integer, Rational};
-
-    // This is copied here from example of TryFromRationalError as
-    // potentially needing a feature gate makes it cumbersome there.
-    #[cfg(try_from)]
-    #[test]
-    fn check_try_from_rational_error() {
-        use rational::TryFromFloatError;
-        use std::convert::TryFrom;
-        // This is not finite and cannot be converted to Rational.
-        let inf = 1.0f32 / 0.0;
-        let error: TryFromFloatError = match Rational::try_from(inf) {
-            Ok(_) => unreachable!(),
-            Err(error) => error,
-        };
-        println!("Error: {}", error);
-    }
 
     #[test]
     fn check_fract_trunc() {

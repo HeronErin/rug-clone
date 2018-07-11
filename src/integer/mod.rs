@@ -61,7 +61,10 @@ An error which can be returned when a checked conversion from
 # Examples
 
 ```rust
-# #[cfg(disable_as_this_is_tested_elsewhere)] {
+# #![cfg_attr(nightly_try_from, feature(try_from))]
+# extern crate rug;
+# #[cfg(feature = "try_from")] {
+# fn main() {
 use rug::integer::TryFromIntegerError;
 use rug::Integer;
 use std::convert::TryFrom;
@@ -72,6 +75,7 @@ let error: TryFromIntegerError = match u32::try_from(&i) {
     Err(error) => error,
 };
 println!("Error: {}", error);
+# }
 # }
 ```
 
@@ -148,22 +152,6 @@ mod tests {
     #[cfg(int_128)]
     use std::{i128, u128};
     use {Assign, Integer};
-
-    // This is copied here from example of TryFromIntegerError as
-    // potentially needing a feature gate makes it cumbersome there.
-    #[cfg(try_from)]
-    #[test]
-    fn check_try_from_integer_error() {
-        use integer::TryFromIntegerError;
-        use std::convert::TryFrom;
-        // This is negative and cannot be converted to u32.
-        let i = Integer::from(-5);
-        let error: TryFromIntegerError = match u32::try_from(&i) {
-            Ok(_) => unreachable!(),
-            Err(error) => error,
-        };
-        println!("Error: {}", error);
-    }
 
     #[test]
     fn check_int_conversions() {
