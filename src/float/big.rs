@@ -732,7 +732,7 @@ impl Float {
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
     /// decimal point. This can optionally be followed by an exponent;
-    /// the exponent can start with a separator ‘`e`’, ‘`E`’ or ‘`@`’,
+    /// the exponent can start with a separator “`e`”, “`E`” or “`@`”,
     /// and is followed by an optional minus or plus sign and by one
     /// or more decimal digits.
     ///
@@ -787,8 +787,8 @@ impl Float {
     /// The string can start with an optional minus or plus sign and
     /// must then have one or more significant digits with an optional
     /// point. This can optionally be followed by an exponent; the
-    /// exponent can start with a separator ‘`e`’ or ‘`E`’ if the
-    /// radix ≤ 10, or ‘`@`’ for any radix, and is followed by an
+    /// exponent can start with a separator “`e`” or “`E`” if the
+    /// radix ≤ 10, or “`@`” for any radix, and is followed by an
     /// optional minus or plus sign and by one or more decimal digits.
     ///
     /// Alternatively, the string can indicate the special values

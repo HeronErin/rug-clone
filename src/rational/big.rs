@@ -515,12 +515,12 @@ impl Rational {
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
-    /// a ‘`/`’. The numerator can start with an optional minus or
+    /// a “`/`”. The numerator can start with an optional minus or
     /// plus sign.
     ///
     /// ASCII whitespace is ignored everywhere in the string.
     /// Underscores are ignored anywhere except before the first digit
-    /// of the numerator and between the ‘`/`’ and the the first digit
+    /// of the numerator and between the “`/`” and the the first digit
     /// of the denominator.
     ///
     /// # Examples
@@ -563,12 +563,12 @@ impl Rational {
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
-    /// a ‘`/`’. The numerator can start with an optional minus or
+    /// a “`/`”. The numerator can start with an optional minus or
     /// plus sign.
     ///
     /// ASCII whitespace is ignored everywhere in the string.
     /// Underscores are ignored anywhere except before the first digit
-    /// of the numerator and between the ‘`/`’ and the the first digit
+    /// of the numerator and between the “`/`” and the the first digit
     /// of the denominator.
     ///
     /// # Panics
