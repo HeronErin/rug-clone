@@ -432,7 +432,7 @@ impl Rational {
     /// use rug::Rational;
     /// use std::f32;
     /// let r = Rational::from_f32(-17125e-3).unwrap();
-    /// assert_eq!(r, "-17125/1000".parse::<Rational>().unwrap());
+    /// assert_eq!(r, (-17125, 1000));
     /// let inf = Rational::from_f32(f32::INFINITY);
     /// assert!(inf.is_none());
     /// ```
@@ -458,7 +458,7 @@ impl Rational {
     /// use rug::Rational;
     /// use std::f64;
     /// let r = Rational::from_f64(-17125e-3).unwrap();
-    /// assert_eq!(r, "-17125/1000".parse::<Rational>().unwrap());
+    /// assert_eq!(r, (-17125, 1000));
     /// let inf = Rational::from_f64(f64::INFINITY);
     /// assert!(inf.is_none());
     /// ```
