@@ -101,7 +101,7 @@ macro_rules! cast_float_to_int {
 macro_rules! cast_as {
     ($Src:ty => $($Dst:ty)*) => { $(
         impl Cast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn cast(self) -> $Dst {
                 self as $Dst
@@ -151,7 +151,7 @@ cast_float! { f32 f64 }
 macro_rules! checked_same_signedness {
     ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
@@ -168,7 +168,7 @@ macro_rules! checked_same_signedness {
 macro_rules! checked_signed_to_unsigned {
     ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
@@ -185,7 +185,7 @@ macro_rules! checked_signed_to_unsigned {
 macro_rules! checked_unsigned_to_signed {
     ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let dst = self as $Dst;
@@ -202,7 +202,7 @@ macro_rules! checked_unsigned_to_signed {
 macro_rules! checked_float_via {
     ($Src:ty, $ViaU:ty, $ViaI:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 let f = <Float<$ViaU, bool> as From<$Src>>::from(self);
@@ -227,7 +227,7 @@ macro_rules! checked_float_via {
 macro_rules! checked_as {
     ($Src:ty => $($Dst:ty)*) => { $(
         impl CheckedCast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn checked_cast(self) -> Option<$Dst> {
                 Some(self as $Dst)
@@ -304,7 +304,7 @@ checked_as! { f64 => f32 f64 }
 macro_rules! wrapping_as {
     ($Src:ty => $($Dst:ty)*) => { $(
         impl WrappingCast<$Dst> for $Src {
-            #[allow(unknown_lints, cast_lossless)]
+            #[cfg_attr(feature = "cargo-clippy", allow(cast_lossless))]
             #[inline]
             fn wrapping_cast(self) -> $Dst {
                 self as $Dst
