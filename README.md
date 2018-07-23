@@ -346,10 +346,10 @@ features = ["integer", "float", "rand"]
 ```
 
 Here only the `integer`, `float` and `rand` features are enabled. If
-none of the features are selected, the [gmp-mpfr-sys crate][sys] is
-not required and thus not enabled. In that case, only the [`Assign`]
-trait and the traits that are in the [`ops`] module are provided by
-the crate.
+none of the features are selected, the [gmp-mpfr-sys crate][sys crate]
+is not required and thus not enabled. In that case, only the
+[`Assign`] trait and the traits that are in the [`ops`] module are
+provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
 [*Incomplete-computation values*]: #incomplete-computation-values
