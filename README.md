@@ -37,6 +37,7 @@ option) any later version. See the full text of the [GNU LGPL] and
   support [`bool`] slices.
 
 [`assign_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
+[`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
 [`from_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.from_digits
 [`significant_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.significant_digits
 [`to_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.to_digits
