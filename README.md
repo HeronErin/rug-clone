@@ -30,6 +30,18 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.3.0 news (unreleased)
+
+* The [`Integer`] methods [`from_digits`], [`assign_digits`],
+  [`significant_digits`], [`to_digits`] and [`write_digits`] now
+  support [`bool`] slices.
+
+[`assign_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
+[`from_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.from_digits
+[`significant_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.significant_digits
+[`to_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.to_digits
+[`write_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.write_digits
+
 ### Version 1.2.0 news (2018-06-30)
 
 * The implementations of [`Sum`] and [`Product`] for [`Integer`] and

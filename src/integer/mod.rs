@@ -390,6 +390,54 @@ mod tests {
     }
 
     #[test]
+    fn check_to_digits_bool() {
+        const T: bool = true;
+        const F: bool = false;
+
+        let i = Integer::from(0b111_0010);
+        assert_eq!(i.significant_digits::<bool>(), 7);
+        let mut buf: [bool; 10] = [true; 10];
+
+        i.write_digits(&mut buf, Order::Lsf);
+        assert_eq!(buf, [F, T, F, F, T, T, T, F, F, F]);
+        i.write_digits(&mut buf, Order::LsfLe);
+        assert_eq!(buf, [F, T, F, F, T, T, T, F, F, F]);
+        i.write_digits(&mut buf, Order::LsfBe);
+        assert_eq!(buf, [F, T, F, F, T, T, T, F, F, F]);
+        i.write_digits(&mut buf, Order::Msf);
+        assert_eq!(buf, [F, F, F, T, T, T, F, F, T, F]);
+        i.write_digits(&mut buf, Order::MsfLe);
+        assert_eq!(buf, [F, F, F, T, T, T, F, F, T, F]);
+        i.write_digits(&mut buf, Order::MsfBe);
+        assert_eq!(buf, [F, F, F, T, T, T, F, F, T, F]);
+
+        let vec: Vec<bool> = i.to_digits(Order::MsfBe);
+        assert_eq!(vec, [T, T, T, F, F, T, F]);
+    }
+
+    #[test]
+    fn check_from_digits_bool() {
+        const T: bool = true;
+        const F: bool = false;
+
+        let mut i = Integer::from_digits(&[T, T, T, F, F, T, F], Order::MsfBe);
+        assert_eq!(i, 0b111_0010);
+
+        i.assign_digits(&[T, F, F, F, T, T, T, F, F, F], Order::Lsf);
+        assert_eq!(i, 0b111_0001);
+        i.assign_digits(&[F, F, F, T, F, F, F, T, T, T], Order::Msf);
+        assert_eq!(i, 0b100_0111);
+        i.assign_digits(&[T, F, F, F, T, T, T, F, F, F], Order::LsfLe);
+        assert_eq!(i, 0b111_0001);
+        i.assign_digits(&[F, F, F, T, F, F, F, T, T, T], Order::MsfLe);
+        assert_eq!(i, 0b100_0111);
+        i.assign_digits(&[T, F, F, F, T, T, T, F, F, F], Order::LsfBe);
+        assert_eq!(i, 0b111_0001);
+        i.assign_digits(&[F, F, F, T, F, F, F, T, T, T], Order::MsfBe);
+        assert_eq!(i, 0b100_0111);
+    }
+
+    #[test]
     fn check_to_digits_u8() {
         let i = Integer::from(0x01_02_03_04_05_06_07_08u64);
         assert_eq!(i.significant_digits::<u8>(), 8);

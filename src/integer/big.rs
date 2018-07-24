@@ -471,9 +471,7 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let bytes = mem::size_of::<T>();
-        let bits = bytes * 8;
-        let capacity = digits.len().checked_mul(bits).expect("overflow");
+        let capacity = digits.len().checked_mul(T::bits()).expect("overflow");
         let mut i = Integer::with_capacity(capacity);
         i.assign_digits(digits, order);
         i
@@ -500,9 +498,7 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let bytes = mem::size_of::<T>();
-        let bits = bytes * 8;
-        let capacity = digits.len().checked_mul(bits).expect("overflow");
+        let capacity = digits.len().checked_mul(T::bits()).expect("overflow");
         if capacity > self.capacity() {
             let additional = self.capacity() - capacity;
             self.reserve(additional);
@@ -512,9 +508,9 @@ impl Integer {
                 self.inner_mut(),
                 digits.len(),
                 order.order(),
-                bytes,
+                T::bytes(),
                 order.endian(),
-                0,
+                T::nails(),
                 digits.as_ptr() as *const c_void,
             );
         }
@@ -540,9 +536,6 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let bytes = mem::size_of::<T>();
-        let bits = bytes * 8;
-
         let op = self.inner();
         let size = op.size;
         if size == 0 {
@@ -550,7 +543,7 @@ impl Integer {
         }
         let size = size.neg_abs().1;
         let size_in_base = unsafe { gmp::mpn_sizeinbase(op.d, cast(size), 2) };
-        size_in_base.div_ceil(bits)
+        size_in_base.div_ceil(T::bits())
     }
 
     /// Converts the absolute value to a [`Vec`] of digits of type
@@ -576,7 +569,6 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let bytes = mem::size_of::<T>();
         let digit_count = self.significant_digits::<T>();
         let mut v = Vec::with_capacity(digit_count);
         unsafe {
@@ -586,9 +578,9 @@ impl Integer {
                 digits_ptr as *mut c_void,
                 &mut count,
                 order.order(),
-                bytes,
+                T::bytes(),
                 order.endian(),
-                0,
+                T::nails(),
                 self.inner(),
             );
             assert_eq!(count, digit_count);
@@ -660,7 +652,6 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let bytes = mem::size_of::<T>();
         let digit_count = self.significant_digits::<T>();
         let zero_count = digits
             .len()
@@ -679,9 +670,9 @@ impl Integer {
                 digits.as_mut_ptr() as *mut c_void,
                 &mut count,
                 order.order(),
-                bytes,
+                T::bytes(),
                 order.endian(),
-                0,
+                T::nails(),
                 self.inner(),
             );
             assert_eq!(count, digit_count);
@@ -5803,11 +5794,39 @@ impl InnerMut for Integer {
     }
 }
 
-pub unsafe trait UnsignedPrimitive {}
-unsafe impl UnsignedPrimitive for u8 {}
-unsafe impl UnsignedPrimitive for u16 {}
-unsafe impl UnsignedPrimitive for u32 {}
-unsafe impl UnsignedPrimitive for u64 {}
+pub unsafe trait UnsignedPrimitive: Sized {
+    #[inline(always)]
+    fn bytes() -> usize {
+        mem::size_of::<Self>()
+    }
+
+    #[inline(always)]
+    fn bits() -> usize {
+        Self::bytes() * 8 - Self::nails()
+    }
+
+    fn nails() -> usize;
+}
+
+macro_rules! unsigned_primitive_no_nails {
+    ($($T:ty)*) => { $(
+        unsafe impl UnsignedPrimitive for $T {
+            #[inline(always)]
+            fn nails() -> usize {
+                0
+            }
+        }
+    )* };
+}
+
+unsafe impl UnsignedPrimitive for bool {
+    #[inline(always)]
+    fn nails() -> usize {
+        Self::bytes() * 8 - 1
+    }
+}
+
+unsigned_primitive_no_nails!{ u8 u16 u32 u64 }
 #[cfg(int_128)]
-unsafe impl UnsignedPrimitive for u128 {}
-unsafe impl UnsignedPrimitive for usize {}
+unsigned_primitive_no_nails!{ u128 }
+unsigned_primitive_no_nails!{ usize }

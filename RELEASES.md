@@ -5,6 +5,13 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.3.0 (unreleased)
+==========================
+
+* Add `bool` support to the `Integer::from_digits`,
+  `Integer::assign_digits`, `Integer::significant_digits`,
+  `Integer::to_digits` and `Integer::write_digits` methods.
+
 Version 1.2.0 (2018-06-30)
 ==========================
 
