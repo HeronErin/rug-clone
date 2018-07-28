@@ -8,7 +8,7 @@ as-is, without any warranty. -->
 # Arbitrary-precision numbers
 
 Rug provides integers and floating-point numbers with arbitrary
-precision and correct rounding. Its main features are
+precision and correct rounding:
 
 * [`Integer`] is a bignum integer with arbitrary precision,
 * [`Rational`] is a bignum rational number with arbitrary precision,
