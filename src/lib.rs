@@ -18,13 +18,14 @@
 # Arbitrary-precision numbers
 
 Rug provides integers and floating-point numbers with arbitrary
-precision and correct rounding. Its main features are
+precision and correct rounding. It provides four main types:
 
-* bignum [integers][`Integer`] with arbitrary precision,
-* bignum [rational numbers][`Rational`] with arbitrary precision,
-* multi-precision [floating-point numbers][`Float`] with correct
+* [`Integer`] is a bignum integer with arbitrary precision,
+* [`Rational`] is a bignum rational number with arbitrary precision,
+* [`Float`] is a multi-precision floating-point number with correct
   rounding, and
-* multi-precision [complex numbers][`Complex`] with correct rounding.
+* [`Complex`] is a multi-precision complex number with correct
+  rounding.
 
 Rug is a high-level interface to the following [GNU] libraries:
 
