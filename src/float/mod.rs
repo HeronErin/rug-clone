@@ -380,6 +380,9 @@ pub(crate) mod tests {
     fn check_clamping() {
         let mut f = Float::new(4);
 
+        // Both 1.00002 and 1.00001 are rounded to 1.0 with the same
+        // rounding direction, so these work even though min > max.
+
         f.assign(-1);
         let dir = f.clamp_round(&1.00002, &1.00001, Round::Down);
         assert_eq!(f, 1.0);
@@ -409,15 +412,6 @@ pub(crate) mod tests {
         // Both 1.00001 and 0.99999 would be rounded to 1.0, but one
         // would be larger and the other would be smaller.
         f.clamp(&1.00001, &0.99999);
-    }
-
-    #[test]
-    fn check_clamping_dont_panic() {
-        let mut f = Float::new(4);
-        f.assign(-1);
-        // Both 1.00002 and 1.00001 are rounded to 1.0 with the same
-        // rounding direction, so this works even though min > max.
-        f.clamp(&1.00002, &1.00001);
     }
 
     #[test]
