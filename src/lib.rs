@@ -398,6 +398,7 @@ provided by the crate.
 #![warn(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/rug/~1.2")]
 #![doc(test(attr(deny(warnings))))]
+#![cfg_attr(nightly_int_128, feature(i128_type, i128))]
 #![cfg_attr(nightly_repr_transparent, feature(repr_transparent))]
 #![cfg_attr(nightly_try_from, feature(try_from))]
 

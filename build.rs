@@ -22,7 +22,7 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    env.check_feature("int_128", TRY_INT_128, None);
+    env.check_feature("int_128", TRY_INT_128, Some("i128_type, i128"));
     env.check_feature(
         "repr_transparent",
         TRY_REPR_TRANSPARENT,
