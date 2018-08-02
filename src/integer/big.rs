@@ -5802,31 +5802,31 @@ pub unsafe trait UnsignedPrimitive: Sized {
 
     #[inline(always)]
     fn bits() -> usize {
-        Self::bytes() * 8 - Self::nails()
+        Self::bytes() * 8
     }
 
-    fn nails() -> usize;
-}
-
-macro_rules! unsigned_primitive_no_nails {
-    ($($T:ty)*) => { $(
-        unsafe impl UnsignedPrimitive for $T {
-            #[inline(always)]
-            fn nails() -> usize {
-                0
-            }
-        }
-    )* };
+    #[inline(always)]
+    fn nails() -> usize {
+        0
+    }
 }
 
 unsafe impl UnsignedPrimitive for bool {
+    #[inline(always)]
+    fn bits() -> usize {
+        1
+    }
+
     #[inline(always)]
     fn nails() -> usize {
         Self::bytes() * 8 - 1
     }
 }
 
-unsigned_primitive_no_nails!{ u8 u16 u32 u64 }
+unsafe impl UnsignedPrimitive for u8 {}
+unsafe impl UnsignedPrimitive for u16 {}
+unsafe impl UnsignedPrimitive for u32 {}
+unsafe impl UnsignedPrimitive for u64 {}
 #[cfg(int_128)]
-unsigned_primitive_no_nails!{ u128 }
-unsigned_primitive_no_nails!{ usize }
+unsafe impl UnsignedPrimitive for u128 {}
+unsafe impl UnsignedPrimitive for usize {}
