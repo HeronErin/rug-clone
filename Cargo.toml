@@ -7,7 +7,7 @@
 
 [package]
 name = "rug"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["Trevor Spiteri <trevor.spiteri@um.edu.mt>"]
 description = "Arbitrary-precision integers, rational, floating-point and complex numbers based on GMP, MPFR and MPC"
 documentation = "https://docs.rs/rug"
@@ -31,7 +31,7 @@ default-features = false
 optional = true
 
 [dependencies.serde]
-version = "1.0.25"
+version = "1.0.60"
 optional = true
 
 [dev-dependencies]
@@ -39,7 +39,7 @@ serde_test = "1"
 serde_json = "1"
 # exact version for bincode because we use unstable API (SliceReader)
 bincode = "=1.0.0"
-byteorder = "1"
+byteorder = "1.2"
 
 [package.metadata.docs.rs]
 features = ["serde"]

@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.2.1 (unreleased)
+Version 1.2.1 (2018-08-16)
 ==========================
 
 * Add `bool` support to the `Integer::from_digits`,
