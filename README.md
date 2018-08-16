@@ -10,18 +10,18 @@ as-is, without any warranty. -->
 Rug provides integers and floating-point numbers with arbitrary
 precision and correct rounding:
 
-* [`Integer`] is a bignum integer with arbitrary precision,
-* [`Rational`] is a bignum rational number with arbitrary precision,
-* [`Float`] is a multi-precision floating-point number with correct
-  rounding, and
-* [`Complex`] is a multi-precision complex number with correct
-  rounding.
+  * [`Integer`] is a bignum integer with arbitrary precision,
+  * [`Rational`] is a bignum rational number with arbitrary precision,
+  * [`Float`] is a multi-precision floating-point number with correct
+    rounding, and
+  * [`Complex`] is a multi-precision complex number with correct
+    rounding.
 
 Rug is a high-level interface to the following [GNU] libraries:
 
-* [GMP] for integers and rational numbers,
-* [MPFR] for floating-point numbers, and
-* [MPC] for complex numbers.
+  * [GMP] for integers and rational numbers,
+  * [MPFR] for floating-point numbers, and
+  * [MPC] for complex numbers.
 
 Rug is free software: you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the
@@ -33,9 +33,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.2.1 news (2018-08-16)
 
-* The [`Integer`] methods [`from_digits`], [`assign_digits`],
-  [`significant_digits`], [`to_digits`] and [`write_digits`] now
-  support [`bool`] slices.
+  * The [`Integer`] methods [`from_digits`], [`assign_digits`],
+    [`significant_digits`], [`to_digits`] and [`write_digits`] now
+    support [`bool`] slices.
 
 [`assign_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
 [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
@@ -46,16 +46,16 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.2.0 news (2018-06-30)
 
-* The implementations of [`Sum`] and [`Product`] for [`Integer`] and
-  [`Rational`] were generalized to accept more types of elements.
-* New methods [`Integer::keep_signed_bits`],
-  [`Integer::keep_signed_bits_mut`] and
-  [`Integer::keep_signed_bits_ref`] were added.
-* New methods [`Integer::sum`], [`Integer::dot`] and
-  [`Integer::product`] were added.
-* New methods [`Rational::sum`], [`Rational::dot`] and
-  [`Rational::product`] were added.
-* New methods [`Float::dot`] and [`Complex::dot`] were added.
+  * The implementations of [`Sum`] and [`Product`] for [`Integer`] and
+    [`Rational`] were generalized to accept more types of elements.
+  * New methods [`Integer::keep_signed_bits`],
+    [`Integer::keep_signed_bits_mut`] and
+    [`Integer::keep_signed_bits_ref`] were added.
+  * New methods [`Integer::sum`], [`Integer::dot`] and
+    [`Integer::product`] were added.
+  * New methods [`Rational::sum`], [`Rational::dot`] and
+    [`Rational::product`] were added.
+  * New methods [`Float::dot`] and [`Complex::dot`] were added.
 
 [`Complex::dot`]: https://docs.rs/rug/~1.2/rug/struct.Complex.html#method.dot
 [`Float::dot`]: https://docs.rs/rug/~1.2/rug/struct.Float.html#method.dot
@@ -95,23 +95,23 @@ int = (int >> 128) - 1;
 assert_eq!(int, 0xfffe_ffff_u32);
 ```
 
-* [`Integer::new()`][`Integer::new`] creates a new [`Integer`]
-  intialized to zero.
-* To assign values to Rug types, we use the [`Assign`] trait and its
-  method [`assign`][`Assign::assign`]. We do not use the
-  [assignment operator `=`][assignment] as that would drop the
-  left-hand-side operand and replace it with a right-hand-side operand
-  of the same type, which is not what we want here.
-* Arbitrary precision numbers can hold numbers that are too large to
-  fit in a primitive type. To assign such a number to the large types,
-  we use strings rather than primitives; in the example this is done
-  using [`Integer::parse`] and [`Integer::parse_radix`].
-* We can compare Rug types to primitive types or to other Rug types
-  using the normal comparison operators, for example
-  `int > 100_000_000`.
-* Most arithmetic operations are supported with Rug types and
-  primitive types on either side of the operator, for example
-  `int >> 128`.
+  * [`Integer::new()`][`Integer::new`] creates a new [`Integer`]
+    intialized to zero.
+  * To assign values to Rug types, we use the [`Assign`] trait and its
+    method [`assign`][`Assign::assign`]. We do not use the
+    [assignment operator `=`][assignment] as that would drop the
+    left-hand-side operand and replace it with a right-hand-side
+    operand of the same type, which is not what we want here.
+  * Arbitrary precision numbers can hold numbers that are too large to
+    fit in a primitive type. To assign such a number to the large
+    types, we use strings rather than primitives; in the example this
+    is done using [`Integer::parse`] and [`Integer::parse_radix`].
+  * We can compare Rug types to primitive types or to other Rug types
+    using the normal comparison operators, for example
+    `int > 100_000_000`.
+  * Most arithmetic operations are supported with Rug types and
+    primitive types on either side of the operator, for example
+    `int >> 128`.
 
 ## Using with primitive types
 
@@ -121,25 +121,25 @@ types, conversion to and from Rug types can be expensive, so the
 arithmetic operators are overloaded to work on many combinations of
 Rug types and primitives. The following are provided:
 
-1. Where they make sense, all arithmetic operators are overloaded to
-   work with Rug types and the primitives [`i32`], [`u32`], [`f32`]
-   and [`f64`].
-2. Where they make sense, conversions using the [`From`] trait and
-   assignments using the [`Assign`] trait are supported for all the
-   primitives in 1 above as well as the other primitives [`i8`],
-   [`i16`], [`i64`], [`isize`], [`u8`], [`u16`], [`u64`] and
-   [`usize`]. This also applies to [`i128`] and [`u128`] if they are
-   supported by the compiler.
-3. Comparisons between Rug types and all the primitives listed in 1
-   and 2 above are supported.
-4. For [`Rational`] numbers, conversions and comparisons are also
-   supported for tuples containing two integer primitives: the first
-   is the numerator and the second is the denominator which must not
-   be zero. The two primitives do not need to be of the same type.
-5. For [`Complex`] numbers, conversions and comparisons are also
-   supported for tuples containing two primitives: the first is the
-   real part and the second is the imaginary part. The two primitives
-   do not need to be of the same type.
+ 1. Where they make sense, all arithmetic operators are overloaded to
+    work with Rug types and the primitives [`i32`], [`u32`], [`f32`]
+    and [`f64`].
+ 2. Where they make sense, conversions using the [`From`] trait and
+    assignments using the [`Assign`] trait are supported for all the
+    primitives in 1 above as well as the other primitives [`i8`],
+    [`i16`], [`i64`], [`isize`], [`u8`], [`u16`], [`u64`] and
+    [`usize`]. This also applies to [`i128`] and [`u128`] if they are
+    supported by the compiler.
+ 3. Comparisons between Rug types and all the primitives listed in 1
+    and 2 above are supported.
+ 4. For [`Rational`] numbers, conversions and comparisons are also
+    supported for tuples containing two integer primitives: the first
+    is the numerator and the second is the denominator which must not
+    be zero. The two primitives do not need to be of the same type.
+ 5. For [`Complex`] numbers, conversions and comparisons are also
+    supported for tuples containing two primitives: the first is the
+    real part and the second is the imaginary part. The two primitives
+    do not need to be of the same type.
 
 ## Operators
 
@@ -223,27 +223,28 @@ assert_eq!(rhs, 90);
 There are two main reasons why operations like `&a - &b` do not
 perform a complete computation and return a Rug type:
 
-1. Sometimes we need to assign the result to an object that already
-   exists. Since Rug types require memory allocations, this can help
-   reduce the number of allocations. (While the allocations might not
-   affect performance noticeably for computationally intensive
-   functions, they can have a much more significant effect on faster
-   functions like addition.)
-2. For the [`Float`] and [`Complex`] number types, we need to know the
-   precision when we create a value, and the operation itself does not
-   convey information about what precision is desired for the result.
+ 1. Sometimes we need to assign the result to an object that already
+    exists. Since Rug types require memory allocations, this can help
+    reduce the number of allocations. (While the allocations might not
+    affect performance noticeably for computationally intensive
+    functions, they can have a much more significant effect on faster
+    functions like addition.)
+ 2. For the [`Float`] and [`Complex`] number types, we need to know
+    the precision when we create a value, and the operation itself
+    does not convey information about what precision is desired for
+    the result.
 
 There are two things that can be done with incomplete-computation
 values:
 
-1. Assign them to an existing object without unnecessary allocations.
-   This is usually achieved using the [`Assign`] trait or a similar
-   method, for example [`int.assign(incomplete)`][`Assign::assign`]
-   and [`float.assign_round(incomplete, Round::Up)`][`assign_round`].
-2. Convert them to the final value using the [`From`] trait or a
-   similar method, for example
-   [`Integer::from(incomplete)`][`From::from`] and
-   [`Float::with_val(53, incomplete)`][`Float::with_val`].
+ 1. Assign them to an existing object without unnecessary allocations.
+    This is usually achieved using the [`Assign`] trait or a similar
+    method, for example [`int.assign(incomplete)`][`Assign::assign`]
+    and [`float.assign_round(incomplete, Round::Up)`][`assign_round`].
+ 2. Convert them to the final value using the [`From`] trait or a
+    similar method, for example
+    [`Integer::from(incomplete)`][`From::from`] and
+    [`Float::with_val(53, incomplete)`][`Float::with_val`].
 
 Let us consider a couple of examples.
 
@@ -281,18 +282,18 @@ of 45.
 
 Many operations can return incomplete-computation values:
 
-* unary operators applied to references, for example `-&int`;
-* binary operators applied to two references, for example
-  `&int1 + &int2`;
-* binary operators applied to a primitive and a reference, for example
-  `&int * 10`;
-* methods that take a reference, for example
-  [`int.abs_ref()`][`Integer::abs_ref`];
-* methods that take two references, for example
-  [`int1.gcd_ref(&int2)`][`Integer::gcd_ref`];
-* string parsing, for example
-  [`Integer::parse("12")`][`Integer::parse`];
-* and more.
+  * unary operators applied to references, for example `-&int`;
+  * binary operators applied to two references, for example
+    `&int1 + &int2`;
+  * binary operators applied to a primitive and a reference, for
+    example `&int * 10`;
+  * methods that take a reference, for example
+    [`int.abs_ref()`][`Integer::abs_ref`];
+  * methods that take two references, for example
+    [`int1.gcd_ref(&int2)`][`Integer::gcd_ref`];
+  * string parsing, for example
+    [`Integer::parse("12")`][`Integer::parse`];
+  * and more.
 
 These operations return objects that can be stored in temporary
 variables like `incomplete` in the last few examples. However, the
@@ -330,23 +331,23 @@ some details on usage under [GNU/Linux][sys gnu], [macOS][sys mac] and
 
 The Rug crate has six optional features:
 
-1. `integer`, enabled by default. Required for the [`Integer`] type
-   and its supporting features.
-2. `rational`, enabled by default. Required for the [`Rational`]
-   number type and its supporting features. This feature requires the
-   `integer` feature.
-3. `float`, enabled by default. Required for the [`Float`] type and
-   its supporting features.
-4. `complex`, enabled by default. Required for the [`Complex`] number
-   type and its supporting features. This feature requires the `float`
-   feature.
-5. `rand`, enabled by default. Required for the [`RandState`] type and
-   its supporting features. This feature requires the `integer`
-   feature.
-6. `serde`, disabled by default. This provides serialization support
-   for the [`Integer`], [`Rational`], [`Float`] and [`Complex`] number
-   types, providing that they are enabled. This feature requires the
-   [serde crate].
+ 1. `integer`, enabled by default. Required for the [`Integer`] type
+    and its supporting features.
+ 2. `rational`, enabled by default. Required for the [`Rational`]
+    number type and its supporting features. This feature requires the
+    `integer` feature.
+ 3. `float`, enabled by default. Required for the [`Float`] type and
+    its supporting features.
+ 4. `complex`, enabled by default. Required for the [`Complex`] number
+    type and its supporting features. This feature requires the
+    `float` feature.
+ 5. `rand`, enabled by default. Required for the [`RandState`] type
+    and its supporting features. This feature requires the `integer`
+    feature.
+ 6. `serde`, disabled by default. This provides serialization support
+    for the [`Integer`], [`Rational`], [`Float`] and [`Complex`]
+    number types, providing that they are enabled. This feature
+    requires the [serde crate].
 
 The first five optional features are enabled by default; to use
 features selectively, you can add the dependency like this to

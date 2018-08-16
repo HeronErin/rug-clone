@@ -23,8 +23,8 @@ Floats are rounded towards zero when cast into integers.
 
 # Panics
 
-* If a NaN is cast into an integer type.
-* If the value does not fit in the destination integer type.
+  * If a NaN is cast into an integer type.
+  * If the value does not fit in the destination integer type.
 */
 pub trait Cast<Dst> {
     fn cast(self) -> Dst;

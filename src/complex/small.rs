@@ -37,16 +37,16 @@ primitives used to set its real and imaginary parts. Note that if
 different types are used to set the parts, the parts can have
 different precisions.
 
-* [`i8`], [`u8`]: the part will have eight bits of precision.
-* [`i16`], [`u16`]: the part will have 16 bits of precision.
-* [`i32`], [`u32`]: the part will have 32 bits of precision.
-* [`i64`], [`u64`]: the part will have 64 bits of precision.
-* [`i128`], [`u128`]: (if supported by the compiler) the `SmallFloat`
-  will have 128 bits of precision.
-* [`isize`], [`usize`]: the part will have 32 or 64 bits of precision,
-  depending on the platform.
-* [`f32`]: the part will have 24 bits of precision.
-* [`f64`]: the part will have 53 bits of precision.
+  * [`i8`], [`u8`]: the part will have eight bits of precision.
+  * [`i16`], [`u16`]: the part will have 16 bits of precision.
+  * [`i32`], [`u32`]: the part will have 32 bits of precision.
+  * [`i64`], [`u64`]: the part will have 64 bits of precision.
+  * [`i128`], [`u128`]: (if supported by the compiler) the
+    `SmallFloat` will have 128 bits of precision.
+  * [`isize`], [`usize`]: the part will have 32 or 64 bits of 
+    precision, depending on the platform.
+  * [`f32`]: the part will have 24 bits of precision.
+  * [`f64`]: the part will have 53 bits of precision.
 
 The `SmallComplex` type can be coerced to a [`Complex`], as it
 implements [`Deref<Target = Complex>`][`Deref`].

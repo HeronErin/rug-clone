@@ -181,23 +181,23 @@ assert_eq!(sub, 12);
 The `Float` type supports various functions. Most methods have four
 versions:
 
-1. The first method consumes the operand and rounds the returned
-   `Float` to the [nearest][`Nearest`] representable value.
-2. The second method has a “`_mut`” suffix, mutates the operand and
-   rounds it the nearest representable value.
-3. The third method has a “`_round`” suffix, mutates the operand,
-   applies the specified [rounding method][`Round`], and returns the
-   rounding direction:
-   * `Ordering::Less` if the stored value is less than the exact
-     result,
-   * `Ordering::Equal` if the stored value is equal to the exact
-     result,
-   * `Ordering::Greater` if the stored value is greater than the exact
-     result.
-4. The fourth method has a “`_ref`” suffix and borrows the operand.
-   The returned item is an [incomplete-computation value][icv] that
-   can be assigned to a `Float`; the rounding method is selected
-   during the assignment.
+ 1. The first method consumes the operand and rounds the returned
+    `Float` to the [nearest][`Nearest`] representable value.
+ 2. The second method has a “`_mut`” suffix, mutates the operand and
+    rounds it the nearest representable value.
+ 3. The third method has a “`_round`” suffix, mutates the operand,
+    applies the specified [rounding method][`Round`], and returns the
+    rounding direction:
+      * `Ordering::Less` if the stored value is less than the exact
+        result,
+      * `Ordering::Equal` if the stored value is equal to the exact
+        result,
+      * `Ordering::Greater` if the stored value is greater than the
+        exact result.
+ 4. The fourth method has a “`_ref`” suffix and borrows the operand.
+    The returned item is an [incomplete-computation value][icv] that
+    can be assigned to a `Float`; the rounding method is selected
+    during the assignment.
 
 ```rust
 use rug::float::Round;

@@ -154,11 +154,11 @@ assert_eq!(sub, 1979);
 The `Integer` type supports various functions. Most methods have three
 versions:
 
-1. The first method consumes the operand.
-2. The second method has a “`_mut`” suffix and mutates the operand.
-3. The third method has a “`_ref`” suffix and borrows the operand. The
-   returned item is an [incomplete-computation value][icv] that can be
-   assigned to an `Integer`.
+ 1. The first method consumes the operand.
+ 2. The second method has a “`_mut`” suffix and mutates the operand.
+ 3. The third method has a “`_ref`” suffix and borrows the operand.
+    The returned item is an [incomplete-computation value][icv] that
+    can be assigned to an `Integer`.
 
 ```rust
 use rug::Integer;
