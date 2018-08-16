@@ -62,11 +62,11 @@ neg_abs_signed! { (isize, usize) }
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.
-    // * If f is a nan, we do NOT want to clear any mantissa bits,
-    //   as this may change f into +/- infinity.
-    // * If f is +/- infinity, the bits are already zero, so the
-    //   masking has no effect.
-    // * If f is subnormal, f as f32 will be zero anyway.
+    //   * If f is a nan, we do NOT want to clear any mantissa bits,
+    //     as this may change f into +/- infinity.
+    //   * If f is +/- infinity, the bits are already zero, so the
+    //     masking has no effect.
+    //   * If f is subnormal, f as f32 will be zero anyway.
     if !f.is_nan() {
         let u: u64 = unsafe { mem::transmute(f) };
         // f64 has 29 more significant bits than f32.

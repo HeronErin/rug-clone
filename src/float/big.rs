@@ -595,11 +595,11 @@ impl Float {
     ///
     /// # Safety
     ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::mpfr::mpfr_t`][`mpfr_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
+    ///   * The value must be initialized.
+    ///   * The [`gmp_mpfr_sys::mpfr::mpfr_t`][`mpfr_t`] type can be
+    ///     considered as a kind of pointer, so there can be multiple
+    ///     copies of it. Since this function takes over ownership, no
+    ///     other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -1910,14 +1910,14 @@ impl Float {
     /// Subnormalization is only performed for precisions specified in
     /// IEEE 754:
     ///
-    /// * binary16 with 16 storage bits and a precision of 11 bits,
-    /// * binary32 (single precision) with 32 storage bits and a
-    ///   precision of 24 bits,
-    /// * binary64 (double precision) with 64 storage bits and a
-    ///   precision of 53 bits,
-    /// * binary{<i>k</i>} with *k* storage bits where *k* is a
-    ///   multiple of 32 and *k* ≥ 128, and a precision of
-    ///   *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
+    ///   * binary16 with 16 storage bits and a precision of 11 bits,
+    ///   * binary32 (single precision) with 32 storage bits and a
+    ///     precision of 24 bits,
+    ///   * binary64 (double precision) with 64 storage bits and a
+    ///     precision of 53 bits,
+    ///   * binary{<i>k</i>} with *k* storage bits where *k* is a
+    ///     multiple of 32 and *k* ≥ 128, and a precision of
+    ///     *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
     ///
     /// This method has no effect if the value is not in the subnormal
     /// range.
@@ -1949,14 +1949,14 @@ impl Float {
     /// Subnormalization is only performed for precisions specified in
     /// IEEE 754:
     ///
-    /// * binary16 with 16 storage bits and a precision of 11 bits,
-    /// * binary32 (single precision) with 32 storage bits and a
-    ///   precision of 24 bits,
-    /// * binary64 (double precision) with 64 storage bits and a
-    ///   precision of 53 bits,
-    /// * binary{<i>k</i>} with *k* storage bits where *k* is a
-    ///   multiple of 32 and *k* ≥ 128, and a precision of
-    ///   *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
+    ///   * binary16 with 16 storage bits and a precision of 11 bits,
+    ///   * binary32 (single precision) with 32 storage bits and a
+    ///     precision of 24 bits,
+    ///   * binary64 (double precision) with 64 storage bits and a
+    ///     precision of 53 bits,
+    ///   * binary{<i>k</i>} with *k* storage bits where *k* is a
+    ///     multiple of 32 and *k* ≥ 128, and a precision of
+    ///     *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
     ///
     /// This method simply propagates `prev_rounding` if the value is
     /// not in the subnormal range.
@@ -3184,9 +3184,9 @@ impl Float {
         xmpfr::signum, raw_round;
         /// Computes the signum.
         ///
-        /// * 1.0 if the value is positive, +0.0 or +∞
-        /// * −1.0 if the value is negative, −0.0 or −∞
-        /// * NaN if the value is NaN
+        ///   * 1.0 if the value is positive, +0.0 or +∞
+        ///   * −1.0 if the value is negative, −0.0 or −∞
+        ///   * NaN if the value is NaN
         ///
         /// # Examples
         ///
@@ -3200,9 +3200,9 @@ impl Float {
         fn signum();
         /// Computes the signum.
         ///
-        /// * 1.0 if the value is positive, +0.0 or +∞
-        /// * −1.0 if the value is negative, −0.0 or −∞
-        /// * NaN if the value is NaN
+        ///   * 1.0 if the value is positive, +0.0 or +∞
+        ///   * −1.0 if the value is negative, −0.0 or −∞
+        ///   * NaN if the value is NaN
         ///
         /// # Examples
         ///
@@ -3215,9 +3215,9 @@ impl Float {
         fn signum_mut;
         /// Computes the signum.
         ///
-        /// * 1.0 if the value is positive, +0.0 or +∞
-        /// * −1.0 if the value is negative, −0.0 or −∞
-        /// * NaN if the value is NaN
+        ///   * 1.0 if the value is positive, +0.0 or +∞
+        ///   * −1.0 if the value is negative, −0.0 or −∞
+        ///   * NaN if the value is NaN
         ///
         /// [`Assign<Src> for Float`][`Assign`] and
         /// [`AssignRound<Src> for Float`][`AssignRound`] are
@@ -6218,8 +6218,8 @@ impl Float {
     ///
     /// The returned tuple contains:
     ///
-    /// 1. The logarithm of the absolute value of the gamma function.
-    /// 2. The rounding direction.
+    ///  1. The logarithm of the absolute value of the gamma function.
+    ///  2. The rounding direction.
     ///
     /// # Examples
     ///

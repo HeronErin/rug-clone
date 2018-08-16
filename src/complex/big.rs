@@ -453,11 +453,11 @@ impl Complex {
     ///
     /// # Safety
     ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::mpc::mpc_t`][`mpc_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
+    ///   * The value must be initialized.
+    ///   * The [`gmp_mpfr_sys::mpc::mpc_t`][`mpc_t`] type can be
+    ///     considered as a kind of pointer, so there can be multiple
+    ///     copies of it. Since this function takes over ownership, no
+    ///     other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -596,18 +596,18 @@ impl Complex {
     ///
     /// The string can contain either of the following three:
     ///
-    /// 1. One floating-point number that can be parsed by
-    ///    [`Float::parse`]. ASCII whitespace is treated in the same
-    ///    way as well.
-    /// 2. Two floating-point numbers inside round brackets separated
-    ///    by one comma. ASCII whitespace is treated in the same way
-    ///    as 1 above, and is also allowed around the brackets and the
-    ///    comma.
-    /// 3. Two floating-point numbers inside round brackets separated
-    ///    by ASCII whitespace. Since the real and imaginary parts are
-    ///    separated by whitespace, they themselves cannot contain
-    ///    whitespace. ASCII whitespace is still allowed around the
-    ///    brackets and between the two parts.
+    ///  1. One floating-point number that can be parsed by
+    ///     [`Float::parse`]. ASCII whitespace is treated in the same
+    ///     way as well.
+    ///  2. Two floating-point numbers inside round brackets separated
+    ///     by one comma. ASCII whitespace is treated in the same way
+    ///     as 1 above, and is also allowed around the brackets and
+    ///     the comma.
+    ///  3. Two floating-point numbers inside round brackets separated
+    ///     by ASCII whitespace. Since the real and imaginary parts
+    ///     are separated by whitespace, they themselves cannot
+    ///     contain whitespace. ASCII whitespace is still allowed
+    ///     around the brackets and between the two parts.
     ///
     /// # Examples
     ///
@@ -648,18 +648,18 @@ impl Complex {
     ///
     /// The string can contain either of the following three:
     ///
-    /// 1. One floating-point number that can be parsed by
-    ///    [`Float::parse_radix`]. ASCII whitespace is treated in the
-    ///    same way as well.
-    /// 2. Two floating-point numbers inside round brackets separated
-    ///    by one comma. ASCII whitespace is treated in the same way
-    ///    as 1 above, and is also allowed around the brackets and the
-    ///    comma.
-    /// 3. Two floating-point numbers inside round brackets separated
-    ///    by ASCII whitespace. Since the real and imaginary parts are
-    ///    separated by whitespace, they themselves cannot contain
-    ///    whitespace. ASCII whitespace is still allowed around the
-    ///    brackets and between the two parts.
+    ///  1. One floating-point number that can be parsed by
+    ///     [`Float::parse_radix`]. ASCII whitespace is treated in the
+    ///     same way as well.
+    ///  2. Two floating-point numbers inside round brackets separated
+    ///     by one comma. ASCII whitespace is treated in the same way
+    ///     as 1 above, and is also allowed around the brackets and
+    ///     the comma.
+    ///  3. Two floating-point numbers inside round brackets separated
+    ///     by ASCII whitespace. Since the real and imaginary parts
+    ///     are separated by whitespace, they themselves cannot
+    ///     contain whitespace. ASCII whitespace is still allowed
+    ///     around the brackets and between the two parts.
     ///
     /// # Panics
     ///

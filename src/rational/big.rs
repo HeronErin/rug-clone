@@ -287,16 +287,16 @@ impl Rational {
     ///
     /// # Safety
     ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::gmp::mpq_t`][`mpq_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
-    /// * The numerator and denominator must be in canonical form, as
-    ///   the rest of the library assumes that they are. Most GMP
-    ///   functions leave the rational number in canonical form, but
-    ///   assignment functions do not. Check the
-    ///   [GMP documentation][gmp mpq] for details.
+    ///   * The value must be initialized.
+    ///   * The [`gmp_mpfr_sys::gmp::mpq_t`][`mpq_t`] type can be
+    ///     considered as a kind of pointer, so there can be multiple
+    ///     copies of it. Since this function takes over ownership, no
+    ///     other copies of the passed value should exist.
+    ///   * The numerator and denominator must be in canonical form,
+    ///     as the rest of the library assumes that they are. Most GMP
+    ///     functions leave the rational number in canonical form, but
+    ///     assignment functions do not. Check the
+    ///     [GMP documentation][gmp mpq] for details.
     ///
     /// # Examples
     ///
@@ -1317,9 +1317,9 @@ impl Rational {
         xgmp::mpq_signum;
         /// Computes the signum.
         ///
-        /// * 0 if the value is zero
-        /// * 1 if the value is positive
-        /// * −1 if the value is negative
+        ///   * 0 if the value is zero
+        ///   * 1 if the value is positive
+        ///   * −1 if the value is negative
         ///
         /// # Examples
         ///
@@ -1332,9 +1332,9 @@ impl Rational {
         fn signum();
         /// Computes the signum.
         ///
-        /// * 0 if the value is zero
-        /// * 1 if the value is positive
-        /// * −1 if the value is negative
+        ///   * 0 if the value is zero
+        ///   * 1 if the value is positive
+        ///   * −1 if the value is negative
         ///
         /// # Examples
         ///
@@ -1347,9 +1347,9 @@ impl Rational {
         fn signum_mut;
         /// Computes the signum.
         ///
-        /// * 0 if the value is zero
-        /// * 1 if the value is positive
-        /// * −1 if the value is negative
+        ///   * 0 if the value is zero
+        ///   * 1 if the value is positive
+        ///   * −1 if the value is negative
         ///
         /// [`Assign<Src> for Integer`][`Assign`],
         /// [`Assign<Src> for Rational`][`Assign`],

@@ -303,21 +303,22 @@ impl<'a> RandState<'a> {
     ///
     /// # Safety
     ///
-    /// * The value must be initialized. Note that the GMP functions
-    ///   do not initialize all fields of the
-    ///   [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] object,
-    ///   which can eventually lead to reading uninitialized memory,
-    ///   and that is undefined behaviour in Rust even if no decision
-    ///   is made using the read value. One way to ensure that there
-    ///   is no uninitialized memory inside `raw` is to use
-    ///   [`mem::zeroed`] to initialize `raw` before initializing with
-    ///   a function such as
-    ///   [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
-    ///   like in the example below.
-    /// * The [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] type
-    ///   can be considered as a kind of pointer, so there can be
-    ///   multiple copies of it. Since this function takes over
-    ///   ownership, no other copies of the passed value should exist.
+    ///   * The value must be initialized. Note that the GMP functions
+    ///     do not initialize all fields of the
+    ///     [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] object,
+    ///     which can eventually lead to reading uninitialized memory,
+    ///     and that is undefined behaviour in Rust even if no
+    ///     decision is made using the read value. One way to ensure
+    ///     that there is no uninitialized memory inside `raw` is to
+    ///     use [`mem::zeroed`] to initialize `raw` before
+    ///     initializing with a function such as
+    ///     [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
+    ///     like in the example below.
+    ///   * The [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] type
+    ///     can be considered as a kind of pointer, so there can be
+    ///     multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should
+    ///     exist.
     ///
     /// # Examples
     ///

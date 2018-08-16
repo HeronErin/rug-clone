@@ -326,11 +326,11 @@ impl Integer {
     ///
     /// # Safety
     ///
-    /// * The value must be initialized.
-    /// * The [`gmp_mpfr_sys::gmp::mpz_t`][`mpz_t`] type can be
-    ///   considered as a kind of pointer, so there can be multiple
-    ///   copies of it. Since this function takes over ownership, no
-    ///   other copies of the passed value should exist.
+    ///   * The value must be initialized.
+    ///   * The [`gmp_mpfr_sys::gmp::mpz_t`][`mpz_t`] type can be
+    ///     considered as a kind of pointer, so there can be multiple
+    ///     copies of it. Since this function takes over ownership, no
+    ///     other copies of the passed value should exist.
     ///
     /// # Examples
     ///
@@ -2348,9 +2348,9 @@ impl Integer {
         xgmp::mpz_signum;
         /// Computes the signum.
         ///
-        /// * 0 if the value is zero
-        /// * 1 if the value is positive
-        /// * −1 if the value is negative
+        ///   * 0 if the value is zero
+        ///   * 1 if the value is positive
+        ///   * −1 if the value is negative
         ///
         /// # Examples
         ///
@@ -2363,9 +2363,9 @@ impl Integer {
         fn signum();
         /// Computes the signum.
         ///
-        /// * 0 if the value is zero
-        /// * 1 if the value is positive
-        /// * −1 if the value is negative
+        ///   * 0 if the value is zero
+        ///   * 1 if the value is positive
+        ///   * −1 if the value is negative
         ///
         /// # Examples
         ///
@@ -2378,9 +2378,9 @@ impl Integer {
         fn signum_mut;
         /// Computes the signum.
         ///
-        /// * 0 if the value is zero
-        /// * 1 if the value is positive
-        /// * −1 if the value is negative
+        ///   * 0 if the value is zero
+        ///   * 1 if the value is positive
+        ///   * −1 if the value is negative
         ///
         /// [`Assign<Src> for Integer`][`Assign`] and
         /// [`From<Src> for Integer`][`From`] are implemented with the
@@ -4125,10 +4125,11 @@ impl Integer {
         /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
-        /// * If |<i>a</i>| = |<i>b</i>|, then *s* = 0, *t* = sgn(*b*).
-        /// * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
-        ///   *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
-        ///   2<i>g</i>, then *t* = sgn(*b*).
+        ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
+        ///     *t* = sgn(*b*).
+        ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
+        ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
+        ///     2<i>g</i>, then *t* = sgn(*b*).
         ///
         /// # Examples
         ///
@@ -4160,10 +4161,11 @@ impl Integer {
         /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
-        /// * If |<i>a</i>| = |<i>b</i>|, then *s* = 0, *t* = sgn(*b*).
-        /// * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
-        ///   *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
-        ///   2<i>g</i>, then *t* = sgn(*b*).
+        ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
+        ///     *t* = sgn(*b*).
+        ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
+        ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
+        ///     2<i>g</i>, then *t* = sgn(*b*).
         ///
         /// # Examples
         ///
@@ -4206,10 +4208,11 @@ impl Integer {
         /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
-        /// * If |<i>a</i>| = |<i>b</i>|, then *s* = 0, *t* = sgn(*b*).
-        /// * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
-        ///   *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
-        ///   2<i>g</i>, then *t* = sgn(*b*).
+        ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
+        ///     *t* = sgn(*b*).
+        ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
+        ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
+        ///     2<i>g</i>, then *t* = sgn(*b*).
         ///
         /// # Examples
         ///
