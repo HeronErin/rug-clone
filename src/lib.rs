@@ -405,24 +405,35 @@ provided by the crate.
 #[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;
 
-#[cfg(
-    all(test, feature = "serde", any(feature = "integer", feature = "float"))
-)]
+#[cfg(all(
+    test,
+    feature = "serde",
+    any(feature = "integer", feature = "float")
+))]
 extern crate bincode;
-#[cfg(
-    all(test, feature = "serde", any(feature = "integer", feature = "float"))
-)]
+#[cfg(all(
+    test,
+    feature = "serde",
+    any(feature = "integer", feature = "float")
+))]
 extern crate byteorder;
-#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
+#[cfg(all(
+    feature = "serde",
+    any(feature = "integer", feature = "float")
+))]
 extern crate serde;
-#[cfg(
-    all(test, feature = "serde", any(feature = "integer", feature = "float"))
-)]
+#[cfg(all(
+    test,
+    feature = "serde",
+    any(feature = "integer", feature = "float")
+))]
 #[macro_use]
 extern crate serde_json;
-#[cfg(
-    all(test, feature = "serde", any(feature = "integer", feature = "float"))
-)]
+#[cfg(all(
+    test,
+    feature = "serde",
+    any(feature = "integer", feature = "float")
+))]
 extern crate serde_test;
 
 #[macro_use]
@@ -433,7 +444,10 @@ mod inner;
 #[cfg(any(feature = "integer", feature = "float"))]
 mod misc;
 mod ops_prim;
-#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
+#[cfg(all(
+    feature = "serde",
+    any(feature = "integer", feature = "float")
+))]
 mod serdeize;
 
 pub mod ops;

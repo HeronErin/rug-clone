@@ -1900,7 +1900,10 @@ macro_rules! arith_binary_self_round {
 // &big # t -> OwnedIncomplete
 // struct OwnedIncomplete
 // Big = OwnedIncomplete
-#[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
+#[cfg(all(
+    feature = "float",
+    any(feature = "integer", feature = "complex")
+))]
 macro_rules! arith_forward_round {
     (
         $Big:ty,
@@ -1987,7 +1990,10 @@ macro_rules! arith_forward_round {
 // &t #-> big
 // t #-> big; Round -> Ordering
 // &t #-> big; Round -> Ordering
-#[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
+#[cfg(all(
+    feature = "float",
+    any(feature = "integer", feature = "complex")
+))]
 macro_rules! arith_commut_round {
     (
         $Big:ty,
@@ -2124,7 +2130,10 @@ macro_rules! arith_commut_round {
 // Big = FromIncomplete
 // struct FromOwnedIncomplete
 // Big = FromOwnedIncomplete
-#[cfg(all(feature = "float", any(feature = "integer", feature = "complex")))]
+#[cfg(all(
+    feature = "float",
+    any(feature = "integer", feature = "complex")
+))]
 macro_rules! arith_noncommut_round {
     (
         $Big:ty,
