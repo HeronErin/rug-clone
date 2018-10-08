@@ -636,6 +636,9 @@ impl NotAssign for bool {
         *self = !*self;
     }
 }
+assign_from! { bool; bitand; BitAndFrom bitand_from }
+assign_from! { bool; bitor; BitOrFrom bitor_from }
+assign_from! { bool; bitxor; BitXorFrom bitxor_from }
 
 int_ops! { i8 i16 i32 i64 }
 #[cfg(int_128)]
