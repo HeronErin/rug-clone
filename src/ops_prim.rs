@@ -136,6 +136,12 @@ macro_rules! float_ops {
                 *self = *src;
             }
         }
+        impl NegAssign for $T {
+            #[inline]
+            fn neg_assign(&mut self) {
+                *self = -*self;
+            }
+        }
         impl Pow<i32> for $T {
             type Output = $T;
             #[inline]
