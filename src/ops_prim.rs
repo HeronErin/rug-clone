@@ -630,6 +630,13 @@ macro_rules! rounding_float {
     )* };
 }
 
+impl NotAssign for bool {
+    #[inline]
+    fn not_assign(&mut self) {
+        *self = !*self;
+    }
+}
+
 int_ops! { i8 i16 i32 i64 }
 #[cfg(int_128)]
 int_ops! { i128 }
