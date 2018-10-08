@@ -5,6 +5,13 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.2.2 (unreleased)
+==========================
+
+  * Implement `NotAssign`, `BitAndFrom`, `BitOrFrom` and `BitXorFrom`
+    for `bool`.
+  * Implement `NegAssign` for `f32` and `f64`.
+
 Version 1.2.1 (2018-08-16)
 ==========================
 

@@ -31,6 +31,11 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.2.2 news (unreleased)
+
+  * Some missing [`ops`] trait implementations for primitive types are
+    now implemented.
+
 ### Version 1.2.1 news (2018-08-16)
 
   * The [`Integer`] methods [`from_digits`], [`assign_digits`],
