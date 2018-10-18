@@ -31,7 +31,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.2.2 news (unreleased)
+### Version 1.2.2 news (2018-10-18)
 
   * Some missing [`ops`] trait implementations for primitive types are
     now implemented.

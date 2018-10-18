@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.2.2 (unreleased)
+Version 1.2.2 (2018-10-18)
 ==========================
 
   * Implement `NotAssign`, `BitAndFrom`, `BitOrFrom` and `BitXorFrom`
