@@ -22,7 +22,6 @@ use integer::big as big_integer;
 use misc;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CString;
 use std::i32;
 use std::marker::PhantomData;
 use std::mem;
@@ -2657,7 +2656,9 @@ pub(crate) fn append_to_string(
 
 #[derive(Debug)]
 pub struct ParseIncomplete {
-    c_string: CString,
+    is_negative: bool,
+    digits: Vec<u8>,
+    den_start: usize,
     radix: i32,
 }
 
@@ -2665,25 +2666,35 @@ impl Assign<ParseIncomplete> for Rational {
     #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
         unsafe {
-            let err = gmp::mpq_set_str(
-                self.inner_mut(),
-                src.c_string.as_ptr(),
-                cast(src.radix),
-            );
-            assert_eq!(err, 0);
-            gmp::mpq_canonicalize(self.inner_mut());
+            let ptr = self.inner_mut();
+            let num = gmp::mpq_numref(ptr);
+            let den = gmp::mpq_denref(ptr);
+
+            let (str, n) = (src.digits.as_ptr(), src.den_start);
+            if n == 0 {
+                xgmp::mpz_set_0(num);
+                xgmp::mpz_set_1(den);
+                return;
+            }
+            xgmp::realloc_for_mpn_set_str(num, n, src.radix);
+            let size = gmp::mpn_set_str((*num).d, str, n, src.radix);
+            (*num).size = cast(if src.is_negative { -size } else { size });
+
+            let (str, n) = (str.offset(cast(n)), src.digits.len() - n);
+            if n == 0 {
+                xgmp::mpz_set_1(den);
+                return;
+            }
+            xgmp::realloc_for_mpn_set_str(den, n, src.radix);
+            let size = gmp::mpn_set_str((*den).d, str, n, src.radix);
+            (*den).size = cast(size);
+
+            gmp::mpq_canonicalize(ptr);
         }
     }
 }
 
-impl From<ParseIncomplete> for Rational {
-    #[inline]
-    fn from(src: ParseIncomplete) -> Self {
-        let mut dst = Rational::new();
-        dst.assign(src);
-        dst
-    }
-}
+from_assign! { ParseIncomplete => Rational }
 
 fn parse(
     bytes: &[u8],
@@ -2694,18 +2705,15 @@ fn parse(
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast(radix);
-    let small_bound = b'a' - 10 + bradix;
-    let capital_bound = b'A' - 10 + bradix;
-    let digit_bound = b'0' + bradix;
 
-    let mut v = Vec::with_capacity(bytes.len() + 1);
+    let mut digits = Vec::with_capacity(bytes.len() + 1);
     let mut has_sign = false;
+    let mut is_negative = false;
     let mut has_digits = false;
-    let mut denom = false;
-    let mut division_by_zero = false;
+    let mut den_start = None;
     for &b in bytes {
         if b == b'/' {
-            if denom {
+            if den_start.is_some() {
                 return Err(Error {
                     kind: Kind::TooManySlashes,
                 });
@@ -2715,56 +2723,62 @@ fn parse(
                     kind: Kind::NumerNoDigits,
                 });
             }
-            v.push(b'/');
             has_digits = false;
-            denom = true;
-            division_by_zero = true;
+            den_start = Some(digits.len());
             continue;
         }
-        let valid_digit = match b {
-            b'+' if !denom && !has_sign && !has_digits => {
+        let digit = match b {
+            b'+' if den_start.is_none() && !has_sign && !has_digits => {
                 has_sign = true;
                 continue;
             }
-            b'-' if !denom && !has_sign && !has_digits => {
-                v.push(b'-');
+            b'-' if den_start.is_none() && !has_sign && !has_digits => {
+                is_negative = true;
                 has_sign = true;
                 continue;
             }
             b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
 
-            _ if b >= b'a' => b < small_bound,
-            _ if b >= b'A' => b < capital_bound,
-            b'0'...b'9' => b < digit_bound,
-            _ => false,
+            b'0'...b'9' => b - b'0',
+            b'a'...b'z' => b - b'a' + 10,
+            b'A'...b'Z' => b - b'A' + 10,
+
+            // error
+            _ => bradix,
         };
-        if !valid_digit {
+        if digit >= bradix {
             return Err(Error {
                 kind: Kind::InvalidDigit,
             });
         }
-        v.push(b);
         has_digits = true;
-        division_by_zero = division_by_zero && b == b'0';
+        if digit > 0 || (!digits.is_empty() && den_start != Some(digits.len()))
+        {
+            digits.push(digit);
+        }
     }
     if !has_digits {
         return Err(Error {
-            kind: if denom {
+            kind: if den_start.is_some() {
                 Kind::DenomNoDigits
             } else {
                 Kind::NoDigits
             },
         });
     }
-    if division_by_zero {
+    if den_start == Some(digits.len()) {
         return Err(Error {
             kind: Kind::DenomZero,
         });
     }
-    // we've only added b'-' and digits, so we know there are no nuls
-    let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ParseIncomplete { c_string, radix })
+    let den_start = den_start.unwrap_or(digits.len());
+    Ok(ParseIncomplete {
+        is_negative,
+        digits,
+        den_start,
+        radix,
+    })
 }
 
 #[derive(Debug)]

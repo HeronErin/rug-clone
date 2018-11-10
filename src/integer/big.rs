@@ -25,7 +25,6 @@ use ops::DivRounding;
 use rand::RandState;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CString;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
@@ -5611,7 +5610,8 @@ pub(crate) fn append_to_string(
 
 #[derive(Debug)]
 pub struct ParseIncomplete {
-    c_string: CString,
+    is_negative: bool,
+    digits: Vec<u8>,
     radix: i32,
 }
 
@@ -5619,31 +5619,24 @@ impl Assign<ParseIncomplete> for Integer {
     #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
         unsafe {
-            let err = gmp::mpz_set_str(
-                self.inner_mut(),
-                src.c_string.as_ptr(),
-                cast(src.radix),
+            let ptr = self.inner_mut();
+            if src.digits.is_empty() {
+                xgmp::mpz_set_0(ptr);
+                return;
+            }
+            xgmp::realloc_for_mpn_set_str(ptr, src.digits.len(), src.radix);
+            let size = gmp::mpn_set_str(
+                (*ptr).d,
+                src.digits.as_ptr(),
+                src.digits.len(),
+                src.radix,
             );
-            assert_eq!(err, 0);
-        };
-    }
-}
-
-impl From<ParseIncomplete> for Integer {
-    #[inline]
-    fn from(src: ParseIncomplete) -> Self {
-        unsafe {
-            let mut i: Integer = mem::uninitialized();
-            let err = gmp::mpz_init_set_str(
-                i.inner_mut(),
-                src.c_string.as_ptr(),
-                cast(src.radix),
-            );
-            assert_eq!(err, 0);
-            i
+            (*ptr).size = cast(if src.is_negative { -size } else { size });
         }
     }
 }
+
+from_assign! { ParseIncomplete => Integer }
 
 fn parse(
     bytes: &[u8],
@@ -5654,48 +5647,52 @@ fn parse(
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast(radix);
-    let small_bound = b'a' - 10 + bradix;
-    let capital_bound = b'A' - 10 + bradix;
-    let digit_bound = b'0' + bradix;
 
-    let mut v = Vec::with_capacity(bytes.len() + 1);
+    let mut digits = Vec::with_capacity(bytes.len());
     let mut has_sign = false;
+    let mut is_negative = false;
     let mut has_digits = false;
     for &b in bytes {
-        let valid_digit = match b {
+        let digit = match b {
             b'+' if !has_sign && !has_digits => {
                 has_sign = true;
                 continue;
             }
             b'-' if !has_sign && !has_digits => {
-                v.push(b'-');
+                is_negative = true;
                 has_sign = true;
                 continue;
             }
             b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
 
-            _ if b >= b'a' => b < small_bound,
-            _ if b >= b'A' => b < capital_bound,
-            b'0'...b'9' => b < digit_bound,
-            _ => false,
+            b'0'...b'9' => b - b'0',
+            b'a'...b'z' => b - b'a' + 10,
+            b'A'...b'Z' => b - b'A' + 10,
+
+            // error
+            _ => bradix,
         };
-        if !valid_digit {
+        if digit >= bradix {
             return Err(Error {
                 kind: Kind::InvalidDigit,
             });
-        }
-        v.push(b);
+        };
         has_digits = true;
+        if digit > 0 || !digits.is_empty() {
+            digits.push(digit);
+        }
     }
     if !has_digits {
         return Err(Error {
             kind: Kind::NoDigits,
         });
     }
-    // we've only added b'-' and digits, so we know there are no nuls
-    let c_string = unsafe { CString::from_vec_unchecked(v) };
-    Ok(ParseIncomplete { c_string, radix })
+    Ok(ParseIncomplete {
+        is_negative,
+        digits,
+        radix,
+    })
 }
 
 #[derive(Debug)]

@@ -1315,6 +1315,14 @@ pub fn ord_int(o: Ordering) -> c_int {
     }
 }
 
+pub unsafe fn realloc_for_mpn_set_str(rop: *mut mpz_t, len: usize, radix: i32) {
+    // add 1 for possible rounding errors
+    let bits = ((radix as f64).log2() * (len as f64)).ceil() + 1.0;
+    // add 1 because mpn_set_str requires an extra limb
+    let limbs = (bits / (gmp::LIMB_BITS as f64)).ceil() + 1.0;
+    gmp::_mpz_realloc(rop, cast::cast(limbs));
+}
+
 // dividend must not be zero
 unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
     let s_rem = (*rem).size.checked_abs().expect("overflow");
