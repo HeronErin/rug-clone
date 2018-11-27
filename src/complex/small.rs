@@ -43,7 +43,7 @@ different precisions.
   * [`i64`], [`u64`]: the part will have 64 bits of precision.
   * [`i128`], [`u128`]: (if supported by the compiler) the
     `SmallFloat` will have 128 bits of precision.
-  * [`isize`], [`usize`]: the part will have 32 or 64 bits of 
+  * [`isize`], [`usize`]: the part will have 32 or 64 bits of
     precision, depending on the platform.
   * [`f32`]: the part will have 24 bits of precision.
   * [`f64`]: the part will have 53 bits of precision.

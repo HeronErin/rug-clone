@@ -144,16 +144,20 @@ impl Ord for OrdFloat {
             s.is_sign_positive().cmp(&o.is_sign_positive())
         } else {
             match (s.is_nan(), o.is_nan()) {
-                (false, true) => if o.is_sign_negative() {
-                    Ordering::Greater
-                } else {
-                    Ordering::Less
-                },
-                (true, false) => if o.is_sign_negative() {
-                    Ordering::Less
-                } else {
-                    Ordering::Greater
-                },
+                (false, true) => {
+                    if o.is_sign_negative() {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Less
+                    }
+                }
+                (true, false) => {
+                    if o.is_sign_negative() {
+                        Ordering::Less
+                    } else {
+                        Ordering::Greater
+                    }
+                }
                 (true, true) => s.is_sign_positive().cmp(&o.is_sign_positive()),
                 (false, false) => unsafe {
                     mpfr::cmp(s.inner(), o.inner()).cmp(&0)

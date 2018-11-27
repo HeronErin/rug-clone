@@ -119,7 +119,8 @@ macro_rules! cmp_cast {
                 <Integer as PartialOrd<$Existing>>::partial_cmp(
                     other,
                     &cast(*self),
-                ).map(Ordering::reverse)
+                )
+                .map(Ordering::reverse)
             }
         }
     };

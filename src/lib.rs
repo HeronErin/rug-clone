@@ -418,10 +418,7 @@ extern crate bincode;
     any(feature = "integer", feature = "float")
 ))]
 extern crate byteorder;
-#[cfg(all(
-    feature = "serde",
-    any(feature = "integer", feature = "float")
-))]
+#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
 extern crate serde;
 #[cfg(all(
     test,
@@ -445,10 +442,7 @@ mod inner;
 #[cfg(any(feature = "integer", feature = "float"))]
 mod misc;
 mod ops_prim;
-#[cfg(all(
-    feature = "serde",
-    any(feature = "integer", feature = "float")
-))]
+#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
 mod serdeize;
 
 pub mod ops;

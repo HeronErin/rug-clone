@@ -7943,7 +7943,8 @@ where
     i.map(|(a, b)| {
         let prec = a.prec().checked_add(b.prec()).expect("overflow");
         Float::with_val(prec, a * b)
-    }).collect()
+    })
+    .collect()
 }
 
 impl<'a, I> AssignRound<DotIncomplete<'a, I>> for Float

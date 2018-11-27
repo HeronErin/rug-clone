@@ -2449,7 +2449,8 @@ where
         let mut mul = Rational::new();
         for i in src.values {
             #[cfg_attr(
-                feature = "cargo-clippy", allow(suspicious_op_assign_impl)
+                feature = "cargo-clippy",
+                allow(suspicious_op_assign_impl)
             )]
             mul.assign(i.0 * i.1);
             AddAssign::add_assign(self, &mul);
