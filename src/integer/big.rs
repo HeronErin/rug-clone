@@ -72,8 +72,8 @@ use rug::Integer;
 let mut a = Integer::from(0xc);
 a = (a << 80) + 0xffee;
 assert_eq!(a.to_string_radix(16), "c0000000000000000ffee");
-//                                  ^   ^   ^   ^   ^
-//                                 80  64  48  32  16
+//                                 ↑   ↑   ↑   ↑   ↑   ↑
+//                                80  64  48  32  16   0
 ```
 
 Bitwise operations on `Integer` values behave as if the value uses a
@@ -334,21 +334,21 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// use std::mem;
-    /// fn main() {
-    ///     let i = unsafe {
-    ///         let mut z = mem::uninitialized();
-    ///         gmp::mpz_init_set_ui(&mut z, 15);
-    ///         // z is initialized and unique
-    ///         Integer::from_raw(z)
-    ///     };
-    ///     assert_eq!(i, 15);
-    ///     // since i is an Integer now, deallocation is automatic
-    /// }
+    /// let i = unsafe {
+    ///     let mut z = mem::uninitialized();
+    ///     gmp::mpz_init_set_ui(&mut z, 15);
+    ///     // z is initialized and unique
+    ///     Integer::from_raw(z)
+    /// };
+    /// assert_eq!(i, 15);
+    /// // since i is an Integer now, deallocation is automatic
+    /// # }
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
@@ -365,20 +365,20 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
-    /// fn main() {
-    ///     let i = Integer::from(15);
-    ///     let mut z = i.into_raw();
-    ///     unsafe {
-    ///         let u = gmp::mpz_get_ui(&z);
-    ///         assert_eq!(u, 15);
-    ///         // free object to prevent memory leak
-    ///         gmp::mpz_clear(&mut z);
-    ///     }
+    /// let i = Integer::from(15);
+    /// let mut z = i.into_raw();
+    /// unsafe {
+    ///     let u = gmp::mpz_get_ui(&z);
+    ///     assert_eq!(u, 15);
+    ///     // free object to prevent memory leak
+    ///     gmp::mpz_clear(&mut z);
     /// }
+    /// # }
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
@@ -398,20 +398,20 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
-    /// fn main() {
-    ///     let i = Integer::from(15);
-    ///     let z_ptr = i.as_raw();
-    ///     unsafe {
-    ///         let u = gmp::mpz_get_ui(z_ptr);
-    ///         assert_eq!(u, 15);
-    ///     }
-    ///     // i is still valid
-    ///     assert_eq!(i, 15);
+    /// let i = Integer::from(15);
+    /// let z_ptr = i.as_raw();
+    /// unsafe {
+    ///     let u = gmp::mpz_get_ui(z_ptr);
+    ///     assert_eq!(u, 15);
     /// }
+    /// // i is still valid
+    /// assert_eq!(i, 15);
+    /// # }
     /// ```
     ///
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
@@ -429,18 +429,18 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
-    /// fn main() {
-    ///     let mut i = Integer::from(15);
-    ///     let z_ptr = i.as_raw_mut();
-    ///     unsafe {
-    ///         gmp::mpz_add_ui(z_ptr, z_ptr, 20);
-    ///     }
-    ///     assert_eq!(i, 35);
+    /// let mut i = Integer::from(15);
+    /// let z_ptr = i.as_raw_mut();
+    /// unsafe {
+    ///     gmp::mpz_add_ui(z_ptr, z_ptr, 20);
     /// }
+    /// assert_eq!(i, 35);
+    /// # }
     /// ```
     ///
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html

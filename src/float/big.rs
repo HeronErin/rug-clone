@@ -238,31 +238,29 @@ the MPFR website. The program computes a lower bound on 1 + 1/1! +
 `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 
 ```rust
-extern crate rug;
+# extern crate rug;
 use rug::float::{Round};
-use rug::Float;
 use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
+use rug::Float;
 
-fn main() {
-    let mut t = Float::with_val(200, 1.0);
-    let mut s = Float::with_val(200, 1.0);
-    let mut u = Float::new(200);
-    for i in 1..101_u32 {
-        // multiply t by i in place, round towards plus infinity
-        t.mul_assign_round(i, Round::Up);
-        // set u to 1/t, round towards minus infinity
-        u.assign_round(t.recip_ref(), Round::Down);
-        // increase s by u in place, round towards minus infinity
-        s.add_assign_round(&u, Round::Down);
-    }
-    // `None` means the number of printed digits depends on the precision
-    let sr = s.to_string_radix_round(10, None, Round::Down);
-    println!("Sum is {}", sr);
-#   assert_eq!(
-#       sr,
-#       "2.7182818284590452353602874713526624977572470936999595749669131"
-#   );
+# fn main() {
+let mut t = Float::with_val(200, 1.0);
+let mut s = Float::with_val(200, 1.0);
+let mut u = Float::new(200);
+for i in 1..101_u32 {
+    // multiply t by i in place, round towards plus infinity
+    t.mul_assign_round(i, Round::Up);
+    // set u to 1/t, round towards minus infinity
+    u.assign_round(t.recip_ref(), Round::Down);
+    // increase s by u in place, round towards minus infinity
+    s.add_assign_round(&u, Round::Down);
 }
+// `None` means the number of printed digits depends on the precision
+let sr = s.to_string_radix_round(10, None, Round::Down);
+println!("Sum is {}", sr);
+# let good = "2.7182818284590452353602874713526624977572470936999595749669131";
+# assert_eq!(sr, good);
+# }
 ```
 
 [`Nearest`]: float/enum.Round.html#variant.Nearest
@@ -604,22 +602,22 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
     /// use std::mem;
-    /// fn main() {
-    ///     let f = unsafe {
-    ///         let mut m = mem::uninitialized();
-    ///         mpfr::init2(&mut m, 53);
-    ///         mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
-    ///         // m is initialized and unique
-    ///         Float::from_raw(m)
-    ///     };
-    ///     assert_eq!(f, -14.5);
-    ///     // since f is a Float now, deallocation is automatic
-    /// }
+    /// let f = unsafe {
+    ///     let mut m = mem::uninitialized();
+    ///     mpfr::init2(&mut m, 53);
+    ///     mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
+    ///     // m is initialized and unique
+    ///     Float::from_raw(m)
+    /// };
+    /// assert_eq!(f, -14.5);
+    /// // since f is a Float now, deallocation is automatic
+    /// # }
     /// ```
     ///
     /// [`Float`]: struct.Float.html
@@ -637,20 +635,20 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
-    /// fn main() {
-    ///     let f = Float::with_val(53, -14.5);
-    ///     let mut m = f.into_raw();
-    ///     unsafe {
-    ///         let d = mpfr::get_d(&m, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(d, -14.5);
-    ///         // free object to prevent memory leak
-    ///         mpfr::clear(&mut m);
-    ///     }
+    /// let f = Float::with_val(53, -14.5);
+    /// let mut m = f.into_raw();
+    /// unsafe {
+    ///     let d = mpfr::get_d(&m, mpfr::rnd_t::RNDN);
+    ///     assert_eq!(d, -14.5);
+    ///     // free object to prevent memory leak
+    ///     mpfr::clear(&mut m);
     /// }
+    /// # }
     /// ```
     ///
     /// [`Float`]: struct.Float.html
@@ -671,20 +669,20 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
-    /// fn main() {
-    ///     let f = Float::with_val(53, -14.5);
-    ///     let m_ptr = f.as_raw();
-    ///     unsafe {
-    ///         let d = mpfr::get_d(m_ptr, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(d, -14.5);
-    ///     }
-    ///     // f is still valid
-    ///     assert_eq!(f, -14.5);
+    /// let f = Float::with_val(53, -14.5);
+    /// let m_ptr = f.as_raw();
+    /// unsafe {
+    ///     let d = mpfr::get_d(m_ptr, mpfr::rnd_t::RNDN);
+    ///     assert_eq!(d, -14.5);
     /// }
+    /// // f is still valid
+    /// assert_eq!(f, -14.5);
+    /// # }
     /// ```
     ///
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
@@ -702,18 +700,18 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
-    /// fn main() {
-    ///     let mut f = Float::with_val(53, -14.5);
-    ///     let m_ptr = f.as_raw_mut();
-    ///     unsafe {
-    ///         mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
-    ///     }
-    ///     assert_eq!(f, -4.5);
+    /// let mut f = Float::with_val(53, -14.5);
+    /// let m_ptr = f.as_raw_mut();
+    /// unsafe {
+    ///     mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
     /// }
+    /// assert_eq!(f, -4.5);
+    /// # }
     /// ```
     ///
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html

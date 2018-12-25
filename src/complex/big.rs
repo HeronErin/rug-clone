@@ -462,22 +462,22 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::mpc;
     /// use rug::Complex;
     /// use std::mem;
-    /// fn main() {
-    ///     let c = unsafe {
-    ///         let mut m = mem::uninitialized();
-    ///         mpc::init3(&mut m, 53, 53);
-    ///         mpc::set_d_d(&mut m, -14.5, 3.25, mpc::RNDNN);
-    ///         // m is initialized and unique
-    ///         Complex::from_raw(m)
-    ///     };
-    ///     assert_eq!(c, (-14.5, 3.25));
-    ///     // since c is a Complex now, deallocation is automatic
-    /// }
+    /// let c = unsafe {
+    ///     let mut m = mem::uninitialized();
+    ///     mpc::init3(&mut m, 53, 53);
+    ///     mpc::set_d_d(&mut m, -14.5, 3.25, mpc::RNDNN);
+    ///     // m is initialized and unique
+    ///     Complex::from_raw(m)
+    /// };
+    /// assert_eq!(c, (-14.5, 3.25));
+    /// // since c is a Complex now, deallocation is automatic
+    /// # }
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
@@ -495,24 +495,24 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::{mpc, mpfr};
     /// use rug::Complex;
-    /// fn main() {
-    ///     let c = Complex::with_val(53, (-14.5, 3.25));
-    ///     let mut m = c.into_raw();
-    ///     unsafe {
-    ///         let re_ptr = mpc::realref_const(&m);
-    ///         let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(re, -14.5);
-    ///         let im_ptr = mpc::imagref_const(&m);
-    ///         let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(im, 3.25);
-    ///         // free object to prevent memory leak
-    ///         mpc::clear(&mut m);
-    ///     }
+    /// let c = Complex::with_val(53, (-14.5, 3.25));
+    /// let mut m = c.into_raw();
+    /// unsafe {
+    ///     let re_ptr = mpc::realref_const(&m);
+    ///     let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
+    ///     assert_eq!(re, -14.5);
+    ///     let im_ptr = mpc::imagref_const(&m);
+    ///     let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
+    ///     assert_eq!(im, 3.25);
+    ///     // free object to prevent memory leak
+    ///     mpc::clear(&mut m);
     /// }
+    /// # }
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
@@ -532,24 +532,24 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::{mpc, mpfr};
     /// use rug::Complex;
-    /// fn main() {
-    ///     let c = Complex::with_val(53, (-14.5, 3.25));
-    ///     let m_ptr = c.as_raw();
-    ///     unsafe {
-    ///         let re_ptr = mpc::realref_const(m_ptr);
-    ///         let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(re, -14.5);
-    ///         let im_ptr = mpc::imagref_const(m_ptr);
-    ///         let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
-    ///         assert_eq!(im, 3.25);
-    ///     }
-    ///     // c is still valid
-    ///     assert_eq!(c, (-14.5, 3.25));
+    /// let c = Complex::with_val(53, (-14.5, 3.25));
+    /// let m_ptr = c.as_raw();
+    /// unsafe {
+    ///     let re_ptr = mpc::realref_const(m_ptr);
+    ///     let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
+    ///     assert_eq!(re, -14.5);
+    ///     let im_ptr = mpc::imagref_const(m_ptr);
+    ///     let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
+    ///     assert_eq!(im, 3.25);
     /// }
+    /// // c is still valid
+    /// assert_eq!(c, (-14.5, 3.25));
+    /// # }
     /// ```
     ///
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
@@ -567,18 +567,18 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::mpc;
     /// use rug::Complex;
-    /// fn main() {
-    ///     let mut c = Complex::with_val(53, (-14.5, 3.25));
-    ///     let m_ptr = c.as_raw_mut();
-    ///     unsafe {
-    ///         mpc::conj(m_ptr, m_ptr, mpc::RNDNN);
-    ///     }
-    ///     assert_eq!(c, (-14.5, -3.25));
+    /// let mut c = Complex::with_val(53, (-14.5, 3.25));
+    /// let m_ptr = c.as_raw_mut();
+    /// unsafe {
+    ///     mpc::conj(m_ptr, m_ptr, mpc::RNDNN);
     /// }
+    /// assert_eq!(c, (-14.5, -3.25));
+    /// # }
     /// ```
     ///
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html

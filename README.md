@@ -317,8 +317,8 @@ add it as a dependency inside [*Cargo.toml*]:
 rug = "1.2"
 ```
 
-You also need to declare it by adding this to your crate root (usually
-*lib.rs* or *main.rs*):
+If you are using the 2015 Rust edition, you also need to declare it by
+adding this to your crate root (usually *lib.rs* or *main.rs*):
 
 ```rust
 extern crate rug;

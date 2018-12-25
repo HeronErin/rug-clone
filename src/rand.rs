@@ -323,24 +323,24 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
     /// use std::mem;
-    /// fn main() {
-    ///     let mut rand = unsafe {
-    ///         // Do not use mem::uninitialized, as gmp::randinit_default
-    ///         // does not initialize all of the fields of raw.
-    ///         let mut raw = mem::zeroed();
-    ///         gmp::randinit_default(&mut raw);
-    ///         // raw is initialized and unique
-    ///         RandState::from_raw(raw)
-    ///     };
-    ///     let u = rand.bits(32);
-    ///     println!("32 random bits: {:032b}", u);
-    ///     // since rand is a RandState now, deallocation is automatic
-    /// }
+    /// let mut rand = unsafe {
+    ///     // Do not use mem::uninitialized, as gmp::randinit_default
+    ///     // does not initialize all of the fields of raw.
+    ///     let mut raw = mem::zeroed();
+    ///     gmp::randinit_default(&mut raw);
+    ///     // raw is initialized and unique
+    ///     RandState::from_raw(raw)
+    /// };
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// // since rand is a RandState now, deallocation is automatic
+    /// # }
     /// ```
     ///
     /// [`mem::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/fn.zeroed.html
@@ -362,20 +362,20 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
-    /// fn main() {
-    ///     let rand = RandState::new();
-    ///     let mut raw = rand.into_raw();
-    ///     unsafe {
-    ///         let u = gmp::urandomb_ui(&mut raw, 32) as u32;
-    ///         println!("32 random bits: {:032b}", u);
-    ///         // free object to prevent memory leak
-    ///         gmp::randclear(&mut raw);
-    ///     }
+    /// let rand = RandState::new();
+    /// let mut raw = rand.into_raw();
+    /// unsafe {
+    ///     let u = gmp::urandomb_ui(&mut raw, 32) as u32;
+    ///     println!("32 random bits: {:032b}", u);
+    ///     // free object to prevent memory leak
+    ///     gmp::randclear(&mut raw);
     /// }
+    /// # }
     /// ```
     ///
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
@@ -419,20 +419,20 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// extern crate gmp_mpfr_sys;
-    /// extern crate rug;
+    /// # extern crate gmp_mpfr_sys;
+    /// # extern crate rug;
+    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
-    /// fn main() {
-    ///     let mut rand = RandState::new();
-    ///     let raw_ptr = rand.as_raw_mut();
-    ///     unsafe {
-    ///         let u1 = gmp::urandomb_ui(raw_ptr, 32) as u32;
-    ///         println!("32 random bits: {:032b}", u1);
-    ///     }
-    ///     let u2 = rand.bits(32);
-    ///     println!("another 32 random bits: {:032b}", u2);
+    /// let mut rand = RandState::new();
+    /// let raw_ptr = rand.as_raw_mut();
+    /// unsafe {
+    ///     let u1 = gmp::urandomb_ui(raw_ptr, 32) as u32;
+    ///     println!("32 random bits: {:032b}", u1);
     /// }
+    /// let u2 = rand.bits(32);
+    /// println!("another 32 random bits: {:032b}", u2);
+    /// # }
     /// ```
     ///
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
