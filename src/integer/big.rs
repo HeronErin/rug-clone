@@ -450,7 +450,7 @@ impl Integer {
     }
 
     /// Creates an [`Integer`] from a [slice] of digits of type `T`,
-    /// where `T` can be any of the unsigned integer primitive types.
+    /// where `T` can be any [unsigned integer primitive type][upt].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -466,6 +466,7 @@ impl Integer {
     ///
     /// [`Integer`]: struct.Integer.html
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn from_digits<T>(digits: &[T], order: Order) -> Self
     where
         T: UnsignedPrimitive,
@@ -477,7 +478,7 @@ impl Integer {
     }
 
     /// Assigns from a [slice] of digits of type `T`, where `T` can be
-    /// any of the unsigned integer primitive types.
+    /// any [unsigned integer primitive type][upt].
     ///
     /// The resulting value cannot be negative.
     ///
@@ -493,6 +494,7 @@ impl Integer {
     /// ```
     ///
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn assign_digits<T>(&mut self, digits: &[T], order: Order)
     where
         T: UnsignedPrimitive,
@@ -518,7 +520,7 @@ impl Integer {
     /// Returns the number of digits of type `T` required to represent
     /// the absolute value.
     ///
-    /// `T` can be any of the unsigned integer primitive types.
+    /// `T` can be any [unsigned integer primitive type][upt].
     ///
     /// # Examples
     ///
@@ -531,6 +533,8 @@ impl Integer {
     /// assert_eq!(i.significant_digits::<u32>(), 9);
     /// assert_eq!(i.significant_digits::<u64>(), 5);
     /// ```
+    ///
+    /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn significant_digits<T>(&self) -> usize
     where
         T: UnsignedPrimitive,
@@ -546,8 +550,8 @@ impl Integer {
     }
 
     /// Converts the absolute value to a [`Vec`] of digits of type
-    /// `T`, where `T` can be any of the unsigned integer primitive
-    /// types.
+    /// `T`, where `T` can be any
+    /// [unsigned integer primitive type][upt].
     ///
     /// # Examples
     ///
@@ -564,6 +568,7 @@ impl Integer {
     /// ```
     ///
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
+    /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn to_digits<T>(&self, order: Order) -> Vec<T>
     where
         T: UnsignedPrimitive,
@@ -589,8 +594,8 @@ impl Integer {
     }
 
     /// Writes the absolute value into a [slice] of digits of type
-    /// `T`, where `T` can be any of the unsigned integer primitive
-    /// types.
+    /// `T`, where `T` can be any
+    /// [unsigned integer primitive type][upt].
     ///
     /// The slice must be large enough to hold the digits; the minimum
     /// size can be obtained using the [`significant_digits`] method.
@@ -647,6 +652,7 @@ impl Integer {
     /// [`significant_digits`]: #method.significant_digits
     /// [`to_digits`]: #method.to_digits
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
     where
         T: UnsignedPrimitive,
@@ -5795,7 +5801,36 @@ impl InnerMut for Integer {
     }
 }
 
-pub unsafe trait UnsignedPrimitive: Sized {
+/// Conversions between [`Integer`] and a [slice] of digits of this
+/// type are provided.
+///
+/// For conversion from digits to [`Integer`], see
+/// [`Integer::from_digits`] and [`Integer::assign_digits`]. For
+/// conversion from [`Integer`] to digits, see
+/// [`Integer::significant_digits`], [`Integer::to_digits`], and
+/// [`Integer::write_digits`].
+///
+/// This trait is sealed and cannot be implemented for more types; it
+/// is implemented for [`bool`], [`u8`], [`u16`], [`u32`], [`u64`],
+/// [`u128`] (conditional on compiler support), and [`usize`].
+///
+/// [`Integer::assign_digits`]: ../struct.Integer.html#method.assign_digits
+/// [`Integer::from_digits`]: ../struct.Integer.html#method.from_digits
+/// [`Integer::significant_digits`]: ../struct.Integer.html#method.significant_digits
+/// [`Integer::to_digits`]: ../struct.Integer.html#method.to_digits
+/// [`Integer::write_digits`]: ../struct.Integer.html#method.write_digits
+/// [`Integer`]: ../struct.Integer.html
+/// [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
+/// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
+/// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
+/// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+/// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+/// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
+/// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
+/// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+pub trait UnsignedPrimitive: SealedUnsignedPrimitive {}
+
+pub unsafe trait SealedUnsignedPrimitive: Sized {
     #[inline(always)]
     fn bytes() -> usize {
         mem::size_of::<Self>()
@@ -5812,7 +5847,8 @@ pub unsafe trait UnsignedPrimitive: Sized {
     }
 }
 
-unsafe impl UnsignedPrimitive for bool {
+impl UnsignedPrimitive for bool {}
+unsafe impl SealedUnsignedPrimitive for bool {
     #[inline(always)]
     fn bits() -> usize {
         1
@@ -5824,10 +5860,22 @@ unsafe impl UnsignedPrimitive for bool {
     }
 }
 
-unsafe impl UnsignedPrimitive for u8 {}
-unsafe impl UnsignedPrimitive for u16 {}
-unsafe impl UnsignedPrimitive for u32 {}
-unsafe impl UnsignedPrimitive for u64 {}
+impl UnsignedPrimitive for u8 {}
+unsafe impl SealedUnsignedPrimitive for u8 {}
+
+impl UnsignedPrimitive for u16 {}
+unsafe impl SealedUnsignedPrimitive for u16 {}
+
+impl UnsignedPrimitive for u32 {}
+unsafe impl SealedUnsignedPrimitive for u32 {}
+
+impl UnsignedPrimitive for u64 {}
+unsafe impl SealedUnsignedPrimitive for u64 {}
+
 #[cfg(int_128)]
-unsafe impl UnsignedPrimitive for u128 {}
-unsafe impl UnsignedPrimitive for usize {}
+impl UnsignedPrimitive for u128 {}
+#[cfg(int_128)]
+unsafe impl SealedUnsignedPrimitive for u128 {}
+
+impl UnsignedPrimitive for usize {}
+unsafe impl SealedUnsignedPrimitive for usize {}

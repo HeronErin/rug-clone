@@ -48,7 +48,7 @@ mod serde;
 pub(crate) mod small;
 mod traits;
 
-pub use integer::big::{IsPrime, ParseIntegerError};
+pub use integer::big::{IsPrime, ParseIntegerError, UnsignedPrimitive};
 pub use integer::small::SmallInteger;
 
 use std::os::raw::c_int;
