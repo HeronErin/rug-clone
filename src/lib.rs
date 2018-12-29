@@ -39,6 +39,9 @@ Free Software Foundation, either version 3 of the License, or (at your
 option) any later version. See the full text of the [GNU LGPL] and
 [GNU GPL] for details.
 
+You are also free to use the examples in this documentation without
+any restrictions; the examples are in the public domain.
+
 ## Quick example
 
 ```rust
