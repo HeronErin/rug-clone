@@ -14,8 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <http://www.gnu.org/licenses/>.
 
-use complex::big::{self, ordering2, raw_round2, Ordering2, Round2};
+use complex::big::{self, ordering2, raw_round2, Format, Ordering2, Round2};
 use complex::ParseComplexError;
+use float::big::ExpFormat;
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
 use inner::{Inner, InnerMut};
@@ -24,8 +25,8 @@ use ops::AssignRound;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::fmt::{
-    self, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
-    UpperExp, UpperHex,
+    Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
+    Result as FmtResult, UpperExp, UpperHex,
 };
 use std::mem;
 use std::ptr;
@@ -88,50 +89,92 @@ where
 }
 
 impl Display for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl Debug for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl LowerExp for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl UpperExp for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, true, "")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            to_upper: true,
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl Binary for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            radix: 2,
+            prefix: "0b",
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl Octal for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            radix: 8,
+            prefix: "0o",
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl LowerHex for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            radix: 16,
+            prefix: "0x",
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
 impl UpperHex for Complex {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x")
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        let format = Format {
+            radix: 16,
+            to_upper: true,
+            prefix: "0x",
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format)
     }
 }
 
@@ -224,42 +267,43 @@ where
     }
 }
 
-fn fmt_radix(
-    c: &Complex,
-    fmt: &mut Formatter,
-    radix: i32,
-    to_upper: bool,
-    prefix: &str,
-) -> fmt::Result {
+// * overwrites format.precision with fmt.precision()
+// * overwrites format.sign_plus with fmt.sign_plus()
+// * overwrites prefix with "" if not fmt.alternate()
+fn fmt_radix(c: &Complex, fmt: &mut Formatter, format: Format) -> FmtResult {
+    let format = Format {
+        precision: fmt.precision(),
+        sign_plus: fmt.sign_plus(),
+        prefix: if fmt.alternate() { format.prefix } else { "" },
+        ..format
+    };
     let mut s = String::new();
-    big::append_to_string(
-        &mut s,
-        c,
-        radix,
-        fmt.precision(),
-        Default::default(),
-        (
-            to_upper,
-            fmt.sign_plus(),
-            if fmt.alternate() { prefix } else { "" },
-        ),
-    );
+    big::append_to_string(&mut s, c, format);
     // s is ascii only, so just take len for character count
     let count = s.len();
     let padding = match fmt.width() {
         Some(width) if width > count => width - count,
         _ => return fmt.write_str(&s),
     };
+    let (padding_left, padding_right) = match fmt.align() {
+        Some(Alignment::Left) => (0, padding),
+        Some(Alignment::Right) | None => (padding, 0),
+        Some(Alignment::Center) => (padding / 2, padding - padding / 2),
+    };
     let mut fill_buf = String::with_capacity(4);
     fill_buf.push(fmt.fill());
-    for _ in 0..padding {
+    for _ in 0..padding_left {
         fmt.write_str(&fill_buf)?;
     }
-    fmt.write_str(&s)
+    fmt.write_str(&s)?;
+    for _ in 0..padding_right {
+        fmt.write_str(&fill_buf)?;
+    }
+    Ok(())
 }
 
 impl Display for ParseComplexError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Debug::fmt(self, f)
     }
 }
