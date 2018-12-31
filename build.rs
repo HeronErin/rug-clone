@@ -29,6 +29,7 @@ fn main() {
         Some("repr_transparent"),
     );
     env.check_feature("try_from", TRY_TRY_FROM, Some("try_from"));
+    env.check_feature("fmt_align", TRY_FMT_ALIGN, None);
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
@@ -180,6 +181,19 @@ use std::convert::TryFrom;
 fn main() {
     let _ = i8::try_from(1u64);
 }
+"#;
+
+const TRY_FMT_ALIGN: &str = r#"// try_fmt_align.rs
+use std::fmt::{Alignment, Formatter};
+fn _foo(fmt: &mut Formatter) -> i32 {
+    match fmt.align() {
+        Some(Alignment::Left) => 0,
+        Some(Alignment::Right) => 0,
+        Some(Alignment::Center) => 0,
+        None => 4,
+    }
+}
+fn main() {}
 "#;
 
 const TRY_FFI_PANIC_ABORTS: &str = r#"// try_ffi_panic_aborts.rs
