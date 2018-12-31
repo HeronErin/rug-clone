@@ -31,6 +31,12 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.3.0 news (unreleased)
+
+  * The new method [`SmallRational::assign_canonical`] was added.
+
+[`SmallRational::assign_canonical`]: https://docs.rs/rug/~1.3/rug/rational/struct.SmallRational.html#method.assign_canonical
+
 ### Version 1.2.2 news (2018-10-18)
 
   * Some missing [`ops`] trait implementations for primitive types are

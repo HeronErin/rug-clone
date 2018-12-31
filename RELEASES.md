@@ -5,6 +5,11 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Version 1.3.0 (unreleased)
+==========================
+
+  * Add `SmallRational::assign_canonical`.
+
 Version 1.2.2 (2018-10-18)
 ==========================
 
