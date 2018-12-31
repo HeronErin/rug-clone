@@ -8367,7 +8367,6 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
         return;
     }
-
     if f.is_infinite() {
         s.push_str(match (format.radix > 10, f.is_sign_negative()) {
             (false, false) => "inf",
