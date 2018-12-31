@@ -35,14 +35,14 @@ use rand::RandState;
 use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 use std::marker::PhantomData;
 use std::mem;
 use std::num::FpCategory;
 use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
-use std::slice;
+use std::str;
 use std::{i32, u32};
 use Assign;
 #[cfg(feature = "integer")]
@@ -1368,9 +1368,9 @@ impl Float {
     /// Returns a string representation of `self` for the specified
     /// `radix` applying the specified rounding method.
     ///
-    /// The exponent is encoded in decimal. The output string will have
-    /// enough precision such that reading it again will give the exact
-    /// same number.
+    /// The exponent is encoded in decimal. If the number of digits is
+    /// not specified, the output string will have enough precision
+    /// such that reading it again will give the exact same number.
     ///
     /// # Panics
     ///
@@ -8332,62 +8332,14 @@ impl<'a> Deref for BorrowFloat<'a> {
     }
 }
 
-pub(crate) fn req_chars(
-    f: &Float,
-    radix: i32,
-    precision: Option<usize>,
-    extra: usize,
-) -> usize {
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let size = if f.is_zero() {
-        3
-    } else if f.is_infinite() || f.is_nan() {
-        if radix > 10 {
-            5
-        } else {
-            3
-        }
-    } else {
-        let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
-        let num_chars = if digits == 0 {
-            // According to mpfr_get_str documentation, we need
-            // 1 + ceil(p / log2(radix)), but in some cases, it is 1 more.
-            // p is prec - 1 if radix is a power of two, or prec otherwise.
-            let ur = radix as u32;
-            let pdiv = if ur.is_power_of_two() {
-                f64::from(f.prec() - 1) / f64::from(31 - ur.leading_zeros())
-            } else {
-                f64::from(f.prec()) / f64::from(ur).log2()
-            };
-            cast::<_, usize>(pdiv.ceil())
-                .checked_add(2)
-                .expect("overflow")
-        } else {
-            digits
-        };
-        // allow for exponent, including prefix like "e-"
-        let exp_chars: f64 = cast(8 * mem::size_of::<mpfr::exp_t>());
-        let exp_chars = (exp_chars * 2.0f64.log10()).ceil();
-        let exp_chars: usize = cast(exp_chars);
-        // one for '.' and two for exponent prefix like "e-"
-        num_chars.checked_add(exp_chars + 3).expect("overflow")
-    };
-    let size_extra = size.checked_add(extra).expect("overflow");
-    if f.is_sign_negative() {
-        size_extra.checked_add(1).expect("overflow")
-    } else {
-        size_extra
-    }
-}
-
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum ExpFormat {
     Exp,
     Point,
     ExpOrPoint,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub(crate) struct Format {
     pub radix: i32,
     pub precision: Option<usize>,
@@ -8409,13 +8361,13 @@ impl Default for Format {
 }
 
 pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
-    // add 1 for nul
-    let size = req_chars(f, format.radix, format.precision, 1);
-    s.reserve(size);
+    use std::fmt::Write;
+
     if f.is_zero() {
         s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
         return;
     }
+
     if f.is_infinite() {
         s.push_str(match (format.radix > 10, f.is_sign_negative()) {
             (false, false) => "inf",
@@ -8434,44 +8386,42 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         });
         return;
     }
-    let orig_len = s.len();
+
     let digits = format
         .precision
         .map(|x| if x == 1 { 2 } else { x })
         .unwrap_or(0);
     let mut exp: mpfr::exp_t;
+    let c_buf;
+    let negative;
+    let slice;
     unsafe {
-        let bytes = s.as_mut_vec();
-        let start = bytes.as_mut_ptr().offset(orig_len as isize);
         exp = mem::uninitialized();
-        // write numbers starting at offset 1, to leave room for '.'
-        mpfr::get_str(
-            cast_ptr_mut!(start.offset(1), c_char),
+        c_buf = mpfr::get_str(
+            ptr::null_mut(),
             &mut exp,
             cast(format.radix),
             digits,
             f.inner(),
             raw_round(format.round),
         );
-        let added = slice::from_raw_parts_mut(start, size);
-        let added1 = *added.get_unchecked(1);
-        if added1 == b'-' {
-            let added2 = *added.get_unchecked(2);
-            *added.get_unchecked_mut(0) = b'-';
-            *added.get_unchecked_mut(1) = added2;
-            *added.get_unchecked_mut(2) = b'.';
-        } else {
-            *added.get_unchecked_mut(0) = added1;
-            *added.get_unchecked_mut(1) = b'.';
-        }
-        // search for nul after setting added[0], not before
-        let nul_index = added.iter().position(|&x| x == 0).unwrap();
-        if format.to_upper {
-            added[0..nul_index].make_ascii_uppercase();
-        }
-        bytes.set_len(orig_len + nul_index);
+        let c_str = CStr::from_ptr(c_buf);
+        let c_bytes = c_str.to_bytes();
+        negative = c_bytes[0] == b'-';
+        let bytes = if negative { &c_bytes[1..] } else { c_bytes };
+        slice = str::from_utf8(bytes).expect("mpfr string not utf-8");
     }
-    let exp = exp.checked_sub(1).expect("overflow");
+    if negative {
+        s.push('-');
+    }
+    let digits_start = s.len();
+    s.push_str(&slice[0..1]);
+    s.push('.');
+    s.push_str(&slice[1..]);
+    if format.to_upper {
+        s[digits_start..].make_ascii_uppercase();
+    }
+    exp = exp.checked_sub(1).expect("overflow");
     if exp != 0 {
         s.push(if format.radix > 10 {
             '@'
@@ -8480,7 +8430,6 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         } else {
             'e'
         });
-        use std::fmt::Write;
         write!(s, "{}", exp).unwrap();
     }
 }
