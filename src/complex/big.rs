@@ -3773,19 +3773,8 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     let (re, im) = (c.real(), c.imag());
     let re_plus = f.sign_plus && re.is_sign_positive();
     let im_plus = f.sign_plus && im.is_sign_positive();
-    let re_prefix = !f.prefix.is_empty() && (re.is_finite() || re.is_zero());
-    let im_prefix = !f.prefix.is_empty() && (im.is_finite() || im.is_zero());
-    // To avoid reallocations in append_to_string, add 3 for "( )".
-    // There is no need for space for a nul terminator, as it will not
-    // be there at the same time as ')'.
-    let mut additional = 3;
-    additional += if re_plus { 1 } else { 0 };
-    additional += if im_plus { 1 } else { 0 };
-    additional += if re_prefix { f.prefix.len() } else { 0 };
-    additional += if im_prefix { f.prefix.len() } else { 0 };
-    additional = big_float::req_chars(re, f.radix, f.precision, additional);
-    additional = big_float::req_chars(im, f.radix, f.precision, additional);
-    s.reserve(additional);
+    let re_prefix = !f.prefix.is_empty() && re.is_finite();
+    let im_prefix = !f.prefix.is_empty() && im.is_finite();
     s.push('(');
     if re_plus {
         s.push('+');
