@@ -17,8 +17,8 @@
 use cast::cast;
 use gmp_mpfr_sys::gmp;
 use inner::InnerMut;
-use integer::small::{CopyToSmall, Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
-use integer::SmallInteger;
+use integer::small::{Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
+use integer::ToSmall;
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
@@ -205,17 +205,51 @@ impl SmallRational {
     /// [`SmallRational`]: struct.SmallRational.html
     pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
     where
-        SmallInteger: From<Num> + From<Den>,
+        Num: ToSmall,
+        Den: ToSmall,
     {
-        let (num, den) = (SmallInteger::from(num), SmallInteger::from(den));
-        SmallRational {
-            inner: Mpq {
-                num: num.inner.clone(),
-                den: den.inner.clone(),
-            },
-            first_limbs: num.limbs,
-            last_limbs: den.limbs,
-        }
+        let mut dst = SmallRational::default();
+        dst.assign_canonical(num, den);
+        dst
+    }
+
+    /// Assigns a numerator and denominator to a [`SmallRational`],
+    /// assuming they are in canonical form.
+    ///
+    /// # Safety
+    ///
+    /// This method leads to undefined behaviour if `den` is zero or
+    /// if `num` and `den` have common factors.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rational::SmallRational;
+    /// use rug::Assign;
+    /// let mut a = SmallRational::new();
+    /// unsafe {
+    ///     a.assign_canonical(-13, 10);
+    /// }
+    /// // b is canonicalized to the same form as a
+    /// let mut b = SmallRational::new();
+    /// b.assign((130, -100));
+    /// assert_eq!(a.numer(), b.numer());
+    /// assert_eq!(a.denom(), b.denom());
+    /// ```
+    ///
+    /// [`SmallRational`]: struct.SmallRational.html
+    pub unsafe fn assign_canonical<Num, Den>(&mut self, num: Num, den: Den)
+    where
+        Num: ToSmall,
+        Den: ToSmall,
+    {
+        let (num_limbs, den_limbs) = if self.num_is_first() {
+            (&mut self.first_limbs, &mut self.last_limbs)
+        } else {
+            (&mut self.last_limbs, &mut self.first_limbs)
+        };
+        num.copy(&mut self.inner.num.size, num_limbs);
+        den.copy(&mut self.inner.den.size, den_limbs);
     }
 
     fn num_is_first(&self) -> bool {
@@ -256,111 +290,71 @@ impl Deref for SmallRational {
     }
 }
 
+impl<Num> Assign<Num> for SmallRational
+where
+    Num: ToSmall,
+{
+    #[inline]
+    fn assign(&mut self, src: Num) {
+        let (num_limbs, den_limbs) = if self.num_is_first() {
+            (&mut self.first_limbs, &mut self.last_limbs)
+        } else {
+            (&mut self.last_limbs, &mut self.first_limbs)
+        };
+        src.copy(&mut self.inner.num.size, num_limbs);
+        self.inner.den.size = 1;
+        den_limbs[0] = 1;
+    }
+}
+
 impl<Num> From<Num> for SmallRational
 where
-    SmallInteger: From<Num>,
+    Num: ToSmall,
 {
     fn from(src: Num) -> Self {
-        let num = SmallInteger::from(src);
-        SmallRational {
-            inner: Mpq {
-                num: num.inner.clone(),
-                den: Mpz {
-                    alloc: cast(LIMBS_IN_SMALL_INTEGER),
-                    size: 1,
-                    d: Default::default(),
-                },
-            },
-            first_limbs: num.limbs,
-            last_limbs: LIMBS_ONE,
+        let mut dst = SmallRational::default();
+        src.copy(&mut dst.inner.num.size, &mut dst.first_limbs);
+        dst.inner.den.size = 1;
+        dst.last_limbs[0] = 1;
+        dst
+    }
+}
+
+impl<Num, Den> Assign<(Num, Den)> for SmallRational
+where
+    Num: ToSmall,
+    Den: ToSmall,
+{
+    fn assign(&mut self, src: (Num, Den)) {
+        assert!(!src.1.is_zero(), "division by zero");
+        {
+            let (num_limbs, den_limbs) = if self.num_is_first() {
+                (&mut self.first_limbs, &mut self.last_limbs)
+            } else {
+                (&mut self.last_limbs, &mut self.first_limbs)
+            };
+            src.0.copy(&mut self.inner.num.size, num_limbs);
+            src.1.copy(&mut self.inner.den.size, den_limbs);
+        }
+        unsafe {
+            gmp::mpq_canonicalize(
+                self.as_nonreallocating_rational().inner_mut(),
+            );
         }
     }
 }
 
 impl<Num, Den> From<(Num, Den)> for SmallRational
 where
-    SmallInteger: From<Num> + From<Den>,
+    Num: ToSmall,
+    Den: ToSmall,
 {
     fn from(src: (Num, Den)) -> Self {
-        let num = SmallInteger::from(src.0);
-        let den = SmallInteger::from(src.1);
-        assert_ne!(den.inner.size, 0, "division by zero");
-        let mut dst = SmallRational {
-            inner: Mpq {
-                num: num.inner.clone(),
-                den: den.inner.clone(),
-            },
-            first_limbs: num.limbs,
-            last_limbs: den.limbs,
-        };
-        unsafe {
-            gmp::mpq_canonicalize(
-                dst.as_nonreallocating_rational().inner_mut(),
-            );
-        }
+        let mut dst = SmallRational::default();
+        dst.assign(src);
         dst
     }
 }
-
-macro_rules! impl_assign_num_den {
-    ($Num:ty; $($Den:ty)*) => { $(
-        impl Assign<($Num, $Den)> for SmallRational {
-            fn assign(&mut self, src: ($Num, $Den)) {
-                assert_ne!(src.1, 0, "division by zero");
-                {
-                    let (num_limbs, den_limbs) = if self.num_is_first() {
-                        (&mut self.first_limbs, &mut self.last_limbs)
-                    } else {
-                        (&mut self.last_limbs, &mut self.first_limbs)
-                    };
-                    src.0.copy(&mut self.inner.num.size, num_limbs);
-                    src.1.copy(&mut self.inner.den.size, den_limbs);
-                }
-                unsafe {
-                    gmp::mpq_canonicalize(
-                        self.as_nonreallocating_rational().inner_mut(),
-                    );
-                }
-            }
-        }
-    )* };
-}
-
-macro_rules! impl_assign_num {
-    ($($Num:ty)*) => { $(
-        impl Assign<$Num> for SmallRational {
-            #[inline]
-            fn assign(&mut self, src: $Num) {
-                let (num_limbs, den_limbs) = if self.num_is_first() {
-                    (&mut self.first_limbs, &mut self.last_limbs)
-                } else {
-                    (&mut self.last_limbs, &mut self.first_limbs)
-                };
-                src.copy(&mut self.inner.num.size, num_limbs);
-                self.inner.den.size = 1;
-                den_limbs[0] = 1;
-            }
-        }
-
-        impl_assign_num_den! { $Num; i8 i16 i32 i64 }
-        #[cfg(int_128)]
-        impl_assign_num_den! { $Num; i128 }
-        impl_assign_num_den! { $Num; isize }
-        impl_assign_num_den! { $Num; u8 u16 u32 u64 }
-        #[cfg(int_128)]
-        impl_assign_num_den! { $Num; u128 }
-        impl_assign_num_den! { $Num; usize }
-    )* };
-}
-
-impl_assign_num! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-impl_assign_num! { i128 }
-impl_assign_num! { isize }
-impl_assign_num! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-impl_assign_num! { u128 }
-impl_assign_num! { usize }
 
 impl<'a> Assign<&'a Self> for SmallRational {
     #[inline]

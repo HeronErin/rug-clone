@@ -49,7 +49,7 @@ pub(crate) mod small;
 mod traits;
 
 pub use integer::big::{IsPrime, ParseIntegerError, UnsignedPrimitive};
-pub use integer::small::SmallInteger;
+pub use integer::small::{SmallInteger, ToSmall};
 
 use std::os::raw::c_int;
 

@@ -76,7 +76,7 @@ pub(crate) const LIMBS_IN_SMALL_INTEGER: usize =
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
 
 #[repr(C)]
-pub(crate) struct Mpz {
+pub struct Mpz {
     pub alloc: c_int,
     pub size: c_int,
     pub d: AtomicPtr<gmp::limb_t>,
@@ -192,13 +192,29 @@ impl Deref for SmallInteger {
     }
 }
 
-pub(crate) trait CopyToSmall: Copy {
+/// Types implementing this trait can be converted to [`SmallInteger`].
+///
+/// [`Assign<T> for SmallInteger`][`Assign`] and
+/// [`From<T> for SmallInteger`][`From`] are implemented when `T`
+/// implements `ToSmall`.
+///
+/// This trait is sealed and cannot be implemented for more types; it
+/// is implemented for all the primitive integers.
+///
+/// [`Assign`]: ../trait.Assign.html
+/// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+/// [`SmallInteger`]: struct.SmallInteger.html
+pub trait ToSmall: SealedToSmall {}
+
+pub trait SealedToSmall: Sized {
     fn copy(self, size: &mut c_int, limbs: &mut Limbs);
+    fn is_zero(&self) -> bool;
 }
 
 macro_rules! signed {
     ($($I:ty)*) => { $(
-        impl CopyToSmall for $I {
+        impl ToSmall for $I {}
+        impl SealedToSmall for $I {
             #[inline]
             fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
                 let (neg, abs) = self.neg_abs();
@@ -207,13 +223,19 @@ macro_rules! signed {
                     *size = -*size;
                 }
             }
+
+            #[inline]
+            fn is_zero(&self) -> bool {
+                *self == 0
+            }
         }
     )* };
 }
 
 macro_rules! one_limb {
     ($($U:ty)*) => { $(
-        impl CopyToSmall for $U {
+        impl ToSmall for $U {}
+        impl SealedToSmall for $U {
             #[inline]
             fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
                 if self == 0 {
@@ -222,6 +244,11 @@ macro_rules! one_limb {
                     *size = 1;
                     limbs[0] = self.into();
                 }
+            }
+
+            #[inline]
+            fn is_zero(&self) -> bool {
+                *self == 0
             }
         }
     )* };
@@ -237,6 +264,8 @@ one_limb! { u8 u16 u32 }
 one_limb! { u64 }
 
 #[cfg(gmp_limb_bits_32)]
+impl ToSmall for u64 {}
+#[cfg(gmp_limb_bits_32)]
 impl CopyToSmall for u64 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
@@ -251,10 +280,18 @@ impl CopyToSmall for u64 {
             limbs[1] = (self >> 32) as u32;
         }
     }
+
+    #[inline]
+    fn is_zero(&self) -> bool {
+        *self == 0
+    }
 }
 
+#[cfg(int_128)]
+impl ToSmall for u128 {}
+
 #[cfg(all(int_128, gmp_limb_bits_64))]
-impl CopyToSmall for u128 {
+impl SealedToSmall for u128 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if self == 0 {
@@ -268,10 +305,15 @@ impl CopyToSmall for u128 {
             limbs[1] = (self >> 64) as u64;
         }
     }
+
+    #[inline]
+    fn is_zero(&self) -> bool {
+        *self == 0
+    }
 }
 
 #[cfg(all(int_128, gmp_limb_bits_32))]
-impl CopyToSmall for u128 {
+impl SealedToSmall for u128 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if self == 0 {
@@ -296,9 +338,15 @@ impl CopyToSmall for u128 {
             limbs[3] = (self >> 96) as u32;
         }
     }
+
+    #[inline]
+    fn is_zero(&self) -> bool {
+        *self == 0
+    }
 }
 
-impl CopyToSmall for usize {
+impl ToSmall for usize {}
+impl SealedToSmall for usize {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         #[cfg(target_pointer_width = "32")]
@@ -310,29 +358,34 @@ impl CopyToSmall for usize {
             (self as u64).copy(size, limbs);
         }
     }
+
+    #[inline]
+    fn is_zero(&self) -> bool {
+        *self == 0
+    }
 }
 
-macro_rules! impl_assign_from {
-    ($($T:ty)*) => { $(
-        impl Assign<$T> for SmallInteger {
-            #[inline]
-            fn assign(&mut self, src: $T) {
-                src.copy(&mut self.inner.size, &mut self.limbs);
-            }
-        }
-
-        from_assign! { $T => SmallInteger }
-    )* };
+impl<T> Assign<T> for SmallInteger
+where
+    T: ToSmall,
+{
+    #[inline]
+    fn assign(&mut self, src: T) {
+        src.copy(&mut self.inner.size, &mut self.limbs);
+    }
 }
 
-impl_assign_from! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-impl_assign_from! { i128 }
-impl_assign_from! { isize }
-impl_assign_from! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-impl_assign_from! { u128 }
-impl_assign_from! { usize }
+impl<T> From<T> for SmallInteger
+where
+    T: ToSmall,
+{
+    #[inline]
+    fn from(src: T) -> Self {
+        let mut dst = SmallInteger::default();
+        dst.assign(src);
+        dst
+    }
+}
 
 impl<'a> Assign<&'a Self> for SmallInteger {
     #[inline]
