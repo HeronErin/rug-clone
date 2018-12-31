@@ -1395,7 +1395,13 @@ impl Float {
         round: Round,
     ) -> String {
         let mut s = String::new();
-        append_to_string(&mut s, self, radix, num_digits, round, false);
+        let format = Format {
+            radix,
+            precision: num_digits,
+            round,
+            ..Format::default()
+        };
+        append_to_string(&mut s, self, format);
         s
     }
 
@@ -8374,23 +8380,44 @@ pub(crate) fn req_chars(
     }
 }
 
-pub(crate) fn append_to_string(
-    s: &mut String,
-    f: &Float,
-    radix: i32,
-    precision: Option<usize>,
-    round: Round,
-    to_upper: bool,
-) {
+#[derive(Clone, Copy)]
+pub(crate) enum ExpFormat {
+    Exp,
+    Point,
+    ExpOrPoint,
+}
+
+#[derive(Clone, Copy)]
+pub(crate) struct Format {
+    pub radix: i32,
+    pub precision: Option<usize>,
+    pub round: Round,
+    pub to_upper: bool,
+    pub exp: ExpFormat,
+}
+
+impl Default for Format {
+    fn default() -> Format {
+        Format {
+            radix: 10,
+            precision: None,
+            round: Round::default(),
+            to_upper: false,
+            exp: ExpFormat::ExpOrPoint,
+        }
+    }
+}
+
+pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     // add 1 for nul
-    let size = req_chars(f, radix, precision, 1);
+    let size = req_chars(f, format.radix, format.precision, 1);
     s.reserve(size);
     if f.is_zero() {
         s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
         return;
     }
     if f.is_infinite() {
-        s.push_str(match (radix > 10, f.is_sign_negative()) {
+        s.push_str(match (format.radix > 10, f.is_sign_negative()) {
             (false, false) => "inf",
             (false, true) => "-inf",
             (true, false) => "@inf@",
@@ -8399,7 +8426,7 @@ pub(crate) fn append_to_string(
         return;
     }
     if f.is_nan() {
-        s.push_str(match (radix > 10, f.is_sign_negative()) {
+        s.push_str(match (format.radix > 10, f.is_sign_negative()) {
             (false, false) => "NaN",
             (false, true) => "-NaN",
             (true, false) => "@NaN@",
@@ -8408,7 +8435,10 @@ pub(crate) fn append_to_string(
         return;
     }
     let orig_len = s.len();
-    let digits = precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
+    let digits = format
+        .precision
+        .map(|x| if x == 1 { 2 } else { x })
+        .unwrap_or(0);
     let mut exp: mpfr::exp_t;
     unsafe {
         let bytes = s.as_mut_vec();
@@ -8418,10 +8448,10 @@ pub(crate) fn append_to_string(
         mpfr::get_str(
             cast_ptr_mut!(start.offset(1), c_char),
             &mut exp,
-            cast(radix),
+            cast(format.radix),
             digits,
             f.inner(),
-            raw_round(round),
+            raw_round(format.round),
         );
         let added = slice::from_raw_parts_mut(start, size);
         let added1 = *added.get_unchecked(1);
@@ -8436,16 +8466,16 @@ pub(crate) fn append_to_string(
         }
         // search for nul after setting added[0], not before
         let nul_index = added.iter().position(|&x| x == 0).unwrap();
-        if to_upper {
+        if format.to_upper {
             added[0..nul_index].make_ascii_uppercase();
         }
         bytes.set_len(orig_len + nul_index);
     }
     let exp = exp.checked_sub(1).expect("overflow");
     if exp != 0 {
-        s.push(if radix > 10 {
+        s.push(if format.radix > 10 {
             '@'
-        } else if to_upper {
+        } else if format.to_upper {
             'E'
         } else {
             'e'

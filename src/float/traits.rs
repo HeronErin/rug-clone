@@ -16,7 +16,7 @@
 
 use cast::cast;
 use ext::mpfr as xmpfr;
-use float::big::{self, ordering1, raw_round};
+use float::big::{self, ordering1, raw_round, ExpFormat, Format};
 use float::{Constant, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
 use inner::{Inner, InnerMut};
@@ -67,49 +67,87 @@ impl Drop for Float {
 
 impl Display for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "")
     }
 }
 
 impl Debug for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "")
     }
 }
 
 impl LowerExp for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, false, "")
+        let format = Format {
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "")
     }
 }
 
 impl UpperExp for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 10, true, "")
+        let format = Format {
+            to_upper: true,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "")
     }
 }
 
 impl Binary for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 2, false, "0b")
+        let format = Format {
+            radix: 2,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "0b")
     }
 }
 
 impl Octal for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 8, false, "0o")
+        let format = Format {
+            radix: 8,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "0o")
     }
 }
 
 impl LowerHex for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, false, "0x")
+        let format = Format {
+            radix: 16,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "0x")
     }
 }
 
 impl UpperHex for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        fmt_radix(self, f, 16, true, "0x")
+        let format = Format {
+            radix: 16,
+            to_upper: true,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
+        fmt_radix(self, f, format, "0x")
     }
 }
 
@@ -327,22 +365,19 @@ impl<'a> TryFrom<&'a Float> for Rational {
     }
 }
 
+// overwrites format.precision
 fn fmt_radix(
     flt: &Float,
     fmt: &mut Formatter,
-    radix: i32,
-    to_upper: bool,
+    format: Format,
     prefix: &str,
 ) -> fmt::Result {
+    let format = Format {
+        precision: fmt.precision(),
+        ..format
+    };
     let mut s = String::new();
-    big::append_to_string(
-        &mut s,
-        flt,
-        radix,
-        fmt.precision(),
-        Default::default(),
-        to_upper,
-    );
+    big::append_to_string(&mut s, flt, format);
     let (neg, buf) = if s.starts_with('-') {
         (true, &s[1..])
     } else {

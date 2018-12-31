@@ -19,7 +19,8 @@ use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use complex::{OrdComplex, Prec};
 use ext::mpc as xmpc;
 use float::big::{
-    self as big_float, raw_round, ParseIncomplete as FloatParseIncomplete,
+    self as big_float, raw_round, ExpFormat, Format as FloatFormat,
+    ParseIncomplete as FloatParseIncomplete,
 };
 use float::{self, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
@@ -768,14 +769,16 @@ impl Complex {
         round: Round2,
     ) -> String {
         let mut s = String::new();
-        append_to_string(
-            &mut s,
-            self,
+        let format = Format {
             radix,
-            num_digits,
+            precision: num_digits,
             round,
-            (false, false, ""),
-        );
+            to_upper: false,
+            sign_plus: false,
+            prefix: "",
+            exp: ExpFormat::ExpOrPoint,
+        };
+        append_to_string(&mut s, self, format);
         s
     }
 
@@ -3741,29 +3744,47 @@ impl<'a> Deref for BorrowComplex<'a> {
     }
 }
 
-pub(crate) fn append_to_string(
-    s: &mut String,
-    c: &Complex,
-    radix: i32,
-    precision: Option<usize>,
-    round: Round2,
-    (to_upper, sign_plus, prefix): (bool, bool, &str),
-) {
+#[derive(Clone, Copy)]
+pub(crate) struct Format {
+    pub radix: i32,
+    pub precision: Option<usize>,
+    pub round: Round2,
+    pub to_upper: bool,
+    pub sign_plus: bool,
+    pub prefix: &'static str,
+    pub exp: ExpFormat,
+}
+
+impl Default for Format {
+    fn default() -> Format {
+        Format {
+            radix: 10,
+            precision: None,
+            round: Round2::default(),
+            to_upper: false,
+            sign_plus: false,
+            prefix: "",
+            exp: ExpFormat::ExpOrPoint,
+        }
+    }
+}
+
+pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     let (re, im) = (c.real(), c.imag());
-    let re_plus = sign_plus && re.is_sign_positive();
-    let im_plus = sign_plus && im.is_sign_positive();
-    let re_prefix = !prefix.is_empty() && (re.is_finite() || re.is_zero());
-    let im_prefix = !prefix.is_empty() && (im.is_finite() || im.is_zero());
+    let re_plus = f.sign_plus && re.is_sign_positive();
+    let im_plus = f.sign_plus && im.is_sign_positive();
+    let re_prefix = !f.prefix.is_empty() && (re.is_finite() || re.is_zero());
+    let im_prefix = !f.prefix.is_empty() && (im.is_finite() || im.is_zero());
     // To avoid reallocations in append_to_string, add 3 for "( )".
     // There is no need for space for a nul terminator, as it will not
     // be there at the same time as ')'.
     let mut additional = 3;
     additional += if re_plus { 1 } else { 0 };
     additional += if im_plus { 1 } else { 0 };
-    additional += if re_prefix { prefix.len() } else { 0 };
-    additional += if im_prefix { prefix.len() } else { 0 };
-    additional = big_float::req_chars(re, radix, precision, additional);
-    additional = big_float::req_chars(im, radix, precision, additional);
+    additional += if re_prefix { f.prefix.len() } else { 0 };
+    additional += if im_prefix { f.prefix.len() } else { 0 };
+    additional = big_float::req_chars(re, f.radix, f.precision, additional);
+    additional = big_float::req_chars(im, f.radix, f.precision, additional);
     s.reserve(additional);
     s.push('(');
     if re_plus {
@@ -3771,17 +3792,24 @@ pub(crate) fn append_to_string(
     }
     let prefix_start = s.len();
     if re_prefix {
-        s.push_str(prefix);
+        s.push_str(f.prefix);
     }
     let prefix_end = s.len();
-    big_float::append_to_string(s, re, radix, precision, round.0, to_upper);
+    let ff = FloatFormat {
+        radix: f.radix,
+        precision: f.precision,
+        round: f.round.0,
+        to_upper: f.to_upper,
+        exp: f.exp,
+    };
+    big_float::append_to_string(s, re, ff);
     if re_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
             let bytes =
                 slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
             bytes[prefix_start + 1..prefix_end + 1]
-                .copy_from_slice(prefix.as_bytes());
+                .copy_from_slice(f.prefix.as_bytes());
         }
     }
     s.push(' ');
@@ -3790,17 +3818,21 @@ pub(crate) fn append_to_string(
     }
     let prefix_start = s.len();
     if im_prefix {
-        s.push_str(prefix);
+        s.push_str(f.prefix);
     }
     let prefix_end = s.len();
-    big_float::append_to_string(s, im, radix, precision, round.1, to_upper);
+    let ff = FloatFormat {
+        round: f.round.1,
+        ..ff
+    };
+    big_float::append_to_string(s, im, ff);
     if im_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
             let bytes =
                 slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
             bytes[prefix_start + 1..prefix_end + 1]
-                .copy_from_slice(prefix.as_bytes());
+                .copy_from_slice(f.prefix.as_bytes());
         }
     }
     s.push(')');
