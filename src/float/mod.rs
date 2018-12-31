@@ -35,7 +35,7 @@ mod traits;
 use cast::cast;
 pub use float::big::ParseFloatError;
 pub use float::ord::OrdFloat;
-pub use float::small::SmallFloat;
+pub use float::small::{SmallFloat, ToSmall};
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::{i32, u32};

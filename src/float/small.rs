@@ -96,7 +96,7 @@ pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (128 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_FLOAT];
 
 #[repr(C)]
-pub(crate) struct Mpfr {
+pub struct Mpfr {
     pub prec: mpfr::prec_t,
     pub sign: c_int,
     pub exp: mpfr::exp_t,
@@ -176,13 +176,29 @@ impl Deref for SmallFloat {
     }
 }
 
-pub(crate) trait CopyToSmall: Copy {
+/// Types implementing this trait can be converted to [`SmallFloat`].
+///
+/// [`Assign<T> for SmallFloat`][`Assign`] and
+/// [`From<T> for SmallFloat`][`From`] are implemented when `T`
+/// implements `ToSmall`.
+///
+/// This trait is sealed and cannot be implemented for more types; it
+/// is implemented for all the primitive integers and floating-point
+/// numbers.
+///
+/// [`Assign`]: ../trait.Assign.html
+/// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+/// [`SmallFloat`]: struct.SmallFloat.html
+pub trait ToSmall: SealedToSmall {}
+
+pub trait SealedToSmall: Copy {
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs);
 }
 
 macro_rules! signed {
     ($($I:ty)*) => { $(
-        impl CopyToSmall for $I {
+        impl ToSmall for $I {}
+        impl SealedToSmall for $I {
             #[inline]
             fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
                 let (neg, abs) = self.neg_abs();
@@ -197,20 +213,23 @@ macro_rules! signed {
 
 macro_rules! unsigned_32 {
     ($U:ty, $bits:expr) => {
-        impl CopyToSmall for $U {
+        impl ToSmall for $U {}
+        impl SealedToSmall for $U {
             #[inline]
             fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
                 let ptr = cast_ptr_mut!(inner, mpfr_t);
                 let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
-                unsafe {
-                    if self == 0 {
+                if self == 0 {
+                    unsafe {
                         xmpfr::custom_zero(ptr, limbs_ptr, $bits);
-                    } else {
-                        let leading = self.leading_zeros();
-                        let limb_leading =
-                            leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
-                        limbs[0] = gmp::limb_t::from(self) << limb_leading;
-                        let exp = $bits - leading;
+                    }
+                } else {
+                    let leading = self.leading_zeros();
+                    let limb_leading =
+                        leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
+                    limbs[0] = gmp::limb_t::from(self) << limb_leading;
+                    let exp = $bits - leading;
+                    unsafe {
                         xmpfr::custom_regular(ptr, limbs_ptr, cast(exp), $bits);
                     }
                 }
@@ -228,26 +247,29 @@ unsigned_32! { u8, 8 }
 unsigned_32! { u16, 16 }
 unsigned_32! { u32, 32 }
 
-impl CopyToSmall for u64 {
+impl ToSmall for u64 {}
+impl SealedToSmall for u64 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
-        unsafe {
-            if self == 0 {
+        if self == 0 {
+            unsafe {
                 xmpfr::custom_zero(ptr, limbs_ptr, 64);
-            } else {
-                let leading = self.leading_zeros();
-                let sval = self << leading;
-                #[cfg(gmp_limb_bits_64)]
-                {
-                    limbs[0] = sval;
-                }
-                #[cfg(gmp_limb_bits_32)]
-                {
-                    limbs[0] = sval as u32;
-                    limbs[1] = (sval >> 32) as u32;
-                }
+            }
+        } else {
+            let leading = self.leading_zeros();
+            let sval = self << leading;
+            #[cfg(gmp_limb_bits_64)]
+            {
+                limbs[0] = sval;
+            }
+            #[cfg(gmp_limb_bits_32)]
+            {
+                limbs[0] = sval as u32;
+                limbs[1] = (sval >> 32) as u32;
+            }
+            unsafe {
                 xmpfr::custom_regular(ptr, limbs_ptr, cast(64 - leading), 64);
             }
         }
@@ -255,36 +277,41 @@ impl CopyToSmall for u64 {
 }
 
 #[cfg(int_128)]
-impl CopyToSmall for u128 {
+impl ToSmall for u128 {}
+#[cfg(int_128)]
+impl SealedToSmall for u128 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
-        unsafe {
-            if self == 0 {
+        if self == 0 {
+            unsafe {
                 xmpfr::custom_zero(ptr, limbs_ptr, 128);
-            } else {
-                let leading = self.leading_zeros();
-                let sval = self << leading;
-                #[cfg(gmp_limb_bits_64)]
-                {
-                    limbs[0] = sval as u64;
-                    limbs[1] = (sval >> 64) as u64;
-                }
-                #[cfg(gmp_limb_bits_32)]
-                {
-                    limbs[0] = sval as u32;
-                    limbs[1] = (sval >> 32) as u32;
-                    limbs[2] = (sval >> 64) as u32;
-                    limbs[3] = (sval >> 96) as u32;
-                }
+            }
+        } else {
+            let leading = self.leading_zeros();
+            let sval = self << leading;
+            #[cfg(gmp_limb_bits_64)]
+            {
+                limbs[0] = sval as u64;
+                limbs[1] = (sval >> 64) as u64;
+            }
+            #[cfg(gmp_limb_bits_32)]
+            {
+                limbs[0] = sval as u32;
+                limbs[1] = (sval >> 32) as u32;
+                limbs[2] = (sval >> 64) as u32;
+                limbs[3] = (sval >> 96) as u32;
+            }
+            unsafe {
                 xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
             }
         }
     }
 }
 
-impl CopyToSmall for usize {
+impl ToSmall for usize {}
+impl SealedToSmall for usize {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         #[cfg(target_pointer_width = "32")]
@@ -298,7 +325,8 @@ impl CopyToSmall for usize {
     }
 }
 
-impl CopyToSmall for f32 {
+impl ToSmall for f32 {}
+impl SealedToSmall for f32 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
@@ -314,7 +342,8 @@ impl CopyToSmall for f32 {
     }
 }
 
-impl CopyToSmall for f64 {
+impl ToSmall for f64 {}
+impl SealedToSmall for f64 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
@@ -330,38 +359,30 @@ impl CopyToSmall for f64 {
     }
 }
 
-macro_rules! impl_assign_from {
-    ($($T:ty)*) => { $(
-        impl Assign<$T> for SmallFloat {
-            #[inline]
-            fn assign(&mut self, src: $T) {
-                src.copy(&mut self.inner, &mut self.limbs);
-            }
-        }
-
-        impl From<$T> for SmallFloat {
-            #[inline]
-            fn from(src: $T) -> Self {
-                let mut dst = SmallFloat {
-                    inner: unsafe { mem::uninitialized() },
-                    limbs: [0; LIMBS_IN_SMALL_FLOAT],
-                };
-                src.copy(&mut dst.inner, &mut dst.limbs);
-                dst
-            }
-        }
-    )* };
+impl<T> Assign<T> for SmallFloat
+where
+    T: ToSmall,
+{
+    #[inline]
+    fn assign(&mut self, src: T) {
+        src.copy(&mut self.inner, &mut self.limbs);
+    }
 }
 
-impl_assign_from! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-impl_assign_from! { i128 }
-impl_assign_from! { isize }
-impl_assign_from! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-impl_assign_from! { u128 }
-impl_assign_from! { usize }
-impl_assign_from! { f32 f64 }
+impl<T> From<T> for SmallFloat
+where
+    T: ToSmall,
+{
+    #[inline]
+    fn from(src: T) -> Self {
+        let mut dst = SmallFloat {
+            inner: unsafe { mem::uninitialized() },
+            limbs: [0; LIMBS_IN_SMALL_FLOAT],
+        };
+        src.copy(&mut dst.inner, &mut dst.limbs);
+        dst
+    }
+}
 
 impl<'a> Assign<&'a Self> for SmallFloat {
     #[inline]
