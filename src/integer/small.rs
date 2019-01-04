@@ -266,7 +266,7 @@ one_limb! { u64 }
 #[cfg(gmp_limb_bits_32)]
 impl ToSmall for u64 {}
 #[cfg(gmp_limb_bits_32)]
-impl CopyToSmall for u64 {
+impl SealedToSmall for u64 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if self == 0 {
