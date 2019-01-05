@@ -157,10 +157,7 @@ mod tests {
                 &Check::DeError(p, _) => p,
             };
             let tokens = [
-                Token::Struct {
-                    name: "Complex",
-                    len: 3,
-                },
+                Token::Struct { name: "Complex", len: 3 },
                 Token::Str("prec"),
                 Token::Tuple { len: 2 },
                 Token::U32(prec.0),
@@ -181,9 +178,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec.0).unwrap();
             bincode.write_u32::<LittleEndian>(prec.1).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
-            bincode
-                .write_u64::<LittleEndian>(cast(value.len()))
-                .unwrap();
+            bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
             bincode.write(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(c) => {

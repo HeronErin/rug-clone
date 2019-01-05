@@ -443,10 +443,7 @@ impl Complex {
     {
         let p = prec.prec();
         let (real, imag) = self.as_mut_real_imag();
-        (
-            real.set_prec_round(p.0, round.0),
-            imag.set_prec_round(p.1, round.1),
-        )
+        (real.set_prec_round(p.0, round.0), imag.set_prec_round(p.1, round.1))
     }
 
     /// Creates a [`Complex`] number from an initialized
@@ -922,10 +919,7 @@ impl Complex {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_neg(&self) -> BorrowComplex {
         // shallow copy
-        let mut ret = BorrowComplex {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
+        let mut ret = BorrowComplex { inner: self.inner, phantom: PhantomData };
         unsafe {
             NegAssign::neg_assign(&mut (*mpc::realref(&mut ret.inner)).sign);
             NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
@@ -960,10 +954,7 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_conj(&self) -> BorrowComplex {
-        let mut ret = BorrowComplex {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
+        let mut ret = BorrowComplex { inner: self.inner, phantom: PhantomData };
         unsafe {
             NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
             if self.imag().is_nan() {
@@ -1019,10 +1010,7 @@ impl Complex {
                 mpfr::set_nanflag();
             }
         }
-        BorrowComplex {
-            inner,
-            phantom: PhantomData,
-        }
+        BorrowComplex { inner, phantom: PhantomData }
     }
 
     /// Borrows the [`Complex`] number as an ordered complex number of
@@ -3545,13 +3533,11 @@ where
     ) -> Ordering2 {
         let pairs = src.values.collect::<Vec<_>>();
         let mut prods = prods_real(&pairs);
-        let ret_real = self
-            .mut_real()
-            .assign_round(Float::sum(prods.iter()), round.0);
+        let ret_real =
+            self.mut_real().assign_round(Float::sum(prods.iter()), round.0);
         prods_imag(&mut prods, &pairs);
-        let ret_imag = self
-            .mut_imag()
-            .assign_round(Float::sum(prods.iter()), round.1);
+        let ret_imag =
+            self.mut_imag().assign_round(Float::sum(prods.iter()), round.1);
         (ret_real, ret_imag)
     }
 }
@@ -3591,13 +3577,11 @@ where
     ) -> Ordering2 {
         let pairs = src.values.collect::<Vec<_>>();
         let mut prods = prods_real(&pairs);
-        let ret_real = self
-            .mut_real()
-            .add_assign_round(Float::sum(prods.iter()), round.0);
+        let ret_real =
+            self.mut_real().add_assign_round(Float::sum(prods.iter()), round.0);
         prods_imag(&mut prods, &pairs);
-        let ret_imag = self
-            .mut_imag()
-            .add_assign_round(Float::sum(prods.iter()), round.1);
+        let ret_imag =
+            self.mut_imag().add_assign_round(Float::sum(prods.iter()), round.1);
         (ret_real, ret_imag)
     }
 }
@@ -3718,12 +3702,10 @@ where
     type Ordering = Ordering2;
     #[inline]
     fn assign_round(&mut self, src: RandomCont, round: Round2) -> Ordering2 {
-        let real_dir = self
-            .mut_real()
-            .assign_round(Float::random_cont(src.rng), round.0);
-        let imag_dir = self
-            .mut_imag()
-            .assign_round(Float::random_cont(src.rng), round.1);
+        let real_dir =
+            self.mut_real().assign_round(Float::random_cont(src.rng), round.0);
+        let imag_dir =
+            self.mut_imag().assign_round(Float::random_cont(src.rng), round.1);
         (real_dir, imag_dir)
     }
 }
@@ -3810,10 +3792,7 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
         s.push_str(f.prefix);
     }
     let prefix_end = s.len();
-    let ff = FloatFormat {
-        round: f.round.1,
-        ..ff
-    };
+    let ff = FloatFormat { round: f.round.1, ..ff };
     big_float::append_to_string(s, im, ff);
     if im_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {

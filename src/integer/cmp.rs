@@ -306,11 +306,7 @@ mod tests {
         for b in &against {
             check_known_cmp(0.0f32, b, b.cmp0().reverse());
             check_known_cmp(0.0f64, b, b.cmp0().reverse());
-            let ord = if *b <= 2 {
-                Ordering::Greater
-            } else {
-                Ordering::Less
-            };
+            let ord = if *b <= 2 { Ordering::Greater } else { Ordering::Less };
             check_known_cmp(2.5f32, b, ord);
             check_known_cmp(2.5f64, b, ord);
             check_known_cmp(f32::INFINITY, b, Ordering::Greater);

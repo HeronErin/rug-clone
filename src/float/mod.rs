@@ -276,11 +276,7 @@ pub(crate) mod tests {
 
     impl Cmp {
         pub fn inf(neg: bool) -> Cmp {
-            Cmp::F64(if neg {
-                f64::NEG_INFINITY
-            } else {
-                f64::INFINITY
-            })
+            Cmp::F64(if neg { f64::NEG_INFINITY } else { f64::INFINITY })
         }
     }
 
@@ -319,10 +315,8 @@ pub(crate) mod tests {
             Float::with_val(53, Float::parse("1e1000").unwrap()).is_finite()
         );
         let huge_hex = "1@99999999999999999999999999999999";
-        assert!(
-            Float::with_val(53, Float::parse_radix(huge_hex, 16).unwrap())
-                .is_infinite()
-        );
+        assert!(Float::with_val(53, Float::parse_radix(huge_hex, 16).unwrap())
+            .is_infinite());
 
         let bad_strings = [
             ("", 10),

@@ -1395,12 +1395,8 @@ impl Float {
         round: Round,
     ) -> String {
         let mut s = String::new();
-        let format = Format {
-            radix,
-            precision: num_digits,
-            round,
-            ..Format::default()
-        };
+        let format =
+            Format { radix, precision: num_digits, round, ..Format::default() };
         append_to_string(&mut s, self, format);
         s
     }
@@ -1429,10 +1425,7 @@ impl Float {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat {
-        let mut ret = BorrowFloat {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
+        let mut ret = BorrowFloat { inner: self.inner, phantom: PhantomData };
         NegAssign::neg_assign(&mut ret.inner.sign);
         if self.is_nan() {
             unsafe {
@@ -1466,10 +1459,7 @@ impl Float {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat {
-        let mut ret = BorrowFloat {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
+        let mut ret = BorrowFloat { inner: self.inner, phantom: PhantomData };
         ret.inner.sign = 1;
         if self.is_nan() {
             unsafe {
@@ -3427,11 +3417,7 @@ impl Float {
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
-        ClampIncomplete {
-            ref_self: self,
-            min,
-            max,
-        }
+        ClampIncomplete { ref_self: self, min, max }
     }
 
     math_op1_float! {
@@ -6258,11 +6244,8 @@ impl Float {
                 raw_round(round),
             )
         };
-        let sign_ord = if sign < 0 {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        };
+        let sign_ord =
+            if sign < 0 { Ordering::Less } else { Ordering::Greater };
         (sign_ord, ordering1(ret))
     }
 
@@ -8150,11 +8133,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
                 raw_round(round),
             )
         };
-        *self.1 = if sign < 0 {
-            Ordering::Less
-        } else {
-            Ordering::Greater
-        };
+        *self.1 = if sign < 0 { Ordering::Less } else { Ordering::Greater };
         ordering1(ret)
     }
 }
@@ -8386,10 +8365,8 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         return;
     }
 
-    let digits = format
-        .precision
-        .map(|x| if x == 1 { 2 } else { x })
-        .unwrap_or(0);
+    let digits =
+        format.precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
     let mut exp: mpfr::exp_t;
     let c_buf;
     let negative;
@@ -8518,11 +8495,7 @@ fn parse(
     let mut has_point = false;
     let mut exp = false;
     for &b in bytes {
-        let b = if radix <= 10 && (b == b'e' || b == b'E') {
-            b'@'
-        } else {
-            b
-        };
+        let b = if radix <= 10 && (b == b'e' || b == b'E') { b'@' } else { b };
         let valid_digit = match b {
             b'.' if exp => parse_error!(ParseErrorKind::PointInExp)?,
             b'.' if has_point => parse_error!(ParseErrorKind::TooManyPoints)?,

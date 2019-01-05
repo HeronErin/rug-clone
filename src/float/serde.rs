@@ -29,11 +29,7 @@ impl Serialize for Float {
         S: Serializer,
     {
         let prec = self.prec();
-        let radix = if prec <= 32 || !self.is_normal() {
-            10
-        } else {
-            16
-        };
+        let radix = if prec <= 32 || !self.is_normal() { 10 } else { 16 };
         let prec = PrecVal::One(prec);
         let value = self.to_string_radix(radix, None);
         let data = Data { prec, radix, value };
@@ -144,10 +140,7 @@ mod tests {
                 &Check::DeError(p, _) => p,
             };
             let tokens = [
-                Token::Struct {
-                    name: "Float",
-                    len: 3,
-                },
+                Token::Struct { name: "Float", len: 3 },
                 Token::Str("prec"),
                 Token::U32(prec),
                 Token::Str("radix"),
@@ -164,9 +157,7 @@ mod tests {
             let mut bincode = Vec::<u8>::new();
             bincode.write_u32::<LittleEndian>(prec).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
-            bincode
-                .write_u64::<LittleEndian>(cast(value.len()))
-                .unwrap();
+            bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
             bincode.write(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(f) => {

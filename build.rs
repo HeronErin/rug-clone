@@ -100,8 +100,7 @@ impl Environment {
         create_dir_or_panic(&try_dir);
         create_file_or_panic(&try_dir.join(&filename), contents);
         let mut cmd = Command::new(&self.rustc);
-        cmd.current_dir(&try_dir)
-            .args(&[&filename, "-o", "out.exe"]);
+        cmd.current_dir(&try_dir).args(&[&filename, "-o", "out.exe"]);
         println!("$ cd {:?}", try_dir);
         println!("$ {:?}", cmd);
         let status = cmd

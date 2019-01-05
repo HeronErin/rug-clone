@@ -658,10 +658,8 @@ impl Integer {
         T: UnsignedPrimitive,
     {
         let digit_count = self.significant_digits::<T>();
-        let zero_count = digits
-            .len()
-            .checked_sub(digit_count)
-            .expect("not enough capacity");
+        let zero_count =
+            digits.len().checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
             let (digits, zeros) = digits.split_at_mut(digit_count);
             (zeros, digits)
@@ -1680,10 +1678,7 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn as_neg(&self) -> BorrowInteger {
-        let mut ret = BorrowInteger {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
+        let mut ret = BorrowInteger { inner: self.inner, phantom: PhantomData };
         ret.inner.size = self.inner.size.checked_neg().expect("overflow");
         ret
     }
@@ -1712,10 +1707,7 @@ impl Integer {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     #[inline]
     pub fn as_abs(&self) -> BorrowInteger {
-        let mut ret = BorrowInteger {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
+        let mut ret = BorrowInteger { inner: self.inner, phantom: PhantomData };
         ret.inner.size = self.inner.size.checked_abs().expect("overflow");
         ret
     }
@@ -2515,11 +2507,7 @@ impl Integer {
             + Assign<&'a Min>
             + Assign<&'a Max>,
     {
-        ClampIncomplete {
-            ref_self: self,
-            min,
-            max,
-        }
+        ClampIncomplete { ref_self: self, min, max }
     }
 
     math_op1! {
@@ -3603,11 +3591,7 @@ impl Integer {
         exponent: &'a Self,
         modulo: &'a Self,
     ) -> SecurePowModIncomplete<'a> {
-        SecurePowModIncomplete {
-            ref_self: self,
-            exponent,
-            modulo,
-        }
+        SecurePowModIncomplete { ref_self: self, exponent, modulo }
     }
 
     math_op0! {
@@ -4449,10 +4433,7 @@ impl Integer {
         &'a self,
         factor: &'a Self,
     ) -> RemoveFactorIncomplete<'a> {
-        RemoveFactorIncomplete {
-            ref_self: self,
-            factor,
-        }
+        RemoveFactorIncomplete { ref_self: self, factor }
     }
 
     math_op0! {
@@ -4862,10 +4843,7 @@ impl Integer {
     where
         'b: 'a,
     {
-        RandomBelowIncomplete {
-            ref_self: self,
-            rng,
-        }
+        RandomBelowIncomplete { ref_self: self, rng }
     }
 }
 
@@ -5681,9 +5659,7 @@ fn parse(
             _ => bradix,
         };
         if digit >= bradix {
-            return Err(Error {
-                kind: Kind::InvalidDigit,
-            });
+            return Err(Error { kind: Kind::InvalidDigit });
         };
         has_digits = true;
         if digit > 0 || !digits.is_empty() {
@@ -5691,15 +5667,9 @@ fn parse(
         }
     }
     if !has_digits {
-        return Err(Error {
-            kind: Kind::NoDigits,
-        });
+        return Err(Error { kind: Kind::NoDigits });
     }
-    Ok(ParseIncomplete {
-        is_negative,
-        digits,
-        radix,
-    })
+    Ok(ParseIncomplete { is_negative, digits, radix })
 }
 
 #[derive(Debug)]

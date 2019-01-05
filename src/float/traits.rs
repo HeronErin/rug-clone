@@ -67,74 +67,53 @@ impl Drop for Float {
 
 impl Display for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            exp: ExpFormat::Point,
-            ..Format::default()
-        };
+        let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl Debug for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            exp: ExpFormat::Point,
-            ..Format::default()
-        };
+        let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl LowerExp for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            exp: ExpFormat::Exp,
-            ..Format::default()
-        };
+        let format = Format { exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl UpperExp for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            to_upper: true,
-            exp: ExpFormat::Exp,
-            ..Format::default()
-        };
+        let format =
+            Format { to_upper: true, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl Binary for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            radix: 2,
-            exp: ExpFormat::Exp,
-            ..Format::default()
-        };
+        let format =
+            Format { radix: 2, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "0b")
     }
 }
 
 impl Octal for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            radix: 8,
-            exp: ExpFormat::Exp,
-            ..Format::default()
-        };
+        let format =
+            Format { radix: 8, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "0o")
     }
 }
 
 impl LowerHex for Float {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        let format = Format {
-            radix: 16,
-            exp: ExpFormat::Exp,
-            ..Format::default()
-        };
+        let format =
+            Format { radix: 16, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "0x")
     }
 }
@@ -372,17 +351,11 @@ fn fmt_radix(
     format: Format,
     prefix: &str,
 ) -> fmt::Result {
-    let format = Format {
-        precision: fmt.precision(),
-        ..format
-    };
+    let format = Format { precision: fmt.precision(), ..format };
     let mut s = String::new();
     big::append_to_string(&mut s, flt, format);
-    let (neg, buf) = if s.starts_with('-') {
-        (true, &s[1..])
-    } else {
-        (false, &s[..])
-    };
+    let (neg, buf) =
+        if s.starts_with('-') { (true, &s[1..]) } else { (false, &s[..]) };
     let prefix = if flt.is_finite() { prefix } else { "" };
     fmt.pad_integral(!neg, prefix, buf)
 }

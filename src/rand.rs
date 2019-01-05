@@ -72,10 +72,7 @@ impl<'a> Clone for RandState<'a> {
             if (*ptr).seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
-            RandState {
-                inner,
-                phantom: PhantomData,
-            }
+            RandState { inner, phantom: PhantomData }
         }
     }
 }
@@ -109,10 +106,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_default(&mut inner);
-            RandState {
-                inner,
-                phantom: PhantomData,
-            }
+            RandState { inner, phantom: PhantomData }
         }
     }
 
@@ -130,10 +124,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_mt(&mut inner);
-            RandState {
-                inner,
-                phantom: PhantomData,
-            }
+            RandState { inner, phantom: PhantomData }
         }
     }
 
@@ -163,10 +154,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
-            RandState {
-                inner,
-                phantom: PhantomData,
-            }
+            RandState { inner, phantom: PhantomData }
         }
     }
 
@@ -198,10 +186,7 @@ impl<'a> RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
-                Some(RandState {
-                    inner,
-                    phantom: PhantomData,
-                })
+                Some(RandState { inner, phantom: PhantomData })
             } else {
                 None
             }
@@ -348,10 +333,7 @@ impl<'a> RandState<'a> {
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
-        RandState {
-            inner: raw,
-            phantom: PhantomData,
-        }
+        RandState { inner: raw, phantom: PhantomData }
     }
 
     /// Converts a random generator into a

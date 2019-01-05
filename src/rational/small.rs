@@ -270,11 +270,8 @@ impl SmallRational {
             &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
         let last =
             &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let (num_d, den_d) = if self.num_is_first() {
-            (first, last)
-        } else {
-            (last, first)
-        };
+        let (num_d, den_d) =
+            if self.num_is_first() { (first, last) } else { (last, first) };
         self.inner.num.d.store(num_d, Ordering::Relaxed);
         self.inner.den.d.store(den_d, Ordering::Relaxed);
     }

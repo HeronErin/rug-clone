@@ -260,11 +260,8 @@ fn fmt_radix(
 ) -> fmt::Result {
     let mut s = String::new();
     big::append_to_string(&mut s, r, radix, to_upper);
-    let (neg, buf) = if s.starts_with('-') {
-        (true, &s[1..])
-    } else {
-        (false, &s[..])
-    };
+    let neg = s.starts_with('-');
+    let buf = if neg { &s[1..] } else { &s[..] };
     f.pad_integral(!neg, prefix, buf)
 }
 

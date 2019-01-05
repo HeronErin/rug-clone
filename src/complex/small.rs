@@ -165,11 +165,8 @@ impl SmallComplex {
             &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
         let last =
             &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let (re_d, im_d) = if self.re_is_first() {
-            (first, last)
-        } else {
-            (last, first)
-        };
+        let (re_d, im_d) =
+            if self.re_is_first() { (first, last) } else { (last, first) };
         self.inner.re.d.store(re_d, Ordering::Relaxed);
         self.inner.im.d.store(im_d, Ordering::Relaxed);
     }

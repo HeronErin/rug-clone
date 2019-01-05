@@ -92,30 +92,21 @@ where
 
 impl Display for Complex {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        let format = Format {
-            exp: ExpFormat::Point,
-            ..Format::default()
-        };
+        let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format)
     }
 }
 
 impl Debug for Complex {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        let format = Format {
-            exp: ExpFormat::Point,
-            ..Format::default()
-        };
+        let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format)
     }
 }
 
 impl LowerExp for Complex {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        let format = Format {
-            exp: ExpFormat::Exp,
-            ..Format::default()
-        };
+        let format = Format { exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format)
     }
 }
