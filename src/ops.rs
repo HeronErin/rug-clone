@@ -159,7 +159,7 @@ pub trait SubFrom<Lhs = Self> {
     /// use rug::ops::SubFrom;
     /// let mut rhs = Integer::from(10);
     /// rhs.sub_from(100);
-    /// // rhs = 100 - 10
+    /// // rhs = 100 − 10
     /// assert_eq!(rhs, 90);
     /// # }
     /// ```
@@ -190,7 +190,7 @@ let matrix_left = ColumnVec(1, -2);
 let matrix_right = ColumnVec(3, -1);
 let matrix = SquareMatrix(matrix_left, matrix_right);
 // ( 1   3) ( 2) = ( 92)
-// (-2  -1) (30)   (-34)
+// (−2  −1) (30)   (−34)
 col.mul_from(&matrix);
 assert_eq!(col.0, 92);
 assert_eq!(col.1, -34);
@@ -207,7 +207,7 @@ pub trait MulFrom<Lhs = Self> {
     /// use rug::ops::MulFrom;
     /// let mut rhs = Integer::from(5);
     /// rhs.mul_from(50);
-    /// // rhs = 50 * 5
+    /// // rhs = 50 × 5
     /// assert_eq!(rhs, 250);
     /// # }
     /// ```
@@ -245,7 +245,7 @@ pub trait DivFrom<Lhs = Self> {
     /// use rug::ops::DivFrom;
     /// let mut rhs = Integer::from(5);
     /// rhs.div_from(50);
-    /// // rhs = 50 / 5
+    /// // rhs = 50 ∕ 5
     /// assert_eq!(rhs, 10);
     /// # }
     /// ```
@@ -283,7 +283,7 @@ pub trait RemFrom<Lhs = Self> {
     /// use rug::ops::RemFrom;
     /// let mut rhs = Integer::from(2);
     /// rhs.rem_from(17);
-    /// // rhs = 17 / 2
+    /// // rhs = 17 ∕ 2
     /// assert_eq!(rhs, 1);
     /// # }
     /// ```
@@ -591,7 +591,7 @@ pub trait PowFrom<Lhs = Self> {
     /// use rug::ops::PowFrom;
     /// let mut rhs = Float::with_val(53, 5);
     /// rhs.pow_from(10);
-    /// // rhs = 10 ** 5
+    /// // rhs = 10 ^ 5
     /// assert_eq!(rhs, 100_000);
     /// # }
     /// ```
@@ -702,7 +702,7 @@ pub trait AddAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.add_assign_round(-0.3, Round::Nearest);
-    /// // -3.3 rounded up to -3.25
+    /// // −3.3 rounded up to −3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -763,7 +763,7 @@ pub trait AddFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -0.3);
     /// let dir = f.add_from_round(-3, Round::Nearest);
-    /// // -3.3 rounded up to -3.25
+    /// // −3.3 rounded up to −3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -824,7 +824,7 @@ pub trait SubAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.sub_assign_round(0.3, Round::Nearest);
-    /// // -3.3 rounded up to -3.25
+    /// // −3.3 rounded up to −3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -885,7 +885,7 @@ pub trait SubFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 0.3);
     /// let dir = f.sub_from_round(-3, Round::Nearest);
-    /// // -3.3 rounded up to -3.25
+    /// // −3.3 rounded up to −3.25
     /// assert_eq!(f, -3.25);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -922,7 +922,7 @@ impl MulAssignRound<f64> for F {
 }
 let mut f = F(3.0);
 let dir = f.mul_assign_round(5.0, Round::Nearest);
-// 3.0 * 5.0 = 15.0
+// 3.0 × 5.0 = 15.0
 assert_eq!(f.0, 15.0);
 assert_eq!(dir, Ordering::Equal);
 # }
@@ -946,7 +946,7 @@ pub trait MulAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.mul_assign_round(13, Round::Nearest);
-    /// // -39 rounded down to -40
+    /// // −39 rounded down to −40
     /// assert_eq!(f, -40);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -983,7 +983,7 @@ impl MulFromRound<f64> for F {
 }
 let mut f = F(5.0);
 let dir = f.mul_from_round(3.0, Round::Nearest);
-// 3.0 * 5.0 = 15.0
+// 3.0 × 5.0 = 15.0
 assert_eq!(f.0, 15.0);
 assert_eq!(dir, Ordering::Equal);
 # }
@@ -1007,7 +1007,7 @@ pub trait MulFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 13);
     /// let dir = f.mul_from_round(-3, Round::Nearest);
-    /// // -39 rounded down to -40
+    /// // −39 rounded down to −40
     /// assert_eq!(f, -40);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1043,7 +1043,7 @@ impl DivAssignRound<f64> for F {
 }
 let mut f = F(3.0);
 let dir = f.div_assign_round(4.0, Round::Nearest);
-// 3.0 / 4.0 = 0.75
+// 3.0 ∕ 4.0 = 0.75
 assert_eq!(f.0, 0.75);
 assert_eq!(dir, Ordering::Equal);
 # }
@@ -1067,7 +1067,7 @@ pub trait DivAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.div_assign_round(5, Round::Nearest);
-    /// // -0.6 rounded down to -0.625
+    /// // −0.6 rounded down to −0.625
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1104,7 +1104,7 @@ impl DivFromRound<f64> for F {
 }
 let mut f = F(4.0);
 let dir = f.div_from_round(3.0, Round::Nearest);
-// 3.0 / 4.0 = 0.75
+// 3.0 ∕ 4.0 = 0.75
 assert_eq!(f.0, 0.75);
 assert_eq!(dir, Ordering::Equal);
 # }
@@ -1128,7 +1128,7 @@ pub trait DivFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
     /// let dir = f.div_from_round(-3, Round::Nearest);
-    /// // -0.6 rounded down to -0.625
+    /// // −0.6 rounded down to −0.625
     /// assert_eq!(f, -0.625);
     /// assert_eq!(dir, Ordering::Less);
     /// # }
@@ -1189,7 +1189,7 @@ pub trait PowAssignRound<Rhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
     /// let dir = f.pow_assign_round(5, Round::Nearest);
-    /// // -243 rounded up to -240
+    /// // −243 rounded up to −240
     /// assert_eq!(f, -240);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
@@ -1250,7 +1250,7 @@ pub trait PowFromRound<Lhs = Self> {
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
     /// let dir = f.pow_from_round(-3, Round::Nearest);
-    /// // -243 rounded up to -240
+    /// // −243 rounded up to −240
     /// assert_eq!(f, -240);
     /// assert_eq!(dir, Ordering::Greater);
     /// # }

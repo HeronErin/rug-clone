@@ -92,7 +92,7 @@ i -= 1;
 assert_eq!(i.count_ones(), Some(1000));
 
 let a = Integer::from(0xf00d);
-// -1 is all ones in two’s complement
+// −1 is all ones in two’s complement
 let all_ones_xor_a = Integer::from(-1 ^ &a);
 // a is unchanged as we borrowed it
 let complement_a = !a;
@@ -140,12 +140,12 @@ use rug::Integer;
 let mut acc = Integer::from(100);
 let m1 = Integer::from(3);
 let m2 = Integer::from(7);
-// 100 + 3 * 7 = 121
+// 100 + 3 × 7 = 121
 acc += &m1 * &m2;
 assert_eq!(acc, 121);
 let other = Integer::from(2000);
 // Do not consume any values here:
-// 2000 - 3 * 7 = 1979
+// 2000 − 3 × 7 = 1979
 let sub = Integer::from(&other - &m1 * &m2);
 assert_eq!(sub, 1979);
 ```
@@ -1883,7 +1883,7 @@ impl Integer {
     /// assert!(Integer::from(0).is_perfect_power());
     /// // 25 is 5 to the power of 2
     /// assert!(Integer::from(25).is_perfect_power());
-    /// // -243 is -3 to the power of 5
+    /// // −243 is −3 to the power of 5
     /// assert!(Integer::from(243).is_perfect_power());
     ///
     /// assert!(!Integer::from(24).is_perfect_power());
@@ -2063,7 +2063,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// // -2 is ...11111110
+    /// // −2 is ...11111110
     /// assert_eq!(Integer::from(-2).find_zero(0), Some(0));
     /// assert_eq!(Integer::from(-2).find_zero(1), None);
     /// // 15 is ...00001111
@@ -2083,7 +2083,7 @@ impl Integer {
     /// // 1 is ...00000001
     /// assert_eq!(Integer::from(1).find_one(0), Some(0));
     /// assert_eq!(Integer::from(1).find_one(1), None);
-    /// // -16 is ...11110000
+    /// // −16 is ...11110000
     /// assert_eq!(Integer::from(-16).find_one(0), Some(4));
     /// assert_eq!(Integer::from(-16).find_one(20), Some(20));
     /// ```
@@ -2171,7 +2171,7 @@ impl Integer {
     /// let i = Integer::from(-1);
     /// assert_eq!(Integer::from(0).hamming_dist(&i), None);
     /// assert_eq!(Integer::from(-1).hamming_dist(&i), Some(0));
-    /// // -1 is ...11111111 and -13 is ...11110011
+    /// // −1 is ...11111111 and −13 is ...11110011
     /// assert_eq!(Integer::from(-13).hamming_dist(&i), Some(2));
     /// ```
     #[inline]
@@ -2909,13 +2909,13 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // 23 / -10 -> -2 rem 3
+        /// // 23 ∕ −10 → −2 rem 3
         /// let (q, rem) = Integer::from(23).div_rem_round((-10).into());
         /// assert!(q == -2 && rem == 3);
-        /// // 25 / 10 -> 3 rem -5
+        /// // 25 ∕ 10 → 3 rem −5
         /// let (q, rem) = Integer::from(25).div_rem_round(10.into());
         /// assert!(q == 3 && rem == -5);
-        /// // -27 / 10 -> -3 rem 3
+        /// // −27 ∕ 10 → −3 rem 3
         /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
         /// assert!(q == -3 && rem == 3);
         /// ```
@@ -2935,7 +2935,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // -25 / -10 -> 3 rem 5
+        /// // −25 ∕ −10 → 3 rem 5
         /// let mut dividend_quotient = Integer::from(-25);
         /// let mut divisor_rem = Integer::from(-10);
         /// dividend_quotient.div_rem_round_mut(&mut divisor_rem);
@@ -2960,7 +2960,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // -28 / -10 -> 3 rem 2
+        /// // −28 ∕ −10 → 3 rem 2
         /// let dividend = Integer::from(-28);
         /// let divisor = Integer::from(-10);
         /// let r = dividend.div_rem_round_ref(&divisor);
@@ -3209,7 +3209,7 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// let n = Integer::from(2);
-    /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
+    /// // Modulo 4, 2 has no inverse: there is no i such that 2 × i = 1.
     /// let inv_mod_4 = match n.invert(&Integer::from(4)) {
     ///     Ok(_) => unreachable!(),
     ///     Err(unchanged) => unchanged,
@@ -3217,7 +3217,7 @@ impl Integer {
     /// // no inverse exists, so value is unchanged
     /// assert_eq!(inv_mod_4, 2);
     /// let n = inv_mod_4;
-    /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
+    /// // Modulo 5, the inverse of 2 is 3, as 2 × 3 = 1.
     /// let inv_mod_5 = match n.invert(&Integer::from(5)) {
     ///     Ok(inverse) => inverse,
     ///     Err(_) => unreachable!(),
@@ -3245,12 +3245,12 @@ impl Integer {
     /// ```rust
     /// use rug::Integer;
     /// let mut n = Integer::from(2);
-    /// // Modulo 4, 2 has no inverse: there is no x such that 2 * x = 1.
+    /// // Modulo 4, 2 has no inverse: there is no i such that 2 × i = 1.
     /// match n.invert_mut(&Integer::from(4)) {
     ///     Ok(()) => unreachable!(),
     ///     Err(()) => assert_eq!(n, 2),
     /// }
-    /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
+    /// // Modulo 5, the inverse of 2 is 3, as 2 × 3 = 1.
     /// match n.invert_mut(&Integer::from(5)) {
     ///     Ok(()) => assert_eq!(n, 3),
     ///     Err(()) => unreachable!(),
@@ -3285,12 +3285,12 @@ impl Integer {
     /// let four = Integer::from(4);
     /// let five = Integer::from(5);
     ///
-    /// // Modulo 4, 2 has no inverse, there is no x such that 2 * x = 1.
+    /// // Modulo 4, 2 has no inverse, there is no i such that 2 × i = 1.
     /// // For this conversion, if no inverse exists, the Integer
     /// // created is left unchanged as 0.
     /// assert!(two.invert_ref(&four).is_none());
     ///
-    /// // Modulo 5, the inverse of 2 is 3, as 2 * 3 = 1.
+    /// // Modulo 5, the inverse of 2 is 3, as 2 × 3 = 1.
     /// let r = two.invert_ref(&five).unwrap();
     /// let inverse = Integer::from(r);
     /// assert_eq!(inverse, 3);
@@ -3344,8 +3344,8 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::Integer;
-    /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
-    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// // 7 × 143 modulo 1000 = 1, so 7 has an inverse 143.
+    /// // 7 ^ −5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// let n = Integer::from(7);
     /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
@@ -3380,7 +3380,7 @@ impl Integer {
     ///
     /// ```rust
     /// use rug::{Assign, Integer};
-    /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
+    /// // Modulo 1000, 2 has no inverse: there is no i such that 2 × i = 1.
     /// let mut n = Integer::from(2);
     /// let e = Integer::from(-5);
     /// let m = Integer::from(1000);
@@ -3388,8 +3388,8 @@ impl Integer {
     ///     Ok(()) => unreachable!(),
     ///     Err(()) => assert_eq!(n, 2),
     /// }
-    /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
-    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// // 7 × 143 modulo 1000 = 1, so 7 has an inverse 143.
+    /// // 7 ^ −5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// n.assign(7);
     /// match n.pow_mod_mut(&e, &m) {
     ///     Ok(()) => assert_eq!(n, 943),
@@ -3437,11 +3437,11 @@ impl Integer {
     /// let minus_five = Integer::from(-5);
     /// let seven = Integer::from(7);
     ///
-    /// // Modulo 1000, 2 has no inverse: there is no x such that 2 * x =  1.
+    /// // Modulo 1000, 2 has no inverse: there is no i such that 2 × i = 1.
     /// assert!(two.pow_mod_ref(&minus_five, &thousand).is_none());
     ///
-    /// // 7 * 143 modulo 1000 = 1, so 7 has an inverse 143.
-    /// // 7 ^ -5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
+    /// // 7 × 143 modulo 1000 = 1, so 7 has an inverse 143.
+    /// // 7 ^ −5 modulo 1000 = 143 ^ 5 modulo 1000 = 943.
     /// let r = seven.pow_mod_ref(&minus_five, &thousand).unwrap();
     /// let power = Integer::from(r);
     /// assert_eq!(power, 943);
@@ -4120,8 +4120,8 @@ impl Integer {
         /// *a* × *s* + *b* × *t* = *g*
         ///
         /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
+        /// |<i>s</i>| < |<i>b</i>| ∕ (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| ∕ (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
         ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
@@ -4156,8 +4156,8 @@ impl Integer {
         /// *a* × *s* + *b* × *t* = *g*
         ///
         /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
+        /// |<i>s</i>| < |<i>b</i>| ∕ (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| ∕ (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
         ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
@@ -4203,8 +4203,8 @@ impl Integer {
         /// *a* × *s* + *b* × *t* = *g*
         ///
         /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
+        /// |<i>s</i>| < |<i>b</i>| ∕ (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| ∕ (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
         ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
@@ -4460,7 +4460,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+        /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
         /// let f = Integer::factorial(10);
         /// let i = Integer::from(f);
         /// assert_eq!(i, 3628800);
@@ -4483,7 +4483,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // 10 * 8 * 6 * 4 * 2
+        /// // 10 × 8 × 6 × 4 × 2
         /// let f = Integer::factorial_2(10);
         /// let i = Integer::from(f);
         /// assert_eq!(i, 3840);
@@ -4506,7 +4506,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // 10 * 7 * 4 * 1
+        /// // 10 × 7 × 4 × 1
         /// let f = Integer::factorial_m(10, 3);
         /// let i = Integer::from(f);
         /// assert_eq!(i, 280);
@@ -4529,7 +4529,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // 7 * 5 * 3 * 2
+        /// // 7 × 5 × 3 × 2
         /// let p = Integer::primorial(10);
         /// let i = Integer::from(p);
         /// assert_eq!(i, 210);
@@ -4662,7 +4662,7 @@ impl Integer {
         /// let mut pair = <(Integer, Integer)>::from(f);
         /// assert_eq!(pair.0, 144);
         /// assert_eq!(pair.1, 89);
-        /// // Fibonacci number F[-1] is 1
+        /// // Fibonacci number F[−1] is 1
         /// pair.assign(Integer::fibonacci_2(0));
         /// assert_eq!(pair.0, 0);
         /// assert_eq!(pair.1, 1);
