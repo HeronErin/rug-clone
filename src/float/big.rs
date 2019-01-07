@@ -250,7 +250,7 @@ let mut u = Float::new(200);
 for i in 1..101_u32 {
     // multiply t by i in place, round towards +∞
     t.mul_assign_round(i, Round::Up);
-    // set u to 1∕t, round towards −∞
+    // set u to 1/t, round towards −∞
     u.assign_round(t.recip_ref(), Round::Down);
     // increase s by u in place, round towards −∞
     s.add_assign_round(&u, Round::Down);
@@ -955,7 +955,7 @@ impl Float {
     /// use std::cmp::Ordering;
     /// use std::str::FromStr;
     ///
-    /// // Consider the number 123,456,789 ∕ 10,000,000,000.
+    /// // Consider the number 123,456,789 / 10,000,000,000.
     /// let parse = Float::parse("0.0123456789").unwrap();
     /// let (f, f_rounding) = Float::with_val_round(35, parse, Round::Down);
     /// assert_eq!(f_rounding, Ordering::Less);
@@ -2981,8 +2981,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, 5.0);
-        /// // 1 ∕ √5 in binary is 0.01110010...
-        /// // 1 ∕ √5 is rounded to 0.4375 (0.01110).
+        /// // 1 / √5 in binary is 0.01110010...
+        /// // 1 / √5 is rounded to 0.4375 (0.01110).
         /// let dir = f.recip_sqrt_round(Round::Nearest);
         /// assert_eq!(f, 0.4375);
         /// assert_eq!(dir, Ordering::Less);
@@ -3469,8 +3469,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, -5.0);
-        /// // 1∕5 in binary is 0.00110011...
-        /// // 1∕5 is rounded to 0.203125 (0.001101).
+        /// // 1/5 in binary is 0.00110011...
+        /// // 1/5 is rounded to 0.203125 (0.001101).
         /// let dir = f.recip_round(Round::Nearest);
         /// assert_eq!(f, -0.203125);
         /// assert_eq!(dir, Ordering::Less);
@@ -6152,12 +6152,12 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of 1∕2 is √π
+    /// // gamma of 1/2 is √π
     /// let ln_gamma_64 = Float::with_val(64, Constant::Pi).sqrt().ln();
     ///
     /// let f = Float::with_val(53, 0.5);
     /// let (ln_gamma, sign) = f.ln_abs_gamma();
-    /// // gamma of 1∕2 is positive
+    /// // gamma of 1/2 is positive
     /// assert_eq!(sign, Ordering::Greater);
     /// // check to 53 significant bits
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
@@ -6171,13 +6171,13 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of −1∕2 is −2√π
+    /// // gamma of −1/2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let f = Float::with_val(53, -0.5);
     /// let (ln_gamma, sign) = f.ln_abs_gamma();
-    /// // gamma of −1∕2 is negative
+    /// // gamma of −1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
@@ -6201,13 +6201,13 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of −1∕2 is −2√π
+    /// // gamma of −1/2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let mut f = Float::with_val(53, -0.5);
     /// let sign = f.ln_abs_gamma_mut();
-    /// // gamma of −1∕2 is negative
+    /// // gamma of −1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
@@ -6232,13 +6232,13 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of −1∕2 is −2√π
+    /// // gamma of −1/2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let mut f = Float::with_val(53, -0.5);
     /// let (sign, dir) = f.ln_abs_gamma_round(Round::Nearest);
-    /// // gamma of −1∕2 is negative
+    /// // gamma of −1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check is correct to 53 significant bits
     /// let (check, check_dir) =
@@ -6284,7 +6284,7 @@ impl Float {
     /// use std::cmp::Ordering;
     ///
     /// let neg1_2 = Float::with_val(53, -0.5);
-    /// // gamma of −1∕2 is −2√π
+    /// // gamma of −1/2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
@@ -6292,7 +6292,7 @@ impl Float {
     /// let r = neg1_2.ln_abs_gamma_ref();
     /// let (mut f, mut sign) = (Float::new(53), Ordering::Equal);
     /// (&mut f, &mut sign).assign(r);
-    /// // gamma of −1∕2 is negative
+    /// // gamma of −1/2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));

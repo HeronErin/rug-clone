@@ -1987,7 +1987,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let c = Complex::with_val(53, (1, 1));
-        /// // 1∕(1 + i) = (0.5 − 0.5i)
+        /// // 1/(1 + i) = (0.5 − 0.5i)
         /// let recip = c.recip();
         /// assert_eq!(recip, (0.5, -0.5));
         /// ```
@@ -1999,7 +1999,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let mut c = Complex::with_val(53, (1, 1));
-        /// // 1∕(1 + i) = (0.5 − 0.5i)
+        /// // 1/(1 + i) = (0.5 − 0.5i)
         /// c.recip_mut();
         /// assert_eq!(c, (0.5, -0.5));
         /// ```
@@ -2014,8 +2014,8 @@ impl Complex {
         /// use rug::float::Round;
         /// use std::cmp::Ordering;
         /// let mut c = Complex::with_val(4, (1, 2));
-        /// // 1∕(1 + 2i) = (0.2 − 0.4i), binary (0.00110011..., −0.01100110...)
-        /// // 4 bits of precision: (0.001101, −0.01101) = (13∕64, −13∕32)
+        /// // 1/(1 + 2i) = (0.2 − 0.4i), binary (0.00110011..., −0.01100110...)
+        /// // 4 bits of precision: (0.001101, −0.01101) = (13/64, −13/32)
         /// let dir = c.recip_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (13.0/64.0, -13.0/32.0));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
@@ -2033,7 +2033,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let c = Complex::with_val(53, (1, 1));
-        /// // 1∕(1 + i) = (0.5 − 0.5i)
+        /// // 1/(1 + i) = (0.5 − 0.5i)
         /// let recip = Complex::with_val(53, c.recip_ref());
         /// assert_eq!(recip, (0.5, -0.5));
         /// ```
@@ -2272,7 +2272,7 @@ impl Complex {
         ///
         /// The generated number is the <i>n</i>th root of unity
         /// raised to the power *k*, that is its magnitude is 1 and
-        /// its argument is 2π<i>k</i>∕<i>n</i>.
+        /// its argument is 2π<i>k</i>/<i>n</i>.
         ///
         /// [`Assign<Src> for Complex`][`Assign`] and
         /// [`AssignRound<Src> for Complex`][`AssignRound`] are
