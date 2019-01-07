@@ -245,7 +245,7 @@ pub trait DivFrom<Lhs = Self> {
     /// use rug::ops::DivFrom;
     /// let mut rhs = Integer::from(5);
     /// rhs.div_from(50);
-    /// // rhs = 50 ∕ 5
+    /// // rhs = 50 / 5
     /// assert_eq!(rhs, 10);
     /// # }
     /// ```
@@ -283,7 +283,7 @@ pub trait RemFrom<Lhs = Self> {
     /// use rug::ops::RemFrom;
     /// let mut rhs = Integer::from(2);
     /// rhs.rem_from(17);
-    /// // rhs = 17 ∕ 2
+    /// // rhs = 17 / 2
     /// assert_eq!(rhs, 1);
     /// # }
     /// ```
@@ -1043,7 +1043,7 @@ impl DivAssignRound<f64> for F {
 }
 let mut f = F(3.0);
 let dir = f.div_assign_round(4.0, Round::Nearest);
-// 3.0 ∕ 4.0 = 0.75
+// 3.0 / 4.0 = 0.75
 assert_eq!(f.0, 0.75);
 assert_eq!(dir, Ordering::Equal);
 # }
@@ -1104,7 +1104,7 @@ impl DivFromRound<f64> for F {
 }
 let mut f = F(4.0);
 let dir = f.div_from_round(3.0, Round::Nearest);
-// 3.0 ∕ 4.0 = 0.75
+// 3.0 / 4.0 = 0.75
 assert_eq!(f.0, 0.75);
 assert_eq!(dir, Ordering::Equal);
 # }

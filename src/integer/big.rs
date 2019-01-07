@@ -2903,13 +2903,13 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // 23 ∕ −10 → −2 rem 3
+        /// // 23 / −10 → −2 rem 3
         /// let (q, rem) = Integer::from(23).div_rem_round((-10).into());
         /// assert!(q == -2 && rem == 3);
-        /// // 25 ∕ 10 → 3 rem −5
+        /// // 25 / 10 → 3 rem −5
         /// let (q, rem) = Integer::from(25).div_rem_round(10.into());
         /// assert!(q == 3 && rem == -5);
-        /// // −27 ∕ 10 → −3 rem 3
+        /// // −27 / 10 → −3 rem 3
         /// let (q, rem) = Integer::from(-27).div_rem_round(10.into());
         /// assert!(q == -3 && rem == 3);
         /// ```
@@ -2929,7 +2929,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // −25 ∕ −10 → 3 rem 5
+        /// // −25 / −10 → 3 rem 5
         /// let mut dividend_quotient = Integer::from(-25);
         /// let mut divisor_rem = Integer::from(-10);
         /// dividend_quotient.div_rem_round_mut(&mut divisor_rem);
@@ -2954,7 +2954,7 @@ impl Integer {
         ///
         /// ```rust
         /// use rug::Integer;
-        /// // −28 ∕ −10 → 3 rem 2
+        /// // −28 / −10 → 3 rem 2
         /// let dividend = Integer::from(-28);
         /// let divisor = Integer::from(-10);
         /// let r = dividend.div_rem_round_ref(&divisor);
@@ -4110,8 +4110,8 @@ impl Integer {
         /// *a* × *s* + *b* × *t* = *g*
         ///
         /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| ∕ (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| ∕ (2<i>g</i>), and these relations define *s*
+        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
         ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
@@ -4146,8 +4146,8 @@ impl Integer {
         /// *a* × *s* + *b* × *t* = *g*
         ///
         /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| ∕ (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| ∕ (2<i>g</i>), and these relations define *s*
+        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
         ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
@@ -4193,8 +4193,8 @@ impl Integer {
         /// *a* × *s* + *b* × *t* = *g*
         ///
         /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| ∕ (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| ∕ (2<i>g</i>), and these relations define *s*
+        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
+        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
         /// and *t* uniquely. There are a few exceptional cases:
         ///
         ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
