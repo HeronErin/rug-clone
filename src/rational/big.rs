@@ -430,7 +430,7 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     /// use std::f32;
-    /// // -17.125 can be stored exactly as f32
+    /// // −17.125 can be stored exactly as f32
     /// let r = Rational::from_f32(-17.125).unwrap();
     /// assert_eq!(r, (-17125, 1000));
     /// let inf = Rational::from_f32(f32::INFINITY);
@@ -457,7 +457,7 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     /// use std::f64;
-    /// // -17.125 can be stored exactly as f64
+    /// // −17.125 can be stored exactly as f64
     /// let r = Rational::from_f64(-17.125).unwrap();
     /// assert_eq!(r, (-17125, 1000));
     /// let inf = Rational::from_f64(f64::INFINITY);
@@ -763,7 +763,7 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     ///
-    /// // -3 / 5 is in canonical form
+    /// // −3∕5 is in canonical form
     /// let r = unsafe { Rational::from_canonical(-3, 5) };
     /// assert_eq!(r, (-3, 5));
     /// ```
@@ -798,7 +798,7 @@ impl Rational {
     /// use rug::Rational;
     ///
     /// let mut r = Rational::new();
-    /// // -3 / 5 is in canonical form
+    /// // −3∕5 is in canonical form
     /// unsafe {
     ///     r.assign_canonical(-3, 5);
     /// }
@@ -822,7 +822,7 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     /// let r = Rational::from((12, -20));
-    /// // r will be canonicalized to -3 / 5
+    /// // r will be canonicalized to −3∕5
     /// assert_eq!(*r.numer(), -3)
     /// ```
     ///
@@ -839,7 +839,7 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     /// let r = Rational::from((12, -20));
-    /// // r will be canonicalized to -3 / 5
+    /// // r will be canonicalized to −3∕5
     /// assert_eq!(*r.denom(), 5);
     /// ```
     ///
@@ -864,7 +864,7 @@ impl Rational {
     /// use rug::Rational;
     /// let mut r = Rational::from((3, 5));
     /// r.mutate_numer_denom(|num, den| {
-    ///     // change r from 3/5 to 4/8, which is equal to 1/2
+    ///     // change r from 3∕5 to 4∕8, which is equal to 1∕2
     ///     *num += 1;
     ///     *den += 3;
     /// });
@@ -885,11 +885,11 @@ impl Rational {
     ///     *r.as_mut_numer_denom_no_canonicalization().0 += 1;
     ///     *r.as_mut_numer_denom_no_canonicalization().1 -= 13;
     /// }
-    /// // At this point, r is still not canonical: 4 / -8
+    /// // At this point, r is still not canonical: 4 ∕ −8
     /// assert_eq!(*r.numer(), 4);
     /// assert_eq!(*r.denom(), -8);
     /// r.mutate_numer_denom(|_, _| {});
-    /// // Now r is in canonical form: -1 / 2
+    /// // Now r is in canonical form: −1 ∕ 2
     /// assert_eq!(*r.numer(), -1);
     /// assert_eq!(*r.denom(), 2);
     /// ```
@@ -952,11 +952,11 @@ impl Rational {
     ///     // second operation: subtract 13 from denominator
     ///     *r.as_mut_numer_denom_no_canonicalization().1 -= 13;
     /// }
-    /// // At this point, r is still not canonical: 4 / -8
+    /// // At this point, r is still not canonical: 4 ∕ −8
     /// assert_eq!(*r.numer(), 4);
     /// assert_eq!(*r.denom(), -8);
     /// r.mutate_numer_denom(|_, _| {});
-    /// // Now r is in canonical form: -1 / 2
+    /// // Now r is in canonical form: −1 ∕ 2
     /// assert_eq!(*r.numer(), -1);
     /// assert_eq!(*r.denom(), 2);
     /// ```
@@ -982,7 +982,7 @@ impl Rational {
     /// ```rust
     /// use rug::Rational;
     /// let r = Rational::from((12, -20));
-    /// // r will be canonicalized to -3 / 5
+    /// // r will be canonicalized to −3∕5
     /// let (num, den) = r.into_numer_denom();
     /// assert_eq!(num, -3);
     /// assert_eq!(den, 5);
@@ -1541,7 +1541,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.7
+        /// // −3.7
         /// let r1 = Rational::from((-37, 10));
         /// let trunc1 = r1.trunc();
         /// assert_eq!(trunc1, -3);
@@ -1557,7 +1557,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Rational};
-        /// // -3.7
+        /// // −3.7
         /// let mut r = Rational::from((-37, 10));
         /// r.trunc_mut();
         /// assert_eq!(r, -3);
@@ -1580,7 +1580,7 @@ impl Rational {
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
         /// let mut trunc = Integer::new();
-        /// // -3.7
+        /// // −3.7
         /// let r1 = Rational::from((-37, 10));
         /// trunc.assign(r1.trunc_ref());
         /// assert_eq!(trunc, -3);
@@ -1604,7 +1604,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -5 - 15/17
+        /// // −100∕17 = −5 − 15∕17
         /// let r = Rational::from((-100, 17));
         /// let rem = r.rem_trunc();
         /// assert_eq!(rem, (-15, 17));
@@ -1616,7 +1616,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -5 - 15/17
+        /// // −100∕17 = −5 − 15∕17
         /// let mut r = Rational::from((-100, 17));
         /// r.rem_trunc_mut();
         /// assert_eq!(r, (-15, 17));
@@ -1632,7 +1632,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -5 - 15/17
+        /// // −100∕17 = −5 − 15∕17
         /// let r = Rational::from((-100, 17));
         /// let r_ref = r.rem_trunc_ref();
         /// let rem = Rational::from(r_ref);
@@ -1654,7 +1654,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // -100/17 = -5 - 15/17
+        /// // −100∕17 = −5 − 15∕17
         /// let r = Rational::from((-100, 17));
         /// let (fract, trunc) = r.fract_trunc(Integer::new());
         /// assert_eq!(fract, (-15, 17));
@@ -1669,7 +1669,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // -100/17 = -5 - 15/17
+        /// // −100∕17 = −5 − 15∕17
         /// let mut r = Rational::from((-100, 17));
         /// let mut whole = Integer::new();
         /// r.fract_trunc_mut(&mut whole);
@@ -1689,7 +1689,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
-        /// // -100/17 = -5 - 15/17
+        /// // −100∕17 = −5 − 15∕17
         /// let r = Rational::from((-100, 17));
         /// let r_ref = r.fract_trunc_ref();
         /// let (mut fract, mut trunc) = (Rational::new(), Integer::new());
@@ -1711,7 +1711,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.7
+        /// // −3.7
         /// let r1 = Rational::from((-37, 10));
         /// let ceil1 = r1.ceil();
         /// assert_eq!(ceil1, -3);
@@ -1727,7 +1727,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Rational};
-        /// // -3.7
+        /// // −3.7
         /// let mut r = Rational::from((-37, 10));
         /// r.ceil_mut();
         /// assert_eq!(r, -3);
@@ -1750,7 +1750,7 @@ impl Rational {
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
         /// let mut ceil = Integer::new();
-        /// // -3.7
+        /// // −3.7
         /// let r1 = Rational::from((-37, 10));
         /// ceil.assign(r1.ceil_ref());
         /// assert_eq!(ceil, -3);
@@ -1773,7 +1773,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // 100/17 = 6 - 2/17
+        /// // 100∕17 = 6 − 2∕17
         /// let r = Rational::from((100, 17));
         /// let rem = r.rem_ceil();
         /// assert_eq!(rem, (-2, 17));
@@ -1785,7 +1785,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // 100/17 = 6 - 2/17
+        /// // 100∕17 = 6 − 2∕17
         /// let mut r = Rational::from((100, 17));
         /// r.rem_ceil_mut();
         /// assert_eq!(r, (-2, 17));
@@ -1801,7 +1801,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // 100/17 = 6 - 2/17
+        /// // 100∕17 = 6 − 2∕17
         /// let r = Rational::from((100, 17));
         /// let r_ref = r.rem_ceil_ref();
         /// let rem = Rational::from(r_ref);
@@ -1824,7 +1824,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // 100/17 = 6 - 2/17
+        /// // 100∕17 = 6 − 2∕17
         /// let r = Rational::from((100, 17));
         /// let (fract, ceil) = r.fract_ceil(Integer::new());
         /// assert_eq!(fract, (-2, 17));
@@ -1840,7 +1840,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // 100/17 = 6 - 2/17
+        /// // 100∕17 = 6 − 2∕17
         /// let mut r = Rational::from((100, 17));
         /// let mut ceil = Integer::new();
         /// r.fract_ceil_mut(&mut ceil);
@@ -1862,7 +1862,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
-        /// // 100/17 = 6 - 2/17
+        /// // 100∕17 = 6 − 2∕17
         /// let r = Rational::from((100, 17));
         /// let r_ref = r.fract_ceil_ref();
         /// let (mut fract, mut ceil) = (Rational::new(), Integer::new());
@@ -1884,7 +1884,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.7
+        /// // −3.7
         /// let r1 = Rational::from((-37, 10));
         /// let floor1 = r1.floor();
         /// assert_eq!(floor1, -4);
@@ -1898,7 +1898,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Rational};
-        /// // -3.7
+        /// // −3.7
         /// let mut r = Rational::from((-37, 10));
         /// r.floor_mut();
         /// assert_eq!(r, -4);
@@ -1921,7 +1921,7 @@ impl Rational {
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
         /// let mut floor = Integer::new();
-        /// // -3.7
+        /// // −3.7
         /// let r1 = Rational::from((-37, 10));
         /// floor.assign(r1.floor_ref());
         /// assert_eq!(floor, -4);
@@ -1944,7 +1944,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -6 + 2/17
+        /// // −100∕17 = −6 + 2∕17
         /// let r = Rational::from((-100, 17));
         /// let rem = r.rem_floor();
         /// assert_eq!(rem, (2, 17));
@@ -1956,7 +1956,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -6 + 2/17
+        /// // −100∕17 = −6 + 2∕17
         /// let mut r = Rational::from((-100, 17));
         /// r.rem_floor_mut();
         /// assert_eq!(r, (2, 17));
@@ -1972,7 +1972,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -100/17 = -6 + 2/17
+        /// // −100∕17 = −6 + 2∕17
         /// let r = Rational::from((-100, 17));
         /// let r_ref = r.rem_floor_ref();
         /// let rem = Rational::from(r_ref);
@@ -1995,7 +1995,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // -100/17 = -6 + 2/17
+        /// // −100∕17 = −6 + 2∕17
         /// let r = Rational::from((-100, 17));
         /// let (fract, floor) = r.fract_floor(Integer::new());
         /// assert_eq!(fract, (2, 17));
@@ -2011,7 +2011,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // -100/17 = -6 + 2/17
+        /// // −100∕17 = −6 + 2∕17
         /// let mut r = Rational::from((-100, 17));
         /// let mut floor = Integer::new();
         /// r.fract_floor_mut(&mut floor);
@@ -2033,7 +2033,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
-        /// // -100/17 = -6 + 2/17
+        /// // −100∕17 = −6 + 2∕17
         /// let r = Rational::from((-100, 17));
         /// let r_ref = r.fract_floor_ref();
         /// let (mut fract, mut floor) = (Rational::new(), Integer::new());
@@ -2058,7 +2058,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.5
+        /// // −3.5
         /// let r1 = Rational::from((-35, 10));
         /// let round1 = r1.round();
         /// assert_eq!(round1, -4);
@@ -2077,7 +2077,7 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Rational};
-        /// // -3.5
+        /// // −3.5
         /// let mut r = Rational::from((-35, 10));
         /// r.round_mut();
         /// assert_eq!(r, -4);
@@ -2103,7 +2103,7 @@ impl Rational {
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
         /// let mut round = Integer::new();
-        /// // -3.5
+        /// // −3.5
         /// let r1 = Rational::from((-35, 10));
         /// round.assign(r1.round_ref());
         /// assert_eq!(round, -4);
@@ -2127,11 +2127,11 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// // −3.5 = −4 + 0.5 = −4 + 1∕2
         /// let r1 = Rational::from((-35, 10));
         /// let rem1 = r1.rem_round();
         /// assert_eq!(rem1, (1, 2));
-        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// // 3.7 = 4 − 0.3 = 4 − 3∕10
         /// let r2 = Rational::from((37, 10));
         /// let rem2 = r2.rem_round();
         /// assert_eq!(rem2, (-3, 10));
@@ -2144,11 +2144,11 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// // −3.5 = −4 + 0.5 = −4 + 1∕2
         /// let mut r1 = Rational::from((-35, 10));
         /// r1.rem_round_mut();
         /// assert_eq!(r1, (1, 2));
-        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// // 3.7 = 4 − 0.3 = 4 − 3∕10
         /// let mut r2 = Rational::from((37, 10));
         /// r2.rem_round_mut();
         /// assert_eq!(r2, (-3, 10));
@@ -2165,12 +2165,12 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::Rational;
-        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// // −3.5 = −4 + 0.5 = −4 + 1∕2
         /// let r1 = Rational::from((-35, 10));
         /// let r_ref1 = r1.rem_round_ref();
         /// let rem1 = Rational::from(r_ref1);
         /// assert_eq!(rem1, (1, 2));
-        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// // 3.7 = 4 − 0.3 = 4 − 3∕10
         /// let r2 = Rational::from((37, 10));
         /// let r_ref2 = r2.rem_round_ref();
         /// let rem2 = Rational::from(r_ref2);
@@ -2195,12 +2195,12 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// // −3.5 = −4 + 0.5 = −4 + 1∕2
         /// let r1 = Rational::from((-35, 10));
         /// let (fract1, round1) = r1.fract_round(Integer::new());
         /// assert_eq!(fract1, (1, 2));
         /// assert_eq!(round1, -4);
-        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// // 3.7 = 4 − 0.3 = 4 − 3∕10
         /// let r2 = Rational::from((37, 10));
         /// let (fract2, round2) = r2.fract_round(Integer::new());
         /// assert_eq!(fract2, (-3, 10));
@@ -2218,13 +2218,13 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Integer, Rational};
-        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// // −3.5 = −4 + 0.5 = −4 + 1∕2
         /// let mut r1 = Rational::from((-35, 10));
         /// let mut round1 = Integer::new();
         /// r1.fract_round_mut(&mut round1);
         /// assert_eq!(r1, (1, 2));
         /// assert_eq!(round1, -4);
-        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// // 3.7 = 4 − 0.3 = 4 − 3∕10
         /// let mut r2 = Rational::from((37, 10));
         /// let mut round2 = Integer::new();
         /// r2.fract_round_mut(&mut round2);
@@ -2249,14 +2249,14 @@ impl Rational {
         ///
         /// ```rust
         /// use rug::{Assign, Integer, Rational};
-        /// // -3.5 = -4 + 0.5 = -4 + 1/2
+        /// // −3.5 = −4 + 0.5 = −4 + 1∕2
         /// let r1 = Rational::from((-35, 10));
         /// let r_ref1 = r1.fract_round_ref();
         /// let (mut fract1, mut round1) = (Rational::new(), Integer::new());
         /// (&mut fract1, &mut round1).assign(r_ref1);
         /// assert_eq!(fract1, (1, 2));
         /// assert_eq!(round1, -4);
-        /// // 3.7 = 4 - 0.3 = 4 - 3/10
+        /// // 3.7 = 4 − 0.3 = 4 − 3∕10
         /// let r2 = Rational::from((37, 10));
         /// let r_ref2 = r2.fract_round_ref();
         /// let (mut fract2, mut round2) = (Rational::new(), Integer::new());

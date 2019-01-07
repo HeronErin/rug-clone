@@ -141,19 +141,19 @@ use rug::Float;
 let a = Float::with_val(4, 24);
 // 1.5 in binary is 1.1.
 let mul1 = Float::with_val(4, 1.5);
-// -13 in binary is -1101.
+// −13 in binary is −1101.
 let mul2 = Float::with_val(4, -13);
-// 24 + 1.5 * -13 = 4.5
+// 24 + 1.5 × −13 = 4.5
 let add = Float::with_val(4, &a + &mul1 * &mul2);
 assert_eq!(add, 4.5);
-// 24 - 1.5 * -13 = 43.5, rounded to 44 using four bits of precision.
+// 24 − 1.5 × −13 = 43.5, rounded to 44 using four bits of precision.
 let sub = a - &mul1 * &mul2;
 assert_eq!(sub, 44);
 
 // With separate addition and multiplication:
 let a = Float::with_val(4, 24);
 // No borrows, so multiplication is computed immediately.
-// 1.5 * -13 = -19.5 (binary -10011.1), rounded to -20.
+// 1.5 × −13 = −19.5 (binary −10011.1), rounded to −20.
 let separate_add = a + mul1 * mul2;
 assert_eq!(separate_add, 4);
 ```
@@ -170,10 +170,10 @@ let a = Float::with_val(53, 24);
 let b = Float::with_val(53, 1.5);
 let c = Float::with_val(53, 12);
 let d = Float::with_val(53, 2);
-// 24 * 1.5 + 12 * 2 = 60
+// 24 × 1.5 + 12 × 2 = 60
 let add = Float::with_val(53, &a * &b + &c * &d);
 assert_eq!(add, 60);
-// 24 * 1.5 - 12 * 2 = 12
+// 24 × 1.5 − 12 × 2 = 12
 let sub = Float::with_val(53, &a * &b - &c * &d);
 assert_eq!(sub, 12);
 ```
@@ -248,11 +248,11 @@ let mut t = Float::with_val(200, 1.0);
 let mut s = Float::with_val(200, 1.0);
 let mut u = Float::new(200);
 for i in 1..101_u32 {
-    // multiply t by i in place, round towards plus infinity
+    // multiply t by i in place, round towards +∞
     t.mul_assign_round(i, Round::Up);
-    // set u to 1/t, round towards minus infinity
+    // set u to 1∕t, round towards −∞
     u.assign_round(t.recip_ref(), Round::Down);
-    // increase s by u in place, round towards minus infinity
+    // increase s by u in place, round towards −∞
     s.add_assign_round(&u, Round::Down);
 }
 // `None` means the number of printed digits depends on the precision
@@ -914,7 +914,7 @@ impl Float {
     /// let mut float = Float::with_val(16, 6.5);
     /// // 6.5 in binary is 110.1
     /// // Since the precision is 16 bits, this becomes
-    /// // 1101_0000_0000_0000 times two to the power of -12
+    /// // 1101_0000_0000_0000 times two to the power of −12
     /// let (int, exp) = float.to_integer_exp().unwrap();
     /// assert_eq!(int, 0b1101_0000_0000_0000);
     /// assert_eq!(exp, -13);
@@ -955,7 +955,7 @@ impl Float {
     /// use std::cmp::Ordering;
     /// use std::str::FromStr;
     ///
-    /// // Consider the number 123,456,789 / 10,000,000,000.
+    /// // Consider the number 123,456,789 ∕ 10,000,000,000.
     /// let parse = Float::parse("0.0123456789").unwrap();
     /// let (f, f_rounding) = Float::with_val_round(35, parse, Round::Down);
     /// assert_eq!(f_rounding, Ordering::Less);
@@ -1198,7 +1198,7 @@ impl Float {
     /// use rug::float::Round;
     /// use rug::Float;
     /// use std::f64;
-    /// // (2.0 ^ -90) + 1
+    /// // (2.0 ^ −90) + 1
     /// let f: Float = Float::with_val(100, -90).exp2() + 1;
     /// assert_eq!(f.to_f64_round(Round::Up), 1.0 + f64::EPSILON);
     /// ```
@@ -1718,10 +1718,10 @@ impl Float {
     ///
     /// ```rust
     /// use rug::{Assign, Float};
-    /// // -(2.0 ^ 32) == -(0.5 * 2 ^ 33)
+    /// // −(2.0 ^ 32) == −(0.5 × 2 ^ 33)
     /// let mut f = Float::with_val(53, -32f64.exp2());
     /// assert_eq!(f.get_exp(), Some(33));
-    /// // 0.8 * 2 ^ -39
+    /// // 0.8 × 2 ^ −39
     /// f.assign(0.8 * (-39f64).exp2());
     /// assert_eq!(f.get_exp(), Some(-39));
     /// f.assign(0);
@@ -1921,7 +1921,7 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use std::f32;
-    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
+    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -1962,7 +1962,7 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     /// use std::f32;
-    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
+    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -2004,7 +2004,7 @@ impl Float {
     /// ```rust
     /// use rug::Float;
     /// use std::f32;
-    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
+    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -2044,7 +2044,7 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     /// use std::f32;
-    /// // minimum single subnormal is 0.5 * 2 ^ -148 = 2 ^ -149
+    /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
     /// let single_cannot = single_min_subnormal * 1.25;
@@ -2200,12 +2200,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 + 24 = 4.5
+    /// // 1.5 × −13 + 24 = 4.5
     /// let mul_add = mul1.mul_add(&mul2, &add);
     /// assert_eq!(mul_add, 4.5);
     /// ```
@@ -2227,12 +2227,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 + 24 = 4.5
+    /// // 1.5 × −13 + 24 = 4.5
     /// mul1.mul_add_mut(&mul2, &add);
     /// assert_eq!(mul1, 4.5);
     /// ```
@@ -2257,12 +2257,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 + 24 = 4.5
+    /// // 1.5 × −13 + 24 = 4.5
     /// let dir = mul1.mul_add_round(&mul2, &add, Round::Nearest);
     /// assert_eq!(mul1, 4.5);
     /// assert_eq!(dir, Ordering::Equal);
@@ -2304,12 +2304,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let add = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 + 24 = 4.5
+    /// // 1.5 × −13 + 24 = 4.5
     /// let ans = Float::with_val(4, mul1.mul_add_ref(&mul2, &add));
     /// assert_eq!(ans, 4.5);
     /// ```
@@ -2338,12 +2338,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
     /// let mul_sub = mul1.mul_sub(&mul2, &sub);
     /// assert_eq!(mul_sub, -44);
     /// ```
@@ -2365,12 +2365,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
     /// mul1.mul_sub_mut(&mul2, &sub);
     /// assert_eq!(mul1, -44);
     /// ```
@@ -2395,12 +2395,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mut mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
     /// let dir = mul1.mul_sub_round(&mul2, &sub, Round::Nearest);
     /// assert_eq!(mul1, -44);
     /// assert_eq!(dir, Ordering::Less);
@@ -2442,12 +2442,12 @@ impl Float {
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
     /// let mul1 = Float::with_val(4, 1.5);
-    /// // -13 in binary is -1101.
+    /// // −13 in binary is −1101.
     /// let mul2 = Float::with_val(4, -13);
     /// // 24 in binary is 11000.
     /// let sub = Float::with_val(4, 24);
     ///
-    /// // 1.5 * -13 - 24 = -43.5, rounded to 44 using four bits of precision.
+    /// // 1.5 × −13 − 24 = −43.5, rounded to 44 using four bits of precision.
     /// let ans = Float::with_val(4, mul1.mul_sub_ref(&mul2, &sub));
     /// assert_eq!(ans, -44);
     /// ```
@@ -2478,7 +2478,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 + 12 * 2 = 60
+    /// // 24 × 1.5 + 12 × 2 = 60
     /// let mul_add_mul = a.mul_add_mul(&b, &c, &d);
     /// assert_eq!(mul_add_mul, 60);
     /// ```
@@ -2507,7 +2507,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 + 12 * 2 = 60
+    /// // 24 × 1.5 + 12 × 2 = 60
     /// a.mul_add_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 60);
     /// ```
@@ -2539,7 +2539,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 + 12 * 2 = 60
+    /// // 24 × 1.5 + 12 × 2 = 60
     /// let dir = a.mul_add_mul_round(&b, &c, &d, Round::Nearest);
     /// assert_eq!(a, 60);
     /// assert_eq!(dir, Ordering::Equal);
@@ -2584,7 +2584,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 + 12 * 2 = 60
+    /// // 24 × 1.5 + 12 × 2 = 60
     /// let ans = Float::with_val(53, a.mul_add_mul_ref(&b, &c, &d));
     /// assert_eq!(ans, 60);
     /// ```
@@ -2617,7 +2617,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 - 12 * 2 = 12
+    /// // 24 × 1.5 − 12 × 2 = 12
     /// let mul_sub_mul = a.mul_sub_mul(&b, &c, &d);
     /// assert_eq!(mul_sub_mul, 12);
     /// ```
@@ -2647,7 +2647,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 - 12 * 2 = 12
+    /// // 24 × 1.5 − 12 × 2 = 12
     /// a.mul_sub_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 12);
     /// ```
@@ -2679,7 +2679,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 - 12 * 2 = 12
+    /// // 24 × 1.5 − 12 × 2 = 12
     /// let dir = a.mul_sub_mul_round(&b, &c, &d, Round::Nearest);
     /// assert_eq!(a, 12);
     /// assert_eq!(dir, Ordering::Equal);
@@ -2725,7 +2725,7 @@ impl Float {
     /// let b = Float::with_val(53, 1.5);
     /// let c = Float::with_val(53, 12);
     /// let d = Float::with_val(53, 2);
-    /// // 24 * 1.5 - 12 * 2 = 12
+    /// // 24 × 1.5 − 12 × 2 = 12
     /// let ans = Float::with_val(53, a.mul_sub_mul_ref(&b, &c, &d));
     /// assert_eq!(ans, 12);
     /// ```
@@ -2971,8 +2971,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, 5.0);
-        /// // 1/sqrt(5) in binary is 0.01110010...
-        /// // 1/sqrt(5) is rounded to 0.4375 (0.01110).
+        /// // 1 ∕ √5 in binary is 0.01110010...
+        /// // 1 ∕ √5 is rounded to 0.4375 (0.01110).
         /// let dir = f.recip_sqrt_round(Round::Nearest);
         /// assert_eq!(f, 0.4375);
         /// assert_eq!(dir, Ordering::Less);
@@ -3455,8 +3455,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, -5.0);
-        /// // 1/5 in binary is 0.00110011...
-        /// // 1/5 is rounded to 0.203125 (0.001101).
+        /// // 1∕5 in binary is 0.00110011...
+        /// // 1∕5 is rounded to 0.203125 (0.001101).
         /// let dir = f.recip_round(Round::Nearest);
         /// assert_eq!(f, -0.203125);
         /// assert_eq!(dir, Ordering::Less);
@@ -4660,8 +4660,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, -0.75);
-        /// // asin(-0.75) = -0.8481
-        /// // using 4 significant bits: -0.875
+        /// // asin(−0.75) = −0.8481
+        /// // using 4 significant bits: −0.875
         /// let dir = f.asin_round(Round::Nearest);
         /// assert_eq!(f, -0.875);
         /// assert_eq!(dir, Ordering::Less);
@@ -4726,7 +4726,7 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, -0.75);
-        /// // acos(-0.75) = 2.4189
+        /// // acos(−0.75) = 2.4189
         /// // using 4 significant bits: 2.5
         /// let dir = f.acos_round(Round::Nearest);
         /// assert_eq!(f, 2.5);
@@ -4792,8 +4792,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, -0.75);
-        /// // atan(-0.75) = -0.6435
-        /// // using 4 significant bits: -0.625
+        /// // atan(−0.75) = −0.6435
+        /// // using 4 significant bits: −0.625
         /// let dir = f.atan_round(Round::Nearest);
         /// assert_eq!(f, -0.625);
         /// assert_eq!(dir, Ordering::Greater);
@@ -4827,7 +4827,7 @@ impl Float {
         /// the nearest.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2<i>π</i> rather than *π*.
+        /// has an output range of 2π rather than π.
         ///
         /// # Examples
         ///
@@ -4844,7 +4844,7 @@ impl Float {
         /// the nearest.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2<i>π</i> rather than *π*.
+        /// has an output range of 2π rather than π.
         ///
         /// # Examples
         ///
@@ -4861,7 +4861,7 @@ impl Float {
         /// specified rounding method.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2<i>π</i> rather than *π*.
+        /// has an output range of 2π rather than π.
         ///
         /// # Examples
         ///
@@ -4872,7 +4872,7 @@ impl Float {
         /// // Use only 4 bits of precision to show rounding.
         /// let mut y = Float::with_val(4, 3.0);
         /// let x = Float::with_val(4, -4.0);
-        /// // atan2(3.0, -4.0) = 2.4981
+        /// // atan2(3.0, −4.0) = 2.4981
         /// // using 4 significant bits: 2.5
         /// let dir = y.atan2_round(&x, Round::Nearest);
         /// assert_eq!(y, 2.5);
@@ -4882,7 +4882,7 @@ impl Float {
         /// Computes the arc-tangent.
         ///
         /// This is similar to the arc-tangent of `self / x`, but
-        /// has an output range of 2<i>π</i> rather than *π*.
+        /// has an output range of 2π rather than π.
         ///
         /// [`Assign<Src> for Float`][`Assign`] and
         /// [`AssignRound<Src> for Float`][`AssignRound`] are
@@ -5623,7 +5623,7 @@ impl Float {
         ///
         /// ```rust
         /// use rug::Float;
-        /// // 10 * 9 * 8 * 7 * 6 * 5 * 4 * 3 * 2 * 1
+        /// // 10 × 9 × 8 × 7 × 6 × 5 × 4 × 3 × 2 × 1
         /// let n = Float::factorial(10);
         /// let f = Float::with_val(53, n);
         /// assert_eq!(f, 3628800.0);
@@ -5677,8 +5677,8 @@ impl Float {
         /// let two_to_m10 = (-10f64).exp2();
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
-        /// // ln_1p(1.5 * 2 ^ -10) = 1.4989 * 2 ^ -10
-        /// // using 4 significant bits: 1.5 * 2 ^ -10
+        /// // ln_1p(1.5 × 2 ^ −10) = 1.4989 × 2 ^ −10
+        /// // using 4 significant bits: 1.5 × 2 ^ −10
         /// let dir = f.ln_1p_round(Round::Nearest);
         /// assert_eq!(f, 1.5 * two_to_m10);
         /// assert_eq!(dir, Ordering::Greater);
@@ -5749,8 +5749,8 @@ impl Float {
         /// let two_to_m10 = (-10f64).exp2();
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5 * two_to_m10);
-        /// // exp_m1(1.5 * 2 ^ -10) = 1.5011 * 2 ^ -10
-        /// // using 4 significant bits: 1.5 * 2 ^ -10
+        /// // exp_m1(1.5 × 2 ^ −10) = 1.5011 × 2 ^ −10
+        /// // using 4 significant bits: 1.5 × 2 ^ −10
         /// let dir = f.exp_m1_round(Round::Nearest);
         /// assert_eq!(f, 1.5 * two_to_m10);
         /// assert_eq!(dir, Ordering::Less);
@@ -6094,8 +6094,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
-        /// // ln_gamma(1.25) = -0.0983
-        /// // using 4 significant bits: -0.1015625
+        /// // ln_gamma(1.25) = −0.0983
+        /// // using 4 significant bits: −0.1015625
         /// let dir = f.ln_gamma_round(Round::Nearest);
         /// assert_eq!(f, -0.1015625);
         /// assert_eq!(dir, Ordering::Less);
@@ -6138,12 +6138,12 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of 1/2 is sqrt(pi)
+    /// // gamma of 1∕2 is √π
     /// let ln_gamma_64 = Float::with_val(64, Constant::Pi).sqrt().ln();
     ///
     /// let f = Float::with_val(53, 0.5);
     /// let (ln_gamma, sign) = f.ln_abs_gamma();
-    /// // gamma of 1/2 is positive
+    /// // gamma of 1∕2 is positive
     /// assert_eq!(sign, Ordering::Greater);
     /// // check to 53 significant bits
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
@@ -6157,13 +6157,13 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// // gamma of −1∕2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let f = Float::with_val(53, -0.5);
     /// let (ln_gamma, sign) = f.ln_abs_gamma();
-    /// // gamma of -1/2 is negative
+    /// // gamma of −1∕2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
@@ -6187,13 +6187,13 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// // gamma of −1∕2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let mut f = Float::with_val(53, -0.5);
     /// let sign = f.ln_abs_gamma_mut();
-    /// // gamma of -1/2 is negative
+    /// // gamma of −1∕2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
@@ -6218,13 +6218,13 @@ impl Float {
     /// use rug::Float;
     /// use std::cmp::Ordering;
     ///
-    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// // gamma of −1∕2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
     /// let mut f = Float::with_val(53, -0.5);
     /// let (sign, dir) = f.ln_abs_gamma_round(Round::Nearest);
-    /// // gamma of -1/2 is negative
+    /// // gamma of −1∕2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check is correct to 53 significant bits
     /// let (check, check_dir) =
@@ -6267,7 +6267,7 @@ impl Float {
     /// use std::cmp::Ordering;
     ///
     /// let neg1_2 = Float::with_val(53, -0.5);
-    /// // gamma of -1/2 is -2 * sqrt(pi)
+    /// // gamma of −1∕2 is −2√π
     /// let abs_gamma_64 = Float::with_val(64, Constant::Pi).sqrt() * 2u32;
     /// let ln_gamma_64 = abs_gamma_64.ln();
     ///
@@ -6275,7 +6275,7 @@ impl Float {
     /// let r = neg1_2.ln_abs_gamma_ref();
     /// let (mut f, mut sign) = (Float::new(53), Ordering::Equal);
     /// (&mut f, &mut sign).assign(r);
-    /// // gamma of -1/2 is negative
+    /// // gamma of −1∕2 is negative
     /// assert_eq!(sign, Ordering::Less);
     /// // check to 53 significant bits
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
@@ -6328,8 +6328,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
-        /// // digamma(1.25) = -0.2275
-        /// // using 4 significant bits: -0.234375
+        /// // digamma(1.25) = −0.2275
+        /// // using 4 significant bits: −0.234375
         /// let dir = f.digamma_round(Round::Nearest);
         /// assert_eq!(f, -0.234375);
         /// assert_eq!(dir, Ordering::Less);
@@ -6895,8 +6895,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
-        /// // y1(1.25) = -0.5844
-        /// // using 4 significant bits: -0.5625
+        /// // y1(1.25) = −0.5844
+        /// // using 4 significant bits: −0.5625
         /// let dir = f.y1_round(Round::Nearest);
         /// assert_eq!(f, -0.5625);
         /// assert_eq!(dir, Ordering::Greater);
@@ -6963,8 +6963,8 @@ impl Float {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
-        /// // y2(1.25) = -1.1932
-        /// // using 4 significant bits: -1.25
+        /// // y2(1.25) = −1.1932
+        /// // using 4 significant bits: −1.25
         /// let dir = f.yn_round(2, Round::Nearest);
         /// assert_eq!(f, -1.25);
         /// assert_eq!(dir, Ordering::Less);

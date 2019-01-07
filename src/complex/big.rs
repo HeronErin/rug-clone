@@ -88,7 +88,7 @@ use rug::Complex;
 let mut acc = Complex::with_val(53, (1000, 1000));
 let m1 = Complex::with_val(53, (10, 0));
 let m2 = Complex::with_val(53, (1, -1));
-// (1000 + 1000i) - (10 + 0i) * (1 - i) = (990 + 1010i)
+// (1000 + 1000i) − (10 + 0i) × (1 − i) = (990 + 1010i)
 acc -= &m1 * &m2;
 assert_eq!(acc, (990, 1010));
 ```
@@ -1224,7 +1224,7 @@ impl Complex {
     /// let a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// // (10 + 0i) × (1 − i) + (1000 + 1000i) = (1010 + 990i)
     /// let mul_add = a.mul_add(&b, &c);
     /// assert_eq!(mul_add, (1010, 990));
     /// ```
@@ -1246,7 +1246,7 @@ impl Complex {
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// // (10 + 0i) × (1 − i) + (1000 + 1000i) = (1010 + 990i)
     /// a.mul_add_mut(&b, &c);
     /// assert_eq!(a, (1010, 990));
     /// ```
@@ -1271,7 +1271,7 @@ impl Complex {
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// // (10 + 0i) × (1 − i) + (1000 + 1000i) = (1010 + 990i)
     /// let dir = a.mul_add_round(&b, &c, (Round::Nearest, Round::Nearest));
     /// assert_eq!(a, (1010, 990));
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
@@ -1313,7 +1313,7 @@ impl Complex {
     /// let a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) + (1000 + 1000i) = (1010 + 990i)
+    /// // (10 + 0i) × (1 − i) + (1000 + 1000i) = (1010 + 990i)
     /// let ans = Complex::with_val(53, a.mul_add_ref(&b, &c));
     /// assert_eq!(ans, (1010, 990));
     /// ```
@@ -1342,7 +1342,7 @@ impl Complex {
     /// let a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// // (10 + 0i) × (1 − i) − (1000 + 1000i) = (−990 − 1010i)
     /// let mul_sub = a.mul_sub(&b, &c);
     /// assert_eq!(mul_sub, (-990, -1010));
     /// ```
@@ -1364,7 +1364,7 @@ impl Complex {
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// // (10 + 0i) × (1 − i) − (1000 + 1000i) = (−990 − 1010i)
     /// a.mul_sub_mut(&b, &c);
     /// assert_eq!(a, (-990, -1010));
     /// ```
@@ -1389,7 +1389,7 @@ impl Complex {
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// // (10 + 0i) × (1 − i) − (1000 + 1000i) = (−990 − 1010i)
     /// let dir = a.mul_sub_round(&b, &c, (Round::Nearest, Round::Nearest));
     /// assert_eq!(a, (-990, -1010));
     /// assert_eq!(dir, (Ordering::Equal, Ordering::Equal));
@@ -1430,7 +1430,7 @@ impl Complex {
     /// let a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
     /// let c = Complex::with_val(53, (1000, 1000));
-    /// // (10 + 0i) * (1 - i) - (1000 + 1000i) = (-990 - 1010i)
+    /// // (10 + 0i) × (1 − i) − (1000 + 1000i) = (−990 − 1010i)
     /// let ans = Complex::with_val(53, a.mul_sub_ref(&b, &c));
     /// assert_eq!(ans, (-990, -1010));
     /// ```
@@ -1538,7 +1538,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let c = Complex::with_val(53, (1, -2));
-        /// // (1 - 2i) squared is (-3 - 4i)
+        /// // (1 − 2i) squared is (−3 − 4i)
         /// let square = c.square();
         /// assert_eq!(square, (-3, -4));
         /// ```
@@ -1550,7 +1550,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let mut c = Complex::with_val(53, (1, -2));
-        /// // (1 - 2i) squared is (-3 - 4i)
+        /// // (1 − 2i) squared is (−3 − 4i)
         /// c.square_mut();
         /// assert_eq!(c, (-3, -4));
         /// ```
@@ -1608,7 +1608,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let c = Complex::with_val(53, (-1, 0));
-        /// // square root of (-1 + 0i) is (0 + i)
+        /// // square root of (−1 + 0i) is (0 + i)
         /// let sqrt = c.sqrt();
         /// assert_eq!(sqrt, (0, 1));
         /// ```
@@ -1620,7 +1620,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let mut c = Complex::with_val(53, (-1, 0));
-        /// // square root of (-1 + 0i) is (0 + i)
+        /// // square root of (−1 + 0i) is (0 + i)
         /// c.sqrt_mut();
         /// assert_eq!(c, (0, 1));
         /// ```
@@ -1975,7 +1975,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let c = Complex::with_val(53, (1, 1));
-        /// // 1/(1 + i) = (0.5 - 0.5i)
+        /// // 1∕(1 + i) = (0.5 − 0.5i)
         /// let recip = c.recip();
         /// assert_eq!(recip, (0.5, -0.5));
         /// ```
@@ -1987,7 +1987,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let mut c = Complex::with_val(53, (1, 1));
-        /// // 1/(1 + i) = (0.5 - 0.5i)
+        /// // 1∕(1 + i) = (0.5 − 0.5i)
         /// c.recip_mut();
         /// assert_eq!(c, (0.5, -0.5));
         /// ```
@@ -2002,8 +2002,8 @@ impl Complex {
         /// use rug::float::Round;
         /// use std::cmp::Ordering;
         /// let mut c = Complex::with_val(4, (1, 2));
-        /// // 1/(1 + 2i) = (0.2 - 0.4i), binary (0.00110011..., -0.01100110...)
-        /// // 4 bits of precision: (0.001101, -0.01101) = (13/64, -13/32)
+        /// // 1∕(1 + 2i) = (0.2 − 0.4i), binary (0.00110011..., −0.01100110...)
+        /// // 4 bits of precision: (0.001101, −0.01101) = (13∕64, −13∕32)
         /// let dir = c.recip_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (13.0/64.0, -13.0/32.0));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
@@ -2021,7 +2021,7 @@ impl Complex {
         /// ```rust
         /// use rug::Complex;
         /// let c = Complex::with_val(53, (1, 1));
-        /// // 1/(1 + i) = (0.5 - 0.5i)
+        /// // 1∕(1 + i) = (0.5 − 0.5i)
         /// let recip = Complex::with_val(53, c.recip_ref());
         /// assert_eq!(recip, (0.5, -0.5));
         /// ```
@@ -2160,8 +2160,8 @@ impl Complex {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1.5, -0.5));
-        /// // ln(1.5 - 0.5i) = (0.4581 - 0.3218i)
-        /// // using 4 significant bits: (0.46875 - 0.3125i)
+        /// // ln(1.5 − 0.5i) = (0.4581 − 0.3218i)
+        /// // using 4 significant bits: (0.46875 − 0.3125i)
         /// let dir = c.ln_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.46875, -0.3125));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Greater));
@@ -2226,8 +2226,8 @@ impl Complex {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1.5, -0.5));
-        /// // log10(1.5 - 0.5i) = (0.1990 - 0.1397i)
-        /// // using 4 significant bits: (0.203125 - 0.140625i)
+        /// // log10(1.5 − 0.5i) = (0.1990 − 0.1397i)
+        /// // using 4 significant bits: (0.203125 − 0.140625i)
         /// let dir = c.log10_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.203125, -0.140625));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
@@ -2260,7 +2260,7 @@ impl Complex {
         ///
         /// The generated number is the <i>n</i>th root of unity
         /// raised to the power *k*, that is its magnitude is 1 and
-        /// its argument is 2<i>πk</i>/<i>n</i>.
+        /// its argument is 2π<i>k</i>∕<i>n</i>.
         ///
         /// [`Assign<Src> for Complex`][`Assign`] and
         /// [`AssignRound<Src> for Complex`][`AssignRound`] are
@@ -2319,8 +2319,8 @@ impl Complex {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (0.5, -0.75));
-        /// // exp(0.5 - 0.75i) = (1.2064 - 1.1238i)
-        /// // using 4 significant bits: (1.25 - 1.125)
+        /// // exp(0.5 − 0.75i) = (1.2064 − 1.1238i)
+        /// // using 4 significant bits: (1.25 − 1.125)
         /// let dir = c.exp_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (1.25, -1.125));
         /// assert_eq!(dir, (Ordering::Greater, Ordering::Less));
@@ -2449,8 +2449,8 @@ impl Complex {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
-        /// // cos(1 + i) = (0.8337 - 0.9889i)
-        /// // using 4 significant bits: (0.8125 - i)
+        /// // cos(1 + i) = (0.8337 − 0.9889i)
+        /// // using 4 significant bits: (0.8125 − i)
         /// let dir = c.cos_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.8125, -1));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Less));
@@ -2534,8 +2534,8 @@ impl Complex {
         /// let mut cos = Complex::new(4);
         /// // sin(1 + i) = (1.2985 + 0.6350)
         /// // using 4 significant bits: (1.25 + 0.625i)
-        /// // cos(1 + i) = (0.8337 - 0.9889i)
-        /// // using 4 significant bits: (0.8125 - i)
+        /// // cos(1 + i) = (0.8337 − 0.9889i)
+        /// // using 4 significant bits: (0.8125 − i)
         /// let (dir_sin, dir_cos) =
         ///     sin.sin_cos_round(&mut cos, (Round::Nearest, Round::Nearest));
         /// assert_eq!(sin, (1.25, 0.625));
@@ -2571,7 +2571,7 @@ impl Complex {
         /// assert!(*(cos - expected_cos).abs().real() < 0.0001);
         ///
         /// // using 4 significant bits: sin = (1.25 + 0.625i)
-        /// // using 4 significant bits: cos = (0.8125 - i)
+        /// // using 4 significant bits: cos = (0.8125 − i)
         /// let (mut sin_4, mut cos_4) = (Complex::new(4), Complex::new(4));
         /// let sin_cos = phase.sin_cos_ref();
         /// let (dir_sin, dir_cos) = (&mut sin_4, &mut cos_4)
@@ -2953,8 +2953,8 @@ impl Complex {
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
-        /// // acos(1 + i) = (0.9046 - 1.0613i)
-        /// // using 4 significant bits: (0.875 - i)
+        /// // acos(1 + i) = (0.9046 − 1.0613i)
+        /// // using 4 significant bits: (0.875 − i)
         /// let dir = c.acos_round((Round::Nearest, Round::Nearest));
         /// assert_eq!(c, (0.875, -1));
         /// assert_eq!(dir, (Ordering::Less, Ordering::Greater));

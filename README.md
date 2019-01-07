@@ -224,7 +224,7 @@ with “`From`”. For example the counterpart to [`SubAssign`] is
 use rug::ops::SubFrom;
 use rug::Integer;
 let mut rhs = Integer::from(10);
-// set rhs = 100 - rhs
+// set rhs = 100 − rhs
 rhs.sub_from(100);
 assert_eq!(rhs, 90);
 ```
