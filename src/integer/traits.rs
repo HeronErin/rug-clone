@@ -157,8 +157,15 @@ macro_rules! assign {
             #[inline]
             fn assign(&mut self, src: $T) {
                 unsafe {
-                    $set(self.inner_mut(), src.into());
+                    $set(self.inner_mut(), src);
                 }
+            }
+        }
+
+        impl<'a> Assign<&'a $T> for Integer {
+            #[inline]
+            fn assign(&mut self, src: &$T) {
+                self.assign(*src);
             }
         }
 
@@ -167,57 +174,59 @@ macro_rules! assign {
             fn from(src: $T) -> Self {
                 unsafe {
                     let mut dst: Integer = mem::uninitialized();
-                    $init_set(dst.inner_mut(), src.into());
+                    $init_set(dst.inner_mut(), src);
                     dst
                 }
             }
         }
-
-        assign_deref! { $T => Integer }
     };
-}
 
-macro_rules! assign_cast {
-    ($New:ty, $Existing:ty) => {
-        impl Assign<$New> for Integer {
+    ($T:ty as $U:ty) => {
+        impl Assign<$T> for Integer {
             #[inline]
-            fn assign(&mut self, src: $New) {
-                <Integer as Assign<$Existing>>::assign(self, cast(src));
+            fn assign(&mut self, src: $T) {
+                self.assign(src as $U);
             }
         }
 
-        impl From<$New> for Integer {
+        impl<'a> Assign<&'a $T> for Integer {
             #[inline]
-            fn from(src: $New) -> Self {
-                <Self as From<$Existing>>::from(cast(src))
+            fn assign(&mut self, src: &$T) {
+                self.assign(*src as $U);
             }
         }
 
-        assign_deref! { $New => Integer }
+        impl From<$T> for Integer {
+            #[inline]
+            fn from(src: $T) -> Self {
+                Integer::from(src as $U)
+            }
+        }
     };
 }
 
-assign! { i8, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
-assign! { i16, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
-assign! { i32, xgmp::mpz_set_i32, gmp::mpz_init_set_si }
+assign! { i8 as i32 }
+assign! { i16 as i32 }
+assign! { i32, xgmp::mpz_set_i32, xgmp::mpz_init_set_i32 }
 assign! { i64, xgmp::mpz_set_i64, xgmp::mpz_init_set_i64 }
 #[cfg(int_128)]
 assign! { i128, xgmp::mpz_set_i128, xgmp::mpz_init_set_i128 }
 #[cfg(target_pointer_width = "32")]
-assign_cast! { isize, i32 }
+assign! { isize as i32 }
 #[cfg(target_pointer_width = "64")]
-assign_cast! { isize, i64 }
+assign! { isize as i64 }
 
-assign! { u8, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
-assign! { u16, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
-assign! { u32, xgmp::mpz_set_u32, gmp::mpz_init_set_ui }
+assign! { bool as u32 }
+assign! { u8 as u32 }
+assign! { u16 as u32 }
+assign! { u32, xgmp::mpz_set_u32, xgmp::mpz_init_set_u32 }
 assign! { u64, xgmp::mpz_set_u64, xgmp::mpz_init_set_u64 }
 #[cfg(int_128)]
 assign! { u128, xgmp::mpz_set_u128, xgmp::mpz_init_set_u128 }
 #[cfg(target_pointer_width = "32")]
-assign_cast! { usize, u32 }
+assign! { usize as u32 }
 #[cfg(target_pointer_width = "64")]
-assign_cast! { usize, u64 }
+assign! { usize as u64 }
 
 impl FromStr for Integer {
     type Err = ParseIntegerError;

@@ -15,18 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "integer")]
-macro_rules! assign_deref {
-    ($Src:ty => $Dst:ty) => {
-        impl<'a> Assign<&'a $Src> for $Dst {
-            #[inline]
-            fn assign(&mut self, src: &$Src) {
-                <$Dst as Assign<$Src>>::assign(self, *src);
-            }
-        }
-    };
-}
-
-#[cfg(feature = "integer")]
 macro_rules! from_assign {
     ($Src:ty => $Dst:ty) => {
         impl<'r> From<$Src> for $Dst {

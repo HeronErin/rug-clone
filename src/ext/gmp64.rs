@@ -106,6 +106,16 @@ pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
     }
 }
 
+#[inline]
+pub unsafe fn mpz_init_set_u32(rop: *mut mpz_t, u: u32) {
+    gmp::mpz_init_set_ui(rop, u.into());
+}
+
+#[inline]
+pub unsafe fn mpz_init_set_i32(rop: *mut mpz_t, i: i32) {
+    gmp::mpz_init_set_si(rop, i.into());
+}
+
 #[cfg(int_128)]
 #[inline]
 pub unsafe fn mpz_get_abs_u128(op: *const mpz_t) -> u128 {
