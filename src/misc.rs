@@ -58,7 +58,7 @@ neg_abs_signed! { (i8, u8) (i16, u16) (i32, u32) (i64, u64) }
 neg_abs_signed! { (i128, u128) }
 neg_abs_signed! { (isize, usize) }
 
-#[cfg_attr(feature = "cargo-clippy", allow(transmute_int_to_float))]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::transmute_int_to_float))]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.

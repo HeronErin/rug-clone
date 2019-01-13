@@ -2439,7 +2439,7 @@ where
         for i in src.values {
             #[cfg_attr(
                 feature = "cargo-clippy",
-                allow(suspicious_op_assign_impl)
+                allow(clippy::suspicious_op_assign_impl)
             )]
             mul.assign(i.0 * i.1);
             AddAssign::add_assign(self, &mul);
@@ -2751,7 +2751,7 @@ fn parse(
     if den_start == Some(digits.len()) {
         return Err(Error { kind: Kind::DenomZero });
     }
-    let den_start = den_start.unwrap_or(digits.len());
+    let den_start = den_start.unwrap_or_else(|| digits.len());
     Ok(ParseIncomplete { is_negative, digits, den_start, radix })
 }
 

@@ -4970,7 +4970,7 @@ where
         for i in src.values {
             #[cfg_attr(
                 feature = "cargo-clippy",
-                allow(suspicious_op_assign_impl)
+                allow(clippy::suspicious_op_assign_impl)
             )]
             AddAssign::add_assign(self, i.0 * i.1);
         }
