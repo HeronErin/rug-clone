@@ -499,7 +499,7 @@ impl Integer {
     {
         let capacity = digits.len().checked_mul(T::bits()).expect("overflow");
         if capacity > self.capacity() {
-            let additional = self.capacity() - capacity;
+            let additional = capacity - self.capacity();
             self.reserve(additional);
         }
         unsafe {
