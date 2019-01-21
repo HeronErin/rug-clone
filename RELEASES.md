@@ -10,6 +10,11 @@ Version 1.3.0 (unreleased)
 
   * Add `SmallRational::assign_canonical`.
 
+Version 1.2.3 (2019-01-21)
+==========================
+
+  * Fixed bug in `Integer::assign_digits`. (Thanks: Eric Scrivner)
+
 Version 1.2.2 (2018-10-18)
 ==========================
 
