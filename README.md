@@ -31,6 +31,12 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.2.3 news (2019-01-21)
+
+  * Fixed bug in [`Integer::assign_digits`]. (Thanks: Eric Scrivner)
+
+[`Integer::assign_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
+
 ### Version 1.2.2 news (2018-10-18)
 
   * Some missing [`ops`] trait implementations for primitive types are
