@@ -499,11 +499,6 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let capacity = digits.len().checked_mul(T::bits()).expect("overflow");
-        if capacity > self.capacity() {
-            let additional = capacity - self.capacity();
-            self.reserve(additional);
-        }
         unsafe {
             gmp::mpz_import(
                 self.inner_mut(),
