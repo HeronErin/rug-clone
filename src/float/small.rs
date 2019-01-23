@@ -399,6 +399,7 @@ impl Assign for SmallFloat {
 }
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
     use float::SmallFloat;
     use Assign;

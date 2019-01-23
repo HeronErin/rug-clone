@@ -114,7 +114,7 @@ mod tests {
             let mut bincode = Vec::<u8>::new();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
-            bincode.write(value.as_bytes()).unwrap();
+            bincode.write_all(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(r) => {
                     serde_test::assert_tokens(r, &tokens);

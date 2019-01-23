@@ -258,6 +258,8 @@ pub enum Special {
 }
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 pub(crate) mod tests {
     use float::{Round, Special};
     use gmp_mpfr_sys::{gmp, mpfr};
@@ -282,9 +284,9 @@ pub(crate) mod tests {
 
     impl Debug for Cmp {
         fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-            match self {
-                &Cmp::F64(ref val) => val.fmt(f),
-                &Cmp::Nan(negative) => {
+            match *self {
+                Cmp::F64(ref val) => val.fmt(f),
+                Cmp::Nan(negative) => {
                     let s = if negative { "-NaN" } else { "NaN" };
                     s.fmt(f)
                 }
@@ -294,9 +296,9 @@ pub(crate) mod tests {
 
     impl PartialEq<Cmp> for Float {
         fn eq(&self, other: &Cmp) -> bool {
-            match other {
-                &Cmp::F64(ref f) => self.eq(f),
-                &Cmp::Nan(negative) => {
+            match *other {
+                Cmp::F64(ref f) => self.eq(f),
+                Cmp::Nan(negative) => {
                     self.is_nan() && self.is_sign_negative() == negative
                 }
             }
@@ -341,7 +343,7 @@ pub(crate) mod tests {
             ("9", 9),
             ("nan(20) x", 10),
         ];
-        for &(s, radix) in bad_strings.into_iter() {
+        for &(s, radix) in bad_strings.iter() {
             assert!(
                 Float::parse_radix(s, radix).is_err(),
                 "{} parsed correctly",
@@ -356,16 +358,16 @@ pub(crate) mod tests {
             ("-.99e+2", 10, Cmp::F64(-99.0)),
             ("+99.e+0", 10, Cmp::F64(99.0)),
             ("-99@-1", 10, Cmp::F64(-9.9f64)),
-            ("-a_b__.C_d_E_@3", 16, Cmp::F64(-0xabcde as f64)),
+            ("-a_b__.C_d_E_@3", 16, Cmp::F64(f64::from(-0xabcde))),
             ("1e1023", 2, Cmp::F64(2.0f64.powi(1023))),
             (" NaN() ", 10, Cmp::Nan(false)),
             (" + NaN (20 Number_Is) ", 10, Cmp::Nan(false)),
             (" - @nan@", 2, Cmp::Nan(true)),
         ];
-        for &(s, radix, f) in good_strings.into_iter() {
+        for &(s, radix, f) in good_strings.iter() {
             match Float::parse_radix(s, radix) {
                 Ok(ok) => assert_eq!(Float::with_val(53, ok), f),
-                Err(_) => panic!("could not parse {}", s),
+                Err(_err) => panic!("could not parse {}", s),
             }
         }
     }

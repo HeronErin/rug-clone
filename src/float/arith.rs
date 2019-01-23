@@ -703,6 +703,7 @@ unsafe fn mul_sub(
 }
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 pub(crate) mod tests {
     use float::Special;
     use ops::Pow;
@@ -815,10 +816,10 @@ pub(crate) mod tests {
             Float::with_val(20, Special::Nan),
             Float::with_val(20, 1),
             Float::with_val(20, -1),
-            Float::with_val(20, 999999e100),
-            Float::with_val(20, 999999e-100),
-            Float::with_val(20, -999999e100),
-            Float::with_val(20, -999999e-100),
+            Float::with_val(20, 999_999e100),
+            Float::with_val(20, 999_999e-100),
+            Float::with_val(20, -999_999e100),
+            Float::with_val(20, -999_999e-100),
         ];
         #[cfg(feature = "integer")]
         let z = [

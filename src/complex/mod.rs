@@ -119,7 +119,7 @@ mod tests {
             ("(1 1@1a)", Some(16)),
             ("(8 )", Some(9)),
         ];
-        for &(s, radix) in bad_strings.into_iter() {
+        for &(s, radix) in bad_strings.iter() {
             assert!(
                 Complex::parse_radix(s, radix.unwrap_or(10)).is_err(),
                 "{} parsed correctly",
@@ -138,7 +138,7 @@ mod tests {
                 Cmp::Nan(false),
             ),
         ];
-        for &(s, radix, r, i) in good_strings.into_iter() {
+        for &(s, radix, r, i) in good_strings.iter() {
             match Complex::parse_radix(s, radix) {
                 Ok(ok) => {
                     let c = Complex::with_val(53, ok);

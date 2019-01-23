@@ -955,8 +955,10 @@ mod tests {
 
     impl RandGen for SimpleGenerator {
         fn gen(&mut self) -> u32 {
-            self.seed =
-                self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+            self.seed = self
+                .seed
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1);
             (self.seed >> 32) as u32
         }
         fn boxed_clone(&self) -> Option<Box<RandGen>> {

@@ -492,15 +492,18 @@ from_for_float! {
 
 // TODO: 128 bit
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
     use super::{checked_cast, wrapping_cast};
+    use std::f32;
 
     fn f32(sig: f32, exp: i32) -> f32 {
         sig * (exp as f32).exp2()
     }
 
     fn f64(sig: f64, exp: i32) -> f64 {
-        sig * (exp as f64).exp2()
+        sig * f64::from(exp).exp2()
     }
 
     #[test]
@@ -599,7 +602,7 @@ mod tests {
         assert_eq!(checked_cast::<f32, u8>(0.0), Some(0));
         assert_eq!(checked_cast::<f32, i16>(-1.0 / 0.0), None);
         assert_eq!(checked_cast::<f32, u32>(1.0 / 0.0), None);
-        assert_eq!(checked_cast::<f32, i64>(0.0 / 0.0), None);
+        assert_eq!(checked_cast::<f32, i64>(f32::NAN), None);
 
         assert_eq!(checked_cast::<f32, i8>(-129.0), None);
         assert_eq!(checked_cast::<f32, i8>(-128.9), Some(-128));
@@ -718,7 +721,7 @@ mod tests {
         assert_eq!(wrapping_cast::<f32, u8>(0.0), 0);
         assert_eq!(wrapping_cast::<f32, i16>(-1.0 / 0.0), 0);
         assert_eq!(wrapping_cast::<f32, u32>(1.0 / 0.0), 0);
-        assert_eq!(wrapping_cast::<f32, i64>(0.0 / 0.0), 0);
+        assert_eq!(wrapping_cast::<f32, i64>(f32::NAN), 0);
 
         assert_eq!(wrapping_cast::<f32, i8>(-129.0), 127);
         assert_eq!(wrapping_cast::<f32, i8>(-128.9), -128);

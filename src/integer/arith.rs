@@ -382,6 +382,7 @@ where
 }
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 mod tests {
     use ops::{AddFrom, Pow, SubFrom};
     use std::cmp::Ordering;

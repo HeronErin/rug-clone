@@ -370,6 +370,7 @@ unsafe impl Send for Float {}
 unsafe impl Sync for Float {}
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
     use ops::AssignRound;
     use std::cmp::Ordering;

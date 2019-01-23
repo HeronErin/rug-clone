@@ -5563,6 +5563,7 @@ pub(crate) fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     }
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::ptr_offset_with_cast))]
 pub(crate) fn append_to_string(
     s: &mut String,
     i: &Integer,

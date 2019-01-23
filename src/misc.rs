@@ -95,6 +95,7 @@ pub fn trim_start(bytes: &[u8]) -> &[u8] {
     &[]
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::range_plus_one))]
 pub fn trim_end(bytes: &[u8]) -> &[u8] {
     for (end, &b) in bytes.iter().enumerate().rev() {
         match b {

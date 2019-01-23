@@ -232,7 +232,7 @@ mod tests {
             ("Z0", Some(35)),
             ("z0", Some(35)),
         ];
-        for &(s, radix) in bad_strings.into_iter() {
+        for &(s, radix) in bad_strings.iter() {
             assert!(
                 Rational::parse_radix(s, radix.unwrap_or(10)).is_err(),
                 "{} parsed correctly",
@@ -250,14 +250,14 @@ mod tests {
             ("-77/2", 8, -0o77, 2),
             ("Z/z0", 36, 1, 36),
         ];
-        for &(s, radix, n, d) in good_strings.into_iter() {
+        for &(s, radix, n, d) in good_strings.iter() {
             match Rational::parse_radix(s, radix) {
                 Ok(ok) => {
                     let r = Rational::from(ok);
                     assert_eq!(*r.numer(), n, "numerator mismatch for {}", s);
                     assert_eq!(*r.denom(), d, "denominator mismatch for {}", s);
                 }
-                Err(_) => panic!("could not parse {}", s),
+                Err(_err) => panic!("could not parse {}", s),
             }
         }
     }

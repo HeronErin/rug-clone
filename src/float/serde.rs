@@ -135,9 +135,9 @@ mod tests {
             use serde_test::{self, Token};
             use serdeize::test::*;
             use std::io::Write;
-            let prec = match &self {
-                &Check::SerDe(f) | &Check::De(f) => f.prec(),
-                &Check::DeError(p, _) => p,
+            let prec = match self {
+                Check::SerDe(f) | Check::De(f) => f.prec(),
+                Check::DeError(p, _) => p,
             };
             let tokens = [
                 Token::Struct { name: "Float", len: 3 },
@@ -158,7 +158,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
-            bincode.write(value.as_bytes()).unwrap();
+            bincode.write_all(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(f) => {
                     serde_test::assert_tokens(f.as_ord(), &tokens);

@@ -739,6 +739,7 @@ unsafe fn mul_sub(
 }
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 mod tests {
     use float::arith::tests as float_tests;
     use float::Special;
@@ -839,10 +840,10 @@ mod tests {
             Complex::with_val(20, (Special::Nan, 1.0)),
             Complex::with_val(20, (1, 1.0)),
             Complex::with_val(20, (-1, 1.0)),
-            Complex::with_val(20, (999999e100, 1.0)),
-            Complex::with_val(20, (999999e-100, 1.0)),
-            Complex::with_val(20, (-999999e100, 1.0)),
-            Complex::with_val(20, (-999999e-100, 1.0)),
+            Complex::with_val(20, (999_999e100, 1.0)),
+            Complex::with_val(20, (999_999e-100, 1.0)),
+            Complex::with_val(20, (-999_999e100, 1.0)),
+            Complex::with_val(20, (-999_999e-100, 1.0)),
         ];
         #[cfg(feature = "integer")]
         let z = [

@@ -145,6 +145,8 @@ impl Order {
 }
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
     use integer::Order;
     use ops::NegAssign;
@@ -158,16 +160,16 @@ mod tests {
         let mut i = Integer::from(-1);
         assert_eq!(i.to_u32_wrapping(), u32::MAX);
         assert_eq!(i.to_i32_wrapping(), -1);
-        i.assign(0xff000000u32);
+        i.assign(0xff00_0000u32);
         i <<= 4;
-        assert_eq!(i.to_u32_wrapping(), 0xf0000000u32);
-        assert_eq!(i.to_i32_wrapping(), 0xf0000000u32 as i32);
+        assert_eq!(i.to_u32_wrapping(), 0xf000_0000u32);
+        assert_eq!(i.to_i32_wrapping(), 0xf000_0000u32 as i32);
         i = i.clone() << 32 | i;
-        assert_eq!(i.to_u32_wrapping(), 0xf0000000u32);
-        assert_eq!(i.to_i32_wrapping(), 0xf0000000u32 as i32);
+        assert_eq!(i.to_u32_wrapping(), 0xf000_0000u32);
+        assert_eq!(i.to_i32_wrapping(), 0xf000_0000u32 as i32);
         i.neg_assign();
-        assert_eq!(i.to_u32_wrapping(), 0x10000000u32);
-        assert_eq!(i.to_i32_wrapping(), 0x10000000i32);
+        assert_eq!(i.to_u32_wrapping(), 0x1000_0000u32);
+        assert_eq!(i.to_i32_wrapping(), 0x1000_0000i32);
     }
 
     #[test]
@@ -187,32 +189,32 @@ mod tests {
         assert_eq!(i.to_u32(), None);
         assert_eq!(i.to_i32(), Some(i32::MIN));
         assert_eq!(i.to_u64(), None);
-        assert_eq!(i.to_i64(), Some(i32::MIN as i64));
+        assert_eq!(i.to_i64(), Some(i64::from(i32::MIN)));
         i -= 1;
         assert_eq!(i.to_u32(), None);
         assert_eq!(i.to_i32(), None);
         assert_eq!(i.to_u64(), None);
-        assert_eq!(i.to_i64(), Some(i32::MIN as i64 - 1));
+        assert_eq!(i.to_i64(), Some(i64::from(i32::MIN) - 1));
         i.assign(i32::MAX);
         assert_eq!(i.to_u32(), Some(i32::MAX as u32));
         assert_eq!(i.to_i32(), Some(i32::MAX));
         assert_eq!(i.to_u64(), Some(i32::MAX as u64));
-        assert_eq!(i.to_i64(), Some(i32::MAX as i64));
+        assert_eq!(i.to_i64(), Some(i64::from(i32::MAX)));
         i += 1;
         assert_eq!(i.to_u32(), Some(i32::MAX as u32 + 1));
         assert_eq!(i.to_i32(), None);
         assert_eq!(i.to_u64(), Some(i32::MAX as u64 + 1));
-        assert_eq!(i.to_i64(), Some(i32::MAX as i64 + 1));
+        assert_eq!(i.to_i64(), Some(i64::from(i32::MAX) + 1));
         i.assign(u32::MAX);
         assert_eq!(i.to_u32(), Some(u32::MAX));
         assert_eq!(i.to_i32(), None);
-        assert_eq!(i.to_u64(), Some(u32::MAX as u64));
-        assert_eq!(i.to_i64(), Some(u32::MAX as i64));
+        assert_eq!(i.to_u64(), Some(u64::from(u32::MAX)));
+        assert_eq!(i.to_i64(), Some(i64::from(u32::MAX)));
         i += 1;
         assert_eq!(i.to_u32(), None);
         assert_eq!(i.to_i32(), None);
-        assert_eq!(i.to_u64(), Some(u32::MAX as u64 + 1));
-        assert_eq!(i.to_i64(), Some(u32::MAX as i64 + 1));
+        assert_eq!(i.to_u64(), Some(u64::from(u32::MAX) + 1));
+        assert_eq!(i.to_i64(), Some(i64::from(u32::MAX) + 1));
 
         i.assign(i64::MIN);
         assert_eq!(i.to_u32(), None);
@@ -302,10 +304,10 @@ mod tests {
         assert_eq!(i.to_f64(), f64::INFINITY);
         i.assign(-0xff_ffff);
         assert_eq!(i.to_f32(), -0xff_ffff as f32);
-        assert_eq!(i.to_f64(), -0xff_ffff as f64);
+        assert_eq!(i.to_f64(), f64::from(-0xff_ffff));
         i.assign(-0xfff_ffff);
         assert_eq!(i.to_f32(), -0xfff_fff0 as f32);
-        assert_eq!(i.to_f64(), -0xfff_ffff as f64);
+        assert_eq!(i.to_f64(), f64::from(-0xfff_ffff));
     }
 
     #[test]
@@ -343,7 +345,7 @@ mod tests {
             ("Z0", Some(35)),
             ("z0", Some(35)),
         ];
-        for &(s, radix) in bad_strings.into_iter() {
+        for &(s, radix) in bad_strings.iter() {
             assert!(
                 Integer::parse_radix(s, radix.unwrap_or(10)).is_err(),
                 "{} parsed correctly",
@@ -364,10 +366,10 @@ mod tests {
             ("z0", 36, 35 * 36),
             ("Z0", 36, 35 * 36),
         ];
-        for &(s, radix, i) in good_strings.into_iter() {
+        for &(s, radix, i) in good_strings.iter() {
             match Integer::parse_radix(s, radix) {
                 Ok(ok) => assert_eq!(Integer::from(ok), i),
-                Err(_) => panic!("could not parse {}", s),
+                Err(_err) => panic!("could not parse {}", s),
             }
         }
     }
