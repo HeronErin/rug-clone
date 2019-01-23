@@ -11,9 +11,7 @@ gnulinux-build-clibs:
   script:
   - mkdir $SYS_CACHE_GNULINUX
   - export GMP_MPFR_SYS_CACHE=$SYS_CACHE_GNULINUX
-  - cargo check --no-default-features \
-    --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
-    -p gmp-mpfr-sys
+  - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
   artifacts:
     paths:
     - $SYS_CACHE_GNULINUX
