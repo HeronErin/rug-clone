@@ -486,7 +486,10 @@ mod tests {
     fn check_from_digits_resize() {
         // Ensure that we correctly handle increasing capacity
         let mut i = Integer::new();
-        i.assign_digits(&[0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8, 10u8], Order::Lsf);
+        i.assign_digits(
+            &[0u8, 1u8, 2u8, 3u8, 4u8, 5u8, 6u8, 7u8, 8u8, 9u8, 10u8],
+            Order::Lsf,
+        );
     }
 
     #[test]
