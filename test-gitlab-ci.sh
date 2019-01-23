@@ -17,8 +17,6 @@ function check_error {
     exit "$code"
 }
 
-TOOLCHAIN="$1"
-
 function print_eval_check {
     printf '$'
     printf ' %q' "$@"
@@ -32,11 +30,6 @@ if [ "$TOOLCHAIN" != "1.18.0" ]; then
 else
     all_targets=""
 fi
-print_eval_check \
-    cargo "+$TOOLCHAIN" \
-    check $all_targets \
-    --features serde \
-    -p gmp-mpfr-sys -p rug
 
 # Check with all feature combinations.
 # integer,rational = rational
@@ -61,8 +54,9 @@ do
     else
         gmp="-p gmp-mpfr-sys"
     fi
+    features="fail-on-warnings${features:+,$features}"
     print_eval_check \
-        cargo "+$TOOLCHAIN"
+        cargo "+$TOOLCHAIN" \
         check $all_targets \
         --no-default-features --features "$features" \
         $gmp -p rug
@@ -75,7 +69,7 @@ for build in "" --release; do
     print_eval_check \
         cargo "+$TOOLCHAIN" \
         test $build \
-        --features serde \
+        --features "fail-on-warnings,serde" \
         -p gmp-mpfr-sys -p rug
     rm -r target
 done

@@ -2,16 +2,19 @@ stages:
   - build-clibs
   - test
 
+variables:
+  SYS_CACHE_GNULINUX: gmp-mpfr-sys-cache-gnulinux
+
 gnulinux-build-clibs:
   image: rust:1
   stage: build-clibs
   script:
-  - mkdir gmp-mpfr-sys-cache-gnulinux
-  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
+  - mkdir $SYS_CACHE_GNULINUX
+  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX
   - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
   artifacts:
     paths:
-    - gmp-mpfr-sys-cache-gnulinux
+    - $SYS_CACHE_GNULINUX
     expire_in: 1 day
 
 gnulinux-beta:
@@ -19,50 +22,57 @@ gnulinux-beta:
   stage: test
   dependencies:
   - gnulinux-build-clibs
+  variables:
+    TOOLCHAIN: beta
   script:
-  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
-  - rustup install beta
-  - cargo +beta --version
-  - rustc +beta --version
-  - ./test-gitlab-ci.sh beta
-  - rustup component add rustfmt --toolchain beta
-  - cargo +beta fmt -- --check
-  - rustup component add clippy --toolchain beta
-  - cargo +beta clippy -- -D warnings
+  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX
+  - rustup install $TOOLCHAIN
+  - cargo +$TOOLCHAIN --version
+  - rustc +$TOOLCHAIN --version
+  - ./test-gitlab-ci.sh
+  - rustup component add rustfmt --toolchain $TOOLCHAIN
+  - cargo +$TOOLCHAIN fmt -- --check
+  - rustup component add clippy --toolchain $TOOLCHAIN
+  - cargo +$TOOLCHAIN clippy --features=serde,fail-on-warnings --all-targets
 
 gnulinux-stable:
   image: rust:1
   stage: test
   dependencies:
   - gnulinux-build-clibs
+  variables:
+    TOOLCHAIN: stable
   script:
-  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
-  - rustup install stable
-  - cargo +stable --version
-  - rustc +stable --version
-  - ./test-gitlab-ci.sh stable
+  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX
+  - rustup install $TOOLCHAIN
+  - cargo +$TOOLCHAIN --version
+  - rustc +$TOOLCHAIN --version
+  - ./test-gitlab-ci.sh
 
 gnulinux-nightly:
   image: rust:1
   stage: test
   dependencies:
   - gnulinux-build-clibs
+  variables:
+    TOOLCHAIN: nightly
   script:
-  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
-  - rustup install nightly
-  - cargo +nightly --version
-  - rustc +nightly --version
-  - ./test-gitlab-ci.sh nightly
+  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX
+  - rustup install $TOOLCHAIN
+  - cargo +$TOOLCHAIN --version
+  - rustc +$TOOLCHAIN --version
+  - ./test-gitlab-ci.sh
 
 gnulinux-1.18.0:
   image: rust:1
   stage: test
   dependencies:
   - gnulinux-build-clibs
+  variables:
+    TOOLCHAIN: 1.18.0
   script:
-  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
-  - rustup install 1.18.0
-  - cargo +1.18.0 --version
-  - rustc +1.18.0 --version
-  - ./test-gitlab-ci.sh 1.18.0
-
+  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX
+  - rustup install $TOOLCHAIN
+  - cargo +$TOOLCHAIN --version
+  - rustc +$TOOLCHAIN --version
+  - ./test-gitlab-ci.sh
