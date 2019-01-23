@@ -117,6 +117,7 @@ do
     else
         gmp="-p gmp-mpfr-sys"
     fi
+    features="fail-on-warnings${features:+,$features}"
     print_eval_check \
         cargo $(tc "${toolchains[0]}") \
         check $all_targets \
@@ -132,7 +133,7 @@ for toolchain in "${toolchains[@]}"; do
         print_eval_check \
             cargo $(tc "$toolchain") \
             test $build \
-            --features serde \
+            --features "fail-on-warnings,serde" \
             -p gmp-mpfr-sys -p rug
         rm -r target
     done

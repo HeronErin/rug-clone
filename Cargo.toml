@@ -24,6 +24,7 @@ rational = ["integer"]
 float = ["gmp-mpfr-sys/mpfr"]
 complex = ["float", "gmp-mpfr-sys/mpc"]
 rand = ["integer"]
+fail-on-warnings = []
 
 [dependencies.gmp-mpfr-sys]
 version = "~1.1.3"
