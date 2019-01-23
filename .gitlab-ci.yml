@@ -2,19 +2,16 @@ stages:
   - build-clibs
   - test
 
-variables:
-  SYS_CACHE_GNULINUX: "gmp-mpfr-sys-cache-gnulinux"
-
 gnulinux-build-clibs:
   image: rust:1
   stage: build-clibs
   script:
-  - mkdir $SYS_CACHE_GNULINUX
-  - export GMP_MPFR_SYS_CACHE=$SYS_CACHE_GNULINUX
+  - mkdir gmp-mpfr-sys-cache-gnulinux
+  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
   - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
   artifacts:
     paths:
-    - $SYS_CACHE_GNULINUX
+    - gmp-mpfr-sys-cache-gnulinux
     expire_in: 1 day
 
 gnulinux-beta:
@@ -23,12 +20,11 @@ gnulinux-beta:
   dependencies:
   - gnulinux-build-clibs
   script:
-  - export GMP_MPFR_SYS_CACHE=$SYS_CACHE_GNULINUX
+  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
   - rustup install beta
   - cargo +beta --version
   - rustc +beta --version
-  - cargo +beta test --features serde -p gmp-mpfr-sys -p rug
-  - cargo +beta test --release --features serde -p gmp-mpfr-sys -p rug
+  - ./test-gitlab-ci.sh beta
   - rustup component add rustfmt --toolchain beta
   - cargo +beta fmt -- --check
   - rustup component add clippy --toolchain beta
@@ -40,12 +36,11 @@ gnulinux-stable:
   dependencies:
   - gnulinux-build-clibs
   script:
-  - export GMP_MPFR_SYS_CACHE=$SYS_CACHE_GNULINUX
+  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
   - rustup install stable
   - cargo +stable --version
   - rustc +stable --version
-  - cargo +stable test --features serde -p gmp-mpfr-sys -p rug
-  - cargo +stable test --release --features serde -p gmp-mpfr-sys -p rug
+  - ./test-gitlab-ci.sh stable
 
 gnulinux-nightly:
   image: rust:1
@@ -53,12 +48,11 @@ gnulinux-nightly:
   dependencies:
   - gnulinux-build-clibs
   script:
-  - export GMP_MPFR_SYS_CACHE=$SYS_CACHE_GNULINUX
+  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
   - rustup install nightly
   - cargo +nightly --version
   - rustc +nightly --version
-  - cargo +nightly test --features serde -p gmp-mpfr-sys -p rug
-  - cargo +nightly test --release --features serde -p gmp-mpfr-sys -p rug
+  - ./test-gitlab-ci.sh nightly
 
 gnulinux-1.18.0:
   image: rust:1
@@ -66,9 +60,9 @@ gnulinux-1.18.0:
   dependencies:
   - gnulinux-build-clibs
   script:
-  - export GMP_MPFR_SYS_CACHE=$SYS_CACHE_GNULINUX
+  - export GMP_MPFR_SYS_CACHE=gmp-mpfr-sys-cache-gnulinux
   - rustup install 1.18.0
   - cargo +1.18.0 --version
   - rustc +1.18.0 --version
-  - cargo +1.18.0 test --features serde -p gmp-mpfr-sys -p rug
-  - cargo +1.18.0 test --release --features serde -p gmp-mpfr-sys -p rug
+  - ./test-gitlab-ci.sh 1.18.0
+
