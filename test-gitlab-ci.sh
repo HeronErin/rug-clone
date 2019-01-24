@@ -42,9 +42,9 @@ for features in \
     serde
 do
     if [[ "$TOOLCHAIN" == 1.18.0* ]]; then
-        all_targets="--all-targets"
-    else
         all_targets=""
+    else
+        all_targets="--all-targets"
     fi
     if [[ "$features" =~ ^(()|serde)$ ]]; then
         gmp=""

@@ -34,7 +34,7 @@ install:
 build: false
 
 before_test:
-  - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate"
+  - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate; fi"
 
 test_script:
   - set GMP_MPFR_SYS_CACHE=%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache-msys64-%MSYSTEM_CARCH%
@@ -45,4 +45,4 @@ test_script:
   - cargo +1.18.0-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
 
 after_test:
-  - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate"
+  - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate; fi"
