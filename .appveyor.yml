@@ -32,6 +32,6 @@ build: false
 test_script:
   - set GMP_MPFR_SYS_CACHE=%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache-msys64-%MSYSTEM_CARCH%
   - cargo test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
-  - tree "%GMP_MPFR_SYS_CACHE%"
+  - cargo test --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
   - cargo test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
   - cargo clippy --features "fail-on-warnings serde" --all-targets
