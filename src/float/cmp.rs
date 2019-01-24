@@ -141,7 +141,7 @@ cmp_i! { i64, |f, &t: &i64| unsafe { xmpfr::cmp_i64(f, t) } }
 #[cfg(int_128)]
 cmp_i! { i128, |f, &t: &i128| unsafe { xmpfr::cmp_i128(f, t) } }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, t.into()) } }
+cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, cast(t)) } }
 #[cfg(target_pointer_width = "64")]
 cmp_i! { isize, |f, &t: &isize| unsafe { xmpfr::cmp_i64(f, cast(t)) } }
 
@@ -152,7 +152,7 @@ cmp_i! { u64, |f, &t: &u64| unsafe { xmpfr::cmp_u64(f, t) } }
 #[cfg(int_128)]
 cmp_i! { u128, |f, &t: &u128| unsafe { xmpfr::cmp_u128(f, t) } }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, t.into()) } }
+cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, cast(t)) } }
 #[cfg(target_pointer_width = "64")]
 cmp_i! { usize, |f, &t: &usize| unsafe { xmpfr::cmp_u64(f, cast(t)) } }
 
