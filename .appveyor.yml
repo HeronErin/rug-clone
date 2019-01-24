@@ -20,9 +20,9 @@ environment:
       MSYSTEM_PREFIX: C:/msys64/mingw32
 
 cache:
-  - %USERPROFILE%\.rustup\toolchains
-  - %USERPROFILE%\.rustup\update-hashes
-  - %USERPROFILE%\.cargo\registry\cache
+  - '%USERPROFILE%\.rustup\toolchains'
+  - '%USERPROFILE%\.rustup\update-hashes'
+  - '%USERPROFILE%\.cargo\registry\cache'
 
 install:
   - set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;%USERPROFILE%\.cargo\bin;%PATH%
