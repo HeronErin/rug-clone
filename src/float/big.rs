@@ -1046,7 +1046,6 @@ impl Float {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
@@ -1105,7 +1104,6 @@ impl Float {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
@@ -1789,7 +1787,7 @@ impl Float {
     #[inline]
     pub fn get_significand(&self) -> Option<BorrowInteger> {
         if self.is_normal() {
-            let limb_bits: mpfr::prec_t = cast(gmp::LIMB_BITS);
+            let limb_bits = mpfr::prec_t::from(gmp::LIMB_BITS);
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
             Some(BorrowInteger {
                 inner: gmp::mpz_t {
@@ -2066,7 +2064,7 @@ impl Float {
         if !self.is_normal() {
             return prev_rounding;
         }
-        let exp_min: mpfr::exp_t = cast(normal_exp_min);
+        let exp_min = mpfr::exp_t::from(normal_exp_min);
         let sub_exp_min = exp_min
             .checked_sub(cast::<_, mpfr::exp_t>(self.prec() - 1))
             .expect("overflow");

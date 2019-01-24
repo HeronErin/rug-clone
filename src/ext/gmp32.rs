@@ -118,13 +118,11 @@ pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
     mpz_set_i64(rop, i);
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub unsafe fn mpz_init_set_u32(rop: *mut mpz_t, u: u32) {
     gmp::mpz_init_set_ui(rop, u.into());
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub unsafe fn mpz_init_set_i32(rop: *mut mpz_t, i: i32) {
     gmp::mpz_init_set_si(rop, i.into());

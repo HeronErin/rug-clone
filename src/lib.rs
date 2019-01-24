@@ -406,6 +406,8 @@ provided by the crate.
 #![cfg_attr(nightly_int_128, feature(i128_type, i128))]
 #![cfg_attr(nightly_repr_transparent, feature(repr_transparent))]
 #![cfg_attr(nightly_try_from, feature(try_from))]
+// allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
+#![cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 
 #[cfg(any(feature = "integer", feature = "float"))]
 extern crate gmp_mpfr_sys;

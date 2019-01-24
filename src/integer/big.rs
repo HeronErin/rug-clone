@@ -193,7 +193,6 @@ fn _static_assertions() {
     static_assert_size!(BorrowInteger, mpz_t);
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 impl Integer {
     /// Constructs a new arbitrary-precision [`Integer`] with value 0.
     ///
@@ -5407,7 +5406,6 @@ ref_math_op0! {
 impl<'a, 'b> Assign<FibonacciIncomplete>
     for (&'a mut Integer, &'b mut Integer)
 {
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     fn assign(&mut self, src: FibonacciIncomplete) {
         unsafe {
@@ -5434,7 +5432,6 @@ ref_math_op0! {
 }
 
 impl<'a, 'b> Assign<LucasIncomplete> for (&'a mut Integer, &'b mut Integer) {
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     fn assign(&mut self, src: LucasIncomplete) {
         unsafe {
@@ -5470,7 +5467,6 @@ impl<'a, 'b> Assign<RandomBitsIncomplete<'a, 'b>> for Integer
 where
     'b: 'a,
 {
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {

@@ -920,7 +920,7 @@ pub unsafe fn mpz_rshift_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2: gmp::limb_t = cast::cast(op2);
+    let lop2 = gmp::limb_t::from(op2);
     let ans_limb0 = match (*op1).size.cmp(&0) {
         Ordering::Equal => 0,
         Ordering::Greater => limb(op1, 0) & lop2,
@@ -934,7 +934,7 @@ pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2: gmp::limb_t = cast::cast(op2);
+    let lop2 = gmp::limb_t::from(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             if op2 == 0 {
@@ -961,7 +961,7 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    let lop2: gmp::limb_t = cast::cast(op2);
+    let lop2 = gmp::limb_t::from(op2);
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
             if op2 == 0 {
@@ -995,10 +995,10 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
 }
 
 pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let lop2: gmp::limb_t = if op2 >= 0 {
-        cast::cast(op2 as c_ulong)
+    let lop2 = if op2 >= 0 {
+        gmp::limb_t::from(op2 as c_ulong)
     } else {
-        !cast::cast::<_, gmp::limb_t>(!op2 as c_ulong)
+        !gmp::limb_t::from(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -1034,10 +1034,10 @@ pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let lop2: gmp::limb_t = if op2 >= 0 {
-        cast::cast(op2 as c_ulong)
+    let lop2 = if op2 >= 0 {
+        gmp::limb_t::from(op2 as c_ulong)
     } else {
-        !cast::cast::<_, gmp::limb_t>(!op2 as c_ulong)
+        !gmp::limb_t::from(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -1071,10 +1071,10 @@ pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
 }
 
 pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let lop2: gmp::limb_t = if op2 >= 0 {
-        cast::cast(op2 as c_ulong)
+    let lop2 = if op2 >= 0 {
+        gmp::limb_t::from(op2 as c_ulong)
     } else {
-        !cast::cast::<_, gmp::limb_t>(!op2 as c_ulong)
+        !gmp::limb_t::from(!op2 as c_ulong)
     };
     match (*op1).size.cmp(&0) {
         Ordering::Equal => {
@@ -1236,7 +1236,6 @@ pub unsafe fn mpz_mulsub_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     (*rop).size = -(*rop).size;
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     if (*op).size >= 0 {
