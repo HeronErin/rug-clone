@@ -1,5 +1,5 @@
 stages:
-  - build-clibs
+  - clibs
   - test
 
 variables:
@@ -7,23 +7,23 @@ variables:
 
 cache:
   paths:
-  - /usr/local/rustup/toolchains
-  - /usr/local/rustup/update-hashes
-  - /usr/local/cargo/registry/cache
+  - cargo/
 
 before_script:
   - getconf LONG_BIT
   - rustup --version
-  - rustup show
-  - if [ -d /usr/local/cargo/registry ]; then (cd /usr/local/cargo/registry; find -name \*.crate) fi
+  - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache; mkdir -p $CARGO_HOME/registry; cp -R cargo/registry/cache $CARGO_HOME/registry/; echo Copied registry/cache; fi
+  - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
 
 after_script:
-  - rustup show
-  - if [ -d /usr/local/cargo/registry ]; then (cd /usr/local/cargo/registry; find -name \*.crate) fi
+  - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
+  - rm -rf cargo
+  - mkdir -p cargo/registry
+  - if [ -d $CARGO_HOME/registry/cache ]; then cp -R $CARGO_HOME/registry/cache cargo/registry/; echo Updated registry/cache; fi
 
-build-clibs-x86_64-gnulinux:
+clibs-x86_64-gnulinux:
   image: amd64/rust:1
-  stage: build-clibs
+  stage: clibs
   script:
   - mkdir $SYS_CACHE_GNULINUX-x86_64
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
@@ -37,7 +37,7 @@ beta-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
   dependencies:
-  - build-clibs-x86_64-gnulinux
+  - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: beta-x86_64
   script:
@@ -48,7 +48,7 @@ stable-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
   dependencies:
-  - build-clibs-x86_64-gnulinux
+  - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
   script:
@@ -59,7 +59,7 @@ nightly-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
   dependencies:
-  - build-clibs-x86_64-gnulinux
+  - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: nightly-x86_64
   script:
@@ -70,16 +70,16 @@ nightly-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
   dependencies:
-  - build-clibs-x86_64-gnulinux
+  - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: 1.18.0-x86_64
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
   - ./test-gitlab-ci.sh
 
-build-clibs-i686-gnulinux:
+clibs-i686-gnulinux:
   image: i386/rust:1
-  stage: build-clibs
+  stage: clibs
   script:
   - mkdir $SYS_CACHE_GNULINUX-i686
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
@@ -93,7 +93,7 @@ beta-i686-gnulinux:
   image: i386/rust:1
   stage: test
   dependencies:
-  - build-clibs-i686-gnulinux
+  - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: beta-i686
   script:
@@ -104,7 +104,7 @@ stable-i686-gnulinux:
   image: i386/rust:1
   stage: test
   dependencies:
-  - build-clibs-i686-gnulinux
+  - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: stable-i686
   script:
@@ -115,7 +115,7 @@ nightly-i686-gnulinux:
   image: i386/rust:1
   stage: test
   dependencies:
-  - build-clibs-i686-gnulinux
+  - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: nightly-i686
   script:
@@ -126,7 +126,7 @@ nightly-i686-gnulinux:
   image: i386/rust:1
   stage: test
   dependencies:
-  - build-clibs-i686-gnulinux
+  - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: 1.18.0-i686
   script:

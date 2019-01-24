@@ -20,8 +20,6 @@ environment:
       MSYSTEM_PREFIX: C:/msys64/mingw32
 
 cache:
-  - '%USERPROFILE%\.rustup\toolchains'
-  - '%USERPROFILE%\.rustup\update-hashes'
   - '%USERPROFILE%\.cargo\registry\cache'
 
 install:
@@ -29,7 +27,6 @@ install:
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
   - rustup-init.exe -y --default-host %TARGET% --default-toolchain none --no-modify-path
   - rustup --version
-  - rustup show
   - rustup install beta-%TARGET%
   - rustup component add clippy --toolchain beta-%TARGET%
   - rustup install 1.18.0-%TARGET%
@@ -37,7 +34,7 @@ install:
 build: false
 
 before_test:
-  - bash -c "cd %USERPROFILE%\.cargo\registry; find -name \*.crate"
+  - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate"
 
 test_script:
   - set GMP_MPFR_SYS_CACHE=%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache-msys64-%MSYSTEM_CARCH%
@@ -48,4 +45,4 @@ test_script:
   - cargo +1.18.0-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
 
 after_test:
-  - bash -c "cd %USERPROFILE%\.cargo\registry; find -name \*.crate"
+  - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate"
