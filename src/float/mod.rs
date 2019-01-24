@@ -50,6 +50,7 @@ use rug::float;
 println!("Minimum exponent is {}", float::exp_min());
 ```
 */
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub fn exp_min() -> i32 {
     let min = unsafe { mpfr::get_emin() };
@@ -70,6 +71,7 @@ use rug::float;
 println!("Maximum exponent is {}", float::exp_max());
 ```
 */
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub fn exp_max() -> i32 {
     let max = unsafe { mpfr::get_emax() };

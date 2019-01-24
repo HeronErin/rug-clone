@@ -89,6 +89,7 @@ impl<'a> Drop for RandState<'a> {
 unsafe impl<'a> Send for RandState<'a> {}
 unsafe impl<'a> Sync for RandState<'a> {}
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 impl<'a> RandState<'a> {
     /// Creates a new random generator with a compromise between speed
     /// and randomness.

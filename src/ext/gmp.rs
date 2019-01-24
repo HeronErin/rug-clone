@@ -1236,6 +1236,7 @@ pub unsafe fn mpz_mulsub_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
     (*rop).size = -(*rop).size;
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
     if (*op).size >= 0 {
@@ -1331,6 +1332,7 @@ pub fn ord_int(o: Ordering) -> c_int {
     }
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cast_lossless))]
 pub unsafe fn realloc_for_mpn_set_str(rop: *mut mpz_t, len: usize, radix: i32) {
     // add 1 for possible rounding errors
     let bits = (f64::from(radix).log2() * (len as f64)).ceil() + 1.0;

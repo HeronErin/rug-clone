@@ -57,6 +57,7 @@ pub unsafe fn recip(
     mpfr::ui_div(rop, 1, op, rnd)
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub unsafe fn jn(
     rop: *mut mpfr_t,
@@ -67,6 +68,7 @@ pub unsafe fn jn(
     mpfr::jn(rop, n.into(), op, rnd)
 }
 
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 #[inline]
 pub unsafe fn yn(
     rop: *mut mpfr_t,

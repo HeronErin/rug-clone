@@ -1046,6 +1046,7 @@ impl Float {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
         if self.is_nan() {
@@ -1104,6 +1105,7 @@ impl Float {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
         if self.is_nan() {
