@@ -15,11 +15,11 @@ before_script:
   - getconf LONG_BIT
   - rustup --version
   - rustup show
-  - (cd /usr/local/cargo/registry; find -name \*.crate)
+  - if [ -d /usr/local/cargo/registry ]; then (cd /usr/local/cargo/registry; find -name \*.crate) fi
 
 after_script:
   - rustup show
-  - (cd /usr/local/cargo/registry; find -name \*.crate)
+  - if [ -d /usr/local/cargo/registry ]; then (cd /usr/local/cargo/registry; find -name \*.crate) fi
 
 build-clibs-x86_64-gnulinux:
   image: amd64/rust:1
