@@ -116,7 +116,11 @@ impl Environment {
         if !status.success() {
             println!("cargo:rustc-cfg=ffi_panic_aborts");
         }
-        remove_dir_or_panic(&try_dir);
+        // Do not panic if this directory cannot be removed, AppVeyor
+        // fails trying for Windows.
+        remove_dir(&try_dir).unwrap_or_else(|_| {
+            println!("Unable to remove directory: {:?}", try_dir)
+        });
     }
 }
 

@@ -1,0 +1,37 @@
+environment:
+  matrix:
+    - TARGET: x86_64-pc-windows-gnu
+      CONFIG_SITE: C:/msys64/mingw64/etc/config.site
+      MINGW_CHOST: x86_64-w64-mingw32
+      MINGW_PACKAGE_PREFIX: mingw-w64-x86_64
+      MINGW_PREFIX: C:/msys64/mingw64
+      MSYSTEM: MINGW64
+      MSYSTEM_CARCH: x86_64
+      MSYSTEM_CHOST: x86_64-w64-mingw32
+      MSYSTEM_PREFIX: C:/msys64/mingw64
+    - TARGET: i686-pc-windows-gnu
+      CONFIG_SITE: C:/msys64/mingw32/etc/config.site
+      MINGW_CHOST: i686-w64-mingw32
+      MINGW_PACKAGE_PREFIX: mingw-w64-i686
+      MINGW_PREFIX: C:/msys64/mingw32
+      MSYSTEM: MINGW32
+      MSYSTEM_CARCH: i686
+      MSYSTEM_CHOST: i686-w64-mingw32
+      MSYSTEM_PREFIX: C:/msys64/mingw32
+
+install:
+  - set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;C:\Users\appveyor\.cargo\bin;%PATH%
+  - curl -sSf -o rustup-init.exe https://win.rustup.rs
+  - rustup-init.exe -y --default-host %TARGET% --default-toolchain beta --no-modify-path
+  - rustup component add clippy
+  - rustup --version
+  - cargo --version
+  - rustc --version
+  - uname -a
+build: false
+test_script:
+  - set GMP_MPFR_SYS_CACHE="%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache-msys64-%MSYSTEM_CARCH"
+  - cargo check --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
+  - tree /f %GMP_MPFR_SYS_CACHE%
+  - cargo test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
+  - cargo clippy --features "fail-on-warnings serde" --all-targets
