@@ -5,9 +5,21 @@ stages:
 variables:
   SYS_CACHE_GNULINUX: gmp-mpfr-sys-cache-gnulinux
 
+cache:
+  paths:
+  - /usr/local/rustup/toolchains
+  - /usr/local/rustup/update-hashes
+  - /usr/local/cargo/registry/cache
+
 before_script:
   - getconf LONG_BIT
   - rustup --version
+  - rustup show
+  - (cd /usr/local/cargo/registry; find -name \*.crate)
+
+after_script:
+  - rustup show
+  - (cd /usr/local/cargo/registry; find -name \*.crate)
 
 build-clibs-x86_64-gnulinux:
   image: amd64/rust:1
@@ -27,17 +39,10 @@ beta-x86_64-gnulinux:
   dependencies:
   - build-clibs-x86_64-gnulinux
   variables:
-    TOOLCHAIN: beta
+    TOOLCHAIN: beta-x86_64
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
-  - rustup component add rustfmt --toolchain $TOOLCHAIN
-  - cargo +$TOOLCHAIN fmt -- --check
-  - rustup component add clippy --toolchain $TOOLCHAIN
-  - cargo +$TOOLCHAIN clippy --features=serde,fail-on-warnings --all-targets
 
 stable-x86_64-gnulinux:
   image: amd64/rust:1
@@ -45,12 +50,9 @@ stable-x86_64-gnulinux:
   dependencies:
   - build-clibs-x86_64-gnulinux
   variables:
-    TOOLCHAIN: stable
+    TOOLCHAIN: stable-x86_64
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
 
 nightly-x86_64-gnulinux:
@@ -59,12 +61,9 @@ nightly-x86_64-gnulinux:
   dependencies:
   - build-clibs-x86_64-gnulinux
   variables:
-    TOOLCHAIN: nightly
+    TOOLCHAIN: nightly-x86_64
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
 
 1.18.0-x86_64-gnulinux:
@@ -73,12 +72,9 @@ nightly-x86_64-gnulinux:
   dependencies:
   - build-clibs-x86_64-gnulinux
   variables:
-    TOOLCHAIN: 1.18.0
+    TOOLCHAIN: 1.18.0-x86_64
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
 
 build-clibs-i686-gnulinux:
@@ -99,17 +95,10 @@ beta-i686-gnulinux:
   dependencies:
   - build-clibs-i686-gnulinux
   variables:
-    TOOLCHAIN: beta
+    TOOLCHAIN: beta-i686
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
-  - rustup component add rustfmt --toolchain $TOOLCHAIN
-  - cargo +$TOOLCHAIN fmt -- --check
-  - rustup component add clippy --toolchain $TOOLCHAIN
-  - cargo +$TOOLCHAIN clippy --features=serde,fail-on-warnings --all-targets
 
 stable-i686-gnulinux:
   image: i386/rust:1
@@ -117,12 +106,9 @@ stable-i686-gnulinux:
   dependencies:
   - build-clibs-i686-gnulinux
   variables:
-    TOOLCHAIN: stable
+    TOOLCHAIN: stable-i686
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
 
 nightly-i686-gnulinux:
@@ -131,12 +117,9 @@ nightly-i686-gnulinux:
   dependencies:
   - build-clibs-i686-gnulinux
   variables:
-    TOOLCHAIN: nightly
+    TOOLCHAIN: nightly-i686
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh
 
 1.18.0-i686-gnulinux:
@@ -145,10 +128,7 @@ nightly-i686-gnulinux:
   dependencies:
   - build-clibs-i686-gnulinux
   variables:
-    TOOLCHAIN: 1.18.0
+    TOOLCHAIN: 1.18.0-i686
   script:
   - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
-  - rustup install $TOOLCHAIN
-  - cargo +$TOOLCHAIN --version
-  - rustc +$TOOLCHAIN --version
   - ./test-gitlab-ci.sh

@@ -25,11 +25,8 @@ function print_eval_check {
     check_error
 }
 
-if [ "$TOOLCHAIN" != "1.18.0" ]; then
-    all_targets="--all-targets"
-else
-    all_targets=""
-fi
+print_eval_check \
+    rustup install "$TOOLCHAIN"
 
 # Check with all feature combinations.
 # integer,rational = rational
@@ -44,7 +41,7 @@ for features in \
     rand{,\ serde} \
     serde
 do
-    if [ "$TOOLCHAIN" != "1.18.0" ]; then
+    if [[ "$TOOLCHAIN" == 1.18.0* ]]; then
         all_targets="--all-targets"
     else
         all_targets=""
@@ -71,5 +68,19 @@ for build in "" --release; do
         test $build \
         --features "fail-on-warnings serde" \
         -p gmp-mpfr-sys -p rug
-    rm -r target
 done
+
+# For beta, check rustfmt and clippy too
+if [[ "$TOOLCHAIN" == beta* ]]; then
+    print_eval_check \
+        rustup component add rustfmt --toolchain "$TOOLCHAIN"
+    print_eval_check \
+        cargo "+$TOOLCHAIN" \
+        fmt -- --check
+    print_eval_check \
+        rustup component add clippy --toolchain "$TOOLCHAIN"
+    print_eval_check \
+        cargo "+$TOOLCHAIN" \
+        clippy --release --all-targets \
+        --features="fail-on-warnings serde"
+fi
