@@ -24,20 +24,17 @@ clibs-x86_64-gnulinux:
     - cargo/
     - gmp-mpfr-sys-cache/
   script:
-  - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
+  - cargo fetch
+  - cargo test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
   artifacts:
     paths:
+    - cargo/
     - gmp-mpfr-sys-cache/
     expire_in: 1 day
 
 beta-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
@@ -48,11 +45,6 @@ beta-x86_64-gnulinux:
 stable-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
@@ -63,11 +55,6 @@ stable-x86_64-gnulinux:
 nightly-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
@@ -78,11 +65,6 @@ nightly-x86_64-gnulinux:
 1.18.0-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
@@ -99,20 +81,17 @@ clibs-i686-gnulinux:
     - cargo/
     - gmp-mpfr-sys-cache/
   script:
-  - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
+  - cargo fetch
+  - cargo test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
   artifacts:
     paths:
-    - gmp-mpfr-sys-cache
+    - cargo/
+    - gmp-mpfr-sys-cache/
     expire_in: 1 day
 
 beta-i686-gnulinux:
   image: i386/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
@@ -123,11 +102,6 @@ beta-i686-gnulinux:
 stable-i686-gnulinux:
   image: i386/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
@@ -138,11 +112,6 @@ stable-i686-gnulinux:
 nightly-i686-gnulinux:
   image: i386/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
@@ -153,11 +122,6 @@ nightly-i686-gnulinux:
 1.18.0-i686-gnulinux:
   image: i386/rust:1
   stage: test
-  cache:
-    key: $CI_JOB_NAME
-    paths:
-    - cargo/
-    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
