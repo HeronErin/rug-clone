@@ -30,7 +30,7 @@ print_eval_check \
 # For beta, install rustfmt and clippy too
 if [[ "$TOOLCHAIN" == beta* ]]; then
     print_eval_check \
-        rustup component --toolchain "$TOOLCHAIN" add rustfmt clippy
+        rustup component add --toolchain "$TOOLCHAIN" rustfmt clippy
 fi
 
 # Check with all feature combinations.
