@@ -12,7 +12,7 @@ function print_eval_check {
     for word in "$@"; do
         if [[ "$word" != *\ * ]]; then
             printf ' %q' "$word"
-        elif [[ "$word" =~ ^[\ 0-9A-Z_a-z-]*$ ]]; then
+        elif [[ "$word" =~ ^[\ /0-9A-Z_a-z-]*$ ]]; then
             printf ' "%s"' "$word"
         else
             printf ' %q' "$word"
