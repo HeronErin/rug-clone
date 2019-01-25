@@ -7,22 +7,25 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-function check_error {
+function print_eval_check {
+    printf '$'
+    for word in "$@"; do
+        if [[ "$word" != *\ * ]]; then
+            printf ' %q' "$word"
+        elif [[ "$word" =~ ^[\ 0-9A-Z_a-z-]*$ ]]; then
+            printf ' "%s"' "$word"
+        else
+            printf ' %q' "$word"
+        fi
+    done
+    printf '\n'
+    eval $(printf '%q ' "$@")
     code="$?"
     if [ "$code" == "0" ]; then
         return
     fi
-    printf '\nCompilation exited abnormally with code %s at %s\n' \
-        "$code" "$(date)"
+    printf '\nCommand exited abnormally with code %s\n' "$code"
     exit "$code"
-}
-
-function print_eval_check {
-    printf '$'
-    printf ' %q' "$@"
-    printf '\n'
-    eval $(printf '%q ' "$@") 2>&1
-    check_error
 }
 
 print_eval_check \
