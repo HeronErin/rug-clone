@@ -2,18 +2,12 @@ stages:
   - clibs
   - test
 
-variables:
-  SYS_CACHE_GNULINUX: gmp-mpfr-sys-cache-gnulinux
-
-cache:
-  paths:
-  - cargo/
-
 before_script:
   - getconf LONG_BIT
   - rustup --version
   - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache; mkdir -p $CARGO_HOME/registry; cp -R cargo/registry/cache $CARGO_HOME/registry/; echo Copied registry/cache; fi
   - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
+  - export GMP_MPFR_SYS_CACHE=$CI_PROJECT_DIR/gmp-mpfr-sys-cache
 
 after_script:
   - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
@@ -24,111 +18,149 @@ after_script:
 clibs-x86_64-gnulinux:
   image: amd64/rust:1
   stage: clibs
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   script:
-  - mkdir $SYS_CACHE_GNULINUX-x86_64
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
   - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
   artifacts:
     paths:
-    - $SYS_CACHE_GNULINUX-x86_64
+    - gmp-mpfr-sys-cache/
     expire_in: 1 day
 
 beta-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: beta-x86_64
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
   - ./test-gitlab-ci.sh
 
 stable-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
   - ./test-gitlab-ci.sh
 
 nightly-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: nightly-x86_64
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
   - ./test-gitlab-ci.sh
 
 1.18.0-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: 1.18.0-x86_64
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-x86_64
   - ./test-gitlab-ci.sh
 
 clibs-i686-gnulinux:
   image: i386/rust:1
   stage: clibs
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   script:
-  - mkdir $SYS_CACHE_GNULINUX-i686
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
   - cargo check --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest -p gmp-mpfr-sys
   artifacts:
     paths:
-    - $SYS_CACHE_GNULINUX-i686
+    - gmp-mpfr-sys-cache
     expire_in: 1 day
 
 beta-i686-gnulinux:
   image: i386/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: beta-i686
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
   - ./test-gitlab-ci.sh
 
 stable-i686-gnulinux:
   image: i386/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: stable-i686
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
   - ./test-gitlab-ci.sh
 
 nightly-i686-gnulinux:
   image: i386/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: nightly-i686
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
   - ./test-gitlab-ci.sh
 
 1.18.0-i686-gnulinux:
   image: i386/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
+    - gmp-mpfr-sys-cache/
   dependencies:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: 1.18.0-i686
   script:
-  - export GMP_MPFR_SYS_CACHE=$PWD/$SYS_CACHE_GNULINUX-i686
   - ./test-gitlab-ci.sh

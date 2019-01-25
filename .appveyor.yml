@@ -21,27 +21,27 @@ environment:
 
 cache:
   - '%USERPROFILE%\.cargo\registry\cache'
+  - '%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache'
 
 install:
   - set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;%USERPROFILE%\.cargo\bin;%PATH%
   - curl -sSf -o rustup-init.exe https://win.rustup.rs
   - rustup-init.exe -y --default-host %TARGET% --default-toolchain none --no-modify-path
   - rustup --version
-  - rustup install beta-%TARGET%
-  - rustup component add clippy --toolchain beta-%TARGET%
-  - rustup install 1.18.0-%TARGET%
+  - rustup install beta-%TARGET% 1.18.0-%TARGET%
+  - rustup component add --toolchain beta-%TARGET% clippy
 
 build: false
 
 before_test:
   - bash -c "if [ -d ""$USERPROFILE/.cargo/registry/cache"" ]; then cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate; fi"
+  - set GMP_MPFR_SYS_CACHE=%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache
 
 test_script:
-  - set GMP_MPFR_SYS_CACHE=%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache-msys64-%MSYSTEM_CARCH%
   - cargo +beta-%TARGET% test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
   - cargo +beta-%TARGET% test --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
   - cargo +beta-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
-  - cargo +beta-%TARGET% clippy --release --features "fail-on-warnings serde" --all-targets
+  - cargo +beta-%TARGET% clippy --all-targets --features "fail-on-warnings serde"
   - cargo +1.18.0-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
 
 after_test:

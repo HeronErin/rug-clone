@@ -27,6 +27,11 @@ function print_eval_check {
 
 print_eval_check \
     rustup install "$TOOLCHAIN"
+# For beta, install rustfmt and clippy too
+if [[ "$TOOLCHAIN" == beta* ]]; then
+    print_eval_check \
+        rustup component --toolchain "$TOOLCHAIN" add rustfmt clippy
+fi
 
 # Check with all feature combinations.
 # integer,rational = rational
@@ -59,8 +64,6 @@ do
         $gmp -p rug
 done
 
-rm -r target
-
 # Test with default features and serde
 for build in "" --release; do
     print_eval_check \
@@ -73,14 +76,10 @@ done
 # For beta, check rustfmt and clippy too
 if [[ "$TOOLCHAIN" == beta* ]]; then
     print_eval_check \
-        rustup component add rustfmt --toolchain "$TOOLCHAIN"
-    print_eval_check \
         cargo "+$TOOLCHAIN" \
         fmt -- --check
     print_eval_check \
-        rustup component add clippy --toolchain "$TOOLCHAIN"
-    print_eval_check \
         cargo "+$TOOLCHAIN" \
-        clippy --release --all-targets \
-        --features="fail-on-warnings serde"
+        clippy --all-targets \
+        --features "fail-on-warnings serde"
 fi
