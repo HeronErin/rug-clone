@@ -1,11 +1,11 @@
-<!-- Copyright © 2016–2018 University of Malta -->
+<!-- Copyright © 2016–2019 University of Malta -->
 
 <!-- Copying and distribution of this file, with or without
 modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Version 1.3.0 (unreleased)
+Version 1.3.0 (2019-01-26)
 ==========================
 
   * Add `SmallRational::assign_canonical`.

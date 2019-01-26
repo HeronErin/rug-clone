@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright © 2016–2018 University of Malta
+# Copyright © 2016–2019 University of Malta
 
 # Copying and distribution of this file, with or without modification,
 # are permitted in any medium without royalty provided the copyright

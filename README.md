@@ -1,4 +1,4 @@
-<!-- Copyright © 2016–2018 University of Malta -->
+<!-- Copyright © 2016–2019 University of Malta -->
 
 <!-- Copying and distribution of this file, with or without
 modification, are permitted in any medium without royalty provided the
@@ -31,7 +31,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.3.0 news (unreleased)
+### Version 1.3.0 news (2019-01-26)
 
   * The new method [`SmallRational::assign_canonical`] was added.
 
@@ -41,52 +41,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * Fixed bug in [`Integer::assign_digits`]. (Thanks: Eric Scrivner)
 
-[`Integer::assign_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
-
-### Version 1.2.2 news (2018-10-18)
-
-  * Some missing [`ops`] trait implementations for primitive types are
-    now implemented.
-
-### Version 1.2.1 news (2018-08-16)
-
-  * The [`Integer`] methods [`from_digits`], [`assign_digits`],
-    [`significant_digits`], [`to_digits`] and [`write_digits`] now
-    support [`bool`] slices.
-
-[`assign_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.assign_digits
-[`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
-[`from_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.from_digits
-[`significant_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.significant_digits
-[`to_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.to_digits
-[`write_digits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.write_digits
-
-### Version 1.2.0 news (2018-06-30)
-
-  * The implementations of [`Sum`] and [`Product`] for [`Integer`] and
-    [`Rational`] were generalized to accept more types of elements.
-  * New methods [`Integer::keep_signed_bits`],
-    [`Integer::keep_signed_bits_mut`] and
-    [`Integer::keep_signed_bits_ref`] were added.
-  * New methods [`Integer::sum`], [`Integer::dot`] and
-    [`Integer::product`] were added.
-  * New methods [`Rational::sum`], [`Rational::dot`] and
-    [`Rational::product`] were added.
-  * New methods [`Float::dot`] and [`Complex::dot`] were added.
-
-[`Complex::dot`]: https://docs.rs/rug/~1.2/rug/struct.Complex.html#method.dot
-[`Float::dot`]: https://docs.rs/rug/~1.2/rug/struct.Float.html#method.dot
-[`Integer::dot`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.dot
-[`Integer::keep_signed_bits_mut`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_mut
-[`Integer::keep_signed_bits_ref`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits_ref
-[`Integer::keep_signed_bits`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.keep_signed_bits
-[`Integer::product`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.product
-[`Integer::sum`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.sum
-[`Product`]: https://doc.rust-lang.org/nightly/std/iter/trait.Product.html
-[`Rational::dot`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.dot
-[`Rational::product`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.product
-[`Rational::sum`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html#method.sum
-[`Sum`]: https://doc.rust-lang.org/nightly/std/iter/trait.Sum.html
+[`Integer::assign_digits`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html#method.assign_digits
 
 ### Other releases
 
@@ -326,7 +281,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.2"
+rug = "1.3"
 ```
 
 If you are using the 2015 Rust edition, you also need to declare it by
@@ -372,7 +327,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.2"
+version = "1.3"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -392,25 +347,25 @@ provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.2/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.2/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.2/rug/struct.Complex.html
-[`Float::with_val`]: https://docs.rs/rug/~1.2/rug/struct.Float.html#method.with_val
-[`Float`]: https://docs.rs/rug/~1.2/rug/struct.Float.html
+[`Assign::assign`]: https://docs.rs/rug/~1.3/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.3/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.3/rug/struct.Complex.html
+[`Float::with_val`]: https://docs.rs/rug/~1.3/rug/struct.Float.html#method.with_val
+[`Float`]: https://docs.rs/rug/~1.3/rug/struct.Float.html
 [`From::from`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html#tymethod.from
 [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
-[`Integer::abs_ref`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.abs_ref
-[`Integer::gcd_ref`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.gcd_ref
-[`Integer::new`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.new
-[`Integer::parse_radix`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.parse_radix
-[`Integer::parse`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html#method.parse
-[`Integer`]: https://docs.rs/rug/~1.2/rug/struct.Integer.html
-[`Pow`]: https://docs.rs/rug/~1.2/rug/ops/trait.Pow.html
-[`RandState`]: https://docs.rs/rug/~1.2/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.2/rug/struct.Rational.html
+[`Integer::abs_ref`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html#method.abs_ref
+[`Integer::gcd_ref`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html#method.gcd_ref
+[`Integer::new`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html#method.new
+[`Integer::parse_radix`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html#method.parse_radix
+[`Integer::parse`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html#method.parse
+[`Integer`]: https://docs.rs/rug/~1.3/rug/struct.Integer.html
+[`Pow`]: https://docs.rs/rug/~1.3/rug/ops/trait.Pow.html
+[`RandState`]: https://docs.rs/rug/~1.3/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.3/rug/struct.Rational.html
 [`SubAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.SubAssign.html
-[`SubFrom`]: https://docs.rs/rug/~1.2/rug/ops/trait.SubFrom.html
-[`assign_round`]: https://docs.rs/rug/~1.2/rug/ops/trait.AssignRound.html#tymethod.assign_round
+[`SubFrom`]: https://docs.rs/rug/~1.3/rug/ops/trait.SubFrom.html
+[`assign_round`]: https://docs.rs/rug/~1.3/rug/ops/trait.AssignRound.html#tymethod.assign_round
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
@@ -419,7 +374,7 @@ provided by the crate.
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
-[`ops`]: https://docs.rs/rug/~1.2/rug/ops/index.html
+[`ops`]: https://docs.rs/rug/~1.3/rug/ops/index.html
 [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html

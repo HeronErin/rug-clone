@@ -1,4 +1,4 @@
-// Copyright © 2016–2018 University of Malta
+// Copyright © 2016–2019 University of Malta
 
 // This program is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -290,7 +290,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.2"
+rug = "1.3"
 ```
 
 If you are using the 2015 Rust edition, you also need to declare it by
@@ -337,7 +337,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.2"
+version = "1.3"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -400,7 +400,8 @@ provided by the crate.
 [sys]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/index.html
 */
 #![warn(missing_docs)]
-#![doc(html_root_url = "https://docs.rs/rug/~1.2")]
+#![doc(html_root_url = "https://docs.rs/rug/~1.3")]
+#![doc(html_logo_url = "https://tspiteri.gitlab.io/gmp-mpfr-sys/rug.svg")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(nightly_int_128, feature(i128_type, i128))]
