@@ -5,6 +5,8 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
+skip_tags: true
+
 environment:
   matrix:
     - TARGET: x86_64-pc-windows-gnu
