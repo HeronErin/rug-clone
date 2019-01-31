@@ -219,7 +219,7 @@ impl SmallRational {
     /// # Safety
     ///
     /// This method leads to undefined behaviour if `den` is zero or
-    /// if `num` and `den` have common factors.
+    /// negative, or if `num` and `den` have common factors.
     ///
     /// # Examples
     ///
