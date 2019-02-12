@@ -49,6 +49,11 @@ for features in \
     rand{,\ serde} \
     serde
 do
+    if [[ "$TOOLCHAIN" == beta* ]]; then
+        check=clippy
+    else
+        check=check
+    fi
     if [[ "$TOOLCHAIN" == 1.18.0* ]]; then
         all_targets=""
     else
@@ -62,7 +67,7 @@ do
     features="fail-on-warnings${features:+ $features}"
     print_eval_check \
         cargo "+$TOOLCHAIN" \
-        check $all_targets \
+        $check $all_targets \
         --no-default-features --features "$features" \
         $gmp -p rug
 done
@@ -76,13 +81,9 @@ for build in "" --release; do
         -p gmp-mpfr-sys -p rug
 done
 
-# For beta, check rustfmt and clippy too
+# For beta, check rustfmt too
 if [[ "$TOOLCHAIN" == beta* ]]; then
     print_eval_check \
         cargo "+$TOOLCHAIN" \
         fmt -- --check
-    print_eval_check \
-        cargo "+$TOOLCHAIN" \
-        clippy --all-targets \
-        --features "fail-on-warnings serde"
 fi
