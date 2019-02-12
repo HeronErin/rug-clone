@@ -17,7 +17,6 @@
 use complex::big::{ordering2, raw_round2, Ordering2, Round2};
 use ext::mpc as xmpc;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
-use inner::{Inner, InnerMut};
 use ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
     DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
@@ -71,7 +70,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete, round: Round2) -> Ordering2 {
         let ret = unsafe {
-            mpc::neg(self.inner_mut(), src.val.inner(), raw_round2(round))
+            mpc::neg(self.as_raw_mut(), src.val.as_raw(), raw_round2(round))
         };
         ordering2(ret)
     }
@@ -715,7 +714,7 @@ unsafe fn add_mul(
     mul: MulIncomplete,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    mpc::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
+    mpc::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
@@ -725,7 +724,7 @@ unsafe fn sub_mul(
     mul: MulIncomplete,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
+    xmpc::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
@@ -735,7 +734,7 @@ unsafe fn mul_sub(
     sub: *const mpc_t,
     rnd: mpc::rnd_t,
 ) -> c_int {
-    xmpc::mulsub(rop, (mul.lhs.inner(), mul.rhs.inner()), sub, rnd)
+    xmpc::mulsub(rop, (mul.lhs.as_raw(), mul.rhs.as_raw()), sub, rnd)
 }
 
 #[cfg(test)]

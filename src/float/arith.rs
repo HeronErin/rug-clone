@@ -18,7 +18,6 @@ use ext::mpfr as xmpfr;
 use float::big::{ordering1, raw_round};
 use float::Round;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use inner::{Inner, InnerMut};
 use ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
     DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
@@ -51,7 +50,7 @@ impl NegAssign for Float {
     #[inline]
     fn neg_assign(&mut self) {
         unsafe {
-            NegAssign::neg_assign(&mut self.inner_mut().sign);
+            NegAssign::neg_assign(&mut self.inner.sign);
             if self.is_nan() {
                 mpfr::set_nanflag();
             }
@@ -78,7 +77,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::neg(self.inner_mut(), src.val.inner(), raw_round(round))
+            mpfr::neg(self.as_raw_mut(), src.val.as_raw(), raw_round(round))
         };
         ordering1(ret)
     }
@@ -623,11 +622,11 @@ impl<'a> AssignRound<MulAddMulIncomplete<'a>> for Float {
     ) -> Ordering {
         let ret = unsafe {
             mpfr::fmma(
-                self.inner_mut(),
-                src.lhs.lhs.inner(),
-                src.lhs.rhs.inner(),
-                src.rhs.lhs.inner(),
-                src.rhs.rhs.inner(),
+                self.as_raw_mut(),
+                src.lhs.lhs.as_raw(),
+                src.lhs.rhs.as_raw(),
+                src.rhs.lhs.as_raw(),
+                src.rhs.rhs.as_raw(),
                 raw_round(round),
             )
         };
@@ -660,11 +659,11 @@ impl<'a> AssignRound<MulSubMulIncomplete<'a>> for Float {
     ) -> Ordering {
         let ret = unsafe {
             mpfr::fmms(
-                self.inner_mut(),
-                src.lhs.lhs.inner(),
-                src.lhs.rhs.inner(),
-                src.rhs.lhs.inner(),
-                src.rhs.rhs.inner(),
+                self.as_raw_mut(),
+                src.lhs.lhs.as_raw(),
+                src.lhs.rhs.as_raw(),
+                src.rhs.lhs.as_raw(),
+                src.rhs.rhs.as_raw(),
                 raw_round(round),
             )
         };
@@ -679,7 +678,7 @@ unsafe fn add_mul(
     mul: MulIncomplete,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::fma(rop, mul.lhs.inner(), mul.rhs.inner(), add, rnd)
+    mpfr::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
@@ -689,7 +688,7 @@ unsafe fn sub_mul(
     mul: MulIncomplete,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    xmpfr::submul(rop, add, (mul.lhs.inner(), mul.rhs.inner()), rnd)
+    xmpfr::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
 }
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
@@ -699,7 +698,7 @@ unsafe fn mul_sub(
     sub: *const mpfr_t,
     rnd: mpfr::rnd_t,
 ) -> c_int {
-    mpfr::fms(rop, mul.lhs.inner(), mul.rhs.inner(), sub, rnd)
+    mpfr::fms(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), sub, rnd)
 }
 
 #[cfg(test)]

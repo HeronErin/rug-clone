@@ -16,7 +16,6 @@
 
 use cast;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use inner::Inner;
 use misc::NegAbs;
 use std::cmp::Ordering;
 use std::mem;
@@ -809,7 +808,7 @@ pub unsafe fn mpz_rdiv_qr_check(
         let mut den_z = mem::uninitialized();
         gmp::mpz_init_set(&mut den_z, d);
         den = Integer::from_raw(den_z);
-        den.inner()
+        den.as_raw()
     } else {
         d
     };
@@ -1384,7 +1383,6 @@ pub use self::rational::*;
 mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
-    use inner::Inner;
     use rational::SmallRational;
 
     #[inline]
@@ -1656,7 +1654,7 @@ mod rational {
             }
         }
         let small = SmallRational::from((n2, d2));
-        gmp::mpq_cmp(op1, (*small).inner())
+        gmp::mpq_cmp(op1, (*small).as_raw())
     }
 
     #[inline]
@@ -1667,7 +1665,7 @@ mod rational {
             }
         }
         let small = SmallRational::from((n2, d2));
-        gmp::mpq_cmp(op1, (*small).inner())
+        gmp::mpq_cmp(op1, (*small).as_raw())
     }
 
     #[cfg(int_128)]
@@ -1679,7 +1677,7 @@ mod rational {
             }
         }
         let small = SmallRational::from((n2, d2));
-        gmp::mpq_cmp(op1, (*small).inner())
+        gmp::mpq_cmp(op1, (*small).as_raw())
     }
 
     #[cfg(int_128)]
@@ -1691,7 +1689,7 @@ mod rational {
             }
         }
         let small = SmallRational::from((n2, d2));
-        gmp::mpq_cmp(op1, (*small).inner())
+        gmp::mpq_cmp(op1, (*small).as_raw())
     }
 
     pub unsafe fn mpq_cmp_finite_d(op1: *const mpq_t, op2: f64) -> c_int {

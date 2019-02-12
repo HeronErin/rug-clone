@@ -445,7 +445,6 @@ extern crate serde_test;
 mod macros;
 mod cast;
 mod ext;
-mod inner;
 #[cfg(any(feature = "integer", feature = "float"))]
 mod misc;
 mod ops_prim;

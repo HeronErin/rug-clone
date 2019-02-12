@@ -17,7 +17,6 @@
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
-use inner::Inner;
 use misc::NegAbs;
 use std::cmp::Ordering;
 use std::i32;
@@ -28,7 +27,7 @@ impl Eq for Rational {}
 impl Ord for Rational {
     #[inline]
     fn cmp(&self, other: &Rational) -> Ordering {
-        let ord = unsafe { gmp::mpq_cmp(self.inner(), other.inner()) };
+        let ord = unsafe { gmp::mpq_cmp(self.as_raw(), other.as_raw()) };
         ord.cmp(&0)
     }
 }
@@ -36,7 +35,7 @@ impl Ord for Rational {
 impl PartialEq for Rational {
     #[inline]
     fn eq(&self, other: &Rational) -> bool {
-        unsafe { gmp::mpq_equal(self.inner(), other.inner()) != 0 }
+        unsafe { gmp::mpq_equal(self.as_raw(), other.as_raw()) != 0 }
     }
 }
 
@@ -50,7 +49,7 @@ impl PartialOrd for Rational {
 impl PartialEq<Integer> for Rational {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        unsafe { gmp::mpq_cmp_z(self.inner(), other.inner()) == 0 }
+        unsafe { gmp::mpq_cmp_z(self.as_raw(), other.as_raw()) == 0 }
     }
 }
 
@@ -64,7 +63,7 @@ impl PartialEq<Rational> for Integer {
 impl PartialOrd<Integer> for Rational {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        let ord = unsafe { gmp::mpq_cmp_z(self.inner(), other.inner()) };
+        let ord = unsafe { gmp::mpq_cmp_z(self.as_raw(), other.as_raw()) };
         Some(ord.cmp(&0))
     }
 }
@@ -101,13 +100,13 @@ macro_rules! cmp_num {
         impl PartialEq<$Num> for Rational {
             #[inline]
             fn eq(&self, other: &$Num) -> bool {
-                unsafe { $cmp(self.inner(), cast(*other), 1) == 0 }
+                unsafe { $cmp(self.as_raw(), cast(*other), 1) == 0 }
             }
         }
         impl PartialOrd<$Num> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$Num) -> Option<Ordering> {
-                let ord = unsafe { $cmp(self.inner(), cast(*other), 1) };
+                let ord = unsafe { $cmp(self.as_raw(), cast(*other), 1) };
                 Some(ord.cmp(&0))
             }
         }
@@ -148,7 +147,7 @@ macro_rules! cmp_num_iden {
                     self
                 };
                 unsafe {
-                    $func(to_compare.inner(), cast(other.0), cast(abs_den)) == 0
+                    $func(to_compare.as_raw(), cast(other.0), cast(abs_den)) == 0
                 }
             }
         }
@@ -165,7 +164,7 @@ macro_rules! cmp_num_iden {
                     self
                 };
                 let cmp = unsafe {
-                    $func(to_compare.inner(), cast(other.0), cast(abs_den))
+                    $func(to_compare.as_raw(), cast(other.0), cast(abs_den))
                 };
                 if neg_den {
                     Some(0.cmp(&cmp))
@@ -185,7 +184,7 @@ macro_rules! cmp_num_uden {
             fn eq(&self, other: &($Num, $Den)) -> bool {
                 assert_ne!(other.1, 0, "division by zero");
                 unsafe {
-                    $func(self.inner(), cast(other.0), cast(other.1)) == 0
+                    $func(self.as_raw(), cast(other.0), cast(other.1)) == 0
                 }
             }
         }
@@ -193,7 +192,7 @@ macro_rules! cmp_num_uden {
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
                 assert_ne!(other.1, 0, "division by zero");
                 let cmp = unsafe {
-                    $func(self.inner(), cast(other.0), cast(other.1))
+                    $func(self.as_raw(), cast(other.0), cast(other.1))
                 };
                 Some(cmp.cmp(&0))
             }
@@ -312,7 +311,7 @@ macro_rules! cmp_f {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
                 other.is_finite() && unsafe {
-                    xgmp::mpq_cmp_finite_d(self.inner(), cast(*other)) == 0
+                    xgmp::mpq_cmp_finite_d(self.as_raw(), cast(*other)) == 0
                 }
             }
         }
@@ -321,7 +320,7 @@ macro_rules! cmp_f {
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if other.is_finite() {
                     let ord = unsafe {
-                        xgmp::mpq_cmp_finite_d(self.inner(), cast(*other))
+                        xgmp::mpq_cmp_finite_d(self.as_raw(), cast(*other))
                     };
                     Some(ord.cmp(&0))
                 } else if other.is_nan() {

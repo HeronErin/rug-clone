@@ -16,7 +16,6 @@
 
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
-use inner::{Inner, InnerMut};
 use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use std::i32;
 use std::iter::{Product, Sum};

@@ -16,7 +16,6 @@
 
 use cast::cast;
 use gmp_mpfr_sys::gmp;
-use inner::InnerMut;
 use integer::small::{Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
 use integer::ToSmall;
 use std::mem;
@@ -335,7 +334,7 @@ where
         }
         unsafe {
             gmp::mpq_canonicalize(
-                self.as_nonreallocating_rational().inner_mut(),
+                self.as_nonreallocating_rational().as_raw_mut(),
             );
         }
     }

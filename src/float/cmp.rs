@@ -19,7 +19,6 @@ use ext::mpfr as xmpfr;
 use float::big::ordering1;
 use float::Special;
 use gmp_mpfr_sys::mpfr;
-use inner::Inner;
 use std::cmp::Ordering;
 use std::{i32, u32};
 use Float;
@@ -31,7 +30,7 @@ use Rational;
 impl PartialEq for Float {
     #[inline]
     fn eq(&self, other: &Float) -> bool {
-        unsafe { mpfr::equal_p(self.inner(), other.inner()) != 0 }
+        unsafe { mpfr::equal_p(self.as_raw(), other.as_raw()) != 0 }
     }
 }
 
@@ -39,8 +38,8 @@ impl PartialOrd for Float {
     #[inline]
     fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
         unsafe {
-            match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(ordering1(mpfr::cmp(self.inner(), other.inner()))),
+            match mpfr::unordered_p(self.as_raw(), other.as_raw()) {
+                0 => Some(ordering1(mpfr::cmp(self.as_raw(), other.as_raw()))),
                 _ => None,
             }
         }
@@ -48,22 +47,22 @@ impl PartialOrd for Float {
 
     #[inline]
     fn lt(&self, other: &Float) -> bool {
-        unsafe { mpfr::less_p(self.inner(), other.inner()) != 0 }
+        unsafe { mpfr::less_p(self.as_raw(), other.as_raw()) != 0 }
     }
 
     #[inline]
     fn le(&self, other: &Float) -> bool {
-        unsafe { mpfr::lessequal_p(self.inner(), other.inner()) != 0 }
+        unsafe { mpfr::lessequal_p(self.as_raw(), other.as_raw()) != 0 }
     }
 
     #[inline]
     fn gt(&self, other: &Float) -> bool {
-        unsafe { mpfr::greater_p(self.inner(), other.inner()) != 0 }
+        unsafe { mpfr::greater_p(self.as_raw(), other.as_raw()) != 0 }
     }
 
     #[inline]
     fn ge(&self, other: &Float) -> bool {
-        unsafe { mpfr::greaterequal_p(self.inner(), other.inner()) != 0 }
+        unsafe { mpfr::greaterequal_p(self.as_raw(), other.as_raw()) != 0 }
     }
 }
 
@@ -105,7 +104,7 @@ macro_rules! cmp_i {
                 if self.is_nan() {
                     None
                 } else {
-                    Some(ordering1($eval(self.inner(), other)))
+                    Some(ordering1($eval(self.as_raw(), other)))
                 }
             }
         }
@@ -122,7 +121,7 @@ macro_rules! cmp_f {
                 if self.is_nan() || other.is_nan() {
                     None
                 } else {
-                    Some(ordering1($eval(self.inner(), other)))
+                    Some(ordering1($eval(self.as_raw(), other)))
                 }
             }
         }
@@ -130,9 +129,9 @@ macro_rules! cmp_f {
 }
 
 #[cfg(feature = "integer")]
-cmp_i! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.inner()) } }
+cmp_i! { Integer, |f, t: &Integer| unsafe { mpfr::cmp_z(f, t.as_raw()) } }
 #[cfg(feature = "rational")]
-cmp_i! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.inner()) } }
+cmp_i! { Rational, |f, t: &Rational| unsafe { mpfr::cmp_q(f, t.as_raw()) } }
 
 cmp_i! { i8, |f, &t: &i8| unsafe { mpfr::cmp_si(f, t.into()) } }
 cmp_i! { i16, |f, &t: &i16| unsafe { mpfr::cmp_si(f, t.into()) } }

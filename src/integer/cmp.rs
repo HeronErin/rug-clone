@@ -17,7 +17,6 @@
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
-use inner::Inner;
 use std::cmp::Ordering;
 use Integer;
 
@@ -26,7 +25,7 @@ impl Eq for Integer {}
 impl Ord for Integer {
     #[inline]
     fn cmp(&self, other: &Integer) -> Ordering {
-        let ord = unsafe { gmp::mpz_cmp(self.inner(), other.inner()) };
+        let ord = unsafe { gmp::mpz_cmp(self.as_raw(), other.as_raw()) };
         ord.cmp(&0)
     }
 }
@@ -66,7 +65,7 @@ macro_rules! cmp {
         impl PartialOrd<$T> for Integer {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                let ord = unsafe { $func(self.inner(), (*other).into()) };
+                let ord = unsafe { $func(self.as_raw(), (*other).into()) };
                 Some(ord.cmp(&0))
             }
         }
@@ -172,7 +171,7 @@ impl PartialOrd<f64> for Integer {
         if other.is_nan() {
             None
         } else {
-            let ord = unsafe { gmp::mpz_cmp_d(self.inner(), *other) };
+            let ord = unsafe { gmp::mpz_cmp_d(self.as_raw(), *other) };
             Some(ord.cmp(&0))
         }
     }

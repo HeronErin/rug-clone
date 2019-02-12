@@ -16,7 +16,6 @@
 
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
-use inner::{Inner, InnerMut};
 use ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
     NotAssign, Pow, PowAssign, RemFrom, SubFrom,
@@ -300,7 +299,7 @@ mul_op_commut! {
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    MulIncomplete, inner;
+    MulIncomplete, as_raw;
     AddMulIncomplete
 }
 mul_op_commut! {
@@ -327,7 +326,7 @@ mul_op_noncommut! {
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    MulIncomplete, inner;
+    MulIncomplete, as_raw;
     SubMulIncomplete, SubMulFromIncomplete
 }
 mul_op_noncommut! {

@@ -17,7 +17,6 @@
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use inner::{Inner, InnerMut};
 use integer::big as big_integer;
 use misc;
 use std::cmp::Ordering;
@@ -116,9 +115,9 @@ macro_rules! rat_op_int {
         #[inline]
         pub fn $method_mut(&mut self, $($param: $T),*) {
             unsafe {
-                let num_mut = gmp::mpq_numref(self.inner_mut());
-                let den_mut = gmp::mpq_denref(self.inner_mut());
-                $func(num_mut, self.inner(), $($param.into()),*);
+                let num_mut = gmp::mpq_numref(self.as_raw_mut());
+                let den_mut = gmp::mpq_denref(self.as_raw_mut());
+                $func(num_mut, self.as_raw(), $($param.into()),*);
                 xgmp::mpz_set_1(den_mut);
             }
         }
@@ -152,8 +151,8 @@ macro_rules! ref_rat_op_int {
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
+                        self.as_raw_mut(),
+                        src.ref_self.as_raw(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -190,9 +189,9 @@ macro_rules! rat_op_rat_int {
         pub fn $method_mut(&mut self, $int: &mut Integer, $($param: $T),*) {
             unsafe {
                 $func(
-                    self.inner_mut(),
-                    $int.inner_mut(),
-                    self.inner(),
+                    self.as_raw_mut(),
+                    $int.as_raw_mut(),
+                    self.as_raw(),
                     $($param.into()),*
                 );
             }
@@ -229,9 +228,9 @@ macro_rules! ref_rat_op_rat_int {
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
+                        self.0.as_raw_mut(),
+                        self.1.as_raw_mut(),
+                        src.ref_self.as_raw(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -276,7 +275,7 @@ impl Rational {
     pub fn new() -> Self {
         unsafe {
             let mut ret: Rational = mem::uninitialized();
-            gmp::mpq_init(ret.inner_mut());
+            gmp::mpq_init(ret.as_raw_mut());
             ret
         }
     }
@@ -387,7 +386,7 @@ impl Rational {
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpq_t {
-        self.inner()
+        &self.inner
     }
 
     /// Returns an unsafe mutable pointer to the inner
@@ -416,7 +415,7 @@ impl Rational {
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpq_t {
-        unsafe { self.inner_mut() }
+        &mut self.inner
     }
 
     /// Creates a [`Rational`] number from an [`f32`] if it is
@@ -666,7 +665,7 @@ impl Rational {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpq_get_d(self.inner()) }
+        unsafe { gmp::mpq_get_d(self.as_raw()) }
     }
 
     /// Returns a string representation for the specified `radix`.
@@ -740,7 +739,7 @@ impl Rational {
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             unsafe {
-                gmp::mpq_set_d(self.inner_mut(), val);
+                gmp::mpq_set_d(self.as_raw_mut(), val);
             }
             Ok(())
         } else {
@@ -829,7 +828,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn numer(&self) -> &Integer {
-        unsafe { &*cast_ptr!(gmp::mpq_numref_const(self.inner()), Integer) }
+        unsafe { &*cast_ptr!(gmp::mpq_numref_const(self.as_raw()), Integer) }
     }
 
     /// Borrows the denominator as an [`Integer`].
@@ -846,7 +845,7 @@ impl Rational {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn denom(&self) -> &Integer {
-        unsafe { &*cast_ptr!(gmp::mpq_denref_const(self.inner()), Integer) }
+        unsafe { &*cast_ptr!(gmp::mpq_denref_const(self.as_raw()), Integer) }
     }
 
     /// Calls a function with mutable references to the numerator and
@@ -899,16 +898,16 @@ impl Rational {
     {
         unsafe {
             let numer_ptr =
-                cast_ptr_mut!(gmp::mpq_numref(self.inner_mut()), Integer);
+                cast_ptr_mut!(gmp::mpq_numref(self.as_raw_mut()), Integer);
             let denom_ptr =
-                cast_ptr_mut!(gmp::mpq_denref(self.inner_mut()), Integer);
+                cast_ptr_mut!(gmp::mpq_denref(self.as_raw_mut()), Integer);
             func(&mut *numer_ptr, &mut *denom_ptr);
             assert_ne!(
                 self.denom().cmp0(),
                 Ordering::Equal,
                 "division by zero"
             );
-            gmp::mpq_canonicalize(self.inner_mut());
+            gmp::mpq_canonicalize(self.as_raw_mut());
         }
     }
 
@@ -967,8 +966,8 @@ impl Rational {
         &mut self,
     ) -> (&mut Integer, &mut Integer) {
         (
-            &mut *cast_ptr_mut!(gmp::mpq_numref(self.inner_mut()), Integer),
-            &mut *cast_ptr_mut!(gmp::mpq_denref(self.inner_mut()), Integer),
+            &mut *cast_ptr_mut!(gmp::mpq_numref(self.as_raw_mut()), Integer),
+            &mut *cast_ptr_mut!(gmp::mpq_denref(self.as_raw_mut()), Integer),
         )
     }
 
@@ -1026,7 +1025,7 @@ impl Rational {
     pub fn as_neg(&self) -> BorrowRational {
         let mut ret =
             BorrowRational { inner: self.inner, phantom: PhantomData };
-        let size = self.numer().inner().size.checked_neg().expect("overflow");
+        let size = self.numer().inner.size.checked_neg().expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
         }
@@ -1060,7 +1059,7 @@ impl Rational {
     pub fn as_abs(&self) -> BorrowRational {
         let mut ret =
             BorrowRational { inner: self.inner, phantom: PhantomData };
-        let size = self.numer().inner().size.checked_abs().expect("overflow");
+        let size = self.numer().inner.size.checked_abs().expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
         }
@@ -1098,8 +1097,8 @@ impl Rational {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
-            let mut dst_num = ptr::read(self.denom().inner());
-            let mut dst_den = ptr::read(self.numer().inner());
+            let mut dst_num = ptr::read(self.denom().as_raw());
+            let mut dst_den = ptr::read(self.numer().as_raw());
             if dst_den.size < 0 {
                 dst_den.size = dst_den.size.wrapping_neg();
                 dst_num.size = dst_num.size.checked_neg().expect("overflow");
@@ -2653,7 +2652,7 @@ impl Assign<ParseIncomplete> for Rational {
     #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
         unsafe {
-            let ptr = self.inner_mut();
+            let ptr = self.as_raw_mut();
             let num = gmp::mpq_numref(ptr);
             let den = gmp::mpq_denref(ptr);
 
@@ -2804,20 +2803,5 @@ impl Error for ParseRationalError {
             TooManySlashes => "more than one / found in string",
             DenomZero => "string has zero denominator",
         }
-    }
-}
-
-impl Inner for Rational {
-    type Output = mpq_t;
-    #[inline]
-    fn inner(&self) -> &mpq_t {
-        &self.inner
-    }
-}
-
-impl InnerMut for Rational {
-    #[inline]
-    unsafe fn inner_mut(&mut self) -> &mut mpq_t {
-        &mut self.inner
     }
 }

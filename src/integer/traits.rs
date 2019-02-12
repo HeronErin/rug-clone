@@ -17,7 +17,6 @@
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp;
-use inner::{Inner, InnerMut};
 use integer::big;
 use integer::ParseIntegerError;
 #[cfg(try_from)]
@@ -48,7 +47,7 @@ impl Clone for Integer {
     fn clone(&self) -> Integer {
         unsafe {
             let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set(ret.inner_mut(), self.inner());
+            gmp::mpz_init_set(ret.as_raw_mut(), self.as_raw());
             ret
         }
     }
@@ -63,7 +62,7 @@ impl Drop for Integer {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            gmp::mpz_clear(self.inner_mut());
+            gmp::mpz_clear(self.as_raw_mut());
         }
     }
 }
@@ -73,11 +72,11 @@ impl Hash for Integer {
     where
         H: Hasher,
     {
-        let size = self.inner().size;
+        let size = self.inner.size;
         size.hash(state);
         if size != 0 {
             let limbs: usize = cast(size.checked_abs().expect("overflow"));
-            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
+            let slice = unsafe { slice::from_raw_parts(self.inner.d, limbs) };
             slice.hash(state);
         }
     }
@@ -94,7 +93,7 @@ impl<'a> Assign<&'a Integer> for Integer {
     #[inline]
     fn assign(&mut self, src: &Integer) {
         unsafe {
-            gmp::mpz_set(self.inner_mut(), src.inner());
+            gmp::mpz_set(self.as_raw_mut(), src.as_raw());
         }
     }
 }
@@ -104,7 +103,7 @@ impl<'a> From<&'a Integer> for Integer {
     fn from(val: &Integer) -> Self {
         unsafe {
             let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set(ret.inner_mut(), val.inner());
+            gmp::mpz_init_set(ret.as_raw_mut(), val.as_raw());
             ret
         }
     }
@@ -157,7 +156,7 @@ macro_rules! assign {
             #[inline]
             fn assign(&mut self, src: $T) {
                 unsafe {
-                    $set(self.inner_mut(), src);
+                    $set(self.as_raw_mut(), src);
                 }
             }
         }
@@ -174,7 +173,7 @@ macro_rules! assign {
             fn from(src: $T) -> Self {
                 unsafe {
                     let mut dst: Integer = mem::uninitialized();
-                    $init_set(dst.inner_mut(), src);
+                    $init_set(dst.as_raw_mut(), src);
                     dst
                 }
             }

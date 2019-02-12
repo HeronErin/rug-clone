@@ -17,7 +17,6 @@
 use cast::cast;
 use float::{self, OrdFloat};
 use gmp_mpfr_sys::mpfr;
-use inner::InnerMut;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -57,7 +56,7 @@ impl<'de> Deserialize<'de> for Float {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
-            mpfr::set_prec(place.inner_mut(), cast(prec));
+            mpfr::set_prec(place.as_raw_mut(), cast(prec));
         }
         place.assign(p);
         Ok(())

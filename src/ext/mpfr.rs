@@ -20,9 +20,7 @@ use float;
 use float::SmallFloat;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use inner::Inner;
 #[cfg(feature = "integer")]
-use inner::InnerMut;
 use misc::NegAbs;
 #[cfg(feature = "integer")]
 use std::cmp;
@@ -160,16 +158,16 @@ unsafe fn divf_mulz_divz(
         let bits: u32 = cast(gmp::mpz_sizeinbase(div, 2));
         prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
-        mpfr::mul_z(denom_buf.inner_mut(), f, div, mpfr::rnd_t::RNDN);
-        denom_buf.inner()
+        mpfr::mul_z(denom_buf.as_raw_mut(), f, div, mpfr::rnd_t::RNDN);
+        denom_buf.as_raw()
     } else {
         f
     };
     if let Some(mul) = mul {
         let bits: u32 = cast(gmp::mpz_sizeinbase(mul, 2));
         let mut buf = Float::new(cmp::max(float::prec_min(), bits));
-        mpfr::set_z(buf.inner_mut(), mul, rnd);
-        mpfr::div(rop, buf.inner(), denom, rnd)
+        mpfr::set_z(buf.as_raw_mut(), mul, rnd);
+        mpfr::div(rop, buf.as_raw(), denom, rnd)
     } else {
         mpfr::ui_div(rop, 1, denom, rnd)
     }
@@ -264,14 +262,14 @@ pub unsafe fn f32_div(
 #[inline]
 pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
-    mpfr::set(rop, (*small).inner(), rnd)
+    mpfr::set(rop, (*small).as_raw(), rnd)
 }
 
 #[cfg(int_128)]
 #[inline]
 pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
-    mpfr::set(rop, (*small).inner(), rnd)
+    mpfr::set(rop, (*small).as_raw(), rnd)
 }
 
 #[inline]
@@ -280,7 +278,7 @@ pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
         mpfr::cmp_si(op1, cast(op2))
     } else {
         let small = SmallFloat::from(op2);
-        mpfr::cmp(op1, (*small).inner())
+        mpfr::cmp(op1, (*small).as_raw())
     }
 }
 
@@ -290,7 +288,7 @@ pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
         mpfr::cmp_ui(op1, cast(op2))
     } else {
         let small = SmallFloat::from(op2);
-        mpfr::cmp(op1, (*small).inner())
+        mpfr::cmp(op1, (*small).as_raw())
     }
 }
 
@@ -298,14 +296,14 @@ pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
 #[inline]
 pub unsafe fn cmp_i128(op1: *const mpfr_t, op2: i128) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::cmp(op1, (*small).inner())
+    mpfr::cmp(op1, (*small).as_raw())
 }
 
 #[cfg(int_128)]
 #[inline]
 pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::cmp(op1, (*small).inner())
+    mpfr::cmp(op1, (*small).as_raw())
 }
 
 #[inline]
@@ -316,7 +314,7 @@ pub unsafe fn pow_f64(
     rnd: mpfr::rnd_t,
 ) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::pow(rop, op1, (*small).inner(), rnd)
+    mpfr::pow(rop, op1, (*small).as_raw(), rnd)
 }
 
 #[inline]
@@ -327,7 +325,7 @@ pub unsafe fn pow_f32(
     rnd: mpfr::rnd_t,
 ) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::pow(rop, op1, (*small).inner(), rnd)
+    mpfr::pow(rop, op1, (*small).as_raw(), rnd)
 }
 
 #[inline]
@@ -338,7 +336,7 @@ pub unsafe fn si_pow(
     rnd: mpfr::rnd_t,
 ) -> c_int {
     let small = SmallFloat::from(op1);
-    mpfr::pow(rop, (*small).inner(), op2, rnd)
+    mpfr::pow(rop, (*small).as_raw(), op2, rnd)
 }
 
 #[inline]
@@ -371,7 +369,7 @@ pub unsafe fn f32_pow(
     rnd: mpfr::rnd_t,
 ) -> c_int {
     let small = SmallFloat::from(op1);
-    mpfr::pow(rop, (*small).inner(), op2, rnd)
+    mpfr::pow(rop, (*small).as_raw(), op2, rnd)
 }
 
 #[inline]
@@ -382,7 +380,7 @@ pub unsafe fn f64_pow(
     rnd: mpfr::rnd_t,
 ) -> c_int {
     let small = SmallFloat::from(op1);
-    mpfr::pow(rop, (*small).inner(), op2, rnd)
+    mpfr::pow(rop, (*small).as_raw(), op2, rnd)
 }
 
 #[inline]

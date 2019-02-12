@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use gmp_mpfr_sys::gmp;
-use inner::{Inner, InnerMut};
 use rational::big;
 use rational::ParseRationalError;
 #[cfg(try_from)]
@@ -48,8 +47,8 @@ impl Clone for Rational {
         let mut dst: Rational = unsafe { mem::uninitialized() };
         unsafe {
             let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
-            gmp::mpz_init_set(num.inner_mut(), self.numer().inner());
-            gmp::mpz_init_set(den.inner_mut(), self.denom().inner());
+            gmp::mpz_init_set(num.as_raw_mut(), self.numer().as_raw());
+            gmp::mpz_init_set(den.as_raw_mut(), self.denom().as_raw());
         }
         dst
     }
@@ -64,7 +63,7 @@ impl Drop for Rational {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            gmp::mpq_clear(self.inner_mut());
+            gmp::mpq_clear(self.as_raw_mut());
         }
     }
 }
@@ -134,7 +133,7 @@ impl<'a> Assign<&'a Rational> for Rational {
     #[inline]
     fn assign(&mut self, src: &Rational) {
         unsafe {
-            gmp::mpq_set(self.inner_mut(), src.inner());
+            gmp::mpq_set(self.as_raw_mut(), src.as_raw());
         }
     }
 }
@@ -171,7 +170,7 @@ where
         unsafe {
             let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
             ptr::write(num, Integer::from(src));
-            gmp::mpz_init_set_ui(den.inner_mut(), 1);
+            gmp::mpz_init_set_ui(den.as_raw_mut(), 1);
         }
         dst
     }

@@ -25,7 +25,6 @@ use float::big::{
 use float::{self, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
-use inner::{Inner, InnerMut};
 use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
@@ -276,7 +275,7 @@ impl Complex {
         );
         unsafe {
             let mut c: Complex = mem::uninitialized();
-            mpc::init3(c.inner_mut(), cast(p.0), cast(p.1));
+            mpc::init3(c.as_raw_mut(), cast(p.0), cast(p.1));
             c
         }
     }
@@ -553,7 +552,7 @@ impl Complex {
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpc_t {
-        self.inner()
+        &self.inner
     }
 
     /// Returns an unsafe mutable pointer to the inner
@@ -582,7 +581,7 @@ impl Complex {
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpc_t {
-        unsafe { self.inner_mut() }
+        &mut self.inner
     }
 
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
@@ -792,7 +791,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn real(&self) -> &Float {
-        unsafe { &*cast_ptr!(mpc::realref_const(self.inner()), Float) }
+        unsafe { &*cast_ptr!(mpc::realref_const(self.as_raw()), Float) }
     }
 
     /// Borrows the imaginary part as a [`Float`].
@@ -808,7 +807,7 @@ impl Complex {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn imag(&self) -> &Float {
-        unsafe { &*cast_ptr!(mpc::imagref_const(self.inner()), Float) }
+        unsafe { &*cast_ptr!(mpc::imagref_const(self.as_raw()), Float) }
     }
 
     /// Borrows the real part mutably.
@@ -824,7 +823,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_real(&mut self) -> &mut Float {
-        unsafe { &mut *cast_ptr_mut!(mpc::realref(self.inner_mut()), Float) }
+        unsafe { &mut *cast_ptr_mut!(mpc::realref(self.as_raw_mut()), Float) }
     }
 
     /// Borrows the imaginary part mutably.
@@ -840,7 +839,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn mut_imag(&mut self) -> &mut Float {
-        unsafe { &mut *cast_ptr_mut!(mpc::imagref(self.inner_mut()), Float) }
+        unsafe { &mut *cast_ptr_mut!(mpc::imagref(self.as_raw_mut()), Float) }
     }
 
     /// Borrows the real and imaginary parts mutably.
@@ -863,8 +862,8 @@ impl Complex {
     pub fn as_mut_real_imag(&mut self) -> (&mut Float, &mut Float) {
         unsafe {
             (
-                &mut *cast_ptr_mut!(mpc::realref(self.inner_mut()), Float),
-                &mut *cast_ptr_mut!(mpc::imagref(self.inner_mut()), Float),
+                &mut *cast_ptr_mut!(mpc::realref(self.as_raw_mut()), Float),
+                &mut *cast_ptr_mut!(mpc::imagref(self.as_raw_mut()), Float),
             )
         }
     }
@@ -995,8 +994,8 @@ impl Complex {
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
         let mut inner: mpc_t = unsafe { mem::uninitialized() };
         unsafe {
-            let mut dst_re = ptr::read(self.imag().inner());
-            let mut dst_im = ptr::read(self.real().inner());
+            let mut dst_re = ptr::read(self.imag().as_raw());
+            let mut dst_im = ptr::read(self.real().as_raw());
             if negative {
                 NegAssign::neg_assign(&mut dst_im.sign);
             } else {
@@ -1094,7 +1093,7 @@ impl Complex {
             {
                 None
             } else {
-                Some(ordering1(mpc::cmp_abs(self.inner(), other.inner())))
+                Some(ordering1(mpc::cmp_abs(self.as_raw(), other.as_raw())))
             }
         }
     }
@@ -1286,10 +1285,10 @@ impl Complex {
     ) -> Ordering2 {
         let ret = unsafe {
             mpc::fma(
-                self.inner_mut(),
-                self.inner(),
-                mul.inner(),
-                add.inner(),
+                self.as_raw_mut(),
+                self.as_raw(),
+                mul.as_raw(),
+                add.as_raw(),
                 raw_round2(round),
             )
         };
@@ -1404,9 +1403,9 @@ impl Complex {
     ) -> Ordering2 {
         let ret = unsafe {
             xmpc::mulsub(
-                self.inner_mut(),
-                (self.inner(), mul.inner()),
-                sub.inner(),
+                self.as_raw_mut(),
+                (self.as_raw(), mul.as_raw()),
+                sub.as_raw(),
                 raw_round2(round),
             )
         };
@@ -1845,9 +1844,9 @@ impl Complex {
         let (re, im) = self.as_mut_real_imag();
         let ret = unsafe {
             mpfr::atan2(
-                re.inner_mut(),
-                im.inner(),
-                re.inner(),
+                re.as_raw_mut(),
+                im.as_raw(),
+                re.as_raw(),
                 raw_round(round.0),
             )
         };
@@ -3391,8 +3390,8 @@ where
         let mut reals = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
         let mut imags = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
         for value in src.values {
-            reals.push(value.real().inner());
-            imags.push(value.imag().inner());
+            reals.push(value.real().as_raw());
+            imags.push(value.imag().as_raw());
         }
         let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
         let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
@@ -3400,8 +3399,8 @@ where
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
-                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
-                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
+                mpfr::sum(real.as_raw_mut(), tab_real, n, raw_round(round.0)),
+                mpfr::sum(imag.as_raw_mut(), tab_imag, n, raw_round(round.1)),
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
@@ -3447,11 +3446,11 @@ where
         };
         let mut reals = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
         let mut imags = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
-        reals.push(self.real().inner());
-        imags.push(self.imag().inner());
+        reals.push(self.real().as_raw());
+        imags.push(self.imag().as_raw());
         for value in src.values {
-            reals.push(value.real().inner());
-            imags.push(value.imag().inner());
+            reals.push(value.real().as_raw());
+            imags.push(value.imag().as_raw());
         }
         let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
         let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
@@ -3459,8 +3458,8 @@ where
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
-                mpfr::sum(real.inner_mut(), tab_real, n, raw_round(round.0)),
-                mpfr::sum(imag.inner_mut(), tab_imag, n, raw_round(round.1)),
+                mpfr::sum(real.as_raw_mut(), tab_real, n, raw_round(round.0)),
+                mpfr::sum(imag.as_raw_mut(), tab_imag, n, raw_round(round.1)),
             )
         };
         (ordering1(ord_real), ordering1(ord_imag))
@@ -3485,13 +3484,13 @@ fn prods_real(pairs: &[(&Complex, &Complex)]) -> Vec<Float> {
         let bp = cmp::max(brp, bip);
         let mut r = Float::new(arp.checked_add(bp).expect("overflow"));
         unsafe {
-            mpfr::set_prec(r.inner_mut(), cast(arp + brp));
+            mpfr::set_prec(r.as_raw_mut(), cast(arp + brp));
         }
         r.assign(ar * br);
         prods.push(r);
         r = Float::new(aip.checked_add(bp).expect("overflow"));
         unsafe {
-            mpfr::set_prec(r.inner_mut(), cast(aip + bip));
+            mpfr::set_prec(r.as_raw_mut(), cast(aip + bip));
         }
         r.assign(ai * bi);
         r.neg_assign();
@@ -3508,12 +3507,12 @@ fn prods_imag(prods: &mut Vec<Float>, pairs: &[(&Complex, &Complex)]) {
         let (arp, aip) = (ar.prec(), ai.prec());
         let (brp, bip) = (br.prec(), bi.prec());
         unsafe {
-            mpfr::set_prec(prods[i].inner_mut(), cast(arp + bip));
+            mpfr::set_prec(prods[i].as_raw_mut(), cast(arp + bip));
         }
         prods[i].assign(ar * bi);
         i += 1;
         unsafe {
-            mpfr::set_prec(prods[i].inner_mut(), cast(aip + brp));
+            mpfr::set_prec(prods[i].as_raw_mut(), cast(aip + brp));
         }
         prods[i].assign(ai * br);
         i += 1;
@@ -3602,7 +3601,7 @@ impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: AbsIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::abs(self.inner_mut(), src.ref_self.inner(), raw_round(round))
+            mpc::abs(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3619,7 +3618,7 @@ impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: ArgIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::arg(self.inner_mut(), src.ref_self.inner(), raw_round(round))
+            mpc::arg(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round))
         };
         ret.cmp(&0)
     }
@@ -3639,7 +3638,11 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(&mut self, src: NormIncomplete, round: Round) -> Ordering {
         let ret = unsafe {
-            mpc::norm(self.inner_mut(), src.ref_self.inner(), raw_round(round))
+            mpc::norm(
+                self.as_raw_mut(),
+                src.ref_self.as_raw(),
+                raw_round(round),
+            )
         };
         ret.cmp(&0)
     }
@@ -4002,19 +4005,4 @@ pub(crate) fn ordering2(ord: c_int) -> Ordering2 {
 #[inline]
 fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
     (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
-}
-
-impl Inner for Complex {
-    type Output = mpc_t;
-    #[inline]
-    fn inner(&self) -> &mpc_t {
-        &self.inner
-    }
-}
-
-impl InnerMut for Complex {
-    #[inline]
-    unsafe fn inner_mut(&mut self) -> &mut mpc_t {
-        &mut self.inner
-    }
 }

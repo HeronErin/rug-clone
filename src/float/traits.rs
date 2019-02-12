@@ -19,7 +19,6 @@ use ext::mpfr as xmpfr;
 use float::big::{self, ordering1, raw_round, ExpFormat, Format};
 use float::{Constant, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
-use inner::{Inner, InnerMut};
 use ops::AssignRound;
 #[cfg(all(try_from, feature = "rational"))]
 use rational::TryFromFloatError;
@@ -50,7 +49,7 @@ impl Clone for Float {
     #[inline]
     fn clone_from(&mut self, source: &Float) {
         unsafe {
-            mpfr::set_prec(self.inner_mut(), cast(source.prec()));
+            mpfr::set_prec(self.as_raw_mut(), cast(source.prec()));
         }
         self.assign(source);
     }
@@ -60,7 +59,7 @@ impl Drop for Float {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            mpfr::clear(self.inner_mut());
+            mpfr::clear(self.as_raw_mut());
         }
     }
 }
@@ -148,16 +147,16 @@ impl AssignRound<Constant> for Float {
         let ret = unsafe {
             match src {
                 Constant::Log2 => {
-                    mpfr::const_log2(self.inner_mut(), raw_round(round))
+                    mpfr::const_log2(self.as_raw_mut(), raw_round(round))
                 }
                 Constant::Pi => {
-                    mpfr::const_pi(self.inner_mut(), raw_round(round))
+                    mpfr::const_pi(self.as_raw_mut(), raw_round(round))
                 }
                 Constant::Euler => {
-                    mpfr::const_euler(self.inner_mut(), raw_round(round))
+                    mpfr::const_euler(self.as_raw_mut(), raw_round(round))
                 }
                 Constant::Catalan => {
-                    mpfr::const_catalan(self.inner_mut(), raw_round(round))
+                    mpfr::const_catalan(self.as_raw_mut(), raw_round(round))
                 }
                 _ => unreachable!(),
             }
@@ -178,7 +177,7 @@ impl AssignRound<Special> for Float {
         const EXP_NAN: c_long = 1 - EXP_MAX;
         const EXP_INF: c_long = 2 - EXP_MAX;
         unsafe {
-            let ptr = self.inner_mut();
+            let ptr = self.as_raw_mut();
             match src {
                 Special::Zero => {
                     (*ptr).sign = 1;
@@ -229,7 +228,7 @@ impl<'a> AssignRound<&'a Float> for Float {
     #[inline]
     fn assign_round(&mut self, src: &Float, round: Round) -> Ordering {
         let ret = unsafe {
-            mpfr::set(self.inner_mut(), src.inner(), raw_round(round))
+            mpfr::set(self.as_raw_mut(), src.as_raw(), raw_round(round))
         };
         ordering1(ret)
     }
@@ -244,7 +243,7 @@ macro_rules! assign {
             #[inline]
             fn assign_round(&mut self, src: &$T, round: Round) -> Ordering {
                 let ret = unsafe {
-                    $func(self.inner_mut(), src.inner(), raw_round(round))
+                    $func(self.as_raw_mut(), src.as_raw(), raw_round(round))
                 };
                 ordering1(ret)
             }
@@ -274,7 +273,7 @@ macro_rules! conv_ops {
             #[inline]
             fn assign_round(&mut self, src: $T, round: Round) -> Ordering {
                 let ret = unsafe {
-                    $set(self.inner_mut(), src.into(), raw_round(round))
+                    $set(self.as_raw_mut(), src.into(), raw_round(round))
                 };
                 ordering1(ret)
             }

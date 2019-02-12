@@ -19,7 +19,6 @@ use complex::ParseComplexError;
 use float::big::ExpFormat;
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
-use inner::{Inner, InnerMut};
 use ops::AssignRound;
 #[allow(deprecated, unused_imports)]
 use std::ascii::AsciiExt;
@@ -53,7 +52,7 @@ impl Drop for Complex {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            mpc::clear(self.inner_mut());
+            mpc::clear(self.as_raw_mut());
         }
     }
 }
@@ -210,7 +209,7 @@ impl<'a> AssignRound<&'a Complex> for Complex {
     #[inline]
     fn assign_round(&mut self, src: &Complex, round: Round2) -> Ordering2 {
         let ret = unsafe {
-            mpc::set(self.inner_mut(), src.inner(), raw_round2(round))
+            mpc::set(self.as_raw_mut(), src.as_raw(), raw_round2(round))
         };
         ordering2(ret)
     }

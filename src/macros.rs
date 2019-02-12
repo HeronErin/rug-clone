@@ -94,7 +94,7 @@ macro_rules! ref_math_op0 {
             #[inline]
             fn assign(&mut self, src: $Src) {
                 unsafe {
-                    $func(self.inner_mut(), $(src.$param.into()),*);
+                    $func(self.as_raw_mut(), $(src.$param.into()),*);
                 }
             }
         }
@@ -128,7 +128,7 @@ macro_rules! math_op1 {
         #[inline]
         pub fn $method_mut(&mut self, $($param: $T),*) {
             unsafe {
-                $func(self.inner_mut(), self.inner(), $($param.into()),*);
+                $func(self.as_raw_mut(), self.as_raw(), $($param.into()),*);
             }
         }
 
@@ -166,8 +166,8 @@ macro_rules! ref_math_op1 {
             fn assign(&mut self, src: $Incomplete<'a>) {
                 unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
+                        self.as_raw_mut(),
+                        src.ref_self.as_raw(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -208,9 +208,9 @@ macro_rules! math_op1_2 {
         pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
             unsafe {
                 $func(
-                    self.inner_mut(),
-                    $rop.inner_mut(),
-                    self.inner(),
+                    self.as_raw_mut(),
+                    $rop.as_raw_mut(),
+                    self.as_raw(),
                     $($param.into(),)*
                 );
             }
@@ -255,9 +255,9 @@ macro_rules! ref_math_op1_2 {
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
+                        self.0.as_raw_mut(),
+                        self.1.as_raw_mut(),
+                        src.ref_self.as_raw(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -304,9 +304,9 @@ macro_rules! math_op2 {
         pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
             unsafe {
                 $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
+                    self.as_raw_mut(),
+                    self.as_raw(),
+                    $op.as_raw(),
                     $($param.into(),)*
                 );
             }
@@ -352,9 +352,9 @@ macro_rules! ref_math_op2 {
             fn assign(&mut self, src: $Incomplete<'a>) {
                 unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
+                        self.as_raw_mut(),
+                        src.ref_self.as_raw(),
+                        src.$op.as_raw(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -395,10 +395,10 @@ macro_rules! math_op2_2 {
         pub fn $method_mut(&mut self, $op: &mut Self, $($param: $T),*) {
             unsafe {
                 $func(
-                    self.inner_mut(),
-                    $op.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
+                    self.as_raw_mut(),
+                    $op.as_raw_mut(),
+                    self.as_raw(),
+                    $op.as_raw(),
                     $($param.into(),)*
                 );
             }
@@ -446,10 +446,10 @@ macro_rules! ref_math_op2_2 {
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
                     $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
+                        self.0.as_raw_mut(),
+                        self.1.as_raw_mut(),
+                        src.ref_self.as_raw(),
+                        src.$op.as_raw(),
                         $(src.$param.into(),)*
                     );
                 }
@@ -506,11 +506,11 @@ macro_rules! math_op2_3 {
         ) {
             unsafe {
                 $func(
-                    self.inner_mut(),
-                    $op.inner_mut(),
-                    $rop.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
+                    self.as_raw_mut(),
+                    $op.as_raw_mut(),
+                    $rop.as_raw_mut(),
+                    self.as_raw(),
+                    $op.as_raw(),
                     $($param.into(),)*
                 );
             }
@@ -560,7 +560,7 @@ macro_rules! arith_unary {
             #[inline]
             fn $method_assign(&mut self) {
                 unsafe {
-                    $func(self.inner_mut(), self.inner());
+                    $func(self.as_raw_mut(), self.as_raw());
                 }
             }
         }
@@ -582,7 +582,7 @@ macro_rules! arith_unary {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
-                    $func(self.inner_mut(), src.op.inner());
+                    $func(self.as_raw_mut(), src.op.as_raw());
                 }
             }
         }
@@ -658,7 +658,7 @@ macro_rules! arith_binary {
             #[inline]
             fn $method_assign(&mut self, rhs: &$Big) {
                 unsafe {
-                    $func(self.inner_mut(), self.inner(), rhs.inner());
+                    $func(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
                 }
             }
         }
@@ -674,7 +674,7 @@ macro_rules! arith_binary {
             #[inline]
             fn $method_from(&mut self, lhs: &$Big) {
                 unsafe {
-                    $func(self.inner_mut(), lhs.inner(), self.inner());
+                    $func(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
                 }
             }
         }
@@ -689,7 +689,11 @@ macro_rules! arith_binary {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'a>) {
                 unsafe {
-                    $func(self.inner_mut(), src.lhs.inner(), src.rhs.inner());
+                    $func(
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
+                        src.rhs.as_raw(),
+                    );
                 }
             }
         }
@@ -755,7 +759,7 @@ macro_rules! arith_prim {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
                 unsafe {
-                    $func(self.inner_mut(), self.inner(), rhs.into());
+                    $func(self.as_raw_mut(), self.as_raw(), rhs.into());
                 }
             }
         }
@@ -777,7 +781,7 @@ macro_rules! arith_prim {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
                 unsafe {
-                    $func(self.inner_mut(), src.lhs.inner(), src.rhs.into());
+                    $func(self.as_raw_mut(), src.lhs.as_raw(), src.rhs.into());
                 }
             }
         }
@@ -933,7 +937,7 @@ macro_rules! arith_prim_noncommut {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
                 unsafe {
-                    $func_from(self.inner_mut(), lhs.into(), self.inner());
+                    $func_from(self.as_raw_mut(), lhs.into(), self.as_raw());
                 }
             }
         }
@@ -956,9 +960,9 @@ macro_rules! arith_prim_noncommut {
             fn assign(&mut self, src: $FromIncomplete) {
                 unsafe {
                     $func_from(
-                        self.inner_mut(),
+                        self.as_raw_mut(),
                         src.lhs.into(),
-                        src.rhs.inner(),
+                        src.rhs.as_raw(),
                     );
                 }
             }
@@ -1007,8 +1011,8 @@ macro_rules! mul_op {
             fn $method_assign(&mut self, rhs: $Mul) {
                 unsafe {
                     $func(
-                        self.inner_mut(),
-                        rhs.lhs.inner(),
+                        self.as_raw_mut(),
+                        rhs.lhs.as_raw(),
                         rhs.rhs.$rhs_method(),
                     );
                 }
@@ -1136,8 +1140,8 @@ macro_rules! mul_op_noncommut {
             fn $method_from(&mut self, lhs: $Mul) {
                 unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        lhs.lhs.inner(),
+                        self.as_raw_mut(),
+                        lhs.lhs.as_raw(),
                         lhs.rhs.$rhs_method(),
                     );
                 }
@@ -1203,7 +1207,7 @@ macro_rules! ref_math_op0_round {
             fn assign_round(&mut self, src: $Src, round: $Round,) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
+                        self.as_raw_mut(),
                         $(src.$param.into(),)*
                         $raw_round(round),
                     )
@@ -1254,8 +1258,8 @@ macro_rules! math_op1_round {
         ) -> $Ordering {
             let ret = unsafe {
                 $func(
-                    self.inner_mut(),
-                    self.inner(),
+                    self.as_raw_mut(),
+                    self.as_raw(),
                     $($param.into(),)*
                     $raw_round(round),
                 )
@@ -1300,8 +1304,8 @@ macro_rules! math_op1_no_round {
         pub fn $method_mut(&mut self, $($param: $T),*) {
             unsafe {
                 $func(
-                    self.inner_mut(),
-                    self.inner(),
+                    self.as_raw_mut(),
+                    self.as_raw(),
                     $($param.into(),)*
                     $raw_round(Default::default()),
                 );
@@ -1347,8 +1351,8 @@ macro_rules! ref_math_op1_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
+                        self.as_raw_mut(),
+                        src.ref_self.as_raw(),
                         $(src.$param.into(),)*
                         $raw_round(round),
                     )
@@ -1412,9 +1416,9 @@ macro_rules! math_op1_2_round {
         ) -> $Ordering {
             let ret = unsafe {
                 $func(
-                    self.inner_mut(),
-                    $rop.inner_mut(),
-                    self.inner(),
+                    self.as_raw_mut(),
+                    $rop.as_raw_mut(),
+                    self.as_raw(),
                     $($param.into(),)*
                     $($raw_round(round),)*
                 )
@@ -1463,9 +1467,9 @@ macro_rules! ref_math_op1_2_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.0.inner_mut(),
-                        self.1.inner_mut(),
-                        src.ref_self.inner(),
+                        self.0.as_raw_mut(),
+                        self.1.as_raw_mut(),
+                        src.ref_self.as_raw(),
                         $(src.$param.into(),)*
                         $($raw_round(round),)*
                     )
@@ -1566,9 +1570,9 @@ macro_rules! math_op2_round {
         ) -> $Ordering {
             let ret = unsafe {
                 $func(
-                    self.inner_mut(),
-                    self.inner(),
-                    $op.inner(),
+                    self.as_raw_mut(),
+                    self.as_raw(),
+                    $op.as_raw(),
                     $($param.into(),)*
                     $raw_round(round),
                 )
@@ -1621,9 +1625,9 @@ macro_rules! ref_math_op2_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.ref_self.inner(),
-                        src.$op.inner(),
+                        self.as_raw_mut(),
+                        src.ref_self.as_raw(),
+                        src.$op.as_raw(),
                         $(src.$param.into(),)*
                         $raw_round(round),
                     )
@@ -1740,9 +1744,9 @@ macro_rules! arith_binary_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        self.inner(),
-                        rhs.inner(),
+                        self.as_raw_mut(),
+                        self.as_raw(),
+                        rhs.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -1767,9 +1771,9 @@ macro_rules! arith_binary_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
+                        src.rhs.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -1872,9 +1876,9 @@ macro_rules! arith_binary_self_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        lhs.inner(),
-                        self.inner(),
+                        self.as_raw_mut(),
+                        lhs.as_raw(),
+                        self.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -1954,9 +1958,9 @@ macro_rules! arith_forward_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
+                        src.rhs.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -2233,9 +2237,9 @@ macro_rules! arith_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        lhs.inner(),
-                        self.inner(),
+                        self.as_raw_mut(),
+                        lhs.as_raw(),
+                        self.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -2260,9 +2264,9 @@ macro_rules! arith_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
+                        src.rhs.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -2302,9 +2306,9 @@ macro_rules! arith_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
-                        src.lhs.inner(),
-                        src.rhs.inner(),
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
+                        src.rhs.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -2375,8 +2379,8 @@ macro_rules! arith_prim_exact_round {
             fn $method_assign(&mut self, rhs: $T) {
                 unsafe {
                     $func(
-                        self.inner_mut(),
-                        self.inner(),
+                        self.as_raw_mut(),
+                        self.as_raw(),
                         rhs.into(),
                         $raw_round(<$Round as Default>::default()),
                     );
@@ -2408,8 +2412,8 @@ macro_rules! arith_prim_exact_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
                         src.rhs.into(),
                         $raw_round(round),
                     )
@@ -2458,8 +2462,8 @@ macro_rules! arith_prim_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        self.inner(),
+                        self.as_raw_mut(),
+                        self.as_raw(),
                         rhs.into(),
                         $raw_round(round),
                     )
@@ -2724,9 +2728,9 @@ macro_rules! arith_prim_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
+                        self.as_raw_mut(),
                         lhs.into(),
-                        self.inner(),
+                        self.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -2766,9 +2770,9 @@ macro_rules! arith_prim_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
+                        self.as_raw_mut(),
                         src.lhs.into(),
-                        src.rhs.inner(),
+                        src.rhs.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -2842,8 +2846,8 @@ macro_rules! mul_op_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        self.inner(),
+                        self.as_raw_mut(),
+                        self.as_raw(),
                         rhs,
                         $raw_round(round),
                     )
@@ -2869,8 +2873,8 @@ macro_rules! mul_op_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func(
-                        self.inner_mut(),
-                        src.lhs.inner(),
+                        self.as_raw_mut(),
+                        src.lhs.as_raw(),
                         src.rhs,
                         $raw_round(round),
                     )
@@ -3041,9 +3045,9 @@ macro_rules! mul_op_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
+                        self.as_raw_mut(),
                         lhs,
-                        self.inner(),
+                        self.as_raw(),
                         $raw_round(round),
                     )
                 };
@@ -3068,9 +3072,9 @@ macro_rules! mul_op_noncommut_round {
             ) -> $Ordering {
                 let ret = unsafe {
                     $func_from(
-                        self.inner_mut(),
+                        self.as_raw_mut(),
                         src.lhs,
-                        src.rhs.inner(),
+                        src.rhs.as_raw(),
                         $raw_round(round),
                     )
                 };

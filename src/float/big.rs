@@ -24,7 +24,6 @@ use float::{self, OrdFloat, Round, SmallFloat, Special};
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use inner::{Inner, InnerMut};
 #[cfg(feature = "integer")]
 use integer::big::BorrowInteger;
 use misc;
@@ -270,7 +269,7 @@ println!("Sum is {}", sr);
 */
 #[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Float {
-    inner: mpfr_t,
+    pub(crate) inner: mpfr_t,
 }
 
 fn _static_assertions() {
@@ -517,7 +516,7 @@ impl Float {
         );
         unsafe {
             let mut ret: Float = mem::uninitialized();
-            mpfr::init2(ret.inner_mut(), cast(prec));
+            mpfr::init2(ret.as_raw_mut(), cast(prec));
             ret
         }
     }
@@ -533,7 +532,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn prec(&self) -> u32 {
-        unsafe { cast(mpfr::get_prec(self.inner())) }
+        unsafe { cast(mpfr::get_prec(self.as_raw())) }
     }
 
     /// Sets the precision, rounding to the nearest.
@@ -583,7 +582,7 @@ impl Float {
             "precision out of range"
         );
         let ret = unsafe {
-            mpfr::prec_round(self.inner_mut(), cast(prec), raw_round(round))
+            mpfr::prec_round(self.as_raw_mut(), cast(prec), raw_round(round))
         };
         ordering1(ret)
     }
@@ -688,7 +687,7 @@ impl Float {
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpfr_t {
-        self.inner()
+        &self.inner
     }
 
     /// Returns an unsafe mutable pointer to the inner
@@ -717,7 +716,7 @@ impl Float {
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpfr_t {
-        unsafe { self.inner_mut() }
+        &mut self.inner
     }
 
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
@@ -896,7 +895,7 @@ impl Float {
         }
         let mut i = Integer::new();
         let ret = unsafe {
-            mpfr::get_z(i.inner_mut(), self.inner(), raw_round(round))
+            mpfr::get_z(i.as_raw_mut(), self.as_raw(), raw_round(round))
         };
         Some((i, ordering1(ret)))
     }
@@ -935,7 +934,7 @@ impl Float {
             return None;
         }
         let mut i = Integer::new();
-        let exp = unsafe { mpfr::get_z_2exp(i.inner_mut(), self.inner()) };
+        let exp = unsafe { mpfr::get_z_2exp(i.as_raw_mut(), self.as_raw()) };
         Some((i, cast(exp)))
     }
 
@@ -998,7 +997,7 @@ impl Float {
         }
         let mut r = Rational::new();
         unsafe {
-            mpfr::get_q(r.inner_mut(), self.inner());
+            mpfr::get_q(r.as_raw_mut(), self.as_raw());
         }
         Some(r)
     }
@@ -1051,7 +1050,7 @@ impl Float {
         if self.is_nan() {
             return None;
         }
-        let i = unsafe { mpfr::get_si(self.inner(), raw_round(round)) };
+        let i = unsafe { mpfr::get_si(self.as_raw(), raw_round(round)) };
         if i >= c_long::from(i32::MAX) {
             Some(i32::MAX)
         } else if i <= c_long::from(i32::MIN) {
@@ -1109,7 +1108,7 @@ impl Float {
         if self.is_nan() {
             return None;
         }
-        let u = unsafe { mpfr::get_ui(self.inner(), raw_round(round)) };
+        let u = unsafe { mpfr::get_ui(self.as_raw(), raw_round(round)) };
         if u >= c_ulong::from(u32::MAX) {
             Some(u32::MAX)
         } else {
@@ -1160,7 +1159,7 @@ impl Float {
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
     #[inline]
     pub fn to_f32_round(&self, round: Round) -> f32 {
-        unsafe { xmpfr::get_f32(self.inner(), raw_round(round)) }
+        unsafe { xmpfr::get_f32(self.as_raw(), raw_round(round)) }
     }
 
     /// Converts to an [`f64`], rounding to the nearest.
@@ -1206,7 +1205,7 @@ impl Float {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64_round(&self, round: Round) -> f64 {
-        unsafe { mpfr::get_d(self.inner(), raw_round(round)) }
+        unsafe { mpfr::get_d(self.as_raw(), raw_round(round)) }
     }
 
     /// Converts to an [`f32`] and an exponent, rounding to the
@@ -1266,11 +1265,11 @@ impl Float {
             // mpfr::set will not change precision of sf, so we can
             // use the unsafe as_nonreallocating_float function
             mpfr::set(
-                sf.as_nonreallocating_float().inner_mut(),
-                self.inner(),
+                sf.as_nonreallocating_float().as_raw_mut(),
+                self.as_raw(),
                 raw_round(round),
             );
-            mpfr::get_d_2exp(&mut exp, sf.inner(), raw_round(round))
+            mpfr::get_d_2exp(&mut exp, sf.as_raw(), raw_round(round))
         };
         (f as f32, cast(exp))
     }
@@ -1326,7 +1325,7 @@ impl Float {
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
         let f = unsafe {
-            mpfr::get_d_2exp(&mut exp, self.inner(), raw_round(round))
+            mpfr::get_d_2exp(&mut exp, self.as_raw(), raw_round(round))
         };
         (f, cast(exp))
     }
@@ -1516,7 +1515,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_integer(&self) -> bool {
-        unsafe { mpfr::integer_p(self.inner()) != 0 }
+        unsafe { mpfr::integer_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if `self` is not a number.
@@ -1534,7 +1533,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_nan(&self) -> bool {
-        unsafe { mpfr::nan_p(self.inner()) != 0 }
+        unsafe { mpfr::nan_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if `self` is plus or minus infinity.
@@ -1552,7 +1551,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_infinite(&self) -> bool {
-        unsafe { mpfr::inf_p(self.inner()) != 0 }
+        unsafe { mpfr::inf_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if `self` is a finite number, that is neither
@@ -1571,7 +1570,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_finite(&self) -> bool {
-        unsafe { mpfr::number_p(self.inner()) != 0 }
+        unsafe { mpfr::number_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if `self` is plus or minus zero.
@@ -1592,7 +1591,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_zero(&self) -> bool {
-        unsafe { mpfr::zero_p(self.inner()) != 0 }
+        unsafe { mpfr::zero_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if `self` is a normal number, that is neither
@@ -1618,7 +1617,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_normal(&self) -> bool {
-        unsafe { mpfr::regular_p(self.inner()) != 0 }
+        unsafe { mpfr::regular_p(self.as_raw()) != 0 }
     }
 
     /// Returns the floating-point category of the number. Note that
@@ -1643,7 +1642,7 @@ impl Float {
     /// [`Float`]: struct.Float.html
     #[inline]
     pub fn classify(&self) -> FpCategory {
-        let inner: *const mpfr_t = self.inner();
+        let inner: *const mpfr_t = self.as_raw();
         unsafe {
             if mpfr::nan_p(inner) != 0 {
                 FpCategory::Nan
@@ -1682,7 +1681,7 @@ impl Float {
         if self.is_nan() {
             None
         } else {
-            let ret = unsafe { mpfr::sgn(self.inner()) };
+            let ret = unsafe { mpfr::sgn(self.as_raw()) };
             Some(ordering1(ret))
         }
     }
@@ -1702,8 +1701,10 @@ impl Float {
     #[inline]
     pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
         unsafe {
-            match mpfr::unordered_p(self.inner(), other.inner()) {
-                0 => Some(ordering1(mpfr::cmpabs(self.inner(), other.inner()))),
+            match mpfr::unordered_p(self.as_raw(), other.as_raw()) {
+                0 => {
+                    Some(ordering1(mpfr::cmpabs(self.as_raw(), other.as_raw())))
+                }
                 _ => None,
             }
         }
@@ -1732,7 +1733,7 @@ impl Float {
     #[inline]
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
-            let e = unsafe { mpfr::get_exp(self.inner()) };
+            let e = unsafe { mpfr::get_exp(self.as_raw()) };
             Some(cast(e))
         } else {
             None
@@ -1837,7 +1838,7 @@ impl Float {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_sign_negative(&self) -> bool {
-        unsafe { mpfr::signbit(self.inner()) != 0 }
+        unsafe { mpfr::signbit(self.as_raw()) != 0 }
     }
 
     /// Sets to the next value towards `to`.
@@ -1856,7 +1857,7 @@ impl Float {
     #[inline]
     pub fn next_toward(&mut self, to: &Self) {
         unsafe {
-            mpfr::nexttoward(self.inner_mut(), to.inner());
+            mpfr::nexttoward(self.as_raw_mut(), to.as_raw());
         }
     }
 
@@ -1875,7 +1876,7 @@ impl Float {
     #[inline]
     pub fn next_up(&mut self) {
         unsafe {
-            mpfr::nextabove(self.inner_mut());
+            mpfr::nextabove(self.as_raw_mut());
         }
     }
 
@@ -1894,7 +1895,7 @@ impl Float {
     #[inline]
     pub fn next_down(&mut self) {
         unsafe {
-            mpfr::nextbelow(self.inner_mut());
+            mpfr::nextbelow(self.as_raw_mut());
         }
     }
 
@@ -2068,7 +2069,7 @@ impl Float {
         let sub_exp_min = exp_min
             .checked_sub(cast::<_, mpfr::exp_t>(self.prec() - 1))
             .expect("overflow");
-        let exp = unsafe { mpfr::get_exp(self.inner()) };
+        let exp = unsafe { mpfr::get_exp(self.as_raw()) };
         if exp < sub_exp_min || exp >= exp_min {
             return prev_rounding;
         }
@@ -2084,7 +2085,7 @@ impl Float {
             mpfr::set_emin(sub_exp_min);
             mpfr::set_emax(exp_min);
             let ret =
-                mpfr::subnormalize(self.inner_mut(), prev, raw_round(round));
+                mpfr::subnormalize(self.as_raw_mut(), prev, raw_round(round));
             mpfr::set_emin(save_emin);
             mpfr::set_emax(save_emax);
             ordering1(ret)
@@ -2277,10 +2278,10 @@ impl Float {
     ) -> Ordering {
         let ret = unsafe {
             mpfr::fma(
-                self.inner_mut(),
-                self.inner(),
-                mul.inner(),
-                add.inner(),
+                self.as_raw_mut(),
+                self.as_raw(),
+                mul.as_raw(),
+                add.as_raw(),
                 raw_round(round),
             )
         };
@@ -2415,10 +2416,10 @@ impl Float {
     ) -> Ordering {
         let ret = unsafe {
             mpfr::fms(
-                self.inner_mut(),
-                self.inner(),
-                mul.inner(),
-                sub.inner(),
+                self.as_raw_mut(),
+                self.as_raw(),
+                mul.as_raw(),
+                sub.as_raw(),
                 raw_round(round),
             )
         };
@@ -2555,11 +2556,11 @@ impl Float {
     ) -> Ordering {
         let ret = unsafe {
             mpfr::fmma(
-                self.inner_mut(),
-                self.inner(),
-                mul.inner(),
-                add_mul1.inner(),
-                add_mul2.inner(),
+                self.as_raw_mut(),
+                self.as_raw(),
+                mul.as_raw(),
+                add_mul1.as_raw(),
+                add_mul2.as_raw(),
                 raw_round(round),
             )
         };
@@ -2695,11 +2696,11 @@ impl Float {
     ) -> Ordering {
         let ret = unsafe {
             mpfr::fmms(
-                self.inner_mut(),
-                self.inner(),
-                mul.inner(),
-                sub_mul1.inner(),
-                sub_mul2.inner(),
+                self.as_raw_mut(),
+                self.as_raw(),
+                mul.as_raw(),
+                sub_mul1.as_raw(),
+                sub_mul2.as_raw(),
                 raw_round(round),
             )
         };
@@ -6238,9 +6239,9 @@ impl Float {
         let sign_ptr: *mut c_int = &mut sign;
         let ret = unsafe {
             mpfr::lgamma(
-                self.inner_mut(),
+                self.as_raw_mut(),
                 sign_ptr,
-                self.inner(),
+                self.as_raw(),
                 raw_round(round),
             )
         };
@@ -7857,12 +7858,12 @@ where
     ) -> Ordering {
         let refs = src
             .values
-            .map(|r| -> *const mpfr_t { r.inner() })
+            .map(|r| -> *const mpfr_t { r.as_raw() })
             .collect::<Vec<_>>();
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
         let ret =
-            unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
+            unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -7905,12 +7906,12 @@ where
             (_, Some(upper)) => upper + 1,
         };
         let mut refs = Vec::<*const mpfr_t>::with_capacity(capacity);
-        refs.push(self.inner());
-        refs.extend(src.values.map(|r| -> *const mpfr_t { r.inner() }));
+        refs.push(self.as_raw());
+        refs.extend(src.values.map(|r| -> *const mpfr_t { r.as_raw() }));
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
         let ret =
-            unsafe { mpfr::sum(self.inner_mut(), tab, n, raw_round(round)) };
+            unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -8127,9 +8128,9 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
         let sign_ptr: *mut c_int = &mut sign;
         let ret = unsafe {
             mpfr::lgamma(
-                self.0.inner_mut(),
+                self.0.as_raw_mut(),
                 sign_ptr,
-                src.ref_self.inner(),
+                src.ref_self.as_raw(),
                 raw_round(round),
             )
         };
@@ -8205,7 +8206,7 @@ where
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
-            let err = mpfr::urandomb(self.inner_mut(), src.rng.inner_mut());
+            let err = mpfr::urandomb(self.as_raw_mut(), src.rng.as_raw_mut());
             assert_eq!(self.is_nan(), err != 0);
         }
     }
@@ -8230,8 +8231,8 @@ where
     fn assign_round(&mut self, src: RandomCont, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::urandom(
-                self.inner_mut(),
-                src.rng.inner_mut(),
+                self.as_raw_mut(),
+                src.rng.as_raw_mut(),
                 raw_round(round),
             )
         };
@@ -8258,8 +8259,8 @@ where
     fn assign_round(&mut self, src: RandomNormal, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::nrandom(
-                self.inner_mut(),
-                src.rng.inner_mut(),
+                self.as_raw_mut(),
+                src.rng.as_raw_mut(),
                 raw_round(round),
             )
         };
@@ -8286,8 +8287,8 @@ where
     fn assign_round(&mut self, src: RandomExp, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::erandom(
-                self.inner_mut(),
-                src.rng.inner_mut(),
+                self.as_raw_mut(),
+                src.rng.as_raw_mut(),
                 raw_round(round),
             )
         };
@@ -8378,7 +8379,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
             &mut exp,
             cast(format.radix),
             digits,
-            f.inner(),
+            f.as_raw(),
             raw_round(format.round),
         );
         let c_str = CStr::from_ptr(c_buf);
@@ -8436,7 +8437,7 @@ impl AssignRound<ParseIncomplete> for Float {
         let mut c_str_end: *const c_char = ptr::null();
         let ret = unsafe {
             mpfr::strtofr(
-                self.inner_mut(),
+                self.as_raw_mut(),
                 c_string.as_ptr(),
                 cast_ptr_mut!(&mut c_str_end, *mut c_char),
                 cast(radix),
@@ -8705,20 +8706,5 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
         Some(k)
     } else {
         None
-    }
-}
-
-impl Inner for Float {
-    type Output = mpfr_t;
-    #[inline]
-    fn inner(&self) -> &mpfr_t {
-        &self.inner
-    }
-}
-
-impl InnerMut for Float {
-    #[inline]
-    unsafe fn inner_mut(&mut self) -> &mut mpfr_t {
-        &mut self.inner
     }
 }

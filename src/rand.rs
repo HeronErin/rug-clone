@@ -26,7 +26,6 @@ Random number generation.
 // which can eventually lead to undefined behaviour.
 use cast::cast;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
-use inner::{Inner, InnerMut};
 use std::marker::PhantomData;
 use std::mem;
 use std::os::raw::{c_int, c_ulong, c_void};
@@ -66,7 +65,7 @@ impl<'a> Clone for RandState<'a> {
     fn clone(&self) -> RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
-            gmp::randinit_set(&mut inner, self.inner());
+            gmp::randinit_set(&mut inner, self.as_raw());
             // If d is null, then boxed_clone must have returned None.
             let ptr = cast_ptr!(&inner, MpRandState);
             if (*ptr).seed.d.is_null() {
@@ -81,7 +80,7 @@ impl<'a> Drop for RandState<'a> {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            gmp::randclear(self.inner_mut());
+            gmp::randclear(self.as_raw_mut());
         }
     }
 }
@@ -153,7 +152,12 @@ impl<'a> RandState<'a> {
     ) -> RandState<'a> {
         unsafe {
             let mut inner = mem::zeroed();
-            gmp::randinit_lc_2exp(&mut inner, a.inner(), c.into(), bits.into());
+            gmp::randinit_lc_2exp(
+                &mut inner,
+                a.as_raw(),
+                c.into(),
+                bits.into(),
+            );
             RandState { inner, phantom: PhantomData }
         }
     }
@@ -388,8 +392,8 @@ impl<'a> RandState<'a> {
     ///
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
-    pub fn as_raw(&mut self) -> *const randstate_t {
-        self.inner()
+    pub fn as_raw(&self) -> *const randstate_t {
+        &self.inner
     }
 
     /// Returns an unsafe mutable pointer to the inner
@@ -420,7 +424,7 @@ impl<'a> RandState<'a> {
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
-        unsafe { self.inner_mut() }
+        &mut self.inner
     }
 
     /// Seeds the random generator.
@@ -445,7 +449,7 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn seed(&mut self, seed: &Integer) {
         unsafe {
-            gmp::randseed(self.inner_mut(), seed.inner());
+            gmp::randseed(self.as_raw_mut(), seed.as_raw());
         }
     }
 
@@ -467,7 +471,7 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
         assert!(bits <= 32, "bits out of range");
-        unsafe { gmp::urandomb_ui(self.inner_mut(), bits.into()) as u32 }
+        unsafe { gmp::urandomb_ui(self.as_raw_mut(), bits.into()) as u32 }
     }
 
     /// Generates a random number below the given boundary value.
@@ -494,7 +498,7 @@ impl<'a> RandState<'a> {
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
-        unsafe { gmp::urandomm_ui(self.inner_mut(), bound.into()) as u32 }
+        unsafe { gmp::urandomm_ui(self.as_raw_mut(), bound.into()) as u32 }
     }
 }
 
@@ -929,21 +933,6 @@ const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     clear: Some(custom_boxed_clear),
     iset: Some(custom_boxed_iset),
 };
-
-impl<'a> Inner for RandState<'a> {
-    type Output = randstate_t;
-    #[inline]
-    fn inner(&self) -> &randstate_t {
-        &self.inner
-    }
-}
-
-impl<'a> InnerMut for RandState<'a> {
-    #[inline]
-    unsafe fn inner_mut(&mut self) -> &mut randstate_t {
-        &mut self.inner
-    }
-}
 
 #[cfg(test)]
 mod tests {

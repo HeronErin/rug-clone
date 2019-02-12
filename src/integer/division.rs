@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use ext::gmp as xgmp;
-use inner::{Inner, InnerMut};
 use ops::{
     DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
     RemRoundingAssign, RemRoundingFrom,
@@ -181,25 +180,25 @@ macro_rules! div_op {
             #[inline]
             fn $trunc_assign(&mut self, rhs: &Integer) {
                 unsafe {
-                    $trunc_fn(self.inner_mut(), self.inner(), rhs.inner());
+                    $trunc_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
                 }
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: &Integer) {
                 unsafe {
-                    $ceil_fn(self.inner_mut(), self.inner(), rhs.inner());
+                    $ceil_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
                 }
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: &Integer) {
                 unsafe {
-                    $floor_fn(self.inner_mut(), self.inner(), rhs.inner());
+                    $floor_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
                 }
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: &Integer) {
                 unsafe {
-                    $euc_fn(self.inner_mut(), self.inner(), rhs.inner());
+                    $euc_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
                 }
             }
         }
@@ -227,25 +226,25 @@ macro_rules! div_op {
             #[inline]
             fn $trunc_from(&mut self, lhs: &Integer) {
                 unsafe {
-                    $trunc_fn(self.inner_mut(), lhs.inner(), self.inner());
+                    $trunc_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
                 }
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: &Integer) {
                 unsafe {
-                    $ceil_fn(self.inner_mut(), lhs.inner(), self.inner());
+                    $ceil_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
                 }
             }
             #[inline]
             fn $floor_from(&mut self, lhs: &Integer) {
                 unsafe {
-                    $floor_fn(self.inner_mut(), lhs.inner(), self.inner());
+                    $floor_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
                 }
             }
             #[inline]
             fn $euc_from(&mut self, lhs: &Integer) {
                 unsafe {
-                    $euc_fn(self.inner_mut(), lhs.inner(), self.inner());
+                    $euc_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
                 }
             }
         }
@@ -263,16 +262,24 @@ macro_rules! div_op {
             fn assign(&mut self, src: $Incomplete) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => unsafe {
-                        $trunc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $trunc_fn(
+                            self.as_raw_mut(),
+                            lhs.as_raw(),
+                            rhs.as_raw(),
+                        );
                     },
                     $Incomplete::Ceil(lhs, rhs) => unsafe {
-                        $ceil_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $ceil_fn(self.as_raw_mut(), lhs.as_raw(), rhs.as_raw());
                     },
                     $Incomplete::Floor(lhs, rhs) => unsafe {
-                        $floor_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $floor_fn(
+                            self.as_raw_mut(),
+                            lhs.as_raw(),
+                            rhs.as_raw(),
+                        );
                     },
                     $Incomplete::Euc(lhs, rhs) => unsafe {
-                        $euc_fn(self.inner_mut(), lhs.inner(), rhs.inner());
+                        $euc_fn(self.as_raw_mut(), lhs.as_raw(), rhs.as_raw());
                     },
                 }
             }
@@ -428,25 +435,25 @@ macro_rules! div_prim {
             #[inline]
             fn $trunc_assign(&mut self, rhs: $T) {
                 unsafe {
-                    $trunc_fn(self.inner_mut(), self.inner(), rhs.into());
+                    $trunc_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
                 }
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: $T) {
                 unsafe {
-                    $ceil_fn(self.inner_mut(), self.inner(), rhs.into());
+                    $ceil_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
                 }
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: $T) {
                 unsafe {
-                    $floor_fn(self.inner_mut(), self.inner(), rhs.into());
+                    $floor_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
                 }
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: $T) {
                 unsafe {
-                    $euc_fn(self.inner_mut(), self.inner(), rhs.into());
+                    $euc_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
                 }
             }
         }
@@ -483,16 +490,16 @@ macro_rules! div_prim {
             fn assign(&mut self, src: $Incomplete) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => unsafe {
-                        $trunc_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $trunc_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
                     },
                     $Incomplete::Ceil(lhs, rhs) => unsafe {
-                        $ceil_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $ceil_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
                     },
                     $Incomplete::Floor(lhs, rhs) => unsafe {
-                        $floor_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $floor_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
                     },
                     $Incomplete::Euc(lhs, rhs) => unsafe {
-                        $euc_fn(self.inner_mut(), lhs.inner(), rhs.into());
+                        $euc_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
                     },
                 }
             }
@@ -599,25 +606,33 @@ macro_rules! div_prim {
             #[inline]
             fn $trunc_from(&mut self, lhs: $T) {
                 unsafe {
-                    $trunc_from_fn(self.inner_mut(), lhs.into(), self.inner());
+                    $trunc_from_fn(
+                        self.as_raw_mut(),
+                        lhs.into(),
+                        self.as_raw(),
+                    );
                 }
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: $T) {
                 unsafe {
-                    $ceil_from_fn(self.inner_mut(), lhs.into(), self.inner());
+                    $ceil_from_fn(self.as_raw_mut(), lhs.into(), self.as_raw());
                 }
             }
             #[inline]
             fn $floor_from(&mut self, lhs: $T) {
                 unsafe {
-                    $floor_from_fn(self.inner_mut(), lhs.into(), self.inner());
+                    $floor_from_fn(
+                        self.as_raw_mut(),
+                        lhs.into(),
+                        self.as_raw(),
+                    );
                 }
             }
             #[inline]
             fn $euc_from(&mut self, lhs: $T) {
                 unsafe {
-                    $euc_from_fn(self.inner_mut(), lhs.into(), self.inner());
+                    $euc_from_fn(self.as_raw_mut(), lhs.into(), self.as_raw());
                 }
             }
         }
@@ -655,27 +670,31 @@ macro_rules! div_prim {
                 match src {
                     $FromIncomplete::Trunc(lhs, rhs) => unsafe {
                         $trunc_from_fn(
-                            self.inner_mut(),
+                            self.as_raw_mut(),
                             lhs.into(),
-                            rhs.inner(),
+                            rhs.as_raw(),
                         );
                     },
                     $FromIncomplete::Ceil(lhs, rhs) => unsafe {
                         $ceil_from_fn(
-                            self.inner_mut(),
+                            self.as_raw_mut(),
                             lhs.into(),
-                            rhs.inner(),
+                            rhs.as_raw(),
                         );
                     },
                     $FromIncomplete::Floor(lhs, rhs) => unsafe {
                         $floor_from_fn(
-                            self.inner_mut(),
+                            self.as_raw_mut(),
                             lhs.into(),
-                            rhs.inner(),
+                            rhs.as_raw(),
                         );
                     },
                     $FromIncomplete::Euc(lhs, rhs) => unsafe {
-                        $euc_from_fn(self.inner_mut(), lhs.into(), rhs.inner());
+                        $euc_from_fn(
+                            self.as_raw_mut(),
+                            lhs.into(),
+                            rhs.as_raw(),
+                        );
                     },
                 }
             }

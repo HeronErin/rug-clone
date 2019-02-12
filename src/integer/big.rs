@@ -17,7 +17,6 @@
 use cast::cast;
 use ext::gmp as xgmp;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use inner::{Inner, InnerMut};
 use integer::Order;
 use misc::{self, NegAbs};
 use ops::DivRounding;
@@ -185,7 +184,7 @@ assert_eq!(c, -17);
 */
 #[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Integer {
-    inner: mpz_t,
+    pub(crate) inner: mpz_t,
 }
 
 fn _static_assertions() {
@@ -209,7 +208,7 @@ impl Integer {
     pub fn new() -> Self {
         unsafe {
             let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init(ret.inner_mut());
+            gmp::mpz_init(ret.as_raw_mut());
             ret
         }
     }
@@ -230,7 +229,7 @@ impl Integer {
     pub fn with_capacity(bits: usize) -> Self {
         unsafe {
             let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init2(ret.inner_mut(), cast(bits));
+            gmp::mpz_init2(ret.as_raw_mut(), cast(bits));
             ret
         }
     }
@@ -247,7 +246,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
-        cast::<_, usize>(self.inner().alloc)
+        cast::<_, usize>(self.inner.alloc)
             .checked_mul(cast::<_, usize>(gmp::LIMB_BITS))
             .expect("overflow")
     }
@@ -277,14 +276,14 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     pub fn reserve(&mut self, additional: usize) {
         let used_bits: usize =
-            cast(unsafe { xgmp::mpz_significant_bits(self.inner()) });
+            cast(unsafe { xgmp::mpz_significant_bits(self.as_raw()) });
         let req_bits = used_bits.checked_add(additional).expect("overflow");
         let alloc_bits = (self.inner.alloc as usize)
             .checked_mul(gmp::LIMB_BITS as usize)
             .expect("overflow");
         if alloc_bits < req_bits {
             unsafe {
-                gmp::mpz_realloc2(self.inner_mut(), cast(req_bits));
+                gmp::mpz_realloc2(self.as_raw_mut(), cast(req_bits));
             }
         }
     }
@@ -315,7 +314,7 @@ impl Integer {
         let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
         if self.inner.alloc > req_limbs {
             unsafe {
-                gmp::_mpz_realloc(self.inner_mut(), cast(req_limbs));
+                gmp::_mpz_realloc(self.as_raw_mut(), cast(req_limbs));
             }
         }
     }
@@ -417,7 +416,7 @@ impl Integer {
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw(&self) -> *const mpz_t {
-        self.inner()
+        &self.inner
     }
 
     /// Returns an unsafe mutable pointer to the inner
@@ -446,7 +445,7 @@ impl Integer {
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut mpz_t {
-        unsafe { self.inner_mut() }
+        &mut self.inner
     }
 
     /// Creates an [`Integer`] from a [slice] of digits of type `T`,
@@ -501,7 +500,7 @@ impl Integer {
     {
         unsafe {
             gmp::mpz_import(
-                self.inner_mut(),
+                self.as_raw_mut(),
                 digits.len(),
                 order.order(),
                 T::bytes(),
@@ -534,13 +533,13 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let op = self.inner();
-        let size = op.size;
+        let size = self.inner.size;
         if size == 0 {
             return 0;
         }
         let size = size.neg_abs().1;
-        let size_in_base = unsafe { gmp::mpn_sizeinbase(op.d, cast(size), 2) };
+        let size_in_base =
+            unsafe { gmp::mpn_sizeinbase(self.inner.d, cast(size), 2) };
         size_in_base.div_ceil(T::bits())
     }
 
@@ -580,7 +579,7 @@ impl Integer {
                 T::bytes(),
                 order.endian(),
                 T::nails(),
-                self.inner(),
+                self.as_raw(),
             );
             assert_eq!(count, digit_count);
             v.set_len(digit_count);
@@ -671,7 +670,7 @@ impl Integer {
                 T::bytes(),
                 order.endian(),
                 T::nails(),
-                self.inner(),
+                self.as_raw(),
             );
             assert_eq!(count, digit_count);
         }
@@ -721,7 +720,7 @@ impl Integer {
         if val.is_finite() {
             unsafe {
                 let mut i: Integer = mem::uninitialized();
-                gmp::mpz_init_set_d(i.inner_mut(), val);
+                gmp::mpz_init_set_d(i.as_raw_mut(), val);
                 Some(i)
             }
         } else {
@@ -867,7 +866,7 @@ impl Integer {
     /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
-        if unsafe { xgmp::mpz_fits_i8(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_i8(self.as_raw()) } {
             Some(self.to_i8_wrapping())
         } else {
             None
@@ -896,7 +895,7 @@ impl Integer {
     /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
-        if unsafe { xgmp::mpz_fits_i16(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_i16(self.as_raw()) } {
             Some(self.to_i16_wrapping())
         } else {
             None
@@ -925,7 +924,7 @@ impl Integer {
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
-        if unsafe { xgmp::mpz_fits_i32(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_i32(self.as_raw()) } {
             Some(self.to_i32_wrapping())
         } else {
             None
@@ -954,7 +953,7 @@ impl Integer {
     /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
-        if unsafe { xgmp::mpz_fits_i64(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_i64(self.as_raw()) } {
             Some(self.to_i64_wrapping())
         } else {
             None
@@ -987,7 +986,7 @@ impl Integer {
     /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
-        if unsafe { xgmp::mpz_fits_i128(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_i128(self.as_raw()) } {
             Some(self.to_i128_wrapping())
         } else {
             None
@@ -1046,7 +1045,7 @@ impl Integer {
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
-        if unsafe { xgmp::mpz_fits_u8(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_u8(self.as_raw()) } {
             Some(self.to_u8_wrapping())
         } else {
             None
@@ -1075,7 +1074,7 @@ impl Integer {
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
-        if unsafe { xgmp::mpz_fits_u16(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_u16(self.as_raw()) } {
             Some(self.to_u16_wrapping())
         } else {
             None
@@ -1104,7 +1103,7 @@ impl Integer {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
-        if unsafe { xgmp::mpz_fits_u32(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_u32(self.as_raw()) } {
             Some(self.to_u32_wrapping())
         } else {
             None
@@ -1133,7 +1132,7 @@ impl Integer {
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
-        if unsafe { xgmp::mpz_fits_u64(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_u64(self.as_raw()) } {
             Some(self.to_u64_wrapping())
         } else {
             None
@@ -1168,7 +1167,7 @@ impl Integer {
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
-        if unsafe { xgmp::mpz_fits_u128(self.inner()) } {
+        if unsafe { xgmp::mpz_fits_u128(self.as_raw()) } {
             Some(self.to_u128_wrapping())
         } else {
             None
@@ -1326,7 +1325,7 @@ impl Integer {
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     #[inline]
     pub fn to_u8_wrapping(&self) -> u8 {
-        let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) as u8 };
+        let u = unsafe { xgmp::mpz_get_abs_u32(self.as_raw()) as u8 };
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1349,7 +1348,7 @@ impl Integer {
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
     #[inline]
     pub fn to_u16_wrapping(&self) -> u16 {
-        let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) as u16 };
+        let u = unsafe { xgmp::mpz_get_abs_u32(self.as_raw()) as u16 };
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1372,7 +1371,7 @@ impl Integer {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
-        let u = unsafe { xgmp::mpz_get_abs_u32(self.inner()) };
+        let u = unsafe { xgmp::mpz_get_abs_u32(self.as_raw()) };
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1395,7 +1394,7 @@ impl Integer {
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
-        let u = unsafe { xgmp::mpz_get_abs_u64(self.inner()) };
+        let u = unsafe { xgmp::mpz_get_abs_u64(self.as_raw()) };
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1429,7 +1428,7 @@ impl Integer {
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
     #[inline]
     pub fn to_u128_wrapping(&self) -> u128 {
-        let u = unsafe { xgmp::mpz_get_abs_u128(self.inner()) };
+        let u = unsafe { xgmp::mpz_get_abs_u128(self.as_raw()) };
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1514,7 +1513,7 @@ impl Integer {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn to_f64(&self) -> f64 {
-        unsafe { gmp::mpz_get_d(self.inner()) }
+        unsafe { gmp::mpz_get_d(self.as_raw()) }
     }
 
     /// Converts to an [`f32`] and an exponent, rounding towards zero.
@@ -1563,7 +1562,7 @@ impl Integer {
     #[inline]
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let mut exp: c_long = 0;
-        let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.inner()) };
+        let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.as_raw()) };
         (f, cast(exp))
     }
 
@@ -1640,7 +1639,7 @@ impl Integer {
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
             unsafe {
-                gmp::mpz_set_d(self.inner_mut(), val);
+                gmp::mpz_set_d(self.as_raw_mut(), val);
             }
             Ok(())
         } else {
@@ -1720,7 +1719,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_even(&self) -> bool {
-        unsafe { gmp::mpz_even_p(self.inner()) != 0 }
+        unsafe { gmp::mpz_even_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if the number is odd.
@@ -1736,7 +1735,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_odd(&self) -> bool {
-        unsafe { gmp::mpz_odd_p(self.inner()) != 0 }
+        unsafe { gmp::mpz_odd_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if the number is divisible by `divisor`. Unlike
@@ -1755,7 +1754,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible(&self, divisor: &Self) -> bool {
-        unsafe { gmp::mpz_divisible_p(self.inner(), divisor.inner()) != 0 }
+        unsafe { gmp::mpz_divisible_p(self.as_raw(), divisor.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if the number is divisible by `divisor`. Unlike
@@ -1774,7 +1773,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_u(&self, divisor: u32) -> bool {
-        unsafe { gmp::mpz_divisible_ui_p(self.inner(), divisor.into()) != 0 }
+        unsafe { gmp::mpz_divisible_ui_p(self.as_raw(), divisor.into()) != 0 }
     }
 
     /// Returns [`true`] if the number is divisible by 2<sup>*b*</sup>.
@@ -1792,7 +1791,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_divisible_2pow(&self, b: u32) -> bool {
-        unsafe { gmp::mpz_divisible_2exp_p(self.inner(), b.into()) != 0 }
+        unsafe { gmp::mpz_divisible_2exp_p(self.as_raw(), b.into()) != 0 }
     }
 
     /// Returns [`true`] if the number is congruent to *c* mod
@@ -1817,7 +1816,8 @@ impl Integer {
     #[inline]
     pub fn is_congruent(&self, c: &Self, divisor: &Self) -> bool {
         unsafe {
-            gmp::mpz_congruent_p(self.inner(), c.inner(), divisor.inner()) != 0
+            gmp::mpz_congruent_p(self.as_raw(), c.as_raw(), divisor.as_raw())
+                != 0
         }
     }
 
@@ -1841,7 +1841,8 @@ impl Integer {
     #[inline]
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
         unsafe {
-            gmp::mpz_congruent_ui_p(self.inner(), c.into(), divisor.into()) != 0
+            gmp::mpz_congruent_ui_p(self.as_raw(), c.into(), divisor.into())
+                != 0
         }
     }
 
@@ -1862,7 +1863,7 @@ impl Integer {
     #[inline]
     pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
         unsafe {
-            gmp::mpz_congruent_2exp_p(self.inner(), c.inner(), b.into()) != 0
+            gmp::mpz_congruent_2exp_p(self.as_raw(), c.as_raw(), b.into()) != 0
         }
     }
 
@@ -1886,7 +1887,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_power(&self) -> bool {
-        unsafe { gmp::mpz_perfect_power_p(self.inner()) != 0 }
+        unsafe { gmp::mpz_perfect_power_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if the number is a perfect square.
@@ -1907,7 +1908,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_perfect_square(&self) -> bool {
-        unsafe { gmp::mpz_perfect_square_p(self.inner()) != 0 }
+        unsafe { gmp::mpz_perfect_square_p(self.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if the number is a power of two.
@@ -1928,7 +1929,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_power_of_two(&self) -> bool {
-        unsafe { xgmp::mpz_is_pow_of_two(self.inner()) }
+        unsafe { xgmp::mpz_is_pow_of_two(self.as_raw()) }
     }
 
     /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
@@ -1947,7 +1948,7 @@ impl Integer {
     /// [`cmp`]: https://doc.rust-lang.org/nightly/std/cmp/trait.Ord.html#tymethod.cmp
     #[inline]
     pub fn cmp0(&self) -> Ordering {
-        unsafe { gmp::mpz_sgn(self.inner()).cmp(&0) }
+        unsafe { gmp::mpz_sgn(self.as_raw()).cmp(&0) }
     }
 
     /// Compares the absolute values.
@@ -1964,7 +1965,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn cmp_abs(&self, other: &Self) -> Ordering {
-        unsafe { gmp::mpz_cmpabs(self.inner(), other.inner()).cmp(&0) }
+        unsafe { gmp::mpz_cmpabs(self.as_raw(), other.as_raw()).cmp(&0) }
     }
 
     /// Returns the number of bits required to represent the absolute
@@ -1985,7 +1986,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        cast(unsafe { xgmp::mpz_significant_bits(self.inner()) })
+        cast(unsafe { xgmp::mpz_significant_bits(self.as_raw()) })
     }
 
     /// Returns the number of bits required to represent the value
@@ -2015,7 +2016,7 @@ impl Integer {
     /// [`significant_bits`]: #method.significant_bits
     #[inline]
     pub fn signed_bits(&self) -> u32 {
-        cast(unsafe { xgmp::mpz_signed_bits(self.inner()) })
+        cast(unsafe { xgmp::mpz_signed_bits(self.as_raw()) })
     }
 
     /// Returns the number of one bits if the value ≥ 0.
@@ -2030,7 +2031,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn count_ones(&self) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::mpz_popcount(self.inner()) })
+        bitcount_to_u32(unsafe { gmp::mpz_popcount(self.as_raw()) })
     }
 
     /// Returns the number of zero bits if the value < 0.
@@ -2048,7 +2049,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn count_zeros(&self) -> Option<u32> {
-        bitcount_to_u32(unsafe { xgmp::mpz_zerocount(self.inner()) })
+        bitcount_to_u32(unsafe { xgmp::mpz_zerocount(self.as_raw()) })
     }
 
     /// Returns the location of the first zero, starting at `start`.
@@ -2065,7 +2066,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn find_zero(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::mpz_scan0(self.inner(), start.into()) })
+        bitcount_to_u32(unsafe { gmp::mpz_scan0(self.as_raw(), start.into()) })
     }
 
     /// Returns the location of the first one, starting at `start`.
@@ -2082,7 +2083,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn find_one(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::mpz_scan1(self.inner(), start.into()) })
+        bitcount_to_u32(unsafe { gmp::mpz_scan1(self.as_raw(), start.into()) })
     }
 
     /// Sets the bit at location `index` to 1 if `val` is [`true`] or
@@ -2104,9 +2105,9 @@ impl Integer {
     pub fn set_bit(&mut self, index: u32, val: bool) -> &mut Self {
         unsafe {
             if val {
-                gmp::mpz_setbit(self.inner_mut(), index.into());
+                gmp::mpz_setbit(self.as_raw_mut(), index.into());
             } else {
-                gmp::mpz_clrbit(self.inner_mut(), index.into());
+                gmp::mpz_clrbit(self.as_raw_mut(), index.into());
             }
         }
         self
@@ -2131,7 +2132,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn get_bit(&self, index: u32) -> bool {
-        unsafe { gmp::mpz_tstbit(self.inner(), index.into()) != 0 }
+        unsafe { gmp::mpz_tstbit(self.as_raw(), index.into()) != 0 }
     }
 
     /// Toggles the bit at location `index`.
@@ -2147,7 +2148,7 @@ impl Integer {
     #[inline]
     pub fn toggle_bit(&mut self, index: u32) -> &mut Self {
         unsafe {
-            gmp::mpz_combit(self.inner_mut(), index.into());
+            gmp::mpz_combit(self.as_raw_mut(), index.into());
         }
         self
     }
@@ -2170,7 +2171,7 @@ impl Integer {
     #[inline]
     pub fn hamming_dist(&self, other: &Self) -> Option<u32> {
         bitcount_to_u32(unsafe {
-            gmp::mpz_hamdist(self.inner(), other.inner())
+            gmp::mpz_hamdist(self.as_raw(), other.as_raw())
         })
     }
 
@@ -3058,7 +3059,7 @@ impl Integer {
     #[inline]
     pub fn mod_u(&self, modulo: u32) -> u32 {
         assert_ne!(modulo, 0, "division by zero");
-        unsafe { gmp::mpz_fdiv_ui(self.inner(), modulo.into()) as u32 }
+        unsafe { gmp::mpz_fdiv_ui(self.as_raw(), modulo.into()) as u32 }
     }
 
     math_op2! {
@@ -3249,7 +3250,7 @@ impl Integer {
     pub fn invert_mut(&mut self, modulo: &Self) -> Result<(), ()> {
         match self.invert_ref(modulo) {
             Some(InvertIncomplete { sinverse, .. }) => unsafe {
-                mpz_invert_ref(self.inner_mut(), &sinverse, modulo);
+                mpz_invert_ref(self.as_raw_mut(), &sinverse, modulo);
                 Ok(())
             },
             None => Err(()),
@@ -3396,7 +3397,7 @@ impl Integer {
         };
         unsafe {
             mpz_pow_mod_ref(
-                self.inner_mut(),
+                self.as_raw_mut(),
                 self,
                 sinverse.as_ref(),
                 exponent,
@@ -3537,10 +3538,10 @@ impl Integer {
         assert!(modulo.is_odd(), "modulo not odd");
         unsafe {
             gmp::mpz_powm_sec(
-                self.inner_mut(),
-                self.inner(),
-                exponent.inner(),
-                modulo.inner(),
+                self.as_raw_mut(),
+                self.as_raw(),
+                exponent.as_raw(),
+                modulo.as_raw(),
             );
         }
     }
@@ -3960,7 +3961,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe { gmp::mpz_probab_prime_p(self.inner(), cast(reps)) };
+        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), cast(reps)) };
         match p {
             0 => IsPrime::No,
             1 => IsPrime::Probably,
@@ -4327,7 +4328,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn jacobi(&self, n: &Self) -> i32 {
-        unsafe { gmp::mpz_jacobi(self.inner(), n.inner()) as i32 }
+        unsafe { gmp::mpz_jacobi(self.as_raw(), n.as_raw()) as i32 }
     }
 
     /// Calculates the Legendre symbol (`self`/<i>p</i>).
@@ -4344,7 +4345,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn legendre(&self, p: &Self) -> i32 {
-        unsafe { gmp::mpz_legendre(self.inner(), p.inner()) as i32 }
+        unsafe { gmp::mpz_legendre(self.as_raw(), p.as_raw()) as i32 }
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>) with the
@@ -4364,7 +4365,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn kronecker(&self, n: &Self) -> i32 {
-        unsafe { gmp::mpz_kronecker(self.inner(), n.inner()) as i32 }
+        unsafe { gmp::mpz_kronecker(self.as_raw(), n.as_raw()) as i32 }
     }
 
     /// Removes all occurrences of `factor`, and returns the number of
@@ -4402,7 +4403,7 @@ impl Integer {
     #[inline]
     pub fn remove_factor_mut(&mut self, factor: &Self) -> u32 {
         let cnt = unsafe {
-            gmp::mpz_remove(self.inner_mut(), self.inner(), factor.inner())
+            gmp::mpz_remove(self.as_raw_mut(), self.as_raw(), factor.as_raw())
         };
         cast(cnt)
     }
@@ -4799,7 +4800,11 @@ impl Integer {
     pub fn random_below_mut(&mut self, rng: &mut RandState) {
         assert_eq!(self.cmp0(), Ordering::Greater, "cannot be below zero");
         unsafe {
-            gmp::mpz_urandomm(self.inner_mut(), rng.inner_mut(), self.inner());
+            gmp::mpz_urandomm(
+                self.as_raw_mut(),
+                rng.as_raw_mut(),
+                self.as_raw(),
+            );
         }
     }
 
@@ -5161,10 +5166,15 @@ unsafe fn mpz_pow_mod_ref(
     match sinverse {
         Some(sinverse) => {
             mpz_invert_ref(rop, sinverse, modulo);
-            gmp::mpz_powm(rop, rop, exponent.as_neg().inner(), modulo.inner());
+            gmp::mpz_powm(
+                rop,
+                rop,
+                exponent.as_neg().as_raw(),
+                modulo.as_raw(),
+            );
         }
         None => {
-            gmp::mpz_powm(rop, op.inner(), exponent.inner(), modulo.inner());
+            gmp::mpz_powm(rop, op.as_raw(), exponent.as_raw(), modulo.as_raw());
         }
     }
 }
@@ -5173,7 +5183,7 @@ impl<'a> Assign<PowModIncomplete<'a>> for Integer {
     fn assign(&mut self, src: PowModIncomplete) {
         unsafe {
             mpz_pow_mod_ref(
-                self.inner_mut(),
+                self.as_raw_mut(),
                 src.ref_self,
                 src.sinverse.as_ref(),
                 src.exponent,
@@ -5193,7 +5203,7 @@ impl<'r> From<PowModIncomplete<'r>> for Integer {
         };
         unsafe {
             mpz_pow_mod_ref(
-                dst.inner_mut(),
+                dst.as_raw_mut(),
                 src.ref_self,
                 if has_sinverse { Some(&dst) } else { None },
                 src.exponent,
@@ -5220,10 +5230,10 @@ impl<'a> Assign<SecurePowModIncomplete<'a>> for Integer {
         assert!(src.modulo.is_odd(), "modulo not odd");
         unsafe {
             gmp::mpz_powm_sec(
-                self.inner_mut(),
-                src.ref_self.inner(),
-                src.exponent.inner(),
-                src.modulo.inner(),
+                self.as_raw_mut(),
+                src.ref_self.as_raw(),
+                src.exponent.as_raw(),
+                src.modulo.as_raw(),
             );
         }
     }
@@ -5262,10 +5272,10 @@ impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
     fn assign(&mut self, src: GcdIncomplete) {
         unsafe {
             xgmp::mpz_gcdext1(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
-                src.ref_self.inner(),
-                src.other.inner(),
+                self.0.as_raw_mut(),
+                self.1.as_raw_mut(),
+                src.ref_self.as_raw(),
+                src.other.as_raw(),
             );
         }
     }
@@ -5287,11 +5297,11 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
     fn assign(&mut self, src: GcdIncomplete) {
         unsafe {
             gmp::mpz_gcdext(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
-                self.2.inner_mut(),
-                src.ref_self.inner(),
-                src.other.inner(),
+                self.0.as_raw_mut(),
+                self.1.as_raw_mut(),
+                self.2.as_raw_mut(),
+                src.ref_self.as_raw(),
+                src.other.as_raw(),
             );
         }
     }
@@ -5317,19 +5327,19 @@ pub struct InvertIncomplete<'a> {
 unsafe fn mpz_invert_ref(rop: *mut mpz_t, s: &Integer, modulo: &Integer) {
     if s.cmp0() == Ordering::Less {
         if modulo.cmp0() == Ordering::Less {
-            gmp::mpz_sub(rop, s.inner(), modulo.inner());
+            gmp::mpz_sub(rop, s.as_raw(), modulo.as_raw());
         } else {
-            gmp::mpz_add(rop, s.inner(), modulo.inner());
+            gmp::mpz_add(rop, s.as_raw(), modulo.as_raw());
         }
-    } else if rop as *const mpz_t != s.inner() {
-        gmp::mpz_set(rop, s.inner());
+    } else if rop as *const mpz_t != s.as_raw() {
+        gmp::mpz_set(rop, s.as_raw());
     }
 }
 
 impl<'a> Assign<InvertIncomplete<'a>> for Integer {
     fn assign(&mut self, src: InvertIncomplete) {
         unsafe {
-            mpz_invert_ref(self.inner_mut(), &src.sinverse, src.modulo);
+            mpz_invert_ref(self.as_raw_mut(), &src.sinverse, src.modulo);
         }
     }
 }
@@ -5339,7 +5349,11 @@ impl<'r> From<InvertIncomplete<'r>> for Integer {
     #[inline]
     fn from(mut src: InvertIncomplete) -> Self {
         unsafe {
-            mpz_invert_ref(src.sinverse.inner_mut(), &src.sinverse, src.modulo);
+            mpz_invert_ref(
+                src.sinverse.as_raw_mut(),
+                &src.sinverse,
+                src.modulo,
+            );
         }
         src.sinverse
     }
@@ -5358,9 +5372,9 @@ impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
     fn assign(&mut self, src: RemoveFactorIncomplete) {
         let cnt = unsafe {
             gmp::mpz_remove(
-                self.0.inner_mut(),
-                src.ref_self.inner(),
-                src.factor.inner(),
+                self.0.as_raw_mut(),
+                src.ref_self.as_raw(),
+                src.factor.as_raw(),
             )
         };
         *self.1 = cast(cnt);
@@ -5410,8 +5424,8 @@ impl<'a, 'b> Assign<FibonacciIncomplete>
     fn assign(&mut self, src: FibonacciIncomplete) {
         unsafe {
             gmp::mpz_fib2_ui(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
+                self.0.as_raw_mut(),
+                self.1.as_raw_mut(),
                 src.n.into(),
             );
         }
@@ -5436,8 +5450,8 @@ impl<'a, 'b> Assign<LucasIncomplete> for (&'a mut Integer, &'b mut Integer) {
     fn assign(&mut self, src: LucasIncomplete) {
         unsafe {
             gmp::mpz_lucnum2_ui(
-                self.0.inner_mut(),
-                self.1.inner_mut(),
+                self.0.as_raw_mut(),
+                self.1.as_raw_mut(),
                 src.n.into(),
             );
         }
@@ -5471,8 +5485,8 @@ where
     fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
             gmp::mpz_urandomb(
-                self.inner_mut(),
-                src.rng.inner_mut(),
+                self.as_raw_mut(),
+                src.rng.as_raw_mut(),
                 src.bits.into(),
             );
         }
@@ -5515,9 +5529,9 @@ where
         );
         unsafe {
             gmp::mpz_urandomm(
-                self.inner_mut(),
-                src.rng.inner_mut(),
-                src.ref_self.inner(),
+                self.as_raw_mut(),
+                src.rng.as_raw_mut(),
+                src.ref_self.as_raw(),
             );
         }
     }
@@ -5554,7 +5568,7 @@ impl<'a> Deref for BorrowInteger<'a> {
 
 pub(crate) fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let size = unsafe { gmp::mpz_sizeinbase(i.inner(), radix) };
+    let size = unsafe { gmp::mpz_sizeinbase(i.as_raw(), radix) };
     let size_extra = size.checked_add(extra).expect("overflow");
     if i.cmp0() == Ordering::Less {
         size_extra.checked_add(1).expect("overflow")
@@ -5581,7 +5595,7 @@ pub(crate) fn append_to_string(
         gmp::mpz_get_str(
             cast_ptr_mut!(start, c_char),
             case_radix as c_int,
-            i.inner(),
+            i.as_raw(),
         );
         let added = slice::from_raw_parts(start, size);
         let nul_index = added.iter().position(|&x| x == 0).unwrap();
@@ -5600,7 +5614,7 @@ impl Assign<ParseIncomplete> for Integer {
     #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
         unsafe {
-            let ptr = self.inner_mut();
+            let ptr = self.as_raw_mut();
             if src.digits.is_empty() {
                 xgmp::mpz_set_0(ptr);
                 return;
@@ -5749,21 +5763,6 @@ fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
         None
     } else {
         Some(cast(bits))
-    }
-}
-
-impl Inner for Integer {
-    type Output = mpz_t;
-    #[inline]
-    fn inner(&self) -> &mpz_t {
-        &self.inner
-    }
-}
-
-impl InnerMut for Integer {
-    #[inline]
-    unsafe fn inner_mut(&mut self) -> &mut mpz_t {
-        &mut self.inner
     }
 }
 

@@ -17,7 +17,6 @@
 use cast::cast;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
-use inner::Inner;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::slice;
@@ -128,7 +127,7 @@ impl Hash for OrdFloat {
         if prec % cast::<_, usize>(gmp::LIMB_BITS) > 0 {
             limbs += 1;
         };
-        let slice = unsafe { slice::from_raw_parts(s.inner().d, limbs) };
+        let slice = unsafe { slice::from_raw_parts(s.inner.d, limbs) };
         slice.hash(state);
     }
 }
@@ -160,7 +159,7 @@ impl Ord for OrdFloat {
                 }
                 (true, true) => s.is_sign_positive().cmp(&o.is_sign_positive()),
                 (false, false) => unsafe {
-                    mpfr::cmp(s.inner(), o.inner()).cmp(&0)
+                    mpfr::cmp(s.as_raw(), o.as_raw()).cmp(&0)
                 },
             }
         }

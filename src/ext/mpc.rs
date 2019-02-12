@@ -21,7 +21,6 @@ use ext::mpfr as xmpfr;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
-use inner::Inner;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 use Complex;
@@ -137,7 +136,7 @@ macro_rules! div_reverse {
             rnd: mpc::rnd_t,
         ) -> c_int {
             let op1 = SmallComplex::from(op1);
-            mpc::div(rop, op1.inner(), op2, rnd)
+            mpc::div(rop, op1.as_raw(), op2, rnd)
         }
     };
 }
@@ -203,7 +202,7 @@ pub unsafe fn mulsub(
 ) -> c_int {
     let sub_complex = &*cast_ptr!(sub, Complex);
     let add = sub_complex.as_neg();
-    mpc::fma(rop, m1, m2, add.inner(), rnd)
+    mpc::fma(rop, m1, m2, add.as_raw(), rnd)
 }
 
 #[inline]
@@ -215,7 +214,7 @@ pub unsafe fn submul(
 ) -> c_int {
     let m1_complex = &*cast_ptr!(m1, Complex);
     let neg_m1 = m1_complex.as_neg();
-    mpc::fma(rop, neg_m1.inner(), m2, add, rnd)
+    mpc::fma(rop, neg_m1.as_raw(), m2, add, rnd)
 }
 
 #[inline]

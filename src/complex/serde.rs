@@ -18,7 +18,6 @@ use cast::cast;
 use complex::OrdComplex;
 use float;
 use gmp_mpfr_sys::mpfr;
-use inner::InnerMut;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 use serdeize::{self, Data, PrecReq, PrecVal};
@@ -65,8 +64,8 @@ impl<'de> Deserialize<'de> for Complex {
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
             let parts = place.as_mut_real_imag();
-            mpfr::set_prec(parts.0.inner_mut(), cast(prec.0));
-            mpfr::set_prec(parts.1.inner_mut(), cast(prec.1));
+            mpfr::set_prec(parts.0.as_raw_mut(), cast(prec.0));
+            mpfr::set_prec(parts.1.as_raw_mut(), cast(prec.1));
         }
         place.assign(p);
         Ok(())
