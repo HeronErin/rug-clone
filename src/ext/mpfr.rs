@@ -20,7 +20,6 @@ use float;
 use float::SmallFloat;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-#[cfg(feature = "integer")]
 use misc::NegAbs;
 #[cfg(feature = "integer")]
 use std::cmp;
