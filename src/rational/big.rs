@@ -115,10 +115,9 @@ macro_rules! rat_op_int {
         #[inline]
         pub fn $method_mut(&mut self, $($param: $T),*) {
             unsafe {
-                let num_mut = gmp::mpq_numref(self.as_raw_mut());
-                let den_mut = gmp::mpq_denref(self.as_raw_mut());
-                $func(num_mut, self.as_raw(), $($param.into()),*);
-                xgmp::mpz_set_1(den_mut);
+                let (num, den) = self.as_mut_numer_denom_no_canonicalization();
+                $func(num, Some(den), None, $($param),*);
+                xgmp::set_1(den);
             }
         }
 
@@ -149,13 +148,7 @@ macro_rules! ref_rat_op_int {
         impl<'a> Assign<$Incomplete<'a>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        $(src.$param.into(),)*
-                    );
-                }
+                $func(self, None, Some(src.ref_self), $(src.$param),*);
             }
         }
 
@@ -1260,7 +1253,7 @@ impl Rational {
     }
 
     math_op1! {
-        gmp::mpq_abs;
+        xgmp::rat_abs;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -1305,7 +1298,7 @@ impl Rational {
         fn abs_ref -> AbsIncomplete;
     }
     rat_op_int! {
-        xgmp::mpq_signum;
+        xgmp::rat_signum;
         /// Computes the signum.
         ///
         ///   * 0 if the value is zero
@@ -1475,7 +1468,7 @@ impl Rational {
     }
 
     math_op1! {
-        xgmp::mpq_inv_check;
+        xgmp::rat_inv;
         /// Computes the reciprocal.
         ///
         /// # Panics
@@ -1533,7 +1526,7 @@ impl Rational {
         fn recip_ref -> RecipIncomplete;
     }
     rat_op_int! {
-        xgmp::mpq_trunc;
+        xgmp::rat_trunc;
         /// Rounds the number towards zero.
         ///
         /// # Examples
@@ -1596,7 +1589,7 @@ impl Rational {
     }
 
     math_op1! {
-        xgmp::mpq_trunc_fract;
+        xgmp::rat_trunc_fract;
         /// Computes the fractional part of the number.
         ///
         /// # Examples
@@ -1703,7 +1696,7 @@ impl Rational {
         fn fract_trunc_ref -> FractTruncIncomplete;
     }
     rat_op_int! {
-        xgmp::mpq_ceil;
+        xgmp::rat_ceil;
         /// Rounds the number upwards (towards plus infinity).
         ///
         /// # Examples
@@ -1765,7 +1758,7 @@ impl Rational {
         fn ceil_ref -> CeilIncomplete;
     }
     math_op1! {
-        xgmp::mpq_ceil_fract;
+        xgmp::rat_ceil_fract;
         /// Computes the non-positive remainder after rounding up.
         ///
         /// # Examples
@@ -1876,7 +1869,7 @@ impl Rational {
         fn fract_ceil_ref -> FractCeilIncomplete;
     }
     rat_op_int! {
-        xgmp::mpq_floor;
+        xgmp::rat_floor;
         /// Rounds the number downwards (towards minus infinity).
         ///
         /// # Examples
@@ -1936,7 +1929,7 @@ impl Rational {
         fn floor_ref -> FloorIncomplete;
     }
     math_op1! {
-        xgmp::mpq_floor_fract;
+        xgmp::rat_floor_fract;
         /// Computes the non-negative remainder after rounding down.
         ///
         /// # Examples
@@ -2047,7 +2040,7 @@ impl Rational {
         fn fract_floor_ref -> FractFloorIncomplete;
     }
     rat_op_int! {
-        xgmp::mpq_round;
+        xgmp::rat_round;
         /// Rounds the number to the nearest integer.
         ///
         /// When the number lies exactly between two integers, it is
@@ -2118,7 +2111,7 @@ impl Rational {
         fn round_ref -> RoundIncomplete;
     }
     math_op1! {
-        xgmp::mpq_round_fract;
+        xgmp::rat_round_fract;
         /// Computes the remainder after rounding to the nearest
         /// integer.
         ///
@@ -2270,7 +2263,7 @@ impl Rational {
         fn fract_round_ref -> FractRoundIncomplete;
     }
     math_op1! {
-        xgmp::mpq_square;
+        xgmp::rat_square;
         /// Computes the square.
         ///
         /// # Examples
@@ -2532,8 +2525,8 @@ where
     }
 }
 
-ref_math_op1! { Rational; gmp::mpq_abs; struct AbsIncomplete {} }
-ref_rat_op_int! { xgmp::mpq_signum; struct SignumIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_abs; struct AbsIncomplete {} }
+ref_rat_op_int! { xgmp::rat_signum; struct SignumIncomplete {} }
 
 #[derive(Debug)]
 pub struct ClampIncomplete<'a, Min, Max>
@@ -2582,28 +2575,28 @@ where
     }
 }
 
-ref_math_op1! { Rational; xgmp::mpq_inv_check; struct RecipIncomplete {} }
-ref_rat_op_int! { xgmp::mpq_trunc; struct TruncIncomplete {} }
-ref_math_op1! { Rational; xgmp::mpq_trunc_fract; struct RemTruncIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_inv; struct RecipIncomplete {} }
+ref_rat_op_int! { xgmp::rat_trunc; struct TruncIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_trunc_fract; struct RemTruncIncomplete {} }
 ref_rat_op_rat_int! {
     xgmp::mpq_trunc_fract_whole; struct FractTruncIncomplete {}
 }
-ref_rat_op_int! { xgmp::mpq_ceil; struct CeilIncomplete {} }
-ref_math_op1! { Rational; xgmp::mpq_ceil_fract; struct RemCeilIncomplete {} }
+ref_rat_op_int! { xgmp::rat_ceil; struct CeilIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_ceil_fract; struct RemCeilIncomplete {} }
 ref_rat_op_rat_int! {
     xgmp::mpq_ceil_fract_whole; struct FractCeilIncomplete {}
 }
-ref_rat_op_int! { xgmp::mpq_floor; struct FloorIncomplete {} }
-ref_math_op1! { Rational; xgmp::mpq_floor_fract; struct RemFloorIncomplete {} }
+ref_rat_op_int! { xgmp::rat_floor; struct FloorIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_floor_fract; struct RemFloorIncomplete {} }
 ref_rat_op_rat_int! {
     xgmp::mpq_floor_fract_whole; struct FractFloorIncomplete {}
 }
-ref_rat_op_int! { xgmp::mpq_round; struct RoundIncomplete {} }
-ref_math_op1! { Rational; xgmp::mpq_round_fract; struct RemRoundIncomplete {} }
+ref_rat_op_int! { xgmp::rat_round; struct RoundIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_round_fract; struct RemRoundIncomplete {} }
 ref_rat_op_rat_int! {
     xgmp::mpq_round_fract_whole; struct FractRoundIncomplete {}
 }
-ref_math_op1! { Rational; xgmp::mpq_square; struct SquareIncomplete {} }
+ref_math_op1! { Rational; xgmp::rat_square; struct SquareIncomplete {} }
 
 #[derive(Debug)]
 #[cfg_attr(repr_transparent, repr(transparent))]

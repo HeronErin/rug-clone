@@ -29,6 +29,193 @@ pub use ext::gmp32::*;
 #[cfg(gmp_limb_bits_64)]
 pub use ext::gmp64::*;
 
+macro_rules! wrap {
+    (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(
+            rop: &mut Integer,
+            $($op: Option<&Integer>,)*
+            $($param: $T,)*
+        ) {
+            unsafe {
+                $deleg(
+                    rop.as_raw_mut(),
+                    $($op.unwrap_or(rop).as_raw(),)*
+                    $($param.into(),)*
+                );
+            }
+        }
+    };
+}
+
+macro_rules! wrapr {
+    (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(
+            rop: &mut Rational,
+            $($op: Option<&Rational>,)*
+            $($param: $T,)*
+        ) {
+            unsafe {
+                $deleg(
+                    rop.as_raw_mut(),
+                    $($op.unwrap_or(rop).as_raw(),)*
+                    $($param.into(),)*
+                );
+            }
+        }
+    };
+}
+
+macro_rules! wrap0 {
+    (fn $fn:ident($($param:ident: $T:ty),*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(rop: &mut Integer, $($param: $T),*) {
+            unsafe {
+                $deleg(rop.as_raw_mut(), $($param.into()),*);
+            }
+        }
+    };
+}
+
+#[inline]
+pub fn si_pow_ui(rop: &mut Integer, base: i32, exp: u32) {
+    let (base_neg, base_abs) = base.neg_abs();
+    ui_pow_ui(rop, base_abs, exp);
+    if base_neg && (exp & 1) == 1 {
+        neg(rop, None);
+    }
+}
+
+#[inline]
+pub fn signum(rop: &mut Integer, op: Option<&Integer>) {
+    let size = op.unwrap_or(rop).inner.size;
+    if size < 0 {
+        set_m1(rop);
+    } else if size > 0 {
+        set_1(rop);
+    } else {
+        set_0(rop);
+    }
+}
+
+pub fn keep_signed_bits(rop: &mut Integer, op: Option<&Integer>, b: u32) {
+    let rop_ptr = rop.as_raw_mut();
+    let op_ptr = op.unwrap_or(rop).as_raw();
+    let b = b.into();
+    unsafe {
+        if b > 0 && gmp::mpz_tstbit(op_ptr, b - 1) != 0 {
+            gmp::mpz_cdiv_r_2exp(rop_ptr, op_ptr, b);
+        } else {
+            gmp::mpz_fdiv_r_2exp(rop_ptr, op_ptr, b);
+        }
+    }
+}
+
+pub fn next_pow_of_two(rop: &mut Integer, op: Option<&Integer>) {
+    let size = op.unwrap_or(rop).inner.size;
+    if size <= 0 {
+        set_1(rop);
+        return;
+    }
+    let significant = cast::cast(significant_bits(op.unwrap_or(rop)));
+    let first_one = unsafe { gmp::mpn_scan1(op.unwrap_or(rop).inner.d, 0) };
+    let bit = if first_one == significant - 1 {
+        if op.is_none() {
+            return;
+        }
+        first_one
+    } else {
+        significant
+    };
+    set_0(rop);
+    unsafe {
+        gmp::mpz_setbit(rop.as_raw_mut(), bit);
+    }
+}
+
+#[inline]
+pub fn divexact_ui(q: &mut Integer, dividend: Option<&Integer>, divisor: u32) {
+    assert_ne!(divisor, 0, "division by zero");
+    unsafe {
+        gmp::mpz_divexact_ui(
+            q.as_raw_mut(),
+            dividend.unwrap_or(q).as_raw(),
+            divisor.into(),
+        );
+    }
+}
+
+#[inline]
+pub fn root(rop: &mut Integer, op: Option<&Integer>, n: u32) {
+    assert_ne!(n, 0, "zeroth root");
+    let op_ptr = op.unwrap_or(rop).as_raw();
+    let even_root_of_neg = n & 1 == 0 && unsafe { gmp::mpz_sgn(op_ptr) < 0 };
+    assert!(!even_root_of_neg, "even root of negative");
+    unsafe {
+        gmp::mpz_root(rop.as_raw_mut(), op_ptr, n.into());
+    }
+}
+
+#[inline]
+pub fn square(rop: &mut Integer, op: Option<&Integer>) {
+    let op_ptr = op.unwrap_or(rop).as_raw();
+    unsafe {
+        gmp::mpz_mul(rop.as_raw_mut(), op_ptr, op_ptr);
+    }
+}
+
+#[inline]
+pub fn sqrt(rop: &mut Integer, op: Option<&Integer>) {
+    let op_ptr = op.unwrap_or(rop).as_raw();
+    let square_root_of_neg = unsafe { gmp::mpz_sgn(op_ptr) < 0 };
+    assert!(!square_root_of_neg, "square root of negative");
+    unsafe {
+        gmp::mpz_sqrt(rop.as_raw_mut(), op_ptr);
+    }
+}
+
+wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> gmp::mpz_ui_pow_ui }
+wrap0! { fn fac_ui(n: u32) -> gmp::mpz_fac_ui }
+wrap0! { fn twofac_ui(n: u32) -> gmp::mpz_2fac_ui }
+wrap0! { fn mfac_uiui(n: u32, m: u32) -> gmp::mpz_mfac_uiui }
+wrap0! { fn primorial_ui(n: u32) -> gmp::mpz_primorial_ui }
+wrap0! { fn bin_uiui(n: u32, k: u32) -> gmp::mpz_bin_uiui }
+wrap0! { fn fib_ui(n: u32) -> gmp::mpz_fib_ui }
+wrap0! { fn lucnum_ui(n: u32) -> gmp::mpz_lucnum_ui }
+wrap! { fn neg(op) -> gmp::mpz_neg }
+wrap! { fn abs(op) -> gmp::mpz_abs }
+wrap! { fn fdiv_r_2exp(op; n: u32) -> gmp::mpz_fdiv_r_2exp }
+wrap! { fn nextprime(op) -> gmp::mpz_nextprime }
+wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
+
+#[inline]
+pub fn set_0(rop: &mut Integer) {
+    rop.inner.size = 0;
+}
+
+#[inline]
+pub fn set_1(rop: &mut Integer) {
+    if rop.inner.alloc < 1 {
+        unsafe {
+            gmp::_mpz_realloc(rop.as_raw_mut(), 1);
+        }
+    }
+    *limb_mut(rop, 0) = 1;
+    rop.inner.size = 1;
+}
+
+#[inline]
+pub fn set_m1(rop: &mut Integer) {
+    if rop.inner.alloc < 1 {
+        unsafe {
+            gmp::_mpz_realloc(rop.as_raw_mut(), 1);
+        }
+    }
+    *limb_mut(rop, 0) = 1;
+    rop.inner.size = -1;
+}
+
 #[inline]
 pub unsafe fn mpz_set_0(rop: *mut mpz_t) {
     (*rop).size = 0;
@@ -39,7 +226,7 @@ pub unsafe fn mpz_set_1(rop: *mut mpz_t) {
     if (*rop).alloc < 1 {
         gmp::_mpz_realloc(rop, 1);
     }
-    *limb_mut(rop, 0) = 1;
+    *mpz_limb_mut(rop, 0) = 1;
     (*rop).size = 1;
 }
 
@@ -48,7 +235,7 @@ pub unsafe fn mpz_set_m1(rop: *mut mpz_t) {
     if (*rop).alloc < 1 {
         gmp::_mpz_realloc(rop, 1);
     }
-    *limb_mut(rop, 0) = 1;
+    *mpz_limb_mut(rop, 0) = 1;
     (*rop).size = -1;
 }
 
@@ -57,7 +244,7 @@ pub unsafe fn mpz_set_nonzero(rop: *mut mpz_t, limb: gmp::limb_t) {
     if (*rop).alloc < 1 {
         gmp::_mpz_realloc(rop, 1);
     }
-    *limb_mut(rop, 0) = limb;
+    *mpz_limb_mut(rop, 0) = limb;
     (*rop).size = 1;
 }
 
@@ -71,33 +258,6 @@ pub unsafe fn mpz_set_limb(rop: *mut mpz_t, limb: gmp::limb_t) {
 }
 
 #[inline]
-pub unsafe fn mpz_signum(rop: *mut mpz_t, op: *const mpz_t) {
-    if (*op).size < 0 {
-        mpz_set_m1(rop);
-    } else if (*op).size > 0 {
-        mpz_set_1(rop);
-    } else {
-        mpz_set_0(rop);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_square(rop: *mut mpz_t, op: *const mpz_t) {
-    gmp::mpz_mul(rop, op, op);
-}
-
-#[inline]
-pub unsafe fn mpz_root_check(
-    rop: *mut mpz_t,
-    op: *const mpz_t,
-    n: c_ulong,
-) -> c_int {
-    assert_ne!(n, 0, "zeroth root");
-    assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
-    gmp::mpz_root(rop, op, n)
-}
-
-#[inline]
 pub unsafe fn mpz_rootrem_check(
     root: *mut mpz_t,
     rem: *mut mpz_t,
@@ -107,12 +267,6 @@ pub unsafe fn mpz_rootrem_check(
     assert_ne!(n, 0, "zeroth root");
     assert!(n & 1 == 1 || gmp::mpz_sgn(op) >= 0, "even root of negative");
     gmp::mpz_rootrem(root, rem, op, n);
-}
-
-#[inline]
-pub unsafe fn mpz_sqrt_check(rop: *mut mpz_t, op: *const mpz_t) {
-    assert!(gmp::mpz_sgn(op) >= 0, "square root of negative");
-    gmp::mpz_sqrt(rop, op);
 }
 
 #[inline]
@@ -826,18 +980,6 @@ pub unsafe fn mpz_rdiv_qr_check(
     }
 }
 
-pub unsafe fn mpz_keep_signed_bits(
-    r: *mut mpz_t,
-    n: *const mpz_t,
-    b: gmp::bitcnt_t,
-) {
-    if b > 0 && gmp::mpz_tstbit(n, b - 1) != 0 {
-        gmp::mpz_cdiv_r_2exp(r, n, b);
-    } else {
-        gmp::mpz_fdiv_r_2exp(r, n, b);
-    }
-}
-
 #[inline]
 pub unsafe fn mpz_divexact_check(
     q: *mut mpz_t,
@@ -846,25 +988,6 @@ pub unsafe fn mpz_divexact_check(
 ) {
     assert_ne!(gmp::mpz_sgn(divisor), 0, "division by zero");
     gmp::mpz_divexact(q, dividend, divisor);
-}
-
-#[inline]
-pub unsafe fn mpz_divexact_ui_check(
-    q: *mut mpz_t,
-    dividend: *const mpz_t,
-    divisor: c_ulong,
-) {
-    assert_ne!(divisor, 0, "division by zero");
-    gmp::mpz_divexact_ui(q, dividend, divisor);
-}
-
-#[inline]
-pub unsafe fn mpz_si_pow_ui(rop: *mut mpz_t, base: c_long, exp: c_ulong) {
-    let (base_neg, base_abs) = base.neg_abs();
-    gmp::mpz_ui_pow_ui(rop, base_abs, exp);
-    if base_neg && (exp & 1) == 1 {
-        gmp::mpz_neg(rop, rop);
-    }
 }
 
 #[inline]
@@ -922,8 +1045,8 @@ pub unsafe fn bitand_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
     let lop2 = gmp::limb_t::from(op2);
     let ans_limb0 = match (*op1).size.cmp(&0) {
         Ordering::Equal => 0,
-        Ordering::Greater => limb(op1, 0) & lop2,
-        Ordering::Less => limb(op1, 0).wrapping_neg() & lop2,
+        Ordering::Greater => mpz_limb(op1, 0) & lop2,
+        Ordering::Less => mpz_limb(op1, 0).wrapping_neg() & lop2,
     };
     if ans_limb0 == 0 {
         (*rop).size = 0;
@@ -944,13 +1067,13 @@ pub unsafe fn bitor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
         }
         Ordering::Greater => {
             gmp::mpz_set(rop, op1);
-            *limb_mut(rop, 0) |= lop2;
+            *mpz_limb_mut(rop, 0) |= lop2;
         }
         Ordering::Less => {
             gmp::mpz_com(rop, op1);
             if (*rop).size != 0 {
-                *limb_mut(rop, 0) &= !lop2;
-                if (*rop).size == 1 && limb(rop, 0) == 0 {
+                *mpz_limb_mut(rop, 0) &= !lop2;
+                if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                     (*rop).size = 0;
                 }
             }
@@ -971,8 +1094,8 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
         }
         Ordering::Greater => {
             gmp::mpz_set(rop, op1);
-            *limb_mut(rop, 0) ^= lop2;
-            if (*rop).size == 1 && limb(rop, 0) == 0 {
+            *mpz_limb_mut(rop, 0) ^= lop2;
+            if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                 (*rop).size = 0;
             }
         }
@@ -983,8 +1106,8 @@ pub unsafe fn bitxor_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
                     mpz_set_nonzero(rop, lop2);
                 }
             } else {
-                *limb_mut(rop, 0) ^= lop2;
-                if (*rop).size == 1 && limb(rop, 0) == 0 {
+                *mpz_limb_mut(rop, 0) ^= lop2;
+                if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                     (*rop).size = 0;
                 }
             }
@@ -1005,18 +1128,18 @@ pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
         }
         Ordering::Greater => {
             if op2 >= 0 {
-                mpz_set_limb(rop, limb(op1, 0) & lop2);
+                mpz_set_limb(rop, mpz_limb(op1, 0) & lop2);
             } else {
                 gmp::mpz_set(rop, op1);
-                *limb_mut(rop, 0) &= lop2;
-                if (*rop).size == 1 && limb(rop, 0) == 0 {
+                *mpz_limb_mut(rop, 0) &= lop2;
+                if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                     (*rop).size = 0;
                 }
             }
         }
         Ordering::Less => {
             if op2 >= 0 {
-                mpz_set_limb(rop, limb(op1, 0).wrapping_neg() & lop2);
+                mpz_set_limb(rop, mpz_limb(op1, 0).wrapping_neg() & lop2);
             } else {
                 gmp::mpz_com(rop, op1);
                 if (*rop).size == 0 {
@@ -1024,7 +1147,7 @@ pub unsafe fn bitand_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
                         mpz_set_nonzero(rop, !lop2);
                     }
                 } else {
-                    *limb_mut(rop, 0) |= !lop2;
+                    *mpz_limb_mut(rop, 0) |= !lop2;
                 }
                 gmp::mpz_com(rop, rop);
             }
@@ -1045,9 +1168,9 @@ pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
         Ordering::Greater => {
             if op2 >= 0 {
                 gmp::mpz_set(rop, op1);
-                *limb_mut(rop, 0) |= lop2;
+                *mpz_limb_mut(rop, 0) |= lop2;
             } else {
-                mpz_set_limb(rop, !limb(op1, 0) & !lop2);
+                mpz_set_limb(rop, !mpz_limb(op1, 0) & !lop2);
                 gmp::mpz_com(rop, rop);
             }
         }
@@ -1055,14 +1178,14 @@ pub unsafe fn bitor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
             if op2 >= 0 {
                 gmp::mpz_com(rop, op1);
                 if (*rop).size != 0 {
-                    *limb_mut(rop, 0) &= !lop2;
-                    if (*rop).size == 1 && limb(rop, 0) == 0 {
+                    *mpz_limb_mut(rop, 0) &= !lop2;
+                    if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                         (*rop).size = 0;
                     }
                 }
                 gmp::mpz_com(rop, rop);
             } else {
-                mpz_set_limb(rop, limb(op1, 0).wrapping_sub(1) & !lop2);
+                mpz_set_limb(rop, mpz_limb(op1, 0).wrapping_sub(1) & !lop2);
                 gmp::mpz_com(rop, rop);
             }
         }
@@ -1082,14 +1205,14 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
         Ordering::Greater => {
             if op2 >= 0 {
                 gmp::mpz_set(rop, op1);
-                *limb_mut(rop, 0) ^= lop2;
-                if (*rop).size == 1 && limb(rop, 0) == 0 {
+                *mpz_limb_mut(rop, 0) ^= lop2;
+                if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                     (*rop).size = 0;
                 }
             } else {
                 gmp::mpz_set(rop, op1);
-                *limb_mut(rop, 0) ^= !lop2;
-                if (*rop).size == 1 && limb(rop, 0) == 0 {
+                *mpz_limb_mut(rop, 0) ^= !lop2;
+                if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                     (*rop).size = 0;
                 }
                 gmp::mpz_com(rop, rop);
@@ -1103,8 +1226,8 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
                         mpz_set_nonzero(rop, lop2);
                     }
                 } else {
-                    *limb_mut(rop, 0) ^= lop2;
-                    if (*rop).size == 1 && limb(rop, 0) == 0 {
+                    *mpz_limb_mut(rop, 0) ^= lop2;
+                    if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                         (*rop).size = 0;
                     }
                 }
@@ -1116,8 +1239,8 @@ pub unsafe fn bitxor_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
                         mpz_set_nonzero(rop, !lop2);
                     }
                 } else {
-                    *limb_mut(rop, 0) ^= !lop2;
-                    if (*rop).size == 1 && limb(rop, 0) == 0 {
+                    *mpz_limb_mut(rop, 0) ^= !lop2;
+                    if (*rop).size == 1 && mpz_limb(rop, 0) == 0 {
                         (*rop).size = 0;
                     }
                 }
@@ -1158,7 +1281,7 @@ pub unsafe fn mpz_set_i32(rop: *mut mpz_t, i: i32) {
 pub unsafe fn mpz_fits_u8(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(u8::MAX),
+        1 => mpz_limb(op, 0) <= gmp::limb_t::from(u8::MAX),
         _ => false,
     }
 }
@@ -1167,8 +1290,8 @@ pub unsafe fn mpz_fits_u8(op: *const mpz_t) -> bool {
 pub unsafe fn mpz_fits_i8(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(i8::MAX as u8),
-        -1 => limb(op, 0) <= gmp::limb_t::from(i8::MIN as u8),
+        1 => mpz_limb(op, 0) <= gmp::limb_t::from(i8::MAX as u8),
+        -1 => mpz_limb(op, 0) <= gmp::limb_t::from(i8::MIN as u8),
         _ => false,
     }
 }
@@ -1177,7 +1300,7 @@ pub unsafe fn mpz_fits_i8(op: *const mpz_t) -> bool {
 pub unsafe fn mpz_fits_u16(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(u16::MAX),
+        1 => mpz_limb(op, 0) <= gmp::limb_t::from(u16::MAX),
         _ => false,
     }
 }
@@ -1186,8 +1309,8 @@ pub unsafe fn mpz_fits_u16(op: *const mpz_t) -> bool {
 pub unsafe fn mpz_fits_i16(op: *const mpz_t) -> bool {
     match (*op).size {
         0 => true,
-        1 => limb(op, 0) <= gmp::limb_t::from(i16::MAX as u16),
-        -1 => limb(op, 0) <= gmp::limb_t::from(i16::MIN as u16),
+        1 => mpz_limb(op, 0) <= gmp::limb_t::from(i16::MAX as u16),
+        -1 => mpz_limb(op, 0) <= gmp::limb_t::from(i16::MIN as u16),
         _ => false,
     }
 }
@@ -1259,6 +1382,16 @@ pub unsafe fn mpz_significant_bits(op: *const mpz_t) -> gmp::bitcnt_t {
     cast::cast(size_in_base)
 }
 
+#[inline]
+pub fn significant_bits(op: &Integer) -> usize {
+    let size = op.inner.size;
+    if size == 0 {
+        return 0;
+    }
+    let size = size.neg_abs().1;
+    unsafe { gmp::mpn_sizeinbase(op.inner.d, cast::cast(size), 2) }
+}
+
 pub unsafe fn mpz_signed_bits(op: *const mpz_t) -> gmp::bitcnt_t {
     let size = (*op).size;
     let significant = mpz_significant_bits(op);
@@ -1281,26 +1414,6 @@ pub unsafe fn mpz_is_pow_of_two(op: *const mpz_t) -> bool {
     first_one == significant - 1
 }
 
-pub unsafe fn mpz_next_pow_of_two(rop: *mut mpz_t, op: *const mpz_t) {
-    let size = (*op).size;
-    if size <= 0 {
-        mpz_set_1(rop);
-        return;
-    }
-    let significant = mpz_significant_bits(op);
-    let first_one = gmp::mpn_scan1((*op).d, 0);
-    let bit = if first_one == significant - 1 {
-        if rop as *const mpz_t == op {
-            return;
-        }
-        first_one
-    } else {
-        significant
-    };
-    mpz_set_0(rop);
-    gmp::mpz_setbit(rop, bit);
-}
-
 #[inline]
 pub unsafe fn mpz_gcdext1(
     g: *mut mpz_t,
@@ -1312,12 +1425,17 @@ pub unsafe fn mpz_gcdext1(
 }
 
 #[inline]
-pub unsafe fn limb(z: *const mpz_t, index: isize) -> gmp::limb_t {
+pub fn limb_mut(z: &mut Integer, index: isize) -> &mut gmp::limb_t {
+    unsafe { &mut *z.inner.d.offset(index) }
+}
+
+#[inline]
+pub unsafe fn mpz_limb(z: *const mpz_t, index: isize) -> gmp::limb_t {
     *(*z).d.offset(index)
 }
 
 #[inline]
-pub unsafe fn limb_mut(z: *const mpz_t, index: isize) -> *mut gmp::limb_t {
+pub unsafe fn mpz_limb_mut(z: *const mpz_t, index: isize) -> *mut gmp::limb_t {
     (*z).d.offset(index)
 }
 
@@ -1353,7 +1471,7 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
     }
 
     let mut rem_limb = if s_rem == s_dividend {
-        let rem_next_limb = limb(rem, cast::cast(s_rem - 1));
+        let rem_next_limb = mpz_limb(rem, cast::cast(s_rem - 1));
         if (rem_next_limb >> (gmp::LIMB_BITS - 1)) != 0 {
             return true;
         }
@@ -1362,8 +1480,8 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
         0
     };
     for i in (1..s_dividend).rev() {
-        let div_limb = limb(dividend, cast::cast(i));
-        let rem_next_limb = limb(rem, cast::cast(i - 1));
+        let div_limb = mpz_limb(dividend, cast::cast(i));
+        let rem_next_limb = mpz_limb(rem, cast::cast(i - 1));
         rem_limb |= (rem_next_limb >> (gmp::LIMB_BITS - 1)) & 1;
         if rem_limb > div_limb {
             return true;
@@ -1373,7 +1491,7 @@ unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
         }
         rem_limb = rem_next_limb << 1;
     }
-    let div_limb = limb(dividend, 0);
+    let div_limb = mpz_limb(dividend, 0);
     rem_limb >= div_limb
 }
 
@@ -1384,24 +1502,214 @@ mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
     use rational::SmallRational;
+    use Rational;
 
     #[inline]
-    pub unsafe fn mpq_signum(signum: *mut mpz_t, op: *const mpq_t) {
-        let num = gmp::mpq_numref_const(op);
-        mpz_signum(signum, num);
+    pub fn rat_signum(
+        num: &mut Integer,
+        den: Option<&Integer>,
+        op: Option<&Rational>,
+    ) {
+        let _ = den;
+        signum(num, op.map(Rational::numer));
     }
 
     #[inline]
-    pub unsafe fn mpq_square(rop: *mut mpq_t, op: *const mpq_t) {
-        mpz_square(gmp::mpq_numref(rop), gmp::mpq_numref_const(op));
-        mpz_square(gmp::mpq_denref(rop), gmp::mpq_denref_const(op));
+    pub fn rat_trunc(
+        num: &mut Integer,
+        den: Option<&Integer>,
+        op: Option<&Rational>,
+    ) {
+        let (op_num, op_den) = match (den, op) {
+            (None, Some(rat)) => (rat.numer().as_raw(), rat.denom().as_raw()),
+            (Some(den), None) => (num.as_raw(), den.as_raw()),
+            _ => unreachable!(),
+        };
+        unsafe {
+            gmp::mpz_tdiv_q(num.as_raw_mut(), op_num, op_den);
+        }
     }
 
     #[inline]
-    pub unsafe fn mpq_inv_check(rop: *mut mpq_t, op: *const mpq_t) {
-        assert_ne!(gmp::mpq_sgn(op), 0, "division by zero");
-        gmp::mpq_inv(rop, op);
+    pub fn rat_ceil(
+        num: &mut Integer,
+        den: Option<&Integer>,
+        op: Option<&Rational>,
+    ) {
+        let (op_num, op_den) = match (den, op) {
+            (None, Some(rat)) => (rat.numer().as_raw(), rat.denom().as_raw()),
+            (Some(den), None) => (num.as_raw(), den.as_raw()),
+            _ => unreachable!(),
+        };
+        unsafe {
+            if gmp::mpz_cmp_ui(op_den, 1) == 0 {
+                gmp::mpz_set(num.as_raw_mut(), op_num);
+            } else {
+                // use tdiv_q rather than cdiv_q to let GMP not keep remainder
+                let neg = gmp::mpz_sgn(op_num) < 0;
+                gmp::mpz_tdiv_q(num.as_raw_mut(), op_num, op_den);
+                if !neg {
+                    gmp::mpz_add_ui(num.as_raw_mut(), num.as_raw(), 1);
+                }
+            }
+        }
     }
+
+    #[inline]
+    pub fn rat_floor(
+        num: &mut Integer,
+        den: Option<&Integer>,
+        op: Option<&Rational>,
+    ) {
+        let (op_num, op_den) = match (den, op) {
+            (None, Some(rat)) => (rat.numer().as_raw(), rat.denom().as_raw()),
+            (Some(den), None) => (num.as_raw(), den.as_raw()),
+            _ => unreachable!(),
+        };
+        unsafe {
+            if gmp::mpz_cmp_ui(op_den, 1) == 0 {
+                gmp::mpz_set(num.as_raw_mut(), op_num);
+            } else {
+                // use tdiv_q rather than fdiv_q to let GMP not keep remainder
+                let neg = gmp::mpz_sgn(op_num) < 0;
+                gmp::mpz_tdiv_q(num.as_raw_mut(), op_num, op_den);
+                if neg {
+                    gmp::mpz_sub_ui(num.as_raw_mut(), num.as_raw(), 1);
+                }
+            }
+        }
+    }
+
+    pub fn rat_round(
+        num: &mut Integer,
+        den: Option<&Integer>,
+        op: Option<&Rational>,
+    ) {
+        let (op_num, op_den) = match (den, op) {
+            (None, Some(rat)) => (rat.numer().as_raw(), rat.denom().as_raw()),
+            (Some(den), None) => (num.as_raw(), den.as_raw()),
+            _ => unreachable!(),
+        };
+
+        unsafe {
+            if gmp::mpz_cmp_ui(op_den, 1) == 0 {
+                gmp::mpz_set(num.as_raw_mut(), op_num);
+                return;
+            }
+            // The remainder cannot be larger than the divisor, but we
+            // allocate an extra limb because the GMP docs suggest we should.
+            let limbs =
+                cast::cast::<_, gmp::bitcnt_t>((*op_den).size.abs()) + 1;
+            let bits = limbs
+                .checked_mul(cast::cast::<_, gmp::bitcnt_t>(gmp::LIMB_BITS))
+                .expect("overflow");
+            let mut rem: mpz_t = mem::uninitialized();
+            gmp::mpz_init2(&mut rem, bits);
+            gmp::mpz_tdiv_qr(num.as_raw_mut(), &mut rem, op_num, op_den);
+            if round_away(&rem, op_den) {
+                if gmp::mpz_sgn(&rem) >= 0 {
+                    // positive number
+                    gmp::mpz_add_ui(num.as_raw_mut(), num.as_raw(), 1);
+                } else {
+                    // negative number
+                    gmp::mpz_sub_ui(num.as_raw_mut(), num.as_raw(), 1);
+                }
+            }
+            gmp::mpz_clear(&mut rem);
+        }
+    }
+
+    #[inline]
+    pub fn rat_inv(rop: &mut Rational, op: Option<&Rational>) {
+        let op_ptr = op.unwrap_or(rop).as_raw();
+        unsafe {
+            assert_ne!(gmp::mpq_sgn(op_ptr), 0, "division by zero");
+            gmp::mpq_inv(rop.as_raw_mut(), op_ptr);
+        }
+    }
+
+    #[inline]
+    pub fn rat_trunc_fract(fract: &mut Rational, op: Option<&Rational>) {
+        let fract_ptr = fract.as_raw_mut();
+        let op_ptr = op.unwrap_or(fract).as_raw();
+        unsafe {
+            let fract_num = gmp::mpq_numref(fract_ptr);
+            let fract_den = gmp::mpq_denref(fract_ptr);
+            let num = gmp::mpq_numref_const(op_ptr);
+            let den = gmp::mpq_denref_const(op_ptr);
+            gmp::mpz_tdiv_r(fract_num, num, den);
+            gmp::mpz_set(fract_den, den);
+        }
+    }
+
+    #[inline]
+    pub fn rat_ceil_fract(fract: &mut Rational, op: Option<&Rational>) {
+        let fract_ptr = fract.as_raw_mut();
+        let op_ptr = op.unwrap_or(fract).as_raw();
+        unsafe {
+            let fract_num = gmp::mpq_numref(fract_ptr);
+            let fract_den = gmp::mpq_denref(fract_ptr);
+            let num = gmp::mpq_numref_const(op_ptr);
+            let den = gmp::mpq_denref_const(op_ptr);
+            gmp::mpz_cdiv_r(fract_num, num, den);
+            gmp::mpz_set(fract_den, den);
+        }
+    }
+
+    #[inline]
+    pub fn rat_floor_fract(fract: &mut Rational, op: Option<&Rational>) {
+        let fract_ptr = fract.as_raw_mut();
+        let op_ptr = op.unwrap_or(fract).as_raw();
+        unsafe {
+            let fract_num = gmp::mpq_numref(fract_ptr);
+            let fract_den = gmp::mpq_denref(fract_ptr);
+            let num = gmp::mpq_numref_const(op_ptr);
+            let den = gmp::mpq_denref_const(op_ptr);
+            gmp::mpz_fdiv_r(fract_num, num, den);
+            gmp::mpz_set(fract_den, den);
+        }
+    }
+
+    pub fn rat_round_fract(fract: &mut Rational, op: Option<&Rational>) {
+        let fract_ptr = fract.as_raw_mut();
+        let op_ptr = op.unwrap_or(fract).as_raw();
+        unsafe {
+            let fract_num = gmp::mpq_numref(fract_ptr);
+            let fract_den = gmp::mpq_denref(fract_ptr);
+            let num = gmp::mpq_numref_const(op_ptr);
+            let den = gmp::mpq_denref_const(op_ptr);
+            if gmp::mpz_cmp_ui(den, 1) == 0 {
+                mpz_set_0(fract_num);
+                mpz_set_1(fract_den);
+                return;
+            }
+            gmp::mpz_tdiv_r(fract_num, num, den);
+            gmp::mpz_set(fract_den, den);
+            if round_away(fract_num, fract_den) {
+                if gmp::mpz_sgn(fract_num) >= 0 {
+                    // positive number
+                    gmp::mpz_sub(fract_num, fract_num, fract_den);
+                } else {
+                    // negative number
+                    gmp::mpz_add(fract_num, fract_num, fract_den);
+                }
+            }
+        }
+    }
+
+    #[inline]
+    pub fn rat_square(rop: &mut Rational, op: Option<&Rational>) {
+        unsafe {
+            let (rop_num, rop_den) =
+                rop.as_mut_numer_denom_no_canonicalization();
+            let op_num = op.map(Rational::numer);
+            let op_den = op.map(Rational::denom);
+            square(rop_num, op_num);
+            square(rop_den, op_den);
+        }
+    }
+
+    wrapr! { fn rat_abs(op) -> gmp::mpq_abs }
 
     #[inline]
     pub unsafe fn mpq_mul_2exp_si(
@@ -1454,23 +1762,6 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_trunc(trunc: *mut mpz_t, op: *const mpq_t) {
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        gmp::mpz_tdiv_q(trunc, num, den);
-    }
-
-    #[inline]
-    pub unsafe fn mpq_trunc_fract(fract: *mut mpq_t, op: *const mpq_t) {
-        let fract_num = gmp::mpq_numref(fract);
-        let fract_den = gmp::mpq_denref(fract);
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        gmp::mpz_tdiv_r(fract_num, num, den);
-        gmp::mpz_set(fract_den, den);
-    }
-
-    #[inline]
     pub unsafe fn mpq_trunc_fract_whole(
         fract: *mut mpq_t,
         trunc: *mut mpz_t,
@@ -1481,32 +1772,6 @@ mod rational {
         let num = gmp::mpq_numref_const(op);
         let den = gmp::mpq_denref_const(op);
         gmp::mpz_tdiv_qr(trunc, fract_num, num, den);
-        gmp::mpz_set(fract_den, den);
-    }
-
-    #[inline]
-    pub unsafe fn mpq_ceil(ceil: *mut mpz_t, op: *const mpq_t) {
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set(ceil, num);
-        } else {
-            // use tdiv_q rather than cdiv_q to allow GMP not to keep remainder
-            let neg = gmp::mpz_sgn(num) < 0;
-            gmp::mpz_tdiv_q(ceil, num, den);
-            if !neg {
-                gmp::mpz_add_ui(ceil, ceil, 1);
-            }
-        }
-    }
-
-    #[inline]
-    pub unsafe fn mpq_ceil_fract(fract: *mut mpq_t, op: *const mpq_t) {
-        let fract_num = gmp::mpq_numref(fract);
-        let fract_den = gmp::mpq_denref(fract);
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        gmp::mpz_cdiv_r(fract_num, num, den);
         gmp::mpz_set(fract_den, den);
     }
 
@@ -1525,32 +1790,6 @@ mod rational {
     }
 
     #[inline]
-    pub unsafe fn mpq_floor(floor: *mut mpz_t, op: *const mpq_t) {
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set(floor, num);
-        } else {
-            // use tdiv_q rather than fdiv_q to allow GMP not to keep remainder
-            let neg = gmp::mpz_sgn(num) < 0;
-            gmp::mpz_tdiv_q(floor, num, den);
-            if neg {
-                gmp::mpz_sub_ui(floor, floor, 1);
-            }
-        }
-    }
-
-    #[inline]
-    pub unsafe fn mpq_floor_fract(fract: *mut mpq_t, op: *const mpq_t) {
-        let fract_num = gmp::mpq_numref(fract);
-        let fract_den = gmp::mpq_denref(fract);
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        gmp::mpz_fdiv_r(fract_num, num, den);
-        gmp::mpz_set(fract_den, den);
-    }
-
-    #[inline]
     pub unsafe fn mpq_floor_fract_whole(
         fract: *mut mpq_t,
         floor: *mut mpz_t,
@@ -1562,57 +1801,6 @@ mod rational {
         let den = gmp::mpq_denref_const(op);
         gmp::mpz_fdiv_qr(floor, fract_num, num, den);
         gmp::mpz_set(fract_den, den);
-    }
-
-    pub unsafe fn mpq_round(round: *mut mpz_t, op: *const mpq_t) {
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            gmp::mpz_set(round, num);
-            return;
-        }
-        // The remainder cannot be larger than the divisor, but we
-        // allocate an extra limb because the GMP docs suggest we should.
-        let limbs = cast::cast::<_, gmp::bitcnt_t>((*den).size.abs()) + 1;
-        let bits = limbs
-            .checked_mul(cast::cast::<_, gmp::bitcnt_t>(gmp::LIMB_BITS))
-            .expect("overflow");
-        let mut rem: mpz_t = mem::uninitialized();
-        gmp::mpz_init2(&mut rem, bits);
-        gmp::mpz_tdiv_qr(round, &mut rem, num, den);
-        if round_away(&rem, den) {
-            if gmp::mpz_sgn(&rem) >= 0 {
-                // positive number
-                gmp::mpz_add_ui(round, round, 1);
-            } else {
-                // negative number
-                gmp::mpz_sub_ui(round, round, 1);
-            }
-        }
-        gmp::mpz_clear(&mut rem);
-    }
-
-    pub unsafe fn mpq_round_fract(fract: *mut mpq_t, op: *const mpq_t) {
-        let fract_num = gmp::mpq_numref(fract);
-        let fract_den = gmp::mpq_denref(fract);
-        let num = gmp::mpq_numref_const(op);
-        let den = gmp::mpq_denref_const(op);
-        if gmp::mpz_cmp_ui(den, 1) == 0 {
-            mpz_set_0(fract_num);
-            mpz_set_1(fract_den);
-            return;
-        }
-        gmp::mpz_tdiv_r(fract_num, num, den);
-        gmp::mpz_set(fract_den, den);
-        if round_away(fract_num, fract_den) {
-            if gmp::mpz_sgn(fract_num) >= 0 {
-                // positive number
-                gmp::mpz_sub(fract_num, fract_num, fract_den);
-            } else {
-                // negative number
-                gmp::mpz_add(fract_num, fract_num, fract_den);
-            }
-        }
     }
 
     pub unsafe fn mpq_round_fract_whole(
