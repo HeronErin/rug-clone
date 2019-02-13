@@ -87,6 +87,25 @@ macro_rules! wrap {
     };
 }
 
+macro_rules! wrap0 {
+    (fn $fn:ident($($param:ident: $T:ty),*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(
+            rop: &mut Float,
+            $($param: $T,)*
+            rnd: Round,
+        ) -> Ordering {
+            ordering1(unsafe {
+                $deleg(
+                    rop.as_raw_mut(),
+                    $($param.into(),)*
+                    raw_round(rnd),
+                )
+            })
+        }
+    };
+}
+
 #[inline]
 pub fn si_pow_ui(
     rop: &mut Float,
@@ -225,10 +244,10 @@ pub fn modf(
     })
 }
 
-wrap! { fn ui_pow_ui(; base: u32; exponent: u32) -> mpfr::ui_pow_ui }
+wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
 wrap! { fn sqr(op) -> mpfr::sqr }
 wrap! { fn sqrt(op) -> mpfr::sqrt }
-wrap! { fn sqrt_ui(; u: u32) -> mpfr::sqrt_ui }
+wrap0! { fn sqrt_ui(u: u32) -> mpfr::sqrt_ui }
 wrap! { fn rec_sqrt(op) -> mpfr::rec_sqrt }
 wrap! { fn cbrt(op) -> mpfr::cbrt }
 wrap! { fn rootn_ui(op; k: u32) -> mpfr::rootn_ui }
@@ -237,7 +256,7 @@ wrap! { fn min(op1, op2) -> mpfr::min }
 wrap! { fn max(op1, op2) -> mpfr::max }
 wrap! { fn dim(op1, op2) -> mpfr::dim }
 wrap! { fn log(op) -> mpfr::log }
-wrap! { fn log_ui(; u: u32) -> mpfr::log_ui }
+wrap0! { fn log_ui(u: u32) -> mpfr::log_ui }
 wrap! { fn log2(op) -> mpfr::log2 }
 wrap! { fn log10(op) -> mpfr::log10 }
 wrap! { fn exp(op) -> mpfr::exp }
@@ -262,7 +281,7 @@ wrap! { fn coth(op) -> mpfr::coth }
 wrap! { fn acosh(op) -> mpfr::acosh }
 wrap! { fn asinh(op) -> mpfr::asinh }
 wrap! { fn atanh(op) -> mpfr::atanh }
-wrap! { fn fac_ui(; n: u32) -> mpfr::fac_ui }
+wrap0! { fn fac_ui(n: u32) -> mpfr::fac_ui }
 wrap! { fn log1p(op) -> mpfr::log1p }
 wrap! { fn expm1(op) -> mpfr::expm1 }
 wrap! { fn eint(op) -> mpfr::eint }
@@ -272,7 +291,7 @@ wrap! { fn gamma_inc(op1, op2) -> mpfr::gamma_inc }
 wrap! { fn lngamma(op) -> mpfr::lngamma }
 wrap! { fn digamma(op) -> mpfr::digamma }
 wrap! { fn zeta(op) -> mpfr::zeta }
-wrap! { fn zeta_ui(; u: u32) -> mpfr::zeta_ui }
+wrap0! { fn zeta_ui(u: u32) -> mpfr::zeta_ui }
 wrap! { fn erf(op) -> mpfr::erf }
 wrap! { fn erfc(op) -> mpfr::erfc }
 wrap! { fn j0(op) -> mpfr::j0 }

@@ -117,6 +117,18 @@ pub fn recip(
 }
 
 #[inline]
+pub fn rootofunity(
+    rop: &mut Complex,
+    n: u32,
+    k: u32,
+    rnd: Round2,
+) -> Ordering2 {
+    ordering2(unsafe {
+        mpc::rootofunity(rop.as_raw_mut(), n.into(), k.into(), raw_round2(rnd))
+    })
+}
+
+#[inline]
 pub fn sin_cos(
     rop_sin: &mut Complex,
     rop_cos: &mut Complex,
@@ -142,7 +154,6 @@ wrap! { fn sqrt(op) -> mpc::sqrt }
 wrap! { fn conj(op) -> mpc::conj }
 wrap! { fn log(op) -> mpc::log }
 wrap! { fn log10(op) -> mpc::log10 }
-wrap! { fn rootofunity(; n: u32; k: u32) -> mpc::rootofunity }
 wrap! { fn exp(op) -> mpc::exp }
 wrap! { fn sin(op) -> mpc::sin }
 wrap! { fn cos(op) -> mpc::cos }
