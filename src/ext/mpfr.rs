@@ -29,7 +29,6 @@ use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong, c_void};
 #[cfg(feature = "integer")]
 use std::u32;
-#[cfg(feature = "integer")]
 use Float;
 
 #[inline]
