@@ -48,6 +48,18 @@ macro_rules! wrap {
     };
 }
 
+macro_rules! wrap0 {
+    (fn $fn:ident($($param:ident: $T:ty),*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(rop: &mut Integer, $($param: $T),*) {
+            unsafe {
+                $deleg(rop.as_raw_mut(), $($param.into()),*);
+            }
+        }
+    };
+}
+
+#[cfg(feature = "rational")]
 macro_rules! wrapr {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
         #[inline]
@@ -62,17 +74,6 @@ macro_rules! wrapr {
                     $($op.unwrap_or(rop).as_raw(),)*
                     $($param.into(),)*
                 );
-            }
-        }
-    };
-}
-
-macro_rules! wrap0 {
-    (fn $fn:ident($($param:ident: $T:ty),*) -> $deleg:path) => {
-        #[inline]
-        pub fn $fn(rop: &mut Integer, $($param: $T),*) {
-            unsafe {
-                $deleg(rop.as_raw_mut(), $($param.into()),*);
             }
         }
     };
