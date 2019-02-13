@@ -15,13 +15,15 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast;
-use ext::gmp::{
-    limb, limb_mut, mpz_limb, ord_int, set_0, set_i64, set_nonzero,
-};
+#[cfg(int_128)]
+use ext::gmp::limb_mut;
+use ext::gmp::{limb, mpz_limb, ord_int, set_0, set_i64, set_nonzero};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
 use std::os::raw::c_int;
-use std::{i32, i64, u32, u64};
+#[cfg(int_128)]
+use std::u64;
+use std::{i32, i64, u32};
 use Integer;
 
 #[cfg(int_128)]

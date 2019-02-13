@@ -20,7 +20,9 @@ use ext::gmp::{
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
 use std::os::raw::c_int;
-use std::{i32, i64, u32, u64};
+#[cfg(int_128)]
+use std::u64;
+use std::{i32, i64, u32};
 use Integer;
 
 #[cfg(int_128)]
