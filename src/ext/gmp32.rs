@@ -22,110 +22,121 @@ use misc::NegAbs;
 #[cfg(int_128)]
 use std::i128;
 use std::os::raw::c_int;
-use std::{i32, i64};
+use std::{i32, i64, u32, u64};
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_set_u128(rop: *mut mpz_t, u: u128) {
+pub fn set_u128(rop: &mut Integer, u: u128) {
     if u == 0 {
-        (*rop).size = 0;
-    } else if u <= 0xffff_ffff {
-        if (*rop).alloc < 1 {
-            gmp::_mpz_realloc(rop, 1);
+        set_0(rop);
+    } else if u <= u128::from(u32::MAX) {
+        set_nonzero(rop, u as u32);
+    } else if u <= u128::from(u64::MAX) {
+        unsafe {
+            if rop.inner.alloc < 2 {
+                gmp::_mpz_realloc(rop.as_raw_mut(), 2);
+            }
+            rop.inner.size = 2;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
         }
-        (*rop).size = 1;
-        *mpz_limb_mut(rop, 0) = u as u32;
-    } else if u <= 0xffff_ffff_ffff_ffff {
-        if (*rop).alloc < 2 {
-            gmp::_mpz_realloc(rop, 2);
-        }
-        (*rop).size = 2;
-        *mpz_limb_mut(rop, 0) = u as u32;
-        *mpz_limb_mut(rop, 1) = (u >> 32) as u32;
     } else if u <= 0xffff_ffff_ffff_ffff_ffff_ffff {
-        if (*rop).alloc < 3 {
-            gmp::_mpz_realloc(rop, 3);
+        unsafe {
+            if rop.inner.alloc < 3 {
+                gmp::_mpz_realloc(rop.as_raw_mut(), 3);
+            }
+            rop.inner.size = 3;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
+            *limb_mut(rop, 2) = (u >> 64) as u32;
         }
-        (*rop).size = 3;
-        *mpz_limb_mut(rop, 0) = u as u32;
-        *mpz_limb_mut(rop, 1) = (u >> 32) as u32;
-        *mpz_limb_mut(rop, 2) = (u >> 64) as u32;
     } else {
-        if (*rop).alloc < 4 {
-            gmp::_mpz_realloc(rop, 4);
+        unsafe {
+            if rop.inner.alloc < 4 {
+                gmp::_mpz_realloc(rop.as_raw_mut(), 4);
+            }
+            rop.inner.size = 4;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
+            *limb_mut(rop, 2) = (u >> 64) as u32;
+            *limb_mut(rop, 3) = (u >> 96) as u32;
         }
-        (*rop).size = 4;
-        *mpz_limb_mut(rop, 0) = u as u32;
-        *mpz_limb_mut(rop, 1) = (u >> 32) as u32;
-        *mpz_limb_mut(rop, 2) = (u >> 64) as u32;
-        *mpz_limb_mut(rop, 3) = (u >> 96) as u32;
     }
 }
 
 #[inline]
-pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
+pub fn set_u64(rop: &mut Integer, u: u64) {
     if u == 0 {
-        (*rop).size = 0;
-    } else if u <= 0xffff_ffff {
-        if (*rop).alloc < 1 {
-            gmp::_mpz_realloc(rop, 1);
-        }
-        (*rop).size = 1;
-        *mpz_limb_mut(rop, 0) = u as u32;
+        set_0(rop);
+    } else if u <= u64::from(u32::MAX) {
+        set_nonzero(rop, u as u32);
     } else {
-        if (*rop).alloc < 2 {
-            gmp::_mpz_realloc(rop, 2);
+        unsafe {
+            if rop.inner.alloc < 2 {
+                gmp::_mpz_realloc(rop.as_raw_mut(), 2);
+            }
+            rop.inner.size = 2;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
         }
-        (*rop).size = 2;
-        *mpz_limb_mut(rop, 0) = u as u32;
-        *mpz_limb_mut(rop, 1) = (u >> 32) as u32;
     }
 }
 
 #[inline]
-pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
+pub fn set_u32(rop: &mut Integer, u: u32) {
     if u == 0 {
-        (*rop).size = 0;
+        set_0(rop);
     } else {
-        (*rop).size = 1;
-        *mpz_limb_mut(rop, 0) = u;
+        set_nonzero(rop, u);
     }
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_init_set_u128(rop: *mut mpz_t, u: u128) {
-    gmp::mpz_init2(rop, 128);
-    mpz_set_u128(rop, u);
+pub fn init_set_u128(rop: &mut Integer, u: u128) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    }
+    set_u128(rop, u);
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_init_set_i128(rop: *mut mpz_t, i: i128) {
-    gmp::mpz_init2(rop, 128);
-    mpz_set_i128(rop, i);
+pub fn init_set_i128(rop: &mut Integer, i: i128) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    }
+    set_i128(rop, i);
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_u64(rop: *mut mpz_t, u: u64) {
-    gmp::mpz_init2(rop, 64);
-    mpz_set_u64(rop, u);
+pub fn init_set_u64(rop: &mut Integer, u: u64) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 64);
+    }
+    set_u64(rop, u);
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
-    gmp::mpz_init2(rop, 64);
-    mpz_set_i64(rop, i);
+pub fn init_set_i64(rop: &mut Integer, i: i64) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 64);
+    }
+    set_i64(rop, i);
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_u32(rop: *mut mpz_t, u: u32) {
-    gmp::mpz_init_set_ui(rop, u.into());
+pub fn init_set_u32(rop: &mut Integer, u: u32) {
+    unsafe {
+        gmp::mpz_init_set_ui(rop.as_raw_mut(), u.into());
+    }
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_i32(rop: *mut mpz_t, i: i32) {
-    gmp::mpz_init_set_si(rop, i.into());
+pub fn init_set_i32(rop: &mut Integer, i: i32) {
+    unsafe {
+        gmp::mpz_init_set_si(rop.as_raw_mut(), i.into());
+    }
 }
 
 #[cfg(int_128)]
@@ -264,39 +275,40 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
 }
 
 #[inline]
-pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_u32(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 => true,
         _ => false,
     }
 }
 
 #[inline]
-pub unsafe fn mpz_fits_i32(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_i32(op: &Integer) -> bool {
+    match op.inner.size {
         0 => true,
-        1 => mpz_limb(op, 0) <= i32::MAX as u32,
-        -1 => mpz_limb(op, 0) <= i32::MIN as u32,
+        1 => (unsafe { limb(op, 0) }) <= i32::MAX as u32,
+        -1 => (unsafe { limb(op, 0) }) <= i32::MIN as u32,
         _ => false,
     }
 }
 
 #[inline]
-pub unsafe fn mpz_fits_u64(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_u64(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 | 2 => true,
         _ => false,
     }
 }
 
 #[inline]
-pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_i64(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 | -1 => true,
-        2 => mpz_limb(op, 1) <= i32::MAX as u32,
+        2 => (unsafe { limb(op, 1) }) <= i32::MAX as u32,
         -2 => {
-            mpz_limb(op, 1) < i32::MIN as u32
-                || (mpz_limb(op, 1) == i32::MIN as u32 && mpz_limb(op, 0) == 0)
+            (unsafe { limb(op, 1) }) < i32::MIN as u32
+                || ((unsafe { limb(op, 1) }) == i32::MIN as u32
+                    && (unsafe { limb(op, 0) }) == 0)
         }
         _ => false,
     }
@@ -304,8 +316,8 @@ pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_fits_u128(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_u128(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 | 2 | 3 | 4 => true,
         _ => false,
     }
@@ -313,16 +325,16 @@ pub unsafe fn mpz_fits_u128(op: *const mpz_t) -> bool {
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_fits_i128(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_i128(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 | -1 | 2 | -2 | 3 | -3 => true,
-        4 => mpz_limb(op, 3) <= i32::MAX as u32,
+        4 => (unsafe { limb(op, 3) }) <= i32::MAX as u32,
         -4 => {
-            mpz_limb(op, 3) < i32::MIN as u32
-                || (mpz_limb(op, 3) == i32::MIN as u32
-                    && mpz_limb(op, 2) == 0
-                    && mpz_limb(op, 1) == 0
-                    && mpz_limb(op, 0) == 0)
+            (unsafe { limb(op, 3) }) < i32::MIN as u32
+                || ((unsafe { limb(op, 3) }) == i32::MIN as u32
+                    && (unsafe { limb(op, 2) }) == 0
+                    && (unsafe { limb(op, 1) }) == 0
+                    && (unsafe { limb(op, 0) }) == 0)
         }
         _ => false,
     }

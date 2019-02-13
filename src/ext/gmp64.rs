@@ -16,104 +16,113 @@
 
 use cast;
 #[cfg(int_128)]
-use ext::gmp::mpz_set_i128;
-use ext::gmp::{mpz_limb, mpz_limb_mut, mpz_set_i64, ord_int};
+use ext::gmp::set_i128;
+use ext::gmp::{
+    limb, limb_mut, mpz_limb, ord_int, set_0, set_i64, set_nonzero,
+};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
 #[cfg(int_128)]
 use std::i128;
 use std::os::raw::c_int;
-use std::{i32, i64, u32};
+use std::{i32, i64, u32, u64};
+use Integer;
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_set_u128(rop: *mut mpz_t, u: u128) {
+pub fn set_u128(rop: &mut Integer, u: u128) {
     if u == 0 {
-        (*rop).size = 0;
-    } else if u <= 0xffff_ffff_ffff_ffff {
-        if (*rop).alloc < 1 {
-            gmp::_mpz_realloc(rop, 1);
-        }
-        (*rop).size = 1;
-        *mpz_limb_mut(rop, 0) = u as u64;
+        set_0(rop);
+    } else if u <= u128::from(u64::MAX) {
+        set_nonzero(rop, u as u64);
     } else {
-        if (*rop).alloc < 2 {
-            gmp::_mpz_realloc(rop, 2);
+        unsafe {
+            if rop.inner.alloc < 2 {
+                gmp::_mpz_realloc(rop.as_raw_mut(), 2);
+            }
+            rop.inner.size = 2;
+            *limb_mut(rop, 0) = u as u64;
+            *limb_mut(rop, 1) = (u >> 64) as u64;
         }
-        (*rop).size = 2;
-        *mpz_limb_mut(rop, 0) = u as u64;
-        *mpz_limb_mut(rop, 1) = (u >> 64) as u64;
     }
 }
 
 #[inline]
-pub unsafe fn mpz_set_u64(rop: *mut mpz_t, u: u64) {
+pub fn set_u64(rop: &mut Integer, u: u64) {
     if u == 0 {
-        (*rop).size = 0;
+        set_0(rop);
     } else {
-        if (*rop).alloc < 1 {
-            gmp::_mpz_realloc(rop, 1);
-        }
-        (*rop).size = 1;
-        *mpz_limb_mut(rop, 0) = u;
+        set_nonzero(rop, u);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_set_u32(rop: *mut mpz_t, u: u32) {
+pub fn set_u32(rop: &mut Integer, u: u32) {
     if u == 0 {
-        (*rop).size = 0;
+        set_0(rop);
     } else {
-        if (*rop).alloc < 1 {
-            gmp::_mpz_realloc(rop, 1);
-        }
-        (*rop).size = 1;
-        *mpz_limb_mut(rop, 0) = u64::from(u);
+        set_nonzero(rop, u64::from(u));
     }
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_init_set_u128(rop: *mut mpz_t, u: u128) {
-    gmp::mpz_init2(rop, 128);
-    mpz_set_u128(rop, u);
+pub fn init_set_u128(rop: &mut Integer, u: u128) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    }
+    set_u128(rop, u);
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_init_set_i128(rop: *mut mpz_t, i: i128) {
-    gmp::mpz_init2(rop, 128);
-    mpz_set_i128(rop, i);
+pub fn init_set_i128(rop: &mut Integer, i: i128) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    }
+    set_i128(rop, i);
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_u64(rop: *mut mpz_t, u: u64) {
+pub fn init_set_u64(rop: &mut Integer, u: u64) {
     if let Some(u) = cast::checked_cast(u) {
-        gmp::mpz_init_set_ui(rop, u);
+        unsafe {
+            gmp::mpz_init_set_ui(rop.as_raw_mut(), u);
+        }
     } else {
-        gmp::mpz_init2(rop, 64);
-        mpz_set_u64(rop, u);
+        unsafe {
+            gmp::mpz_init2(rop.as_raw_mut(), 64);
+        }
+        set_u64(rop, u);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_i64(rop: *mut mpz_t, i: i64) {
+pub fn init_set_i64(rop: &mut Integer, i: i64) {
     if let Some(i) = cast::checked_cast(i) {
-        gmp::mpz_init_set_si(rop, i);
+        unsafe {
+            gmp::mpz_init_set_si(rop.as_raw_mut(), i);
+        }
     } else {
-        gmp::mpz_init2(rop, 64);
-        mpz_set_i64(rop, i);
+        unsafe {
+            gmp::mpz_init2(rop.as_raw_mut(), 64);
+        }
+        set_i64(rop, i);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_u32(rop: *mut mpz_t, u: u32) {
-    gmp::mpz_init_set_ui(rop, u.into());
+pub fn init_set_u32(rop: &mut Integer, u: u32) {
+    unsafe {
+        gmp::mpz_init_set_ui(rop.as_raw_mut(), u.into());
+    }
 }
 
 #[inline]
-pub unsafe fn mpz_init_set_i32(rop: *mut mpz_t, i: i32) {
-    gmp::mpz_init_set_si(rop, i.into());
+pub fn init_set_i32(rop: &mut Integer, i: i32) {
+    unsafe {
+        gmp::mpz_init_set_si(rop.as_raw_mut(), i.into());
+    }
 }
 
 #[cfg(int_128)]
@@ -239,46 +248,46 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
 }
 
 #[inline]
-pub unsafe fn mpz_fits_u32(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_u32(op: &Integer) -> bool {
+    match op.inner.size {
         0 => true,
-        1 => mpz_limb(op, 0) <= u64::from(u32::MAX),
+        1 => (unsafe { limb(op, 0) }) <= u64::from(u32::MAX),
         _ => false,
     }
 }
 
 #[inline]
-pub unsafe fn mpz_fits_i32(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_i32(op: &Integer) -> bool {
+    match op.inner.size {
         0 => true,
-        1 => mpz_limb(op, 0) <= u64::from(i32::MAX as u32),
-        -1 => mpz_limb(op, 0) <= u64::from(i32::MIN as u32),
+        1 => (unsafe { limb(op, 0) }) <= u64::from(i32::MAX as u32),
+        -1 => (unsafe { limb(op, 0) }) <= u64::from(i32::MIN as u32),
         _ => false,
     }
 }
 
 #[inline]
-pub unsafe fn mpz_fits_u64(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_u64(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 => true,
         _ => false,
     }
 }
 
 #[inline]
-pub unsafe fn mpz_fits_i64(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_i64(op: &Integer) -> bool {
+    match op.inner.size {
         0 => true,
-        1 => mpz_limb(op, 0) <= i64::MAX as u64,
-        -1 => mpz_limb(op, 0) <= i64::MIN as u64,
+        1 => (unsafe { limb(op, 0) }) <= i64::MAX as u64,
+        -1 => (unsafe { limb(op, 0) }) <= i64::MIN as u64,
         _ => false,
     }
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_fits_u128(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_u128(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 | 2 => true,
         _ => false,
     }
@@ -286,13 +295,14 @@ pub unsafe fn mpz_fits_u128(op: *const mpz_t) -> bool {
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_fits_i128(op: *const mpz_t) -> bool {
-    match (*op).size {
+pub fn fits_i128(op: &Integer) -> bool {
+    match op.inner.size {
         0 | 1 | -1 => true,
-        2 => mpz_limb(op, 1) <= i64::MAX as u64,
+        2 => (unsafe { limb(op, 1) }) <= i64::MAX as u64,
         -2 => {
-            mpz_limb(op, 1) < i64::MIN as u64
-                || (mpz_limb(op, 1) == i64::MIN as u64 && mpz_limb(op, 0) == 0)
+            (unsafe { limb(op, 1) }) < i64::MIN as u64
+                || ((unsafe { limb(op, 1) }) == i64::MIN as u64
+                    && (unsafe { limb(op, 0) }) == 0)
         }
         _ => false,
     }

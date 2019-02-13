@@ -865,7 +865,7 @@ impl Integer {
     /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
-        if unsafe { xgmp::mpz_fits_i8(self.as_raw()) } {
+        if xgmp::fits_i8(self) {
             Some(self.to_i8_wrapping())
         } else {
             None
@@ -894,7 +894,7 @@ impl Integer {
     /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
-        if unsafe { xgmp::mpz_fits_i16(self.as_raw()) } {
+        if xgmp::fits_i16(self) {
             Some(self.to_i16_wrapping())
         } else {
             None
@@ -923,7 +923,7 @@ impl Integer {
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
-        if unsafe { xgmp::mpz_fits_i32(self.as_raw()) } {
+        if xgmp::fits_i32(self) {
             Some(self.to_i32_wrapping())
         } else {
             None
@@ -952,7 +952,7 @@ impl Integer {
     /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
-        if unsafe { xgmp::mpz_fits_i64(self.as_raw()) } {
+        if xgmp::fits_i64(self) {
             Some(self.to_i64_wrapping())
         } else {
             None
@@ -985,7 +985,7 @@ impl Integer {
     /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
-        if unsafe { xgmp::mpz_fits_i128(self.as_raw()) } {
+        if xgmp::fits_i128(self) {
             Some(self.to_i128_wrapping())
         } else {
             None
@@ -1044,7 +1044,7 @@ impl Integer {
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
-        if unsafe { xgmp::mpz_fits_u8(self.as_raw()) } {
+        if xgmp::fits_u8(self) {
             Some(self.to_u8_wrapping())
         } else {
             None
@@ -1073,7 +1073,7 @@ impl Integer {
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
-        if unsafe { xgmp::mpz_fits_u16(self.as_raw()) } {
+        if xgmp::fits_u16(self) {
             Some(self.to_u16_wrapping())
         } else {
             None
@@ -1102,7 +1102,7 @@ impl Integer {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
-        if unsafe { xgmp::mpz_fits_u32(self.as_raw()) } {
+        if xgmp::fits_u32(self) {
             Some(self.to_u32_wrapping())
         } else {
             None
@@ -1131,7 +1131,7 @@ impl Integer {
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
-        if unsafe { xgmp::mpz_fits_u64(self.as_raw()) } {
+        if xgmp::fits_u64(self) {
             Some(self.to_u64_wrapping())
         } else {
             None
@@ -1166,7 +1166,7 @@ impl Integer {
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
-        if unsafe { xgmp::mpz_fits_u128(self.as_raw()) } {
+        if xgmp::fits_u128(self) {
             Some(self.to_u128_wrapping())
         } else {
             None
@@ -2660,7 +2660,7 @@ impl Integer {
         fn next_power_of_two_ref -> NextPowerOfTwoIncomplete;
     }
     math_op2_2! {
-        xgmp::mpz_tdiv_qr_check;
+        xgmp::tdiv_qr;
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
@@ -2733,7 +2733,7 @@ impl Integer {
         fn div_rem_ref -> DivRemIncomplete;
     }
     math_op2_2! {
-        xgmp::mpz_cdiv_qr_check;
+        xgmp::cdiv_qr;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded up.
         ///
@@ -2809,7 +2809,7 @@ impl Integer {
         fn div_rem_ceil_ref -> DivRemCeilIncomplete;
     }
     math_op2_2! {
-        xgmp::mpz_fdiv_qr_check;
+        xgmp::fdiv_qr;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded down.
         ///
@@ -2882,7 +2882,7 @@ impl Integer {
         fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
     math_op2_2! {
-        xgmp::mpz_rdiv_qr_check;
+        xgmp::rdiv_qr;
         /// Performs a division producing both the quotient and
         /// remainder, with the quotient rounded to the nearest
         /// integer.
@@ -2964,7 +2964,7 @@ impl Integer {
         fn div_rem_round_ref -> DivRemRoundIncomplete;
     }
     math_op2_2! {
-        xgmp::mpz_ediv_qr_check;
+        xgmp::ediv_qr;
         /// Performs Euclidean division producing both the quotient
         /// and remainder, with a positive remainder.
         ///
@@ -3062,7 +3062,7 @@ impl Integer {
     }
 
     math_op2! {
-        xgmp::mpz_divexact_check;
+        xgmp::divexact;
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
@@ -3690,7 +3690,7 @@ impl Integer {
         fn root_ref -> RootIncomplete;
     }
     math_op1_2! {
-        xgmp::mpz_rootrem_check;
+        xgmp::rootrem;
         /// Computes the <i>n</i>th root and returns the truncated
         /// root and the remainder.
         ///
@@ -3701,7 +3701,8 @@ impl Integer {
         ///
         /// # Panics
         ///
-        /// Panics if *n* is even and the value is negative.
+        /// Panics if *n* is zero or if *n* is even and the value is
+        /// negative.
         ///
         /// # Examples
         ///
@@ -3723,7 +3724,8 @@ impl Integer {
         ///
         /// # Panics
         ///
-        /// Panics if *n* is even and the value is negative.
+        /// Panics if *n* is zero or if *n* is even and the value is
+        /// negative.
         ///
         /// # Examples
         ///
@@ -3865,7 +3867,7 @@ impl Integer {
         fn sqrt_ref -> SqrtIncomplete;
     }
     math_op1_2! {
-        xgmp::mpz_sqrtrem_check;
+        xgmp::sqrtrem;
         /// Computes the square root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
@@ -4020,7 +4022,7 @@ impl Integer {
         fn next_prime_ref -> NextPrimeIncomplete;
     }
     math_op2! {
-        gmp::mpz_gcd;
+        xgmp::gcd;
         /// Finds the greatest common divisor.
         ///
         /// The result is always positive except when both inputs are
@@ -4095,7 +4097,7 @@ impl Integer {
         fn gcd_ref -> GcdIncomplete;
     }
     math_op2_3! {
-        gmp::mpz_gcdext;
+        xgmp::gcdext;
         /// Finds the greatest common divisor (GCD) of the two inputs
         /// (`self` and `other`), and two cofactors to obtain the GCD
         /// from the two inputs.
@@ -4246,7 +4248,7 @@ impl Integer {
     }
 
     math_op2! {
-        gmp::mpz_lcm;
+        xgmp::lcm;
         /// Finds the least common multiple.
         ///
         /// The result is always positive except when one or both
@@ -5125,24 +5127,20 @@ ref_math_op1! {
 ref_math_op1! {
     Integer; xgmp::next_pow_of_two; struct NextPowerOfTwoIncomplete {}
 }
+ref_math_op2_2! { Integer; xgmp::tdiv_qr; struct DivRemIncomplete { divisor } }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_tdiv_qr_check; struct DivRemIncomplete { divisor }
-}
-ref_math_op2_2! {
-    Integer; xgmp::mpz_cdiv_qr_check; struct DivRemCeilIncomplete { divisor }
+    Integer; xgmp::cdiv_qr; struct DivRemCeilIncomplete { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_fdiv_qr_check; struct DivRemFloorIncomplete { divisor }
+    Integer; xgmp::fdiv_qr; struct DivRemFloorIncomplete { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_rdiv_qr_check; struct DivRemRoundIncomplete { divisor }
+    Integer; xgmp::rdiv_qr; struct DivRemRoundIncomplete { divisor }
 }
 ref_math_op2_2! {
-    Integer; xgmp::mpz_ediv_qr_check; struct DivRemEucIncomplete { divisor }
+    Integer; xgmp::ediv_qr; struct DivRemEucIncomplete { divisor }
 }
-ref_math_op2! {
-    Integer; xgmp::mpz_divexact_check; struct DivExactIncomplete { divisor }
-}
+ref_math_op2! { Integer; xgmp::divexact; struct DivExactIncomplete { divisor } }
 ref_math_op1! {
     Integer; xgmp::divexact_ui; struct DivExactUIncomplete { divisor: u32 }
 }
@@ -5251,30 +5249,19 @@ ref_math_op0! {
     struct IPowUIncomplete { base: i32, exponent: u32 }
 }
 ref_math_op1! { Integer; xgmp::root; struct RootIncomplete { n: u32 } }
-ref_math_op1_2! {
-    Integer; xgmp::mpz_rootrem_check; struct RootRemIncomplete { n: u32 }
-}
+ref_math_op1_2! { Integer; xgmp::rootrem; struct RootRemIncomplete { n: u32 } }
 ref_math_op1! { Integer; xgmp::square; struct SquareIncomplete {} }
 ref_math_op1! { Integer; xgmp::sqrt; struct SqrtIncomplete {} }
-ref_math_op1_2! {
-    Integer; xgmp::mpz_sqrtrem_check; struct SqrtRemIncomplete {}
-}
+ref_math_op1_2! { Integer; xgmp::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xgmp::nextprime; struct NextPrimeIncomplete {} }
-ref_math_op2! { Integer; gmp::mpz_gcd; struct GcdIncomplete { other } }
+ref_math_op2! { Integer; xgmp::gcd; struct GcdIncomplete { other } }
 
 impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
     for (&'b mut Integer, &'c mut Integer)
 {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete) {
-        unsafe {
-            xgmp::mpz_gcdext1(
-                self.0.as_raw_mut(),
-                self.1.as_raw_mut(),
-                src.ref_self.as_raw(),
-                src.other.as_raw(),
-            );
-        }
+        xgmp::gcdext(self.0, self.1, None, Some(src.ref_self), Some(src.other));
     }
 }
 
@@ -5292,15 +5279,13 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
 {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete) {
-        unsafe {
-            gmp::mpz_gcdext(
-                self.0.as_raw_mut(),
-                self.1.as_raw_mut(),
-                self.2.as_raw_mut(),
-                src.ref_self.as_raw(),
-                src.other.as_raw(),
-            );
-        }
+        xgmp::gcdext(
+            self.0,
+            self.1,
+            Some(self.2),
+            Some(src.ref_self),
+            Some(src.other),
+        );
     }
 }
 
@@ -5313,7 +5298,7 @@ impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer, Integer) {
 
 from_assign! { GcdIncomplete<'r> => Integer, Integer, Integer }
 
-ref_math_op2! { Integer; gmp::mpz_lcm; struct LcmIncomplete { other } }
+ref_math_op2! { Integer; xgmp::lcm; struct LcmIncomplete { other } }
 
 #[derive(Debug)]
 pub struct InvertIncomplete<'a> {

@@ -196,14 +196,7 @@ macro_rules! math_op1_2 {
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $rop: &mut Self, $($param: $T),*) {
-            unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    $rop.as_raw_mut(),
-                    self.as_raw(),
-                    $($param.into(),)*
-                );
-            }
+            $func(self, $rop, None, $($param),*);
         }
 
         $(#[$attr_ref])*
@@ -243,14 +236,7 @@ macro_rules! ref_math_op1_2 {
         {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                unsafe {
-                    $func(
-                        self.0.as_raw_mut(),
-                        self.1.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        $(src.$param.into(),)*
-                    );
-                }
+                $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
             }
         }
 
@@ -292,14 +278,7 @@ macro_rules! math_op2 {
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
-            unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    self.as_raw(),
-                    $op.as_raw(),
-                    $($param.into(),)*
-                );
-            }
+            $func(self, None, $op, $($param),*);
         }
 
         $(#[$attr_ref])*
@@ -340,14 +319,7 @@ macro_rules! ref_math_op2 {
         impl<'a> Assign<$Incomplete<'a>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'a>) {
-                unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        src.$op.as_raw(),
-                        $(src.$param.into(),)*
-                    );
-                }
+                $func(self, Some(src.ref_self), src.$op, $(src.$param),*);
             }
         }
 
@@ -383,15 +355,7 @@ macro_rules! math_op2_2 {
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $op: &mut Self, $($param: $T),*) {
-            unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    $op.as_raw_mut(),
-                    self.as_raw(),
-                    $op.as_raw(),
-                    $($param.into(),)*
-                );
-            }
+            $func(self, $op, None, None, $($param),*);
         }
 
         $(#[$attr_ref])*
@@ -434,15 +398,13 @@ macro_rules! ref_math_op2_2 {
         {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                unsafe {
-                    $func(
-                        self.0.as_raw_mut(),
-                        self.1.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        src.$op.as_raw(),
-                        $(src.$param.into(),)*
-                    );
-                }
+                $func(
+                    self.0,
+                    self.1,
+                    Some(src.ref_self),
+                    Some(src.$op),
+                    $(src.$param,)*
+                );
             }
         }
 
@@ -494,16 +456,7 @@ macro_rules! math_op2_3 {
             $rop: &mut Self,
             $($param: $T,)*
         ) {
-            unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    $op.as_raw_mut(),
-                    $rop.as_raw_mut(),
-                    self.as_raw(),
-                    $op.as_raw(),
-                    $($param.into(),)*
-                );
-            }
+            $func(self, $op, Some($rop), None, None, $($param),*);
         }
 
         $(#[$attr_ref])*
