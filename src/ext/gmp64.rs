@@ -15,15 +15,11 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast;
-#[cfg(int_128)]
-use ext::gmp::set_i128;
 use ext::gmp::{
     limb, limb_mut, mpz_limb, ord_int, set_0, set_i64, set_nonzero,
 };
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
-#[cfg(int_128)]
-use std::i128;
 use std::os::raw::c_int;
 use std::{i32, i64, u32, u64};
 use Integer;
@@ -65,24 +61,6 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
     }
 }
 
-#[cfg(int_128)]
-#[inline]
-pub fn init_set_u128(rop: &mut Integer, u: u128) {
-    unsafe {
-        gmp::mpz_init2(rop.as_raw_mut(), 128);
-    }
-    set_u128(rop, u);
-}
-
-#[cfg(int_128)]
-#[inline]
-pub fn init_set_i128(rop: &mut Integer, i: i128) {
-    unsafe {
-        gmp::mpz_init2(rop.as_raw_mut(), 128);
-    }
-    set_i128(rop, i);
-}
-
 #[inline]
 pub fn init_set_u64(rop: &mut Integer, u: u64) {
     if let Some(u) = cast::checked_cast(u) {
@@ -108,20 +86,6 @@ pub fn init_set_i64(rop: &mut Integer, i: i64) {
             gmp::mpz_init2(rop.as_raw_mut(), 64);
         }
         set_i64(rop, i);
-    }
-}
-
-#[inline]
-pub fn init_set_u32(rop: &mut Integer, u: u32) {
-    unsafe {
-        gmp::mpz_init_set_ui(rop.as_raw_mut(), u.into());
-    }
-}
-
-#[inline]
-pub fn init_set_i32(rop: &mut Integer, i: i32) {
-    unsafe {
-        gmp::mpz_init_set_si(rop.as_raw_mut(), i.into());
     }
 }
 

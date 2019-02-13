@@ -19,7 +19,6 @@ use gmp_mpfr_sys::gmp::{self, mpz_t};
 use misc::NegAbs;
 use ops::NegAssign;
 use std::cmp::Ordering;
-use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
 use std::{i16, i8, u16, u8};
@@ -1362,6 +1361,38 @@ pub fn set_i32(rop: &mut Integer, i: i32) {
     }
 }
 
+#[cfg(int_128)]
+#[inline]
+pub fn init_set_u128(rop: &mut Integer, u: u128) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    }
+    set_u128(rop, u);
+}
+
+#[cfg(int_128)]
+#[inline]
+pub fn init_set_i128(rop: &mut Integer, i: i128) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    }
+    set_i128(rop, i);
+}
+
+#[inline]
+pub fn init_set_u32(rop: &mut Integer, u: u32) {
+    unsafe {
+        gmp::mpz_init_set_ui(rop.as_raw_mut(), u.into());
+    }
+}
+
+#[inline]
+pub fn init_set_i32(rop: &mut Integer, i: i32) {
+    unsafe {
+        gmp::mpz_init_set_si(rop.as_raw_mut(), i.into());
+    }
+}
+
 #[inline]
 pub fn fits_u8(op: &Integer) -> bool {
     match op.inner().size {
@@ -1582,6 +1613,7 @@ mod rational {
     use super::*;
     use gmp_mpfr_sys::gmp::mpq_t;
     use rational::SmallRational;
+    use std::mem;
     use Rational;
 
     #[inline]
