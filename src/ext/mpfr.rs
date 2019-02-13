@@ -17,12 +17,14 @@
 use cast::cast;
 #[cfg(feature = "integer")]
 use float;
-use float::SmallFloat;
+use float::{Round, SmallFloat};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use misc::NegAbs;
+use ops::NegAssign;
 #[cfg(feature = "integer")]
 use std::cmp;
+use std::cmp::Ordering;
 use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong, c_void};
 #[cfg(feature = "integer")]
@@ -31,48 +33,261 @@ use std::u32;
 use Float;
 
 #[inline]
-pub unsafe fn signum(
-    rop: *mut mpfr_t,
-    op: *const mpfr_t,
-    _rnd: mpfr::rnd_t,
-) -> c_int {
-    if mpfr::nan_p(op) != 0 {
-        mpfr::set(rop, op, mpfr::rnd_t::RNDZ)
-    } else if mpfr::signbit(op) != 0 {
-        mpfr::set_si(rop, -1, mpfr::rnd_t::RNDZ)
-    } else {
-        mpfr::set_si(rop, 1, mpfr::rnd_t::RNDZ)
+pub fn raw_round(round: Round) -> mpfr::rnd_t {
+    match round {
+        Round::Nearest => mpfr::rnd_t::RNDN,
+        Round::Zero => mpfr::rnd_t::RNDZ,
+        Round::Up => mpfr::rnd_t::RNDU,
+        Round::Down => mpfr::rnd_t::RNDD,
+        _ => unreachable!(),
     }
 }
 
 #[inline]
-pub unsafe fn recip(
-    rop: *mut mpfr_t,
-    op: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
-    mpfr::ui_div(rop, 1, op, rnd)
+pub fn ordering1(ord: c_int) -> Ordering {
+    ord.cmp(&0)
 }
 
 #[inline]
-pub unsafe fn jn(
-    rop: *mut mpfr_t,
-    op: *const mpfr_t,
-    n: i32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
-    mpfr::jn(rop, n.into(), op, rnd)
+fn ordering2(ord: c_int) -> (Ordering, Ordering) {
+    // ord == first + 4 * second
+    let first = match ord & 3 {
+        2 => -1,
+        0 => 0,
+        1 => 1,
+        _ => unreachable!(),
+    };
+    let second = match ord >> 2 {
+        2 => -1,
+        0 => 0,
+        1 => 1,
+        _ => unreachable!(),
+    };
+    (ordering1(first), ordering1(second))
+}
+
+macro_rules! wrap {
+    (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(
+            rop: &mut Float,
+            $($op: Option<&Float>,)*
+            $($param: $T,)*
+            rnd: Round,
+        ) -> Ordering {
+            ordering1(unsafe {
+                $deleg(
+                    rop.as_raw_mut(),
+                    $($op.unwrap_or(rop).as_raw(),)*
+                    $($param.into(),)*
+                    raw_round(rnd),
+                )
+            })
+        }
+    };
 }
 
 #[inline]
-pub unsafe fn yn(
-    rop: *mut mpfr_t,
-    op: *const mpfr_t,
-    n: i32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
-    mpfr::yn(rop, n.into(), op, rnd)
+pub fn si_pow_ui(
+    rop: &mut Float,
+    base: i32,
+    exponent: u32,
+    rnd: Round,
+) -> Ordering {
+    let (base_neg, base_abs) = base.neg_abs();
+    if !base_neg || (exponent & 1) == 0 {
+        ordering1(unsafe {
+            mpfr::ui_pow_ui(
+                rop.as_raw_mut(),
+                base_abs.into(),
+                exponent.into(),
+                raw_round(rnd),
+            )
+        })
+    } else {
+        let reverse_rnd = match rnd {
+            Round::Up => Round::Down,
+            Round::Down => Round::Up,
+            unchanged => unchanged,
+        };
+        let reverse_ord = ordering1(unsafe {
+            mpfr::ui_pow_ui(
+                rop.as_raw_mut(),
+                base_abs.into(),
+                exponent.into(),
+                raw_round(reverse_rnd),
+            )
+        });
+        rop.inner.sign.neg_assign();
+        reverse_ord.reverse()
+    }
 }
+
+#[inline]
+pub fn signum(rop: &mut Float, op: Option<&Float>, _rnd: Round) -> Ordering {
+    let rop_ptr = rop.as_raw_mut();
+    let op_ptr = op.unwrap_or(rop).as_raw();
+    ordering1(unsafe {
+        if mpfr::nan_p(op_ptr) != 0 {
+            mpfr::set(rop_ptr, op_ptr, mpfr::rnd_t::RNDZ)
+        } else if mpfr::signbit(op_ptr) != 0 {
+            mpfr::set_si(rop_ptr, -1, mpfr::rnd_t::RNDZ)
+        } else {
+            mpfr::set_si(rop_ptr, 1, mpfr::rnd_t::RNDZ)
+        }
+    })
+}
+
+#[inline]
+pub fn recip(rop: &mut Float, op: Option<&Float>, rnd: Round) -> Ordering {
+    ordering1(unsafe {
+        mpfr::ui_div(
+            rop.as_raw_mut(),
+            1,
+            op.unwrap_or(rop).as_raw(),
+            raw_round(rnd),
+        )
+    })
+}
+
+#[inline]
+pub fn jn(rop: &mut Float, op: Option<&Float>, n: i32, rnd: Round) -> Ordering {
+    ordering1(unsafe {
+        mpfr::jn(
+            rop.as_raw_mut(),
+            n.into(),
+            op.unwrap_or(rop).as_raw(),
+            raw_round(rnd),
+        )
+    })
+}
+
+#[inline]
+pub fn yn(rop: &mut Float, op: Option<&Float>, n: i32, rnd: Round) -> Ordering {
+    ordering1(unsafe {
+        mpfr::yn(
+            rop.as_raw_mut(),
+            n.into(),
+            op.unwrap_or(rop).as_raw(),
+            raw_round(rnd),
+        )
+    })
+}
+
+#[inline]
+pub fn sin_cos(
+    rop_sin: &mut Float,
+    rop_cos: &mut Float,
+    op: Option<&Float>,
+    rnd: Round,
+) -> (Ordering, Ordering) {
+    ordering2(unsafe {
+        mpfr::sin_cos(
+            rop_sin.as_raw_mut(),
+            rop_cos.as_raw_mut(),
+            op.unwrap_or(rop_sin).as_raw(),
+            raw_round(rnd),
+        )
+    })
+}
+
+#[inline]
+pub fn sinh_cosh(
+    rop_sin: &mut Float,
+    rop_cos: &mut Float,
+    op: Option<&Float>,
+    rnd: Round,
+) -> (Ordering, Ordering) {
+    ordering2(unsafe {
+        mpfr::sinh_cosh(
+            rop_sin.as_raw_mut(),
+            rop_cos.as_raw_mut(),
+            op.unwrap_or(rop_sin).as_raw(),
+            raw_round(rnd),
+        )
+    })
+}
+
+#[inline]
+pub fn modf(
+    rop_i: &mut Float,
+    rop_f: &mut Float,
+    op: Option<&Float>,
+    rnd: Round,
+) -> (Ordering, Ordering) {
+    ordering2(unsafe {
+        mpfr::modf(
+            rop_i.as_raw_mut(),
+            rop_f.as_raw_mut(),
+            op.unwrap_or(rop_i).as_raw(),
+            raw_round(rnd),
+        )
+    })
+}
+
+wrap! { fn ui_pow_ui(; base: u32; exponent: u32) -> mpfr::ui_pow_ui }
+wrap! { fn sqr(op) -> mpfr::sqr }
+wrap! { fn sqrt(op) -> mpfr::sqrt }
+wrap! { fn sqrt_ui(; u: u32) -> mpfr::sqrt_ui }
+wrap! { fn rec_sqrt(op) -> mpfr::rec_sqrt }
+wrap! { fn cbrt(op) -> mpfr::cbrt }
+wrap! { fn rootn_ui(op; k: u32) -> mpfr::rootn_ui }
+wrap! { fn abs(op) -> mpfr::abs }
+wrap! { fn min(op1, op2) -> mpfr::min }
+wrap! { fn max(op1, op2) -> mpfr::max }
+wrap! { fn dim(op1, op2) -> mpfr::dim }
+wrap! { fn log(op) -> mpfr::log }
+wrap! { fn log_ui(; u: u32) -> mpfr::log_ui }
+wrap! { fn log2(op) -> mpfr::log2 }
+wrap! { fn log10(op) -> mpfr::log10 }
+wrap! { fn exp(op) -> mpfr::exp }
+wrap! { fn exp2(op) -> mpfr::exp2 }
+wrap! { fn exp10(op) -> mpfr::exp10 }
+wrap! { fn sin(op) -> mpfr::sin }
+wrap! { fn cos(op) -> mpfr::cos }
+wrap! { fn tan(op) -> mpfr::tan }
+wrap! { fn sec(op) -> mpfr::sec }
+wrap! { fn csc(op) -> mpfr::csc }
+wrap! { fn cot(op) -> mpfr::cot }
+wrap! { fn acos(op) -> mpfr::acos }
+wrap! { fn asin(op) -> mpfr::asin }
+wrap! { fn atan(op) -> mpfr::atan }
+wrap! { fn atan2(y, x) -> mpfr::atan2 }
+wrap! { fn cosh(op) -> mpfr::cosh }
+wrap! { fn sinh(op) -> mpfr::sinh }
+wrap! { fn tanh(op) -> mpfr::tanh }
+wrap! { fn sech(op) -> mpfr::sech }
+wrap! { fn csch(op) -> mpfr::csch }
+wrap! { fn coth(op) -> mpfr::coth }
+wrap! { fn acosh(op) -> mpfr::acosh }
+wrap! { fn asinh(op) -> mpfr::asinh }
+wrap! { fn atanh(op) -> mpfr::atanh }
+wrap! { fn fac_ui(; n: u32) -> mpfr::fac_ui }
+wrap! { fn log1p(op) -> mpfr::log1p }
+wrap! { fn expm1(op) -> mpfr::expm1 }
+wrap! { fn eint(op) -> mpfr::eint }
+wrap! { fn li2(op) -> mpfr::li2 }
+wrap! { fn gamma(op) -> mpfr::gamma }
+wrap! { fn gamma_inc(op1, op2) -> mpfr::gamma_inc }
+wrap! { fn lngamma(op) -> mpfr::lngamma }
+wrap! { fn digamma(op) -> mpfr::digamma }
+wrap! { fn zeta(op) -> mpfr::zeta }
+wrap! { fn zeta_ui(; u: u32) -> mpfr::zeta_ui }
+wrap! { fn erf(op) -> mpfr::erf }
+wrap! { fn erfc(op) -> mpfr::erfc }
+wrap! { fn j0(op) -> mpfr::j0 }
+wrap! { fn j1(op) -> mpfr::j1 }
+wrap! { fn y0(op) -> mpfr::y0 }
+wrap! { fn y1(op) -> mpfr::y1 }
+wrap! { fn agm(op1, op2) -> mpfr::agm }
+wrap! { fn hypot(x, y) -> mpfr::hypot }
+wrap! { fn ai(op) -> mpfr::ai }
+wrap! { fn rint_ceil(op) -> mpfr::rint_ceil }
+wrap! { fn rint_floor(op) -> mpfr::rint_floor }
+wrap! { fn rint_round(op) -> mpfr::rint_round }
+wrap! { fn rint_roundeven(op) -> mpfr::rint_roundeven }
+wrap! { fn rint_trunc(op) -> mpfr::rint_trunc }
+wrap! { fn frac(op) -> mpfr::frac }
 
 #[cfg(feature = "integer")]
 #[inline]
@@ -336,28 +551,6 @@ pub unsafe fn si_pow(
 ) -> c_int {
     let small = SmallFloat::from(op1);
     mpfr::pow(rop, (*small).as_raw(), op2, rnd)
-}
-
-#[inline]
-pub unsafe fn si_pow_ui(
-    rop: *mut mpfr_t,
-    op1: c_long,
-    op2: c_ulong,
-    rnd: mpfr::rnd_t,
-) -> c_int {
-    let (op1_neg, op1_abs) = op1.neg_abs();
-    if !op1_neg || (op2 & 1) == 0 {
-        mpfr::ui_pow_ui(rop, op1_abs, op2, rnd)
-    } else {
-        let reverse_rnd = match rnd {
-            mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
-            mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
-            unchanged => unchanged,
-        };
-        let reverse_ord = mpfr::ui_pow_ui(rop, op1_abs, op2, reverse_rnd);
-        (*rop).sign = -(*rop).sign;
-        -reverse_ord
-    }
 }
 
 #[inline]

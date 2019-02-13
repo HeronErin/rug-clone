@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::mpfr as xmpfr;
+use ext::mpfr::{self as xmpfr, ordering1, raw_round};
 use float::arith::{
     AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
     SubMulFromIncomplete,
@@ -48,40 +48,6 @@ use Assign;
 use Integer;
 #[cfg(feature = "rational")]
 use Rational;
-
-#[inline]
-pub(crate) fn raw_round(round: Round) -> mpfr::rnd_t {
-    match round {
-        Round::Nearest => mpfr::rnd_t::RNDN,
-        Round::Zero => mpfr::rnd_t::RNDZ,
-        Round::Up => mpfr::rnd_t::RNDU,
-        Round::Down => mpfr::rnd_t::RNDD,
-        _ => unreachable!(),
-    }
-}
-
-#[inline]
-pub(crate) fn ordering1(ord: c_int) -> Ordering {
-    ord.cmp(&0)
-}
-
-#[inline]
-fn ordering2(ord: c_int) -> (Ordering, Ordering) {
-    // ord == first + 4 * second
-    let first = match ord & 3 {
-        2 => -1,
-        0 => 0,
-        1 => 1,
-        _ => unreachable!(),
-    };
-    let second = match ord >> 2 {
-        2 => -1,
-        0 => 0,
-        1 => 1,
-        _ => unreachable!(),
-    };
-    (ordering1(first), ordering1(second))
-}
 
 /**
 A multi-precision floating-point number with arbitrarily large
@@ -285,7 +251,7 @@ macro_rules! ref_math_op0_float {
     ) => {
         ref_math_op0_round! {
             Float, Round => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
         }
@@ -306,7 +272,7 @@ macro_rules! math_op1_float {
     ) => {
         math_op1_round! {
             Round => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $(#[$attr])*
             fn $method($($param: $T),*);
             $(#[$attr_mut])*
@@ -327,7 +293,7 @@ macro_rules! ref_math_op1_float {
     ) => {
         ref_math_op1_round! {
             Float, Round => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
         }
@@ -348,7 +314,7 @@ macro_rules! math_op1_2_float {
     ) => {
         math_op1_2_round! {
             Round => (Ordering, Ordering);
-            $func, raw_round => ordering2;
+            $func;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
             $(#[$attr_mut])*
@@ -369,7 +335,7 @@ macro_rules! ref_math_op1_2_float {
     ) => {
         ref_math_op1_2_round! {
             Float, Round => (Ordering, Ordering);
-            $func, raw_round => ordering2;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
         }
@@ -390,7 +356,7 @@ macro_rules! math_op2_float {
     ) => {
         math_op2_round! {
             Round => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $(#[$attr])*
             fn $method($op $(, $param: $T)*);
             $(#[$attr_mut])*
@@ -411,7 +377,7 @@ macro_rules! ref_math_op2_float {
     ) => {
         ref_math_op2_round! {
             Float, Round => Ordering;
-            $func, raw_round => ordering1;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $op $(, $param: $T)* }
         }
@@ -2788,7 +2754,7 @@ impl Float {
         fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
     }
     math_op1_float! {
-        mpfr::sqr;
+        xmpfr::sqr;
         /// Computes the square, rounding to the nearest.
         ///
         /// # Examples
@@ -2851,7 +2817,7 @@ impl Float {
         fn square_ref -> SquareIncomplete;
     }
     math_op1_float! {
-        mpfr::sqrt;
+        xmpfr::sqrt;
         /// Computes the square root, rounding to the nearest.
         ///
         /// # Examples
@@ -2938,7 +2904,7 @@ impl Float {
     }
 
     math_op1_float! {
-        mpfr::rec_sqrt;
+        xmpfr::rec_sqrt;
         /// Computes the reciprocal square root, rounding to the nearest.
         ///
         /// # Examples
@@ -3002,7 +2968,7 @@ impl Float {
         fn recip_sqrt_ref -> RecipSqrtIncomplete;
     }
     math_op1_float! {
-        mpfr::cbrt;
+        xmpfr::cbrt;
         /// Computes the cube root, rounding to the nearest.
         ///
         /// # Examples
@@ -3066,7 +3032,7 @@ impl Float {
         fn cbrt_ref -> CbrtIncomplete;
     }
     math_op1_float! {
-        mpfr::rootn_ui;
+        xmpfr::rootn_ui;
         /// Computes the <i>k</i>th root, rounding to the nearest.
         ///
         /// # Examples
@@ -3130,7 +3096,7 @@ impl Float {
         fn root_ref -> RootIncomplete;
     }
     math_op1_no_round! {
-        mpfr::abs, raw_round;
+        xmpfr::abs;
         /// Computes the absolute value.
         ///
         /// # Examples
@@ -3176,7 +3142,7 @@ impl Float {
         fn abs_ref -> AbsIncomplete;
     }
     math_op1_no_round! {
-        xmpfr::signum, raw_round;
+        xmpfr::signum;
         /// Computes the signum.
         ///
         ///   * 1.0 if the value is positive, +0.0 or +∞
@@ -3486,7 +3452,7 @@ impl Float {
         fn recip_ref -> RecipIncomplete;
     }
     math_op2_float! {
-        mpfr::min;
+        xmpfr::min;
         /// Finds the minimum, rounding to the nearest.
         ///
         /// # Examples
@@ -3550,7 +3516,7 @@ impl Float {
         fn min_ref -> MinIncomplete;
     }
     math_op2_float! {
-        mpfr::max;
+        xmpfr::max;
         /// Finds the maximum, rounding to the nearest.
         ///
         /// # Examples
@@ -3614,7 +3580,7 @@ impl Float {
         fn max_ref -> MaxIncomplete;
     }
     math_op2_float! {
-        mpfr::dim;
+        xmpfr::dim;
         /// Computes the positive difference between `self` and
         /// `other`, rounding to the nearest.
         ///
@@ -3708,7 +3674,7 @@ impl Float {
     }
 
     math_op1_float! {
-        mpfr::log;
+        xmpfr::log;
         /// Computes the natural logarithm, rounding to the nearest.
         ///
         /// # Examples
@@ -3798,7 +3764,7 @@ impl Float {
     }
 
     math_op1_float! {
-        mpfr::log2;
+        xmpfr::log2;
         /// Computes the logarithm to base 2, rounding to the nearest.
         ///
         /// # Examples
@@ -3864,7 +3830,7 @@ impl Float {
         fn log2_ref -> Log2Incomplete;
     }
     math_op1_float! {
-        mpfr::log10;
+        xmpfr::log10;
         /// Computes the logarithm to base 10, rounding to the nearest.
         ///
         /// # Examples
@@ -3930,7 +3896,7 @@ impl Float {
         fn log10_ref -> Log10Incomplete;
     }
     math_op1_float! {
-        mpfr::exp;
+        xmpfr::exp;
         /// Computes the exponential, rounding to the nearest.
         ///
         /// # Examples
@@ -3996,7 +3962,7 @@ impl Float {
         fn exp_ref -> ExpIncomplete;
     }
     math_op1_float! {
-        mpfr::exp2;
+        xmpfr::exp2;
         /// Computes 2 to the power of `self`, rounding to the nearest.
         ///
         /// # Examples
@@ -4062,7 +4028,7 @@ impl Float {
         fn exp2_ref -> Exp2Incomplete;
     }
     math_op1_float! {
-        mpfr::exp10;
+        xmpfr::exp10;
         /// Computes 10 to the power of `self`, rounding to the nearest.
         ///
         /// # Examples
@@ -4128,7 +4094,7 @@ impl Float {
         fn exp10_ref -> Exp10Incomplete;
     }
     math_op1_float! {
-        mpfr::sin;
+        xmpfr::sin;
         /// Computes the sine, rounding to the nearest.
         ///
         /// # Examples
@@ -4193,7 +4159,7 @@ impl Float {
         fn sin_ref -> SinIncomplete;
     }
     math_op1_float! {
-        mpfr::cos;
+        xmpfr::cos;
         /// Computes the cosine, rounding to the nearest.
         ///
         /// # Examples
@@ -4258,7 +4224,7 @@ impl Float {
         fn cos_ref -> CosIncomplete;
     }
     math_op1_float! {
-        mpfr::tan;
+        xmpfr::tan;
         /// Computes the tangent, rounding to the nearest.
         ///
         /// # Examples
@@ -4323,7 +4289,7 @@ impl Float {
         fn tan_ref -> TanIncomplete;
     }
     math_op1_2_float! {
-        mpfr::sin_cos;
+        xmpfr::sin_cos;
         /// Computes the sine and cosine of `self`, rounding to the
         /// nearest.
         ///
@@ -4430,7 +4396,7 @@ impl Float {
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_float! {
-        mpfr::sec;
+        xmpfr::sec;
         /// Computes the secant, rounding to the nearest.
         ///
         /// # Examples
@@ -4495,7 +4461,7 @@ impl Float {
         fn sec_ref -> SecIncomplete;
     }
     math_op1_float! {
-        mpfr::csc;
+        xmpfr::csc;
         /// Computes the cosecant, rounding to the nearest.
         ///
         /// # Examples
@@ -4560,7 +4526,7 @@ impl Float {
         fn csc_ref -> CscIncomplete;
     }
     math_op1_float! {
-        mpfr::cot;
+        xmpfr::cot;
         /// Computes the cotangent, rounding to the nearest.
         ///
         /// # Examples
@@ -4626,7 +4592,7 @@ impl Float {
         fn cot_ref -> CotIncomplete;
     }
     math_op1_float! {
-        mpfr::asin;
+        xmpfr::asin;
         /// Computes the arc-sine, rounding to the nearest.
         ///
         /// # Examples
@@ -4691,7 +4657,7 @@ impl Float {
         fn asin_ref -> AsinIncomplete;
     }
     math_op1_float! {
-        mpfr::acos;
+        xmpfr::acos;
         /// Computes the arc-cosine, rounding to the nearest.
         ///
         /// # Examples
@@ -4757,7 +4723,7 @@ impl Float {
         fn acos_ref -> AcosIncomplete;
     }
     math_op1_float! {
-        mpfr::atan;
+        xmpfr::atan;
         /// Computes the arc-tangent, rounding to the nearest.
         ///
         /// # Examples
@@ -4823,7 +4789,7 @@ impl Float {
         fn atan_ref -> AtanIncomplete;
     }
     math_op2_float! {
-        mpfr::atan2;
+        xmpfr::atan2;
         /// Computes the arc-tangent2 of `self` and `x`, rounding to
         /// the nearest.
         ///
@@ -4908,7 +4874,7 @@ impl Float {
         fn atan2_ref -> Atan2Incomplete;
     }
     math_op1_float! {
-        mpfr::sinh;
+        xmpfr::sinh;
         /// Computes the hyperbolic sine, rounding to the nearest.
         ///
         /// # Examples
@@ -4974,7 +4940,7 @@ impl Float {
         fn sinh_ref -> SinhIncomplete;
     }
     math_op1_float! {
-        mpfr::cosh;
+        xmpfr::cosh;
         /// Computes the hyperbolic cosine, rounding to the nearest.
         ///
         /// # Examples
@@ -5040,7 +5006,7 @@ impl Float {
         fn cosh_ref -> CoshIncomplete;
     }
     math_op1_float! {
-        mpfr::tanh;
+        xmpfr::tanh;
         /// Computes the hyperbolic tangent, rounding to the nearest.
         ///
         /// # Examples
@@ -5106,7 +5072,7 @@ impl Float {
         fn tanh_ref -> TanhIncomplete;
     }
     math_op1_2_float! {
-        mpfr::sinh_cosh;
+        xmpfr::sinh_cosh;
         /// Computes the hyperbolic sine and cosine of `self`,
         /// rounding to the nearest.
         ///
@@ -5213,7 +5179,7 @@ impl Float {
         fn sinh_cosh_ref -> SinhCoshIncomplete;
     }
     math_op1_float! {
-        mpfr::sech;
+        xmpfr::sech;
         /// Computes the hyperbolic secant, rounding to the nearest.
         ///
         /// # Examples
@@ -5279,7 +5245,7 @@ impl Float {
         fn sech_ref -> SechIncomplete;
     }
     math_op1_float! {
-        mpfr::csch;
+        xmpfr::csch;
         /// Computes the hyperbolic cosecant, rounding to the nearest.
         ///
         /// # Examples
@@ -5345,7 +5311,7 @@ impl Float {
         fn csch_ref -> CschIncomplete;
     }
     math_op1_float! {
-        mpfr::coth;
+        xmpfr::coth;
         /// Computes the hyperbolic cotangent, rounding to the nearest.
         ///
         /// # Examples
@@ -5411,7 +5377,7 @@ impl Float {
         fn coth_ref -> CothIncomplete;
     }
     math_op1_float! {
-        mpfr::asinh;
+        xmpfr::asinh;
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
         ///
         /// # Examples
@@ -5477,7 +5443,7 @@ impl Float {
         fn asinh_ref -> AsinhIncomplete;
     }
     math_op1_float! {
-        mpfr::acosh;
+        xmpfr::acosh;
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
         ///
@@ -5545,7 +5511,7 @@ impl Float {
         fn acosh_ref -> AcoshIncomplete;
     }
     math_op1_float! {
-        mpfr::atanh;
+        xmpfr::atanh;
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
         ///
@@ -5637,7 +5603,7 @@ impl Float {
     }
 
     math_op1_float! {
-        mpfr::log1p;
+        xmpfr::log1p;
         /// Computes the natural logarithm of one plus `self`, rounding to
         /// the nearest.
         ///
@@ -5709,7 +5675,7 @@ impl Float {
         fn ln_1p_ref -> Ln1pIncomplete;
     }
     math_op1_float! {
-        mpfr::expm1;
+        xmpfr::expm1;
         /// Subtracts one from the exponential of `self`, rounding to the
         /// nearest.
         ///
@@ -5782,7 +5748,7 @@ impl Float {
         fn exp_m1_ref -> ExpM1Incomplete;
     }
     math_op1_float! {
-        mpfr::eint;
+        xmpfr::eint;
         /// Computes the exponential integral, rounding to the nearest.
         ///
         /// # Examples
@@ -5848,7 +5814,7 @@ impl Float {
         fn eint_ref -> EintIncomplete;
     }
     math_op1_float! {
-        mpfr::li2;
+        xmpfr::li2;
         /// Computes the real part of the dilogarithm of `self`, rounding
         /// to the nearest.
         ///
@@ -5917,7 +5883,7 @@ impl Float {
         fn li2_ref -> Li2Incomplete;
     }
     math_op1_float! {
-        mpfr::gamma;
+        xmpfr::gamma;
         /// Computes the value of the gamma function on `self`, rounding
         /// to the nearest.
         ///
@@ -5985,7 +5951,7 @@ impl Float {
         fn gamma_ref -> GammaIncomplete;
     }
     math_op2_float! {
-        mpfr::gamma_inc;
+        xmpfr::gamma_inc;
         /// Computes the value of the upper incomplete gamma function
         /// on `self` and `x`, rounding to the nearest.
         ///
@@ -6057,7 +6023,7 @@ impl Float {
         fn gamma_inc_ref -> GammaIncIncomplete;
     }
     math_op1_float! {
-        mpfr::lngamma;
+        xmpfr::lngamma;
         /// Computes the logarithm of the gamma function on `self`,
         /// rounding to the nearest.
         ///
@@ -6291,7 +6257,7 @@ impl Float {
     }
 
     math_op1_float! {
-        mpfr::digamma;
+        xmpfr::digamma;
         /// Computes the value of the Digamma function on `self`, rounding
         /// to the nearest.
         ///
@@ -6359,7 +6325,7 @@ impl Float {
         fn digamma_ref -> DigammaIncomplete;
     }
     math_op1_float! {
-        mpfr::zeta;
+        xmpfr::zeta;
         /// Computes the value of the Riemann Zeta function on `self`,
         /// rounding to the nearest.
         ///
@@ -6450,7 +6416,7 @@ impl Float {
         fn zeta_u(u: u32) -> ZetaUIncomplete;
     }
     math_op1_float! {
-        mpfr::erf;
+        xmpfr::erf;
         /// Computes the value of the error function, rounding to the
         /// nearest.
         ///
@@ -6518,7 +6484,7 @@ impl Float {
         fn erf_ref -> ErfIncomplete;
     }
     math_op1_float! {
-        mpfr::erfc;
+        xmpfr::erfc;
         /// Computes the value of the complementary error function,
         /// rounding to the nearest.
         ///
@@ -6586,7 +6552,7 @@ impl Float {
         fn erfc_ref -> ErfcIncomplete;
     }
     math_op1_float! {
-        mpfr::j0;
+        xmpfr::j0;
         /// Computes the value of the first kind Bessel function of
         /// order 0, rounding to the nearest.
         ///
@@ -6654,7 +6620,7 @@ impl Float {
         fn j0_ref -> J0Incomplete;
     }
     math_op1_float! {
-        mpfr::j1;
+        xmpfr::j1;
         /// Computes the value of the first kind Bessel function of
         /// order 1, rounding to the nearest.
         ///
@@ -6790,7 +6756,7 @@ impl Float {
         fn jn_ref -> JnIncomplete;
     }
     math_op1_float! {
-        mpfr::y0;
+        xmpfr::y0;
         /// Computes the value of the second kind Bessel function of
         /// order 0, rounding to the nearest.
         ///
@@ -6858,7 +6824,7 @@ impl Float {
         fn y0_ref -> Y0Incomplete;
     }
     math_op1_float! {
-        mpfr::y1;
+        xmpfr::y1;
         /// Computes the value of the second kind Bessel function of
         /// order 1, rounding to the nearest.
         ///
@@ -6994,7 +6960,7 @@ impl Float {
         fn yn_ref -> YnIncomplete;
     }
     math_op2_float! {
-        mpfr::agm;
+        xmpfr::agm;
         /// Computes the arithmetic-geometric mean of `self` and `other`,
         /// rounding to the nearest.
         ///
@@ -7066,7 +7032,7 @@ impl Float {
         fn agm_ref -> AgmIncomplete;
     }
     math_op2_float! {
-        mpfr::hypot;
+        xmpfr::hypot;
         /// Computes the Euclidean norm of `self` and `other`, rounding to
         /// the nearest.
         ///
@@ -7138,7 +7104,7 @@ impl Float {
         fn hypot_ref -> HypotIncomplete;
     }
     math_op1_float! {
-        mpfr::ai;
+        xmpfr::ai;
         /// Computes the value of the Airy function Ai on `self`, rounding
         /// to the nearest.
         ///
@@ -7206,7 +7172,7 @@ impl Float {
         fn ai_ref -> AiIncomplete;
     }
     math_op1_no_round! {
-        mpfr::rint_ceil, raw_round;
+        xmpfr::rint_ceil;
         /// Rounds up to the next higher integer.
         ///
         /// # Examples
@@ -7261,7 +7227,7 @@ impl Float {
         fn ceil_ref -> CeilIncomplete;
     }
     math_op1_no_round! {
-        mpfr::rint_floor, raw_round;
+        xmpfr::rint_floor;
         /// Rounds down to the next lower integer.
         ///
         /// # Examples
@@ -7316,7 +7282,7 @@ impl Float {
         fn floor_ref -> FloorIncomplete;
     }
     math_op1_no_round! {
-        mpfr::rint_round, raw_round;
+        xmpfr::rint_round;
         /// Rounds to the nearest integer, rounding half-way cases
         /// away from zero.
         ///
@@ -7394,7 +7360,7 @@ impl Float {
        fn round_ref -> RoundIncomplete;
     }
     math_op1_no_round! {
-        mpfr::rint_roundeven, raw_round;
+        xmpfr::rint_roundeven;
         /// Rounds to the nearest integer, rounding half-way cases to
         /// even.
         ///
@@ -7452,7 +7418,7 @@ impl Float {
        fn round_even_ref -> RoundEvenIncomplete;
     }
     math_op1_no_round! {
-        mpfr::rint_trunc, raw_round;
+        xmpfr::rint_trunc;
         /// Rounds to the next integer towards zero.
         ///
         /// # Examples
@@ -7507,7 +7473,7 @@ impl Float {
         fn trunc_ref -> TruncIncomplete;
     }
     math_op1_no_round! {
-        mpfr::frac, raw_round;
+        xmpfr::frac;
         /// Gets the fractional part of the number.
         ///
         /// # Examples
@@ -7561,7 +7527,7 @@ impl Float {
         fn fract_ref -> FractIncomplete;
     }
     math_op1_2_float! {
-        mpfr::modf;
+        xmpfr::modf;
         /// Gets the integer and fractional parts of the number,
         /// rounding to the nearest.
         ///
@@ -7992,18 +7958,18 @@ where
 }
 
 ref_math_op0_float! {
-    mpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 }
+    xmpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 }
 }
 ref_math_op0_float! {
     xmpfr::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 }
 }
-ref_math_op1_float! { mpfr::sqr; struct SquareIncomplete {} }
-ref_math_op1_float! { mpfr::sqrt; struct SqrtIncomplete {} }
-ref_math_op0_float! { mpfr::sqrt_ui; struct SqrtUIncomplete { u: u32 } }
-ref_math_op1_float! { mpfr::rec_sqrt; struct RecipSqrtIncomplete {} }
-ref_math_op1_float! { mpfr::cbrt; struct CbrtIncomplete {} }
-ref_math_op1_float! { mpfr::rootn_ui; struct RootIncomplete { k: u32 } }
-ref_math_op1_float! { mpfr::abs; struct AbsIncomplete {} }
+ref_math_op1_float! { xmpfr::sqr; struct SquareIncomplete {} }
+ref_math_op1_float! { xmpfr::sqrt; struct SqrtIncomplete {} }
+ref_math_op0_float! { xmpfr::sqrt_ui; struct SqrtUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::rec_sqrt; struct RecipSqrtIncomplete {} }
+ref_math_op1_float! { xmpfr::cbrt; struct CbrtIncomplete {} }
+ref_math_op1_float! { xmpfr::rootn_ui; struct RootIncomplete { k: u32 } }
+ref_math_op1_float! { xmpfr::abs; struct AbsIncomplete {} }
 ref_math_op1_float! { xmpfr::signum; struct SignumIncomplete {} }
 
 #[derive(Debug)]
@@ -8069,45 +8035,45 @@ where
 }
 
 ref_math_op1_float! { xmpfr::recip; struct RecipIncomplete {} }
-ref_math_op2_float! { mpfr::min; struct MinIncomplete { other } }
-ref_math_op2_float! { mpfr::max; struct MaxIncomplete { other } }
-ref_math_op2_float! { mpfr::dim; struct PositiveDiffIncomplete { other } }
-ref_math_op1_float! { mpfr::log; struct LnIncomplete {} }
-ref_math_op0_float! { mpfr::log_ui; struct LnUIncomplete { u: u32 } }
-ref_math_op1_float! { mpfr::log2; struct Log2Incomplete {} }
-ref_math_op1_float! { mpfr::log10; struct Log10Incomplete {} }
-ref_math_op1_float! { mpfr::exp; struct ExpIncomplete {} }
-ref_math_op1_float! { mpfr::exp2; struct Exp2Incomplete {} }
-ref_math_op1_float! { mpfr::exp10; struct Exp10Incomplete {} }
-ref_math_op1_float! { mpfr::sin; struct SinIncomplete {} }
-ref_math_op1_float! { mpfr::cos; struct CosIncomplete {} }
-ref_math_op1_float! { mpfr::tan; struct TanIncomplete {} }
-ref_math_op1_2_float! { mpfr::sin_cos; struct SinCosIncomplete {} }
-ref_math_op1_float! { mpfr::sec; struct SecIncomplete {} }
-ref_math_op1_float! { mpfr::csc; struct CscIncomplete {} }
-ref_math_op1_float! { mpfr::cot; struct CotIncomplete {} }
-ref_math_op1_float! { mpfr::acos; struct AcosIncomplete {} }
-ref_math_op1_float! { mpfr::asin; struct AsinIncomplete {} }
-ref_math_op1_float! { mpfr::atan; struct AtanIncomplete {} }
-ref_math_op2_float! { mpfr::atan2; struct Atan2Incomplete { x } }
-ref_math_op1_float! { mpfr::cosh; struct CoshIncomplete {} }
-ref_math_op1_float! { mpfr::sinh; struct SinhIncomplete {} }
-ref_math_op1_float! { mpfr::tanh; struct TanhIncomplete {} }
-ref_math_op1_2_float! { mpfr::sinh_cosh; struct SinhCoshIncomplete {} }
-ref_math_op1_float! { mpfr::sech; struct SechIncomplete {} }
-ref_math_op1_float! { mpfr::csch; struct CschIncomplete {} }
-ref_math_op1_float! { mpfr::coth; struct CothIncomplete {} }
-ref_math_op1_float! { mpfr::acosh; struct AcoshIncomplete {} }
-ref_math_op1_float! { mpfr::asinh; struct AsinhIncomplete {} }
-ref_math_op1_float! { mpfr::atanh; struct AtanhIncomplete {} }
-ref_math_op0_float! { mpfr::fac_ui; struct FactorialIncomplete { n: u32 } }
-ref_math_op1_float! { mpfr::log1p; struct Ln1pIncomplete {} }
-ref_math_op1_float! { mpfr::expm1; struct ExpM1Incomplete {} }
-ref_math_op1_float! { mpfr::eint; struct EintIncomplete {} }
-ref_math_op1_float! { mpfr::li2; struct Li2Incomplete {} }
-ref_math_op1_float! { mpfr::gamma; struct GammaIncomplete {} }
-ref_math_op2_float! { mpfr::gamma_inc; struct GammaIncIncomplete { x } }
-ref_math_op1_float! { mpfr::lngamma; struct LnGammaIncomplete {} }
+ref_math_op2_float! { xmpfr::min; struct MinIncomplete { other } }
+ref_math_op2_float! { xmpfr::max; struct MaxIncomplete { other } }
+ref_math_op2_float! { xmpfr::dim; struct PositiveDiffIncomplete { other } }
+ref_math_op1_float! { xmpfr::log; struct LnIncomplete {} }
+ref_math_op0_float! { xmpfr::log_ui; struct LnUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::log2; struct Log2Incomplete {} }
+ref_math_op1_float! { xmpfr::log10; struct Log10Incomplete {} }
+ref_math_op1_float! { xmpfr::exp; struct ExpIncomplete {} }
+ref_math_op1_float! { xmpfr::exp2; struct Exp2Incomplete {} }
+ref_math_op1_float! { xmpfr::exp10; struct Exp10Incomplete {} }
+ref_math_op1_float! { xmpfr::sin; struct SinIncomplete {} }
+ref_math_op1_float! { xmpfr::cos; struct CosIncomplete {} }
+ref_math_op1_float! { xmpfr::tan; struct TanIncomplete {} }
+ref_math_op1_2_float! { xmpfr::sin_cos; struct SinCosIncomplete {} }
+ref_math_op1_float! { xmpfr::sec; struct SecIncomplete {} }
+ref_math_op1_float! { xmpfr::csc; struct CscIncomplete {} }
+ref_math_op1_float! { xmpfr::cot; struct CotIncomplete {} }
+ref_math_op1_float! { xmpfr::acos; struct AcosIncomplete {} }
+ref_math_op1_float! { xmpfr::asin; struct AsinIncomplete {} }
+ref_math_op1_float! { xmpfr::atan; struct AtanIncomplete {} }
+ref_math_op2_float! { xmpfr::atan2; struct Atan2Incomplete { x } }
+ref_math_op1_float! { xmpfr::cosh; struct CoshIncomplete {} }
+ref_math_op1_float! { xmpfr::sinh; struct SinhIncomplete {} }
+ref_math_op1_float! { xmpfr::tanh; struct TanhIncomplete {} }
+ref_math_op1_2_float! { xmpfr::sinh_cosh; struct SinhCoshIncomplete {} }
+ref_math_op1_float! { xmpfr::sech; struct SechIncomplete {} }
+ref_math_op1_float! { xmpfr::csch; struct CschIncomplete {} }
+ref_math_op1_float! { xmpfr::coth; struct CothIncomplete {} }
+ref_math_op1_float! { xmpfr::acosh; struct AcoshIncomplete {} }
+ref_math_op1_float! { xmpfr::asinh; struct AsinhIncomplete {} }
+ref_math_op1_float! { xmpfr::atanh; struct AtanhIncomplete {} }
+ref_math_op0_float! { xmpfr::fac_ui; struct FactorialIncomplete { n: u32 } }
+ref_math_op1_float! { xmpfr::log1p; struct Ln1pIncomplete {} }
+ref_math_op1_float! { xmpfr::expm1; struct ExpM1Incomplete {} }
+ref_math_op1_float! { xmpfr::eint; struct EintIncomplete {} }
+ref_math_op1_float! { xmpfr::li2; struct Li2Incomplete {} }
+ref_math_op1_float! { xmpfr::gamma; struct GammaIncomplete {} }
+ref_math_op2_float! { xmpfr::gamma_inc; struct GammaIncIncomplete { x } }
+ref_math_op1_float! { xmpfr::lngamma; struct LnGammaIncomplete {} }
 
 pub struct LnAbsGammaIncomplete<'a> {
     ref_self: &'a Float,
@@ -8168,27 +8134,27 @@ impl<'a> Assign<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
     }
 }
 
-ref_math_op1_float! { mpfr::digamma; struct DigammaIncomplete {} }
-ref_math_op1_float! { mpfr::zeta; struct ZetaIncomplete {} }
-ref_math_op0_float! { mpfr::zeta_ui; struct ZetaUIncomplete { u: u32 } }
-ref_math_op1_float! { mpfr::erf; struct ErfIncomplete {} }
-ref_math_op1_float! { mpfr::erfc; struct ErfcIncomplete {} }
-ref_math_op1_float! { mpfr::j0; struct J0Incomplete {} }
-ref_math_op1_float! { mpfr::j1; struct J1Incomplete {} }
+ref_math_op1_float! { xmpfr::digamma; struct DigammaIncomplete {} }
+ref_math_op1_float! { xmpfr::zeta; struct ZetaIncomplete {} }
+ref_math_op0_float! { xmpfr::zeta_ui; struct ZetaUIncomplete { u: u32 } }
+ref_math_op1_float! { xmpfr::erf; struct ErfIncomplete {} }
+ref_math_op1_float! { xmpfr::erfc; struct ErfcIncomplete {} }
+ref_math_op1_float! { xmpfr::j0; struct J0Incomplete {} }
+ref_math_op1_float! { xmpfr::j1; struct J1Incomplete {} }
 ref_math_op1_float! { xmpfr::jn; struct JnIncomplete { n: i32 } }
-ref_math_op1_float! { mpfr::y0; struct Y0Incomplete {} }
-ref_math_op1_float! { mpfr::y1; struct Y1Incomplete {} }
+ref_math_op1_float! { xmpfr::y0; struct Y0Incomplete {} }
+ref_math_op1_float! { xmpfr::y1; struct Y1Incomplete {} }
 ref_math_op1_float! { xmpfr::yn; struct YnIncomplete { n: i32 } }
-ref_math_op2_float! { mpfr::agm; struct AgmIncomplete { other } }
-ref_math_op2_float! { mpfr::hypot; struct HypotIncomplete { other } }
-ref_math_op1_float! { mpfr::ai; struct AiIncomplete {} }
-ref_math_op1_float! { mpfr::rint_ceil; struct CeilIncomplete {} }
-ref_math_op1_float! { mpfr::rint_floor; struct FloorIncomplete {} }
-ref_math_op1_float! { mpfr::rint_round; struct RoundIncomplete {} }
-ref_math_op1_float! { mpfr::rint_roundeven; struct RoundEvenIncomplete {} }
-ref_math_op1_float! { mpfr::rint_trunc; struct TruncIncomplete {} }
-ref_math_op1_float! { mpfr::frac; struct FractIncomplete {} }
-ref_math_op1_2_float! { mpfr::modf; struct TruncFractIncomplete {} }
+ref_math_op2_float! { xmpfr::agm; struct AgmIncomplete { other } }
+ref_math_op2_float! { xmpfr::hypot; struct HypotIncomplete { other } }
+ref_math_op1_float! { xmpfr::ai; struct AiIncomplete {} }
+ref_math_op1_float! { xmpfr::rint_ceil; struct CeilIncomplete {} }
+ref_math_op1_float! { xmpfr::rint_floor; struct FloorIncomplete {} }
+ref_math_op1_float! { xmpfr::rint_round; struct RoundIncomplete {} }
+ref_math_op1_float! { xmpfr::rint_roundeven; struct RoundEvenIncomplete {} }
+ref_math_op1_float! { xmpfr::rint_trunc; struct TruncIncomplete {} }
+ref_math_op1_float! { xmpfr::frac; struct FractIncomplete {} }
+ref_math_op1_2_float! { xmpfr::modf; struct TruncFractIncomplete {} }
 
 #[cfg(feature = "rand")]
 pub struct RandomBitsIncomplete<'a, 'b>

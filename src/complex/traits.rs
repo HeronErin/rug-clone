@@ -14,8 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use complex::big::{self, ordering2, raw_round2, Format, Ordering2, Round2};
+use complex::big::{self, Format};
 use complex::ParseComplexError;
+use ext::mpc::{ordering2, raw_round2, Ordering2, Round2};
 use float::big::ExpFormat;
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;

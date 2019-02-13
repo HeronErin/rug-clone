@@ -17,6 +17,7 @@
 use complex::SmallComplex;
 #[cfg(feature = "rational")]
 use ext::mpfr as xmpfr;
+use float::Round;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
@@ -25,24 +26,136 @@ use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
 use Complex;
 
+pub type Round2 = (Round, Round);
+
+pub type Ordering2 = (Ordering, Ordering);
+
 #[inline]
-pub unsafe fn mul_i(
-    rop: *mut mpc_t,
-    op: *const mpc_t,
-    neg: bool,
-    rnd: mpc::rnd_t,
-) -> c_int {
-    mpc::mul_i(rop, op, if neg { -1 } else { 0 }, rnd)
+pub fn raw_round2(round: Round2) -> mpc::rnd_t {
+    match (round.0, round.1) {
+        (Round::Nearest, Round::Nearest) => mpc::RNDNN,
+        (Round::Nearest, Round::Zero) => mpc::RNDNZ,
+        (Round::Nearest, Round::Up) => mpc::RNDNU,
+        (Round::Nearest, Round::Down) => mpc::RNDND,
+        (Round::Zero, Round::Nearest) => mpc::RNDZN,
+        (Round::Zero, Round::Zero) => mpc::RNDZZ,
+        (Round::Zero, Round::Up) => mpc::RNDZU,
+        (Round::Zero, Round::Down) => mpc::RNDZD,
+        (Round::Up, Round::Nearest) => mpc::RNDUN,
+        (Round::Up, Round::Zero) => mpc::RNDUZ,
+        (Round::Up, Round::Up) => mpc::RNDUU,
+        (Round::Up, Round::Down) => mpc::RNDUD,
+        (Round::Down, Round::Nearest) => mpc::RNDDN,
+        (Round::Down, Round::Zero) => mpc::RNDDZ,
+        (Round::Down, Round::Up) => mpc::RNDDU,
+        (Round::Down, Round::Down) => mpc::RNDDD,
+        _ => unreachable!(),
+    }
 }
 
 #[inline]
-pub unsafe fn recip(
-    rop: *mut mpc_t,
-    op: *const mpc_t,
-    rnd: mpc::rnd_t,
-) -> c_int {
-    ui_div(rop, 1, op, rnd)
+pub fn ordering2(ord: c_int) -> Ordering2 {
+    // ord == first + 4 * second
+    let first = mpc::INEX_RE(ord).cmp(&0);
+    let second = mpc::INEX_IM(ord).cmp(&0);
+    (first, second)
 }
+
+#[inline]
+fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
+    (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
+}
+
+macro_rules! wrap {
+    (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
+        #[inline]
+        pub fn $fn(
+            rop: &mut Complex,
+            $($op: Option<&Complex>,)*
+            $($param: $T,)*
+            rnd: Round2,
+        ) -> Ordering2 {
+            ordering2(unsafe {
+                $deleg(
+                    rop.as_raw_mut(),
+                    $($op.unwrap_or(rop).as_raw(),)*
+                    $($param.into(),)*
+                    raw_round2(rnd),
+                )
+            })
+        }
+    };
+}
+
+#[inline]
+pub fn mul_i(
+    rop: &mut Complex,
+    op: Option<&Complex>,
+    neg: bool,
+    rnd: Round2,
+) -> Ordering2 {
+    ordering2(unsafe {
+        mpc::mul_i(
+            rop.as_raw_mut(),
+            op.unwrap_or(rop).as_raw(),
+            if neg { -1 } else { 0 },
+            raw_round2(rnd),
+        )
+    })
+}
+
+#[inline]
+pub fn recip(
+    rop: &mut Complex,
+    op: Option<&Complex>,
+    rnd: Round2,
+) -> Ordering2 {
+    let rop_ptr = rop.as_raw_mut();
+    let op_ptr = op.unwrap_or(rop).as_raw();
+    let rnd = raw_round2(rnd);
+    ordering2(unsafe { ui_div(rop_ptr, 1, op_ptr, rnd) })
+}
+
+#[inline]
+pub fn sin_cos(
+    rop_sin: &mut Complex,
+    rop_cos: &mut Complex,
+    op: Option<&Complex>,
+    rnd: Round2,
+) -> (Ordering2, Ordering2) {
+    ordering4(unsafe {
+        mpc::sin_cos(
+            rop_sin.as_raw_mut(),
+            rop_cos.as_raw_mut(),
+            op.unwrap_or(rop_sin).as_raw(),
+            raw_round2(rnd),
+            raw_round2(rnd),
+        )
+    })
+}
+
+wrap! { fn fma(op1, op2, op3) -> mpc::fma }
+
+wrap! { fn proj(op) -> mpc::proj }
+wrap! { fn sqr(op) -> mpc::sqr }
+wrap! { fn sqrt(op) -> mpc::sqrt }
+wrap! { fn conj(op) -> mpc::conj }
+wrap! { fn log(op) -> mpc::log }
+wrap! { fn log10(op) -> mpc::log10 }
+wrap! { fn rootofunity(; n: u32; k: u32) -> mpc::rootofunity }
+wrap! { fn exp(op) -> mpc::exp }
+wrap! { fn sin(op) -> mpc::sin }
+wrap! { fn cos(op) -> mpc::cos }
+wrap! { fn tan(op) -> mpc::tan }
+wrap! { fn sinh(op) -> mpc::sinh }
+wrap! { fn cosh(op) -> mpc::cosh }
+wrap! { fn tanh(op) -> mpc::tanh }
+wrap! { fn asin(op) -> mpc::asin }
+wrap! { fn acos(op) -> mpc::acos }
+wrap! { fn atan(op) -> mpc::atan }
+wrap! { fn asinh(op) -> mpc::asinh }
+wrap! { fn acosh(op) -> mpc::acosh }
+wrap! { fn atanh(op) -> mpc::atanh }
 
 macro_rules! into_forward {
     (fn $name:ident($T:ty) -> $func:path) => {

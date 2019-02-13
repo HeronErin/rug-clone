@@ -14,8 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::mpfr as xmpfr;
-use float::big::{ordering1, raw_round};
+use ext::mpfr::{self as xmpfr, ordering1, raw_round};
 use float::Round;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use ops::{

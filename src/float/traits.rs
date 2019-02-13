@@ -15,8 +15,8 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::mpfr as xmpfr;
-use float::big::{self, ordering1, raw_round, ExpFormat, Format};
+use ext::mpfr::{self as xmpfr, ordering1, raw_round};
+use float::big::{self, ExpFormat, Format};
 use float::{Constant, ParseFloatError, Round, Special};
 use gmp_mpfr_sys::mpfr;
 use ops::AssignRound;

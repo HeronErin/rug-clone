@@ -14,8 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use complex::big::{ordering2, raw_round2, Ordering2, Round2};
-use ext::mpc as xmpc;
+use ext::mpc::{self as xmpc, ordering2, raw_round2, Ordering2, Round2};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,

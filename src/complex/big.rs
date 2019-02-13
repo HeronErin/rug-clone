@@ -17,9 +17,10 @@
 use cast::cast;
 use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use complex::{OrdComplex, Prec};
-use ext::mpc as xmpc;
+use ext::mpc::{self as xmpc, ordering2, raw_round2, Ordering2, Round2};
+use ext::mpfr::raw_round;
 use float::big::{
-    self as big_float, raw_round, ExpFormat, Format as FloatFormat,
+    self as big_float, ExpFormat, Format as FloatFormat,
     ParseIncomplete as FloatParseIncomplete,
 };
 use float::{self, ParseFloatError, Round, Special};
@@ -38,10 +39,6 @@ use std::os::raw::c_int;
 use std::ptr;
 use std::slice;
 use {Assign, Float};
-
-pub type Round2 = (Round, Round);
-
-pub type Ordering2 = (Ordering, Ordering);
 
 /**
 A multi-precision complex number with arbitrarily large precision and
@@ -168,7 +165,7 @@ macro_rules! ref_math_op0_complex {
     ) => {
         ref_math_op0_round! {
             Complex, Round2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
         }
@@ -189,7 +186,7 @@ macro_rules! math_op1_complex {
     ) => {
         math_op1_round! {
             Round2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $(#[$attr])*
             fn $method($($param: $T),*);
             $(#[$attr_mut])*
@@ -210,7 +207,7 @@ macro_rules! ref_math_op1_complex {
     ) => {
         ref_math_op1_round! {
             Complex, Round2 => Ordering2;
-            $func, raw_round2 => ordering2;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
         }
@@ -231,7 +228,7 @@ macro_rules! math_op1_2_complex {
     ) => {
         math_op1_2_round! {
             Round2 => (Ordering2, Ordering2);
-            $func, raw_round2, raw_round2 => ordering4;
+            $func;
             $(#[$attr])*
             fn $method($rop $(, $param: $T)*);
             $(#[$attr_mut])*
@@ -252,7 +249,7 @@ macro_rules! ref_math_op1_2_complex {
     ) => {
         ref_math_op1_2_round! {
             Complex, Round2 => (Ordering2, Ordering2);
-            $func, raw_round2, raw_round2 => ordering4;
+            $func;
             $(#[$attr_ref])*
             struct $Incomplete { $($param: $T),* }
         }
@@ -1085,14 +1082,14 @@ impl Complex {
     /// ```
     #[inline]
     pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
-        unsafe {
-            if self.real().is_nan()
-                || self.imag().is_nan()
-                || other.real().is_nan()
-                || other.imag().is_nan()
-            {
-                None
-            } else {
+        if self.real().is_nan()
+            || self.imag().is_nan()
+            || other.real().is_nan()
+            || other.imag().is_nan()
+        {
+            None
+        } else {
+            unsafe {
                 Some(ordering1(mpc::cmp_abs(self.as_raw(), other.as_raw())))
             }
         }
@@ -1283,16 +1280,7 @@ impl Complex {
         add: &Self,
         round: Round2,
     ) -> Ordering2 {
-        let ret = unsafe {
-            mpc::fma(
-                self.as_raw_mut(),
-                self.as_raw(),
-                mul.as_raw(),
-                add.as_raw(),
-                raw_round2(round),
-            )
-        };
-        ordering2(ret)
+        xmpc::fma(self, None, Some(mul), Some(add), round)
     }
 
     /// Multiplies and adds in one fused operation.
@@ -1446,7 +1434,7 @@ impl Complex {
     }
 
     math_op1_no_round! {
-        mpc::proj, raw_round2;
+        xmpc::proj;
         /// Computes a projection onto the Riemann sphere, rounding to
         /// the nearest.
         ///
@@ -1529,7 +1517,7 @@ impl Complex {
         fn proj_ref -> ProjIncomplete;
     }
     math_op1_complex! {
-        mpc::sqr;
+        xmpc::sqr;
         /// Computes the square, rounding to the nearest.
         ///
         /// # Examples
@@ -1599,7 +1587,7 @@ impl Complex {
         fn square_ref -> SquareIncomplete;
     }
     math_op1_complex! {
-        mpc::sqrt;
+        xmpc::sqrt;
         /// Computes the square root, rounding to the nearest.
         ///
         /// # Examples
@@ -1670,7 +1658,7 @@ impl Complex {
         fn sqrt_ref -> SqrtIncomplete;
     }
     math_op1_no_round! {
-        mpc::conj, raw_round2;
+        xmpc::conj;
         /// Computes the complex conjugate.
         ///
         /// # Examples
@@ -2123,7 +2111,7 @@ impl Complex {
     }
 
     math_op1_complex! {
-        mpc::log;
+        xmpc::log;
         /// Computes the natural logarithm, rounding to the nearest.
         ///
         /// # Examples
@@ -2189,7 +2177,7 @@ impl Complex {
         fn ln_ref -> LnIncomplete;
     }
     math_op1_complex! {
-        mpc::log10;
+        xmpc::log10;
         /// Computes the logarithm to base 10, rounding to the nearest.
         ///
         /// # Examples
@@ -2282,7 +2270,7 @@ impl Complex {
         fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete;
     }
     math_op1_complex! {
-        mpc::exp;
+        xmpc::exp;
         /// Computes the exponential, rounding to the nearest.
         ///
         /// # Examples
@@ -2348,7 +2336,7 @@ impl Complex {
         fn exp_ref -> ExpIncomplete;
     }
     math_op1_complex! {
-        mpc::sin;
+        xmpc::sin;
         /// Computes the sine, rounding to the nearest.
         ///
         /// # Examples
@@ -2413,7 +2401,7 @@ impl Complex {
         fn sin_ref -> SinIncomplete;
     }
     math_op1_complex! {
-        mpc::cos;
+        xmpc::cos;
         /// Computes the cosine, rounding to the nearest.
         ///
         /// # Examples
@@ -2478,7 +2466,7 @@ impl Complex {
         fn cos_ref -> CosIncomplete;
     }
     math_op1_2_complex! {
-        mpc::sin_cos;
+        xmpc::sin_cos;
         /// Computes the sine and cosine of `self`, rounding to the
         /// nearest.
         ///
@@ -2587,7 +2575,7 @@ impl Complex {
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_complex! {
-        mpc::tan;
+        xmpc::tan;
         /// Computes the tangent, rounding to the nearest.
         ///
         /// # Examples
@@ -2652,7 +2640,7 @@ impl Complex {
         fn tan_ref -> TanIncomplete;
     }
     math_op1_complex! {
-        mpc::sinh;
+        xmpc::sinh;
         /// Computes the hyperbolic sine, rounding to the nearest.
         ///
         /// # Examples
@@ -2718,7 +2706,7 @@ impl Complex {
         fn sinh_ref -> SinhIncomplete;
     }
     math_op1_complex! {
-        mpc::cosh;
+        xmpc::cosh;
         /// Computes the hyperbolic cosine, rounding to the nearest.
         ///
         /// # Examples
@@ -2784,7 +2772,7 @@ impl Complex {
         fn cosh_ref -> CoshIncomplete;
     }
     math_op1_complex! {
-        mpc::tanh;
+        xmpc::tanh;
         /// Computes the hyperbolic tangent, rounding to the nearest.
         ///
         /// # Examples
@@ -2850,7 +2838,7 @@ impl Complex {
         fn tanh_ref -> TanhIncomplete;
     }
     math_op1_complex! {
-        mpc::asin;
+        xmpc::asin;
         /// Computes the inverse sine, rounding to the nearest.
         ///
         /// # Examples
@@ -2916,7 +2904,7 @@ impl Complex {
         fn asin_ref -> AsinIncomplete;
     }
     math_op1_complex! {
-        mpc::acos;
+        xmpc::acos;
         /// Computes the inverse cosine, rounding to the nearest.
         ///
         /// # Examples
@@ -2982,7 +2970,7 @@ impl Complex {
         fn acos_ref -> AcosIncomplete;
     }
     math_op1_complex! {
-        mpc::atan;
+        xmpc::atan;
         /// Computes the inverse tangent, rounding to the nearest.
         ///
         /// # Examples
@@ -3048,7 +3036,7 @@ impl Complex {
         fn atan_ref -> AtanIncomplete;
     }
     math_op1_complex! {
-        mpc::asinh;
+        xmpc::asinh;
         /// Computes the inverse hyperbolic sine, rounding to the nearest.
         ///
         /// # Examples
@@ -3114,7 +3102,7 @@ impl Complex {
         fn asinh_ref -> AsinhIncomplete;
     }
     math_op1_complex! {
-        mpc::acosh;
+        xmpc::acosh;
         /// Computes the inverse hyperbolic cosine, rounding to the
         /// nearest.
         ///
@@ -3182,7 +3170,7 @@ impl Complex {
         fn acosh_ref -> AcoshIncomplete;
     }
     math_op1_complex! {
-        mpc::atanh;
+        xmpc::atanh;
         /// Computes the inverse hyperbolic tangent, rounding to the
         /// nearest.
         ///
@@ -3585,10 +3573,10 @@ where
     }
 }
 
-ref_math_op1_complex! { mpc::proj; struct ProjIncomplete {} }
-ref_math_op1_complex! { mpc::sqr; struct SquareIncomplete {} }
-ref_math_op1_complex! { mpc::sqrt; struct SqrtIncomplete {} }
-ref_math_op1_complex! { mpc::conj; struct ConjIncomplete {} }
+ref_math_op1_complex! { xmpc::proj; struct ProjIncomplete {} }
+ref_math_op1_complex! { xmpc::sqr; struct SquareIncomplete {} }
+ref_math_op1_complex! { xmpc::sqrt; struct SqrtIncomplete {} }
+ref_math_op1_complex! { xmpc::conj; struct ConjIncomplete {} }
 
 #[derive(Debug)]
 pub struct AbsIncomplete<'a> {
@@ -3648,25 +3636,25 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
     }
 }
 
-ref_math_op1_complex! { mpc::log; struct LnIncomplete {} }
-ref_math_op1_complex! { mpc::log10; struct Log10Incomplete {} }
+ref_math_op1_complex! { xmpc::log; struct LnIncomplete {} }
+ref_math_op1_complex! { xmpc::log10; struct Log10Incomplete {} }
 ref_math_op0_complex! {
-    mpc::rootofunity; struct RootOfUnityIncomplete { n: u32, k: u32 }
+    xmpc::rootofunity; struct RootOfUnityIncomplete { n: u32, k: u32 }
 }
-ref_math_op1_complex! { mpc::exp; struct ExpIncomplete {} }
-ref_math_op1_complex! { mpc::sin; struct SinIncomplete {} }
-ref_math_op1_complex! { mpc::cos; struct CosIncomplete {} }
-ref_math_op1_2_complex! { mpc::sin_cos; struct SinCosIncomplete {} }
-ref_math_op1_complex! { mpc::tan; struct TanIncomplete {} }
-ref_math_op1_complex! { mpc::sinh; struct SinhIncomplete {} }
-ref_math_op1_complex! { mpc::cosh; struct CoshIncomplete {} }
-ref_math_op1_complex! { mpc::tanh; struct TanhIncomplete {} }
-ref_math_op1_complex! { mpc::asin; struct AsinIncomplete {} }
-ref_math_op1_complex! { mpc::acos; struct AcosIncomplete {} }
-ref_math_op1_complex! { mpc::atan; struct AtanIncomplete {} }
-ref_math_op1_complex! { mpc::asinh; struct AsinhIncomplete {} }
-ref_math_op1_complex! { mpc::acosh; struct AcoshIncomplete {} }
-ref_math_op1_complex! { mpc::atanh; struct AtanhIncomplete {} }
+ref_math_op1_complex! { xmpc::exp; struct ExpIncomplete {} }
+ref_math_op1_complex! { xmpc::sin; struct SinIncomplete {} }
+ref_math_op1_complex! { xmpc::cos; struct CosIncomplete {} }
+ref_math_op1_2_complex! { xmpc::sin_cos; struct SinCosIncomplete {} }
+ref_math_op1_complex! { xmpc::tan; struct TanIncomplete {} }
+ref_math_op1_complex! { xmpc::sinh; struct SinhIncomplete {} }
+ref_math_op1_complex! { xmpc::cosh; struct CoshIncomplete {} }
+ref_math_op1_complex! { xmpc::tanh; struct TanhIncomplete {} }
+ref_math_op1_complex! { xmpc::asin; struct AsinIncomplete {} }
+ref_math_op1_complex! { xmpc::acos; struct AcosIncomplete {} }
+ref_math_op1_complex! { xmpc::atan; struct AtanIncomplete {} }
+ref_math_op1_complex! { xmpc::asinh; struct AsinhIncomplete {} }
+ref_math_op1_complex! { xmpc::acosh; struct AcoshIncomplete {} }
+ref_math_op1_complex! { xmpc::atanh; struct AtanhIncomplete {} }
 
 #[cfg(feature = "rand")]
 pub struct RandomBitsIncomplete<'a, 'b>
@@ -3967,42 +3955,6 @@ impl Error for ParseComplexError {
 }
 
 #[inline]
-pub fn raw_round2(round: Round2) -> mpc::rnd_t {
-    match (round.0, round.1) {
-        (Round::Nearest, Round::Nearest) => mpc::RNDNN,
-        (Round::Nearest, Round::Zero) => mpc::RNDNZ,
-        (Round::Nearest, Round::Up) => mpc::RNDNU,
-        (Round::Nearest, Round::Down) => mpc::RNDND,
-        (Round::Zero, Round::Nearest) => mpc::RNDZN,
-        (Round::Zero, Round::Zero) => mpc::RNDZZ,
-        (Round::Zero, Round::Up) => mpc::RNDZU,
-        (Round::Zero, Round::Down) => mpc::RNDZD,
-        (Round::Up, Round::Nearest) => mpc::RNDUN,
-        (Round::Up, Round::Zero) => mpc::RNDUZ,
-        (Round::Up, Round::Up) => mpc::RNDUU,
-        (Round::Up, Round::Down) => mpc::RNDUD,
-        (Round::Down, Round::Nearest) => mpc::RNDDN,
-        (Round::Down, Round::Zero) => mpc::RNDDZ,
-        (Round::Down, Round::Up) => mpc::RNDDU,
-        (Round::Down, Round::Down) => mpc::RNDDD,
-        _ => unreachable!(),
-    }
-}
-
-#[inline]
 fn ordering1(ord: c_int) -> Ordering {
     ord.cmp(&0)
-}
-
-#[inline]
-pub(crate) fn ordering2(ord: c_int) -> Ordering2 {
-    // ord == first + 4 * second
-    let first = mpc::INEX_RE(ord).cmp(&0);
-    let second = mpc::INEX_IM(ord).cmp(&0);
-    (first, second)
-}
-
-#[inline]
-fn ordering4(ord: c_int) -> (Ordering2, Ordering2) {
-    (ordering2(mpc::INEX1(ord)), ordering2(mpc::INEX2(ord)))
 }

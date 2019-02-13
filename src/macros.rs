@@ -1184,35 +1184,32 @@ macro_rules! assign_round_deref {
     };
 }
 
-// struct Src
-// Big = Src
+// struct Incomplete
+// Big = Incomplete
 #[cfg(feature = "float")]
 macro_rules! ref_math_op0_round {
     (
         $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $(#[$attr_ref:meta])*
-        struct $Src:ident { $($param:ident: $T:ty),* }
+        struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
         $(#[$attr_ref])*
         #[derive(Debug)]
-        pub struct $Src {
+        pub struct $Incomplete {
             $($param: $T,)*
         }
 
-        impl AssignRound<$Src> for $Big {
+        impl AssignRound<$Incomplete> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
-            fn assign_round(&mut self, src: $Src, round: $Round,) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        $(src.$param.into(),)*
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+            fn assign_round(
+                &mut self,
+                src: $Incomplete,
+                round: $Round,
+            ) -> $Ordering {
+                $func(self, $(src.$param.into(),)* round)
             }
         }
     };
@@ -1226,7 +1223,7 @@ macro_rules! ref_math_op0_round {
 macro_rules! math_op1_round {
     (
         $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
         $(#[$attr_mut:meta])*
@@ -1256,15 +1253,7 @@ macro_rules! math_op1_round {
             $($param: $T,)*
             round: $Round,
         ) -> $Ordering {
-            let ret = unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    self.as_raw(),
-                    $($param.into(),)*
-                    $raw_round(round),
-                )
-            };
-            $ord(ret)
+            $func(self, None, $($param.into(),)* round)
         }
 
         $(#[$attr_ref])*
@@ -1284,7 +1273,7 @@ macro_rules! math_op1_round {
 #[cfg(feature = "float")]
 macro_rules! math_op1_no_round {
     (
-        $func:path, $raw_round:path;
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($($param:ident: $T:ty),*);
         $(#[$attr_mut:meta])*
@@ -1302,14 +1291,7 @@ macro_rules! math_op1_no_round {
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $($param: $T),*) {
-            unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    self.as_raw(),
-                    $($param.into(),)*
-                    $raw_round(Default::default()),
-                );
-            }
+            $func(self, None, $($param.into(),)* Default::default());
         }
 
         $(#[$attr_ref])*
@@ -1329,7 +1311,7 @@ macro_rules! math_op1_no_round {
 macro_rules! ref_math_op1_round {
     (
         $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
@@ -1349,15 +1331,7 @@ macro_rules! ref_math_op1_round {
                 src: $Incomplete,
                 round: $Round,
             ) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        $(src.$param.into(),)*
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(self, Some(src.ref_self), $(src.$param.into(),)* round)
             }
         }
     };
@@ -1371,7 +1345,7 @@ macro_rules! ref_math_op1_round {
 macro_rules! math_op1_2_round {
     (
         $Round:ty => $Ordering:ty;
-        $func:path, $($raw_round:path),* => $ord:path;
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($rop:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_mut:meta])*
@@ -1414,16 +1388,7 @@ macro_rules! math_op1_2_round {
             $($param: $T,)*
             round: $Round,
         ) -> $Ordering {
-            let ret = unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    $rop.as_raw_mut(),
-                    self.as_raw(),
-                    $($param.into(),)*
-                    $($raw_round(round),)*
-                )
-            };
-            $ord(ret)
+            $func(self, $rop, None, $($param.into(),)* round)
         }
 
         $(#[$attr_ref])*
@@ -1443,7 +1408,7 @@ macro_rules! math_op1_2_round {
 macro_rules! ref_math_op1_2_round {
     (
         $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $($raw_round:path),* => $ord:path;
+        $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $($param:ident: $T:ty),* }
     ) => {
@@ -1465,16 +1430,13 @@ macro_rules! ref_math_op1_2_round {
                 src: $Incomplete,
                 round: $Round,
             ) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.0.as_raw_mut(),
-                        self.1.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        $(src.$param.into(),)*
-                        $($raw_round(round),)*
-                    )
-                };
-                $ord(ret)
+                $func(
+                    self.0,
+                    self.1,
+                    Some(src.ref_self),
+                    $(src.$param.into(),)*
+                    round
+                )
             }
         }
 
@@ -1529,7 +1491,7 @@ macro_rules! ref_math_op1_2_round {
 macro_rules! math_op2_round {
     (
         $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $(#[$attr:meta])*
         fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
         $(#[$attr_mut:meta])*
@@ -1542,22 +1504,14 @@ macro_rules! math_op2_round {
         $(#[$attr])*
         #[inline]
         pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
-            self.$method_round(
-                $op,
-                $($param.into(),)*
-                <$Round as Default>::default(),
-            );
+            self.$method_round($op, $($param,)* <$Round as Default>::default());
             self
         }
 
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
-            self.$method_round(
-                $op,
-                $($param.into(),)*
-                <$Round as Default>::default(),
-            );
+            self.$method_round($op, $($param,)* <$Round as Default>::default());
         }
 
         $(#[$attr_round])*
@@ -1568,16 +1522,7 @@ macro_rules! math_op2_round {
             $($param: $T,)*
             round: $Round,
         ) -> $Ordering {
-            let ret = unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    self.as_raw(),
-                    $op.as_raw(),
-                    $($param.into(),)*
-                    $raw_round(round),
-                )
-            };
-            $ord(ret)
+            $func(self, None, Some($op), $($param.into(),)* round)
         }
 
         $(#[$attr_ref])*
@@ -1602,7 +1547,7 @@ macro_rules! math_op2_round {
 macro_rules! ref_math_op2_round {
     (
         $Big:ty, $Round:ty => $Ordering:ty;
-        $func:path, $raw_round:path => $ord:path;
+        $func:path;
         $(#[$attr_ref:meta])*
         struct $Incomplete:ident { $op:ident $(, $param:ident: $T:ty),* }
     ) => {
@@ -1623,16 +1568,13 @@ macro_rules! ref_math_op2_round {
                 src: $Incomplete,
                 round: $Round,
             ) -> $Ordering {
-                let ret = unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        src.$op.as_raw(),
-                        $(src.$param.into(),)*
-                        $raw_round(round),
-                    )
-                };
-                $ord(ret)
+                $func(
+                    self,
+                    Some(src.ref_self),
+                    Some(src.$op),
+                    $(src.$param.into(),)*
+                    round,
+                )
             }
         }
     };
