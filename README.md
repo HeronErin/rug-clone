@@ -31,6 +31,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.3.1 news (unreleased)
+
+  * The method [`RandState::as_raw`] was fixed to take `&self` instead
+    of `&mut self`.
+
+[`RandState::as_raw`]: https://docs.rs/rug/~1.3/rug/rand/struct.RandState.html#method.as_raw
+
 ### Version 1.3.0 news (2019-01-26)
 
   * The new method [`SmallRational::assign_canonical`] was added.
