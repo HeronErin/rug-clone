@@ -11,6 +11,8 @@ stages:
 
 before_script:
   - getconf LONG_BIT
+  - apt-get -y update
+  - apt-get -y install diffutils gcc make m4
   - rustup --version
   - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache; mkdir -p $CARGO_HOME/registry; cp -R cargo/registry/cache $CARGO_HOME/registry/; echo Copied registry/cache; fi
   - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
@@ -23,7 +25,7 @@ after_script:
   - if [ -d $CARGO_HOME/registry/cache ]; then cp -R $CARGO_HOME/registry/cache cargo/registry/; echo Updated registry/cache; fi
 
 clibs-x86_64-gnulinux:
-  image: amd64/rust:1
+  image: amd64/rust:slim
   stage: clibs
   cache:
     key: $CI_JOB_NAME
@@ -40,7 +42,7 @@ clibs-x86_64-gnulinux:
     expire_in: 1 day
 
 beta-x86_64-gnulinux:
-  image: amd64/rust:1
+  image: amd64/rust:slim
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -50,7 +52,7 @@ beta-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 stable-x86_64-gnulinux:
-  image: amd64/rust:1
+  image: amd64/rust:slim
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -60,7 +62,7 @@ stable-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 nightly-x86_64-gnulinux:
-  image: amd64/rust:1
+  image: amd64/rust:slim
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -70,7 +72,7 @@ nightly-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 1.18.0-x86_64-gnulinux:
-  image: amd64/rust:1
+  image: amd64/rust:slim
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -80,7 +82,7 @@ nightly-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 clibs-i686-gnulinux:
-  image: i386/rust:1
+  image: i386/rust:slim
   stage: clibs
   cache:
     key: $CI_JOB_NAME
@@ -97,7 +99,7 @@ clibs-i686-gnulinux:
     expire_in: 1 day
 
 beta-i686-gnulinux:
-  image: i386/rust:1
+  image: i386/rust:slim
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -107,7 +109,7 @@ beta-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 stable-i686-gnulinux:
-  image: i386/rust:1
+  image: i386/rust:slim
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -117,7 +119,7 @@ stable-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 nightly-i686-gnulinux:
-  image: i386/rust:1
+  image: i386/rust:slim
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -127,7 +129,7 @@ nightly-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 1.18.0-i686-gnulinux:
-  image: i386/rust:1
+  image: i386/rust:slim
   stage: test
   dependencies:
   - clibs-i686-gnulinux
