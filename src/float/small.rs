@@ -84,8 +84,8 @@ assert_eq!(a, -15000);
 #[derive(Clone)]
 #[repr(C)]
 pub struct SmallFloat {
-    pub(crate) inner: Mpfr,
-    pub(crate) limbs: Limbs,
+    inner: Mpfr,
+    limbs: Limbs,
 }
 
 #[cfg(not(int_128))]

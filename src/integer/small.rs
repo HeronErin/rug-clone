@@ -64,8 +64,8 @@ assert_eq!(a, 1500);
 #[derive(Clone)]
 #[repr(C)]
 pub struct SmallInteger {
-    pub(crate) inner: Mpz,
-    pub(crate) limbs: Limbs,
+    inner: Mpz,
+    limbs: Limbs,
 }
 
 #[cfg(not(int_128))]

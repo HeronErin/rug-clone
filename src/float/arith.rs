@@ -49,7 +49,7 @@ impl NegAssign for Float {
     #[inline]
     fn neg_assign(&mut self) {
         unsafe {
-            NegAssign::neg_assign(&mut self.inner.sign);
+            NegAssign::neg_assign(&mut self.inner_mut().sign);
             if self.is_nan() {
                 mpfr::set_nanflag();
             }

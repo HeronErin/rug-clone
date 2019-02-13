@@ -136,7 +136,9 @@ pub fn si_pow_ui(
                 raw_round(reverse_rnd),
             )
         });
-        rop.inner.sign.neg_assign();
+        unsafe {
+            rop.inner_mut().sign.neg_assign();
+        }
         reverse_ord.reverse()
     }
 }

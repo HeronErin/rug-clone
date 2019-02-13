@@ -184,7 +184,16 @@ assert_eq!(c, -17);
 */
 #[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Integer {
-    pub(crate) inner: mpz_t,
+    inner: mpz_t,
+}
+
+impl Integer {
+    pub(crate) fn inner(&self) -> &mpz_t {
+        &self.inner
+    }
+    pub(crate) unsafe fn inner_mut(&mut self) -> &mut mpz_t {
+        &mut self.inner
+    }
 }
 
 fn _static_assertions() {

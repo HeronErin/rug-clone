@@ -235,7 +235,16 @@ println!("Sum is {}", sr);
 */
 #[cfg_attr(repr_transparent, repr(transparent))]
 pub struct Float {
-    pub(crate) inner: mpfr_t,
+    inner: mpfr_t,
+}
+
+impl Float {
+    pub(crate) fn inner(&self) -> &mpfr_t {
+        &self.inner
+    }
+    pub(crate) unsafe fn inner_mut(&mut self) -> &mut mpfr_t {
+        &mut self.inner
+    }
 }
 
 fn _static_assertions() {

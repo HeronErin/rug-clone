@@ -1018,7 +1018,7 @@ impl Rational {
     pub fn as_neg(&self) -> BorrowRational {
         let mut ret =
             BorrowRational { inner: self.inner, phantom: PhantomData };
-        let size = self.numer().inner.size.checked_neg().expect("overflow");
+        let size = self.numer().inner().size.checked_neg().expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
         }
@@ -1052,7 +1052,7 @@ impl Rational {
     pub fn as_abs(&self) -> BorrowRational {
         let mut ret =
             BorrowRational { inner: self.inner, phantom: PhantomData };
-        let size = self.numer().inner.size.checked_abs().expect("overflow");
+        let size = self.numer().inner().size.checked_abs().expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
         }

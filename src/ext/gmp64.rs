@@ -37,10 +37,10 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
         set_nonzero(rop, u as u64);
     } else {
         unsafe {
-            if rop.inner.alloc < 2 {
+            if rop.inner().alloc < 2 {
                 gmp::_mpz_realloc(rop.as_raw_mut(), 2);
             }
-            rop.inner.size = 2;
+            rop.inner_mut().size = 2;
             *limb_mut(rop, 0) = u as u64;
             *limb_mut(rop, 1) = (u >> 64) as u64;
         }
@@ -249,7 +249,7 @@ pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
 
 #[inline]
 pub fn fits_u32(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= u64::from(u32::MAX),
         _ => false,
@@ -258,7 +258,7 @@ pub fn fits_u32(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_i32(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= u64::from(i32::MAX as u32),
         -1 => (unsafe { limb(op, 0) }) <= u64::from(i32::MIN as u32),
@@ -268,7 +268,7 @@ pub fn fits_i32(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_u64(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 | 1 => true,
         _ => false,
     }
@@ -276,7 +276,7 @@ pub fn fits_u64(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_i64(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= i64::MAX as u64,
         -1 => (unsafe { limb(op, 0) }) <= i64::MIN as u64,
@@ -287,7 +287,7 @@ pub fn fits_i64(op: &Integer) -> bool {
 #[cfg(int_128)]
 #[inline]
 pub fn fits_u128(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 | 1 | 2 => true,
         _ => false,
     }
@@ -296,7 +296,7 @@ pub fn fits_u128(op: &Integer) -> bool {
 #[cfg(int_128)]
 #[inline]
 pub fn fits_i128(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 | 1 | -1 => true,
         2 => (unsafe { limb(op, 1) }) <= i64::MAX as u64,
         -2 => {

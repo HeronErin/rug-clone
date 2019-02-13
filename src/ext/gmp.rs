@@ -91,7 +91,7 @@ pub fn si_pow_ui(rop: &mut Integer, base: i32, exp: u32) {
 
 #[inline]
 pub fn signum(rop: &mut Integer, op: Option<&Integer>) {
-    let size = op.unwrap_or(rop).inner.size;
+    let size = op.unwrap_or(rop).inner().size;
     if size < 0 {
         set_m1(rop);
     } else if size > 0 {
@@ -115,13 +115,13 @@ pub fn keep_signed_bits(rop: &mut Integer, op: Option<&Integer>, b: u32) {
 }
 
 pub fn next_pow_of_two(rop: &mut Integer, op: Option<&Integer>) {
-    let size = op.unwrap_or(rop).inner.size;
+    let size = op.unwrap_or(rop).inner().size;
     if size <= 0 {
         set_1(rop);
         return;
     }
     let significant = cast::cast(significant_bits(op.unwrap_or(rop)));
-    let first_one = unsafe { gmp::mpn_scan1(op.unwrap_or(rop).inner.d, 0) };
+    let first_one = unsafe { gmp::mpn_scan1(op.unwrap_or(rop).inner().d, 0) };
     let bit = if first_one == significant - 1 {
         if op.is_none() {
             return;
@@ -373,40 +373,42 @@ wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
 
 #[inline]
 pub fn set_0(rop: &mut Integer) {
-    rop.inner.size = 0;
+    unsafe {
+        rop.inner_mut().size = 0;
+    }
 }
 
 #[inline]
 pub fn set_1(rop: &mut Integer) {
     unsafe {
-        if rop.inner.alloc < 1 {
+        if rop.inner().alloc < 1 {
             gmp::_mpz_realloc(rop.as_raw_mut(), 1);
         }
         *limb_mut(rop, 0) = 1;
+        rop.inner_mut().size = 1;
     }
-    rop.inner.size = 1;
 }
 
 #[inline]
 pub fn set_m1(rop: &mut Integer) {
     unsafe {
-        if rop.inner.alloc < 1 {
+        if rop.inner().alloc < 1 {
             gmp::_mpz_realloc(rop.as_raw_mut(), 1);
         }
         *limb_mut(rop, 0) = 1;
+        rop.inner_mut().size = -1;
     }
-    rop.inner.size = -1;
 }
 
 #[inline]
 pub fn set_nonzero(rop: &mut Integer, limb: gmp::limb_t) {
     unsafe {
-        if rop.inner.alloc < 1 {
+        if rop.inner().alloc < 1 {
             gmp::_mpz_realloc(rop.as_raw_mut(), 1);
         }
         *limb_mut(rop, 0) = limb;
+        rop.inner_mut().size = 1;
     }
-    rop.inner.size = 1;
 }
 
 #[inline]
@@ -1362,7 +1364,7 @@ pub fn set_i32(rop: &mut Integer, i: i32) {
 
 #[inline]
 pub fn fits_u8(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(u8::MAX),
         _ => false,
@@ -1371,7 +1373,7 @@ pub fn fits_u8(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_i8(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i8::MAX as u8),
         -1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i8::MIN as u8),
@@ -1381,7 +1383,7 @@ pub fn fits_i8(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_u16(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(u16::MAX),
         _ => false,
@@ -1390,7 +1392,7 @@ pub fn fits_u16(op: &Integer) -> bool {
 
 #[inline]
 pub fn fits_i16(op: &Integer) -> bool {
-    match op.inner.size {
+    match op.inner().size {
         0 => true,
         1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i16::MAX as u16),
         -1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i16::MIN as u16),
@@ -1467,12 +1469,12 @@ pub unsafe fn mpz_significant_bits(op: *const mpz_t) -> gmp::bitcnt_t {
 
 #[inline]
 pub fn significant_bits(op: &Integer) -> usize {
-    let size = op.inner.size;
+    let size = op.inner().size;
     if size == 0 {
         return 0;
     }
     let size = size.neg_abs().1;
-    unsafe { gmp::mpn_sizeinbase(op.inner.d, cast::cast(size), 2) }
+    unsafe { gmp::mpn_sizeinbase(op.inner().d, cast::cast(size), 2) }
 }
 
 pub unsafe fn mpz_signed_bits(op: *const mpz_t) -> gmp::bitcnt_t {
@@ -1499,12 +1501,12 @@ pub unsafe fn mpz_is_pow_of_two(op: *const mpz_t) -> bool {
 
 #[inline]
 pub unsafe fn limb(z: &Integer, index: isize) -> gmp::limb_t {
-    *z.inner.d.offset(index)
+    *z.inner().d.offset(index)
 }
 
 #[inline]
 pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut gmp::limb_t {
-    &mut *z.inner.d.offset(index)
+    &mut *z.inner_mut().d.offset(index)
 }
 
 #[inline]

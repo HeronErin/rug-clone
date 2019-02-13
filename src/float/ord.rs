@@ -127,7 +127,7 @@ impl Hash for OrdFloat {
         if prec % cast::<_, usize>(gmp::LIMB_BITS) > 0 {
             limbs += 1;
         };
-        let slice = unsafe { slice::from_raw_parts(s.inner.d, limbs) };
+        let slice = unsafe { slice::from_raw_parts(s.inner().d, limbs) };
         slice.hash(state);
     }
 }

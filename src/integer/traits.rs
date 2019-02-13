@@ -72,11 +72,11 @@ impl Hash for Integer {
     where
         H: Hasher,
     {
-        let size = self.inner.size;
+        let size = self.inner().size;
         size.hash(state);
         if size != 0 {
             let limbs: usize = cast(size.checked_abs().expect("overflow"));
-            let slice = unsafe { slice::from_raw_parts(self.inner.d, limbs) };
+            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
             slice.hash(state);
         }
     }
