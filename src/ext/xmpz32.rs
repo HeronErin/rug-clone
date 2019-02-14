@@ -15,9 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use ext::xmpz::*;
-use gmp_mpfr_sys::gmp::{self, mpz_t};
+use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
-use std::os::raw::c_int;
+use std::cmp::Ordering;
 #[cfg(int_128)]
 use std::u64;
 use std::{i32, i64, u32};
