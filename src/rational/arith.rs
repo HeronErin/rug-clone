@@ -27,7 +27,7 @@ use {Assign, Rational};
 
 arith_unary! {
     Rational;
-    gmp::mpq_neg;
+    xmpq::neg;
     Neg { neg }
     NegAssign { neg_assign }
     NegIncomplete

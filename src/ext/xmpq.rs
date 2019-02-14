@@ -225,6 +225,7 @@ pub fn square(rop: &mut Rational, op: Option<&Rational>) {
     }
 }
 
+wrap! { fn neg(op) -> gmp::mpq_neg }
 wrap! { fn abs(op) -> gmp::mpq_abs }
 
 #[inline]

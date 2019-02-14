@@ -30,7 +30,7 @@ use {Assign, Integer};
 
 arith_unary! {
     Integer;
-    gmp::mpz_neg;
+    xmpz::neg;
     Neg { neg }
     NegAssign { neg_assign }
     NegIncomplete
@@ -77,7 +77,7 @@ arith_binary! {
 }
 arith_unary! {
     Integer;
-    gmp::mpz_com;
+    xmpz::com;
     Not { not }
     NotAssign { not_assign }
     NotIncomplete

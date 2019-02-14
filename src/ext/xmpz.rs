@@ -345,6 +345,7 @@ wrap0! { fn bin_uiui(n: u32, k: u32) -> gmp::mpz_bin_uiui }
 wrap0! { fn fib_ui(n: u32) -> gmp::mpz_fib_ui }
 wrap0! { fn lucnum_ui(n: u32) -> gmp::mpz_lucnum_ui }
 wrap! { fn neg(op) -> gmp::mpz_neg }
+wrap! { fn com(op) -> gmp::mpz_com }
 wrap! { fn abs(op) -> gmp::mpz_abs }
 wrap! { fn fdiv_r_2exp(op; n: u32) -> gmp::mpz_fdiv_r_2exp }
 wrap! { fn nextprime(op) -> gmp::mpz_nextprime }

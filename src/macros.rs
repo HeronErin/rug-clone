@@ -502,9 +502,7 @@ macro_rules! arith_unary {
         impl $ImpAssign for $Big {
             #[inline]
             fn $method_assign(&mut self) {
-                unsafe {
-                    $func(self.as_raw_mut(), self.as_raw());
-                }
+                $func(self, None);
             }
         }
 
@@ -524,9 +522,7 @@ macro_rules! arith_unary {
         impl<'a> Assign<$Incomplete<'a>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                unsafe {
-                    $func(self.as_raw_mut(), src.op.as_raw());
-                }
+                $func(self, Some(src.op));
             }
         }
 
