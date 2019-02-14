@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::mpfr::{self as xmpfr, ordering1};
+use ext::xmpfr::{self, ordering1};
 use float::Special;
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;

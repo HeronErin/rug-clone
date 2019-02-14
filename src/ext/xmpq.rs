@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast;
-use ext::gmp as xgmp;
+use ext::xmpz;
 use gmp_mpfr_sys::gmp::{self, mpq_t, mpz_t};
 use misc::NegAbs;
 use rational::SmallRational;
@@ -45,7 +45,7 @@ macro_rules! wrap {
 #[inline]
 pub fn signum(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
     let _ = den;
-    xgmp::signum(num, op.map(Rational::numer));
+    xmpz::signum(num, op.map(Rational::numer));
 }
 
 #[inline]
@@ -123,7 +123,7 @@ pub fn round(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
         let mut rem: mpz_t = mem::uninitialized();
         gmp::mpz_init2(&mut rem, bits);
         gmp::mpz_tdiv_qr(num.as_raw_mut(), &mut rem, op_num, op_den);
-        if xgmp::round_away(&rem, op_den) {
+        if xmpz::round_away(&rem, op_den) {
             if gmp::mpz_sgn(&rem) >= 0 {
                 // positive number
                 gmp::mpz_add_ui(num.as_raw_mut(), num.as_raw(), 1);
@@ -196,13 +196,13 @@ pub fn round_fract(fract: &mut Rational, op: Option<&Rational>) {
         let num = gmp::mpq_numref_const(op_ptr);
         let den = gmp::mpq_denref_const(op_ptr);
         if gmp::mpz_cmp_ui(den, 1) == 0 {
-            xgmp::mpz_set_0(fract_num);
-            xgmp::mpz_set_1(fract_den);
+            xmpz::mpz_set_0(fract_num);
+            xmpz::mpz_set_1(fract_den);
             return;
         }
         gmp::mpz_tdiv_r(fract_num, num, den);
         gmp::mpz_set(fract_den, den);
-        if xgmp::round_away(fract_num, fract_den) {
+        if xmpz::round_away(fract_num, fract_den) {
             if gmp::mpz_sgn(fract_num) >= 0 {
                 // positive number
                 gmp::mpz_sub(fract_num, fract_num, fract_den);
@@ -220,8 +220,8 @@ pub fn square(rop: &mut Rational, op: Option<&Rational>) {
         let (rop_num, rop_den) = rop.as_mut_numer_denom_no_canonicalization();
         let op_num = op.map(Rational::numer);
         let op_den = op.map(Rational::denom);
-        xgmp::square(rop_num, op_num);
-        xgmp::square(rop_den, op_den);
+        xmpz::square(rop_num, op_num);
+        xmpz::square(rop_den, op_den);
     }
 }
 
@@ -323,13 +323,13 @@ pub unsafe fn mpq_round_fract_whole(
     if gmp::mpz_cmp_ui(den, 1) == 0 {
         // set round before fract_num, which might alias num
         gmp::mpz_set(round, num);
-        xgmp::mpz_set_0(fract_num);
-        xgmp::mpz_set_1(fract_den);
+        xmpz::mpz_set_0(fract_num);
+        xmpz::mpz_set_1(fract_den);
         return;
     }
     gmp::mpz_tdiv_qr(round, fract_num, num, den);
     gmp::mpz_set(fract_den, den);
-    if xgmp::round_away(fract_num, fract_den) {
+    if xmpz::round_away(fract_num, fract_den) {
         if gmp::mpz_sgn(fract_num) >= 0 {
             // positive number
             gmp::mpz_sub(fract_num, fract_num, fract_den);

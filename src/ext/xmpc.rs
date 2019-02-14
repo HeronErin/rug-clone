@@ -16,7 +16,7 @@
 
 use complex::SmallComplex;
 #[cfg(feature = "rational")]
-use ext::mpfr as xmpfr;
+use ext::xmpfr;
 use float::Round;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;

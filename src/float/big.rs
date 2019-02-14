@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::mpfr::{self as xmpfr, ordering1, raw_round};
+use ext::xmpfr::{self, ordering1, raw_round};
 use float::arith::{
     AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
     SubMulFromIncomplete,

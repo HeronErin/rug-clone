@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::gmp as xgmp;
+use ext::xmpz;
 use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
 use Integer;
@@ -127,10 +127,10 @@ macro_rules! cmp_cast {
 
 cmp_cast! { i8, i32 }
 cmp_cast! { i16, i32 }
-cmp! { i32, xgmp::mpz_cmp_i32 }
-cmp! { i64, xgmp::mpz_cmp_i64 }
+cmp! { i32, xmpz::mpz_cmp_i32 }
+cmp! { i64, xmpz::mpz_cmp_i64 }
 #[cfg(int_128)]
-cmp! { i128, xgmp::mpz_cmp_i128 }
+cmp! { i128, xmpz::mpz_cmp_i128 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
@@ -138,10 +138,10 @@ cmp_cast! { isize, i64 }
 
 cmp_cast! { u8, u32 }
 cmp_cast! { u16, u32 }
-cmp! { u32, xgmp::mpz_cmp_u32 }
-cmp! { u64, xgmp::mpz_cmp_u64 }
+cmp! { u32, xmpz::mpz_cmp_u32 }
+cmp! { u64, xmpz::mpz_cmp_u64 }
 #[cfg(int_128)]
-cmp! { u128, xgmp::mpz_cmp_u128 }
+cmp! { u128, xmpz::mpz_cmp_u128 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]

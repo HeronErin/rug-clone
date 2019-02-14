@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::gmp as xgmp;
+use ext::xmpz;
 use gmp_mpfr_sys::gmp;
 use ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
@@ -61,7 +61,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    xgmp::mpz_tdiv_q_check;
+    xmpz::mpz_tdiv_q_check;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
@@ -69,7 +69,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    xgmp::mpz_tdiv_r_check;
+    xmpz::mpz_tdiv_r_check;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
@@ -109,7 +109,7 @@ arith_binary! {
 
 arith_prim_commut! {
     Integer;
-    xgmp::mpz_add_si;
+    xmpz::mpz_add_si;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
@@ -118,7 +118,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_sub_si, xgmp::mpz_si_sub;
+    xmpz::mpz_sub_si, xmpz::mpz_si_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -136,7 +136,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_q_si_check, xgmp::mpz_si_tdiv_q_check;
+    xmpz::mpz_tdiv_q_si_check, xmpz::mpz_si_tdiv_q_check;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
@@ -145,7 +145,7 @@ arith_prim_noncommut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_r_si_check, xgmp::mpz_si_tdiv_r_check;
+    xmpz::mpz_tdiv_r_si_check, xmpz::mpz_si_tdiv_r_check;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
@@ -154,7 +154,7 @@ arith_prim_noncommut! {
 }
 arith_prim! {
     Integer;
-    xgmp::mpz_lshift_si;
+    xmpz::mpz_lshift_si;
     Shl { shl }
     ShlAssign { shl_assign }
     i32;
@@ -162,7 +162,7 @@ arith_prim! {
 }
 arith_prim! {
     Integer;
-    xgmp::mpz_rshift_si;
+    xmpz::mpz_rshift_si;
     Shr { shr }
     ShrAssign { shr_assign }
     i32;
@@ -170,7 +170,7 @@ arith_prim! {
 }
 arith_prim_commut! {
     Integer;
-    xgmp::bitand_si;
+    xmpz::bitand_si;
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
@@ -179,7 +179,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xgmp::bitor_si;
+    xmpz::bitor_si;
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
@@ -188,7 +188,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xgmp::bitxor_si;
+    xmpz::bitxor_si;
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }
@@ -225,7 +225,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_q_ui_check, xgmp::mpz_ui_tdiv_q_check;
+    xmpz::mpz_tdiv_q_ui_check, xmpz::mpz_ui_tdiv_q_check;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
@@ -234,7 +234,7 @@ arith_prim_noncommut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xgmp::mpz_tdiv_r_ui_check, xgmp::mpz_ui_tdiv_r_check;
+    xmpz::mpz_tdiv_r_ui_check, xmpz::mpz_ui_tdiv_r_check;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
@@ -267,7 +267,7 @@ arith_prim! {
 }
 arith_prim_commut! {
     Integer;
-    xgmp::bitand_ui;
+    xmpz::bitand_ui;
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
@@ -276,7 +276,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xgmp::bitor_ui;
+    xmpz::bitor_ui;
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
@@ -285,7 +285,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xgmp::bitxor_ui;
+    xmpz::bitxor_ui;
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }
@@ -313,7 +313,7 @@ mul_op_commut! {
 }
 mul_op_commut! {
     Integer;
-    xgmp::mpz_addmul_si;
+    xmpz::mpz_addmul_si;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
@@ -322,7 +322,7 @@ mul_op_commut! {
 }
 mul_op_noncommut! {
     Integer;
-    gmp::mpz_submul, xgmp::mpz_mulsub;
+    gmp::mpz_submul, xmpz::mpz_mulsub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -331,7 +331,7 @@ mul_op_noncommut! {
 }
 mul_op_noncommut! {
     Integer;
-    gmp::mpz_submul_ui, xgmp::mpz_mulsub_ui;
+    gmp::mpz_submul_ui, xmpz::mpz_mulsub_ui;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -340,7 +340,7 @@ mul_op_noncommut! {
 }
 mul_op_noncommut! {
     Integer;
-    xgmp::mpz_submul_si, xgmp::mpz_mulsub_si;
+    xmpz::mpz_submul_si, xmpz::mpz_mulsub_si;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }

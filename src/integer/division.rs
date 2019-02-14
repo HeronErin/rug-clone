@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::gmp as xgmp;
+use ext::xmpz;
 use ops::{
     DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
     RemRoundingAssign, RemRoundingFrom,
@@ -712,10 +712,10 @@ macro_rules! div_prim {
 }
 
 div_op! {
-    xgmp::mpz_tdiv_q_check,
-    xgmp::mpz_cdiv_q_check,
-    xgmp::mpz_fdiv_q_check,
-    xgmp::mpz_ediv_q_check;
+    xmpz::mpz_tdiv_q_check,
+    xmpz::mpz_cdiv_q_check,
+    xmpz::mpz_fdiv_q_check,
+    xmpz::mpz_ediv_q_check;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -724,10 +724,10 @@ div_op! {
     DivRoundingIncomplete
 }
 div_op! {
-    xgmp::mpz_tdiv_r_check,
-    xgmp::mpz_cdiv_r_check,
-    xgmp::mpz_fdiv_r_check,
-    xgmp::mpz_ediv_r_check;
+    xmpz::mpz_tdiv_r_check,
+    xmpz::mpz_cdiv_r_check,
+    xmpz::mpz_fdiv_r_check,
+    xmpz::mpz_ediv_r_check;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
@@ -737,14 +737,14 @@ div_op! {
 }
 
 div_prim! {
-    xgmp::mpz_tdiv_q_si_check,
-    xgmp::mpz_cdiv_q_si_check,
-    xgmp::mpz_fdiv_q_si_check,
-    xgmp::mpz_ediv_q_si_check;
-    xgmp::mpz_si_tdiv_q_check,
-    xgmp::mpz_si_cdiv_q_check,
-    xgmp::mpz_si_fdiv_q_check,
-    xgmp::mpz_si_ediv_q_check;
+    xmpz::mpz_tdiv_q_si_check,
+    xmpz::mpz_cdiv_q_si_check,
+    xmpz::mpz_fdiv_q_si_check,
+    xmpz::mpz_ediv_q_si_check;
+    xmpz::mpz_si_tdiv_q_check,
+    xmpz::mpz_si_cdiv_q_check,
+    xmpz::mpz_si_fdiv_q_check,
+    xmpz::mpz_si_ediv_q_check;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -754,14 +754,14 @@ div_prim! {
     DivRoundingI32Incomplete DivRoundingFromI32Incomplete
 }
 div_prim! {
-    xgmp::mpz_tdiv_r_si_check,
-    xgmp::mpz_cdiv_r_si_check,
-    xgmp::mpz_fdiv_r_si_check,
-    xgmp::mpz_ediv_r_si_check;
-    xgmp::mpz_si_tdiv_r_check,
-    xgmp::mpz_si_cdiv_r_check,
-    xgmp::mpz_si_fdiv_r_check,
-    xgmp::mpz_si_ediv_r_check;
+    xmpz::mpz_tdiv_r_si_check,
+    xmpz::mpz_cdiv_r_si_check,
+    xmpz::mpz_fdiv_r_si_check,
+    xmpz::mpz_ediv_r_si_check;
+    xmpz::mpz_si_tdiv_r_check,
+    xmpz::mpz_si_cdiv_r_check,
+    xmpz::mpz_si_fdiv_r_check,
+    xmpz::mpz_si_ediv_r_check;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
@@ -771,14 +771,14 @@ div_prim! {
     RemRoundingI32Incomplete RemRoundingFromI32Incomplete
 }
 div_prim! {
-    xgmp::mpz_tdiv_q_ui_check,
-    xgmp::mpz_cdiv_q_ui_check,
-    xgmp::mpz_fdiv_q_ui_check,
-    xgmp::mpz_ediv_q_ui_check;
-    xgmp::mpz_ui_tdiv_q_check,
-    xgmp::mpz_ui_cdiv_q_check,
-    xgmp::mpz_ui_fdiv_q_check,
-    xgmp::mpz_ui_ediv_q_check;
+    xmpz::mpz_tdiv_q_ui_check,
+    xmpz::mpz_cdiv_q_ui_check,
+    xmpz::mpz_fdiv_q_ui_check,
+    xmpz::mpz_ediv_q_ui_check;
+    xmpz::mpz_ui_tdiv_q_check,
+    xmpz::mpz_ui_cdiv_q_check,
+    xmpz::mpz_ui_fdiv_q_check,
+    xmpz::mpz_ui_ediv_q_check;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -788,14 +788,14 @@ div_prim! {
     DivRoundingU32Incomplete DivRoundingFromU32Incomplete
 }
 div_prim! {
-    xgmp::mpz_tdiv_r_ui_check,
-    xgmp::mpz_cdiv_r_ui_check,
-    xgmp::mpz_fdiv_r_ui_check,
-    xgmp::mpz_ediv_r_ui_check;
-    xgmp::mpz_ui_tdiv_r_check,
-    xgmp::mpz_ui_cdiv_r_check,
-    xgmp::mpz_ui_fdiv_r_check,
-    xgmp::mpz_ui_ediv_r_check;
+    xmpz::mpz_tdiv_r_ui_check,
+    xmpz::mpz_cdiv_r_ui_check,
+    xmpz::mpz_fdiv_r_ui_check,
+    xmpz::mpz_ediv_r_ui_check;
+    xmpz::mpz_ui_tdiv_r_check,
+    xmpz::mpz_ui_cdiv_r_check,
+    xmpz::mpz_ui_fdiv_r_check,
+    xmpz::mpz_ui_ediv_r_check;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;

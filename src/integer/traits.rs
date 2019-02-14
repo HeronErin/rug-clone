@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::gmp as xgmp;
+use ext::xmpz;
 use gmp_mpfr_sys::gmp;
 use integer::big;
 use integer::ParseIntegerError;
@@ -205,10 +205,10 @@ macro_rules! assign {
 
 assign! { i8 as i32 }
 assign! { i16 as i32 }
-assign! { i32, xgmp::set_i32, xgmp::init_set_i32 }
-assign! { i64, xgmp::set_i64, xgmp::init_set_i64 }
+assign! { i32, xmpz::set_i32, xmpz::init_set_i32 }
+assign! { i64, xmpz::set_i64, xmpz::init_set_i64 }
 #[cfg(int_128)]
-assign! { i128, xgmp::set_i128, xgmp::init_set_i128 }
+assign! { i128, xmpz::set_i128, xmpz::init_set_i128 }
 #[cfg(target_pointer_width = "32")]
 assign! { isize as i32 }
 #[cfg(target_pointer_width = "64")]
@@ -217,10 +217,10 @@ assign! { isize as i64 }
 assign! { bool as u32 }
 assign! { u8 as u32 }
 assign! { u16 as u32 }
-assign! { u32, xgmp::set_u32, xgmp::init_set_u32 }
-assign! { u64, xgmp::set_u64, xgmp::init_set_u64 }
+assign! { u32, xmpz::set_u32, xmpz::init_set_u32 }
+assign! { u64, xmpz::set_u64, xmpz::init_set_u64 }
 #[cfg(int_128)]
-assign! { u128, xgmp::set_u128, xgmp::init_set_u128 }
+assign! { u128, xmpz::set_u128, xmpz::init_set_u128 }
 #[cfg(target_pointer_width = "32")]
 assign! { usize as u32 }
 #[cfg(target_pointer_width = "64")]

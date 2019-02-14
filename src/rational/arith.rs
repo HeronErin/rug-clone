@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::gmpq as xgmpq;
+use ext::xmpq;
 use gmp_mpfr_sys::gmp;
 use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use std::i32;
@@ -67,7 +67,7 @@ arith_binary! {
 
 arith_prim! {
     Rational;
-    xgmpq::mpq_mul_2exp_si;
+    xmpq::mpq_mul_2exp_si;
     Shl { shl }
     ShlAssign { shl_assign }
     i32;
@@ -75,7 +75,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    xgmpq::mpq_div_2exp_si;
+    xmpq::mpq_div_2exp_si;
     Shr { shr }
     ShrAssign { shr_assign }
     i32;
@@ -83,7 +83,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    xgmpq::mpq_pow_si;
+    xmpq::mpq_pow_si;
     Pow { pow }
     PowAssign { pow_assign }
     i32;
@@ -108,7 +108,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    xgmpq::mpq_pow_ui;
+    xmpq::mpq_pow_ui;
     Pow { pow }
     PowAssign { pow_assign }
     u32;

@@ -17,8 +17,8 @@
 use cast::cast;
 use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use complex::{OrdComplex, Prec};
-use ext::mpc::{self as xmpc, ordering2, raw_round2, Ordering2, Round2};
-use ext::mpfr::raw_round;
+use ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
+use ext::xmpfr::raw_round;
 use float::big::{
     self as big_float, ExpFormat, Format as FloatFormat,
     ParseIncomplete as FloatParseIncomplete,

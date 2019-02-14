@@ -16,7 +16,7 @@
 
 use complex::big::{self, Format};
 use complex::ParseComplexError;
-use ext::mpc::{ordering2, raw_round2, Ordering2, Round2};
+use ext::xmpc::{ordering2, raw_round2, Ordering2, Round2};
 use float::big::ExpFormat;
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;

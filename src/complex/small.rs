@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::mpfr as xmpfr;
+use ext::xmpfr;
 use float::small::{Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
 use float::ToSmall;
 use gmp_mpfr_sys::gmp;
