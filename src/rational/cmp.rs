@@ -76,8 +76,16 @@ impl PartialOrd<Rational> for Integer {
     }
 }
 
-macro_rules! cmp_rev {
+macro_rules! cmp_common {
     ($T:ty) => {
+        impl PartialEq<$T> for Rational {
+            #[inline]
+            fn eq(&self, other: &$T) -> bool {
+                <Rational as PartialOrd<$T>>::partial_cmp(self, other)
+                    == Some(Ordering::Equal)
+            }
+        }
+
         impl PartialEq<Rational> for $T {
             #[inline]
             fn eq(&self, other: &Rational) -> bool {
@@ -96,61 +104,56 @@ macro_rules! cmp_rev {
 }
 
 macro_rules! cmp_num {
-    ($cmp:path; $($Num:ty)*) => { $(
-        impl PartialEq<$Num> for Rational {
-            #[inline]
-            fn eq(&self, other: &$Num) -> bool {
-                unsafe { $cmp(self.as_raw(), cast(*other), 1) == 0 }
-            }
-        }
+    ($Num:ty, $cmp:path) => {
         impl PartialOrd<$Num> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$Num) -> Option<Ordering> {
-                let ord = unsafe { $cmp(self.as_raw(), cast(*other), 1) };
-                Some(ord.cmp(&0))
+                Some($cmp(self, *other, 1))
             }
         }
-        cmp_rev!{ $Num }
-    )* };
+        cmp_common! { $Num }
+    };
 }
 
-cmp_num! { gmp::mpq_cmp_si; i8 i16 i32}
-cmp_num! { xmpq::mpq_cmp_i64; i64 }
-#[cfg(int_128)]
-cmp_num! { xmpq::mpq_cmp_i128; i128 }
-#[cfg(target_pointer_width = "32")]
-cmp_num! { gmp::mpq_cmp_si; isize }
-#[cfg(target_pointer_width = "64")]
-cmp_num! { xmpq::mpq_cmp_i64; isize }
+macro_rules! cmp_num_cast {
+    ($New:ty, $Existing:ty) => {
+        impl PartialOrd<$New> for Rational {
+            #[inline]
+            fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
+                <Rational as PartialOrd<$Existing>>::partial_cmp(
+                    self,
+                    &cast(*other),
+                )
+            }
+        }
+        cmp_common! { $New }
+    };
+}
 
-cmp_num! { gmp::mpq_cmp_ui; u8 u16 u32}
-cmp_num! { xmpq::mpq_cmp_u64; u64 }
+cmp_num_cast! { i8, i32 }
+cmp_num_cast! { i16, i32 }
+cmp_num! { i32, xmpq::cmp_i32 }
+cmp_num! { i64, xmpq::cmp_i64 }
 #[cfg(int_128)]
-cmp_num! { xmpq::mpq_cmp_u128; u128 }
+cmp_num! { i128, xmpq::cmp_i128 }
 #[cfg(target_pointer_width = "32")]
-cmp_num! { gmp::mpq_cmp_ui; usize }
+cmp_num_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
-cmp_num! { xmpq::mpq_cmp_u64; usize }
+cmp_num_cast! { isize, i64 }
+
+cmp_num_cast! { u8, u32 }
+cmp_num_cast! { u16, u32 }
+cmp_num! { u32, xmpq::cmp_u32 }
+cmp_num! { u64, xmpq::cmp_u64 }
+#[cfg(int_128)]
+cmp_num! { u128, xmpq::cmp_u128 }
+#[cfg(target_pointer_width = "32")]
+cmp_num_cast! { usize, u32 }
+#[cfg(target_pointer_width = "64")]
+cmp_num_cast! { usize, u64 }
 
 macro_rules! cmp_num_iden {
     ($func:path; $Num:ty; $($Den:ty)*) => { $(
-        impl PartialEq<($Num, $Den)> for Rational {
-            #[inline]
-            fn eq(&self, other: &($Num, $Den)) -> bool {
-                assert_ne!(other.1, 0, "division by zero");
-                let (neg_den, abs_den) = other.1.neg_abs();
-                let as_neg;
-                let to_compare = if neg_den {
-                    as_neg = self.as_neg();
-                    &*as_neg
-                } else {
-                    self
-                };
-                unsafe {
-                    $func(to_compare.as_raw(), cast(other.0), cast(abs_den)) == 0
-                }
-            }
-        }
         impl PartialOrd<($Num, $Den)> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
@@ -163,127 +166,113 @@ macro_rules! cmp_num_iden {
                 } else {
                     self
                 };
-                let cmp = unsafe {
-                    $func(to_compare.as_raw(), cast(other.0), cast(abs_den))
-                };
+                let cmp = $func(to_compare, cast(other.0), cast(abs_den));
                 if neg_den {
-                    Some(0.cmp(&cmp))
+                    Some(cmp.reverse())
                 } else {
-                    Some(cmp.cmp(&0))
+                    Some(cmp)
                 }
             }
         }
-        cmp_rev!{ ($Num, $Den) }
+        cmp_common!{ ($Num, $Den) }
     )* };
 }
 
 macro_rules! cmp_num_uden {
     ($func:path; $Num:ty; $($Den:ty)*) => { $(
-        impl PartialEq<($Num, $Den)> for Rational {
-            #[inline]
-            fn eq(&self, other: &($Num, $Den)) -> bool {
-                assert_ne!(other.1, 0, "division by zero");
-                unsafe {
-                    $func(self.as_raw(), cast(other.0), cast(other.1)) == 0
-                }
-            }
-        }
         impl PartialOrd<($Num, $Den)> for Rational {
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
                 assert_ne!(other.1, 0, "division by zero");
-                let cmp = unsafe {
-                    $func(self.as_raw(), cast(other.0), cast(other.1))
-                };
-                Some(cmp.cmp(&0))
+                Some($func(self, cast(other.0), cast(other.1)))
             }
         }
-        cmp_rev!{ ($Num, $Den) }
+        cmp_common!{ ($Num, $Den) }
     )* };
 }
 
 macro_rules! cmp_inum_32 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { gmp::mpq_cmp_si; $Num; i8 i16 i32 }
-        cmp_num_iden! { xmpq::mpq_cmp_i64; $Num; i64 }
+        cmp_num_iden! { xmpq::cmp_i32; $Num; i8 i16 i32 }
+        cmp_num_iden! { xmpq::cmp_i64; $Num; i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xmpq::mpq_cmp_i128; $Num; i128 }
+        cmp_num_iden! { xmpq::cmp_i128; $Num; i128 }
         #[cfg(target_pointer_width = "32")]
-        cmp_num_iden! { gmp::mpq_cmp_si; $Num; isize }
+        cmp_num_iden! { xmpq::cmp_i32; $Num; isize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_iden! { xmpq::mpq_cmp_i64; $Num; isize }
+        cmp_num_iden! { xmpq::cmp_i64; $Num; isize }
 
-        cmp_num_uden! { gmp::mpq_cmp_si; $Num; u8 u16 u32 }
-        cmp_num_uden! { xmpq::mpq_cmp_i64; $Num; u64 }
+        cmp_num_uden! { xmpq::cmp_i32; $Num; u8 u16 u32 }
+        cmp_num_uden! { xmpq::cmp_i64; $Num; u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xmpq::mpq_cmp_i128; $Num; u128 }
+        cmp_num_uden! { xmpq::cmp_i128; $Num; u128 }
         #[cfg(target_pointer_width = "32")]
-        cmp_num_uden! { gmp::mpq_cmp_si; $Num; usize }
+        cmp_num_uden! { xmpq::cmp_i32; $Num; usize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_uden! { xmpq::mpq_cmp_i64; $Num; usize }
+        cmp_num_uden! { xmpq::cmp_i64; $Num; usize }
     )* };
 }
 
 macro_rules! cmp_inum_64 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xmpq::mpq_cmp_i64; $Num; i8 i16 i32 i64 }
+        cmp_num_iden! { xmpq::cmp_i64; $Num; i8 i16 i32 i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xmpq::mpq_cmp_i128; $Num; i128 }
-        cmp_num_iden! { xmpq::mpq_cmp_i64; $Num; isize }
-        cmp_num_uden! { xmpq::mpq_cmp_i64; $Num; u8 u16 u32 u64 }
+        cmp_num_iden! { xmpq::cmp_i128; $Num; i128 }
+        cmp_num_iden! { xmpq::cmp_i64; $Num; isize }
+        cmp_num_uden! { xmpq::cmp_i64; $Num; u8 u16 u32 u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xmpq::mpq_cmp_i128; $Num; u128 }
-        cmp_num_uden! { xmpq::mpq_cmp_i64; $Num; usize }
+        cmp_num_uden! { xmpq::cmp_i128; $Num; u128 }
+        cmp_num_uden! { xmpq::cmp_i64; $Num; usize }
     )* };
 }
 
 #[cfg(int_128)]
 macro_rules! cmp_inum_128 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xmpq::mpq_cmp_i128; $Num; i8 i16 i32 i64 i128 isize }
-        cmp_num_uden! { xmpq::mpq_cmp_i128; $Num; u8 u16 u32 u64 u128 usize }
+        cmp_num_iden! { xmpq::cmp_i128; $Num; i8 i16 i32 i64 i128 isize }
+        cmp_num_uden! { xmpq::cmp_i128; $Num; u8 u16 u32 u64 u128 usize }
     )* };
 }
 
 macro_rules! cmp_unum_32 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { gmp::mpq_cmp_ui; $Num; i8 i16 i32 }
-        cmp_num_iden! { xmpq::mpq_cmp_u64; $Num; i64 }
+        cmp_num_iden! { xmpq::cmp_u32; $Num; i8 i16 i32 }
+        cmp_num_iden! { xmpq::cmp_u64; $Num; i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xmpq::mpq_cmp_u128; $Num; i128 }
+        cmp_num_iden! { xmpq::cmp_u128; $Num; i128 }
         #[cfg(target_pointer_width = "32")]
-        cmp_num_iden! { gmp::mpq_cmp_ui; $Num; isize }
+        cmp_num_iden! { xmpq::cmp_u32; $Num; isize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_iden! { xmpq::mpq_cmp_u64; $Num; isize }
+        cmp_num_iden! { xmpq::cmp_u64; $Num; isize }
 
-        cmp_num_uden! { gmp::mpq_cmp_ui; $Num; u8 u16 u32 }
-        cmp_num_uden! { xmpq::mpq_cmp_u64; $Num; u64 }
+        cmp_num_uden! { xmpq::cmp_u32; $Num; u8 u16 u32 }
+        cmp_num_uden! { xmpq::cmp_u64; $Num; u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xmpq::mpq_cmp_u128; $Num; u128 }
+        cmp_num_uden! { xmpq::cmp_u128; $Num; u128 }
         #[cfg(target_pointer_width = "32")]
-        cmp_num_uden! { gmp::mpq_cmp_ui; $Num; usize }
+        cmp_num_uden! { xmpq::cmp_u32; $Num; usize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_uden! { xmpq::mpq_cmp_u64; $Num; usize }
+        cmp_num_uden! { xmpq::cmp_u64; $Num; usize }
     )* };
 }
 
 macro_rules! cmp_unum_64 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xmpq::mpq_cmp_u64; $Num; i8 i16 i32 i64 }
+        cmp_num_iden! { xmpq::cmp_u64; $Num; i8 i16 i32 i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xmpq::mpq_cmp_u128; $Num; i128 }
-        cmp_num_iden! { xmpq::mpq_cmp_u64; $Num; isize }
-        cmp_num_uden! { xmpq::mpq_cmp_u64; $Num; u8 u16 u32 u64 }
+        cmp_num_iden! { xmpq::cmp_u128; $Num; i128 }
+        cmp_num_iden! { xmpq::cmp_u64; $Num; isize }
+        cmp_num_uden! { xmpq::cmp_u64; $Num; u8 u16 u32 u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xmpq::mpq_cmp_u128; $Num; u128 }
-        cmp_num_uden! { xmpq::mpq_cmp_u64; $Num; usize }
+        cmp_num_uden! { xmpq::cmp_u128; $Num; u128 }
+        cmp_num_uden! { xmpq::cmp_u64; $Num; usize }
     )* };
 }
 
 #[cfg(int_128)]
 macro_rules! cmp_unum_128 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xmpq::mpq_cmp_u128; $Num; i8 i16 i32 i64 i128 isize }
-        cmp_num_uden! { xmpq::mpq_cmp_u128; $Num; u8 u16 u32 u64 u128 usize }
+        cmp_num_iden! { xmpq::cmp_u128; $Num; i8 i16 i32 i64 i128 isize }
+        cmp_num_uden! { xmpq::cmp_u128; $Num; u8 u16 u32 u64 u128 usize }
     )* };
 }
 
@@ -307,22 +296,11 @@ cmp_unum_64! { usize }
 
 macro_rules! cmp_f {
     ($($T:ty)*) => { $(
-        impl PartialEq<$T> for Rational {
-            #[inline]
-            fn eq(&self, other: &$T) -> bool {
-                other.is_finite() && unsafe {
-                    xmpq::mpq_cmp_finite_d(self.as_raw(), cast(*other)) == 0
-                }
-            }
-        }
         impl PartialOrd<$T> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if other.is_finite() {
-                    let ord = unsafe {
-                        xmpq::mpq_cmp_finite_d(self.as_raw(), cast(*other))
-                    };
-                    Some(ord.cmp(&0))
+                    Some(xmpq::cmp_finite_d(self, cast(*other)))
                 } else if other.is_nan() {
                     None
                 } else if other.is_sign_negative() {
@@ -332,7 +310,7 @@ macro_rules! cmp_f {
                 }
             }
         }
-        cmp_rev! { $T }
+        cmp_common! { $T }
     )* };
 }
 

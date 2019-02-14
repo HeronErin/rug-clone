@@ -15,11 +15,10 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast;
-use gmp_mpfr_sys::gmp::{self, mpz_t};
+use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
 use ops::NegAssign;
 use std::cmp::Ordering;
-use std::os::raw::{c_int, c_long, c_ulong};
 use std::ptr;
 use std::{i16, i8, u16, u8};
 use Integer;
@@ -57,6 +56,16 @@ macro_rules! wrap0 {
             }
         }
     };
+}
+
+#[inline]
+pub fn check_div0(divisor: &Integer) {
+    assert_ne!(divisor.cmp0(), Ordering::Equal, "division by zero");
+}
+
+#[inline]
+pub fn check_div0_or(divisor: Option<&Integer>, or: &Integer) {
+    check_div0(divisor.unwrap_or(or));
 }
 
 #[inline]
@@ -191,15 +200,13 @@ pub fn sqrtrem(root: &mut Integer, rem: &mut Integer, op: Option<&Integer>) {
     }
 }
 
-// op2
-
 #[inline]
 pub fn divexact(
     q: &mut Integer,
     dividend: Option<&Integer>,
     divisor: &Integer,
 ) {
-    assert_ne!(divisor.cmp0(), Ordering::Equal, "division by zero");
+    check_div0(divisor);
     unsafe {
         gmp::mpz_divexact(
             q.as_raw_mut(),
@@ -231,8 +238,6 @@ pub fn lcm(rop: &mut Integer, op1: Option<&Integer>, op2: &Integer) {
     }
 }
 
-// op2_2
-
 #[inline]
 pub fn tdiv_qr(
     q: &mut Integer,
@@ -240,11 +245,14 @@ pub fn tdiv_qr(
     n: Option<&Integer>,
     d: Option<&Integer>,
 ) {
-    let n_ptr = n.unwrap_or(q).as_raw();
-    let d_ptr = d.unwrap_or(r).as_raw();
+    check_div0_or(d, r);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_tdiv_qr(q.as_raw_mut(), r.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_tdiv_qr(
+            q.as_raw_mut(),
+            r.as_raw_mut(),
+            n.unwrap_or(q).as_raw(),
+            d.unwrap_or(r).as_raw(),
+        );
     }
 }
 
@@ -255,11 +263,14 @@ pub fn cdiv_qr(
     n: Option<&Integer>,
     d: Option<&Integer>,
 ) {
-    let n_ptr = n.unwrap_or(q).as_raw();
-    let d_ptr = d.unwrap_or(r).as_raw();
+    check_div0_or(d, r);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_cdiv_qr(q.as_raw_mut(), r.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_cdiv_qr(
+            q.as_raw_mut(),
+            r.as_raw_mut(),
+            n.unwrap_or(q).as_raw(),
+            d.unwrap_or(r).as_raw(),
+        );
     }
 }
 
@@ -270,11 +281,14 @@ pub fn fdiv_qr(
     n: Option<&Integer>,
     d: Option<&Integer>,
 ) {
-    let n_ptr = n.unwrap_or(q).as_raw();
-    let d_ptr = d.unwrap_or(r).as_raw();
+    check_div0_or(d, r);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_fdiv_qr(q.as_raw_mut(), r.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_fdiv_qr(
+            q.as_raw_mut(),
+            r.as_raw_mut(),
+            n.unwrap_or(q).as_raw(),
+            d.unwrap_or(r).as_raw(),
+        );
     }
 }
 
@@ -284,28 +298,25 @@ pub fn rdiv_qr(
     n: Option<&Integer>,
     d: Option<&Integer>,
 ) {
-    let n_ptr = n.unwrap_or(q).as_raw();
     // make sure d is not going to be aliased and overwritten
     let r_clone;
-    let d_ptr = if let Some(d) = d {
-        d.as_raw()
+    let d = if let Some(d) = d {
+        d
     } else {
         r_clone = r.clone();
-        r_clone.as_raw()
+        &r_clone
     };
-    unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_tdiv_qr(q.as_raw_mut(), r.as_raw_mut(), n_ptr, d_ptr);
-        if round_away(r.as_raw(), d_ptr) {
-            if (gmp::mpz_sgn(r.as_raw()) < 0) == (gmp::mpz_sgn(d_ptr) < 0) {
-                // positive q
-                gmp::mpz_add_ui(q.as_raw_mut(), q.as_raw(), 1);
-                gmp::mpz_sub(r.as_raw_mut(), r.as_raw(), d_ptr);
-            } else {
-                // negative q
-                gmp::mpz_sub_ui(q.as_raw_mut(), q.as_raw(), 1);
-                gmp::mpz_add(r.as_raw_mut(), r.as_raw(), d_ptr);
-            }
+    check_div0(d);
+    tdiv_qr(q, r, n, Some(d));
+    if round_away(r, d) {
+        if (r.cmp0() == Ordering::Less) == (d.cmp0() == Ordering::Less) {
+            // positive q
+            add_u32(q, None, 1);
+            sub(r, None, Some(d));
+        } else {
+            // negative q
+            sub_u32(q, None, 1);
+            add(r, None, Some(d));
         }
     }
 }
@@ -317,14 +328,12 @@ pub fn ediv_qr(
     n: Option<&Integer>,
     d: Option<&Integer>,
 ) {
-    match d.unwrap_or(r).cmp0() {
-        Ordering::Equal => panic!("division by zero"),
-        Ordering::Less => cdiv_qr(q, r, n, d),
-        Ordering::Greater => fdiv_qr(q, r, n, d),
+    if d.unwrap_or(r).cmp0() == Ordering::Less {
+        cdiv_qr(q, r, n, d)
+    } else {
+        fdiv_qr(q, r, n, d)
     }
 }
-
-// op2_3
 
 #[inline]
 pub fn gcdext(
@@ -347,79 +356,91 @@ pub fn gcdext(
 
 #[inline]
 pub fn tdiv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    let n_ptr = n.unwrap_or(q).as_raw();
-    let d_ptr = d.unwrap_or(q).as_raw();
+    check_div0_or(d, q);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_tdiv_q(q.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_tdiv_q(
+            q.as_raw_mut(),
+            n.unwrap_or(q).as_raw(),
+            d.unwrap_or(q).as_raw(),
+        );
     }
 }
 
 #[inline]
 pub fn tdiv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    let n_ptr = n.unwrap_or(r).as_raw();
-    let d_ptr = d.unwrap_or(r).as_raw();
+    check_div0_or(d, r);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_tdiv_r(r.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_tdiv_r(
+            r.as_raw_mut(),
+            n.unwrap_or(r).as_raw(),
+            d.unwrap_or(r).as_raw(),
+        );
     }
 }
 
 #[inline]
 pub fn cdiv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    let n_ptr = n.unwrap_or(q).as_raw();
-    let d_ptr = d.unwrap_or(q).as_raw();
+    check_div0_or(d, q);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_cdiv_q(q.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_cdiv_q(
+            q.as_raw_mut(),
+            n.unwrap_or(q).as_raw(),
+            d.unwrap_or(q).as_raw(),
+        );
     }
 }
 
 #[inline]
 pub fn cdiv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    let n_ptr = n.unwrap_or(r).as_raw();
-    let d_ptr = d.unwrap_or(r).as_raw();
+    check_div0_or(d, r);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_cdiv_r(r.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_cdiv_r(
+            r.as_raw_mut(),
+            n.unwrap_or(r).as_raw(),
+            d.unwrap_or(r).as_raw(),
+        );
     }
 }
 
 #[inline]
 pub fn fdiv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    let n_ptr = n.unwrap_or(q).as_raw();
-    let d_ptr = d.unwrap_or(q).as_raw();
+    check_div0_or(d, q);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_fdiv_q(q.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_fdiv_q(
+            q.as_raw_mut(),
+            n.unwrap_or(q).as_raw(),
+            d.unwrap_or(q).as_raw(),
+        );
     }
 }
 
 #[inline]
 pub fn fdiv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    let n_ptr = n.unwrap_or(r).as_raw();
-    let d_ptr = d.unwrap_or(r).as_raw();
+    check_div0_or(d, r);
     unsafe {
-        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
-        gmp::mpz_fdiv_r(r.as_raw_mut(), n_ptr, d_ptr);
+        gmp::mpz_fdiv_r(
+            r.as_raw_mut(),
+            n.unwrap_or(r).as_raw(),
+            d.unwrap_or(r).as_raw(),
+        );
     }
 }
 
 #[inline]
 pub fn ediv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    match d.unwrap_or(q).cmp0() {
-        Ordering::Equal => panic!("division by zero"),
-        Ordering::Less => cdiv_q(q, n, d),
-        Ordering::Greater => fdiv_q(q, n, d),
+    if d.unwrap_or(q).cmp0() == Ordering::Less {
+        cdiv_q(q, n, d)
+    } else {
+        fdiv_q(q, n, d)
     }
 }
 
 #[inline]
 pub fn ediv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
-    match d.unwrap_or(r).cmp0() {
-        Ordering::Equal => panic!("division by zero"),
-        Ordering::Less => cdiv_r(r, n, d),
-        Ordering::Greater => fdiv_r(r, n, d),
+    if d.unwrap_or(r).cmp0() == Ordering::Less {
+        cdiv_r(r, n, d)
+    } else {
+        fdiv_r(r, n, d)
     }
 }
 
@@ -501,20 +522,6 @@ pub fn set_limb(rop: &mut Integer, limb: gmp::limb_t) {
 }
 
 #[inline]
-pub unsafe fn mpz_set_0(rop: *mut mpz_t) {
-    (*rop).size = 0;
-}
-
-#[inline]
-pub unsafe fn mpz_set_1(rop: *mut mpz_t) {
-    if (*rop).alloc < 1 {
-        gmp::_mpz_realloc(rop, 1);
-    }
-    *mpz_limb_mut(rop, 0) = 1;
-    (*rop).size = 1;
-}
-
-#[inline]
 pub fn tdiv_q_u32(q: &mut Integer, n: Option<&Integer>, d: u32) {
     assert_ne!(d, 0, "division by zero");
     unsafe {
@@ -531,9 +538,9 @@ pub fn tdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) {
 }
 
 pub fn u32_tdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(q).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, q);
     let n = n.into();
+    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(q).as_raw();
     let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
     if abs_d_greater_n {
@@ -548,15 +555,14 @@ pub fn u32_tdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
         unsafe {
             gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
         }
-        if d_cmp0 == Ordering::Less {
+        if neg_d {
             neg(q, None);
         }
     }
 }
 
 pub fn u32_tdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(r).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, r);
     let n = n.into();
     let d_ptr = d.unwrap_or(r).as_raw();
     let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
@@ -642,15 +648,15 @@ pub fn cdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
 }
 
 pub fn u32_cdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(q).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, q);
     let n = n.into();
+    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(q).as_raw();
     let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
     if abs_d_greater_n {
         // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
         // n / -abs_d -> 0, n
-        if n > 0 && d_cmp0 == Ordering::Greater {
+        if n > 0 && !neg_d {
             set_1(q);
         } else {
             set_0(q);
@@ -660,7 +666,7 @@ pub fn u32_cdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
         // n / -abs_d -> -abs_q, +abs_r
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
-        if d_cmp0 == Ordering::Less {
+        if neg_d {
             unsafe {
                 gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
             }
@@ -677,15 +683,15 @@ pub fn u32_cdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
 }
 
 pub fn u32_cdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(r).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, r);
     let n = n.into();
+    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(r).as_raw();
     let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
     if abs_d_greater_n {
         // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
         // n / -abs_d -> 0, n
-        if n > 0 && d_cmp0 == Ordering::Greater {
+        if n > 0 && !neg_d {
             unsafe {
                 gmp::mpz_ui_sub(r.as_raw_mut(), n, d_ptr);
             }
@@ -699,7 +705,7 @@ pub fn u32_cdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
         // n / -abs_d -> -abs_q, +abs_r
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let abs_r = n % abs_d;
-        if d_cmp0 == Ordering::Less {
+        if neg_d {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
             }
@@ -747,10 +753,10 @@ pub fn cdiv_r_i32(r: &mut Integer, n: Option<&Integer>, d: i32) {
 }
 
 pub fn i32_cdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(q).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, q);
     let (neg_n, abs_n) = n.neg_abs();
     let abs_n = abs_n.into();
+    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(q).as_raw();
     let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
     if abs_d_greater_abs_n {
@@ -758,9 +764,7 @@ pub fn i32_cdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
         // +abs_n / -abs_d -> 0, +abs_n
         // -abs_n / +abs_d -> 0, -abs_n
         // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
-        if (n > 0 && d_cmp0 == Ordering::Greater)
-            || (neg_n && d_cmp0 == Ordering::Less)
-        {
+        if (n > 0 && !neg_d) || (neg_n && neg_d) {
             set_1(q);
         } else {
             set_0(q);
@@ -772,9 +776,7 @@ pub fn i32_cdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
         // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
-        if (n > 0 && d_cmp0 == Ordering::Less)
-            || (neg_n && d_cmp0 == Ordering::Greater)
-        {
+        if (n > 0 && neg_d) || (neg_n && !neg_d) {
             unsafe {
                 gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
             }
@@ -791,10 +793,10 @@ pub fn i32_cdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
 }
 
 pub fn i32_cdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(r).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, r);
     let (neg_n, abs_n) = n.neg_abs();
     let abs_n = abs_n.into();
+    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(r).as_raw();
     let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
     if abs_d_greater_abs_n {
@@ -802,9 +804,7 @@ pub fn i32_cdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
         // +abs_n / -abs_d -> 0, +abs_n
         // -abs_n / +abs_d -> 0, -abs_n
         // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
-        if (n > 0 && d_cmp0 == Ordering::Greater)
-            || (neg_n && d_cmp0 == Ordering::Less)
-        {
+        if (n > 0 && !neg_d) || (neg_n && neg_d) {
             i32_sub(r, n, d);
         } else {
             set_i32(r, n);
@@ -816,11 +816,11 @@ pub fn i32_cdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
         // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let abs_r = abs_n % abs_d;
-        if n > 0 && d_cmp0 == Ordering::Less {
+        if n > 0 && neg_d {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
             }
-        } else if neg_n && d_cmp0 == Ordering::Greater {
+        } else if neg_n && !neg_d {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
             }
@@ -829,7 +829,7 @@ pub fn i32_cdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_d - abs_r);
             }
-            if d_cmp0 == Ordering::Greater {
+            if !neg_d {
                 neg(r, None);
             }
         } else {
@@ -855,15 +855,15 @@ pub fn fdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
 }
 
 pub fn u32_fdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(q).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, q);
     let n = n.into();
+    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(q).as_raw();
     let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
     if abs_d_greater_n {
         // n / +abs_d -> 0, n
         // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
-        if n > 0 && d_cmp0 == Ordering::Less {
+        if n > 0 && neg_d {
             set_m1(q);
         } else {
             set_0(q);
@@ -873,7 +873,7 @@ pub fn u32_fdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
         // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
-        if d_cmp0 == Ordering::Greater {
+        if !neg_d {
             unsafe {
                 gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
             }
@@ -890,15 +890,15 @@ pub fn u32_fdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
 }
 
 pub fn u32_fdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(r).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, r);
     let n = n.into();
+    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(r).as_raw();
     let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
     if abs_d_greater_n {
         // n / +abs_d -> 0, n
         // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
-        if n > 0 && d_cmp0 == Ordering::Less {
+        if n > 0 && neg_d {
             unsafe {
                 gmp::mpz_add_ui(r.as_raw_mut(), d_ptr, n);
             }
@@ -912,7 +912,7 @@ pub fn u32_fdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
         // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let abs_r = n % abs_d;
-        if d_cmp0 == Ordering::Greater {
+        if !neg_d {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
             }
@@ -958,10 +958,10 @@ pub fn fdiv_r_i32(r: &mut Integer, n: Option<&Integer>, d: i32) {
 }
 
 pub fn i32_fdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(q).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, q);
     let (neg_n, abs_n) = n.neg_abs();
     let abs_n = abs_n.into();
+    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(q).as_raw();
     let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
     if abs_d_greater_abs_n {
@@ -969,9 +969,7 @@ pub fn i32_fdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
         // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
         // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> 0, -abs_n
-        if (n > 0 && d_cmp0 == Ordering::Less)
-            || (neg_n && d_cmp0 == Ordering::Greater)
-        {
+        if (n > 0 && neg_d) || (neg_n && !neg_d) {
             set_m1(q);
         } else {
             set_0(q);
@@ -983,9 +981,7 @@ pub fn i32_fdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
         // -abs_n / -abs_d -> +abs_q, -abs_r
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
-        if (n > 0 && d_cmp0 == Ordering::Greater)
-            || (neg_n && d_cmp0 == Ordering::Less)
-        {
+        if (n > 0 && !neg_d) || (neg_n && neg_d) {
             unsafe {
                 gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
             }
@@ -1002,10 +998,10 @@ pub fn i32_fdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
 }
 
 pub fn i32_fdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
-    let d_cmp0 = d.unwrap_or(r).cmp0();
-    assert_ne!(d_cmp0, Ordering::Equal, "division by zero");
+    check_div0_or(d, r);
     let (neg_n, abs_n) = n.neg_abs();
     let abs_n = abs_n.into();
+    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
     let d_ptr = d.unwrap_or(r).as_raw();
     let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
     if abs_d_greater_abs_n {
@@ -1013,9 +1009,7 @@ pub fn i32_fdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
         // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
         // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
         // -abs_n / -abs_d -> 0, -abs_n
-        if (n > 0 && d_cmp0 == Ordering::Less)
-            || (neg_n && d_cmp0 == Ordering::Greater)
-        {
+        if (n > 0 && neg_d) || (neg_n && !neg_d) {
             add_i32(r, d, n);
         } else {
             set_i32(r, n);
@@ -1027,11 +1021,11 @@ pub fn i32_fdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
         // -abs_n / -abs_d -> +abs_q, -abs_r
         let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
         let abs_r = abs_n % abs_d;
-        if n > 0 && d_cmp0 == Ordering::Greater {
+        if n > 0 && !neg_d {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
             }
-        } else if neg_n && d_cmp0 == Ordering::Less {
+        } else if neg_n && neg_d {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
             }
@@ -1040,7 +1034,7 @@ pub fn i32_fdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
             unsafe {
                 gmp::mpz_set_ui(r.as_raw_mut(), abs_d - abs_r);
             }
-            if d_cmp0 == Ordering::Less {
+            if neg_d {
                 neg(r, None);
             }
         } else {
@@ -1504,70 +1498,116 @@ pub fn fits_i16(op: &Integer) -> bool {
 }
 
 #[inline]
-pub unsafe fn mpz_addmul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    let (op2_neg, op2_abs) = op2.neg_abs();
-    if !op2_neg {
-        gmp::mpz_addmul_ui(rop, op1, op2_abs);
-    } else {
-        gmp::mpz_submul_ui(rop, op1, op2_abs);
+pub fn addmul(rop: &mut Integer, op1: &Integer, op2: &Integer) {
+    unsafe {
+        gmp::mpz_addmul(rop.as_raw_mut(), op1.as_raw(), op2.as_raw());
     }
 }
 
 #[inline]
-pub unsafe fn mpz_submul_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
+pub fn addmul_u32(rop: &mut Integer, op1: &Integer, op2: u32) {
+    unsafe {
+        gmp::mpz_addmul_ui(rop.as_raw_mut(), op1.as_raw(), op2.into());
+    }
+}
+
+#[inline]
+pub fn addmul_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        gmp::mpz_submul_ui(rop, op1, op2_abs);
+        addmul_u32(rop, op1, op2_abs);
     } else {
-        gmp::mpz_addmul_ui(rop, op1, op2_abs);
+        submul_u32(rop, op1, op2_abs);
+    }
+}
+
+#[inline]
+pub fn submul(rop: &mut Integer, op1: &Integer, op2: &Integer) {
+    unsafe {
+        gmp::mpz_submul(rop.as_raw_mut(), op1.as_raw(), op2.as_raw());
     }
 }
 
 // rop = op1 * op2 - rop
 #[inline]
-pub unsafe fn mpz_mulsub(
-    rop: *mut mpz_t,
-    op1: *const mpz_t,
-    op2: *const mpz_t,
-) {
-    gmp::mpz_submul(rop, op1, op2);
-    (*rop).size = -(*rop).size;
+pub fn mulsub(rop: &mut Integer, op1: &Integer, op2: &Integer) {
+    submul(rop, op1, op2);
+    rop.neg_assign();
 }
 
 #[inline]
-pub unsafe fn mpz_mulsub_ui(rop: *mut mpz_t, op1: *const mpz_t, op2: c_ulong) {
-    gmp::mpz_submul_ui(rop, op1, op2);
-    (*rop).size = -(*rop).size;
+pub fn submul_u32(rop: &mut Integer, op1: &Integer, op2: u32) {
+    unsafe {
+        gmp::mpz_submul_ui(rop.as_raw_mut(), op1.as_raw(), op2.into());
+    }
 }
 
 #[inline]
-pub unsafe fn mpz_mulsub_si(rop: *mut mpz_t, op1: *const mpz_t, op2: c_long) {
-    mpz_submul_si(rop, op1, op2);
-    (*rop).size = -(*rop).size;
+pub fn mulsub_u32(rop: &mut Integer, op1: &Integer, op2: u32) {
+    submul_u32(rop, op1, op2);
+    rop.neg_assign();
 }
 
 #[inline]
-pub unsafe fn mpz_zerocount(op: *const mpz_t) -> gmp::bitcnt_t {
-    if (*op).size >= 0 {
-        c_ulong::max_value()
+pub fn submul_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
+    let (op2_neg, op2_abs) = op2.neg_abs();
+    if !op2_neg {
+        submul_u32(rop, op1, op2_abs);
     } else {
-        let size = gmp::size_t::from((*op).size);
-        let abs_size = size.wrapping_neg();
-        let abs_popcount = gmp::mpn_popcount((*op).d, abs_size);
-        let first_one = gmp::mpn_scan1((*op).d, 0);
-        abs_popcount + first_one - 1
+        addmul_u32(rop, op1, op2_abs);
     }
 }
 
 #[inline]
-pub unsafe fn mpz_significant_bits(op: *const mpz_t) -> gmp::bitcnt_t {
-    let size = (*op).size;
-    if size == 0 {
-        return 0;
+pub fn mulsub_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
+    submul_i32(rop, op1, op2);
+    rop.neg_assign();
+}
+
+#[inline]
+fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
+    if bits == !0 {
+        None
+    } else {
+        Some(cast::cast(bits))
     }
-    let size = size.neg_abs().1;
-    let size_in_base = gmp::mpn_sizeinbase((*op).d, cast::cast(size), 2);
-    cast::cast(size_in_base)
+}
+
+#[inline]
+pub fn popcount(op: &Integer) -> Option<u32> {
+    bitcount_to_u32(unsafe { gmp::mpz_popcount(op.as_raw()) })
+}
+
+#[inline]
+pub fn zerocount(op: &Integer) -> Option<u32> {
+    if op.cmp0() == Ordering::Less {
+        let size = gmp::size_t::from(op.inner().size);
+        let abs_size = size.wrapping_neg();
+        let d = op.inner().d;
+        let count = unsafe {
+            let abs_popcount = gmp::mpn_popcount(d, abs_size);
+            let first_one = gmp::mpn_scan1(d, 0);
+            abs_popcount + first_one - 1
+        };
+        bitcount_to_u32(count)
+    } else {
+        None
+    }
+}
+
+#[inline]
+pub fn scan0(op: &Integer, start: u32) -> Option<u32> {
+    bitcount_to_u32(unsafe { gmp::mpz_scan0(op.as_raw(), start.into()) })
+}
+
+#[inline]
+pub fn scan1(op: &Integer, start: u32) -> Option<u32> {
+    bitcount_to_u32(unsafe { gmp::mpz_scan1(op.as_raw(), start.into()) })
+}
+
+#[inline]
+pub fn hamdist(op1: &Integer, op2: &Integer) -> Option<u32> {
+    bitcount_to_u32(unsafe { gmp::mpz_hamdist(op1.as_raw(), op2.as_raw()) })
 }
 
 #[inline]
@@ -1580,25 +1620,25 @@ pub fn significant_bits(op: &Integer) -> usize {
     unsafe { gmp::mpn_sizeinbase(op.inner().d, cast::cast(size), 2) }
 }
 
-pub unsafe fn mpz_signed_bits(op: *const mpz_t) -> gmp::bitcnt_t {
-    let size = (*op).size;
-    let significant = mpz_significant_bits(op);
-    if size < 0 {
-        let first_one = gmp::mpn_scan1((*op).d, 0);
+pub fn signed_bits(op: &Integer) -> u32 {
+    let significant = significant_bits(op);
+    if op.cmp0() == Ordering::Less {
+        let first_one: usize =
+            cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
         if first_one == significant - 1 {
-            return significant;
+            return cast::cast(significant);
         }
     }
-    significant.checked_add(1).expect("overflow")
+    cast::cast(significant.checked_add(1).expect("overflow"))
 }
 
-pub unsafe fn mpz_is_pow_of_two(op: *const mpz_t) -> bool {
-    let size = (*op).size;
-    if size <= 0 {
+pub fn power_of_two_p(op: &Integer) -> bool {
+    if op.cmp0() != Ordering::Greater {
         return false;
     }
-    let significant = mpz_significant_bits(op);
-    let first_one = gmp::mpn_scan1((*op).d, 0);
+    let significant = significant_bits(op);
+    let first_one: usize =
+        cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
     first_one == significant - 1
 }
 
@@ -1612,49 +1652,31 @@ pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut gmp::limb_t {
     &mut *z.inner_mut().d.offset(index)
 }
 
-#[inline]
-pub unsafe fn mpz_limb(z: *const mpz_t, index: isize) -> gmp::limb_t {
-    *(*z).d.offset(index)
-}
-
-#[inline]
-pub unsafe fn mpz_limb_mut(z: *const mpz_t, index: isize) -> *mut gmp::limb_t {
-    (*z).d.offset(index)
-}
-
-#[inline]
-pub fn ord_int(o: Ordering) -> c_int {
-    match o {
-        Ordering::Less => -1,
-        Ordering::Equal => 0,
-        Ordering::Greater => 1,
-    }
-}
-
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cast_lossless))]
-pub unsafe fn realloc_for_mpn_set_str(rop: *mut mpz_t, len: usize, radix: i32) {
+pub fn realloc_for_mpn_set_str(rop: &mut Integer, len: usize, radix: i32) {
     // add 1 for possible rounding errors
     let bits = (f64::from(radix).log2() * (len as f64)).ceil() + 1.0;
     // add 1 because mpn_set_str requires an extra limb
     let limbs = (bits / f64::from(gmp::LIMB_BITS)).ceil() + 1.0;
-    gmp::_mpz_realloc(rop, cast::cast(limbs));
+    unsafe {
+        gmp::_mpz_realloc(rop.as_raw_mut(), cast::cast(limbs));
+    }
 }
 
-// dividend must not be zero
-pub unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
-    let s_rem = (*rem).size.checked_abs().expect("overflow");
+pub fn round_away(rem: &Integer, divisor: &Integer) -> bool {
+    let s_rem = rem.inner().size.checked_abs().expect("overflow");
     if s_rem == 0 {
         return false;
     }
-    let s_dividend = (*dividend).size.checked_abs().expect("overflow");
-    debug_assert!(s_dividend > 0);
-    debug_assert!(s_rem <= s_dividend);
-    if s_rem < s_dividend - 1 {
+    let s_divisor = divisor.inner().size.checked_abs().expect("overflow");
+    assert!(s_divisor > 0);
+    debug_assert!(s_rem <= s_divisor);
+    if s_rem < s_divisor - 1 {
         return false;
     }
 
-    let mut rem_limb = if s_rem == s_dividend {
-        let rem_next_limb = mpz_limb(rem, cast::cast(s_rem - 1));
+    let mut rem_limb = if s_rem == s_divisor {
+        let rem_next_limb = unsafe { limb(rem, cast::cast(s_rem - 1)) };
         if (rem_next_limb >> (gmp::LIMB_BITS - 1)) != 0 {
             return true;
         }
@@ -1662,9 +1684,9 @@ pub unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
     } else {
         0
     };
-    for i in (1..s_dividend).rev() {
-        let div_limb = mpz_limb(dividend, cast::cast(i));
-        let rem_next_limb = mpz_limb(rem, cast::cast(i - 1));
+    for i in (1..s_divisor).rev() {
+        let div_limb = unsafe { limb(divisor, cast::cast(i)) };
+        let rem_next_limb = unsafe { limb(rem, cast::cast(i - 1)) };
         rem_limb |= (rem_next_limb >> (gmp::LIMB_BITS - 1)) & 1;
         if rem_limb > div_limb {
             return true;
@@ -1674,6 +1696,6 @@ pub unsafe fn round_away(rem: *const mpz_t, dividend: *const mpz_t) -> bool {
         }
         rem_limb = rem_next_limb << 1;
     }
-    let div_limb = mpz_limb(dividend, 0);
+    let div_limb = unsafe { limb(divisor, 0) };
     rem_limb >= div_limb
 }

@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use complex::SmallComplex;
-#[cfg(feature = "rational")]
 use ext::xmpfr;
 use float::Round;
 #[cfg(feature = "integer")]

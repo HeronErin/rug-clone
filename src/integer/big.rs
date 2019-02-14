@@ -18,7 +18,7 @@ use cast::cast;
 use ext::xmpz;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use integer::Order;
-use misc::{self, NegAbs};
+use misc;
 use ops::DivRounding;
 #[cfg(feature = "rand")]
 use rand::RandState;
@@ -537,18 +537,12 @@ impl Integer {
     /// ```
     ///
     /// [upt]: integer/trait.UnsignedPrimitive.html
+    #[inline]
     pub fn significant_digits<T>(&self) -> usize
     where
         T: UnsignedPrimitive,
     {
-        let size = self.inner.size;
-        if size == 0 {
-            return 0;
-        }
-        let size = size.neg_abs().1;
-        let size_in_base =
-            unsafe { gmp::mpn_sizeinbase(self.inner.d, cast(size), 2) };
-        size_in_base.div_ceil(T::bits())
+        xmpz::significant_bits(self).div_ceil(T::bits())
     }
 
     /// Converts the absolute value to a [`Vec`] of digits of type
@@ -1333,7 +1327,7 @@ impl Integer {
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     #[inline]
     pub fn to_u8_wrapping(&self) -> u8 {
-        let u = unsafe { xmpz::mpz_get_abs_u32(self.as_raw()) as u8 };
+        let u = xmpz::get_abs_u32(self) as u8;
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1356,7 +1350,7 @@ impl Integer {
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
     #[inline]
     pub fn to_u16_wrapping(&self) -> u16 {
-        let u = unsafe { xmpz::mpz_get_abs_u32(self.as_raw()) as u16 };
+        let u = xmpz::get_abs_u32(self) as u16;
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1379,7 +1373,7 @@ impl Integer {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_wrapping(&self) -> u32 {
-        let u = unsafe { xmpz::mpz_get_abs_u32(self.as_raw()) };
+        let u = xmpz::get_abs_u32(self);
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1402,7 +1396,7 @@ impl Integer {
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     #[inline]
     pub fn to_u64_wrapping(&self) -> u64 {
-        let u = unsafe { xmpz::mpz_get_abs_u64(self.as_raw()) };
+        let u = xmpz::get_abs_u64(self);
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1436,7 +1430,7 @@ impl Integer {
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
     #[inline]
     pub fn to_u128_wrapping(&self) -> u128 {
-        let u = unsafe { xmpz::mpz_get_abs_u128(self.as_raw()) };
+        let u = xmpz::get_abs_u128(self);
         if self.cmp0() == Ordering::Less {
             u.wrapping_neg()
         } else {
@@ -1937,7 +1931,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_power_of_two(&self) -> bool {
-        unsafe { xmpz::mpz_is_pow_of_two(self.as_raw()) }
+        xmpz::power_of_two_p(self)
     }
 
     /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
@@ -2024,7 +2018,7 @@ impl Integer {
     /// [`significant_bits`]: #method.significant_bits
     #[inline]
     pub fn signed_bits(&self) -> u32 {
-        cast(unsafe { xmpz::mpz_signed_bits(self.as_raw()) })
+        xmpz::signed_bits(self)
     }
 
     /// Returns the number of one bits if the value ≥ 0.
@@ -2039,7 +2033,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn count_ones(&self) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::mpz_popcount(self.as_raw()) })
+        xmpz::popcount(self)
     }
 
     /// Returns the number of zero bits if the value < 0.
@@ -2057,7 +2051,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn count_zeros(&self) -> Option<u32> {
-        bitcount_to_u32(unsafe { xmpz::mpz_zerocount(self.as_raw()) })
+        xmpz::zerocount(self)
     }
 
     /// Returns the location of the first zero, starting at `start`.
@@ -2074,7 +2068,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn find_zero(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::mpz_scan0(self.as_raw(), start.into()) })
+        xmpz::scan0(self, start)
     }
 
     /// Returns the location of the first one, starting at `start`.
@@ -2091,7 +2085,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn find_one(&self, start: u32) -> Option<u32> {
-        bitcount_to_u32(unsafe { gmp::mpz_scan1(self.as_raw(), start.into()) })
+        xmpz::scan1(self, start)
     }
 
     /// Sets the bit at location `index` to 1 if `val` is [`true`] or
@@ -2178,9 +2172,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn hamming_dist(&self, other: &Self) -> Option<u32> {
-        bitcount_to_u32(unsafe {
-            gmp::mpz_hamdist(self.as_raw(), other.as_raw())
-        })
+        xmpz::hamdist(self, other)
     }
 
     /// Adds a list of [`Integer`] values.
@@ -5598,20 +5590,19 @@ pub struct ParseIncomplete {
 impl Assign<ParseIncomplete> for Integer {
     #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
+        if src.digits.is_empty() {
+            xmpz::set_0(self);
+            return;
+        }
+        xmpz::realloc_for_mpn_set_str(self, src.digits.len(), src.radix);
         unsafe {
-            let ptr = self.as_raw_mut();
-            if src.digits.is_empty() {
-                xmpz::mpz_set_0(ptr);
-                return;
-            }
-            xmpz::realloc_for_mpn_set_str(ptr, src.digits.len(), src.radix);
             let size = gmp::mpn_set_str(
-                (*ptr).d,
+                self.inner.d,
                 src.digits.as_ptr(),
                 src.digits.len(),
                 src.radix,
             );
-            (*ptr).size = cast(if src.is_negative { -size } else { size });
+            self.inner.size = cast(if src.is_negative { -size } else { size });
         }
     }
 }
@@ -5740,15 +5731,6 @@ pub enum IsPrime {
     Probably,
     /// The number is definitely prime.
     Yes,
-}
-
-#[inline]
-fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
-    if bits == !0 {
-        None
-    } else {
-        Some(cast(bits))
-    }
 }
 
 /// Conversions between [`Integer`] and a [slice] of digits of this

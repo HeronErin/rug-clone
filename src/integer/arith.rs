@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use ext::xmpz;
-use gmp_mpfr_sys::gmp;
 use ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
     NotAssign, Pow, PowAssign, RemFrom, SubFrom,
@@ -295,56 +294,56 @@ arith_prim_commut! {
 
 mul_op_commut! {
     Integer;
-    gmp::mpz_addmul;
+    xmpz::addmul;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    MulIncomplete, as_raw;
+    MulIncomplete;
     AddMulIncomplete
 }
 mul_op_commut! {
     Integer;
-    gmp::mpz_addmul_ui;
+    xmpz::addmul_u32;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    MulU32Incomplete, into;
+    MulU32Incomplete;
     AddMulU32Incomplete
 }
 mul_op_commut! {
     Integer;
-    xmpz::mpz_addmul_si;
+    xmpz::addmul_i32;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    MulI32Incomplete, into;
+    MulI32Incomplete;
     AddMulI32Incomplete
 }
 mul_op_noncommut! {
     Integer;
-    gmp::mpz_submul, xmpz::mpz_mulsub;
+    xmpz::submul, xmpz::mulsub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    MulIncomplete, as_raw;
+    MulIncomplete;
     SubMulIncomplete, SubMulFromIncomplete
 }
 mul_op_noncommut! {
     Integer;
-    gmp::mpz_submul_ui, xmpz::mpz_mulsub_ui;
+    xmpz::submul_u32, xmpz::mulsub_u32;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    MulU32Incomplete, into;
+    MulU32Incomplete;
     SubMulU32Incomplete, SubMulFromU32Incomplete
 }
 mul_op_noncommut! {
     Integer;
-    xmpz::mpz_submul_si, xmpz::mpz_mulsub_si;
+    xmpz::submul_i32, xmpz::mulsub_i32;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    MulI32Incomplete, into;
+    MulI32Incomplete;
     SubMulI32Incomplete, SubMulFromI32Incomplete
 }
 

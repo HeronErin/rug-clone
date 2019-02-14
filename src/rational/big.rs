@@ -181,14 +181,7 @@ macro_rules! rat_op_rat_int {
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $int: &mut Integer, $($param: $T),*) {
-            unsafe {
-                $func(
-                    self.as_raw_mut(),
-                    $int.as_raw_mut(),
-                    self.as_raw(),
-                    $($param.into()),*
-                );
-            }
+            $func(self, $int, None, $($param),*);
         }
 
         $(#[$attr_ref])*
@@ -220,14 +213,7 @@ macro_rules! ref_rat_op_rat_int {
         {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                unsafe {
-                    $func(
-                        self.0.as_raw_mut(),
-                        self.1.as_raw_mut(),
-                        src.ref_self.as_raw(),
-                        $(src.$param.into(),)*
-                    );
-                }
+                $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
             }
         }
 
@@ -1638,7 +1624,7 @@ impl Rational {
         fn rem_trunc_ref -> RemTruncIncomplete;
     }
     rat_op_rat_int! {
-        xmpq::mpq_trunc_fract_whole;
+        xmpq::trunc_fract_whole;
         /// Computes the fractional and truncated parts of the number.
         ///
         /// The initial value of `trunc` is ignored.
@@ -1807,7 +1793,7 @@ impl Rational {
         fn rem_ceil_ref -> RemCeilIncomplete;
     }
     rat_op_rat_int! {
-        xmpq::mpq_ceil_fract_whole;
+        xmpq::ceil_fract_whole;
         /// Computes the fractional and ceil parts of the number.
         ///
         /// The fractional part cannot greater than zero. The initial
@@ -1978,7 +1964,7 @@ impl Rational {
         fn rem_floor_ref -> RemFloorIncomplete;
     }
     rat_op_rat_int! {
-        xmpq::mpq_floor_fract_whole;
+        xmpq::floor_fract_whole;
         /// Computes the fractional and floor parts of the number.
         ///
         /// The fractional part cannot be negative. The initial value of
@@ -2176,7 +2162,7 @@ impl Rational {
         fn rem_round_ref -> RemRoundIncomplete;
     }
     rat_op_rat_int! {
-        xmpq::mpq_round_fract_whole;
+        xmpq::round_fract_whole;
         /// Computes the fractional and rounded parts of the number.
         ///
         /// The fractional part is positive when the number is rounded
@@ -2579,24 +2565,16 @@ where
 ref_math_op1! { Rational; xmpq::inv; struct RecipIncomplete {} }
 ref_rat_op_int! { xmpq::trunc; struct TruncIncomplete {} }
 ref_math_op1! { Rational; xmpq::trunc_fract; struct RemTruncIncomplete {} }
-ref_rat_op_rat_int! {
-    xmpq::mpq_trunc_fract_whole; struct FractTruncIncomplete {}
-}
+ref_rat_op_rat_int! { xmpq::trunc_fract_whole; struct FractTruncIncomplete {} }
 ref_rat_op_int! { xmpq::ceil; struct CeilIncomplete {} }
 ref_math_op1! { Rational; xmpq::ceil_fract; struct RemCeilIncomplete {} }
-ref_rat_op_rat_int! {
-    xmpq::mpq_ceil_fract_whole; struct FractCeilIncomplete {}
-}
+ref_rat_op_rat_int! { xmpq::ceil_fract_whole; struct FractCeilIncomplete {} }
 ref_rat_op_int! { xmpq::floor; struct FloorIncomplete {} }
 ref_math_op1! { Rational; xmpq::floor_fract; struct RemFloorIncomplete {} }
-ref_rat_op_rat_int! {
-    xmpq::mpq_floor_fract_whole; struct FractFloorIncomplete {}
-}
+ref_rat_op_rat_int! { xmpq::floor_fract_whole; struct FractFloorIncomplete {} }
 ref_rat_op_int! { xmpq::round; struct RoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::round_fract; struct RemRoundIncomplete {} }
-ref_rat_op_rat_int! {
-    xmpq::mpq_round_fract_whole; struct FractRoundIncomplete {}
-}
+ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::square; struct SquareIncomplete {} }
 
 #[derive(Debug)]
@@ -2645,31 +2623,29 @@ pub struct ParseIncomplete {
 impl Assign<ParseIncomplete> for Rational {
     #[inline]
     fn assign(&mut self, src: ParseIncomplete) {
+        let (str, n) = (src.digits.as_ptr(), src.den_start);
+        if n == 0 {
+            xmpq::set_0(self);
+            return;
+        }
         unsafe {
-            let ptr = self.as_raw_mut();
-            let num = gmp::mpq_numref(ptr);
-            let den = gmp::mpq_denref(ptr);
-
-            let (str, n) = (src.digits.as_ptr(), src.den_start);
-            if n == 0 {
-                xmpz::mpz_set_0(num);
-                xmpz::mpz_set_1(den);
-                return;
-            }
+            let (num, den) = self.as_mut_numer_denom_no_canonicalization();
             xmpz::realloc_for_mpn_set_str(num, n, src.radix);
-            let size = gmp::mpn_set_str((*num).d, str, n, src.radix);
-            (*num).size = cast(if src.is_negative { -size } else { size });
+            let size = gmp::mpn_set_str(num.inner_mut().d, str, n, src.radix);
+            num.inner_mut().size =
+                cast(if src.is_negative { -size } else { size });
 
             let (str, n) = (str.offset(cast(n)), src.digits.len() - n);
             if n == 0 {
-                xmpz::mpz_set_1(den);
+                xmpz::set_1(den);
                 return;
             }
             xmpz::realloc_for_mpn_set_str(den, n, src.radix);
-            let size = gmp::mpn_set_str((*den).d, str, n, src.radix);
-            (*den).size = cast(size);
-
-            gmp::mpq_canonicalize(ptr);
+            let size = gmp::mpn_set_str(den.inner_mut().d, str, n, src.radix);
+            den.inner_mut().size = cast(size);
+        }
+        unsafe {
+            gmp::mpq_canonicalize(self.as_raw_mut());
         }
     }
 }

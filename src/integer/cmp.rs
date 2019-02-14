@@ -65,8 +65,7 @@ macro_rules! cmp {
         impl PartialOrd<$T> for Integer {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
-                let ord = unsafe { $func(self.as_raw(), (*other).into()) };
-                Some(ord.cmp(&0))
+                Some($func(self, *other))
             }
         }
 
@@ -127,10 +126,10 @@ macro_rules! cmp_cast {
 
 cmp_cast! { i8, i32 }
 cmp_cast! { i16, i32 }
-cmp! { i32, xmpz::mpz_cmp_i32 }
-cmp! { i64, xmpz::mpz_cmp_i64 }
+cmp! { i32, xmpz::cmp_i32 }
+cmp! { i64, xmpz::cmp_i64 }
 #[cfg(int_128)]
-cmp! { i128, xmpz::mpz_cmp_i128 }
+cmp! { i128, xmpz::cmp_i128 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { isize, i32 }
 #[cfg(target_pointer_width = "64")]
@@ -138,10 +137,10 @@ cmp_cast! { isize, i64 }
 
 cmp_cast! { u8, u32 }
 cmp_cast! { u16, u32 }
-cmp! { u32, xmpz::mpz_cmp_u32 }
-cmp! { u64, xmpz::mpz_cmp_u64 }
+cmp! { u32, xmpz::cmp_u32 }
+cmp! { u64, xmpz::cmp_u64 }
 #[cfg(int_128)]
-cmp! { u128, xmpz::mpz_cmp_u128 }
+cmp! { u128, xmpz::cmp_u128 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { usize, u32 }
 #[cfg(target_pointer_width = "64")]

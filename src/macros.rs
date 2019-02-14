@@ -902,8 +902,7 @@ macro_rules! mul_op {
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
-        $Mul:ident,
-        $rhs_method:ident;
+        $Mul:ident;
         $Incomplete:ident
     ) => {
         impl<'a> $Imp<$Mul<'a>> for $Big {
@@ -926,13 +925,7 @@ macro_rules! mul_op {
         impl<'a> $ImpAssign<$Mul<'a>> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $Mul) {
-                unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        rhs.lhs.as_raw(),
-                        rhs.rhs.$rhs_method(),
-                    );
-                }
+                $func(self, rhs.lhs, rhs.rhs);
             }
         }
 
@@ -966,8 +959,7 @@ macro_rules! mul_op_commut {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $Mul:ident,
-        $rhs_method:ident;
+        $Mul:ident;
         $Incomplete:ident
     ) => {
         mul_op! {
@@ -975,7 +967,7 @@ macro_rules! mul_op_commut {
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
-            $Mul, $rhs_method;
+            $Mul;
             $Incomplete
         }
 
@@ -1021,8 +1013,7 @@ macro_rules! mul_op_noncommut {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $Mul:ident,
-        $rhs_method:ident;
+        $Mul:ident;
         $Incomplete:ident,
         $FromIncomplete:ident
     ) => {
@@ -1031,7 +1022,7 @@ macro_rules! mul_op_noncommut {
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
-            $Mul, $rhs_method;
+            $Mul;
             $Incomplete
         }
 
@@ -1055,13 +1046,7 @@ macro_rules! mul_op_noncommut {
         impl<'a> $ImpFrom<$Mul<'a>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul) {
-                unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        lhs.lhs.as_raw(),
-                        lhs.rhs.$rhs_method(),
-                    );
-                }
+                $func_from(self, lhs.lhs, lhs.rhs);
             }
         }
 

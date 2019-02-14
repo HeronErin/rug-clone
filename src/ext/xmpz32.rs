@@ -108,136 +108,143 @@ pub fn init_set_i64(rop: &mut Integer, i: i64) {
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_get_abs_u128(op: *const mpz_t) -> u128 {
-    match (*op).size {
-        0 => 0,
-        -1 | 1 => u128::from(mpz_limb(op, 0)),
-        -2 | 2 => {
-            u128::from(mpz_limb(op, 1)) << 32 | u128::from(mpz_limb(op, 0))
-        }
-        -3 | 3 => {
-            u128::from(mpz_limb(op, 2)) << 64
-                | u128::from(mpz_limb(op, 1)) << 32
-                | u128::from(mpz_limb(op, 0))
-        }
-        _ => {
-            u128::from(mpz_limb(op, 3)) << 96
-                | u128::from(mpz_limb(op, 2)) << 64
-                | u128::from(mpz_limb(op, 1)) << 32
-                | u128::from(mpz_limb(op, 0))
+pub fn get_abs_u128(op: &Integer) -> u128 {
+    unsafe {
+        match op.inner().size {
+            0 => 0,
+            -1 | 1 => u128::from(limb(op, 0)),
+            -2 | 2 => u128::from(limb(op, 1)) << 32 | u128::from(limb(op, 0)),
+            -3 | 3 => {
+                u128::from(limb(op, 2)) << 64
+                    | u128::from(limb(op, 1)) << 32
+                    | u128::from(limb(op, 0))
+            }
+            _ => {
+                u128::from(limb(op, 3)) << 96
+                    | u128::from(limb(op, 2)) << 64
+                    | u128::from(limb(op, 1)) << 32
+                    | u128::from(limb(op, 0))
+            }
         }
     }
 }
 
 #[inline]
-pub unsafe fn mpz_get_abs_u64(op: *const mpz_t) -> u64 {
-    match (*op).size {
-        0 => 0,
-        -1 | 1 => u64::from(mpz_limb(op, 0)),
-        _ => u64::from(mpz_limb(op, 1)) << 32 | u64::from(mpz_limb(op, 0)),
+pub fn get_abs_u64(op: &Integer) -> u64 {
+    unsafe {
+        match op.inner().size {
+            0 => 0,
+            -1 | 1 => u64::from(limb(op, 0)),
+            _ => u64::from(limb(op, 1)) << 32 | u64::from(limb(op, 0)),
+        }
     }
 }
 
 #[inline]
-pub unsafe fn mpz_get_abs_u32(op: *const mpz_t) -> u32 {
-    match (*op).size {
-        0 => 0,
-        _ => mpz_limb(op, 0),
+pub fn get_abs_u32(op: &Integer) -> u32 {
+    unsafe {
+        match op.inner().size {
+            0 => 0,
+            _ => limb(op, 0),
+        }
     }
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_cmp_u128(op1: *const mpz_t, op2: u128) -> c_int {
-    if (*op1).size > 4 {
-        return 1;
+pub fn cmp_u128(op1: &Integer, op2: u128) -> Ordering {
+    let size = op1.inner().size;
+    if size > 4 {
+        Ordering::Greater
+    } else if size < 0 {
+        Ordering::Less
+    } else {
+        get_abs_u128(op1).cmp(&op2)
     }
-    if (*op1).size < 0 {
-        return -1;
-    }
-    let abs1 = mpz_get_abs_u128(op1);
-    ord_int(abs1.cmp(&op2))
 }
 
 #[cfg(int_128)]
 #[inline]
-pub unsafe fn mpz_cmp_i128(op1: *const mpz_t, op2: i128) -> c_int {
-    if (*op1).size > 4 {
-        return 1;
-    }
-    if (*op1).size < -4 {
-        return -1;
-    }
-    let neg1 = (*op1).size < 0;
-    let abs1 = mpz_get_abs_u128(op1);
-    let (neg2, abs2) = op2.neg_abs();
-    match (neg1, neg2) {
-        (false, false) => ord_int(abs1.cmp(&abs2)),
-        (false, true) => 1,
-        (true, false) => -1,
-        (true, true) => ord_int(abs2.cmp(&abs1)),
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_cmp_u64(op1: *const mpz_t, op2: u64) -> c_int {
-    if (*op1).size > 2 {
-        return 1;
-    }
-    if (*op1).size < 0 {
-        return -1;
-    }
-    let abs1 = mpz_get_abs_u64(op1);
-    ord_int(abs1.cmp(&op2))
-}
-
-#[inline]
-pub unsafe fn mpz_cmp_i64(op1: *const mpz_t, op2: i64) -> c_int {
-    if (*op1).size > 2 {
-        return 1;
-    }
-    if (*op1).size < -2 {
-        return -1;
-    }
-    let neg1 = (*op1).size < 0;
-    let abs1 = mpz_get_abs_u64(op1);
-    let (neg2, abs2) = op2.neg_abs();
-    match (neg1, neg2) {
-        (false, false) => ord_int(abs1.cmp(&abs2)),
-        (false, true) => 1,
-        (true, false) => -1,
-        (true, true) => ord_int(abs2.cmp(&abs1)),
+pub fn cmp_i128(op1: &Integer, op2: i128) -> Ordering {
+    let size = op1.inner().size;
+    if size > 4 {
+        Ordering::Greater
+    } else if size < -4 {
+        Ordering::Less
+    } else {
+        let neg1 = size < 0;
+        let abs1 = get_abs_u128(op1);
+        let (neg2, abs2) = op2.neg_abs();
+        match (neg1, neg2) {
+            (false, false) => abs1.cmp(&abs2),
+            (false, true) => Ordering::Greater,
+            (true, false) => Ordering::Less,
+            (true, true) => abs2.cmp(&abs1),
+        }
     }
 }
 
 #[inline]
-pub unsafe fn mpz_cmp_u32(op1: *const mpz_t, op2: u32) -> c_int {
-    if (*op1).size > 1 {
-        return 1;
+pub fn cmp_u64(op1: &Integer, op2: u64) -> Ordering {
+    let size = op1.inner().size;
+    if size > 2 {
+        Ordering::Greater
+    } else if size < 0 {
+        Ordering::Less
+    } else {
+        get_abs_u64(op1).cmp(&op2)
     }
-    if (*op1).size < 0 {
-        return -1;
-    }
-    let abs1 = mpz_get_abs_u32(op1);
-    ord_int(abs1.cmp(&op2))
 }
 
 #[inline]
-pub unsafe fn mpz_cmp_i32(op1: *const mpz_t, op2: i32) -> c_int {
-    if (*op1).size > 1 {
-        return 1;
+pub fn cmp_i64(op1: &Integer, op2: i64) -> Ordering {
+    let size = op1.inner().size;
+    if size > 2 {
+        Ordering::Greater
+    } else if size < -2 {
+        Ordering::Less
+    } else {
+        let neg1 = size < 0;
+        let abs1 = get_abs_u64(op1);
+        let (neg2, abs2) = op2.neg_abs();
+        match (neg1, neg2) {
+            (false, false) => abs1.cmp(&abs2),
+            (false, true) => Ordering::Greater,
+            (true, false) => Ordering::Less,
+            (true, true) => abs2.cmp(&abs1),
+        }
     }
-    if (*op1).size < -1 {
-        return -1;
+}
+
+#[inline]
+pub fn cmp_u32(op1: &Integer, op2: u32) -> Ordering {
+    let size = op1.inner().size;
+    if size > 1 {
+        Ordering::Greater
+    } else if size < 0 {
+        Ordering::Less
+    } else {
+        get_abs_u32(op1).cmp(&op2)
     }
-    let neg1 = (*op1).size < 0;
-    let abs1 = mpz_get_abs_u32(op1);
-    let (neg2, abs2) = op2.neg_abs();
-    match (neg1, neg2) {
-        (false, false) => ord_int(abs1.cmp(&abs2)),
-        (false, true) => 1,
-        (true, false) => -1,
-        (true, true) => ord_int(abs2.cmp(&abs1)),
+}
+
+#[inline]
+pub fn cmp_i32(op1: &Integer, op2: i32) -> Ordering {
+    let size = op1.inner().size;
+    if size > 1 {
+        Ordering::Greater
+    } else if size < -1 {
+        Ordering::Less
+    } else {
+        let neg1 = size < 0;
+        let abs1 = get_abs_u32(op1);
+        let (neg2, abs2) = op2.neg_abs();
+        match (neg1, neg2) {
+            (false, false) => abs1.cmp(&abs2),
+            (false, true) => Ordering::Greater,
+            (true, false) => Ordering::Less,
+            (true, true) => abs2.cmp(&abs1),
+        }
     }
 }
 
