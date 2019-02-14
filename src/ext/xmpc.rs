@@ -87,6 +87,15 @@ macro_rules! wrap {
     };
 }
 
+// do not use mpc::neg to avoid function call when op is None
+#[inline]
+pub fn neg(rop: &mut Complex, op: Option<&Complex>, rnd: Round2) -> Ordering2 {
+    (
+        xmpfr::neg(rop.mut_real(), op.map(Complex::real), rnd.0),
+        xmpfr::neg(rop.mut_imag(), op.map(Complex::imag), rnd.1),
+    )
+}
+
 #[inline]
 pub fn mul_i(
     rop: &mut Complex,

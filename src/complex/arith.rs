@@ -45,8 +45,7 @@ impl Neg for Complex {
 impl NegAssign for Complex {
     #[inline]
     fn neg_assign(&mut self) {
-        self.mut_real().neg_assign();
-        self.mut_imag().neg_assign();
+        xmpc::neg(self, None, Default::default());
     }
 }
 
@@ -68,10 +67,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
     type Ordering = Ordering2;
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete, round: Round2) -> Ordering2 {
-        let ret = unsafe {
-            mpc::neg(self.as_raw_mut(), src.val.as_raw(), raw_round2(round))
-        };
-        ordering2(ret)
+        xmpc::neg(self, Some(src.val), round)
     }
 }
 

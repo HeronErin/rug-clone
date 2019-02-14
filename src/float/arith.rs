@@ -48,12 +48,7 @@ impl Neg for Float {
 impl NegAssign for Float {
     #[inline]
     fn neg_assign(&mut self) {
-        unsafe {
-            NegAssign::neg_assign(&mut self.inner_mut().sign);
-            if self.is_nan() {
-                mpfr::set_nanflag();
-            }
-        }
+        xmpfr::neg(self, None, Round::Nearest);
     }
 }
 
@@ -75,10 +70,7 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: NegIncomplete, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::neg(self.as_raw_mut(), src.val.as_raw(), raw_round(round))
-        };
-        ordering1(ret)
+        xmpfr::neg(self, Some(src.val), round)
     }
 }
 

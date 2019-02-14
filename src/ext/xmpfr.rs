@@ -136,10 +136,26 @@ pub fn si_pow_ui(
                 raw_round(reverse_rnd),
             )
         });
+        neg(rop, None, Round::Nearest);
+        reverse_ord.reverse()
+    }
+}
+
+// do not use mpfr::neg for op is None to avoid function call
+#[inline]
+pub fn neg(rop: &mut Float, op: Option<&Float>, rnd: Round) -> Ordering {
+    if let Some(op) = op {
+        ordering1(unsafe {
+            mpfr::neg(rop.as_raw_mut(), op.as_raw(), raw_round(rnd))
+        })
+    } else {
         unsafe {
             rop.inner_mut().sign.neg_assign();
+            if rop.is_nan() {
+                mpfr::set_nanflag();
+            }
+            Ordering::Equal
         }
-        reverse_ord.reverse()
     }
 }
 
