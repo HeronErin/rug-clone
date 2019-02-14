@@ -227,6 +227,10 @@ pub fn square(rop: &mut Rational, op: Option<&Rational>) {
 
 wrap! { fn neg(op) -> gmp::mpq_neg }
 wrap! { fn abs(op) -> gmp::mpq_abs }
+wrap! { fn add(op1, op2) -> gmp::mpq_add }
+wrap! { fn sub(op1, op2) -> gmp::mpq_sub }
+wrap! { fn mul(op1, op2) -> gmp::mpq_mul }
+wrap! { fn div(op1, op2) -> gmp::mpq_div }
 
 #[inline]
 pub unsafe fn mpq_mul_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {

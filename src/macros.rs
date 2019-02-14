@@ -596,9 +596,7 @@ macro_rules! arith_binary {
         impl<'a> $ImpAssign<&'a $Big> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$Big) {
-                unsafe {
-                    $func(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
-                }
+                $func(self, None, Some(rhs));
             }
         }
 
@@ -612,9 +610,7 @@ macro_rules! arith_binary {
         impl<'a> $ImpFrom<&'a $Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$Big) {
-                unsafe {
-                    $func(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
-                }
+                $func(self, Some(lhs), None);
             }
         }
 
@@ -627,13 +623,7 @@ macro_rules! arith_binary {
         impl<'a> Assign<$Incomplete<'a>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'a>) {
-                unsafe {
-                    $func(
-                        self.as_raw_mut(),
-                        src.lhs.as_raw(),
-                        src.rhs.as_raw(),
-                    );
-                }
+                $func(self, Some(src.lhs), Some(src.rhs));
             }
         }
 

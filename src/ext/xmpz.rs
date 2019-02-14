@@ -336,6 +336,84 @@ pub fn gcdext(
     }
 }
 
+#[inline]
+pub fn tdiv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    let n_ptr = n.unwrap_or(q).as_raw();
+    let d_ptr = d.unwrap_or(q).as_raw();
+    unsafe {
+        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
+        gmp::mpz_tdiv_q(q.as_raw_mut(), n_ptr, d_ptr);
+    }
+}
+
+#[inline]
+pub fn tdiv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    let n_ptr = n.unwrap_or(r).as_raw();
+    let d_ptr = d.unwrap_or(r).as_raw();
+    unsafe {
+        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
+        gmp::mpz_tdiv_r(r.as_raw_mut(), n_ptr, d_ptr);
+    }
+}
+
+#[inline]
+pub fn cdiv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    let n_ptr = n.unwrap_or(q).as_raw();
+    let d_ptr = d.unwrap_or(q).as_raw();
+    unsafe {
+        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
+        gmp::mpz_cdiv_q(q.as_raw_mut(), n_ptr, d_ptr);
+    }
+}
+
+#[inline]
+pub fn cdiv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    let n_ptr = n.unwrap_or(r).as_raw();
+    let d_ptr = d.unwrap_or(r).as_raw();
+    unsafe {
+        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
+        gmp::mpz_cdiv_r(r.as_raw_mut(), n_ptr, d_ptr);
+    }
+}
+
+#[inline]
+pub fn fdiv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    let n_ptr = n.unwrap_or(q).as_raw();
+    let d_ptr = d.unwrap_or(q).as_raw();
+    unsafe {
+        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
+        gmp::mpz_fdiv_q(q.as_raw_mut(), n_ptr, d_ptr);
+    }
+}
+
+#[inline]
+pub fn fdiv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    let n_ptr = n.unwrap_or(r).as_raw();
+    let d_ptr = d.unwrap_or(r).as_raw();
+    unsafe {
+        assert_ne!(gmp::mpz_sgn(d_ptr), 0, "division by zero");
+        gmp::mpz_fdiv_r(r.as_raw_mut(), n_ptr, d_ptr);
+    }
+}
+
+#[inline]
+pub fn ediv_q(q: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    match d.unwrap_or(q).cmp0() {
+        Ordering::Equal => panic!("division by zero"),
+        Ordering::Less => cdiv_q(q, n, d),
+        Ordering::Greater => fdiv_q(q, n, d),
+    }
+}
+
+#[inline]
+pub fn ediv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
+    match d.unwrap_or(r).cmp0() {
+        Ordering::Equal => panic!("division by zero"),
+        Ordering::Less => cdiv_r(r, n, d),
+        Ordering::Greater => fdiv_r(r, n, d),
+    }
+}
+
 wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> gmp::mpz_ui_pow_ui }
 wrap0! { fn fac_ui(n: u32) -> gmp::mpz_fac_ui }
 wrap0! { fn twofac_ui(n: u32) -> gmp::mpz_2fac_ui }
@@ -346,6 +424,12 @@ wrap0! { fn fib_ui(n: u32) -> gmp::mpz_fib_ui }
 wrap0! { fn lucnum_ui(n: u32) -> gmp::mpz_lucnum_ui }
 wrap! { fn neg(op) -> gmp::mpz_neg }
 wrap! { fn com(op) -> gmp::mpz_com }
+wrap! { fn add(op1, op2) -> gmp::mpz_add }
+wrap! { fn sub(op1, op2) -> gmp::mpz_sub }
+wrap! { fn mul(op1, op2) -> gmp::mpz_mul }
+wrap! { fn and(op1, op2) -> gmp::mpz_and }
+wrap! { fn ior(op1, op2) -> gmp::mpz_ior }
+wrap! { fn xor(op1, op2) -> gmp::mpz_xor }
 wrap! { fn abs(op) -> gmp::mpz_abs }
 wrap! { fn fdiv_r_2exp(op; n: u32) -> gmp::mpz_fdiv_r_2exp }
 wrap! { fn nextprime(op) -> gmp::mpz_nextprime }
@@ -430,26 +514,6 @@ pub unsafe fn mpz_set_limb(rop: *mut mpz_t, limb: gmp::limb_t) {
     } else {
         mpz_set_nonzero(rop, limb);
     }
-}
-
-#[inline]
-pub unsafe fn mpz_tdiv_q_check(
-    q: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_tdiv_q(q, n, d);
-}
-
-#[inline]
-pub unsafe fn mpz_tdiv_r_check(
-    r: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_tdiv_r(r, n, d);
 }
 
 #[inline]
@@ -565,26 +629,6 @@ pub unsafe fn mpz_si_tdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     if neg_n {
         gmp::mpz_neg(r, r);
     }
-}
-
-#[inline]
-pub unsafe fn mpz_cdiv_q_check(
-    q: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_cdiv_q(q, n, d);
-}
-
-#[inline]
-pub unsafe fn mpz_cdiv_r_check(
-    r: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_cdiv_r(r, n, d);
 }
 
 #[inline]
@@ -763,26 +807,6 @@ pub unsafe fn mpz_si_cdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
 }
 
 #[inline]
-pub unsafe fn mpz_fdiv_q_check(
-    q: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_fdiv_q(q, n, d);
-}
-
-#[inline]
-pub unsafe fn mpz_fdiv_r_check(
-    r: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    assert_ne!(gmp::mpz_sgn(d), 0, "division by zero");
-    gmp::mpz_fdiv_r(r, n, d);
-}
-
-#[inline]
 pub unsafe fn mpz_fdiv_q_ui_check(
     q: *mut mpz_t,
     n: *const mpz_t,
@@ -954,32 +978,6 @@ pub unsafe fn mpz_si_fdiv_r_check(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
         } else {
             mpz_set_0(r);
         }
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_ediv_q_check(
-    q: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    if gmp::mpz_sgn(d) < 0 {
-        mpz_cdiv_q_check(q, n, d);
-    } else {
-        mpz_fdiv_q_check(q, n, d);
-    }
-}
-
-#[inline]
-pub unsafe fn mpz_ediv_r_check(
-    r: *mut mpz_t,
-    n: *const mpz_t,
-    d: *const mpz_t,
-) {
-    if gmp::mpz_sgn(d) < 0 {
-        mpz_cdiv_r_check(r, n, d);
-    } else {
-        mpz_fdiv_r_check(r, n, d);
     }
 }
 

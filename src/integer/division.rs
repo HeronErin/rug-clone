@@ -179,27 +179,19 @@ macro_rules! div_op {
         impl<'i> $ImpAssign<&'i Integer> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: &Integer) {
-                unsafe {
-                    $trunc_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
-                }
+                $trunc_fn(self, None, Some(rhs));
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: &Integer) {
-                unsafe {
-                    $ceil_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
-                }
+                $ceil_fn(self, None, Some(rhs));
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: &Integer) {
-                unsafe {
-                    $floor_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
-                }
+                $floor_fn(self, None, Some(rhs));
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: &Integer) {
-                unsafe {
-                    $euc_fn(self.as_raw_mut(), self.as_raw(), rhs.as_raw());
-                }
+                $euc_fn(self, None, Some(rhs));
             }
         }
 
@@ -225,27 +217,19 @@ macro_rules! div_op {
         impl<'i> $ImpFrom<&'i Integer> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: &Integer) {
-                unsafe {
-                    $trunc_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
-                }
+                $trunc_fn(self, Some(lhs), None);
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: &Integer) {
-                unsafe {
-                    $ceil_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
-                }
+                $ceil_fn(self, Some(lhs), None);
             }
             #[inline]
             fn $floor_from(&mut self, lhs: &Integer) {
-                unsafe {
-                    $floor_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
-                }
+                $floor_fn(self, Some(lhs), None);
             }
             #[inline]
             fn $euc_from(&mut self, lhs: &Integer) {
-                unsafe {
-                    $euc_fn(self.as_raw_mut(), lhs.as_raw(), self.as_raw());
-                }
+                $euc_fn(self, Some(lhs), None);
             }
         }
 
@@ -261,26 +245,18 @@ macro_rules! div_op {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
                 match src {
-                    $Incomplete::Trunc(lhs, rhs) => unsafe {
-                        $trunc_fn(
-                            self.as_raw_mut(),
-                            lhs.as_raw(),
-                            rhs.as_raw(),
-                        );
-                    },
-                    $Incomplete::Ceil(lhs, rhs) => unsafe {
-                        $ceil_fn(self.as_raw_mut(), lhs.as_raw(), rhs.as_raw());
-                    },
-                    $Incomplete::Floor(lhs, rhs) => unsafe {
-                        $floor_fn(
-                            self.as_raw_mut(),
-                            lhs.as_raw(),
-                            rhs.as_raw(),
-                        );
-                    },
-                    $Incomplete::Euc(lhs, rhs) => unsafe {
-                        $euc_fn(self.as_raw_mut(), lhs.as_raw(), rhs.as_raw());
-                    },
+                    $Incomplete::Trunc(lhs, rhs) => {
+                        $trunc_fn(self, Some(lhs), Some(rhs));
+                    }
+                    $Incomplete::Ceil(lhs, rhs) => {
+                        $ceil_fn(self, Some(lhs), Some(rhs));
+                    }
+                    $Incomplete::Floor(lhs, rhs) => {
+                        $floor_fn(self, Some(lhs), Some(rhs));
+                    }
+                    $Incomplete::Euc(lhs, rhs) => {
+                        $euc_fn(self, Some(lhs), Some(rhs));
+                    }
                 }
             }
         }
@@ -712,10 +688,10 @@ macro_rules! div_prim {
 }
 
 div_op! {
-    xmpz::mpz_tdiv_q_check,
-    xmpz::mpz_cdiv_q_check,
-    xmpz::mpz_fdiv_q_check,
-    xmpz::mpz_ediv_q_check;
+    xmpz::tdiv_q,
+    xmpz::cdiv_q,
+    xmpz::fdiv_q,
+    xmpz::ediv_q;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -724,10 +700,10 @@ div_op! {
     DivRoundingIncomplete
 }
 div_op! {
-    xmpz::mpz_tdiv_r_check,
-    xmpz::mpz_cdiv_r_check,
-    xmpz::mpz_fdiv_r_check,
-    xmpz::mpz_ediv_r_check;
+    xmpz::tdiv_r,
+    xmpz::cdiv_r,
+    xmpz::fdiv_r,
+    xmpz::ediv_r;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;

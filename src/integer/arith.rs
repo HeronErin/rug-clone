@@ -37,7 +37,7 @@ arith_unary! {
 }
 arith_binary! {
     Integer;
-    gmp::mpz_add;
+    xmpz::add;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
@@ -45,7 +45,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    gmp::mpz_sub;
+    xmpz::sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -53,7 +53,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    gmp::mpz_mul;
+    xmpz::mul;
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
@@ -61,7 +61,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    xmpz::mpz_tdiv_q_check;
+    xmpz::tdiv_q;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
@@ -69,7 +69,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    xmpz::mpz_tdiv_r_check;
+    xmpz::tdiv_r;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
@@ -84,7 +84,7 @@ arith_unary! {
 }
 arith_binary! {
     Integer;
-    gmp::mpz_and;
+    xmpz::and;
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
@@ -92,7 +92,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    gmp::mpz_ior;
+    xmpz::ior;
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
@@ -100,7 +100,7 @@ arith_binary! {
 }
 arith_binary! {
     Integer;
-    gmp::mpz_xor;
+    xmpz::xor;
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }

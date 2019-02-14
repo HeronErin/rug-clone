@@ -34,7 +34,7 @@ arith_unary! {
 }
 arith_binary! {
     Rational;
-    gmp::mpq_add;
+    xmpq::add;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
@@ -42,7 +42,7 @@ arith_binary! {
 }
 arith_binary! {
     Rational;
-    gmp::mpq_sub;
+    xmpq::sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -50,7 +50,7 @@ arith_binary! {
 }
 arith_binary! {
     Rational;
-    gmp::mpq_mul;
+    xmpq::mul;
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
@@ -58,7 +58,7 @@ arith_binary! {
 }
 arith_binary! {
     Rational;
-    gmp::mpq_div;
+    xmpq::div;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
