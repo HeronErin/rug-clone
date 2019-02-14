@@ -20,6 +20,8 @@ pub mod gmp;
 pub(self) mod gmp32;
 #[cfg(all(feature = "integer", gmp_limb_bits_64))]
 pub(self) mod gmp64;
+#[cfg(feature = "rational")]
+pub mod gmpq;
 #[cfg(feature = "complex")]
 pub mod mpc;
 #[cfg(feature = "float")]

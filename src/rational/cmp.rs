@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use cast::cast;
-use ext::gmp as xgmp;
+use ext::gmpq as xgmpq;
 use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
 use std::cmp::Ordering;
@@ -115,22 +115,22 @@ macro_rules! cmp_num {
 }
 
 cmp_num! { gmp::mpq_cmp_si; i8 i16 i32}
-cmp_num! { xgmp::mpq_cmp_i64; i64 }
+cmp_num! { xgmpq::mpq_cmp_i64; i64 }
 #[cfg(int_128)]
-cmp_num! { xgmp::mpq_cmp_i128; i128 }
+cmp_num! { xgmpq::mpq_cmp_i128; i128 }
 #[cfg(target_pointer_width = "32")]
 cmp_num! { gmp::mpq_cmp_si; isize }
 #[cfg(target_pointer_width = "64")]
-cmp_num! { xgmp::mpq_cmp_i64; isize }
+cmp_num! { xgmpq::mpq_cmp_i64; isize }
 
 cmp_num! { gmp::mpq_cmp_ui; u8 u16 u32}
-cmp_num! { xgmp::mpq_cmp_u64; u64 }
+cmp_num! { xgmpq::mpq_cmp_u64; u64 }
 #[cfg(int_128)]
-cmp_num! { xgmp::mpq_cmp_u128; u128 }
+cmp_num! { xgmpq::mpq_cmp_u128; u128 }
 #[cfg(target_pointer_width = "32")]
 cmp_num! { gmp::mpq_cmp_ui; usize }
 #[cfg(target_pointer_width = "64")]
-cmp_num! { xgmp::mpq_cmp_u64; usize }
+cmp_num! { xgmpq::mpq_cmp_u64; usize }
 
 macro_rules! cmp_num_iden {
     ($func:path; $Num:ty; $($Den:ty)*) => { $(
@@ -204,86 +204,86 @@ macro_rules! cmp_num_uden {
 macro_rules! cmp_inum_32 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { gmp::mpq_cmp_si; $Num; i8 i16 i32 }
-        cmp_num_iden! { xgmp::mpq_cmp_i64; $Num; i64 }
+        cmp_num_iden! { xgmpq::mpq_cmp_i64; $Num; i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xgmp::mpq_cmp_i128; $Num; i128 }
+        cmp_num_iden! { xgmpq::mpq_cmp_i128; $Num; i128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_iden! { gmp::mpq_cmp_si; $Num; isize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_iden! { xgmp::mpq_cmp_i64; $Num; isize }
+        cmp_num_iden! { xgmpq::mpq_cmp_i64; $Num; isize }
 
         cmp_num_uden! { gmp::mpq_cmp_si; $Num; u8 u16 u32 }
-        cmp_num_uden! { xgmp::mpq_cmp_i64; $Num; u64 }
+        cmp_num_uden! { xgmpq::mpq_cmp_i64; $Num; u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xgmp::mpq_cmp_i128; $Num; u128 }
+        cmp_num_uden! { xgmpq::mpq_cmp_i128; $Num; u128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_uden! { gmp::mpq_cmp_si; $Num; usize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_uden! { xgmp::mpq_cmp_i64; $Num; usize }
+        cmp_num_uden! { xgmpq::mpq_cmp_i64; $Num; usize }
     )* };
 }
 
 macro_rules! cmp_inum_64 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xgmp::mpq_cmp_i64; $Num; i8 i16 i32 i64 }
+        cmp_num_iden! { xgmpq::mpq_cmp_i64; $Num; i8 i16 i32 i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xgmp::mpq_cmp_i128; $Num; i128 }
-        cmp_num_iden! { xgmp::mpq_cmp_i64; $Num; isize }
-        cmp_num_uden! { xgmp::mpq_cmp_i64; $Num; u8 u16 u32 u64 }
+        cmp_num_iden! { xgmpq::mpq_cmp_i128; $Num; i128 }
+        cmp_num_iden! { xgmpq::mpq_cmp_i64; $Num; isize }
+        cmp_num_uden! { xgmpq::mpq_cmp_i64; $Num; u8 u16 u32 u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xgmp::mpq_cmp_i128; $Num; u128 }
-        cmp_num_uden! { xgmp::mpq_cmp_i64; $Num; usize }
+        cmp_num_uden! { xgmpq::mpq_cmp_i128; $Num; u128 }
+        cmp_num_uden! { xgmpq::mpq_cmp_i64; $Num; usize }
     )* };
 }
 
 #[cfg(int_128)]
 macro_rules! cmp_inum_128 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xgmp::mpq_cmp_i128; $Num; i8 i16 i32 i64 i128 isize }
-        cmp_num_uden! { xgmp::mpq_cmp_i128; $Num; u8 u16 u32 u64 u128 usize }
+        cmp_num_iden! { xgmpq::mpq_cmp_i128; $Num; i8 i16 i32 i64 i128 isize }
+        cmp_num_uden! { xgmpq::mpq_cmp_i128; $Num; u8 u16 u32 u64 u128 usize }
     )* };
 }
 
 macro_rules! cmp_unum_32 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { gmp::mpq_cmp_ui; $Num; i8 i16 i32 }
-        cmp_num_iden! { xgmp::mpq_cmp_u64; $Num; i64 }
+        cmp_num_iden! { xgmpq::mpq_cmp_u64; $Num; i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xgmp::mpq_cmp_u128; $Num; i128 }
+        cmp_num_iden! { xgmpq::mpq_cmp_u128; $Num; i128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_iden! { gmp::mpq_cmp_ui; $Num; isize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_iden! { xgmp::mpq_cmp_u64; $Num; isize }
+        cmp_num_iden! { xgmpq::mpq_cmp_u64; $Num; isize }
 
         cmp_num_uden! { gmp::mpq_cmp_ui; $Num; u8 u16 u32 }
-        cmp_num_uden! { xgmp::mpq_cmp_u64; $Num; u64 }
+        cmp_num_uden! { xgmpq::mpq_cmp_u64; $Num; u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xgmp::mpq_cmp_u128; $Num; u128 }
+        cmp_num_uden! { xgmpq::mpq_cmp_u128; $Num; u128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_uden! { gmp::mpq_cmp_ui; $Num; usize }
         #[cfg(target_pointer_width = "64")]
-        cmp_num_uden! { xgmp::mpq_cmp_u64; $Num; usize }
+        cmp_num_uden! { xgmpq::mpq_cmp_u64; $Num; usize }
     )* };
 }
 
 macro_rules! cmp_unum_64 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xgmp::mpq_cmp_u64; $Num; i8 i16 i32 i64 }
+        cmp_num_iden! { xgmpq::mpq_cmp_u64; $Num; i8 i16 i32 i64 }
         #[cfg(int_128)]
-        cmp_num_iden! { xgmp::mpq_cmp_u128; $Num; i128 }
-        cmp_num_iden! { xgmp::mpq_cmp_u64; $Num; isize }
-        cmp_num_uden! { xgmp::mpq_cmp_u64; $Num; u8 u16 u32 u64 }
+        cmp_num_iden! { xgmpq::mpq_cmp_u128; $Num; i128 }
+        cmp_num_iden! { xgmpq::mpq_cmp_u64; $Num; isize }
+        cmp_num_uden! { xgmpq::mpq_cmp_u64; $Num; u8 u16 u32 u64 }
         #[cfg(int_128)]
-        cmp_num_uden! { xgmp::mpq_cmp_u128; $Num; u128 }
-        cmp_num_uden! { xgmp::mpq_cmp_u64; $Num; usize }
+        cmp_num_uden! { xgmpq::mpq_cmp_u128; $Num; u128 }
+        cmp_num_uden! { xgmpq::mpq_cmp_u64; $Num; usize }
     )* };
 }
 
 #[cfg(int_128)]
 macro_rules! cmp_unum_128 {
     ($($Num:ty)*) => { $(
-        cmp_num_iden! { xgmp::mpq_cmp_u128; $Num; i8 i16 i32 i64 i128 isize }
-        cmp_num_uden! { xgmp::mpq_cmp_u128; $Num; u8 u16 u32 u64 u128 usize }
+        cmp_num_iden! { xgmpq::mpq_cmp_u128; $Num; i8 i16 i32 i64 i128 isize }
+        cmp_num_uden! { xgmpq::mpq_cmp_u128; $Num; u8 u16 u32 u64 u128 usize }
     )* };
 }
 
@@ -311,7 +311,7 @@ macro_rules! cmp_f {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
                 other.is_finite() && unsafe {
-                    xgmp::mpq_cmp_finite_d(self.as_raw(), cast(*other)) == 0
+                    xgmpq::mpq_cmp_finite_d(self.as_raw(), cast(*other)) == 0
                 }
             }
         }
@@ -320,7 +320,7 @@ macro_rules! cmp_f {
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if other.is_finite() {
                     let ord = unsafe {
-                        xgmp::mpq_cmp_finite_d(self.as_raw(), cast(*other))
+                        xgmpq::mpq_cmp_finite_d(self.as_raw(), cast(*other))
                     };
                     Some(ord.cmp(&0))
                 } else if other.is_nan() {
