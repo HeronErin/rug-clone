@@ -109,7 +109,7 @@ arith_binary! {
 
 arith_prim_commut! {
     Integer;
-    xmpz::mpz_add_si;
+    xmpz::add_i32;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
@@ -118,7 +118,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::mpz_sub_si, xmpz::mpz_si_sub;
+    xmpz::sub_i32, xmpz::i32_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -127,7 +127,7 @@ arith_prim_noncommut! {
 }
 arith_prim_commut! {
     Integer;
-    gmp::mpz_mul_si;
+    xmpz::mul_i32;
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
@@ -136,7 +136,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::mpz_tdiv_q_si_check, xmpz::mpz_si_tdiv_q_check;
+    xmpz::tdiv_q_i32, xmpz::i32_tdiv_q;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
@@ -145,7 +145,7 @@ arith_prim_noncommut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::mpz_tdiv_r_si_check, xmpz::mpz_si_tdiv_r_check;
+    xmpz::tdiv_r_i32, xmpz::i32_tdiv_r;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
@@ -154,7 +154,7 @@ arith_prim_noncommut! {
 }
 arith_prim! {
     Integer;
-    xmpz::mpz_lshift_si;
+    xmpz::lshift_i32;
     Shl { shl }
     ShlAssign { shl_assign }
     i32;
@@ -162,7 +162,7 @@ arith_prim! {
 }
 arith_prim! {
     Integer;
-    xmpz::mpz_rshift_si;
+    xmpz::rshift_i32;
     Shr { shr }
     ShrAssign { shr_assign }
     i32;
@@ -170,7 +170,7 @@ arith_prim! {
 }
 arith_prim_commut! {
     Integer;
-    xmpz::bitand_si;
+    xmpz::and_i32;
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
@@ -179,7 +179,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xmpz::bitor_si;
+    xmpz::ior_i32;
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
@@ -188,7 +188,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xmpz::bitxor_si;
+    xmpz::xor_i32;
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }
@@ -198,7 +198,7 @@ arith_prim_commut! {
 
 arith_prim_commut! {
     Integer;
-    gmp::mpz_add_ui;
+    xmpz::add_u32;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
@@ -207,7 +207,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    gmp::mpz_sub_ui, gmp::mpz_ui_sub;
+    xmpz::sub_u32, xmpz::u32_sub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
@@ -216,7 +216,7 @@ arith_prim_noncommut! {
 }
 arith_prim_commut! {
     Integer;
-    gmp::mpz_mul_ui;
+    xmpz::mul_u32;
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
@@ -225,7 +225,7 @@ arith_prim_commut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::mpz_tdiv_q_ui_check, xmpz::mpz_ui_tdiv_q_check;
+    xmpz::tdiv_q_u32, xmpz::u32_tdiv_q;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
@@ -234,7 +234,7 @@ arith_prim_noncommut! {
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::mpz_tdiv_r_ui_check, xmpz::mpz_ui_tdiv_r_check;
+    xmpz::tdiv_r_u32, xmpz::u32_tdiv_r;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
@@ -243,7 +243,7 @@ arith_prim_noncommut! {
 }
 arith_prim! {
     Integer;
-    gmp::mpz_mul_2exp;
+    xmpz::mul_2exp;
     Shl { shl }
     ShlAssign { shl_assign }
     u32;
@@ -251,7 +251,7 @@ arith_prim! {
 }
 arith_prim! {
     Integer;
-    gmp::mpz_fdiv_q_2exp;
+    xmpz::fdiv_q_2exp;
     Shr { shr }
     ShrAssign { shr_assign }
     u32;
@@ -259,7 +259,7 @@ arith_prim! {
 }
 arith_prim! {
     Integer;
-    gmp::mpz_pow_ui;
+    xmpz::pow_u32;
     Pow { pow }
     PowAssign { pow_assign }
     u32;
@@ -267,7 +267,7 @@ arith_prim! {
 }
 arith_prim_commut! {
     Integer;
-    xmpz::bitand_ui;
+    xmpz::and_u32;
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
@@ -276,7 +276,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xmpz::bitor_ui;
+    xmpz::ior_u32;
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
@@ -285,7 +285,7 @@ arith_prim_commut! {
 }
 arith_prim_commut! {
     Integer;
-    xmpz::bitxor_ui;
+    xmpz::xor_u32;
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }

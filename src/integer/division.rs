@@ -410,27 +410,19 @@ macro_rules! div_prim {
         impl $ImpAssign<$T> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $trunc_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
-                }
+                $trunc_fn(self, None, rhs);
             }
             #[inline]
             fn $ceil_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $ceil_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
-                }
+                $ceil_fn(self, None, rhs);
             }
             #[inline]
             fn $floor_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $floor_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
-                }
+                $floor_fn(self, None, rhs);
             }
             #[inline]
             fn $euc_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $euc_fn(self.as_raw_mut(), self.as_raw(), rhs.into());
-                }
+                $euc_fn(self, None, rhs);
             }
         }
 
@@ -465,18 +457,18 @@ macro_rules! div_prim {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
                 match src {
-                    $Incomplete::Trunc(lhs, rhs) => unsafe {
-                        $trunc_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
-                    },
-                    $Incomplete::Ceil(lhs, rhs) => unsafe {
-                        $ceil_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
-                    },
-                    $Incomplete::Floor(lhs, rhs) => unsafe {
-                        $floor_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
-                    },
-                    $Incomplete::Euc(lhs, rhs) => unsafe {
-                        $euc_fn(self.as_raw_mut(), lhs.as_raw(), rhs.into());
-                    },
+                    $Incomplete::Trunc(lhs, rhs) => {
+                        $trunc_fn(self, Some(lhs), rhs);
+                    }
+                    $Incomplete::Ceil(lhs, rhs) => {
+                        $ceil_fn(self, Some(lhs), rhs);
+                    }
+                    $Incomplete::Floor(lhs, rhs) => {
+                        $floor_fn(self, Some(lhs), rhs);
+                    }
+                    $Incomplete::Euc(lhs, rhs) => {
+                        $euc_fn(self, Some(lhs), rhs);
+                    }
                 }
             }
         }
@@ -581,35 +573,19 @@ macro_rules! div_prim {
         impl $ImpFrom<$T> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: $T) {
-                unsafe {
-                    $trunc_from_fn(
-                        self.as_raw_mut(),
-                        lhs.into(),
-                        self.as_raw(),
-                    );
-                }
+                $trunc_from_fn(self, lhs, None);
             }
             #[inline]
             fn $ceil_from(&mut self, lhs: $T) {
-                unsafe {
-                    $ceil_from_fn(self.as_raw_mut(), lhs.into(), self.as_raw());
-                }
+                $ceil_from_fn(self, lhs, None);
             }
             #[inline]
             fn $floor_from(&mut self, lhs: $T) {
-                unsafe {
-                    $floor_from_fn(
-                        self.as_raw_mut(),
-                        lhs.into(),
-                        self.as_raw(),
-                    );
-                }
+                $floor_from_fn(self, lhs, None);
             }
             #[inline]
             fn $euc_from(&mut self, lhs: $T) {
-                unsafe {
-                    $euc_from_fn(self.as_raw_mut(), lhs.into(), self.as_raw());
-                }
+                $euc_from_fn(self, lhs, None);
             }
         }
 
@@ -644,34 +620,18 @@ macro_rules! div_prim {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete) {
                 match src {
-                    $FromIncomplete::Trunc(lhs, rhs) => unsafe {
-                        $trunc_from_fn(
-                            self.as_raw_mut(),
-                            lhs.into(),
-                            rhs.as_raw(),
-                        );
-                    },
-                    $FromIncomplete::Ceil(lhs, rhs) => unsafe {
-                        $ceil_from_fn(
-                            self.as_raw_mut(),
-                            lhs.into(),
-                            rhs.as_raw(),
-                        );
-                    },
-                    $FromIncomplete::Floor(lhs, rhs) => unsafe {
-                        $floor_from_fn(
-                            self.as_raw_mut(),
-                            lhs.into(),
-                            rhs.as_raw(),
-                        );
-                    },
-                    $FromIncomplete::Euc(lhs, rhs) => unsafe {
-                        $euc_from_fn(
-                            self.as_raw_mut(),
-                            lhs.into(),
-                            rhs.as_raw(),
-                        );
-                    },
+                    $FromIncomplete::Trunc(lhs, rhs) => {
+                        $trunc_from_fn(self, lhs, Some(rhs));
+                    }
+                    $FromIncomplete::Ceil(lhs, rhs) => {
+                        $ceil_from_fn(self, lhs, Some(rhs));
+                    }
+                    $FromIncomplete::Floor(lhs, rhs) => {
+                        $floor_from_fn(self, lhs, Some(rhs));
+                    }
+                    $FromIncomplete::Euc(lhs, rhs) => {
+                        $euc_from_fn(self, lhs, Some(rhs));
+                    }
                 }
             }
         }
@@ -713,14 +673,14 @@ div_op! {
 }
 
 div_prim! {
-    xmpz::mpz_tdiv_q_si_check,
-    xmpz::mpz_cdiv_q_si_check,
-    xmpz::mpz_fdiv_q_si_check,
-    xmpz::mpz_ediv_q_si_check;
-    xmpz::mpz_si_tdiv_q_check,
-    xmpz::mpz_si_cdiv_q_check,
-    xmpz::mpz_si_fdiv_q_check,
-    xmpz::mpz_si_ediv_q_check;
+    xmpz::tdiv_q_i32,
+    xmpz::cdiv_q_i32,
+    xmpz::fdiv_q_i32,
+    xmpz::ediv_q_i32;
+    xmpz::i32_tdiv_q,
+    xmpz::i32_cdiv_q,
+    xmpz::i32_fdiv_q,
+    xmpz::i32_ediv_q;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -730,14 +690,14 @@ div_prim! {
     DivRoundingI32Incomplete DivRoundingFromI32Incomplete
 }
 div_prim! {
-    xmpz::mpz_tdiv_r_si_check,
-    xmpz::mpz_cdiv_r_si_check,
-    xmpz::mpz_fdiv_r_si_check,
-    xmpz::mpz_ediv_r_si_check;
-    xmpz::mpz_si_tdiv_r_check,
-    xmpz::mpz_si_cdiv_r_check,
-    xmpz::mpz_si_fdiv_r_check,
-    xmpz::mpz_si_ediv_r_check;
+    xmpz::tdiv_r_i32,
+    xmpz::cdiv_r_i32,
+    xmpz::fdiv_r_i32,
+    xmpz::ediv_r_i32;
+    xmpz::i32_tdiv_r,
+    xmpz::i32_cdiv_r,
+    xmpz::i32_fdiv_r,
+    xmpz::i32_ediv_r;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
@@ -747,14 +707,14 @@ div_prim! {
     RemRoundingI32Incomplete RemRoundingFromI32Incomplete
 }
 div_prim! {
-    xmpz::mpz_tdiv_q_ui_check,
-    xmpz::mpz_cdiv_q_ui_check,
-    xmpz::mpz_fdiv_q_ui_check,
-    xmpz::mpz_ediv_q_ui_check;
-    xmpz::mpz_ui_tdiv_q_check,
-    xmpz::mpz_ui_cdiv_q_check,
-    xmpz::mpz_ui_fdiv_q_check,
-    xmpz::mpz_ui_ediv_q_check;
+    xmpz::tdiv_q_u32,
+    xmpz::cdiv_q_u32,
+    xmpz::fdiv_q_u32,
+    xmpz::ediv_q_u32;
+    xmpz::u32_tdiv_q,
+    xmpz::u32_cdiv_q,
+    xmpz::u32_fdiv_q,
+    xmpz::u32_ediv_q;
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign
         div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
@@ -764,14 +724,14 @@ div_prim! {
     DivRoundingU32Incomplete DivRoundingFromU32Incomplete
 }
 div_prim! {
-    xmpz::mpz_tdiv_r_ui_check,
-    xmpz::mpz_cdiv_r_ui_check,
-    xmpz::mpz_fdiv_r_ui_check,
-    xmpz::mpz_ediv_r_ui_check;
-    xmpz::mpz_ui_tdiv_r_check,
-    xmpz::mpz_ui_cdiv_r_check,
-    xmpz::mpz_ui_fdiv_r_check,
-    xmpz::mpz_ui_ediv_r_check;
+    xmpz::tdiv_r_u32,
+    xmpz::cdiv_r_u32,
+    xmpz::fdiv_r_u32,
+    xmpz::ediv_r_u32;
+    xmpz::u32_tdiv_r,
+    xmpz::u32_cdiv_r,
+    xmpz::u32_fdiv_r,
+    xmpz::u32_ediv_r;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign
         rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;

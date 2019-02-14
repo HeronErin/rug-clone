@@ -687,9 +687,7 @@ macro_rules! arith_prim {
         impl $ImpAssign<$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $T) {
-                unsafe {
-                    $func(self.as_raw_mut(), self.as_raw(), rhs.into());
-                }
+                $func(self, None, rhs);
             }
         }
 
@@ -709,9 +707,7 @@ macro_rules! arith_prim {
         impl<'a> Assign<$Incomplete<'a>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                unsafe {
-                    $func(self.as_raw_mut(), src.lhs.as_raw(), src.rhs.into());
-                }
+                $func(self, Some(src.lhs), src.rhs);
             }
         }
 
@@ -865,9 +861,7 @@ macro_rules! arith_prim_noncommut {
         impl $ImpFrom<$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $T) {
-                unsafe {
-                    $func_from(self.as_raw_mut(), lhs.into(), self.as_raw());
-                }
+                $func_from(self, lhs, None);
             }
         }
 
@@ -887,13 +881,7 @@ macro_rules! arith_prim_noncommut {
         impl<'a> Assign<$FromIncomplete<'a>> for $Big {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete) {
-                unsafe {
-                    $func_from(
-                        self.as_raw_mut(),
-                        src.lhs.into(),
-                        src.rhs.as_raw(),
-                    );
-                }
+                $func_from(self, src.lhs, Some(src.rhs));
             }
         }
 

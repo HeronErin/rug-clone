@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use ext::xmpq;
-use gmp_mpfr_sys::gmp;
 use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
 use std::i32;
 use std::iter::{Product, Sum};
@@ -67,7 +66,7 @@ arith_binary! {
 
 arith_prim! {
     Rational;
-    xmpq::mpq_mul_2exp_si;
+    xmpq::lshift_i32;
     Shl { shl }
     ShlAssign { shl_assign }
     i32;
@@ -75,7 +74,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    xmpq::mpq_div_2exp_si;
+    xmpq::rshift_i32;
     Shr { shr }
     ShrAssign { shr_assign }
     i32;
@@ -83,7 +82,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    xmpq::mpq_pow_si;
+    xmpq::pow_i32;
     Pow { pow }
     PowAssign { pow_assign }
     i32;
@@ -92,7 +91,7 @@ arith_prim! {
 
 arith_prim! {
     Rational;
-    gmp::mpq_mul_2exp;
+    xmpq::mul_2exp;
     Shl { shl }
     ShlAssign { shl_assign }
     u32;
@@ -100,7 +99,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    gmp::mpq_div_2exp;
+    xmpq::div_2exp;
     Shr { shr }
     ShrAssign { shr_assign }
     u32;
@@ -108,7 +107,7 @@ arith_prim! {
 }
 arith_prim! {
     Rational;
-    xmpq::mpq_pow_ui;
+    xmpq::pow_u32;
     Pow { pow }
     PowAssign { pow_assign }
     u32;

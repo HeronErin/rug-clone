@@ -14,6 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+use ext::xmpq;
 use gmp_mpfr_sys::gmp;
 use rational::big;
 use rational::ParseRationalError;
@@ -132,9 +133,7 @@ impl Assign for Rational {
 impl<'a> Assign<&'a Rational> for Rational {
     #[inline]
     fn assign(&mut self, src: &Rational) {
-        unsafe {
-            gmp::mpq_set(self.as_raw_mut(), src.as_raw());
-        }
+        xmpq::set(self, Some(src));
     }
 }
 

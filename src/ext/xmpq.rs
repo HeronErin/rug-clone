@@ -20,7 +20,7 @@ use gmp_mpfr_sys::gmp::{self, mpq_t, mpz_t};
 use misc::NegAbs;
 use rational::SmallRational;
 use std::mem;
-use std::os::raw::{c_int, c_long, c_ulong};
+use std::os::raw::c_int;
 use {Integer, Rational};
 
 macro_rules! wrap {
@@ -40,6 +40,15 @@ macro_rules! wrap {
             }
         }
     };
+}
+
+#[inline]
+pub fn set(rop: &mut Rational, op: Option<&Rational>) {
+    if let Some(op) = op {
+        unsafe {
+            gmp::mpq_set(rop.as_raw_mut(), op.as_raw());
+        }
+    }
 }
 
 #[inline]
@@ -231,46 +240,46 @@ wrap! { fn add(op1, op2) -> gmp::mpq_add }
 wrap! { fn sub(op1, op2) -> gmp::mpq_sub }
 wrap! { fn mul(op1, op2) -> gmp::mpq_mul }
 wrap! { fn div(op1, op2) -> gmp::mpq_div }
+wrap! { fn mul_2exp(op1; op2: u32) -> gmp::mpq_mul_2exp }
+wrap! { fn div_2exp(op1; op2: u32) -> gmp::mpq_div_2exp }
 
 #[inline]
-pub unsafe fn mpq_mul_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
+pub fn lshift_i32(rop: &mut Rational, op1: Option<&Rational>, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        gmp::mpq_mul_2exp(rop, op1, op2_abs);
+        mul_2exp(rop, op1, op2_abs);
     } else {
-        gmp::mpq_div_2exp(rop, op1, op2_abs);
+        div_2exp(rop, op1, op2_abs);
     }
 }
 
 #[inline]
-pub unsafe fn mpq_div_2exp_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
+pub fn rshift_i32(rop: &mut Rational, op1: Option<&Rational>, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        gmp::mpq_div_2exp(rop, op1, op2_abs);
+        div_2exp(rop, op1, op2_abs);
     } else {
-        gmp::mpq_mul_2exp(rop, op1, op2_abs);
+        mul_2exp(rop, op1, op2_abs);
     }
 }
 
 #[inline]
-pub unsafe fn mpq_pow_ui(rop: *mut mpq_t, op1: *const mpq_t, op2: c_ulong) {
-    let rop_num = gmp::mpq_numref(rop);
-    let rop_den = gmp::mpq_denref(rop);
-    let op1_num = gmp::mpq_numref_const(op1);
-    let op1_den = gmp::mpq_denref_const(op1);
-    gmp::mpz_pow_ui(rop_num, op1_num, op2);
-    gmp::mpz_pow_ui(rop_den, op1_den, op2);
+pub fn pow_u32(rop: &mut Rational, op1: Option<&Rational>, op2: u32) {
+    unsafe {
+        let (rop_num, rop_den) = rop.as_mut_numer_denom_no_canonicalization();
+        let op1_num = op1.map(Rational::numer);
+        let op1_den = op1.map(Rational::denom);
+        xmpz::pow_u32(rop_num, op1_num, op2);
+        xmpz::pow_u32(rop_den, op1_den, op2);
+    }
 }
 
 #[inline]
-pub unsafe fn mpq_pow_si(rop: *mut mpq_t, op1: *const mpq_t, op2: c_long) {
+pub fn pow_i32(rop: &mut Rational, op1: Option<&Rational>, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
+    pow_u32(rop, op1, op2_abs);
     if !op2_neg {
-        mpq_pow_ui(rop, op1, op2_abs);
-    } else {
-        assert_ne!(gmp::mpq_sgn(op1), 0, "division by zero");
-        mpq_pow_ui(rop, op1, op2_abs);
-        gmp::mpq_inv(rop, rop);
+        inv(rop, None);
     }
 }
 
