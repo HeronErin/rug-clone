@@ -473,6 +473,11 @@ wrap! { fn nextprime(op) -> gmp::mpz_nextprime }
 wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
 
 #[inline]
+pub fn is_1(op: &Integer) -> bool {
+    op.inner().size == 1 && unsafe { limb(op, 0) == 1 }
+}
+
+#[inline]
 pub fn set_0(rop: &mut Integer) {
     unsafe {
         rop.inner_mut().size = 0;
@@ -1698,4 +1703,60 @@ pub fn round_away(rem: &Integer, divisor: &Integer) -> bool {
     }
     let div_limb = unsafe { limb(divisor, 0) };
     rem_limb >= div_limb
+}
+
+#[inline]
+pub fn start_invert(op: &Integer, modulo: &Integer) -> Option<Integer> {
+    if modulo.cmp0() == Ordering::Equal {
+        return None;
+    }
+    let (gcd, sinverse) =
+        <(Integer, Integer)>::from(op.gcd_cofactors_ref(modulo));
+    if is_1(&gcd) {
+        Some(sinverse)
+    } else {
+        None
+    }
+}
+
+#[inline]
+pub fn finish_invert(rop: &mut Integer, s: Option<&Integer>, modulo: &Integer) {
+    if s.unwrap_or(rop).cmp0() == Ordering::Less {
+        if modulo.cmp0() == Ordering::Less {
+            sub(rop, s, Some(modulo))
+        } else {
+            add(rop, s, Some(modulo))
+        }
+    } else {
+        set(rop, s)
+    }
+}
+
+#[inline]
+pub fn pow_mod(
+    rop: &mut Integer,
+    base: Option<&Integer>,
+    exponent: &Integer,
+    modulo: &Integer,
+) {
+    if exponent.cmp0() == Ordering::Less {
+        finish_invert(rop, base, modulo);
+        unsafe {
+            gmp::mpz_powm(
+                rop.as_raw_mut(),
+                rop.as_raw(),
+                exponent.as_neg().as_raw(),
+                modulo.as_raw(),
+            );
+        }
+    } else {
+        unsafe {
+            gmp::mpz_powm(
+                rop.as_raw_mut(),
+                base.unwrap_or(rop).as_raw(),
+                exponent.as_raw(),
+                modulo.as_raw(),
+            );
+        }
+    }
 }

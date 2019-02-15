@@ -44,11 +44,6 @@ macro_rules! wrap {
 }
 
 #[inline]
-pub fn int_is_1(op: &Integer) -> bool {
-    op.inner().size == 1 && unsafe { xmpz::limb(op, 0) == 1 }
-}
-
-#[inline]
 pub fn set(rop: &mut Rational, op: Option<&Rational>) {
     if let Some(op) = op {
         unsafe {
@@ -106,7 +101,7 @@ pub fn ceil(
     op: Option<&Rational>,
 ) {
     process_int_rat(rint, rrat, op, |r, n, d| {
-        if int_is_1(d) {
+        if xmpz::is_1(d) {
             xmpz::set(r, n);
         } else {
             // use tdiv_q rather than cdiv_q to let GMP not keep remainder
@@ -126,7 +121,7 @@ pub fn floor(
     op: Option<&Rational>,
 ) {
     process_int_rat(rint, rrat, op, |r, n, d| {
-        if int_is_1(d) {
+        if xmpz::is_1(d) {
             xmpz::set(r, n);
         } else {
             // use tdiv_q rather than fdiv_q to let GMP not keep remainder

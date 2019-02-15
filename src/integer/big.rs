@@ -3249,10 +3249,10 @@ impl Integer {
     #[inline]
     pub fn invert_mut(&mut self, modulo: &Self) -> Result<(), ()> {
         match self.invert_ref(modulo) {
-            Some(InvertIncomplete { sinverse, .. }) => unsafe {
-                mpz_invert_ref(self.as_raw_mut(), &sinverse, modulo);
+            Some(InvertIncomplete { sinverse, .. }) => {
+                xmpz::finish_invert(self, Some(&sinverse), modulo);
                 Ok(())
-            },
+            }
             None => Err(()),
         }
     }
@@ -3293,15 +3293,8 @@ impl Integer {
         &'a self,
         modulo: &'a Self,
     ) -> Option<InvertIncomplete<'a>> {
-        if modulo.cmp0() == Ordering::Equal {
-            return None;
-        }
-        let (gcd, sinverse) =
-            <(Integer, Integer)>::from(self.gcd_cofactors_ref(modulo));
-        if gcd != 1 {
-            return None;
-        }
-        Some(InvertIncomplete { sinverse, modulo })
+        xmpz::start_invert(self, modulo)
+            .map(|sinverse| InvertIncomplete { sinverse, modulo })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -3395,15 +3388,7 @@ impl Integer {
             Some(PowModIncomplete { sinverse, .. }) => sinverse,
             None => return Err(()),
         };
-        unsafe {
-            mpz_pow_mod_ref(
-                self.as_raw_mut(),
-                self,
-                sinverse.as_ref(),
-                exponent,
-                modulo,
-            );
-        }
+        xmpz::pow_mod(self, sinverse.as_ref(), exponent, modulo);
         Ok(())
     }
 
@@ -3445,21 +3430,21 @@ impl Integer {
         exponent: &'a Self,
         modulo: &'a Self,
     ) -> Option<PowModIncomplete<'a>> {
-        if exponent.cmp0() != Ordering::Less {
-            if modulo.cmp0() == Ordering::Equal {
-                None
-            } else {
-                Some(PowModIncomplete {
-                    ref_self: self,
-                    sinverse: None,
-                    exponent,
-                    modulo,
-                })
-            }
-        } else if let Some(inverse) = self.invert_ref(modulo) {
+        if exponent.cmp0() == Ordering::Less {
+            let sinverse = match self.invert_ref(modulo) {
+                Some(InvertIncomplete { sinverse, .. }) => sinverse,
+                None => return None,
+            };
             Some(PowModIncomplete {
-                ref_self: self,
-                sinverse: Some(inverse.sinverse),
+                ref_self: None,
+                sinverse: Some(sinverse),
+                exponent,
+                modulo,
+            })
+        } else if modulo.cmp0() != Ordering::Equal {
+            Some(PowModIncomplete {
+                ref_self: Some(self),
+                sinverse: None,
                 exponent,
                 modulo,
             })
@@ -5148,45 +5133,24 @@ ref_math_op1! {
 
 #[derive(Debug)]
 pub struct PowModIncomplete<'a> {
-    ref_self: &'a Integer,
+    ref_self: Option<&'a Integer>,
     sinverse: Option<Integer>,
     exponent: &'a Integer,
     modulo: &'a Integer,
 }
 
-unsafe fn mpz_pow_mod_ref(
-    rop: *mut mpz_t,
-    op: &Integer,
-    sinverse: Option<&Integer>,
-    exponent: &Integer,
-    modulo: &Integer,
-) {
-    match sinverse {
-        Some(sinverse) => {
-            mpz_invert_ref(rop, sinverse, modulo);
-            gmp::mpz_powm(
-                rop,
-                rop,
-                exponent.as_neg().as_raw(),
-                modulo.as_raw(),
-            );
-        }
-        None => {
-            gmp::mpz_powm(rop, op.as_raw(), exponent.as_raw(), modulo.as_raw());
-        }
-    }
-}
-
 impl<'a> Assign<PowModIncomplete<'a>> for Integer {
     fn assign(&mut self, src: PowModIncomplete) {
-        unsafe {
-            mpz_pow_mod_ref(
-                self.as_raw_mut(),
-                src.ref_self,
-                src.sinverse.as_ref(),
-                src.exponent,
-                src.modulo,
-            );
+        match (src.ref_self, src.sinverse) {
+            (Some(base), None) => {
+                debug_assert_ne!(src.exponent.cmp0(), Ordering::Less);
+                xmpz::pow_mod(self, Some(base), src.exponent, src.modulo);
+            }
+            (None, Some(sinverse)) => {
+                debug_assert_eq!(src.exponent.cmp0(), Ordering::Less);
+                xmpz::pow_mod(self, Some(&sinverse), src.exponent, src.modulo);
+            }
+            _ => unreachable!(),
         }
     }
 }
@@ -5195,20 +5159,20 @@ impl<'a> Assign<PowModIncomplete<'a>> for Integer {
 impl<'r> From<PowModIncomplete<'r>> for Integer {
     #[inline]
     fn from(src: PowModIncomplete) -> Self {
-        let (mut dst, has_sinverse) = match src.sinverse {
-            Some(s) => (s, true),
-            None => (Integer::new(), false),
-        };
-        unsafe {
-            mpz_pow_mod_ref(
-                dst.as_raw_mut(),
-                src.ref_self,
-                if has_sinverse { Some(&dst) } else { None },
-                src.exponent,
-                src.modulo,
-            );
+        match (src.ref_self, src.sinverse) {
+            (Some(base), None) => {
+                debug_assert_ne!(src.exponent.cmp0(), Ordering::Less);
+                let mut dst = Integer::new();
+                xmpz::pow_mod(&mut dst, Some(base), src.exponent, src.modulo);
+                dst
+            }
+            (None, Some(mut sinverse)) => {
+                debug_assert_eq!(src.exponent.cmp0(), Ordering::Less);
+                xmpz::pow_mod(&mut sinverse, None, src.exponent, src.modulo);
+                sinverse
+            }
+            _ => unreachable!(),
         }
-        dst
     }
 }
 
@@ -5307,23 +5271,9 @@ pub struct InvertIncomplete<'a> {
     modulo: &'a Integer,
 }
 
-unsafe fn mpz_invert_ref(rop: *mut mpz_t, s: &Integer, modulo: &Integer) {
-    if s.cmp0() == Ordering::Less {
-        if modulo.cmp0() == Ordering::Less {
-            gmp::mpz_sub(rop, s.as_raw(), modulo.as_raw());
-        } else {
-            gmp::mpz_add(rop, s.as_raw(), modulo.as_raw());
-        }
-    } else if rop as *const mpz_t != s.as_raw() {
-        gmp::mpz_set(rop, s.as_raw());
-    }
-}
-
 impl<'a> Assign<InvertIncomplete<'a>> for Integer {
     fn assign(&mut self, src: InvertIncomplete) {
-        unsafe {
-            mpz_invert_ref(self.as_raw_mut(), &src.sinverse, src.modulo);
-        }
+        xmpz::finish_invert(self, Some(&src.sinverse), src.modulo);
     }
 }
 
@@ -5331,13 +5281,7 @@ impl<'a> Assign<InvertIncomplete<'a>> for Integer {
 impl<'r> From<InvertIncomplete<'r>> for Integer {
     #[inline]
     fn from(mut src: InvertIncomplete) -> Self {
-        unsafe {
-            mpz_invert_ref(
-                src.sinverse.as_raw_mut(),
-                &src.sinverse,
-                src.modulo,
-            );
-        }
+        xmpz::finish_invert(&mut src.sinverse, None, src.modulo);
         src.sinverse
     }
 }
