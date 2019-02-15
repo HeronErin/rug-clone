@@ -28,14 +28,6 @@ function print_eval_check {
     exit "$code"
 }
 
-print_eval_check \
-    rustup install "$TOOLCHAIN"
-# For beta, install rustfmt and clippy too
-if [[ "$TOOLCHAIN" == beta* ]]; then
-    print_eval_check \
-        rustup component add --toolchain "$TOOLCHAIN" rustfmt clippy
-fi
-
 # Check with all feature combinations.
 # integer,rational = rational
 # integer,rand = rand
@@ -49,15 +41,12 @@ for features in \
     rand{,\ serde} \
     serde
 do
-    if [[ "$TOOLCHAIN" == beta* ]]; then
-        check=clippy
-    else
+    if [[ $TOOLCHAIN == beta* ]]; then
+        check="clippy --all-targets"
+    elif [[ $TOOLCHAIN == 1.18.0* ]]; then
         check=check
-    fi
-    if [[ "$TOOLCHAIN" == 1.18.0* ]]; then
-        all_targets=""
     else
-        all_targets="--all-targets"
+        check="check --all-targets"
     fi
     if [[ "$features" =~ ^(()|serde)$ ]]; then
         gmp=""
@@ -66,8 +55,7 @@ do
     fi
     features="fail-on-warnings${features:+ $features}"
     print_eval_check \
-        cargo "+$TOOLCHAIN" \
-        $check $all_targets \
+        cargo +$TOOLCHAIN $check \
         --no-default-features --features "$features" \
         $gmp -p rug
 done

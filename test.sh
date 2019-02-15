@@ -61,7 +61,15 @@ fi
 
 function print_eval_check {
     printf '$'
-    printf ' %q' "$@"
+    for word in "$@"; do
+        if [[ "$word" != *\ * ]]; then
+            printf ' %q' "$word"
+        elif [[ "$word" =~ ^[\ /0-9A-Z_a-z-]*$ ]]; then
+            printf ' "%s"' "$word"
+        else
+            printf ' %q' "$word"
+        fi
+    done
     printf '\n'
     eval $(printf '%q ' "$@") 2>&1
     check_error
@@ -75,22 +83,22 @@ function tc {
 
 # Cache all C libraries.
 print_eval_check \
-    cargo $(tc "${toolchains[0]}") \
-    check \
-    --no-default-features --features gmp-mpfr-sys/mpc,gmp-mpfr-sys/ctest \
+    cargo $(tc "${toolchains[0]}") check \
+    --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" \
     -p gmp-mpfr-sys -p rug
 
 # For all toolchains, check with default features and serde.
 for toolchain in "${toolchains[@]}"; do
-    if [ "$toolchain" != "1.18.0" ]; then
-        all_targets="--all-targets"
+    if [[ "$toolchain" == beta* ]]; then
+        check="clippy --all-targets"
+    elif [[ "$toolchain" == 1.18.0* ]]; then
+        check=check
     else
-        all_targets=""
+        check="check --all-targets"
     fi
     print_eval_check \
-        cargo $(tc "$toolchain") \
-        check $all_targets \
-        --features serde \
+        cargo $(tc "$toolchain") $check \
+        --features "fail-on-warnings serde" \
         -p gmp-mpfr-sys -p rug
 done
 
@@ -107,10 +115,13 @@ for features in \
     rand{,\ serde} \
     serde
 do
-    if [ "${toolchains[0]}" != "1.18.0" ]; then
-        all_targets="--all-targets"
+    toolchain="${toolchains[0]}"
+    if [[ "$toolchain" == beta* ]]; then
+        check="clippy --all-targets"
+    elif [[ "$toolchain" == 1.18.0* ]]; then
+        check=check
     else
-        all_targets=""
+        check="check --all-targets"
     fi
     if [[ "$features" =~ ^(()|serde)$ ]]; then
         gmp=""
@@ -119,8 +130,7 @@ do
     fi
     features="fail-on-warnings${features:+ $features}"
     print_eval_check \
-        cargo $(tc "${toolchains[0]}") \
-        check $all_targets \
+        cargo $(tc "$toolchain") $check \
         --no-default-features --features "$features" \
         $gmp -p rug
 done
@@ -131,8 +141,7 @@ rm -r target
 for toolchain in "${toolchains[@]}"; do
     for build in "" --release; do
         print_eval_check \
-            cargo $(tc "$toolchain") \
-            test $build \
+            cargo $(tc "$toolchain") test $build \
             --features "fail-on-warnings serde" \
             -p gmp-mpfr-sys -p rug
         rm -r target

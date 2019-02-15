@@ -14,15 +14,17 @@ before_script:
   - apt-get -qq update
   - apt-get -qq -y install diffutils gcc make m4
   - rustup --version
-  - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache; mkdir -p $CARGO_HOME/registry; cp -R cargo/registry/cache $CARGO_HOME/registry/; echo Copied registry/cache; fi
-  - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
+  - rustup install $TOOLCHAIN
+  - if [[ $TOOLCHAIN == beta* ]]; then rustup component add --toolchain $TOOLCHAIN rustfmt clippy; fi
+  - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache && mkdir -p $CARGO_HOME/registry && cp -R cargo/registry/cache $CARGO_HOME/registry/ && echo Copied registry/cache; fi
+  - (if cd $CARGO_HOME/registry && [ -d cache ]; then find cache -name \*.crate; fi)
   - export GMP_MPFR_SYS_CACHE=$CI_PROJECT_DIR/gmp-mpfr-sys-cache
 
 after_script:
-  - if [ -d $CARGO_HOME/registry/cache ]; then (cd $CARGO_HOME/registry; find cache -name \*.crate) fi
+  - (cd $CARGO_HOME/registry && find cache -name \*.crate)
   - rm -rf cargo
   - mkdir -p cargo/registry
-  - if [ -d $CARGO_HOME/registry/cache ]; then cp -R $CARGO_HOME/registry/cache cargo/registry/; echo Updated registry/cache; fi
+  - cp -R $CARGO_HOME/registry/cache cargo/registry/ && echo Updated registry/cache
 
 clibs-x86_64-gnulinux:
   image: amd64/rust:slim
