@@ -115,11 +115,7 @@ macro_rules! rat_op_int {
         $(#[$attr_mut])*
         #[inline]
         pub fn $method_mut(&mut self, $($param: $T),*) {
-            unsafe {
-                let (num, den) = self.as_mut_numer_denom_no_canonicalization();
-                $func(num, Some(den), None, $($param),*);
-                xmpz::set_1(den);
-            }
+            $func(None, Some(self), None, $($param),*);
         }
 
         $(#[$attr_ref])*
@@ -149,7 +145,7 @@ macro_rules! ref_rat_op_int {
         impl<'a> Assign<$Incomplete<'a>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Incomplete) {
-                $func(self, None, Some(src.ref_self), $(src.$param),*);
+                $func(Some(self), None, Some(src.ref_self), $(src.$param),*);
             }
         }
 

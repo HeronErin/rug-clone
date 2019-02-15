@@ -53,73 +53,103 @@ pub fn set(rop: &mut Rational, op: Option<&Rational>) {
 }
 
 #[inline]
-pub fn signum(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
-    let _ = den;
-    xmpz::signum(num, op.map(Rational::numer));
-}
-
-#[inline]
-pub fn trunc(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
-    let op_numer = op.map(Rational::numer);
-    let den = op
-        .map(Rational::denom)
-        .or(den)
-        .expect("exactly one of den and op must be None");
-    xmpz::tdiv_q(num, op_numer, Some(den));
-}
-
-#[inline]
-pub fn ceil(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
-    let op_numer = op.map(Rational::numer);
-    let den = op
-        .map(Rational::denom)
-        .or(den)
-        .expect("exactly one of den and op must be None");
-    // use tdiv_q rather than cdiv_q to let GMP not keep remainder
-    let neg = op_numer.unwrap_or(num).cmp0() == Ordering::Less;
-    xmpz::tdiv_q(num, op_numer, Some(den));
-    if !neg {
-        xmpz::add_u32(num, None, 1);
+fn process_int_rat<F>(
+    rint: Option<&mut Integer>,
+    rrat: Option<&mut Rational>,
+    op: Option<&Rational>,
+    f: F,
+) where
+    F: FnOnce(&mut Integer, Option<&Integer>, &Integer),
+{
+    let (onum, oden) = match op {
+        Some(r) => (Some(r.numer()), Some(r.denom())),
+        None => (None, None),
+    };
+    if let Some(rrat) = rrat {
+        let (rn, rd) = unsafe { rrat.as_mut_numer_denom_no_canonicalization() };
+        f(rn, onum, oden.unwrap_or(rd));
+        xmpz::set_1(rd);
+    } else if let Some(rint) = rint {
+        f(rint, onum, oden.expect("no denominator"));
+    } else {
+        panic!("no numerator");
     }
 }
 
 #[inline]
-pub fn floor(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
-    let op_numer = op.map(Rational::numer);
-    let den = op
-        .map(Rational::denom)
-        .or(den)
-        .expect("exactly one of den and op must be None");
-    // use tdiv_q rather than fdiv_q to let GMP not keep remainder
-    let neg = op_numer.unwrap_or(num).cmp0() == Ordering::Less;
-    xmpz::tdiv_q(num, op_numer, Some(den));
-    if neg {
-        xmpz::sub_u32(num, None, 1);
-    }
+pub fn signum(
+    rint: Option<&mut Integer>,
+    rrat: Option<&mut Rational>,
+    op: Option<&Rational>,
+) {
+    process_int_rat(rint, rrat, op, |r, n, _| xmpz::signum(r, n))
 }
 
-pub fn round(num: &mut Integer, den: Option<&Integer>, op: Option<&Rational>) {
-    let den = op
-        .map(Rational::denom)
-        .or(den)
-        .expect("exactly one of den and op must be None");
-    // The remainder cannot be larger than the divisor, but we
-    // allocate an extra limb because the GMP docs suggest we should.
-    let limbs = cast::cast::<_, usize>(den.inner().size.abs()) + 1;
-    let bits = limbs
-        .checked_mul(cast::cast::<_, usize>(gmp::LIMB_BITS))
-        .expect("overflow");
-    let mut rem = Integer::with_capacity(bits);
-    xmpz::tdiv_qr(num, &mut rem, op.map(Rational::numer), Some(den));
-    if xmpz::round_away(&rem, den) {
-        if rem.cmp0() == Ordering::Less {
-            // negative number
-            xmpz::sub_u32(num, None, 1);
-        } else {
-            // positive number
-            xmpz::add_u32(num, None, 1);
+#[inline]
+pub fn trunc(
+    rint: Option<&mut Integer>,
+    rrat: Option<&mut Rational>,
+    op: Option<&Rational>,
+) {
+    process_int_rat(rint, rrat, op, |r, n, d| xmpz::tdiv_q(r, n, Some(d)));
+}
+
+#[inline]
+pub fn ceil(
+    rint: Option<&mut Integer>,
+    rrat: Option<&mut Rational>,
+    op: Option<&Rational>,
+) {
+    process_int_rat(rint, rrat, op, |r, n, d| {
+        // use tdiv_q rather than cdiv_q to let GMP not keep remainder
+        let neg = n.unwrap_or(r).cmp0() == Ordering::Less;
+        xmpz::tdiv_q(r, n, Some(d));
+        if !neg {
+            xmpz::add_u32(r, None, 1);
         }
-    }
+    });
+}
+
+#[inline]
+pub fn floor(
+    rint: Option<&mut Integer>,
+    rrat: Option<&mut Rational>,
+    op: Option<&Rational>,
+) {
+    process_int_rat(rint, rrat, op, |r, n, d| {
+        // use tdiv_q rather than fdiv_q to let GMP not keep remainder
+        let neg = n.unwrap_or(r).cmp0() == Ordering::Less;
+        xmpz::tdiv_q(r, n, Some(d));
+        if neg {
+            xmpz::sub_u32(r, None, 1);
+        }
+    });
+}
+
+pub fn round(
+    rint: Option<&mut Integer>,
+    rrat: Option<&mut Rational>,
+    op: Option<&Rational>,
+) {
+    process_int_rat(rint, rrat, op, |r, n, d| {
+        // The remainder cannot be larger than the divisor, but we
+        // allocate an extra limb because the GMP docs suggest we should.
+        let limbs = cast::cast::<_, usize>(d.inner().size.abs()) + 1;
+        let bits = limbs
+            .checked_mul(cast::cast::<_, usize>(gmp::LIMB_BITS))
+            .expect("overflow");
+        let mut rem = Integer::with_capacity(bits);
+        xmpz::tdiv_qr(r, &mut rem, n, Some(d));
+        if xmpz::round_away(&rem, d) {
+            if rem.cmp0() == Ordering::Less {
+                // negative number
+                xmpz::sub_u32(r, None, 1);
+            } else {
+                // positive number
+                xmpz::add_u32(r, None, 1);
+            }
+        }
+    });
 }
 
 #[inline]
