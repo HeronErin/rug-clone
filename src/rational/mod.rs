@@ -94,6 +94,11 @@ mod tests {
             assert_eq!(fract, (fract_n, d));
             assert_eq!(trunc, whole);
 
+            let sep_fract = Rational::from(r.rem_trunc_ref());
+            assert_eq!(sep_fract, (fract_n, d));
+            let sep_trunc = Integer::from(r.trunc_ref());
+            assert_eq!(sep_trunc, whole);
+
             let mut r = r;
             let mut trunc = Integer::new();
             r.fract_trunc_mut(&mut trunc);
@@ -123,6 +128,11 @@ mod tests {
             let (fract, ceil) = <(Rational, Integer)>::from(r.fract_ceil_ref());
             assert_eq!(fract, (fract_n, d));
             assert_eq!(ceil, whole);
+
+            let sep_fract = Rational::from(r.rem_ceil_ref());
+            assert_eq!(sep_fract, (fract_n, d));
+            let sep_ceil = Integer::from(r.ceil_ref());
+            assert_eq!(sep_ceil, whole);
 
             let mut r = r;
             let mut ceil = Integer::new();
@@ -154,6 +164,11 @@ mod tests {
                 <(Rational, Integer)>::from(r.fract_floor_ref());
             assert_eq!(fract, (fract_n, d));
             assert_eq!(floor, whole);
+
+            let sep_fract = Rational::from(r.rem_floor_ref());
+            assert_eq!(sep_fract, (fract_n, d));
+            let sep_floor = Integer::from(r.floor_ref());
+            assert_eq!(sep_floor, whole);
 
             let mut r = r;
             let mut floor = Integer::new();
@@ -189,6 +204,11 @@ mod tests {
                 <(Rational, Integer)>::from(r.fract_round_ref());
             assert_eq!(fract, (fract_n, d));
             assert_eq!(round, whole);
+
+            let sep_fract = Rational::from(r.rem_round_ref());
+            assert_eq!(sep_fract, (fract_n, d));
+            let sep_round = Integer::from(r.round_ref());
+            assert_eq!(sep_round, whole);
 
             let mut r = r;
             let mut round = Integer::new();
