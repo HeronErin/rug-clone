@@ -473,11 +473,6 @@ wrap! { fn nextprime(op) -> gmp::mpz_nextprime }
 wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
 
 #[inline]
-pub fn is_1(op: &Integer) -> bool {
-    op.inner().size == 1 && unsafe { limb(op, 0) == 1 }
-}
-
-#[inline]
 pub fn set_0(rop: &mut Integer) {
     unsafe {
         rop.inner_mut().size = 0;
