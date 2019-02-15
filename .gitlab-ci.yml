@@ -14,8 +14,8 @@ before_script:
   - apt-get -qq update
   - apt-get -qq -y install diffutils gcc make m4
   - rustup --version
-  - rustup install $TOOLCHAIN
-  - if [[ $TOOLCHAIN == beta* ]]; then rustup component add --toolchain $TOOLCHAIN rustfmt clippy; fi
+  - [ -z "$TOOLCHAIN" ] || rustup install $TOOLCHAIN
+  - [[ "$TOOLCHAIN" != beta* ]] || rustup component add --toolchain $TOOLCHAIN rustfmt clippy
   - if [ -d cargo/registry/cache ]; then rm -rf $CARGO_HOME/registry/cache && mkdir -p $CARGO_HOME/registry && cp -R cargo/registry/cache $CARGO_HOME/registry/ && echo Copied registry/cache; fi
   - (if cd $CARGO_HOME/registry && [ -d cache ]; then find cache -name \*.crate; fi)
   - export GMP_MPFR_SYS_CACHE=$CI_PROJECT_DIR/gmp-mpfr-sys-cache
