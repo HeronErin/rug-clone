@@ -11,8 +11,7 @@ stages:
 
 before_script:
   - getconf LONG_BIT
-  - apt-get -qq update
-  - apt-get -qq install diffutils gcc make m4
+  - apt-get update -qq && apt-get install -y -qq diffutils gcc make m4
   - rustup --version
   - if [ -n "$TOOLCHAIN" ]; then rustup install $TOOLCHAIN; fi
   - if [[ "$TOOLCHAIN" == beta* ]]; then rustup component add --toolchain $TOOLCHAIN rustfmt clippy; fi

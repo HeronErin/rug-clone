@@ -101,10 +101,10 @@ pub fn ceil(
     op: Option<&Rational>,
 ) {
     process_int_rat(rint, rrat, op, |r, n, d| {
+        // use tdiv_q rather than cdiv_q to let GMP not keep remainder
         if xmpz::is_1(d) {
             xmpz::set(r, n);
         } else {
-            // use tdiv_q rather than cdiv_q to let GMP not keep remainder
             let neg = n.unwrap_or(r).cmp0() == Ordering::Less;
             xmpz::tdiv_q(r, n, Some(d));
             if !neg {
@@ -121,10 +121,10 @@ pub fn floor(
     op: Option<&Rational>,
 ) {
     process_int_rat(rint, rrat, op, |r, n, d| {
+        // use tdiv_q rather than fdiv_q to let GMP not keep remainder
         if xmpz::is_1(d) {
             xmpz::set(r, n);
         } else {
-            // use tdiv_q rather than fdiv_q to let GMP not keep remainder
             let neg = n.unwrap_or(r).cmp0() == Ordering::Less;
             xmpz::tdiv_q(r, n, Some(d));
             if neg {
