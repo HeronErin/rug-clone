@@ -27,7 +27,7 @@ use Integer;
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
-        set_u64(u as u64);
+        set_u64(rop, u as u64);
     } else if u <= !(!0u128 << 96) {
         if rop.inner().alloc < 3 {
             cold_realloc(rop, 3);
@@ -77,7 +77,7 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
 #[inline]
 pub fn init_set_u128(rop: &mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
-        init_set_u64(u as u64);
+        init_set_u64(rop, u as u64);
     } else if u <= !(!0u128 << 96) {
         unsafe {
             gmp::mpz_init2(rop.as_raw_mut(), 96);
