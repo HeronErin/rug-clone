@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast;
 use ext::xmpz::*;
 use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
@@ -28,7 +27,7 @@ use Integer;
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
-        set_limb(rop, u as u64);
+        set_u64(rop, u as u64);
     } else {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
@@ -51,32 +50,39 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
     set_limb(rop, u64::from(u));
 }
 
+#[cfg(int_128)]
 #[inline]
-pub fn init_set_u64(rop: &mut Integer, u: u64) {
-    if let Some(u) = cast::checked_cast(u) {
-        unsafe {
-            gmp::mpz_init_set_ui(rop.as_raw_mut(), u);
-        }
+pub fn init_set_u128(rop: &mut Integer, u: u128) {
+    if u <= u128::from(u64::MAX) {
+        init_set_u64(rop, u as u64);
     } else {
         unsafe {
-            gmp::mpz_init2(rop.as_raw_mut(), 64);
+            gmp::mpz_init2(rop.as_raw_mut(), 128);
+            rop.inner_mut().size = 2;
+            *limb_mut(rop, 0) = u as u64;
+            *limb_mut(rop, 1) = (u >> 64) as u64;
         }
-        set_u64(rop, u);
     }
 }
 
 #[inline]
-pub fn init_set_i64(rop: &mut Integer, i: i64) {
-    if let Some(i) = cast::checked_cast(i) {
+pub fn init_set_u64(rop: &mut Integer, u: u64) {
+    if u == 0 {
         unsafe {
-            gmp::mpz_init_set_si(rop.as_raw_mut(), i);
+            gmp::mpz_init(rop.as_raw_mut());
         }
     } else {
         unsafe {
             gmp::mpz_init2(rop.as_raw_mut(), 64);
+            rop.inner_mut().size = 1;
+            *limb_mut(rop, 0) = u;
         }
-        set_i64(rop, i);
     }
+}
+
+#[inline]
+pub fn init_set_u32(rop: &mut Integer, u: u32) {
+    init_set_u64(rop, u64::from(u));
 }
 
 #[cfg(int_128)]

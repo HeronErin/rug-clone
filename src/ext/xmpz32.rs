@@ -26,18 +26,9 @@ use Integer;
 #[cfg(int_128)]
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
-    if u <= u128::from(u32::MAX) {
-        set_limb(rop, u as u32);
-    } else if u <= u128::from(u64::MAX) {
-        if rop.inner().alloc < 2 {
-            cold_realloc(rop, 2);
-        }
-        unsafe {
-            rop.inner_mut().size = 2;
-            *limb_mut(rop, 0) = u as u32;
-            *limb_mut(rop, 1) = (u >> 32) as u32;
-        }
-    } else if u <= 0xffff_ffff_ffff_ffff_ffff_ffff {
+    if u <= u128::from(u64::MAX) {
+        set_u64(u as u64);
+    } else if u <= !(!0u128 << 96) {
         if rop.inner().alloc < 3 {
             cold_realloc(rop, 3);
         }
@@ -64,7 +55,7 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
 #[inline]
 pub fn set_u64(rop: &mut Integer, u: u64) {
     if u <= u64::from(u32::MAX) {
-        set_limb(rop, u as u32);
+        set_u32(rop, u as u32);
     } else {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
@@ -82,20 +73,58 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
     set_limb(rop, u);
 }
 
+#[cfg(int_128)]
 #[inline]
-pub fn init_set_u64(rop: &mut Integer, u: u64) {
-    unsafe {
-        gmp::mpz_init2(rop.as_raw_mut(), 64);
+pub fn init_set_u128(rop: &mut Integer, u: u128) {
+    if u <= u128::from(u64::MAX) {
+        init_set_u64(u as u64);
+    } else if u <= !(!0u128 << 96) {
+        unsafe {
+            gmp::mpz_init2(rop.as_raw_mut(), 96);
+            rop.inner_mut().size = 3;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
+            *limb_mut(rop, 2) = (u >> 64) as u32;
+        }
+    } else {
+        unsafe {
+            gmp::mpz_init2(rop.as_raw_mut(), 128);
+            rop.inner_mut().size = 4;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
+            *limb_mut(rop, 2) = (u >> 64) as u32;
+            *limb_mut(rop, 3) = (u >> 96) as u32;
+        }
     }
-    set_u64(rop, u);
 }
 
 #[inline]
-pub fn init_set_i64(rop: &mut Integer, i: i64) {
-    unsafe {
-        gmp::mpz_init2(rop.as_raw_mut(), 64);
+pub fn init_set_u64(rop: &mut Integer, u: u64) {
+    if u <= u64::from(u32::MAX) {
+        init_set_u32(rop, u as u32);
+    } else {
+        unsafe {
+            gmp::mpz_init2(rop.as_raw_mut(), 64);
+            rop.inner_mut().size = 2;
+            *limb_mut(rop, 0) = u as u32;
+            *limb_mut(rop, 1) = (u >> 32) as u32;
+        }
     }
-    set_i64(rop, i);
+}
+
+#[inline]
+pub fn init_set_u32(rop: &mut Integer, u: u32) {
+    if u == 0 {
+        unsafe {
+            gmp::mpz_init(rop.as_raw_mut());
+        }
+    } else {
+        unsafe {
+            gmp::mpz_init2(rop.as_raw_mut(), 32);
+            rop.inner_mut().size = 1;
+            *limb_mut(rop, 0) = u;
+        }
+    }
 }
 
 #[cfg(int_128)]

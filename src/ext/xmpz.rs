@@ -1442,33 +1442,29 @@ pub fn set_i32(rop: &mut Integer, i: i32) {
 
 #[cfg(int_128)]
 #[inline]
-pub fn init_set_u128(rop: &mut Integer, u: u128) {
-    unsafe {
-        gmp::mpz_init2(rop.as_raw_mut(), 128);
-    }
-    set_u128(rop, u);
-}
-
-#[cfg(int_128)]
-#[inline]
 pub fn init_set_i128(rop: &mut Integer, i: i128) {
-    unsafe {
-        gmp::mpz_init2(rop.as_raw_mut(), 128);
+    let (neg_i, abs_i) = i.neg_abs();
+    init_set_u128(rop, abs_i);
+    if neg_i {
+        rop.neg_assign();
     }
-    set_i128(rop, i);
 }
 
 #[inline]
-pub fn init_set_u32(rop: &mut Integer, u: u32) {
-    unsafe {
-        gmp::mpz_init_set_ui(rop.as_raw_mut(), u.into());
+pub fn init_set_i64(rop: &mut Integer, i: i64) {
+    let (neg_i, abs_i) = i.neg_abs();
+    init_set_u64(rop, abs_i);
+    if neg_i {
+        rop.neg_assign();
     }
 }
 
 #[inline]
 pub fn init_set_i32(rop: &mut Integer, i: i32) {
-    unsafe {
-        gmp::mpz_init_set_si(rop.as_raw_mut(), i.into());
+    let (neg_i, abs_i) = i.neg_abs();
+    init_set_u32(rop, abs_i);
+    if neg_i {
+        rop.neg_assign();
     }
 }
 
