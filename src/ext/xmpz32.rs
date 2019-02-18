@@ -26,10 +26,8 @@ use Integer;
 #[cfg(int_128)]
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
-    if u == 0 {
-        set_0(rop);
-    } else if u <= u128::from(u32::MAX) {
-        set_nonzero(rop, u as u32);
+    if u <= u128::from(u32::MAX) {
+        set_limb(rop, u as u32);
     } else if u <= u128::from(u64::MAX) {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
@@ -65,10 +63,8 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
 
 #[inline]
 pub fn set_u64(rop: &mut Integer, u: u64) {
-    if u == 0 {
-        set_0(rop);
-    } else if u <= u64::from(u32::MAX) {
-        set_nonzero(rop, u as u32);
+    if u <= u64::from(u32::MAX) {
+        set_limb(rop, u as u32);
     } else {
         if rop.inner().alloc < 2 {
             cold_realloc(rop, 2);
@@ -83,11 +79,7 @@ pub fn set_u64(rop: &mut Integer, u: u64) {
 
 #[inline]
 pub fn set_u32(rop: &mut Integer, u: u32) {
-    if u == 0 {
-        set_0(rop);
-    } else {
-        set_nonzero(rop, u);
-    }
+    set_limb(rop, u);
 }
 
 #[inline]
