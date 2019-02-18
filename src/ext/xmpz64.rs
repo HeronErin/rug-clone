@@ -32,10 +32,10 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
     } else if u <= u128::from(u64::MAX) {
         set_nonzero(rop, u as u64);
     } else {
+        if rop.inner().alloc < 2 {
+            cold_realloc(rop, 2);
+        }
         unsafe {
-            if rop.inner().alloc < 2 {
-                gmp::_mpz_realloc(rop.as_raw_mut(), 2);
-            }
             rop.inner_mut().size = 2;
             *limb_mut(rop, 0) = u as u64;
             *limb_mut(rop, 1) = (u >> 64) as u64;

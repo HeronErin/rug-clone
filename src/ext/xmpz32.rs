@@ -31,29 +31,29 @@ pub fn set_u128(rop: &mut Integer, u: u128) {
     } else if u <= u128::from(u32::MAX) {
         set_nonzero(rop, u as u32);
     } else if u <= u128::from(u64::MAX) {
+        if rop.inner().alloc < 2 {
+            cold_realloc(rop, 2);
+        }
         unsafe {
-            if rop.inner().alloc < 2 {
-                gmp::_mpz_realloc(rop.as_raw_mut(), 2);
-            }
             rop.inner_mut().size = 2;
             *limb_mut(rop, 0) = u as u32;
             *limb_mut(rop, 1) = (u >> 32) as u32;
         }
     } else if u <= 0xffff_ffff_ffff_ffff_ffff_ffff {
+        if rop.inner().alloc < 3 {
+            cold_realloc(rop, 3);
+        }
         unsafe {
-            if rop.inner().alloc < 3 {
-                gmp::_mpz_realloc(rop.as_raw_mut(), 3);
-            }
             rop.inner_mut().size = 3;
             *limb_mut(rop, 0) = u as u32;
             *limb_mut(rop, 1) = (u >> 32) as u32;
             *limb_mut(rop, 2) = (u >> 64) as u32;
         }
     } else {
+        if rop.inner().alloc < 4 {
+            cold_realloc(rop, 4);
+        }
         unsafe {
-            if rop.inner().alloc < 4 {
-                gmp::_mpz_realloc(rop.as_raw_mut(), 4);
-            }
             rop.inner_mut().size = 4;
             *limb_mut(rop, 0) = u as u32;
             *limb_mut(rop, 1) = (u >> 32) as u32;
@@ -70,10 +70,10 @@ pub fn set_u64(rop: &mut Integer, u: u64) {
     } else if u <= u64::from(u32::MAX) {
         set_nonzero(rop, u as u32);
     } else {
+        if rop.inner().alloc < 2 {
+            cold_realloc(rop, 2);
+        }
         unsafe {
-            if rop.inner().alloc < 2 {
-                gmp::_mpz_realloc(rop.as_raw_mut(), 2);
-            }
             rop.inner_mut().size = 2;
             *limb_mut(rop, 0) = u as u32;
             *limb_mut(rop, 1) = (u >> 32) as u32;

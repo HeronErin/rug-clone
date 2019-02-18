@@ -472,6 +472,14 @@ wrap! { fn fdiv_r_2exp(op; n: u32) -> gmp::mpz_fdiv_r_2exp }
 wrap! { fn nextprime(op) -> gmp::mpz_nextprime }
 wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
 
+#[cold]
+#[inline]
+pub fn cold_realloc(rop: &mut Integer, limbs: gmp::size_t) {
+    unsafe {
+        gmp::_mpz_realloc(rop.as_raw_mut(), limbs);
+    }
+}
+
 #[inline]
 pub fn is_1(op: &Integer) -> bool {
     op.inner().size == 1 && unsafe { limb(op, 0) == 1 }
@@ -486,10 +494,10 @@ pub fn set_0(rop: &mut Integer) {
 
 #[inline]
 pub fn set_1(rop: &mut Integer) {
+    if rop.inner().alloc < 1 {
+        cold_realloc(rop, 1);
+    }
     unsafe {
-        if rop.inner().alloc < 1 {
-            gmp::_mpz_realloc(rop.as_raw_mut(), 1);
-        }
         *limb_mut(rop, 0) = 1;
         rop.inner_mut().size = 1;
     }
@@ -497,10 +505,10 @@ pub fn set_1(rop: &mut Integer) {
 
 #[inline]
 pub fn set_m1(rop: &mut Integer) {
+    if rop.inner().alloc < 1 {
+        cold_realloc(rop, 1);
+    }
     unsafe {
-        if rop.inner().alloc < 1 {
-            gmp::_mpz_realloc(rop.as_raw_mut(), 1);
-        }
         *limb_mut(rop, 0) = 1;
         rop.inner_mut().size = -1;
     }
@@ -508,10 +516,10 @@ pub fn set_m1(rop: &mut Integer) {
 
 #[inline]
 pub fn set_nonzero(rop: &mut Integer, limb: gmp::limb_t) {
+    if rop.inner().alloc < 1 {
+        cold_realloc(rop, 1);
+    }
     unsafe {
-        if rop.inner().alloc < 1 {
-            gmp::_mpz_realloc(rop.as_raw_mut(), 1);
-        }
         *limb_mut(rop, 0) = limb;
         rop.inner_mut().size = 1;
     }
