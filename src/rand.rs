@@ -741,7 +741,7 @@ pub trait RandGen: Send + Sync {
 
 // The contents of gmp::randstate_t are not available because the
 // internal details of gmp_randstate_t are not documented by GMP. So
-// we duplcate them here. The structure of function pointers
+// we duplicate them here. The structure of function pointers
 // gmp_randfnptr_t is only inside gmp-impl.h and is not available
 // externally, so we duplicate it here as well.
 

@@ -503,6 +503,7 @@ pub fn powm_sec(
     }
 }
 
+#[cfg(feature = "rand")]
 #[inline]
 pub fn urandomm(rop: &mut Integer, state: &mut RandState, n: Option<&Integer>) {
     assert_eq!(
