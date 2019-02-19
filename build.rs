@@ -10,7 +10,7 @@ use std::ffi::OsString;
 use std::fs::{self, File};
 use std::io::{Result as IoResult, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 struct Environment {
     out_dir: PathBuf,
@@ -75,8 +75,10 @@ impl Environment {
             create_file_or_panic(&try_dir.join(&filename), file_contents);
             let mut cmd = Command::new(&self.rustc);
             cmd.current_dir(&try_dir)
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
                 .args(&[&filename, "--emit=dep-info,metadata"]);
-            println!("$ {:?}", cmd);
+            println!("$ {:?} >& /dev/null", cmd);
             let status = cmd
                 .status()
                 .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
@@ -94,26 +96,39 @@ impl Environment {
 
     fn check_ffi_panic_aborts(&self) {
         let ident = "ffi_panic_aborts";
-        let contents = TRY_FFI_PANIC_ABORTS;
+        // try two different codes to make sure code is set by us
+        let codes = &[1, 2];
         let try_dir = self.out_dir.join(format!("try_{}", ident));
-        let filename = format!("try_{}.rs", ident);
         create_dir_or_panic(&try_dir);
-        create_file_or_panic(&try_dir.join(&filename), contents);
-        let mut cmd = Command::new(&self.rustc);
-        cmd.current_dir(&try_dir).args(&[&filename, "-o", "out.exe"]);
-        println!("$ cd {:?}", try_dir);
-        println!("$ {:?}", cmd);
-        let status = cmd
-            .status()
-            .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-        assert!(status.success(), "Compiling failed: {:?}", cmd);
-        cmd = Command::new(try_dir.join("out.exe"));
-        println!("$ {:?}", cmd);
-        let status = cmd
-            .status()
-            .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
-        // If panic aborts, status.success() is false.
-        if !status.success() {
+        let mut panic_aborts = true;
+        for code in codes {
+            let contents = format!(
+                "{}\nconst CODE: i32 = {};\n",
+                TRY_FFI_PANIC_ABORTS, code
+            );
+            let filename = format!("try_{}_{}.rs", ident, code);
+            let out = format!("out_{}.exe", code);
+            create_file_or_panic(&try_dir.join(&filename), &contents);
+            let mut cmd = Command::new(&self.rustc);
+            cmd.current_dir(&try_dir).args(&[&filename, "-o", &out]);
+            println!("$ cd {:?}", try_dir);
+            println!("$ {:?}", cmd);
+            let status = cmd
+                .status()
+                .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+            assert!(status.success(), "Compiling failed: {:?}", cmd);
+            cmd = Command::new(try_dir.join(&out));
+            cmd.stdout(Stdio::null()).stderr(Stdio::null());
+            println!("$ {:?} >& /dev/null", cmd);
+            let status = cmd
+                .status()
+                .unwrap_or_else(|_| panic!("Unable to execute: {:?}", cmd));
+            if status.code() != Some(*code) {
+                panic_aborts = false;
+                break;
+            }
+        }
+        if panic_aborts {
             println!("cargo:rustc-cfg=ffi_panic_aborts");
         }
         // Do not panic if this directory cannot be removed, AppVeyor
@@ -155,7 +170,7 @@ fn create_dir_or_panic(dir: &Path) {
 }
 
 fn create_file_or_panic(filename: &Path, contents: &str) {
-    println!("$ printf '%s' {:?}... > {:?}", &contents[0..20], filename);
+    println!("$ printf %s {:?}... > {:?}", &contents[0..20], filename);
     let mut file = File::create(filename)
         .unwrap_or_else(|_| panic!("Unable to create file: {:?}", filename));
     file.write_all(contents.as_bytes())
@@ -209,11 +224,11 @@ extern "C" {
     pub fn signal(signum: i32, handler: Handler) -> Handler;
 }
 extern "C" fn handler(_: i32) {
-    std::process::exit(3);
+    std::process::exit(CODE);
 }
 
 fn main() {
-    // catch some signals and exit(3) instead
+    // catch some signals and exit(CODE) instead
     unsafe {
         // SIGILL
         signal(4, Some(handler));
