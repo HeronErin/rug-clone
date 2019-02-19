@@ -16,7 +16,6 @@
 
 use cast::cast;
 use ext::xmpz;
-use gmp_mpfr_sys::gmp;
 use integer::big;
 use integer::ParseIntegerError;
 #[cfg(try_from)]
@@ -45,11 +44,9 @@ impl Default for Integer {
 impl Clone for Integer {
     #[inline]
     fn clone(&self) -> Integer {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set(ret.as_raw_mut(), self.as_raw());
-            ret
-        }
+        let mut dst: Integer = unsafe { mem::uninitialized() };
+        xmpz::init_set(&mut dst, self);
+        dst
     }
 
     #[inline]
@@ -62,7 +59,7 @@ impl Drop for Integer {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            gmp::mpz_clear(self.as_raw_mut());
+            xmpz::clear(self);
         }
     }
 }
@@ -92,20 +89,14 @@ impl Assign for Integer {
 impl<'a> Assign<&'a Integer> for Integer {
     #[inline]
     fn assign(&mut self, src: &Integer) {
-        unsafe {
-            gmp::mpz_set(self.as_raw_mut(), src.as_raw());
-        }
+        xmpz::set(self, Some(src));
     }
 }
 
 impl<'a> From<&'a Integer> for Integer {
     #[inline]
     fn from(val: &Integer) -> Self {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init_set(ret.as_raw_mut(), val.as_raw());
-            ret
-        }
+        val.clone()
     }
 }
 

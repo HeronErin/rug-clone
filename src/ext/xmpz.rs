@@ -18,6 +18,8 @@ use cast;
 use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
 use ops::NegAssign;
+#[cfg(feature = "rand")]
+use rand::RandState;
 use std::cmp::Ordering;
 use std::ptr;
 use std::{i16, i8, u16, u8};
@@ -75,6 +77,32 @@ pub fn set(rop: &mut Integer, op: Option<&Integer>) {
             gmp::mpz_set(rop.as_raw_mut(), op.as_raw());
         }
     }
+}
+
+#[inline]
+pub fn init(rop: &mut Integer) {
+    unsafe {
+        gmp::mpz_init(rop.as_raw_mut());
+    }
+}
+
+#[inline]
+pub fn init2(rop: &mut Integer, bits: usize) {
+    unsafe {
+        gmp::mpz_init2(rop.as_raw_mut(), cast::cast(bits));
+    }
+}
+
+#[inline]
+pub fn init_set(rop: &mut Integer, op: &Integer) {
+    unsafe {
+        gmp::mpz_init_set(rop.as_raw_mut(), op.as_raw());
+    }
+}
+
+#[inline]
+pub unsafe fn clear(rop: &mut Integer) {
+    gmp::mpz_clear(rop.as_raw_mut());
 }
 
 #[inline]
@@ -441,6 +469,53 @@ pub fn ediv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
         cdiv_r(r, n, d)
     } else {
         fdiv_r(r, n, d)
+    }
+}
+
+#[inline]
+pub fn remove(rop: &mut Integer, op: Option<&Integer>, f: &Integer) -> u32 {
+    let count = unsafe {
+        gmp::mpz_remove(
+            rop.as_raw_mut(),
+            op.unwrap_or(rop).as_raw(),
+            f.as_raw(),
+        )
+    };
+    cast::cast(count)
+}
+
+#[inline]
+pub fn powm_sec(
+    rop: &mut Integer,
+    base: Option<&Integer>,
+    exp: &Integer,
+    modu: &Integer,
+) {
+    assert_eq!(exp.cmp0(), Ordering::Greater, "exponent not greater than zero");
+    assert!(modu.is_odd(), "modulo not odd");
+    unsafe {
+        gmp::mpz_powm_sec(
+            rop.as_raw_mut(),
+            base.unwrap_or(rop).as_raw(),
+            exp.as_raw(),
+            modu.as_raw(),
+        );
+    }
+}
+
+#[inline]
+pub fn urandomm(rop: &mut Integer, state: &mut RandState, n: Option<&Integer>) {
+    assert_eq!(
+        n.unwrap_or(rop).cmp0(),
+        Ordering::Greater,
+        "cannot be below zero"
+    );
+    unsafe {
+        gmp::mpz_urandomm(
+            rop.as_raw_mut(),
+            state.as_raw_mut(),
+            n.unwrap_or(rop).as_raw(),
+        );
     }
 }
 
@@ -865,6 +940,12 @@ pub fn fdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
     (unsafe {
         gmp::mpz_fdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d.into())
     }) != 0
+}
+
+#[inline]
+pub fn fdiv_u32(n: &Integer, d: u32) -> u32 {
+    assert_ne!(d, 0, "division by zero");
+    unsafe { gmp::mpz_fdiv_ui(n.as_raw(), d.into()) as u32 }
 }
 
 pub fn u32_fdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
@@ -1762,5 +1843,41 @@ pub fn pow_mod(
                 modulo.as_raw(),
             );
         }
+    }
+}
+
+#[inline]
+pub fn set_f64(rop: &mut Integer, op: f64) -> Result<(), ()> {
+    if op.is_finite() {
+        unsafe {
+            gmp::mpz_set_d(rop.as_raw_mut(), op);
+        }
+        Ok(())
+    } else {
+        Err(())
+    }
+}
+
+#[inline]
+pub fn init_set_f64(rop: &mut Integer, op: f64) {
+    assert!(op.is_finite());
+    unsafe {
+        gmp::mpz_init_set_d(rop.as_raw_mut(), op);
+    }
+}
+
+#[inline]
+pub fn cmp(op1: &Integer, op2: &Integer) -> Ordering {
+    let ord = unsafe { gmp::mpz_cmp(op1.as_raw(), op2.as_raw()) };
+    ord.cmp(&0)
+}
+
+#[inline]
+pub fn cmp_f64(op1: &Integer, op2: f64) -> Option<Ordering> {
+    if op2.is_nan() {
+        None
+    } else {
+        let ord = unsafe { gmp::mpz_cmp_d(op1.as_raw(), op2) };
+        Some(ord.cmp(&0))
     }
 }

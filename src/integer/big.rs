@@ -215,11 +215,9 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn new() -> Self {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init(ret.as_raw_mut());
-            ret
-        }
+        let mut dst: Integer = unsafe { mem::uninitialized() };
+        xmpz::init(&mut dst);
+        dst
     }
 
     /// Constructs a new arbitrary-precision [`Integer`] with at least
@@ -236,11 +234,9 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
-        unsafe {
-            let mut ret: Integer = mem::uninitialized();
-            gmp::mpz_init2(ret.as_raw_mut(), cast(bits));
-            ret
-        }
+        let mut dst: Integer = unsafe { mem::uninitialized() };
+        xmpz::init2(&mut dst, bits);
+        dst
     }
 
     /// Returns the capacity in bits that can be stored without
@@ -720,11 +716,9 @@ impl Integer {
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
-            unsafe {
-                let mut i: Integer = mem::uninitialized();
-                gmp::mpz_init_set_d(i.as_raw_mut(), val);
-                Some(i)
-            }
+            let mut dst: Integer = unsafe { mem::uninitialized() };
+            xmpz::init_set_f64(&mut dst, val);
+            Some(dst)
         } else {
             None
         }
@@ -1639,14 +1633,7 @@ impl Integer {
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
-        if val.is_finite() {
-            unsafe {
-                gmp::mpz_set_d(self.as_raw_mut(), val);
-            }
-            Ok(())
-        } else {
-            Err(())
-        }
+        xmpz::set_f64(self, val)
     }
 
     /// Borrows a negated copy of the [`Integer`].
@@ -3058,8 +3045,7 @@ impl Integer {
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn mod_u(&self, modulo: u32) -> u32 {
-        assert_ne!(modulo, 0, "division by zero");
-        unsafe { gmp::mpz_fdiv_ui(self.as_raw(), modulo.into()) as u32 }
+        xmpz::fdiv_u32(self, modulo)
     }
 
     math_op2! {
@@ -3515,20 +3501,7 @@ impl Integer {
     /// assert_eq!(n, 9);
     /// ```
     pub fn secure_pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) {
-        assert_eq!(
-            exponent.cmp0(),
-            Ordering::Greater,
-            "exponent not greater than zero"
-        );
-        assert!(modulo.is_odd(), "modulo not odd");
-        unsafe {
-            gmp::mpz_powm_sec(
-                self.as_raw_mut(),
-                self.as_raw(),
-                exponent.as_raw(),
-                modulo.as_raw(),
-            );
-        }
+        xmpz::powm_sec(self, None, exponent, modulo);
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo`,
@@ -4391,10 +4364,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn remove_factor_mut(&mut self, factor: &Self) -> u32 {
-        let cnt = unsafe {
-            gmp::mpz_remove(self.as_raw_mut(), self.as_raw(), factor.as_raw())
-        };
-        cast(cnt)
+        xmpz::remove(self, None, factor)
     }
 
     /// Removes all occurrences of `factor`, and counts the number of
@@ -4787,14 +4757,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn random_below_mut(&mut self, rng: &mut RandState) {
-        assert_eq!(self.cmp0(), Ordering::Greater, "cannot be below zero");
-        unsafe {
-            gmp::mpz_urandomm(
-                self.as_raw_mut(),
-                rng.as_raw_mut(),
-                self.as_raw(),
-            );
-        }
+        xmpz::urandomm(self, rng, None);
     }
 
     #[cfg(feature = "rand")]
@@ -5184,20 +5147,7 @@ pub struct SecurePowModIncomplete<'a> {
 
 impl<'a> Assign<SecurePowModIncomplete<'a>> for Integer {
     fn assign(&mut self, src: SecurePowModIncomplete) {
-        assert_eq!(
-            src.exponent.cmp0(),
-            Ordering::Greater,
-            "exponent not greater than zero"
-        );
-        assert!(src.modulo.is_odd(), "modulo not odd");
-        unsafe {
-            gmp::mpz_powm_sec(
-                self.as_raw_mut(),
-                src.ref_self.as_raw(),
-                src.exponent.as_raw(),
-                src.modulo.as_raw(),
-            );
-        }
+        xmpz::powm_sec(self, Some(src.ref_self), src.exponent, src.modulo);
     }
 }
 
@@ -5297,14 +5247,7 @@ impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
 {
     #[inline]
     fn assign(&mut self, src: RemoveFactorIncomplete) {
-        let cnt = unsafe {
-            gmp::mpz_remove(
-                self.0.as_raw_mut(),
-                src.ref_self.as_raw(),
-                src.factor.as_raw(),
-            )
-        };
-        *self.1 = cast(cnt);
+        *self.1 = xmpz::remove(self.0, Some(src.ref_self), src.factor);
     }
 }
 
@@ -5443,18 +5386,7 @@ where
 {
     #[inline]
     fn assign(&mut self, src: RandomBelowIncomplete) {
-        assert_eq!(
-            src.ref_self.cmp0(),
-            Ordering::Greater,
-            "cannot be below zero"
-        );
-        unsafe {
-            gmp::mpz_urandomm(
-                self.as_raw_mut(),
-                src.rng.as_raw_mut(),
-                src.ref_self.as_raw(),
-            );
-        }
+        xmpz::urandomm(self, src.rng, Some(src.ref_self));
     }
 }
 

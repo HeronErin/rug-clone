@@ -16,7 +16,6 @@
 
 use cast::cast;
 use ext::xmpz;
-use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
 use Integer;
 
@@ -25,8 +24,7 @@ impl Eq for Integer {}
 impl Ord for Integer {
     #[inline]
     fn cmp(&self, other: &Integer) -> Ordering {
-        let ord = unsafe { gmp::mpz_cmp(self.as_raw(), other.as_raw()) };
-        ord.cmp(&0)
+        xmpz::cmp(self, other)
     }
 }
 
@@ -167,12 +165,7 @@ impl PartialEq<Integer> for f64 {
 impl PartialOrd<f64> for Integer {
     #[inline]
     fn partial_cmp(&self, other: &f64) -> Option<Ordering> {
-        if other.is_nan() {
-            None
-        } else {
-            let ord = unsafe { gmp::mpz_cmp_d(self.as_raw(), *other) };
-            Some(ord.cmp(&0))
-        }
+        xmpz::cmp_f64(self, *other)
     }
 }
 

@@ -16,7 +16,6 @@
 
 use cast::cast;
 use ext::xmpq;
-use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
 use std::cmp::Ordering;
 use std::i32;
@@ -27,52 +26,49 @@ impl Eq for Rational {}
 impl Ord for Rational {
     #[inline]
     fn cmp(&self, other: &Rational) -> Ordering {
-        let ord = unsafe { gmp::mpq_cmp(self.as_raw(), other.as_raw()) };
-        ord.cmp(&0)
+        xmpq::cmp(self, other)
     }
 }
 
 impl PartialEq for Rational {
     #[inline]
     fn eq(&self, other: &Rational) -> bool {
-        unsafe { gmp::mpq_equal(self.as_raw(), other.as_raw()) != 0 }
+        xmpq::equal(self, other)
     }
 }
 
 impl PartialOrd for Rational {
     #[inline]
     fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-        Some(<Rational as Ord>::cmp(self, other))
+        Some(self.cmp(other))
     }
 }
 
 impl PartialEq<Integer> for Rational {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        unsafe { gmp::mpq_cmp_z(self.as_raw(), other.as_raw()) == 0 }
+        xmpq::cmp_z(self, other) == Ordering::Equal
     }
 }
 
 impl PartialEq<Rational> for Integer {
     #[inline]
     fn eq(&self, other: &Rational) -> bool {
-        <Rational as PartialEq<Integer>>::eq(other, self)
+        other.eq(self)
     }
 }
 
 impl PartialOrd<Integer> for Rational {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        let ord = unsafe { gmp::mpq_cmp_z(self.as_raw(), other.as_raw()) };
-        Some(ord.cmp(&0))
+        Some(xmpq::cmp_z(self, other))
     }
 }
 
 impl PartialOrd<Rational> for Integer {
     #[inline]
     fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-        <Rational as PartialOrd<Integer>>::partial_cmp(other, self)
-            .map(Ordering::reverse)
+        other.partial_cmp(self).map(Ordering::reverse)
     }
 }
 
@@ -81,23 +77,21 @@ macro_rules! cmp_common {
         impl PartialEq<$T> for Rational {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                <Rational as PartialOrd<$T>>::partial_cmp(self, other)
-                    == Some(Ordering::Equal)
+                self.partial_cmp(other) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Rational> for $T {
             #[inline]
             fn eq(&self, other: &Rational) -> bool {
-                <Rational as PartialEq<$T>>::eq(other, self)
+                other.eq(self)
             }
         }
 
         impl PartialOrd<Rational> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Rational) -> Option<Ordering> {
-                <Rational as PartialOrd<$T>>::partial_cmp(other, self)
-                    .map(Ordering::reverse)
+                other.partial_cmp(self).map(Ordering::reverse)
             }
         }
     };
@@ -120,10 +114,7 @@ macro_rules! cmp_num_cast {
         impl PartialOrd<$New> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
-                <Rational as PartialOrd<$Existing>>::partial_cmp(
-                    self,
-                    &cast(*other),
-                )
+                self.partial_cmp(&cast::<_, $Existing>(*other))
             }
         }
         cmp_common! { $New }

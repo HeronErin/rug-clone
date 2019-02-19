@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use ext::xmpq;
-use gmp_mpfr_sys::gmp;
+use ext::xmpz;
 use rational::big;
 use rational::ParseRationalError;
 #[cfg(try_from)]
@@ -45,11 +45,12 @@ impl Default for Rational {
 impl Clone for Rational {
     #[inline]
     fn clone(&self) -> Rational {
-        let mut dst: Rational = unsafe { mem::uninitialized() };
+        let mut dst: Rational;
         unsafe {
+            dst = mem::uninitialized();
             let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
-            gmp::mpz_init_set(num.as_raw_mut(), self.numer().as_raw());
-            gmp::mpz_init_set(den.as_raw_mut(), self.denom().as_raw());
+            xmpz::init_set(num, self.numer());
+            xmpz::init_set(den, self.denom());
         }
         dst
     }
@@ -64,7 +65,7 @@ impl Drop for Rational {
     #[inline]
     fn drop(&mut self) {
         unsafe {
-            gmp::mpq_clear(self.as_raw_mut());
+            xmpq::clear(self);
         }
     }
 }
@@ -165,11 +166,12 @@ where
 {
     #[inline]
     fn from(src: Num) -> Self {
-        let mut dst: Rational = unsafe { mem::uninitialized() };
+        let mut dst: Rational;
         unsafe {
+            dst = mem::uninitialized();
             let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
             ptr::write(num, Integer::from(src));
-            gmp::mpz_init_set_ui(den.as_raw_mut(), 1);
+            xmpz::init_set_u32(den, 1);
         }
         dst
     }

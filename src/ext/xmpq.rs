@@ -53,6 +53,11 @@ pub fn set(rop: &mut Rational, op: Option<&Rational>) {
 }
 
 #[inline]
+pub unsafe fn clear(rop: &mut Rational) {
+    gmp::mpq_clear(rop.as_raw_mut());
+}
+
+#[inline]
 fn process_int_rat<F>(
     rint: Option<&mut Integer>,
     rrat: Option<&mut Rational>,
@@ -382,6 +387,21 @@ pub fn round_fract_whole(
 #[inline]
 fn ord(o: c_int) -> Ordering {
     o.cmp(&0)
+}
+
+#[inline]
+pub fn cmp(op1: &Rational, op2: &Rational) -> Ordering {
+    ord(unsafe { gmp::mpq_cmp(op1.as_raw(), op2.as_raw()) })
+}
+
+#[inline]
+pub fn equal(op1: &Rational, op2: &Rational) -> bool {
+    (unsafe { gmp::mpq_equal(op1.as_raw(), op2.as_raw()) }) != 0
+}
+
+#[inline]
+pub fn cmp_z(op1: &Rational, op2: &Integer) -> Ordering {
+    ord(unsafe { gmp::mpq_cmp_z(op1.as_raw(), op2.as_raw()) })
 }
 
 #[inline]
