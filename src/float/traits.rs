@@ -407,10 +407,10 @@ mod tests {
             Float::with_val(20, Special::Nan),
             Float::with_val(20, 1),
             Float::with_val(20, -1),
-            Float::with_val(20, 999999e100),
-            Float::with_val(20, 999999e-100),
-            Float::with_val(20, -999999e100),
-            Float::with_val(20, -999999e-100),
+            Float::with_val(20, 999_999e100),
+            Float::with_val(20, 999_999e-100),
+            Float::with_val(20, -999_999e100),
+            Float::with_val(20, -999_999e-100),
         ];
         for f in &large {
             let r = Rational::try_from(f);

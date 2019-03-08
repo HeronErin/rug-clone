@@ -190,6 +190,7 @@ impl PartialOrd<Special> for Float {
 #[cfg(test)]
 mod tests {
     use float::Special;
+    use std::cmp::Ordering;
     #[cfg(feature = "integer")]
     use std::str::FromStr;
     #[cfg(feature = "integer")]
@@ -219,7 +220,7 @@ mod tests {
                 );
                 assert_eq!(
                     b.partial_cmp(op),
-                    op.partial_cmp(&b).map(|o| o.reverse())
+                    op.partial_cmp(&b).map(Ordering::reverse)
                 );
             }
         }
@@ -247,7 +248,7 @@ mod tests {
                 );
                 assert_eq!(
                     b.partial_cmp(op),
-                    op.partial_cmp(&b).map(|o| o.reverse())
+                    op.partial_cmp(&b).map(Ordering::reverse)
                 );
             }
         }

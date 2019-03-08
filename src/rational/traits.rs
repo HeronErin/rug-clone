@@ -289,6 +289,7 @@ unsafe impl Send for Rational {}
 unsafe impl Sync for Rational {}
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
     #[cfg(try_from)]
     use std::convert::TryFrom;
