@@ -375,7 +375,7 @@ pub fn gcdext(
         gmp::mpz_gcdext(
             g.as_raw_mut(),
             s.as_raw_mut(),
-            t.map(|x| x.as_raw_mut()).unwrap_or_else(ptr::null_mut),
+            t.map(Integer::as_raw_mut).unwrap_or_else(ptr::null_mut),
             op1.unwrap_or(g).as_raw(),
             op2.unwrap_or(s).as_raw(),
         );

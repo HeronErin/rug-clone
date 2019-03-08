@@ -299,6 +299,7 @@ unsafe impl Send for Integer {}
 unsafe impl Sync for Integer {}
 
 #[cfg(test)]
+#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 mod tests {
     #[cfg(try_from)]
     use std::convert::TryFrom;
