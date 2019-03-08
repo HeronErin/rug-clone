@@ -30,7 +30,7 @@ environment:
 
 cache:
   - '%USERPROFILE%\.cargo\registry\cache'
-  - '%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache'
+  - '%LOCALAPPDATA%\gmp-mpfr-sys'
 
 install:
   - set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;%USERPROFILE%\.cargo\bin;%PATH%
@@ -44,7 +44,6 @@ build: false
 
 before_test:
   - bash -c "if cd ""$USERPROFILE/.cargo/registry"" && [ -d cache ]; then find cache -name \*.crate; fi"
-  - set GMP_MPFR_SYS_CACHE=%APPVEYOR_BUILD_FOLDER%\gmp-mpfr-sys-cache
 
 test_script:
   - cargo +beta-%TARGET% test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
