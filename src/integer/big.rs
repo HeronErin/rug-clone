@@ -526,6 +526,7 @@ impl Integer {
     /// use rug::Integer;
     ///
     /// let i: Integer = Integer::from(1) << 256;
+    /// assert_eq!(i.significant_digits::<bool>(), 257);
     /// assert_eq!(i.significant_digits::<u8>(), 33);
     /// assert_eq!(i.significant_digits::<u16>(), 17);
     /// assert_eq!(i.significant_digits::<u32>(), 9);
