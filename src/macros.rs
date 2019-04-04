@@ -1437,6 +1437,49 @@ macro_rules! math_op2_round {
     };
 }
 
+// method(self, &Self, param*) -> Self
+// method_mut(&mut self, &Self, param*)
+// method_ref(&mut self, &Self, param*) -> Incomplete
+#[cfg(feature = "float")]
+macro_rules! math_op2_no_round {
+    (
+        $func:path;
+        $(#[$attr:meta])*
+        fn $method:ident($op:ident $(, $param:ident: $T:ty),*);
+        $(#[$attr_mut:meta])*
+        fn $method_mut:ident;
+        $(#[$attr_ref:meta])*
+        fn $method_ref:ident -> $Incomplete:ident;
+    ) => {
+        $(#[$attr])*
+        #[inline]
+        pub fn $method(mut self, $op: &Self, $($param: $T),*) -> Self {
+            self.$method_mut($op, $($param),*);
+            self
+        }
+
+        $(#[$attr_mut])*
+        #[inline]
+        pub fn $method_mut(&mut self, $op: &Self, $($param: $T),*) {
+            $func(self, None, Some($op), $($param,)* Default::default());
+        }
+
+        $(#[$attr_ref])*
+        #[inline]
+        pub fn $method_ref<'a>(
+            &'a self,
+            $op: &'a Self,
+            $($param: $T,)*
+        ) -> $Incomplete {
+            $Incomplete {
+                ref_self: self,
+                $op,
+                $($param,)*
+            }
+        }
+    };
+}
+
 // struct Incomplete
 // Big = Incomplete
 #[cfg(feature = "float")]

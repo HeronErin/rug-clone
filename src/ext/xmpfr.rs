@@ -262,6 +262,7 @@ pub fn modf(
 }
 
 wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
+wrap! { fn copysign(op1, op2) -> mpfr::copysign }
 wrap! { fn sqr(op) -> mpfr::sqr }
 wrap! { fn sqrt(op) -> mpfr::sqrt }
 wrap0! { fn sqrt_ui(u: u32) -> mpfr::sqrt_ui }

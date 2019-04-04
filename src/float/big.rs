@@ -3209,6 +3209,58 @@ impl Float {
         /// [icv]: index.html#incomplete-computation-values
         fn signum_ref -> SignumIncomplete;
     }
+    math_op2_no_round! {
+        xmpfr::copysign;
+        /// Returns a number with the magnitude of `self` and the sign
+        /// of `y`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let x = Float::with_val(53, 23.0);
+        /// let y = Float::with_val(53, -1.0);
+        /// let copysign = x.copysign(&y);
+        /// assert_eq!(copysign, -23.0);
+        /// ```
+        fn copysign(y);
+        /// Retains the magnitude of `self` and copies the sign of
+        /// `y`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let mut x = Float::with_val(53, 23.0);
+        /// let y = Float::with_val(53, -1.0);
+        /// x.copysign_mut(&y);
+        /// assert_eq!(x, -23.0);
+        /// ```
+        fn copysign_mut;
+        /// Computes a number with the magnitude of `self` and the
+        /// sign of `y`.
+        ///
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let x = Float::with_val(53, 23.0);
+        /// let y = Float::with_val(53, -1.0);
+        /// let r = x.copysign_ref(&y);
+        /// let copysign = Float::with_val(53, r);
+        /// assert_eq!(copysign, -23.0);
+        /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn copysign_ref -> CopysignIncomplete;
+    }
 
     /// Clamps the value within the specified bounds, rounding to the
     /// nearest.
@@ -7980,6 +8032,7 @@ ref_math_op1_float! { xmpfr::cbrt; struct CbrtIncomplete {} }
 ref_math_op1_float! { xmpfr::rootn_ui; struct RootIncomplete { k: u32 } }
 ref_math_op1_float! { xmpfr::abs; struct AbsIncomplete {} }
 ref_math_op1_float! { xmpfr::signum; struct SignumIncomplete {} }
+ref_math_op2_float! { xmpfr::copysign; struct CopysignIncomplete { y } }
 
 #[derive(Debug)]
 pub struct ClampIncomplete<'a, Min, Max>

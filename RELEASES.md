@@ -5,6 +5,11 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.4.0 (unreleased)
+==========================
+
+  * Add `Float::copysign` methods.
+
 Version 1.3.1 (unreleased)
 ==========================
 

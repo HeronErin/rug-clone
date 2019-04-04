@@ -31,6 +31,15 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.4.0 news (unreleased)
+
+  * Methods [`Float::copysign`], [`Float::copysign_mut`] and
+    [`Float::copysign_ref`] were added.
+
+[`Float::copysign_mut`]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign_mut
+[`Float::copysign_ref`]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign_ref
+[`Float::copysign`]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign
+
 ### Version 1.3.1 news (unreleased)
 
   * The method [`RandState::as_raw`] was fixed to take `&self` instead
