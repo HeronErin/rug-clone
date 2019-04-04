@@ -131,6 +131,7 @@ mod tests {
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
             use byteorder::{LittleEndian, WriteBytesExt};
+            #[allow(unused_imports)]
             use serde_test::{self, Token};
             use serdeize::test::*;
             use std::io::Write;
