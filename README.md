@@ -112,9 +112,8 @@ Rug types and primitives. The following are provided:
  2. Where they make sense, conversions using the [`From`] trait and
     assignments using the [`Assign`] trait are supported for all the
     primitives in 1 above as well as the other primitives [`i8`],
-    [`i16`], [`i64`], [`isize`], [`u8`], [`u16`], [`u64`] and
-    [`usize`]. This also applies to [`i128`] and [`u128`] if they are
-    supported by the compiler.
+    [`i16`], [`i64`], [`i128`], [`isize`], [`u8`], [`u16`], [`u64`],
+    [`u128`] and [`usize`].
  3. Comparisons between Rug types and all the primitives listed in 1
     and 2 above are supported.
  4. For [`Rational`] numbers, conversions and comparisons are also

@@ -5394,7 +5394,6 @@ pub(crate) fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     }
 }
 
-#[allow(clippy::ptr_offset_with_cast)]
 pub(crate) fn append_to_string(
     s: &mut String,
     i: &Integer,
@@ -5408,7 +5407,7 @@ pub(crate) fn append_to_string(
     let orig_len = s.len();
     unsafe {
         let bytes = s.as_mut_vec();
-        let start = bytes.as_mut_ptr().offset(orig_len as isize);
+        let start = bytes.as_mut_ptr().add(orig_len);
         gmp::mpz_get_str(
             cast_ptr_mut!(start, c_char),
             case_radix as c_int,
@@ -5584,7 +5583,7 @@ pub enum IsPrime {
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for [`bool`], [`u8`], [`u16`], [`u32`], [`u64`],
-/// [`u128`] (conditional on compiler support), and [`usize`].
+/// [`u128`] and [`usize`].
 ///
 /// [`Integer::assign_digits`]: ../struct.Integer.html#method.assign_digits
 /// [`Integer::from_digits`]: ../struct.Integer.html#method.from_digits

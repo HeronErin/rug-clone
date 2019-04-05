@@ -3742,7 +3742,6 @@ impl Default for Format {
     }
 }
 
-#[allow(clippy::range_plus_one)]
 pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     let (re, im) = (c.real(), c.imag());
     let re_plus = f.sign_plus && re.is_sign_positive();
@@ -3771,7 +3770,7 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
             let bytes =
                 slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
-            bytes[prefix_start + 1..prefix_end + 1]
+            bytes[prefix_start + 1..=prefix_end]
                 .copy_from_slice(f.prefix.as_bytes());
         }
     }
@@ -3791,7 +3790,7 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
             let bytes =
                 slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
-            bytes[prefix_start + 1..prefix_end + 1]
+            bytes[prefix_start + 1..=prefix_end]
                 .copy_from_slice(f.prefix.as_bytes());
         }
     }

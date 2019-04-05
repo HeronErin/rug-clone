@@ -38,8 +38,8 @@ according to the type of the primitive used to set its value.
   * [`i16`], [`u16`]: the `SmallFloat` will have 16 bits of precision.
   * [`i32`], [`u32`]: the `SmallFloat` will have 32 bits of precision.
   * [`i64`], [`u64`]: the `SmallFloat` will have 64 bits of precision.
-  * [`i128`], [`u128`]: (if supported by the compiler) the
-    `SmallFloat` will have 128 bits of precision.
+  * [`i128`], [`u128`]: the `SmallFloat` will have 128 bits of
+    precision.
   * [`isize`], [`usize`]: the `SmallFloat` will have 32 or 64 bits of
     precision, depending on the platform.
   * [`f32`]: the `SmallFloat` will have 24 bits of precision.

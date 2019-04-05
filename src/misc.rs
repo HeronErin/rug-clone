@@ -54,7 +54,6 @@ neg_abs_signed! {
     (i8, u8) (i16, u16) (i32, u32) (i64, u64) (i128, u128) (isize, usize)
 }
 
-#[allow(clippy::transmute_int_to_float)]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.
@@ -67,7 +66,7 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
         let u: u64 = unsafe { mem::transmute(f) };
         // f64 has 29 more significant bits than f32.
         let trunc_u = u & (!0 << 29);
-        let trunc_f: f64 = unsafe { mem::transmute(trunc_u) };
+        let trunc_f = f64::from_bits(trunc_u);
         trunc_f as f32
     } else {
         f as f32
@@ -91,12 +90,11 @@ pub fn trim_start(bytes: &[u8]) -> &[u8] {
     &[]
 }
 
-#[allow(clippy::range_plus_one)]
 pub fn trim_end(bytes: &[u8]) -> &[u8] {
     for (end, &b) in bytes.iter().enumerate().rev() {
         match b {
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => {}
-            _ => return &bytes[..end + 1],
+            _ => return &bytes[..=end],
         }
     }
     &[]
