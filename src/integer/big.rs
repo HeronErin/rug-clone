@@ -458,7 +458,7 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        let capacity = digits.len().checked_mul(T::bits()).expect("overflow");
+        let capacity = digits.len().checked_mul(T::BITS).expect("overflow");
         let mut i = Integer::with_capacity(capacity);
         i.assign_digits(digits, order);
         i
@@ -491,9 +491,9 @@ impl Integer {
                 self.as_raw_mut(),
                 digits.len(),
                 order.order(),
-                T::bytes(),
+                T::BYTES,
                 order.endian(),
-                T::nails(),
+                T::NAILS,
                 digits.as_ptr() as *const c_void,
             );
         }
@@ -523,7 +523,7 @@ impl Integer {
     where
         T: UnsignedPrimitive,
     {
-        xmpz::significant_bits(self).div_ceil(T::bits())
+        xmpz::significant_bits(self).div_ceil(T::BITS)
     }
 
     /// Converts the absolute value to a [`Vec`] of digits of type
@@ -559,9 +559,9 @@ impl Integer {
                 digits_ptr as *mut c_void,
                 &mut count,
                 order.order(),
-                T::bytes(),
+                T::BYTES,
                 order.endian(),
-                T::nails(),
+                T::NAILS,
                 self.as_raw(),
             );
             assert_eq!(count, digit_count);
@@ -650,9 +650,9 @@ impl Integer {
                 digits.as_mut_ptr() as *mut c_void,
                 &mut count,
                 order.order(),
-                T::bytes(),
+                T::BYTES,
                 order.endian(),
-                T::nails(),
+                T::NAILS,
                 self.as_raw(),
             );
             assert_eq!(count, digit_count);
@@ -5602,33 +5602,15 @@ pub enum IsPrime {
 pub trait UnsignedPrimitive: SealedUnsignedPrimitive {}
 
 pub unsafe trait SealedUnsignedPrimitive: Sized {
-    #[inline(always)]
-    fn bytes() -> usize {
-        mem::size_of::<Self>()
-    }
-
-    #[inline(always)]
-    fn bits() -> usize {
-        Self::bytes() * 8
-    }
-
-    #[inline(always)]
-    fn nails() -> usize {
-        0
-    }
+    const BYTES: usize = mem::size_of::<Self>();
+    const BITS: usize = Self::BYTES * 8;
+    const NAILS: usize = 0;
 }
 
 impl UnsignedPrimitive for bool {}
 unsafe impl SealedUnsignedPrimitive for bool {
-    #[inline(always)]
-    fn bits() -> usize {
-        1
-    }
-
-    #[inline(always)]
-    fn nails() -> usize {
-        Self::bytes() * 8 - 1
-    }
+    const BITS: usize = 1;
+    const NAILS: usize = Self::BYTES * 8 - 1;
 }
 
 impl UnsignedPrimitive for u8 {}
