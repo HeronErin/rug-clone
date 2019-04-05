@@ -54,7 +54,7 @@ neg_abs_signed! {
     (i8, u8) (i16, u16) (i32, u32) (i64, u64) (i128, u128) (isize, usize)
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::transmute_int_to_float))]
+#[allow(clippy::transmute_int_to_float)]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
     // the least significant bits of f.
@@ -91,7 +91,7 @@ pub fn trim_start(bytes: &[u8]) -> &[u8] {
     &[]
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::range_plus_one))]
+#[allow(clippy::range_plus_one)]
 pub fn trim_end(bytes: &[u8]) -> &[u8] {
     for (end, &b) in bytes.iter().enumerate().rev() {
         match b {

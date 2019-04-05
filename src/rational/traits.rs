@@ -289,7 +289,7 @@ unsafe impl Send for Rational {}
 unsafe impl Sync for Rational {}
 
 #[cfg(test)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
+#[allow(clippy::float_cmp)]
 mod tests {
     use crate::{Assign, Rational};
     #[cfg(try_from)]

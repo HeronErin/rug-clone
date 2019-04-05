@@ -160,7 +160,7 @@ macro_rules! assign {
 
     ($T:ty as $U:ty) => {
         impl Assign<$T> for Integer {
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::cast_lossless))]
+            #[allow(clippy::cast_lossless)]
             #[inline]
             fn assign(&mut self, src: $T) {
                 self.assign(src as $U);
@@ -168,7 +168,7 @@ macro_rules! assign {
         }
 
         impl<'a> Assign<&'a $T> for Integer {
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::cast_lossless))]
+            #[allow(clippy::cast_lossless)]
             #[inline]
             fn assign(&mut self, src: &$T) {
                 self.assign(*src as $U);
@@ -176,7 +176,7 @@ macro_rules! assign {
         }
 
         impl From<$T> for Integer {
-            #[cfg_attr(feature = "cargo-clippy", allow(clippy::cast_lossless))]
+            #[allow(clippy::cast_lossless)]
             #[inline]
             fn from(src: $T) -> Self {
                 Integer::from(src as $U)
@@ -288,7 +288,7 @@ unsafe impl Send for Integer {}
 unsafe impl Sync for Integer {}
 
 #[cfg(test)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
+#[allow(clippy::cyclomatic_complexity)]
 mod tests {
     use crate::{Assign, Integer};
     #[cfg(try_from)]

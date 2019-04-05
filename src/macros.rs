@@ -2994,10 +2994,7 @@ macro_rules! cast_ptr {
         let ptr = Ptr($src);
         if false {
             #[allow(unused_unsafe)]
-            #[cfg_attr(
-                feature = "cargo-clippy",
-                allow(clippy::transmute_ptr_to_ptr)
-            )]
+            #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
                 let _ = ::std::mem::transmute::<_, $T>(ptr.get());
             }
@@ -3018,10 +3015,7 @@ macro_rules! cast_ptr_mut {
         let ptr = Ptr($src);
         if false {
             #[allow(unused_unsafe)]
-            #[cfg_attr(
-                feature = "cargo-clippy",
-                allow(clippy::transmute_ptr_to_ptr)
-            )]
+            #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
                 let _ = ::std::mem::transmute::<_, $T>(ptr.get());
             }

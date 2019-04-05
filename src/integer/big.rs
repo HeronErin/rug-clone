@@ -4889,10 +4889,7 @@ where
 {
     fn add_assign(&mut self, src: DotIncomplete<'a, I>) {
         for i in src.values {
-            #[cfg_attr(
-                feature = "cargo-clippy",
-                allow(clippy::suspicious_op_assign_impl)
-            )]
+            #[allow(clippy::suspicious_op_assign_impl)]
             AddAssign::add_assign(self, i.0 * i.1);
         }
     }
@@ -5397,7 +5394,7 @@ pub(crate) fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     }
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::ptr_offset_with_cast))]
+#[allow(clippy::ptr_offset_with_cast)]
 pub(crate) fn append_to_string(
     s: &mut String,
     i: &Integer,

@@ -258,8 +258,7 @@ pub enum Special {
 }
 
 #[cfg(test)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
+#[allow(clippy::cyclomatic_complexity, clippy::float_cmp)]
 pub(crate) mod tests {
     use crate::float::{Round, Special};
     #[cfg(feature = "rand")]

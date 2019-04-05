@@ -3742,7 +3742,7 @@ impl Default for Format {
     }
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::range_plus_one))]
+#[allow(clippy::range_plus_one)]
 pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     let (re, im) = (c.real(), c.imag());
     let re_plus = f.sign_plus && re.is_sign_positive();

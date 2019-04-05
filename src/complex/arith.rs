@@ -706,7 +706,7 @@ mul_op_noncommut_round! {
     SubMulIncomplete, SubMulFromIncomplete
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
+#[allow(clippy::needless_pass_by_value)]
 unsafe fn add_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
@@ -716,7 +716,7 @@ unsafe fn add_mul(
     mpc::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
+#[allow(clippy::needless_pass_by_value)]
 unsafe fn sub_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
@@ -726,7 +726,7 @@ unsafe fn sub_mul(
     xmpc::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
 }
 
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
+#[allow(clippy::needless_pass_by_value)]
 unsafe fn mul_sub(
     rop: *mut mpc_t,
     mul: MulIncomplete<'_>,
@@ -737,7 +737,7 @@ unsafe fn mul_sub(
 }
 
 #[cfg(test)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
+#[allow(clippy::cyclomatic_complexity)]
 mod tests {
     use crate::float::arith::tests as float_tests;
     use crate::float::Special;

@@ -380,7 +380,7 @@ where
 }
 
 #[cfg(test)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
+#[allow(clippy::cyclomatic_complexity)]
 mod tests {
     use crate::ops::{AddFrom, Pow, SubFrom};
     use crate::Integer;

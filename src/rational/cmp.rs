@@ -350,7 +350,7 @@ mod tests {
         check_cmp_prim(I128, &against);
     }
 
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::eq_op))]
+    #[allow(clippy::eq_op)]
     fn check_cmp_prim_tuple<N, D>(num: &[N], den: &[D], against: &[Rational])
     where
         Rational: From<(N, D)> + PartialEq<(N, D)> + PartialOrd<(N, D)>,

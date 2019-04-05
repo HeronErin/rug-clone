@@ -144,8 +144,7 @@ impl Order {
 }
 
 #[cfg(test)]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
+#[allow(clippy::cyclomatic_complexity, clippy::float_cmp)]
 mod tests {
     use crate::integer::Order;
     use crate::ops::NegAssign;

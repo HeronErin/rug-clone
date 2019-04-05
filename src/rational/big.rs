@@ -2396,10 +2396,7 @@ where
     fn add_assign(&mut self, src: DotIncomplete<'a, I>) {
         let mut mul = Rational::new();
         for i in src.values {
-            #[cfg_attr(
-                feature = "cargo-clippy",
-                allow(clippy::suspicious_op_assign_impl)
-            )]
+            #[allow(clippy::suspicious_op_assign_impl)]
             mul.assign(i.0 * i.1);
             AddAssign::add_assign(self, &mul);
         }
