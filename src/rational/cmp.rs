@@ -125,7 +125,6 @@ cmp_num_cast! { i8, i32 }
 cmp_num_cast! { i16, i32 }
 cmp_num! { i32, xmpq::cmp_i32 }
 cmp_num! { i64, xmpq::cmp_i64 }
-#[cfg(int_128)]
 cmp_num! { i128, xmpq::cmp_i128 }
 #[cfg(target_pointer_width = "32")]
 cmp_num_cast! { isize, i32 }
@@ -136,7 +135,6 @@ cmp_num_cast! { u8, u32 }
 cmp_num_cast! { u16, u32 }
 cmp_num! { u32, xmpq::cmp_u32 }
 cmp_num! { u64, xmpq::cmp_u64 }
-#[cfg(int_128)]
 cmp_num! { u128, xmpq::cmp_u128 }
 #[cfg(target_pointer_width = "32")]
 cmp_num_cast! { usize, u32 }
@@ -185,7 +183,6 @@ macro_rules! cmp_inum_32 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { xmpq::cmp_i32; $Num; i8 i16 i32 }
         cmp_num_iden! { xmpq::cmp_i64; $Num; i64 }
-        #[cfg(int_128)]
         cmp_num_iden! { xmpq::cmp_i128; $Num; i128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_iden! { xmpq::cmp_i32; $Num; isize }
@@ -194,7 +191,6 @@ macro_rules! cmp_inum_32 {
 
         cmp_num_uden! { xmpq::cmp_i32; $Num; u8 u16 u32 }
         cmp_num_uden! { xmpq::cmp_i64; $Num; u64 }
-        #[cfg(int_128)]
         cmp_num_uden! { xmpq::cmp_i128; $Num; u128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_uden! { xmpq::cmp_i32; $Num; usize }
@@ -206,17 +202,14 @@ macro_rules! cmp_inum_32 {
 macro_rules! cmp_inum_64 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { xmpq::cmp_i64; $Num; i8 i16 i32 i64 }
-        #[cfg(int_128)]
         cmp_num_iden! { xmpq::cmp_i128; $Num; i128 }
         cmp_num_iden! { xmpq::cmp_i64; $Num; isize }
         cmp_num_uden! { xmpq::cmp_i64; $Num; u8 u16 u32 u64 }
-        #[cfg(int_128)]
         cmp_num_uden! { xmpq::cmp_i128; $Num; u128 }
         cmp_num_uden! { xmpq::cmp_i64; $Num; usize }
     )* };
 }
 
-#[cfg(int_128)]
 macro_rules! cmp_inum_128 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { xmpq::cmp_i128; $Num; i8 i16 i32 i64 i128 isize }
@@ -228,7 +221,6 @@ macro_rules! cmp_unum_32 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { xmpq::cmp_u32; $Num; i8 i16 i32 }
         cmp_num_iden! { xmpq::cmp_u64; $Num; i64 }
-        #[cfg(int_128)]
         cmp_num_iden! { xmpq::cmp_u128; $Num; i128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_iden! { xmpq::cmp_u32; $Num; isize }
@@ -237,7 +229,6 @@ macro_rules! cmp_unum_32 {
 
         cmp_num_uden! { xmpq::cmp_u32; $Num; u8 u16 u32 }
         cmp_num_uden! { xmpq::cmp_u64; $Num; u64 }
-        #[cfg(int_128)]
         cmp_num_uden! { xmpq::cmp_u128; $Num; u128 }
         #[cfg(target_pointer_width = "32")]
         cmp_num_uden! { xmpq::cmp_u32; $Num; usize }
@@ -249,17 +240,14 @@ macro_rules! cmp_unum_32 {
 macro_rules! cmp_unum_64 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { xmpq::cmp_u64; $Num; i8 i16 i32 i64 }
-        #[cfg(int_128)]
         cmp_num_iden! { xmpq::cmp_u128; $Num; i128 }
         cmp_num_iden! { xmpq::cmp_u64; $Num; isize }
         cmp_num_uden! { xmpq::cmp_u64; $Num; u8 u16 u32 u64 }
-        #[cfg(int_128)]
         cmp_num_uden! { xmpq::cmp_u128; $Num; u128 }
         cmp_num_uden! { xmpq::cmp_u64; $Num; usize }
     )* };
 }
 
-#[cfg(int_128)]
 macro_rules! cmp_unum_128 {
     ($($Num:ty)*) => { $(
         cmp_num_iden! { xmpq::cmp_u128; $Num; i8 i16 i32 i64 i128 isize }
@@ -269,7 +257,6 @@ macro_rules! cmp_unum_128 {
 
 cmp_inum_32! { i8 i16 i32 }
 cmp_inum_64! { i64 }
-#[cfg(int_128)]
 cmp_inum_128! { i128 }
 #[cfg(target_pointer_width = "32")]
 cmp_inum_32! { isize }
@@ -278,7 +265,6 @@ cmp_inum_64! { isize }
 
 cmp_unum_32! { u8 u16 u32 }
 cmp_unum_64! { u64 }
-#[cfg(int_128)]
 cmp_unum_128! { u128 }
 #[cfg(target_pointer_width = "32")]
 cmp_unum_32! { usize }
@@ -313,9 +299,7 @@ mod tests {
     use std::ops::Neg;
     use std::ops::Sub;
     use std::{f32, f64};
-    #[cfg(int_128)]
-    use tests::{I128, U128};
-    use tests::{I32, I64, U32, U64};
+    use tests::{I128, I32, I64, U128, U32, U64};
     use Rational;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
@@ -355,20 +339,15 @@ mod tests {
             .chain(I32.iter().map(|&x| Rational::from(x)))
             .chain(U64.iter().map(|&x| Rational::from(x)))
             .chain(I64.iter().map(|&x| Rational::from(x)))
+            .chain(U128.iter().map(|&x| Rational::from(x)))
+            .chain(I128.iter().map(|&x| Rational::from(x)))
             .collect::<Vec<Rational>>();
-        #[cfg(int_128)]
-        let mut against = against;
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Rational::from(x)));
-            against.extend(I128.iter().map(|&x| Rational::from(x)));
-            check_cmp_prim(U128, &against);
-            check_cmp_prim(I128, &against);
-        }
         check_cmp_prim(U32, &against);
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
         check_cmp_prim(I64, &against);
+        check_cmp_prim(U128, &against);
+        check_cmp_prim(I128, &against);
     }
 
     #[cfg_attr(feature = "cargo-clippy", allow(clippy::eq_op))]
@@ -423,18 +402,9 @@ mod tests {
             .chain(I32.iter().map(|&x| Rational::from(x)))
             .chain(U64.iter().map(|&x| Rational::from(x)))
             .chain(I64.iter().map(|&x| Rational::from(x)))
+            .chain(U128.iter().map(|&x| Rational::from(x)))
+            .chain(I128.iter().map(|&x| Rational::from(x)))
             .collect::<Vec<Rational>>();
-        #[cfg(int_128)]
-        let mut against = against;
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Rational::from(x)));
-            against.extend(I128.iter().map(|&x| Rational::from(x)));
-            check_cmp_prim_tuple(U128, U128, &against);
-            check_cmp_prim_tuple(U128, I128, &against);
-            check_cmp_prim_tuple(I128, U128, &against);
-            check_cmp_prim_tuple(I128, I128, &against);
-        }
         check_cmp_prim_tuple(U32, U32, &against);
         check_cmp_prim_tuple(U32, I32, &against);
         check_cmp_prim_tuple(U32, U64, &against);
@@ -451,6 +421,10 @@ mod tests {
         check_cmp_prim_tuple(I64, I32, &against);
         check_cmp_prim_tuple(I64, U64, &against);
         check_cmp_prim_tuple(I64, I64, &against);
+        check_cmp_prim_tuple(U128, U128, &against);
+        check_cmp_prim_tuple(U128, I128, &against);
+        check_cmp_prim_tuple(I128, U128, &against);
+        check_cmp_prim_tuple(I128, I128, &against);
     }
 
     fn check_known_cmp<T>(t: T, against: &Rational, ord: Ordering)
@@ -499,14 +473,9 @@ mod tests {
             .chain(I32.iter().map(|&x| Rational::from(x)))
             .chain(U64.iter().map(|&x| Rational::from(x)))
             .chain(I64.iter().map(|&x| Rational::from(x)))
+            .chain(U128.iter().map(|&x| Rational::from(x)))
+            .chain(I128.iter().map(|&x| Rational::from(x)))
             .collect::<Vec<Rational>>();
-        #[cfg(int_128)]
-        let mut against = against;
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Rational::from(x)));
-            against.extend(I128.iter().map(|&x| Rational::from(x)));
-        }
         for b in &against {
             check_known_cmp(0.0f32, b, b.cmp0().reverse());
             check_known_cmp(0.0f64, b, b.cmp0().reverse());

@@ -100,46 +100,37 @@ impl<'a> From<&'a Integer> for Integer {
     }
 }
 
-#[cfg(try_from)]
 macro_rules! try_from {
-    ($(($T:ty, $method:ident))*) => { $(
+    ($T:ty, $method:ident) => {
+        #[cfg(try_from)]
         impl TryFrom<Integer> for $T {
             type Error = TryFromIntegerError;
             fn try_from(value: Integer) -> Result<Self, TryFromIntegerError> {
                 TryFrom::try_from(&value)
             }
         }
+        #[cfg(try_from)]
         impl<'a> TryFrom<&'a Integer> for $T {
             type Error = TryFromIntegerError;
             fn try_from(value: &Integer) -> Result<Self, TryFromIntegerError> {
-                value
-                    .$method()
-                    .ok_or(TryFromIntegerError { _unused: () })
+                value.$method().ok_or(TryFromIntegerError { _unused: () })
             }
         }
-    )* };
+    };
 }
 
-#[cfg(try_from)]
-try_from! {
-    (i8, to_i8) (i16, to_i16) (i32, to_i32) (i64, to_i64)
-}
-#[cfg(all(int_128, try_from))]
-try_from! { (i128, to_i128) }
-#[cfg(try_from)]
-try_from! {
-    (isize, to_isize)
-}
-#[cfg(try_from)]
-try_from! {
-    (u8, to_u8) (u16, to_u16) (u32, to_u32) (u64, to_u64)
-}
-#[cfg(all(int_128, try_from))]
-try_from! { (u128, to_u128) }
-#[cfg(try_from)]
-try_from! {
-    (usize, to_usize)
-}
+try_from! { i8, to_i8 }
+try_from! { i16, to_i16 }
+try_from! { i32, to_i32 }
+try_from! { i64, to_i64 }
+try_from! { i128, to_i128 }
+try_from! { isize, to_isize }
+try_from! { u8, to_u8 }
+try_from! { u16, to_u16 }
+try_from! { u32, to_u32 }
+try_from! { u64, to_u64 }
+try_from! { u128, to_u128 }
+try_from! { usize, to_usize }
 
 macro_rules! assign {
     ($T:ty, $set:path, $init_set:path) => {
@@ -198,7 +189,6 @@ assign! { i8 as i32 }
 assign! { i16 as i32 }
 assign! { i32, xmpz::set_i32, xmpz::init_set_i32 }
 assign! { i64, xmpz::set_i64, xmpz::init_set_i64 }
-#[cfg(int_128)]
 assign! { i128, xmpz::set_i128, xmpz::init_set_i128 }
 #[cfg(target_pointer_width = "32")]
 assign! { isize as i32 }
@@ -210,7 +200,6 @@ assign! { u8 as u32 }
 assign! { u16 as u32 }
 assign! { u32, xmpz::set_u32, xmpz::init_set_u32 }
 assign! { u64, xmpz::set_u64, xmpz::init_set_u64 }
-#[cfg(int_128)]
 assign! { u128, xmpz::set_u128, xmpz::init_set_u128 }
 #[cfg(target_pointer_width = "32")]
 assign! { usize as u32 }
@@ -352,7 +341,6 @@ mod tests {
         check_fallible_conversions_helper!(int, 16, i16, u16);
         check_fallible_conversions_helper!(int, 32, i32, u32);
         check_fallible_conversions_helper!(int, 64, i64, u64);
-        #[cfg(int_128)]
         check_fallible_conversions_helper!(int, 128, i128, u128);
     }
 }

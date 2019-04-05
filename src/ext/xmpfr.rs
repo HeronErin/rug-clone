@@ -509,14 +509,12 @@ pub unsafe fn f32_div(
     mpfr::d_div(rop, op1.into(), op2, rnd)
 }
 
-#[cfg(int_128)]
 #[inline]
 pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
     mpfr::set(rop, (*small).as_raw(), rnd)
 }
 
-#[cfg(int_128)]
 #[inline]
 pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
@@ -543,14 +541,12 @@ pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub unsafe fn cmp_i128(op1: *const mpfr_t, op2: i128) -> c_int {
     let small = SmallFloat::from(op2);
     mpfr::cmp(op1, (*small).as_raw())
 }
 
-#[cfg(int_128)]
 #[inline]
 pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
     let small = SmallFloat::from(op2);

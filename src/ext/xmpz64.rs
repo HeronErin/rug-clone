@@ -18,12 +18,9 @@ use ext::xmpz::*;
 use gmp_mpfr_sys::gmp;
 use misc::NegAbs;
 use std::cmp::Ordering;
-#[cfg(int_128)]
-use std::u64;
-use std::{i32, i64, u32};
+use std::{i32, i64, u32, u64};
 use Integer;
 
-#[cfg(int_128)]
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
@@ -50,7 +47,6 @@ pub fn set_u32(rop: &mut Integer, u: u32) {
     set_limb(rop, u64::from(u));
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn init_set_u128(rop: &mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
@@ -85,7 +81,6 @@ pub fn init_set_u32(rop: &mut Integer, u: u32) {
     init_set_u64(rop, u64::from(u));
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn get_abs_u128(op: &Integer) -> u128 {
     unsafe {
@@ -117,7 +112,6 @@ pub fn get_abs_u32(op: &Integer) -> u32 {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn cmp_u128(op1: &Integer, op2: u128) -> Ordering {
     let size = op1.inner().size;
@@ -130,7 +124,6 @@ pub fn cmp_u128(op1: &Integer, op2: u128) -> Ordering {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn cmp_i128(op1: &Integer, op2: i128) -> Ordering {
     let size = op1.inner().size;
@@ -253,7 +246,6 @@ pub fn fits_i64(op: &Integer) -> bool {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn fits_u128(op: &Integer) -> bool {
     match op.inner().size {
@@ -262,7 +254,6 @@ pub fn fits_u128(op: &Integer) -> bool {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn fits_i128(op: &Integer) -> bool {
     match op.inner().size {

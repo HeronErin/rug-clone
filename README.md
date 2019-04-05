@@ -33,6 +33,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.4.0 news (unreleased)
 
+  * Rug now requires rustc version 1.31.0 or later.
   * The method [`RandState::as_raw`] was fixed to take `&self` instead
     of `&mut self`.
   * Methods [`Float::copysign`], [`Float::copysign_mut`] and
@@ -296,14 +297,7 @@ add it as a dependency inside [*Cargo.toml*]:
 rug = "1.3"
 ```
 
-If you are using the 2015 Rust edition, you also need to declare it by
-adding this to your crate root (usually *lib.rs* or *main.rs*):
-
-```rust
-extern crate rug;
-```
-
-Rug requires rustc version 1.18.0 or later.
+Rug requires rustc version 1.31.0 or later.
 
 Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the
 low-level FFI bindings in the [gmp-mpfr-sys crate][sys crate], which

@@ -68,9 +68,6 @@ pub struct SmallInteger {
     limbs: Limbs,
 }
 
-#[cfg(not(int_128))]
-pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = (64 / gmp::LIMB_BITS) as usize;
-#[cfg(int_128)]
 pub(crate) const LIMBS_IN_SMALL_INTEGER: usize =
     (128 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
@@ -83,9 +80,6 @@ pub struct Mpz {
 }
 
 fn _static_assertions() {
-    #[cfg(not(int_128))]
-    static_assert_size!(Limbs: 8);
-    #[cfg(int_128)]
     static_assert_size!(Limbs: 16);
     static_assert_size!(Mpz, mpz_t);
 }
@@ -254,10 +248,7 @@ macro_rules! one_limb {
     )* };
 }
 
-signed! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-signed! { i128 }
-signed! { isize }
+signed! { i8 i16 i32 i64 i128 isize }
 one_limb! { u8 u16 u32 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -287,10 +278,9 @@ impl SealedToSmall for u64 {
     }
 }
 
-#[cfg(int_128)]
 impl ToSmall for u128 {}
 
-#[cfg(all(int_128, gmp_limb_bits_64))]
+#[cfg(gmp_limb_bits_64)]
 impl SealedToSmall for u128 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
@@ -312,7 +302,7 @@ impl SealedToSmall for u128 {
     }
 }
 
-#[cfg(all(int_128, gmp_limb_bits_32))]
+#[cfg(gmp_limb_bits_32)]
 impl SealedToSmall for u128 {
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
@@ -431,13 +421,10 @@ mod tests {
         assert_eq!(*i, 0xf_0000_0006u64);
         i.assign(-0xf_0000_0006i64);
         assert_eq!(*i, -0xf_0000_0006i64);
-        #[cfg(int_128)]
-        {
-            i.assign(6u128 << 64 | 7u128);
-            assert_eq!(*i, 6u128 << 64 | 7u128);
-            i.assign(-6i128 << 64 | 7i128);
-            assert_eq!(*i, -6i128 << 64 | 7i128);
-        }
+        i.assign(6u128 << 64 | 7u128);
+        assert_eq!(*i, 6u128 << 64 | 7u128);
+        i.assign(-6i128 << 64 | 7i128);
+        assert_eq!(*i, -6i128 << 64 | 7i128);
         i.assign(6usize);
         assert_eq!(*i, 6);
         i.assign(-6isize);

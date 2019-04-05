@@ -21,13 +21,9 @@ use float::big::ExpFormat;
 use float::{Round, Special};
 use gmp_mpfr_sys::mpc;
 use ops::AssignRound;
-#[allow(deprecated, unused_imports)]
-use std::ascii::AsciiExt;
 use std::cmp::Ordering;
-#[cfg(feature = "fmt_align")]
-use std::fmt::Alignment;
 use std::fmt::{
-    Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
+    Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
     Result as FmtResult, UpperExp, UpperHex,
 };
 use std::mem;
@@ -278,19 +274,10 @@ fn fmt_radix(c: &Complex, fmt: &mut Formatter, format: Format) -> FmtResult {
         Some(width) if width > count => width - count,
         _ => return fmt.write_str(&s),
     };
-    let (padding_left, padding_right) = {
-        #[cfg(feature = "fmt_align")]
-        {
-            match fmt.align() {
-                Some(Alignment::Left) => (0, padding),
-                Some(Alignment::Right) | None => (padding, 0),
-                Some(Alignment::Center) => (padding / 2, padding - padding / 2),
-            }
-        }
-        #[cfg(not(feature = "fmt_align"))]
-        {
-            (padding, 0)
-        }
+    let (padding_left, padding_right) = match fmt.align() {
+        Some(Alignment::Left) => (0, padding),
+        Some(Alignment::Right) | None => (padding, 0),
+        Some(Alignment::Center) => (padding / 2, padding - padding / 2),
     };
     let mut fill_buf = String::with_capacity(4);
     fill_buf.push(fmt.fill());

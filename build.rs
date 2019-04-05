@@ -22,14 +22,7 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    env.check_feature("int_128", TRY_INT_128, Some("i128_type, i128"));
-    env.check_feature(
-        "repr_transparent",
-        TRY_REPR_TRANSPARENT,
-        Some("repr_transparent"),
-    );
     env.check_feature("try_from", TRY_TRY_FROM, Some("try_from"));
-    env.check_feature("fmt_align", TRY_FMT_ALIGN, None);
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
@@ -177,41 +170,11 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }
 
-const TRY_INT_128: &str = r#"// try_int_128.rs
-use std::i128;
-fn main() {
-    let _: i128 = 1i128;
-    let _: u128 = 1u128;
-    let _ = i128::MIN;
-}
-"#;
-
-const TRY_REPR_TRANSPARENT: &str = r#"// try_repr_transparent.rs
-#[repr(transparent)]
-struct Foo(i32);
-fn main() {
-    let _ = Foo(12);
-}
-"#;
-
 const TRY_TRY_FROM: &str = r#"// try_try_from.rs
 use std::convert::TryFrom;
 fn main() {
     let _ = i8::try_from(1u64);
 }
-"#;
-
-const TRY_FMT_ALIGN: &str = r#"// try_fmt_align.rs
-use std::fmt::{Alignment, Formatter};
-fn _foo(fmt: &mut Formatter) -> i32 {
-    match fmt.align() {
-        Some(Alignment::Left) => 0,
-        Some(Alignment::Right) => 0,
-        Some(Alignment::Center) => 0,
-        None => 4,
-    }
-}
-fn main() {}
 "#;
 
 const TRY_FFI_PANIC_ABORTS: &str = r#"// try_ffi_panic_aborts.rs

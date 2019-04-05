@@ -8,6 +8,7 @@ as-is, without any warranty. -->
 Verison 1.4.0 (unreleased)
 ==========================
 
+  * Require rustc version 1.31.0.
   * The method `RandState::as_raw` was fixed to take `&self` instead
     of `&mut self`.
   * Add `Float::copysign` methods.

@@ -182,7 +182,7 @@ assert_eq!(c, -17);
 
 [icv]: index.html#incomplete-computation-values
 */
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct Integer {
     inner: mpz_t,
 }
@@ -957,11 +957,7 @@ impl Integer {
         }
     }
 
-    #[cfg(int_128)]
     /// Converts to an [`i128`] if the value fits.
-    ///
-    /// This method is only present if the compiler supports the
-    /// [`i128`] primitive.
     ///
     /// If the compiler supports [`TryFrom`], this conversion can also
     /// be performed using `i128::try_from(&integer)` or
@@ -1136,11 +1132,7 @@ impl Integer {
         }
     }
 
-    #[cfg(int_128)]
     /// Converts to a [`u128`] if the value fits.
-    ///
-    /// This method is only present if the compiler supports the
-    /// [`u128`] primitive.
     ///
     /// If the compiler supports [`TryFrom`], this conversion can also
     /// be performed using `u128::try_from(&integer)` or
@@ -1267,11 +1259,7 @@ impl Integer {
         self.to_u64_wrapping() as i64
     }
 
-    #[cfg(int_128)]
     /// Converts to an [`i128`], wrapping if the value does not fit.
-    ///
-    /// This method is only present if the compiler supports the
-    /// [`i128`] primitive.
     ///
     /// # Examples
     ///
@@ -1399,11 +1387,7 @@ impl Integer {
         }
     }
 
-    #[cfg(int_128)]
     /// Converts to a [`u128`], wrapping if the value does not fit.
-    ///
-    /// This method is only present if the compiler supports the
-    /// [`u128`] primitive.
     ///
     /// # Examples
     ///
@@ -5405,7 +5389,7 @@ where
 }
 
 #[derive(Debug)]
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct BorrowInteger<'a> {
     pub(crate) inner: mpz_t,
     pub(crate) phantom: PhantomData<&'a Integer>,
@@ -5681,9 +5665,7 @@ unsafe impl SealedUnsignedPrimitive for u32 {}
 impl UnsignedPrimitive for u64 {}
 unsafe impl SealedUnsignedPrimitive for u64 {}
 
-#[cfg(int_128)]
 impl UnsignedPrimitive for u128 {}
-#[cfg(int_128)]
 unsafe impl SealedUnsignedPrimitive for u128 {}
 
 impl UnsignedPrimitive for usize {}

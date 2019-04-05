@@ -1494,7 +1494,6 @@ pub fn xor_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn set_i128(rop: &mut Integer, i: i128) {
     let (neg_i, abs_i) = i.neg_abs();
@@ -1522,7 +1521,6 @@ pub fn set_i32(rop: &mut Integer, i: i32) {
     }
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn init_set_i128(rop: &mut Integer, i: i128) {
     let (neg_i, abs_i) = i.neg_abs();

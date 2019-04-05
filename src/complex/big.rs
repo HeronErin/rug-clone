@@ -147,7 +147,7 @@ assert_eq!(d, (1, 1));
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct Complex {
     inner: mpc_t,
 }
@@ -3702,7 +3702,7 @@ where
 }
 
 #[derive(Debug)]
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct BorrowComplex<'a> {
     inner: mpc_t,
     phantom: PhantomData<&'a Complex>,

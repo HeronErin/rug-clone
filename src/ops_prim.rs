@@ -640,25 +640,13 @@ assign_from! { bool; bitand; BitAndFrom bitand_from }
 assign_from! { bool; bitor; BitOrFrom bitor_from }
 assign_from! { bool; bitxor; BitXorFrom bitxor_from }
 
-int_ops! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-int_ops! { i128 }
-int_ops! { isize }
-int_ops! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-int_ops! { u128 }
-int_ops! { usize }
-int_neg! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-int_neg! { i128 }
-int_neg! { isize }
+int_ops! { i8 i16 i32 i64 i128 isize }
+int_ops! { u8 u16 u32 u64 u128 usize }
+int_neg! { i8 i16 i32 i64 i128 isize }
 assign_from! { u32; pow; PowFrom pow_from }
 float_ops! { f32 f64 }
 
-rounding_signed! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-rounding_signed! { i128 }
-rounding_signed! { isize }
+rounding_signed! { i8 i16 i32 i64 i128 isize }
 
 // For unsigned primitives, RemRounding is not implemented. Ignoring
 // the issue that we cannot have negative numbers, if r == n % d then
@@ -668,10 +656,7 @@ rounding_signed! { isize }
 // n.rem_floor(d) -> r
 // n.rem_euc(d) -> r
 
-rounding_unsigned! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-rounding_unsigned! { u128 }
-rounding_unsigned! { usize }
+rounding_unsigned! { u8 u16 u32 u64 u128 usize }
 
 rounding_float! { f32 f64 }
 

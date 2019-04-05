@@ -98,13 +98,9 @@ impl Default for SmallRational {
     }
 }
 
-#[cfg(all(not(int_128), gmp_limb_bits_64))]
-const LIMBS_ONE: Limbs = [1];
-#[cfg(all(not(int_128), gmp_limb_bits_32))]
+#[cfg(gmp_limb_bits_64)]
 const LIMBS_ONE: Limbs = [1, 0];
-#[cfg(all(int_128, gmp_limb_bits_64))]
-const LIMBS_ONE: Limbs = [1, 0];
-#[cfg(all(int_128, gmp_limb_bits_32))]
+#[cfg(gmp_limb_bits_32)]
 const LIMBS_ONE: Limbs = [1, 0, 0, 0];
 
 impl SmallRational {

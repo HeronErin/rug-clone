@@ -30,8 +30,6 @@ use misc;
 use ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use rand::RandState;
-#[allow(deprecated, unused_imports)]
-use std::ascii::AsciiExt;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::{CStr, CString};
@@ -233,7 +231,7 @@ println!("Sum is {}", sr);
 [MPFR sample]: https://www.mpfr.org/sample.html
 [icv]: index.html#incomplete-computation-values
 */
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct Float {
     inner: mpfr_t,
 }
@@ -8325,7 +8323,7 @@ where
 }
 
 #[derive(Debug)]
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct BorrowFloat<'a> {
     inner: mpfr_t,
     phantom: PhantomData<&'a Float>,

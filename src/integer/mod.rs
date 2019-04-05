@@ -150,9 +150,7 @@ impl Order {
 mod tests {
     use integer::Order;
     use ops::NegAssign;
-    use std::{f32, f64, i32, i64, u32, u64};
-    #[cfg(int_128)]
-    use std::{i128, u128};
+    use std::{f32, f64, i128, i32, i64, u128, u32, u64};
     use {Assign, Integer};
 
     #[test]
@@ -247,39 +245,36 @@ mod tests {
         assert_eq!(i.to_u64(), None);
         assert_eq!(i.to_i64(), None);
 
-        #[cfg(int_128)]
-        {
-            i.assign(i128::MIN);
-            assert_eq!(i.to_u64(), None);
-            assert_eq!(i.to_i64(), None);
-            assert_eq!(i.to_u128(), None);
-            assert_eq!(i.to_i128(), Some(i128::MIN));
-            i -= 1;
-            assert_eq!(i.to_u64(), None);
-            assert_eq!(i.to_i64(), None);
-            assert_eq!(i.to_u128(), None);
-            assert_eq!(i.to_i128(), None);
-            i.assign(i128::MAX);
-            assert_eq!(i.to_u64(), None);
-            assert_eq!(i.to_i64(), None);
-            assert_eq!(i.to_u128(), Some(i128::MAX as u128));
-            assert_eq!(i.to_i128(), Some(i128::MAX));
-            i += 1;
-            assert_eq!(i.to_u64(), None);
-            assert_eq!(i.to_i64(), None);
-            assert_eq!(i.to_u128(), Some(i128::MAX as u128 + 1));
-            assert_eq!(i.to_i128(), None);
-            i.assign(u128::MAX);
-            assert_eq!(i.to_u64(), None);
-            assert_eq!(i.to_i64(), None);
-            assert_eq!(i.to_u128(), Some(u128::MAX));
-            assert_eq!(i.to_i128(), None);
-            i += 1;
-            assert_eq!(i.to_u64(), None);
-            assert_eq!(i.to_i64(), None);
-            assert_eq!(i.to_u128(), None);
-            assert_eq!(i.to_i128(), None);
-        }
+        i.assign(i128::MIN);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
+        assert_eq!(i.to_u128(), None);
+        assert_eq!(i.to_i128(), Some(i128::MIN));
+        i -= 1;
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
+        assert_eq!(i.to_u128(), None);
+        assert_eq!(i.to_i128(), None);
+        i.assign(i128::MAX);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
+        assert_eq!(i.to_u128(), Some(i128::MAX as u128));
+        assert_eq!(i.to_i128(), Some(i128::MAX));
+        i += 1;
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
+        assert_eq!(i.to_u128(), Some(i128::MAX as u128 + 1));
+        assert_eq!(i.to_i128(), None);
+        i.assign(u128::MAX);
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
+        assert_eq!(i.to_u128(), Some(u128::MAX));
+        assert_eq!(i.to_i128(), None);
+        i += 1;
+        assert_eq!(i.to_u64(), None);
+        assert_eq!(i.to_i64(), None);
+        assert_eq!(i.to_u128(), None);
+        assert_eq!(i.to_i128(), None);
     }
 
     #[test]
@@ -569,7 +564,6 @@ mod tests {
         assert_eq!(i, 0x0102_0304_0506_0708u64);
     }
 
-    #[cfg(int_128)]
     #[test]
     fn check_to_digits_u128() {
         let le_2222 = 0x2222u128.to_le();
@@ -598,7 +592,6 @@ mod tests {
         assert_eq!(*vec, [be_1111, 0, be_2222]);
     }
 
-    #[cfg(int_128)]
     #[test]
     fn check_from_digits_u128() {
         let le_2222 = 0x2222u128.to_le();

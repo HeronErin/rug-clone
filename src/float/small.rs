@@ -88,9 +88,6 @@ pub struct SmallFloat {
     limbs: Limbs,
 }
 
-#[cfg(not(int_128))]
-pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (64 / gmp::LIMB_BITS) as usize;
-#[cfg(int_128)]
 pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (128 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_FLOAT];
 
@@ -103,9 +100,6 @@ pub struct Mpfr {
 }
 
 fn _static_assertions() {
-    #[cfg(not(int_128))]
-    static_assert_size!(Limbs: 8);
-    #[cfg(int_128)]
     static_assert_size!(Limbs: 16);
     static_assert_size!(Mpfr, mpfr_t);
 }
@@ -237,10 +231,7 @@ macro_rules! unsigned_32 {
     };
 }
 
-signed! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-signed! { i128 }
-signed! { isize }
+signed! { i8 i16 i32 i64 i128 isize }
 
 unsigned_32! { u8, 8 }
 unsigned_32! { u16, 16 }
@@ -275,9 +266,7 @@ impl SealedToSmall for u64 {
     }
 }
 
-#[cfg(int_128)]
 impl ToSmall for u128 {}
-#[cfg(int_128)]
 impl SealedToSmall for u128 {
     #[inline]
     fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
@@ -428,13 +417,10 @@ mod tests {
         assert_eq!(*f, 6);
         f.assign(-6i64);
         assert_eq!(*f, -6);
-        #[cfg(int_128)]
-        {
-            f.assign(6u128);
-            assert_eq!(*f, 6);
-            f.assign(-6i128);
-            assert_eq!(*f, -6);
-        }
+        f.assign(6u128);
+        assert_eq!(*f, 6);
+        f.assign(-6i128);
+        assert_eq!(*f, -6);
         f.assign(6usize);
         assert_eq!(*f, 6);
         f.assign(-6isize);

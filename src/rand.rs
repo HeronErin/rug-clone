@@ -47,7 +47,7 @@ let u = rand.bits(32);
 println!("32 random bits: {:032b}", u);
 ```
 */
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct RandState<'a> {
     inner: randstate_t,
     phantom: PhantomData<&'a RandGen>,

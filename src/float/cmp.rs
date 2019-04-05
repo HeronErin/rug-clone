@@ -136,7 +136,6 @@ cmp_i! { i8, |f, &t: &i8| unsafe { mpfr::cmp_si(f, t.into()) } }
 cmp_i! { i16, |f, &t: &i16| unsafe { mpfr::cmp_si(f, t.into()) } }
 cmp_i! { i32, |f, &t: &i32| unsafe { mpfr::cmp_si(f, t.into()) } }
 cmp_i! { i64, |f, &t: &i64| unsafe { xmpfr::cmp_i64(f, t) } }
-#[cfg(int_128)]
 cmp_i! { i128, |f, &t: &i128| unsafe { xmpfr::cmp_i128(f, t) } }
 #[cfg(target_pointer_width = "32")]
 cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, cast(t)) } }
@@ -147,7 +146,6 @@ cmp_i! { u8, |f, &t: &u8| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u16, |f, &t: &u16| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u32, |f, &t: &u32| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u64, |f, &t: &u64| unsafe { xmpfr::cmp_u64(f, t) } }
-#[cfg(int_128)]
 cmp_i! { u128, |f, &t: &u128| unsafe { xmpfr::cmp_u128(f, t) } }
 #[cfg(target_pointer_width = "32")]
 cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, cast(t)) } }
@@ -256,9 +254,7 @@ mod tests {
 
     #[test]
     fn check_cmp_others() {
-        use tests::{F32, F64, I32, I64, U32, U64};
-        #[cfg(int_128)]
-        use tests::{I128, U128};
+        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),
@@ -296,26 +292,23 @@ mod tests {
             .chain(I32.iter().map(|&x| Float::with_val(20, x)))
             .chain(U64.iter().map(|&x| Float::with_val(20, x)))
             .chain(I64.iter().map(|&x| Float::with_val(20, x)))
+            .chain(U128.iter().map(|&x| Float::with_val(20, x)))
+            .chain(I128.iter().map(|&x| Float::with_val(20, x)))
             .chain(F32.iter().map(|&x| Float::with_val(20, x)))
             .chain(F64.iter().map(|&x| Float::with_val(20, x)))
             .collect::<Vec<Float>>();
-        #[cfg(any(int_128, feature = "integer"))]
+        #[cfg(feature = "integer")]
         let mut against = against;
         #[cfg(feature = "integer")]
         against.extend(z.iter().map(|x| Float::with_val(20, x)));
         #[cfg(feature = "rational")]
         against.extend(q.iter().map(|x| Float::with_val(20, x)));
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Float::with_val(20, x)));
-            against.extend(I128.iter().map(|&x| Float::with_val(20, x)));
-            check_cmp_prim(U128, &against);
-            check_cmp_prim(I128, &against);
-        }
         check_cmp_prim(U32, &against);
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
         check_cmp_prim(I64, &against);
+        check_cmp_prim(U128, &against);
+        check_cmp_prim(I128, &against);
         check_cmp_prim(F32, &against);
         check_cmp_prim(F64, &against);
         #[cfg(feature = "integer")]

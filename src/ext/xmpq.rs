@@ -436,7 +436,6 @@ pub fn cmp_i64(op1: &Rational, n2: i64, d2: u64) -> Ordering {
     ord(unsafe { gmp::mpq_cmp(op1.as_raw(), (*small).as_raw()) })
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn cmp_u128(op1: &Rational, n2: u128, d2: u128) -> Ordering {
     if let Some(n2) = cast::checked_cast(n2) {
@@ -448,7 +447,6 @@ pub fn cmp_u128(op1: &Rational, n2: u128, d2: u128) -> Ordering {
     ord(unsafe { gmp::mpq_cmp(op1.as_raw(), (*small).as_raw()) })
 }
 
-#[cfg(int_128)]
 #[inline]
 pub fn cmp_i128(op1: &Rational, n2: i128, d2: u128) -> Ordering {
     if let Some(n2) = cast::checked_cast(n2) {

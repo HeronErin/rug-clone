@@ -49,14 +49,10 @@ macro_rules! neg_abs_signed {
         }
     )* };
 }
-neg_abs_unsigned! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-neg_abs_unsigned! { u128 }
-neg_abs_unsigned! { usize }
-neg_abs_signed! { (i8, u8) (i16, u16) (i32, u32) (i64, u64) }
-#[cfg(int_128)]
-neg_abs_signed! { (i128, u128) }
-neg_abs_signed! { (isize, usize) }
+neg_abs_unsigned! { u8 u16 u32 u64 u128 usize }
+neg_abs_signed! {
+    (i8, u8) (i16, u16) (i32, u32) (i64, u64) (i128, u128) (isize, usize)
+}
 
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::transmute_int_to_float))]
 pub fn trunc_f64_to_f32(f: f64) -> f32 {

@@ -301,7 +301,7 @@ extern crate rug;
 # fn main() {}
 ```
 
-Rug requires rustc version 1.18.0 or later.
+Rug requires rustc version 1.31.0 or later.
 
 Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the
 low-level FFI bindings in the [gmp-mpfr-sys crate][sys crate], which
@@ -404,8 +404,6 @@ provided by the crate.
 #![doc(html_logo_url = "https://tspiteri.gitlab.io/gmp-mpfr-sys/rug.svg")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(nightly_int_128, feature(i128_type, i128))]
-#![cfg_attr(nightly_repr_transparent, feature(repr_transparent))]
 #![cfg_attr(nightly_try_from, feature(try_from))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
@@ -533,9 +531,7 @@ fn _static_assertions() {
 mod tests {
     #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
     use std::{f32, f64};
-    #[cfg(int_128)]
-    use std::{i128, u128};
-    use std::{i32, i64, u32, u64};
+    use std::{i128, i32, i64, u128, u32, u64};
 
     pub const U32: &[u32] = &[0, 1, 1000, 1001, i32::MAX as u32 + 1, u32::MAX];
     pub const I32: &[i32] =
@@ -557,7 +553,6 @@ mod tests {
         u32::MAX as i64 + 1,
         i64::MAX,
     ];
-    #[cfg(int_128)]
     pub const U128: &[u128] = &[
         0,
         1,
@@ -569,7 +564,6 @@ mod tests {
         u64::MAX as u128 + 1,
         u128::MAX,
     ];
-    #[cfg(int_128)]
     pub const I128: &[i128] = &[
         i128::MIN,
         -(u64::MAX as i128) - 1,

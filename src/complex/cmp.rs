@@ -68,14 +68,8 @@ macro_rules! eq_re {
         #[cfg(feature = "rational")]
         eq_re_im! { $Re; Rational }
         eq_re_im! { $Re; Float Special }
-        eq_re_im! { $Re; i8 i16 i32 i64 }
-        #[cfg(int_128)]
-        eq_re_im! { $Re; i128 }
-        eq_re_im! { $Re; isize }
-        eq_re_im! { $Re; u8 u16 u32 u64 }
-        #[cfg(int_128)]
-        eq_re_im! { $Re; u128 }
-        eq_re_im! { $Re; usize }
+        eq_re_im! { $Re; i8 i16 i32 i64 i128 isize }
+        eq_re_im! { $Re; u8 u16 u32 u64 u128 usize }
         eq_re_im! { $Re; f32 f64 }
     )* };
 }
@@ -85,14 +79,8 @@ eq_re! { Integer }
 #[cfg(feature = "rational")]
 eq_re! { Rational }
 eq_re! { Float Special }
-eq_re! { i8 i16 i32 i64 }
-#[cfg(int_128)]
-eq_re! { i128 }
-eq_re! { isize }
-eq_re! { u8 u16 u32 u64 }
-#[cfg(int_128)]
-eq_re! { u128 }
-eq_re! { usize }
+eq_re! { i8 i16 i32 i64 i128 isize }
+eq_re! { u8 u16 u32 u64 u128 usize }
 eq_re! { f32 f64 }
 
 #[cfg(test)]
@@ -177,9 +165,7 @@ mod tests {
 
     #[test]
     fn check_eq_others() {
-        use tests::{F32, F64, I32, I64, U32, U64};
-        #[cfg(int_128)]
-        use tests::{I128, U128};
+        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         #[cfg(feature = "integer")]
         let z = [
             Integer::from(0),
@@ -217,26 +203,23 @@ mod tests {
             .chain(combinations(I32).iter().map(to_complex))
             .chain(combinations(U64).iter().map(to_complex))
             .chain(combinations(I64).iter().map(to_complex))
+            .chain(combinations(U128).iter().map(to_complex))
+            .chain(combinations(I128).iter().map(to_complex))
             .chain(combinations(F32).iter().map(to_complex))
             .chain(combinations(F64).iter().map(to_complex))
             .collect::<Vec<Complex>>();
-        #[cfg(any(int_128, feature = "integer"))]
+        #[cfg(feature = "integer")]
         let mut against = against;
         #[cfg(feature = "integer")]
         against.extend(combinations(&z).iter().map(to_complex));
         #[cfg(feature = "rational")]
         against.extend(combinations(&q).iter().map(to_complex));
-        #[cfg(int_128)]
-        {
-            against.extend(combinations(U128).iter().map(to_complex));
-            against.extend(combinations(I128).iter().map(to_complex));
-            check_eq_prim(U128, &against);
-            check_eq_prim(I128, &against);
-        }
         check_eq_prim(U32, &against);
         check_eq_prim(I32, &against);
         check_eq_prim(U64, &against);
         check_eq_prim(I64, &against);
+        check_eq_prim(U128, &against);
+        check_eq_prim(I128, &against);
         check_eq_prim(F32, &against);
         check_eq_prim(F64, &against);
         #[cfg(feature = "integer")]

@@ -85,7 +85,7 @@ assert_eq!(c, (-19, 2));
 [`Integer`]: struct.Integer.html
 [icv]: index.html#incomplete-computation-values
 */
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct Rational {
     inner: mpq_t,
 }
@@ -2574,7 +2574,7 @@ ref_rat_op_rat_int! { xmpq::round_fract_whole; struct FractRoundIncomplete {} }
 ref_math_op1! { Rational; xmpq::square; struct SquareIncomplete {} }
 
 #[derive(Debug)]
-#[cfg_attr(repr_transparent, repr(transparent))]
+#[repr(transparent)]
 pub struct BorrowRational<'a> {
     inner: mpq_t,
     phantom: PhantomData<&'a Rational>,

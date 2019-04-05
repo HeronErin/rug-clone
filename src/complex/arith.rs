@@ -823,9 +823,7 @@ mod tests {
 
     #[test]
     fn check_arith_others() {
-        use tests::{F32, F64, I32, I64, U32, U64};
-        #[cfg(int_128)]
-        use tests::{I128, U128};
+        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),
@@ -871,14 +869,11 @@ mod tests {
             .chain(I32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(U64.iter().map(|&x| Complex::with_val(20, x)))
             .chain(I64.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(U128.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(I128.iter().map(|&x| Complex::with_val(20, x)))
             .chain(F32.iter().map(|&x| Complex::with_val(20, x)))
             .chain(F64.iter().map(|&x| Complex::with_val(20, x)))
             .collect::<Vec<Complex>>();
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Complex::with_val(20, x)));
-            against.extend(I128.iter().map(|&x| Complex::with_val(20, x)));
-        }
         #[cfg(feature = "integer")]
         against.extend(z.iter().map(|x| Complex::with_val(20, x)));
         #[cfg(feature = "rational")]

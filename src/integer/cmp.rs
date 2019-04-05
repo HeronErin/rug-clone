@@ -126,7 +126,6 @@ cmp_cast! { i8, i32 }
 cmp_cast! { i16, i32 }
 cmp! { i32, xmpz::cmp_i32 }
 cmp! { i64, xmpz::cmp_i64 }
-#[cfg(int_128)]
 cmp! { i128, xmpz::cmp_i128 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { isize, i32 }
@@ -137,7 +136,6 @@ cmp_cast! { u8, u32 }
 cmp_cast! { u16, u32 }
 cmp! { u32, xmpz::cmp_u32 }
 cmp! { u64, xmpz::cmp_u64 }
-#[cfg(int_128)]
 cmp! { u128, xmpz::cmp_u128 }
 #[cfg(target_pointer_width = "32")]
 cmp_cast! { usize, u32 }
@@ -182,9 +180,7 @@ mod tests {
     use std::cmp::Ordering;
     use std::ops::Neg;
     use std::{f32, f64};
-    #[cfg(int_128)]
-    use tests::{I128, U128};
-    use tests::{I32, I64, U32, U64};
+    use tests::{I128, I32, I64, U128, U32, U64};
     use Integer;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
@@ -224,20 +220,15 @@ mod tests {
             .chain(I32.iter().map(|&x| Integer::from(x)))
             .chain(U64.iter().map(|&x| Integer::from(x)))
             .chain(I64.iter().map(|&x| Integer::from(x)))
+            .chain(U128.iter().map(|&x| Integer::from(x)))
+            .chain(I128.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
-        #[cfg(int_128)]
-        let mut against = against;
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Integer::from(x)));
-            against.extend(I128.iter().map(|&x| Integer::from(x)));
-            check_cmp_prim(U128, &against);
-            check_cmp_prim(I128, &against);
-        }
         check_cmp_prim(U32, &against);
         check_cmp_prim(I32, &against);
         check_cmp_prim(U64, &against);
         check_cmp_prim(I64, &against);
+        check_cmp_prim(U128, &against);
+        check_cmp_prim(I128, &against);
     }
 
     fn check_known_cmp<T>(t: T, against: &Integer, ord: Ordering)
@@ -286,14 +277,9 @@ mod tests {
             .chain(I32.iter().map(|&x| Integer::from(x)))
             .chain(U64.iter().map(|&x| Integer::from(x)))
             .chain(I64.iter().map(|&x| Integer::from(x)))
+            .chain(U128.iter().map(|&x| Integer::from(x)))
+            .chain(I128.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
-        #[cfg(int_128)]
-        let mut against = against;
-        #[cfg(int_128)]
-        {
-            against.extend(U128.iter().map(|&x| Integer::from(x)));
-            against.extend(I128.iter().map(|&x| Integer::from(x)));
-        }
         for b in &against {
             check_known_cmp(0.0f32, b, b.cmp0().reverse());
             check_known_cmp(0.0f64, b, b.cmp0().reverse());

@@ -54,7 +54,7 @@ if [[ "$1" == "-"* ]]; then
 fi
 
 if [ $# == 0 ]; then
-    toolchains=(beta stable nightly 1.18.0)
+    toolchains=(beta stable nightly 1.31.1)
 else
     toolchains=("$@")
 fi
@@ -91,7 +91,7 @@ print_eval_check \
 for toolchain in "${toolchains[@]}"; do
     if [[ "$toolchain" == beta* ]]; then
         check="clippy --all-targets"
-    elif [[ "$toolchain" == 1.18.0* ]]; then
+    elif [[ "$toolchain" == 1.31.1* ]]; then
         check=check
     else
         check="check --all-targets"
@@ -118,7 +118,7 @@ do
     toolchain="${toolchains[0]}"
     if [[ "$toolchain" == beta* ]]; then
         check="clippy --all-targets"
-    elif [[ "$toolchain" == 1.18.0* ]]; then
+    elif [[ "$toolchain" == 1.31.1* ]]; then
         check=check
     else
         check="check --all-targets"
