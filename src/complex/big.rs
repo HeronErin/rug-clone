@@ -3567,7 +3567,7 @@ pub struct AbsIncomplete<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
+impl AssignRound<AbsIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -3588,7 +3588,7 @@ pub struct ArgIncomplete<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
+impl AssignRound<ArgIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -3612,7 +3612,7 @@ pub struct NormIncomplete<'a> {
     ref_self: &'a Complex,
 }
 
-impl<'a> AssignRound<NormIncomplete<'a>> for Float {
+impl AssignRound<NormIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -3661,10 +3661,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Complex
-where
-    'b: 'a,
-{
+impl Assign<RandomBitsIncomplete<'_, '_>> for Complex {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         self.mut_real().assign(Float::random_bits(src.rng));
@@ -3681,10 +3678,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> AssignRound<RandomCont<'a, 'b>> for Complex
-where
-    'b: 'a,
-{
+impl AssignRound<RandomCont<'_, '_>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
@@ -3708,7 +3702,7 @@ pub struct BorrowComplex<'a> {
     phantom: PhantomData<&'a Complex>,
 }
 
-impl<'a> Deref for BorrowComplex<'a> {
+impl Deref for BorrowComplex<'_> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {

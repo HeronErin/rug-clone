@@ -85,7 +85,7 @@ macro_rules! div_op {
             }
         }
 
-        impl<'i> $Imp<&'i Integer> for Integer {
+        impl $Imp<&Integer> for Integer {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: &Integer) -> Integer {
@@ -113,7 +113,7 @@ macro_rules! div_op {
             }
         }
 
-        impl<'i> $Imp<Integer> for &'i Integer {
+        impl $Imp<Integer> for &Integer {
             type Output = Integer;
             #[inline]
             fn $trunc(self, mut rhs: Integer) -> Integer {
@@ -176,7 +176,7 @@ macro_rules! div_op {
             }
         }
 
-        impl<'i> $ImpAssign<&'i Integer> for Integer {
+        impl $ImpAssign<&Integer> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: &Integer) {
                 $trunc_fn(self, None, Some(rhs));
@@ -214,7 +214,7 @@ macro_rules! div_op {
             }
         }
 
-        impl<'i> $ImpFrom<&'i Integer> for Integer {
+        impl $ImpFrom<&Integer> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: &Integer) {
                 $trunc_fn(self, Some(lhs), None);
@@ -241,7 +241,7 @@ macro_rules! div_op {
             Euc(&'i Integer, &'i Integer),
         }
 
-        impl<'i> Assign<$Incomplete<'i>> for Integer {
+        impl Assign<$Incomplete<'_>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 match src {
@@ -261,7 +261,7 @@ macro_rules! div_op {
             }
         }
 
-        impl<'i> From<$Incomplete<'i>> for Integer {
+        impl From<$Incomplete<'_>> for Integer {
             #[inline]
             fn from(src: $Incomplete<'_>) -> Self {
                 let mut dst = Integer::new();
@@ -343,7 +343,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'t> $Imp<&'t $T> for Integer {
+        impl $Imp<&$T> for Integer {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: &$T) -> Integer {
@@ -426,7 +426,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'t> $ImpAssign<&'t $T> for Integer {
+        impl $ImpAssign<&$T> for Integer {
             #[inline]
             fn $trunc_assign(&mut self, rhs: &$T) {
                 <Integer as $ImpAssign<$T>>::$trunc_assign(self, *rhs);
@@ -453,7 +453,7 @@ macro_rules! div_prim {
             Euc(&'i Integer, $T),
         }
 
-        impl<'i> Assign<$Incomplete<'i>> for Integer {
+        impl Assign<$Incomplete<'_>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 match src {
@@ -473,7 +473,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'i> From<$Incomplete<'i>> for Integer {
+        impl From<$Incomplete<'_>> for Integer {
             #[inline]
             fn from(src: $Incomplete<'_>) -> Self {
                 let mut dst = Integer::new();
@@ -526,7 +526,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'t> $Imp<Integer> for &'t $T {
+        impl $Imp<Integer> for &$T {
             type Output = Integer;
             #[inline]
             fn $trunc(self, mut rhs: Integer) -> Integer {
@@ -550,7 +550,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'i, 't> $Imp<&'i Integer> for &'t $T {
+        impl<'i> $Imp<&'i Integer> for &$T {
             type Output = $FromIncomplete<'i>;
             #[inline]
             fn $trunc(self, rhs: &'i Integer) -> $FromIncomplete<'i> {
@@ -589,7 +589,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'t> $ImpFrom<&'t $T> for Integer {
+        impl $ImpFrom<&$T> for Integer {
             #[inline]
             fn $trunc_from(&mut self, lhs: &$T) {
                 <Integer as $ImpFrom<$T>>::$trunc_from(self, *lhs);
@@ -616,7 +616,7 @@ macro_rules! div_prim {
             Euc($T, &'i Integer),
         }
 
-        impl<'i> Assign<$FromIncomplete<'i>> for Integer {
+        impl Assign<$FromIncomplete<'_>> for Integer {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete<'_>) {
                 match src {
@@ -636,7 +636,7 @@ macro_rules! div_prim {
             }
         }
 
-        impl<'i> From<$FromIncomplete<'i>> for Integer {
+        impl From<$FromIncomplete<'_>> for Integer {
             #[inline]
             fn from(src: $FromIncomplete<'_>) -> Self {
                 let mut dst = Integer::new();

@@ -247,7 +247,7 @@ where
     }
 }
 
-impl<'a> Assign<&'a Self> for SmallComplex {
+impl Assign<&Self> for SmallComplex {
     #[inline]
     fn assign(&mut self, other: &Self) {
         self.clone_from(other);

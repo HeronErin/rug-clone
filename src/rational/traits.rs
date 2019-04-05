@@ -131,14 +131,14 @@ impl Assign for Rational {
     }
 }
 
-impl<'a> Assign<&'a Rational> for Rational {
+impl Assign<&Rational> for Rational {
     #[inline]
     fn assign(&mut self, src: &Rational) {
         xmpq::set(self, Some(src));
     }
 }
 
-impl<'a> From<&'a Rational> for Rational {
+impl From<&Rational> for Rational {
     #[inline]
     fn from(src: &Rational) -> Self {
         let mut dst = <Self as Default>::default();

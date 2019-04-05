@@ -53,16 +53,16 @@ pub struct RandState<'a> {
     phantom: PhantomData<&'a dyn RandGen>,
 }
 
-impl<'a> Default for RandState<'a> {
+impl Default for RandState<'_> {
     #[inline]
-    fn default() -> RandState<'a> {
+    fn default() -> RandState<'static> {
         RandState::new()
     }
 }
 
-impl<'a> Clone for RandState<'a> {
+impl Clone for RandState<'_> {
     #[inline]
-    fn clone(&self) -> RandState<'a> {
+    fn clone(&self) -> RandState<'static> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.as_raw());
@@ -76,7 +76,7 @@ impl<'a> Clone for RandState<'a> {
     }
 }
 
-impl<'a> Drop for RandState<'a> {
+impl Drop for RandState<'_> {
     #[inline]
     fn drop(&mut self) {
         unsafe {
@@ -85,10 +85,10 @@ impl<'a> Drop for RandState<'a> {
     }
 }
 
-unsafe impl<'a> Send for RandState<'a> {}
-unsafe impl<'a> Sync for RandState<'a> {}
+unsafe impl Send for RandState<'_> {}
+unsafe impl Sync for RandState<'_> {}
 
-impl<'a> RandState<'a> {
+impl RandState<'_> {
     /// Creates a new random generator with a compromise between speed
     /// and randomness.
     ///
@@ -101,7 +101,7 @@ impl<'a> RandState<'a> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     #[inline]
-    pub fn new() -> RandState<'a> {
+    pub fn new() -> RandState<'static> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_default(&mut inner);
@@ -119,7 +119,7 @@ impl<'a> RandState<'a> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
-    pub fn new_mersenne_twister() -> RandState<'a> {
+    pub fn new_mersenne_twister() -> RandState<'static> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_mt(&mut inner);
@@ -149,7 +149,7 @@ impl<'a> RandState<'a> {
         a: &Integer,
         c: u32,
         bits: u32,
-    ) -> RandState<'a> {
+    ) -> RandState<'_> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_lc_2exp(
@@ -186,7 +186,9 @@ impl<'a> RandState<'a> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`new_linear_congruential`]: #method.new_linear_congruential
-    pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'a>> {
+    pub fn new_linear_congruential_size(
+        size: u32,
+    ) -> Option<RandState<'static>> {
         unsafe {
             let mut inner = mem::zeroed();
             if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
@@ -224,7 +226,7 @@ impl<'a> RandState<'a> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
-    pub fn new_custom(custom: &'a mut dyn RandGen) -> RandState<'a> {
+    pub fn new_custom<'a>(custom: &'a mut dyn RandGen) -> RandState<'a> {
         let b: Box<&'a mut dyn RandGen> = Box::new(custom);
         let r_ptr: *mut &mut dyn RandGen = Box::into_raw(b);
         let inner = MpRandState {
@@ -269,7 +271,7 @@ impl<'a> RandState<'a> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
-    pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'a> {
+    pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'static> {
         let b: Box<Box<dyn RandGen>> = Box::new(custom);
         let r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
         let inner = MpRandState {
@@ -332,7 +334,7 @@ impl<'a> RandState<'a> {
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
-    pub unsafe fn from_raw(raw: randstate_t) -> RandState<'a> {
+    pub unsafe fn from_raw(raw: randstate_t) -> RandState<'static> {
         RandState { inner: raw, phantom: PhantomData }
     }
 

@@ -65,7 +65,7 @@ pub struct NegIncomplete<'a> {
     val: &'a Float,
 }
 
-impl<'a> AssignRound<NegIncomplete<'a>> for Float {
+impl AssignRound<NegIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -606,7 +606,7 @@ pub struct MulAddMulIncomplete<'a> {
     rhs: MulIncomplete<'a>,
 }
 
-impl<'a> AssignRound<MulAddMulIncomplete<'a>> for Float {
+impl AssignRound<MulAddMulIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -643,7 +643,7 @@ pub struct MulSubMulIncomplete<'a> {
     rhs: MulIncomplete<'a>,
 }
 
-impl<'a> AssignRound<MulSubMulIncomplete<'a>> for Float {
+impl AssignRound<MulSubMulIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]

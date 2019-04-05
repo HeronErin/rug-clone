@@ -348,7 +348,7 @@ where
     }
 }
 
-impl<'a> Assign<&'a Self> for SmallRational {
+impl Assign<&Self> for SmallRational {
     #[inline]
     fn assign(&mut self, other: &Self) {
         self.clone_from(other);

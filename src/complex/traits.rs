@@ -200,7 +200,7 @@ impl AssignRound for Complex {
     }
 }
 
-impl<'a> AssignRound<&'a Complex> for Complex {
+impl AssignRound<&Complex> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]

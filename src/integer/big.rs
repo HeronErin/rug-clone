@@ -4998,8 +4998,6 @@ where
 impl<'a, Min, Max> Assign<ClampIncomplete<'a, Min, Max>> for Integer
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
 {
     #[inline]
     fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
@@ -5018,8 +5016,6 @@ where
 impl<'a, Min, Max> From<ClampIncomplete<'a, Min, Max>> for Integer
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
 {
     #[inline]
     fn from(src: ClampIncomplete<'a, Min, Max>) -> Self {
@@ -5066,7 +5062,7 @@ pub struct PowModIncomplete<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> Assign<PowModIncomplete<'a>> for Integer {
+impl Assign<PowModIncomplete<'_>> for Integer {
     fn assign(&mut self, src: PowModIncomplete<'_>) {
         match (src.ref_self, src.sinverse) {
             (Some(base), None) => {
@@ -5083,7 +5079,7 @@ impl<'a> Assign<PowModIncomplete<'a>> for Integer {
 }
 
 // do not use from_assign! macro to reuse sinverse
-impl<'r> From<PowModIncomplete<'r>> for Integer {
+impl From<PowModIncomplete<'_>> for Integer {
     #[inline]
     fn from(src: PowModIncomplete<'_>) -> Self {
         match (src.ref_self, src.sinverse) {
@@ -5109,13 +5105,13 @@ pub struct SecurePowModIncomplete<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> Assign<SecurePowModIncomplete<'a>> for Integer {
+impl Assign<SecurePowModIncomplete<'_>> for Integer {
     fn assign(&mut self, src: SecurePowModIncomplete<'_>) {
         xmpz::powm_sec(self, Some(src.ref_self), src.exponent, src.modulo);
     }
 }
 
-from_assign! { SecurePowModIncomplete<'r> => Integer }
+from_assign! { SecurePowModIncomplete<'_> => Integer }
 
 ref_math_op0! {
     Integer;
@@ -5135,27 +5131,23 @@ ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
 ref_math_op2! { Integer; xmpz::gcd; struct GcdIncomplete { other } }
 
-impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
-    for (&'b mut Integer, &'c mut Integer)
-{
+impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'_>) {
         xmpz::gcdext(self.0, self.1, None, Some(src.ref_self), Some(src.other));
     }
 }
 
-impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer) {
+impl Assign<GcdIncomplete<'_>> for (Integer, Integer) {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'_>) {
         (&mut self.0, &mut self.1).assign(src);
     }
 }
 
-from_assign! { GcdIncomplete<'r> => Integer, Integer }
+from_assign! { GcdIncomplete<'_> => Integer, Integer }
 
-impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
-    for (&'b mut Integer, &'c mut Integer, &'d mut Integer)
-{
+impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'_>) {
         xmpz::gcdext(
@@ -5168,14 +5160,14 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
     }
 }
 
-impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer, Integer) {
+impl Assign<GcdIncomplete<'_>> for (Integer, Integer, Integer) {
     #[inline]
     fn assign(&mut self, src: GcdIncomplete<'_>) {
         (&mut self.0, &mut self.1, &mut self.2).assign(src);
     }
 }
 
-from_assign! { GcdIncomplete<'r> => Integer, Integer, Integer }
+from_assign! { GcdIncomplete<'_> => Integer, Integer, Integer }
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
 
@@ -5185,14 +5177,14 @@ pub struct InvertIncomplete<'a> {
     modulo: &'a Integer,
 }
 
-impl<'a> Assign<InvertIncomplete<'a>> for Integer {
+impl Assign<InvertIncomplete<'_>> for Integer {
     fn assign(&mut self, src: InvertIncomplete<'_>) {
         xmpz::finish_invert(self, Some(&src.sinverse), src.modulo);
     }
 }
 
 // do not use from_assign! macro to reuse sinverse
-impl<'r> From<InvertIncomplete<'r>> for Integer {
+impl From<InvertIncomplete<'_>> for Integer {
     #[inline]
     fn from(mut src: InvertIncomplete<'_>) -> Self {
         xmpz::finish_invert(&mut src.sinverse, None, src.modulo);
@@ -5206,23 +5198,21 @@ pub struct RemoveFactorIncomplete<'a> {
     factor: &'a Integer,
 }
 
-impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
-    for (&'b mut Integer, &'c mut u32)
-{
+impl Assign<RemoveFactorIncomplete<'_>> for (&mut Integer, &mut u32) {
     #[inline]
     fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
         *self.1 = xmpz::remove(self.0, Some(src.ref_self), src.factor);
     }
 }
 
-impl<'a> Assign<RemoveFactorIncomplete<'a>> for (Integer, u32) {
+impl Assign<RemoveFactorIncomplete<'_>> for (Integer, u32) {
     #[inline]
     fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
         (&mut self.0, &mut self.1).assign(src);
     }
 }
 
-impl<'a> From<RemoveFactorIncomplete<'a>> for (Integer, u32) {
+impl From<RemoveFactorIncomplete<'_>> for (Integer, u32) {
     #[inline]
     fn from(src: RemoveFactorIncomplete<'_>) -> Self {
         let mut dst = (Integer::new(), 0u32);
@@ -5247,9 +5237,7 @@ ref_math_op0! {
 }
 ref_math_op0! { Integer; xmpz::fib_ui; struct FibonacciIncomplete { n: u32 } }
 
-impl<'a, 'b> Assign<FibonacciIncomplete>
-    for (&'a mut Integer, &'b mut Integer)
-{
+impl Assign<FibonacciIncomplete> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: FibonacciIncomplete) {
         unsafe {
@@ -5273,7 +5261,7 @@ from_assign! { FibonacciIncomplete => Integer, Integer }
 
 ref_math_op0! { Integer; xmpz::lucnum_ui; struct LucasIncomplete { n: u32 } }
 
-impl<'a, 'b> Assign<LucasIncomplete> for (&'a mut Integer, &'b mut Integer) {
+impl Assign<LucasIncomplete> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: LucasIncomplete) {
         unsafe {
@@ -5305,10 +5293,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> Assign<RandomBitsIncomplete<'a, 'b>> for Integer
-where
-    'b: 'a,
-{
+impl Assign<RandomBitsIncomplete<'_, '_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         unsafe {
@@ -5322,10 +5307,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> From<RandomBitsIncomplete<'a, 'b>> for Integer
-where
-    'b: 'a,
-{
+impl From<RandomBitsIncomplete<'_, '_>> for Integer {
     #[inline]
     fn from(src: RandomBitsIncomplete<'_, '_>) -> Self {
         let mut dst = Integer::new();
@@ -5344,10 +5326,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> Assign<RandomBelowIncomplete<'a, 'b>> for Integer
-where
-    'b: 'a,
-{
+impl Assign<RandomBelowIncomplete<'_, '_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBelowIncomplete<'_, '_>) {
         xmpz::urandomm(self, src.rng, Some(src.ref_self));
@@ -5355,10 +5334,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> From<RandomBelowIncomplete<'a, 'b>> for Integer
-where
-    'b: 'a,
-{
+impl From<RandomBelowIncomplete<'_, '_>> for Integer {
     #[inline]
     fn from(src: RandomBelowIncomplete<'_, '_>) -> Self {
         let mut dst = Integer::new();
@@ -5374,7 +5350,7 @@ pub struct BorrowInteger<'a> {
     pub(crate) phantom: PhantomData<&'a Integer>,
 }
 
-impl<'a> Deref for BorrowInteger<'a> {
+impl Deref for BorrowInteger<'_> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {

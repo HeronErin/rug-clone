@@ -222,7 +222,7 @@ impl AssignRound for Float {
     }
 }
 
-impl<'a> AssignRound<&'a Float> for Float {
+impl AssignRound<&Float> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -237,7 +237,7 @@ impl<'a> AssignRound<&'a Float> for Float {
 #[cfg(feature = "integer")]
 macro_rules! assign {
     ($T:ty, $func:path) => {
-        impl<'a> AssignRound<&'a $T> for Float {
+        impl AssignRound<&$T> for Float {
             type Round = Round;
             type Ordering = Ordering;
             #[inline]
@@ -334,7 +334,7 @@ impl TryFrom<Float> for Rational {
 }
 
 #[cfg(all(try_from, feature = "rational"))]
-impl<'a> TryFrom<&'a Float> for Rational {
+impl TryFrom<&Float> for Rational {
     type Error = TryFromFloatError;
     fn try_from(value: &Float) -> Result<Self, TryFromFloatError> {
         value.to_rational().ok_or(TryFromFloatError { _unused: () })

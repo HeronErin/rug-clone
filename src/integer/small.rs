@@ -377,14 +377,14 @@ where
     }
 }
 
-impl<'a> Assign<&'a Self> for SmallInteger {
+impl Assign<&Self> for SmallInteger {
     #[inline]
     fn assign(&mut self, other: &Self) {
         self.clone_from(other);
     }
 }
 
-impl<'a> Assign for SmallInteger {
+impl Assign for SmallInteger {
     #[inline]
     fn assign(&mut self, other: Self) {
         mem::drop(mem::replace(self, other));

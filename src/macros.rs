@@ -17,7 +17,7 @@
 #[cfg(feature = "integer")]
 macro_rules! from_assign {
     ($Src:ty => $Dst:ty) => {
-        impl<'r> From<$Src> for $Dst {
+        impl From<$Src> for $Dst {
             #[inline]
             fn from(src: $Src) -> Self {
                 let mut dst = <Self as Default>::default();
@@ -28,7 +28,7 @@ macro_rules! from_assign {
     };
 
     ($Src:ty => $Dst1:ty, $Dst2:ty) => {
-        impl<'r> From<$Src> for ($Dst1, $Dst2) {
+        impl From<$Src> for ($Dst1, $Dst2) {
             #[inline]
             fn from(src: $Src) -> Self {
                 let mut dst = <Self as Default>::default();
@@ -42,7 +42,7 @@ macro_rules! from_assign {
     };
 
     ($Src:ty => $Dst1:ty, $Dst2:ty, $Dst3:ty) => {
-        impl<'r> From<$Src> for ($Dst1, $Dst2, $Dst3) {
+        impl From<$Src> for ($Dst1, $Dst2, $Dst3) {
             #[inline]
             fn from(src: $Src) -> Self {
                 let mut dst = <Self as Default>::default();
@@ -157,14 +157,14 @@ macro_rules! ref_math_op1 {
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for $Big {
+        impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'a>) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self, Some(src.ref_self), $(src.$param),*);
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
@@ -231,16 +231,14 @@ macro_rules! ref_math_op1_2 {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c> Assign<$Incomplete<'a>>
-            for (&'b mut $Big, &'c mut $Big)
-        {
+        impl Assign<$Incomplete<'_>> for (&mut $Big, &mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
             }
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for ($Big, $Big) {
+        impl Assign<$Incomplete<'_>> for ($Big, $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 <(&mut $Big, &mut $Big) as Assign<$Incomplete<'_>>>::assign(
@@ -250,7 +248,7 @@ macro_rules! ref_math_op1_2 {
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big, $Big }
+        from_assign! { $Incomplete<'_> => $Big, $Big }
     };
 }
 
@@ -316,14 +314,14 @@ macro_rules! ref_math_op2 {
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for $Big {
+        impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'a>) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self, Some(src.ref_self), src.$op, $(src.$param),*);
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
@@ -393,9 +391,7 @@ macro_rules! ref_math_op2_2 {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c> Assign<$Incomplete<'a>>
-            for (&'b mut $Big, &'c mut $Big)
-        {
+        impl Assign<$Incomplete<'_>> for (&mut $Big, &mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(
@@ -408,7 +404,7 @@ macro_rules! ref_math_op2_2 {
             }
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for ($Big, $Big) {
+        impl Assign<$Incomplete<'_>> for ($Big, $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 <(&mut $Big, &mut $Big) as Assign<$Incomplete<'_>>>::assign(
@@ -418,7 +414,7 @@ macro_rules! ref_math_op2_2 {
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big, $Big }
+        from_assign! { $Incomplete<'_> => $Big, $Big }
     };
 }
 
@@ -519,14 +515,14 @@ macro_rules! arith_unary {
             op: &'a $Big,
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for $Big {
+        impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self, Some(src.op));
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
@@ -560,7 +556,7 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> $Imp<&'a $Big> for $Big {
+        impl $Imp<&$Big> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: &$Big) -> $Big {
@@ -569,7 +565,7 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> $Imp<$Big> for &'a $Big {
+        impl $Imp<$Big> for &$Big {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -593,7 +589,7 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> $ImpAssign<&'a $Big> for $Big {
+        impl $ImpAssign<&$Big> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$Big) {
                 $func(self, None, Some(rhs));
@@ -607,7 +603,7 @@ macro_rules! arith_binary {
             }
         }
 
-        impl<'a> $ImpFrom<&'a $Big> for $Big {
+        impl $ImpFrom<&$Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$Big) {
                 $func(self, Some(lhs), None);
@@ -620,14 +616,14 @@ macro_rules! arith_binary {
             rhs: &'a $Big,
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for $Big {
+        impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
-            fn assign(&mut self, src: $Incomplete<'a>) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self, Some(src.lhs), Some(src.rhs));
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
@@ -659,7 +655,7 @@ macro_rules! arith_prim {
             }
         }
 
-        impl<'t> $Imp<&'t $T> for $Big {
+        impl $Imp<&$T> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: &$T) -> $Big {
@@ -676,7 +672,7 @@ macro_rules! arith_prim {
             }
         }
 
-        impl<'t, 'b> $Imp<&'t $T> for &'b $Big {
+        impl<'b> $Imp<&$T> for &'b $Big {
             type Output = $Incomplete<'b>;
             #[inline]
             fn $method(self, rhs: &$T) -> $Incomplete<'b> {
@@ -691,7 +687,7 @@ macro_rules! arith_prim {
             }
         }
 
-        impl<'t> $ImpAssign<&'t $T> for $Big {
+        impl $ImpAssign<&$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$T) {
                 <$Big as $ImpAssign<$T>>::$method_assign(self, *rhs);
@@ -704,14 +700,14 @@ macro_rules! arith_prim {
             rhs: $T,
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for $Big {
+        impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self, Some(src.lhs), src.rhs);
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
@@ -759,7 +755,7 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl<'t> $Imp<$Big> for &'t $T {
+        impl $Imp<$Big> for &$T {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -768,7 +764,7 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+        impl<'b> $Imp<&'b $Big> for &$T {
             type Output = $Incomplete<'b>;
             #[inline]
             fn $method(self, rhs: &$Big) -> $Incomplete<'_> {
@@ -783,7 +779,7 @@ macro_rules! arith_prim_commut {
             }
         }
 
-        impl<'t> $ImpFrom<&'t $T> for $Big {
+        impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
                 <$Big as $ImpAssign<$T>>::$method_assign(self, *lhs);
@@ -841,7 +837,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl<'t> $Imp<$Big> for &'t $T {
+        impl $Imp<$Big> for &$T {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -850,7 +846,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+        impl<'b> $Imp<&'b $Big> for &$T {
             type Output = $FromIncomplete<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> $FromIncomplete<'b> {
@@ -865,7 +861,7 @@ macro_rules! arith_prim_noncommut {
             }
         }
 
-        impl<'t> $ImpFrom<&'t $T> for $Big {
+        impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
                 <$Big as $ImpFrom<$T>>::$method_from(self, *lhs);
@@ -878,14 +874,14 @@ macro_rules! arith_prim_noncommut {
             rhs: &'a $Big,
         }
 
-        impl<'a> Assign<$FromIncomplete<'a>> for $Big {
+        impl Assign<$FromIncomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete<'_>) {
                 $func_from(self, src.lhs, Some(src.rhs));
             }
         }
 
-        from_assign! { $FromIncomplete<'r> => $Big }
+        from_assign! { $FromIncomplete<'_> => $Big }
     };
 }
 
@@ -905,7 +901,7 @@ macro_rules! mul_op {
         $Mul:ident;
         $Incomplete:ident
     ) => {
-        impl<'a> $Imp<$Mul<'a>> for $Big {
+        impl $Imp<$Mul<'_>> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: $Mul<'_>) -> $Big {
@@ -922,7 +918,7 @@ macro_rules! mul_op {
             }
         }
 
-        impl<'a> $ImpAssign<$Mul<'a>> for $Big {
+        impl $ImpAssign<$Mul<'_>> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $Mul<'_>) {
                 $func(self, rhs.lhs, rhs.rhs);
@@ -935,7 +931,7 @@ macro_rules! mul_op {
             rhs: $Mul<'a>,
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for $Big {
+        impl Assign<$Incomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 <$Big as Assign<&$Big>>::assign(self, src.lhs);
@@ -943,7 +939,7 @@ macro_rules! mul_op {
             }
         }
 
-        from_assign! { $Incomplete<'r> => $Big }
+        from_assign! { $Incomplete<'_> => $Big }
     };
 }
 
@@ -971,7 +967,7 @@ macro_rules! mul_op_commut {
             $Incomplete
         }
 
-        impl<'a> $Imp<$Big> for $Mul<'a> {
+        impl $Imp<$Big> for $Mul<'_> {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -988,7 +984,7 @@ macro_rules! mul_op_commut {
             }
         }
 
-        impl<'a> $ImpFrom<$Mul<'a>> for $Big {
+        impl $ImpFrom<$Mul<'_>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul<'_>) {
                 <$Big as $ImpAssign<$Mul<'_>>>::$method_assign(self, lhs);
@@ -1026,7 +1022,7 @@ macro_rules! mul_op_noncommut {
             $Incomplete
         }
 
-        impl<'a> $Imp<$Big> for $Mul<'a> {
+        impl $Imp<$Big> for $Mul<'_> {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -1043,7 +1039,7 @@ macro_rules! mul_op_noncommut {
             }
         }
 
-        impl<'a> $ImpFrom<$Mul<'a>> for $Big {
+        impl $ImpFrom<$Mul<'_>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul<'_>) {
                 $func_from(self, lhs.lhs, lhs.rhs);
@@ -1056,7 +1052,7 @@ macro_rules! mul_op_noncommut {
             rhs: &'a $Big,
         }
 
-        impl<'a> Assign<$FromIncomplete<'a>> for $Big {
+        impl Assign<$FromIncomplete<'_>> for $Big {
             #[inline]
             fn assign(&mut self, src: $FromIncomplete<'_>) {
                 <$Big as Assign<&$Big>>::assign(self, src.rhs);
@@ -1064,14 +1060,14 @@ macro_rules! mul_op_noncommut {
             }
         }
 
-        from_assign! { $FromIncomplete<'r> => $Big }
+        from_assign! { $FromIncomplete<'_> => $Big }
     };
 }
 
 #[cfg(feature = "float")]
 macro_rules! assign_round_deref {
     ($Src:ty => $Dst:ty) => {
-        impl<'a> AssignRound<&'a $Src> for $Dst {
+        impl AssignRound<&$Src> for $Dst {
             type Round = <$Dst as AssignRound<$Src>>::Round;
             type Ordering = <$Dst as AssignRound<$Src>>::Ordering;
             #[inline]
@@ -1224,7 +1220,7 @@ macro_rules! ref_math_op1_round {
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Incomplete<'a>> for $Big {
+        impl AssignRound<$Incomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1321,9 +1317,7 @@ macro_rules! ref_math_op1_2_round {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c> AssignRound<$Incomplete<'a>>
-            for (&'b mut $Big, &'c mut $Big)
-        {
+        impl AssignRound<$Incomplete<'_>> for (&mut $Big, &mut $Big) {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1336,7 +1330,7 @@ macro_rules! ref_math_op1_2_round {
             }
         }
 
-        impl<'a> AssignRound<$Incomplete<'a>> for ($Big, $Big) {
+        impl AssignRound<$Incomplete<'_>> for ($Big, $Big) {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1351,9 +1345,7 @@ macro_rules! ref_math_op1_2_round {
             }
         }
 
-        impl<'a, 'b, 'c> Assign<$Incomplete<'a>>
-            for (&'b mut $Big, &'c mut $Big)
-        {
+        impl Assign<$Incomplete<'_>> for (&mut $Big, &mut $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 <Self as AssignRound<$Incomplete<'_>>>::assign_round(
@@ -1364,7 +1356,7 @@ macro_rules! ref_math_op1_2_round {
             }
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for ($Big, $Big) {
+        impl Assign<$Incomplete<'_>> for ($Big, $Big) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 <
@@ -1498,7 +1490,7 @@ macro_rules! ref_math_op2_round {
             $($param: $T,)*
         }
 
-        impl<'a> AssignRound<$Incomplete<'a>> for $Big {
+        impl AssignRound<$Incomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1556,7 +1548,7 @@ macro_rules! arith_binary_round {
             }
         }
 
-        impl<'a> $Imp<&'a $T> for $Big {
+        impl $Imp<&$T> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: &$T) -> $Big {
@@ -1588,7 +1580,7 @@ macro_rules! arith_binary_round {
             }
         }
 
-        impl<'a> $ImpAssign<&'a $T> for $Big {
+        impl $ImpAssign<&$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$T) {
                 <$Big as $ImpAssignRound<&$T>>::$method_assign_round(
@@ -1614,7 +1606,7 @@ macro_rules! arith_binary_round {
             }
         }
 
-        impl<'a> $ImpAssignRound<&'a $T> for $Big {
+        impl $ImpAssignRound<&$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1641,7 +1633,7 @@ macro_rules! arith_binary_round {
             rhs: &'a $T,
         }
 
-        impl<'a> AssignRound<$Incomplete<'a>> for $Big {
+        impl AssignRound<$Incomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1696,7 +1688,7 @@ macro_rules! arith_binary_self_round {
             $Incomplete
         }
 
-        impl<'a> $Imp<$Big> for &'a $Big {
+        impl $Imp<$Big> for &$Big {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -1720,7 +1712,7 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        impl<'a> $ImpFrom<&'a $Big> for $Big {
+        impl $ImpFrom<&$Big> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$Big) {
                 <$Big as $ImpFromRound<&$Big>>::$method_from_round(
@@ -1731,7 +1723,7 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        impl<'a> $ImpFromRound<$Big> for $Big {
+        impl $ImpFromRound<$Big> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1746,7 +1738,7 @@ macro_rules! arith_binary_self_round {
             }
         }
 
-        impl<'a> $ImpFromRound<&'a $Big> for $Big {
+        impl $ImpFromRound<&$Big> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1813,7 +1805,7 @@ macro_rules! arith_forward_round {
             rhs: $T,
         }
 
-        impl<'a> AssignRound<$OwnedIncomplete<'a>> for $Big {
+        impl AssignRound<$OwnedIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1828,7 +1820,7 @@ macro_rules! arith_forward_round {
             }
         }
 
-        impl<'a, 'b> AssignRound<&'a $OwnedIncomplete<'b>> for $Big {
+        impl AssignRound<&$OwnedIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -1909,7 +1901,7 @@ macro_rules! arith_commut_round {
             }
         }
 
-        impl<'a> $Imp<$Big> for &'a $T {
+        impl $Imp<$Big> for &$T {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -1941,7 +1933,7 @@ macro_rules! arith_commut_round {
             }
         }
 
-        impl<'a> $ImpFrom<&'a $T> for $Big {
+        impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
@@ -1967,7 +1959,7 @@ macro_rules! arith_commut_round {
             }
         }
 
-        impl<'a> $ImpFromRound<&'a $T> for $Big {
+        impl $ImpFromRound<&$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2049,7 +2041,7 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        impl<'a> $Imp<$Big> for &'a $T {
+        impl $Imp<$Big> for &$T {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -2081,7 +2073,7 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        impl<'a> $ImpFrom<&'a $T> for $Big {
+        impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
                 <$Big as $ImpFromRound<&$T>>::$method_from_round(
@@ -2107,7 +2099,7 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        impl<'a> $ImpFromRound<&'a $T> for $Big {
+        impl $ImpFromRound<&$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2134,7 +2126,7 @@ macro_rules! arith_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$FromIncomplete<'a>> for $Big {
+        impl AssignRound<$FromIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2161,7 +2153,7 @@ macro_rules! arith_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$FromOwnedIncomplete<'a>> for $Big {
+        impl AssignRound<$FromOwnedIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2176,7 +2168,7 @@ macro_rules! arith_noncommut_round {
             }
         }
 
-        impl<'a, 'b> AssignRound<&'a $FromOwnedIncomplete<'b>> for $Big {
+        impl AssignRound<&$FromOwnedIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2230,7 +2222,7 @@ macro_rules! arith_prim_exact_round {
             }
         }
 
-        impl<'t> $Imp<&'t $T> for $Big {
+        impl $Imp<&$T> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: &$T) -> $Big {
@@ -2247,7 +2239,7 @@ macro_rules! arith_prim_exact_round {
             }
         }
 
-        impl<'t, 'b> $Imp<&'t $T> for &'b $Big {
+        impl<'b> $Imp<&$T> for &'b $Big {
             type Output = $Incomplete<'b>;
             #[inline]
             fn $method(self, rhs: &$T) -> $Incomplete<'b> {
@@ -2269,7 +2261,7 @@ macro_rules! arith_prim_exact_round {
             }
         }
 
-        impl<'t> $ImpAssign<&'t $T> for $Big {
+        impl $ImpAssign<&$T> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: &$T) {
                 <$Big as $ImpAssign<$T>>::$method_assign(self, *rhs);
@@ -2282,7 +2274,7 @@ macro_rules! arith_prim_exact_round {
             rhs: $T,
         }
 
-        impl<'a> AssignRound<$Incomplete<'a>> for $Big {
+        impl AssignRound<$Incomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2353,7 +2345,7 @@ macro_rules! arith_prim_round {
             }
         }
 
-        impl<'t> $ImpAssignRound<&'t $T> for $Big {
+        impl $ImpAssignRound<&$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2423,7 +2415,7 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        impl<'t> $Imp<$Big> for &'t $T {
+        impl $Imp<$Big> for &$T {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -2432,7 +2424,7 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+        impl<'b> $Imp<&'b $Big> for &$T {
             type Output = $Incomplete<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> $Incomplete<'b> {
@@ -2451,7 +2443,7 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        impl<'t> $ImpFrom<&'t $T> for $Big {
+        impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
                 <$Big as $ImpAssignRound<$T>>::$method_assign_round(
@@ -2477,7 +2469,7 @@ macro_rules! arith_prim_commut_round {
             }
         }
 
-        impl<'t> $ImpFromRound<&'t $T> for $Big {
+        impl $ImpFromRound<&$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2555,7 +2547,7 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        impl<'t> $Imp<$Big> for &'t $T {
+        impl $Imp<$Big> for &$T {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -2568,7 +2560,7 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        impl<'b, 't> $Imp<&'b $Big> for &'t $T {
+        impl<'b> $Imp<&'b $Big> for &$T {
             type Output = $FromIncomplete<'b>;
             #[inline]
             fn $method(self, rhs: &'b $Big) -> $FromIncomplete<'b> {
@@ -2587,7 +2579,7 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        impl<'t> $ImpFrom<&'t $T> for $Big {
+        impl $ImpFrom<&$T> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: &$T) {
                 <$Big as $ImpFromRound<$T>>::$method_from_round(
@@ -2619,7 +2611,7 @@ macro_rules! arith_prim_noncommut_round {
             }
         }
 
-        impl<'t> $ImpFromRound<&'t $T> for $Big {
+        impl $ImpFromRound<&$T> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2640,7 +2632,7 @@ macro_rules! arith_prim_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$FromIncomplete<'a>> for $Big {
+        impl AssignRound<$FromIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2684,7 +2676,7 @@ macro_rules! mul_op_round {
         $Mul:ident;
         $Incomplete:ident
     ) => {
-        impl<'a> $Imp<$Mul<'a>> for $Big {
+        impl $Imp<$Mul<'_>> for $Big {
             type Output = $Big;
             #[inline]
             fn $method(mut self, rhs: $Mul<'_>) -> $Big {
@@ -2705,7 +2697,7 @@ macro_rules! mul_op_round {
             }
         }
 
-        impl<'a> $ImpAssign<$Mul<'a>> for $Big {
+        impl $ImpAssign<$Mul<'_>> for $Big {
             #[inline]
             fn $method_assign(&mut self, rhs: $Mul<'_>) {
                 <$Big as $ImpAssignRound<$Mul<'_>>>::$method_assign_round(
@@ -2716,7 +2708,7 @@ macro_rules! mul_op_round {
             }
         }
 
-        impl<'a> $ImpAssignRound<$Mul<'a>> for $Big {
+        impl $ImpAssignRound<$Mul<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2743,7 +2735,7 @@ macro_rules! mul_op_round {
             rhs: $Mul<'a>,
         }
 
-        impl<'a> AssignRound<$Incomplete<'a>> for $Big {
+        impl AssignRound<$Incomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2798,7 +2790,7 @@ macro_rules! mul_op_commut_round {
             $Incomplete
         }
 
-        impl<'a> $Imp<$Big> for $Mul<'a> {
+        impl $Imp<$Big> for $Mul<'_> {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -2819,7 +2811,7 @@ macro_rules! mul_op_commut_round {
             }
         }
 
-        impl<'a> $ImpFrom<$Mul<'a>> for $Big {
+        impl $ImpFrom<$Mul<'_>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul<'_>) {
                 <$Big as $ImpAssignRound<$Mul<'_>>>::$method_assign_round(
@@ -2830,7 +2822,7 @@ macro_rules! mul_op_commut_round {
             }
         }
 
-        impl<'a> $ImpFromRound<$Mul<'a>> for $Big {
+        impl $ImpFromRound<$Mul<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2883,7 +2875,7 @@ macro_rules! mul_op_noncommut_round {
             $Incomplete
         }
 
-        impl<'a> $Imp<$Big> for $Mul<'a> {
+        impl $Imp<$Big> for $Mul<'_> {
             type Output = $Big;
             #[inline]
             fn $method(self, mut rhs: $Big) -> $Big {
@@ -2904,7 +2896,7 @@ macro_rules! mul_op_noncommut_round {
             }
         }
 
-        impl<'a> $ImpFrom<$Mul<'a>> for $Big {
+        impl $ImpFrom<$Mul<'_>> for $Big {
             #[inline]
             fn $method_from(&mut self, lhs: $Mul<'_>) {
                 <$Big as $ImpFromRound<$Mul<'_>>>::$method_from_round(
@@ -2915,7 +2907,7 @@ macro_rules! mul_op_noncommut_round {
             }
         }
 
-        impl<'a> $ImpFromRound<$Mul<'a>> for $Big {
+        impl $ImpFromRound<$Mul<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]
@@ -2942,7 +2934,7 @@ macro_rules! mul_op_noncommut_round {
             rhs: &'a $Big,
         }
 
-        impl<'a> AssignRound<$FromIncomplete<'a>> for $Big {
+        impl AssignRound<$FromIncomplete<'_>> for $Big {
             type Round = $Round;
             type Ordering = $Ordering;
             #[inline]

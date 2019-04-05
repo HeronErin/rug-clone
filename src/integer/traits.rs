@@ -86,14 +86,14 @@ impl Assign for Integer {
     }
 }
 
-impl<'a> Assign<&'a Integer> for Integer {
+impl Assign<&Integer> for Integer {
     #[inline]
     fn assign(&mut self, src: &Integer) {
         xmpz::set(self, Some(src));
     }
 }
 
-impl<'a> From<&'a Integer> for Integer {
+impl From<&Integer> for Integer {
     #[inline]
     fn from(val: &Integer) -> Self {
         val.clone()
@@ -110,7 +110,7 @@ macro_rules! try_from {
             }
         }
         #[cfg(try_from)]
-        impl<'a> TryFrom<&'a Integer> for $T {
+        impl TryFrom<&Integer> for $T {
             type Error = TryFromIntegerError;
             fn try_from(value: &Integer) -> Result<Self, TryFromIntegerError> {
                 value.$method().ok_or(TryFromIntegerError { _unused: () })
@@ -141,7 +141,7 @@ macro_rules! assign {
             }
         }
 
-        impl<'a> Assign<&'a $T> for Integer {
+        impl Assign<&$T> for Integer {
             #[inline]
             fn assign(&mut self, src: &$T) {
                 self.assign(*src);
@@ -167,7 +167,7 @@ macro_rules! assign {
             }
         }
 
-        impl<'a> Assign<&'a $T> for Integer {
+        impl Assign<&$T> for Integer {
             #[allow(clippy::cast_lossless)]
             #[inline]
             fn assign(&mut self, src: &$T) {

@@ -372,7 +372,7 @@ where
     }
 }
 
-impl<'a> Assign<&'a Self> for SmallFloat {
+impl Assign<&Self> for SmallFloat {
     #[inline]
     fn assign(&mut self, other: &Self) {
         self.clone_from(other);

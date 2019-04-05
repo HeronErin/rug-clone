@@ -142,14 +142,14 @@ macro_rules! ref_rat_op_int {
             $($param: $T,)*
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for Integer {
+        impl Assign<$Incomplete<'_>> for Integer {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(Some(self), None, Some(src.ref_self), $(src.$param),*);
             }
         }
 
-        from_assign! { $Incomplete<'r> => Integer }
+        from_assign! { $Incomplete<'_> => Integer }
     };
 }
 
@@ -204,16 +204,14 @@ macro_rules! ref_rat_op_rat_int {
             $($param: $T,)*
         }
 
-        impl<'a, 'b, 'c>
-            Assign<$Incomplete<'a>> for (&'b mut Rational, &'c mut Integer)
-        {
+        impl Assign<$Incomplete<'_>> for (&mut Rational, & mut Integer) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
             }
         }
 
-        impl<'a> Assign<$Incomplete<'a>> for (Rational, Integer) {
+        impl Assign<$Incomplete<'_>> for (Rational, Integer) {
             #[inline]
             fn assign(&mut self, src: $Incomplete<'_>) {
                 <(&mut Rational, &mut Integer) as Assign<$Incomplete<'_>>>::assign(
@@ -223,7 +221,7 @@ macro_rules! ref_rat_op_rat_int {
             }
         }
 
-        impl<'a> From<$Incomplete<'a>> for (Rational, Integer) {
+        impl From<$Incomplete<'_>> for (Rational, Integer) {
             #[inline]
             fn from(src: $Incomplete<'_>) -> Self {
                 let mut dst = <Self as Default>::default();
@@ -2506,8 +2504,6 @@ where
 impl<'a, Min, Max> Assign<ClampIncomplete<'a, Min, Max>> for Rational
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
 {
     #[inline]
     fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
@@ -2526,8 +2522,6 @@ where
 impl<'a, Min, Max> From<ClampIncomplete<'a, Min, Max>> for Rational
 where
     Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
 {
     #[inline]
     fn from(src: ClampIncomplete<'a, Min, Max>) -> Self {
@@ -2559,7 +2553,7 @@ pub struct BorrowRational<'a> {
     phantom: PhantomData<&'a Rational>,
 }
 
-impl<'a> Deref for BorrowRational<'a> {
+impl Deref for BorrowRational<'_> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {

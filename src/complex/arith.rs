@@ -62,7 +62,7 @@ pub struct NegIncomplete<'a> {
     val: &'a Complex,
 }
 
-impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
+impl AssignRound<NegIncomplete<'_>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]

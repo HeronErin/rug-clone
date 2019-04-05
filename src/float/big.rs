@@ -8034,8 +8034,6 @@ where
         + PartialOrd<Max>
         + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
         + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
-    Min: 'a,
-    Max: 'a,
 {
     type Round = Round;
     type Ordering = Ordering;
@@ -8120,9 +8118,7 @@ pub struct LnAbsGammaIncomplete<'a> {
     ref_self: &'a Float,
 }
 
-impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
-    for (&'b mut Float, &'c mut Ordering)
-{
+impl AssignRound<LnAbsGammaIncomplete<'_>> for (&mut Float, &mut Ordering) {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8146,7 +8142,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
     }
 }
 
-impl<'a> AssignRound<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
+impl AssignRound<LnAbsGammaIncomplete<'_>> for (Float, Ordering) {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8159,16 +8155,14 @@ impl<'a> AssignRound<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
     }
 }
 
-impl<'a, 'b, 'c> Assign<LnAbsGammaIncomplete<'a>>
-    for (&'b mut Float, &'c mut Ordering)
-{
+impl Assign<LnAbsGammaIncomplete<'_>> for (&mut Float, &mut Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaIncomplete<'_>) {
         self.assign_round(src, Default::default());
     }
 }
 
-impl<'a> Assign<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
+impl Assign<LnAbsGammaIncomplete<'_>> for (Float, Ordering) {
     #[inline]
     fn assign(&mut self, src: LnAbsGammaIncomplete<'_>) {
         (&mut self.0, &mut self.1).assign_round(src, Default::default());
@@ -8206,10 +8200,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b, 'c> Assign<RandomBitsIncomplete<'a, 'b>> for Float
-where
-    'b: 'a,
-{
+impl Assign<RandomBitsIncomplete<'_, '_>> for Float {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         unsafe {
@@ -8228,10 +8219,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> AssignRound<RandomCont<'a, 'b>> for Float
-where
-    'b: 'a,
-{
+impl AssignRound<RandomCont<'_, '_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8260,10 +8248,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> AssignRound<RandomNormal<'a, 'b>> for Float
-where
-    'b: 'a,
-{
+impl AssignRound<RandomNormal<'_, '_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8292,10 +8277,7 @@ where
 }
 
 #[cfg(feature = "rand")]
-impl<'a, 'b> AssignRound<RandomExp<'a, 'b>> for Float
-where
-    'b: 'a,
-{
+impl AssignRound<RandomExp<'_, '_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
@@ -8322,7 +8304,7 @@ pub struct BorrowFloat<'a> {
     phantom: PhantomData<&'a Float>,
 }
 
-impl<'a> Deref for BorrowFloat<'a> {
+impl Deref for BorrowFloat<'_> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {

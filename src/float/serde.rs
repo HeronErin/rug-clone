@@ -129,7 +129,7 @@ mod tests {
         DeError(u32, &'a str),
     }
 
-    impl<'a> Check<'a> {
+    impl Check<'_> {
         fn check(self, radix: i32, value: &'static str) {
             use crate::serdeize::test::*;
             use byteorder::{LittleEndian, WriteBytesExt};

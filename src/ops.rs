@@ -100,7 +100,7 @@ Compound addition and assignment to the rhs operand.
 ```rust
 use rug::ops::AddFrom;
 struct S(String);
-impl<'a> AddFrom<&'a str> for S {
+impl AddFrom<&str> for S {
     fn add_from(&mut self, lhs: &str) {
         self.0.insert_str(0, lhs);
     }
@@ -177,7 +177,7 @@ Compound multiplication and assignment to the rhs operand.
 use rug::ops::MulFrom;
 struct ColumnVec(i32, i32);
 struct SquareMatrix(ColumnVec, ColumnVec);
-impl<'a> MulFrom<&'a SquareMatrix> for ColumnVec {
+impl MulFrom<&SquareMatrix> for ColumnVec {
     fn mul_from(&mut self, lhs: &SquareMatrix) {
         let SquareMatrix(ref left, ref right) = *lhs;
         let out_0 = left.0 * self.0 + right.0 * self.1;
