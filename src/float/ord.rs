@@ -14,13 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
+use crate::cast::cast;
+use crate::Float;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 use std::slice;
-use Float;
 
 /**
 A float that supports total ordering and hashing.
@@ -204,10 +204,10 @@ impl From<OrdFloat> for Float {
 
 #[cfg(test)]
 mod tests {
-    use float::Special;
+    use crate::float::Special;
+    use crate::Float;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
-    use Float;
 
     fn calculate_hash<T>(t: &T) -> u64
     where

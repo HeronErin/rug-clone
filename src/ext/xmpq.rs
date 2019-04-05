@@ -14,15 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast;
-use ext::xmpz;
+use crate::cast;
+use crate::ext::xmpz;
+use crate::misc::NegAbs;
+use crate::rational::SmallRational;
+use crate::{Integer, Rational};
 use gmp_mpfr_sys::gmp;
-use misc::NegAbs;
-use rational::SmallRational;
 use std::cmp::Ordering;
 use std::mem;
 use std::os::raw::c_int;
-use {Integer, Rational};
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {

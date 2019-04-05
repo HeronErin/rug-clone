@@ -14,24 +14,24 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
-use gmp_mpfr_sys::mpc::{self, mpc_t};
-use ops::{
+use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
+use crate::ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
     DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
     Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
     SubFrom, SubFromRound,
 };
+#[cfg(feature = "integer")]
+use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::Rational;
+use crate::{Complex, Float};
+use gmp_mpfr_sys::mpc::{self, mpc_t};
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
     ShrAssign, Sub, SubAssign,
 };
 use std::os::raw::c_int;
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
-use {Complex, Float};
 
 impl Neg for Complex {
     type Output = Complex;
@@ -66,7 +66,11 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, src: NegIncomplete, round: Round2) -> Ordering2 {
+    fn assign_round(
+        &mut self,
+        src: NegIncomplete<'_>,
+        round: Round2,
+    ) -> Ordering2 {
         xmpc::neg(self, Some(src.val), round)
     }
 }
@@ -706,7 +710,7 @@ mul_op_noncommut_round! {
 unsafe fn add_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
-    mul: MulIncomplete,
+    mul: MulIncomplete<'_>,
     rnd: mpc::rnd_t,
 ) -> c_int {
     mpc::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
@@ -716,7 +720,7 @@ unsafe fn add_mul(
 unsafe fn sub_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
-    mul: MulIncomplete,
+    mul: MulIncomplete<'_>,
     rnd: mpc::rnd_t,
 ) -> c_int {
     xmpc::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
@@ -725,7 +729,7 @@ unsafe fn sub_mul(
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
 unsafe fn mul_sub(
     rop: *mut mpc_t,
-    mul: MulIncomplete,
+    mul: MulIncomplete<'_>,
     sub: *const mpc_t,
     rnd: mpc::rnd_t,
 ) -> c_int {
@@ -735,16 +739,16 @@ unsafe fn mul_sub(
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 mod tests {
-    use float::arith::tests as float_tests;
-    use float::Special;
-    use ops::{NegAssign, Pow};
+    use crate::float::arith::tests as float_tests;
+    use crate::float::Special;
+    use crate::ops::{NegAssign, Pow};
+    #[cfg(feature = "integer")]
+    use crate::Integer;
+    #[cfg(feature = "rational")]
+    use crate::Rational;
+    use crate::{Complex, Float};
     #[cfg(feature = "integer")]
     use std::str::FromStr;
-    #[cfg(feature = "integer")]
-    use Integer;
-    #[cfg(feature = "rational")]
-    use Rational;
-    use {Complex, Float};
 
     #[test]
     fn check_neg() {
@@ -823,7 +827,7 @@ mod tests {
 
     #[test]
     fn check_arith_others() {
-        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
+        use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),

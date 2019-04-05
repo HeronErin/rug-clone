@@ -14,16 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use complex::SmallComplex;
-use ext::xmpfr;
-use float::Round;
+use crate::complex::SmallComplex;
+use crate::ext::xmpfr;
+use crate::float::Round;
+use crate::Complex;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
 use std::os::raw::{c_int, c_long, c_ulong};
-use Complex;
 
 pub type Round2 = (Round, Round);
 

@@ -14,13 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use float::Special;
-use std::i32;
+use crate::float::Special;
 #[cfg(feature = "integer")]
-use Integer;
+use crate::Integer;
 #[cfg(feature = "rational")]
-use Rational;
-use {Complex, Float};
+use crate::Rational;
+use crate::{Complex, Float};
 
 impl PartialEq for Complex {
     #[inline]
@@ -85,14 +84,14 @@ eq_re! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
-    use float::Special;
+    use crate::float::Special;
+    #[cfg(feature = "integer")]
+    use crate::Integer;
+    #[cfg(feature = "rational")]
+    use crate::Rational;
+    use crate::{Assign, Complex, Float};
     #[cfg(feature = "integer")]
     use std::str::FromStr;
-    #[cfg(feature = "integer")]
-    use Integer;
-    #[cfg(feature = "rational")]
-    use Rational;
-    use {Assign, Complex, Float};
 
     fn check_eq_prim<T>(s: &[T], against: &[Complex])
     where
@@ -165,7 +164,7 @@ mod tests {
 
     #[test]
     fn check_eq_others() {
-        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
+        use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         #[cfg(feature = "integer")]
         let z = [
             Integer::from(0),

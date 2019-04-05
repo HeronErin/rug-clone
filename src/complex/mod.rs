@@ -31,9 +31,9 @@ mod serde;
 mod small;
 mod traits;
 
-pub use complex::big::ParseComplexError;
-pub use complex::ord::OrdComplex;
-pub use complex::small::SmallComplex;
+pub use crate::complex::big::ParseComplexError;
+pub use crate::complex::ord::OrdComplex;
+pub use crate::complex::small::SmallComplex;
 
 /**
 The `Prec` trait is used to specify the precision of the real and
@@ -84,10 +84,10 @@ impl Prec for (u32, u32) {
 
 #[cfg(test)]
 mod tests {
-    use float::tests::Cmp;
-    use float::Special;
+    use crate::float::tests::Cmp;
+    use crate::float::Special;
+    use crate::{Assign, Complex};
     use std::f64;
-    use {Assign, Complex};
 
     #[test]
     fn check_from_str() {

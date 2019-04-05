@@ -26,7 +26,6 @@ p                       # print original, as sed is called quiet
     s, *$,,                 # remove trailing spaces
     s,^\( *\)# ,\1/* # */ , # comment hiding hash
     s,    ```rust$,{,       # replace ```rust with {
-    s,extern crate.*,// &,  # comment lines containing extern crate
     s, rug::, /*& */ ,      # comment rug::
     s, ::rug, /*& */ ,      # comment ::rug
     s,fn main(),/* & */,    # comment fn main()

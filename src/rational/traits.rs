@@ -14,10 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpq;
-use ext::xmpz;
-use rational::big;
-use rational::ParseRationalError;
+use crate::ext::xmpq;
+use crate::ext::xmpz;
+use crate::rational::big;
+use crate::rational::ParseRationalError;
+use crate::{Assign, Integer, Rational};
 #[cfg(try_from)]
 use rational::TryFromFloatError;
 use std::cmp::Ordering;
@@ -33,7 +34,6 @@ use std::i32;
 use std::mem;
 use std::ptr;
 use std::str::FromStr;
-use {Assign, Integer, Rational};
 
 impl Default for Rational {
     #[inline]
@@ -89,37 +89,37 @@ impl FromStr for Rational {
 }
 
 impl Display for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Binary for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Rational {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x")
     }
 }
@@ -253,7 +253,7 @@ impl TryFrom<f64> for Rational {
 
 fn fmt_radix(
     r: &Rational,
-    f: &mut Formatter,
+    f: &mut Formatter<'_>,
     radix: i32,
     to_upper: bool,
     prefix: &str,
@@ -266,7 +266,7 @@ fn fmt_radix(
 }
 
 impl Display for ParseRationalError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
@@ -291,9 +291,9 @@ unsafe impl Sync for Rational {}
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
+    use crate::{Assign, Rational};
     #[cfg(try_from)]
     use std::convert::TryFrom;
-    use {Assign, Rational};
 
     #[test]
     fn check_assign() {

@@ -293,14 +293,6 @@ add it as a dependency inside [*Cargo.toml*]:
 rug = "1.3"
 ```
 
-If you are using the 2015 Rust edition, you also need to declare it by
-adding this to your crate root (usually *lib.rs* or *main.rs*):
-
-```rust
-extern crate rug;
-# fn main() {}
-```
-
 Rug requires rustc version 1.31.0 or later.
 
 Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the
@@ -408,37 +400,6 @@ provided by the crate.
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![cfg_attr(feature = "cargo-clippy", allow(clippy::identity_conversion))]
 
-#[cfg(any(feature = "integer", feature = "float"))]
-extern crate gmp_mpfr_sys;
-
-#[cfg(all(
-    test,
-    feature = "serde",
-    any(feature = "integer", feature = "float")
-))]
-extern crate bincode;
-#[cfg(all(
-    test,
-    feature = "serde",
-    any(feature = "integer", feature = "float")
-))]
-extern crate byteorder;
-#[cfg(all(feature = "serde", any(feature = "integer", feature = "float")))]
-extern crate serde;
-#[cfg(all(
-    test,
-    feature = "serde",
-    any(feature = "integer", feature = "float")
-))]
-#[macro_use]
-extern crate serde_json;
-#[cfg(all(
-    test,
-    feature = "serde",
-    any(feature = "integer", feature = "float")
-))]
-extern crate serde_test;
-
 #[macro_use]
 mod macros;
 mod cast;
@@ -489,22 +450,22 @@ pub trait Assign<Src = Self> {
 #[cfg(feature = "integer")]
 pub mod integer;
 #[cfg(feature = "integer")]
-pub use integer::big::Integer;
+pub use crate::integer::big::Integer;
 
 #[cfg(feature = "rational")]
 pub mod rational;
 #[cfg(feature = "rational")]
-pub use rational::big::Rational;
+pub use crate::rational::big::Rational;
 
 #[cfg(feature = "float")]
 pub mod float;
 #[cfg(feature = "float")]
-pub use float::big::Float;
+pub use crate::float::big::Float;
 
 #[cfg(feature = "complex")]
 pub mod complex;
 #[cfg(feature = "complex")]
-pub use complex::big::Complex;
+pub use crate::complex::big::Complex;
 
 #[cfg(feature = "rand")]
 pub mod rand;

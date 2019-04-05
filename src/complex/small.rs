@@ -14,16 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpfr;
-use float::small::{Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
-use float::ToSmall;
+use crate::ext::xmpfr;
+use crate::float::small::{Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
+use crate::float::ToSmall;
+use crate::{Assign, Complex};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
-use {Assign, Complex};
 
 /**
 A small complex number that does not require any memory allocation.
@@ -264,8 +264,8 @@ impl Assign for SmallComplex {
 
 #[cfg(test)]
 mod tests {
-    use complex::SmallComplex;
-    use Assign;
+    use crate::complex::SmallComplex;
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

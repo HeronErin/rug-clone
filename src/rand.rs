@@ -24,7 +24,8 @@ Random number generation.
 // initialize all the fields. So we must use mem::zeroed rather than
 // mem::uninitialized, otherwise we may have uninitialized memory
 // which can eventually lead to undefined behaviour.
-use cast::cast;
+use crate::cast::cast;
+use crate::Integer;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
 use std::mem;
@@ -33,7 +34,6 @@ use std::os::raw::{c_int, c_ulong, c_void};
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
 use std::ptr;
-use Integer;
 
 /**
 The state of a random number generator.
@@ -50,7 +50,7 @@ println!("32 random bits: {:032b}", u);
 #[repr(transparent)]
 pub struct RandState<'a> {
     inner: randstate_t,
-    phantom: PhantomData<&'a RandGen>,
+    phantom: PhantomData<&'a dyn RandGen>,
 }
 
 impl<'a> Default for RandState<'a> {
@@ -224,9 +224,9 @@ impl<'a> RandState<'a> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
-    pub fn new_custom(custom: &'a mut RandGen) -> RandState<'a> {
-        let b: Box<&'a mut RandGen> = Box::new(custom);
-        let r_ptr: *mut &mut RandGen = Box::into_raw(b);
+    pub fn new_custom(custom: &'a mut dyn RandGen) -> RandState<'a> {
+        let b: Box<&'a mut dyn RandGen> = Box::new(custom);
+        let r_ptr: *mut &mut dyn RandGen = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
                 alloc: 0,
@@ -269,9 +269,9 @@ impl<'a> RandState<'a> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
-    pub fn new_custom_boxed(custom: Box<RandGen>) -> RandState<'a> {
-        let b: Box<Box<RandGen>> = Box::new(custom);
-        let r_ptr: *mut Box<RandGen> = Box::into_raw(b);
+    pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'a> {
+        let b: Box<Box<dyn RandGen>> = Box::new(custom);
+        let r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
                 alloc: 0,
@@ -312,9 +312,6 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
     /// use std::mem;
@@ -329,7 +326,6 @@ impl<'a> RandState<'a> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// // since rand is a RandState now, deallocation is automatic
-    /// # }
     /// ```
     ///
     /// [`mem::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/fn.zeroed.html
@@ -348,9 +344,6 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
     /// let rand = RandState::new();
@@ -361,7 +354,6 @@ impl<'a> RandState<'a> {
     ///     // free object to prevent memory leak
     ///     gmp::randclear(&mut raw);
     /// }
-    /// # }
     /// ```
     ///
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
@@ -405,9 +397,6 @@ impl<'a> RandState<'a> {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
     /// let mut rand = RandState::new();
@@ -418,7 +407,6 @@ impl<'a> RandState<'a> {
     /// }
     /// let u2 = rand.bits(32);
     /// println!("another 32 random bits: {:032b}", u2);
-    /// # }
     /// ```
     ///
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
@@ -620,7 +608,7 @@ pub trait RandGen: Send + Sync {
         let gen = self.gen();
         match bits {
             0 => 0,
-            1...32 => gen >> (32 - bits),
+            1..=32 => gen >> (32 - bits),
             _ => gen,
         }
     }
@@ -734,7 +722,7 @@ pub trait RandGen: Send + Sync {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     #[inline]
-    fn boxed_clone(&self) -> Option<Box<RandGen>> {
+    fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
         None
     }
 }
@@ -753,7 +741,7 @@ struct MpRandState {
 }
 
 fn _static_assertions() {
-    static_assert_size!(RandState, randstate_t);
+    static_assert_size!(RandState<'_>, randstate_t);
     static_assert_size!(MpRandState, randstate_t);
 }
 
@@ -803,31 +791,31 @@ c_callback! {
 
     fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
         let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+        let r_ptr = (*s_ptr).seed.d as *mut &mut dyn RandGen;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
     fn custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
         let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+        let r_ptr = (*s_ptr).seed.d as *mut &mut dyn RandGen;
         gen_bits(*r_ptr, limb, bits);
     }
 
     fn custom_clear(s: *mut randstate_t) {
         let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut &mut RandGen;
+        let r_ptr = (*s_ptr).seed.d as *mut &mut dyn RandGen;
         drop(Box::from_raw(r_ptr));
     }
 
     fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
         let src_ptr = cast_ptr!(src, MpRandState);
-        let r_ptr = (*src_ptr).seed.d as *const &mut RandGen;
+        let r_ptr = (*src_ptr).seed.d as *const &mut dyn RandGen;
         gen_copy(*r_ptr, dst);
     }
 
     fn custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
         let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
+        let r_ptr = (*s_ptr).seed.d as *mut Box<dyn RandGen>;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
@@ -837,25 +825,29 @@ c_callback! {
         bits: c_ulong,
     ) {
         let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
+        let r_ptr = (*s_ptr).seed.d as *mut Box<dyn RandGen>;
         gen_bits(&mut **r_ptr, limb, bits);
     }
 
     fn custom_boxed_clear(s: *mut randstate_t) {
         let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut Box<RandGen>;
+        let r_ptr = (*s_ptr).seed.d as *mut Box<dyn RandGen>;
         drop(Box::from_raw(r_ptr));
     }
 
     fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
         let src_ptr = cast_ptr!(src, MpRandState);
-        let r_ptr = (*src_ptr).seed.d as *const Box<RandGen>;
+        let r_ptr = (*src_ptr).seed.d as *const Box<dyn RandGen>;
         gen_copy(&**r_ptr, dst);
     }
 }
 
 #[cfg(gmp_limb_bits_64)]
-unsafe fn gen_bits(gen: &mut RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+unsafe fn gen_bits(
+    gen: &mut dyn RandGen,
+    limb: *mut gmp::limb_t,
+    bits: c_ulong,
+) {
     let (limbs, rest) = (bits / 64, bits % 64);
     let limbs: isize = cast(limbs);
     for i in 0..limbs {
@@ -889,13 +881,13 @@ unsafe fn gen_bits(gen: &mut RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
     }
 }
 
-unsafe fn gen_copy(gen: &RandGen, dst: *mut randstate_t) {
+unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
     let other = gen.boxed_clone();
     // Do not panic here if other is None, as panics cannot cross FFI
     // boundareies. Instead, set dst_ptr.seed.d to null.
     let (dst_r_ptr, funcs) = if let Some(other) = other {
-        let b: Box<Box<RandGen>> = Box::new(other);
-        let dst_r_ptr: *mut Box<RandGen> = Box::into_raw(b);
+        let b: Box<Box<dyn RandGen>> = Box::new(other);
+        let dst_r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
         let funcs = &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
         (dst_r_ptr, funcs)
     } else {
@@ -936,7 +928,7 @@ const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
 
 #[cfg(test)]
 mod tests {
-    use rand::{RandGen, RandState};
+    use crate::rand::{RandGen, RandState};
 
     struct SimpleGenerator {
         seed: u64,
@@ -950,7 +942,7 @@ mod tests {
                 .wrapping_add(1);
             (self.seed >> 32) as u32
         }
-        fn boxed_clone(&self) -> Option<Box<RandGen>> {
+        fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
             let other = SimpleGenerator { seed: self.seed };
             let boxed = Box::new(other);
             Some(boxed)

@@ -14,17 +14,17 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpfr::{self, ordering1};
-use float::Special;
+use crate::cast::cast;
+use crate::ext::xmpfr::{self, ordering1};
+use crate::float::Special;
+use crate::Float;
+#[cfg(feature = "integer")]
+use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::Rational;
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
 use std::{i32, u32};
-use Float;
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 
 impl PartialEq for Float {
     #[inline]
@@ -187,15 +187,15 @@ impl PartialOrd<Special> for Float {
 
 #[cfg(test)]
 mod tests {
-    use float::Special;
+    use crate::float::Special;
+    #[cfg(feature = "integer")]
+    use crate::Integer;
+    #[cfg(feature = "rational")]
+    use crate::Rational;
+    use crate::{Assign, Float};
     use std::cmp::Ordering;
     #[cfg(feature = "integer")]
     use std::str::FromStr;
-    #[cfg(feature = "integer")]
-    use Integer;
-    #[cfg(feature = "rational")]
-    use Rational;
-    use {Assign, Float};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Float])
     where
@@ -254,7 +254,7 @@ mod tests {
 
     #[test]
     fn check_cmp_others() {
-        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
+        use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

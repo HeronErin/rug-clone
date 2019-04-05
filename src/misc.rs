@@ -76,7 +76,7 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
 
 fn lcase(byte: u8) -> u8 {
     match byte {
-        b'A'...b'Z' => byte - b'A' + b'a',
+        b'A'..=b'Z' => byte - b'A' + b'a',
         _ => byte,
     }
 }

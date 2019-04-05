@@ -14,14 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use complex::OrdComplex;
-use float;
+use crate::cast::cast;
+use crate::complex::OrdComplex;
+use crate::float;
+use crate::serdeize::{self, Data, PrecReq, PrecVal};
+use crate::{Assign, Complex};
 use gmp_mpfr_sys::mpfr;
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
-use serdeize::{self, Data, PrecReq, PrecVal};
-use {Assign, Complex};
 
 impl Serialize for Complex {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -130,9 +130,10 @@ impl<'de> Deserialize<'de> for OrdComplex {
 
 #[cfg(test)]
 mod tests {
-    use cast::cast;
-    use float::{self, Special};
-    use {Assign, Complex};
+    use crate::cast::cast;
+    use crate::float::{self, Special};
+    use crate::{Assign, Complex};
+    use serde_json::json;
 
     fn assert(a: &Complex, b: &Complex) {
         assert_eq!(a.prec(), b.prec());
@@ -147,10 +148,10 @@ mod tests {
 
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
+            use crate::serdeize::test::*;
             use byteorder::{LittleEndian, WriteBytesExt};
             #[allow(unused_imports)]
             use serde_test::{self, Token};
-            use serdeize::test::*;
             use std::io::Write;
             let prec = match self {
                 Check::SerDe(c) | Check::De(c) => c.prec(),

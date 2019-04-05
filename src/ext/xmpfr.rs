@@ -14,14 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
+use crate::cast::cast;
 #[cfg(feature = "integer")]
-use float;
-use float::{Round, SmallFloat};
+use crate::float;
+use crate::float::{Round, SmallFloat};
+use crate::misc::NegAbs;
+use crate::ops::NegAssign;
+use crate::Float;
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use misc::NegAbs;
-use ops::NegAssign;
 #[cfg(feature = "integer")]
 use std::cmp;
 use std::cmp::Ordering;
@@ -29,7 +30,6 @@ use std::mem;
 use std::os::raw::{c_int, c_long, c_ulong, c_void};
 #[cfg(feature = "integer")]
 use std::u32;
-use Float;
 
 #[inline]
 pub fn raw_round(round: Round) -> mpfr::rnd_t {

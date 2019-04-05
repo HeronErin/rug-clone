@@ -14,22 +14,23 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
-use complex::{OrdComplex, Prec};
-use ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
-use ext::xmpfr::raw_round;
-use float::big::{
+use crate::cast::cast;
+use crate::complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
+use crate::complex::{OrdComplex, Prec};
+use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
+use crate::ext::xmpfr::raw_round;
+use crate::float::big::{
     self as big_float, ExpFormat, Format as FloatFormat,
     ParseIncomplete as FloatParseIncomplete,
 };
-use float::{self, ParseFloatError, Round, Special};
+use crate::float::{self, ParseFloatError, Round, Special};
+use crate::misc;
+use crate::ops::{AddAssignRound, AssignRound, NegAssign};
+#[cfg(feature = "rand")]
+use crate::rand::RandState;
+use crate::{Assign, Float};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
-use misc;
-use ops::{AddAssignRound, AssignRound, NegAssign};
-#[cfg(feature = "rand")]
-use rand::RandState;
 use std::cmp::{self, Ordering};
 use std::error::Error;
 use std::marker::PhantomData;
@@ -38,7 +39,6 @@ use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::c_int;
 use std::ptr;
 use std::slice;
-use {Assign, Float};
 
 /**
 A multi-precision complex number with arbitrarily large precision and
@@ -154,7 +154,7 @@ pub struct Complex {
 
 fn _static_assertions() {
     static_assert_size!(Complex, mpc_t);
-    static_assert_size!(BorrowComplex, mpc_t);
+    static_assert_size!(BorrowComplex<'_>, mpc_t);
 }
 
 macro_rules! ref_math_op0_complex {
@@ -456,9 +456,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::mpc;
     /// use rug::Complex;
     /// use std::mem;
@@ -471,7 +468,6 @@ impl Complex {
     /// };
     /// assert_eq!(c, (-14.5, 3.25));
     /// // since c is a Complex now, deallocation is automatic
-    /// # }
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
@@ -489,9 +485,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::{mpc, mpfr};
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
@@ -506,7 +499,6 @@ impl Complex {
     ///     // free object to prevent memory leak
     ///     mpc::clear(&mut m);
     /// }
-    /// # }
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
@@ -526,9 +518,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::{mpc, mpfr};
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
@@ -543,7 +532,6 @@ impl Complex {
     /// }
     /// // c is still valid
     /// assert_eq!(c, (-14.5, 3.25));
-    /// # }
     /// ```
     ///
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
@@ -561,9 +549,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::mpc;
     /// use rug::Complex;
     /// let mut c = Complex::with_val(53, (-14.5, 3.25));
@@ -572,7 +557,6 @@ impl Complex {
     ///     mpc::conj(m_ptr, m_ptr, mpc::RNDNN);
     /// }
     /// assert_eq!(c, (-14.5, -3.25));
-    /// # }
     /// ```
     ///
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
@@ -913,7 +897,7 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    pub fn as_neg(&self) -> BorrowComplex {
+    pub fn as_neg(&self) -> BorrowComplex<'_> {
         // shallow copy
         let mut ret = BorrowComplex { inner: self.inner, phantom: PhantomData };
         unsafe {
@@ -949,7 +933,7 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    pub fn as_conj(&self) -> BorrowComplex {
+    pub fn as_conj(&self) -> BorrowComplex<'_> {
         let mut ret = BorrowComplex { inner: self.inner, phantom: PhantomData };
         unsafe {
             NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
@@ -988,7 +972,7 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`mul_i`]: #method.mul_i
-    pub fn as_mul_i(&self, negative: bool) -> BorrowComplex {
+    pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let mut inner: mpc_t = unsafe { mem::uninitialized() };
         unsafe {
             let mut dst_re = ptr::read(self.imag().as_raw());
@@ -1761,7 +1745,7 @@ impl Complex {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn abs_ref(&self) -> AbsIncomplete {
+    pub fn abs_ref(&self) -> AbsIncomplete<'_> {
         AbsIncomplete { ref_self: self }
     }
 
@@ -1874,7 +1858,7 @@ impl Complex {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn arg_ref(&self) -> ArgIncomplete {
+    pub fn arg_ref(&self) -> ArgIncomplete<'_> {
         ArgIncomplete { ref_self: self }
     }
 
@@ -2106,7 +2090,7 @@ impl Complex {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn norm_ref(&self) -> NormIncomplete {
+    pub fn norm_ref(&self) -> NormIncomplete<'_> {
         NormIncomplete { ref_self: self }
     }
 
@@ -3587,7 +3571,11 @@ impl<'a> AssignRound<AbsIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: AbsIncomplete, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: AbsIncomplete<'_>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpc::abs(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round))
         };
@@ -3604,7 +3592,11 @@ impl<'a> AssignRound<ArgIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: ArgIncomplete, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: ArgIncomplete<'_>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpc::arg(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round))
         };
@@ -3624,7 +3616,11 @@ impl<'a> AssignRound<NormIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: NormIncomplete, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: NormIncomplete<'_>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpc::norm(
                 self.as_raw_mut(),
@@ -3670,7 +3666,7 @@ where
     'b: 'a,
 {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete) {
+    fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         self.mut_real().assign(Float::random_bits(src.rng));
         self.mut_imag().assign(Float::random_bits(src.rng));
     }
@@ -3692,7 +3688,11 @@ where
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, src: RandomCont, round: Round2) -> Ordering2 {
+    fn assign_round(
+        &mut self,
+        src: RandomCont<'_, '_>,
+        round: Round2,
+    ) -> Ordering2 {
         let real_dir =
             self.mut_real().assign_round(Float::random_cont(src.rng), round.0);
         let imag_dir =

@@ -14,10 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::serdeize::{self, Data, PrecReq, PrecVal};
+use crate::{Assign, Rational};
 use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
-use serdeize::{self, Data, PrecReq, PrecVal};
-use {Assign, Rational};
 
 impl Serialize for Rational {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -80,8 +80,9 @@ where
 
 #[cfg(test)]
 mod tests {
-    use cast::cast;
-    use {Assign, Rational};
+    use crate::cast::cast;
+    use crate::{Assign, Rational};
+    use serde_json::json;
 
     fn assert(a: &Rational, b: &Rational) {
         assert_eq!(a, b);
@@ -95,10 +96,10 @@ mod tests {
 
     impl<'a> Check<'a> {
         fn check(self, radix: i32, value: &'static str) {
+            use crate::serdeize::test::*;
             use byteorder::{LittleEndian, WriteBytesExt};
             #[allow(unused_imports)]
             use serde_test::{self, Token};
-            use serdeize::test::*;
             use std::io::Write;
             let tokens = [
                 Token::Struct { name: "Rational", len: 2 },

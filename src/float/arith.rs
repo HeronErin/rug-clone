@@ -14,15 +14,20 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpfr::{self, ordering1, raw_round};
-use float::Round;
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use ops::{
+use crate::ext::xmpfr::{self, ordering1, raw_round};
+use crate::float::Round;
+use crate::ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
     DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
     Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
     SubFrom, SubFromRound,
 };
+use crate::Float;
+#[cfg(feature = "integer")]
+use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::Rational;
+use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::cmp::Ordering;
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
@@ -30,11 +35,6 @@ use std::ops::{
 };
 use std::os::raw::c_int;
 use std::{i32, u32};
-use Float;
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 
 impl Neg for Float {
     type Output = Float;
@@ -69,7 +69,11 @@ impl<'a> AssignRound<NegIncomplete<'a>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: NegIncomplete, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: NegIncomplete<'_>,
+        round: Round,
+    ) -> Ordering {
         xmpfr::neg(self, Some(src.val), round)
     }
 }
@@ -591,7 +595,7 @@ mul_op_noncommut_round! {
 impl<'a> Add for MulIncomplete<'a> {
     type Output = MulAddMulIncomplete<'a>;
     #[inline]
-    fn add(self, rhs: MulIncomplete<'a>) -> MulAddMulIncomplete {
+    fn add(self, rhs: MulIncomplete<'a>) -> MulAddMulIncomplete<'_> {
         MulAddMulIncomplete { lhs: self, rhs }
     }
 }
@@ -608,7 +612,7 @@ impl<'a> AssignRound<MulAddMulIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(
         &mut self,
-        src: MulAddMulIncomplete,
+        src: MulAddMulIncomplete<'_>,
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
@@ -628,7 +632,7 @@ impl<'a> AssignRound<MulAddMulIncomplete<'a>> for Float {
 impl<'a> Sub for MulIncomplete<'a> {
     type Output = MulSubMulIncomplete<'a>;
     #[inline]
-    fn sub(self, rhs: MulIncomplete<'a>) -> MulSubMulIncomplete {
+    fn sub(self, rhs: MulIncomplete<'a>) -> MulSubMulIncomplete<'_> {
         MulSubMulIncomplete { lhs: self, rhs }
     }
 }
@@ -645,7 +649,7 @@ impl<'a> AssignRound<MulSubMulIncomplete<'a>> for Float {
     #[inline]
     fn assign_round(
         &mut self,
-        src: MulSubMulIncomplete,
+        src: MulSubMulIncomplete<'_>,
         round: Round,
     ) -> Ordering {
         let ret = unsafe {
@@ -666,7 +670,7 @@ impl<'a> AssignRound<MulSubMulIncomplete<'a>> for Float {
 unsafe fn add_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
-    mul: MulIncomplete,
+    mul: MulIncomplete<'_>,
     rnd: mpfr::rnd_t,
 ) -> c_int {
     mpfr::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
@@ -676,7 +680,7 @@ unsafe fn add_mul(
 unsafe fn sub_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
-    mul: MulIncomplete,
+    mul: MulIncomplete<'_>,
     rnd: mpfr::rnd_t,
 ) -> c_int {
     xmpfr::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
@@ -685,7 +689,7 @@ unsafe fn sub_mul(
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_pass_by_value))]
 unsafe fn mul_sub(
     rop: *mut mpfr_t,
-    mul: MulIncomplete,
+    mul: MulIncomplete<'_>,
     sub: *const mpfr_t,
     rnd: mpfr::rnd_t,
 ) -> c_int {
@@ -695,15 +699,15 @@ unsafe fn mul_sub(
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 pub(crate) mod tests {
-    use float::Special;
-    use ops::Pow;
+    use crate::float::Special;
+    use crate::ops::Pow;
+    use crate::Float;
+    #[cfg(feature = "integer")]
+    use crate::Integer;
+    #[cfg(feature = "rational")]
+    use crate::Rational;
     #[cfg(feature = "integer")]
     use std::str::FromStr;
-    use Float;
-    #[cfg(feature = "integer")]
-    use Integer;
-    #[cfg(feature = "rational")]
-    use Rational;
 
     pub fn same(a: Float, b: Float) -> bool {
         if a.is_nan() && b.is_nan() {
@@ -795,7 +799,7 @@ pub(crate) mod tests {
 
     #[test]
     fn check_arith_others() {
-        use tests::{F32, F64, I128, I32, I64, U128, U32, U64};
+        use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

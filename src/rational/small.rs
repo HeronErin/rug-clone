@@ -14,14 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
+use crate::cast::cast;
+use crate::integer::small::{Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
+use crate::integer::ToSmall;
+use crate::{Assign, Rational};
 use gmp_mpfr_sys::gmp;
-use integer::small::{Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
-use integer::ToSmall;
 use std::mem;
 use std::ops::Deref;
 use std::sync::atomic::Ordering;
-use {Assign, Rational};
 
 /**
 A small rational number that does not require any memory allocation.
@@ -364,8 +364,8 @@ impl Assign for SmallRational {
 
 #[cfg(test)]
 mod tests {
-    use rational::SmallRational;
-    use Assign;
+    use crate::rational::SmallRational;
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

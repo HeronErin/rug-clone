@@ -48,8 +48,8 @@ mod serde;
 pub(crate) mod small;
 mod traits;
 
-pub use integer::big::{IsPrime, ParseIntegerError, UnsignedPrimitive};
-pub use integer::small::{SmallInteger, ToSmall};
+pub use crate::integer::big::{IsPrime, ParseIntegerError, UnsignedPrimitive};
+pub use crate::integer::small::{SmallInteger, ToSmall};
 
 use std::os::raw::c_int;
 
@@ -62,7 +62,6 @@ An error which can be returned when a checked conversion from
 
 ```rust
 # #![cfg_attr(nightly_try_from, feature(try_from))]
-# extern crate rug;
 # fn main() {
 # #[cfg(feature = "try_from")] {
 use rug::integer::TryFromIntegerError;
@@ -148,10 +147,10 @@ impl Order {
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
-    use integer::Order;
-    use ops::NegAssign;
+    use crate::integer::Order;
+    use crate::ops::NegAssign;
+    use crate::{Assign, Integer};
     use std::{f32, f64, i128, i32, i64, u128, u32, u64};
-    use {Assign, Integer};
 
     #[test]
     fn check_int_conversions() {

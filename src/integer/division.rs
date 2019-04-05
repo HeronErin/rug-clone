@@ -14,12 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpz;
-use ops::{
+use crate::ext::xmpz;
+use crate::ops::{
     DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
     RemRoundingAssign, RemRoundingFrom,
 };
-use {Assign, Integer};
+use crate::{Assign, Integer};
 
 // big / big -> Big
 // big / &big -> Big
@@ -140,19 +140,19 @@ macro_rules! div_op {
         impl<'i> $Imp for &'i Integer {
             type Output = $Incomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &'i Integer) -> $Incomplete {
+            fn $trunc(self, rhs: &'i Integer) -> $Incomplete<'_> {
                 $Incomplete::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &'i Integer) -> $Incomplete {
+            fn $ceil(self, rhs: &'i Integer) -> $Incomplete<'_> {
                 $Incomplete::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &'i Integer) -> $Incomplete {
+            fn $floor(self, rhs: &'i Integer) -> $Incomplete<'_> {
                 $Incomplete::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &'i Integer) -> $Incomplete {
+            fn $euc(self, rhs: &'i Integer) -> $Incomplete<'_> {
                 $Incomplete::Euc(self, rhs)
             }
         }
@@ -243,7 +243,7 @@ macro_rules! div_op {
 
         impl<'i> Assign<$Incomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Incomplete) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => {
                         $trunc_fn(self, Some(lhs), Some(rhs));
@@ -263,7 +263,7 @@ macro_rules! div_op {
 
         impl<'i> From<$Incomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $Incomplete) -> Self {
+            fn from(src: $Incomplete<'_>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -455,7 +455,7 @@ macro_rules! div_prim {
 
         impl<'i> Assign<$Incomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Incomplete) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 match src {
                     $Incomplete::Trunc(lhs, rhs) => {
                         $trunc_fn(self, Some(lhs), rhs);
@@ -475,7 +475,7 @@ macro_rules! div_prim {
 
         impl<'i> From<$Incomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $Incomplete) -> Self {
+            fn from(src: $Incomplete<'_>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -509,19 +509,19 @@ macro_rules! div_prim {
         impl<'i> $Imp<&'i Integer> for $T {
             type Output = $FromIncomplete<'i>;
             #[inline]
-            fn $trunc(self, rhs: &Integer) -> $FromIncomplete {
+            fn $trunc(self, rhs: &Integer) -> $FromIncomplete<'_> {
                 $FromIncomplete::Trunc(self, rhs)
             }
             #[inline]
-            fn $ceil(self, rhs: &Integer) -> $FromIncomplete {
+            fn $ceil(self, rhs: &Integer) -> $FromIncomplete<'_> {
                 $FromIncomplete::Ceil(self, rhs)
             }
             #[inline]
-            fn $floor(self, rhs: &Integer) -> $FromIncomplete {
+            fn $floor(self, rhs: &Integer) -> $FromIncomplete<'_> {
                 $FromIncomplete::Floor(self, rhs)
             }
             #[inline]
-            fn $euc(self, rhs: &Integer) -> $FromIncomplete {
+            fn $euc(self, rhs: &Integer) -> $FromIncomplete<'_> {
                 $FromIncomplete::Euc(self, rhs)
             }
         }
@@ -618,7 +618,7 @@ macro_rules! div_prim {
 
         impl<'i> Assign<$FromIncomplete<'i>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $FromIncomplete) {
+            fn assign(&mut self, src: $FromIncomplete<'_>) {
                 match src {
                     $FromIncomplete::Trunc(lhs, rhs) => {
                         $trunc_from_fn(self, lhs, Some(rhs));
@@ -638,7 +638,7 @@ macro_rules! div_prim {
 
         impl<'i> From<$FromIncomplete<'i>> for Integer {
             #[inline]
-            fn from(src: $FromIncomplete) -> Self {
+            fn from(src: $FromIncomplete<'_>) -> Self {
                 let mut dst = Integer::new();
                 dst.assign(src);
                 dst
@@ -743,9 +743,9 @@ div_prim! {
 
 #[cfg(test)]
 mod tests {
-    use ops::{DivRounding, RemRounding};
+    use crate::ops::{DivRounding, RemRounding};
+    use crate::Integer;
     use std::{i32, u32};
-    use Integer;
 
     #[test]
     fn check_div_prim() {

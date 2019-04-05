@@ -14,11 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use {Assign, Integer};
+use crate::{Assign, Integer};
 
-use cast::cast;
+use crate::cast::cast;
+use crate::misc::NegAbs;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use misc::NegAbs;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
@@ -393,8 +393,8 @@ impl<'a> Assign for SmallInteger {
 
 #[cfg(test)]
 mod tests {
-    use integer::SmallInteger;
-    use Assign;
+    use crate::integer::SmallInteger;
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

@@ -14,18 +14,18 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpz;
-use ops::{
+use crate::ext::xmpz;
+use crate::ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
     NotAssign, Pow, PowAssign, RemFrom, SubFrom,
 };
+use crate::{Assign, Integer};
 use std::iter::{Product, Sum};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
     BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign,
     Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
-use {Assign, Integer};
 
 arith_unary! {
     Integer;
@@ -382,14 +382,14 @@ where
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 mod tests {
-    use ops::{AddFrom, Pow, SubFrom};
+    use crate::ops::{AddFrom, Pow, SubFrom};
+    use crate::Integer;
     use std::cmp::Ordering;
     use std::ops::{AddAssign, SubAssign};
-    use Integer;
 
     #[test]
     fn check_arith_u_s() {
-        use tests::{I128, I32, I64, U128, U32, U64};
+        use crate::tests::{I128, I32, I64, U128, U32, U64};
         let large = [(1, 100), (-11, 200), (33, 150)];
         let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
             .chain(U32.iter().map(|&x| Integer::from(x)))

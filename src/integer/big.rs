@@ -14,14 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpz;
-use gmp_mpfr_sys::gmp::{self, mpz_t};
-use integer::Order;
-use misc;
-use ops::DivRounding;
+use crate::cast::cast;
+use crate::ext::xmpz;
+use crate::integer::Order;
+use crate::misc;
+use crate::ops::DivRounding;
 #[cfg(feature = "rand")]
-use rand::RandState;
+use crate::rand::RandState;
+use crate::Assign;
+use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::marker::PhantomData;
@@ -31,7 +32,6 @@ use std::os::raw::{c_char, c_int, c_long, c_void};
 use std::ptr;
 use std::slice;
 use std::{i32, u32};
-use Assign;
 
 /**
 An arbitrary-precision integer.
@@ -198,7 +198,7 @@ impl Integer {
 
 fn _static_assertions() {
     static_assert_size!(Integer, mpz_t);
-    static_assert_size!(BorrowInteger, mpz_t);
+    static_assert_size!(BorrowInteger<'_>, mpz_t);
 }
 
 impl Integer {
@@ -337,9 +337,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// use std::mem;
@@ -351,7 +348,6 @@ impl Integer {
     /// };
     /// assert_eq!(i, 15);
     /// // since i is an Integer now, deallocation is automatic
-    /// # }
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
@@ -368,9 +364,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// let i = Integer::from(15);
@@ -381,7 +374,6 @@ impl Integer {
     ///     // free object to prevent memory leak
     ///     gmp::mpz_clear(&mut z);
     /// }
-    /// # }
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
@@ -401,9 +393,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// let i = Integer::from(15);
@@ -414,7 +403,6 @@ impl Integer {
     /// }
     /// // i is still valid
     /// assert_eq!(i, 15);
-    /// # }
     /// ```
     ///
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
@@ -432,9 +420,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// let mut i = Integer::from(15);
@@ -443,7 +428,6 @@ impl Integer {
     ///     gmp::mpz_add_ui(z_ptr, z_ptr, 20);
     /// }
     /// assert_eq!(i, 35);
-    /// # }
     /// ```
     ///
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
@@ -1645,7 +1629,7 @@ impl Integer {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Integer`]: struct.Integer.html
     #[inline]
-    pub fn as_neg(&self) -> BorrowInteger {
+    pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger { inner: self.inner, phantom: PhantomData };
         ret.inner.size = self.inner.size.checked_neg().expect("overflow");
         ret
@@ -1674,7 +1658,7 @@ impl Integer {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     #[inline]
-    pub fn as_abs(&self) -> BorrowInteger {
+    pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger { inner: self.inner, phantom: PhantomData };
         ret.inner.size = self.inner.size.checked_abs().expect("overflow");
         ret
@@ -4716,7 +4700,7 @@ impl Integer {
     /// assert!(below < 15);
     /// ```
     #[inline]
-    pub fn random_below(mut self, rng: &mut RandState) -> Self {
+    pub fn random_below(mut self, rng: &mut RandState<'_>) -> Self {
         self.random_below_mut(rng);
         self
     }
@@ -4741,7 +4725,7 @@ impl Integer {
     /// assert!(i < 15);
     /// ```
     #[inline]
-    pub fn random_below_mut(&mut self, rng: &mut RandState) {
+    pub fn random_below_mut(&mut self, rng: &mut RandState<'_>) {
         xmpz::urandomm(self, rng, None);
     }
 
@@ -5008,8 +4992,6 @@ pub struct ClampIncomplete<'a, Min, Max>
 where
     Integer:
         PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
 {
     ref_self: &'a Integer,
     min: &'a Min,
@@ -5088,7 +5070,7 @@ pub struct PowModIncomplete<'a> {
 }
 
 impl<'a> Assign<PowModIncomplete<'a>> for Integer {
-    fn assign(&mut self, src: PowModIncomplete) {
+    fn assign(&mut self, src: PowModIncomplete<'_>) {
         match (src.ref_self, src.sinverse) {
             (Some(base), None) => {
                 debug_assert_ne!(src.exponent.cmp0(), Ordering::Less);
@@ -5106,7 +5088,7 @@ impl<'a> Assign<PowModIncomplete<'a>> for Integer {
 // do not use from_assign! macro to reuse sinverse
 impl<'r> From<PowModIncomplete<'r>> for Integer {
     #[inline]
-    fn from(src: PowModIncomplete) -> Self {
+    fn from(src: PowModIncomplete<'_>) -> Self {
         match (src.ref_self, src.sinverse) {
             (Some(base), None) => {
                 debug_assert_ne!(src.exponent.cmp0(), Ordering::Less);
@@ -5131,7 +5113,7 @@ pub struct SecurePowModIncomplete<'a> {
 }
 
 impl<'a> Assign<SecurePowModIncomplete<'a>> for Integer {
-    fn assign(&mut self, src: SecurePowModIncomplete) {
+    fn assign(&mut self, src: SecurePowModIncomplete<'_>) {
         xmpz::powm_sec(self, Some(src.ref_self), src.exponent, src.modulo);
     }
 }
@@ -5160,14 +5142,14 @@ impl<'a, 'b, 'c> Assign<GcdIncomplete<'a>>
     for (&'b mut Integer, &'c mut Integer)
 {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete) {
+    fn assign(&mut self, src: GcdIncomplete<'_>) {
         xmpz::gcdext(self.0, self.1, None, Some(src.ref_self), Some(src.other));
     }
 }
 
 impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete) {
+    fn assign(&mut self, src: GcdIncomplete<'_>) {
         (&mut self.0, &mut self.1).assign(src);
     }
 }
@@ -5178,7 +5160,7 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
     for (&'b mut Integer, &'c mut Integer, &'d mut Integer)
 {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete) {
+    fn assign(&mut self, src: GcdIncomplete<'_>) {
         xmpz::gcdext(
             self.0,
             self.1,
@@ -5191,7 +5173,7 @@ impl<'a, 'b, 'c, 'd> Assign<GcdIncomplete<'a>>
 
 impl<'a> Assign<GcdIncomplete<'a>> for (Integer, Integer, Integer) {
     #[inline]
-    fn assign(&mut self, src: GcdIncomplete) {
+    fn assign(&mut self, src: GcdIncomplete<'_>) {
         (&mut self.0, &mut self.1, &mut self.2).assign(src);
     }
 }
@@ -5207,7 +5189,7 @@ pub struct InvertIncomplete<'a> {
 }
 
 impl<'a> Assign<InvertIncomplete<'a>> for Integer {
-    fn assign(&mut self, src: InvertIncomplete) {
+    fn assign(&mut self, src: InvertIncomplete<'_>) {
         xmpz::finish_invert(self, Some(&src.sinverse), src.modulo);
     }
 }
@@ -5215,7 +5197,7 @@ impl<'a> Assign<InvertIncomplete<'a>> for Integer {
 // do not use from_assign! macro to reuse sinverse
 impl<'r> From<InvertIncomplete<'r>> for Integer {
     #[inline]
-    fn from(mut src: InvertIncomplete) -> Self {
+    fn from(mut src: InvertIncomplete<'_>) -> Self {
         xmpz::finish_invert(&mut src.sinverse, None, src.modulo);
         src.sinverse
     }
@@ -5231,21 +5213,21 @@ impl<'a, 'b, 'c> Assign<RemoveFactorIncomplete<'a>>
     for (&'b mut Integer, &'c mut u32)
 {
     #[inline]
-    fn assign(&mut self, src: RemoveFactorIncomplete) {
+    fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
         *self.1 = xmpz::remove(self.0, Some(src.ref_self), src.factor);
     }
 }
 
 impl<'a> Assign<RemoveFactorIncomplete<'a>> for (Integer, u32) {
     #[inline]
-    fn assign(&mut self, src: RemoveFactorIncomplete) {
+    fn assign(&mut self, src: RemoveFactorIncomplete<'_>) {
         (&mut self.0, &mut self.1).assign(src);
     }
 }
 
 impl<'a> From<RemoveFactorIncomplete<'a>> for (Integer, u32) {
     #[inline]
-    fn from(src: RemoveFactorIncomplete) -> Self {
+    fn from(src: RemoveFactorIncomplete<'_>) -> Self {
         let mut dst = (Integer::new(), 0u32);
         (&mut dst.0, &mut dst.1).assign(src);
         dst
@@ -5331,7 +5313,7 @@ where
     'b: 'a,
 {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete) {
+    fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         unsafe {
             gmp::mpz_urandomb(
                 self.as_raw_mut(),
@@ -5348,7 +5330,7 @@ where
     'b: 'a,
 {
     #[inline]
-    fn from(src: RandomBitsIncomplete) -> Self {
+    fn from(src: RandomBitsIncomplete<'_, '_>) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -5370,7 +5352,7 @@ where
     'b: 'a,
 {
     #[inline]
-    fn assign(&mut self, src: RandomBelowIncomplete) {
+    fn assign(&mut self, src: RandomBelowIncomplete<'_, '_>) {
         xmpz::urandomm(self, src.rng, Some(src.ref_self));
     }
 }
@@ -5381,7 +5363,7 @@ where
     'b: 'a,
 {
     #[inline]
-    fn from(src: RandomBelowIncomplete) -> Self {
+    fn from(src: RandomBelowIncomplete<'_, '_>) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -5498,9 +5480,9 @@ fn parse(
             b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
 
-            b'0'...b'9' => b - b'0',
-            b'a'...b'z' => b - b'a' + 10,
-            b'A'...b'Z' => b - b'A' + 10,
+            b'0'..=b'9' => b - b'0',
+            b'a'..=b'z' => b - b'a' + 10,
+            b'A'..=b'Z' => b - b'A' + 10,
 
             // error
             _ => bradix,

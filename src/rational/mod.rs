@@ -31,8 +31,8 @@ mod serde;
 mod small;
 mod traits;
 
-pub use rational::big::ParseRationalError;
-pub use rational::small::SmallRational;
+pub use crate::rational::big::ParseRationalError;
+pub use crate::rational::small::SmallRational;
 
 #[cfg(try_from)]
 /**
@@ -43,7 +43,6 @@ floating-point number to a [`Rational`] number fails.
 
 ```rust
 # #![cfg_attr(nightly_try_from, feature(try_from))]
-# extern crate rug;
 # fn main() {
 # #[cfg(feature = "try_from")] {
 use rug::rational::TryFromFloatError;
@@ -69,7 +68,7 @@ pub struct TryFromFloatError {
 
 #[cfg(test)]
 mod tests {
-    use {Integer, Rational};
+    use crate::{Integer, Rational};
 
     #[test]
     fn check_fract_trunc() {

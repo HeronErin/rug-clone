@@ -14,17 +14,17 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpfr::{self, raw_round};
+use crate::cast::cast;
+use crate::ext::xmpfr::{self, raw_round};
+use crate::misc::NegAbs;
+use crate::{Assign, Float};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use misc::NegAbs;
 use std::mem;
 use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
 use std::{i32, u32};
-use {Assign, Float};
 
 /**
 A small float that does not require any memory allocation.
@@ -389,8 +389,8 @@ impl Assign for SmallFloat {
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
-    use float::SmallFloat;
-    use Assign;
+    use crate::float::SmallFloat;
+    use crate::Assign;
 
     #[test]
     fn check_assign() {

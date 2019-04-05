@@ -32,10 +32,10 @@ mod serde;
 pub(crate) mod small;
 mod traits;
 
-use cast::cast;
-pub use float::big::ParseFloatError;
-pub use float::ord::OrdFloat;
-pub use float::small::{SmallFloat, ToSmall};
+use crate::cast::cast;
+pub use crate::float::big::ParseFloatError;
+pub use crate::float::ord::OrdFloat;
+pub use crate::float::small::{SmallFloat, ToSmall};
 use gmp_mpfr_sys::mpfr;
 use std::mem;
 use std::{i32, u32};
@@ -261,14 +261,14 @@ pub enum Special {
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 pub(crate) mod tests {
-    use float::{Round, Special};
-    use gmp_mpfr_sys::{gmp, mpfr};
+    use crate::float::{Round, Special};
     #[cfg(feature = "rand")]
-    use rand::{RandGen, RandState};
+    use crate::rand::{RandGen, RandState};
+    use crate::{Assign, Float};
+    use gmp_mpfr_sys::{gmp, mpfr};
     use std::cmp::Ordering;
     use std::f64;
     use std::fmt::{Debug, Error as FmtError, Formatter};
-    use {Assign, Float};
 
     #[derive(Clone, Copy)]
     pub enum Cmp {
@@ -283,7 +283,7 @@ pub(crate) mod tests {
     }
 
     impl Debug for Cmp {
-        fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
             match *self {
                 Cmp::F64(ref val) => val.fmt(f),
                 Cmp::Nan(negative) => {

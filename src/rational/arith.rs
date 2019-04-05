@@ -14,15 +14,17 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpq;
-use ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
+use crate::ext::xmpq;
+use crate::ops::{
+    AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom,
+};
+use crate::{Assign, Rational};
 use std::i32;
 use std::iter::{Product, Sum};
 use std::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
     ShrAssign, Sub, SubAssign,
 };
-use {Assign, Rational};
 
 arith_unary! {
     Rational;
@@ -148,8 +150,8 @@ where
 
 #[cfg(test)]
 mod tests {
-    use ops::Pow;
-    use Rational;
+    use crate::ops::Pow;
+    use crate::Rational;
 
     macro_rules! test_ref_op {
         ($first:expr, $second:expr) => {

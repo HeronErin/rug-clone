@@ -14,12 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ext::xmpz::*;
+use crate::ext::xmpz::*;
+use crate::misc::NegAbs;
+use crate::Integer;
 use gmp_mpfr_sys::gmp;
-use misc::NegAbs;
 use std::cmp::Ordering;
 use std::{i32, i64, u32, u64};
-use Integer;
 
 #[inline]
 pub fn set_u128(rop: &mut Integer, u: u128) {

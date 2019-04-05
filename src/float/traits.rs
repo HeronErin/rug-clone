@@ -14,12 +14,17 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpfr::{self, ordering1, raw_round};
-use float::big::{self, ExpFormat, Format};
-use float::{Constant, ParseFloatError, Round, Special};
+use crate::cast::cast;
+use crate::ext::xmpfr::{self, ordering1, raw_round};
+use crate::float::big::{self, ExpFormat, Format};
+use crate::float::{Constant, ParseFloatError, Round, Special};
+use crate::ops::AssignRound;
+#[cfg(feature = "integer")]
+use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::Rational;
+use crate::{Assign, Float};
 use gmp_mpfr_sys::mpfr;
-use ops::AssignRound;
 #[cfg(all(try_from, feature = "rational"))]
 use rational::TryFromFloatError;
 use std::cmp::Ordering;
@@ -32,11 +37,6 @@ use std::fmt::{
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
 use std::{i32, u32};
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
-use {Assign, Float};
 
 impl Clone for Float {
     #[inline]
@@ -65,28 +65,28 @@ impl Drop for Float {
 }
 
 impl Display for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl Debug for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl LowerExp for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format = Format { exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl UpperExp for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format =
             Format { to_upper: true, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "")
@@ -94,7 +94,7 @@ impl UpperExp for Float {
 }
 
 impl Binary for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format =
             Format { radix: 2, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "0b")
@@ -102,7 +102,7 @@ impl Binary for Float {
 }
 
 impl Octal for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format =
             Format { radix: 8, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "0o")
@@ -110,7 +110,7 @@ impl Octal for Float {
 }
 
 impl LowerHex for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format =
             Format { radix: 16, exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format, "0x")
@@ -118,7 +118,7 @@ impl LowerHex for Float {
 }
 
 impl UpperHex for Float {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         let format = Format {
             radix: 16,
             to_upper: true,
@@ -344,7 +344,7 @@ impl<'a> TryFrom<&'a Float> for Rational {
 // overwrites format.precision
 fn fmt_radix(
     flt: &Float,
-    fmt: &mut Formatter,
+    fmt: &mut Formatter<'_>,
     format: Format,
     prefix: &str,
 ) -> fmt::Result {
@@ -358,7 +358,7 @@ fn fmt_radix(
 }
 
 impl Display for ParseFloatError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
@@ -369,9 +369,9 @@ unsafe impl Sync for Float {}
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::float_cmp))]
 mod tests {
-    use ops::AssignRound;
+    use crate::ops::AssignRound;
+    use crate::{Assign, Float};
     use std::cmp::Ordering;
-    use {Assign, Float};
 
     #[test]
     fn check_assign() {

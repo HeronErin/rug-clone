@@ -14,21 +14,21 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast;
-use gmp_mpfr_sys::gmp;
-use misc::NegAbs;
-use ops::NegAssign;
+use crate::cast;
+use crate::misc::NegAbs;
+use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
-use rand::RandState;
+use crate::rand::RandState;
+use crate::Integer;
+use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
 use std::ptr;
 use std::{i16, i8, u16, u8};
-use Integer;
 
+#[cfg(gmp_limb_bits_64)]
+pub use crate::ext::xmpz64::*;
 #[cfg(gmp_limb_bits_32)]
 pub use ext::xmpz32::*;
-#[cfg(gmp_limb_bits_64)]
-pub use ext::xmpz64::*;
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
@@ -505,7 +505,11 @@ pub fn powm_sec(
 
 #[cfg(feature = "rand")]
 #[inline]
-pub fn urandomm(rop: &mut Integer, state: &mut RandState, n: Option<&Integer>) {
+pub fn urandomm(
+    rop: &mut Integer,
+    state: &mut RandState<'_>,
+    n: Option<&Integer>,
+) {
     assert_eq!(
         n.unwrap_or(rop).cmp0(),
         Ordering::Greater,

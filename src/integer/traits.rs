@@ -14,10 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpz;
-use integer::big;
-use integer::ParseIntegerError;
+use crate::cast::cast;
+use crate::ext::xmpz;
+use crate::integer::big;
+use crate::integer::ParseIntegerError;
+use crate::{Assign, Integer};
 #[cfg(try_from)]
 use integer::TryFromIntegerError;
 #[cfg(try_from)]
@@ -32,7 +33,6 @@ use std::mem;
 use std::slice;
 use std::str::FromStr;
 use std::{i32, u32};
-use {Assign, Integer};
 
 impl Default for Integer {
     #[inline]
@@ -215,44 +215,44 @@ impl FromStr for Integer {
 }
 
 impl Display for Integer {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Integer {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Binary for Integer {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Integer {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Integer {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Integer {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         fmt_radix(self, f, 16, true, "0x")
     }
 }
 
 fn fmt_radix(
     i: &Integer,
-    f: &mut Formatter,
+    f: &mut Formatter<'_>,
     radix: i32,
     to_upper: bool,
     prefix: &str,
@@ -265,7 +265,7 @@ fn fmt_radix(
 }
 
 impl Display for ParseIntegerError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         Debug::fmt(self, f)
     }
 }
@@ -290,9 +290,9 @@ unsafe impl Sync for Integer {}
 #[cfg(test)]
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::cyclomatic_complexity))]
 mod tests {
+    use crate::{Assign, Integer};
     #[cfg(try_from)]
     use std::convert::TryFrom;
-    use {Assign, Integer};
 
     #[test]
     fn check_assign() {

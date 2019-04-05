@@ -14,12 +14,12 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpq;
-use misc::NegAbs;
+use crate::cast::cast;
+use crate::ext::xmpq;
+use crate::misc::NegAbs;
+use crate::{Integer, Rational};
 use std::cmp::Ordering;
 use std::i32;
-use {Integer, Rational};
 
 impl Eq for Rational {}
 
@@ -295,12 +295,12 @@ cmp_f! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
+    use crate::tests::{I128, I32, I64, U128, U32, U64};
+    use crate::Rational;
     use std::cmp::Ordering;
     use std::ops::Neg;
     use std::ops::Sub;
     use std::{f32, f64};
-    use tests::{I128, I32, I64, U128, U32, U64};
-    use Rational;
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
     where

@@ -14,13 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use complex::big::{self, Format};
-use complex::ParseComplexError;
-use ext::xmpc::{ordering2, raw_round2, Ordering2, Round2};
-use float::big::ExpFormat;
-use float::{Round, Special};
+use crate::complex::big::{self, Format};
+use crate::complex::ParseComplexError;
+use crate::ext::xmpc::{ordering2, raw_round2, Ordering2, Round2};
+use crate::float::big::ExpFormat;
+use crate::float::{Round, Special};
+use crate::ops::AssignRound;
+use crate::{Assign, Complex, Float};
 use gmp_mpfr_sys::mpc;
-use ops::AssignRound;
 use std::cmp::Ordering;
 use std::fmt::{
     Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
@@ -28,7 +29,6 @@ use std::fmt::{
 };
 use std::mem;
 use std::ptr;
-use {Assign, Complex, Float};
 
 impl Clone for Complex {
     #[inline]
@@ -87,28 +87,28 @@ where
 }
 
 impl Display for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format)
     }
 }
 
 impl Debug for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format { exp: ExpFormat::Point, ..Format::default() };
         fmt_radix(self, f, format)
     }
 }
 
 impl LowerExp for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format { exp: ExpFormat::Exp, ..Format::default() };
         fmt_radix(self, f, format)
     }
 }
 
 impl UpperExp for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             to_upper: true,
             exp: ExpFormat::Point,
@@ -119,7 +119,7 @@ impl UpperExp for Complex {
 }
 
 impl Binary for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 2,
             prefix: "0b",
@@ -131,7 +131,7 @@ impl Binary for Complex {
 }
 
 impl Octal for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 8,
             prefix: "0o",
@@ -143,7 +143,7 @@ impl Octal for Complex {
 }
 
 impl LowerHex for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 16,
             prefix: "0x",
@@ -155,7 +155,7 @@ impl LowerHex for Complex {
 }
 
 impl UpperHex for Complex {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 16,
             to_upper: true,
@@ -259,7 +259,11 @@ where
 // * overwrites format.precision with fmt.precision()
 // * overwrites format.sign_plus with fmt.sign_plus()
 // * overwrites prefix with "" if not fmt.alternate()
-fn fmt_radix(c: &Complex, fmt: &mut Formatter, format: Format) -> FmtResult {
+fn fmt_radix(
+    c: &Complex,
+    fmt: &mut Formatter<'_>,
+    format: Format,
+) -> FmtResult {
     let format = Format {
         precision: fmt.precision(),
         sign_plus: fmt.sign_plus(),
@@ -292,7 +296,7 @@ fn fmt_radix(c: &Complex, fmt: &mut Formatter, format: Format) -> FmtResult {
 }
 
 impl Display for ParseComplexError {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         Debug::fmt(self, f)
     }
 }
@@ -302,10 +306,10 @@ unsafe impl Sync for Complex {}
 
 #[cfg(test)]
 mod tests {
-    use float::Round;
-    use ops::AssignRound;
+    use crate::float::Round;
+    use crate::ops::AssignRound;
+    use crate::{Assign, Complex};
     use std::cmp::Ordering;
-    use {Assign, Complex};
 
     #[test]
     fn check_assign() {

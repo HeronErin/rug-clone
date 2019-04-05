@@ -14,12 +14,13 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpq;
-use ext::xmpz;
+use crate::cast::cast;
+use crate::ext::xmpq;
+use crate::ext::xmpz;
+use crate::integer::big as big_integer;
+use crate::misc;
+use crate::{Assign, Integer};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use integer::big as big_integer;
-use misc;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::i32;
@@ -27,7 +28,6 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
 use std::ptr;
-use {Assign, Integer};
 
 /**
 An arbitrary-precision rational number.
@@ -92,7 +92,7 @@ pub struct Rational {
 
 fn _static_assertions() {
     static_assert_size!(Rational, mpq_t);
-    static_assert_size!(BorrowRational, mpq_t);
+    static_assert_size!(BorrowRational<'_>, mpq_t);
 }
 
 macro_rules! rat_op_int {
@@ -120,7 +120,7 @@ macro_rules! rat_op_int {
 
         $(#[$attr_ref])*
         #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
             $Incomplete {
                 ref_self: self,
                 $($param,)*
@@ -144,7 +144,7 @@ macro_rules! ref_rat_op_int {
 
         impl<'a> Assign<$Incomplete<'a>> for Integer {
             #[inline]
-            fn assign(&mut self, src: $Incomplete) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(Some(self), None, Some(src.ref_self), $(src.$param),*);
             }
         }
@@ -182,7 +182,7 @@ macro_rules! rat_op_rat_int {
 
         $(#[$attr_ref])*
         #[inline]
-        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete {
+        pub fn $method_ref(&self, $($param: $T),*) -> $Incomplete<'_> {
             $Incomplete {
                 ref_self: self,
                 $($param,)*
@@ -208,15 +208,15 @@ macro_rules! ref_rat_op_rat_int {
             Assign<$Incomplete<'a>> for (&'b mut Rational, &'c mut Integer)
         {
             #[inline]
-            fn assign(&mut self, src: $Incomplete) {
+            fn assign(&mut self, src: $Incomplete<'_>) {
                 $func(self.0, self.1, Some(src.ref_self), $(src.$param),*);
             }
         }
 
         impl<'a> Assign<$Incomplete<'a>> for (Rational, Integer) {
             #[inline]
-            fn assign(&mut self, src: $Incomplete) {
-                <(&mut Rational, &mut Integer) as Assign<$Incomplete>>::assign(
+            fn assign(&mut self, src: $Incomplete<'_>) {
+                <(&mut Rational, &mut Integer) as Assign<$Incomplete<'_>>>::assign(
                     &mut (&mut self.0, &mut self.1),
                     src,
                 );
@@ -225,9 +225,9 @@ macro_rules! ref_rat_op_rat_int {
 
         impl<'a> From<$Incomplete<'a>> for (Rational, Integer) {
             #[inline]
-            fn from(src: $Incomplete) -> Self {
+            fn from(src: $Incomplete<'_>) -> Self {
                 let mut dst = <Self as Default>::default();
-                <Self as Assign<$Incomplete>>::assign(&mut dst, src);
+                <Self as Assign<$Incomplete<'_>>>::assign(&mut dst, src);
                 dst
             }
         }
@@ -275,9 +275,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
     /// use std::mem;
@@ -291,7 +288,6 @@ impl Rational {
     /// };
     /// assert_eq!(r, (-145, 10));
     /// // since r is a Rational now, deallocation is automatic
-    /// # }
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
@@ -310,9 +306,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
     /// let r = Rational::from((-145, 10));
@@ -323,7 +316,6 @@ impl Rational {
     ///     // free object to prevent memory leak
     ///     gmp::mpq_clear(&mut q);
     /// }
-    /// # }
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
@@ -343,9 +335,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
     /// let r = Rational::from((-145, 10));
@@ -356,7 +345,6 @@ impl Rational {
     /// }
     /// // r is still valid
     /// assert_eq!(r, (-145, 10));
-    /// # }
     /// ```
     ///
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
@@ -374,9 +362,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
     /// let mut r = Rational::from((-145, 10));
@@ -385,7 +370,6 @@ impl Rational {
     ///     gmp::mpq_inv(q_ptr, q_ptr);
     /// }
     /// assert_eq!(r, (-10, 145));
-    /// # }
     /// ```
     ///
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
@@ -998,7 +982,7 @@ impl Rational {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Rational`]: struct.Rational.html
     #[inline]
-    pub fn as_neg(&self) -> BorrowRational {
+    pub fn as_neg(&self) -> BorrowRational<'_> {
         let mut ret =
             BorrowRational { inner: self.inner, phantom: PhantomData };
         let size = self.numer().inner().size.checked_neg().expect("overflow");
@@ -1032,7 +1016,7 @@ impl Rational {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Rational`]: struct.Rational.html
     #[inline]
-    pub fn as_abs(&self) -> BorrowRational {
+    pub fn as_abs(&self) -> BorrowRational<'_> {
         let mut ret =
             BorrowRational { inner: self.inner, phantom: PhantomData };
         let size = self.numer().inner().size.checked_abs().expect("overflow");
@@ -1069,7 +1053,7 @@ impl Rational {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Rational`]: struct.Rational.html
-    pub fn as_recip(&self) -> BorrowRational {
+    pub fn as_recip(&self) -> BorrowRational<'_> {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
@@ -2516,8 +2500,6 @@ pub struct ClampIncomplete<'a, Min, Max>
 where
     Rational:
         PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
-    Min: 'a,
-    Max: 'a,
 {
     ref_self: &'a Rational,
     min: &'a Min,
@@ -2688,9 +2670,9 @@ fn parse(
             b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
 
-            b'0'...b'9' => b - b'0',
-            b'a'...b'z' => b - b'a' + 10,
-            b'A'...b'Z' => b - b'A' + 10,
+            b'0'..=b'9' => b - b'0',
+            b'a'..=b'z' => b - b'a' + 10,
+            b'A'..=b'Z' => b - b'A' + 10,
 
             // error
             _ => bradix,

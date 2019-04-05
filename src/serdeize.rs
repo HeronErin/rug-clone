@@ -77,7 +77,7 @@ struct FieldVisitor;
 impl<'de> Visitor<'de> for FieldVisitor {
     type Value = Field;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         formatter.write_str("`radix` or `value`")
     }
 
@@ -114,7 +114,7 @@ struct PrecFieldVisitor;
 impl<'de> Visitor<'de> for PrecFieldVisitor {
     type Value = PrecField;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         formatter.write_str("`prec`, `radix` or `value`")
     }
 
@@ -145,7 +145,7 @@ struct BigVisitor(&'static str, PrecReq);
 impl<'de> Visitor<'de> for BigVisitor {
     type Value = Data;
 
-    fn expecting(&self, formatter: &mut Formatter) -> FmtResult {
+    fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
         formatter.write_str(self.0)
     }
 

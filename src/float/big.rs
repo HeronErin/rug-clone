@@ -14,22 +14,27 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use cast::cast;
-use ext::xmpfr::{self, ordering1, raw_round};
-use float::arith::{
+use crate::cast::cast;
+use crate::ext::xmpfr::{self, ordering1, raw_round};
+use crate::float::arith::{
     AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
     SubMulFromIncomplete,
 };
-use float::{self, OrdFloat, Round, SmallFloat, Special};
+use crate::float::{self, OrdFloat, Round, SmallFloat, Special};
+#[cfg(feature = "integer")]
+use crate::integer::big::BorrowInteger;
+use crate::misc;
+use crate::ops::{AddAssignRound, AssignRound, NegAssign};
+#[cfg(feature = "rand")]
+use crate::rand::RandState;
+use crate::Assign;
+#[cfg(feature = "integer")]
+use crate::Integer;
+#[cfg(feature = "rational")]
+use crate::Rational;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-#[cfg(feature = "integer")]
-use integer::big::BorrowInteger;
-use misc;
-use ops::{AddAssignRound, AssignRound, NegAssign};
-#[cfg(feature = "rand")]
-use rand::RandState;
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::{CStr, CString};
@@ -41,11 +46,6 @@ use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
 use std::str;
 use std::{i32, u32};
-use Assign;
-#[cfg(feature = "integer")]
-use Integer;
-#[cfg(feature = "rational")]
-use Rational;
 
 /**
 A multi-precision floating-point number with arbitrarily large
@@ -201,7 +201,6 @@ the MPFR website. The program computes a lower bound on 1 + 1/1! +
 `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 
 ```rust
-# extern crate rug;
 use rug::float::{Round};
 use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
 use rug::Float;
@@ -247,7 +246,7 @@ impl Float {
 
 fn _static_assertions() {
     static_assert_size!(Float, mpfr_t);
-    static_assert_size!(BorrowFloat, mpfr_t);
+    static_assert_size!(BorrowFloat<'_>, mpfr_t);
 }
 
 macro_rules! ref_math_op0_float {
@@ -574,9 +573,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
     /// use std::mem;
@@ -589,7 +585,6 @@ impl Float {
     /// };
     /// assert_eq!(f, -14.5);
     /// // since f is a Float now, deallocation is automatic
-    /// # }
     /// ```
     ///
     /// [`Float`]: struct.Float.html
@@ -607,9 +602,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
     /// let f = Float::with_val(53, -14.5);
@@ -620,7 +612,6 @@ impl Float {
     ///     // free object to prevent memory leak
     ///     mpfr::clear(&mut m);
     /// }
-    /// # }
     /// ```
     ///
     /// [`Float`]: struct.Float.html
@@ -641,9 +632,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
     /// let f = Float::with_val(53, -14.5);
@@ -654,7 +642,6 @@ impl Float {
     /// }
     /// // f is still valid
     /// assert_eq!(f, -14.5);
-    /// # }
     /// ```
     ///
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
@@ -672,9 +659,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// # extern crate gmp_mpfr_sys;
-    /// # extern crate rug;
-    /// # fn main() {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
     /// let mut f = Float::with_val(53, -14.5);
@@ -683,7 +667,6 @@ impl Float {
     ///     mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
     /// }
     /// assert_eq!(f, -4.5);
-    /// # }
     /// ```
     ///
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
@@ -1396,7 +1379,7 @@ impl Float {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
-    pub fn as_neg(&self) -> BorrowFloat {
+    pub fn as_neg(&self) -> BorrowFloat<'_> {
         let mut ret = BorrowFloat { inner: self.inner, phantom: PhantomData };
         NegAssign::neg_assign(&mut ret.inner.sign);
         if self.is_nan() {
@@ -1430,7 +1413,7 @@ impl Float {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
-    pub fn as_abs(&self) -> BorrowFloat {
+    pub fn as_abs(&self) -> BorrowFloat<'_> {
         let mut ret = BorrowFloat { inner: self.inner, phantom: PhantomData };
         ret.inner.sign = 1;
         if self.is_nan() {
@@ -1759,7 +1742,7 @@ impl Float {
     /// [`significant_bits`]: struct.Integer.html#method.significant_bits
     /// [`to_integer_exp`]: #method.to_integer_exp
     #[inline]
-    pub fn get_significand(&self) -> Option<BorrowInteger> {
+    pub fn get_significand(&self) -> Option<BorrowInteger<'_>> {
         if self.is_normal() {
             let limb_bits = mpfr::prec_t::from(gmp::LIMB_BITS);
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
@@ -6311,7 +6294,7 @@ impl Float {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete {
+    pub fn ln_abs_gamma_ref(&self) -> LnAbsGammaIncomplete<'_> {
         LnAbsGammaIncomplete { ref_self: self }
     }
 
@@ -8039,8 +8022,6 @@ where
         + PartialOrd<Max>
         + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
         + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
-    Min: 'a,
-    Max: 'a,
 {
     ref_self: &'a Float,
     min: &'a Min,
@@ -8147,7 +8128,7 @@ impl<'a, 'b, 'c> AssignRound<LnAbsGammaIncomplete<'a>>
     #[inline]
     fn assign_round(
         &mut self,
-        src: LnAbsGammaIncomplete,
+        src: LnAbsGammaIncomplete<'_>,
         round: Round,
     ) -> Ordering {
         let mut sign: c_int = 0;
@@ -8171,7 +8152,7 @@ impl<'a> AssignRound<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
     #[inline]
     fn assign_round(
         &mut self,
-        src: LnAbsGammaIncomplete,
+        src: LnAbsGammaIncomplete<'_>,
         round: Round,
     ) -> Ordering {
         (&mut self.0, &mut self.1).assign_round(src, round)
@@ -8182,14 +8163,14 @@ impl<'a, 'b, 'c> Assign<LnAbsGammaIncomplete<'a>>
     for (&'b mut Float, &'c mut Ordering)
 {
     #[inline]
-    fn assign(&mut self, src: LnAbsGammaIncomplete) {
+    fn assign(&mut self, src: LnAbsGammaIncomplete<'_>) {
         self.assign_round(src, Default::default());
     }
 }
 
 impl<'a> Assign<LnAbsGammaIncomplete<'a>> for (Float, Ordering) {
     #[inline]
-    fn assign(&mut self, src: LnAbsGammaIncomplete) {
+    fn assign(&mut self, src: LnAbsGammaIncomplete<'_>) {
         (&mut self.0, &mut self.1).assign_round(src, Default::default());
     }
 }
@@ -8230,7 +8211,7 @@ where
     'b: 'a,
 {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete) {
+    fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         unsafe {
             let err = mpfr::urandomb(self.as_raw_mut(), src.rng.as_raw_mut());
             assert_eq!(self.is_nan(), err != 0);
@@ -8254,7 +8235,11 @@ where
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: RandomCont, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: RandomCont<'_, '_>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpfr::urandom(
                 self.as_raw_mut(),
@@ -8282,7 +8267,11 @@ where
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: RandomNormal, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: RandomNormal<'_, '_>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpfr::nrandom(
                 self.as_raw_mut(),
@@ -8310,7 +8299,11 @@ where
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: RandomExp, round: Round) -> Ordering {
+    fn assign_round(
+        &mut self,
+        src: RandomExp<'_, '_>,
+        round: Round,
+    ) -> Ordering {
         let ret = unsafe {
             mpfr::erandom(
                 self.as_raw_mut(),
@@ -8554,9 +8547,9 @@ fn parse(
             b'_' if has_digits => continue,
             b' ' | b'\t' | b'\n' | 0x0b | 0x0c | 0x0d => continue,
 
-            b'0'...b'9' => exp || b < digit_bound,
-            b'a'...b'z' => !exp && b < small_bound,
-            b'A'...b'Z' => !exp && b < capital_bound,
+            b'0'..=b'9' => exp || b < digit_bound,
+            b'a'..=b'z' => !exp && b < small_bound,
+            b'A'..=b'Z' => !exp && b < capital_bound,
             _ => false,
         };
         if !valid_digit {
@@ -8638,9 +8631,9 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
     for (i, &b) in iter {
         match b {
             b')' => return Some(&bytes[i + 1..]),
-            b'0'...b'9'
-            | b'a'...b'z'
-            | b'A'...b'Z'
+            b'0'..=b'9'
+            | b'a'..=b'z'
+            | b'A'..=b'Z'
             | b'_'
             | b' '
             | b'\t'
