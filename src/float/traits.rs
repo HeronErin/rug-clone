@@ -19,14 +19,14 @@ use crate::ext::xmpfr::{self, ordering1, raw_round};
 use crate::float::big::{self, ExpFormat, Format};
 use crate::float::{Constant, ParseFloatError, Round, Special};
 use crate::ops::AssignRound;
+#[cfg(all(try_from, feature = "rational"))]
+use crate::rational::TryFromFloatError;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{Assign, Float};
 use gmp_mpfr_sys::mpfr;
-#[cfg(all(try_from, feature = "rational"))]
-use rational::TryFromFloatError;
 use std::cmp::Ordering;
 #[cfg(all(try_from, feature = "rational"))]
 use std::convert::TryFrom;
@@ -394,9 +394,9 @@ mod tests {
     #[cfg(all(try_from, feature = "rational"))]
     #[test]
     fn check_fallible_conversions() {
-        use float::Special;
+        use crate::float::Special;
+        use crate::{Float, Rational};
         use std::convert::TryFrom;
-        use {Float, Rational};
         let large = [
             Float::with_val(20, Special::Zero),
             Float::with_val(20, Special::NegZero),

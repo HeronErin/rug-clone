@@ -294,8 +294,7 @@ pub mod test {
         T: Serialize + for<'de> Deserialize<'de>,
         F: Fn(&T, &T),
     {
-        #[allow(unused_imports)]
-        use bincode::{self, SliceReader};
+        use bincode::SliceReader;
         let enc = bincode::serialize(&t).unwrap();
         let dec: T = bincode::deserialize(&enc).unwrap();
         test(t, &dec);
@@ -313,8 +312,6 @@ pub mod test {
         T: for<'de> Deserialize<'de>,
         F: Fn(&T, &T),
     {
-        #[allow(unused_imports)]
-        use bincode;
         let dec: T = bincode::deserialize(&val).unwrap();
         test(t, &dec);
     }

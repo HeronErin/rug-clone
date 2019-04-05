@@ -18,9 +18,9 @@ use crate::cast::cast;
 use crate::ext::xmpz;
 use crate::integer::big;
 use crate::integer::ParseIntegerError;
-use crate::{Assign, Integer};
 #[cfg(try_from)]
-use integer::TryFromIntegerError;
+use crate::integer::TryFromIntegerError;
+use crate::{Assign, Integer};
 #[cfg(try_from)]
 use std::convert::TryFrom;
 #[cfg(try_from)]

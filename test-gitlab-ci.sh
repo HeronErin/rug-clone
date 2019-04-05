@@ -43,8 +43,6 @@ for features in \
 do
     if [[ $TOOLCHAIN == beta* ]]; then
         check="clippy --all-targets"
-    elif [[ $TOOLCHAIN == 1.31.1* ]]; then
-        check=check
     else
         check="check --all-targets"
     fi

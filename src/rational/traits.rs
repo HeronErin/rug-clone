@@ -18,9 +18,9 @@ use crate::ext::xmpq;
 use crate::ext::xmpz;
 use crate::rational::big;
 use crate::rational::ParseRationalError;
-use crate::{Assign, Integer, Rational};
 #[cfg(try_from)]
-use rational::TryFromFloatError;
+use crate::rational::TryFromFloatError;
+use crate::{Assign, Integer, Rational};
 use std::cmp::Ordering;
 #[cfg(try_from)]
 use std::convert::TryFrom;
@@ -309,7 +309,7 @@ mod tests {
     #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
-        use tests::{F32, F64};
+        use crate::tests::{F32, F64};
         use Rational;
         for &f in F32 {
             let r = Rational::try_from(f);

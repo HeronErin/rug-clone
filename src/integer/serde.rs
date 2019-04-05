@@ -90,8 +90,7 @@ mod tests {
         fn check(self, radix: i32, value: &'static str) {
             use crate::serdeize::test::*;
             use byteorder::{LittleEndian, WriteBytesExt};
-            #[allow(unused_imports)]
-            use serde_test::{self, Token};
+            use serde_test::Token;
             use std::io::Write;
             let tokens = [
                 Token::Struct { name: "Integer", len: 2 },
