@@ -25,10 +25,10 @@ use std::cmp::Ordering;
 use std::ptr;
 use std::{i16, i8, u16, u8};
 
+#[cfg(gmp_limb_bits_32)]
+pub use crate::ext::xmpz32::*;
 #[cfg(gmp_limb_bits_64)]
 pub use crate::ext::xmpz64::*;
-#[cfg(gmp_limb_bits_32)]
-pub use ext::xmpz32::*;
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
