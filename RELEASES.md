@@ -8,13 +8,9 @@ as-is, without any warranty. -->
 Verison 1.4.0 (unreleased)
 ==========================
 
-  * Add `Float::copysign` methods.
-
-Version 1.3.1 (unreleased)
-==========================
-
   * The method `RandState::as_raw` was fixed to take `&self` instead
     of `&mut self`.
+  * Add `Float::copysign` methods.
 
 Version 1.3.0 (2019-01-26)
 ==========================
