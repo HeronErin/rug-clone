@@ -29,7 +29,7 @@ environment:
       MSYSTEM_PREFIX: C:/msys64/mingw32
 
 cache:
-  - '%USERPROFILE%\.cargo\registry\cache'
+  - '%USERPROFILE%\.cargo\registry\cache' -> Cargo.toml
   - '%LOCALAPPDATA%\gmp-mpfr-sys'
 
 install:
@@ -43,7 +43,8 @@ install:
 build: false
 
 before_test:
-  - bash -c "if cd ""$USERPROFILE/.cargo/registry"" && [ -d cache ]; then find cache -name \*.crate; fi"
+  - bash -c "if cd ""$USERPROFILE/.cargo/registry"" && [ -d cache ]; then find cache -name \*.crate | sort; fi"
+  - bash -c "if cd ""$LOCALAPPDATA"" && [ -d gmp-mpfr-sys ]; then find gmp-mpfr-sys -name \*.[ah] | sort; fi"
 
 test_script:
   - cargo +beta-%TARGET% test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
@@ -54,4 +55,5 @@ test_script:
   - cargo +1.31.1-%TARGET% test --release --features "fail-on-warnings serde" -p gmp-mpfr-sys -p rug
 
 after_test:
-  - bash -c "cd ""$USERPROFILE/.cargo/registry"" && find cache -name \*.crate"
+  - bash -c "cd ""$USERPROFILE/.cargo/registry""; find cache -name \*.crate | sort"
+  - bash -c "cd ""$LOCALAPPDATA""; find gmp-mpfr-sys -name \*.[ah] | sort"
