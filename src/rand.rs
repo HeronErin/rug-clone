@@ -149,7 +149,7 @@ impl RandState<'_> {
         a: &Integer,
         c: u32,
         bits: u32,
-    ) -> RandState<'_> {
+    ) -> RandState<'static> {
         unsafe {
             let mut inner = mem::zeroed();
             gmp::randinit_lc_2exp(
