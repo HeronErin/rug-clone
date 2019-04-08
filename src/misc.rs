@@ -16,8 +16,6 @@
 
 #![allow(dead_code)]
 
-use std::mem;
-
 pub trait NegAbs {
     type Abs;
     fn neg_abs(self) -> (bool, Self::Abs);

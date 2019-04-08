@@ -2967,10 +2967,10 @@ macro_rules! static_assert {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! static_assert_size {
     ($T:ty, $U:ty) => {
-        static_assert_size!($T: ::std::mem::size_of::<$U>());
+        static_assert_size!($T: std::mem::size_of::<$U>());
     };
     ($T:ty: $size:expr) => {
-        static_assert!(::std::mem::size_of::<$T>() == $size);
+        static_assert!(std::mem::size_of::<$T>() == $size);
     };
 }
 
@@ -2988,7 +2988,7 @@ macro_rules! cast_ptr {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
-                let _ = ::std::mem::transmute::<_, $T>(ptr.get());
+                let _ = std::mem::transmute::<_, $T>(ptr.get());
             }
         }
         ptr.0 as *const $T
@@ -3009,7 +3009,7 @@ macro_rules! cast_ptr_mut {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
-                let _ = ::std::mem::transmute::<_, $T>(ptr.get());
+                let _ = std::mem::transmute::<_, $T>(ptr.get());
             }
         }
         ptr.0 as *mut $T
