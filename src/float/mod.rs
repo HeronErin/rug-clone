@@ -32,12 +32,10 @@ mod serde;
 pub(crate) mod small;
 mod traits;
 
-use crate::cast::cast;
 pub use crate::float::big::ParseFloatError;
 pub use crate::float::ord::OrdFloat;
 pub use crate::float::small::{SmallFloat, ToSmall};
 use gmp_mpfr_sys::mpfr;
-use std::mem;
 use std::{i32, u32};
 
 /**
@@ -91,8 +89,8 @@ println!("Minimum precision is {}", float::prec_min());
 ```
 */
 #[inline]
-pub fn prec_min() -> u32 {
-    cast(mpfr::PREC_MIN)
+pub const fn prec_min() -> u32 {
+    mpfr::PREC_MIN as u32
 }
 
 /**
@@ -106,15 +104,10 @@ println!("Maximum precision is {}", float::prec_max());
 ```
 */
 #[inline]
-pub fn prec_max() -> u32 {
-    let max = mpfr::PREC_MAX;
-    if mem::size_of::<mpfr::prec_t>() <= mem::size_of::<u32>()
-        || max < cast::<_, mpfr::prec_t>(u32::MAX)
-    {
-        max as u32
-    } else {
-        u32::MAX
-    }
+pub const fn prec_max() -> u32 {
+    const MAX_FITS: bool = mpfr::PREC_MAX < u32::MAX as mpfr::prec_t;
+    const VALUES: [u32; 2] = [u32::MAX, mpfr::PREC_MAX as u32];
+    VALUES[MAX_FITS as usize]
 }
 
 /**

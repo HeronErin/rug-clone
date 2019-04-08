@@ -36,6 +36,8 @@ option) any later version. See the full text of the [GNU LGPL] and
   * Rug now requires rustc version 1.31.0 or later.
   * The method [`RandState::as_raw`] was fixed to take `&self` instead
     of `&mut self`.
+  * [`float::prec_min`] and [`float::prec_max`] are now const
+    functions.
   * Methods [`Float::copysign`], [`Float::copysign_mut`] and
     [`Float::copysign_ref`] were added.
 
@@ -43,6 +45,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Float::copysign_ref`]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign_ref
 [`Float::copysign`]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.copysign
 [`RandState::as_raw`]: https://docs.rs/rug/~1.4/rug/rand/struct.RandState.html#method.as_raw
+[`float::prec_max`]: https://docs.rs/rug/~1.4/rug/float/fn.prec_max.html
+[`float::prec_min`]: https://docs.rs/rug/~1.4/rug/float/fn.prec_min.html
 
 ### Version 1.3.0 news (2019-01-26)
 

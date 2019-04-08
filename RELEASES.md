@@ -11,6 +11,7 @@ Verison 1.4.0 (unreleased)
   * Require rustc version 1.31.0.
   * The method `RandState::as_raw` was fixed to take `&self` instead
     of `&mut self`.
+  * `float::prec_min` and `float::prec_max` are now const functions.
   * Add `Float::copysign` methods.
 
 Version 1.3.0 (2019-01-26)
