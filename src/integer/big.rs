@@ -29,7 +29,6 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
 use std::os::raw::{c_char, c_int, c_long, c_void};
-use std::ptr;
 use std::slice;
 use std::{i32, u32};
 
@@ -644,7 +643,7 @@ impl Integer {
             digits.split_at_mut(zero_count)
         };
         unsafe {
-            ptr::write_bytes(zeros.as_mut_ptr(), 0, zeros.len());
+            zeros.as_mut_ptr().write_bytes(0, zeros.len());
             let mut count = mem::uninitialized();
             gmp::mpz_export(
                 digits.as_mut_ptr() as *mut c_void,

@@ -950,8 +950,8 @@ impl Rational {
     pub fn into_numer_denom(self) -> (Integer, Integer) {
         let raw = self.into_raw();
         unsafe {
-            let num = ptr::read(gmp::mpq_numref_const(&raw));
-            let den = ptr::read(gmp::mpq_denref_const(&raw));
+            let num = gmp::mpq_numref_const(&raw).read();
+            let den = gmp::mpq_denref_const(&raw).read();
             (Integer::from_raw(num), Integer::from_raw(den))
         }
     }
@@ -1055,14 +1055,14 @@ impl Rational {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
         let mut inner: mpq_t = unsafe { mem::uninitialized() };
         unsafe {
-            let mut dst_num = ptr::read(self.denom().as_raw());
-            let mut dst_den = ptr::read(self.numer().as_raw());
+            let mut dst_num = self.denom().as_raw().read();
+            let mut dst_den = self.numer().as_raw().read();
             if dst_den.size < 0 {
                 dst_den.size = dst_den.size.wrapping_neg();
                 dst_num.size = dst_num.size.checked_neg().expect("overflow");
             }
-            ptr::write(gmp::mpq_numref(&mut inner), dst_num);
-            ptr::write(gmp::mpq_denref(&mut inner), dst_den);
+            gmp::mpq_numref(&mut inner).write(dst_num);
+            gmp::mpq_denref(&mut inner).write(dst_den);
         }
         BorrowRational { inner, phantom: PhantomData }
     }

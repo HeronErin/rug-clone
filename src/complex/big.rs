@@ -37,7 +37,6 @@ use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::c_int;
-use std::ptr;
 use std::slice;
 
 /**
@@ -868,8 +867,8 @@ impl Complex {
     pub fn into_real_imag(self) -> (Float, Float) {
         let raw = self.into_raw();
         unsafe {
-            let real = ptr::read(mpc::realref_const(&raw));
-            let imag = ptr::read(mpc::imagref_const(&raw));
+            let real = mpc::realref_const(&raw).read();
+            let imag = mpc::imagref_const(&raw).read();
             (Float::from_raw(real), Float::from_raw(imag))
         }
     }
@@ -975,15 +974,15 @@ impl Complex {
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let mut inner: mpc_t = unsafe { mem::uninitialized() };
         unsafe {
-            let mut dst_re = ptr::read(self.imag().as_raw());
-            let mut dst_im = ptr::read(self.real().as_raw());
+            let mut dst_re = self.imag().as_raw().read();
+            let mut dst_im = self.real().as_raw().read();
             if negative {
                 NegAssign::neg_assign(&mut dst_im.sign);
             } else {
                 NegAssign::neg_assign(&mut dst_re.sign);
             }
-            ptr::write(mpc::realref(&mut inner), dst_re);
-            ptr::write(mpc::imagref(&mut inner), dst_im);
+            mpc::realref(&mut inner).write(dst_re);
+            mpc::imagref(&mut inner).write(dst_im);
         }
         if self.real().is_nan() || self.imag().is_nan() {
             unsafe {
