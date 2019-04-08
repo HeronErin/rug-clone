@@ -29,7 +29,7 @@ environment:
       MSYSTEM_PREFIX: C:/msys64/mingw32
 
 cache:
-  - '%USERPROFILE%\.cargo\registry\cache' -> Cargo.toml
+  - '%USERPROFILE%\.cargo\registry\cache -> Cargo.toml'
   - '%LOCALAPPDATA%\gmp-mpfr-sys'
 
 install:
