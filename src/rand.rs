@@ -226,8 +226,8 @@ impl RandState<'_> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
-    pub fn new_custom<'a>(custom: &'a mut dyn RandGen) -> RandState<'a> {
-        let b: Box<&'a mut dyn RandGen> = Box::new(custom);
+    pub fn new_custom(custom: &mut dyn RandGen) -> RandState<'_> {
+        let b: Box<&mut dyn RandGen> = Box::new(custom);
         let r_ptr: *mut &mut dyn RandGen = Box::into_raw(b);
         let inner = MpRandState {
             seed: gmp::mpz_t {
