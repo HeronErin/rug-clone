@@ -484,7 +484,7 @@ fn _static_assertions() {
     #[cfg(gmp_limb_bits_32)]
     static_assert!(NUMB_BITS == 32);
     static_assert!(NUMB_BITS % 8 == 0);
-    static_assert_size!(limb_t: NUMB_BITS / 8);
+    static_assert_size!(limb_t: NUMB_BITS as usize / 8);
 }
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]

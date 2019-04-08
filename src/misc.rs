@@ -63,7 +63,7 @@ pub fn trunc_f64_to_f32(f: f64) -> f32 {
     //     masking has no effect.
     //   * If f is subnormal, f as f32 will be zero anyway.
     if !f.is_nan() {
-        let u: u64 = unsafe { mem::transmute(f) };
+        let u = f.to_bits();
         // f64 has 29 more significant bits than f32.
         let trunc_u = u & (!0 << 29);
         let trunc_f = f64::from_bits(trunc_u);

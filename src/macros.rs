@@ -2967,10 +2967,10 @@ macro_rules! static_assert {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! static_assert_size {
     ($T:ty, $U:ty) => {
-        let _ = |t: $T| unsafe { ::std::mem::transmute::<_, $U>(t) };
+        static_assert_size!($T: ::std::mem::size_of::<$U>());
     };
-    ($T:ty : $size:expr) => {
-        static_assert_size!($T, [u8; $size as usize]);
+    ($T:ty: $size:expr) => {
+        static_assert!(::std::mem::size_of::<$T>() == $size);
     };
 }
 

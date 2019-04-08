@@ -361,7 +361,7 @@ macro_rules! from_for_float {
 
                 let (fits_yes, fits_no) = <$Fit as YesNo>::yes_no();
 
-                let u: $Uns = unsafe { ::std::mem::transmute(src) };
+                let u = src.to_bits();
                 let neg = (u & SIGN_MASK) != 0;
                 let biased_exp = u & EXP_MASK;
                 let shift = (biased_exp >> MANT_BITS) as i32
