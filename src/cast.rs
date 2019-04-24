@@ -432,7 +432,6 @@ from_for_float! {
     (), u128, 128
 }
 
-// TODO: 128 bit
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 mod tests {
@@ -544,6 +543,8 @@ mod tests {
         assert_eq!(checked_cast::<f32, i16>(-1.0 / 0.0), None);
         assert_eq!(checked_cast::<f32, u32>(1.0 / 0.0), None);
         assert_eq!(checked_cast::<f32, i64>(f32::NAN), None);
+        assert_eq!(checked_cast::<f32, u128>(f32::MAX), Some(!0u128 << 104));
+        assert_eq!(checked_cast::<f32, i128>(f32::MAX), None);
 
         assert_eq!(checked_cast::<f32, i8>(-129.0), None);
         assert_eq!(checked_cast::<f32, i8>(-128.9), Some(-128));
@@ -663,6 +664,8 @@ mod tests {
         assert_eq!(wrapping_cast::<f32, i16>(-1.0 / 0.0), 0);
         assert_eq!(wrapping_cast::<f32, u32>(1.0 / 0.0), 0);
         assert_eq!(wrapping_cast::<f32, i64>(f32::NAN), 0);
+        assert_eq!(wrapping_cast::<f32, u128>(f32::MAX), !0u128 << 104);
+        assert_eq!(wrapping_cast::<f32, i128>(f32::MAX), !0i128 << 104);
 
         assert_eq!(wrapping_cast::<f32, i8>(-129.0), 127);
         assert_eq!(wrapping_cast::<f32, i8>(-128.9), -128);
