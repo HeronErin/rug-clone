@@ -380,7 +380,7 @@ where
 }
 
 #[cfg(test)]
-#[allow(clippy::cyclomatic_complexity)]
+#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::ops::{AddFrom, Pow, SubFrom};
     use crate::Integer;

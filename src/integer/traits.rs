@@ -288,7 +288,7 @@ unsafe impl Send for Integer {}
 unsafe impl Sync for Integer {}
 
 #[cfg(test)]
-#[allow(clippy::cyclomatic_complexity)]
+#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{Assign, Integer};
     #[cfg(try_from)]

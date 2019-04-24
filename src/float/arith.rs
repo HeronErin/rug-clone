@@ -697,7 +697,7 @@ unsafe fn mul_sub(
 }
 
 #[cfg(test)]
-#[allow(clippy::cyclomatic_complexity)]
+#[allow(clippy::cognitive_complexity)]
 pub(crate) mod tests {
     use crate::float::Special;
     use crate::ops::Pow;

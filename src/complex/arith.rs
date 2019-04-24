@@ -737,7 +737,7 @@ unsafe fn mul_sub(
 }
 
 #[cfg(test)]
-#[allow(clippy::cyclomatic_complexity)]
+#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::float::arith::tests as float_tests;
     use crate::float::Special;

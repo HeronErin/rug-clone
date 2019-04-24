@@ -434,7 +434,7 @@ from_for_float! {
 
 // TODO: 128 bit
 #[cfg(test)]
-#[allow(clippy::cyclomatic_complexity, clippy::float_cmp)]
+#[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 mod tests {
     use super::{checked_cast, wrapping_cast};
     use std::f32;
