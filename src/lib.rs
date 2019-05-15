@@ -396,6 +396,7 @@ provided by the crate.
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(nightly_try_from, feature(try_from))]
+#![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![allow(clippy::identity_conversion)]
 

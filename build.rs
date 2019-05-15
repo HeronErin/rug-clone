@@ -23,6 +23,7 @@ fn main() {
         rustc: cargo_env("RUSTC"),
     };
     env.check_feature("try_from", TRY_TRY_FROM, Some("try_from"));
+    env.check_feature("maybe_uninit", TRY_MAYBE_UNINIT, Some("maybe_uninit"));
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits = env::var_os("DEP_GMP_LIMB_BITS")
@@ -174,6 +175,17 @@ const TRY_TRY_FROM: &str = r#"// try_try_from.rs
 use std::convert::TryFrom;
 fn main() {
     let _ = i8::try_from(1u64);
+}
+"#;
+
+const TRY_MAYBE_UNINIT: &str = r#"// try_maybe_uninit.rs
+use std::mem::MaybeUninit;
+fn main() {
+    let mut x = MaybeUninit::<u8>::zeroed();
+    let _ = x.as_ptr();
+    let _ = x.as_mut_ptr();
+    let _ = unsafe { x.assume_init() };
+    let _ = MaybeUninit::<u8>::uninit();
 }
 "#;
 
