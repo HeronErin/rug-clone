@@ -44,7 +44,7 @@ floating-point number to a [`Rational`] number fails.
 ```rust
 # #![cfg_attr(nightly_try_from, feature(try_from))]
 # fn main() {
-# #[cfg(feature = "try_from")] {
+# #[cfg(try_from)] {
 use rug::rational::TryFromFloatError;
 use rug::Rational;
 use std::convert::TryFrom;
