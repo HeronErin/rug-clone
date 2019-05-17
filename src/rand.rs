@@ -29,7 +29,7 @@ use crate::Integer;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
 use std::mem;
-use std::os::raw::{c_int, c_ulong, c_void};
+use std::os::raw::{c_ulong, c_void};
 #[cfg(not(ffi_panic_aborts))]
 use std::panic::{self, AssertUnwindSafe};
 use std::process;
@@ -67,8 +67,7 @@ impl Clone for RandState<'_> {
             let mut inner = mem::zeroed();
             gmp::randinit_set(&mut inner, self.as_raw());
             // If d is null, then boxed_clone must have returned None.
-            let ptr = cast_ptr!(&inner, MpRandState);
-            if (*ptr).seed.d.is_null() {
+            if inner.seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
             RandState { inner, phantom: PhantomData }
@@ -229,7 +228,7 @@ impl RandState<'_> {
     pub fn new_custom(custom: &mut dyn RandGen) -> RandState<'_> {
         let b: Box<&mut dyn RandGen> = Box::new(custom);
         let r_ptr: *mut &mut dyn RandGen = Box::into_raw(b);
-        let inner = MpRandState {
+        let inner = randstate_t {
             seed: gmp::mpz_t {
                 alloc: 0,
                 size: 0,
@@ -239,7 +238,7 @@ impl RandState<'_> {
             algdata: &CUSTOM_FUNCS as *const Funcs as *mut c_void,
         };
         RandState {
-            inner: unsafe { mem::transmute(inner) },
+            inner,
             phantom: PhantomData,
         }
     }
@@ -274,7 +273,7 @@ impl RandState<'_> {
     pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'static> {
         let b: Box<Box<dyn RandGen>> = Box::new(custom);
         let r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
-        let inner = MpRandState {
+        let inner = randstate_t {
             seed: gmp::mpz_t {
                 alloc: 0,
                 size: 0,
@@ -284,7 +283,7 @@ impl RandState<'_> {
             algdata: &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
         };
         RandState {
-            inner: unsafe { mem::transmute(inner) },
+            inner,
             phantom: PhantomData,
         }
     }
@@ -729,22 +728,8 @@ pub trait RandGen: Send + Sync {
     }
 }
 
-// The contents of gmp::randstate_t are not available because the
-// internal details of gmp_randstate_t are not documented by GMP. So
-// we duplicate them here. The structure of function pointers
-// gmp_randfnptr_t is only inside gmp-impl.h and is not available
-// externally, so we duplicate it here as well.
-
-#[repr(C)]
-struct MpRandState {
-    seed: gmp::mpz_t,
-    alg: c_int,
-    algdata: *mut c_void,
-}
-
 fn _static_assertions() {
     static_assert_size!(RandState<'_>, randstate_t);
-    static_assert_size!(MpRandState, randstate_t);
 }
 
 #[repr(C)]
@@ -792,32 +777,27 @@ c_callback! {
     }
 
     fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
-        let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut &mut dyn RandGen;
+        let r_ptr = (*s).seed.d as *mut &mut dyn RandGen;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
     fn custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
-        let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut &mut dyn RandGen;
+        let r_ptr = (*s).seed.d as *mut &mut dyn RandGen;
         gen_bits(*r_ptr, limb, bits);
     }
 
     fn custom_clear(s: *mut randstate_t) {
-        let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut &mut dyn RandGen;
+        let r_ptr = (*s).seed.d as *mut &mut dyn RandGen;
         drop(Box::from_raw(r_ptr));
     }
 
     fn custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let src_ptr = cast_ptr!(src, MpRandState);
-        let r_ptr = (*src_ptr).seed.d as *const &mut dyn RandGen;
+        let r_ptr = (*src).seed.d as *const &mut dyn RandGen;
         gen_copy(*r_ptr, dst);
     }
 
     fn custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
-        let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut Box<dyn RandGen>;
+        let r_ptr = (*s).seed.d as *mut Box<dyn RandGen>;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
@@ -826,20 +806,17 @@ c_callback! {
         limb: *mut gmp::limb_t,
         bits: c_ulong,
     ) {
-        let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut Box<dyn RandGen>;
+        let r_ptr = (*s).seed.d as *mut Box<dyn RandGen>;
         gen_bits(&mut **r_ptr, limb, bits);
     }
 
     fn custom_boxed_clear(s: *mut randstate_t) {
-        let s_ptr = cast_ptr_mut!(s, MpRandState);
-        let r_ptr = (*s_ptr).seed.d as *mut Box<dyn RandGen>;
+        let r_ptr = (*s).seed.d as *mut Box<dyn RandGen>;
         drop(Box::from_raw(r_ptr));
     }
 
     fn custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
-        let src_ptr = cast_ptr!(src, MpRandState);
-        let r_ptr = (*src_ptr).seed.d as *const Box<dyn RandGen>;
+        let r_ptr = (*src).seed.d as *const Box<dyn RandGen>;
         gen_copy(&**r_ptr, dst);
     }
 }
@@ -895,8 +872,7 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
     } else {
         (ptr::null_mut(), &ABORT_FUNCS as *const Funcs as *mut c_void)
     };
-    let dst_ptr = cast_ptr_mut!(dst, MpRandState);
-    *dst_ptr = MpRandState {
+    *dst = randstate_t {
         seed: gmp::mpz_t {
             alloc: 0,
             size: 0,
