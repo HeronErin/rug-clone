@@ -27,12 +27,19 @@ use std::ops::{
     Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
+// Specialize From implementation so that allocation is done with the
+// right capacity, as Integer::from(&Integer) allocates properly.
 arith_unary! {
     Integer;
     xmpz::neg;
     Neg { neg }
     NegAssign { neg_assign }
-    NegIncomplete
+    NegIncomplete;
+    fn from_incomplete(src) {
+        let mut dst = Integer::from(src.op);
+        dst.neg_assign();
+        dst
+    }
 }
 arith_binary! {
     Integer;

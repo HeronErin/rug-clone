@@ -486,6 +486,27 @@ macro_rules! arith_unary {
         $ImpAssign:ident { $method_assign:ident }
         $Incomplete:ident
     ) => {
+        arith_unary! {
+            $Big;
+            $func;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $Incomplete;
+            fn from_incomplete(src) {
+                let mut dst = <Self as Default>::default();
+                <$Big as Assign<$Incomplete<'_>>>::assign(&mut dst, src);
+                dst
+            }
+        }
+    };
+    (
+        $Big:ty;
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $Incomplete:ident;
+        fn from_incomplete($from_src:ident) $from_block:block
+    ) => {
         impl $Imp for $Big {
             type Output = $Big;
             #[inline]
@@ -522,7 +543,9 @@ macro_rules! arith_unary {
             }
         }
 
-        from_assign! { $Incomplete<'_> => $Big }
+        impl From<$Incomplete<'_>> for $Big {
+            fn from($from_src: $Incomplete<'_>) -> $Big $from_block
+        }
     };
 }
 
