@@ -237,10 +237,7 @@ impl RandState<'_> {
             alg: 0,
             algdata: &CUSTOM_FUNCS as *const Funcs as *mut c_void,
         };
-        RandState {
-            inner,
-            phantom: PhantomData,
-        }
+        RandState { inner, phantom: PhantomData }
     }
 
     /// Creates a new custom random generator.
@@ -282,10 +279,7 @@ impl RandState<'_> {
             alg: 0,
             algdata: &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
         };
-        RandState {
-            inner,
-            phantom: PhantomData,
-        }
+        RandState { inner, phantom: PhantomData }
     }
 
     /// Creates a random generator from an initialized
