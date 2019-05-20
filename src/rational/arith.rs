@@ -26,12 +26,19 @@ use std::ops::{
     ShrAssign, Sub, SubAssign,
 };
 
+// Specialize From implementation so that allocation is done with the
+// right capacity, as Rational::from(&Rational) allocates properly.
 arith_unary! {
     Rational;
     xmpq::neg;
     Neg { neg }
     NegAssign { neg_assign }
-    NegIncomplete
+    NegIncomplete;
+    fn from_incomplete(src) {
+        let mut dst = Rational::from(src.op);
+        dst.neg_assign();
+        dst
+    }
 }
 arith_binary! {
     Rational;
