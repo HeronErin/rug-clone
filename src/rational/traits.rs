@@ -141,9 +141,11 @@ impl Assign<&Rational> for Rational {
 impl From<&Rational> for Rational {
     #[inline]
     fn from(src: &Rational) -> Self {
-        let mut dst = <Self as Default>::default();
-        dst.assign(src);
-        dst
+        unsafe {
+            let mut dst = mem::uninitialized();
+            xmpq::init_set(&mut dst, src);
+            dst
+        }
     }
 }
 

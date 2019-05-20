@@ -82,6 +82,17 @@ fn process_int_rat<F>(
 }
 
 #[inline]
+pub fn init_set(rop: *mut Rational, op: &Rational) {
+    let rop = cast_ptr_mut!(rop, gmp::mpq_t);
+    unsafe {
+        let num = cast_ptr_mut!(gmp::mpq_numref(rop), Integer);
+        let den = cast_ptr_mut!(gmp::mpq_denref(rop), Integer);
+        xmpz::init_set(num, op.numer());
+        xmpz::init_set(den, op.denom());
+    }
+}
+
+#[inline]
 pub fn signum(
     rint: Option<&mut Integer>,
     rrat: Option<&mut Rational>,
