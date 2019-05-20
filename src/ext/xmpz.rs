@@ -94,10 +94,9 @@ pub fn init2(rop: &mut Integer, bits: usize) {
 }
 
 #[inline]
-pub fn init_set(rop: &mut Integer, op: &Integer) {
-    unsafe {
-        gmp::mpz_init_set(rop.as_raw_mut(), op.as_raw());
-    }
+pub unsafe fn init_set(rop: *mut Integer, op: &Integer) {
+    let rop = cast_ptr_mut!(rop, gmp::mpz_t);
+    gmp::mpz_init_set(rop, op.as_raw());
 }
 
 #[inline]
@@ -1526,16 +1525,16 @@ pub fn set_i32(rop: &mut Integer, i: i32) {
 }
 
 #[inline]
-pub fn init_set_i128(rop: &mut Integer, i: i128) {
+pub unsafe fn init_set_i128(rop: *mut Integer, i: i128) {
     let (neg_i, abs_i) = i.neg_abs();
     init_set_u128(rop, abs_i);
     if neg_i {
-        rop.neg_assign();
+        (*rop).neg_assign();
     }
 }
 
 #[inline]
-pub fn init_set_i64(rop: &mut Integer, i: i64) {
+pub unsafe fn init_set_i64(rop: &mut Integer, i: i64) {
     let (neg_i, abs_i) = i.neg_abs();
     init_set_u64(rop, abs_i);
     if neg_i {
@@ -1544,7 +1543,7 @@ pub fn init_set_i64(rop: &mut Integer, i: i64) {
 }
 
 #[inline]
-pub fn init_set_i32(rop: &mut Integer, i: i32) {
+pub unsafe fn init_set_i32(rop: &mut Integer, i: i32) {
     let (neg_i, abs_i) = i.neg_abs();
     init_set_u32(rop, abs_i);
     if neg_i {
@@ -1862,11 +1861,9 @@ pub fn set_f64(rop: &mut Integer, op: f64) -> Result<(), ()> {
 }
 
 #[inline]
-pub fn init_set_f64(rop: &mut Integer, op: f64) {
+pub unsafe fn init_set_f64(rop: *mut Integer, op: f64) {
     assert!(op.is_finite());
-    unsafe {
-        gmp::mpz_init_set_d(rop.as_raw_mut(), op);
-    }
+    gmp::mpz_init_set_d(cast_ptr_mut!(rop, gmp::mpz_t), op);
 }
 
 #[inline]

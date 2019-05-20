@@ -44,9 +44,11 @@ impl Default for Integer {
 impl Clone for Integer {
     #[inline]
     fn clone(&self) -> Integer {
-        let mut dst: Integer = unsafe { mem::uninitialized() };
-        xmpz::init_set(&mut dst, self);
-        dst
+        unsafe {
+            let mut dst = mem::uninitialized();
+            xmpz::init_set(&mut dst, self);
+            dst
+        }
     }
 
     #[inline]
@@ -151,9 +153,11 @@ macro_rules! assign {
         impl From<$T> for Integer {
             #[inline]
             fn from(src: $T) -> Self {
-                let mut dst: Integer = unsafe { mem::uninitialized() };
-                $init_set(&mut dst, src);
-                dst
+                unsafe {
+                    let mut dst = mem::uninitialized();
+                    $init_set(&mut dst, src);
+                    dst
+                }
             }
         }
     };

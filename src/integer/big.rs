@@ -700,9 +700,11 @@ impl Integer {
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
-            let mut dst: Integer = unsafe { mem::uninitialized() };
-            xmpz::init_set_f64(&mut dst, val);
-            Some(dst)
+            unsafe {
+                let mut dst = mem::uninitialized();
+                xmpz::init_set_f64(&mut dst, val);
+                Some(dst)
+            }
         } else {
             None
         }
