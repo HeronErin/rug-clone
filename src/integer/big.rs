@@ -215,9 +215,9 @@ impl Integer {
     #[inline]
     pub fn new() -> Self {
         unsafe {
-            let mut dst = mem::uninitialized();
-            xmpz::init(&mut dst);
-            dst
+            let_uninit_ptr!(dst, dst_ptr);
+            xmpz::init(dst_ptr);
+            assume_init!(dst)
         }
     }
 
@@ -236,9 +236,9 @@ impl Integer {
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         unsafe {
-            let mut dst = mem::uninitialized();
-            xmpz::init2(&mut dst, bits);
-            dst
+            let_uninit_ptr!(dst, dst_ptr);
+            xmpz::init2(dst_ptr, bits);
+            assume_init!(dst)
         }
     }
 
@@ -342,10 +342,11 @@ impl Integer {
     /// ```rust
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
-    /// use std::mem;
+    /// use std::mem::MaybeUninit;
     /// let i = unsafe {
-    ///     let mut z = mem::uninitialized();
-    ///     gmp::mpz_init_set_ui(&mut z, 15);
+    ///     let mut z = MaybeUninit::uninit();
+    ///     gmp::mpz_init_set_ui(z.as_mut_ptr(), 15);
+    ///     let mut z = z.assume_init();
     ///     // z is initialized and unique
     ///     Integer::from_raw(z)
     /// };
@@ -557,17 +558,17 @@ impl Integer {
         let mut v = Vec::with_capacity(digit_count);
         unsafe {
             let digits_ptr = v.as_mut_ptr();
-            let mut count = mem::uninitialized();
+            let_uninit_ptr!(count, count_ptr);
             gmp::mpz_export(
                 digits_ptr as *mut c_void,
-                &mut count,
+                count_ptr,
                 order.order(),
                 T::BYTES,
                 order.endian(),
                 T::NAILS,
                 self.as_raw(),
             );
-            assert_eq!(count, digit_count);
+            assert_eq!(assume_init!(count), digit_count);
             v.set_len(digit_count);
         }
         v
@@ -648,17 +649,17 @@ impl Integer {
         };
         unsafe {
             zeros.as_mut_ptr().write_bytes(0, zeros.len());
-            let mut count = mem::uninitialized();
+            let_uninit_ptr!(count, count_ptr);
             gmp::mpz_export(
                 digits.as_mut_ptr() as *mut c_void,
-                &mut count,
+                count_ptr,
                 order.order(),
                 T::BYTES,
                 order.endian(),
                 T::NAILS,
                 self.as_raw(),
             );
-            assert_eq!(count, digit_count);
+            assert_eq!(assume_init!(count), digit_count);
         }
     }
 
@@ -705,9 +706,9 @@ impl Integer {
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
             unsafe {
-                let mut dst = mem::uninitialized();
-                xmpz::init_set_f64(&mut dst, val);
-                Some(dst)
+                let_uninit_ptr!(dst, dst_ptr);
+                xmpz::init_set_f64(dst_ptr, val);
+                Some(assume_init!(dst))
             }
         } else {
             None

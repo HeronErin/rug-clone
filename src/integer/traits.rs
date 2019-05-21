@@ -45,9 +45,9 @@ impl Clone for Integer {
     #[inline]
     fn clone(&self) -> Integer {
         unsafe {
-            let mut dst = mem::uninitialized();
-            xmpz::init_set(&mut dst, self);
-            dst
+            let_uninit_ptr!(dst, dst_ptr);
+            xmpz::init_set(dst_ptr, self);
+            assume_init!(dst)
         }
     }
 
@@ -154,9 +154,9 @@ macro_rules! assign {
             #[inline]
             fn from(src: $T) -> Self {
                 unsafe {
-                    let mut dst = mem::uninitialized();
-                    $init_set(&mut dst, src);
-                    dst
+                    let_uninit_ptr!(dst, dst_ptr);
+                    $init_set(dst_ptr, src);
+                    assume_init!(dst)
                 }
             }
         }
