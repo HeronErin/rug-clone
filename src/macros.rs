@@ -3107,11 +3107,9 @@ macro_rules! assume_init {
 #[cfg(not(maybe_uninit))]
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! assume_init {
-    ($uninit:ident) => {
-        ({
-            // make this unsafe to match cfg(maybe_uninit)
-            let _: () = std::mem::transmute(());
-            $uninit
-        })
-    };
+    ($uninit:ident) => {{
+        // make this unsafe to match cfg(maybe_uninit)
+        let _: () = std::mem::transmute(());
+        $uninit
+    }};
 }
