@@ -581,11 +581,6 @@ impl Integer {
     /// The slice must be large enough to hold the digits; the minimum
     /// size can be obtained using the [`significant_digits`] method.
     ///
-    /// The contents of the slice can be uninitialized before this
-    /// method is called; this method sets all the elements of the
-    /// slice, padding with zeros if the slice is larger than
-    /// required.
-    ///
     /// # Panics
     ///
     /// Panics if the slice does not have sufficient capacity.
@@ -603,14 +598,71 @@ impl Integer {
     /// assert_eq!(digits, [0, 0, word1.to_be(), word0.to_be()]);
     /// ```
     ///
-    /// The following example shows how to write into uninitialized
-    /// memory. In practice, the following code could be replaced by a
-    /// call to [`to_digits`].
+    /// [`significant_digits`]: #method.significant_digits
+    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
+    /// [upt]: integer/trait.UnsignedPrimitive.html
+    pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
+    where
+        T: UnsignedPrimitive,
+    {
+        unsafe {
+            self.write_digits_raw(digits.as_mut_ptr(), digits.len(), order);
+        }
+    }
+
+    /// Writes the absolute value into a memory area of digits of type
+    /// `T`, where `T` can be any
+    /// [unsigned integer primitive type][upt].
+    ///
+    /// The memory area is addressed using a pointer and a length. The
+    /// `len` parameter is the number of digits, not the number of
+    /// bytes.
+    ///
+    /// The length must be large enough to hold the digits; the
+    /// minimum length can be obtained using the
+    /// [`significant_digits`] method.
+    ///
+    /// The memory locations can be uninitialized before this method
+    /// is called; this method sets all `len` elements, padding with
+    /// zeros if the length is larger than required.
+    ///
+    /// # Safety
+    ///
+    /// The following conditions must be valid to avoid undefined
+    /// behavior:
+    ///
+    ///   * `dst` must be [valid] for writing `len` digits, that is
+    ///     `len` × `size_of::<T>()` bytes.
+    ///   * `dst` must be properly aligned.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the length is less than the number of digits.
+    ///
+    /// # Examples
     ///
     /// ```rust
     /// use rug::integer::Order;
     /// use rug::Integer;
-    /// use std::slice;
+    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let mut digits = [0xffff_ffffu32; 4];
+    /// let ptr = digits.as_mut_ptr();
+    /// let len = digits.len();
+    /// unsafe {
+    ///     i.write_digits_raw(ptr, len, Order::MsfBe);
+    /// }
+    /// let word0 = 0x9abc_def0u32;
+    /// let word1 = 0x1234_5678u32;
+    /// assert_eq!(digits, [0, 0, word1.to_be(), word0.to_be()]);
+    /// ```
+    ///
+    /// The following example shows how to write into uninitialized
+    /// memory. In practice, the following code could be replaced by a
+    /// call to the safe method [`to_digits`].
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
     /// let i = Integer::from(0x1234_5678_9abc_def0u64);
     /// let len = i.significant_digits::<u32>();
     /// assert_eq!(len, 2);
@@ -618,12 +670,9 @@ impl Integer {
     /// // The following code is equivalent to:
     /// //     let digits = i.to_digits::<u32>(Order::MsfBe);
     /// let mut digits = Vec::<u32>::with_capacity(len);
-    /// // The dst slice points to allocated but uninitialized memory.
-    /// // All the digits will be initialized by write_digits.
+    /// let ptr = digits.as_mut_ptr();
     /// unsafe {
-    ///     let ptr = digits.as_mut_ptr();
-    ///     let dst = slice::from_raw_parts_mut(ptr, len);
-    ///     i.write_digits(dst, Order::MsfBe);
+    ///     i.write_digits_raw(ptr, len, Order::MsfBe);
     ///     digits.set_len(len);
     /// }
     ///
@@ -632,35 +681,36 @@ impl Integer {
     ///
     /// [`significant_digits`]: #method.significant_digits
     /// [`to_digits`]: #method.to_digits
-    /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
-    where
+    /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
+    pub unsafe fn write_digits_raw<T>(
+        &self,
+        dst: *mut T,
+        len: usize,
+        order: Order,
+    ) where
         T: UnsignedPrimitive,
     {
         let digit_count = self.significant_digits::<T>();
         let zero_count =
-            digits.len().checked_sub(digit_count).expect("not enough capacity");
+            len.checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
-            let (digits, zeros) = digits.split_at_mut(digit_count);
-            (zeros, digits)
+            (dst.offset(cast(digit_count)), dst)
         } else {
-            digits.split_at_mut(zero_count)
+            (dst, dst.offset(cast(zero_count)))
         };
-        unsafe {
-            zeros.as_mut_ptr().write_bytes(0, zeros.len());
-            let_uninit_ptr!(count, count_ptr);
-            gmp::mpz_export(
-                digits.as_mut_ptr() as *mut c_void,
-                count_ptr,
-                order.order(),
-                T::BYTES,
-                order.endian(),
-                T::NAILS,
-                self.as_raw(),
-            );
-            assert_eq!(assume_init!(count), digit_count);
-        }
+        zeros.write_bytes(0, zero_count);
+        let_uninit_ptr!(count, count_ptr);
+        gmp::mpz_export(
+            digits as *mut c_void,
+            count_ptr,
+            order.order(),
+            T::BYTES,
+            order.endian(),
+            T::NAILS,
+            self.as_raw(),
+        );
+        assert_eq!(assume_init!(count), digit_count);
     }
 
     /// Creates an [`Integer`] from an [`f32`] if it is

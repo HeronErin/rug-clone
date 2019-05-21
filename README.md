@@ -31,6 +31,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.5.0 news (unreleased)
+
+  * The method [`Integer::write_digits_raw`] was added to enable
+    writing digits to uninitialized memory without undefined behavior.
+
+[`Integer::write_digits_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_raw
+
 ### Version 1.4.0 news (2019-04-24)
 
   * Rug now requires rustc version 1.31.0 or later.

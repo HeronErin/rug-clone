@@ -5,6 +5,12 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.5.0 (unreleased)
+==========================
+
+  * The method `Integer::write_digits_raw` was added to enable writing
+    digits to uninitialized memory without undefined behavior.
+
 Verison 1.4.0 (2019-04-24)
 ==========================
 
