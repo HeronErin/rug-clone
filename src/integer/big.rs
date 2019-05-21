@@ -340,18 +340,23 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
+    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
+    /// # fn main() {
+    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// use std::mem::MaybeUninit;
     /// let i = unsafe {
     ///     let mut z = MaybeUninit::uninit();
     ///     gmp::mpz_init_set_ui(z.as_mut_ptr(), 15);
-    ///     let mut z = z.assume_init();
+    ///     let z = z.assume_init();
     ///     // z is initialized and unique
     ///     Integer::from_raw(z)
     /// };
     /// assert_eq!(i, 15);
     /// // since i is an Integer now, deallocation is automatic
+    /// # }
+    /// # }
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
