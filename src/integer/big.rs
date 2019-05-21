@@ -214,9 +214,11 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn new() -> Self {
-        let mut dst: Integer = unsafe { mem::uninitialized() };
-        xmpz::init(&mut dst);
-        dst
+        unsafe {
+            let mut dst = mem::uninitialized();
+            xmpz::init(&mut dst);
+            dst
+        }
     }
 
     /// Constructs a new arbitrary-precision [`Integer`] with at least
@@ -233,9 +235,11 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
-        let mut dst: Integer = unsafe { mem::uninitialized() };
-        xmpz::init2(&mut dst, bits);
-        dst
+        unsafe {
+            let mut dst = mem::uninitialized();
+            xmpz::init2(&mut dst, bits);
+            dst
+        }
     }
 
     /// Returns the capacity in bits that can be stored without
