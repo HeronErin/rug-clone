@@ -27,7 +27,6 @@ use std::i32;
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
-use std::ptr;
 
 /**
 An arbitrary-precision rational number.
@@ -248,9 +247,9 @@ impl Rational {
     #[inline]
     pub fn new() -> Self {
         unsafe {
-            let mut ret: Rational = mem::uninitialized();
-            gmp::mpq_init(ret.as_raw_mut());
-            ret
+            let_uninit_ptr!(ret: Rational, ret_ptr);
+            gmp::mpq_init(cast_ptr_mut!(ret_ptr, mpq_t));
+            assume_init!(ret)
         }
     }
 
@@ -273,12 +272,16 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
+    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
+    /// # fn main() {
+    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
-    /// use std::mem;
+    /// use std::mem::MaybeUninit;
     /// let r = unsafe {
-    ///     let mut q = mem::uninitialized();
-    ///     gmp::mpq_init(&mut q);
+    ///     let mut q = MaybeUninit::uninit();
+    ///     gmp::mpq_init(q.as_mut_ptr());
+    ///     let mut q = q.assume_init();
     ///     gmp::mpq_set_si(&mut q, -145, 10);
     ///     gmp::mpq_canonicalize(&mut q);
     ///     // q is initialized and unique
@@ -286,6 +289,8 @@ impl Rational {
     /// };
     /// assert_eq!(r, (-145, 10));
     /// // since r is a Rational now, deallocation is automatic
+    /// # }
+    /// # }
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
@@ -730,13 +735,13 @@ impl Rational {
     where
         Integer: From<Num> + From<Den>,
     {
-        let mut dst: Rational = mem::uninitialized();
-        {
-            let (dnum, dden) = dst.as_mut_numer_denom_no_canonicalization();
-            ptr::write(dnum, Integer::from(num));
-            ptr::write(dden, Integer::from(den));
-        }
-        dst
+        let_uninit_ptr!(dst: Rational, dst_ptr);
+        let inner_ptr = cast_ptr_mut!(dst_ptr, mpq_t);
+        let dnum = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+        dnum.write(Integer::from(num));
+        let dden = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+        dden.write(Integer::from(den));
+        assume_init!(dst)
     }
 
     /// Assigns to the numerator and denominator without
@@ -1053,17 +1058,18 @@ impl Rational {
     /// [`Rational`]: struct.Rational.html
     pub fn as_recip(&self) -> BorrowRational<'_> {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
-        let mut inner: mpq_t = unsafe { mem::uninitialized() };
-        unsafe {
+        let inner = unsafe {
+            let_uninit_ptr!(inner, inner_ptr);
             let mut dst_num = self.denom().as_raw().read();
             let mut dst_den = self.numer().as_raw().read();
             if dst_den.size < 0 {
                 dst_den.size = dst_den.size.wrapping_neg();
                 dst_num.size = dst_num.size.checked_neg().expect("overflow");
             }
-            gmp::mpq_numref(&mut inner).write(dst_num);
-            gmp::mpq_denref(&mut inner).write(dst_den);
-        }
+            gmp::mpq_numref(inner_ptr).write(dst_num);
+            gmp::mpq_denref(inner_ptr).write(dst_den);
+            assume_init!(inner)
+        };
         BorrowRational { inner, phantom: PhantomData }
     }
 

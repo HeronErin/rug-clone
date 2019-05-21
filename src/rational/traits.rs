@@ -21,6 +21,7 @@ use crate::rational::ParseRationalError;
 #[cfg(try_from)]
 use crate::rational::TryFromFloatError;
 use crate::{Assign, Integer, Rational};
+use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
 #[cfg(try_from)]
 use std::convert::TryFrom;
@@ -32,7 +33,6 @@ use std::fmt::{
 use std::hash::{Hash, Hasher};
 use std::i32;
 use std::mem;
-use std::ptr;
 use std::str::FromStr;
 
 impl Default for Rational {
@@ -45,14 +45,15 @@ impl Default for Rational {
 impl Clone for Rational {
     #[inline]
     fn clone(&self) -> Rational {
-        let mut dst: Rational;
         unsafe {
-            dst = mem::uninitialized();
-            let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
+            let_uninit_ptr!(dst: Rational, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
             xmpz::init_set(num, self.numer());
+            let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
             xmpz::init_set(den, self.denom());
+            assume_init!(dst)
         }
-        dst
     }
 
     #[inline]
@@ -142,9 +143,9 @@ impl From<&Rational> for Rational {
     #[inline]
     fn from(src: &Rational) -> Self {
         unsafe {
-            let mut dst = mem::uninitialized();
-            xmpq::init_set(&mut dst, src);
-            dst
+            let_uninit_ptr!(dst, dst_ptr);
+            xmpq::init_set(dst_ptr, src);
+            assume_init!(dst)
         }
     }
 }
@@ -168,14 +169,15 @@ where
 {
     #[inline]
     fn from(src: Num) -> Self {
-        let mut dst: Rational;
         unsafe {
-            dst = mem::uninitialized();
-            let (num, den) = dst.as_mut_numer_denom_no_canonicalization();
-            ptr::write(num, Integer::from(src));
+            let_uninit_ptr!(dst: Rational, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+            num.write(Integer::from(src));
+            let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
             xmpz::init_set_u32(den, 1);
+            assume_init!(dst)
         }
-        dst
     }
 }
 
@@ -198,13 +200,15 @@ where
 {
     #[inline]
     fn from(src: (Num, Den)) -> Self {
-        let mut dst: Rational = unsafe { mem::uninitialized() };
-        dst.mutate_numer_denom(move |num, den| unsafe {
-            ptr::write(num, Integer::from(src.0));
-            ptr::write(den, Integer::from(src.1));
-            assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
-        });
-        dst
+        let_uninit_ptr!(dst: Rational, dst_ptr);
+        let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+        let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+        num.write(Integer::from(src.0));
+        let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+        den.write(Integer::from(src.1));
+        assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
+        gmp::mpq_canonicalize(inner_ptr);
+        assume_init!(dst)
     }
 }
 
@@ -227,13 +231,15 @@ where
 {
     #[inline]
     fn from(src: &'a (Num, Den)) -> Self {
-        let mut dst: Rational = unsafe { mem::uninitialized() };
-        dst.mutate_numer_denom(move |num, den| unsafe {
-            ptr::write(num, Integer::from(&src.0));
-            ptr::write(den, Integer::from(&src.1));
-            assert_ne!(den.cmp0(), Ordering::Equal, "division by zero");
-        });
-        dst
+        let_uninit_ptr!(dst: Rational, dst_ptr);
+        let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+        let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+        num.write(Integer::from(&src.0));
+        let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+        den.write(Integer::from(&src.1));
+        assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
+        gmp::mpq_canonicalize(inner_ptr);
+        assume_init!(dst)
     }
 }
 

@@ -21,7 +21,6 @@ use crate::rational::SmallRational;
 use crate::{Integer, Rational};
 use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
-use std::mem;
 use std::os::raw::c_int;
 
 macro_rules! wrap {
@@ -474,11 +473,13 @@ pub fn cmp_finite_d(op1: &Rational, op2: f64) -> Ordering {
     // cmp(num1, op2 * den1)
     let cmp;
     unsafe {
-        let mut op2_f = mem::uninitialized();
-        gmp::mpf_init2(&mut op2_f, 53);
+        let_uninit_ptr!(op2_f, op2_ptr);
+        gmp::mpf_init2(op2_ptr, 53);
+        let mut op2_f = assume_init!(op2_f);
         gmp::mpf_set_d(&mut op2_f, op2);
-        let mut rhs = mem::uninitialized();
-        gmp::mpf_init2(&mut rhs, cast::cast(den1_bits + 53));
+        let_uninit_ptr!(rhs, rhs_ptr);
+        gmp::mpf_init2(rhs_ptr, cast::cast(den1_bits + 53));
+        let mut rhs = assume_init!(rhs);
         gmp::mpf_set_z(&mut rhs, den1.as_raw());
         gmp::mpf_mul(&mut rhs, &rhs, &op2_f);
         cmp = -gmp::mpf_cmp_z(&rhs, num1.as_raw());
