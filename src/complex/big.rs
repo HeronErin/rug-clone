@@ -35,8 +35,6 @@ use std::cmp::{self, Ordering};
 use std::error::Error;
 use std::marker::PhantomData;
 use std::mem;
-#[cfg(maybe_uninit)]
-use std::mem::MaybeUninit;
 use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::c_int;
 use std::slice;
@@ -271,12 +269,12 @@ impl Complex {
                 && p.1 <= float::prec_max(),
             "precision out of range"
         );
-        let_uninit_ptr!(dst: Complex, dst_ptr);
-        let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
         unsafe {
+            let_uninit_ptr!(dst: Complex, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
             mpc::init3(inner_ptr, cast(p.0), cast(p.1));
+            assume_init!(dst)
         }
-        assume_init!(dst)
     }
 
     /// Create a new [`Complex`] number with the specified precisions
@@ -981,8 +979,8 @@ impl Complex {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
-        let_uninit_ptr!(inner: mpc_t, inner_ptr);
-        unsafe {
+        let inner = unsafe {
+            let_uninit_ptr!(inner: mpc_t, inner_ptr);
             let mut dst_re = self.imag().as_raw().read();
             let mut dst_im = self.real().as_raw().read();
             if negative {
@@ -992,13 +990,12 @@ impl Complex {
             }
             mpc::realref(inner_ptr).write(dst_re);
             mpc::imagref(inner_ptr).write(dst_im);
-        }
-        if self.real().is_nan() || self.imag().is_nan() {
-            unsafe {
+            if self.real().is_nan() || self.imag().is_nan() {
                 mpfr::set_nanflag();
             }
-        }
-        BorrowComplex { inner: assume_init!(inner), phantom: PhantomData }
+            assume_init!(inner)
+        };
+        BorrowComplex { inner, phantom: PhantomData }
     }
 
     /// Borrows the [`Complex`] number as an ordered complex number of

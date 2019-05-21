@@ -28,8 +28,6 @@ use std::fmt::{
     Result as FmtResult, UpperExp, UpperHex,
 };
 use std::mem;
-#[cfg(maybe_uninit)]
-use std::mem::MaybeUninit;
 
 impl Clone for Complex {
     #[inline]
@@ -61,15 +59,15 @@ where
 {
     #[inline]
     fn from(re: Re) -> Self {
-        let_uninit_ptr!(dst: Complex, dst_ptr);
-        let inner_ptr = cast_ptr_mut!(dst_ptr, mpc::mpc_t);
         unsafe {
+            let_uninit_ptr!(dst: Complex, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc::mpc_t);
             let real = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
             real.write(Float::from(re));
             let imag = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);
             imag.write(Float::new((*real).prec()));
+            assume_init!(dst)
         }
-        assume_init!(dst)
     }
 }
 
@@ -79,15 +77,15 @@ where
 {
     #[inline]
     fn from((re, im): (Re, Im)) -> Self {
-        let_uninit_ptr!(dst: Complex, dst_ptr);
-        let inner_ptr = cast_ptr_mut!(dst_ptr, mpc::mpc_t);
         unsafe {
+            let_uninit_ptr!(dst: Complex, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc::mpc_t);
             let real = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
             real.write(Float::from(re));
             let imag = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);
             imag.write(Float::from(im));
+            assume_init!(dst)
         }
-        assume_init!(dst)
     }
 }
 

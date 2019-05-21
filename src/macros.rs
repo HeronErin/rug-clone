@@ -3070,11 +3070,15 @@ macro_rules! cast_ptr_mut {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! let_uninit_ptr {
     ($uninit:ident, $ptr:ident) => {
-        let mut $uninit = MaybeUninit::uninit();
+        // make this unsafe to match cfg(not(maybe_uninit))
+        let _: () = std::mem::transmute(());
+        let mut $uninit = std::mem::MaybeUninit::uninit();
         let $ptr = $uninit.as_mut_ptr();
     };
     ($uninit:ident: $T:ty, $ptr:ident) => {
-        let mut $uninit = MaybeUninit::<$T>::uninit();
+        // make this unsafe to match cfg(not(maybe_uninit))
+        let _: () = std::mem::transmute(());
+        let mut $uninit = std::mem::MaybeUninit::<$T>::uninit();
         let $ptr = $uninit.as_mut_ptr();
     };
 }
@@ -3083,11 +3087,11 @@ macro_rules! let_uninit_ptr {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! let_uninit_ptr {
     ($uninit:ident, $ptr:ident) => {
-        let mut $uninit = unsafe { mem::uninitialized() };
+        let mut $uninit = std::mem::uninitialized();
         let $ptr = &mut $uninit as *mut _;
     };
     ($uninit:ident: $T:ty, $ptr:ident) => {
-        let mut $uninit = unsafe { mem::uninitialized::<$T>() };
+        let mut $uninit = std::mem::uninitialized::<$T>();
         let $ptr = &mut $uninit as *mut $T;
     };
 }
@@ -3096,7 +3100,7 @@ macro_rules! let_uninit_ptr {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! assume_init {
     ($uninit:ident) => {
-        unsafe { $uninit.assume_init() }
+        $uninit.assume_init()
     };
 }
 
@@ -3104,6 +3108,10 @@ macro_rules! assume_init {
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! assume_init {
     ($uninit:ident) => {
-        $uninit
+        ({
+            // make this unsafe to match cfg(maybe_uninit)
+            let _: () = std::mem::transmute(());
+            $uninit
+        })
     };
 }
