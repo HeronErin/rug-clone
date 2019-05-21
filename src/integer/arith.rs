@@ -14,12 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::cast;
 use crate::ext::xmpz;
 use crate::ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
     NotAssign, Pow, PowAssign, RemFrom, SubFrom,
 };
 use crate::{Assign, Integer};
+use gmp_mpfr_sys::gmp;
+use std::cmp;
 use std::iter::{Product, Sum};
 use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
@@ -35,6 +38,8 @@ arith_unary! {
     Neg { neg }
     NegAssign { neg_assign }
     NegIncomplete;
+    // Specialize so that allocation is done with the right capacity,
+    // as Integer::from(&Integer) allocates properly.
     fn from_incomplete(src) {
         let mut dst = Integer::from(src.op);
         dst.neg_assign();
@@ -47,7 +52,13 @@ arith_binary! {
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    AddIncomplete
+    AddIncomplete;
+    // Specialize so that allocation is done with the right capacity.
+    fn from_incomplete(src) {
+        let mut dst = alloc_for_add(&src.lhs, &src.rhs);
+        dst.assign(src);
+        dst
+    }
 }
 arith_binary! {
     Integer;
@@ -55,7 +66,13 @@ arith_binary! {
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    SubIncomplete
+    SubIncomplete;
+    // Specialize so that allocation is done with the right capacity.
+    fn from_incomplete(src) {
+        let mut dst = alloc_for_add(&src.lhs, &src.rhs);
+        dst.assign(src);
+        dst
+    }
 }
 arith_binary! {
     Integer;
@@ -384,6 +401,17 @@ where
         }
         ret
     }
+}
+
+#[inline]
+fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
+    let size = cmp::max(lhs.inner().size, rhs.inner().size)
+        .checked_add(1)
+        .expect("overflow");
+    let capacity = cast::cast::<_, usize>(size)
+        .checked_mul(gmp::LIMB_BITS as usize)
+        .expect("overflow");
+    Integer::with_capacity(capacity)
 }
 
 #[cfg(test)]
