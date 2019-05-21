@@ -18,12 +18,13 @@
 Random number generation.
 */
 
-// UNDEFINED BEHAVIOUR WARNING:
+// UNDEFINED BEHAVIOR WARNING:
 //
 // Not all the fields of randstate_t are used, and thus GMP does not
-// initialize all the fields. So we must use mem::zeroed rather than
-// mem::uninitialized, otherwise we may have uninitialized memory
-// which can eventually lead to undefined behaviour.
+// initialize all the fields. So we must use zeroed rather than
+// uninitialized memory, otherwise we may be left with uninitialized
+// memory which can eventually lead to undefined behavior.
+
 use crate::cast::cast;
 use crate::Integer;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
@@ -64,9 +65,10 @@ impl Clone for RandState<'_> {
     #[inline]
     fn clone(&self) -> RandState<'static> {
         unsafe {
-            let mut inner = mem::zeroed();
-            gmp::randinit_set(&mut inner, self.as_raw());
+            let_zeroed_ptr!(inner: randstate_t, inner_ptr);
+            gmp::randinit_set(inner_ptr, self.as_raw());
             // If d is null, then boxed_clone must have returned None.
+            let inner = assume_init!(inner);
             if inner.seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
@@ -102,8 +104,9 @@ impl RandState<'_> {
     #[inline]
     pub fn new() -> RandState<'static> {
         unsafe {
-            let mut inner = mem::zeroed();
-            gmp::randinit_default(&mut inner);
+            let_zeroed_ptr!(inner, inner_ptr);
+            gmp::randinit_default(inner_ptr);
+            let inner = assume_init!(inner);
             RandState { inner, phantom: PhantomData }
         }
     }
@@ -120,8 +123,9 @@ impl RandState<'_> {
     /// ```
     pub fn new_mersenne_twister() -> RandState<'static> {
         unsafe {
-            let mut inner = mem::zeroed();
-            gmp::randinit_mt(&mut inner);
+            let_zeroed_ptr!(inner, inner_ptr);
+            gmp::randinit_mt(inner_ptr);
+            let inner = assume_init!(inner);
             RandState { inner, phantom: PhantomData }
         }
     }
@@ -150,13 +154,9 @@ impl RandState<'_> {
         bits: u32,
     ) -> RandState<'static> {
         unsafe {
-            let mut inner = mem::zeroed();
-            gmp::randinit_lc_2exp(
-                &mut inner,
-                a.as_raw(),
-                c.into(),
-                bits.into(),
-            );
+            let_zeroed_ptr!(inner, inner_ptr);
+            gmp::randinit_lc_2exp(inner_ptr, a.as_raw(), c.into(), bits.into());
+            let inner = assume_init!(inner);
             RandState { inner, phantom: PhantomData }
         }
     }
@@ -189,8 +189,9 @@ impl RandState<'_> {
         size: u32,
     ) -> Option<RandState<'static>> {
         unsafe {
-            let mut inner = mem::zeroed();
-            if gmp::randinit_lc_2exp_size(&mut inner, size.into()) != 0 {
+            let_zeroed_ptr!(inner, inner_ptr);
+            if gmp::randinit_lc_2exp_size(inner_ptr, size.into()) != 0 {
+                let inner = assume_init!(inner);
                 Some(RandState { inner, phantom: PhantomData })
             } else {
                 None
@@ -294,7 +295,7 @@ impl RandState<'_> {
     ///     and that is undefined behaviour in Rust even if no
     ///     decision is made using the read value. One way to ensure
     ///     that there is no uninitialized memory inside `raw` is to
-    ///     use [`mem::zeroed`] to initialize `raw` before
+    ///     use [`MaybeUninit::zeroed`] to initialize `raw` before
     ///     initializing with a function such as
     ///     [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
     ///     like in the example below.
@@ -307,23 +308,29 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
+    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
+    /// # fn main() {
+    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
-    /// use std::mem;
+    /// use std::mem::MaybeUninit;
     /// let mut rand = unsafe {
-    ///     // Do not use mem::uninitialized, as gmp::randinit_default
+    ///     // Do not use MabyeUninit::uninit, as gmp::randinit_default
     ///     // does not initialize all of the fields of raw.
-    ///     let mut raw = mem::zeroed();
-    ///     gmp::randinit_default(&mut raw);
+    ///     let mut raw = MaybeUninit::zeroed();
+    ///     gmp::randinit_default(raw.as_mut_ptr());
+    ///     let raw = raw.assume_init();
     ///     // raw is initialized and unique
     ///     RandState::from_raw(raw)
     /// };
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// // since rand is a RandState now, deallocation is automatic
+    /// # }
+    /// # }
     /// ```
     ///
-    /// [`mem::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/fn.zeroed.html
+    /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html#method.zeroed
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]

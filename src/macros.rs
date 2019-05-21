@@ -3098,6 +3098,36 @@ macro_rules! let_uninit_ptr {
 
 #[cfg(maybe_uninit)]
 #[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! let_zeroed_ptr {
+    ($uninit:ident, $ptr:ident) => {
+        // make this unsafe to match cfg(not(maybe_uninit))
+        let _: () = std::mem::transmute(());
+        let mut $uninit = std::mem::MaybeUninit::zeroed();
+        let $ptr = $uninit.as_mut_ptr();
+    };
+    ($uninit:ident: $T:ty, $ptr:ident) => {
+        // make this unsafe to match cfg(not(maybe_uninit))
+        let _: () = std::mem::transmute(());
+        let mut $uninit = std::mem::MaybeUninit::<$T>::zeroed();
+        let $ptr = $uninit.as_mut_ptr();
+    };
+}
+
+#[cfg(not(maybe_uninit))]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! let_zeroed_ptr {
+    ($uninit:ident, $ptr:ident) => {
+        let mut $uninit = std::mem::zeroed();
+        let $ptr = &mut $uninit as *mut _;
+    };
+    ($uninit:ident: $T:ty, $ptr:ident) => {
+        let mut $uninit = std::mem::zeroed::<$T>();
+        let $ptr = &mut $uninit as *mut $T;
+    };
+}
+
+#[cfg(maybe_uninit)]
+#[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! assume_init {
     ($uninit:ident) => {
         $uninit.assume_init()
