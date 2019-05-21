@@ -35,6 +35,8 @@ use std::cmp::{self, Ordering};
 use std::error::Error;
 use std::marker::PhantomData;
 use std::mem;
+#[cfg(maybe_uninit)]
+use std::mem::MaybeUninit;
 use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::c_int;
 use std::slice;
@@ -269,11 +271,12 @@ impl Complex {
                 && p.1 <= float::prec_max(),
             "precision out of range"
         );
+        let_uninit_ptr!(dst: Complex, dst_ptr);
+        let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
         unsafe {
-            let mut c: Complex = mem::uninitialized();
-            mpc::init3(c.as_raw_mut(), cast(p.0), cast(p.1));
-            c
+            mpc::init3(inner_ptr, cast(p.0), cast(p.1));
         }
+        assume_init!(dst)
     }
 
     /// Create a new [`Complex`] number with the specified precisions
@@ -455,18 +458,24 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
+    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
+    /// # fn main() {
+    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::mpc;
     /// use rug::Complex;
-    /// use std::mem;
+    /// use std::mem::MaybeUninit;
     /// let c = unsafe {
-    ///     let mut m = mem::uninitialized();
-    ///     mpc::init3(&mut m, 53, 53);
+    ///     let mut m = MaybeUninit::uninit();
+    ///     mpc::init3(m.as_mut_ptr(), 53, 53);
+    ///     let mut m = m.assume_init();
     ///     mpc::set_d_d(&mut m, -14.5, 3.25, mpc::RNDNN);
     ///     // m is initialized and unique
     ///     Complex::from_raw(m)
     /// };
     /// assert_eq!(c, (-14.5, 3.25));
     /// // since c is a Complex now, deallocation is automatic
+    /// # }
+    /// # }
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
@@ -972,7 +981,7 @@ impl Complex {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
-        let mut inner: mpc_t = unsafe { mem::uninitialized() };
+        let_uninit_ptr!(inner: mpc_t, inner_ptr);
         unsafe {
             let mut dst_re = self.imag().as_raw().read();
             let mut dst_im = self.real().as_raw().read();
@@ -981,15 +990,15 @@ impl Complex {
             } else {
                 NegAssign::neg_assign(&mut dst_re.sign);
             }
-            mpc::realref(&mut inner).write(dst_re);
-            mpc::imagref(&mut inner).write(dst_im);
+            mpc::realref(inner_ptr).write(dst_re);
+            mpc::imagref(inner_ptr).write(dst_im);
         }
         if self.real().is_nan() || self.imag().is_nan() {
             unsafe {
                 mpfr::set_nanflag();
             }
         }
-        BorrowComplex { inner, phantom: PhantomData }
+        BorrowComplex { inner: assume_init!(inner), phantom: PhantomData }
     }
 
     /// Borrows the [`Complex`] number as an ordered complex number of
