@@ -487,9 +487,9 @@ impl Float {
             "precision out of range"
         );
         unsafe {
-            let mut ret: Float = mem::uninitialized();
-            mpfr::init2(ret.as_raw_mut(), cast(prec));
-            ret
+            let_uninit_ptr!(ret: Float, ret_ptr);
+            mpfr::init2(cast_ptr_mut!(ret_ptr, mpfr_t), cast(prec));
+            assume_init!(ret)
         }
     }
 
@@ -573,18 +573,24 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
+    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
+    /// # fn main() {
+    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::mpfr;
     /// use rug::Float;
-    /// use std::mem;
+    /// use std::mem::MaybeUninit;
     /// let f = unsafe {
-    ///     let mut m = mem::uninitialized();
-    ///     mpfr::init2(&mut m, 53);
+    ///     let mut m = MaybeUninit::uninit();
+    ///     mpfr::init2(m.as_mut_ptr(), 53);
+    ///     let mut m = m.assume_init();
     ///     mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
     ///     // m is initialized and unique
     ///     Float::from_raw(m)
     /// };
     /// assert_eq!(f, -14.5);
     /// // since f is a Float now, deallocation is automatic
+    /// # }
+    /// # }
     /// ```
     ///
     /// [`Float`]: struct.Float.html
@@ -8374,15 +8380,16 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     let negative;
     let slice;
     unsafe {
-        exp = mem::uninitialized();
+        let_uninit_ptr!(maybe_exp, exp_ptr);
         c_buf = mpfr::get_str(
             ptr::null_mut(),
-            &mut exp,
+            exp_ptr,
             cast(format.radix),
             digits,
             f.as_raw(),
             raw_round(format.round),
         );
+        exp = assume_init!(maybe_exp);
         let c_str = CStr::from_ptr(c_buf);
         let c_bytes = c_str.to_bytes();
         negative = c_bytes[0] == b'-';

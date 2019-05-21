@@ -425,9 +425,10 @@ unsafe fn divf_mulz_divz(
 }
 
 pub unsafe fn get_f32(op: *const mpfr_t, rnd: mpfr::rnd_t) -> f32 {
-    let mut single: mpfr_t = mem::uninitialized();
+    let_uninit_ptr!(single, single_ptr);
     let mut limb: gmp::limb_t = 0;
-    custom_zero(&mut single, &mut limb, 24);
+    custom_zero(single_ptr, &mut limb, 24);
+    let mut single = assume_init!(single);
     mpfr::set(&mut single, op, rnd);
     let val = mpfr::get_d(&single, rnd);
     val as f32

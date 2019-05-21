@@ -200,15 +200,17 @@ where
 {
     #[inline]
     fn from(src: (Num, Den)) -> Self {
-        let_uninit_ptr!(dst: Rational, dst_ptr);
-        let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
-        let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
-        num.write(Integer::from(src.0));
-        let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
-        den.write(Integer::from(src.1));
-        assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
-        gmp::mpq_canonicalize(inner_ptr);
-        assume_init!(dst)
+        unsafe {
+            let_uninit_ptr!(dst: Rational, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+            num.write(Integer::from(src.0));
+            let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+            den.write(Integer::from(src.1));
+            assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
+            gmp::mpq_canonicalize(inner_ptr);
+            assume_init!(dst)
+        }
     }
 }
 
@@ -231,15 +233,17 @@ where
 {
     #[inline]
     fn from(src: &'a (Num, Den)) -> Self {
-        let_uninit_ptr!(dst: Rational, dst_ptr);
-        let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
-        let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
-        num.write(Integer::from(&src.0));
-        let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
-        den.write(Integer::from(&src.1));
-        assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
-        gmp::mpq_canonicalize(inner_ptr);
-        assume_init!(dst)
+        unsafe {
+            let_uninit_ptr!(dst: Rational, dst_ptr);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
+            num.write(Integer::from(&src.0));
+            let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
+            den.write(Integer::from(&src.1));
+            assert_ne!((*den).cmp0(), Ordering::Equal, "division by zero");
+            gmp::mpq_canonicalize(inner_ptr);
+            assume_init!(dst)
+        }
     }
 }
 
