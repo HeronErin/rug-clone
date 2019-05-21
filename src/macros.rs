@@ -3065,3 +3065,45 @@ macro_rules! cast_ptr_mut {
         ptr.0 as *mut $T
     }};
 }
+
+#[cfg(maybe_uninit)]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! let_uninit_ptr {
+    ($uninit:ident, $ptr:ident) => {
+        let mut $uninit = MaybeUninit::uninit();
+        let $ptr = $uninit.as_mut_ptr();
+    };
+    ($uninit:ident: $T:ty, $ptr:ident) => {
+        let mut $uninit = MaybeUninit::<$T>::uninit();
+        let $ptr = $uninit.as_mut_ptr();
+    };
+}
+
+#[cfg(not(maybe_uninit))]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! let_uninit_ptr {
+    ($uninit:ident, $ptr:ident) => {
+        let mut $uninit = unsafe { mem::uninitialized() };
+        let $ptr = &mut $uninit as *mut _;
+    };
+    ($uninit:ident: $T:ty, $ptr:ident) => {
+        let mut $uninit = unsafe { mem::uninitialized::<$T>() };
+        let $ptr = &mut $uninit as *mut $T;
+    };
+}
+
+#[cfg(maybe_uninit)]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! assume_init {
+    ($uninit:ident) => {
+        unsafe { $uninit.assume_init() }
+    };
+}
+
+#[cfg(not(maybe_uninit))]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! assume_init {
+    ($uninit:ident) => {
+        $uninit
+    };
+}
