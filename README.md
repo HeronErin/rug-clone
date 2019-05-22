@@ -35,8 +35,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * The method [`Integer::write_digits_raw`] was added to enable
     writing digits to uninitialized memory without undefined behavior.
+  * The documentation examples on [`from_raw`] methods now use
+    [`MaybeUninit`] instead of [`mem::uninitialized`].
 
 [`Integer::write_digits_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_raw
+[`MaybeUninit`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html
+[`from_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.from_raw
+[`mem::uninitialized`]: https://doc.rust-lang.org/nightly/std/mem/fn.uninitialized.html
 
 ### Version 1.4.0 news (2019-04-24)
 

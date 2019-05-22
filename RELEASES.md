@@ -10,6 +10,8 @@ Verison 1.5.0 (unreleased)
 
   * The method `Integer::write_digits_raw` was added to enable writing
     digits to uninitialized memory without undefined behavior.
+  * The documentation examples on `from_raw` methods now use
+    `MaybeUninit` instead of `mem::uninitialized`.
 
 Verison 1.4.0 (2019-04-24)
 ==========================
