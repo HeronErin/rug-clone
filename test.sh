@@ -7,14 +7,6 @@
 # notice and this notice are preserved. This file is offered as-is,
 # without any warranty.
 
-if [[ $(uname) == MINGW* ]]; then
-    work_dir="$(cmd /c cd)"
-    cache_dir="$work_dir\\cache"
-else
-    work_dir="$PWD"
-    cache_dir="$work_dir/cache"
-fi
-
 printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$work_dir"
 printf 'Compilation started at %s\n\n' "$(date)"
 
@@ -38,11 +30,6 @@ for word in "$@"; do
     fi
 done
 
-export GMP_MPFR_SYS_CACHE="$cache_dir"
-
-if [ -e cache ]; then
-    rm -r cache
-fi
 if [ -e target ]; then
     rm -r target
 fi
@@ -91,8 +78,6 @@ print_eval_check \
 for toolchain in "${toolchains[@]}"; do
     if [[ "$toolchain" == beta* ]]; then
         check="clippy --all-targets"
-    elif [[ "$toolchain" == 1.31.1* ]]; then
-        check=check
     else
         check="check --all-targets"
     fi
@@ -147,13 +132,5 @@ for toolchain in "${toolchains[@]}"; do
         rm -r target
     done
 done
-
-# copy C libraries to targets before clearing cache
-for toolchain in "${toolchains[@]}"; do
-    print_eval_check cargo $(tc "$toolchain") check -p gmp-mpfr-sys
-    print_eval_check cargo $(tc "$toolchain") check --release -p gmp-mpfr-sys
-done
-
-rm -r cache
 
 printf '\nCompilation finished at %s\n' "$(date)"
