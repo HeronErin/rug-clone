@@ -185,7 +185,7 @@ impl Deref for SmallFloat {
 pub trait ToSmall: SealedToSmall {}
 
 pub trait SealedToSmall: Copy {
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs);
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs);
 }
 
 macro_rules! signed {
@@ -193,11 +193,11 @@ macro_rules! signed {
         impl ToSmall for $I {}
         impl SealedToSmall for $I {
             #[inline]
-            fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+            unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
                 let (neg, abs) = self.neg_abs();
                 abs.copy(inner, limbs);
                 if neg {
-                    inner.sign = -1;
+                    (*inner).sign = -1;
                 }
             }
         }
@@ -209,22 +209,18 @@ macro_rules! unsigned_32 {
         impl ToSmall for $U {}
         impl SealedToSmall for $U {
             #[inline]
-            fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+            unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
                 let ptr = cast_ptr_mut!(inner, mpfr_t);
                 let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
                 if self == 0 {
-                    unsafe {
-                        xmpfr::custom_zero(ptr, limbs_ptr, $bits);
-                    }
+                    xmpfr::custom_zero(ptr, limbs_ptr, $bits);
                 } else {
                     let leading = self.leading_zeros();
                     let limb_leading =
                         leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
                     limbs[0] = gmp::limb_t::from(self) << limb_leading;
                     let exp = $bits - leading;
-                    unsafe {
-                        xmpfr::custom_regular(ptr, limbs_ptr, cast(exp), $bits);
-                    }
+                    xmpfr::custom_regular(ptr, limbs_ptr, cast(exp), $bits);
                 }
             }
         }
@@ -240,13 +236,11 @@ unsigned_32! { u32, 32 }
 impl ToSmall for u64 {}
 impl SealedToSmall for u64 {
     #[inline]
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         if self == 0 {
-            unsafe {
-                xmpfr::custom_zero(ptr, limbs_ptr, 64);
-            }
+            xmpfr::custom_zero(ptr, limbs_ptr, 64);
         } else {
             let leading = self.leading_zeros();
             let sval = self << leading;
@@ -259,9 +253,7 @@ impl SealedToSmall for u64 {
                 limbs[0] = sval as u32;
                 limbs[1] = (sval >> 32) as u32;
             }
-            unsafe {
-                xmpfr::custom_regular(ptr, limbs_ptr, cast(64 - leading), 64);
-            }
+            xmpfr::custom_regular(ptr, limbs_ptr, cast(64 - leading), 64);
         }
     }
 }
@@ -269,13 +261,11 @@ impl SealedToSmall for u64 {
 impl ToSmall for u128 {}
 impl SealedToSmall for u128 {
     #[inline]
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
         if self == 0 {
-            unsafe {
-                xmpfr::custom_zero(ptr, limbs_ptr, 128);
-            }
+            xmpfr::custom_zero(ptr, limbs_ptr, 128);
         } else {
             let leading = self.leading_zeros();
             let sval = self << leading;
@@ -291,9 +281,7 @@ impl SealedToSmall for u128 {
                 limbs[2] = (sval >> 64) as u32;
                 limbs[3] = (sval >> 96) as u32;
             }
-            unsafe {
-                xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
-            }
+            xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
         }
     }
 }
@@ -301,7 +289,7 @@ impl SealedToSmall for u128 {
 impl ToSmall for usize {}
 impl SealedToSmall for usize {
     #[inline]
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         #[cfg(target_pointer_width = "32")]
         {
             (self as u32).copy(inner, limbs);
@@ -316,16 +304,14 @@ impl SealedToSmall for usize {
 impl ToSmall for f32 {}
 impl SealedToSmall for f32 {
     #[inline]
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
-        unsafe {
-            xmpfr::custom_zero(ptr, limbs_ptr, 24);
-            mpfr::set_d(ptr, self.into(), raw_round(Default::default()));
-        }
+        xmpfr::custom_zero(ptr, limbs_ptr, 24);
+        mpfr::set_d(ptr, self.into(), raw_round(Default::default()));
         // retain sign in case of NaN
         if self.is_sign_negative() {
-            inner.sign = -1;
+            (*inner).sign = -1;
         }
     }
 }
@@ -333,16 +319,14 @@ impl SealedToSmall for f32 {
 impl ToSmall for f64 {}
 impl SealedToSmall for f64 {
     #[inline]
-    fn copy(self, inner: &mut Mpfr, limbs: &mut Limbs) {
+    unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
         let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
-        unsafe {
-            xmpfr::custom_zero(ptr, limbs_ptr, 53);
-            mpfr::set_d(ptr, self, raw_round(Default::default()));
-        }
+        xmpfr::custom_zero(ptr, limbs_ptr, 53);
+        mpfr::set_d(ptr, self, raw_round(Default::default()));
         // retain sign in case of NaN
         if self.is_sign_negative() {
-            inner.sign = -1;
+            (*inner).sign = -1;
         }
     }
 }
@@ -353,7 +337,9 @@ where
 {
     #[inline]
     fn assign(&mut self, src: T) {
-        src.copy(&mut self.inner, &mut self.limbs);
+        unsafe {
+            src.copy(&mut self.inner, &mut self.limbs);
+        }
     }
 }
 
@@ -364,10 +350,12 @@ where
     #[inline]
     fn from(src: T) -> Self {
         let mut dst = SmallFloat {
-            inner: unsafe { mem::uninitialized() },
+            inner: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
             limbs: [0; LIMBS_IN_SMALL_FLOAT],
         };
-        src.copy(&mut dst.inner, &mut dst.limbs);
+        unsafe {
+            src.copy(&mut dst.inner, &mut dst.limbs);
+        }
         dst
     }
 }

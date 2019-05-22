@@ -186,8 +186,8 @@ where
     Re: ToSmall,
 {
     fn assign(&mut self, src: Re) {
-        src.copy(&mut self.inner.re, &mut self.first_limbs);
         unsafe {
+            src.copy(&mut self.inner.re, &mut self.first_limbs);
             xmpfr::custom_zero(
                 cast_ptr_mut!(&mut self.inner.im, mpfr::mpfr_t),
                 &mut self.last_limbs[0],
@@ -203,12 +203,15 @@ where
 {
     fn from(src: Re) -> Self {
         let mut dst = SmallComplex {
-            inner: unsafe { mem::uninitialized() },
+            inner: Mpc {
+                re: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+                im: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+            },
             first_limbs: [0; LIMBS_IN_SMALL_FLOAT],
             last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
         };
-        src.copy(&mut dst.inner.re, &mut dst.first_limbs);
         unsafe {
+            src.copy(&mut dst.inner.re, &mut dst.first_limbs);
             xmpfr::custom_zero(
                 cast_ptr_mut!(&mut dst.inner.im, mpfr::mpfr_t),
                 &mut dst.last_limbs[0],
@@ -225,8 +228,10 @@ where
     Im: ToSmall,
 {
     fn assign(&mut self, src: (Re, Im)) {
-        src.0.copy(&mut self.inner.re, &mut self.first_limbs);
-        src.1.copy(&mut self.inner.im, &mut self.last_limbs);
+        unsafe {
+            src.0.copy(&mut self.inner.re, &mut self.first_limbs);
+            src.1.copy(&mut self.inner.im, &mut self.last_limbs);
+        }
     }
 }
 
@@ -237,12 +242,17 @@ where
 {
     fn from(src: (Re, Im)) -> Self {
         let mut dst = SmallComplex {
-            inner: unsafe { mem::uninitialized() },
+            inner: Mpc {
+                re: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+                im: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+            },
             first_limbs: [0; LIMBS_IN_SMALL_FLOAT],
             last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
         };
-        src.0.copy(&mut dst.inner.re, &mut dst.first_limbs);
-        src.1.copy(&mut dst.inner.im, &mut dst.last_limbs);
+        unsafe {
+            src.0.copy(&mut dst.inner.re, &mut dst.first_limbs);
+            src.1.copy(&mut dst.inner.im, &mut dst.last_limbs);
+        }
         dst
     }
 }
