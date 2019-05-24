@@ -8,6 +8,8 @@ as-is, without any warranty. -->
 Verison 1.5.0 (unreleased)
 ==========================
 
+  * The method `Integer::assign_digits_unaligned` was added to enable
+    reading digits from unaligned memory.
   * The method `Integer::write_digits_unaligned` was added to enable
     writing digits to unaligned and  uninitialized memory.
   * The documentation examples on `from_raw` methods now use

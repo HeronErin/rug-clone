@@ -496,16 +496,66 @@ impl Integer {
         T: UnsignedPrimitive,
     {
         unsafe {
-            gmp::mpz_import(
-                self.as_raw_mut(),
-                digits.len(),
-                order.order(),
-                T::BYTES,
-                order.endian(),
-                T::NAILS,
-                digits.as_ptr() as *const c_void,
-            );
+            self.assign_digits_unaligned(digits.as_ptr(), digits.len(), order);
         }
+    }
+
+    /// Assigns from digits of type `T` in a memory area, where `T`
+    /// can be any [unsigned integer primitive type][upt].
+    ///
+    /// The memory area is addressed using a pointer and a length. The
+    /// `len` parameter is the number of digits, *not* the number of
+    /// bytes.
+    ///
+    /// There are no data alignment restrictions on `src`, any address
+    /// is allowed.
+    ///
+    /// The resulting value cannot be negative.
+    ///
+    /// # Safety
+    ///
+    /// To avoid undefined behavior, `src` must be [valid] for reading
+    /// `len` digits, that is `len` × `size_of::<T>()` bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::integer::Order;
+    /// use rug::Integer;
+    /// // hex bytes: [ fe dc ba 98 87 87 87 87 76 54 32 10 ]
+    /// let digits = [
+    ///     0xfedc_ba98u32.to_be(),
+    ///     0x8787_8787u32.to_be(),
+    ///     0x7654_3210u32.to_be(),
+    /// ];
+    /// let digits_ptr = digits[..].as_ptr();
+    /// let mut i = Integer::new();
+    /// unsafe {
+    ///     let unaligned = (digits_ptr as *const u8).offset(2) as *const u32;
+    ///     i.assign_digits_unaligned(unaligned, 2, Order::MsfBe);
+    /// }
+    /// assert_eq!(i, 0xba98_8787_8787_7654u64);
+    /// ```
+    ///
+    /// [upt]: integer/trait.UnsignedPrimitive.html
+    /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
+    pub unsafe fn assign_digits_unaligned<T>(
+        &mut self,
+        src: *const T,
+        len: usize,
+        order: Order,
+    ) where
+        T: UnsignedPrimitive,
+    {
+        gmp::mpz_import(
+            self.as_raw_mut(),
+            len,
+            order.order(),
+            T::BYTES,
+            order.endian(),
+            T::NAILS,
+            src as *const c_void,
+        );
     }
 
     /// Returns the number of digits of type `T` required to represent
