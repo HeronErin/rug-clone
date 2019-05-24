@@ -528,10 +528,10 @@ impl Integer {
     ///     0x8787_8787u32.to_be(),
     ///     0x7654_3210u32.to_be(),
     /// ];
-    /// let digits_ptr = digits[..].as_ptr();
+    /// let ptr = digits.as_ptr();
     /// let mut i = Integer::new();
     /// unsafe {
-    ///     let unaligned = (digits_ptr as *const u8).offset(2) as *const u32;
+    ///     let unaligned = (ptr as *const u8).offset(2) as *const u32;
     ///     i.assign_digits_unaligned(unaligned, 2, Order::MsfBe);
     /// }
     /// assert_eq!(i, 0xba98_8787_8787_7654u64);
@@ -702,16 +702,22 @@ impl Integer {
     /// ```rust
     /// use rug::integer::Order;
     /// use rug::Integer;
-    /// let i = Integer::from(0x1234_5678_9abc_def0u64);
+    /// let i = Integer::from(0xfedc_ba98_7654_3210u64);
     /// let mut digits = [0xffff_ffffu32; 4];
     /// let ptr = digits.as_mut_ptr();
-    /// let len = digits.len();
     /// unsafe {
-    ///     i.write_digits_unaligned(ptr, len, Order::MsfBe);
+    ///     let unaligned = (ptr as *mut u8).offset(2) as *mut u32;
+    ///     i.write_digits_unaligned(unaligned, 3, Order::MsfBe);
     /// }
-    /// let word0 = 0x9abc_def0u32;
-    /// let word1 = 0x1234_5678u32;
-    /// assert_eq!(digits, [0, 0, word1.to_be(), word0.to_be()]);
+    /// assert_eq!(
+    ///     digits,
+    ///     [
+    ///         0xffff_0000u32.to_be(),
+    ///         0x0000_fedcu32.to_be(),
+    ///         0xba98_7654u32.to_be(),
+    ///         0x3210_ffffu32.to_be(),
+    ///     ]
+    /// );
     /// ```
     ///
     /// The following example shows how to write into uninitialized
