@@ -33,12 +33,12 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.5.0 news (unreleased)
 
-  * The method [`Integer::write_digits_raw`] was added to enable
-    writing digits to uninitialized memory without undefined behavior.
+  * The method [`Integer::write_digits_unaligned`] was added to enable
+    writing digits to unaligned and uninitialized memory.
   * The documentation examples on [`from_raw`] methods now use
     [`MaybeUninit`] instead of [`mem::uninitialized`].
 
-[`Integer::write_digits_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_raw
+[`Integer::write_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_unaligned
 [`MaybeUninit`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html
 [`from_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.from_raw
 [`mem::uninitialized`]: https://doc.rust-lang.org/nightly/std/mem/fn.uninitialized.html

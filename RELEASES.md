@@ -8,8 +8,8 @@ as-is, without any warranty. -->
 Verison 1.5.0 (unreleased)
 ==========================
 
-  * The method `Integer::write_digits_raw` was added to enable writing
-    digits to uninitialized memory without undefined behavior.
+  * The method `Integer::write_digits_unaligned` was added to enable
+    writing digits to unaligned and  uninitialized memory.
   * The documentation examples on `from_raw` methods now use
     `MaybeUninit` instead of `mem::uninitialized`.
 

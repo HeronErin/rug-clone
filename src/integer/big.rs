@@ -611,7 +611,11 @@ impl Integer {
         T: UnsignedPrimitive,
     {
         unsafe {
-            self.write_digits_raw(digits.as_mut_ptr(), digits.len(), order);
+            self.write_digits_unaligned(
+                digits.as_mut_ptr(),
+                digits.len(),
+                order,
+            );
         }
     }
 
@@ -620,12 +624,15 @@ impl Integer {
     /// [unsigned integer primitive type][upt].
     ///
     /// The memory area is addressed using a pointer and a length. The
-    /// `len` parameter is the number of digits, not the number of
+    /// `len` parameter is the number of digits, *not* the number of
     /// bytes.
     ///
     /// The length must be large enough to hold the digits; the
     /// minimum length can be obtained using the
     /// [`significant_digits`] method.
+    ///
+    /// There are no data alignment restrictions on `dst`, any address
+    /// is allowed.
     ///
     /// The memory locations can be uninitialized before this method
     /// is called; this method sets all `len` elements, padding with
@@ -633,12 +640,8 @@ impl Integer {
     ///
     /// # Safety
     ///
-    /// The following conditions must be valid to avoid undefined
-    /// behavior:
-    ///
-    ///   * `dst` must be [valid] for writing `len` digits, that is
-    ///     `len` × `size_of::<T>()` bytes.
-    ///   * `dst` must be properly aligned.
+    /// To avoid undefined behavior, `dst` must be [valid] for writing
+    /// `len` digits, that is `len` × `size_of::<T>()` bytes.
     ///
     /// # Panics
     ///
@@ -654,7 +657,7 @@ impl Integer {
     /// let ptr = digits.as_mut_ptr();
     /// let len = digits.len();
     /// unsafe {
-    ///     i.write_digits_raw(ptr, len, Order::MsfBe);
+    ///     i.write_digits_unaligned(ptr, len, Order::MsfBe);
     /// }
     /// let word0 = 0x9abc_def0u32;
     /// let word1 = 0x1234_5678u32;
@@ -677,7 +680,7 @@ impl Integer {
     /// let mut digits = Vec::<u32>::with_capacity(len);
     /// let ptr = digits.as_mut_ptr();
     /// unsafe {
-    ///     i.write_digits_raw(ptr, len, Order::MsfBe);
+    ///     i.write_digits_unaligned(ptr, len, Order::MsfBe);
     ///     digits.set_len(len);
     /// }
     ///
@@ -688,7 +691,7 @@ impl Integer {
     /// [`to_digits`]: #method.to_digits
     /// [upt]: integer/trait.UnsignedPrimitive.html
     /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
-    pub unsafe fn write_digits_raw<T>(
+    pub unsafe fn write_digits_unaligned<T>(
         &self,
         dst: *mut T,
         len: usize,
@@ -704,7 +707,8 @@ impl Integer {
         } else {
             (dst, dst.offset(cast(zero_count)))
         };
-        zeros.write_bytes(0, zero_count);
+        // use *mut u8 to allow for unaligned pointers
+        (zeros as *mut u8).write_bytes(0, zero_count * T::BYTES);
         let_uninit_ptr!(count, count_ptr);
         gmp::mpz_export(
             digits as *mut c_void,
