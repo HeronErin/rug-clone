@@ -1692,7 +1692,10 @@ impl Complex {
         fn conj_ref -> ConjIncomplete;
     }
 
-    /// Computes the absolute value.
+    /// Computes the absolute value, rounding to the nearest.
+    ///
+    /// The real part is set to the absolute value and the imaginary
+    /// part is set to zero.
     ///
     /// # Examples
     ///
@@ -1708,7 +1711,7 @@ impl Complex {
         self
     }
 
-    /// Computes the absolute value.
+    /// Computes the absolute value, rounding to the nearest.
     ///
     /// The real part is set to the absolute value and the imaginary
     /// part is set to zero.
@@ -1723,9 +1726,34 @@ impl Complex {
     /// ```
     #[inline]
     pub fn abs_mut(&mut self) {
-        let (re, im) = self.as_mut_real_imag();
-        re.hypot_mut(im);
-        im.assign(Special::Zero);
+        self.abs_round(Default::default());
+    }
+
+    /// Computes the absolute value, applying the specified rounding
+    /// method.
+    ///
+    /// The real part is set to the absolute value and the imaginary
+    /// part is set to zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Complex;
+    /// use rug::float::Round;
+    /// use std::cmp::Ordering;
+    /// // Use only 4 bits of precision to show rounding.
+    /// let mut c = Complex::with_val(4, (30, 40));
+    /// // 50 rounded up using 4 bits is 52
+    /// let dir = c.abs_round((Round::Up, Round::Up));
+    /// assert_eq!(c, (52, 0));
+    /// assert_eq!(dir, (Ordering::Greater, Ordering::Equal));
+    /// ```
+    #[inline]
+    pub fn abs_round(&mut self, round: Round2) -> Ordering2 {
+        let (real, imag) = self.as_mut_real_imag();
+        let dir_re = real.hypot_round(imag, round.0);
+        let dir_im = imag.assign_round(Special::Zero, round.1);
+        (dir_re, dir_im)
     }
 
     /// Computes the absolute value.

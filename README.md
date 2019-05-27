@@ -37,9 +37,11 @@ option) any later version. See the full text of the [GNU LGPL] and
     enable reading digits from unaligned memory.
   * The method [`Integer::write_digits_unaligned`] was added to enable
     writing digits to unaligned and uninitialized memory.
+  * The method [`Complex::abs_round`] was added.
   * The documentation examples on [`from_raw`] methods now use
     [`MaybeUninit`] instead of [`mem::uninitialized`].
 
+[`Complex::abs_round`]: https://docs.rs/rug/~1.5/rug/struct.Complex.html#method.abs_round
 [`Integer::assign_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.assign_digits_unaligned
 [`Integer::write_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_unaligned
 [`MaybeUninit`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html

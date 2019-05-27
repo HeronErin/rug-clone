@@ -12,6 +12,7 @@ Verison 1.5.0 (unreleased)
     reading digits from unaligned memory.
   * The method `Integer::write_digits_unaligned` was added to enable
     writing digits to unaligned and  uninitialized memory.
+  * The method `Complex::abs_round` was added.
   * The documentation examples on `from_raw` methods now use
     `MaybeUninit` instead of `mem::uninitialized`.
 
