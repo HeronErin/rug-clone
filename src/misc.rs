@@ -21,19 +21,8 @@ pub trait NegAbs {
     fn neg_abs(self) -> (bool, Self::Abs);
 }
 
-macro_rules! neg_abs_unsigned {
-    ($($U:ty)*) => { $(
-        impl NegAbs for $U {
-            type Abs = $U;
-            #[inline]
-            fn neg_abs(self) -> (bool, $U) {
-                (false, self)
-            }
-        }
-    )* };
-}
-macro_rules! neg_abs_signed {
-    ($(($I:ty, $U:ty))*) => { $(
+macro_rules! neg_abs {
+    ($I:ty; $U:ty) => {
         impl NegAbs for $I {
             type Abs = $U;
             #[inline]
@@ -45,12 +34,23 @@ macro_rules! neg_abs_signed {
                 }
             }
         }
-    )* };
+
+        impl NegAbs for $U {
+            type Abs = $U;
+            #[inline]
+            fn neg_abs(self) -> (bool, $U) {
+                (false, self)
+            }
+        }
+    };
 }
-neg_abs_unsigned! { u8 u16 u32 u64 u128 usize }
-neg_abs_signed! {
-    (i8, u8) (i16, u16) (i32, u32) (i64, u64) (i128, u128) (isize, usize)
-}
+
+neg_abs! { i8; u8 }
+neg_abs! { i16; u16 }
+neg_abs! { i32; u32 }
+neg_abs! { i64; u64 }
+neg_abs! { i128; u128 }
+neg_abs! { isize; usize }
 
 pub fn trunc_f64_to_f32(f: f64) -> f32 {
     // f as f32 might round away from zero, so we need to clear
