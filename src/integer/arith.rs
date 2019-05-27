@@ -16,6 +16,7 @@
 
 use crate::cast;
 use crate::ext::xmpz;
+use crate::misc::NegAbs;
 use crate::ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
     NotAssign, Pow, PowAssign, RemFrom, SubFrom,
@@ -405,9 +406,9 @@ where
 
 #[inline]
 fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
-    let size = cmp::max(lhs.inner().size, rhs.inner().size)
-        .checked_add(1)
-        .expect("overflow");
+    let lhs_size = lhs.inner().size.neg_abs().1;
+    let rhs_size = rhs.inner().size.neg_abs().1;
+    let size = cmp::max(lhs_size, rhs_size).checked_add(1).expect("overflow");
     let capacity = cast::cast::<_, usize>(size)
         .checked_mul(gmp::LIMB_BITS as usize)
         .expect("overflow");
