@@ -408,11 +408,11 @@ where
 fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
     let lhs_size = lhs.inner().size.neg_abs().1;
     let rhs_size = rhs.inner().size.neg_abs().1;
-    let size = cmp::max(lhs_size, rhs_size).checked_add(1).expect("overflow");
-    let capacity = cast::cast::<_, usize>(size)
-        .checked_mul(gmp::LIMB_BITS as usize)
-        .expect("overflow");
-    Integer::with_capacity(capacity)
+    let size = cmp::max(lhs_size, rhs_size);
+    let size = cast::cast::<_, usize>(size);
+    // size must be < max, not just ≤ max, because we need to add 1 to it
+    assert!(size < usize::max_value() / (gmp::LIMB_BITS as usize), "overflow");
+    Integer::with_capacity((size + 1) * (gmp::LIMB_BITS as usize))
 }
 
 #[cfg(test)]
