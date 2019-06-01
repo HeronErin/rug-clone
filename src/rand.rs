@@ -704,7 +704,7 @@ pub trait RandGen: Send + Sync {
     ///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
     ///         (self.seed >> 32) as u32
     ///     }
-    ///     fn boxed_clone(&self) -> Option<Box<RandGen>> {
+    ///     fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
     ///         let other = SimpleGenerator { seed: self.seed };
     ///         let boxed = Box::new(other);
     ///         Some(boxed)
