@@ -849,7 +849,11 @@ unsafe fn gen_bits(
 }
 
 #[cfg(gmp_limb_bits_32)]
-unsafe fn gen_bits(gen: &mut RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+unsafe fn gen_bits(
+    gen: &mut dyn RandGen,
+    limb: *mut gmp::limb_t,
+    bits: c_ulong,
+) {
     let (limbs, rest) = (bits / 32, bits % 32);
     let limbs: isize = cast(limbs);
     for i in 0..limbs {
