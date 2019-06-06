@@ -576,7 +576,7 @@ pub trait RandGen: Send + Sync {
     ///     fn gen_bits(&mut self, bits: u32) -> u32 {
     ///         let mut bits = match bits {
     ///             0 => return 0,
-    ///             1...31 => bits,
+    ///             1..=31 => bits,
     ///             _ => 32,
     ///         };
     ///         let mut ret = 0;
