@@ -569,7 +569,8 @@ macro_rules! arith_binary {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $Incomplete:ident
+        $Incomplete:ident;
+        $rhs_has_more_alloc:path
     ) => {
         arith_binary! {
             $Big;
@@ -578,6 +579,7 @@ macro_rules! arith_binary {
             $ImpAssign { $method_assign }
             $ImpFrom { $method_from }
             $Incomplete;
+            $rhs_has_more_alloc;
             fn from_incomplete(src) {
                 let mut dst = <Self as Default>::default();
                 <$Big as Assign<$Incomplete<'_>>>::assign(&mut dst, src);
@@ -592,14 +594,21 @@ macro_rules! arith_binary {
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
         $Incomplete:ident;
+        $rhs_has_more_alloc:path;
         fn from_incomplete($from_src:ident) $from_block:block
     ) => {
         impl $Imp<$Big> for $Big {
             type Output = $Big;
             #[inline]
-            fn $method(mut self, rhs: $Big) -> $Big {
-                <$Big as $ImpAssign<&$Big>>::$method_assign(&mut self, &rhs);
-                self
+            fn $method(mut self, mut rhs: $Big) -> $Big {
+                // use the allocation with the larger capacity
+                if $rhs_has_more_alloc(&self, &rhs) {
+                    rhs.$method_from(&self);
+                    rhs
+                } else {
+                    self.$method_assign(&rhs);
+                    self
+                }
             }
         }
 

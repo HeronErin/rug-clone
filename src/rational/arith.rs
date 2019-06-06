@@ -46,7 +46,8 @@ arith_binary! {
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    AddIncomplete
+    AddIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Rational;
@@ -54,7 +55,8 @@ arith_binary! {
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    SubIncomplete
+    SubIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Rational;
@@ -62,7 +64,8 @@ arith_binary! {
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
-    MulIncomplete
+    MulIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Rational;
@@ -70,7 +73,8 @@ arith_binary! {
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
-    DivIncomplete
+    DivIncomplete;
+    rhs_has_more_alloc
 }
 
 arith_prim! {
@@ -153,6 +157,17 @@ where
         }
         ret
     }
+}
+
+#[inline]
+fn rhs_has_more_alloc(lhs: &Rational, rhs: &Rational) -> bool {
+    // This can overflow:
+    //     lhs.num.alloc + lhs.den.alloc < rhs.num.alloc + rhs.den.alloc
+    // Since all alloc are non-negative signed integers (c_int), this
+    // cannot overflow:
+    //     lhs.num.alloc - rhs.den.alloc < rhs.num.alloc - lhs.den.alloc
+    lhs.numer().inner().alloc - rhs.denom().inner().alloc
+        < rhs.numer().inner().alloc - lhs.denom().inner().alloc
 }
 
 #[cfg(test)]

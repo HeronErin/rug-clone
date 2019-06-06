@@ -54,6 +54,7 @@ arith_binary! {
     AddAssign { add_assign }
     AddFrom { add_from }
     AddIncomplete;
+    rhs_has_more_alloc;
     // Specialize so that allocation is done with the right capacity.
     fn from_incomplete(src) {
         let mut dst = alloc_for_add(&src.lhs, &src.rhs);
@@ -68,6 +69,7 @@ arith_binary! {
     SubAssign { sub_assign }
     SubFrom { sub_from }
     SubIncomplete;
+    rhs_has_more_alloc;
     // Specialize so that allocation is done with the right capacity.
     fn from_incomplete(src) {
         let mut dst = alloc_for_add(&src.lhs, &src.rhs);
@@ -81,7 +83,8 @@ arith_binary! {
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
-    MulIncomplete
+    MulIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Integer;
@@ -89,7 +92,8 @@ arith_binary! {
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
-    DivIncomplete
+    DivIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Integer;
@@ -97,7 +101,8 @@ arith_binary! {
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
-    RemIncomplete
+    RemIncomplete;
+    rhs_has_more_alloc
 }
 arith_unary! {
     Integer;
@@ -112,7 +117,8 @@ arith_binary! {
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
-    BitAndIncomplete
+    BitAndIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Integer;
@@ -120,7 +126,8 @@ arith_binary! {
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
-    BitOrIncomplete
+    BitOrIncomplete;
+    rhs_has_more_alloc
 }
 arith_binary! {
     Integer;
@@ -128,7 +135,8 @@ arith_binary! {
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }
-    BitXorIncomplete
+    BitXorIncomplete;
+    rhs_has_more_alloc
 }
 
 arith_prim_commut! {
@@ -415,6 +423,11 @@ fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
     Integer::with_capacity((size + 1) * (gmp::LIMB_BITS as usize))
 }
 
+#[inline]
+fn rhs_has_more_alloc(lhs: &Integer, rhs: &Integer) -> bool {
+    lhs.inner().alloc < rhs.inner().alloc
+}
+
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity)]
 mod tests {
@@ -422,6 +435,43 @@ mod tests {
     use crate::Integer;
     use std::cmp::Ordering;
     use std::ops::{AddAssign, SubAssign};
+
+    macro_rules! test_op {
+        ($lhs:ident $op:tt $rhs:ident) => {
+            let ans = $lhs.clone() $op $rhs.clone();
+            assert_eq!(ans, $lhs.clone() $op $rhs);
+            assert_eq!(ans, $lhs $op $rhs.clone());
+            assert_eq!(ans, Integer::from($lhs $op $rhs));
+        };
+    }
+
+    #[test]
+    fn check_arith() {
+        use crate::tests::{I128, I32, I64, U128, U32, U64};
+        let large = [(1, 100), (-11, 200), (33, 150)];
+        let all = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+            .chain(U32.iter().map(|&x| Integer::from(x)))
+            .chain(I32.iter().map(|&x| Integer::from(x)))
+            .chain(U64.iter().map(|&x| Integer::from(x)))
+            .chain(I64.iter().map(|&x| Integer::from(x)))
+            .chain(U128.iter().map(|&x| Integer::from(x)))
+            .chain(I128.iter().map(|&x| Integer::from(x)))
+            .collect::<Vec<Integer>>();
+
+        for l in &all {
+            for r in &all {
+                test_op!(l + r);
+                test_op!(l - r);
+                test_op!(l * r);
+                if r.cmp0() != Ordering::Equal {
+                    test_op!(l / r);
+                }
+                test_op!(l & r);
+                test_op!(l | r);
+                test_op!(l ^ r);
+            }
+        }
+    }
 
     #[test]
     fn check_arith_u_s() {
