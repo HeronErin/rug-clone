@@ -294,7 +294,6 @@ pub mod test {
         T: Serialize + for<'de> Deserialize<'de>,
         F: Fn(&T, &T),
     {
-        use bincode::SliceReader;
         let enc = bincode::serialize(&t).unwrap();
         let dec: T = bincode::deserialize(&enc).unwrap();
         test(t, &dec);
@@ -302,7 +301,7 @@ pub mod test {
         assert_eq!(enc, val);
 
         let mut in_place: T = in_place;
-        let reader = SliceReader::new(&enc);
+        let reader = quick_and_dirty::SliceReader::new(&enc);
         bincode::deserialize_in_place(reader, &mut in_place).unwrap();
         test(t, &in_place);
     }
@@ -314,5 +313,61 @@ pub mod test {
     {
         let dec: T = bincode::deserialize(&val).unwrap();
         test(t, &dec);
+    }
+
+    mod quick_and_dirty {
+        use bincode::{BincodeRead, Result as BincodeResult};
+        use serde::de::Visitor;
+        use std::io::{Read, Result as IoResult};
+
+        // this is just to test deserialize_in_place, so only
+        // BincodeRead::get_byte_buffer is implemented
+        pub struct SliceReader<'a>(&'a [u8]);
+
+        impl SliceReader<'_> {
+            pub fn new(slice: &[u8]) -> SliceReader<'_> {
+                SliceReader(slice)
+            }
+        }
+
+        impl Read for SliceReader<'_> {
+            fn read(&mut self, buf: &mut [u8]) -> IoResult<usize> {
+                (self.0).read(buf)
+            }
+        }
+
+        impl<'a> BincodeRead<'a> for SliceReader<'a> {
+            fn forward_read_str<V>(
+                &mut self,
+                _length: usize,
+                _visitor: V,
+            ) -> BincodeResult<V::Value>
+            where
+                V: Visitor<'a>,
+            {
+                unimplemented!()
+            }
+
+            fn get_byte_buffer(
+                &mut self,
+                length: usize,
+            ) -> BincodeResult<Vec<u8>> {
+                assert!(length <= self.0.len());
+                let ret = self.0[..length].to_vec();
+                self.0 = &self.0[length..];
+                Ok(ret)
+            }
+
+            fn forward_read_bytes<V>(
+                &mut self,
+                _length: usize,
+                _visitor: V,
+            ) -> BincodeResult<V::Value>
+            where
+                V: Visitor<'a>,
+            {
+                unimplemented!()
+            }
+        }
     }
 }
