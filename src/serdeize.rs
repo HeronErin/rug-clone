@@ -352,7 +352,6 @@ pub mod test {
                 &mut self,
                 length: usize,
             ) -> BincodeResult<Vec<u8>> {
-                assert!(length <= self.0.len());
                 let ret = self.0[..length].to_vec();
                 self.0 = &self.0[length..];
                 Ok(ret)
