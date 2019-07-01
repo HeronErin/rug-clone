@@ -257,8 +257,7 @@ pub fn fits_i128(op: &Integer) -> bool {
         2 => (unsafe { limb(op, 1) }) <= i64::MAX as u64,
         -2 => {
             (unsafe { limb(op, 1) }) < i64::MIN as u64
-                || ((unsafe { limb(op, 1) }) == i64::MIN as u64
-                    && (unsafe { limb(op, 0) }) == 0)
+                || ((unsafe { limb(op, 1) }) == i64::MIN as u64 && (unsafe { limb(op, 0) }) == 0)
         }
         _ => false,
     }

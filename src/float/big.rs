@@ -17,8 +17,7 @@
 use crate::cast::cast;
 use crate::ext::xmpfr::{self, ordering1, raw_round};
 use crate::float::arith::{
-    AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete,
-    SubMulFromIncomplete,
+    AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete,
 };
 use crate::float::{self, OrdFloat, Round, SmallFloat, Special};
 #[cfg(feature = "integer")]
@@ -467,11 +466,7 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     #[inline]
-    pub fn with_val_round<T>(
-        prec: u32,
-        val: T,
-        round: Round,
-    ) -> (Self, Ordering)
+    pub fn with_val_round<T>(prec: u32, val: T, round: Round) -> (Self, Ordering)
     where
         Self: AssignRound<T, Round = Round, Ordering = Ordering>,
     {
@@ -553,9 +548,7 @@ impl Float {
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
         );
-        let ret = unsafe {
-            mpfr::prec_round(self.as_raw_mut(), cast(prec), raw_round(round))
-        };
+        let ret = unsafe { mpfr::prec_round(self.as_raw_mut(), cast(prec), raw_round(round)) };
         ordering1(ret)
     }
 
@@ -793,10 +786,7 @@ impl Float {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
-    pub fn parse_radix<S>(
-        src: S,
-        radix: i32,
-    ) -> Result<ParseIncomplete, ParseFloatError>
+    pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseFloatError>
     where
         S: AsRef<[u8]>,
     {
@@ -848,17 +838,12 @@ impl Float {
     /// [`Integer`]: struct.Integer.html
     /// [`is_finite`]: #method.is_finite
     #[inline]
-    pub fn to_integer_round(
-        &self,
-        round: Round,
-    ) -> Option<(Integer, Ordering)> {
+    pub fn to_integer_round(&self, round: Round) -> Option<(Integer, Ordering)> {
         if !self.is_finite() {
             return None;
         }
         let mut i = Integer::new();
-        let ret = unsafe {
-            mpfr::get_z(i.as_raw_mut(), self.as_raw(), raw_round(round))
-        };
+        let ret = unsafe { mpfr::get_z(i.as_raw_mut(), self.as_raw(), raw_round(round)) };
         Some((i, ordering1(ret)))
     }
 
@@ -1286,9 +1271,7 @@ impl Float {
     #[inline]
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
-        let f = unsafe {
-            mpfr::get_d_2exp(&mut exp, self.as_raw(), raw_round(round))
-        };
+        let f = unsafe { mpfr::get_d_2exp(&mut exp, self.as_raw(), raw_round(round)) };
         (f, cast(exp))
     }
 
@@ -1318,11 +1301,7 @@ impl Float {
     /// assert_eq!(twentythree.to_string_radix(16, Some(4)), "1.700@1");
     /// ```
     #[inline]
-    pub fn to_string_radix(
-        &self,
-        radix: i32,
-        num_digits: Option<usize>,
-    ) -> String {
+    pub fn to_string_radix(&self, radix: i32, num_digits: Option<usize>) -> String {
         self.to_string_radix_round(radix, num_digits, Default::default())
     }
 
@@ -1356,8 +1335,12 @@ impl Float {
         round: Round,
     ) -> String {
         let mut s = String::new();
-        let format =
-            Format { radix, precision: num_digits, round, ..Format::default() };
+        let format = Format {
+            radix,
+            precision: num_digits,
+            round,
+            ..Format::default()
+        };
         append_to_string(&mut s, self, format);
         s
     }
@@ -1386,7 +1369,10 @@ impl Float {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat<'_> {
-        let mut ret = BorrowFloat { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowFloat {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         NegAssign::neg_assign(&mut ret.inner.sign);
         if self.is_nan() {
             unsafe {
@@ -1420,7 +1406,10 @@ impl Float {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat<'_> {
-        let mut ret = BorrowFloat { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowFloat {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         ret.inner.sign = 1;
         if self.is_nan() {
             unsafe {
@@ -1664,9 +1653,7 @@ impl Float {
     pub fn cmp_abs(&self, other: &Self) -> Option<Ordering> {
         unsafe {
             match mpfr::unordered_p(self.as_raw(), other.as_raw()) {
-                0 => {
-                    Some(ordering1(mpfr::cmpabs(self.as_raw(), other.as_raw())))
-                }
+                0 => Some(ordering1(mpfr::cmpabs(self.as_raw(), other.as_raw()))),
                 _ => None,
             }
         }
@@ -1936,11 +1923,7 @@ impl Float {
     /// assert_eq!(f.to_f64(), single_min_subnormal * 2.0);
     /// assert_eq!(dir, Ordering::Greater);
     /// ```
-    pub fn subnormalize_ieee_round(
-        &mut self,
-        prev_rounding: Ordering,
-        round: Round,
-    ) -> Ordering {
+    pub fn subnormalize_ieee_round(&mut self, prev_rounding: Ordering, round: Round) -> Ordering {
         let prec = self.prec();
         let exp_bits = match ieee_storage_bits_for_prec(prec) {
             Some(storage_bits) => storage_bits - prec,
@@ -1979,11 +1962,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn subnormalize(&mut self, normal_exp_min: i32) -> &mut Self {
-        self.subnormalize_round(
-            normal_exp_min,
-            Ordering::Equal,
-            Default::default(),
-        );
+        self.subnormalize_round(normal_exp_min, Ordering::Equal, Default::default());
         self
     }
 
@@ -2046,8 +2025,7 @@ impl Float {
             assert!(save_emax >= exp_min, "`normal_exp_min` too large");
             mpfr::set_emin(sub_exp_min);
             mpfr::set_emax(exp_min);
-            let ret =
-                mpfr::subnormalize(self.as_raw_mut(), prev, raw_round(round));
+            let ret = mpfr::subnormalize(self.as_raw_mut(), prev, raw_round(round));
             mpfr::set_emin(save_emin);
             mpfr::set_emax(save_emax);
             ordering1(ret)
@@ -2232,12 +2210,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
-    pub fn mul_add_round(
-        &mut self,
-        mul: &Self,
-        add: &Self,
-        round: Round,
-    ) -> Ordering {
+    pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fma(
                 self.as_raw_mut(),
@@ -2280,11 +2253,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
-    pub fn mul_add_ref<'a>(
-        &'a self,
-        mul: &'a Self,
-        add: &'a Self,
-    ) -> AddMulIncomplete<'a> {
+    pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
         self * mul + add
     }
 
@@ -2370,12 +2339,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
-    pub fn mul_sub_round(
-        &mut self,
-        mul: &Self,
-        sub: &Self,
-        round: Round,
-    ) -> Ordering {
+    pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fms(
                 self.as_raw_mut(),
@@ -2418,11 +2382,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
-    pub fn mul_sub_ref<'a>(
-        &'a self,
-        mul: &'a Self,
-        sub: &'a Self,
-    ) -> SubMulFromIncomplete<'a> {
+    pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
 
@@ -2445,12 +2405,7 @@ impl Float {
     /// let mul_add_mul = a.mul_add_mul(&b, &c, &d);
     /// assert_eq!(mul_add_mul, 60);
     /// ```
-    pub fn mul_add_mul(
-        mut self,
-        mul: &Self,
-        add_mul1: &Self,
-        add_mul2: &Self,
-    ) -> Self {
+    pub fn mul_add_mul(mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) -> Self {
         self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
         self
     }
@@ -2474,12 +2429,7 @@ impl Float {
     /// a.mul_add_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 60);
     /// ```
-    pub fn mul_add_mul_mut(
-        &mut self,
-        mul: &Self,
-        add_mul1: &Self,
-        add_mul2: &Self,
-    ) {
+    pub fn mul_add_mul_mut(&mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) {
         self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
     }
 
@@ -2584,12 +2534,7 @@ impl Float {
     /// let mul_sub_mul = a.mul_sub_mul(&b, &c, &d);
     /// assert_eq!(mul_sub_mul, 12);
     /// ```
-    pub fn mul_sub_mul(
-        mut self,
-        mul: &Self,
-        sub_mul1: &Self,
-        sub_mul2: &Self,
-    ) -> Self {
+    pub fn mul_sub_mul(mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) -> Self {
         self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
         self
     }
@@ -2614,12 +2559,7 @@ impl Float {
     /// a.mul_sub_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 12);
     /// ```
-    pub fn mul_sub_mul_mut(
-        &mut self,
-        mul: &Self,
-        sub_mul1: &Self,
-        sub_mul2: &Self,
-    ) {
+    pub fn mul_sub_mul_mut(&mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) {
         self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
     }
 
@@ -3432,7 +3372,11 @@ impl Float {
             + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
             + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
-        ClampIncomplete { ref_self: self, min, max }
+        ClampIncomplete {
+            ref_self: self,
+            min,
+            max,
+        }
     }
 
     math_op1_float! {
@@ -6251,16 +6195,13 @@ impl Float {
     pub fn ln_abs_gamma_round(&mut self, round: Round) -> (Ordering, Ordering) {
         let mut sign: c_int = 0;
         let sign_ptr: *mut c_int = &mut sign;
-        let ret = unsafe {
-            mpfr::lgamma(
-                self.as_raw_mut(),
-                sign_ptr,
-                self.as_raw(),
-                raw_round(round),
-            )
+        let ret =
+            unsafe { mpfr::lgamma(self.as_raw_mut(), sign_ptr, self.as_raw(), raw_round(round)) };
+        let sign_ord = if sign < 0 {
+            Ordering::Less
+        } else {
+            Ordering::Greater
         };
-        let sign_ord =
-            if sign < 0 { Ordering::Less } else { Ordering::Greater };
         (sign_ord, ordering1(ret))
     }
 
@@ -7721,9 +7662,7 @@ impl Float {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b>(
-        rng: &'a mut RandState<'b>,
-    ) -> RandomBitsIncomplete<'a, 'b>
+    pub fn random_bits<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomBitsIncomplete<'a, 'b>
     where
         'b: 'a,
     {
@@ -7807,9 +7746,7 @@ impl Float {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_normal<'a, 'b>(
-        rng: &'a mut RandState<'b>,
-    ) -> RandomNormal<'a, 'b>
+    pub fn random_normal<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomNormal<'a, 'b>
     where
         'b: 'a,
     {
@@ -7865,19 +7802,14 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(
-        &mut self,
-        src: SumIncomplete<'a, I>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
         let refs = src
             .values
             .map(|r| -> *const mpfr_t { r.as_raw() })
             .collect::<Vec<_>>();
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
-        let ret =
-            unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
+        let ret = unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -7910,11 +7842,7 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
-    fn add_assign_round(
-        &mut self,
-        src: SumIncomplete<'a, I>,
-        round: Round,
-    ) -> Ordering {
+    fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round) -> Ordering {
         let capacity = match src.values.size_hint() {
             (lower, None) => lower + 1,
             (_, Some(upper)) => upper + 1,
@@ -7924,8 +7852,7 @@ where
         refs.extend(src.values.map(|r| -> *const mpfr_t { r.as_raw() }));
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
         let n = cast(refs.len());
-        let ret =
-            unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
+        let ret = unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -7955,11 +7882,7 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
-    fn assign_round(
-        &mut self,
-        src: DotIncomplete<'a, I>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         let prods = exact_prods(src.values);
         let sum = Float::sum(prods.iter());
         self.assign_round(sum, round)
@@ -7994,23 +7917,15 @@ where
 {
     type Round = Round;
     type Ordering = Ordering;
-    fn add_assign_round(
-        &mut self,
-        src: DotIncomplete<'a, I>,
-        round: Round,
-    ) -> Ordering {
+    fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round) -> Ordering {
         let prods = exact_prods(src.values);
         let sum = Float::sum(prods.iter());
         self.add_assign_round(sum, round)
     }
 }
 
-ref_math_op0_float! {
-    xmpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 }
-}
-ref_math_op0_float! {
-    xmpfr::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 }
-}
+ref_math_op0_float! { xmpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 } }
+ref_math_op0_float! { xmpfr::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 } }
 ref_math_op1_float! { xmpfr::sqr; struct SquareIncomplete {} }
 ref_math_op1_float! { xmpfr::sqrt; struct SqrtIncomplete {} }
 ref_math_op0_float! { xmpfr::sqrt_ui; struct SqrtUIncomplete { u: u32 } }
@@ -8044,11 +7959,7 @@ where
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: ClampIncomplete<'a, Min, Max>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: ClampIncomplete<'a, Min, Max>, round: Round) -> Ordering {
         if src.ref_self.lt(src.min) {
             let dir = self.assign_round(src.min, round);
             if (*self).gt(src.max) {
@@ -8128,11 +8039,7 @@ impl AssignRound<LnAbsGammaIncomplete<'_>> for (&mut Float, &mut Ordering) {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: LnAbsGammaIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: LnAbsGammaIncomplete<'_>, round: Round) -> Ordering {
         let mut sign: c_int = 0;
         let sign_ptr: *mut c_int = &mut sign;
         let ret = unsafe {
@@ -8143,7 +8050,11 @@ impl AssignRound<LnAbsGammaIncomplete<'_>> for (&mut Float, &mut Ordering) {
                 raw_round(round),
             )
         };
-        *self.1 = if sign < 0 { Ordering::Less } else { Ordering::Greater };
+        *self.1 = if sign < 0 {
+            Ordering::Less
+        } else {
+            Ordering::Greater
+        };
         ordering1(ret)
     }
 }
@@ -8152,11 +8063,7 @@ impl AssignRound<LnAbsGammaIncomplete<'_>> for (Float, Ordering) {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: LnAbsGammaIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: LnAbsGammaIncomplete<'_>, round: Round) -> Ordering {
         (&mut self.0, &mut self.1).assign_round(src, round)
     }
 }
@@ -8229,18 +8136,9 @@ impl AssignRound<RandomCont<'_, '_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomCont<'_, '_>,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpfr::urandom(
-                self.as_raw_mut(),
-                src.rng.as_raw_mut(),
-                raw_round(round),
-            )
-        };
+    fn assign_round(&mut self, src: RandomCont<'_, '_>, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::urandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -8258,18 +8156,9 @@ impl AssignRound<RandomNormal<'_, '_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomNormal<'_, '_>,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpfr::nrandom(
-                self.as_raw_mut(),
-                src.rng.as_raw_mut(),
-                raw_round(round),
-            )
-        };
+    fn assign_round(&mut self, src: RandomNormal<'_, '_>, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::nrandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -8287,18 +8176,9 @@ impl AssignRound<RandomExp<'_, '_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomExp<'_, '_>,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpfr::erandom(
-                self.as_raw_mut(),
-                src.rng.as_raw_mut(),
-                raw_round(round),
-            )
-        };
+    fn assign_round(&mut self, src: RandomExp<'_, '_>, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::erandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -8373,8 +8253,10 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         return;
     }
 
-    let digits =
-        format.precision.map(|x| if x == 1 { 2 } else { x }).unwrap_or(0);
+    let digits = format
+        .precision
+        .map(|x| if x == 1 { 2 } else { x })
+        .unwrap_or(0);
     let mut exp: mpfr::exp_t;
     let c_buf;
     let negative;
@@ -8452,8 +8334,7 @@ impl AssignRound<ParseIncomplete> for Float {
                 raw_round(round),
             )
         };
-        let nul =
-            cast_ptr!(c_string.as_bytes_with_nul().last().unwrap(), c_char);
+        let nul = cast_ptr!(c_string.as_bytes_with_nul().last().unwrap(), c_char);
         assert_eq!(c_str_end, nul);
         ordering1(ret)
     }
@@ -8465,10 +8346,7 @@ macro_rules! parse_error {
     };
 }
 
-fn parse(
-    mut bytes: &[u8],
-    radix: i32,
-) -> Result<ParseIncomplete, ParseFloatError> {
+fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatError> {
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast(radix);
     let small_bound = b'a' - 10 + bradix;
@@ -8504,7 +8382,11 @@ fn parse(
     let mut has_point = false;
     let mut exp = false;
     for &b in bytes {
-        let b = if radix <= 10 && (b == b'e' || b == b'E') { b'@' } else { b };
+        let b = if radix <= 10 && (b == b'e' || b == b'E') {
+            b'@'
+        } else {
+            b
+        };
         let valid_digit = match b {
             b'.' if exp => parse_error!(ParseErrorKind::PointInExp)?,
             b'.' if has_point => parse_error!(ParseErrorKind::TooManyPoints)?,
@@ -8514,9 +8396,7 @@ fn parse(
                 continue;
             }
             b'@' if exp => parse_error!(ParseErrorKind::TooManyExp)?,
-            b'@' if !has_digits => {
-                parse_error!(ParseErrorKind::SignifNoDigits)?
-            }
+            b'@' if !has_digits => parse_error!(ParseErrorKind::SignifNoDigits)?,
             b'@' => {
                 v.push(b'@');
                 exp = true;
@@ -8590,9 +8470,7 @@ fn parse_special(
         .or_else(|| misc::skip_lcase_match(bytes, nan))
         .map(misc::trim_start)
     {
-        let trailing = if let Some(after_extra) =
-            skip_nan_extra(after_nan).map(misc::trim_start)
-        {
+        let trailing = if let Some(after_extra) = skip_nan_extra(after_nan).map(misc::trim_start) {
             after_extra
         } else {
             after_nan

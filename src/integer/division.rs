@@ -16,8 +16,8 @@
 
 use crate::ext::xmpz;
 use crate::ops::{
-    DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding,
-    RemRoundingAssign, RemRoundingFrom,
+    DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,
+    RemRoundingFrom,
 };
 use crate::{Assign, Integer};
 
@@ -59,23 +59,17 @@ macro_rules! div_op {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$trunc_assign(
-                    &mut self, &rhs,
-                );
+                <Integer as $ImpAssign<&Integer>>::$trunc_assign(&mut self, &rhs);
                 self
             }
             #[inline]
             fn $ceil(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$ceil_assign(
-                    &mut self, &rhs,
-                );
+                <Integer as $ImpAssign<&Integer>>::$ceil_assign(&mut self, &rhs);
                 self
             }
             #[inline]
             fn $floor(mut self, rhs: Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$floor_assign(
-                    &mut self, &rhs,
-                );
+                <Integer as $ImpAssign<&Integer>>::$floor_assign(&mut self, &rhs);
                 self
             }
             #[inline]
@@ -89,9 +83,7 @@ macro_rules! div_op {
             type Output = Integer;
             #[inline]
             fn $trunc(mut self, rhs: &Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$trunc_assign(
-                    &mut self, rhs,
-                );
+                <Integer as $ImpAssign<&Integer>>::$trunc_assign(&mut self, rhs);
                 self
             }
             #[inline]
@@ -101,9 +93,7 @@ macro_rules! div_op {
             }
             #[inline]
             fn $floor(mut self, rhs: &Integer) -> Integer {
-                <Integer as $ImpAssign<&Integer>>::$floor_assign(
-                    &mut self, rhs,
-                );
+                <Integer as $ImpAssign<&Integer>>::$floor_assign(&mut self, rhs);
                 self
             }
             #[inline]
@@ -762,18 +752,9 @@ mod tests {
             let iop = Integer::from(op);
             for b in &against {
                 if op != 0 {
-                    assert_eq!(
-                        b.clone().div_trunc(op),
-                        b.clone().div_trunc(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().div_ceil(op),
-                        b.clone().div_ceil(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().div_floor(op),
-                        b.clone().div_floor(&iop)
-                    );
+                    assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
+                    assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
+                    assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
                     assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
                 }
                 if *b != 0 {
@@ -789,10 +770,7 @@ mod tests {
                         DivRounding::div_floor(op, b.clone()),
                         iop.clone().div_floor(b)
                     );
-                    assert_eq!(
-                        DivRounding::div_euc(op, b.clone()),
-                        iop.clone().div_euc(b)
-                    );
+                    assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
                 }
             }
         }
@@ -800,18 +778,9 @@ mod tests {
             let iop = Integer::from(op);
             for b in &against {
                 if op != 0 {
-                    assert_eq!(
-                        b.clone().div_trunc(op),
-                        b.clone().div_trunc(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().div_ceil(op),
-                        b.clone().div_ceil(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().div_floor(op),
-                        b.clone().div_floor(&iop)
-                    );
+                    assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
+                    assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
+                    assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
                     assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
                 }
                 if *b != 0 {
@@ -827,10 +796,7 @@ mod tests {
                         DivRounding::div_floor(op, b.clone()),
                         iop.clone().div_floor(b)
                     );
-                    assert_eq!(
-                        DivRounding::div_euc(op, b.clone()),
-                        iop.clone().div_euc(b)
-                    );
+                    assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
                 }
             }
         }
@@ -851,18 +817,9 @@ mod tests {
             let iop = Integer::from(op);
             for b in &against {
                 if op != 0 {
-                    assert_eq!(
-                        b.clone().rem_trunc(op),
-                        b.clone().rem_trunc(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().rem_ceil(op),
-                        b.clone().rem_ceil(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().rem_floor(op),
-                        b.clone().rem_floor(&iop)
-                    );
+                    assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
+                    assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
+                    assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
                     assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
                 }
                 if *b != 0 {
@@ -878,10 +835,7 @@ mod tests {
                         RemRounding::rem_floor(op, b.clone()),
                         iop.clone().rem_floor(b)
                     );
-                    assert_eq!(
-                        RemRounding::rem_euc(op, b.clone()),
-                        iop.clone().rem_euc(b)
-                    );
+                    assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
                 }
             }
         }
@@ -889,18 +843,9 @@ mod tests {
             let iop = Integer::from(op);
             for b in &against {
                 if op != 0 {
-                    assert_eq!(
-                        b.clone().rem_trunc(op),
-                        b.clone().rem_trunc(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().rem_ceil(op),
-                        b.clone().rem_ceil(&iop)
-                    );
-                    assert_eq!(
-                        b.clone().rem_floor(op),
-                        b.clone().rem_floor(&iop)
-                    );
+                    assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
+                    assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
+                    assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
                     assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
                 }
                 if *b != 0 {
@@ -916,10 +861,7 @@ mod tests {
                         RemRounding::rem_floor(op, b.clone()),
                         iop.clone().rem_floor(b)
                     );
-                    assert_eq!(
-                        RemRounding::rem_euc(op, b.clone()),
-                        iop.clone().rem_euc(b)
-                    );
+                    assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
                 }
             }
         }

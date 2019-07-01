@@ -96,12 +96,7 @@ pub fn neg(rop: &mut Complex, op: Option<&Complex>, rnd: Round2) -> Ordering2 {
 }
 
 #[inline]
-pub fn mul_i(
-    rop: &mut Complex,
-    op: Option<&Complex>,
-    neg: bool,
-    rnd: Round2,
-) -> Ordering2 {
+pub fn mul_i(rop: &mut Complex, op: Option<&Complex>, neg: bool, rnd: Round2) -> Ordering2 {
     ordering2(unsafe {
         mpc::mul_i(
             rop.as_raw_mut(),
@@ -113,11 +108,7 @@ pub fn mul_i(
 }
 
 #[inline]
-pub fn recip(
-    rop: &mut Complex,
-    op: Option<&Complex>,
-    rnd: Round2,
-) -> Ordering2 {
+pub fn recip(rop: &mut Complex, op: Option<&Complex>, rnd: Round2) -> Ordering2 {
     let rop_ptr = rop.as_raw_mut();
     let op_ptr = op.unwrap_or(rop).as_raw();
     let rnd = raw_round2(rnd);
@@ -125,15 +116,8 @@ pub fn recip(
 }
 
 #[inline]
-pub fn rootofunity(
-    rop: &mut Complex,
-    n: u32,
-    k: u32,
-    rnd: Round2,
-) -> Ordering2 {
-    ordering2(unsafe {
-        mpc::rootofunity(rop.as_raw_mut(), n.into(), k.into(), raw_round2(rnd))
-    })
+pub fn rootofunity(rop: &mut Complex, n: u32, k: u32, rnd: Round2) -> Ordering2 {
+    ordering2(unsafe { mpc::rootofunity(rop.as_raw_mut(), n.into(), k.into(), raw_round2(rnd)) })
 }
 
 #[inline]
@@ -179,12 +163,7 @@ wrap! { fn atanh(op) -> mpc::atanh }
 macro_rules! into_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(
-            rop: *mut mpc_t,
-            op1: *const mpc_t,
-            op2: $T,
-            rnd: mpc::rnd_t,
-        ) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: mpc::rnd_t) -> c_int {
             $func(rop, op1, op2.into(), rnd)
         }
     };
@@ -193,12 +172,7 @@ macro_rules! into_forward {
 macro_rules! into_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(
-            rop: *mut mpc_t,
-            op1: $T,
-            op2: *const mpc_t,
-            rnd: mpc::rnd_t,
-        ) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
             $func(rop, op1.into(), op2, rnd)
         }
     };
@@ -207,12 +181,7 @@ macro_rules! into_reverse {
 macro_rules! sum_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(
-            rop: *mut mpc_t,
-            op1: *const mpc_t,
-            op2: $T,
-            rnd: mpc::rnd_t,
-        ) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: mpc::rnd_t) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
                 $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
@@ -225,12 +194,7 @@ macro_rules! sum_forward {
 macro_rules! sub_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(
-            rop: *mut mpc_t,
-            op1: $T,
-            op2: *const mpc_t,
-            rnd: mpc::rnd_t,
-        ) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
                 $func(mpc::realref(rop), op1, mpc::realref_const(op2), rnd_re),
@@ -243,12 +207,7 @@ macro_rules! sub_reverse {
 macro_rules! prod_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(
-            rop: *mut mpc_t,
-            op1: *const mpc_t,
-            op2: $T,
-            rnd: mpc::rnd_t,
-        ) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: mpc::rnd_t) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
                 $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
@@ -261,12 +220,7 @@ macro_rules! prod_forward {
 macro_rules! div_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(
-            rop: *mut mpc_t,
-            op1: $T,
-            op2: *const mpc_t,
-            rnd: mpc::rnd_t,
-        ) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
             let op1 = SmallComplex::from(op1);
             mpc::div(rop, op1.as_raw(), op2, rnd)
         }

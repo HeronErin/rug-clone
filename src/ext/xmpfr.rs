@@ -106,12 +106,7 @@ macro_rules! wrap0 {
 }
 
 #[inline]
-pub fn si_pow_ui(
-    rop: &mut Float,
-    base: i32,
-    exponent: u32,
-    rnd: Round,
-) -> Ordering {
+pub fn si_pow_ui(rop: &mut Float, base: i32, exponent: u32, rnd: Round) -> Ordering {
     let (base_neg, base_abs) = base.neg_abs();
     if !base_neg || (exponent & 1) == 0 {
         ordering1(unsafe {
@@ -145,9 +140,7 @@ pub fn si_pow_ui(
 #[inline]
 pub fn neg(rop: &mut Float, op: Option<&Float>, rnd: Round) -> Ordering {
     if let Some(op) = op {
-        ordering1(unsafe {
-            mpfr::neg(rop.as_raw_mut(), op.as_raw(), raw_round(rnd))
-        })
+        ordering1(unsafe { mpfr::neg(rop.as_raw_mut(), op.as_raw(), raw_round(rnd)) })
     } else {
         unsafe {
             rop.inner_mut().sign.neg_assign();
@@ -451,62 +444,32 @@ pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: mpfr::rnd_t) -> c_int {
 }
 
 #[inline]
-pub unsafe fn add_f32(
-    rop: *mut mpfr_t,
-    op1: *const mpfr_t,
-    op2: f32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn add_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::add_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn sub_f32(
-    rop: *mut mpfr_t,
-    op1: *const mpfr_t,
-    op2: f32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn sub_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::sub_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn f32_sub(
-    rop: *mut mpfr_t,
-    op1: f32,
-    op2: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn f32_sub(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     mpfr::d_sub(rop, op1.into(), op2, rnd)
 }
 
 #[inline]
-pub unsafe fn mul_f32(
-    rop: *mut mpfr_t,
-    op1: *const mpfr_t,
-    op2: f32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn mul_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::mul_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn div_f32(
-    rop: *mut mpfr_t,
-    op1: *const mpfr_t,
-    op2: f32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn div_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
     mpfr::div_d(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn f32_div(
-    rop: *mut mpfr_t,
-    op1: f32,
-    op2: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn f32_div(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     mpfr::d_div(rop, op1.into(), op2, rnd)
 }
 
@@ -555,56 +518,31 @@ pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
 }
 
 #[inline]
-pub unsafe fn pow_f64(
-    rop: *mut mpfr_t,
-    op1: *const mpfr_t,
-    op2: f64,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn pow_f64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f64, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op2);
     mpfr::pow(rop, op1, (*small).as_raw(), rnd)
 }
 
 #[inline]
-pub unsafe fn pow_f32(
-    rop: *mut mpfr_t,
-    op1: *const mpfr_t,
-    op2: f32,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn pow_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op2);
     mpfr::pow(rop, op1, (*small).as_raw(), rnd)
 }
 
 #[inline]
-pub unsafe fn si_pow(
-    rop: *mut mpfr_t,
-    op1: c_long,
-    op2: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn si_pow(rop: *mut mpfr_t, op1: c_long, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op1);
     mpfr::pow(rop, (*small).as_raw(), op2, rnd)
 }
 
 #[inline]
-pub unsafe fn f32_pow(
-    rop: *mut mpfr_t,
-    op1: f32,
-    op2: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn f32_pow(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op1);
     mpfr::pow(rop, (*small).as_raw(), op2, rnd)
 }
 
 #[inline]
-pub unsafe fn f64_pow(
-    rop: *mut mpfr_t,
-    op1: f64,
-    op2: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn f64_pow(rop: *mut mpfr_t, op1: f64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op1);
     mpfr::pow(rop, (*small).as_raw(), op2, rnd)
 }
@@ -627,11 +565,7 @@ pub unsafe fn submul(
 }
 
 #[inline]
-pub unsafe fn custom_zero(
-    f: *mut mpfr_t,
-    limbs: *mut gmp::limb_t,
-    prec: mpfr::prec_t,
-) {
+pub unsafe fn custom_zero(f: *mut mpfr_t, limbs: *mut gmp::limb_t, prec: mpfr::prec_t) {
     mpfr::custom_init(limbs as *mut c_void, prec);
     mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut c_void);
 }
@@ -644,11 +578,5 @@ pub unsafe fn custom_regular(
     prec: mpfr::prec_t,
 ) {
     mpfr::custom_init(limbs as *mut c_void, prec);
-    mpfr::custom_init_set(
-        f,
-        mpfr::REGULAR_KIND,
-        exp,
-        prec,
-        limbs as *mut c_void,
-    );
+    mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
 }

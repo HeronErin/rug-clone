@@ -88,8 +88,7 @@ mod tests {
             assert_eq!(fract, (fract_n, d));
             assert_eq!(trunc, whole);
 
-            let (fract, trunc) =
-                <(Rational, Integer)>::from(r.fract_trunc_ref());
+            let (fract, trunc) = <(Rational, Integer)>::from(r.fract_trunc_ref());
             assert_eq!(fract, (fract_n, d));
             assert_eq!(trunc, whole);
 
@@ -159,8 +158,7 @@ mod tests {
             assert_eq!(fract, (fract_n, d));
             assert_eq!(floor, whole);
 
-            let (fract, floor) =
-                <(Rational, Integer)>::from(r.fract_floor_ref());
+            let (fract, floor) = <(Rational, Integer)>::from(r.fract_floor_ref());
             assert_eq!(fract, (fract_n, d));
             assert_eq!(floor, whole);
 
@@ -199,8 +197,7 @@ mod tests {
             assert_eq!(fract, (fract_n, d));
             assert_eq!(round, whole);
 
-            let (fract, round) =
-                <(Rational, Integer)>::from(r.fract_round_ref());
+            let (fract, round) = <(Rational, Integer)>::from(r.fract_round_ref());
             assert_eq!(fract, (fract_n, d));
             assert_eq!(round, whole);
 

@@ -261,12 +261,13 @@ impl SmallRational {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first =
-            &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let last =
-            &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let (num_d, den_d) =
-            if self.num_is_first() { (first, last) } else { (last, first) };
+        let first = &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let last = &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let (num_d, den_d) = if self.num_is_first() {
+            (first, last)
+        } else {
+            (last, first)
+        };
         self.inner.num.d.store(num_d, Ordering::Relaxed);
         self.inner.den.d.store(den_d, Ordering::Relaxed);
     }
@@ -329,9 +330,7 @@ where
             src.1.copy(&mut self.inner.den.size, den_limbs);
         }
         unsafe {
-            gmp::mpq_canonicalize(
-                self.as_nonreallocating_rational().as_raw_mut(),
-            );
+            gmp::mpq_canonicalize(self.as_nonreallocating_rational().as_raw_mut());
         }
     }
 }

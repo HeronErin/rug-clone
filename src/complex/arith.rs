@@ -16,10 +16,9 @@
 
 use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
 use crate::ops::{
-    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
-    DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
-    Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
-    SubFrom, SubFromRound,
+    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
+    MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
+    PowFromRound, SubAssignRound, SubFrom, SubFromRound,
 };
 #[cfg(feature = "integer")]
 use crate::Integer;
@@ -28,8 +27,8 @@ use crate::Rational;
 use crate::{Complex, Float};
 use gmp_mpfr_sys::mpc::{self, mpc_t};
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
-    ShrAssign, Sub, SubAssign,
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+    SubAssign,
 };
 use std::os::raw::c_int;
 
@@ -66,11 +65,7 @@ impl AssignRound<NegIncomplete<'_>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: NegIncomplete<'_>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn assign_round(&mut self, src: NegIncomplete<'_>, round: Round2) -> Ordering2 {
         xmpc::neg(self, Some(src.val), round)
     }
 }

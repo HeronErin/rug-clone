@@ -72,7 +72,10 @@ impl Clone for RandState<'_> {
             if inner.seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
-            RandState { inner, phantom: PhantomData }
+            RandState {
+                inner,
+                phantom: PhantomData,
+            }
         }
     }
 }
@@ -107,7 +110,10 @@ impl RandState<'_> {
             let_zeroed_ptr!(inner, inner_ptr);
             gmp::randinit_default(inner_ptr);
             let inner = assume_init!(inner);
-            RandState { inner, phantom: PhantomData }
+            RandState {
+                inner,
+                phantom: PhantomData,
+            }
         }
     }
 
@@ -126,7 +132,10 @@ impl RandState<'_> {
             let_zeroed_ptr!(inner, inner_ptr);
             gmp::randinit_mt(inner_ptr);
             let inner = assume_init!(inner);
-            RandState { inner, phantom: PhantomData }
+            RandState {
+                inner,
+                phantom: PhantomData,
+            }
         }
     }
 
@@ -148,16 +157,15 @@ impl RandState<'_> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
-    pub fn new_linear_congruential(
-        a: &Integer,
-        c: u32,
-        bits: u32,
-    ) -> RandState<'static> {
+    pub fn new_linear_congruential(a: &Integer, c: u32, bits: u32) -> RandState<'static> {
         unsafe {
             let_zeroed_ptr!(inner, inner_ptr);
             gmp::randinit_lc_2exp(inner_ptr, a.as_raw(), c.into(), bits.into());
             let inner = assume_init!(inner);
-            RandState { inner, phantom: PhantomData }
+            RandState {
+                inner,
+                phantom: PhantomData,
+            }
         }
     }
 
@@ -185,14 +193,15 @@ impl RandState<'_> {
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
     /// [`new_linear_congruential`]: #method.new_linear_congruential
-    pub fn new_linear_congruential_size(
-        size: u32,
-    ) -> Option<RandState<'static>> {
+    pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'static>> {
         unsafe {
             let_zeroed_ptr!(inner, inner_ptr);
             if gmp::randinit_lc_2exp_size(inner_ptr, size.into()) != 0 {
                 let inner = assume_init!(inner);
-                Some(RandState { inner, phantom: PhantomData })
+                Some(RandState {
+                    inner,
+                    phantom: PhantomData,
+                })
             } else {
                 None
             }
@@ -238,7 +247,10 @@ impl RandState<'_> {
             alg: 0,
             algdata: &CUSTOM_FUNCS as *const Funcs as *mut c_void,
         };
-        RandState { inner, phantom: PhantomData }
+        RandState {
+            inner,
+            phantom: PhantomData,
+        }
     }
 
     /// Creates a new custom random generator.
@@ -280,7 +292,10 @@ impl RandState<'_> {
             alg: 0,
             algdata: &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
         };
-        RandState { inner, phantom: PhantomData }
+        RandState {
+            inner,
+            phantom: PhantomData,
+        }
     }
 
     /// Creates a random generator from an initialized
@@ -335,7 +350,10 @@ impl RandState<'_> {
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'static> {
-        RandState { inner: raw, phantom: PhantomData }
+        RandState {
+            inner: raw,
+            phantom: PhantomData,
+        }
     }
 
     /// Converts a random generator into a
@@ -736,9 +754,7 @@ fn _static_assertions() {
 #[repr(C)]
 struct Funcs {
     seed: Option<unsafe extern "C" fn(*mut randstate_t, *const gmp::mpz_t)>,
-    get: Option<
-        unsafe extern "C" fn(*mut randstate_t, *mut gmp::limb_t, c_ulong),
-    >,
+    get: Option<unsafe extern "C" fn(*mut randstate_t, *mut gmp::limb_t, c_ulong)>,
     clear: Option<unsafe extern "C" fn(*mut randstate_t)>,
     iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
 }
@@ -823,11 +839,7 @@ c_callback! {
 }
 
 #[cfg(gmp_limb_bits_64)]
-unsafe fn gen_bits(
-    gen: &mut dyn RandGen,
-    limb: *mut gmp::limb_t,
-    bits: c_ulong,
-) {
+unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 64, bits % 64);
     let limbs: isize = cast(limbs);
     for i in 0..limbs {
@@ -849,11 +861,7 @@ unsafe fn gen_bits(
 }
 
 #[cfg(gmp_limb_bits_32)]
-unsafe fn gen_bits(
-    gen: &mut dyn RandGen,
-    limb: *mut gmp::limb_t,
-    bits: c_ulong,
-) {
+unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 32, bits % 32);
     let limbs: isize = cast(limbs);
     for i in 0..limbs {

@@ -68,8 +68,7 @@ pub struct SmallInteger {
     limbs: Limbs,
 }
 
-pub(crate) const LIMBS_IN_SMALL_INTEGER: usize =
-    (128 / gmp::LIMB_BITS) as usize;
+pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = (128 / gmp::LIMB_BITS) as usize;
 pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
 
 #[repr(C)]

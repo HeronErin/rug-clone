@@ -53,10 +53,7 @@ impl<'de> Deserialize<'de> for Complex {
         Ok(Complex::with_val(prec, p))
     }
 
-    fn deserialize_in_place<D>(
-        deserializer: D,
-        place: &mut Complex,
-    ) -> Result<(), D::Error>
+    fn deserialize_in_place<D>(deserializer: D, place: &mut Complex) -> Result<(), D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -72,14 +69,11 @@ impl<'de> Deserialize<'de> for Complex {
     }
 }
 
-fn de_data<'de, D>(
-    deserializer: D,
-) -> Result<((u32, u32), i32, String), D::Error>
+fn de_data<'de, D>(deserializer: D) -> Result<((u32, u32), i32, String), D::Error>
 where
     D: Deserializer<'de>,
 {
-    let Data { prec, radix, value } =
-        serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
+    let Data { prec, radix, value } = serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
     let prec = match prec {
         PrecVal::Two(two) => two,
         _ => unreachable!(),
@@ -117,10 +111,7 @@ impl<'de> Deserialize<'de> for OrdComplex {
         Complex::deserialize(deserializer).map(From::from)
     }
 
-    fn deserialize_in_place<D>(
-        deserializer: D,
-        place: &mut OrdComplex,
-    ) -> Result<(), D::Error>
+    fn deserialize_in_place<D>(deserializer: D, place: &mut OrdComplex) -> Result<(), D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -157,7 +148,10 @@ mod tests {
                 Check::DeError(p, _) => p,
             };
             let tokens = [
-                Token::Struct { name: "Complex", len: 3 },
+                Token::Struct {
+                    name: "Complex",
+                    len: 3,
+                },
                 Token::Str("prec"),
                 Token::Tuple { len: 2 },
                 Token::U32(prec.0),
@@ -178,7 +172,9 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec.0).unwrap();
             bincode.write_u32::<LittleEndian>(prec.1).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
-            bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(c) => {
@@ -201,15 +197,12 @@ mod tests {
     #[test]
     fn check() {
         let prec_min = float::prec_min();
-        let real_prec_err =
-            format!("real precision 0 less than minimum {}", prec_min);
-        let imag_prec_err =
-            format!("imaginary precision 0 less than minimum {}", prec_min);
+        let real_prec_err = format!("real precision 0 less than minimum {}", prec_min);
+        let imag_prec_err = format!("imaginary precision 0 less than minimum {}", prec_min);
         Check::DeError((0, 32), &real_prec_err).check(10, "0");
         Check::DeError((40, 0), &imag_prec_err).check(10, "0");
         Check::DeError((40, 32), "radix 1 less than minimum 2").check(1, "0");
-        Check::DeError((40, 32), "radix 37 greater than maximum 36")
-            .check(37, "0");
+        Check::DeError((40, 32), "radix 37 greater than maximum 36").check(37, "0");
 
         let mut c = Complex::new((40, 32));
         Check::SerDe(&c).check(10, "(0.0 0.0)");

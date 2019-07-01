@@ -24,8 +24,8 @@ use crate::{Assign, Complex, Float};
 use gmp_mpfr_sys::mpc;
 use std::cmp::Ordering;
 use std::fmt::{
-    Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
-    Result as FmtResult, UpperExp, UpperHex,
+    Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
+    UpperExp, UpperHex,
 };
 use std::mem;
 
@@ -91,21 +91,30 @@ where
 
 impl Display for Complex {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let format = Format { exp: ExpFormat::Point, ..Format::default() };
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
         fmt_radix(self, f, format)
     }
 }
 
 impl Debug for Complex {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let format = Format { exp: ExpFormat::Point, ..Format::default() };
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
         fmt_radix(self, f, format)
     }
 }
 
 impl LowerExp for Complex {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let format = Format { exp: ExpFormat::Exp, ..Format::default() };
+        let format = Format {
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
         fmt_radix(self, f, format)
     }
 }
@@ -208,9 +217,7 @@ impl AssignRound<&Complex> for Complex {
     type Ordering = Ordering2;
     #[inline]
     fn assign_round(&mut self, src: &Complex, round: Round2) -> Ordering2 {
-        let ret = unsafe {
-            mpc::set(self.as_raw_mut(), src.as_raw(), raw_round2(round))
-        };
+        let ret = unsafe { mpc::set(self.as_raw_mut(), src.as_raw(), raw_round2(round)) };
         ordering2(ret)
     }
 }
@@ -262,11 +269,7 @@ where
 // * overwrites format.precision with fmt.precision()
 // * overwrites format.sign_plus with fmt.sign_plus()
 // * overwrites prefix with "" if not fmt.alternate()
-fn fmt_radix(
-    c: &Complex,
-    fmt: &mut Formatter<'_>,
-    format: Format,
-) -> FmtResult {
+fn fmt_radix(c: &Complex, fmt: &mut Formatter<'_>, format: Format) -> FmtResult {
     let format = Format {
         precision: fmt.precision(),
         sign_plus: fmt.sign_plus(),

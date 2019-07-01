@@ -366,14 +366,8 @@ mod tests {
                 let op = (*n, *d);
                 let iop = Rational::from(op);
                 for b in against {
-                    assert_eq!(
-                        b.eq(&op),
-                        <Rational as PartialEq>::eq(&b, &iop)
-                    );
-                    assert_eq!(
-                        op.eq(&b),
-                        <Rational as PartialEq>::eq(&iop, &b)
-                    );
+                    assert_eq!(b.eq(&op), <Rational as PartialEq>::eq(&b, &iop));
+                    assert_eq!(op.eq(&b), <Rational as PartialEq>::eq(&iop, &b));
                     assert_eq!(b.eq(&op), op.eq(&b));
                     assert_eq!(
                         b.partial_cmp(&op),

@@ -18,17 +18,16 @@ use crate::cast;
 use crate::ext::xmpz;
 use crate::misc::NegAbs;
 use crate::ops::{
-    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign,
-    NotAssign, Pow, PowAssign, RemFrom, SubFrom,
+    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
+    PowAssign, RemFrom, SubFrom,
 };
 use crate::{Assign, Integer};
 use gmp_mpfr_sys::gmp;
 use std::cmp;
 use std::iter::{Product, Sum};
 use std::ops::{
-    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor,
-    BitXorAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign,
-    Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
+    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
+    Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
 
 // Specialize From implementation so that allocation is done with the
@@ -419,7 +418,10 @@ fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
     let size = cmp::max(lhs_size, rhs_size);
     let size = cast::cast::<_, usize>(size);
     // size must be < max, not just ≤ max, because we need to add 1 to it
-    assert!(size < usize::max_value() / (gmp::LIMB_BITS as usize), "overflow");
+    assert!(
+        size < usize::max_value() / (gmp::LIMB_BITS as usize),
+        "overflow"
+    );
     Integer::with_capacity((size + 1) * (gmp::LIMB_BITS as usize))
 }
 

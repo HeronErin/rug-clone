@@ -270,7 +270,11 @@ pub(crate) mod tests {
 
     impl Cmp {
         pub fn inf(neg: bool) -> Cmp {
-            Cmp::F64(if neg { f64::NEG_INFINITY } else { f64::INFINITY })
+            Cmp::F64(if neg {
+                f64::NEG_INFINITY
+            } else {
+                f64::INFINITY
+            })
         }
     }
 
@@ -290,27 +294,18 @@ pub(crate) mod tests {
         fn eq(&self, other: &Cmp) -> bool {
             match *other {
                 Cmp::F64(ref f) => self.eq(f),
-                Cmp::Nan(negative) => {
-                    self.is_nan() && self.is_sign_negative() == negative
-                }
+                Cmp::Nan(negative) => self.is_nan() && self.is_sign_negative() == negative,
             }
         }
     }
 
     #[test]
     fn check_from_str() {
-        assert!(
-            Float::with_val(53, Float::parse("-0").unwrap()).is_sign_negative()
-        );
-        assert!(
-            Float::with_val(53, Float::parse("+0").unwrap()).is_sign_positive()
-        );
-        assert!(
-            Float::with_val(53, Float::parse("1e1000").unwrap()).is_finite()
-        );
+        assert!(Float::with_val(53, Float::parse("-0").unwrap()).is_sign_negative());
+        assert!(Float::with_val(53, Float::parse("+0").unwrap()).is_sign_positive());
+        assert!(Float::with_val(53, Float::parse("1e1000").unwrap()).is_finite());
         let huge_hex = "1@99999999999999999999999999999999";
-        assert!(Float::with_val(53, Float::parse_radix(huge_hex, 16).unwrap())
-            .is_infinite());
+        assert!(Float::with_val(53, Float::parse_radix(huge_hex, 16).unwrap()).is_infinite());
 
         let bad_strings = [
             ("", 10),
@@ -447,9 +442,7 @@ pub(crate) mod tests {
     #[test]
     fn check_assumptions() {
         assert_eq!(unsafe { mpfr::custom_get_size(64) }, 8);
-        assert!(
-            unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize
-        );
+        assert!(unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize);
     }
 
     #[cfg(feature = "rand")]

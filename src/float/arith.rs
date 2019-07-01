@@ -17,10 +17,9 @@
 use crate::ext::xmpfr::{self, ordering1, raw_round};
 use crate::float::Round;
 use crate::ops::{
-    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound,
-    DivFrom, DivFromRound, MulAssignRound, MulFrom, MulFromRound, NegAssign,
-    Pow, PowAssign, PowAssignRound, PowFrom, PowFromRound, SubAssignRound,
-    SubFrom, SubFromRound,
+    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
+    MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
+    PowFromRound, SubAssignRound, SubFrom, SubFromRound,
 };
 use crate::Float;
 #[cfg(feature = "integer")]
@@ -30,8 +29,8 @@ use crate::Rational;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::cmp::Ordering;
 use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr,
-    ShrAssign, Sub, SubAssign,
+    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+    SubAssign,
 };
 use std::os::raw::c_int;
 use std::{i32, u32};
@@ -69,11 +68,7 @@ impl AssignRound<NegIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: NegIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: NegIncomplete<'_>, round: Round) -> Ordering {
         xmpfr::neg(self, Some(src.val), round)
     }
 }
@@ -610,11 +605,7 @@ impl AssignRound<MulAddMulIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: MulAddMulIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: MulAddMulIncomplete<'_>, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fmma(
                 self.as_raw_mut(),
@@ -647,11 +638,7 @@ impl AssignRound<MulSubMulIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: MulSubMulIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
+    fn assign_round(&mut self, src: MulSubMulIncomplete<'_>, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fmms(
                 self.as_raw_mut(),

@@ -25,13 +25,12 @@ impl Serialize for Rational {
         S: Serializer,
     {
         let prec = PrecVal::Zero;
-        let radix = if self.numer().significant_bits() <= 32
-            && self.denom().significant_bits() <= 32
-        {
-            10
-        } else {
-            16
-        };
+        let radix =
+            if self.numer().significant_bits() <= 32 && self.denom().significant_bits() <= 32 {
+                10
+            } else {
+                16
+            };
         let value = self.to_string_radix(radix);
         let data = Data { prec, radix, value };
         serdeize::serialize("Rational", &data, serializer)
@@ -44,21 +43,16 @@ impl<'de> Deserialize<'de> for Rational {
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        let p =
-            Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
         Ok(Rational::from(p))
     }
 
-    fn deserialize_in_place<D>(
-        deserializer: D,
-        place: &mut Rational,
-    ) -> Result<(), D::Error>
+    fn deserialize_in_place<D>(deserializer: D, place: &mut Rational) -> Result<(), D::Error>
     where
         D: Deserializer<'de>,
     {
         let (radix, value) = de_data(deserializer)?;
-        let p =
-            Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
+        let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
         place.assign(p);
         Ok(())
     }
@@ -101,7 +95,10 @@ mod tests {
             use serde_test::Token;
             use std::io::Write;
             let tokens = [
-                Token::Struct { name: "Rational", len: 2 },
+                Token::Struct {
+                    name: "Rational",
+                    len: 2,
+                },
                 Token::Str("radix"),
                 Token::I32(radix),
                 Token::Str("value"),
@@ -114,7 +111,9 @@ mod tests {
             });
             let mut bincode = Vec::<u8>::new();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
-            bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(r) => {
@@ -129,9 +128,7 @@ mod tests {
                     bincode_assert_de_value(r, &bincode, assert);
                 }
                 Check::DeError(msg) => {
-                    serde_test::assert_de_tokens_error::<Rational>(
-                        &tokens, msg,
-                    );
+                    serde_test::assert_de_tokens_error::<Rational>(&tokens, msg);
                 }
             }
         }

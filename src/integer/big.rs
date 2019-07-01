@@ -539,12 +539,8 @@ impl Integer {
     ///
     /// [upt]: integer/trait.UnsignedPrimitive.html
     /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
-    pub unsafe fn assign_digits_unaligned<T>(
-        &mut self,
-        src: *const T,
-        len: usize,
-        order: Order,
-    ) where
+    pub unsafe fn assign_digits_unaligned<T>(&mut self, src: *const T, len: usize, order: Order)
+    where
         T: UnsignedPrimitive,
     {
         gmp::mpz_import(
@@ -661,11 +657,7 @@ impl Integer {
         T: UnsignedPrimitive,
     {
         unsafe {
-            self.write_digits_unaligned(
-                digits.as_mut_ptr(),
-                digits.len(),
-                order,
-            );
+            self.write_digits_unaligned(digits.as_mut_ptr(), digits.len(), order);
         }
     }
 
@@ -747,17 +739,12 @@ impl Integer {
     /// [`to_digits`]: #method.to_digits
     /// [upt]: integer/trait.UnsignedPrimitive.html
     /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
-    pub unsafe fn write_digits_unaligned<T>(
-        &self,
-        dst: *mut T,
-        len: usize,
-        order: Order,
-    ) where
+    pub unsafe fn write_digits_unaligned<T>(&self, dst: *mut T, len: usize, order: Order)
+    where
         T: UnsignedPrimitive,
     {
         let digit_count = self.significant_digits::<T>();
-        let zero_count =
-            len.checked_sub(digit_count).expect("not enough capacity");
+        let zero_count = len.checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
             (dst.offset(cast(digit_count)), dst)
         } else {
@@ -846,10 +833,7 @@ impl Integer {
     ///
     /// [`Integer`]: struct.Integer.html
     #[inline]
-    pub fn from_str_radix(
-        src: &str,
-        radix: i32,
-    ) -> Result<Self, ParseIntegerError> {
+    pub fn from_str_radix(src: &str, radix: i32) -> Result<Self, ParseIntegerError> {
         Ok(Integer::from(Integer::parse_radix(src, radix)?))
     }
 
@@ -936,10 +920,7 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse_radix<S>(
-        src: S,
-        radix: i32,
-    ) -> Result<ParseIncomplete, ParseIntegerError>
+    pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
     where
         S: AsRef<[u8]>,
     {
@@ -1751,7 +1732,10 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     #[inline]
     pub fn as_neg(&self) -> BorrowInteger<'_> {
-        let mut ret = BorrowInteger { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowInteger {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         ret.inner.size = self.inner.size.checked_neg().expect("overflow");
         ret
     }
@@ -1780,7 +1764,10 @@ impl Integer {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     #[inline]
     pub fn as_abs(&self) -> BorrowInteger<'_> {
-        let mut ret = BorrowInteger { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowInteger {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         ret.inner.size = self.inner.size.checked_abs().expect("overflow");
         ret
     }
@@ -1894,10 +1881,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent(&self, c: &Self, divisor: &Self) -> bool {
-        unsafe {
-            gmp::mpz_congruent_p(self.as_raw(), c.as_raw(), divisor.as_raw())
-                != 0
-        }
+        unsafe { gmp::mpz_congruent_p(self.as_raw(), c.as_raw(), divisor.as_raw()) != 0 }
     }
 
     /// Returns [`true`] if the number is congruent to *c* mod
@@ -1919,10 +1903,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_u(&self, c: u32, divisor: u32) -> bool {
-        unsafe {
-            gmp::mpz_congruent_ui_p(self.as_raw(), c.into(), divisor.into())
-                != 0
-        }
+        unsafe { gmp::mpz_congruent_ui_p(self.as_raw(), c.into(), divisor.into()) != 0 }
     }
 
     /// Returns [`true`] if the number is congruent to *c* mod
@@ -1941,9 +1922,7 @@ impl Integer {
     /// [`true`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
     #[inline]
     pub fn is_congruent_2pow(&self, c: &Self, b: u32) -> bool {
-        unsafe {
-            gmp::mpz_congruent_2exp_p(self.as_raw(), c.as_raw(), b.into()) != 0
-        }
+        unsafe { gmp::mpz_congruent_2exp_p(self.as_raw(), c.as_raw(), b.into()) != 0 }
     }
 
     /// Returns [`true`] if the number is a perfect power.
@@ -2495,10 +2474,7 @@ impl Integer {
     #[inline]
     pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
-        Self: PartialOrd<Min>
-            + PartialOrd<Max>
-            + Assign<&'a Min>
-            + Assign<&'b Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'b Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -2525,10 +2501,7 @@ impl Integer {
     /// ```
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
-        Self: PartialOrd<Min>
-            + PartialOrd<Max>
-            + Assign<&'a Min>
-            + Assign<&'b Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'b Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -2575,12 +2548,13 @@ impl Integer {
         max: &'a Max,
     ) -> ClampIncomplete<'a, Min, Max>
     where
-        Self: PartialOrd<Min>
-            + PartialOrd<Max>
-            + Assign<&'a Min>
-            + Assign<&'a Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     {
-        ClampIncomplete { ref_self: self, min, max }
+        ClampIncomplete {
+            ref_self: self,
+            min,
+            max,
+        }
     }
 
     math_op1! {
@@ -3365,12 +3339,8 @@ impl Integer {
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [icv]: index.html#incomplete-computation-values
-    pub fn invert_ref<'a>(
-        &'a self,
-        modulo: &'a Self,
-    ) -> Option<InvertIncomplete<'a>> {
-        xmpz::start_invert(self, modulo)
-            .map(|sinverse| InvertIncomplete { sinverse, modulo })
+    pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertIncomplete<'a>> {
+        xmpz::start_invert(self, modulo).map(|sinverse| InvertIncomplete { sinverse, modulo })
     }
 
     /// Raises a number to the power of `exponent` modulo `modulo` and
@@ -3418,11 +3388,7 @@ impl Integer {
     /// [`Err`]: https://doc.rust-lang.org/nightly/std/result/enum.Result.html#variant.Err
     /// [`Ok`]: https://doc.rust-lang.org/nightly/std/result/enum.Result.html#variant.Ok
     #[inline]
-    pub fn pow_mod(
-        mut self,
-        exponent: &Self,
-        modulo: &Self,
-    ) -> Result<Self, Self> {
+    pub fn pow_mod(mut self, exponent: &Self, modulo: &Self) -> Result<Self, Self> {
         match self.pow_mod_mut(exponent, modulo) {
             Ok(()) => Ok(self),
             Err(()) => Err(self),
@@ -3455,11 +3421,7 @@ impl Integer {
     ///     Err(()) => unreachable!(),
     /// }
     /// ```
-    pub fn pow_mod_mut(
-        &mut self,
-        exponent: &Self,
-        modulo: &Self,
-    ) -> Result<(), ()> {
+    pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> Result<(), ()> {
         let sinverse = match self.pow_mod_ref(exponent, modulo) {
             Some(PowModIncomplete { sinverse, .. }) => sinverse,
             None => return Err(()),
@@ -3635,7 +3597,11 @@ impl Integer {
         exponent: &'a Self,
         modulo: &'a Self,
     ) -> SecurePowModIncomplete<'a> {
-        SecurePowModIncomplete { ref_self: self, exponent, modulo }
+        SecurePowModIncomplete {
+            ref_self: self,
+            exponent,
+            modulo,
+        }
     }
 
     math_op0! {
@@ -4474,11 +4440,11 @@ impl Integer {
     /// assert_eq!(j, 1000);
     /// ```
     #[inline]
-    pub fn remove_factor_ref<'a>(
-        &'a self,
-        factor: &'a Self,
-    ) -> RemoveFactorIncomplete<'a> {
-        RemoveFactorIncomplete { ref_self: self, factor }
+    pub fn remove_factor_ref<'a>(&'a self, factor: &'a Self) -> RemoveFactorIncomplete<'a> {
+        RemoveFactorIncomplete {
+            ref_self: self,
+            factor,
+        }
     }
 
     math_op0! {
@@ -4885,7 +4851,10 @@ impl Integer {
     where
         'b: 'a,
     {
-        RandomBelowIncomplete { ref_self: self, rng }
+        RandomBelowIncomplete {
+            ref_self: self,
+            rng,
+        }
     }
 }
 
@@ -5108,8 +5077,7 @@ ref_math_op1! { Integer; xmpz::signum; struct SignumIncomplete {} }
 #[derive(Debug)]
 pub struct ClampIncomplete<'a, Min, Max>
 where
-    Integer:
-        PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
+    Integer: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
 {
     ref_self: &'a Integer,
     min: &'a Min,
@@ -5146,34 +5114,16 @@ where
     }
 }
 
-ref_math_op1! {
-    Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: u32 }
-}
-ref_math_op1! {
-    Integer;
-    xmpz::keep_signed_bits;
-    struct KeepSignedBitsIncomplete { n: u32 }
-}
-ref_math_op1! {
-    Integer; xmpz::next_pow_of_two; struct NextPowerOfTwoIncomplete {}
-}
+ref_math_op1! { Integer; xmpz::fdiv_r_2exp; struct KeepBitsIncomplete { n: u32 } }
+ref_math_op1! { Integer; xmpz::keep_signed_bits; struct KeepSignedBitsIncomplete { n: u32 } }
+ref_math_op1! { Integer; xmpz::next_pow_of_two; struct NextPowerOfTwoIncomplete {} }
 ref_math_op2_2! { Integer; xmpz::tdiv_qr; struct DivRemIncomplete { divisor } }
-ref_math_op2_2! {
-    Integer; xmpz::cdiv_qr; struct DivRemCeilIncomplete { divisor }
-}
-ref_math_op2_2! {
-    Integer; xmpz::fdiv_qr; struct DivRemFloorIncomplete { divisor }
-}
-ref_math_op2_2! {
-    Integer; xmpz::rdiv_qr; struct DivRemRoundIncomplete { divisor }
-}
-ref_math_op2_2! {
-    Integer; xmpz::ediv_qr; struct DivRemEucIncomplete { divisor }
-}
+ref_math_op2_2! { Integer; xmpz::cdiv_qr; struct DivRemCeilIncomplete { divisor } }
+ref_math_op2_2! { Integer; xmpz::fdiv_qr; struct DivRemFloorIncomplete { divisor } }
+ref_math_op2_2! { Integer; xmpz::rdiv_qr; struct DivRemRoundIncomplete { divisor } }
+ref_math_op2_2! { Integer; xmpz::ediv_qr; struct DivRemEucIncomplete { divisor } }
 ref_math_op2! { Integer; xmpz::divexact; struct DivExactIncomplete { divisor } }
-ref_math_op1! {
-    Integer; xmpz::divexact_ui; struct DivExactUIncomplete { divisor: u32 }
-}
+ref_math_op1! { Integer; xmpz::divexact_ui; struct DivExactUIncomplete { divisor: u32 } }
 
 #[derive(Debug)]
 pub struct PowModIncomplete<'a> {
@@ -5234,16 +5184,8 @@ impl Assign<SecurePowModIncomplete<'_>> for Integer {
 
 from_assign! { SecurePowModIncomplete<'_> => Integer }
 
-ref_math_op0! {
-    Integer;
-    xmpz::ui_pow_ui;
-    struct UPowUIncomplete { base: u32, exponent: u32 }
-}
-ref_math_op0! {
-    Integer;
-    xmpz::si_pow_ui;
-    struct IPowUIncomplete { base: i32, exponent: u32 }
-}
+ref_math_op0! { Integer; xmpz::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 } }
+ref_math_op0! { Integer; xmpz::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 } }
 ref_math_op1! { Integer; xmpz::root; struct RootIncomplete { n: u32 } }
 ref_math_op1_2! { Integer; xmpz::rootrem; struct RootRemIncomplete { n: u32 } }
 ref_math_op1! { Integer; xmpz::square; struct SquareIncomplete {} }
@@ -5343,30 +5285,18 @@ impl From<RemoveFactorIncomplete<'_>> for (Integer, u32) {
 }
 
 ref_math_op0! { Integer; xmpz::fac_ui; struct FactorialIncomplete { n: u32 } }
-ref_math_op0! {
-    Integer; xmpz::twofac_ui; struct Factorial2Incomplete { n: u32 }
-}
-ref_math_op0! {
-    Integer; xmpz::mfac_uiui; struct FactorialMIncomplete { n: u32, m: u32 }
-}
-ref_math_op0! {
-    Integer; xmpz::primorial_ui; struct PrimorialIncomplete { n: u32 }
-}
+ref_math_op0! { Integer; xmpz::twofac_ui; struct Factorial2Incomplete { n: u32 } }
+ref_math_op0! { Integer; xmpz::mfac_uiui; struct FactorialMIncomplete { n: u32, m: u32 } }
+ref_math_op0! { Integer; xmpz::primorial_ui; struct PrimorialIncomplete { n: u32 } }
 ref_math_op1! { Integer; xmpz::bin_ui; struct BinomialIncomplete { k: u32 } }
-ref_math_op0! {
-    Integer; xmpz::bin_uiui; struct BinomialUIncomplete { n: u32, k: u32 }
-}
+ref_math_op0! { Integer; xmpz::bin_uiui; struct BinomialUIncomplete { n: u32, k: u32 } }
 ref_math_op0! { Integer; xmpz::fib_ui; struct FibonacciIncomplete { n: u32 } }
 
 impl Assign<FibonacciIncomplete> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: FibonacciIncomplete) {
         unsafe {
-            gmp::mpz_fib2_ui(
-                self.0.as_raw_mut(),
-                self.1.as_raw_mut(),
-                src.n.into(),
-            );
+            gmp::mpz_fib2_ui(self.0.as_raw_mut(), self.1.as_raw_mut(), src.n.into());
         }
     }
 }
@@ -5386,11 +5316,7 @@ impl Assign<LucasIncomplete> for (&mut Integer, &mut Integer) {
     #[inline]
     fn assign(&mut self, src: LucasIncomplete) {
         unsafe {
-            gmp::mpz_lucnum2_ui(
-                self.0.as_raw_mut(),
-                self.1.as_raw_mut(),
-                src.n.into(),
-            );
+            gmp::mpz_lucnum2_ui(self.0.as_raw_mut(), self.1.as_raw_mut(), src.n.into());
         }
     }
 }
@@ -5418,11 +5344,7 @@ impl Assign<RandomBitsIncomplete<'_, '_>> for Integer {
     #[inline]
     fn assign(&mut self, src: RandomBitsIncomplete<'_, '_>) {
         unsafe {
-            gmp::mpz_urandomb(
-                self.as_raw_mut(),
-                src.rng.as_raw_mut(),
-                src.bits.into(),
-            );
+            gmp::mpz_urandomb(self.as_raw_mut(), src.rng.as_raw_mut(), src.bits.into());
         }
     }
 }
@@ -5491,12 +5413,7 @@ pub(crate) fn req_chars(i: &Integer, radix: i32, extra: usize) -> usize {
     }
 }
 
-pub(crate) fn append_to_string(
-    s: &mut String,
-    i: &Integer,
-    radix: i32,
-    to_upper: bool,
-) {
+pub(crate) fn append_to_string(s: &mut String, i: &Integer, radix: i32, to_upper: bool) {
     // add 1 for nul
     let size = req_chars(i, radix, 1);
     s.reserve(size);
@@ -5545,10 +5462,7 @@ impl Assign<ParseIncomplete> for Integer {
 
 from_assign! { ParseIncomplete => Integer }
 
-fn parse(
-    bytes: &[u8],
-    radix: i32,
-) -> Result<ParseIncomplete, ParseIntegerError> {
+fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError> {
     use self::ParseErrorKind as Kind;
     use self::ParseIntegerError as Error;
 
@@ -5581,7 +5495,9 @@ fn parse(
             _ => bradix,
         };
         if digit >= bradix {
-            return Err(Error { kind: Kind::InvalidDigit });
+            return Err(Error {
+                kind: Kind::InvalidDigit,
+            });
         };
         has_digits = true;
         if digit > 0 || !digits.is_empty() {
@@ -5589,9 +5505,15 @@ fn parse(
         }
     }
     if !has_digits {
-        return Err(Error { kind: Kind::NoDigits });
+        return Err(Error {
+            kind: Kind::NoDigits,
+        });
     }
-    Ok(ParseIncomplete { is_negative, digits, radix })
+    Ok(ParseIncomplete {
+        is_negative,
+        digits,
+        radix,
+    })
 }
 
 #[derive(Debug)]

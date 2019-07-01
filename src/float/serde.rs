@@ -28,7 +28,11 @@ impl Serialize for Float {
         S: Serializer,
     {
         let prec = self.prec();
-        let radix = if prec <= 32 || !self.is_normal() { 10 } else { 16 };
+        let radix = if prec <= 32 || !self.is_normal() {
+            10
+        } else {
+            16
+        };
         let prec = PrecVal::One(prec);
         let value = self.to_string_radix(radix, None);
         let data = Data { prec, radix, value };
@@ -46,10 +50,7 @@ impl<'de> Deserialize<'de> for Float {
         Ok(Float::with_val(prec, p))
     }
 
-    fn deserialize_in_place<D>(
-        deserializer: D,
-        place: &mut Float,
-    ) -> Result<(), D::Error>
+    fn deserialize_in_place<D>(deserializer: D, place: &mut Float) -> Result<(), D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -67,18 +68,12 @@ fn de_data<'de, D>(deserializer: D) -> Result<(u32, i32, String), D::Error>
 where
     D: Deserializer<'de>,
 {
-    let Data { prec, radix, value } =
-        serdeize::deserialize("Float", PrecReq::One, deserializer)?;
+    let Data { prec, radix, value } = serdeize::deserialize("Float", PrecReq::One, deserializer)?;
     let prec = match prec {
         PrecVal::One(one) => one,
         _ => unreachable!(),
     };
-    serdeize::check_range(
-        "precision",
-        prec,
-        float::prec_min(),
-        float::prec_max(),
-    )?;
+    serdeize::check_range("precision", prec, float::prec_min(), float::prec_max())?;
     serdeize::check_range("radix", radix, 2, 36)?;
     Ok((prec, radix, value))
 }
@@ -100,10 +95,7 @@ impl<'de> Deserialize<'de> for OrdFloat {
         Float::deserialize(deserializer).map(From::from)
     }
 
-    fn deserialize_in_place<D>(
-        deserializer: D,
-        place: &mut OrdFloat,
-    ) -> Result<(), D::Error>
+    fn deserialize_in_place<D>(deserializer: D, place: &mut OrdFloat) -> Result<(), D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -140,7 +132,10 @@ mod tests {
                 Check::DeError(p, _) => p,
             };
             let tokens = [
-                Token::Struct { name: "Float", len: 3 },
+                Token::Struct {
+                    name: "Float",
+                    len: 3,
+                },
                 Token::Str("prec"),
                 Token::U32(prec),
                 Token::Str("radix"),
@@ -157,7 +152,9 @@ mod tests {
             let mut bincode = Vec::<u8>::new();
             bincode.write_u32::<LittleEndian>(prec).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
-            bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(f) => {
@@ -179,8 +176,7 @@ mod tests {
 
     #[test]
     fn check() {
-        let prec_err =
-            format!("precision 0 less than minimum {}", float::prec_min());
+        let prec_err = format!("precision 0 less than minimum {}", float::prec_min());
         Check::DeError(0, &prec_err).check(10, "0");
         Check::DeError(40, "radix 1 less than minimum 2").check(1, "0");
         Check::DeError(40, "radix 37 greater than maximum 36").check(37, "0");

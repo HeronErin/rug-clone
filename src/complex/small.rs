@@ -160,12 +160,13 @@ impl SmallComplex {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first =
-            &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let last =
-            &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let (re_d, im_d) =
-            if self.re_is_first() { (first, last) } else { (last, first) };
+        let first = &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let last = &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let (re_d, im_d) = if self.re_is_first() {
+            (first, last)
+        } else {
+            (last, first)
+        };
         self.inner.re.d.store(re_d, Ordering::Relaxed);
         self.inner.im.d.store(im_d, Ordering::Relaxed);
     }
@@ -204,8 +205,18 @@ where
     fn from(src: Re) -> Self {
         let mut dst = SmallComplex {
             inner: Mpc {
-                re: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
-                im: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+                re: Mpfr {
+                    prec: 0,
+                    sign: 0,
+                    exp: 0,
+                    d: Default::default(),
+                },
+                im: Mpfr {
+                    prec: 0,
+                    sign: 0,
+                    exp: 0,
+                    d: Default::default(),
+                },
             },
             first_limbs: [0; LIMBS_IN_SMALL_FLOAT],
             last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
@@ -243,8 +254,18 @@ where
     fn from(src: (Re, Im)) -> Self {
         let mut dst = SmallComplex {
             inner: Mpc {
-                re: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
-                im: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+                re: Mpfr {
+                    prec: 0,
+                    sign: 0,
+                    exp: 0,
+                    d: Default::default(),
+                },
+                im: Mpfr {
+                    prec: 0,
+                    sign: 0,
+                    exp: 0,
+                    d: Default::default(),
+                },
             },
             first_limbs: [0; LIMBS_IN_SMALL_FLOAT],
             last_limbs: [0; LIMBS_IN_SMALL_FLOAT],

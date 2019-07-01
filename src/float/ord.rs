@@ -158,9 +158,7 @@ impl Ord for OrdFloat {
                     }
                 }
                 (true, true) => s.is_sign_positive().cmp(&o.is_sign_positive()),
-                (false, false) => unsafe {
-                    mpfr::cmp(s.as_raw(), o.as_raw()).cmp(&0)
-                },
+                (false, false) => unsafe { mpfr::cmp(s.as_raw(), o.as_raw()).cmp(&0) },
             }
         }
     }

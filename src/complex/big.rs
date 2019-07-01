@@ -20,8 +20,7 @@ use crate::complex::{OrdComplex, Prec};
 use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
 use crate::ext::xmpfr::raw_round;
 use crate::float::big::{
-    self as big_float, ExpFormat, Format as FloatFormat,
-    ParseIncomplete as FloatParseIncomplete,
+    self as big_float, ExpFormat, Format as FloatFormat, ParseIncomplete as FloatParseIncomplete,
 };
 use crate::float::{self, ParseFloatError, Round, Special};
 use crate::misc;
@@ -361,11 +360,7 @@ impl Complex {
     ///
     /// [`Complex`]: struct.Complex.html
     #[inline]
-    pub fn with_val_round<P, T>(
-        prec: P,
-        val: T,
-        round: Round2,
-    ) -> (Self, Ordering2)
+    pub fn with_val_round<P, T>(prec: P, val: T, round: Round2) -> (Self, Ordering2)
     where
         Self: AssignRound<T, Round = Round2, Ordering = Ordering2>,
         P: Prec,
@@ -439,7 +434,10 @@ impl Complex {
     {
         let p = prec.prec();
         let (real, imag) = self.as_mut_real_imag();
-        (real.set_prec_round(p.0, round.0), imag.set_prec_round(p.1, round.1))
+        (
+            real.set_prec_round(p.0, round.0),
+            imag.set_prec_round(p.1, round.1),
+        )
     }
 
     /// Creates a [`Complex`] number from an initialized
@@ -672,10 +670,7 @@ impl Complex {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
-    pub fn parse_radix<S>(
-        src: S,
-        radix: i32,
-    ) -> Result<ParseIncomplete, ParseComplexError>
+    pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseComplexError>
     where
         S: AsRef<[u8]>,
     {
@@ -706,11 +701,7 @@ impl Complex {
     /// assert_eq!(c3.to_string_radix(5, Some(3)), "(2.00e1 -4.00)");
     /// ```
     #[inline]
-    pub fn to_string_radix(
-        &self,
-        radix: i32,
-        num_digits: Option<usize>,
-    ) -> String {
+    pub fn to_string_radix(&self, radix: i32, num_digits: Option<usize>) -> String {
         self.to_string_radix_round(radix, num_digits, Default::default())
     }
 
@@ -905,7 +896,10 @@ impl Complex {
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_neg(&self) -> BorrowComplex<'_> {
         // shallow copy
-        let mut ret = BorrowComplex { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowComplex {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         unsafe {
             NegAssign::neg_assign(&mut (*mpc::realref(&mut ret.inner)).sign);
             NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
@@ -940,7 +934,10 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_conj(&self) -> BorrowComplex<'_> {
-        let mut ret = BorrowComplex { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowComplex {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         unsafe {
             NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
             if self.imag().is_nan() {
@@ -995,7 +992,10 @@ impl Complex {
             }
             assume_init!(inner)
         };
-        BorrowComplex { inner, phantom: PhantomData }
+        BorrowComplex {
+            inner,
+            phantom: PhantomData,
+        }
     }
 
     /// Borrows the [`Complex`] number as an ordered complex number of
@@ -1050,8 +1050,7 @@ impl Complex {
     /// [`eq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html#tymethod.eq
     #[inline]
     pub fn eq0(&self) -> bool {
-        self.real().cmp0() == Some(Ordering::Equal)
-            && self.imag().cmp0() == Some(Ordering::Equal)
+        self.real().cmp0() == Some(Ordering::Equal) && self.imag().cmp0() == Some(Ordering::Equal)
     }
 
     /// Compares the absolute values of `self` and `other`.
@@ -1078,9 +1077,7 @@ impl Complex {
         {
             None
         } else {
-            unsafe {
-                Some(ordering1(mpc::cmp_abs(self.as_raw(), other.as_raw())))
-            }
+            unsafe { Some(ordering1(mpc::cmp_abs(self.as_raw(), other.as_raw()))) }
         }
     }
 
@@ -1263,12 +1260,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    pub fn mul_add_round(
-        &mut self,
-        mul: &Self,
-        add: &Self,
-        round: Round2,
-    ) -> Ordering2 {
+    pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round2) -> Ordering2 {
         xmpc::fma(self, None, Some(mul), Some(add), round)
     }
 
@@ -1297,11 +1289,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
-    pub fn mul_add_ref<'a>(
-        &'a self,
-        mul: &'a Self,
-        add: &'a Self,
-    ) -> AddMulIncomplete<'a> {
+    pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
         self * mul + add
     }
 
@@ -1372,12 +1360,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
-    pub fn mul_sub_round(
-        &mut self,
-        mul: &Self,
-        sub: &Self,
-        round: Round2,
-    ) -> Ordering2 {
+    pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round2) -> Ordering2 {
         let ret = unsafe {
             xmpc::mulsub(
                 self.as_raw_mut(),
@@ -1414,11 +1397,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
-    pub fn mul_sub_ref<'a>(
-        &'a self,
-        mul: &'a Self,
-        sub: &'a Self,
-    ) -> SubMulFromIncomplete<'a> {
+    pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
 
@@ -2093,8 +2072,7 @@ impl Complex {
     /// ```
     #[inline]
     pub fn norm_round(&mut self, round: Round2) -> Ordering2 {
-        let (norm, dir_re) =
-            Float::with_val_round(self.real().prec(), self.norm_ref(), round.0);
+        let (norm, dir_re) = Float::with_val_round(self.real().prec(), self.norm_ref(), round.0);
         let (real, imag) = self.as_mut_real_imag();
         mem::replace(real, norm);
         let dir_im = imag.assign_round(Special::Zero, round.1);
@@ -3297,9 +3275,7 @@ impl Complex {
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b>(
-        rng: &'a mut RandState<'b>,
-    ) -> RandomBitsIncomplete<'a, 'b>
+    pub fn random_bits<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomBitsIncomplete<'a, 'b>
     where
         'b: 'a,
     {
@@ -3383,11 +3359,7 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn assign_round(
-        &mut self,
-        src: SumIncomplete<'a, I>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         let capacity = match src.values.size_hint() {
             (lower, None) => lower,
             (_, Some(upper)) => upper,
@@ -3440,11 +3412,7 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn add_assign_round(
-        &mut self,
-        src: SumIncomplete<'a, I>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn add_assign_round(&mut self, src: SumIncomplete<'a, I>, round: Round2) -> Ordering2 {
         let capacity = match src.values.size_hint() {
             (lower, None) => lower + 1,
             (_, Some(upper)) => upper + 1,
@@ -3530,18 +3498,16 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn assign_round(
-        &mut self,
-        src: DotIncomplete<'a, I>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
         let pairs = src.values.collect::<Vec<_>>();
         let mut prods = prods_real(&pairs);
-        let ret_real =
-            self.mut_real().assign_round(Float::sum(prods.iter()), round.0);
+        let ret_real = self
+            .mut_real()
+            .assign_round(Float::sum(prods.iter()), round.0);
         prods_imag(&mut prods, &pairs);
-        let ret_imag =
-            self.mut_imag().assign_round(Float::sum(prods.iter()), round.1);
+        let ret_imag = self
+            .mut_imag()
+            .assign_round(Float::sum(prods.iter()), round.1);
         (ret_real, ret_imag)
     }
 }
@@ -3574,18 +3540,16 @@ where
 {
     type Round = Round2;
     type Ordering = Ordering2;
-    fn add_assign_round(
-        &mut self,
-        src: DotIncomplete<'a, I>,
-        round: Round2,
-    ) -> Ordering2 {
+    fn add_assign_round(&mut self, src: DotIncomplete<'a, I>, round: Round2) -> Ordering2 {
         let pairs = src.values.collect::<Vec<_>>();
         let mut prods = prods_real(&pairs);
-        let ret_real =
-            self.mut_real().add_assign_round(Float::sum(prods.iter()), round.0);
+        let ret_real = self
+            .mut_real()
+            .add_assign_round(Float::sum(prods.iter()), round.0);
         prods_imag(&mut prods, &pairs);
-        let ret_imag =
-            self.mut_imag().add_assign_round(Float::sum(prods.iter()), round.1);
+        let ret_imag = self
+            .mut_imag()
+            .add_assign_round(Float::sum(prods.iter()), round.1);
         (ret_real, ret_imag)
     }
 }
@@ -3604,14 +3568,8 @@ impl AssignRound<AbsIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: AbsIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpc::abs(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round))
-        };
+    fn assign_round(&mut self, src: AbsIncomplete<'_>, round: Round) -> Ordering {
+        let ret = unsafe { mpc::abs(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round)) };
         ret.cmp(&0)
     }
 }
@@ -3625,14 +3583,8 @@ impl AssignRound<ArgIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: ArgIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpc::arg(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round))
-        };
+    fn assign_round(&mut self, src: ArgIncomplete<'_>, round: Round) -> Ordering {
+        let ret = unsafe { mpc::arg(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round)) };
         ret.cmp(&0)
     }
 }
@@ -3649,27 +3601,15 @@ impl AssignRound<NormIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: NormIncomplete<'_>,
-        round: Round,
-    ) -> Ordering {
-        let ret = unsafe {
-            mpc::norm(
-                self.as_raw_mut(),
-                src.ref_self.as_raw(),
-                raw_round(round),
-            )
-        };
+    fn assign_round(&mut self, src: NormIncomplete<'_>, round: Round) -> Ordering {
+        let ret = unsafe { mpc::norm(self.as_raw_mut(), src.ref_self.as_raw(), raw_round(round)) };
         ret.cmp(&0)
     }
 }
 
 ref_math_op1_complex! { xmpc::log; struct LnIncomplete {} }
 ref_math_op1_complex! { xmpc::log10; struct Log10Incomplete {} }
-ref_math_op0_complex! {
-    xmpc::rootofunity; struct RootOfUnityIncomplete { n: u32, k: u32 }
-}
+ref_math_op0_complex! { xmpc::rootofunity; struct RootOfUnityIncomplete { n: u32, k: u32 } }
 ref_math_op1_complex! { xmpc::exp; struct ExpIncomplete {} }
 ref_math_op1_complex! { xmpc::sin; struct SinIncomplete {} }
 ref_math_op1_complex! { xmpc::cos; struct CosIncomplete {} }
@@ -3715,15 +3655,13 @@ impl AssignRound<RandomCont<'_, '_>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: RandomCont<'_, '_>,
-        round: Round2,
-    ) -> Ordering2 {
-        let real_dir =
-            self.mut_real().assign_round(Float::random_cont(src.rng), round.0);
-        let imag_dir =
-            self.mut_imag().assign_round(Float::random_cont(src.rng), round.1);
+    fn assign_round(&mut self, src: RandomCont<'_, '_>, round: Round2) -> Ordering2 {
+        let real_dir = self
+            .mut_real()
+            .assign_round(Float::random_cont(src.rng), round.0);
+        let imag_dir = self
+            .mut_imag()
+            .assign_round(Float::random_cont(src.rng), round.1);
         (real_dir, imag_dir)
     }
 }
@@ -3794,11 +3732,9 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     big_float::append_to_string(s, re, ff);
     if re_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
-            let bytes =
-                slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
+            let bytes = slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
-            bytes[prefix_start + 1..=prefix_end]
-                .copy_from_slice(f.prefix.as_bytes());
+            bytes[prefix_start + 1..=prefix_end].copy_from_slice(f.prefix.as_bytes());
         }
     }
     s.push(' ');
@@ -3810,15 +3746,16 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
         s.push_str(f.prefix);
     }
     let prefix_end = s.len();
-    let ff = FloatFormat { round: f.round.1, ..ff };
+    let ff = FloatFormat {
+        round: f.round.1,
+        ..ff
+    };
     big_float::append_to_string(s, im, ff);
     if im_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
-            let bytes =
-                slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
+            let bytes = slice::from_raw_parts_mut(s.as_ptr() as *mut u8, s.len());
             bytes[prefix_start] = b'-';
-            bytes[prefix_start + 1..=prefix_end]
-                .copy_from_slice(f.prefix.as_bytes());
+            bytes[prefix_start + 1..=prefix_end].copy_from_slice(f.prefix.as_bytes());
         }
     }
     s.push(')');
@@ -3834,11 +3771,7 @@ impl AssignRound<ParseIncomplete> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(
-        &mut self,
-        src: ParseIncomplete,
-        round: Round2,
-    ) -> Ordering2 {
+    fn assign_round(&mut self, src: ParseIncomplete, round: Round2) -> Ordering2 {
         match src {
             ParseIncomplete::Real(re) => {
                 let real_ord = self.mut_real().assign_round(re, round.0);
@@ -3860,10 +3793,7 @@ macro_rules! parse_error {
     };
 }
 
-fn parse(
-    mut bytes: &[u8],
-    radix: i32,
-) -> Result<ParseIncomplete, ParseComplexError> {
+fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexError> {
     bytes = misc::trim_start(bytes);
     bytes = misc::trim_end(bytes);
     if bytes.is_empty() {
@@ -3881,32 +3811,31 @@ fn parse(
             Err(e) => parse_error!(ParseErrorKind::InvalidFloat(e)),
         };
     };
-    let (real, imag) =
-        if let Some(comma) = misc::find_outside_brackets(bytes, b',') {
-            let real = misc::trim_end(&bytes[..comma]);
-            if real.is_empty() {
-                parse_error!(ParseErrorKind::NoRealDigits)?;
-            }
-            let imag = misc::trim_start(&bytes[comma + 1..]);
-            if imag.is_empty() {
-                parse_error!(ParseErrorKind::NoImagDigits)?;
-            }
-            if misc::find_outside_brackets(imag, b',').is_some() {
-                parse_error!(ParseErrorKind::MultipleSeparators)?;
-            }
-            (real, imag)
-        } else if let Some(space) = misc::find_space_outside_brackets(bytes) {
-            let real = &bytes[..space];
-            assert!(!real.is_empty());
-            let imag = misc::trim_start(&bytes[space + 1..]);
-            assert!(!imag.is_empty());
-            if misc::find_space_outside_brackets(imag).is_some() {
-                parse_error!(ParseErrorKind::MultipleSeparators)?;
-            }
-            (real, imag)
-        } else {
-            parse_error!(ParseErrorKind::MissingSeparator)?
-        };
+    let (real, imag) = if let Some(comma) = misc::find_outside_brackets(bytes, b',') {
+        let real = misc::trim_end(&bytes[..comma]);
+        if real.is_empty() {
+            parse_error!(ParseErrorKind::NoRealDigits)?;
+        }
+        let imag = misc::trim_start(&bytes[comma + 1..]);
+        if imag.is_empty() {
+            parse_error!(ParseErrorKind::NoImagDigits)?;
+        }
+        if misc::find_outside_brackets(imag, b',').is_some() {
+            parse_error!(ParseErrorKind::MultipleSeparators)?;
+        }
+        (real, imag)
+    } else if let Some(space) = misc::find_space_outside_brackets(bytes) {
+        let real = &bytes[..space];
+        assert!(!real.is_empty());
+        let imag = misc::trim_start(&bytes[space + 1..]);
+        assert!(!imag.is_empty());
+        if misc::find_space_outside_brackets(imag).is_some() {
+            parse_error!(ParseErrorKind::MultipleSeparators)?;
+        }
+        (real, imag)
+    } else {
+        parse_error!(ParseErrorKind::MissingSeparator)?
+    };
     let re = match Float::parse_radix(real, radix) {
         Ok(re) => re,
         Err(e) => parse_error!(ParseErrorKind::InvalidRealFloat(e))?,
@@ -3968,13 +3897,9 @@ impl Error for ParseComplexError {
             NoImagDigits => "string has no imaginary digits",
             InvalidFloat(_) => "string is not a valid float",
             InvalidRealFloat(_) => "real part of string is not a valid float",
-            InvalidImagFloat(_) => {
-                "imaginary part of string is not a valid float"
-            }
+            InvalidImagFloat(_) => "imaginary part of string is not a valid float",
             MissingSeparator => "string has no separator inside brackets",
-            MultipleSeparators => {
-                "string has more than one separator inside brackets"
-            }
+            MultipleSeparators => "string has more than one separator inside brackets",
             CloseNotLast => "string has more characters after closing bracket",
         }
     }

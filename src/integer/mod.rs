@@ -307,10 +307,7 @@ mod tests {
     fn check_from_str() {
         let mut i: Integer = "+134".parse().unwrap();
         assert_eq!(i, 134);
-        i.assign(
-            Integer::parse_radix("-ffFFffffFfFfffffffffffffffffffff", 16)
-                .unwrap(),
-        );
+        i.assign(Integer::parse_radix("-ffFFffffFfFfffffffffffffffffffff", 16).unwrap());
         assert_eq!(i.significant_bits(), 128);
         i -= 1;
         assert_eq!(i.significant_bits(), 129);
@@ -457,10 +454,7 @@ mod tests {
 
     #[test]
     fn check_from_digits_u8() {
-        let mut i = Integer::from_digits(
-            &[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8],
-            Order::MsfBe,
-        );
+        let mut i = Integer::from_digits(&[0u8, 0, 1, 2, 3, 4, 5, 6, 7, 8], Order::MsfBe);
         assert_eq!(i, 0x01_02_03_04_05_06_07_08u64);
 
         i.assign_digits(&[1, 2, 3, 4, 5, 6, 7, 8, 0, 0u8], Order::Lsf);
@@ -530,35 +524,20 @@ mod tests {
         let be_0304 = 0x0304u16.to_be();
         let be_0102 = 0x0102u16.to_be();
 
-        let mut i = Integer::from_digits(
-            &[0u16, be_0102, be_0304, be_0506, be_0708],
-            Order::MsfBe,
-        );
+        let mut i = Integer::from_digits(&[0u16, be_0102, be_0304, be_0506, be_0708], Order::MsfBe);
         assert_eq!(i, 0x0102_0304_0506_0708u64);
 
         i.assign_digits(&[0x0102, 0x0304, 0x0506, 0x0708, 0u16], Order::Lsf);
         assert_eq!(i, 0x0708_0506_0304_0102u64);
         i.assign_digits(&[0u16, 0x0102, 0x0304, 0x0506, 0x0708], Order::Msf);
         assert_eq!(i, 0x0102_0304_0506_0708u64);
-        i.assign_digits(
-            &[le_0102, le_0304, le_0506, le_0708, 0u16],
-            Order::LsfLe,
-        );
+        i.assign_digits(&[le_0102, le_0304, le_0506, le_0708, 0u16], Order::LsfLe);
         assert_eq!(i, 0x0708_0506_0304_0102u64);
-        i.assign_digits(
-            &[0u16, le_0102, le_0304, le_0506, le_0708],
-            Order::MsfLe,
-        );
+        i.assign_digits(&[0u16, le_0102, le_0304, le_0506, le_0708], Order::MsfLe);
         assert_eq!(i, 0x0102_0304_0506_0708u64);
-        i.assign_digits(
-            &[be_0102, be_0304, be_0506, be_0708, 0u16],
-            Order::LsfBe,
-        );
+        i.assign_digits(&[be_0102, be_0304, be_0506, be_0708, 0u16], Order::LsfBe);
         assert_eq!(i, 0x0708_0506_0304_0102u64);
-        i.assign_digits(
-            &[0u16, be_0102, be_0304, be_0506, be_0708],
-            Order::MsfBe,
-        );
+        i.assign_digits(&[0u16, be_0102, be_0304, be_0506, be_0708], Order::MsfBe);
         assert_eq!(i, 0x0102_0304_0506_0708u64);
     }
 
@@ -600,10 +579,7 @@ mod tests {
         let i102: Integer = (Integer::from(0x1111) << 256) | 0x2222;
         let i201: Integer = (Integer::from(0x2222) << 256) | 0x1111;
 
-        let mut i = Integer::from_digits(
-            &[0u128, 0, be_1111, 0, be_2222],
-            Order::MsfBe,
-        );
+        let mut i = Integer::from_digits(&[0u128, 0, be_1111, 0, be_2222], Order::MsfBe);
         assert_eq!(i, i102);
 
         i.assign_digits(&[0x1111, 0, 0x2222, 0, 0u128], Order::Lsf);

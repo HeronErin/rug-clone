@@ -200,12 +200,7 @@ pub fn sqrt(rop: &mut Integer, op: Option<&Integer>) {
 }
 
 #[inline]
-pub fn rootrem(
-    root: &mut Integer,
-    rem: &mut Integer,
-    op: Option<&Integer>,
-    n: u32,
-) {
+pub fn rootrem(root: &mut Integer, rem: &mut Integer, op: Option<&Integer>, n: u32) {
     assert_ne!(n, 0, "zeroth root");
     let op_ptr = op.unwrap_or(root).as_raw();
     let even_root_of_neg = n & 1 == 0 && unsafe { gmp::mpz_sgn(op_ptr) < 0 };
@@ -226,11 +221,7 @@ pub fn sqrtrem(root: &mut Integer, rem: &mut Integer, op: Option<&Integer>) {
 }
 
 #[inline]
-pub fn divexact(
-    q: &mut Integer,
-    dividend: Option<&Integer>,
-    divisor: &Integer,
-) {
+pub fn divexact(q: &mut Integer, dividend: Option<&Integer>, divisor: &Integer) {
     check_div0(divisor);
     unsafe {
         gmp::mpz_divexact(
@@ -244,32 +235,19 @@ pub fn divexact(
 #[inline]
 pub fn gcd(rop: &mut Integer, op1: Option<&Integer>, op2: &Integer) {
     unsafe {
-        gmp::mpz_gcd(
-            rop.as_raw_mut(),
-            op1.unwrap_or(rop).as_raw(),
-            op2.as_raw(),
-        );
+        gmp::mpz_gcd(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.as_raw());
     }
 }
 
 #[inline]
 pub fn lcm(rop: &mut Integer, op1: Option<&Integer>, op2: &Integer) {
     unsafe {
-        gmp::mpz_lcm(
-            rop.as_raw_mut(),
-            op1.unwrap_or(rop).as_raw(),
-            op2.as_raw(),
-        );
+        gmp::mpz_lcm(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.as_raw());
     }
 }
 
 #[inline]
-pub fn tdiv_qr(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: Option<&Integer>,
-    d: Option<&Integer>,
-) {
+pub fn tdiv_qr(q: &mut Integer, r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_tdiv_qr(
@@ -282,12 +260,7 @@ pub fn tdiv_qr(
 }
 
 #[inline]
-pub fn cdiv_qr(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: Option<&Integer>,
-    d: Option<&Integer>,
-) {
+pub fn cdiv_qr(q: &mut Integer, r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_cdiv_qr(
@@ -300,12 +273,7 @@ pub fn cdiv_qr(
 }
 
 #[inline]
-pub fn fdiv_qr(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: Option<&Integer>,
-    d: Option<&Integer>,
-) {
+pub fn fdiv_qr(q: &mut Integer, r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
     check_div0_or(d, r);
     unsafe {
         gmp::mpz_fdiv_qr(
@@ -317,12 +285,7 @@ pub fn fdiv_qr(
     }
 }
 
-pub fn rdiv_qr(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: Option<&Integer>,
-    d: Option<&Integer>,
-) {
+pub fn rdiv_qr(q: &mut Integer, r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
     // make sure d is not going to be aliased and overwritten
     let r_clone;
     let d = if let Some(d) = d {
@@ -347,12 +310,7 @@ pub fn rdiv_qr(
 }
 
 #[inline]
-pub fn ediv_qr(
-    q: &mut Integer,
-    r: &mut Integer,
-    n: Option<&Integer>,
-    d: Option<&Integer>,
-) {
+pub fn ediv_qr(q: &mut Integer, r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
     if d.unwrap_or(r).cmp0() == Ordering::Less {
         cdiv_qr(q, r, n, d)
     } else {
@@ -471,24 +429,18 @@ pub fn ediv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
 
 #[inline]
 pub fn remove(rop: &mut Integer, op: Option<&Integer>, f: &Integer) -> u32 {
-    let count = unsafe {
-        gmp::mpz_remove(
-            rop.as_raw_mut(),
-            op.unwrap_or(rop).as_raw(),
-            f.as_raw(),
-        )
-    };
+    let count =
+        unsafe { gmp::mpz_remove(rop.as_raw_mut(), op.unwrap_or(rop).as_raw(), f.as_raw()) };
     cast::cast(count)
 }
 
 #[inline]
-pub fn powm_sec(
-    rop: &mut Integer,
-    base: Option<&Integer>,
-    exp: &Integer,
-    modu: &Integer,
-) {
-    assert_eq!(exp.cmp0(), Ordering::Greater, "exponent not greater than zero");
+pub fn powm_sec(rop: &mut Integer, base: Option<&Integer>, exp: &Integer, modu: &Integer) {
+    assert_eq!(
+        exp.cmp0(),
+        Ordering::Greater,
+        "exponent not greater than zero"
+    );
     assert!(modu.is_odd(), "modulo not odd");
     unsafe {
         gmp::mpz_powm_sec(
@@ -502,11 +454,7 @@ pub fn powm_sec(
 
 #[cfg(feature = "rand")]
 #[inline]
-pub fn urandomm(
-    rop: &mut Integer,
-    state: &mut RandState<'_>,
-    n: Option<&Integer>,
-) {
+pub fn urandomm(rop: &mut Integer, state: &mut RandState<'_>, n: Option<&Integer>) {
     assert_eq!(
         n.unwrap_or(rop).cmp0(),
         Ordering::Greater,
@@ -724,17 +672,13 @@ pub fn i32_tdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
 #[inline]
 pub fn cdiv_q_u32(q: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
     assert_ne!(d, 0, "division by zero");
-    (unsafe {
-        gmp::mpz_cdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d.into())
-    }) != 0
+    (unsafe { gmp::mpz_cdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d.into()) }) != 0
 }
 
 #[inline]
 pub fn cdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
     assert_ne!(d, 0, "division by zero");
-    (unsafe {
-        gmp::mpz_cdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d.into())
-    }) != 0
+    (unsafe { gmp::mpz_cdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d.into()) }) != 0
 }
 
 pub fn u32_cdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
@@ -931,17 +875,13 @@ pub fn i32_cdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
 #[inline]
 pub fn fdiv_q_u32(q: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
     assert_ne!(d, 0, "division by zero");
-    (unsafe {
-        gmp::mpz_fdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d.into())
-    }) != 0
+    (unsafe { gmp::mpz_fdiv_q_ui(q.as_raw_mut(), n.unwrap_or(q).as_raw(), d.into()) }) != 0
 }
 
 #[inline]
 pub fn fdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
     assert_ne!(d, 0, "division by zero");
-    (unsafe {
-        gmp::mpz_fdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d.into())
-    }) != 0
+    (unsafe { gmp::mpz_fdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d.into()) }) != 0
 }
 
 #[inline]
@@ -1221,11 +1161,7 @@ pub fn add_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
 #[inline]
 pub fn u32_sub(rop: &mut Integer, op1: u32, op2: Option<&Integer>) {
     unsafe {
-        gmp::mpz_ui_sub(
-            rop.as_raw_mut(),
-            op1.into(),
-            op2.unwrap_or(rop).as_raw(),
-        );
+        gmp::mpz_ui_sub(rop.as_raw_mut(), op1.into(), op2.unwrap_or(rop).as_raw());
     }
 }
 
@@ -1713,8 +1649,7 @@ pub fn significant_bits(op: &Integer) -> usize {
 pub fn signed_bits(op: &Integer) -> u32 {
     let significant = significant_bits(op);
     if op.cmp0() == Ordering::Less {
-        let first_one: usize =
-            cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
+        let first_one: usize = cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
         if first_one == significant - 1 {
             return cast::cast(significant);
         }
@@ -1727,8 +1662,7 @@ pub fn power_of_two_p(op: &Integer) -> bool {
         return false;
     }
     let significant = significant_bits(op);
-    let first_one: usize =
-        cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
+    let first_one: usize = cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
     first_one == significant - 1
 }
 
@@ -1795,8 +1729,7 @@ pub fn start_invert(op: &Integer, modulo: &Integer) -> Option<Integer> {
     if modulo.cmp0() == Ordering::Equal {
         return None;
     }
-    let (gcd, sinverse) =
-        <(Integer, Integer)>::from(op.gcd_cofactors_ref(modulo));
+    let (gcd, sinverse) = <(Integer, Integer)>::from(op.gcd_cofactors_ref(modulo));
     if is_1(&gcd) {
         Some(sinverse)
     } else {
@@ -1818,12 +1751,7 @@ pub fn finish_invert(rop: &mut Integer, s: Option<&Integer>, modulo: &Integer) {
 }
 
 #[inline]
-pub fn pow_mod(
-    rop: &mut Integer,
-    base: Option<&Integer>,
-    exponent: &Integer,
-    modulo: &Integer,
-) {
+pub fn pow_mod(rop: &mut Integer, base: Option<&Integer>, exponent: &Integer, modulo: &Integer) {
     if exponent.cmp0() == Ordering::Less {
         finish_invert(rop, base, modulo);
         unsafe {

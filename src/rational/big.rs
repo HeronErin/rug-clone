@@ -461,10 +461,7 @@ impl Rational {
     ///
     /// [`Rational`]: struct.Rational.html
     #[inline]
-    pub fn from_str_radix(
-        src: &str,
-        radix: i32,
-    ) -> Result<Self, ParseRationalError> {
+    pub fn from_str_radix(src: &str, radix: i32) -> Result<Self, ParseRationalError> {
         Ok(Rational::from(Rational::parse_radix(src, radix)?))
     }
 
@@ -561,10 +558,7 @@ impl Rational {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse_radix<S>(
-        src: S,
-        radix: i32,
-    ) -> Result<ParseIncomplete, ParseRationalError>
+    pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseRationalError>
     where
         S: AsRef<[u8]>,
     {
@@ -860,16 +854,10 @@ impl Rational {
         F: FnOnce(&mut Integer, &mut Integer),
     {
         unsafe {
-            let numer_ptr =
-                cast_ptr_mut!(gmp::mpq_numref(self.as_raw_mut()), Integer);
-            let denom_ptr =
-                cast_ptr_mut!(gmp::mpq_denref(self.as_raw_mut()), Integer);
+            let numer_ptr = cast_ptr_mut!(gmp::mpq_numref(self.as_raw_mut()), Integer);
+            let denom_ptr = cast_ptr_mut!(gmp::mpq_denref(self.as_raw_mut()), Integer);
             func(&mut *numer_ptr, &mut *denom_ptr);
-            assert_ne!(
-                self.denom().cmp0(),
-                Ordering::Equal,
-                "division by zero"
-            );
+            assert_ne!(self.denom().cmp0(), Ordering::Equal, "division by zero");
             gmp::mpq_canonicalize(self.as_raw_mut());
         }
     }
@@ -986,8 +974,10 @@ impl Rational {
     /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn as_neg(&self) -> BorrowRational<'_> {
-        let mut ret =
-            BorrowRational { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowRational {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         let size = self.numer().inner().size.checked_neg().expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
@@ -1020,8 +1010,10 @@ impl Rational {
     /// [`Rational`]: struct.Rational.html
     #[inline]
     pub fn as_abs(&self) -> BorrowRational<'_> {
-        let mut ret =
-            BorrowRational { inner: self.inner, phantom: PhantomData };
+        let mut ret = BorrowRational {
+            inner: self.inner,
+            phantom: PhantomData,
+        };
         let size = self.numer().inner().size.checked_abs().expect("overflow");
         unsafe {
             (*gmp::mpq_numref(&mut ret.inner)).size = size;
@@ -1070,7 +1062,10 @@ impl Rational {
             gmp::mpq_denref(inner_ptr).write(dst_den);
             assume_init!(inner)
         };
-        BorrowRational { inner, phantom: PhantomData }
+        BorrowRational {
+            inner,
+            phantom: PhantomData,
+        }
     }
 
     /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
@@ -1350,10 +1345,7 @@ impl Rational {
     #[inline]
     pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
     where
-        Self: PartialOrd<Min>
-            + PartialOrd<Max>
-            + Assign<&'a Min>
-            + Assign<&'b Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'b Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -1380,10 +1372,7 @@ impl Rational {
     /// ```
     pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
     where
-        Self: PartialOrd<Min>
-            + PartialOrd<Max>
-            + Assign<&'a Min>
-            + Assign<&'b Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'b Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -1430,12 +1419,13 @@ impl Rational {
         max: &'a Max,
     ) -> ClampIncomplete<'a, Min, Max>
     where
-        Self: PartialOrd<Min>
-            + PartialOrd<Max>
-            + Assign<&'a Min>
-            + Assign<&'a Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
     {
-        ClampIncomplete { ref_self: self, min, max }
+        ClampIncomplete {
+            ref_self: self,
+            min,
+            max,
+        }
     }
 
     math_op1! {
@@ -2499,8 +2489,7 @@ ref_rat_op_int! { xmpq::signum; struct SignumIncomplete {} }
 #[derive(Debug)]
 pub struct ClampIncomplete<'a, Min, Max>
 where
-    Rational:
-        PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
+    Rational: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
 {
     ref_self: &'a Rational,
     min: &'a Min,
@@ -2568,16 +2557,14 @@ impl Deref for BorrowRational<'_> {
     }
 }
 
-pub(crate) fn append_to_string(
-    s: &mut String,
-    r: &Rational,
-    radix: i32,
-    to_upper: bool,
-) {
+pub(crate) fn append_to_string(s: &mut String, r: &Rational, radix: i32, to_upper: bool) {
     let (num, den) = (r.numer(), r.denom());
     let is_whole = *den == 1;
-    let cap_for_den_nul =
-        if is_whole { 1 } else { big_integer::req_chars(den, radix, 2) };
+    let cap_for_den_nul = if is_whole {
+        1
+    } else {
+        big_integer::req_chars(den, radix, 2)
+    };
     let cap = big_integer::req_chars(num, radix, cap_for_den_nul);
     s.reserve(cap);
     big_integer::append_to_string(s, num, radix, to_upper);
@@ -2607,8 +2594,7 @@ impl Assign<ParseIncomplete> for Rational {
             let (num, den) = self.as_mut_numer_denom_no_canonicalization();
             xmpz::realloc_for_mpn_set_str(num, n, src.radix);
             let size = gmp::mpn_set_str(num.inner_mut().d, str, n, src.radix);
-            num.inner_mut().size =
-                cast(if src.is_negative { -size } else { size });
+            num.inner_mut().size = cast(if src.is_negative { -size } else { size });
 
             let (str, n) = (str.offset(cast(n)), src.digits.len() - n);
             if n == 0 {
@@ -2627,10 +2613,7 @@ impl Assign<ParseIncomplete> for Rational {
 
 from_assign! { ParseIncomplete => Rational }
 
-fn parse(
-    bytes: &[u8],
-    radix: i32,
-) -> Result<ParseIncomplete, ParseRationalError> {
+fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError> {
     use self::ParseErrorKind as Kind;
     use self::ParseRationalError as Error;
 
@@ -2645,10 +2628,14 @@ fn parse(
     for &b in bytes {
         if b == b'/' {
             if den_start.is_some() {
-                return Err(Error { kind: Kind::TooManySlashes });
+                return Err(Error {
+                    kind: Kind::TooManySlashes,
+                });
             }
             if !has_digits {
-                return Err(Error { kind: Kind::NumerNoDigits });
+                return Err(Error {
+                    kind: Kind::NumerNoDigits,
+                });
             }
             has_digits = false;
             den_start = Some(digits.len());
@@ -2675,11 +2662,12 @@ fn parse(
             _ => bradix,
         };
         if digit >= bradix {
-            return Err(Error { kind: Kind::InvalidDigit });
+            return Err(Error {
+                kind: Kind::InvalidDigit,
+            });
         }
         has_digits = true;
-        if digit > 0 || (!digits.is_empty() && den_start != Some(digits.len()))
-        {
+        if digit > 0 || (!digits.is_empty() && den_start != Some(digits.len())) {
             digits.push(digit);
         }
     }
@@ -2693,10 +2681,17 @@ fn parse(
         });
     }
     if den_start == Some(digits.len()) {
-        return Err(Error { kind: Kind::DenomZero });
+        return Err(Error {
+            kind: Kind::DenomZero,
+        });
     }
     let den_start = den_start.unwrap_or_else(|| digits.len());
-    Ok(ParseIncomplete { is_negative, digits, den_start, radix })
+    Ok(ParseIncomplete {
+        is_negative,
+        digits,
+        den_start,
+        radix,
+    })
 }
 
 #[derive(Debug)]

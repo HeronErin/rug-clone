@@ -15,10 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ops::{
-    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding,
-    DivRoundingAssign, DivRoundingFrom, MulFrom, NegAssign, NotAssign, Pow,
-    PowAssign, PowFrom, RemFrom, RemRounding, RemRoundingAssign,
-    RemRoundingFrom, ShlFrom, ShrFrom, SubFrom,
+    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding, DivRoundingAssign,
+    DivRoundingFrom, MulFrom, NegAssign, NotAssign, Pow, PowAssign, PowFrom, RemFrom, RemRounding,
+    RemRoundingAssign, RemRoundingFrom, ShlFrom, ShrFrom, SubFrom,
 };
 use crate::Assign;
 use std::borrow::Cow;

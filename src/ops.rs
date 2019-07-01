@@ -707,11 +707,7 @@ pub trait AddAssignRound<Rhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn add_assign_round(
-        &mut self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn add_assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -768,11 +764,7 @@ pub trait AddFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn add_from_round(
-        &mut self,
-        lhs: Lhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn add_from_round(&mut self, lhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -829,11 +821,7 @@ pub trait SubAssignRound<Rhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn sub_assign_round(
-        &mut self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn sub_assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -890,11 +878,7 @@ pub trait SubFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn sub_from_round(
-        &mut self,
-        lhs: Lhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn sub_from_round(&mut self, lhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -951,11 +935,7 @@ pub trait MulAssignRound<Rhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn mul_assign_round(
-        &mut self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn mul_assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1012,11 +992,7 @@ pub trait MulFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn mul_from_round(
-        &mut self,
-        rhs: Lhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn mul_from_round(&mut self, rhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1072,11 +1048,7 @@ pub trait DivAssignRound<Rhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn div_assign_round(
-        &mut self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn div_assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1133,11 +1105,7 @@ pub trait DivFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Less);
     /// # }
     /// ```
-    fn div_from_round(
-        &mut self,
-        rhs: Lhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn div_from_round(&mut self, rhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1194,11 +1162,7 @@ pub trait PowAssignRound<Rhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn pow_assign_round(
-        &mut self,
-        rhs: Rhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn pow_assign_round(&mut self, rhs: Rhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**
@@ -1255,11 +1219,7 @@ pub trait PowFromRound<Lhs = Self> {
     /// assert_eq!(dir, Ordering::Greater);
     /// # }
     /// ```
-    fn pow_from_round(
-        &mut self,
-        lhs: Lhs,
-        round: Self::Round,
-    ) -> Self::Ordering;
+    fn pow_from_round(&mut self, lhs: Lhs, round: Self::Round) -> Self::Ordering;
 }
 
 /**

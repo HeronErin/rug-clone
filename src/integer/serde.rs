@@ -25,7 +25,11 @@ impl Serialize for Integer {
         S: Serializer,
     {
         let prec = PrecVal::Zero;
-        let radix = if self.significant_bits() <= 32 { 10 } else { 16 };
+        let radix = if self.significant_bits() <= 32 {
+            10
+        } else {
+            16
+        };
         let value = self.to_string_radix(radix);
         let data = Data { prec, radix, value };
         serdeize::serialize("Integer", &data, serializer)
@@ -42,10 +46,7 @@ impl<'de> Deserialize<'de> for Integer {
         Ok(Integer::from(p))
     }
 
-    fn deserialize_in_place<D>(
-        deserializer: D,
-        place: &mut Integer,
-    ) -> Result<(), D::Error>
+    fn deserialize_in_place<D>(deserializer: D, place: &mut Integer) -> Result<(), D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -93,7 +94,10 @@ mod tests {
             use serde_test::Token;
             use std::io::Write;
             let tokens = [
-                Token::Struct { name: "Integer", len: 2 },
+                Token::Struct {
+                    name: "Integer",
+                    len: 2,
+                },
                 Token::Str("radix"),
                 Token::I32(radix),
                 Token::Str("value"),
@@ -106,7 +110,9 @@ mod tests {
             });
             let mut bincode = Vec::<u8>::new();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
-            bincode.write_u64::<LittleEndian>(cast(value.len())).unwrap();
+            bincode
+                .write_u64::<LittleEndian>(cast(value.len()))
+                .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {
                 Check::SerDe(i) => {

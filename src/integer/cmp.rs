@@ -47,16 +47,14 @@ macro_rules! cmp {
         impl PartialEq<$T> for Integer {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                <Integer as PartialOrd<$T>>::partial_cmp(self, other)
-                    == Some(Ordering::Equal)
+                <Integer as PartialOrd<$T>>::partial_cmp(self, other) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $T {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                <Integer as PartialOrd<$T>>::partial_cmp(other, self)
-                    == Some(Ordering::Equal)
+                <Integer as PartialOrd<$T>>::partial_cmp(other, self) == Some(Ordering::Equal)
             }
         }
 
@@ -70,8 +68,7 @@ macro_rules! cmp {
         impl PartialOrd<Integer> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-                <Integer as PartialOrd<$T>>::partial_cmp(other, self)
-                    .map(Ordering::reverse)
+                <Integer as PartialOrd<$T>>::partial_cmp(other, self).map(Ordering::reverse)
             }
         }
     };
@@ -82,41 +79,31 @@ macro_rules! cmp_cast {
         impl PartialEq<$New> for Integer {
             #[inline]
             fn eq(&self, other: &$New) -> bool {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(
-                    self,
-                    &cast(*other),
-                ) == Some(Ordering::Equal)
+                <Integer as PartialOrd<$Existing>>::partial_cmp(self, &cast(*other))
+                    == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Integer> for $New {
             #[inline]
             fn eq(&self, other: &Integer) -> bool {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(
-                    other,
-                    &cast(*self),
-                ) == Some(Ordering::Equal)
+                <Integer as PartialOrd<$Existing>>::partial_cmp(other, &cast(*self))
+                    == Some(Ordering::Equal)
             }
         }
 
         impl PartialOrd<$New> for Integer {
             #[inline]
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(
-                    self,
-                    &cast(*other),
-                )
+                <Integer as PartialOrd<$Existing>>::partial_cmp(self, &cast(*other))
             }
         }
 
         impl PartialOrd<Integer> for $New {
             #[inline]
             fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-                <Integer as PartialOrd<$Existing>>::partial_cmp(
-                    other,
-                    &cast(*self),
-                )
-                .map(Ordering::reverse)
+                <Integer as PartialOrd<$Existing>>::partial_cmp(other, &cast(*self))
+                    .map(Ordering::reverse)
             }
         }
     };
@@ -147,16 +134,14 @@ cmp_cast! { f32, f64 }
 impl PartialEq<f64> for Integer {
     #[inline]
     fn eq(&self, other: &f64) -> bool {
-        <Integer as PartialOrd<f64>>::partial_cmp(self, other)
-            == Some(Ordering::Equal)
+        <Integer as PartialOrd<f64>>::partial_cmp(self, other) == Some(Ordering::Equal)
     }
 }
 
 impl PartialEq<Integer> for f64 {
     #[inline]
     fn eq(&self, other: &Integer) -> bool {
-        <Integer as PartialOrd<f64>>::partial_cmp(other, self)
-            == Some(Ordering::Equal)
+        <Integer as PartialOrd<f64>>::partial_cmp(other, self) == Some(Ordering::Equal)
     }
 }
 
@@ -170,8 +155,7 @@ impl PartialOrd<f64> for Integer {
 impl PartialOrd<Integer> for f64 {
     #[inline]
     fn partial_cmp(&self, other: &Integer) -> Option<Ordering> {
-        <Integer as PartialOrd<f64>>::partial_cmp(other, self)
-            .map(Ordering::reverse)
+        <Integer as PartialOrd<f64>>::partial_cmp(other, self).map(Ordering::reverse)
     }
 }
 
@@ -283,7 +267,11 @@ mod tests {
         for b in &against {
             check_known_cmp(0.0f32, b, b.cmp0().reverse());
             check_known_cmp(0.0f64, b, b.cmp0().reverse());
-            let ord = if *b <= 2 { Ordering::Greater } else { Ordering::Less };
+            let ord = if *b <= 2 {
+                Ordering::Greater
+            } else {
+                Ordering::Less
+            };
             check_known_cmp(2.5f32, b, ord);
             check_known_cmp(2.5f64, b, ord);
             check_known_cmp(f32::INFINITY, b, Ordering::Greater);

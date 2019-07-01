@@ -31,8 +31,7 @@ use std::cmp::Ordering;
 #[cfg(all(try_from, feature = "rational"))]
 use std::convert::TryFrom;
 use std::fmt::{
-    self, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
-    UpperExp, UpperHex,
+    self, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, UpperExp, UpperHex,
 };
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
@@ -66,53 +65,74 @@ impl Drop for Float {
 
 impl Display for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format = Format { exp: ExpFormat::Point, ..Format::default() };
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl Debug for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format = Format { exp: ExpFormat::Point, ..Format::default() };
+        let format = Format {
+            exp: ExpFormat::Point,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl LowerExp for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format = Format { exp: ExpFormat::Exp, ..Format::default() };
+        let format = Format {
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl UpperExp for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format =
-            Format { to_upper: true, exp: ExpFormat::Exp, ..Format::default() };
+        let format = Format {
+            to_upper: true,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "")
     }
 }
 
 impl Binary for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format =
-            Format { radix: 2, exp: ExpFormat::Exp, ..Format::default() };
+        let format = Format {
+            radix: 2,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "0b")
     }
 }
 
 impl Octal for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format =
-            Format { radix: 8, exp: ExpFormat::Exp, ..Format::default() };
+        let format = Format {
+            radix: 8,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "0o")
     }
 }
 
 impl LowerHex for Float {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        let format =
-            Format { radix: 16, exp: ExpFormat::Exp, ..Format::default() };
+        let format = Format {
+            radix: 16,
+            exp: ExpFormat::Exp,
+            ..Format::default()
+        };
         fmt_radix(self, f, format, "0x")
     }
 }
@@ -146,18 +166,10 @@ impl AssignRound<Constant> for Float {
     fn assign_round(&mut self, src: Constant, round: Round) -> Ordering {
         let ret = unsafe {
             match src {
-                Constant::Log2 => {
-                    mpfr::const_log2(self.as_raw_mut(), raw_round(round))
-                }
-                Constant::Pi => {
-                    mpfr::const_pi(self.as_raw_mut(), raw_round(round))
-                }
-                Constant::Euler => {
-                    mpfr::const_euler(self.as_raw_mut(), raw_round(round))
-                }
-                Constant::Catalan => {
-                    mpfr::const_catalan(self.as_raw_mut(), raw_round(round))
-                }
+                Constant::Log2 => mpfr::const_log2(self.as_raw_mut(), raw_round(round)),
+                Constant::Pi => mpfr::const_pi(self.as_raw_mut(), raw_round(round)),
+                Constant::Euler => mpfr::const_euler(self.as_raw_mut(), raw_round(round)),
+                Constant::Catalan => mpfr::const_catalan(self.as_raw_mut(), raw_round(round)),
                 _ => unreachable!(),
             }
         };
@@ -227,9 +239,7 @@ impl AssignRound<&Float> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: &Float, round: Round) -> Ordering {
-        let ret = unsafe {
-            mpfr::set(self.as_raw_mut(), src.as_raw(), raw_round(round))
-        };
+        let ret = unsafe { mpfr::set(self.as_raw_mut(), src.as_raw(), raw_round(round)) };
         ordering1(ret)
     }
 }
@@ -242,9 +252,7 @@ macro_rules! assign {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: &$T, round: Round) -> Ordering {
-                let ret = unsafe {
-                    $func(self.as_raw_mut(), src.as_raw(), raw_round(round))
-                };
+                let ret = unsafe { $func(self.as_raw_mut(), src.as_raw(), raw_round(round)) };
                 ordering1(ret)
             }
         }
@@ -272,9 +280,7 @@ macro_rules! conv_ops {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $T, round: Round) -> Ordering {
-                let ret = unsafe {
-                    $set(self.as_raw_mut(), src.into(), raw_round(round))
-                };
+                let ret = unsafe { $set(self.as_raw_mut(), src.into(), raw_round(round)) };
                 ordering1(ret)
             }
         }
@@ -290,11 +296,7 @@ macro_rules! conv_ops_cast {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $New, round: Round) -> Ordering {
-                <Float as AssignRound<$Existing>>::assign_round(
-                    self,
-                    cast(src),
-                    round,
-                )
+                <Float as AssignRound<$Existing>>::assign_round(self, cast(src), round)
             }
         }
 
@@ -342,17 +344,18 @@ impl TryFrom<&Float> for Rational {
 }
 
 // overwrites format.precision
-fn fmt_radix(
-    flt: &Float,
-    fmt: &mut Formatter<'_>,
-    format: Format,
-    prefix: &str,
-) -> fmt::Result {
-    let format = Format { precision: fmt.precision(), ..format };
+fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str) -> fmt::Result {
+    let format = Format {
+        precision: fmt.precision(),
+        ..format
+    };
     let mut s = String::new();
     big::append_to_string(&mut s, flt, format);
-    let (neg, buf) =
-        if s.starts_with('-') { (true, &s[1..]) } else { (false, &s[..]) };
+    let (neg, buf) = if s.starts_with('-') {
+        (true, &s[1..])
+    } else {
+        (false, &s[..])
+    };
     let prefix = if flt.is_finite() { prefix } else { "" };
     fmt.pad_integral(!neg, prefix, buf)
 }

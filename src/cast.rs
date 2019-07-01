@@ -78,8 +78,7 @@ macro_rules! cast_int_to_int {
         impl Cast<$Dst> for $Src {
             #[inline]
             fn cast(self) -> $Dst {
-                <$Src as CheckedCast<$Dst>>::checked_cast(self)
-                    .expect("overflow")
+                <$Src as CheckedCast<$Dst>>::checked_cast(self).expect("overflow")
             }
         }
     )* };
@@ -91,8 +90,7 @@ macro_rules! cast_float_to_int {
             #[inline]
             fn cast(self) -> $Dst {
                 assert!(!self.is_nan(), "NaN");
-                <$Src as CheckedCast<$Dst>>::checked_cast(self)
-                    .expect("overflow")
+                <$Src as CheckedCast<$Dst>>::checked_cast(self).expect("overflow")
             }
         }
     )* };
@@ -194,7 +192,7 @@ macro_rules! checked_float_via {
                 if f.neg {
                     let i = f.wrapped as $ViaI;
                     if i < 0 {
-                        return None
+                        return None;
                     }
                     let i = -i;
                     <$ViaI as CheckedCast<$Dst>>::checked_cast(i)
@@ -364,8 +362,7 @@ macro_rules! from_for_float {
                 let u = src.to_bits();
                 let neg = (u & SIGN_MASK) != 0;
                 let biased_exp = u & EXP_MASK;
-                let shift = (biased_exp >> MANT_BITS) as i32
-                    - (EXP_BIAS + MANT_BITS);
+                let shift = (biased_exp >> MANT_BITS) as i32 - (EXP_BIAS + MANT_BITS);
 
                 // Check if the magnitude is smaller than one. Do not return
                 // early if shift == -MANT_BITS, as there is implicit one.
@@ -388,15 +385,12 @@ macro_rules! from_for_float {
                 }
 
                 // Add implicit one.
-                let significand = <$Dst as From<$Uns>>::from(u & MANT_MASK)
-                    | (1 << MANT_BITS);
+                let significand = <$Dst as From<$Uns>>::from(u & MANT_MASK) | (1 << MANT_BITS);
                 let (fits, wrapped) = if shift < 0 {
                     (fits_yes, significand >> -shift)
                 } else {
                     let wrapped = significand << shift;
-                    let fits = if fits_yes == fits_no
-                        || (wrapped >> shift) == significand
-                    {
+                    let fits = if fits_yes == fits_no || (wrapped >> shift) == significand {
                         fits_yes
                     } else {
                         fits_no

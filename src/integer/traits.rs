@@ -25,9 +25,7 @@ use crate::{Assign, Integer};
 use std::convert::TryFrom;
 #[cfg(try_from)]
 use std::error::Error;
-use std::fmt::{
-    self, Binary, Debug, Display, Formatter, LowerHex, Octal, UpperHex,
-};
+use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal, UpperHex};
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::slice;
@@ -263,8 +261,11 @@ fn fmt_radix(
 ) -> fmt::Result {
     let mut s = String::new();
     big::append_to_string(&mut s, i, radix, to_upper);
-    let (neg, buf) =
-        if s.starts_with('-') { (true, &s[1..]) } else { (false, &s[..]) };
+    let (neg, buf) = if s.starts_with('-') {
+        (true, &s[1..])
+    } else {
+        (false, &s[..])
+    };
     f.pad_integral(!neg, prefix, buf)
 }
 

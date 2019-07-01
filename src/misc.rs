@@ -100,10 +100,7 @@ pub fn trim_end(bytes: &[u8]) -> &[u8] {
 
 // If bytes starts with a match to one of patterns, return bytes with
 // the match skipped. Only bytes is converted to lcase.
-pub fn skip_lcase_match<'a>(
-    bytes: &'a [u8],
-    patterns: &[&[u8]],
-) -> Option<&'a [u8]> {
+pub fn skip_lcase_match<'a>(bytes: &'a [u8], patterns: &[&[u8]]) -> Option<&'a [u8]> {
     'next_pattern: for pattern in patterns {
         if bytes.len() < pattern.len() {
             continue 'next_pattern;

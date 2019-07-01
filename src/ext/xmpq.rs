@@ -90,29 +90,17 @@ pub unsafe fn init_set(rop: *mut Rational, op: &Rational) {
 }
 
 #[inline]
-pub fn signum(
-    rint: Option<&mut Integer>,
-    rrat: Option<&mut Rational>,
-    op: Option<&Rational>,
-) {
+pub fn signum(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option<&Rational>) {
     process_int_rat(rint, rrat, op, |r, n, _| xmpz::signum(r, n))
 }
 
 #[inline]
-pub fn trunc(
-    rint: Option<&mut Integer>,
-    rrat: Option<&mut Rational>,
-    op: Option<&Rational>,
-) {
+pub fn trunc(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option<&Rational>) {
     process_int_rat(rint, rrat, op, |r, n, d| xmpz::tdiv_q(r, n, Some(d)));
 }
 
 #[inline]
-pub fn ceil(
-    rint: Option<&mut Integer>,
-    rrat: Option<&mut Rational>,
-    op: Option<&Rational>,
-) {
+pub fn ceil(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option<&Rational>) {
     process_int_rat(rint, rrat, op, |r, n, d| {
         // use tdiv_q rather than cdiv_q to let GMP not keep remainder
         if xmpz::is_1(d) {
@@ -128,11 +116,7 @@ pub fn ceil(
 }
 
 #[inline]
-pub fn floor(
-    rint: Option<&mut Integer>,
-    rrat: Option<&mut Rational>,
-    op: Option<&Rational>,
-) {
+pub fn floor(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option<&Rational>) {
     process_int_rat(rint, rrat, op, |r, n, d| {
         // use tdiv_q rather than fdiv_q to let GMP not keep remainder
         if xmpz::is_1(d) {
@@ -147,11 +131,7 @@ pub fn floor(
     });
 }
 
-pub fn round(
-    rint: Option<&mut Integer>,
-    rrat: Option<&mut Rational>,
-    op: Option<&Rational>,
-) {
+pub fn round(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option<&Rational>) {
     process_int_rat(rint, rrat, op, |r, n, d| {
         // The remainder cannot be larger than the divisor, but we
         // allocate an extra limb because the GMP docs suggest we should.
@@ -175,7 +155,11 @@ pub fn round(
 
 #[inline]
 pub fn inv(rop: &mut Rational, op: Option<&Rational>) {
-    assert_ne!(op.unwrap_or(rop).cmp0(), Ordering::Equal, "division by zero");
+    assert_ne!(
+        op.unwrap_or(rop).cmp0(),
+        Ordering::Equal,
+        "division by zero"
+    );
     unsafe {
         gmp::mpq_inv(rop.as_raw_mut(), op.unwrap_or(rop).as_raw());
     }
@@ -185,8 +169,7 @@ pub fn inv(rop: &mut Rational, op: Option<&Rational>) {
 pub fn trunc_fract(fract: &mut Rational, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     xmpz::tdiv_r(fract_num, op_num, Some(fract_den));
 }
@@ -195,8 +178,7 @@ pub fn trunc_fract(fract: &mut Rational, op: Option<&Rational>) {
 pub fn ceil_fract(fract: &mut Rational, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     xmpz::cdiv_r(fract_num, op_num, Some(fract_den));
 }
@@ -205,8 +187,7 @@ pub fn ceil_fract(fract: &mut Rational, op: Option<&Rational>) {
 pub fn floor_fract(fract: &mut Rational, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     xmpz::fdiv_r(fract_num, op_num, Some(fract_den));
 }
@@ -214,8 +195,7 @@ pub fn floor_fract(fract: &mut Rational, op: Option<&Rational>) {
 pub fn round_fract(fract: &mut Rational, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     xmpz::tdiv_r(fract_num, op_num, Some(fract_den));
     if xmpz::round_away(fract_num, fract_den) {
@@ -299,15 +279,10 @@ pub fn pow_i32(rop: &mut Rational, op1: Option<&Rational>, op2: i32) {
 }
 
 #[inline]
-pub fn trunc_fract_whole(
-    fract: &mut Rational,
-    trunc: &mut Integer,
-    op: Option<&Rational>,
-) {
+pub fn trunc_fract_whole(fract: &mut Rational, trunc: &mut Integer, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     unsafe {
         gmp::mpz_tdiv_qr(
@@ -320,15 +295,10 @@ pub fn trunc_fract_whole(
 }
 
 #[inline]
-pub fn ceil_fract_whole(
-    fract: &mut Rational,
-    ceil: &mut Integer,
-    op: Option<&Rational>,
-) {
+pub fn ceil_fract_whole(fract: &mut Rational, ceil: &mut Integer, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     unsafe {
         gmp::mpz_cdiv_qr(
@@ -341,15 +311,10 @@ pub fn ceil_fract_whole(
 }
 
 #[inline]
-pub fn floor_fract_whole(
-    fract: &mut Rational,
-    floor: &mut Integer,
-    op: Option<&Rational>,
-) {
+pub fn floor_fract_whole(fract: &mut Rational, floor: &mut Integer, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     unsafe {
         gmp::mpz_fdiv_qr(
@@ -361,15 +326,10 @@ pub fn floor_fract_whole(
     }
 }
 
-pub fn round_fract_whole(
-    fract: &mut Rational,
-    round: &mut Integer,
-    op: Option<&Rational>,
-) {
+pub fn round_fract_whole(fract: &mut Rational, round: &mut Integer, op: Option<&Rational>) {
     let op_num = op.map(Rational::numer);
     let op_den = op.map(Rational::denom);
-    let (fract_num, fract_den) =
-        unsafe { fract.as_mut_numer_denom_no_canonicalization() };
+    let (fract_num, fract_den) = unsafe { fract.as_mut_numer_denom_no_canonicalization() };
     xmpz::set(fract_den, op_den);
     unsafe {
         gmp::mpz_tdiv_qr(

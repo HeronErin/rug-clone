@@ -14,9 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use serde::de::{
-    Deserialize, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor,
-};
+use serde::de::{Deserialize, Deserializer, Error as DeError, MapAccess, SeqAccess, Visitor};
 use serde::ser::{SerializeStruct, Serializer};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -39,11 +37,7 @@ pub struct Data {
     pub value: String,
 }
 
-pub fn serialize<S>(
-    name: &'static str,
-    data: &Data,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
+pub fn serialize<S>(name: &'static str, data: &Data, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
@@ -238,12 +232,7 @@ where
     deserializer.deserialize_struct(name, fields, BigVisitor(name, prec_req))
 }
 
-pub fn check_range<T, D>(
-    name: &'static str,
-    val: T,
-    min: T,
-    max: T,
-) -> Result<(), D>
+pub fn check_range<T, D>(name: &'static str, val: T, min: T, max: T) -> Result<(), D>
 where
     T: Copy + Display + Ord,
     D: DeError,
@@ -348,10 +337,7 @@ pub mod test {
                 unimplemented!()
             }
 
-            fn get_byte_buffer(
-                &mut self,
-                length: usize,
-            ) -> BincodeResult<Vec<u8>> {
+            fn get_byte_buffer(&mut self, length: usize) -> BincodeResult<Vec<u8>> {
                 let ret = self.0[..length].to_vec();
                 self.0 = &self.0[length..];
                 Ok(ret)

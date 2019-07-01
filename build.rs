@@ -26,8 +26,8 @@ fn main() {
     env.check_feature("maybe_uninit", TRY_MAYBE_UNINIT, Some("maybe_uninit"));
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
-        let bits = env::var_os("DEP_GMP_LIMB_BITS")
-            .expect("DEP_GMP_LIMB_BITS not set by gmp-mfpr-sys");
+        let bits =
+            env::var_os("DEP_GMP_LIMB_BITS").expect("DEP_GMP_LIMB_BITS not set by gmp-mfpr-sys");
         let bits = bits
             .to_str()
             .expect("DEP_GMP_LIMB_BITS contains unexpected characters");
@@ -39,12 +39,7 @@ fn main() {
 }
 
 impl Environment {
-    fn check_feature(
-        &self,
-        name: &str,
-        contents: &str,
-        nightly_features: Option<&str>,
-    ) {
+    fn check_feature(&self, name: &str, contents: &str, nightly_features: Option<&str>) {
         let try_dir = self.out_dir.join(format!("try_{}", name));
         let filename = format!("try_{}.rs", name);
         create_dir_or_panic(&try_dir);
@@ -96,10 +91,7 @@ impl Environment {
         create_dir_or_panic(&try_dir);
         let mut panic_aborts = true;
         for code in codes {
-            let contents = format!(
-                "{}\nconst CODE: i32 = {};\n",
-                TRY_FFI_PANIC_ABORTS, code
-            );
+            let contents = format!("{}\nconst CODE: i32 = {};\n", TRY_FFI_PANIC_ABORTS, code);
             let filename = format!("try_{}_{}.rs", ident, code);
             let out = format!("out_{}.exe", code);
             create_file_or_panic(&try_dir.join(&filename), &contents);
@@ -127,16 +119,14 @@ impl Environment {
         }
         // Do not panic if this directory cannot be removed, AppVeyor
         // fails trying for Windows.
-        remove_dir(&try_dir).unwrap_or_else(|_| {
-            println!("Unable to remove directory: {:?}", try_dir)
-        });
+        remove_dir(&try_dir)
+            .unwrap_or_else(|_| println!("Unable to remove directory: {:?}", try_dir));
     }
 }
 
 fn cargo_env(name: &str) -> OsString {
-    env::var_os(name).unwrap_or_else(|| {
-        panic!("environment variable not found: {}, please use cargo", name)
-    })
+    env::var_os(name)
+        .unwrap_or_else(|| panic!("environment variable not found: {}, please use cargo", name))
 }
 
 fn remove_dir(dir: &Path) -> IoResult<()> {
@@ -149,8 +139,7 @@ fn remove_dir(dir: &Path) -> IoResult<()> {
 }
 
 fn remove_dir_or_panic(dir: &Path) {
-    remove_dir(dir)
-        .unwrap_or_else(|_| panic!("Unable to remove directory: {:?}", dir));
+    remove_dir(dir).unwrap_or_else(|_| panic!("Unable to remove directory: {:?}", dir));
 }
 
 fn create_dir(dir: &Path) -> IoResult<()> {
@@ -159,14 +148,13 @@ fn create_dir(dir: &Path) -> IoResult<()> {
 }
 
 fn create_dir_or_panic(dir: &Path) {
-    create_dir(dir)
-        .unwrap_or_else(|_| panic!("Unable to create directory: {:?}", dir));
+    create_dir(dir).unwrap_or_else(|_| panic!("Unable to create directory: {:?}", dir));
 }
 
 fn create_file_or_panic(filename: &Path, contents: &str) {
     println!("$ printf %s {:?}... > {:?}", &contents[0..20], filename);
-    let mut file = File::create(filename)
-        .unwrap_or_else(|_| panic!("Unable to create file: {:?}", filename));
+    let mut file =
+        File::create(filename).unwrap_or_else(|_| panic!("Unable to create file: {:?}", filename));
     file.write_all(contents.as_bytes())
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }

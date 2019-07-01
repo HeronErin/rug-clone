@@ -216,8 +216,7 @@ macro_rules! unsigned_32 {
                     xmpfr::custom_zero(ptr, limbs_ptr, $bits);
                 } else {
                     let leading = self.leading_zeros();
-                    let limb_leading =
-                        leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
+                    let limb_leading = leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
                     limbs[0] = gmp::limb_t::from(self) << limb_leading;
                     let exp = $bits - leading;
                     xmpfr::custom_regular(ptr, limbs_ptr, cast(exp), $bits);
@@ -350,7 +349,12 @@ where
     #[inline]
     fn from(src: T) -> Self {
         let mut dst = SmallFloat {
-            inner: Mpfr { prec: 0, sign: 0, exp: 0, d: Default::default() },
+            inner: Mpfr {
+                prec: 0,
+                sign: 0,
+                exp: 0,
+                d: Default::default(),
+            },
             limbs: [0; LIMBS_IN_SMALL_FLOAT],
         };
         unsafe {

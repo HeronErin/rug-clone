@@ -70,24 +70,21 @@ macro_rules! cmp {
         impl PartialEq<$T> for Float {
             #[inline]
             fn eq(&self, other: &$T) -> bool {
-                <Float as PartialOrd<$T>>::partial_cmp(self, other)
-                    == Some(Ordering::Equal)
+                <Float as PartialOrd<$T>>::partial_cmp(self, other) == Some(Ordering::Equal)
             }
         }
 
         impl PartialEq<Float> for $T {
             #[inline]
             fn eq(&self, other: &Float) -> bool {
-                <Float as PartialOrd<$T>>::partial_cmp(other, self)
-                    == Some(Ordering::Equal)
+                <Float as PartialOrd<$T>>::partial_cmp(other, self) == Some(Ordering::Equal)
             }
         }
 
         impl PartialOrd<Float> for $T {
             #[inline]
             fn partial_cmp(&self, other: &Float) -> Option<Ordering> {
-                <Float as PartialOrd<$T>>::partial_cmp(other, self)
-                    .map(Ordering::reverse)
+                <Float as PartialOrd<$T>>::partial_cmp(other, self).map(Ordering::reverse)
             }
         }
     };
@@ -216,10 +213,7 @@ mod tests {
                     op.partial_cmp(&b),
                     <Float as PartialOrd>::partial_cmp(&fop, &b)
                 );
-                assert_eq!(
-                    b.partial_cmp(op),
-                    op.partial_cmp(&b).map(Ordering::reverse)
-                );
+                assert_eq!(b.partial_cmp(op), op.partial_cmp(&b).map(Ordering::reverse));
             }
         }
     }
@@ -244,10 +238,7 @@ mod tests {
                     op.partial_cmp(&b),
                     <Float as PartialOrd>::partial_cmp(&fop, &b)
                 );
-                assert_eq!(
-                    b.partial_cmp(op),
-                    op.partial_cmp(&b).map(Ordering::reverse)
-                );
+                assert_eq!(b.partial_cmp(op), op.partial_cmp(&b).map(Ordering::reverse));
             }
         }
     }

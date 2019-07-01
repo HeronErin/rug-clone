@@ -476,9 +476,7 @@ fn _static_assertions() {
 
     static_assert!(NAIL_BITS == 0);
     static_assert!(NUMB_BITS == LIMB_BITS);
-    static_assert!(
-        cfg!(target_pointer_width = "32") != cfg!(target_pointer_width = "64")
-    );
+    static_assert!(cfg!(target_pointer_width = "32") != cfg!(target_pointer_width = "64"));
     static_assert!(cfg!(gmp_limb_bits_32) != cfg!(gmp_limb_bits_64));
     #[cfg(gmp_limb_bits_64)]
     static_assert!(NUMB_BITS == 64);
@@ -495,10 +493,16 @@ mod tests {
     use std::{i128, i32, i64, u128, u32, u64};
 
     pub const U32: &[u32] = &[0, 1, 1000, 1001, i32::MAX as u32 + 1, u32::MAX];
-    pub const I32: &[i32] =
-        &[i32::MIN, -1001, -1000, -1, 0, 1, 1000, 1001, i32::MAX];
-    pub const U64: &[u64] =
-        &[0, 1, 1000, 1001, i32::MAX as u64 + 1, u32::MAX as u64 + 1, u64::MAX];
+    pub const I32: &[i32] = &[i32::MIN, -1001, -1000, -1, 0, 1, 1000, 1001, i32::MAX];
+    pub const U64: &[u64] = &[
+        0,
+        1,
+        1000,
+        1001,
+        i32::MAX as u64 + 1,
+        u32::MAX as u64 + 1,
+        u64::MAX,
+    ];
     pub const I64: &[i64] = &[
         i64::MIN,
         -(u32::MAX as i64) - 1,
