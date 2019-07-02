@@ -221,7 +221,7 @@ is not required and thus not enabled. In that case, only the
 provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.4/rug/index#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.4/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -239,6 +239,7 @@ provided by the crate.
 [`Integer`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html
 [`RandState`]: https://docs.rs/rug/~1.4/rug/rand/struct.RandState.html
 [`Rational`]: https://docs.rs/rug/~1.4/rug/struct.Rational.html
+[`ops`]: https://docs.rs/rug/~1.4/rug/ops/index.html
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [operators]: https://docs.rs/rug/~1.4/rug/index.html#operators
 [primitive types]: https://docs.rs/rug/~1.4/rug/index.html#using-with-primitive-types
