@@ -16,6 +16,7 @@
 
 use crate::cast::cast;
 use crate::ext::xmpfr::{self, ordering1};
+use crate::float::big::{IExpIncomplete, UExpIncomplete};
 use crate::float::Special;
 use crate::Float;
 #[cfg(feature = "integer")]
@@ -181,6 +182,9 @@ impl PartialOrd<Special> for Float {
         }
     }
 }
+
+cmp! { UExpIncomplete }
+cmp! { IExpIncomplete }
 
 #[cfg(test)]
 mod tests {

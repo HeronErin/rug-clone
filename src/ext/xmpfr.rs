@@ -255,6 +255,8 @@ pub fn modf(
 }
 
 wrap0! { fn ui_pow_ui(base: u32, exponent: u32) -> mpfr::ui_pow_ui }
+wrap0! { fn ui_2exp(ui: u32, exponent: i32) -> mpfr::set_ui_2exp }
+wrap0! { fn si_2exp(si: i32, exponent: i32) -> mpfr::set_si_2exp }
 wrap! { fn copysign(op1, op2) -> mpfr::copysign }
 wrap! { fn sqr(op) -> mpfr::sqr }
 wrap! { fn sqrt(op) -> mpfr::sqrt }
@@ -515,6 +517,16 @@ pub unsafe fn cmp_i128(op1: *const mpfr_t, op2: i128) -> c_int {
 pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
     let small = SmallFloat::from(op2);
     mpfr::cmp(op1, (*small).as_raw())
+}
+
+#[inline]
+pub unsafe fn cmp_u32_2exp(op1: *const mpfr_t, op2: u32, e: i32) -> c_int {
+    mpfr::cmp_ui_2exp(op1, op2.into(), e.into())
+}
+
+#[inline]
+pub unsafe fn cmp_i32_2exp(op1: *const mpfr_t, op2: i32, e: i32) -> c_int {
+    mpfr::cmp_si_2exp(op1, op2.into(), e.into())
 }
 
 #[inline]

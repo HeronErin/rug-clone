@@ -2646,6 +2646,74 @@ impl Float {
     }
 
     math_op0! {
+        /// Multiplies `u` by 2<sup>`exp`</sup>.
+        ///
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// You can also compare the returned value to a `Float`;
+        /// [`PartialEq<Src> for Float`][`PartialEq`] and
+        /// [`PartialOrd<Src> for Float`][`PartialOrd`], as well as
+        /// their converses [`PartialEq<Float> for Src`][`PartialEq`]
+        /// and [`PartialOrd<Float> for Src`][`PartialOrd`], are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let v = Float::u_exp(120, -100);
+        /// let f = Float::with_val(53, v);
+        /// assert_eq!(f, 120.0 * (-100f64).exp2());
+        /// let same = Float::u_exp(120 << 2, -100 - 2);
+        /// assert_eq!(f, same);
+        /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
+        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialOrd.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn u_exp(u: u32, exp: i32) -> UExpIncomplete;
+    }
+    math_op0! {
+        /// Multiplies `i` by 2<sup>`exp`</sup>.
+        ///
+        /// [`Assign<Src> for Float`][`Assign`] and
+        /// [`AssignRound<Src> for Float`][`AssignRound`] are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// You can also compare the returned value to a `Float`;
+        /// [`PartialEq<Src> for Float`][`PartialEq`] and
+        /// [`PartialOrd<Src> for Float`][`PartialOrd`], as well as
+        /// their converses [`PartialEq<Float> for Src`][`PartialEq`]
+        /// and [`PartialOrd<Float> for Src`][`PartialOrd`], are
+        /// implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Float;
+        /// let v = Float::i_exp(-120, -100);
+        /// let f = Float::with_val(53, v);
+        /// assert_eq!(f, -120.0 * (-100f64).exp2());
+        /// let same = Float::i_exp(-120 << 2, -100 - 2);
+        /// assert_eq!(f, same);
+        /// ```
+        ///
+        /// [`AssignRound`]: ops/trait.AssignRound.html
+        /// [`Assign`]: trait.Assign.html
+        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
+        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialOrd.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn i_exp(i: i32, exp: i32) -> IExpIncomplete;
+    }
+    math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
         /// [`Assign<Src> for Float`][`Assign`] and
@@ -7924,6 +7992,8 @@ where
     }
 }
 
+ref_math_op0_float! { xmpfr::ui_2exp; struct UExpIncomplete { u: u32, exp: i32 } }
+ref_math_op0_float! { xmpfr::si_2exp; struct IExpIncomplete { i: i32, exp: i32 } }
 ref_math_op0_float! { xmpfr::ui_pow_ui; struct UPowUIncomplete { base: u32, exponent: u32 } }
 ref_math_op0_float! { xmpfr::si_pow_ui; struct IPowUIncomplete { base: i32, exponent: u32 } }
 ref_math_op1_float! { xmpfr::sqr; struct SquareIncomplete {} }
@@ -8592,5 +8662,31 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
         Some(k)
     } else {
         None
+    }
+}
+
+impl PartialOrd<UExpIncomplete> for Float {
+    #[inline]
+    fn partial_cmp(&self, other: &UExpIncomplete) -> Option<Ordering> {
+        if self.is_nan() {
+            None
+        } else {
+            Some(ordering1(unsafe {
+                xmpfr::cmp_u32_2exp(self.as_raw(), other.u, other.exp)
+            }))
+        }
+    }
+}
+
+impl PartialOrd<IExpIncomplete> for Float {
+    #[inline]
+    fn partial_cmp(&self, other: &IExpIncomplete) -> Option<Ordering> {
+        if self.is_nan() {
+            None
+        } else {
+            Some(ordering1(unsafe {
+                xmpfr::cmp_i32_2exp(self.as_raw(), other.i, other.exp)
+            }))
+        }
     }
 }
