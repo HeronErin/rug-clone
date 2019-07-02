@@ -122,26 +122,8 @@ With Rust primitive types, arithmetic operators usually operate on two
 values of the same type, for example `12i32 + 5i32`. Unlike primitive
 types, conversion to and from Rug types can be expensive, so the
 arithmetic operators are overloaded to work on many combinations of
-Rug types and primitives. The following are provided:
-
- 1. Where they make sense, all arithmetic operators are overloaded to
-    work with Rug types and the primitives [`i32`], [`u32`], [`f32`]
-    and [`f64`].
- 2. Where they make sense, conversions using the [`From`] trait and
-    assignments using the [`Assign`] trait are supported for all the
-    primitives in 1 above as well as the other primitives [`i8`],
-    [`i16`], [`i64`], [`i128`], [`isize`], [`u8`], [`u16`], [`u64`],
-    [`u128`] and [`usize`].
- 3. Comparisons between Rug types and all the primitives listed in 1
-    and 2 above are supported.
- 4. For [`Rational`] numbers, conversions and comparisons are also
-    supported for tuples containing two integer primitives: the first
-    is the numerator and the second is the denominator which must not
-    be zero. The two primitives do not need to be of the same type.
- 5. For [`Complex`] numbers, conversions and comparisons are also
-    supported for tuples containing two primitives: the first is the
-    real part and the second is the imaginary part. The two primitives
-    do not need to be of the same type.
+Rug types and primitives. More details are available in the
+[documentation][primitive types].
 
 ## Operators
 
@@ -175,134 +157,11 @@ assert_eq!(sub, -10);
 
 Here `a` and `b` are not consumed, and `incomplete` is not the final
 value. It still needs to be converted or assigned into an [`Integer`].
-This is covered in more detail in the
+This is covered in more detail in the documentation’s
 [*Incomplete-computation values*] section.
 
-### Shifting operations
-
-The left shift `<<` and right shift `>>` operators support shifting by
-negative values, for example `a << 5` is equivalent to `a >> -5`.
-
-The shifting operators are also supported for the [`Float`] and
-[`Complex`] number types, where they are equivalent to multiplication
-or division by a power of two. Only the exponent of the value is
-affected; the mantissa is unchanged.
-
-### Exponentiation
-
-Exponentiation (raising to a power) does not have a dedicated operator
-in Rust. In order to perform exponentiation of Rug types, the [`Pow`]
-trait has to be brought into scope, for example
-
-```rust
-use rug::ops::Pow;
-use rug::Integer;
-let base = Integer::from(10);
-let power = base.pow(5);
-assert_eq!(power, 100_000);
-```
-
-### Compound assignments to right-hand-side operands
-
-Traits are provided for compound assignment to right-hand-side
-operands. This can be useful for non-commutative operations like
-subtraction. The names of the traits and their methods are similar to
-Rust compound assignment traits, with the suffix “`Assign`” replaced
-with “`From`”. For example the counterpart to [`SubAssign`] is
-[`SubFrom`]:
-
-```rust
-use rug::ops::SubFrom;
-use rug::Integer;
-let mut rhs = Integer::from(10);
-// set rhs = 100 − rhs
-rhs.sub_from(100);
-assert_eq!(rhs, 90);
-```
-
-## Incomplete-computation values
-
-There are two main reasons why operations like `&a - &b` do not
-perform a complete computation and return a Rug type:
-
- 1. Sometimes we need to assign the result to an object that already
-    exists. Since Rug types require memory allocations, this can help
-    reduce the number of allocations. (While the allocations might not
-    affect performance noticeably for computationally intensive
-    functions, they can have a much more significant effect on faster
-    functions like addition.)
- 2. For the [`Float`] and [`Complex`] number types, we need to know
-    the precision when we create a value, and the operation itself
-    does not convey information about what precision is desired for
-    the result.
-
-There are two things that can be done with incomplete-computation
-values:
-
- 1. Assign them to an existing object without unnecessary allocations.
-    This is usually achieved using the [`Assign`] trait or a similar
-    method, for example [`int.assign(incomplete)`][`Assign::assign`]
-    and [`float.assign_round(incomplete, Round::Up)`][`assign_round`].
- 2. Convert them to the final value using the [`From`] trait or a
-    similar method, for example
-    [`Integer::from(incomplete)`][`From::from`] and
-    [`Float::with_val(53, incomplete)`][`Float::with_val`].
-
-Let us consider a couple of examples.
-
-```rust
-use rug::{Assign, Integer};
-let mut buffer = Integer::new();
-// ... buffer can be used and reused ...
-let (a, b) = (Integer::from(10), Integer::from(20));
-let incomplete = &a - &b;
-buffer.assign(incomplete);
-assert_eq!(buffer, -10);
-```
-
-Here the assignment from `incomplete` into `buffer` does not require
-an allocation unless the result does not fit in the current capacity
-of `buffer`. If `&a - &b` returned an [`Integer`] instead, then an
-allocation would take place even if it is not necessary.
-
-```rust
-use rug::float::Constant;
-use rug::Float;
-// x has a precision of 10 bits
-let x = Float::with_val(10, 180);
-// y has a precision of 50 bits
-let y = Float::with_val(50, Constant::Pi);
-let incomplete = &x / &y;
-// z has a precision of 45 bits
-let z = Float::with_val(45, incomplete);
-assert!(57.295 < z && z < 57.296);
-```
-
-The precision to use for the result depends on the requirements of the
-algorithm being implemented. Here `z` is created with a precision
-of 45.
-
-Many operations can return incomplete-computation values:
-
-  * unary operators applied to references, for example `-&int`;
-  * binary operators applied to two references, for example
-    `&int1 + &int2`;
-  * binary operators applied to a primitive and a reference, for
-    example `&int * 10`;
-  * methods that take a reference, for example
-    [`int.abs_ref()`][`Integer::abs_ref`];
-  * methods that take two references, for example
-    [`int1.gcd_ref(&int2)`][`Integer::gcd_ref`];
-  * string parsing, for example
-    [`Integer::parse("12")`][`Integer::parse`];
-  * and more.
-
-These operations return objects that can be stored in temporary
-variables like `incomplete` in the last few examples. However, the
-names of the types are not public, and consequently, the
-incomplete-computation values cannot be for example stored in a
-struct. If you need to store the value in a struct, convert it to its
-final type and value.
+More details on operators are available in the
+[documentation][operators].
 
 ## Using Rug
 
@@ -362,7 +221,7 @@ is not required and thus not enabled. In that case, only the
 provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: #incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.4/rug/index#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -373,38 +232,16 @@ provided by the crate.
 [`Assign::assign`]: https://docs.rs/rug/~1.4/rug/trait.Assign.html#tymethod.assign
 [`Assign`]: https://docs.rs/rug/~1.4/rug/trait.Assign.html
 [`Complex`]: https://docs.rs/rug/~1.4/rug/struct.Complex.html
-[`Float::with_val`]: https://docs.rs/rug/~1.4/rug/struct.Float.html#method.with_val
 [`Float`]: https://docs.rs/rug/~1.4/rug/struct.Float.html
-[`From::from`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html#tymethod.from
-[`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
-[`Integer::abs_ref`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html#method.abs_ref
-[`Integer::gcd_ref`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html#method.gcd_ref
 [`Integer::new`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html#method.new
 [`Integer::parse_radix`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html#method.parse_radix
 [`Integer::parse`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html#method.parse
 [`Integer`]: https://docs.rs/rug/~1.4/rug/struct.Integer.html
-[`Pow`]: https://docs.rs/rug/~1.4/rug/ops/trait.Pow.html
 [`RandState`]: https://docs.rs/rug/~1.4/rug/rand/struct.RandState.html
 [`Rational`]: https://docs.rs/rug/~1.4/rug/struct.Rational.html
-[`SubAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.SubAssign.html
-[`SubFrom`]: https://docs.rs/rug/~1.4/rug/ops/trait.SubFrom.html
-[`assign_round`]: https://docs.rs/rug/~1.4/rug/ops/trait.AssignRound.html#tymethod.assign_round
-[`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
-[`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
-[`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
-[`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
-[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
-[`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
-[`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
-[`ops`]: https://docs.rs/rug/~1.4/rug/ops/index.html
-[`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
-[`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
-[`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
-[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
-[`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-[`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
+[operators]: https://docs.rs/rug/~1.4/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.4/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys
