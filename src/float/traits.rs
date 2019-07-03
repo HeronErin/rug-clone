@@ -330,6 +330,7 @@ conv_ops! { f64, xmpfr::set_f64 }
 #[cfg(all(try_from, feature = "rational"))]
 impl TryFrom<Float> for Rational {
     type Error = TryFromFloatError;
+    #[inline]
     fn try_from(value: Float) -> Result<Self, TryFromFloatError> {
         TryFrom::try_from(&value)
     }
@@ -338,6 +339,7 @@ impl TryFrom<Float> for Rational {
 #[cfg(all(try_from, feature = "rational"))]
 impl TryFrom<&Float> for Rational {
     type Error = TryFromFloatError;
+    #[inline]
     fn try_from(value: &Float) -> Result<Self, TryFromFloatError> {
         value.to_rational().ok_or(TryFromFloatError { _unused: () })
     }

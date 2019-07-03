@@ -614,6 +614,7 @@ impl Complex {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    #[inline]
     pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseComplexError>
     where
         S: AsRef<[u8]>,
@@ -670,6 +671,7 @@ impl Complex {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    #[inline]
     pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseComplexError>
     where
         S: AsRef<[u8]>,
@@ -1210,6 +1212,7 @@ impl Complex {
     /// let mul_add = a.mul_add(&b, &c);
     /// assert_eq!(mul_add, (1010, 990));
     /// ```
+    #[inline]
     pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
         self.mul_add_round(mul, add, Default::default());
         self
@@ -1232,6 +1235,7 @@ impl Complex {
     /// a.mul_add_mut(&b, &c);
     /// assert_eq!(a, (1010, 990));
     /// ```
+    #[inline]
     pub fn mul_add_mut(&mut self, mul: &Self, add: &Self) {
         self.mul_add_round(mul, add, Default::default());
     }
@@ -1260,6 +1264,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
+    #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round2) -> Ordering2 {
         xmpc::fma(self, None, Some(mul), Some(add), round)
     }
@@ -1289,6 +1294,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
         self * mul + add
     }
@@ -1310,6 +1316,7 @@ impl Complex {
     /// let mul_sub = a.mul_sub(&b, &c);
     /// assert_eq!(mul_sub, (-990, -1010));
     /// ```
+    #[inline]
     pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
         self.mul_sub_round(mul, sub, Default::default());
         self
@@ -1332,6 +1339,7 @@ impl Complex {
     /// a.mul_sub_mut(&b, &c);
     /// assert_eq!(a, (-990, -1010));
     /// ```
+    #[inline]
     pub fn mul_sub_mut(&mut self, mul: &Self, sub: &Self) {
         self.mul_sub_round(mul, sub, Default::default());
     }
@@ -1360,6 +1368,7 @@ impl Complex {
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
+    #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round2) -> Ordering2 {
         let ret = unsafe {
             xmpc::mulsub(
@@ -1397,6 +1406,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
@@ -3694,6 +3704,7 @@ pub(crate) struct Format {
 }
 
 impl Default for Format {
+    #[inline]
     fn default() -> Format {
         Format {
             radix: 10,

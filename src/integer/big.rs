@@ -1732,7 +1732,6 @@ impl Integer {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Integer`]: struct.Integer.html
-    #[inline]
     pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger {
             inner: self.inner,
@@ -1764,7 +1763,6 @@ impl Integer {
     /// ```
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    #[inline]
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger {
             inner: self.inner,
@@ -3423,6 +3421,7 @@ impl Integer {
     ///     Err(()) => unreachable!(),
     /// }
     /// ```
+    #[inline]
     pub fn pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) -> Result<(), ()> {
         let sinverse = match self.pow_mod_ref(exponent, modulo) {
             Some(PowModIncomplete { sinverse, .. }) => sinverse,
@@ -3521,6 +3520,7 @@ impl Integer {
     /// let power = n.secure_pow_mod(&e, &m);
     /// assert_eq!(power, 9);
     /// ```
+    #[inline]
     pub fn secure_pow_mod(mut self, exponent: &Self, modulo: &Self) -> Self {
         self.secure_pow_mod_mut(exponent, modulo);
         self
@@ -3554,6 +3554,7 @@ impl Integer {
     /// n.secure_pow_mod_mut(&e, &m);
     /// assert_eq!(n, 9);
     /// ```
+    #[inline]
     pub fn secure_pow_mod_mut(&mut self, exponent: &Self, modulo: &Self) {
         xmpz::powm_sec(self, None, exponent, modulo);
     }
@@ -3594,6 +3595,7 @@ impl Integer {
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn secure_pow_mod_ref<'a>(
         &'a self,
         exponent: &'a Self,
@@ -5136,6 +5138,7 @@ pub struct PowModIncomplete<'a> {
 }
 
 impl Assign<PowModIncomplete<'_>> for Integer {
+    #[inline]
     fn assign(&mut self, src: PowModIncomplete<'_>) {
         match (src.ref_self, src.sinverse) {
             (Some(base), None) => {
@@ -5179,6 +5182,7 @@ pub struct SecurePowModIncomplete<'a> {
 }
 
 impl Assign<SecurePowModIncomplete<'_>> for Integer {
+    #[inline]
     fn assign(&mut self, src: SecurePowModIncomplete<'_>) {
         xmpz::powm_sec(self, Some(src.ref_self), src.exponent, src.modulo);
     }
@@ -5243,6 +5247,7 @@ pub struct InvertIncomplete<'a> {
 }
 
 impl Assign<InvertIncomplete<'_>> for Integer {
+    #[inline]
     fn assign(&mut self, src: InvertIncomplete<'_>) {
         xmpz::finish_invert(self, Some(&src.sinverse), src.modulo);
     }

@@ -972,7 +972,6 @@ impl Rational {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Rational`]: struct.Rational.html
-    #[inline]
     pub fn as_neg(&self) -> BorrowRational<'_> {
         let mut ret = BorrowRational {
             inner: self.inner,
@@ -1008,7 +1007,6 @@ impl Rational {
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`Rational`]: struct.Rational.html
-    #[inline]
     pub fn as_abs(&self) -> BorrowRational<'_> {
         let mut ret = BorrowRational {
             inner: self.inner,

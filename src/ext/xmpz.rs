@@ -123,6 +123,7 @@ pub fn signum(rop: &mut Integer, op: Option<&Integer>) {
     }
 }
 
+#[inline]
 pub fn keep_signed_bits(rop: &mut Integer, op: Option<&Integer>, b: u32) {
     let rop_ptr = rop.as_raw_mut();
     let op_ptr = op.unwrap_or(rop).as_raw();

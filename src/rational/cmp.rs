@@ -170,6 +170,7 @@ macro_rules! cmp_num_iden {
 macro_rules! cmp_num_uden {
     ($func:path; $Num:ty; $($Den:ty)*) => { $(
         impl PartialOrd<($Num, $Den)> for Rational {
+            #[inline]
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
                 assert_ne!(other.1, 0, "division by zero");
                 Some($func(self, cast(other.0), cast(other.1)))

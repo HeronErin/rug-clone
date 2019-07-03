@@ -702,6 +702,7 @@ mul_op_noncommut_round! {
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[inline]
 unsafe fn add_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
@@ -712,6 +713,7 @@ unsafe fn add_mul(
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[inline]
 unsafe fn sub_mul(
     rop: *mut mpc_t,
     add: *const mpc_t,
@@ -722,6 +724,7 @@ unsafe fn sub_mul(
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[inline]
 unsafe fn mul_sub(
     rop: *mut mpc_t,
     mul: MulIncomplete<'_>,

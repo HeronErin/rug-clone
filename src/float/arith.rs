@@ -654,6 +654,7 @@ impl AssignRound<MulSubMulIncomplete<'_>> for Float {
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[inline]
 unsafe fn add_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
@@ -664,6 +665,7 @@ unsafe fn add_mul(
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[inline]
 unsafe fn sub_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
@@ -674,6 +676,7 @@ unsafe fn sub_mul(
 }
 
 #[allow(clippy::needless_pass_by_value)]
+#[inline]
 unsafe fn mul_sub(
     rop: *mut mpfr_t,
     mul: MulIncomplete<'_>,

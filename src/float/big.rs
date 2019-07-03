@@ -724,6 +724,7 @@ impl Float {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    #[inline]
     pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseFloatError>
     where
         S: AsRef<[u8]>,
@@ -788,6 +789,7 @@ impl Float {
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
+    #[inline]
     pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseFloatError>
     where
         S: AsRef<[u8]>,
@@ -2152,6 +2154,7 @@ impl Float {
     /// let mul_add = mul1.mul_add(&mul2, &add);
     /// assert_eq!(mul_add, 4.5);
     /// ```
+    #[inline]
     pub fn mul_add(mut self, mul: &Self, add: &Self) -> Self {
         self.mul_add_round(mul, add, Default::default());
         self
@@ -2179,6 +2182,7 @@ impl Float {
     /// mul1.mul_add_mut(&mul2, &add);
     /// assert_eq!(mul1, 4.5);
     /// ```
+    #[inline]
     pub fn mul_add_mut(&mut self, mul: &Self, add: &Self) {
         self.mul_add_round(mul, add, Default::default());
     }
@@ -2212,6 +2216,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
+    #[inline]
     pub fn mul_add_round(&mut self, mul: &Self, add: &Self, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fma(
@@ -2255,6 +2260,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
         self * mul + add
     }
@@ -2281,6 +2287,7 @@ impl Float {
     /// let mul_sub = mul1.mul_sub(&mul2, &sub);
     /// assert_eq!(mul_sub, -44);
     /// ```
+    #[inline]
     pub fn mul_sub(mut self, mul: &Self, sub: &Self) -> Self {
         self.mul_sub_round(mul, sub, Default::default());
         self
@@ -2308,6 +2315,7 @@ impl Float {
     /// mul1.mul_sub_mut(&mul2, &sub);
     /// assert_eq!(mul1, -44);
     /// ```
+    #[inline]
     pub fn mul_sub_mut(&mut self, mul: &Self, sub: &Self) {
         self.mul_sub_round(mul, sub, Default::default());
     }
@@ -2341,6 +2349,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
+    #[inline]
     pub fn mul_sub_round(&mut self, mul: &Self, sub: &Self, round: Round) -> Ordering {
         let ret = unsafe {
             mpfr::fms(
@@ -2384,6 +2393,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
         self * mul - sub
     }
@@ -2407,6 +2417,7 @@ impl Float {
     /// let mul_add_mul = a.mul_add_mul(&b, &c, &d);
     /// assert_eq!(mul_add_mul, 60);
     /// ```
+    #[inline]
     pub fn mul_add_mul(mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) -> Self {
         self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
         self
@@ -2431,6 +2442,7 @@ impl Float {
     /// a.mul_add_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 60);
     /// ```
+    #[inline]
     pub fn mul_add_mul_mut(&mut self, mul: &Self, add_mul1: &Self, add_mul2: &Self) {
         self.mul_add_mul_round(mul, add_mul1, add_mul2, Default::default());
     }
@@ -2461,6 +2473,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
+    #[inline]
     pub fn mul_add_mul_round(
         &mut self,
         mul: &Self,
@@ -2507,6 +2520,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn mul_add_mul_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -2536,6 +2550,7 @@ impl Float {
     /// let mul_sub_mul = a.mul_sub_mul(&b, &c, &d);
     /// assert_eq!(mul_sub_mul, 12);
     /// ```
+    #[inline]
     pub fn mul_sub_mul(mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) -> Self {
         self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
         self
@@ -2561,6 +2576,7 @@ impl Float {
     /// a.mul_sub_mul_mut(&b, &c, &d);
     /// assert_eq!(a, 12);
     /// ```
+    #[inline]
     pub fn mul_sub_mul_mut(&mut self, mul: &Self, sub_mul1: &Self, sub_mul2: &Self) {
         self.mul_sub_mul_round(mul, sub_mul1, sub_mul2, Default::default());
     }
@@ -2591,6 +2607,7 @@ impl Float {
     /// ```
     ///
     /// [`Float`]: struct.Float.html
+    #[inline]
     pub fn mul_sub_mul_round(
         &mut self,
         mul: &Self,
@@ -2638,6 +2655,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [icv]: index.html#incomplete-computation-values
+    #[inline]
     pub fn mul_sub_mul_ref<'a>(
         &'a self,
         mul: &'a Self,
@@ -8288,6 +8306,7 @@ pub(crate) struct Format {
 }
 
 impl Default for Format {
+    #[inline]
     fn default() -> Format {
         Format {
             radix: 10,

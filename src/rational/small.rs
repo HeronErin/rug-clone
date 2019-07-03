@@ -247,6 +247,7 @@ impl SmallRational {
         den.copy(&mut self.inner.den.size, den_limbs);
     }
 
+    #[inline]
     fn num_is_first(&self) -> bool {
         (self.inner.num.d.load(Ordering::Relaxed) as usize)
             <= (self.inner.den.d.load(Ordering::Relaxed) as usize)

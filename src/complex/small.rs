@@ -147,6 +147,7 @@ impl SmallComplex {
         &mut *ptr
     }
 
+    #[inline]
     fn re_is_first(&self) -> bool {
         (self.inner.re.d.load(Ordering::Relaxed) as usize)
             <= (self.inner.im.d.load(Ordering::Relaxed) as usize)

@@ -105,6 +105,7 @@ macro_rules! try_from {
         #[cfg(try_from)]
         impl TryFrom<Integer> for $T {
             type Error = TryFromIntegerError;
+            #[inline]
             fn try_from(value: Integer) -> Result<Self, TryFromIntegerError> {
                 TryFrom::try_from(&value)
             }
@@ -112,6 +113,7 @@ macro_rules! try_from {
         #[cfg(try_from)]
         impl TryFrom<&Integer> for $T {
             type Error = TryFromIntegerError;
+            #[inline]
             fn try_from(value: &Integer) -> Result<Self, TryFromIntegerError> {
                 value.$method().ok_or(TryFromIntegerError { _unused: () })
             }
