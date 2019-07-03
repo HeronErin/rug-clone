@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::complex::big::{self, Format};
-use crate::complex::ParseComplexError;
 use crate::ext::xmpc::{ordering2, raw_round2, Ordering2, Round2};
 use crate::float::big::ExpFormat;
 use crate::float::{Round, Special};
@@ -299,12 +298,6 @@ fn fmt_radix(c: &Complex, fmt: &mut Formatter<'_>, format: Format) -> FmtResult 
         fmt.write_str(&fill_buf)?;
     }
     Ok(())
-}
-
-impl Display for ParseComplexError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        Debug::fmt(self, f)
-    }
 }
 
 unsafe impl Send for Complex {}

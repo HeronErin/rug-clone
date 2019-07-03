@@ -37,6 +37,7 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::cmp::Ordering;
 use std::error::Error;
 use std::ffi::{CStr, CString};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::marker::PhantomData;
 use std::mem;
 use std::num::FpCategory;
@@ -8656,6 +8657,12 @@ impl Error for ParseFloatError {
             TooManyPoints => "more than one point found in string",
             TooManyExp => "more than one exponent found in string",
         }
+    }
+}
+
+impl Display for ParseFloatError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(self.description(), f)
     }
 }
 

@@ -27,7 +27,7 @@ use std::cmp::Ordering;
 use std::convert::TryFrom;
 #[cfg(try_from)]
 use std::error::Error;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal, UpperHex};
+use std::fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex};
 use std::hash::{Hash, Hasher};
 use std::i32;
 use std::mem;
@@ -88,37 +88,37 @@ impl FromStr for Rational {
 }
 
 impl Display for Rational {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Rational {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Binary for Rational {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Rational {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Rational {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Rational {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 16, true, "0x")
     }
 }
@@ -269,18 +269,12 @@ fn fmt_radix(
     radix: i32,
     to_upper: bool,
     prefix: &str,
-) -> fmt::Result {
+) -> FmtResult {
     let mut s = String::new();
     big::append_to_string(&mut s, r, radix, to_upper);
     let neg = s.starts_with('-');
     let buf = if neg { &s[1..] } else { &s[..] };
     f.pad_integral(!neg, prefix, buf)
-}
-
-impl Display for ParseRationalError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
 }
 
 #[cfg(try_from)]
@@ -292,7 +286,7 @@ impl Error for TryFromFloatError {
 
 #[cfg(try_from)]
 impl Display for TryFromFloatError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Display::fmt(self.description(), f)
     }
 }

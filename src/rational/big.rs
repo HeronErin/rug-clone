@@ -23,6 +23,7 @@ use crate::{Assign, Integer};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::cmp::Ordering;
 use std::error::Error;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::i32;
 use std::marker::PhantomData;
 use std::mem;
@@ -2741,5 +2742,11 @@ impl Error for ParseRationalError {
             TooManySlashes => "more than one / found in string",
             DenomZero => "string has zero denominator",
         }
+    }
+}
+
+impl Display for ParseRationalError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(self.description(), f)
     }
 }

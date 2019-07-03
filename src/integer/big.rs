@@ -25,6 +25,7 @@ use crate::Assign;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::cmp::Ordering;
 use std::error::Error;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
@@ -5564,6 +5565,12 @@ impl Error for ParseIntegerError {
             InvalidDigit => "invalid digit found in string",
             NoDigits => "string has no digits",
         }
+    }
+}
+
+impl Display for ParseIntegerError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        Display::fmt(self.description(), f)
     }
 }
 

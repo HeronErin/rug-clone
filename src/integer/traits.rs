@@ -25,7 +25,7 @@ use crate::{Assign, Integer};
 use std::convert::TryFrom;
 #[cfg(try_from)]
 use std::error::Error;
-use std::fmt::{self, Binary, Debug, Display, Formatter, LowerHex, Octal, UpperHex};
+use std::fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex};
 use std::hash::{Hash, Hasher};
 use std::mem;
 use std::slice;
@@ -219,37 +219,37 @@ impl FromStr for Integer {
 }
 
 impl Display for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Debug for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 10, false, "")
     }
 }
 
 impl Binary for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 2, false, "0b")
     }
 }
 
 impl Octal for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 8, false, "0o")
     }
 }
 
 impl LowerHex for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 16, false, "0x")
     }
 }
 
 impl UpperHex for Integer {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         fmt_radix(self, f, 16, true, "0x")
     }
 }
@@ -260,7 +260,7 @@ fn fmt_radix(
     radix: i32,
     to_upper: bool,
     prefix: &str,
-) -> fmt::Result {
+) -> FmtResult {
     let mut s = String::new();
     big::append_to_string(&mut s, i, radix, to_upper);
     let (neg, buf) = if s.starts_with('-') {
@@ -269,12 +269,6 @@ fn fmt_radix(
         (false, &s[..])
     };
     f.pad_integral(!neg, prefix, buf)
-}
-
-impl Display for ParseIntegerError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
 }
 
 #[cfg(try_from)]
@@ -286,7 +280,7 @@ impl Error for TryFromIntegerError {
 
 #[cfg(try_from)]
 impl Display for TryFromIntegerError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Display::fmt(self.description(), f)
     }
 }

@@ -17,7 +17,7 @@
 use crate::cast::cast;
 use crate::ext::xmpfr::{self, ordering1, raw_round};
 use crate::float::big::{self, ExpFormat, Format};
-use crate::float::{Constant, ParseFloatError, Round, Special};
+use crate::float::{Constant, Round, Special};
 use crate::ops::AssignRound;
 #[cfg(all(try_from, feature = "rational"))]
 use crate::rational::TryFromFloatError;
@@ -360,12 +360,6 @@ fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str)
     };
     let prefix = if flt.is_finite() { prefix } else { "" };
     fmt.pad_integral(!neg, prefix, buf)
-}
-
-impl Display for ParseFloatError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        Debug::fmt(self, f)
-    }
 }
 
 unsafe impl Send for Float {}

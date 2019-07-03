@@ -32,6 +32,7 @@ use gmp_mpfr_sys::mpc::{self, mpc_t};
 use gmp_mpfr_sys::mpfr;
 use std::cmp::{self, Ordering};
 use std::error::Error;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::marker::PhantomData;
 use std::mem;
 use std::ops::{Add, AddAssign, Deref};
@@ -3912,6 +3913,34 @@ impl Error for ParseComplexError {
             MissingSeparator => "string has no separator inside brackets",
             MultipleSeparators => "string has more than one separator inside brackets",
             CloseNotLast => "string has more characters after closing bracket",
+        }
+    }
+}
+
+impl Display for ParseComplexError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        use self::ParseErrorKind::*;
+        match &self.kind {
+            NoDigits => Display::fmt("string has no digits", f),
+            NoRealDigits => Display::fmt("string has no real digits", f),
+            NoImagDigits => Display::fmt("string has no imaginary digits", f),
+            InvalidFloat(e) => {
+                Display::fmt("string is not a valid float: ", f)?;
+                Display::fmt(e, f)
+            }
+            InvalidRealFloat(e) => {
+                Display::fmt("real part of string is not a valid float", f)?;
+                Display::fmt(e, f)
+            }
+            InvalidImagFloat(e) => {
+                Display::fmt("imaginary part of string is not a valid float", f)?;
+                Display::fmt(e, f)
+            }
+            MissingSeparator => Display::fmt("string has no separator inside brackets", f),
+            MultipleSeparators => {
+                Display::fmt("string has more than one separator inside brackets", f)
+            }
+            CloseNotLast => Display::fmt("string has more characters after closing bracket", f),
         }
     }
 }
