@@ -187,9 +187,11 @@ pub struct Integer {
 }
 
 impl Integer {
+    #[inline]
     pub(crate) fn inner(&self) -> &mpz_t {
         &self.inner
     }
+    #[inline]
     pub(crate) unsafe fn inner_mut(&mut self) -> &mut mpz_t {
         &mut self.inner
     }

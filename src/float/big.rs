@@ -235,9 +235,11 @@ pub struct Float {
 }
 
 impl Float {
+    #[inline]
     pub(crate) fn inner(&self) -> &mpfr_t {
         &self.inner
     }
+    #[inline]
     pub(crate) unsafe fn inner_mut(&mut self) -> &mut mpfr_t {
         &mut self.inner
     }
