@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Verison 1.5.0 (unreleased)
+Verison 1.5.0 (2019-07-04)
 ==========================
 
   * The method `Integer::assign_digits_unaligned` was added to enable
