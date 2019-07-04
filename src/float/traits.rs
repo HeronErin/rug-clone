@@ -31,7 +31,8 @@ use std::cmp::Ordering;
 #[cfg(all(try_from, feature = "rational"))]
 use std::convert::TryFrom;
 use std::fmt::{
-    self, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, UpperExp, UpperHex,
+    Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult, UpperExp,
+    UpperHex,
 };
 use std::mem;
 use std::os::raw::{c_long, c_ulong};
@@ -64,7 +65,7 @@ impl Drop for Float {
 }
 
 impl Display for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             exp: ExpFormat::Point,
             ..Format::default()
@@ -74,7 +75,7 @@ impl Display for Float {
 }
 
 impl Debug for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             exp: ExpFormat::Point,
             ..Format::default()
@@ -84,7 +85,7 @@ impl Debug for Float {
 }
 
 impl LowerExp for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             exp: ExpFormat::Exp,
             ..Format::default()
@@ -94,7 +95,7 @@ impl LowerExp for Float {
 }
 
 impl UpperExp for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             to_upper: true,
             exp: ExpFormat::Exp,
@@ -105,7 +106,7 @@ impl UpperExp for Float {
 }
 
 impl Binary for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 2,
             exp: ExpFormat::Exp,
@@ -116,7 +117,7 @@ impl Binary for Float {
 }
 
 impl Octal for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 8,
             exp: ExpFormat::Exp,
@@ -127,7 +128,7 @@ impl Octal for Float {
 }
 
 impl LowerHex for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 16,
             exp: ExpFormat::Exp,
@@ -138,7 +139,7 @@ impl LowerHex for Float {
 }
 
 impl UpperHex for Float {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let format = Format {
             radix: 16,
             to_upper: true,
@@ -346,7 +347,7 @@ impl TryFrom<&Float> for Rational {
 }
 
 // overwrites format.precision
-fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str) -> fmt::Result {
+fn fmt_radix(flt: &Float, fmt: &mut Formatter<'_>, format: Format, prefix: &str) -> FmtResult {
     let format = Format {
         precision: fmt.precision(),
         ..format
