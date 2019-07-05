@@ -1769,8 +1769,9 @@ impl Rational {
         xmpq::ceil_fract_whole;
         /// Computes the fractional and ceil parts of the number.
         ///
-        /// The fractional part cannot greater than zero. The initial
-        /// value of `ceil` is ignored.
+        /// The fractional part cannot greater than zero.
+        ///
+        /// The initial value of `ceil` is ignored.
         ///
         /// # Examples
         ///
@@ -1785,8 +1786,9 @@ impl Rational {
         fn fract_ceil(ceil);
         /// Computes the fractional and ceil parts of the number.
         ///
-        /// The fractional part cannot be greater than zero. The initial
-        /// value of `ceil` is ignored.
+        /// The fractional part cannot be greater than zero.
+        ///
+        /// The initial value of `ceil` is ignored.
         ///
         /// # Examples
         ///
@@ -1940,8 +1942,9 @@ impl Rational {
         xmpq::floor_fract_whole;
         /// Computes the fractional and floor parts of the number.
         ///
-        /// The fractional part cannot be negative. The initial value of
-        /// `floor` is ignored.
+        /// The fractional part cannot be negative.
+        ///
+        /// The initial value of `floor` is ignored.
         ///
         /// # Examples
         ///
@@ -1956,8 +1959,9 @@ impl Rational {
         fn fract_floor(floor);
         /// Computes the fractional and floor parts of the number.
         ///
-        /// The fractional part cannot be negative. The initial value of
-        /// `floor` is ignored.
+        /// The fractional part cannot be negative.
+        ///
+        /// The initial value of `floor` is ignored.
         ///
         /// # Examples
         ///
@@ -2143,6 +2147,8 @@ impl Rational {
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
         ///
+        /// The initial value of `round` is ignored.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2165,6 +2171,8 @@ impl Rational {
         /// down and negative when the number is rounded up. When the
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
+        ///
+        /// The initial value of `round` is ignored.
         ///
         /// # Examples
         ///

@@ -4139,6 +4139,8 @@ impl Integer {
         ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
         ///     2<i>g</i>, then *t* = sgn(*b*).
         ///
+        /// The initial value of `rop` is ignored.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -4174,6 +4176,8 @@ impl Integer {
         ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
         ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
         ///     2<i>g</i>, then *t* = sgn(*b*).
+        ///
+        /// The initial value of `rop` is ignored.
         ///
         /// # Examples
         ///

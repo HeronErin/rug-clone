@@ -2479,6 +2479,8 @@ impl Complex {
         /// The sine keeps the precision of `self` while the cosine
         /// keeps the precision of `cos`.
         ///
+        /// The initial value of `cos` is ignored.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -2496,6 +2498,8 @@ impl Complex {
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// The initial value of `cos` is ignored.
         ///
         /// # Examples
         ///
