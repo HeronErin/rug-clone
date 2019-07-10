@@ -8357,6 +8357,11 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         return;
     }
 
+    let radix_with_case = if format.to_upper {
+        -format.radix
+    } else {
+        format.radix
+    };
     let digits = format
         .precision
         .map(|x| if x == 1 { 2 } else { x })
@@ -8370,7 +8375,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         c_buf = mpfr::get_str(
             ptr::null_mut(),
             exp_ptr,
-            cast(format.radix),
+            cast(radix_with_case),
             digits,
             f.as_raw(),
             raw_round(format.round),
@@ -8385,15 +8390,11 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     if negative {
         s.push('-');
     }
-    let digits_start = s.len();
     s.push_str(&slice[0..1]);
     s.push('.');
     s.push_str(&slice[1..]);
     unsafe {
         mpfr::free_str(c_buf);
-    }
-    if format.to_upper {
-        s[digits_start..].make_ascii_uppercase();
     }
     exp = exp.checked_sub(1).expect("overflow");
     if exp != 0 {
