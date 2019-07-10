@@ -31,6 +31,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.5.1 news (2019-07-10)
+
+  * Bug fix: a memory leak in conversions of [`Float`] to string was
+    fixed ([issue 11]).
+
+[issue 11]: https://gitlab.com/tspiteri/rug/issues/11
+
 ### Version 1.5.0 news (2019-07-04)
 
   * The method [`Integer::assign_digits_unaligned`] was added to

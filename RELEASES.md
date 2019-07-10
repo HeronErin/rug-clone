@@ -5,6 +5,12 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.5.1 (2019-07-10)
+==========================
+
+  * Bug fix: a memory leak in conversions of `Float` to string was
+    fixed (https://gitlab.com/tspiteri/rug/issues/11).
+
 Verison 1.5.0 (2019-07-04)
 ==========================
 
