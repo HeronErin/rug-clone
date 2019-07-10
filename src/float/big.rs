@@ -8389,6 +8389,9 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     s.push_str(&slice[0..1]);
     s.push('.');
     s.push_str(&slice[1..]);
+    unsafe {
+        mpfr::free_str(c_buf);
+    }
     if format.to_upper {
         s[digits_start..].make_ascii_uppercase();
     }
