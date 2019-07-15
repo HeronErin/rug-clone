@@ -4418,6 +4418,8 @@ impl Float {
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
         ///
+        /// The initial value of `cos` is ignored.
+        ///
         /// # Examples
         ///
         /// ```rust
@@ -5204,6 +5206,8 @@ impl Float {
         ///
         /// The sine is stored in `self` and keeps its precision,
         /// while the cosine is stored in `cos` keeping its precision.
+        ///
+        /// The initial value of `cos` is ignored.
         ///
         /// # Examples
         ///
@@ -7672,6 +7676,8 @@ impl Float {
         /// The integer part is stored in `self` and keeps its
         /// precision, while the fractional part is stored in `fract`
         /// keeping its precision.
+        ///
+        /// The initial value of `fract` is ignored.
         ///
         /// # Examples
         ///
