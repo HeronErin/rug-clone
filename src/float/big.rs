@@ -209,7 +209,7 @@ use rug::Float;
 let mut t = Float::with_val(200, 1.0);
 let mut s = Float::with_val(200, 1.0);
 let mut u = Float::new(200);
-for i in 1..101_u32 {
+for i in 1..=100_u32 {
     // multiply t by i in place, round towards +∞
     t.mul_assign_round(i, Round::Up);
     // set u to 1/t, round towards −∞
