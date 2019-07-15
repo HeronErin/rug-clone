@@ -164,7 +164,6 @@ macro_rules! assign {
 
     ($T:ty as $U:ty) => {
         impl Assign<$T> for Integer {
-            #[allow(clippy::cast_lossless)]
             #[inline]
             fn assign(&mut self, src: $T) {
                 self.assign(src as $U);
@@ -172,7 +171,6 @@ macro_rules! assign {
         }
 
         impl Assign<&$T> for Integer {
-            #[allow(clippy::cast_lossless)]
             #[inline]
             fn assign(&mut self, src: &$T) {
                 self.assign(*src as $U);
@@ -180,7 +178,6 @@ macro_rules! assign {
         }
 
         impl From<$T> for Integer {
-            #[allow(clippy::cast_lossless)]
             #[inline]
             fn from(src: $T) -> Self {
                 Integer::from(src as $U)

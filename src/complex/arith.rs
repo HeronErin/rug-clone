@@ -701,7 +701,6 @@ mul_op_noncommut_round! {
     SubMulIncomplete, SubMulFromIncomplete
 }
 
-#[allow(clippy::needless_pass_by_value)]
 #[inline]
 unsafe fn add_mul(
     rop: *mut mpc_t,
@@ -712,7 +711,6 @@ unsafe fn add_mul(
     mpc::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
 }
 
-#[allow(clippy::needless_pass_by_value)]
 #[inline]
 unsafe fn sub_mul(
     rop: *mut mpc_t,
@@ -723,7 +721,6 @@ unsafe fn sub_mul(
     xmpc::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
 }
 
-#[allow(clippy::needless_pass_by_value)]
 #[inline]
 unsafe fn mul_sub(
     rop: *mut mpc_t,
