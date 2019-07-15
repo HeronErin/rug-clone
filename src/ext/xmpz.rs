@@ -1677,6 +1677,7 @@ pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut gmp::limb_t {
     &mut *z.inner_mut().d.offset(index)
 }
 
+#[allow(clippy::cast_lossless)]
 pub fn realloc_for_mpn_set_str(rop: &mut Integer, len: usize, radix: i32) {
     // add 1 for possible rounding errors
     let bits = (f64::from(radix).log2() * (len as f64)).ceil() + 1.0;
