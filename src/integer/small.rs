@@ -17,7 +17,7 @@
 use crate::{Assign, Integer};
 
 use crate::cast::cast;
-use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL, LIMBS_ZERO};
+use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::mem;
 use std::ops::Deref;
@@ -122,7 +122,7 @@ impl SmallInteger {
                 size: 0,
                 d: Default::default(),
             },
-            limbs: LIMBS_ZERO,
+            limbs: small_limbs![],
         }
     }
 

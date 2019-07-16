@@ -17,7 +17,7 @@
 use crate::ext::xmpfr;
 use crate::float::small::Mpfr;
 use crate::float::ToSmall;
-use crate::misc::{Limbs, LIMBS_ZERO};
+use crate::misc::Limbs;
 use crate::{Assign, Complex};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
@@ -220,8 +220,8 @@ where
                     d: Default::default(),
                 },
             },
-            first_limbs: LIMBS_ZERO,
-            last_limbs: LIMBS_ZERO,
+            first_limbs: small_limbs![],
+            last_limbs: small_limbs![],
         };
         unsafe {
             src.copy(&mut dst.inner.re, &mut dst.first_limbs);
@@ -269,8 +269,8 @@ where
                     d: Default::default(),
                 },
             },
-            first_limbs: LIMBS_ZERO,
-            last_limbs: LIMBS_ZERO,
+            first_limbs: small_limbs![],
+            last_limbs: small_limbs![],
         };
         unsafe {
             src.0.copy(&mut dst.inner.re, &mut dst.first_limbs);

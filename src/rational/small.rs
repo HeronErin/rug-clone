@@ -17,7 +17,7 @@
 use crate::cast::cast;
 use crate::integer::small::Mpz;
 use crate::integer::ToSmall;
-use crate::misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL, LIMBS_ONE, LIMBS_ZERO};
+use crate::misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL};
 use crate::{Assign, Rational};
 use gmp_mpfr_sys::gmp;
 use std::mem;
@@ -128,8 +128,8 @@ impl SmallRational {
                     d: Default::default(),
                 },
             },
-            first_limbs: LIMBS_ZERO,
-            last_limbs: LIMBS_ONE,
+            first_limbs: small_limbs![],
+            last_limbs: small_limbs![1],
         }
     }
 

@@ -16,7 +16,7 @@
 
 use crate::cast::cast;
 use crate::ext::xmpfr::{self, raw_round};
-use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_ZERO};
+use crate::misc::{Limbs, MaybeLimb, NegAbs};
 use crate::{Assign, Float};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
@@ -352,7 +352,7 @@ where
                 exp: 0,
                 d: Default::default(),
             },
-            limbs: LIMBS_ZERO,
+            limbs: small_limbs![],
         };
         unsafe {
             src.copy(&mut dst.inner, &mut dst.limbs);

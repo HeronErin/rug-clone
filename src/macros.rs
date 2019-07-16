@@ -3014,3 +3014,41 @@ macro_rules! assume_init {
         $uninit
     }};
 }
+
+#[cfg(gmp_limb_bits_64)]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! small_limbs {
+    () => {
+        [
+            $crate::misc::MaybeLimb::uninit(),
+            $crate::misc::MaybeLimb::uninit(),
+        ]
+    };
+    ($limb:expr) => {
+        [
+            $crate::misc::MaybeLimb::new($limb),
+            $crate::misc::MaybeLimb::uninit(),
+        ]
+    };
+}
+
+#[cfg(gmp_limb_bits_32)]
+#[cfg(any(feature = "integer", feature = "float"))]
+macro_rules! small_limbs {
+    () => {
+        [
+            $crate::misc::MaybeLimb::uninit(),
+            $crate::misc::MaybeLimb::uninit(),
+            $crate::misc::MaybeLimb::uninit(),
+            $crate::misc::MaybeLimb::uninit(),
+        ]
+    };
+    ($limb:expr) => {
+        [
+            $crate::misc::MaybeLimb::new($limb),
+            $crate::misc::MaybeLimb::uninit(),
+            $crate::misc::MaybeLimb::uninit(),
+            $crate::misc::MaybeLimb::uninit(),
+        ]
+    };
+}

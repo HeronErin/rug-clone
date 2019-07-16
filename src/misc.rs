@@ -207,23 +207,3 @@ impl MaybeLimb {
         self.val
     }
 }
-
-#[cfg(gmp_limb_bits_64)]
-pub const LIMBS_ZERO: Limbs = [MaybeLimb::new(0), MaybeLimb::uninit()];
-#[cfg(gmp_limb_bits_64)]
-pub const LIMBS_ONE: Limbs = [MaybeLimb::new(1), MaybeLimb::uninit()];
-
-#[cfg(gmp_limb_bits_32)]
-pub const LIMBS_ZERO: Limbs = [
-    MaybeLimb::new(0),
-    MaybeLimb::uninit(),
-    MaybeLimb::uninit(),
-    MaybeLimb::uninit(),
-];
-#[cfg(gmp_limb_bits_32)]
-pub const LIMBS_ONE: Limbs = [
-    MaybeLimb::new(1),
-    MaybeLimb::uninit(),
-    MaybeLimb::uninit(),
-    MaybeLimb::uninit(),
-];
