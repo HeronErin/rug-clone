@@ -20,6 +20,8 @@ use crate::cast::cast;
 use crate::misc::NegAbs;
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::mem;
+#[cfg(maybe_uninit)]
+use std::mem::MaybeUninit;
 use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
@@ -68,8 +70,42 @@ pub struct SmallInteger {
     limbs: Limbs,
 }
 
-pub(crate) const LIMBS_IN_SMALL_INTEGER: usize = (128 / gmp::LIMB_BITS) as usize;
-pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_INTEGER];
+pub const LIMBS_IN_SMALL_INTEGER: usize = (128 / gmp::LIMB_BITS) as usize;
+pub type Limbs = [MaybeLimb; LIMBS_IN_SMALL_INTEGER];
+
+#[cfg(maybe_uninit)]
+pub type MaybeLimb = MaybeUninit<gmp::limb_t>;
+
+#[cfg(not(maybe_uninit))]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub union MaybeLimb {
+    uninit: (),
+    val: gmp::limb_t,
+}
+#[cfg(not(maybe_uninit))]
+impl MaybeLimb {
+    #[inline]
+    pub const fn uninit() -> MaybeLimb {
+        MaybeLimb { uninit: () }
+    }
+    #[inline]
+    pub const fn new(val: gmp::limb_t) -> MaybeLimb {
+        MaybeLimb { val }
+    }
+    #[inline]
+    pub fn as_ptr(&self) -> *const gmp::limb_t {
+        unsafe { &self.val }
+    }
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut gmp::limb_t {
+        unsafe { &mut self.val }
+    }
+    #[inline]
+    pub unsafe fn assume_init(self) -> gmp::limb_t {
+        self.val
+    }
+}
 
 #[repr(C)]
 pub struct Mpz {
@@ -125,7 +161,7 @@ impl SmallInteger {
                 size: 0,
                 d: Default::default(),
             },
-            limbs: [0; LIMBS_IN_SMALL_INTEGER],
+            limbs: [MaybeLimb::uninit(); LIMBS_IN_SMALL_INTEGER],
         }
     }
 
@@ -170,7 +206,7 @@ impl SmallInteger {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d field.
-        let d = &self.limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let d = self.limbs[0].as_ptr() as *mut gmp::limb_t;
         self.inner.d.store(d, Ordering::Relaxed);
     }
 }
@@ -241,7 +277,7 @@ macro_rules! one_limb {
                     *size = 0;
                 } else {
                     *size = 1;
-                    limbs[0] = self.into();
+                    limbs[0] = MaybeLimb::new(self.into());
                 }
             }
 
@@ -266,11 +302,11 @@ impl SealedToSmall for u64 {
             *size = 0;
         } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = self as u32;
+            limbs[0] = MaybeLimb::new(self as u32);
         } else {
             *size = 2;
-            limbs[0] = self as u32;
-            limbs[1] = (self >> 32) as u32;
+            limbs[0] = MaybeLimb::new(self as u32);
+            limbs[1] = MaybeLimb::new((self >> 32) as u32);
         }
     }
 
@@ -287,11 +323,11 @@ impl SealedToSmall for u128 {
             *size = 0;
         } else if self <= 0xffff_ffff_ffff_ffff {
             *size = 1;
-            limbs[0] = self as u64;
+            limbs[0] = MaybeLimb::new(self as u64);
         } else {
             *size = 2;
-            limbs[0] = self as u64;
-            limbs[1] = (self >> 64) as u64;
+            limbs[0] = MaybeLimb::new(self as u64);
+            limbs[1] = MaybeLimb::new((self >> 64) as u64);
         }
     }
 
@@ -302,22 +338,22 @@ impl SealedToSmall for u128 {
             *size = 0;
         } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = self as u32;
+            limbs[0] = MaybeLimb::new(self as u32);
         } else if self <= 0xffff_ffff_ffff_ffff {
             *size = 2;
-            limbs[0] = self as u32;
-            limbs[1] = (self >> 32) as u32;
+            limbs[0] = MaybeLimb::new(self as u32);
+            limbs[1] = MaybeLimb::new((self >> 32) as u32);
         } else if self <= 0xffff_ffff_ffff_ffff_ffff_ffff {
             *size = 3;
-            limbs[0] = self as u32;
-            limbs[1] = (self >> 32) as u32;
-            limbs[2] = (self >> 64) as u32;
+            limbs[0] = MaybeLimb::new(self as u32);
+            limbs[1] = MaybeLimb::new((self >> 32) as u32);
+            limbs[2] = MaybeLimb::new((self >> 64) as u32);
         } else {
             *size = 4;
-            limbs[0] = self as u32;
-            limbs[1] = (self >> 32) as u32;
-            limbs[2] = (self >> 64) as u32;
-            limbs[3] = (self >> 96) as u32;
+            limbs[0] = MaybeLimb::new(self as u32);
+            limbs[1] = MaybeLimb::new((self >> 32) as u32);
+            limbs[2] = MaybeLimb::new((self >> 64) as u32);
+            limbs[3] = MaybeLimb::new((self >> 96) as u32);
         }
     }
 

@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::cast::cast;
-use crate::integer::small::{Limbs, Mpz, LIMBS_IN_SMALL_INTEGER};
+use crate::integer::small::{Limbs, MaybeLimb, Mpz, LIMBS_IN_SMALL_INTEGER};
 use crate::integer::ToSmall;
 use crate::{Assign, Rational};
 use gmp_mpfr_sys::gmp;
@@ -99,9 +99,14 @@ impl Default for SmallRational {
 }
 
 #[cfg(gmp_limb_bits_64)]
-const LIMBS_ONE: Limbs = [1, 0];
+const LIMBS_ONE: Limbs = [MaybeLimb::new(1), MaybeLimb::uninit()];
 #[cfg(gmp_limb_bits_32)]
-const LIMBS_ONE: Limbs = [1, 0, 0, 0];
+const LIMBS_ONE: Limbs = [
+    MaybeLimb::new(1),
+    MaybeLimb::uninit(),
+    MaybeLimb::uninit(),
+    MaybeLimb::uninit(),
+];
 
 impl SmallRational {
     /// Creates a [`SmallRational`] with value 0.
@@ -132,7 +137,7 @@ impl SmallRational {
                     d: Default::default(),
                 },
             },
-            first_limbs: [0; LIMBS_IN_SMALL_INTEGER],
+            first_limbs: [MaybeLimb::uninit(); LIMBS_IN_SMALL_INTEGER],
             last_limbs: LIMBS_ONE,
         }
     }
@@ -262,8 +267,8 @@ impl SmallRational {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let last = &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let first = self.first_limbs[0].as_ptr() as *mut gmp::limb_t;
+        let last = self.last_limbs[0].as_ptr() as *mut gmp::limb_t;
         let (num_d, den_d) = if self.num_is_first() {
             (first, last)
         } else {
@@ -297,7 +302,7 @@ where
         };
         src.copy(&mut self.inner.num.size, num_limbs);
         self.inner.den.size = 1;
-        den_limbs[0] = 1;
+        den_limbs[0] = MaybeLimb::new(1);
     }
 }
 
@@ -309,7 +314,7 @@ where
         let mut dst = SmallRational::default();
         src.copy(&mut dst.inner.num.size, &mut dst.first_limbs);
         dst.inner.den.size = 1;
-        dst.last_limbs[0] = 1;
+        dst.last_limbs[0] = MaybeLimb::new(1);
         dst
     }
 }
