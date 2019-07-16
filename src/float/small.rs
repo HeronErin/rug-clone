@@ -16,7 +16,7 @@
 
 use crate::cast::cast;
 use crate::ext::xmpfr::{self, raw_round};
-use crate::misc::NegAbs;
+use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_ZERO};
 use crate::{Assign, Float};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
@@ -88,9 +88,6 @@ pub struct SmallFloat {
     limbs: Limbs,
 }
 
-pub(crate) const LIMBS_IN_SMALL_FLOAT: usize = (128 / gmp::LIMB_BITS) as usize;
-pub(crate) type Limbs = [gmp::limb_t; LIMBS_IN_SMALL_FLOAT];
-
 #[repr(C)]
 pub struct Mpfr {
     pub prec: mpfr::prec_t,
@@ -154,7 +151,7 @@ impl SmallFloat {
     fn update_d(&self) {
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
-        let d = &self.limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let d = self.limbs[0].as_ptr() as *mut gmp::limb_t;
         self.inner.d.store(d, Ordering::Relaxed);
     }
 }
@@ -211,13 +208,13 @@ macro_rules! unsigned_32 {
             #[inline]
             unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
                 let ptr = cast_ptr_mut!(inner, mpfr_t);
-                let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
+                let limbs_ptr = limbs[0].as_mut_ptr();
                 if self == 0 {
                     xmpfr::custom_zero(ptr, limbs_ptr, $bits);
                 } else {
                     let leading = self.leading_zeros();
                     let limb_leading = leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
-                    limbs[0] = gmp::limb_t::from(self) << limb_leading;
+                    limbs[0] = MaybeLimb::new(gmp::limb_t::from(self) << limb_leading);
                     let exp = $bits - leading;
                     xmpfr::custom_regular(ptr, limbs_ptr, cast(exp), $bits);
                 }
@@ -237,7 +234,7 @@ impl SealedToSmall for u64 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
+        let limbs_ptr = limbs[0].as_mut_ptr();
         if self == 0 {
             xmpfr::custom_zero(ptr, limbs_ptr, 64);
         } else {
@@ -245,12 +242,12 @@ impl SealedToSmall for u64 {
             let sval = self << leading;
             #[cfg(gmp_limb_bits_64)]
             {
-                limbs[0] = sval;
+                limbs[0] = MaybeLimb::new(sval);
             }
             #[cfg(gmp_limb_bits_32)]
             {
-                limbs[0] = sval as u32;
-                limbs[1] = (sval >> 32) as u32;
+                limbs[0] = MaybeLimb::new(sval as u32);
+                limbs[1] = MaybeLimb::new((sval >> 32) as u32);
             }
             xmpfr::custom_regular(ptr, limbs_ptr, cast(64 - leading), 64);
         }
@@ -262,7 +259,7 @@ impl SealedToSmall for u128 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
+        let limbs_ptr = limbs[0].as_mut_ptr();
         if self == 0 {
             xmpfr::custom_zero(ptr, limbs_ptr, 128);
         } else {
@@ -270,15 +267,15 @@ impl SealedToSmall for u128 {
             let sval = self << leading;
             #[cfg(gmp_limb_bits_64)]
             {
-                limbs[0] = sval as u64;
-                limbs[1] = (sval >> 64) as u64;
+                limbs[0] = MaybeLimb::new(sval as u64);
+                limbs[1] = MaybeLimb::new((sval >> 64) as u64);
             }
             #[cfg(gmp_limb_bits_32)]
             {
-                limbs[0] = sval as u32;
-                limbs[1] = (sval >> 32) as u32;
-                limbs[2] = (sval >> 64) as u32;
-                limbs[3] = (sval >> 96) as u32;
+                limbs[0] = MaybeLimb::new(sval as u32);
+                limbs[1] = MaybeLimb::new((sval >> 32) as u32);
+                limbs[2] = MaybeLimb::new((sval >> 64) as u32);
+                limbs[3] = MaybeLimb::new((sval >> 96) as u32);
             }
             xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
         }
@@ -305,7 +302,7 @@ impl SealedToSmall for f32 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
+        let limbs_ptr = limbs[0].as_mut_ptr();
         xmpfr::custom_zero(ptr, limbs_ptr, 24);
         mpfr::set_d(ptr, self.into(), raw_round(Default::default()));
         // retain sign in case of NaN
@@ -320,7 +317,7 @@ impl SealedToSmall for f64 {
     #[inline]
     unsafe fn copy(self, inner: *mut Mpfr, limbs: &mut Limbs) {
         let ptr = cast_ptr_mut!(inner, mpfr_t);
-        let limbs_ptr: *mut gmp::limb_t = &mut limbs[0];
+        let limbs_ptr = limbs[0].as_mut_ptr();
         xmpfr::custom_zero(ptr, limbs_ptr, 53);
         mpfr::set_d(ptr, self, raw_round(Default::default()));
         // retain sign in case of NaN
@@ -355,7 +352,7 @@ where
                 exp: 0,
                 d: Default::default(),
             },
-            limbs: [0; LIMBS_IN_SMALL_FLOAT],
+            limbs: LIMBS_ZERO,
         };
         unsafe {
             src.copy(&mut dst.inner, &mut dst.limbs);

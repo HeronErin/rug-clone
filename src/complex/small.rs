@@ -15,8 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::ext::xmpfr;
-use crate::float::small::{Limbs, Mpfr, LIMBS_IN_SMALL_FLOAT};
+use crate::float::small::Mpfr;
 use crate::float::ToSmall;
+use crate::misc::{Limbs, LIMBS_ZERO};
 use crate::{Assign, Complex};
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpc;
@@ -161,8 +162,8 @@ impl SmallComplex {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = &self.first_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
-        let last = &self.last_limbs[0] as *const gmp::limb_t as *mut gmp::limb_t;
+        let first = self.first_limbs[0].as_ptr() as *mut gmp::limb_t;
+        let last = self.last_limbs[0].as_ptr() as *mut gmp::limb_t;
         let (re_d, im_d) = if self.re_is_first() {
             (first, last)
         } else {
@@ -192,7 +193,7 @@ where
             src.copy(&mut self.inner.re, &mut self.first_limbs);
             xmpfr::custom_zero(
                 cast_ptr_mut!(&mut self.inner.im, mpfr::mpfr_t),
-                &mut self.last_limbs[0],
+                self.last_limbs[0].as_mut_ptr(),
                 self.inner.re.prec,
             );
         }
@@ -219,14 +220,14 @@ where
                     d: Default::default(),
                 },
             },
-            first_limbs: [0; LIMBS_IN_SMALL_FLOAT],
-            last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
+            first_limbs: LIMBS_ZERO,
+            last_limbs: LIMBS_ZERO,
         };
         unsafe {
             src.copy(&mut dst.inner.re, &mut dst.first_limbs);
             xmpfr::custom_zero(
                 cast_ptr_mut!(&mut dst.inner.im, mpfr::mpfr_t),
-                &mut dst.last_limbs[0],
+                dst.last_limbs[0].as_mut_ptr(),
                 dst.inner.re.prec,
             );
         }
@@ -268,8 +269,8 @@ where
                     d: Default::default(),
                 },
             },
-            first_limbs: [0; LIMBS_IN_SMALL_FLOAT],
-            last_limbs: [0; LIMBS_IN_SMALL_FLOAT],
+            first_limbs: LIMBS_ZERO,
+            last_limbs: LIMBS_ZERO,
         };
         unsafe {
             src.0.copy(&mut dst.inner.re, &mut dst.first_limbs);
