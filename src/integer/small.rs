@@ -204,6 +204,15 @@ pub trait SealedToSmall: Sized {
     fn is_zero(&self) -> bool;
 }
 
+macro_rules! is_zero {
+    () => {
+        #[inline]
+        fn is_zero(&self) -> bool {
+            *self == 0
+        }
+    };
+}
+
 macro_rules! signed {
     ($($I:ty)*) => { $(
         impl ToSmall for $I {}
@@ -217,10 +226,7 @@ macro_rules! signed {
                 }
             }
 
-            #[inline]
-            fn is_zero(&self) -> bool {
-                *self == 0
-            }
+            is_zero! {}
         }
     )* };
 }
@@ -239,10 +245,7 @@ macro_rules! one_limb {
                 }
             }
 
-            #[inline]
-            fn is_zero(&self) -> bool {
-                *self == 0
-            }
+            is_zero! {}
         }
     )* };
 }
@@ -271,16 +274,13 @@ impl SealedToSmall for u64 {
         }
     }
 
-    #[inline]
-    fn is_zero(&self) -> bool {
-        *self == 0
-    }
+    is_zero! {}
 }
 
 impl ToSmall for u128 {}
 
-#[cfg(gmp_limb_bits_64)]
 impl SealedToSmall for u128 {
+    #[cfg(gmp_limb_bits_64)]
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if self == 0 {
@@ -295,14 +295,7 @@ impl SealedToSmall for u128 {
         }
     }
 
-    #[inline]
-    fn is_zero(&self) -> bool {
-        *self == 0
-    }
-}
-
-#[cfg(gmp_limb_bits_32)]
-impl SealedToSmall for u128 {
+    #[cfg(gmp_limb_bits_32)]
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
         if self == 0 {
@@ -328,30 +321,24 @@ impl SealedToSmall for u128 {
         }
     }
 
-    #[inline]
-    fn is_zero(&self) -> bool {
-        *self == 0
-    }
+    is_zero! {}
 }
 
 impl ToSmall for usize {}
 impl SealedToSmall for usize {
+    #[cfg(target_pointer_width = "32")]
     #[inline]
     fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
-        #[cfg(target_pointer_width = "32")]
-        {
-            (self as u32).copy(size, limbs);
-        }
-        #[cfg(target_pointer_width = "64")]
-        {
-            (self as u64).copy(size, limbs);
-        }
+        (self as u32).copy(size, limbs);
     }
 
+    #[cfg(target_pointer_width = "64")]
     #[inline]
-    fn is_zero(&self) -> bool {
-        *self == 0
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
+        (self as u64).copy(size, limbs);
     }
+
+    is_zero! {}
 }
 
 impl<T> Assign<T> for SmallInteger
