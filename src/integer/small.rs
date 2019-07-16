@@ -122,7 +122,7 @@ impl SmallInteger {
                 size: 0,
                 d: Default::default(),
             },
-            limbs: small_limbs![],
+            limbs: small_limbs![0],
         }
     }
 

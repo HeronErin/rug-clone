@@ -128,7 +128,7 @@ impl SmallRational {
                     d: Default::default(),
                 },
             },
-            first_limbs: small_limbs![],
+            first_limbs: small_limbs![0],
             last_limbs: small_limbs![1],
         }
     }
