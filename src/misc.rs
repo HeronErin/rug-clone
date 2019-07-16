@@ -16,6 +16,10 @@
 
 #![allow(dead_code)]
 
+use gmp_mpfr_sys::gmp;
+#[cfg(maybe_uninit)]
+use std::mem::MaybeUninit;
+
 pub trait NegAbs {
     type Abs;
     fn neg_abs(self) -> (bool, Self::Abs);
@@ -166,3 +170,60 @@ pub fn find_space_outside_brackets(bytes: &[u8]) -> Option<usize> {
     }
     None
 }
+
+pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
+pub type Limbs = [MaybeLimb; LIMBS_IN_SMALL];
+
+#[cfg(maybe_uninit)]
+pub type MaybeLimb = MaybeUninit<gmp::limb_t>;
+
+#[cfg(not(maybe_uninit))]
+#[derive(Clone, Copy)]
+#[repr(C)]
+pub union MaybeLimb {
+    uninit: (),
+    val: gmp::limb_t,
+}
+#[cfg(not(maybe_uninit))]
+impl MaybeLimb {
+    #[inline]
+    pub const fn uninit() -> MaybeLimb {
+        MaybeLimb { uninit: () }
+    }
+    #[inline]
+    pub const fn new(val: gmp::limb_t) -> MaybeLimb {
+        MaybeLimb { val }
+    }
+    #[inline]
+    pub fn as_ptr(&self) -> *const gmp::limb_t {
+        unsafe { &self.val }
+    }
+    #[inline]
+    pub fn as_mut_ptr(&mut self) -> *mut gmp::limb_t {
+        unsafe { &mut self.val }
+    }
+    #[inline]
+    pub unsafe fn assume_init(self) -> gmp::limb_t {
+        self.val
+    }
+}
+
+#[cfg(gmp_limb_bits_64)]
+pub const LIMBS_ZERO: Limbs = [MaybeLimb::new(0), MaybeLimb::uninit()];
+#[cfg(gmp_limb_bits_64)]
+pub const LIMBS_ONE: Limbs = [MaybeLimb::new(1), MaybeLimb::uninit()];
+
+#[cfg(gmp_limb_bits_32)]
+pub const LIMBS_ZERO: Limbs = [
+    MaybeLimb::new(0),
+    MaybeLimb::uninit(),
+    MaybeLimb::uninit(),
+    MaybeLimb::uninit(),
+];
+#[cfg(gmp_limb_bits_32)]
+pub const LIMBS_ONE: Limbs = [
+    MaybeLimb::new(1),
+    MaybeLimb::uninit(),
+    MaybeLimb::uninit(),
+    MaybeLimb::uninit(),
+];

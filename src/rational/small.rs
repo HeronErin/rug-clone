@@ -15,8 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::cast::cast;
-use crate::integer::small::{Limbs, MaybeLimb, Mpz, LIMBS_IN_SMALL_INTEGER};
+use crate::integer::small::Mpz;
 use crate::integer::ToSmall;
+use crate::misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL, LIMBS_ONE, LIMBS_ZERO};
 use crate::{Assign, Rational};
 use gmp_mpfr_sys::gmp;
 use std::mem;
@@ -98,16 +99,6 @@ impl Default for SmallRational {
     }
 }
 
-#[cfg(gmp_limb_bits_64)]
-const LIMBS_ONE: Limbs = [MaybeLimb::new(1), MaybeLimb::uninit()];
-#[cfg(gmp_limb_bits_32)]
-const LIMBS_ONE: Limbs = [
-    MaybeLimb::new(1),
-    MaybeLimb::uninit(),
-    MaybeLimb::uninit(),
-    MaybeLimb::uninit(),
-];
-
 impl SmallRational {
     /// Creates a [`SmallRational`] with value 0.
     ///
@@ -127,17 +118,17 @@ impl SmallRational {
         SmallRational {
             inner: Mpq {
                 num: Mpz {
-                    alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                    alloc: cast(LIMBS_IN_SMALL),
                     size: 0,
                     d: Default::default(),
                 },
                 den: Mpz {
-                    alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                    alloc: cast(LIMBS_IN_SMALL),
                     size: 1,
                     d: Default::default(),
                 },
             },
-            first_limbs: [MaybeLimb::uninit(); LIMBS_IN_SMALL_INTEGER],
+            first_limbs: LIMBS_ZERO,
             last_limbs: LIMBS_ONE,
         }
     }

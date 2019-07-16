@@ -17,11 +17,9 @@
 use crate::{Assign, Integer};
 
 use crate::cast::cast;
-use crate::misc::NegAbs;
+use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL, LIMBS_ZERO};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::mem;
-#[cfg(maybe_uninit)]
-use std::mem::MaybeUninit;
 use std::ops::Deref;
 use std::os::raw::c_int;
 use std::sync::atomic::{AtomicPtr, Ordering};
@@ -70,43 +68,6 @@ pub struct SmallInteger {
     limbs: Limbs,
 }
 
-pub const LIMBS_IN_SMALL_INTEGER: usize = (128 / gmp::LIMB_BITS) as usize;
-pub type Limbs = [MaybeLimb; LIMBS_IN_SMALL_INTEGER];
-
-#[cfg(maybe_uninit)]
-pub type MaybeLimb = MaybeUninit<gmp::limb_t>;
-
-#[cfg(not(maybe_uninit))]
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub union MaybeLimb {
-    uninit: (),
-    val: gmp::limb_t,
-}
-#[cfg(not(maybe_uninit))]
-impl MaybeLimb {
-    #[inline]
-    pub const fn uninit() -> MaybeLimb {
-        MaybeLimb { uninit: () }
-    }
-    #[inline]
-    pub const fn new(val: gmp::limb_t) -> MaybeLimb {
-        MaybeLimb { val }
-    }
-    #[inline]
-    pub fn as_ptr(&self) -> *const gmp::limb_t {
-        unsafe { &self.val }
-    }
-    #[inline]
-    pub fn as_mut_ptr(&mut self) -> *mut gmp::limb_t {
-        unsafe { &mut self.val }
-    }
-    #[inline]
-    pub unsafe fn assume_init(self) -> gmp::limb_t {
-        self.val
-    }
-}
-
 #[repr(C)]
 pub struct Mpz {
     pub alloc: c_int,
@@ -126,7 +87,7 @@ impl Clone for Mpz {
     #[inline]
     fn clone(&self) -> Mpz {
         Mpz {
-            alloc: cast(LIMBS_IN_SMALL_INTEGER),
+            alloc: cast(LIMBS_IN_SMALL),
             size: self.size,
             d: Default::default(),
         }
@@ -157,11 +118,11 @@ impl SmallInteger {
     pub fn new() -> Self {
         SmallInteger {
             inner: Mpz {
-                alloc: cast(LIMBS_IN_SMALL_INTEGER),
+                alloc: cast(LIMBS_IN_SMALL),
                 size: 0,
                 d: Default::default(),
             },
-            limbs: [MaybeLimb::uninit(); LIMBS_IN_SMALL_INTEGER],
+            limbs: LIMBS_ZERO,
         }
     }
 
