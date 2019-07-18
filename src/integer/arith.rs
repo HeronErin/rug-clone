@@ -384,10 +384,10 @@ where
     forward! { fn sub() -> xmpz::sub_si, xmpz::sub }
     reverse! { fn sub_from() -> xmpz::si_sub, xmpz::sub }
     forward! { fn mul() -> xmpz::mul_si, xmpz::mul }
-    forward! { fn div() -> xmpz::tdiv_q_si, xmpz::sub }
-    reverse! { fn div_from() -> xmpz::si_tdiv_q, xmpz::sub }
-    forward! { fn rem() -> xmpz::tdiv_r_si, xmpz::sub }
-    reverse! { fn rem_from() -> xmpz::si_tdiv_r, xmpz::sub }
+    forward! { fn div() -> xmpz::tdiv_q_si, xmpz::tdiv_q }
+    reverse! { fn div_from() -> xmpz::si_tdiv_q, xmpz::tdiv_q }
+    forward! { fn rem() -> xmpz::tdiv_r_si, xmpz::tdiv_r }
+    reverse! { fn rem_from() -> xmpz::si_tdiv_r, xmpz::tdiv_r }
     forward! { fn and() -> xmpz::and_si, xmpz::and }
     forward! { fn ior() -> xmpz::ior_si, xmpz::ior }
     forward! { fn xor() -> xmpz::xor_si, xmpz::xor }
@@ -401,10 +401,10 @@ where
     forward! { fn sub() -> xmpz::sub_ui, xmpz::sub }
     reverse! { fn sub_from() -> xmpz::ui_sub, xmpz::sub }
     forward! { fn mul() -> xmpz::mul_ui, xmpz::mul }
-    forward! { fn div() -> xmpz::tdiv_q_ui, xmpz::sub }
-    reverse! { fn div_from() -> xmpz::ui_tdiv_q, xmpz::sub }
-    forward! { fn rem() -> xmpz::tdiv_r_ui, xmpz::sub }
-    reverse! { fn rem_from() -> xmpz::ui_tdiv_r, xmpz::sub }
+    forward! { fn div() -> xmpz::tdiv_q_ui, xmpz::tdiv_q }
+    reverse! { fn div_from() -> xmpz::ui_tdiv_q, xmpz::tdiv_q }
+    forward! { fn rem() -> xmpz::tdiv_r_ui, xmpz::tdiv_r }
+    reverse! { fn rem_from() -> xmpz::ui_tdiv_r, xmpz::tdiv_r }
     forward! { fn and() -> xmpz::and_ui, xmpz::and }
     forward! { fn ior() -> xmpz::ior_ui, xmpz::ior }
     forward! { fn xor() -> xmpz::xor_ui, xmpz::xor }
