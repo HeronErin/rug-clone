@@ -601,31 +601,6 @@ mod tests {
         check_u_s!(I16, against);
         check_u_s!(I32, against);
         check_u_s!(I64, against);
-        for &op in I128 {
-            let iop = Integer::from(op);
-            for b in &against {
-                assert_eq!(b.clone() + op, b.clone() + &iop);
-                assert_eq!(b.clone() - op, b.clone() - &iop);
-                assert_eq!(b.clone() * op, b.clone() * &iop);
-                if op != 0 {
-                    assert_eq!(b.clone() / op, b.clone() / &iop);
-                    assert_eq!(b.clone() % op, b.clone() % &iop);
-                }
-                assert_eq!(b.clone() & op, b.clone() & &iop);
-                assert_eq!(b.clone() | op, b.clone() | &iop);
-                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + b);
-                assert_eq!(op - b.clone(), iop.clone() - b);
-                assert_eq!(op * b.clone(), iop.clone() * b);
-                if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / b);
-                    assert_eq!(op % b.clone(), iop.clone() % b);
-                }
-                assert_eq!(op & b.clone(), iop.clone() & b);
-                assert_eq!(op | b.clone(), iop.clone() | b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ b);
-            }
-        }
         check_u_s!(I128, against);
         check_u_s!(U8, against);
         check_u_s!(U16, against);
