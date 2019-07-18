@@ -14,8 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
+use crate::cast::{self, CheckedCast};
 use crate::ext::xmpz;
+use crate::integer::SmallInteger;
 use crate::misc::NegAbs;
 use crate::ops::{
     AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
@@ -29,6 +30,7 @@ use std::ops::{
     Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
     Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
 };
+use std::os::raw::{c_long, c_ulong};
 
 // Specialize From implementation so that allocation is done with the
 // right capacity, as Integer::from(&Integer) allocates properly.
@@ -140,334 +142,127 @@ arith_binary! {
 
 arith_prim_commut! {
     Integer;
-    xmpz::add_i32;
+    PrimOps::add;
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    i32;
-    AddI32Incomplete
+    i32, AddI32Incomplete;
+    i64, AddI64Incomplete;
+    u32, AddU32Incomplete;
+    u64, AddU64Incomplete;
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::sub_i32, xmpz::i32_sub;
+    PrimOps::sub, PrimOps::sub_from;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    i32;
-    SubI32Incomplete, SubFromI32Incomplete
+    i32, SubI32Incomplete, SubFromI32Incomplete;
+    i64, SubI64Incomplete, SubFromI64Incomplete;
+    u32, SubU32Incomplete, SubFromU32Incomplete;
+    u64, SubU64Incomplete, SubFromU64Incomplete;
 }
 arith_prim_commut! {
     Integer;
-    xmpz::mul_i32;
+    PrimOps::mul;
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
-    i32;
-    MulI32Incomplete
+    i32, MulI32Incomplete;
+    i64, MulI64Incomplete;
+    u32, MulU32Incomplete;
+    u64, MulU64Incomplete;
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::tdiv_q_i32, xmpz::i32_tdiv_q;
+    PrimOps::div, PrimOps::div_from;
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
-    i32;
-    DivI32Incomplete, DivFromI32Incomplete
+    i32, DivI32Incomplete, DivFromI32Incomplete;
+    i64, DivI64Incomplete, DivFromI64Incomplete;
+    u32, DivU32Incomplete, DivFromU32Incomplete;
+    u64, DivU64Incomplete, DivFromU64Incomplete;
 }
 arith_prim_noncommut! {
     Integer;
-    xmpz::tdiv_r_i32, xmpz::i32_tdiv_r;
+    PrimOps::rem, PrimOps::rem_from;
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
-    i32;
-    RemI32Incomplete, RemFromI32Incomplete
+    i32, RemI32Incomplete, RemFromI32Incomplete;
+    i64, RemI64Incomplete, RemFromI64Incomplete;
+    u32, RemU32Incomplete, RemFromU32Incomplete;
+    u64, RemU64Incomplete, RemFromU64Incomplete;
 }
+arith_prim_commut! {
+    Integer;
+    PrimOps::and;
+    BitAnd { bitand }
+    BitAndAssign { bitand_assign }
+    BitAndFrom { bitand_from }
+    i32, BitAndI32Incomplete;
+    i64, BitAndI64Incomplete;
+    u32, BitAndU32Incomplete;
+    u64, BitAndU64Incomplete;
+}
+arith_prim_commut! {
+    Integer;
+    PrimOps::ior;
+    BitOr { bitor }
+    BitOrAssign { bitor_assign }
+    BitOrFrom { bitor_from }
+    i32, BitOrI32Incomplete;
+    i64, BitOrI64Incomplete;
+    u32, BitOrU32Incomplete;
+    u64, BitOrU64Incomplete;
+}
+arith_prim_commut! {
+    Integer;
+    PrimOps::xor;
+    BitXor { bitxor }
+    BitXorAssign { bitxor_assign }
+    BitXorFrom { bitxor_from }
+    i32, BitXorI32Incomplete;
+    i64, BitXorI64Incomplete;
+    u32, BitXorU32Incomplete;
+    u64, BitXorU64Incomplete;
+}
+
 arith_prim! {
     Integer;
     xmpz::lshift_i32;
     Shl { shl }
     ShlAssign { shl_assign }
-    i32;
-    ShlI32Incomplete
+    i32, ShlI32Incomplete;
 }
 arith_prim! {
     Integer;
     xmpz::rshift_i32;
     Shr { shr }
     ShrAssign { shr_assign }
-    i32;
-    ShrI32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::and_i32;
-    BitAnd { bitand }
-    BitAndAssign { bitand_assign }
-    BitAndFrom { bitand_from }
-    i32;
-    BitAndI32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::ior_i32;
-    BitOr { bitor }
-    BitOrAssign { bitor_assign }
-    BitOrFrom { bitor_from }
-    i32;
-    BitOrI32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::xor_i32;
-    BitXor { bitxor }
-    BitXorAssign { bitxor_assign }
-    BitXorFrom { bitxor_from }
-    i32;
-    BitXorI32Incomplete
-}
-
-arith_prim_commut! {
-    Integer;
-    xmpz::add_u32;
-    Add { add }
-    AddAssign { add_assign }
-    AddFrom { add_from }
-    u32;
-    AddU32Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::sub_u32, xmpz::u32_sub;
-    Sub { sub }
-    SubAssign { sub_assign }
-    SubFrom { sub_from }
-    u32;
-    SubU32Incomplete, SubFromU32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::mul_u32;
-    Mul { mul }
-    MulAssign { mul_assign }
-    MulFrom { mul_from }
-    u32;
-    MulU32Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::tdiv_q_u32, xmpz::u32_tdiv_q;
-    Div { div }
-    DivAssign { div_assign }
-    DivFrom { div_from }
-    u32;
-    DivU32Incomplete, DivFromU32Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::tdiv_r_u32, xmpz::u32_tdiv_r;
-    Rem { rem }
-    RemAssign { rem_assign }
-    RemFrom { rem_from }
-    u32;
-    RemU32Incomplete, RemFromU32Incomplete
+    i32, ShrI32Incomplete;
 }
 arith_prim! {
     Integer;
     xmpz::mul_2exp;
     Shl { shl }
     ShlAssign { shl_assign }
-    u32;
-    ShlU32Incomplete
+    u32, ShlU32Incomplete;
 }
 arith_prim! {
     Integer;
     xmpz::fdiv_q_2exp;
     Shr { shr }
     ShrAssign { shr_assign }
-    u32;
-    ShrU32Incomplete
+    u32, ShrU32Incomplete;
 }
 arith_prim! {
     Integer;
     xmpz::pow_u32;
     Pow { pow }
     PowAssign { pow_assign }
-    u32;
-    PowU32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::and_u32;
-    BitAnd { bitand }
-    BitAndAssign { bitand_assign }
-    BitAndFrom { bitand_from }
-    u32;
-    BitAndU32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::ior_u32;
-    BitOr { bitor }
-    BitOrAssign { bitor_assign }
-    BitOrFrom { bitor_from }
-    u32;
-    BitOrU32Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::xor_u32;
-    BitXor { bitxor }
-    BitXorAssign { bitxor_assign }
-    BitXorFrom { bitxor_from }
-    u32;
-    BitXorU32Incomplete
-}
-
-arith_prim_commut! {
-    Integer;
-    xmpz::add_i64;
-    Add { add }
-    AddAssign { add_assign }
-    AddFrom { add_from }
-    i64;
-    AddI64Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::sub_i64, xmpz::i64_sub;
-    Sub { sub }
-    SubAssign { sub_assign }
-    SubFrom { sub_from }
-    i64;
-    SubI64Incomplete, SubFromI64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::mul_i64;
-    Mul { mul }
-    MulAssign { mul_assign }
-    MulFrom { mul_from }
-    i64;
-    MulI64Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::tdiv_q_i64, xmpz::i64_tdiv_q;
-    Div { div }
-    DivAssign { div_assign }
-    DivFrom { div_from }
-    i64;
-    DivI64Incomplete, DivFromI64Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::tdiv_r_i64, xmpz::i64_tdiv_r;
-    Rem { rem }
-    RemAssign { rem_assign }
-    RemFrom { rem_from }
-    i64;
-    RemI64Incomplete, RemFromI64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::and_i64;
-    BitAnd { bitand }
-    BitAndAssign { bitand_assign }
-    BitAndFrom { bitand_from }
-    i64;
-    BitAndI64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::ior_i64;
-    BitOr { bitor }
-    BitOrAssign { bitor_assign }
-    BitOrFrom { bitor_from }
-    i64;
-    BitOrI64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::xor_i64;
-    BitXor { bitxor }
-    BitXorAssign { bitxor_assign }
-    BitXorFrom { bitxor_from }
-    i64;
-    BitXorI64Incomplete
-}
-
-arith_prim_commut! {
-    Integer;
-    xmpz::add_u64;
-    Add { add }
-    AddAssign { add_assign }
-    AddFrom { add_from }
-    u64;
-    AddU64Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::sub_u64, xmpz::u64_sub;
-    Sub { sub }
-    SubAssign { sub_assign }
-    SubFrom { sub_from }
-    u64;
-    SubU64Incomplete, SubFromU64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::mul_u64;
-    Mul { mul }
-    MulAssign { mul_assign }
-    MulFrom { mul_from }
-    u64;
-    MulU64Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::tdiv_q_u64, xmpz::u64_tdiv_q;
-    Div { div }
-    DivAssign { div_assign }
-    DivFrom { div_from }
-    u64;
-    DivU64Incomplete, DivFromU64Incomplete
-}
-arith_prim_noncommut! {
-    Integer;
-    xmpz::tdiv_r_u64, xmpz::u64_tdiv_r;
-    Rem { rem }
-    RemAssign { rem_assign }
-    RemFrom { rem_from }
-    u64;
-    RemU64Incomplete, RemFromU64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::and_u64;
-    BitAnd { bitand }
-    BitAndAssign { bitand_assign }
-    BitAndFrom { bitand_from }
-    u64;
-    BitAndU64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::ior_u64;
-    BitOr { bitor }
-    BitOrAssign { bitor_assign }
-    BitOrFrom { bitor_from }
-    u64;
-    BitOrU64Incomplete
-}
-arith_prim_commut! {
-    Integer;
-    xmpz::xor_u64;
-    BitXor { bitxor }
-    BitXorAssign { bitxor_assign }
-    BitXorFrom { bitxor_from }
-    u64;
-    BitXorU64Incomplete
+    u32, PowU32Incomplete;
 }
 
 mul_op_commut! {
@@ -523,6 +318,96 @@ mul_op_noncommut! {
     SubFrom { sub_from }
     MulI32Incomplete;
     SubMulI32Incomplete, SubMulFromI32Incomplete
+}
+
+trait PrimOps<Long>: AsLong {
+    fn add(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn sub(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn sub_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn mul(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn div(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn div_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn rem(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn rem_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn and(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn ior(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn xor(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+}
+
+trait AsLong: Copy {
+    type Long;
+}
+
+macro_rules! as_long {
+    ($Long:ty: $($Prim:ty)*) => { $(
+        impl AsLong for $Prim {
+            type Long = $Long;
+        }
+    )* }
+}
+
+as_long! { c_long: i8 i16 i32 i64 i128 isize }
+as_long! { c_ulong: u8 u16 u32 u64 u128 usize }
+
+macro_rules! forward {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        fn $fn(rop: &mut Integer, op1: Option<&Integer>, op2: Self) {
+            if let Some(op2) = op2.checked_cast() {
+                $deleg_long(rop, op1, op2);
+            } else {
+                let small: SmallInteger = op2.into();
+                $deleg(rop, op1, Some(&*small));
+            }
+        }
+    };
+}
+macro_rules! reverse {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        fn $fn(rop: &mut Integer, op1: Self, op2: Option<&Integer>) {
+            if let Some(op1) = op1.checked_cast() {
+                $deleg_long(rop, op1, op2);
+            } else {
+                let small: SmallInteger = op1.into();
+                $deleg(rop, Some(&*small), op2);
+            }
+        }
+    };
+}
+
+impl<T> PrimOps<c_long> for T
+where
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
+{
+    forward! { fn add() -> xmpz::add_si, xmpz::add }
+    forward! { fn sub() -> xmpz::sub_si, xmpz::sub }
+    reverse! { fn sub_from() -> xmpz::si_sub, xmpz::sub }
+    forward! { fn mul() -> xmpz::mul_si, xmpz::mul }
+    forward! { fn div() -> xmpz::tdiv_q_si, xmpz::sub }
+    reverse! { fn div_from() -> xmpz::si_tdiv_q, xmpz::sub }
+    forward! { fn rem() -> xmpz::tdiv_r_si, xmpz::sub }
+    reverse! { fn rem_from() -> xmpz::si_tdiv_r, xmpz::sub }
+    forward! { fn and() -> xmpz::and_si, xmpz::and }
+    forward! { fn ior() -> xmpz::ior_si, xmpz::ior }
+    forward! { fn xor() -> xmpz::xor_si, xmpz::xor }
+}
+
+impl<T> PrimOps<c_ulong> for T
+where
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
+{
+    forward! { fn add() -> xmpz::add_ui, xmpz::add }
+    forward! { fn sub() -> xmpz::sub_ui, xmpz::sub }
+    reverse! { fn sub_from() -> xmpz::ui_sub, xmpz::sub }
+    forward! { fn mul() -> xmpz::mul_ui, xmpz::mul }
+    forward! { fn div() -> xmpz::tdiv_q_ui, xmpz::sub }
+    reverse! { fn div_from() -> xmpz::ui_tdiv_q, xmpz::sub }
+    forward! { fn rem() -> xmpz::tdiv_r_ui, xmpz::sub }
+    reverse! { fn rem_from() -> xmpz::ui_tdiv_r, xmpz::sub }
+    forward! { fn and() -> xmpz::and_ui, xmpz::and }
+    forward! { fn ior() -> xmpz::ior_ui, xmpz::ior }
+    forward! { fn xor() -> xmpz::xor_ui, xmpz::xor }
 }
 
 impl<T> Sum<T> for Integer

@@ -702,9 +702,8 @@ macro_rules! arith_prim {
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
-        $T:ty;
-        $Incomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident;)*
+    ) => { $(
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
@@ -767,7 +766,7 @@ macro_rules! arith_prim {
         }
 
         from_assign! { $Incomplete<'_> => $Big }
-    };
+    )* };
 }
 
 // arith_prim!
@@ -785,16 +784,14 @@ macro_rules! arith_prim_commut {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $T:ty;
-        $Incomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident;)*
+    ) => { $(
         arith_prim! {
             $Big;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
-            $T;
-            $Incomplete
+            $T, $Incomplete;
         }
 
         impl $Imp<$Big> for $T {
@@ -844,7 +841,7 @@ macro_rules! arith_prim_commut {
                 <$Big as $ImpAssign<$T>>::$method_assign(self, *lhs);
             }
         }
-    };
+    )* };
 }
 
 // arith_prim!
@@ -866,17 +863,14 @@ macro_rules! arith_prim_noncommut {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $T:ty;
-        $Incomplete:ident,
-        $FromIncomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
+    ) => { $(
         arith_prim! {
             $Big;
             $func;
             $Imp { $method }
             $ImpAssign { $method_assign }
-            $T;
-            $Incomplete
+            $T, $Incomplete;
         }
 
         impl $Imp<$Big> for $T {
@@ -941,7 +935,7 @@ macro_rules! arith_prim_noncommut {
         }
 
         from_assign! { $FromIncomplete<'_> => $Big }
-    };
+    )* };
 }
 
 // big # mul -> Big

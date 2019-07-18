@@ -109,7 +109,7 @@ pub fn ceil(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option<
             let neg = n.unwrap_or(r).cmp0() == Ordering::Less;
             xmpz::tdiv_q(r, n, Some(d));
             if !neg {
-                xmpz::add_u32(r, None, 1);
+                xmpz::add_ui(r, None, 1);
             }
         }
     });
@@ -125,7 +125,7 @@ pub fn floor(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option
             let neg = n.unwrap_or(r).cmp0() == Ordering::Less;
             xmpz::tdiv_q(r, n, Some(d));
             if neg {
-                xmpz::sub_u32(r, None, 1);
+                xmpz::sub_ui(r, None, 1);
             }
         }
     });
@@ -144,10 +144,10 @@ pub fn round(rint: Option<&mut Integer>, rrat: Option<&mut Rational>, op: Option
         if xmpz::round_away(&rem, d) {
             if rem.cmp0() == Ordering::Less {
                 // negative number
-                xmpz::sub_u32(r, None, 1);
+                xmpz::sub_ui(r, None, 1);
             } else {
                 // positive number
-                xmpz::add_u32(r, None, 1);
+                xmpz::add_ui(r, None, 1);
             }
         }
     });
@@ -342,11 +342,11 @@ pub fn round_fract_whole(fract: &mut Rational, round: &mut Integer, op: Option<&
     if xmpz::round_away(fract_num, fract_den) {
         if fract_num.cmp0() == Ordering::Less {
             // negative number
-            xmpz::sub_u32(round, None, 1);
+            xmpz::sub_ui(round, None, 1);
             xmpz::add(fract_num, None, Some(fract_den));
         } else {
             // positive number
-            xmpz::add_u32(round, None, 1);
+            xmpz::add_ui(round, None, 1);
             xmpz::sub(fract_num, None, Some(fract_den));
         }
     }

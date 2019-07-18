@@ -80,24 +80,21 @@ arith_prim! {
     xmpq::lshift_i32;
     Shl { shl }
     ShlAssign { shl_assign }
-    i32;
-    ShlI32Incomplete
+    i32, ShlI32Incomplete;
 }
 arith_prim! {
     Rational;
     xmpq::rshift_i32;
     Shr { shr }
     ShrAssign { shr_assign }
-    i32;
-    ShrI32Incomplete
+    i32, ShrI32Incomplete;
 }
 arith_prim! {
     Rational;
     xmpq::pow_i32;
     Pow { pow }
     PowAssign { pow_assign }
-    i32;
-    PowI32Incomplete
+    i32, PowI32Incomplete;
 }
 
 arith_prim! {
@@ -105,24 +102,21 @@ arith_prim! {
     xmpq::mul_2exp;
     Shl { shl }
     ShlAssign { shl_assign }
-    u32;
-    ShlU32Incomplete
+    u32, ShlU32Incomplete;
 }
 arith_prim! {
     Rational;
     xmpq::div_2exp;
     Shr { shr }
     ShrAssign { shr_assign }
-    u32;
-    ShrU32Incomplete
+    u32, ShrU32Incomplete;
 }
 arith_prim! {
     Rational;
     xmpq::pow_u32;
     Pow { pow }
     PowAssign { pow_assign }
-    u32;
-    PowU32Incomplete
+    u32, PowU32Incomplete;
 }
 
 impl<T> Sum<T> for Rational

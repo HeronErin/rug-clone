@@ -14,12 +14,15 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::cast::CheckedCast;
 use crate::ext::xmpz;
+use crate::integer::SmallInteger;
 use crate::ops::{
     DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,
     RemRoundingFrom,
 };
 use crate::{Assign, Integer};
+use std::os::raw::{c_long, c_ulong};
 
 // big / big -> Big
 // big / &big -> Big
@@ -34,25 +37,11 @@ use crate::{Assign, Integer};
 // big = Incomplete
 macro_rules! div_op {
     (
-        $trunc_fn:path,
-        $ceil_fn:path,
-        $floor_fn:path,
-        $euc_fn:path;
-        $Imp:ident
-        $trunc:ident
-        $ceil:ident
-        $floor:ident
-        $euc:ident;
+        $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
+        $Imp:ident $trunc:ident $ceil:ident $floor:ident $euc:ident;
         $ImpAssign:ident
-        $trunc_assign:ident
-        $ceil_assign:ident
-        $floor_assign:ident
-        $euc_assign:ident;
-        $ImpFrom:ident
-        $trunc_from:ident
-        $ceil_from:ident
-        $floor_from:ident
-        $euc_from:ident;
+            $trunc_assign:ident $ceil_assign:ident $floor_assign:ident $euc_assign:ident;
+        $ImpFrom:ident $trunc_from:ident $ceil_from:ident $floor_from:ident $euc_from:ident;
         $Incomplete:ident
     ) => {
         impl $Imp for Integer {
@@ -282,33 +271,14 @@ macro_rules! div_op {
 // big = FromIncomplete
 macro_rules! div_prim {
     (
-        $trunc_fn:path,
-        $ceil_fn:path,
-        $floor_fn:path,
-        $euc_fn:path;
-        $trunc_from_fn:path,
-        $ceil_from_fn:path,
-        $floor_from_fn:path,
-        $euc_from_fn:path;
-        $Imp:ident
-        $trunc:ident
-        $ceil:ident
-        $floor:ident
-        $euc:ident;
+        $trunc_fn:path, $ceil_fn:path, $floor_fn:path, $euc_fn:path;
+        $trunc_from_fn:path, $ceil_from_fn:path, $floor_from_fn:path, $euc_from_fn:path;
+        $Imp:ident $trunc:ident $ceil:ident $floor:ident $euc:ident;
         $ImpAssign:ident
-        $trunc_assign:ident
-        $ceil_assign:ident
-        $floor_assign:ident
-        $euc_assign:ident;
-        $ImpFrom:ident
-        $trunc_from:ident
-        $ceil_from:ident
-        $floor_from:ident
-        $euc_from:ident;
-        $T:ty;
-        $Incomplete:ident
-        $FromIncomplete:ident
-    ) => {
+            $trunc_assign:ident $ceil_assign:ident $floor_assign:ident $euc_assign:ident;
+        $ImpFrom:ident $trunc_from:ident $ceil_from:ident $floor_from:ident $euc_from:ident;
+        $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
+    ) => { $(
         impl $Imp<$T> for Integer {
             type Output = Integer;
             #[inline]
@@ -634,170 +604,150 @@ macro_rules! div_prim {
                 dst
             }
         }
-    };
+    )* };
 }
 
 div_op! {
-    xmpz::tdiv_q,
-    xmpz::cdiv_q,
-    xmpz::fdiv_q,
-    xmpz::ediv_q;
+    xmpz::tdiv_q, xmpz::cdiv_q, xmpz::fdiv_q, xmpz::ediv_q;
     DivRounding div_trunc div_ceil div_floor div_euc;
-    DivRoundingAssign
-        div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
-    DivRoundingFrom
-        div_trunc_from div_ceil_from div_floor_from div_euc_from;
+    DivRoundingAssign div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
+    DivRoundingFrom div_trunc_from div_ceil_from div_floor_from div_euc_from;
     DivRoundingIncomplete
 }
 div_op! {
-    xmpz::tdiv_r,
-    xmpz::cdiv_r,
-    xmpz::fdiv_r,
-    xmpz::ediv_r;
+    xmpz::tdiv_r, xmpz::cdiv_r, xmpz::fdiv_r, xmpz::ediv_r;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
-    RemRoundingAssign
-        rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
-    RemRoundingFrom
-        rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
+    RemRoundingAssign rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
+    RemRoundingFrom rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
     RemRoundingIncomplete
 }
 
 div_prim! {
-    xmpz::tdiv_q_i32,
-    xmpz::cdiv_q_i32,
-    xmpz::fdiv_q_i32,
-    xmpz::ediv_q_i32;
-    xmpz::i32_tdiv_q,
-    xmpz::i32_cdiv_q,
-    xmpz::i32_fdiv_q,
-    xmpz::i32_ediv_q;
+    PrimOps::tdiv_q, PrimOps::cdiv_q, PrimOps::fdiv_q, PrimOps::ediv_q;
+    PrimOps::tdiv_q_from, PrimOps::cdiv_q_from, PrimOps::fdiv_q_from, PrimOps::ediv_q_from;
     DivRounding div_trunc div_ceil div_floor div_euc;
-    DivRoundingAssign
-        div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
-    DivRoundingFrom
-        div_trunc_from div_ceil_from div_floor_from div_euc_from;
-    i32;
-    DivRoundingI32Incomplete DivRoundingFromI32Incomplete
+    DivRoundingAssign div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
+    DivRoundingFrom div_trunc_from div_ceil_from div_floor_from div_euc_from;
+    i32, DivRoundingI32Incomplete, DivRoundingFromI32Incomplete;
+    i64, DivRoundingI64Incomplete, DivRoundingFromI64Incomplete;
+    u32, DivRoundingU32Incomplete, DivRoundingFromU32Incomplete;
+    u64, DivRoundingU64Incomplete, DivRoundingFromU64Incomplete;
 }
 div_prim! {
-    xmpz::tdiv_r_i32,
-    xmpz::cdiv_r_i32,
-    xmpz::fdiv_r_i32,
-    xmpz::ediv_r_i32;
-    xmpz::i32_tdiv_r,
-    xmpz::i32_cdiv_r,
-    xmpz::i32_fdiv_r,
-    xmpz::i32_ediv_r;
+    PrimOps::tdiv_r, PrimOps::cdiv_r, PrimOps::fdiv_r, PrimOps::ediv_r;
+    PrimOps::tdiv_r_from, PrimOps::cdiv_r_from, PrimOps::fdiv_r_from, PrimOps::ediv_r_from;
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
-    RemRoundingAssign
-        rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
-    RemRoundingFrom
-        rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
-    i32;
-    RemRoundingI32Incomplete RemRoundingFromI32Incomplete
-}
-div_prim! {
-    xmpz::tdiv_q_u32,
-    xmpz::cdiv_q_u32,
-    xmpz::fdiv_q_u32,
-    xmpz::ediv_q_u32;
-    xmpz::u32_tdiv_q,
-    xmpz::u32_cdiv_q,
-    xmpz::u32_fdiv_q,
-    xmpz::u32_ediv_q;
-    DivRounding div_trunc div_ceil div_floor div_euc;
-    DivRoundingAssign
-        div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
-    DivRoundingFrom
-        div_trunc_from div_ceil_from div_floor_from div_euc_from;
-    u32;
-    DivRoundingU32Incomplete DivRoundingFromU32Incomplete
-}
-div_prim! {
-    xmpz::tdiv_r_u32,
-    xmpz::cdiv_r_u32,
-    xmpz::fdiv_r_u32,
-    xmpz::ediv_r_u32;
-    xmpz::u32_tdiv_r,
-    xmpz::u32_cdiv_r,
-    xmpz::u32_fdiv_r,
-    xmpz::u32_ediv_r;
-    RemRounding rem_trunc rem_ceil rem_floor rem_euc;
-    RemRoundingAssign
-        rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
-    RemRoundingFrom
-        rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
-    u32;
-    RemRoundingU32Incomplete RemRoundingFromU32Incomplete
+    RemRoundingAssign rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
+    RemRoundingFrom rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
+    i32, RemRoundingI32Incomplete, RemRoundingFromI32Incomplete;
+    i64, RemRoundingI64Incomplete, RemRoundingFromI64Incomplete;
+    u32, RemRoundingU32Incomplete, RemRoundingFromU32Incomplete;
+    u64, RemRoundingU64Incomplete, RemRoundingFromU64Incomplete;
 }
 
-div_prim! {
-    xmpz::tdiv_q_i64,
-    xmpz::cdiv_q_i64,
-    xmpz::fdiv_q_i64,
-    xmpz::ediv_q_i64;
-    xmpz::i64_tdiv_q,
-    xmpz::i64_cdiv_q,
-    xmpz::i64_fdiv_q,
-    xmpz::i64_ediv_q;
-    DivRounding div_trunc div_ceil div_floor div_euc;
-    DivRoundingAssign
-        div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
-    DivRoundingFrom
-        div_trunc_from div_ceil_from div_floor_from div_euc_from;
-    i64;
-    DivRoundingI64Incomplete DivRoundingFromI64Incomplete
+trait PrimOps<Long>: AsLong {
+    fn tdiv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn cdiv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn fdiv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn ediv_q(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn tdiv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn cdiv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn fdiv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn ediv_q_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn tdiv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn cdiv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn fdiv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn ediv_r(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn tdiv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn cdiv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn fdiv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
+    fn ediv_r_from(rop: &mut Integer, op1: Self, op2: Option<&Integer>);
 }
-div_prim! {
-    xmpz::tdiv_r_i64,
-    xmpz::cdiv_r_i64,
-    xmpz::fdiv_r_i64,
-    xmpz::ediv_r_i64;
-    xmpz::i64_tdiv_r,
-    xmpz::i64_cdiv_r,
-    xmpz::i64_fdiv_r,
-    xmpz::i64_ediv_r;
-    RemRounding rem_trunc rem_ceil rem_floor rem_euc;
-    RemRoundingAssign
-        rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
-    RemRoundingFrom
-        rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
-    i64;
-    RemRoundingI64Incomplete RemRoundingFromI64Incomplete
+
+trait AsLong: Copy {
+    type Long;
 }
-div_prim! {
-    xmpz::tdiv_q_u64,
-    xmpz::cdiv_q_u64,
-    xmpz::fdiv_q_u64,
-    xmpz::ediv_q_u64;
-    xmpz::u64_tdiv_q,
-    xmpz::u64_cdiv_q,
-    xmpz::u64_fdiv_q,
-    xmpz::u64_ediv_q;
-    DivRounding div_trunc div_ceil div_floor div_euc;
-    DivRoundingAssign
-        div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
-    DivRoundingFrom
-        div_trunc_from div_ceil_from div_floor_from div_euc_from;
-    u64;
-    DivRoundingU64Incomplete DivRoundingFromU64Incomplete
+
+macro_rules! as_long {
+    ($Long:ty: $($Prim:ty)*) => { $(
+        impl AsLong for $Prim {
+            type Long = $Long;
+        }
+    )* }
 }
-div_prim! {
-    xmpz::tdiv_r_u64,
-    xmpz::cdiv_r_u64,
-    xmpz::fdiv_r_u64,
-    xmpz::ediv_r_u64;
-    xmpz::u64_tdiv_r,
-    xmpz::u64_cdiv_r,
-    xmpz::u64_fdiv_r,
-    xmpz::u64_ediv_r;
-    RemRounding rem_trunc rem_ceil rem_floor rem_euc;
-    RemRoundingAssign
-        rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
-    RemRoundingFrom
-        rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
-    u64;
-    RemRoundingU64Incomplete RemRoundingFromU64Incomplete
+
+as_long! { c_long: i8 i16 i32 i64 i128 isize }
+as_long! { c_ulong: u8 u16 u32 u64 u128 usize }
+
+macro_rules! forward {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        fn $fn(rop: &mut Integer, op1: Option<&Integer>, op2: Self) {
+            if let Some(op2) = op2.checked_cast() {
+                $deleg_long(rop, op1, op2);
+            } else {
+                let small: SmallInteger = op2.into();
+                $deleg(rop, op1, Some(&*small));
+            }
+        }
+    };
+}
+macro_rules! reverse {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        fn $fn(rop: &mut Integer, op1: Self, op2: Option<&Integer>) {
+            if let Some(op1) = op1.checked_cast() {
+                $deleg_long(rop, op1, op2);
+            } else {
+                let small: SmallInteger = op1.into();
+                $deleg(rop, Some(&*small), op2);
+            }
+        }
+    };
+}
+
+impl<T> PrimOps<c_long> for T
+where
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
+{
+    forward! { fn tdiv_q() -> xmpz::tdiv_q_si, xmpz::tdiv_q }
+    forward! { fn cdiv_q() -> xmpz::cdiv_q_si, xmpz::cdiv_q }
+    forward! { fn fdiv_q() -> xmpz::fdiv_q_si, xmpz::fdiv_q }
+    forward! { fn ediv_q() -> xmpz::ediv_q_si, xmpz::ediv_q }
+    reverse! { fn tdiv_q_from() -> xmpz::si_tdiv_q, xmpz::tdiv_q }
+    reverse! { fn cdiv_q_from() -> xmpz::si_cdiv_q, xmpz::cdiv_q }
+    reverse! { fn fdiv_q_from() -> xmpz::si_fdiv_q, xmpz::fdiv_q }
+    reverse! { fn ediv_q_from() -> xmpz::si_ediv_q, xmpz::ediv_q }
+    forward! { fn tdiv_r() -> xmpz::tdiv_r_si, xmpz::tdiv_r }
+    forward! { fn cdiv_r() -> xmpz::cdiv_r_si, xmpz::cdiv_r }
+    forward! { fn fdiv_r() -> xmpz::fdiv_r_si, xmpz::fdiv_r }
+    forward! { fn ediv_r() -> xmpz::ediv_r_si, xmpz::ediv_r }
+    reverse! { fn tdiv_r_from() -> xmpz::si_tdiv_r, xmpz::tdiv_r }
+    reverse! { fn cdiv_r_from() -> xmpz::si_cdiv_r, xmpz::cdiv_r }
+    reverse! { fn fdiv_r_from() -> xmpz::si_fdiv_r, xmpz::fdiv_r }
+    reverse! { fn ediv_r_from() -> xmpz::si_ediv_r, xmpz::ediv_r }
+}
+
+impl<T> PrimOps<c_ulong> for T
+where
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
+{
+    forward! { fn tdiv_q() -> xmpz::tdiv_q_ui, xmpz::tdiv_q }
+    forward! { fn cdiv_q() -> xmpz::cdiv_q_ui, xmpz::cdiv_q }
+    forward! { fn fdiv_q() -> xmpz::fdiv_q_ui, xmpz::fdiv_q }
+    forward! { fn ediv_q() -> xmpz::ediv_q_ui, xmpz::ediv_q }
+    reverse! { fn tdiv_q_from() -> xmpz::ui_tdiv_q, xmpz::tdiv_q }
+    reverse! { fn cdiv_q_from() -> xmpz::ui_cdiv_q, xmpz::cdiv_q }
+    reverse! { fn fdiv_q_from() -> xmpz::ui_fdiv_q, xmpz::fdiv_q }
+    reverse! { fn ediv_q_from() -> xmpz::ui_ediv_q, xmpz::ediv_q }
+    forward! { fn tdiv_r() -> xmpz::tdiv_r_ui, xmpz::tdiv_r }
+    forward! { fn cdiv_r() -> xmpz::cdiv_r_ui, xmpz::cdiv_r }
+    forward! { fn fdiv_r() -> xmpz::fdiv_r_ui, xmpz::fdiv_r }
+    forward! { fn ediv_r() -> xmpz::ediv_r_ui, xmpz::ediv_r }
+    reverse! { fn tdiv_r_from() -> xmpz::ui_tdiv_r, xmpz::tdiv_r }
+    reverse! { fn cdiv_r_from() -> xmpz::ui_cdiv_r, xmpz::cdiv_r }
+    reverse! { fn fdiv_r_from() -> xmpz::ui_fdiv_r, xmpz::fdiv_r }
+    reverse! { fn ediv_r_from() -> xmpz::ui_ediv_r, xmpz::ediv_r }
 }
 
 #[cfg(test)]
