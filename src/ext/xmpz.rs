@@ -1145,7 +1145,6 @@ unsafe fn si_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
 }
 
 unsafe fn ui_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
-    let n = n.into();
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
@@ -1174,7 +1173,6 @@ unsafe fn ui_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
 }
 
 unsafe fn ui_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
-    let n = n.into();
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
