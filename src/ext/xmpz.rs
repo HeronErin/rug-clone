@@ -23,7 +23,6 @@ use crate::rand::RandState;
 use crate::Integer;
 use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
-use std::mem;
 use std::os::raw::{c_long, c_ulong};
 use std::ptr;
 use std::{i16, i8, u16, u8};
@@ -1359,18 +1358,16 @@ pub fn cmp_f64(op1: &Integer, op2: f64) -> Option<Ordering> {
     }
 }
 
-const LONG_64: bool = mem::size_of::<c_ulong>() >= mem::size_of::<u64>();
-
 #[inline]
 pub fn add_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op2) = cast::checked_cast::<_, c_long>(op2) {
         match op2.neg_abs() {
             (false, op2_abs) => unsafe {
-                gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+                gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, op2_abs);
             },
             (true, op2_abs) => unsafe {
-                gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+                gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, op2_abs);
             },
         }
     } else {
@@ -1384,13 +1381,13 @@ pub fn add_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
 #[inline]
 pub fn sub_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op2) = cast::checked_cast::<_, c_long>(op2) {
         match op2.neg_abs() {
             (false, op2_abs) => unsafe {
-                gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+                gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, op2_abs);
             },
             (true, op2_abs) => unsafe {
-                gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+                gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, op2_abs);
             },
         }
     } else {
@@ -1404,14 +1401,14 @@ pub fn sub_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
 #[inline]
 pub fn i64_sub(rop: &mut Integer, op1: i64, op2: Option<&Integer>) {
     let op2_ptr = op2.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op1) = cast::checked_cast::<_, c_long>(op1) {
         match op1.neg_abs() {
             (false, op1_abs) => unsafe {
-                gmp::mpz_ui_sub(rop.as_raw_mut(), cast::cast(op1_abs), op2_ptr);
+                gmp::mpz_ui_sub(rop.as_raw_mut(), op1_abs, op2_ptr);
             },
             (true, op1_abs) => {
                 unsafe {
-                    gmp::mpz_add_ui(rop.as_raw_mut(), op2_ptr, cast::cast(op1_abs));
+                    gmp::mpz_add_ui(rop.as_raw_mut(), op2_ptr, op1_abs);
                 }
                 neg(rop, None);
             }
@@ -1427,9 +1424,9 @@ pub fn i64_sub(rop: &mut Integer, op1: i64, op2: Option<&Integer>) {
 #[inline]
 pub fn mul_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op2) = cast::checked_cast(op2) {
         unsafe {
-            gmp::mpz_mul_si(rop.as_raw_mut(), op1_ptr, cast::cast(op2));
+            gmp::mpz_mul_si(rop.as_raw_mut(), op1_ptr, op2);
         }
     } else {
         let small = SmallInteger::from(op2);
@@ -1521,9 +1518,9 @@ pub fn cdiv_r_i64(r: &mut Integer, n: Option<&Integer>, d: i64) {
 pub fn i64_cdiv_q(q: &mut Integer, n: i64, d: Option<&Integer>) {
     check_div0_or(d, q);
     let d_ptr = d.unwrap_or(q).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            si_cdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
+            si_cdiv_q_raw(q.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1537,9 +1534,9 @@ pub fn i64_cdiv_q(q: &mut Integer, n: i64, d: Option<&Integer>) {
 pub fn i64_cdiv_r(r: &mut Integer, n: i64, d: Option<&Integer>) {
     check_div0_or(d, r);
     let d_ptr = d.unwrap_or(r).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            si_cdiv_r_raw(r.as_raw_mut(), cast::cast(n), d_ptr);
+            si_cdiv_r_raw(r.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1583,9 +1580,9 @@ pub fn fdiv_r_i64(r: &mut Integer, n: Option<&Integer>, d: i64) {
 pub fn i64_fdiv_q(q: &mut Integer, n: i64, d: Option<&Integer>) {
     check_div0_or(d, q);
     let d_ptr = d.unwrap_or(q).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            si_fdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
+            si_fdiv_q_raw(q.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1599,9 +1596,9 @@ pub fn i64_fdiv_q(q: &mut Integer, n: i64, d: Option<&Integer>) {
 pub fn i64_fdiv_r(r: &mut Integer, n: i64, d: Option<&Integer>) {
     check_div0_or(d, r);
     let d_ptr = d.unwrap_or(r).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            si_fdiv_r_raw(r.as_raw_mut(), cast::cast(n), d.unwrap_or(r).as_raw());
+            si_fdiv_r_raw(r.as_raw_mut(), n, d.unwrap_or(r).as_raw());
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1650,9 +1647,9 @@ pub fn i64_ediv_r(r: &mut Integer, n: i64, d: Option<&Integer>) {
 #[inline]
 pub fn add_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op2) = cast::checked_cast(op2) {
         unsafe {
-            gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2));
+            gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, op2);
         }
     } else {
         let small = SmallInteger::from(op2);
@@ -1665,9 +1662,9 @@ pub fn add_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
 #[inline]
 pub fn sub_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op2) = cast::checked_cast(op2) {
         unsafe {
-            gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2));
+            gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, op2);
         }
     } else {
         let small = SmallInteger::from(op2);
@@ -1680,9 +1677,9 @@ pub fn sub_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
 #[inline]
 pub fn u64_sub(rop: &mut Integer, op1: u64, op2: Option<&Integer>) {
     let op2_ptr = op2.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op1) = cast::checked_cast(op1) {
         unsafe {
-            gmp::mpz_ui_sub(rop.as_raw_mut(), cast::cast(op1), op2_ptr);
+            gmp::mpz_ui_sub(rop.as_raw_mut(), op1, op2_ptr);
         }
     } else {
         let small = SmallInteger::from(op1);
@@ -1695,9 +1692,9 @@ pub fn u64_sub(rop: &mut Integer, op1: u64, op2: Option<&Integer>) {
 #[inline]
 pub fn mul_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    if LONG_64 {
+    if let Some(op2) = cast::checked_cast(op2) {
         unsafe {
-            gmp::mpz_mul_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2));
+            gmp::mpz_mul_ui(rop.as_raw_mut(), op1_ptr, op2);
         }
     } else {
         let small = SmallInteger::from(op2);
@@ -1711,9 +1708,9 @@ pub fn mul_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
 pub fn tdiv_q_u64(q: &mut Integer, n: Option<&Integer>, d: u64) {
     assert_ne!(d, 0, "division by zero");
     let n_ptr = n.unwrap_or(q).as_raw();
-    if LONG_64 {
+    if let Some(d) = cast::checked_cast(d) {
         unsafe {
-            gmp::mpz_tdiv_q_ui(q.as_raw_mut(), n_ptr, cast::cast(d));
+            gmp::mpz_tdiv_q_ui(q.as_raw_mut(), n_ptr, d);
         }
     } else {
         let small = SmallInteger::from(d);
@@ -1727,9 +1724,9 @@ pub fn tdiv_q_u64(q: &mut Integer, n: Option<&Integer>, d: u64) {
 pub fn tdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) {
     assert_ne!(d, 0, "division by zero");
     let n_ptr = n.unwrap_or(r).as_raw();
-    if LONG_64 {
+    if let Some(d) = cast::checked_cast(d) {
         unsafe {
-            gmp::mpz_tdiv_r_ui(r.as_raw_mut(), n_ptr, cast::cast(d));
+            gmp::mpz_tdiv_r_ui(r.as_raw_mut(), n_ptr, d);
         }
     } else {
         let small = SmallInteger::from(d);
@@ -1743,9 +1740,9 @@ pub fn tdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) {
 pub fn u64_tdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, q);
     let d_ptr = d.unwrap_or(q).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            ui_tdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
+            ui_tdiv_q_raw(q.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1759,9 +1756,9 @@ pub fn u64_tdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
 pub fn u64_tdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, r);
     let d_ptr = d.unwrap_or(r).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            ui_tdiv_r_raw(r.as_raw_mut(), cast::cast(n), d_ptr);
+            ui_tdiv_r_raw(r.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1775,8 +1772,8 @@ pub fn u64_tdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
 pub fn cdiv_q_u64(q: &mut Integer, n: Option<&Integer>, d: u64) -> bool {
     assert_ne!(d, 0, "division by zero");
     let n_ptr = n.unwrap_or(q).as_raw();
-    if LONG_64 {
-        (unsafe { gmp::mpz_cdiv_q_ui(q.as_raw_mut(), n_ptr, cast::cast(d)) }) != 0
+    if let Some(d) = cast::checked_cast(d) {
+        (unsafe { gmp::mpz_cdiv_q_ui(q.as_raw_mut(), n_ptr, d) }) != 0
     } else {
         unsafe { cdiv_q_u64_helper(q, n_ptr, d) }
     }
@@ -1793,8 +1790,8 @@ unsafe fn cdiv_q_u64_helper(q: &mut Integer, n_ptr: *const gmp::mpz_t, d: u64) -
 pub fn cdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) -> bool {
     assert_ne!(d, 0, "division by zero");
     let n_ptr = n.unwrap_or(r).as_raw();
-    if LONG_64 {
-        (unsafe { gmp::mpz_cdiv_r_ui(r.as_raw_mut(), n_ptr, cast::cast(d)) }) != 0
+    if let Some(d) = cast::checked_cast(d) {
+        (unsafe { gmp::mpz_cdiv_r_ui(r.as_raw_mut(), n_ptr, d) }) != 0
     } else {
         let small = SmallInteger::from(d);
         unsafe {
@@ -1808,9 +1805,9 @@ pub fn cdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) -> bool {
 pub fn u64_cdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, q);
     let d_ptr = d.unwrap_or(q).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            ui_cdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
+            ui_cdiv_q_raw(q.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1824,9 +1821,9 @@ pub fn u64_cdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
 pub fn u64_cdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, r);
     let d_ptr = d.unwrap_or(r).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            ui_cdiv_r_raw(r.as_raw_mut(), cast::cast(n), d_ptr);
+            ui_cdiv_r_raw(r.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1840,8 +1837,8 @@ pub fn u64_cdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
 pub fn fdiv_q_u64(q: &mut Integer, n: Option<&Integer>, d: u64) -> bool {
     assert_ne!(d, 0, "division by zero");
     let n_ptr = n.unwrap_or(q).as_raw();
-    if LONG_64 {
-        (unsafe { gmp::mpz_fdiv_q_ui(q.as_raw_mut(), n_ptr, cast::cast(d)) }) != 0
+    if let Some(d) = cast::checked_cast(d) {
+        (unsafe { gmp::mpz_fdiv_q_ui(q.as_raw_mut(), n_ptr, d) }) != 0
     } else {
         unsafe { fdiv_q_u64_helper(q, n_ptr, d) }
     }
@@ -1858,8 +1855,8 @@ unsafe fn fdiv_q_u64_helper(q: &mut Integer, n_ptr: *const gmp::mpz_t, d: u64) -
 pub fn fdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) -> bool {
     assert_ne!(d, 0, "division by zero");
     let n_ptr = n.unwrap_or(r).as_raw();
-    if LONG_64 {
-        (unsafe { gmp::mpz_fdiv_r_ui(r.as_raw_mut(), n_ptr, cast::cast(d)) }) != 0
+    if let Some(d) = cast::checked_cast(d) {
+        (unsafe { gmp::mpz_fdiv_r_ui(r.as_raw_mut(), n_ptr, d) }) != 0
     } else {
         let small = SmallInteger::from(d);
         unsafe {
@@ -1873,9 +1870,9 @@ pub fn fdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) -> bool {
 pub fn u64_fdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, q);
     let d_ptr = d.unwrap_or(q).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            ui_fdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
+            ui_fdiv_q_raw(q.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1889,9 +1886,9 @@ pub fn u64_fdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
 pub fn u64_fdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, r);
     let d_ptr = d.unwrap_or(r).as_raw();
-    if LONG_64 {
+    if let Some(n) = cast::checked_cast(n) {
         unsafe {
-            ui_fdiv_r_raw(r.as_raw_mut(), cast::cast(n), d_ptr);
+            ui_fdiv_r_raw(r.as_raw_mut(), n, d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1931,8 +1928,8 @@ pub fn u64_ediv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
 
 #[inline]
 pub fn and_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
-    if LONG_64 {
-        and_ui(rop, op1, cast::cast(op2));
+    if let Some(op2) = cast::checked_cast(op2) {
+        and_ui(rop, op1, op2);
     } else {
         let small = SmallInteger::from(op2);
         and(rop, op1, Some(&*small));
@@ -1941,8 +1938,8 @@ pub fn and_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
 
 #[inline]
 pub fn ior_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
-    if LONG_64 {
-        ior_ui(rop, op1, cast::cast(op2));
+    if let Some(op2) = cast::checked_cast(op2) {
+        ior_ui(rop, op1, op2);
     } else {
         let small = SmallInteger::from(op2);
         ior(rop, op1, Some(&*small));
@@ -1951,8 +1948,8 @@ pub fn ior_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
 
 #[inline]
 pub fn xor_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
-    if LONG_64 {
-        xor_ui(rop, op1, cast::cast(op2));
+    if let Some(op2) = cast::checked_cast(op2) {
+        xor_ui(rop, op1, op2);
     } else {
         let small = SmallInteger::from(op2);
         xor(rop, op1, Some(&*small));
@@ -1961,8 +1958,8 @@ pub fn xor_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
 
 #[inline]
 pub fn and_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
-    if LONG_64 {
-        and_si(rop, op1, cast::cast(op2));
+    if let Some(op2) = cast::checked_cast(op2) {
+        and_si(rop, op1, op2);
     } else {
         let small = SmallInteger::from(op2);
         and(rop, op1, Some(&*small));
@@ -1971,8 +1968,8 @@ pub fn and_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
 
 #[inline]
 pub fn ior_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
-    if LONG_64 {
-        ior_si(rop, op1, cast::cast(op2));
+    if let Some(op2) = cast::checked_cast(op2) {
+        ior_si(rop, op1, op2);
     } else {
         let small = SmallInteger::from(op2);
         ior(rop, op1, Some(&*small));
@@ -1981,8 +1978,8 @@ pub fn ior_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
 
 #[inline]
 pub fn xor_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
-    if LONG_64 {
-        xor_si(rop, op1, cast::cast(op2));
+    if let Some(op2) = cast::checked_cast(op2) {
+        xor_si(rop, op1, op2);
     } else {
         let small = SmallInteger::from(op2);
         xor(rop, op1, Some(&*small));
