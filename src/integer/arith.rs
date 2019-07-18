@@ -369,6 +369,33 @@ arith_prim_noncommut! {
     i64;
     RemI64Incomplete, RemFromI64Incomplete
 }
+arith_prim_commut! {
+    Integer;
+    xmpz::and_i64;
+    BitAnd { bitand }
+    BitAndAssign { bitand_assign }
+    BitAndFrom { bitand_from }
+    i64;
+    BitAndI64Incomplete
+}
+arith_prim_commut! {
+    Integer;
+    xmpz::ior_i64;
+    BitOr { bitor }
+    BitOrAssign { bitor_assign }
+    BitOrFrom { bitor_from }
+    i64;
+    BitOrI64Incomplete
+}
+arith_prim_commut! {
+    Integer;
+    xmpz::xor_i64;
+    BitXor { bitxor }
+    BitXorAssign { bitxor_assign }
+    BitXorFrom { bitxor_from }
+    i64;
+    BitXorI64Incomplete
+}
 
 arith_prim_commut! {
     Integer;
@@ -414,6 +441,33 @@ arith_prim_noncommut! {
     RemFrom { rem_from }
     u64;
     RemU64Incomplete, RemFromU64Incomplete
+}
+arith_prim_commut! {
+    Integer;
+    xmpz::and_u64;
+    BitAnd { bitand }
+    BitAndAssign { bitand_assign }
+    BitAndFrom { bitand_from }
+    u64;
+    BitAndU64Incomplete
+}
+arith_prim_commut! {
+    Integer;
+    xmpz::ior_u64;
+    BitOr { bitor }
+    BitOrAssign { bitor_assign }
+    BitOrFrom { bitor_from }
+    u64;
+    BitOrU64Incomplete
+}
+arith_prim_commut! {
+    Integer;
+    xmpz::xor_u64;
+    BitXor { bitxor }
+    BitXorAssign { bitxor_assign }
+    BitXorFrom { bitxor_from }
+    u64;
+    BitXorU64Incomplete
 }
 
 mul_op_commut! {
@@ -595,33 +649,6 @@ mod tests {
                 }
             }
         };
-        ($list:expr, $against:expr, reduced) => {
-            for &op in $list {
-                let iop = Integer::from(op);
-                for b in &$against {
-                    assert_eq!(b.clone() + op, b.clone() + &iop);
-                    assert_eq!(b.clone() - op, b.clone() - &iop);
-                    assert_eq!(b.clone() * op, b.clone() * &iop);
-                    if op != 0 {
-                        assert_eq!(b.clone() / op, b.clone() / &iop);
-                        assert_eq!(b.clone() % op, b.clone() % &iop);
-                    }
-                    // assert_eq!(b.clone() & op, b.clone() & &iop);
-                    // assert_eq!(b.clone() | op, b.clone() | &iop);
-                    // assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                    assert_eq!(op + b.clone(), iop.clone() + b);
-                    assert_eq!(op - b.clone(), iop.clone() - b);
-                    assert_eq!(op * b.clone(), iop.clone() * b);
-                    if b.cmp0() != Ordering::Equal {
-                        assert_eq!(op / b.clone(), iop.clone() / b);
-                        assert_eq!(op % b.clone(), iop.clone() % b);
-                    }
-                    // assert_eq!(op & b.clone(), iop.clone() & b);
-                    // assert_eq!(op | b.clone(), iop.clone() | b);
-                    // assert_eq!(op ^ b.clone(), iop.clone() ^ b);
-                }
-            }
-        };
     }
 
     #[test]
@@ -639,8 +666,8 @@ mod tests {
 
         check_u_s!(I32, against);
         check_u_s!(U32, against);
-        check_u_s!(I64, against, reduced);
-        check_u_s!(U64, against, reduced);
+        check_u_s!(I64, against);
+        check_u_s!(U64, against);
     }
 
     macro_rules! test_ref_op {

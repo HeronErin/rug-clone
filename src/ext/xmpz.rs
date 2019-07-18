@@ -953,219 +953,34 @@ pub fn rshift_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
     }
 }
 
+#[inline]
 pub fn and_u32(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
-    let lop2 = gmp::limb_t::from(op2);
-    let ans_limb0 = {
-        let op1 = op1.unwrap_or(rop);
-        match op1.cmp0() {
-            Ordering::Equal => 0,
-            Ordering::Greater => (unsafe { limb(op1, 0) }) & lop2,
-            Ordering::Less => (unsafe { limb(op1, 0) }).wrapping_neg() & lop2,
-        }
-    };
-    set_limb(rop, ans_limb0);
+    and_ui(rop, op1, op2.into());
 }
 
+#[inline]
 pub fn ior_u32(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
-    let lop2 = gmp::limb_t::from(op2);
-    match op1.unwrap_or(rop).cmp0() {
-        Ordering::Equal => {
-            set_u32(rop, op2);
-        }
-        Ordering::Greater => {
-            set(rop, op1);
-            unsafe {
-                *limb_mut(rop, 0) |= lop2;
-            }
-        }
-        Ordering::Less => {
-            com(rop, op1);
-            if rop.cmp0() != Ordering::Equal {
-                unsafe {
-                    *limb_mut(rop, 0) &= !lop2;
-                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                        set_0(rop);
-                    }
-                }
-            }
-            com(rop, None);
-        }
-    }
+    ior_ui(rop, op1, op2.into());
 }
 
+#[inline]
 pub fn xor_u32(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
-    let lop2 = gmp::limb_t::from(op2);
-    match op1.unwrap_or(rop).cmp0() {
-        Ordering::Equal => {
-            set_u32(rop, op2);
-        }
-        Ordering::Greater => {
-            set(rop, op1);
-            unsafe {
-                *limb_mut(rop, 0) ^= lop2;
-                if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                    set_0(rop);
-                }
-            }
-        }
-        Ordering::Less => {
-            com(rop, op1);
-            if rop.cmp0() == Ordering::Equal {
-                if lop2 != 0 {
-                    set_nonzero(rop, lop2);
-                }
-            } else {
-                unsafe {
-                    *limb_mut(rop, 0) ^= lop2;
-                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                        set_0(rop);
-                    }
-                }
-            }
-            com(rop, None);
-        }
-    }
+    xor_ui(rop, op1, op2.into());
 }
 
+#[inline]
 pub fn and_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
-    let lop2 = op2 as gmp::limb_t;
-    match op1.unwrap_or(rop).cmp0() {
-        Ordering::Equal => {
-            set_0(rop);
-        }
-        Ordering::Greater => {
-            if op2 >= 0 {
-                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
-                set_limb(rop, cur_limb & lop2);
-            } else {
-                set(rop, op1);
-                unsafe {
-                    *limb_mut(rop, 0) &= lop2;
-                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                        set_0(rop);
-                    }
-                }
-            }
-        }
-        Ordering::Less => {
-            if op2 >= 0 {
-                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
-                set_limb(rop, cur_limb.wrapping_neg() & lop2);
-            } else {
-                com(rop, op1);
-                if rop.cmp0() == Ordering::Equal {
-                    if !lop2 != 0 {
-                        set_nonzero(rop, !lop2);
-                    }
-                } else {
-                    unsafe {
-                        *limb_mut(rop, 0) |= !lop2;
-                    }
-                }
-                com(rop, None);
-            }
-        }
-    }
+    and_si(rop, op1, op2.into());
 }
 
+#[inline]
 pub fn ior_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
-    let lop2 = op2 as gmp::limb_t;
-    match op1.unwrap_or(rop).cmp0() {
-        Ordering::Equal => {
-            set_i32(rop, op2);
-        }
-        Ordering::Greater => {
-            if op2 >= 0 {
-                set(rop, op1);
-                unsafe {
-                    *limb_mut(rop, 0) |= lop2;
-                }
-            } else {
-                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
-                set_limb(rop, !cur_limb & !lop2);
-                com(rop, None);
-            }
-        }
-        Ordering::Less => {
-            if op2 >= 0 {
-                com(rop, op1);
-                if rop.cmp0() != Ordering::Equal {
-                    unsafe {
-                        *limb_mut(rop, 0) &= !lop2;
-                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                            set_0(rop);
-                        }
-                    }
-                }
-                com(rop, None);
-            } else {
-                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
-                set_limb(rop, cur_limb.wrapping_sub(1) & !lop2);
-                com(rop, None);
-            }
-        }
-    }
+    ior_si(rop, op1, op2.into());
 }
 
+#[inline]
 pub fn xor_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
-    let lop2 = op2 as gmp::limb_t;
-    match op1.unwrap_or(rop).cmp0() {
-        Ordering::Equal => {
-            set_i32(rop, op2);
-        }
-        Ordering::Greater => {
-            if op2 >= 0 {
-                set(rop, op1);
-                unsafe {
-                    *limb_mut(rop, 0) ^= lop2;
-                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                        set_0(rop);
-                    }
-                }
-            } else {
-                set(rop, op1);
-                unsafe {
-                    *limb_mut(rop, 0) ^= !lop2;
-                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                        set_0(rop);
-                    }
-                }
-                com(rop, None);
-            }
-        }
-        Ordering::Less => {
-            if op2 >= 0 {
-                com(rop, op1);
-                if rop.cmp0() == Ordering::Equal {
-                    if lop2 != 0 {
-                        set_nonzero(rop, lop2);
-                    }
-                } else {
-                    unsafe {
-                        *limb_mut(rop, 0) ^= lop2;
-                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                            set_0(rop);
-                        }
-                    }
-                }
-                com(rop, None);
-            } else {
-                com(rop, op1);
-                if rop.cmp0() == Ordering::Equal {
-                    if !lop2 != 0 {
-                        set_nonzero(rop, !lop2);
-                    }
-                } else {
-                    unsafe {
-                        *limb_mut(rop, 0) ^= !lop2;
-                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
-                            set_0(rop);
-                        }
-                    }
-                }
-            }
-        }
-    }
+    xor_si(rop, op1, op2.into());
 }
 
 #[inline]
@@ -1798,6 +1613,66 @@ pub fn u64_tdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
     }
 }
 
+#[inline]
+pub fn and_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
+    if LONG_64 {
+        and_ui(rop, op1, cast::cast(op2));
+    } else {
+        let small = SmallInteger::from(op2);
+        and(rop, op1, Some(&*small));
+    }
+}
+
+#[inline]
+pub fn ior_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
+    if LONG_64 {
+        ior_ui(rop, op1, cast::cast(op2));
+    } else {
+        let small = SmallInteger::from(op2);
+        ior(rop, op1, Some(&*small));
+    }
+}
+
+#[inline]
+pub fn xor_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
+    if LONG_64 {
+        xor_ui(rop, op1, cast::cast(op2));
+    } else {
+        let small = SmallInteger::from(op2);
+        xor(rop, op1, Some(&*small));
+    }
+}
+
+#[inline]
+pub fn and_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
+    if LONG_64 {
+        and_si(rop, op1, cast::cast(op2));
+    } else {
+        let small = SmallInteger::from(op2);
+        and(rop, op1, Some(&*small));
+    }
+}
+
+#[inline]
+pub fn ior_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
+    if LONG_64 {
+        ior_si(rop, op1, cast::cast(op2));
+    } else {
+        let small = SmallInteger::from(op2);
+        ior(rop, op1, Some(&*small));
+    }
+}
+
+#[inline]
+pub fn xor_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
+    if LONG_64 {
+        xor_si(rop, op1, cast::cast(op2));
+    } else {
+        let small = SmallInteger::from(op2);
+        xor(rop, op1, Some(&*small));
+    }
+}
+
 unsafe fn ui_tdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
@@ -2085,6 +1960,221 @@ unsafe fn si_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
             }
         } else {
             set_0_raw(r);
+        }
+    }
+}
+
+fn and_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
+    let lop2 = gmp::limb_t::from(op2);
+    let ans_limb0 = {
+        let op1 = op1.unwrap_or(rop);
+        match op1.cmp0() {
+            Ordering::Equal => 0,
+            Ordering::Greater => (unsafe { limb(op1, 0) }) & lop2,
+            Ordering::Less => (unsafe { limb(op1, 0) }).wrapping_neg() & lop2,
+        }
+    };
+    set_limb(rop, ans_limb0);
+}
+
+fn ior_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
+    let lop2 = gmp::limb_t::from(op2);
+    match op1.unwrap_or(rop).cmp0() {
+        Ordering::Equal => unsafe {
+            gmp::mpz_set_ui(rop.as_raw_mut(), op2);
+        },
+        Ordering::Greater => {
+            set(rop, op1);
+            unsafe {
+                *limb_mut(rop, 0) |= lop2;
+            }
+        }
+        Ordering::Less => {
+            com(rop, op1);
+            if rop.cmp0() != Ordering::Equal {
+                unsafe {
+                    *limb_mut(rop, 0) &= !lop2;
+                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                        set_0(rop);
+                    }
+                }
+            }
+            com(rop, None);
+        }
+    }
+}
+
+fn xor_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
+    let lop2 = gmp::limb_t::from(op2);
+    match op1.unwrap_or(rop).cmp0() {
+        Ordering::Equal => unsafe {
+            gmp::mpz_set_ui(rop.as_raw_mut(), op2);
+        },
+        Ordering::Greater => {
+            set(rop, op1);
+            unsafe {
+                *limb_mut(rop, 0) ^= lop2;
+                if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                    set_0(rop);
+                }
+            }
+        }
+        Ordering::Less => {
+            com(rop, op1);
+            if rop.cmp0() == Ordering::Equal {
+                if lop2 != 0 {
+                    set_nonzero(rop, lop2);
+                }
+            } else {
+                unsafe {
+                    *limb_mut(rop, 0) ^= lop2;
+                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                        set_0(rop);
+                    }
+                }
+            }
+            com(rop, None);
+        }
+    }
+}
+
+fn and_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
+    let lop2 = op2 as gmp::limb_t;
+    match op1.unwrap_or(rop).cmp0() {
+        Ordering::Equal => {
+            set_0(rop);
+        }
+        Ordering::Greater => {
+            if op2 >= 0 {
+                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
+                set_limb(rop, cur_limb & lop2);
+            } else {
+                set(rop, op1);
+                unsafe {
+                    *limb_mut(rop, 0) &= lop2;
+                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                        set_0(rop);
+                    }
+                }
+            }
+        }
+        Ordering::Less => {
+            if op2 >= 0 {
+                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
+                set_limb(rop, cur_limb.wrapping_neg() & lop2);
+            } else {
+                com(rop, op1);
+                if rop.cmp0() == Ordering::Equal {
+                    if !lop2 != 0 {
+                        set_nonzero(rop, !lop2);
+                    }
+                } else {
+                    unsafe {
+                        *limb_mut(rop, 0) |= !lop2;
+                    }
+                }
+                com(rop, None);
+            }
+        }
+    }
+}
+
+fn ior_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
+    let lop2 = op2 as gmp::limb_t;
+    match op1.unwrap_or(rop).cmp0() {
+        Ordering::Equal => unsafe {
+            gmp::mpz_set_si(rop.as_raw_mut(), op2);
+        },
+        Ordering::Greater => {
+            if op2 >= 0 {
+                set(rop, op1);
+                unsafe {
+                    *limb_mut(rop, 0) |= lop2;
+                }
+            } else {
+                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
+                set_limb(rop, !cur_limb & !lop2);
+                com(rop, None);
+            }
+        }
+        Ordering::Less => {
+            if op2 >= 0 {
+                com(rop, op1);
+                if rop.cmp0() != Ordering::Equal {
+                    unsafe {
+                        *limb_mut(rop, 0) &= !lop2;
+                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                            set_0(rop);
+                        }
+                    }
+                }
+                com(rop, None);
+            } else {
+                let cur_limb = unsafe { limb(op1.unwrap_or(rop), 0) };
+                set_limb(rop, cur_limb.wrapping_sub(1) & !lop2);
+                com(rop, None);
+            }
+        }
+    }
+}
+
+fn xor_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
+    let lop2 = op2 as gmp::limb_t;
+    match op1.unwrap_or(rop).cmp0() {
+        Ordering::Equal => unsafe {
+            gmp::mpz_set_si(rop.as_raw_mut(), op2);
+        },
+        Ordering::Greater => {
+            if op2 >= 0 {
+                set(rop, op1);
+                unsafe {
+                    *limb_mut(rop, 0) ^= lop2;
+                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                        set_0(rop);
+                    }
+                }
+            } else {
+                set(rop, op1);
+                unsafe {
+                    *limb_mut(rop, 0) ^= !lop2;
+                    if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                        set_0(rop);
+                    }
+                }
+                com(rop, None);
+            }
+        }
+        Ordering::Less => {
+            if op2 >= 0 {
+                com(rop, op1);
+                if rop.cmp0() == Ordering::Equal {
+                    if lop2 != 0 {
+                        set_nonzero(rop, lop2);
+                    }
+                } else {
+                    unsafe {
+                        *limb_mut(rop, 0) ^= lop2;
+                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                            set_0(rop);
+                        }
+                    }
+                }
+                com(rop, None);
+            } else {
+                com(rop, op1);
+                if rop.cmp0() == Ordering::Equal {
+                    if !lop2 != 0 {
+                        set_nonzero(rop, !lop2);
+                    }
+                } else {
+                    unsafe {
+                        *limb_mut(rop, 0) ^= !lop2;
+                        if rop.inner().size == 1 && limb(rop, 0) == 0 {
+                            set_0(rop);
+                        }
+                    }
+                }
+            }
         }
     }
 }
