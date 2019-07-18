@@ -351,10 +351,16 @@ arith_prim_commut_complex! {
     AddAssignRound { add_assign_round }
     AddFrom { add_from }
     AddFromRound { add_from_round }
+    i8, AddI8Incomplete;
+    i16, AddI16Incomplete;
     i32, AddI32Incomplete;
     i64, AddI64Incomplete;
+    i128, AddI128Incomplete;
+    u8, AddU8Incomplete;
+    u16, AddU16Incomplete;
     u32, AddU32Incomplete;
     u64, AddU64Incomplete;
+    u128, AddU128Incomplete;
     f32, AddF32Incomplete;
     f64, AddF64Incomplete;
 }
@@ -365,10 +371,16 @@ arith_prim_noncommut_complex! {
     SubAssignRound { sub_assign_round }
     SubFrom { sub_from }
     SubFromRound { sub_from_round }
+    i8, SubI8Incomplete, SubFromI8Incomplete;
+    i16, SubI16Incomplete, SubFromI16Incomplete;
     i32, SubI32Incomplete, SubFromI32Incomplete;
     i64, SubI64Incomplete, SubFromI64Incomplete;
+    i128, SubI128Incomplete, SubFromI128Incomplete;
+    u8, SubU8Incomplete, SubFromU8Incomplete;
+    u16, SubU16Incomplete, SubFromU16Incomplete;
     u32, SubU32Incomplete, SubFromU32Incomplete;
     u64, SubU64Incomplete, SubFromU64Incomplete;
+    u128, SubU128Incomplete, SubFromU128Incomplete;
     f32, SubF32Incomplete, SubFromF32Incomplete;
     f64, SubF64Incomplete, SubFromF64Incomplete;
 }
@@ -379,10 +391,16 @@ arith_prim_commut_complex! {
     MulAssignRound { mul_assign_round }
     MulFrom { mul_from }
     MulFromRound { mul_from_round }
+    i8, MulI8Incomplete;
+    i16, MulI16Incomplete;
     i32, MulI32Incomplete;
     i64, MulI64Incomplete;
+    i128, MulI128Incomplete;
+    u8, MulU8Incomplete;
+    u16, MulU16Incomplete;
     u32, MulU32Incomplete;
     u64, MulU64Incomplete;
+    u128, MulU128Incomplete;
     f32, MulF32Incomplete;
     f64, MulF64Incomplete;
 }
@@ -393,10 +411,16 @@ arith_prim_noncommut_complex! {
     DivAssignRound { div_assign_round }
     DivFrom { div_from }
     DivFromRound { div_from_round }
+    i8, DivI8Incomplete, DivFromI8Incomplete;
+    i16, DivI16Incomplete, DivFromI16Incomplete;
     i32, DivI32Incomplete, DivFromI32Incomplete;
     i64, DivI64Incomplete, DivFromI64Incomplete;
+    i128, DivI128Incomplete, DivFromI128Incomplete;
+    u8, DivU8Incomplete, DivFromU8Incomplete;
+    u16, DivU16Incomplete, DivFromU16Incomplete;
     u32, DivU32Incomplete, DivFromU32Incomplete;
     u64, DivU64Incomplete, DivFromU64Incomplete;
+    u128, DivU128Incomplete, DivFromU128Incomplete;
     f32, DivF32Incomplete, DivFromF32Incomplete;
     f64, DivF64Incomplete, DivFromF64Incomplete;
 }
@@ -407,10 +431,16 @@ arith_prim_noncommut_complex! {
     PowAssignRound { pow_assign_round }
     PowFrom { pow_from }
     PowFromRound { pow_from_round }
+    i8, PowI8Incomplete, PowFromI8Incomplete;
+    i16, PowI16Incomplete, PowFromI16Incomplete;
     i32, PowI32Incomplete, PowFromI32Incomplete;
     i64, PowI64Incomplete, PowFromI64Incomplete;
+    i128, PowI128Incomplete, PowFromI128Incomplete;
+    u8, PowU8Incomplete, PowFromU8Incomplete;
+    u16, PowU16Incomplete, PowFromU16Incomplete;
     u32, PowU32Incomplete, PowFromU32Incomplete;
     u64, PowU64Incomplete, PowFromU64Incomplete;
+    u128, PowU128Incomplete, PowFromU128Incomplete;
     f32, PowF32Incomplete, PowFromF32Incomplete;
     f64, PowF64Incomplete, PowFromF64Incomplete;
 }
@@ -798,7 +828,7 @@ mod tests {
     macro_rules! check_others {
         (&$list:expr, $against:expr) => {
             for op in &$list {
-                let cop = Complex::with_val(100, op);
+                let cop = Complex::with_val(150, op);
                 for b in &$against {
                     assert!(same(b.clone() + op, b.clone() + &cop));
                     assert!(same(op + b.clone(), cop.clone() + b));
@@ -816,7 +846,7 @@ mod tests {
         };
         ($list:expr, $against:expr, $zero:expr) => {
             for op in $list {
-                let cop = Complex::with_val(100, *op);
+                let cop = Complex::with_val(150, *op);
                 for b in &$against {
                     assert!(same(b.clone() + *op, b.clone() + &cop));
                     assert!(same(*op + b.clone(), cop.clone() + b));
@@ -839,7 +869,7 @@ mod tests {
 
     #[test]
     fn check_arith_others() {
-        use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
+        use crate::tests::{F32, F64, I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
         let large = [
             Complex::with_val(20, (Special::Zero, 1.0)),
             Complex::with_val(20, (Special::NegZero, 1.0)),
@@ -896,10 +926,16 @@ mod tests {
         against.extend(q.iter().map(|x| Complex::with_val(20, x)));
         against.extend(f.iter().map(|x| Complex::with_val(20, x)));
 
+        check_others!(I8, against, 0);
+        check_others!(I16, against, 0);
         check_others!(I32, against, 0);
         check_others!(I64, against, 0);
+        check_others!(I128, against, 0);
+        check_others!(U8, against, 0);
+        check_others!(U16, against, 0);
         check_others!(U32, against, 0);
         check_others!(U64, against, 0);
+        check_others!(U128, against, 0);
         check_others!(F32, against, 0.0);
         check_others!(F64, against, 0.0);
         #[cfg(feature = "integer")]
@@ -907,5 +943,67 @@ mod tests {
         #[cfg(feature = "rational")]
         check_others!(&q, against);
         check_others!(&f, against);
+    }
+
+    macro_rules! check_pow {
+        ($list:expr, $against:expr) => {
+            for op in $list {
+                let cop = Complex::with_val(150, *op);
+                for b in &$against {
+                    assert!(same(b.clone().pow(*op), b.clone().pow(&cop)));
+                    assert!(same(op.pow(b.clone()), cop.clone().pow(b)));
+                }
+            }
+        };
+    }
+
+    #[test]
+    fn check_pow() {
+        use crate::tests::{F32, I32};
+        use std::f64;
+        let large = [
+            Complex::with_val(20, (Special::Zero, 1.0)),
+            Complex::with_val(20, (Special::NegZero, 1.0)),
+            Complex::with_val(20, (Special::Infinity, 1.0)),
+            Complex::with_val(20, (Special::NegInfinity, 1.0)),
+            Complex::with_val(20, (Special::Nan, 1.0)),
+            Complex::with_val(20, (1, 1.0)),
+            Complex::with_val(20, (-1, 1.0)),
+            Complex::with_val(20, (999_999e100, 1.0)),
+            Complex::with_val(20, (999_999e-100, 1.0)),
+            Complex::with_val(20, (-999_999e100, 1.0)),
+            Complex::with_val(20, (-999_999e-100, 1.0)),
+        ];
+        let f = [
+            Float::with_val(20, 0.0),
+            Float::with_val(20, 1.0),
+            Float::with_val(20, -1.0),
+            Float::with_val(20, 12.5),
+            Float::with_val(20, 12.5) << 10000,
+            Float::with_val(20, Special::Infinity),
+        ];
+
+        let against = large
+            .iter()
+            .cloned()
+            .chain(I32.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(F32.iter().map(|&x| Complex::with_val(20, x)))
+            .chain(f.iter().map(|x| Complex::with_val(20, x)))
+            .collect::<Vec<Complex>>();
+
+        check_pow!(&[-1001i32, -1, 0, 1, 1001], against);
+        check_pow!(&[0u32, 1, 1001], against);
+        check_pow!(
+            &[
+                0.0,
+                1.0,
+                -1.0,
+                1000.5,
+                f64::NAN,
+                f64::INFINITY,
+                f64::NEG_INFINITY
+            ],
+            against
+        );
     }
 }
