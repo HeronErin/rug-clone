@@ -1585,7 +1585,7 @@ pub fn i64_fdiv_q(q: &mut Integer, n: i64, d: Option<&Integer>) {
     let d_ptr = d.unwrap_or(q).as_raw();
     if LONG_64 {
         unsafe {
-            si_fdiv_q_raw(q.as_raw_mut(), n.into(), d_ptr);
+            si_fdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
@@ -1601,7 +1601,7 @@ pub fn i64_fdiv_r(r: &mut Integer, n: i64, d: Option<&Integer>) {
     let d_ptr = d.unwrap_or(r).as_raw();
     if LONG_64 {
         unsafe {
-            si_fdiv_r_raw(r.as_raw_mut(), n.into(), d.unwrap_or(r).as_raw());
+            si_fdiv_r_raw(r.as_raw_mut(), cast::cast(n), d.unwrap_or(r).as_raw());
         }
     } else {
         let small = SmallInteger::from(n);
