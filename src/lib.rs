@@ -96,7 +96,8 @@ Rug types and primitives. The following are provided:
     [`f32`] and [`f64`].
  2. Where they make sense, conversions using the [`From`] trait and
     assignments using the [`Assign`] trait are supported for all the
-    primitives in 1 above as well as [`isize`] and [`usize`].
+    primitives in 1 above as well as [`bool`], [`isize`] and
+    [`usize`].
  3. Comparisons between Rug types and all the primitives listed in 1
     and 2 above are supported.
  4. For [`Rational`] numbers, conversions and comparisons are also
@@ -365,6 +366,7 @@ provided by the crate.
 [`SubAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.SubAssign.html
 [`SubFrom`]: ops/trait.SubFrom.html
 [`assign_round`]: ops/trait.AssignRound.html#tymethod.assign_round
+[`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
