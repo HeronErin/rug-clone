@@ -342,6 +342,33 @@ arith_prim_noncommut! {
     i64;
     SubI64Incomplete, SubFromI64Incomplete
 }
+arith_prim_commut! {
+    Integer;
+    xmpz::mul_i64;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
+    i64;
+    MulI64Incomplete
+}
+arith_prim_noncommut! {
+    Integer;
+    xmpz::tdiv_q_i64, xmpz::i64_tdiv_q;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
+    i64;
+    DivI64Incomplete, DivFromI64Incomplete
+}
+arith_prim_noncommut! {
+    Integer;
+    xmpz::tdiv_r_i64, xmpz::i64_tdiv_r;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemFrom { rem_from }
+    i64;
+    RemI64Incomplete, RemFromI64Incomplete
+}
 
 arith_prim_commut! {
     Integer;
@@ -360,6 +387,33 @@ arith_prim_noncommut! {
     SubFrom { sub_from }
     u64;
     SubU64Incomplete, SubFromU64Incomplete
+}
+arith_prim_commut! {
+    Integer;
+    xmpz::mul_u64;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
+    u64;
+    MulU64Incomplete
+}
+arith_prim_noncommut! {
+    Integer;
+    xmpz::tdiv_q_u64, xmpz::u64_tdiv_q;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
+    u64;
+    DivU64Incomplete, DivFromU64Incomplete
+}
+arith_prim_noncommut! {
+    Integer;
+    xmpz::tdiv_r_u64, xmpz::u64_tdiv_r;
+    Rem { rem }
+    RemAssign { rem_assign }
+    RemFrom { rem_from }
+    u64;
+    RemU64Incomplete, RemFromU64Incomplete
 }
 
 mul_op_commut! {
@@ -547,21 +601,21 @@ mod tests {
                 for b in &$against {
                     assert_eq!(b.clone() + op, b.clone() + &iop);
                     assert_eq!(b.clone() - op, b.clone() - &iop);
-                    // assert_eq!(b.clone() * op, b.clone() * &iop);
-                    // if op != 0 {
-                    //     assert_eq!(b.clone() / op, b.clone() / &iop);
-                    //     assert_eq!(b.clone() % op, b.clone() % &iop);
-                    // }
+                    assert_eq!(b.clone() * op, b.clone() * &iop);
+                    if op != 0 {
+                        assert_eq!(b.clone() / op, b.clone() / &iop);
+                        assert_eq!(b.clone() % op, b.clone() % &iop);
+                    }
                     // assert_eq!(b.clone() & op, b.clone() & &iop);
                     // assert_eq!(b.clone() | op, b.clone() | &iop);
                     // assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
                     assert_eq!(op + b.clone(), iop.clone() + b);
                     assert_eq!(op - b.clone(), iop.clone() - b);
-                    // assert_eq!(op * b.clone(), iop.clone() * b);
-                    // if b.cmp0() != Ordering::Equal {
-                    //     assert_eq!(op / b.clone(), iop.clone() / b);
-                    //     assert_eq!(op % b.clone(), iop.clone() % b);
-                    // }
+                    assert_eq!(op * b.clone(), iop.clone() * b);
+                    if b.cmp0() != Ordering::Equal {
+                        assert_eq!(op / b.clone(), iop.clone() / b);
+                        assert_eq!(op % b.clone(), iop.clone() % b);
+                    }
                     // assert_eq!(op & b.clone(), iop.clone() & b);
                     // assert_eq!(op | b.clone(), iop.clone() | b);
                     // assert_eq!(op ^ b.clone(), iop.clone() ^ b);
