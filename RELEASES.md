@@ -5,6 +5,11 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.6.0 (unreleased)
+==========================
+
+  * Arithmetic operations with `i64` and `u64` were implemented.
+
 Verison 1.5.1 (2019-07-10)
 ==========================
 

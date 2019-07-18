@@ -91,13 +91,13 @@ arithmetic operators are overloaded to work on many combinations of
 Rug types and primitives. The following are provided:
 
  1. Where they make sense, all arithmetic operators are overloaded to
-    work with Rug types and the primitives [`i32`], [`u32`], [`f32`]
-    and [`f64`].
+    work with Rug types and the primitives [`i32`], [`i64`], [`u32`],
+    [`u64`], [`f32`] and [`f64`].
  2. Where they make sense, conversions using the [`From`] trait and
     assignments using the [`Assign`] trait are supported for all the
     primitives in 1 above as well as the other primitives [`i8`],
-    [`i16`], [`i64`], [`i128`], [`isize`], [`u8`], [`u16`], [`u64`],
-    [`u128`] and [`usize`].
+    [`i16`], [`i128`], [`isize`], [`u8`], [`u16`], [`u128`] and
+    [`usize`].
  3. Comparisons between Rug types and all the primitives listed in 1
     and 2 above are supported.
  4. For [`Rational`] numbers, conversions and comparisons are also

@@ -31,6 +31,13 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.6.0 news (unreleased)
+
+  * Arithmetic operations with [`i64`] and [`u64`] were implemented.
+
+[`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
+[`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+
 ### Version 1.5.1 news (2019-07-10)
 
   * Bug fix: a memory leak in conversions of [`Float`] to string was
