@@ -146,10 +146,16 @@ arith_prim_commut! {
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
+    i8, AddI8Incomplete;
+    i16, AddI16Incomplete;
     i32, AddI32Incomplete;
     i64, AddI64Incomplete;
+    i128, AddI128Incomplete;
+    u8, AddU8Incomplete;
+    u16, AddU16Incomplete;
     u32, AddU32Incomplete;
     u64, AddU64Incomplete;
+    u128, AddU128Incomplete;
 }
 arith_prim_noncommut! {
     Integer;
@@ -157,10 +163,16 @@ arith_prim_noncommut! {
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
+    i8, SubI8Incomplete, SubFromI8Incomplete;
+    i16, SubI16Incomplete, SubFromI16Incomplete;
     i32, SubI32Incomplete, SubFromI32Incomplete;
     i64, SubI64Incomplete, SubFromI64Incomplete;
+    i128, SubI128Incomplete, SubFromI128Incomplete;
+    u8, SubU8Incomplete, SubFromU8Incomplete;
+    u16, SubU16Incomplete, SubFromU16Incomplete;
     u32, SubU32Incomplete, SubFromU32Incomplete;
     u64, SubU64Incomplete, SubFromU64Incomplete;
+    u128, SubU128Incomplete, SubFromU128Incomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -168,10 +180,16 @@ arith_prim_commut! {
     Mul { mul }
     MulAssign { mul_assign }
     MulFrom { mul_from }
+    i8, MulI8Incomplete;
+    i16, MulI16Incomplete;
     i32, MulI32Incomplete;
     i64, MulI64Incomplete;
+    i128, MulI128Incomplete;
+    u8, MulU8Incomplete;
+    u16, MulU16Incomplete;
     u32, MulU32Incomplete;
     u64, MulU64Incomplete;
+    u128, MulU128Incomplete;
 }
 arith_prim_noncommut! {
     Integer;
@@ -179,10 +197,16 @@ arith_prim_noncommut! {
     Div { div }
     DivAssign { div_assign }
     DivFrom { div_from }
+    i8, DivI8Incomplete, DivFromI8Incomplete;
+    i16, DivI16Incomplete, DivFromI16Incomplete;
     i32, DivI32Incomplete, DivFromI32Incomplete;
     i64, DivI64Incomplete, DivFromI64Incomplete;
+    i128, DivI128Incomplete, DivFromI128Incomplete;
+    u8, DivU8Incomplete, DivFromU8Incomplete;
+    u16, DivU16Incomplete, DivFromU16Incomplete;
     u32, DivU32Incomplete, DivFromU32Incomplete;
     u64, DivU64Incomplete, DivFromU64Incomplete;
+    u128, DivU128Incomplete, DivFromU128Incomplete;
 }
 arith_prim_noncommut! {
     Integer;
@@ -190,10 +214,16 @@ arith_prim_noncommut! {
     Rem { rem }
     RemAssign { rem_assign }
     RemFrom { rem_from }
+    i8, RemI8Incomplete, RemFromI8Incomplete;
+    i16, RemI16Incomplete, RemFromI16Incomplete;
     i32, RemI32Incomplete, RemFromI32Incomplete;
     i64, RemI64Incomplete, RemFromI64Incomplete;
+    i128, RemI128Incomplete, RemFromI128Incomplete;
+    u8, RemU8Incomplete, RemFromU8Incomplete;
+    u16, RemU16Incomplete, RemFromU16Incomplete;
     u32, RemU32Incomplete, RemFromU32Incomplete;
     u64, RemU64Incomplete, RemFromU64Incomplete;
+    u128, RemU128Incomplete, RemFromU128Incomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -201,10 +231,16 @@ arith_prim_commut! {
     BitAnd { bitand }
     BitAndAssign { bitand_assign }
     BitAndFrom { bitand_from }
+    i8, BitAndI8Incomplete;
+    i16, BitAndI16Incomplete;
     i32, BitAndI32Incomplete;
     i64, BitAndI64Incomplete;
+    i128, BitAndI128Incomplete;
+    u8, BitAndU8Incomplete;
+    u16, BitAndU16Incomplete;
     u32, BitAndU32Incomplete;
     u64, BitAndU64Incomplete;
+    u128, BitAndU128Incomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -212,10 +248,16 @@ arith_prim_commut! {
     BitOr { bitor }
     BitOrAssign { bitor_assign }
     BitOrFrom { bitor_from }
+    i8, BitOrI8Incomplete;
+    i16, BitOrI16Incomplete;
     i32, BitOrI32Incomplete;
     i64, BitOrI64Incomplete;
+    i128, BitOrI128Incomplete;
+    u8, BitOrU8Incomplete;
+    u16, BitOrU16Incomplete;
     u32, BitOrU32Incomplete;
     u64, BitOrU64Incomplete;
+    u128, BitOrU128Incomplete;
 }
 arith_prim_commut! {
     Integer;
@@ -223,10 +265,16 @@ arith_prim_commut! {
     BitXor { bitxor }
     BitXorAssign { bitxor_assign }
     BitXorFrom { bitxor_from }
+    i8, BitXorI8Incomplete;
+    i16, BitXorI16Incomplete;
     i32, BitXorI32Incomplete;
     i64, BitXorI64Incomplete;
+    i128, BitXorI128Incomplete;
+    u8, BitXorU8Incomplete;
+    u16, BitXorU16Incomplete;
     u32, BitXorU32Incomplete;
     u64, BitXorU64Incomplete;
+    u128, BitXorU128Incomplete;
 }
 
 arith_prim! {
@@ -538,7 +586,7 @@ mod tests {
 
     #[test]
     fn check_arith_u_s() {
-        use crate::tests::{I128, I32, I64, U128, U32, U64};
+        use crate::tests::{I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
         let large = [(1, 100), (-11, 200), (33, 150)];
         let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
             .chain(U32.iter().map(|&x| Integer::from(x)))
@@ -549,10 +597,41 @@ mod tests {
             .chain(I128.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
 
+        check_u_s!(I8, against);
+        check_u_s!(I16, against);
         check_u_s!(I32, against);
-        check_u_s!(U32, against);
         check_u_s!(I64, against);
+        for &op in I128 {
+            let iop = Integer::from(op);
+            for b in &against {
+                assert_eq!(b.clone() + op, b.clone() + &iop);
+                assert_eq!(b.clone() - op, b.clone() - &iop);
+                assert_eq!(b.clone() * op, b.clone() * &iop);
+                if op != 0 {
+                    assert_eq!(b.clone() / op, b.clone() / &iop);
+                    assert_eq!(b.clone() % op, b.clone() % &iop);
+                }
+                assert_eq!(b.clone() & op, b.clone() & &iop);
+                assert_eq!(b.clone() | op, b.clone() | &iop);
+                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
+                assert_eq!(op + b.clone(), iop.clone() + b);
+                assert_eq!(op - b.clone(), iop.clone() - b);
+                assert_eq!(op * b.clone(), iop.clone() * b);
+                if b.cmp0() != Ordering::Equal {
+                    assert_eq!(op / b.clone(), iop.clone() / b);
+                    assert_eq!(op % b.clone(), iop.clone() % b);
+                }
+                assert_eq!(op & b.clone(), iop.clone() & b);
+                assert_eq!(op | b.clone(), iop.clone() | b);
+                assert_eq!(op ^ b.clone(), iop.clone() ^ b);
+            }
+        }
+        check_u_s!(I128, against);
+        check_u_s!(U8, against);
+        check_u_s!(U16, against);
+        check_u_s!(U32, against);
         check_u_s!(U64, against);
+        check_u_s!(U128, against);
     }
 
     macro_rules! test_ref_op {
