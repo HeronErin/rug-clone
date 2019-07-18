@@ -1376,7 +1376,7 @@ pub fn add_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
     } else {
         let small = SmallInteger::from(op2);
         unsafe {
-            gmp::mpz_add(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+            gmp::mpz_add(rop.as_raw_mut(), op1_ptr, small.as_raw());
         }
     }
 }
@@ -1396,7 +1396,7 @@ pub fn sub_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
     } else {
         let small = SmallInteger::from(op2);
         unsafe {
-            gmp::mpz_sub(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+            gmp::mpz_sub(rop.as_raw_mut(), op1_ptr, small.as_raw());
         }
     }
 }
@@ -1419,7 +1419,7 @@ pub fn i64_sub(rop: &mut Integer, op1: i64, op2: Option<&Integer>) {
     } else {
         let small = SmallInteger::from(op1);
         unsafe {
-            gmp::mpz_sub(rop.as_raw_mut(), (*small).as_raw(), op2_ptr);
+            gmp::mpz_sub(rop.as_raw_mut(), small.as_raw(), op2_ptr);
         }
     }
 }
@@ -1434,7 +1434,7 @@ pub fn mul_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
     } else {
         let small = SmallInteger::from(op2);
         unsafe {
-            gmp::mpz_mul(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+            gmp::mpz_mul(rop.as_raw_mut(), op1_ptr, small.as_raw());
         }
     }
 }
@@ -1657,7 +1657,7 @@ pub fn add_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
     } else {
         let small = SmallInteger::from(op2);
         unsafe {
-            gmp::mpz_add(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+            gmp::mpz_add(rop.as_raw_mut(), op1_ptr, small.as_raw());
         }
     }
 }
@@ -1672,7 +1672,7 @@ pub fn sub_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
     } else {
         let small = SmallInteger::from(op2);
         unsafe {
-            gmp::mpz_sub(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+            gmp::mpz_sub(rop.as_raw_mut(), op1_ptr, small.as_raw());
         }
     }
 }
@@ -1687,7 +1687,7 @@ pub fn u64_sub(rop: &mut Integer, op1: u64, op2: Option<&Integer>) {
     } else {
         let small = SmallInteger::from(op1);
         unsafe {
-            gmp::mpz_sub(rop.as_raw_mut(), (*small).as_raw(), op2_ptr);
+            gmp::mpz_sub(rop.as_raw_mut(), small.as_raw(), op2_ptr);
         }
     }
 }
@@ -1702,7 +1702,7 @@ pub fn mul_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
     } else {
         let small = SmallInteger::from(op2);
         unsafe {
-            gmp::mpz_mul(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+            gmp::mpz_mul(rop.as_raw_mut(), op1_ptr, small.as_raw());
         }
     }
 }
@@ -1718,7 +1718,7 @@ pub fn tdiv_q_u64(q: &mut Integer, n: Option<&Integer>, d: u64) {
     } else {
         let small = SmallInteger::from(d);
         unsafe {
-            gmp::mpz_tdiv_q(q.as_raw_mut(), n_ptr, (*small).as_raw());
+            gmp::mpz_tdiv_q(q.as_raw_mut(), n_ptr, small.as_raw());
         }
     }
 }
@@ -1734,7 +1734,7 @@ pub fn tdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) {
     } else {
         let small = SmallInteger::from(d);
         unsafe {
-            gmp::mpz_tdiv_r(r.as_raw_mut(), n_ptr, (*small).as_raw());
+            gmp::mpz_tdiv_r(r.as_raw_mut(), n_ptr, small.as_raw());
         }
     }
 }
@@ -1750,7 +1750,7 @@ pub fn u64_tdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
     } else {
         let small = SmallInteger::from(n);
         unsafe {
-            gmp::mpz_tdiv_q(q.as_raw_mut(), (*small).as_raw(), d_ptr);
+            gmp::mpz_tdiv_q(q.as_raw_mut(), small.as_raw(), d_ptr);
         }
     }
 }
@@ -1766,7 +1766,7 @@ pub fn u64_tdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
     } else {
         let small = SmallInteger::from(n);
         unsafe {
-            gmp::mpz_tdiv_r(r.as_raw_mut(), (*small).as_raw(), d_ptr);
+            gmp::mpz_tdiv_r(r.as_raw_mut(), small.as_raw(), d_ptr);
         }
     }
 }

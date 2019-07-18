@@ -478,13 +478,13 @@ pub unsafe fn f32_div(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr:
 #[inline]
 pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
-    mpfr::set(rop, (*small).as_raw(), rnd)
+    mpfr::set(rop, small.as_raw(), rnd)
 }
 
 #[inline]
 pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
-    mpfr::set(rop, (*small).as_raw(), rnd)
+    mpfr::set(rop, small.as_raw(), rnd)
 }
 
 #[inline]
@@ -493,7 +493,7 @@ pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
         mpfr::cmp_si(op1, cast(op2))
     } else {
         let small = SmallFloat::from(op2);
-        mpfr::cmp(op1, (*small).as_raw())
+        mpfr::cmp(op1, small.as_raw())
     }
 }
 
@@ -503,20 +503,20 @@ pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
         mpfr::cmp_ui(op1, cast(op2))
     } else {
         let small = SmallFloat::from(op2);
-        mpfr::cmp(op1, (*small).as_raw())
+        mpfr::cmp(op1, small.as_raw())
     }
 }
 
 #[inline]
 pub unsafe fn cmp_i128(op1: *const mpfr_t, op2: i128) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::cmp(op1, (*small).as_raw())
+    mpfr::cmp(op1, small.as_raw())
 }
 
 #[inline]
 pub unsafe fn cmp_u128(op1: *const mpfr_t, op2: u128) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::cmp(op1, (*small).as_raw())
+    mpfr::cmp(op1, small.as_raw())
 }
 
 #[inline]
@@ -532,31 +532,31 @@ pub unsafe fn cmp_i32_2exp(op1: *const mpfr_t, op2: i32, e: i32) -> c_int {
 #[inline]
 pub unsafe fn pow_f64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f64, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::pow(rop, op1, (*small).as_raw(), rnd)
+    mpfr::pow(rop, op1, small.as_raw(), rnd)
 }
 
 #[inline]
 pub unsafe fn pow_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op2);
-    mpfr::pow(rop, op1, (*small).as_raw(), rnd)
+    mpfr::pow(rop, op1, small.as_raw(), rnd)
 }
 
 #[inline]
 pub unsafe fn si_pow(rop: *mut mpfr_t, op1: c_long, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op1);
-    mpfr::pow(rop, (*small).as_raw(), op2, rnd)
+    mpfr::pow(rop, small.as_raw(), op2, rnd)
 }
 
 #[inline]
 pub unsafe fn f32_pow(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op1);
-    mpfr::pow(rop, (*small).as_raw(), op2, rnd)
+    mpfr::pow(rop, small.as_raw(), op2, rnd)
 }
 
 #[inline]
 pub unsafe fn f64_pow(rop: *mut mpfr_t, op1: f64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(op1);
-    mpfr::pow(rop, (*small).as_raw(), op2, rnd)
+    mpfr::pow(rop, small.as_raw(), op2, rnd)
 }
 
 #[inline]
