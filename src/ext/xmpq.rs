@@ -273,7 +273,7 @@ pub fn pow_u32(rop: &mut Rational, op1: Option<&Rational>, op2: u32) {
 pub fn pow_i32(rop: &mut Rational, op1: Option<&Rational>, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     pow_u32(rop, op1, op2_abs);
-    if !op2_neg {
+    if op2_neg {
         inv(rop, None);
     }
 }
