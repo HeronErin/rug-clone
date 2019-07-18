@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 #[cfg(feature = "integer")]
 use crate::float;
 use crate::float::{Round, SmallFloat};
@@ -26,8 +26,7 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "integer")]
 use std::cmp;
 use std::cmp::Ordering;
-use std::mem;
-use std::os::raw::{c_int, c_long, c_ulong, c_void};
+use std::os::raw::{c_int, c_long, c_void};
 #[cfg(feature = "integer")]
 use std::u32;
 
@@ -400,8 +399,8 @@ unsafe fn divf_mulz_divz(
 
     let mut denom_buf: Float;
     let denom = if let Some(div) = div {
-        let mut prec: u32 = cast((*f).prec);
-        let bits: u32 = cast(gmp::mpz_sizeinbase(div, 2));
+        let mut prec: u32 = cast::cast((*f).prec);
+        let bits: u32 = cast::cast(gmp::mpz_sizeinbase(div, 2));
         prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
         mpfr::mul_z(denom_buf.as_raw_mut(), f, div, mpfr::rnd_t::RNDN);
@@ -410,7 +409,7 @@ unsafe fn divf_mulz_divz(
         f
     };
     if let Some(mul) = mul {
-        let bits: u32 = cast(gmp::mpz_sizeinbase(mul, 2));
+        let bits: u32 = cast::cast(gmp::mpz_sizeinbase(mul, 2));
         let mut buf = Float::new(cmp::max(float::prec_min(), bits));
         mpfr::set_z(buf.as_raw_mut(), mul, rnd);
         mpfr::div(rop, buf.as_raw(), denom, rnd)
@@ -487,12 +486,10 @@ pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: mpfr::rnd_t) -> c_int {
     mpfr::set(rop, small.as_raw(), rnd)
 }
 
-const LONG_64: bool = mem::size_of::<c_ulong>() >= mem::size_of::<u64>();
-
 #[inline]
 pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
-    if LONG_64 {
-        mpfr::cmp_si(op1, cast(op2))
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::cmp_si(op1, op2)
     } else {
         let small = SmallFloat::from(op2);
         mpfr::cmp(op1, small.as_raw())
@@ -501,8 +498,8 @@ pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
 
 #[inline]
 pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
-    if LONG_64 {
-        mpfr::cmp_ui(op1, cast(op2))
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::cmp_ui(op1, op2)
     } else {
         let small = SmallFloat::from(op2);
         mpfr::cmp(op1, small.as_raw())
@@ -593,4 +590,124 @@ pub unsafe fn custom_regular(
 ) {
     mpfr::custom_init(limbs as *mut c_void, prec);
     mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
+}
+
+#[inline]
+pub unsafe fn add_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::add_si(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::add(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn sub_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::sub_si(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::sub(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn i64_sub(rop: *mut mpfr_t, op1: i64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op1) = cast::checked_cast(op1) {
+        mpfr::si_sub(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op1);
+        mpfr::sub(rop, small.as_raw(), op2, rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn mul_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::mul_si(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::mul(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn div_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::div_si(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::div(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn i64_div(rop: *mut mpfr_t, op1: i64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op1) = cast::checked_cast(op1) {
+        mpfr::si_div(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op1);
+        mpfr::div(rop, small.as_raw(), op2, rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn add_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::add_ui(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::add(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn sub_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::sub_ui(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::sub(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn u64_sub(rop: *mut mpfr_t, op1: u64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op1) = cast::checked_cast(op1) {
+        mpfr::ui_sub(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op1);
+        mpfr::sub(rop, small.as_raw(), op2, rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn mul_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::mul_ui(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::mul(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn div_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op2) = cast::checked_cast(op2) {
+        mpfr::div_ui(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op2);
+        mpfr::div(rop, op1, small.as_raw(), rnd)
+    }
+}
+
+#[inline]
+pub unsafe fn u64_div(rop: *mut mpfr_t, op1: u64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+    if let Some(op1) = cast::checked_cast(op1) {
+        mpfr::ui_div(rop, op1, op2, rnd)
+    } else {
+        let small = SmallFloat::from(op1);
+        mpfr::div(rop, small.as_raw(), op2, rnd)
+    }
 }

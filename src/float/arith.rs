@@ -468,6 +468,15 @@ arith_ops! {
      DivFromI32Incomplete mpfr::si_div)
 }
 arith_ops! {
+    i64,
+    (AddI64Incomplete xmpfr::add_i64,
+     SubI64Incomplete xmpfr::sub_i64,
+     SubFromI64Incomplete xmpfr::i64_sub),
+    (MulI64Incomplete xmpfr::mul_i64,
+     DivI64Incomplete xmpfr::div_i64,
+     DivFromI64Incomplete xmpfr::i64_div)
+}
+arith_ops! {
     u32,
     (AddU32Incomplete mpfr::add_ui,
      SubU32Incomplete mpfr::sub_ui,
@@ -475,6 +484,15 @@ arith_ops! {
     (MulU32Incomplete mpfr::mul_ui,
      DivU32Incomplete mpfr::div_ui,
      DivFromU32Incomplete mpfr::ui_div)
+}
+arith_ops! {
+    u64,
+    (AddU64Incomplete xmpfr::add_u64,
+     SubU64Incomplete xmpfr::sub_u64,
+     SubFromU64Incomplete xmpfr::u64_sub),
+    (MulU64Incomplete xmpfr::mul_u64,
+     DivU64Incomplete xmpfr::div_u64,
+     DivFromU64Incomplete xmpfr::u64_div)
 }
 arith_ops! {
     f32,
@@ -784,6 +802,39 @@ pub(crate) mod tests {
         test_ref_op!(pd / &lhs, pd / lhs.clone());
     }
 
+    macro_rules! check_others {
+        (&$list:expr, $against:expr) => {
+            for op in &$list {
+                let fop = Float::with_val(100, op);
+                for b in &$against {
+                    assert!(same(b.clone() + op, b.clone() + &fop));
+                    assert!(same(b.clone() - op, b.clone() - &fop));
+                    assert!(same(b.clone() * op, b.clone() * &fop));
+                    assert!(same(b.clone() / op, b.clone() / &fop));
+                    assert!(same(op + b.clone(), fop.clone() + b));
+                    assert!(same(op - b.clone(), fop.clone() - b));
+                    assert!(same(op * b.clone(), fop.clone() * b));
+                    assert!(same(op / b.clone(), fop.clone() / b));
+                }
+            }
+        };
+        ($list:expr, $against:expr) => {
+            for op in $list {
+                let fop = Float::with_val(100, *op);
+                for b in &$against {
+                    assert!(same(b.clone() + *op, b.clone() + &fop));
+                    assert!(same(b.clone() - *op, b.clone() - &fop));
+                    assert!(same(b.clone() * *op, b.clone() * &fop));
+                    assert!(same(b.clone() / *op, b.clone() / &fop));
+                    assert!(same(*op + b.clone(), fop.clone() + b));
+                    assert!(same(*op - b.clone(), fop.clone() - b));
+                    assert!(same(*op * b.clone(), fop.clone() * b));
+                    assert!(same(*op / b.clone(), fop.clone() / b));
+                }
+            }
+        };
+    }
+
     #[test]
     fn check_arith_others() {
         use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
@@ -836,85 +887,15 @@ pub(crate) mod tests {
         #[cfg(feature = "rational")]
         against.extend(q.iter().map(|x| Float::with_val(20, x)));
 
-        for op in U32 {
-            let fop = Float::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &fop));
-                assert!(same(b.clone() - *op, b.clone() - &fop));
-                assert!(same(b.clone() * *op, b.clone() * &fop));
-                assert!(same(b.clone() / *op, b.clone() / &fop));
-                assert!(same(*op + b.clone(), fop.clone() + b));
-                assert!(same(*op - b.clone(), fop.clone() - b));
-                assert!(same(*op * b.clone(), fop.clone() * b));
-                assert!(same(*op / b.clone(), fop.clone() / b));
-            }
-        }
-        for op in I32 {
-            let fop = Float::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &fop));
-                assert!(same(b.clone() - *op, b.clone() - &fop));
-                assert!(same(b.clone() * *op, b.clone() * &fop));
-                assert!(same(b.clone() / *op, b.clone() / &fop));
-                assert!(same(*op + b.clone(), fop.clone() + b));
-                assert!(same(*op - b.clone(), fop.clone() - b));
-                assert!(same(*op * b.clone(), fop.clone() * b));
-                assert!(same(*op / b.clone(), fop.clone() / b));
-            }
-        }
-        for op in F32 {
-            let fop = Float::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &fop));
-                assert!(same(b.clone() - *op, b.clone() - &fop));
-                assert!(same(b.clone() * *op, b.clone() * &fop));
-                assert!(same(b.clone() / *op, b.clone() / &fop));
-                assert!(same(*op + b.clone(), fop.clone() + b));
-                assert!(same(*op - b.clone(), fop.clone() - b));
-                assert!(same(*op * b.clone(), fop.clone() * b));
-                assert!(same(*op / b.clone(), fop.clone() / b));
-            }
-        }
-        for op in F64 {
-            let fop = Float::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &fop));
-                assert!(same(b.clone() - *op, b.clone() - &fop));
-                assert!(same(b.clone() * *op, b.clone() * &fop));
-                assert!(same(b.clone() / *op, b.clone() / &fop));
-                assert!(same(*op + b.clone(), fop.clone() + b));
-                assert!(same(*op - b.clone(), fop.clone() - b));
-                assert!(same(*op * b.clone(), fop.clone() * b));
-                assert!(same(*op / b.clone(), fop.clone() / b));
-            }
-        }
+        check_others!(I32, against);
+        check_others!(I64, against);
+        check_others!(U32, against);
+        check_others!(U64, against);
+        check_others!(F32, against);
+        check_others!(F64, against);
         #[cfg(feature = "integer")]
-        for op in &z {
-            let fop = Float::with_val(100, op);
-            for b in &against {
-                assert!(same(b.clone() + op, b.clone() + &fop));
-                assert!(same(b.clone() - op, b.clone() - &fop));
-                assert!(same(b.clone() * op, b.clone() * &fop));
-                assert!(same(b.clone() / op, b.clone() / &fop));
-                assert!(same(op + b.clone(), fop.clone() + b));
-                assert!(same(op - b.clone(), fop.clone() - b));
-                assert!(same(op * b.clone(), fop.clone() * b));
-                assert!(same(op / b.clone(), fop.clone() / b));
-            }
-        }
+        check_others!(&z, against);
         #[cfg(feature = "rational")]
-        for op in &q {
-            let fop = Float::with_val(100, op);
-            for b in &against {
-                assert!(same(b.clone() + op, b.clone() + &fop));
-                assert!(same(b.clone() - op, b.clone() - &fop));
-                assert!(same(b.clone() * op, b.clone() * &fop));
-                assert!(same(b.clone() / op, b.clone() / &fop));
-                assert!(same(op + b.clone(), fop.clone() + b));
-                assert!(same(op - b.clone(), fop.clone() - b));
-                assert!(same(op * b.clone(), fop.clone() * b));
-                assert!(same(op / b.clone(), fop.clone() / b));
-            }
-        }
+        check_others!(&q, against);
     }
 }
