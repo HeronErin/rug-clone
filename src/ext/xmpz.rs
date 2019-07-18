@@ -15,6 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::cast;
+use crate::integer::SmallInteger;
 use crate::misc::NegAbs;
 use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
@@ -22,6 +23,8 @@ use crate::rand::RandState;
 use crate::Integer;
 use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
+use std::mem;
+use std::os::raw::c_ulong;
 use std::ptr;
 use std::{i16, i8, u16, u8};
 
@@ -1147,15 +1150,13 @@ pub fn i32_ediv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
 #[inline]
 pub fn add_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    let (op2_neg, op2_abs) = op2.neg_abs();
-    if !op2_neg {
-        unsafe {
+    match op2.neg_abs() {
+        (false, op2_abs) => unsafe {
             gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, op2_abs.into());
-        }
-    } else {
-        unsafe {
+        },
+        (true, op2_abs) => unsafe {
             gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, op2_abs.into());
-        }
+        },
     }
 }
 
@@ -1169,31 +1170,29 @@ pub fn u32_sub(rop: &mut Integer, op1: u32, op2: Option<&Integer>) {
 #[inline]
 pub fn sub_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
     let op1_ptr = op1.unwrap_or(rop).as_raw();
-    let (op2_neg, op2_abs) = op2.neg_abs();
-    if !op2_neg {
-        unsafe {
+    match op2.neg_abs() {
+        (false, op2_abs) => unsafe {
             gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, op2_abs.into());
-        }
-    } else {
-        unsafe {
+        },
+        (true, op2_abs) => unsafe {
             gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, op2_abs.into());
-        }
+        },
     }
 }
 
 #[inline]
 pub fn i32_sub(rop: &mut Integer, op1: i32, op2: Option<&Integer>) {
-    let (op1_neg, op1_abs) = op1.neg_abs();
     let op2_ptr = op2.unwrap_or(rop).as_raw();
-    if !op1_neg {
-        unsafe {
+    match op1.neg_abs() {
+        (false, op1_abs) => unsafe {
             gmp::mpz_ui_sub(rop.as_raw_mut(), op1_abs.into(), op2_ptr);
+        },
+        (true, op1_abs) => {
+            unsafe {
+                gmp::mpz_add_ui(rop.as_raw_mut(), op2_ptr, op1_abs.into());
+            }
+            neg(rop, None);
         }
-    } else {
-        unsafe {
-            gmp::mpz_add_ui(rop.as_raw_mut(), op2_ptr, op1_abs.into());
-        }
-        neg(rop, None);
     }
 }
 
@@ -1807,5 +1806,115 @@ pub fn cmp_f64(op1: &Integer, op2: f64) -> Option<Ordering> {
     } else {
         let ord = unsafe { gmp::mpz_cmp_d(op1.as_raw(), op2) };
         Some(ord.cmp(&0))
+    }
+}
+
+const LONG_64: bool = mem::size_of::<c_ulong>() >= mem::size_of::<u64>();
+
+#[inline]
+pub fn add_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
+    let op1_ptr = op1.unwrap_or(rop).as_raw();
+    if LONG_64 {
+        match op2.neg_abs() {
+            (false, op2_abs) => unsafe {
+                gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+            },
+            (true, op2_abs) => unsafe {
+                gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+            },
+        }
+    } else {
+        let small = SmallInteger::from(op2);
+        unsafe {
+            gmp::mpz_add(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+        }
+    }
+}
+
+#[inline]
+pub fn sub_i64(rop: &mut Integer, op1: Option<&Integer>, op2: i64) {
+    let op1_ptr = op1.unwrap_or(rop).as_raw();
+    if LONG_64 {
+        match op2.neg_abs() {
+            (false, op2_abs) => unsafe {
+                gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+            },
+            (true, op2_abs) => unsafe {
+                gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2_abs));
+            },
+        }
+    } else {
+        let small = SmallInteger::from(op2);
+        unsafe {
+            gmp::mpz_sub(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+        }
+    }
+}
+
+#[inline]
+pub fn i64_sub(rop: &mut Integer, op1: i64, op2: Option<&Integer>) {
+    let op2_ptr = op2.unwrap_or(rop).as_raw();
+    if LONG_64 {
+        match op1.neg_abs() {
+            (false, op1_abs) => unsafe {
+                gmp::mpz_ui_sub(rop.as_raw_mut(), cast::cast(op1_abs), op2_ptr);
+            },
+            (true, op1_abs) => {
+                unsafe {
+                    gmp::mpz_add_ui(rop.as_raw_mut(), op2_ptr, cast::cast(op1_abs));
+                }
+                neg(rop, None);
+            }
+        }
+    } else {
+        let small = SmallInteger::from(op1);
+        unsafe {
+            gmp::mpz_sub(rop.as_raw_mut(), (*small).as_raw(), op2_ptr);
+        }
+    }
+}
+
+#[inline]
+pub fn add_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
+    let op1_ptr = op1.unwrap_or(rop).as_raw();
+    if LONG_64 {
+        unsafe {
+            gmp::mpz_add_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2));
+        }
+    } else {
+        let small = SmallInteger::from(op2);
+        unsafe {
+            gmp::mpz_add(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+        }
+    }
+}
+
+#[inline]
+pub fn sub_u64(rop: &mut Integer, op1: Option<&Integer>, op2: u64) {
+    let op1_ptr = op1.unwrap_or(rop).as_raw();
+    if LONG_64 {
+        unsafe {
+            gmp::mpz_sub_ui(rop.as_raw_mut(), op1_ptr, cast::cast(op2));
+        }
+    } else {
+        let small = SmallInteger::from(op2);
+        unsafe {
+            gmp::mpz_sub(rop.as_raw_mut(), op1_ptr, (*small).as_raw());
+        }
+    }
+}
+
+#[inline]
+pub fn u64_sub(rop: &mut Integer, op1: u64, op2: Option<&Integer>) {
+    let op2_ptr = op2.unwrap_or(rop).as_raw();
+    if LONG_64 {
+        unsafe {
+            gmp::mpz_ui_sub(rop.as_raw_mut(), cast::cast(op1), op2_ptr);
+        }
+    } else {
+        let small = SmallInteger::from(op1);
+        unsafe {
+            gmp::mpz_sub(rop.as_raw_mut(), (*small).as_raw(), op2_ptr);
+        }
     }
 }

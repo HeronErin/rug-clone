@@ -324,6 +324,44 @@ arith_prim_commut! {
     BitXorU32Incomplete
 }
 
+arith_prim_commut! {
+    Integer;
+    xmpz::add_i64;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
+    i64;
+    AddI64Incomplete
+}
+arith_prim_noncommut! {
+    Integer;
+    xmpz::sub_i64, xmpz::i64_sub;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
+    i64;
+    SubI64Incomplete, SubFromI64Incomplete
+}
+
+arith_prim_commut! {
+    Integer;
+    xmpz::add_u64;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
+    u64;
+    AddU64Incomplete
+}
+arith_prim_noncommut! {
+    Integer;
+    xmpz::sub_u64, xmpz::u64_sub;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
+    u64;
+    SubU64Incomplete, SubFromU64Incomplete
+}
+
 mul_op_commut! {
     Integer;
     xmpz::addmul;
@@ -475,6 +513,63 @@ mod tests {
         }
     }
 
+    macro_rules! check_u_s {
+        ($list:expr, $against:expr) => {
+            for &op in $list {
+                let iop = Integer::from(op);
+                for b in &$against {
+                    assert_eq!(b.clone() + op, b.clone() + &iop);
+                    assert_eq!(b.clone() - op, b.clone() - &iop);
+                    assert_eq!(b.clone() * op, b.clone() * &iop);
+                    if op != 0 {
+                        assert_eq!(b.clone() / op, b.clone() / &iop);
+                        assert_eq!(b.clone() % op, b.clone() % &iop);
+                    }
+                    assert_eq!(b.clone() & op, b.clone() & &iop);
+                    assert_eq!(b.clone() | op, b.clone() | &iop);
+                    assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
+                    assert_eq!(op + b.clone(), iop.clone() + b);
+                    assert_eq!(op - b.clone(), iop.clone() - b);
+                    assert_eq!(op * b.clone(), iop.clone() * b);
+                    if b.cmp0() != Ordering::Equal {
+                        assert_eq!(op / b.clone(), iop.clone() / b);
+                        assert_eq!(op % b.clone(), iop.clone() % b);
+                    }
+                    assert_eq!(op & b.clone(), iop.clone() & b);
+                    assert_eq!(op | b.clone(), iop.clone() | b);
+                    assert_eq!(op ^ b.clone(), iop.clone() ^ b);
+                }
+            }
+        };
+        ($list:expr, $against:expr, reduced) => {
+            for &op in $list {
+                let iop = Integer::from(op);
+                for b in &$against {
+                    assert_eq!(b.clone() + op, b.clone() + &iop);
+                    assert_eq!(b.clone() - op, b.clone() - &iop);
+                    // assert_eq!(b.clone() * op, b.clone() * &iop);
+                    // if op != 0 {
+                    //     assert_eq!(b.clone() / op, b.clone() / &iop);
+                    //     assert_eq!(b.clone() % op, b.clone() % &iop);
+                    // }
+                    // assert_eq!(b.clone() & op, b.clone() & &iop);
+                    // assert_eq!(b.clone() | op, b.clone() | &iop);
+                    // assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
+                    assert_eq!(op + b.clone(), iop.clone() + b);
+                    assert_eq!(op - b.clone(), iop.clone() - b);
+                    // assert_eq!(op * b.clone(), iop.clone() * b);
+                    // if b.cmp0() != Ordering::Equal {
+                    //     assert_eq!(op / b.clone(), iop.clone() / b);
+                    //     assert_eq!(op % b.clone(), iop.clone() % b);
+                    // }
+                    // assert_eq!(op & b.clone(), iop.clone() & b);
+                    // assert_eq!(op | b.clone(), iop.clone() | b);
+                    // assert_eq!(op ^ b.clone(), iop.clone() ^ b);
+                }
+            }
+        };
+    }
+
     #[test]
     fn check_arith_u_s() {
         use crate::tests::{I128, I32, I64, U128, U32, U64};
@@ -488,56 +583,10 @@ mod tests {
             .chain(I128.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
 
-        for &op in U32 {
-            let iop = Integer::from(op);
-            for b in &against {
-                assert_eq!(b.clone() + op, b.clone() + &iop);
-                assert_eq!(b.clone() - op, b.clone() - &iop);
-                assert_eq!(b.clone() * op, b.clone() * &iop);
-                if op != 0 {
-                    assert_eq!(b.clone() / op, b.clone() / &iop);
-                    assert_eq!(b.clone() % op, b.clone() % &iop);
-                }
-                assert_eq!(b.clone() & op, b.clone() & &iop);
-                assert_eq!(b.clone() | op, b.clone() | &iop);
-                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + b);
-                assert_eq!(op - b.clone(), iop.clone() - b);
-                assert_eq!(op * b.clone(), iop.clone() * b);
-                if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / b);
-                    assert_eq!(op % b.clone(), iop.clone() % b);
-                }
-                assert_eq!(op & b.clone(), iop.clone() & b);
-                assert_eq!(op | b.clone(), iop.clone() | b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ b);
-            }
-        }
-        for &op in I32 {
-            let iop = Integer::from(op);
-            for b in &against {
-                assert_eq!(b.clone() + op, b.clone() + &iop);
-                assert_eq!(b.clone() - op, b.clone() - &iop);
-                assert_eq!(b.clone() * op, b.clone() * &iop);
-                if op != 0 {
-                    assert_eq!(b.clone() / op, b.clone() / &iop);
-                    assert_eq!(b.clone() % op, b.clone() % &iop);
-                }
-                assert_eq!(b.clone() & op, b.clone() & &iop);
-                assert_eq!(b.clone() | op, b.clone() | &iop);
-                assert_eq!(b.clone() ^ op, b.clone() ^ &iop);
-                assert_eq!(op + b.clone(), iop.clone() + b);
-                assert_eq!(op - b.clone(), iop.clone() - b);
-                assert_eq!(op * b.clone(), iop.clone() * b);
-                if b.cmp0() != Ordering::Equal {
-                    assert_eq!(op / b.clone(), iop.clone() / b);
-                    assert_eq!(op % b.clone(), iop.clone() % b);
-                }
-                assert_eq!(op & b.clone(), iop.clone() & b);
-                assert_eq!(op | b.clone(), iop.clone() | b);
-                assert_eq!(op ^ b.clone(), iop.clone() ^ b);
-            }
-        }
+        check_u_s!(I32, against);
+        check_u_s!(U32, against);
+        check_u_s!(I64, against, reduced);
+        check_u_s!(U64, against, reduced);
     }
 
     macro_rules! test_ref_op {
