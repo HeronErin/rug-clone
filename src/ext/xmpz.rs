@@ -24,7 +24,7 @@ use crate::Integer;
 use gmp_mpfr_sys::gmp;
 use std::cmp::Ordering;
 use std::mem;
-use std::os::raw::c_ulong;
+use std::os::raw::{c_long, c_ulong};
 use std::ptr;
 use std::{i16, i8, u16, u8};
 
@@ -505,7 +505,7 @@ wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
 #[inline]
 pub fn cold_realloc(rop: &mut Integer, limbs: gmp::size_t) {
     unsafe {
-        gmp::_mpz_realloc(rop.as_raw_mut(), limbs);
+        cold_realloc_raw(rop.as_raw_mut(), limbs);
     }
 }
 
@@ -517,29 +517,21 @@ pub fn is_1(op: &Integer) -> bool {
 #[inline]
 pub fn set_0(rop: &mut Integer) {
     unsafe {
-        rop.inner_mut().size = 0;
+        set_0_raw(rop.as_raw_mut());
     }
 }
 
 #[inline]
 pub fn set_1(rop: &mut Integer) {
-    if rop.inner().alloc < 1 {
-        cold_realloc(rop, 1);
-    }
     unsafe {
-        *limb_mut(rop, 0) = 1;
-        rop.inner_mut().size = 1;
+        set_1_raw(rop.as_raw_mut());
     }
 }
 
 #[inline]
 pub fn set_m1(rop: &mut Integer) {
-    if rop.inner().alloc < 1 {
-        cold_realloc(rop, 1);
-    }
     unsafe {
-        *limb_mut(rop, 0) = 1;
-        rop.inner_mut().size = -1;
+        set_m1_raw(rop.as_raw_mut());
     }
 }
 
@@ -563,6 +555,35 @@ pub fn set_limb(rop: &mut Integer, limb: gmp::limb_t) {
     }
 }
 
+#[cold]
+#[inline]
+unsafe fn cold_realloc_raw(rop: *mut gmp::mpz_t, limbs: gmp::size_t) {
+    gmp::_mpz_realloc(rop, limbs);
+}
+
+#[inline]
+unsafe fn set_0_raw(rop: *mut gmp::mpz_t) {
+    (*rop).size = 0;
+}
+
+#[inline]
+unsafe fn set_1_raw(rop: *mut gmp::mpz_t) {
+    if (*rop).alloc < 1 {
+        cold_realloc_raw(rop, 1);
+    }
+    *(*rop).d = 1;
+    (*rop).size = 1;
+}
+
+#[inline]
+unsafe fn set_m1_raw(rop: *mut gmp::mpz_t) {
+    if (*rop).alloc < 1 {
+        cold_realloc_raw(rop, 1);
+    }
+    *(*rop).d = 1;
+    (*rop).size = -1;
+}
+
 #[inline]
 pub fn tdiv_q_u32(q: &mut Integer, n: Option<&Integer>, d: u32) {
     assert_ne!(d, 0, "division by zero");
@@ -579,49 +600,19 @@ pub fn tdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) {
     }
 }
 
+#[inline]
 pub fn u32_tdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
     check_div0_or(d, q);
-    let n = n.into();
-    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(q).as_raw();
-    let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-    if abs_d_greater_n {
-        // n / +abs_d -> 0, n
-        // n / -abs_d -> 0, n
-        set_0(q);
-    } else {
-        // n / +abs_d -> +abs_q, +abs_r
-        // n / -abs_d -> -abs_q, +abs_r
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let abs_q = n / abs_d;
-        unsafe {
-            gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-        }
-        if neg_d {
-            neg(q, None);
-        }
+    unsafe {
+        ui_tdiv_q_raw(q.as_raw_mut(), n.into(), d.unwrap_or(q).as_raw());
     }
 }
 
+#[inline]
 pub fn u32_tdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
     check_div0_or(d, r);
-    let n = n.into();
-    let d_ptr = d.unwrap_or(r).as_raw();
-    let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-    if abs_d_greater_n {
-        // n / +abs_d -> 0, n
-        // n / -abs_d -> 0, n
-        unsafe {
-            gmp::mpz_set_ui(r.as_raw_mut(), n);
-        }
-    } else {
-        // n / +abs_d -> +abs_q, +abs_r
-        // n / -abs_d -> -abs_q, +abs_r
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let abs_r = n % abs_d;
-        unsafe {
-            gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-        }
+    unsafe {
+        ui_tdiv_r_raw(r.as_raw_mut(), n.into(), d.unwrap_or(r).as_raw());
     }
 }
 
@@ -685,76 +676,19 @@ pub fn cdiv_r_u32(r: &mut Integer, n: Option<&Integer>, d: u32) -> bool {
     (unsafe { gmp::mpz_cdiv_r_ui(r.as_raw_mut(), n.unwrap_or(r).as_raw(), d.into()) }) != 0
 }
 
+#[inline]
 pub fn u32_cdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
     check_div0_or(d, q);
-    let n = n.into();
-    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(q).as_raw();
-    let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-    if abs_d_greater_n {
-        // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
-        // n / -abs_d -> 0, n
-        if n > 0 && !neg_d {
-            set_1(q);
-        } else {
-            set_0(q);
-        }
-    } else {
-        // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
-        // n / -abs_d -> -abs_q, +abs_r
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
-        if neg_d {
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-            neg(q, None);
-        } else {
-            if abs_r > 0 {
-                abs_q += 1;
-            }
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-        }
+    unsafe {
+        ui_cdiv_q_raw(q.as_raw_mut(), n.into(), d.unwrap_or(q).as_raw());
     }
 }
 
+#[inline]
 pub fn u32_cdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
     check_div0_or(d, r);
-    let n = n.into();
-    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(r).as_raw();
-    let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-    if abs_d_greater_n {
-        // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
-        // n / -abs_d -> 0, n
-        if n > 0 && !neg_d {
-            unsafe {
-                gmp::mpz_ui_sub(r.as_raw_mut(), n, d_ptr);
-            }
-        } else {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), n);
-            }
-        }
-    } else {
-        // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
-        // n / -abs_d -> -abs_q, +abs_r
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let abs_r = n % abs_d;
-        if neg_d {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
-        } else if abs_r > 0 {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_d - abs_r);
-            }
-            neg(r, None);
-        } else {
-            set_0(r);
-        }
+    unsafe {
+        ui_cdiv_r_raw(r.as_raw_mut(), n.into(), d.unwrap_or(r).as_raw());
     }
 }
 
@@ -790,89 +724,19 @@ pub fn cdiv_r_i32(r: &mut Integer, n: Option<&Integer>, d: i32) {
     }
 }
 
+#[inline]
 pub fn i32_cdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
     check_div0_or(d, q);
-    let (neg_n, abs_n) = n.neg_abs();
-    let abs_n = abs_n.into();
-    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(q).as_raw();
-    let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
-    if abs_d_greater_abs_n {
-        // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
-        // +abs_n / -abs_d -> 0, +abs_n
-        // -abs_n / +abs_d -> 0, -abs_n
-        // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
-        if (n > 0 && !neg_d) || (neg_n && neg_d) {
-            set_1(q);
-        } else {
-            set_0(q);
-        }
-    } else {
-        // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
-        // +abs_n / -abs_d -> -abs_q, +abs_r
-        // -abs_n / +abs_d -> -abs_q, -abs_r
-        // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
-        if (n > 0 && neg_d) || (neg_n && !neg_d) {
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-            neg(q, None);
-        } else {
-            if abs_r > 0 {
-                abs_q += 1;
-            }
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-        }
+    unsafe {
+        si_cdiv_q_raw(q.as_raw_mut(), n.into(), d.unwrap_or(q).as_raw());
     }
 }
 
+#[inline]
 pub fn i32_cdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
     check_div0_or(d, r);
-    let (neg_n, abs_n) = n.neg_abs();
-    let abs_n = abs_n.into();
-    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(r).as_raw();
-    let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
-    if abs_d_greater_abs_n {
-        // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
-        // +abs_n / -abs_d -> 0, +abs_n
-        // -abs_n / +abs_d -> 0, -abs_n
-        // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
-        if (n > 0 && !neg_d) || (neg_n && neg_d) {
-            i32_sub(r, n, d);
-        } else {
-            set_i32(r, n);
-        }
-    } else {
-        // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
-        // +abs_n / -abs_d -> -abs_q, +abs_r
-        // -abs_n / +abs_d -> -abs_q, -abs_r
-        // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let abs_r = abs_n % abs_d;
-        if n > 0 && neg_d {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
-        } else if neg_n && !neg_d {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
-            neg(r, None);
-        } else if abs_r > 0 {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_d - abs_r);
-            }
-            if !neg_d {
-                neg(r, None);
-            }
-        } else {
-            set_0(r);
-        }
+    unsafe {
+        si_cdiv_r_raw(r.as_raw_mut(), n.into(), d.unwrap_or(r).as_raw());
     }
 }
 
@@ -894,76 +758,19 @@ pub fn fdiv_u32(n: &Integer, d: u32) -> u32 {
     unsafe { gmp::mpz_fdiv_ui(n.as_raw(), d.into()) as u32 }
 }
 
+#[inline]
 pub fn u32_fdiv_q(q: &mut Integer, n: u32, d: Option<&Integer>) {
     check_div0_or(d, q);
-    let n = n.into();
-    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(q).as_raw();
-    let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-    if abs_d_greater_n {
-        // n / +abs_d -> 0, n
-        // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
-        if n > 0 && neg_d {
-            set_m1(q);
-        } else {
-            set_0(q);
-        }
-    } else {
-        // n / +abs_d -> +abs_q, +abs_r
-        // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
-        if !neg_d {
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-        } else {
-            if abs_r > 0 {
-                abs_q += 1;
-            }
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-            neg(q, None);
-        }
+    unsafe {
+        ui_fdiv_q_raw(q.as_raw_mut(), n.into(), d.unwrap_or(q).as_raw());
     }
 }
 
+#[inline]
 pub fn u32_fdiv_r(r: &mut Integer, n: u32, d: Option<&Integer>) {
     check_div0_or(d, r);
-    let n = n.into();
-    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(r).as_raw();
-    let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-    if abs_d_greater_n {
-        // n / +abs_d -> 0, n
-        // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
-        if n > 0 && neg_d {
-            unsafe {
-                gmp::mpz_add_ui(r.as_raw_mut(), d_ptr, n);
-            }
-        } else {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), n);
-            }
-        }
-    } else {
-        // n / +abs_d -> +abs_q, +abs_r
-        // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let abs_r = n % abs_d;
-        if !neg_d {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
-        } else if abs_r > 0 {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_d - abs_r);
-            }
-            neg(r, None);
-        } else {
-            set_0(r);
-        }
+    unsafe {
+        ui_fdiv_r_raw(r.as_raw_mut(), n.into(), d.unwrap_or(r).as_raw());
     }
 }
 
@@ -997,89 +804,19 @@ pub fn fdiv_r_i32(r: &mut Integer, n: Option<&Integer>, d: i32) {
     }
 }
 
+#[inline]
 pub fn i32_fdiv_q(q: &mut Integer, n: i32, d: Option<&Integer>) {
     check_div0_or(d, q);
-    let (neg_n, abs_n) = n.neg_abs();
-    let abs_n = abs_n.into();
-    let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(q).as_raw();
-    let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
-    if abs_d_greater_abs_n {
-        // +abs_n / +abs_d -> 0, +abs_n
-        // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
-        // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
-        // -abs_n / -abs_d -> 0, -abs_n
-        if (n > 0 && neg_d) || (neg_n && !neg_d) {
-            set_m1(q);
-        } else {
-            set_0(q);
-        }
-    } else {
-        // +abs_n / +abs_d -> +abs_q, +abs_r
-        // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
-        // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
-        // -abs_n / -abs_d -> +abs_q, -abs_r
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
-        if (n > 0 && !neg_d) || (neg_n && neg_d) {
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-        } else {
-            if abs_r > 0 {
-                abs_q += 1;
-            }
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-            neg(q, None);
-        }
+    unsafe {
+        si_fdiv_q_raw(q.as_raw_mut(), n.into(), d.unwrap_or(q).as_raw());
     }
 }
 
+#[inline]
 pub fn i32_fdiv_r(r: &mut Integer, n: i32, d: Option<&Integer>) {
     check_div0_or(d, r);
-    let (neg_n, abs_n) = n.neg_abs();
-    let abs_n = abs_n.into();
-    let neg_d = d.unwrap_or(r).cmp0() == Ordering::Less;
-    let d_ptr = d.unwrap_or(r).as_raw();
-    let abs_d_greater_abs_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, abs_n) > 0 };
-    if abs_d_greater_abs_n {
-        // +abs_n / +abs_d -> 0, +abs_n
-        // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
-        // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
-        // -abs_n / -abs_d -> 0, -abs_n
-        if (n > 0 && neg_d) || (neg_n && !neg_d) {
-            add_i32(r, d, n);
-        } else {
-            set_i32(r, n);
-        }
-    } else {
-        // +abs_n / +abs_d -> +abs_q, +abs_r
-        // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
-        // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
-        // -abs_n / -abs_d -> +abs_q, -abs_r
-        let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-        let abs_r = abs_n % abs_d;
-        if n > 0 && !neg_d {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
-        } else if neg_n && neg_d {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
-            neg(r, None);
-        } else if abs_r > 0 {
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_d - abs_r);
-            }
-            if neg_d {
-                neg(r, None);
-            }
-        } else {
-            set_0(r);
-        }
+    unsafe {
+        si_fdiv_r_raw(r.as_raw_mut(), n.into(), d.unwrap_or(r).as_raw());
     }
 }
 
@@ -2029,62 +1766,325 @@ pub fn tdiv_r_u64(r: &mut Integer, n: Option<&Integer>, d: u64) {
     }
 }
 
+#[inline]
 pub fn u64_tdiv_q(q: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, q);
+    let d_ptr = d.unwrap_or(q).as_raw();
     if LONG_64 {
-        let n = cast::cast(n);
-        let neg_d = d.unwrap_or(q).cmp0() == Ordering::Less;
-        let d_ptr = d.unwrap_or(q).as_raw();
-        let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-        if abs_d_greater_n {
-            // n / +abs_d -> 0, n
-            // n / -abs_d -> 0, n
-            set_0(q);
-        } else {
-            // n / +abs_d -> +abs_q, +abs_r
-            // n / -abs_d -> -abs_q, +abs_r
-            let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-            let abs_q = n / abs_d;
-            unsafe {
-                gmp::mpz_set_ui(q.as_raw_mut(), abs_q);
-            }
-            if neg_d {
-                neg(q, None);
-            }
+        unsafe {
+            ui_tdiv_q_raw(q.as_raw_mut(), cast::cast(n), d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
         unsafe {
-            gmp::mpz_tdiv_q(q.as_raw_mut(), (*small).as_raw(), d.unwrap_or(q).as_raw());
+            gmp::mpz_tdiv_q(q.as_raw_mut(), (*small).as_raw(), d_ptr);
         }
     }
 }
 
+#[inline]
 pub fn u64_tdiv_r(r: &mut Integer, n: u64, d: Option<&Integer>) {
     check_div0_or(d, r);
+    let d_ptr = d.unwrap_or(r).as_raw();
     if LONG_64 {
-        let n = cast::cast(n);
-        let d_ptr = d.unwrap_or(r).as_raw();
-        let abs_d_greater_n = unsafe { gmp::mpz_cmpabs_ui(d_ptr, n) > 0 };
-        if abs_d_greater_n {
-            // n / +abs_d -> 0, n
-            // n / -abs_d -> 0, n
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), n);
-            }
-        } else {
-            // n / +abs_d -> +abs_q, +abs_r
-            // n / -abs_d -> -abs_q, +abs_r
-            let abs_d = unsafe { gmp::mpz_get_ui(d_ptr) };
-            let abs_r = n % abs_d;
-            unsafe {
-                gmp::mpz_set_ui(r.as_raw_mut(), abs_r);
-            }
+        unsafe {
+            ui_tdiv_r_raw(r.as_raw_mut(), cast::cast(n), d_ptr);
         }
     } else {
         let small = SmallInteger::from(n);
         unsafe {
-            gmp::mpz_tdiv_r(r.as_raw_mut(), (*small).as_raw(), d.unwrap_or(r).as_raw());
+            gmp::mpz_tdiv_r(r.as_raw_mut(), (*small).as_raw(), d_ptr);
+        }
+    }
+}
+
+unsafe fn ui_tdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
+    if abs_d_greater_n {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n
+        set_0_raw(q);
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_q = n / abs_d;
+        gmp::mpz_set_ui(q, abs_q);
+        if neg_d {
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+unsafe fn ui_tdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+    let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
+    if abs_d_greater_n {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n
+        gmp::mpz_set_ui(r, n);
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = n % abs_d;
+        gmp::mpz_set_ui(r, abs_r);
+    }
+}
+
+unsafe fn ui_cdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
+    if abs_d_greater_n {
+        // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
+        // n / -abs_d -> 0, n
+        if n > 0 && !neg_d {
+            set_1_raw(q);
+        } else {
+            set_0_raw(q);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
+        if neg_d {
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+        }
+    }
+}
+
+unsafe fn ui_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
+    if abs_d_greater_n {
+        // n / +abs_d -> 0, n + if n > 0 { 1, -abs_d }
+        // n / -abs_d -> 0, n
+        if n > 0 && !neg_d {
+            gmp::mpz_ui_sub(r, n, d);
+        } else {
+            gmp::mpz_set_ui(r, n);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // n / -abs_d -> -abs_q, +abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = n % abs_d;
+        if neg_d {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            gmp::mpz_neg(r, r);
+        } else {
+            set_0_raw(r);
+        }
+    }
+}
+
+unsafe fn si_cdiv_q_raw(q: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+    let (neg_n, abs_n) = n.neg_abs();
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
+    if abs_d_greater_abs_n {
+        // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> 0, +abs_n
+        // -abs_n / +abs_d -> 0, -abs_n
+        // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
+        if (n > 0 && !neg_d) || (neg_n && neg_d) {
+            set_1_raw(q);
+        } else {
+            set_0_raw(q);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> -abs_q, +abs_r
+        // -abs_n / +abs_d -> -abs_q, -abs_r
+        // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
+        if (n > 0 && neg_d) || (neg_n && !neg_d) {
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+        }
+    }
+}
+
+unsafe fn si_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+    let (neg_n, abs_n) = n.neg_abs();
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
+    if abs_d_greater_abs_n {
+        // +abs_n / +abs_d -> 0, +abs_n + if abs_n > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> 0, +abs_n
+        // -abs_n / +abs_d -> 0, -abs_n
+        // -abs_n / -abs_d -> 0, -abs_n + if abs_n > 0 { 1, +abs_d }
+        if n > 0 && !neg_d {
+            gmp::mpz_ui_sub(r, abs_n, d);
+        } else if neg_n && neg_d {
+            gmp::mpz_add_ui(r, d, abs_n);
+            gmp::mpz_neg(r, r);
+        } else {
+            gmp::mpz_set_si(r, n);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r + if abs_r > 0 { 1, -abs_d }
+        // +abs_n / -abs_d -> -abs_q, +abs_r
+        // -abs_n / +abs_d -> -abs_q, -abs_r
+        // -abs_n / -abs_d -> +abs_q, -abs_r + if abs_r > 0 { 1, +abs_d }
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = abs_n % abs_d;
+        if n > 0 && neg_d {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if neg_n && !neg_d {
+            gmp::mpz_set_ui(r, abs_r);
+            gmp::mpz_neg(r, r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            if !neg_d {
+                gmp::mpz_neg(r, r);
+            }
+        } else {
+            set_0_raw(r);
+        }
+    }
+}
+
+unsafe fn ui_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+    let n = n.into();
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
+    if abs_d_greater_n {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
+        if n > 0 && neg_d {
+            set_m1_raw(q);
+        } else {
+            set_0_raw(q);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (n / abs_d, n % abs_d);
+        if !neg_d {
+            gmp::mpz_set_ui(q, abs_q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+unsafe fn ui_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+    let n = n.into();
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
+    if abs_d_greater_n {
+        // n / +abs_d -> 0, n
+        // n / -abs_d -> 0, n + if n > 0 { -1, -abs_d }
+        if n > 0 && neg_d {
+            gmp::mpz_add_ui(r, d, n);
+        } else {
+            gmp::mpz_set_ui(r, n);
+        }
+    } else {
+        // n / +abs_d -> +abs_q, +abs_r
+        // n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = n % abs_d;
+        if !neg_d {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            gmp::mpz_neg(r, r);
+        } else {
+            set_0_raw(r);
+        }
+    }
+}
+
+unsafe fn si_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+    let (neg_n, abs_n) = n.neg_abs();
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
+    if abs_d_greater_abs_n {
+        // +abs_n / +abs_d -> 0, +abs_n
+        // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> 0, -abs_n
+        if (n > 0 && neg_d) || (neg_n && !neg_d) {
+            set_m1_raw(q);
+        } else {
+            set_0_raw(q);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r
+        // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> +abs_q, -abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let (mut abs_q, abs_r) = (abs_n / abs_d, abs_n % abs_d);
+        if (n > 0 && !neg_d) || (neg_n && neg_d) {
+            gmp::mpz_set_ui(q, abs_q);
+        } else {
+            if abs_r > 0 {
+                abs_q += 1;
+            }
+            gmp::mpz_set_ui(q, abs_q);
+            gmp::mpz_neg(q, q);
+        }
+    }
+}
+
+unsafe fn si_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+    let (neg_n, abs_n) = n.neg_abs();
+    let neg_d = gmp::mpz_sgn(d) < 0;
+    let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
+    if abs_d_greater_abs_n {
+        // +abs_n / +abs_d -> 0, +abs_n
+        // +abs_n / -abs_d -> 0, +abs_n + if abs_n > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> 0, -abs_n + if abs_n > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> 0, -abs_n
+        if n > 0 && neg_d {
+            gmp::mpz_add_ui(r, d, abs_n);
+        } else if neg_n && !neg_d {
+            gmp::mpz_sub_ui(r, d, abs_n);
+        } else {
+            gmp::mpz_set_si(r, n);
+        }
+    } else {
+        // +abs_n / +abs_d -> +abs_q, +abs_r
+        // +abs_n / -abs_d -> -abs_q, +abs_r + if abs_r > 0 { -1, -abs_d }
+        // -abs_n / +abs_d -> -abs_q, -abs_r + if abs_r > 0 { -1, +abs_d }
+        // -abs_n / -abs_d -> +abs_q, -abs_r
+        let abs_d = gmp::mpz_get_ui(d);
+        let abs_r = abs_n % abs_d;
+        if n > 0 && !neg_d {
+            gmp::mpz_set_ui(r, abs_r);
+        } else if neg_n && neg_d {
+            gmp::mpz_set_ui(r, abs_r);
+            gmp::mpz_neg(r, r);
+        } else if abs_r > 0 {
+            gmp::mpz_set_ui(r, abs_d - abs_r);
+            if neg_d {
+                gmp::mpz_neg(r, r);
+            }
+        } else {
+            set_0_raw(r);
         }
     }
 }
