@@ -410,6 +410,46 @@ arith_prim_noncommut_complex! {
     DivU32Incomplete, DivFromU32Incomplete
 }
 arith_prim_commut_complex! {
+    xmpc::add_u64;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
+    u64;
+    AddU64Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::sub_u64, xmpc::u64_sub;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
+    u64;
+    SubU64Incomplete, SubFromU64Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::mul_u64;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulAssignRound { mul_assign_round }
+    MulFrom { mul_from }
+    MulFromRound { mul_from_round }
+    u64;
+    MulU64Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::div_u64, xmpc::u64_div;
+    Div { div }
+    DivAssign { div_assign }
+    DivAssignRound { div_assign_round }
+    DivFrom { div_from }
+    DivFromRound { div_from_round }
+    u64;
+    DivU64Incomplete, DivFromU64Incomplete
+}
+arith_prim_commut_complex! {
     xmpc::add_si;
     Add { add }
     AddAssign { add_assign }
@@ -448,6 +488,46 @@ arith_prim_noncommut_complex! {
     DivFromRound { div_from_round }
     i32;
     DivI32Incomplete, DivFromI32Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::add_i64;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
+    i64;
+    AddI64Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::sub_i64, xmpc::i64_sub;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
+    i64;
+    SubI64Incomplete, SubFromI64Incomplete
+}
+arith_prim_commut_complex! {
+    xmpc::mul_i64;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulAssignRound { mul_assign_round }
+    MulFrom { mul_from }
+    MulFromRound { mul_from_round }
+    i64;
+    MulI64Incomplete
+}
+arith_prim_noncommut_complex! {
+    xmpc::div_i64, xmpc::i64_div;
+    Div { div }
+    DivAssign { div_assign }
+    DivAssignRound { div_assign_round }
+    DivFrom { div_from }
+    DivFromRound { div_from_round }
+    i64;
+    DivI64Incomplete, DivFromI64Incomplete
 }
 arith_prim_commut_complex! {
     xmpc::add_f32;
@@ -820,6 +900,48 @@ mod tests {
         test_ref_op!((&lhs).pow(pd), lhs.clone().pow(pd));
     }
 
+    macro_rules! check_others {
+        (&$list:expr, $against:expr) => {
+            for op in &$list {
+                let cop = Complex::with_val(100, op);
+                for b in &$against {
+                    assert!(same(b.clone() + op, b.clone() + &cop));
+                    assert!(same(op + b.clone(), cop.clone() + b));
+                    assert!(same(b.clone() - op, b.clone() - &cop));
+                    assert!(same(op - b.clone(), cop.clone() - b));
+                    if b.real().is_finite() && b.imag().is_finite() {
+                        assert!(same(b.clone() * op, b.clone() * &cop));
+                        assert!(same(op * b.clone(), cop.clone() * b));
+                        if *op != 0 {
+                            assert!(same(b.clone() / op, b.clone() / &cop));
+                        }
+                    }
+                }
+            }
+        };
+        ($list:expr, $against:expr, $zero:expr) => {
+            for op in $list {
+                let cop = Complex::with_val(100, *op);
+                for b in &$against {
+                    assert!(same(b.clone() + *op, b.clone() + &cop));
+                    assert!(same(*op + b.clone(), cop.clone() + b));
+                    assert!(same(b.clone() - *op, b.clone() - &cop));
+                    assert!(same(*op - b.clone(), cop.clone() - b));
+                    if b.real().is_finite() && b.imag().is_finite() {
+                        assert!(same(b.clone() * *op, b.clone() * &cop));
+                        assert!(same(*op * b.clone(), cop.clone() * b));
+                        if *op != $zero {
+                            assert!(same(b.clone() / *op, b.clone() / &cop));
+                        }
+                        if *b != 0i32 {
+                            assert!(same(*op / b.clone(), cop.clone() / b));
+                        }
+                    }
+                }
+            }
+        };
+    }
+
     #[test]
     fn check_arith_others() {
         use crate::tests::{F32, F64, I128, I32, I64, U128, U32, U64};
@@ -879,134 +1001,16 @@ mod tests {
         against.extend(q.iter().map(|x| Complex::with_val(20, x)));
         against.extend(f.iter().map(|x| Complex::with_val(20, x)));
 
-        for op in U32 {
-            let cop = Complex::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &cop));
-                assert!(same(*op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - *op, b.clone() - &cop));
-                assert!(same(*op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * *op, b.clone() * &cop));
-                    assert!(same(*op * b.clone(), cop.clone() * b));
-                    if *op != 0 {
-                        assert!(same(b.clone() / *op, b.clone() / &cop));
-                    }
-                    if *b != 0i32 {
-                        assert!(same(*op / b.clone(), cop.clone() / b));
-                    }
-                }
-            }
-        }
-        for op in I32 {
-            let cop = Complex::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &cop));
-                assert!(same(*op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - *op, b.clone() - &cop));
-                assert!(same(*op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * *op, b.clone() * &cop));
-                    assert!(same(*op * b.clone(), cop.clone() * b));
-                    if *op != 0 {
-                        assert!(same(b.clone() / *op, b.clone() / &cop));
-                    }
-                    if *b != 0i32 {
-                        assert!(same(*op / b.clone(), cop.clone() / b));
-                    }
-                }
-            }
-        }
-        for op in F32 {
-            let cop = Complex::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &cop));
-                assert!(same(*op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - *op, b.clone() - &cop));
-                assert!(same(*op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * *op, b.clone() * &cop));
-                    assert!(same(*op * b.clone(), cop.clone() * b));
-                    if *op != 0.0 {
-                        assert!(same(b.clone() / *op, b.clone() / &cop));
-                    }
-                    if *b != 0i32 {
-                        assert!(same(*op / b.clone(), cop.clone() / b));
-                    }
-                }
-            }
-        }
-        for op in F64 {
-            let cop = Complex::with_val(100, *op);
-            for b in &against {
-                assert!(same(b.clone() + *op, b.clone() + &cop));
-                assert!(same(*op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - *op, b.clone() - &cop));
-                assert!(same(*op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * *op, b.clone() * &cop));
-                    assert!(same(*op * b.clone(), cop.clone() * b));
-                    if *op != 0.0 {
-                        assert!(same(b.clone() / *op, b.clone() / &cop));
-                    }
-                    if *b != 0i32 {
-                        assert!(same(*op / b.clone(), cop.clone() / b));
-                    }
-                }
-            }
-        }
+        check_others!(I32, against, 0);
+        check_others!(I64, against, 0);
+        check_others!(U32, against, 0);
+        check_others!(U64, against, 0);
+        check_others!(F32, against, 0.0);
+        check_others!(F64, against, 0.0);
         #[cfg(feature = "integer")]
-        for op in &z {
-            let cop = Complex::with_val(100, op);
-            for b in &against {
-                assert!(same(b.clone() + op, b.clone() + &cop));
-                assert!(same(op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - op, b.clone() - &cop));
-                assert!(same(op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * op, b.clone() * &cop));
-                    assert!(same(op * b.clone(), cop.clone() * b));
-                    if *op != 0 {
-                        assert!(same(b.clone() / op, b.clone() / &cop));
-                    }
-                }
-            }
-        }
+        check_others!(&z, against);
         #[cfg(feature = "rational")]
-        for op in &q {
-            let cop = Complex::with_val(100, op);
-            for b in &against {
-                assert!(same(b.clone() + op, b.clone() + &cop));
-                assert!(same(op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - op, b.clone() - &cop));
-                assert!(same(op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * op, b.clone() * &cop));
-                    assert!(same(op * b.clone(), cop.clone() * b));
-                    if *op != 0 {
-                        assert!(same(b.clone() / op, b.clone() / &cop));
-                    }
-                }
-            }
-        }
-        for op in &f {
-            let cop = Complex::with_val(100, op);
-            for b in &against {
-                assert!(same(b.clone() + op, b.clone() + &cop));
-                assert!(same(op + b.clone(), cop.clone() + b));
-                assert!(same(b.clone() - op, b.clone() - &cop));
-                assert!(same(op - b.clone(), cop.clone() - b));
-                if b.real().is_finite() && b.imag().is_finite() {
-                    assert!(same(b.clone() * op, b.clone() * &cop));
-                    assert!(same(op * b.clone(), cop.clone() * b));
-                    if *op != 0 {
-                        assert!(same(b.clone() / op, b.clone() / &cop));
-                    }
-                    if *b != 0i32 {
-                        assert!(same(op / b.clone(), cop.clone() / b));
-                    }
-                }
-            }
-        }
+        check_others!(&q, against);
+        check_others!(&f, against);
     }
 }
