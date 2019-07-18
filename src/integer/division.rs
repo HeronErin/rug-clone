@@ -763,6 +763,7 @@ where
 }
 
 #[cfg(test)]
+#[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::ops::{DivRounding, RemRounding};
     use crate::Integer;
