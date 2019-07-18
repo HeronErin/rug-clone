@@ -628,10 +628,16 @@ div_prim! {
     DivRounding div_trunc div_ceil div_floor div_euc;
     DivRoundingAssign div_trunc_assign div_ceil_assign div_floor_assign div_euc_assign;
     DivRoundingFrom div_trunc_from div_ceil_from div_floor_from div_euc_from;
+    i8, DivRoundingI8Incomplete, DivRoundingFromI8Incomplete;
+    i16, DivRoundingI16Incomplete, DivRoundingFromI16Incomplete;
     i32, DivRoundingI32Incomplete, DivRoundingFromI32Incomplete;
     i64, DivRoundingI64Incomplete, DivRoundingFromI64Incomplete;
+    i128, DivRoundingI128Incomplete, DivRoundingFromI128Incomplete;
+    u8, DivRoundingU8Incomplete, DivRoundingFromU8Incomplete;
+    u16, DivRoundingU16Incomplete, DivRoundingFromU16Incomplete;
     u32, DivRoundingU32Incomplete, DivRoundingFromU32Incomplete;
     u64, DivRoundingU64Incomplete, DivRoundingFromU64Incomplete;
+    u128, DivRoundingU128Incomplete, DivRoundingFromU128Incomplete;
 }
 div_prim! {
     PrimOps::tdiv_r, PrimOps::cdiv_r, PrimOps::fdiv_r, PrimOps::ediv_r;
@@ -639,10 +645,16 @@ div_prim! {
     RemRounding rem_trunc rem_ceil rem_floor rem_euc;
     RemRoundingAssign rem_trunc_assign rem_ceil_assign rem_floor_assign rem_euc_assign;
     RemRoundingFrom rem_trunc_from rem_ceil_from rem_floor_from rem_euc_from;
+    i8, RemRoundingI8Incomplete, RemRoundingFromI8Incomplete;
+    i16, RemRoundingI16Incomplete, RemRoundingFromI16Incomplete;
     i32, RemRoundingI32Incomplete, RemRoundingFromI32Incomplete;
     i64, RemRoundingI64Incomplete, RemRoundingFromI64Incomplete;
+    i128, RemRoundingI128Incomplete, RemRoundingFromI128Incomplete;
+    u8, RemRoundingU8Incomplete, RemRoundingFromU8Incomplete;
+    u16, RemRoundingU16Incomplete, RemRoundingFromU16Incomplete;
     u32, RemRoundingU32Incomplete, RemRoundingFromU32Incomplete;
     u64, RemRoundingU64Incomplete, RemRoundingFromU64Incomplete;
+    u128, RemRoundingU128Incomplete, RemRoundingFromU128Incomplete;
 }
 
 trait PrimOps<Long>: AsLong {
@@ -754,266 +766,77 @@ where
 mod tests {
     use crate::ops::{DivRounding, RemRounding};
     use crate::Integer;
-    use std::{i32, i64, u32, u64};
 
-    #[test]
-    fn check_div_prim_32() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
-        let against = large
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s)
-            .chain(s.iter().map(|&x| Integer::from(x)))
-            .chain(u.iter().map(|&x| Integer::from(x)))
-            .collect::<Vec<Integer>>();
-        for &op in &u {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
-                    assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
-                    assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
-                    assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        DivRounding::div_trunc(op, b.clone()),
-                        iop.clone().div_trunc(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_ceil(op, b.clone()),
-                        iop.clone().div_ceil(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_floor(op, b.clone()),
-                        iop.clone().div_floor(b)
-                    );
-                    assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
-                }
-            }
-        }
-        for &op in &s {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
-                    assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
-                    assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
-                    assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        DivRounding::div_trunc(op, b.clone()),
-                        iop.clone().div_trunc(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_ceil(op, b.clone()),
-                        iop.clone().div_ceil(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_floor(op, b.clone()),
-                        iop.clone().div_floor(b)
-                    );
-                    assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
+    macro_rules! check_div_rem_prim {
+        ($list:expr, $against:expr) => {
+            for &op in $list {
+                let iop = Integer::from(op);
+                for b in &$against {
+                    if op != 0 {
+                        assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
+                        assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
+                        assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
+                        assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
+                        assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
+                        assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
+                        assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
+                        assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
+                    }
+                    if *b != 0 {
+                        assert_eq!(
+                            DivRounding::div_trunc(op, b.clone()),
+                            iop.clone().div_trunc(b)
+                        );
+                        assert_eq!(
+                            DivRounding::div_ceil(op, b.clone()),
+                            iop.clone().div_ceil(b)
+                        );
+                        assert_eq!(
+                            DivRounding::div_floor(op, b.clone()),
+                            iop.clone().div_floor(b)
+                        );
+                        assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
+                        assert_eq!(
+                            RemRounding::rem_trunc(op, b.clone()),
+                            iop.clone().rem_trunc(b)
+                        );
+                        assert_eq!(
+                            RemRounding::rem_ceil(op, b.clone()),
+                            iop.clone().rem_ceil(b)
+                        );
+                        assert_eq!(
+                            RemRounding::rem_floor(op, b.clone()),
+                            iop.clone().rem_floor(b)
+                        );
+                        assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
+                    }
                 }
             }
-        }
+        };
     }
-
     #[test]
-    fn check_rem_prim_32() {
+    fn check_div_rem_prim() {
+        use crate::tests::{I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
         let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u32::MAX];
-        let s = [i32::MIN, -101, -100, -1, 0, 1, 100, 101, i32::MAX];
-        let against = large
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s)
-            .chain(s.iter().map(|&x| Integer::from(x)))
-            .chain(u.iter().map(|&x| Integer::from(x)))
+        let against = (large.iter().map(|&(n, s)| Integer::from(n) << s))
+            .chain(U32.iter().map(|&x| Integer::from(x)))
+            .chain(I32.iter().map(|&x| Integer::from(x)))
+            .chain(U64.iter().map(|&x| Integer::from(x)))
+            .chain(I64.iter().map(|&x| Integer::from(x)))
+            .chain(U128.iter().map(|&x| Integer::from(x)))
+            .chain(I128.iter().map(|&x| Integer::from(x)))
             .collect::<Vec<Integer>>();
-        for &op in &u {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
-                    assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
-                    assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
-                    assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        RemRounding::rem_trunc(op, b.clone()),
-                        iop.clone().rem_trunc(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_ceil(op, b.clone()),
-                        iop.clone().rem_ceil(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_floor(op, b.clone()),
-                        iop.clone().rem_floor(b)
-                    );
-                    assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
-                }
-            }
-        }
-        for &op in &s {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
-                    assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
-                    assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
-                    assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        RemRounding::rem_trunc(op, b.clone()),
-                        iop.clone().rem_trunc(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_ceil(op, b.clone()),
-                        iop.clone().rem_ceil(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_floor(op, b.clone()),
-                        iop.clone().rem_floor(b)
-                    );
-                    assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
-                }
-            }
-        }
-    }
 
-    #[test]
-    fn check_div_prim_64() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u64::MAX];
-        let s = [i64::MIN, -101, -100, -1, 0, 1, 100, 101, i64::MAX];
-        let against = large
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s)
-            .chain(s.iter().map(|&x| Integer::from(x)))
-            .chain(u.iter().map(|&x| Integer::from(x)))
-            .collect::<Vec<Integer>>();
-        for &op in &u {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
-                    assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
-                    assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
-                    assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        DivRounding::div_trunc(op, b.clone()),
-                        iop.clone().div_trunc(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_ceil(op, b.clone()),
-                        iop.clone().div_ceil(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_floor(op, b.clone()),
-                        iop.clone().div_floor(b)
-                    );
-                    assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
-                }
-            }
-        }
-        for &op in &s {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().div_trunc(op), b.clone().div_trunc(&iop));
-                    assert_eq!(b.clone().div_ceil(op), b.clone().div_ceil(&iop));
-                    assert_eq!(b.clone().div_floor(op), b.clone().div_floor(&iop));
-                    assert_eq!(b.clone().div_euc(op), b.clone().div_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        DivRounding::div_trunc(op, b.clone()),
-                        iop.clone().div_trunc(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_ceil(op, b.clone()),
-                        iop.clone().div_ceil(b)
-                    );
-                    assert_eq!(
-                        DivRounding::div_floor(op, b.clone()),
-                        iop.clone().div_floor(b)
-                    );
-                    assert_eq!(DivRounding::div_euc(op, b.clone()), iop.clone().div_euc(b));
-                }
-            }
-        }
-    }
-
-    #[test]
-    fn check_rem_prim_64() {
-        let large = [(1, 100), (-11, 200), (33, 150)];
-        let u = [0, 1, 100, 101, u64::MAX];
-        let s = [i64::MIN, -101, -100, -1, 0, 1, 100, 101, i64::MAX];
-        let against = large
-            .iter()
-            .map(|&(n, s)| Integer::from(n) << s)
-            .chain(s.iter().map(|&x| Integer::from(x)))
-            .chain(u.iter().map(|&x| Integer::from(x)))
-            .collect::<Vec<Integer>>();
-        for &op in &u {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
-                    assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
-                    assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
-                    assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        RemRounding::rem_trunc(op, b.clone()),
-                        iop.clone().rem_trunc(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_ceil(op, b.clone()),
-                        iop.clone().rem_ceil(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_floor(op, b.clone()),
-                        iop.clone().rem_floor(b)
-                    );
-                    assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
-                }
-            }
-        }
-        for &op in &s {
-            let iop = Integer::from(op);
-            for b in &against {
-                if op != 0 {
-                    assert_eq!(b.clone().rem_trunc(op), b.clone().rem_trunc(&iop));
-                    assert_eq!(b.clone().rem_ceil(op), b.clone().rem_ceil(&iop));
-                    assert_eq!(b.clone().rem_floor(op), b.clone().rem_floor(&iop));
-                    assert_eq!(b.clone().rem_euc(op), b.clone().rem_euc(&iop));
-                }
-                if *b != 0 {
-                    assert_eq!(
-                        RemRounding::rem_trunc(op, b.clone()),
-                        iop.clone().rem_trunc(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_ceil(op, b.clone()),
-                        iop.clone().rem_ceil(b)
-                    );
-                    assert_eq!(
-                        RemRounding::rem_floor(op, b.clone()),
-                        iop.clone().rem_floor(b)
-                    );
-                    assert_eq!(RemRounding::rem_euc(op, b.clone()), iop.clone().rem_euc(b));
-                }
-            }
-        }
+        check_div_rem_prim!(I8, against);
+        check_div_rem_prim!(I16, against);
+        check_div_rem_prim!(I32, against);
+        check_div_rem_prim!(I64, against);
+        check_div_rem_prim!(I128, against);
+        check_div_rem_prim!(U8, against);
+        check_div_rem_prim!(U16, against);
+        check_div_rem_prim!(U32, against);
+        check_div_rem_prim!(U64, against);
+        check_div_rem_prim!(U128, against);
     }
 
     #[test]
