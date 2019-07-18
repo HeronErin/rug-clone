@@ -487,8 +487,8 @@ wrap! { fn mul(op1, op2) -> gmp::mpz_mul }
 wrap! { fn and(op1, op2) -> gmp::mpz_and }
 wrap! { fn ior(op1, op2) -> gmp::mpz_ior }
 wrap! { fn xor(op1, op2) -> gmp::mpz_xor }
-wrap! { fn mul_2exp(op1; op2: u32) -> gmp::mpz_mul_2exp }
-wrap! { fn fdiv_q_2exp(op1; op2: u32) -> gmp::mpz_fdiv_q_2exp }
+wrap! { fn shl_u32(op1; op2: u32) -> gmp::mpz_mul_2exp }
+wrap! { fn shr_u32(op1; op2: u32) -> gmp::mpz_fdiv_q_2exp }
 wrap! { fn pow_u32(op1; op2: u32) -> gmp::mpz_pow_ui }
 wrap! { fn abs(op) -> gmp::mpz_abs }
 wrap! { fn fdiv_r_2exp(op; n: u32) -> gmp::mpz_fdiv_r_2exp }
@@ -585,22 +585,22 @@ pub fn fdiv_u32(n: &Integer, d: u32) -> u32 {
 }
 
 #[inline]
-pub fn lshift_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
+pub fn shl_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        mul_2exp(rop, op1, op2_abs);
+        shl_u32(rop, op1, op2_abs);
     } else {
-        fdiv_q_2exp(rop, op1, op2_abs);
+        shr_u32(rop, op1, op2_abs);
     }
 }
 
 #[inline]
-pub fn rshift_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
+pub fn shr_i32(rop: &mut Integer, op1: Option<&Integer>, op2: i32) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        fdiv_q_2exp(rop, op1, op2_abs);
+        shr_u32(rop, op1, op2_abs);
     } else {
-        mul_2exp(rop, op1, op2_abs);
+        shl_u32(rop, op1, op2_abs);
     }
 }
 

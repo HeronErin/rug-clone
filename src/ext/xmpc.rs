@@ -14,10 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
 use crate::complex::SmallComplex;
 use crate::ext::xmpfr;
-use crate::float::{Round, SmallFloat};
+use crate::float::Round;
 use crate::Complex;
 #[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
@@ -161,24 +160,6 @@ wrap! { fn asinh(op) -> mpc::asinh }
 wrap! { fn acosh(op) -> mpc::acosh }
 wrap! { fn atanh(op) -> mpc::atanh }
 
-macro_rules! into_forward {
-    (fn $name:ident($T:ty) -> $func:path) => {
-        #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: mpc::rnd_t) -> c_int {
-            $func(rop, op1, op2.into(), rnd)
-        }
-    };
-}
-
-macro_rules! into_reverse {
-    (fn $name:ident($T:ty) -> $func:path) => {
-        #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
-            $func(rop, op1.into(), op2, rnd)
-        }
-    };
-}
-
 macro_rules! sum_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
@@ -230,8 +211,7 @@ macro_rules! div_reverse {
 
 sum_forward! { fn add_ui(c_ulong) -> mpfr::add_ui }
 sum_forward! { fn add_si(c_long) -> mpfr::add_si }
-into_forward! { fn add_f32(f32) -> add_f64 }
-sum_forward! { fn add_f64(f64) -> mpfr::add_d }
+sum_forward! { fn add_d(f64) -> mpfr::add_d }
 #[cfg(feature = "integer")]
 sum_forward! { fn add_z(*const gmp::mpz_t) -> mpfr::add_z }
 #[cfg(feature = "rational")]
@@ -239,8 +219,7 @@ sum_forward! { fn add_q(*const gmp::mpq_t) -> mpfr::add_q }
 
 sum_forward! { fn sub_ui(c_ulong) -> mpfr::sub_ui }
 sum_forward! { fn sub_si(c_long) -> mpfr::sub_si }
-into_forward! { fn sub_f32(f32) -> sub_f64 }
-sum_forward! { fn sub_f64(f64) -> mpfr::sub_d }
+sum_forward! { fn sub_d(f64) -> mpfr::sub_d }
 #[cfg(feature = "integer")]
 sum_forward! { fn sub_z(*const gmp::mpz_t) -> mpfr::sub_z }
 #[cfg(feature = "rational")]
@@ -248,8 +227,7 @@ sum_forward! { fn sub_q(*const gmp::mpq_t) -> mpfr::sub_q }
 
 sub_reverse! { fn ui_sub(c_ulong) -> mpfr::ui_sub }
 sub_reverse! { fn si_sub(c_long) -> mpfr::si_sub }
-into_reverse! { fn f32_sub(f32) -> f64_sub }
-sub_reverse! { fn f64_sub(f64) -> mpfr::d_sub }
+sub_reverse! { fn d_sub(f64) -> mpfr::d_sub }
 #[cfg(feature = "integer")]
 sub_reverse! { fn z_sub(*const gmp::mpz_t) -> mpfr::z_sub }
 #[cfg(feature = "rational")]
@@ -257,8 +235,7 @@ sub_reverse! { fn q_sub(*const gmp::mpq_t) -> xmpfr::q_sub }
 
 prod_forward! { fn mul_ui(c_ulong) -> mpfr::mul_ui }
 prod_forward! { fn mul_si(c_long) -> mpfr::mul_si }
-into_forward! { fn mul_f32(f32) -> mul_f64 }
-prod_forward! { fn mul_f64(f64) -> mpfr::mul_d }
+prod_forward! { fn mul_d(f64) -> mpfr::mul_d }
 #[cfg(feature = "integer")]
 prod_forward! { fn mul_z(*const gmp::mpz_t) -> mpfr::mul_z }
 #[cfg(feature = "rational")]
@@ -266,8 +243,7 @@ prod_forward! { fn mul_q(*const gmp::mpq_t) -> mpfr::mul_q }
 
 prod_forward! { fn div_ui(c_ulong) -> mpfr::div_ui }
 prod_forward! { fn div_si(c_long) -> mpfr::div_si }
-into_forward! { fn div_f32(f32) -> div_f64 }
-prod_forward! { fn div_f64(f64) -> mpfr::div_d }
+prod_forward! { fn div_d(f64) -> mpfr::div_d }
 #[cfg(feature = "integer")]
 prod_forward! { fn div_z(*const gmp::mpz_t) -> mpfr::div_z }
 #[cfg(feature = "rational")]
@@ -275,10 +251,7 @@ prod_forward! { fn div_q(*const gmp::mpq_t) -> mpfr::div_q }
 
 div_reverse! { fn ui_div(c_ulong) -> mpfr::ui_div }
 div_reverse! { fn si_div(c_long) -> mpfr::si_div }
-into_reverse! { fn f32_div(f32) -> f64_div }
-div_reverse! { fn f64_div(f64) -> mpfr::d_div }
-
-into_forward! { fn pow_f32(f32) -> mpc::pow_d }
+div_reverse! { fn d_div(f64) -> mpfr::d_div }
 
 #[inline]
 pub unsafe fn mulsub(
@@ -339,121 +312,21 @@ fn ord_ord(re: c_int, im: c_int) -> c_int {
 }
 
 #[inline]
-pub unsafe fn add_i64(rop: *mut mpc_t, op1: *const mpc_t, op2: i64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        add_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::add_fr(rop, op1, small.as_raw(), rnd)
-    }
+pub unsafe fn shl_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: mpc::rnd_t) -> c_int {
+    mpc::mul_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn sub_i64(rop: *mut mpc_t, op1: *const mpc_t, op2: i64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        sub_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::sub_fr(rop, op1, small.as_raw(), rnd)
-    }
+pub unsafe fn shr_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: mpc::rnd_t) -> c_int {
+    mpc::div_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn i64_sub(rop: *mut mpc_t, op1: i64, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        si_sub(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpc::fr_sub(rop, small.as_raw(), op2, rnd)
-    }
+pub unsafe fn shl_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: mpc::rnd_t) -> c_int {
+    mpc::mul_2si(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn mul_i64(rop: *mut mpc_t, op1: *const mpc_t, op2: i64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mul_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::mul_fr(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn div_i64(rop: *mut mpc_t, op1: *const mpc_t, op2: i64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        div_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::div_fr(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn i64_div(rop: *mut mpc_t, op1: i64, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        si_div(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpc::fr_div(rop, small.as_raw(), op2, rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn add_u64(rop: *mut mpc_t, op1: *const mpc_t, op2: u64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        add_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::add_fr(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn sub_u64(rop: *mut mpc_t, op1: *const mpc_t, op2: u64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        sub_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::sub_fr(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn u64_sub(rop: *mut mpc_t, op1: u64, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        ui_sub(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpc::fr_sub(rop, small.as_raw(), op2, rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn mul_u64(rop: *mut mpc_t, op1: *const mpc_t, op2: u64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mul_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::mul_fr(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn div_u64(rop: *mut mpc_t, op1: *const mpc_t, op2: u64, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        div_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpc::div_fr(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn u64_div(rop: *mut mpc_t, op1: u64, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        ui_div(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpc::fr_div(rop, small.as_raw(), op2, rnd)
-    }
+pub unsafe fn shr_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: mpc::rnd_t) -> c_int {
+    mpc::div_2si(rop, op1, op2.into(), rnd)
 }

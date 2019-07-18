@@ -2189,9 +2189,8 @@ macro_rules! arith_prim_exact_round {
         $ord:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
-        $T:ty;
-        $Incomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident;)*
+    ) => { $(
         impl $Imp<$T> for $Big {
             type Output = $Big;
             #[inline]
@@ -2233,7 +2232,7 @@ macro_rules! arith_prim_exact_round {
                     $func(
                         self.as_raw_mut(),
                         self.as_raw(),
-                        rhs.into(),
+                        rhs,
                         $raw_round(<$Round as Default>::default()),
                     );
                 }
@@ -2262,14 +2261,14 @@ macro_rules! arith_prim_exact_round {
                     $func(
                         self.as_raw_mut(),
                         src.lhs.as_raw(),
-                        src.rhs.into(),
+                        src.rhs,
                         $raw_round(round),
                     )
                 };
                 $ord(ret)
             }
         }
-    };
+    )* };
 }
 
 // arith_prim_exact_round!
@@ -2287,16 +2286,14 @@ macro_rules! arith_prim_round {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpAssignRound:ident { $method_assign_round:ident }
-        $T:ty;
-        $Incomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident;)*
+    ) => { $(
         arith_prim_exact_round! {
             $Big, $Round => $Ordering;
             $func, $raw_round => $ord;
             $Imp { $method }
             $ImpAssign { $method_assign }
-            $T;
-            $Incomplete
+            $T, $Incomplete;
         }
 
         impl $ImpAssignRound<$T> for $Big {
@@ -2308,7 +2305,7 @@ macro_rules! arith_prim_round {
                     $func(
                         self.as_raw_mut(),
                         self.as_raw(),
-                        rhs.into(),
+                        rhs,
                         $raw_round(round),
                     )
                 };
@@ -2324,7 +2321,7 @@ macro_rules! arith_prim_round {
                 <$Big as $ImpAssignRound<$T>>::$method_assign_round(self, *rhs, round)
             }
         }
-    };
+    )* };
 }
 
 // arith_prim_round!
@@ -2350,17 +2347,15 @@ macro_rules! arith_prim_commut_round {
         $ImpAssignRound:ident { $method_assign_round:ident }
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
-        $T:ty;
-        $Incomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident;)*
+    ) => { $(
         arith_prim_round! {
             $Big, $Round => $Ordering;
             $func, $raw_round => $ord;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
-            $T;
-            $Incomplete
+            $T, $Incomplete;
         }
 
         impl $Imp<$Big> for $T {
@@ -2436,7 +2431,7 @@ macro_rules! arith_prim_commut_round {
                 <$Big as $ImpFromRound<$T>>::$method_from_round(self, *lhs, round)
             }
         }
-    };
+    )* };
 }
 
 // arith_prim_round!
@@ -2465,18 +2460,15 @@ macro_rules! arith_prim_noncommut_round {
         $ImpAssignRound:ident { $method_assign_round:ident }
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
-        $T:ty;
-        $Incomplete:ident,
-        $FromIncomplete:ident
-    ) => {
+        $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
+    ) => { $(
         arith_prim_round! {
             $Big, $Round => $Ordering;
             $func, $raw_round => $ord;
             $Imp { $method }
             $ImpAssign { $method_assign }
             $ImpAssignRound { $method_assign_round }
-            $T;
-            $Incomplete
+            $T, $Incomplete;
         }
 
         impl $Imp<$Big> for $T {
@@ -2551,7 +2543,7 @@ macro_rules! arith_prim_noncommut_round {
                 let ret = unsafe {
                     $func_from(
                         self.as_raw_mut(),
-                        lhs.into(),
+                        lhs,
                         self.as_raw(),
                         $raw_round(round),
                     )
@@ -2583,7 +2575,7 @@ macro_rules! arith_prim_noncommut_round {
                 let ret = unsafe {
                     $func_from(
                         self.as_raw_mut(),
-                        src.lhs.into(),
+                        src.lhs,
                         src.rhs.as_raw(),
                         $raw_round(round),
                     )
@@ -2591,7 +2583,7 @@ macro_rules! arith_prim_noncommut_round {
                 $ord(ret)
             }
         }
-    };
+    )* };
 }
 
 // big # mul -> Big

@@ -14,8 +14,9 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::cast::CheckedCast;
 use crate::ext::xmpfr::{self, ordering1, raw_round};
-use crate::float::Round;
+use crate::float::{Round, SmallFloat};
 use crate::ops::{
     AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
     MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
@@ -32,8 +33,7 @@ use std::ops::{
     Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
     SubAssign,
 };
-use std::os::raw::c_int;
-use std::{i32, u32};
+use std::os::raw::{c_int, c_long, c_ulong};
 
 impl Neg for Float {
     type Output = Float;
@@ -331,16 +331,14 @@ macro_rules! arith_prim_exact_float {
         $func:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
-        $T:ty;
-        $Incomplete:ident
+        $($T:ty, $Incomplete:ident;)*
     ) => {
         arith_prim_exact_round! {
             Float, Round => Ordering;
             $func, raw_round => ordering1;
             $Imp { $method }
             $ImpAssign { $method_assign }
-            $T;
-            $Incomplete
+            $($T, $Incomplete;)*
         }
     };
 }
@@ -353,8 +351,7 @@ macro_rules! arith_prim_commut_float {
         $ImpAssignRound:ident { $method_assign_round:ident }
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
-        $T:ty;
-        $Incomplete:ident
+        $($T:ty, $Incomplete:ident;)*
     ) => {
         arith_prim_commut_round! {
             Float, Round => Ordering;
@@ -364,8 +361,7 @@ macro_rules! arith_prim_commut_float {
             $ImpAssignRound { $method_assign_round }
             $ImpFrom { $method_from }
             $ImpFromRound { $method_from_round }
-            $T;
-            $Incomplete
+            $($T, $Incomplete;)*
         }
     };
 }
@@ -379,9 +375,7 @@ macro_rules! arith_prim_noncommut_float {
         $ImpAssignRound:ident { $method_assign_round:ident }
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
-        $T:ty;
-        $Incomplete:ident,
-        $FromIncomplete:ident
+        $($T:ty, $Incomplete:ident, $FromIncomplete:ident;)*
     ) => {
         arith_prim_noncommut_round! {
             Float, Round => Ordering;
@@ -391,197 +385,106 @@ macro_rules! arith_prim_noncommut_float {
             $ImpAssignRound { $method_assign_round }
             $ImpFrom { $method_from }
             $ImpFromRound { $method_from_round }
-            $T;
-            $Incomplete, $FromIncomplete
+            $($T, $Incomplete, $FromIncomplete;)*
         }
     };
 }
 
-macro_rules! arith_ops {
-    (
-        $T:ty,(
-            $AddIncomplete:ident
-            $add:path,
-            $SubIncomplete:ident
-            $sub:path,
-            $SubFromIncomplete:ident
-            $sub_from:path
-        ),(
-            $MulIncomplete:ident
-            $mul:path,
-            $DivIncomplete:ident
-            $div:path,
-            $DivFromIncomplete:ident
-            $div_from:path
-        )
-    ) => {
-        arith_prim_commut_float! {
-            $add;
-            Add { add }
-            AddAssign { add_assign }
-            AddAssignRound { add_assign_round }
-            AddFrom { add_from }
-            AddFromRound { add_from_round }
-            $T;
-            $AddIncomplete
-        }
-        arith_prim_noncommut_float! {
-            $sub, $sub_from;
-            Sub { sub }
-            SubAssign { sub_assign }
-            SubAssignRound { sub_assign_round }
-            SubFrom { sub_from }
-            SubFromRound { sub_from_round }
-            $T;
-            $SubIncomplete, $SubFromIncomplete
-        }
-        arith_prim_commut_float! {
-            $mul;
-            Mul { mul }
-            MulAssign { mul_assign }
-            MulAssignRound { mul_assign_round }
-            MulFrom { mul_from }
-            MulFromRound { mul_from_round }
-            $T;
-            $MulIncomplete
-        }
-        arith_prim_noncommut_float! {
-            $div, $div_from;
-            Div { div }
-            DivAssign { div_assign }
-            DivAssignRound { div_assign_round }
-            DivFrom { div_from }
-            DivFromRound { div_from_round }
-            $T;
-            $DivIncomplete, $DivFromIncomplete
-        }
-    };
+arith_prim_commut_float! {
+    PrimOps::add;
+    Add { add }
+    AddAssign { add_assign }
+    AddAssignRound { add_assign_round }
+    AddFrom { add_from }
+    AddFromRound { add_from_round }
+    i32, AddI32Incomplete;
+    i64, AddI64Incomplete;
+    u32, AddU32Incomplete;
+    u64, AddU64Incomplete;
+    f32, AddF32Incomplete;
+    f64, AddF64Incomplete;
 }
-
-arith_ops! {
-    i32,
-    (AddI32Incomplete mpfr::add_si,
-     SubI32Incomplete mpfr::sub_si,
-     SubFromI32Incomplete mpfr::si_sub),
-    (MulI32Incomplete mpfr::mul_si,
-     DivI32Incomplete mpfr::div_si,
-     DivFromI32Incomplete mpfr::si_div)
+arith_prim_noncommut_float! {
+    PrimOps::sub, PrimOps::sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubAssignRound { sub_assign_round }
+    SubFrom { sub_from }
+    SubFromRound { sub_from_round }
+    i32, SubI32Incomplete, SubFromI32Incomplete;
+    i64, SubI64Incomplete, SubFromI64Incomplete;
+    u32, SubU32Incomplete, SubFromU32Incomplete;
+    u64, SubU64Incomplete, SubFromU64Incomplete;
+    f32, SubF32Incomplete, SubFromF32Incomplete;
+    f64, SubF64Incomplete, SubFromF64Incomplete;
 }
-arith_ops! {
-    i64,
-    (AddI64Incomplete xmpfr::add_i64,
-     SubI64Incomplete xmpfr::sub_i64,
-     SubFromI64Incomplete xmpfr::i64_sub),
-    (MulI64Incomplete xmpfr::mul_i64,
-     DivI64Incomplete xmpfr::div_i64,
-     DivFromI64Incomplete xmpfr::i64_div)
+arith_prim_commut_float! {
+    PrimOps::mul;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulAssignRound { mul_assign_round }
+    MulFrom { mul_from }
+    MulFromRound { mul_from_round }
+    i32, MulI32Incomplete;
+    i64, MulI64Incomplete;
+    u32, MulU32Incomplete;
+    u64, MulU64Incomplete;
+    f32, MulF32Incomplete;
+    f64, MulF64Incomplete;
 }
-arith_ops! {
-    u32,
-    (AddU32Incomplete mpfr::add_ui,
-     SubU32Incomplete mpfr::sub_ui,
-     SubFromU32Incomplete mpfr::ui_sub),
-    (MulU32Incomplete mpfr::mul_ui,
-     DivU32Incomplete mpfr::div_ui,
-     DivFromU32Incomplete mpfr::ui_div)
+arith_prim_noncommut_float! {
+    PrimOps::div, PrimOps::div_from;
+    Div { div }
+    DivAssign { div_assign }
+    DivAssignRound { div_assign_round }
+    DivFrom { div_from }
+    DivFromRound { div_from_round }
+    i32, DivI32Incomplete, DivFromI32Incomplete;
+    i64, DivI64Incomplete, DivFromI64Incomplete;
+    u32, DivU32Incomplete, DivFromU32Incomplete;
+    u64, DivU64Incomplete, DivFromU64Incomplete;
+    f32, DivF32Incomplete, DivFromF32Incomplete;
+    f64, DivF64Incomplete, DivFromF64Incomplete;
 }
-arith_ops! {
-    u64,
-    (AddU64Incomplete xmpfr::add_u64,
-     SubU64Incomplete xmpfr::sub_u64,
-     SubFromU64Incomplete xmpfr::u64_sub),
-    (MulU64Incomplete xmpfr::mul_u64,
-     DivU64Incomplete xmpfr::div_u64,
-     DivFromU64Incomplete xmpfr::u64_div)
-}
-arith_ops! {
-    f32,
-    (AddF32Incomplete xmpfr::add_f32,
-     SubF32Incomplete xmpfr::sub_f32,
-     SubFromF32Incomplete xmpfr::f32_sub),
-    (MulF32Incomplete xmpfr::mul_f32,
-     DivF32Incomplete xmpfr::div_f32,
-     DivFromF32Incomplete xmpfr::f32_div)
-}
-arith_ops! {
-    f64,
-    (AddF64Incomplete mpfr::add_d,
-     SubF64Incomplete mpfr::sub_d,
-     SubFromF64Incomplete mpfr::d_sub),
-    (MulF64Incomplete mpfr::mul_d,
-     DivF64Incomplete mpfr::div_d,
-     DivFromF64Incomplete mpfr::d_div)
+arith_prim_noncommut_float! {
+    PrimOps::pow, PrimOps::pow_from;
+    Pow { pow }
+    PowAssign { pow_assign }
+    PowAssignRound { pow_assign_round }
+    PowFrom { pow_from }
+    PowFromRound { pow_from_round }
+    i32, PowI32Incomplete, PowFromI32Incomplete;
+    i64, PowI64Incomplete, PowFromI64Incomplete;
+    u32, PowU32Incomplete, PowFromU32Incomplete;
+    u64, PowU64Incomplete, PowFromU64Incomplete;
+    f32, PowF32Incomplete, PowFromF32Incomplete;
+    f64, PowF64Incomplete, PowFromF64Incomplete;
 }
 
 arith_prim_exact_float! {
-    mpfr::mul_2ui;
+    xmpfr::shl_u32;
     Shl { shl }
     ShlAssign { shl_assign }
-    u32;
-    ShlU32Incomplete
+    u32, ShlU32Incomplete;
 }
 arith_prim_exact_float! {
-    mpfr::div_2ui;
+    xmpfr::shr_u32;
     Shr { shr }
     ShrAssign { shr_assign }
-    u32;
-    ShrU32Incomplete
-}
-arith_prim_noncommut_float! {
-    mpfr::pow_ui, mpfr::ui_pow;
-    Pow { pow }
-    PowAssign { pow_assign }
-    PowAssignRound { pow_assign_round }
-    PowFrom { pow_from }
-    PowFromRound { pow_from_round }
-    u32;
-    PowU32Incomplete, PowFromU32Incomplete
+    u32, ShrU32Incomplete;
 }
 arith_prim_exact_float! {
-    mpfr::mul_2si;
+    xmpfr::shl_i32;
     Shl { shl }
     ShlAssign { shl_assign }
-    i32;
-    ShlI32Incomplete
+    i32, ShlI32Incomplete;
 }
 arith_prim_exact_float! {
-    mpfr::div_2si;
+    xmpfr::shr_i32;
     Shr { shr }
     ShrAssign { shr_assign }
-    i32;
-    ShrI32Incomplete
+    i32, ShrI32Incomplete;
 }
-arith_prim_noncommut_float! {
-    mpfr::pow_si, xmpfr::si_pow;
-    Pow { pow }
-    PowAssign { pow_assign }
-    PowAssignRound { pow_assign_round }
-    PowFrom { pow_from }
-    PowFromRound { pow_from_round }
-    i32;
-    PowI32Incomplete, PowFromI32Incomplete
-}
-arith_prim_noncommut_float! {
-    xmpfr::pow_f64, xmpfr::f64_pow;
-    Pow { pow }
-    PowAssign { pow_assign }
-    PowAssignRound { pow_assign_round }
-    PowFrom { pow_from }
-    PowFromRound { pow_from_round }
-    f64;
-    PowF64Incomplete, PowFromF64Incomplete
-}
-arith_prim_noncommut_float! {
-    xmpfr::pow_f32, xmpfr::f32_pow;
-    Pow { pow }
-    PowAssign { pow_assign }
-    PowAssignRound { pow_assign_round }
-    PowFrom { pow_from }
-    PowFromRound { pow_from_round }
-    f32;
-    PowF32Incomplete, PowFromF32Incomplete
-}
-
 mul_op_commut_round! {
     Float, Round => Ordering;
     add_mul, raw_round => ordering1;
@@ -603,6 +506,117 @@ mul_op_noncommut_round! {
     SubFromRound { sub_from_round }
     MulIncomplete;
     SubMulIncomplete, SubMulFromIncomplete
+}
+
+trait PrimOps<Long>: AsLong {
+    unsafe fn add(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn sub(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn sub_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn mul(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn div(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn div_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
+}
+
+trait AsLong: Copy {
+    type Long;
+}
+
+macro_rules! as_long {
+    ($Long:ty: $($Prim:ty)*) => { $(
+        impl AsLong for $Prim {
+            type Long = $Long;
+        }
+    )* }
+}
+
+as_long! { c_long: i8 i16 i32 i64 i128 isize }
+as_long! { c_ulong: u8 u16 u32 u64 u128 usize }
+as_long! { f64: f32 f64 }
+
+macro_rules! forward {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        unsafe fn $fn(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int {
+            if let Some(op2) = op2.checked_cast() {
+                $deleg_long(rop, op1, op2, rnd)
+            } else {
+                let small: SmallFloat = op2.into();
+                $deleg(rop, op1, small.as_raw(), rnd)
+            }
+        }
+    };
+}
+macro_rules! reverse {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        unsafe fn $fn(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+            if let Some(op1) = op1.checked_cast() {
+                $deleg_long(rop, op1, op2, rnd)
+            } else {
+                let small: SmallFloat = op1.into();
+                $deleg(rop, small.as_raw(), op2, rnd)
+            }
+        }
+    };
+}
+
+impl<T> PrimOps<c_long> for T
+where
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallFloat>,
+{
+    forward! { fn add() -> mpfr::add_si, mpfr::add }
+    forward! { fn sub() -> mpfr::sub_si, mpfr::sub }
+    reverse! { fn sub_from() -> mpfr::si_sub, mpfr::sub }
+    forward! { fn mul() -> mpfr::mul_si, mpfr::mul }
+    forward! { fn div() -> mpfr::div_si, mpfr::div }
+    reverse! { fn div_from() -> mpfr::si_div, mpfr::div }
+    forward! { fn pow() -> mpfr::pow_si, mpfr::pow }
+
+    #[inline]
+    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+        let small: SmallFloat = op1.into();
+        mpfr::pow(rop, small.as_raw(), op2, rnd)
+    }
+}
+
+impl<T> PrimOps<c_ulong> for T
+where
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallFloat>,
+{
+    forward! { fn add() -> mpfr::add_ui, mpfr::add }
+    forward! { fn sub() -> mpfr::sub_ui, mpfr::sub }
+    reverse! { fn sub_from() -> mpfr::ui_sub, mpfr::sub }
+    forward! { fn mul() -> mpfr::mul_ui, mpfr::mul }
+    forward! { fn div() -> mpfr::div_ui, mpfr::div }
+    reverse! { fn div_from() -> mpfr::ui_div, mpfr::div }
+    forward! { fn pow() -> mpfr::pow_ui, mpfr::pow }
+    reverse! { fn pow_from() -> mpfr::ui_pow, mpfr::pow }
+}
+
+impl<T> PrimOps<f64> for T
+where
+    T: AsLong<Long = f64> + CheckedCast<f64> + Into<SmallFloat>,
+{
+    forward! { fn add() -> mpfr::add_d, mpfr::add }
+    forward! { fn sub() -> mpfr::sub_d, mpfr::sub }
+    reverse! { fn sub_from() -> mpfr::d_sub, mpfr::sub }
+    forward! { fn mul() -> mpfr::mul_d, mpfr::mul }
+    forward! { fn div() -> mpfr::div_d, mpfr::div }
+    reverse! { fn div_from() -> mpfr::d_div, mpfr::div }
+
+    #[inline]
+    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int {
+        let small: SmallFloat = op2.into();
+        mpfr::pow(rop, op1, small.as_raw(), rnd)
+    }
+
+    #[inline]
+    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+        let small: SmallFloat = op1.into();
+        mpfr::pow(rop, small.as_raw(), op2, rnd)
+    }
 }
 
 impl<'a> Add for MulIncomplete<'a> {

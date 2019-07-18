@@ -26,7 +26,7 @@ use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 #[cfg(feature = "integer")]
 use std::cmp;
 use std::cmp::Ordering;
-use std::os::raw::{c_int, c_long, c_void};
+use std::os::raw::{c_int, c_void};
 #[cfg(feature = "integer")]
 use std::u32;
 
@@ -445,36 +445,6 @@ pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: mpfr::rnd_t) -> c_int {
 }
 
 #[inline]
-pub unsafe fn add_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::add_d(rop, op1, op2.into(), rnd)
-}
-
-#[inline]
-pub unsafe fn sub_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::sub_d(rop, op1, op2.into(), rnd)
-}
-
-#[inline]
-pub unsafe fn f32_sub(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::d_sub(rop, op1.into(), op2, rnd)
-}
-
-#[inline]
-pub unsafe fn mul_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::mul_d(rop, op1, op2.into(), rnd)
-}
-
-#[inline]
-pub unsafe fn div_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::div_d(rop, op1, op2.into(), rnd)
-}
-
-#[inline]
-pub unsafe fn f32_div(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    mpfr::d_div(rop, op1.into(), op2, rnd)
-}
-
-#[inline]
 pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: mpfr::rnd_t) -> c_int {
     let small = SmallFloat::from(val);
     mpfr::set(rop, small.as_raw(), rnd)
@@ -529,36 +499,6 @@ pub unsafe fn cmp_i32_2exp(op1: *const mpfr_t, op2: i32, e: i32) -> c_int {
 }
 
 #[inline]
-pub unsafe fn pow_f64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f64, rnd: mpfr::rnd_t) -> c_int {
-    let small = SmallFloat::from(op2);
-    mpfr::pow(rop, op1, small.as_raw(), rnd)
-}
-
-#[inline]
-pub unsafe fn pow_f32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: f32, rnd: mpfr::rnd_t) -> c_int {
-    let small = SmallFloat::from(op2);
-    mpfr::pow(rop, op1, small.as_raw(), rnd)
-}
-
-#[inline]
-pub unsafe fn si_pow(rop: *mut mpfr_t, op1: c_long, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    let small = SmallFloat::from(op1);
-    mpfr::pow(rop, small.as_raw(), op2, rnd)
-}
-
-#[inline]
-pub unsafe fn f32_pow(rop: *mut mpfr_t, op1: f32, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    let small = SmallFloat::from(op1);
-    mpfr::pow(rop, small.as_raw(), op2, rnd)
-}
-
-#[inline]
-pub unsafe fn f64_pow(rop: *mut mpfr_t, op1: f64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    let small = SmallFloat::from(op1);
-    mpfr::pow(rop, small.as_raw(), op2, rnd)
-}
-
-#[inline]
 pub unsafe fn submul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
@@ -593,121 +533,21 @@ pub unsafe fn custom_regular(
 }
 
 #[inline]
-pub unsafe fn add_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::add_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::add(rop, op1, small.as_raw(), rnd)
-    }
+pub unsafe fn shl_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: mpfr::rnd_t) -> c_int {
+    mpfr::mul_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn sub_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::sub_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::sub(rop, op1, small.as_raw(), rnd)
-    }
+pub unsafe fn shr_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: mpfr::rnd_t) -> c_int {
+    mpfr::div_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn i64_sub(rop: *mut mpfr_t, op1: i64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        mpfr::si_sub(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpfr::sub(rop, small.as_raw(), op2, rnd)
-    }
+pub unsafe fn shl_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: mpfr::rnd_t) -> c_int {
+    mpfr::mul_2si(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn mul_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::mul_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::mul(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn div_i64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::div_si(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::div(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn i64_div(rop: *mut mpfr_t, op1: i64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        mpfr::si_div(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpfr::div(rop, small.as_raw(), op2, rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn add_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::add_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::add(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn sub_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::sub_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::sub(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn u64_sub(rop: *mut mpfr_t, op1: u64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        mpfr::ui_sub(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpfr::sub(rop, small.as_raw(), op2, rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn mul_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::mul_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::mul(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn div_u64(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u64, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
-        mpfr::div_ui(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op2);
-        mpfr::div(rop, op1, small.as_raw(), rnd)
-    }
-}
-
-#[inline]
-pub unsafe fn u64_div(rop: *mut mpfr_t, op1: u64, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
-    if let Some(op1) = cast::checked_cast(op1) {
-        mpfr::ui_div(rop, op1, op2, rnd)
-    } else {
-        let small = SmallFloat::from(op1);
-        mpfr::div(rop, small.as_raw(), op2, rnd)
-    }
+pub unsafe fn shr_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: mpfr::rnd_t) -> c_int {
+    mpfr::div_2si(rop, op1, op2.into(), rnd)
 }

@@ -231,28 +231,28 @@ arith_prim_commut! {
 
 arith_prim! {
     Integer;
-    xmpz::lshift_i32;
+    xmpz::shl_i32;
     Shl { shl }
     ShlAssign { shl_assign }
     i32, ShlI32Incomplete;
 }
 arith_prim! {
     Integer;
-    xmpz::rshift_i32;
+    xmpz::shr_i32;
     Shr { shr }
     ShrAssign { shr_assign }
     i32, ShrI32Incomplete;
 }
 arith_prim! {
     Integer;
-    xmpz::mul_2exp;
+    xmpz::shl_u32;
     Shl { shl }
     ShlAssign { shl_assign }
     u32, ShlU32Incomplete;
 }
 arith_prim! {
     Integer;
-    xmpz::fdiv_q_2exp;
+    xmpz::shr_u32;
     Shr { shr }
     ShrAssign { shr_assign }
     u32, ShrU32Incomplete;
