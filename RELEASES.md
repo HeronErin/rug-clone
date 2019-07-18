@@ -10,7 +10,7 @@ Verison 1.6.0 (unreleased)
 
   * Arithmetic operator implementations for `i8`, `i16`, `i64`,
     `i128`, `u8`, `u16`, `u64` and `u128` were added to the existing
-    implementations with `i32` and `u32`.
+    implementations for `i32` and `u32`.
 
 Verison 1.5.1 (2019-07-10)
 ==========================

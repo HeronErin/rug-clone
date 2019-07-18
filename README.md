@@ -35,7 +35,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],
     [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
-    existing implementations with [`i32`] and [`u32`].
+    existing implementations for [`i32`] and [`u32`].
 
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
