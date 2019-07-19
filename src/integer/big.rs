@@ -5619,8 +5619,8 @@ pub enum IsPrime {
 /// [`Integer::write_digits`].
 ///
 /// This trait is sealed and cannot be implemented for more types; it
-/// is implemented for [`bool`], [`u8`], [`u16`], [`u32`], [`u64`],
-/// [`u128`] and [`usize`].
+/// is implemented for [`bool`] and the unsigned integer types [`u8`],
+/// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
 /// [`Integer::assign_digits`]: ../struct.Integer.html#method.assign_digits
 /// [`Integer::from_digits`]: ../struct.Integer.html#method.from_digits

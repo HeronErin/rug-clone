@@ -189,11 +189,19 @@ impl Deref for SmallInteger {
 /// implements `ToSmall`.
 ///
 /// This trait is sealed and cannot be implemented for more types; it
-/// is implemented for all the primitive integers.
+/// is implemented for [`bool`] and the unsigned integer types [`u8`],
+/// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
 /// [`Assign`]: ../trait.Assign.html
 /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
 /// [`SmallInteger`]: struct.SmallInteger.html
+/// [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
+/// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
+/// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
+/// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+/// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
+/// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
+/// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
 pub trait ToSmall: SealedToSmall {}
 
 pub trait SealedToSmall: Sized {
@@ -248,6 +256,26 @@ macro_rules! one_limb {
 }
 
 signed! { i8 i16 i32 i64 i128 isize }
+
+impl ToSmall for bool {}
+
+impl SealedToSmall for bool {
+    #[inline]
+    fn copy(self, size: &mut c_int, limbs: &mut Limbs) {
+        if !self {
+            *size = 0;
+        } else {
+            *size = 1;
+            limbs[0] = MaybeLimb::new(1);
+        }
+    }
+
+    #[inline]
+    fn is_zero(&self) -> bool {
+        !*self
+    }
+}
+
 one_limb! { u8 u16 u32 }
 
 #[cfg(gmp_limb_bits_64)]
