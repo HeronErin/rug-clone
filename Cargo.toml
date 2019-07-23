@@ -31,7 +31,8 @@ fail-on-warnings = []
 version = "0.3.0"
 
 [dependencies.gmp-mpfr-sys]
-version = "~1.1.13"
+git = "https://gitlab.com/tspiteri/gmp-mpfr-sys.git"
+branch = "v1.2"
 default-features = false
 optional = true
 
