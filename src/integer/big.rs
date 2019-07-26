@@ -843,10 +843,10 @@ impl Integer {
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into an [`Integer`].
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as
-    /// `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -886,10 +886,10 @@ impl Integer {
     /// Parses a string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into an [`Integer`].
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as
-    /// `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -2234,11 +2234,12 @@ impl Integer {
 
     /// Adds a list of [`Integer`] values.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`],
-    /// [`From<Src> for Integer`][`From`],
-    /// [`AddAssign<Src> for Integer`][`AddAssign`] and
-    /// [`Add<Src> for Integer`][`Add`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>,
+    /// <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -2274,11 +2275,12 @@ impl Integer {
 
     /// Finds the dot product of a list of [`Integer`] value pairs.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`],
-    /// [`From<Src> for Integer`][`From`],
-    /// [`AddAssign<Src> for Integer`][`AddAssign`] and
-    /// [`Add<Src> for Integer`][`Add`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>,
+    /// <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -2310,11 +2312,12 @@ impl Integer {
 
     /// Multiplies a list of [`Integer`] values.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`],
-    /// [`From<Src> for Integer`][`From`],
-    /// [`MulAssign<Src> for Integer`][`MulAssign`] and
-    /// [`Mul<Src> for Integer`][`Mul`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>,
+    /// <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[Mul][`Mul`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -2374,9 +2377,10 @@ impl Integer {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2391,6 +2395,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn abs_ref -> AbsIncomplete;
     }
@@ -2432,9 +2437,10 @@ impl Integer {
         ///   * 1 if the value is positive
         ///   * −1 if the value is negative
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2449,6 +2455,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn signum_ref -> SignumIncomplete;
     }
@@ -2515,9 +2522,10 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Panics
     ///
@@ -2541,6 +2549,7 @@ impl Integer {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn clamp_ref<'a, Min, Max>(
@@ -2587,9 +2596,10 @@ impl Integer {
         /// Keeps the *n* least significant bits only, producing a
         /// result that is greater or equal to 0.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2603,6 +2613,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn keep_bits_ref -> KeepBitsIncomplete;
     }
@@ -2645,9 +2656,10 @@ impl Integer {
         /// negative result if the <i>n</i>th least significant bit is
         /// one.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2661,6 +2673,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn keep_signed_bits_ref -> KeepSignedBitsIncomplete;
     }
@@ -2693,9 +2706,10 @@ impl Integer {
         fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -2709,6 +2723,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn next_power_of_two_ref -> NextPowerOfTwoIncomplete;
     }
@@ -2760,10 +2775,14 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// The remainder has the same sign as the dividend.
@@ -2782,7 +2801,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn div_rem_ref -> DivRemIncomplete;
     }
     math_op2_2! {
@@ -2838,10 +2859,14 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
@@ -2858,7 +2883,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn div_rem_ceil_ref -> DivRemCeilIncomplete;
     }
     math_op2_2! {
@@ -2911,10 +2938,14 @@ impl Integer {
         ///
         /// The remainder has the same sign as the divisor.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
@@ -2931,7 +2962,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn div_rem_floor_ref -> DivRemFloorIncomplete;
     }
     math_op2_2! {
@@ -2992,10 +3025,14 @@ impl Integer {
         /// When the quotient before rounding lies exactly between two
         /// integers, it is rounded away from zero.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
@@ -3013,7 +3050,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn div_rem_round_ref -> DivRemRoundIncomplete;
     }
     math_op2_2! {
@@ -3060,10 +3099,14 @@ impl Integer {
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
@@ -3080,7 +3123,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn div_rem_euc_ref -> DivRemEucIncomplete;
     }
 
@@ -3156,9 +3201,10 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3173,6 +3219,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn div_exact_ref -> DivExactIncomplete;
     }
@@ -3219,9 +3266,10 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3234,6 +3282,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn div_exact_u_ref -> DivExactUIncomplete;
     }
@@ -3313,10 +3362,10 @@ impl Integer {
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as
-    /// `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -3339,6 +3388,7 @@ impl Integer {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertIncomplete<'a>> {
         xmpz::start_invert(self, modulo).map(|sinverse| InvertIncomplete { sinverse, modulo })
@@ -3438,10 +3488,10 @@ impl Integer {
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// unwrapped returned [incomplete-computation value][icv] as
-    /// `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -3464,6 +3514,7 @@ impl Integer {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     pub fn pow_mod_ref<'a>(
         &'a self,
@@ -3573,9 +3624,10 @@ impl Integer {
     /// are placed at the same position and the machine state is
     /// identical when starting.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Panics
     ///
@@ -3595,6 +3647,7 @@ impl Integer {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn secure_pow_mod_ref<'a>(
@@ -3612,9 +3665,10 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3627,6 +3681,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
     }
@@ -3634,9 +3689,10 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3652,6 +3708,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
     }
@@ -3692,9 +3749,10 @@ impl Integer {
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3706,6 +3764,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn root_ref -> RootIncomplete;
     }
@@ -3764,10 +3823,14 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
@@ -3789,7 +3852,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn root_rem_ref -> RootRemIncomplete;
     }
     math_op1! {
@@ -3818,9 +3883,10 @@ impl Integer {
         fn square_mut;
         /// Computes the square.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3832,6 +3898,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
     }
@@ -3869,9 +3936,10 @@ impl Integer {
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -3883,6 +3951,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn sqrt_ref -> SqrtIncomplete;
     }
@@ -3936,10 +4005,14 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
@@ -3961,7 +4034,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn sqrt_rem_ref -> SqrtRemIncomplete;
     }
 
@@ -4022,9 +4097,10 @@ impl Integer {
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4038,6 +4114,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn next_prime_ref -> NextPrimeIncomplete;
     }
@@ -4096,9 +4173,10 @@ impl Integer {
         /// The result is always positive except when both inputs are
         /// zero.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4113,6 +4191,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn gcd_ref -> GcdIncomplete;
     }
@@ -4196,17 +4275,28 @@ impl Integer {
         /// (`self` and `other`), and two cofactors to obtain the GCD
         /// from the two inputs.
         ///
-        /// [`Assign<Src> for (Integer, Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer, Integer)`][`From`]
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`],
+        /// [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`], &amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`],
+        /// [Integer][`Integer`][)][tuple]</code>
         /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// In the case that only one of the two cofactors is
-        /// required, [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`] and
-        /// [`From<Src> for (Integer, Integer)`][`From`] are also
-        /// implemented with the returned
+        /// required,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are also implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// The GCD is always positive except when both inputs are
@@ -4267,7 +4357,9 @@ impl Integer {
         ///
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn gcd_cofactors_ref -> GcdIncomplete;
     }
 
@@ -4318,9 +4410,10 @@ impl Integer {
         /// The result is always positive except when one or both
         /// inputs are zero.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4335,6 +4428,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn lcm_ref -> LcmIncomplete;
     }
@@ -4459,9 +4553,10 @@ impl Integer {
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4475,6 +4570,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn factorial(n: u32) -> FactorialIncomplete;
     }
@@ -4482,9 +4578,10 @@ impl Integer {
     math_op0! {
         /// Computes the double factorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4498,6 +4595,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn factorial_2(n: u32) -> Factorial2Incomplete;
     }
@@ -4505,9 +4603,10 @@ impl Integer {
     math_op0! {
         /// Computes the *m*-multi factorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4521,6 +4620,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete;
     }
@@ -4528,9 +4628,10 @@ impl Integer {
     math_op0! {
         /// Computes the primorial of *n*.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4544,6 +4645,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         #[inline]
         fn primorial(n: u32) -> PrimorialIncomplete;
@@ -4577,9 +4679,10 @@ impl Integer {
         fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4592,15 +4695,17 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn binomial_ref -> BinomialIncomplete;
     }
     math_op0! {
         /// Computes the binomial coefficient *n* over *k*.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// # Examples
         ///
@@ -4614,6 +4719,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete;
     }
@@ -4621,9 +4727,10 @@ impl Integer {
     math_op0! {
         /// Computes the Fibonacci number.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -4642,6 +4749,7 @@ impl Integer {
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
         /// [`fibonacci_2`]: #method.fibonacci_2
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn fibonacci(n: u32) -> FibonacciIncomplete;
     }
@@ -4650,10 +4758,14 @@ impl Integer {
         /// Computes a Fibonacci number, and the previous Fibonacci
         /// number.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
@@ -4677,16 +4789,19 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn fibonacci_2(n: u32) -> FibonacciIncomplete;
     }
 
     math_op0! {
         /// Computes the Lucas number.
         ///
-        /// [`Assign<Src> for Integer`][`Assign`] and
-        /// [`From<Src> for Integer`][`From`] are implemented with the
-        /// returned [incomplete-computation value][icv] as `Src`.
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        /// are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Lucas numbers is required, the first two
@@ -4704,6 +4819,7 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [`lucas_2`]: #method.lucas_2
         /// [icv]: index.html#incomplete-computation-values
         fn lucas(n: u32) -> LucasIncomplete;
@@ -4712,10 +4828,14 @@ impl Integer {
     math_op0! {
         /// Computes a Lucas number, and the previous Lucas number.
         ///
-        /// [`Assign<Src> for (Integer, Integer)`][`Assign`],
-        /// [`Assign<Src> for (&mut Integer, &mut Integer)`][`Assign`]
-        /// and [`From<Src> for (Integer, Integer)`][`From`] are
-        /// implemented with the returned
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// <code>[Assign][`Assign`]&lt;Src&gt; for
+        /// [(][tuple]&amp;mut [Integer][`Integer`],
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// <code>[From][`From`]&lt;Src&gt; for
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
+        /// are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`.
         ///
         /// This function is meant to calculate isolated numbers. If a
@@ -4738,7 +4858,9 @@ impl Integer {
         ///
         /// [`Assign`]: trait.Assign.html
         /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn lucas_2(n: u32) -> LucasIncomplete;
     }
 
@@ -4746,9 +4868,10 @@ impl Integer {
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -4764,6 +4887,7 @@ impl Integer {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits<'a, 'b>(
@@ -4829,9 +4953,10 @@ impl Integer {
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
-    /// [`Assign<Src> for Integer`][`Assign`] and
-    /// [`From<Src> for Integer`][`From`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
+    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    /// are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Panics
     ///
@@ -4851,6 +4976,7 @@ impl Integer {
     ///
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_below_ref<'a, 'b>(

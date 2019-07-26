@@ -171,9 +171,9 @@ impl Deref for SmallFloat {
 
 /// Types implementing this trait can be converted to [`SmallFloat`].
 ///
-/// [`Assign<T> for SmallFloat`][`Assign`] and
-/// [`From<T> for SmallFloat`][`From`] are implemented when `T`
-/// implements `ToSmall`.
+/// <code>[Assign][`Assign`]&lt;T&gt; for [SmallFloat][`SmallFloat`]</code> and
+/// <code>[From][`From`]&lt;T&gt; for [SmallFloat][`SmallFloat`]</code>
+/// are implemented when `T` implements `ToSmall`.
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for all the primitive integers and floating-point
