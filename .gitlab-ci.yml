@@ -81,6 +81,20 @@ nightly-x86_64-gnulinux:
   script:
   - ./test-gitlab-ci.sh
 
+stable-x86_64-gnulinux-valgrind:
+  image: amd64/rust:slim
+  stage: test
+  dependencies:
+  - clibs-x86_64-gnulinux
+  variables:
+    TOOLCHAIN: stable-x86_64
+  script:
+  - apt-get install -y -qq valgrind
+  - cargo +$TOOLCHAIN test --features serde --lib
+  - valgrind --leak-check=full --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
+  - cargo +$TOOLCHAIN test --release --features serde --lib
+  - valgrind --leak-check=full --error-exitcode=1 "$(ls target/release/deps/rug* | grep -v '\.d')"
+
 clibs-i686-gnulinux:
   image: i386/rust:slim
   stage: clibs
@@ -136,3 +150,17 @@ nightly-i686-gnulinux:
     TOOLCHAIN: 1.31.1-i686
   script:
   - ./test-gitlab-ci.sh
+
+stable-i686-gnulinux-valgrind:
+  image: i386/rust:slim
+  stage: test
+  dependencies:
+  - clibs-i686-gnulinux
+  variables:
+    TOOLCHAIN: stable-i686
+  script:
+  - apt-get install -y -qq valgrind
+  - cargo +$TOOLCHAIN test --features serde --lib
+  - valgrind --leak-check=full --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
+  - cargo +$TOOLCHAIN test --release --features serde --lib
+  - valgrind --leak-check=full --error-exitcode=1 "$(ls target/release/deps/rug* | grep -v '\.d')"
