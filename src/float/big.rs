@@ -8477,21 +8477,6 @@ impl Default for Format {
     }
 }
 
-trait MaxChars {
-    fn max_chars() -> usize;
-}
-impl MaxChars for i32 {
-    fn max_chars() -> usize {
-        // negative sign and 10 digits
-        11
-    }
-}
-impl MaxChars for i64 {
-    fn max_chars() -> usize {
-        // negative sign and 19 digits
-        20
-    }
-}
 pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
     assert!(
         format.radix >= 2 && format.radix <= 36,
@@ -8501,12 +8486,17 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
     let size_no_sign = if f.is_zero() {
         3
     } else if f.is_infinite() || f.is_nan() {
-        if format.radix > 10 { 5 } else { 3}
+        if format.radix > 10 {
+            5
+        } else {
+            3
+        }
     } else {
         let digits = format
             .precision
             .map(|x| if x == 1 { 2 } else { x })
             .unwrap_or(0);
+        let log2_radix = (format.radix as f64).log2();
         let digits = if digits > 0 {
             digits
         } else {
@@ -8516,10 +8506,15 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
                 f.prec()
             };
             // p is u32, dividing can only decrease it, so m fits in u32
-            let m = (p as f64 / (format.radix as f64).log2()).ceil() as u32;
-            cast::<_, usize>(m).checked_add(1).expect("overflow")
+            let m = (p as f64 / log2_radix).ceil() as u32;
+            cast::<_, usize>(m).checked_add(2).expect("overflow")
         };
-        digits.checked_add(<mpfr::exp_t as MaxChars>::max_chars()).expect("overflow")
+        const LOG10_2: f64 = 0.301029995663981195213738894724493027_f64;
+        let exp = (unsafe { mpfr::get_exp(f.as_raw()) } as f64 / log2_radix - 1.0).abs();
+        // add 1 for '-' and an extra 1 in case of rounding errors
+        let exp_digits = (exp * LOG10_2).ceil() as usize + 2;
+        // '.', exp separator, exp_digits
+        digits.checked_add(2 + exp_digits).expect("overflow")
     };
     let size = if f.is_sign_negative() {
         size_no_sign.checked_add(1).expect("overflow")
