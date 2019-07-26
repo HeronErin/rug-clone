@@ -98,11 +98,11 @@ have four versions:
  3. The third method has a “`_round`” suffix, mutates the operand,
     applies the specified [rounding method][`Round`] to the real and
     imaginary parts, and returns the rounding direction for both:
-      * `Ordering::Less` if the stored part is less than the exact
+      * [`Ordering::Less`] if the stored part is less than the exact
         result,
-      * `Ordering::Equal` if the stored part is equal to the exact
+      * [`Ordering::Equal`] if the stored part is equal to the exact
         result,
-      * `Ordering::Greater` if the stored part is greater than the
+      * [`Ordering::Greater`] if the stored part is greater than the
         exact result.
  4. The fourth method has a “`_ref`” suffix and borrows the operand.
     The returned item is an [incomplete-computation value][icv] that
@@ -143,6 +143,9 @@ assert_eq!(d, (1, 1));
 ```
 
 [`Nearest`]: float/enum.Round.html#variant.Nearest
+[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
+[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Greater
+[`Ordering::Less`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Less
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
@@ -3357,7 +3360,7 @@ impl Complex {
     /// cases, not in some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// `Ordering::Equal`, as the random numbers generated can be
+    /// [`Ordering::Equal`], as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
     /// The following are implemented with the returned
@@ -3395,6 +3398,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Complex`]: struct.Complex.html
+    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
     /// [`assign_random_bits`]: #method.assign_random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
