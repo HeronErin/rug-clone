@@ -250,6 +250,57 @@ pub enum Special {
     __Nonexhaustive,
 }
 
+/**
+Specifies which cache to free.
+
+# Examples
+
+```rust
+use rug::float::{self, FreeCache};
+float::free_cache(FreeCache::All);
+```
+*/
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum FreeCache {
+    /// Free caches local to the current thread.
+    Local,
+    /// Free caches shared by all threads.
+    Global,
+    /// Free both local and global caches.
+    All,
+    #[doc(hidden)]
+    __Nonexhaustive,
+}
+
+/**
+Frees various caches and memory pools that are used internally.
+
+To avoid memory leaks being reported when using tools like [Valgrind],
+it is advisable to free thread-local caches before terminating a
+thread and all caches before exiting.
+
+# Examples
+
+```rust
+use rug::float::{self, FreeCache};
+float::free_cache(FreeCache::All);
+```
+
+[Valgrind]: http://www.valgrind.org/
+*/
+#[inline]
+pub fn free_cache(which: FreeCache) {
+    let way = match which {
+        FreeCache::Local => mpfr::FREE_LOCAL_CACHE,
+        FreeCache::Global => mpfr::FREE_GLOBAL_CACHE,
+        FreeCache::All => mpfr::FREE_LOCAL_CACHE | mpfr::FREE_GLOBAL_CACHE,
+        _ => unreachable!(),
+    };
+    unsafe {
+        mpfr::free_cache2(way);
+    }
+}
+
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 pub(crate) mod tests {

@@ -11,6 +11,7 @@ Verison 1.6.0 (unreleased)
   * Arithmetic operator implementations for `i8`, `i16`, `i64`,
     `i128`, `u8`, `u16`, `u64` and `u128` were added to the existing
     implementations for `i32` and `u32`.
+  * The function `float::free_cache` was added.
 
 Verison 1.5.2 (2019-07-26)
 ==========================
