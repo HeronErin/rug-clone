@@ -117,24 +117,23 @@ impl Hash for OrdFloat {
     {
         let s = &self.inner;
         s.get_exp().hash(state);
-        let nan: u8 = if s.is_nan() { 1 } else { 0 };
-        let infinite: u8 = if s.is_infinite() { 1 } else { 0 };
-        let zero: u8 = if s.is_zero() { 1 } else { 0 };
-        let normal: u8 = if s.is_normal() { 1 } else { 0 };
-        let sign: u8 = if s.is_sign_negative() { 1 } else { 0 };
-        let flags = nan << 4 | infinite << 3 | zero << 2 | normal << 1 | sign;
+        let nan = if s.is_nan() { 1u8 << 4 } else { 0 };
+        let infinite = if s.is_infinite() { 1u8 << 3 } else { 0 };
+        let zero = if s.is_zero() { 1u8 << 2 } else { 0 };
+        let normal = if s.is_normal() { 1u8 << 1 } else { 0 };
+        let sign = if s.is_sign_negative() { 1u8 } else { 0 };
+        let flags = nan | infinite | zero | normal | sign;
         flags.hash(state);
-        if !normal {
-            return;
+        if normal != 0 {
+            let prec: usize = cast(s.prec());
+            let mut limbs = prec / cast::<_, usize>(gmp::LIMB_BITS);
+            // MPFR keeps unused bits set to zero, so use whole of last limb
+            if prec % cast::<_, usize>(gmp::LIMB_BITS) > 0 {
+                limbs += 1;
+            };
+            let slice = unsafe { slice::from_raw_parts(s.inner().d, limbs) };
+            slice.hash(state);
         }
-        let prec: usize = cast(s.prec());
-        let mut limbs = prec / cast::<_, usize>(gmp::LIMB_BITS);
-        // MPFR keeps unused bits set to zero, so use whole of last limb
-        if prec % cast::<_, usize>(gmp::LIMB_BITS) > 0 {
-            limbs += 1;
-        };
-        let slice = unsafe { slice::from_raw_parts(s.inner().d, limbs) };
-        slice.hash(state);
     }
 }
 
