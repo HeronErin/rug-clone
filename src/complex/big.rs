@@ -3779,6 +3779,22 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
     let im_plus = f.sign_plus && im.is_sign_positive();
     let re_prefix = !f.prefix.is_empty() && re.is_finite();
     let im_prefix = !f.prefix.is_empty() && im.is_finite();
+    let extra = 3
+        + if re_plus { 1 } else { 0 }
+        + if im_plus { 1 } else { 0 }
+        + if re_prefix { f.prefix.len() } else { 0 }
+        + if im_prefix { f.prefix.len() } else { 0 };
+    let ff = FloatFormat {
+        radix: f.radix,
+        precision: f.precision,
+        round: f.round.0,
+        to_upper: f.to_upper,
+        exp: f.exp,
+    };
+    let cap = big_float::req_chars(re, ff, extra);
+    let cap = big_float::req_chars(im, ff, cap);
+    s.reserve(cap);
+    let reserved_ptr = s.as_ptr();
     s.push('(');
     if re_plus {
         s.push('+');
@@ -3788,13 +3804,6 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
         s.push_str(f.prefix);
     }
     let prefix_end = s.len();
-    let ff = FloatFormat {
-        radix: f.radix,
-        precision: f.precision,
-        round: f.round.0,
-        to_upper: f.to_upper,
-        exp: f.exp,
-    };
     big_float::append_to_string(s, re, ff);
     if re_prefix && s.as_bytes()[prefix_end] == b'-' {
         unsafe {
@@ -3825,6 +3834,11 @@ pub(crate) fn append_to_string(s: &mut String, c: &Complex, f: Format) {
         }
     }
     s.push(')');
+    debug_assert_eq!(reserved_ptr, s.as_ptr());
+    #[cfg(not(debug_assertions))]
+    {
+        let _ = reserved_ptr;
+    }
 }
 
 #[derive(Debug)]

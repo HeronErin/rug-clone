@@ -8477,8 +8477,66 @@ impl Default for Format {
     }
 }
 
+trait MaxChars {
+    fn max_chars() -> usize;
+}
+impl MaxChars for i32 {
+    fn max_chars() -> usize {
+        // negative sign and 10 digits
+        11
+    }
+}
+impl MaxChars for i64 {
+    fn max_chars() -> usize {
+        // negative sign and 19 digits
+        20
+    }
+}
+pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
+    assert!(
+        format.radix >= 2 && format.radix <= 36,
+        "radix {} out of range",
+        format.radix
+    );
+    let size_no_sign = if f.is_zero() {
+        3
+    } else if f.is_infinite() || f.is_nan() {
+        if format.radix > 10 { 5 } else { 3}
+    } else {
+        let digits = format
+            .precision
+            .map(|x| if x == 1 { 2 } else { x })
+            .unwrap_or(0);
+        let digits = if digits > 0 {
+            digits
+        } else {
+            let p = if (format.radix as u32).is_power_of_two() {
+                f.prec() - 1
+            } else {
+                f.prec()
+            };
+            // p is u32, dividing can only decrease it, so m fits in u32
+            let m = (p as f64 / (format.radix as f64).log2()).ceil() as u32;
+            cast::<_, usize>(m).checked_add(1).expect("overflow")
+        };
+        digits.checked_add(<mpfr::exp_t as MaxChars>::max_chars()).expect("overflow")
+    };
+    let size = if f.is_sign_negative() {
+        size_no_sign.checked_add(1).expect("overflow")
+    } else {
+        size_no_sign
+    };
+    size.checked_add(extra).expect("overflow")
+}
+
 pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
     use std::fmt::Write;
+
+    // no need to add 1 for nul in case of normal numbers, as exponent
+    // will overwrite nul
+    let size = req_chars(f, format, 0);
+    s.reserve(size);
+    let reserved_ptr = s.as_ptr();
 
     if f.is_zero() {
         s.push_str(if f.is_sign_negative() { "-0.0" } else { "0.0" });
@@ -8513,34 +8571,36 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         .map(|x| if x == 1 { 2 } else { x })
         .unwrap_or(0);
     let mut exp: mpfr::exp_t;
-    let c_buf;
-    let negative;
-    let slice;
     unsafe {
+        let vec = s.as_mut_vec();
+        let write_at = vec.as_mut_ptr().add(vec.len());
+        // start one character late, as we need to insert '.'
+        let write_at_p1 = write_at.add(1);
         let_uninit_ptr!(maybe_exp, exp_ptr);
-        c_buf = mpfr::get_str(
-            ptr::null_mut(),
+        let c_buf = mpfr::get_str(
+            write_at_p1 as *mut c_char,
             exp_ptr,
             cast(radix_with_case),
             digits,
             f.as_raw(),
             raw_round(format.round),
         );
+        assert_eq!(c_buf, write_at_p1 as *mut c_char);
         exp = assume_init!(maybe_exp);
-        let c_str = CStr::from_ptr(c_buf);
+        let c_str = CStr::from_ptr(write_at_p1 as *mut c_char);
         let c_bytes = c_str.to_bytes();
-        negative = c_bytes[0] == b'-';
-        let bytes = if negative { &c_bytes[1..] } else { c_bytes };
-        slice = str::from_utf8(bytes).expect("mpfr string not utf-8");
-    }
-    if negative {
-        s.push('-');
-    }
-    s.push_str(&slice[0..1]);
-    s.push('.');
-    s.push_str(&slice[1..]);
-    unsafe {
-        mpfr::free_str(c_buf);
+        // add one because we'll insert a '.'
+        let added = 1 + c_bytes.len();
+        assert!(added < size, "buffer overflow");
+        if *write_at_p1 == b'-' {
+            write_at.write(b'-');
+            write_at_p1.write(write_at.add(2).read());
+            write_at.add(2).write(b'.');
+        } else {
+            write_at.write(write_at_p1.read());
+            write_at_p1.write(b'.');
+        }
+        vec.set_len(vec.len() + added);
     }
     exp = exp.checked_sub(1).expect("overflow");
     if exp != 0 {
@@ -8552,6 +8612,11 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
             'e'
         });
         write!(s, "{}", exp).unwrap();
+    }
+    debug_assert_eq!(reserved_ptr, s.as_ptr());
+    #[cfg(not(debug_assertions))]
+    {
+        let _ = reserved_ptr;
     }
 }
 
@@ -8601,7 +8666,7 @@ macro_rules! parse_error {
 }
 
 fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatError> {
-    assert!(radix >= 2 && radix <= 36, "radix out of range");
+    assert!(radix >= 2 && radix <= 36, "radix {} out of range", radix);
     let bradix: u8 = cast(radix);
     let small_bound = b'a' - 10 + bradix;
     let capital_bound = b'A' - 10 + bradix;
