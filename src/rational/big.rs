@@ -469,10 +469,10 @@ impl Rational {
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into a [`Rational`] number.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    /// are implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -517,10 +517,10 @@ impl Rational {
     /// Parses a string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into a [`Rational`] number.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    /// are implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
     ///
     /// The string must contain a numerator, and may contain a
     /// denominator; the numerator and denominator are separated with
@@ -1105,12 +1105,12 @@ impl Rational {
 
     /// Adds a list of [`Rational`] values.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-    /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-    /// <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-    /// <code>[Add][`Add`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Rational][`Rational`]</code>
     ///
     /// # Examples
     ///
@@ -1145,12 +1145,12 @@ impl Rational {
 
     /// Finds the dot product of a list of [`Rational`] value pairs.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-    /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-    /// <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-    /// <code>[Add][`Add`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Rational][`Rational`]</code>
     ///
     /// # Examples
     ///
@@ -1182,12 +1182,12 @@ impl Rational {
 
     /// Multiplies a list of [`Rational`] values.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-    /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-    /// <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-    /// <code>[Mul][`Mul`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[Mul][`Mul`]&lt;Src&gt; for [Rational][`Rational`]</code>
     ///
     /// # Examples
     ///
@@ -1246,10 +1246,10 @@ impl Rational {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1305,12 +1305,12 @@ impl Rational {
         ///   * 1 if the value is positive
         ///   * −1 if the value is negative
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1392,10 +1392,10 @@ impl Rational {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
     ///
     /// # Panics
     ///
@@ -1476,10 +1476,10 @@ impl Rational {
         fn recip_mut;
         /// Computes the reciprocal.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1533,12 +1533,12 @@ impl Rational {
         fn trunc_mut;
         /// Rounds the number towards zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1591,10 +1591,10 @@ impl Rational {
         fn rem_trunc_mut;
         /// Computes the fractional part of the number.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1648,15 +1648,17 @@ impl Rational {
         fn fract_trunc_mut;
         /// Computes the fractional and truncated parts of the number.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Rational][`Rational`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Rational][`Rational`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -1715,12 +1717,12 @@ impl Rational {
         fn ceil_mut;
         /// Rounds the number upwards (towards plus infinity).
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1772,10 +1774,10 @@ impl Rational {
         fn rem_ceil_mut;
         /// Computes the non-positive remainder after rounding up.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1835,15 +1837,17 @@ impl Rational {
         ///
         /// The fractional part cannot be greater than zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Rational][`Rational`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Rational][`Rational`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -1900,12 +1904,12 @@ impl Rational {
         fn floor_mut;
         /// Rounds the number downwards (towards minus infinity).
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -1957,10 +1961,10 @@ impl Rational {
         fn rem_floor_mut;
         /// Computes the non-negative remainder after rounding down.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -2020,15 +2024,17 @@ impl Rational {
         ///
         /// The fractional part cannot be negative.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Rational][`Rational`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Rational][`Rational`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -2096,12 +2102,12 @@ impl Rational {
         /// When the number lies exactly between two integers, it is
         /// rounded away from zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>,
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -2164,10 +2170,10 @@ impl Rational {
         /// Computes the remainder after rounding to the nearest
         /// integer.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///
@@ -2252,15 +2258,17 @@ impl Rational {
         /// number lies exactly between two integers, it is rounded away
         /// from zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Rational][`Rational`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Rational][`Rational`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Rational][`Rational`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Rational][`Rational`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -2316,10 +2324,10 @@ impl Rational {
         fn square_mut;
         /// Computes the square.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Rational][`Rational`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Rational][`Rational`]</code>
         ///
         /// # Examples
         ///

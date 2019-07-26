@@ -187,9 +187,9 @@ impl Deref for SmallInteger {
 
 /// Types implementing this trait can be converted to [`SmallInteger`].
 ///
-/// <code>[Assign][`Assign`]&lt;T&gt; for [SmallInteger][`SmallInteger`]</code> and
-/// <code>[From][`From`]&lt;T&gt; for [SmallInteger][`SmallInteger`]</code>
-/// are implemented when `T` implements `ToSmall`.
+/// The following are implemented when `T` implements `ToSmall`:
+///   * <code>[Assign][`Assign`]&lt;T&gt; for [SmallInteger][`SmallInteger`]</code>
+///   * <code>[From][`From`]&lt;T&gt; for [SmallInteger][`SmallInteger`]</code>
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for all the primitive integers.

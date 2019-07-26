@@ -843,10 +843,10 @@ impl Integer {
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into an [`Integer`].
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -886,10 +886,10 @@ impl Integer {
     /// Parses a string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into an [`Integer`].
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// The string can start with an optional minus or plus sign.
     /// ASCII whitespace is ignored everywhere in the string.
@@ -2234,12 +2234,12 @@ impl Integer {
 
     /// Adds a list of [`Integer`] values.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-    /// <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Examples
     ///
@@ -2275,12 +2275,12 @@ impl Integer {
 
     /// Finds the dot product of a list of [`Integer`] value pairs.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-    /// <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Examples
     ///
@@ -2312,12 +2312,12 @@ impl Integer {
 
     /// Multiplies a list of [`Integer`] values.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>,
-    /// <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[Mul][`Mul`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[MulAssign][`MulAssign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[Mul][`Mul`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Examples
     ///
@@ -2377,10 +2377,10 @@ impl Integer {
         fn abs_mut;
         /// Computes the absolute value.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -2437,10 +2437,10 @@ impl Integer {
         ///   * 1 if the value is positive
         ///   * −1 if the value is negative
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -2522,10 +2522,10 @@ impl Integer {
 
     /// Clamps the value within the specified bounds.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Panics
     ///
@@ -2596,10 +2596,10 @@ impl Integer {
         /// Keeps the *n* least significant bits only, producing a
         /// result that is greater or equal to 0.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -2656,10 +2656,10 @@ impl Integer {
         /// negative result if the <i>n</i>th least significant bit is
         /// one.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -2706,10 +2706,10 @@ impl Integer {
         fn next_power_of_two_mut;
         /// Finds the next power of two, or 1 if the number ≤ 0.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -2775,15 +2775,17 @@ impl Integer {
         /// Performs a division producing both the quotient and
         /// remainder.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// The remainder has the same sign as the dividend.
         ///
@@ -2859,15 +2861,17 @@ impl Integer {
         /// The sign of the remainder is the opposite of the divisor’s
         /// sign.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -2938,15 +2942,17 @@ impl Integer {
         ///
         /// The remainder has the same sign as the divisor.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -3025,15 +3031,17 @@ impl Integer {
         /// When the quotient before rounding lies exactly between two
         /// integers, it is rounded away from zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -3099,15 +3107,17 @@ impl Integer {
         /// Performs Euclidan division producing both the quotient and
         /// remainder, with a positive remainder.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -3201,10 +3211,10 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -3266,10 +3276,10 @@ impl Integer {
         /// This is much faster than normal division, but produces
         /// correct results only when the division is exact.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -3362,10 +3372,10 @@ impl Integer {
     /// The inverse exists if the modulo is not zero, and `self` and
     /// the modulo are co-prime, that is their GCD is 1.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Examples
     ///
@@ -3488,10 +3498,10 @@ impl Integer {
     /// If the exponent is negative, then the number must have an
     /// inverse for an answer to exist.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the unwrapped returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the unwrapped returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Examples
     ///
@@ -3624,10 +3634,10 @@ impl Integer {
     /// are placed at the same position and the machine state is
     /// identical when starting.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Panics
     ///
@@ -3665,10 +3675,10 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -3689,10 +3699,10 @@ impl Integer {
     math_op0! {
         /// Raises `base` to the power of `exponent`.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -3749,10 +3759,10 @@ impl Integer {
         fn root_mut;
         /// Computes the <i>n</i>th root and truncates the result.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -3823,15 +3833,17 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root raised to the power of *n*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -3883,10 +3895,10 @@ impl Integer {
         fn square_mut;
         /// Computes the square.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -3936,10 +3948,10 @@ impl Integer {
         fn sqrt_mut;
         /// Computes the square root and truncates the result.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4005,15 +4017,17 @@ impl Integer {
         /// The remainder is the original number minus the truncated
         /// root squared.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -4097,10 +4111,10 @@ impl Integer {
         /// Identifies primes using a probabilistic algorithm; the
         /// chance of a composite passing will be extremely small.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4173,10 +4187,10 @@ impl Integer {
         /// The result is always positive except when both inputs are
         /// zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4275,25 +4289,28 @@ impl Integer {
         /// (`self` and `other`), and two cofactors to obtain the GCD
         /// from the two inputs.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`],
-        /// [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`], &amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`],
-        /// [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// In the case that only one of the two cofactors is
         /// required,
         /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
+        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
         /// <code>[Assign][`Assign`]&lt;Src&gt; for
         /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
+        /// &amp;mut [Integer][`Integer`][)][tuple]</code>
         /// <code>[From][`From`]&lt;Src&gt; for
         /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
         /// are also implemented with the returned
@@ -4410,10 +4427,10 @@ impl Integer {
         /// The result is always positive except when one or both
         /// inputs are zero.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4553,10 +4570,10 @@ impl Integer {
     math_op0! {
         /// Computes the factorial of *n*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4578,10 +4595,10 @@ impl Integer {
     math_op0! {
         /// Computes the double factorial of *n*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4603,10 +4620,10 @@ impl Integer {
     math_op0! {
         /// Computes the *m*-multi factorial of *n*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4628,10 +4645,10 @@ impl Integer {
     math_op0! {
         /// Computes the primorial of *n*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4679,10 +4696,10 @@ impl Integer {
         fn binomial_mut;
         /// Computes the binomial coefficient over *k*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4702,10 +4719,10 @@ impl Integer {
     math_op0! {
         /// Computes the binomial coefficient *n* over *k*.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// # Examples
         ///
@@ -4727,10 +4744,10 @@ impl Integer {
     math_op0! {
         /// Computes the Fibonacci number.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -4758,15 +4775,17 @@ impl Integer {
         /// Computes a Fibonacci number, and the previous Fibonacci
         /// number.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Fibonacci numbers is required, the first two
@@ -4798,10 +4817,10 @@ impl Integer {
     math_op0! {
         /// Computes the Lucas number.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
         ///
         /// This function is meant for an isolated number. If a
         /// sequence of Lucas numbers is required, the first two
@@ -4828,15 +4847,17 @@ impl Integer {
     math_op0! {
         /// Computes a Lucas number, and the previous Lucas number.
         ///
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code> and
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// This function is meant to calculate isolated numbers. If a
         /// sequence of Lucas numbers is required, the first two values of
@@ -4868,10 +4889,10 @@ impl Integer {
     /// Generates a random number with a specified maximum number of
     /// bits.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Examples
     ///
@@ -4953,10 +4974,10 @@ impl Integer {
     /// Generates a non-negative random number below the given
     /// boundary value.
     ///
-    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code> and
-    /// <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
-    /// are implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+    ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
     ///
     /// # Panics
     ///
