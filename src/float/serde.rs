@@ -205,5 +205,8 @@ mod tests {
         Check::De(&f).check(16, "f");
         Check::De(&f).check(16, "0.f@1");
         Check::De(&f).check(15, "1.0@1");
+
+        use crate::tests;
+        tests::free_cache();
     }
 }

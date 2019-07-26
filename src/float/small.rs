@@ -392,7 +392,7 @@ impl Assign for SmallFloat {
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use crate::float::SmallFloat;
+    use crate::float::{self, FreeCache, SmallFloat};
     use crate::Assign;
 
     #[test]
@@ -430,5 +430,7 @@ mod tests {
         assert_eq!(*f, -6);
         f.assign(0u32);
         assert_eq!(*f, 0);
+
+        float::free_cache(FreeCache::All);
     }
 }

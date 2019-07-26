@@ -222,5 +222,8 @@ mod tests {
         Check::SerDe(&c).check(16, "(f.0000000000 @NaN@)");
         Check::De(&c).check(10, "(1.5e1 nan)");
         Check::De(&c).check(15, "(1.0@1 @nan@)");
+
+        use crate::float::arith::tests;
+        tests::free_cache();
     }
 }

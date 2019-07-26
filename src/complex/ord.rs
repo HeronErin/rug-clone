@@ -158,7 +158,7 @@ impl From<OrdComplex> for Complex {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     use crate::Complex;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
@@ -202,5 +202,7 @@ mod tests {
         assert_ne!(calculate_hash(ord_pn), calculate_hash(ord_np));
         assert_ne!(calculate_hash(ord_np), calculate_hash(ord_nn));
         assert_ne!(calculate_hash(ord_nn), calculate_hash(ord_pp));
+
+        float::free_cache(FreeCache::All);
     }
 }

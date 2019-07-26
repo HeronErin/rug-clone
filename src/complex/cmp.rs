@@ -84,7 +84,7 @@ eq_re! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     #[cfg(feature = "integer")]
     use crate::Integer;
     #[cfg(feature = "rational")]
@@ -226,5 +226,7 @@ mod tests {
         #[cfg(feature = "rational")]
         check_eq_big(&q, &against);
         check_eq_big(&f, &against);
+
+        float::free_cache(FreeCache::All);
     }
 }

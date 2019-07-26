@@ -748,7 +748,7 @@ unsafe fn mul_sub(
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity)]
 pub(crate) mod tests {
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     use crate::ops::Pow;
     use crate::Float;
     #[cfg(feature = "integer")]
@@ -844,6 +844,8 @@ pub(crate) mod tests {
         test_ref_op!(pd - &lhs, pd - lhs.clone());
         test_ref_op!(pd * &lhs, pd * lhs.clone());
         test_ref_op!(pd / &lhs, pd / lhs.clone());
+
+        float::free_cache(FreeCache::All);
     }
 
     macro_rules! check_others {
@@ -949,5 +951,7 @@ pub(crate) mod tests {
         check_others!(&z, against);
         #[cfg(feature = "rational")]
         check_others!(&q, against);
+
+        float::free_cache(FreeCache::All);
     }
 }

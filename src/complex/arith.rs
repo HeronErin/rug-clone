@@ -740,7 +740,7 @@ unsafe fn mul_sub(
 #[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::float::arith::tests as float_tests;
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     use crate::ops::{NegAssign, Pow};
     #[cfg(feature = "integer")]
     use crate::Integer;
@@ -760,6 +760,8 @@ mod tests {
         assert!(a.real().is_sign_positive() && a.imag().is_sign_negative());
         let a = Complex::with_val(53, -&a);
         assert!(a.real().is_sign_negative() && a.imag().is_sign_positive());
+
+        float::free_cache(FreeCache::All);
     }
 
     fn same(a: Complex, b: Complex) -> bool {
@@ -823,6 +825,8 @@ mod tests {
 
         test_ref_op!((&lhs).pow(ps), lhs.clone().pow(ps));
         test_ref_op!((&lhs).pow(pd), lhs.clone().pow(pd));
+
+        float::free_cache(FreeCache::All);
     }
 
     macro_rules! check_others {
@@ -943,6 +947,8 @@ mod tests {
         #[cfg(feature = "rational")]
         check_others!(&q, against);
         check_others!(&f, against);
+
+        float::free_cache(FreeCache::All);
     }
 
     macro_rules! check_pow {
@@ -1005,5 +1011,7 @@ mod tests {
             ],
             against
         );
+
+        float::free_cache(FreeCache::All);
     }
 }

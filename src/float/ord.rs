@@ -207,7 +207,7 @@ impl From<OrdFloat> for Float {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     use crate::Float;
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
@@ -234,5 +234,7 @@ mod tests {
         assert_eq!(calculate_hash(ord_n), calculate_hash(ord_n));
         assert_ne!(ord_p, ord_n);
         assert_ne!(calculate_hash(ord_p), calculate_hash(ord_n));
+
+        float::free_cache(FreeCache::All);
     }
 }

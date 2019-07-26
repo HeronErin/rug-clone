@@ -304,7 +304,7 @@ pub fn free_cache(which: FreeCache) {
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 pub(crate) mod tests {
-    use crate::float::{Round, Special};
+    use crate::float::{self, FreeCache, Round, Special};
     #[cfg(feature = "rand")]
     use crate::rand::{RandGen, RandState};
     use crate::{Assign, Float};
@@ -408,6 +408,8 @@ pub(crate) mod tests {
                 Err(_err) => panic!("could not parse {}", s),
             }
         }
+
+        float::free_cache(FreeCache::All);
     }
 
     #[test]
@@ -436,6 +438,8 @@ pub(crate) mod tests {
         let dir = f.clamp_round(&1.00002, &1.00001, Round::Up);
         assert_eq!(f, 1.125);
         assert_eq!(dir, Ordering::Greater);
+
+        float::free_cache(FreeCache::All);
     }
 
     #[test]
@@ -488,12 +492,16 @@ pub(crate) mod tests {
         assert_eq!(format!("{:012.3X}", f), "-000001.B0@1");
         assert_eq!(format!("{:#012.2x}", f), "-0x00001.b@1");
         assert_eq!(format!("{:#12.2X}", f), "    -0x1.B@1");
+
+        float::free_cache(FreeCache::All);
     }
 
     #[test]
     fn check_assumptions() {
         assert_eq!(unsafe { mpfr::custom_get_size(64) }, 8);
         assert!(unsafe { mpfr::custom_get_size(32) } <= gmp::NUMB_BITS as usize);
+
+        float::free_cache(FreeCache::All);
     }
 
     #[cfg(feature = "rand")]
@@ -538,5 +546,7 @@ pub(crate) mod tests {
                 mpfr::set_emin(save_emin);
             }
         }
+
+        float::free_cache(FreeCache::All);
     }
 }

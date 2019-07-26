@@ -85,7 +85,7 @@ impl Prec for (u32, u32) {
 #[cfg(test)]
 mod tests {
     use crate::float::tests::Cmp;
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     use crate::{Assign, Complex};
     use std::f64;
 
@@ -148,6 +148,8 @@ mod tests {
                 Err(e) => panic!("could not parse {} because {:?}", s, e),
             }
         }
+
+        float::free_cache(FreeCache::All);
     }
 
     #[test]
@@ -174,5 +176,7 @@ mod tests {
         assert_eq!(format!("{:#.2x}", c), "(0x3.8 -0xb.0)");
         assert_eq!(format!("{:.2X}", c), "(3.8 -B.0)");
         assert_eq!(format!("{:#.2X}", c), "(0x3.8 -0xB.0)");
+
+        float::free_cache(FreeCache::All);
     }
 }

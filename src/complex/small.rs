@@ -297,6 +297,7 @@ impl Assign for SmallComplex {
 #[cfg(test)]
 mod tests {
     use crate::complex::SmallComplex;
+    use crate::float::{self, FreeCache};
     use crate::Assign;
 
     #[test]
@@ -312,5 +313,7 @@ mod tests {
         assert_eq!(*c, (6.0, 7.0));
         c.assign(other);
         assert_eq!(*c, (4.0, 5.0));
+
+        float::free_cache(FreeCache::All);
     }
 }

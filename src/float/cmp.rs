@@ -188,7 +188,7 @@ cmp! { IExpIncomplete }
 
 #[cfg(test)]
 mod tests {
-    use crate::float::Special;
+    use crate::float::{self, FreeCache, Special};
     #[cfg(feature = "integer")]
     use crate::Integer;
     #[cfg(feature = "rational")]
@@ -310,5 +310,7 @@ mod tests {
         check_cmp_big(z, &against);
         #[cfg(feature = "rational")]
         check_cmp_big(q, &against);
+
+        float::free_cache(FreeCache::All);
     }
 }

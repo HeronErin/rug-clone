@@ -369,6 +369,7 @@ unsafe impl Sync for Float {}
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
+    use crate::float::{self, FreeCache};
     use crate::ops::AssignRound;
     use crate::{Assign, Float};
     use std::cmp::Ordering;
@@ -389,6 +390,8 @@ mod tests {
 
         f.assign(other);
         assert_eq!(f, 15.0);
+
+        float::free_cache(FreeCache::All);
     }
 
     #[cfg(all(try_from, feature = "rational"))]
@@ -417,5 +420,7 @@ mod tests {
                 assert_eq!(r, *f);
             }
         }
+
+        float::free_cache(FreeCache::All);
     }
 }
