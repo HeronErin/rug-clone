@@ -7812,8 +7812,18 @@ impl Float {
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
-        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Float][`Float`],
+        ///     [Float][`Float`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Float][`Float`],
+        ///     &amp;mut [Float][`Float`][)][tuple]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+        ///     [(][tuple][Float][`Float`],
+        ///     [Float][`Float`][)][tuple]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Float][`Float`],
+        ///     &amp;mut [Float][`Float`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -7837,6 +7847,7 @@ impl Float {
         /// [`Assign`]: trait.Assign.html
         /// [`Float`]: struct.Float.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn trunc_fract_ref -> TruncFractIncomplete;
     }
 
