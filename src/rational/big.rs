@@ -2637,17 +2637,22 @@ impl Deref for BorrowRational<'_> {
 pub(crate) fn append_to_string(s: &mut String, r: &Rational, radix: i32, to_upper: bool) {
     let (num, den) = (r.numer(), r.denom());
     let is_whole = *den == 1;
-    let cap_for_den_nul = if is_whole {
-        1
-    } else {
-        big_integer::req_chars(den, radix, 2)
+    if !is_whole {
+        // 2 for '/' and nul
+        let cap_for_den_nul = big_integer::req_chars(den, radix, 2);
+        let cap = big_integer::req_chars(num, radix, cap_for_den_nul);
+        s.reserve(cap);
     };
-    let cap = big_integer::req_chars(num, radix, cap_for_den_nul);
-    s.reserve(cap);
+    let reserved_ptr = s.as_ptr();
     big_integer::append_to_string(s, num, radix, to_upper);
     if !is_whole {
         s.push('/');
         big_integer::append_to_string(s, den, radix, to_upper);
+        debug_assert_eq!(reserved_ptr, s.as_ptr());
+        #[cfg(not(debug_assertions))]
+        {
+            let _ = reserved_ptr;
+        }
     }
 }
 

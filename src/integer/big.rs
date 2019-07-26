@@ -5577,6 +5577,7 @@ pub(crate) fn append_to_string(s: &mut String, i: &Integer, radix: i32, to_upper
     // add 1 for nul
     let size = req_chars(i, radix, 1);
     s.reserve(size);
+    let reserved_ptr = s.as_ptr();
     let case_radix = if to_upper { -radix } else { radix };
     let orig_len = s.len();
     unsafe {
@@ -5590,6 +5591,11 @@ pub(crate) fn append_to_string(s: &mut String, i: &Integer, radix: i32, to_upper
         let added = slice::from_raw_parts(start, size);
         let nul_index = added.iter().position(|&x| x == 0).unwrap();
         bytes.set_len(orig_len + nul_index);
+    }
+    debug_assert_eq!(reserved_ptr, s.as_ptr());
+    #[cfg(not(debug_assertions))]
+    {
+        let _ = reserved_ptr;
     }
 }
 
