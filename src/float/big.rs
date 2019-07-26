@@ -201,11 +201,10 @@ the MPFR website. The program computes a lower bound on 1 + 1/1! +
 `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 
 ```rust
-use rug::float::{Round};
+use rug::float::{self, FreeCache, Round};
 use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
 use rug::Float;
 
-# fn main() {
 let mut t = Float::with_val(200, 1.0);
 let mut s = Float::with_val(200, 1.0);
 let mut u = Float::new(200);
@@ -222,7 +221,8 @@ let sr = s.to_string_radix_round(10, None, Round::Down);
 println!("Sum is {}", sr);
 # let good = "2.7182818284590452353602874713526624977572470936999595749669131";
 # assert_eq!(sr, good);
-# }
+
+float::free_cache(FreeCache::All);
 ```
 
 [MPFR sample]: https://www.mpfr.org/sample.html
