@@ -117,8 +117,14 @@ impl Hash for OrdFloat {
     {
         let s = &self.inner;
         s.get_exp().hash(state);
-        s.is_sign_negative().hash(state);
-        if s.is_nan() || s.is_infinite() {
+        let nan: u8 = if s.is_nan() { 1 } else { 0 };
+        let infinite: u8 = if s.is_infinite() { 1 } else { 0 };
+        let zero: u8 = if s.is_zero() { 1 } else { 0 };
+        let normal: u8 = if s.is_normal() { 1 } else { 0 };
+        let sign: u8 = if s.is_sign_negative() { 1 } else { 0 };
+        let flags = nan << 4 | infinite << 3 | zero << 2 | normal << 1 | sign;
+        flags.hash(state);
+        if !normal {
             return;
         }
         let prec: usize = cast(s.prec());
