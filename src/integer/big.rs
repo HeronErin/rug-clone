@@ -1742,7 +1742,7 @@ impl Integer {
         ret
     }
 
-    /// Borrows an absolute copy of the `Integer`.
+    /// Borrows an absolute copy of the [`Integer`].
     ///
     /// The returned object implements
     /// [`Deref<Target = Integer>`][`Deref`].
@@ -1764,6 +1764,7 @@ impl Integer {
     /// ```
     ///
     /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [`Integer`]: struct.Integer.html
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger {
             inner: self.inner,
