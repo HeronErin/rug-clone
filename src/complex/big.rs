@@ -573,8 +573,8 @@ impl Complex {
     /// Parses a decimal string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into a [`Complex`] number.
     ///
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] is implemented
-    /// with the unwrapped returned
+    /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    /// is implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can contain either of the following three:
@@ -626,8 +626,8 @@ impl Complex {
     /// Parses a string slice ([`&str`][str]) or byte slice
     /// ([`&[u8]`][slice]) into a [`Complex`] number.
     ///
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] is implemented
-    /// with the unwrapped returned
+    /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    /// is implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`.
     ///
     /// The string can contain either of the following three:
@@ -1086,12 +1086,13 @@ impl Complex {
 
     /// Adds a list of [`Complex`] numbers with correct rounding.
     ///
-    /// [`Assign<Src> for Complex`][`Assign`],
-    /// [`AssignRound<Src> for Complex`][`AssignRound`],
-    /// [`AddAssign<Src> for Complex`][`AddAssign`],
-    /// [`AddAssignRound<Src> for Complex`][`AddAssignRound`] and
-    /// [`Add<Src> for Complex`][`Add`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssignRound][`AddAssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1140,12 +1141,13 @@ impl Complex {
     /// Finds the dot product of a list of [`Complex`] numbers pairs
     /// with correct rounding.
     ///
-    /// [`Assign<Src> for Complex`][`Assign`],
-    /// [`AssignRound<Src> for Complex`][`AssignRound`],
-    /// [`AddAssign<Src> for Complex`][`AddAssign`],
-    /// [`AddAssignRound<Src> for Complex`][`AddAssignRound`] and
-    /// [`Add<Src> for Complex`][`Add`] are implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssign][`AddAssign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AddAssignRound][`AddAssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[Add][`Add`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// This method will produce a result with correct rounding,
     /// except for some cases where underflow and/or overflow occur in
@@ -1272,10 +1274,10 @@ impl Complex {
 
     /// Multiplies and adds in one fused operation.
     ///
-    /// [`Assign<Src> for Complex`][`Assign`] and
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-    /// implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// `a.mul_add_ref(&b, &c)` produces the exact same result as
     /// `&a * &b + &c`.
@@ -1294,6 +1296,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_add_ref<'a>(&'a self, mul: &'a Self, add: &'a Self) -> AddMulIncomplete<'a> {
@@ -1384,10 +1387,10 @@ impl Complex {
 
     /// Multiplies and subtracts in one fused operation.
     ///
-    /// [`Assign<Src> for Complex`][`Assign`] and
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-    /// implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// `a.mul_sub_ref(&b, &c)` produces the exact same result as
     /// `&a * &b - &c`.
@@ -1406,6 +1409,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn mul_sub_ref<'a>(&'a self, mul: &'a Self, sub: &'a Self) -> SubMulFromIncomplete<'a> {
@@ -1470,10 +1474,10 @@ impl Complex {
         /// is set to 0 with the same sign as the imaginary part of
         /// the input.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -1539,10 +1543,10 @@ impl Complex {
         fn square_round;
         /// Computes the square.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -1562,6 +1566,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
     }
@@ -1610,10 +1615,10 @@ impl Complex {
         fn sqrt_round;
         /// Computes the square root.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -1633,6 +1638,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn sqrt_ref -> SqrtIncomplete;
     }
@@ -1662,10 +1668,10 @@ impl Complex {
         fn conj_mut;
         /// Computes the complex conjugate.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -1678,6 +1684,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn conj_ref -> ConjIncomplete;
     }
@@ -1748,12 +1755,12 @@ impl Complex {
 
     /// Computes the absolute value.
     ///
-    /// [`Assign<Src> for Float`][`Assign`],
-    /// [`Assign<Src> for Complex`][`Assign`],
-    /// [`AssignRound<Src> for Float`][`AssignRound`] and
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-    /// implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1766,6 +1773,8 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn abs_ref(&self) -> AbsIncomplete<'_> {
@@ -1852,12 +1861,12 @@ impl Complex {
 
     /// Computes the argument.
     ///
-    /// [`Assign<Src> for Float`][`Assign`],
-    /// [`Assign<Src> for Complex`][`Assign`],
-    /// [`AssignRound<Src> for Float`][`AssignRound`] and
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-    /// implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -1879,6 +1888,8 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn arg_ref(&self) -> ArgIncomplete<'_> {
@@ -1941,10 +1952,10 @@ impl Complex {
         fn mul_i_round;
         /// Multiplies the complex number by ±<i>i</i>.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -1957,6 +1968,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn mul_i_ref -> MulIIncomplete;
     }
@@ -2005,10 +2017,10 @@ impl Complex {
         fn recip_round;
         /// Computes the reciprocal.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2022,6 +2034,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn recip_ref -> RecipIncomplete;
     }
@@ -2092,12 +2105,12 @@ impl Complex {
 
     /// Computes the norm, that is the square of the absolute value.
     ///
-    /// [`Assign<Src> for Float`][`Assign`],
-    /// [`Assign<Src> for Complex`][`Assign`],
-    /// [`AssignRound<Src> for Float`][`AssignRound`] and
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-    /// implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -2110,6 +2123,8 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
+    /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn norm_ref(&self) -> NormIncomplete<'_> {
@@ -2162,10 +2177,10 @@ impl Complex {
         fn ln_round;
         /// Computes the natural logarithm;
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2179,6 +2194,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn ln_ref -> LnIncomplete;
     }
@@ -2228,10 +2244,10 @@ impl Complex {
         fn log10_round;
         /// Computes the logarithm to base 10.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2245,6 +2261,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn log10_ref -> Log10Incomplete;
     }
@@ -2255,10 +2272,10 @@ impl Complex {
         /// raised to the power *k*, that is its magnitude is 1 and
         /// its argument is 2π<i>k</i>/<i>n</i>.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2272,6 +2289,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn root_of_unity(n: u32, k: u32) -> RootOfUnityIncomplete;
     }
@@ -2321,10 +2339,10 @@ impl Complex {
         fn exp_round;
         /// Computes the exponential.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2338,6 +2356,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn exp_ref -> ExpIncomplete;
     }
@@ -2386,10 +2405,10 @@ impl Complex {
         fn sin_round;
         /// Computes the sine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2403,6 +2422,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn sin_ref -> SinIncomplete;
     }
@@ -2451,10 +2471,10 @@ impl Complex {
         fn cos_round;
         /// Computes the cosine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2468,6 +2488,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn cos_ref -> CosIncomplete;
     }
@@ -2545,12 +2566,20 @@ impl Complex {
         fn sin_cos_round;
         /// Computes the sine and cosine.
         ///
-        /// [`Assign<Src> for (Complex, Complex)`][`Assign`],
-        /// [`Assign<Src> for (&mut Complex, &mut Complex)`][`Assign`],
-        /// [`AssignRound<Src> for (Complex, Complex)`][`AssignRound`] and
-        /// [`AssignRound<Src> for (&mut Complex, &mut Complex)`][`AssignRound`]
-        /// are implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Complex][`Complex`],
+        ///     [Complex][`Complex`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Complex][`Complex`],
+        ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+        ///     [(][tuple][Complex][`Complex`],
+        ///     [Complex][`Complex`][)][tuple]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Complex][`Complex`],
+        ///     &amp;mut [Complex][`Complex`][)][tuple]</code>
         ///
         /// # Examples
         ///
@@ -2583,7 +2612,9 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
+        /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
         fn sin_cos_ref -> SinCosIncomplete;
     }
     math_op1_complex! {
@@ -2631,10 +2662,10 @@ impl Complex {
         fn tan_round;
         /// Computes the tangent.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2648,6 +2679,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn tan_ref -> TanIncomplete;
     }
@@ -2697,10 +2729,10 @@ impl Complex {
         fn sinh_round;
         /// Computes the hyperbolic sine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2714,6 +2746,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn sinh_ref -> SinhIncomplete;
     }
@@ -2763,10 +2796,10 @@ impl Complex {
         fn cosh_round;
         /// Computes the hyperbolic cosine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2780,6 +2813,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn cosh_ref -> CoshIncomplete;
     }
@@ -2829,10 +2863,10 @@ impl Complex {
         fn tanh_round;
         /// Computes the hyperbolic tangent.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2846,6 +2880,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn tanh_ref -> TanhIncomplete;
     }
@@ -2895,10 +2930,10 @@ impl Complex {
         fn asin_round;
         /// Computes the inverse sine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2912,6 +2947,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn asin_ref -> AsinIncomplete;
     }
@@ -2961,10 +2997,10 @@ impl Complex {
         fn acos_round;
         /// Computes the inverse cosine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -2978,6 +3014,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn acos_ref -> AcosIncomplete;
     }
@@ -3027,10 +3064,10 @@ impl Complex {
         fn atan_round;
         /// Computes the inverse tangent.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -3044,6 +3081,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn atan_ref -> AtanIncomplete;
     }
@@ -3093,10 +3131,10 @@ impl Complex {
         fn asinh_round;
         /// Computes the inverse hyperboic sine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -3110,6 +3148,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn asinh_ref -> AsinhIncomplete;
     }
@@ -3161,10 +3200,10 @@ impl Complex {
         fn acosh_round;
         /// Computes the inverse hyperbolic cosine.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -3178,6 +3217,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn acosh_ref -> AcoshIncomplete;
     }
@@ -3229,10 +3269,10 @@ impl Complex {
         fn atanh_round;
         /// Computes the inverse hyperbolic tangent.
         ///
-        /// [`Assign<Src> for Complex`][`Assign`] and
-        /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-        /// implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+        ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
         ///
         /// # Examples
         ///
@@ -3246,6 +3286,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn atanh_ref -> AtanhIncomplete;
     }
@@ -3271,8 +3312,9 @@ impl Complex {
     /// interface, or the random number generator has to be designed
     /// specifically to trigger this case.
     ///
-    /// [`Assign<Src> for Complex`][`Assign`] is implemented with the
-    /// returned [incomplete-computation value][icv] as `Src`.
+    /// <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    /// is implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`.
     ///
     /// # Examples
     ///
@@ -3290,6 +3332,7 @@ impl Complex {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_bits<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomBitsIncomplete<'a, 'b>
@@ -3317,10 +3360,10 @@ impl Complex {
     /// `Ordering::Equal`, as the random numbers generated can be
     /// considered to have infinite precision before rounding.
     ///
-    /// [`Assign<Src> for Complex`][`Assign`] and
-    /// [`AssignRound<Src> for Complex`][`AssignRound`] are
-    /// implemented with the returned
-    /// [incomplete-computation value][icv] as `Src`.
+    /// The following are implemented with the returned
+    /// [incomplete-computation value][icv] as `Src`:
+    ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Complex][`Complex`]</code>
+    ///   * <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     ///
     /// # Examples
     ///
@@ -3351,6 +3394,7 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Complex`]: struct.Complex.html
     /// [`assign_random_bits`]: #method.assign_random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]

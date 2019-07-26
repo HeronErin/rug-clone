@@ -12,6 +12,12 @@ Verison 1.6.0 (unreleased)
     `i128`, `u8`, `u16`, `u64` and `u128` were added to the existing
     implementations for `i32` and `u32`.
 
+Verison 1.5.2 (2019-07-26)
+==========================
+
+  * Bug fix: `Pow<i32> for Rational` was returning the reciprocal of
+    the correct result.
+
 Verison 1.5.1 (2019-07-10)
 ==========================
 

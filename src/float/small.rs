@@ -168,9 +168,9 @@ impl Deref for SmallFloat {
 
 /// Types implementing this trait can be converted to [`SmallFloat`].
 ///
-/// [`Assign<T> for SmallFloat`][`Assign`] and
-/// [`From<T> for SmallFloat`][`From`] are implemented when `T`
-/// implements `ToSmall`.
+/// The following are implemented when `T` implements `ToSmall`:
+///   * <code>[Assign][`Assign`]&lt;T&gt; for [SmallFloat][`SmallFloat`]</code>
+///   * <code>[From][`From`]&lt;T&gt; for [SmallFloat][`SmallFloat`]</code>
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for the integer types [`i8`], [`i16`], [`i32`],

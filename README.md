@@ -48,6 +48,16 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 
+### Version 1.5.2 news (2019-07-26)
+
+  * Bug fix:
+    <code>[Pow][`Pow`]<[i32][`i32`]> for [Rational][`Rational`]</code>
+    was returning the reciprocal of the correct result.
+
+[`Pow`]: https://docs.rs/rug/~1.5/rug/ops/trait.Pow.html
+[`Rational`]: https://docs.rs/rug/~1.5/rug/struct.Rational.html
+[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
+
 ### Version 1.5.1 news (2019-07-10)
 
   * Bug fix: a memory leak in conversions of [`Float`] to string was
