@@ -5,6 +5,12 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.5.2 (2019-07-26)
+==========================
+
+  * Bug fix: `Pow<i32> for Rational` was returning the reciprocal of
+    the correct result.
+
 Verison 1.5.1 (2019-07-10)
 ==========================
 
