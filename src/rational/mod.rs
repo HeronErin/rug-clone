@@ -68,6 +68,7 @@ pub struct TryFromFloatError {
 
 #[cfg(test)]
 mod tests {
+    use crate::rational::SmallRational;
     use crate::{Integer, Rational};
 
     #[test]
@@ -293,5 +294,18 @@ mod tests {
         assert_eq!(format!("{:08X}", r), "-0000B/F");
         assert_eq!(format!("{:#08x}", r), "-0x00b/f");
         assert_eq!(format!("{:#8X}", r), "  -0xB/F");
+        let i = r * &*SmallRational::from(15);
+        assert_eq!(format!("{}", i), "-11");
+        assert_eq!(format!("{:?}", i), "-11");
+        assert_eq!(format!("{:b}", i), "-1011");
+        assert_eq!(format!("{:#b}", i), "-0b1011");
+        assert_eq!(format!("{:o}", i), "-13");
+        assert_eq!(format!("{:#o}", i), "-0o13");
+        assert_eq!(format!("{:x}", i), "-b");
+        assert_eq!(format!("{:X}", i), "-B");
+        assert_eq!(format!("{:8x}", i), "      -b");
+        assert_eq!(format!("{:08X}", i), "-000000B");
+        assert_eq!(format!("{:#08x}", i), "-0x0000b");
+        assert_eq!(format!("{:#8X}", i), "    -0xB");
     }
 }
