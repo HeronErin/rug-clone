@@ -106,7 +106,7 @@ impl<'de> Deserialize<'de> for OrdFloat {
 #[cfg(test)]
 mod tests {
     use crate::cast::cast;
-    use crate::float::{self, Special};
+    use crate::float::{self, FreeCache, Special};
     use crate::{Assign, Float};
     use serde_json::json;
 
@@ -206,7 +206,6 @@ mod tests {
         Check::De(&f).check(16, "0.f@1");
         Check::De(&f).check(15, "1.0@1");
 
-        use crate::tests;
-        tests::free_cache();
+        float::free_cache(FreeCache::All);
     }
 }

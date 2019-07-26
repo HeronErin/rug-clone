@@ -122,7 +122,7 @@ impl<'de> Deserialize<'de> for OrdComplex {
 #[cfg(test)]
 mod tests {
     use crate::cast::cast;
-    use crate::float::{self, Special};
+    use crate::float::{self, FreeCache, Special};
     use crate::{Assign, Complex};
     use serde_json::json;
 
@@ -223,7 +223,6 @@ mod tests {
         Check::De(&c).check(10, "(1.5e1 nan)");
         Check::De(&c).check(15, "(1.0@1 @nan@)");
 
-        use crate::float::arith::tests;
-        tests::free_cache();
+        float::free_cache(FreeCache::All);
     }
 }
