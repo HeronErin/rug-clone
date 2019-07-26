@@ -8496,7 +8496,7 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
             .precision
             .map(|x| if x == 1 { 2 } else { x })
             .unwrap_or(0);
-        let log2_radix = (format.radix as f64).log2();
+        let log2_radix = f64::from(format.radix).log2();
         let digits = if digits > 0 {
             digits
         } else {
@@ -8506,11 +8506,11 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
                 f.prec()
             };
             // p is u32, dividing can only decrease it, so m fits in u32
-            let m = (p as f64 / log2_radix).ceil() as u32;
+            let m = (f64::from(p) / log2_radix).ceil() as u32;
             cast::<_, usize>(m).checked_add(2).expect("overflow")
         };
-        const LOG10_2: f64 = 0.301029995663981195213738894724493027_f64;
-        let exp = (unsafe { mpfr::get_exp(f.as_raw()) } as f64 / log2_radix - 1.0).abs();
+        const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
+        let exp = (cast::<_, f64>(unsafe { mpfr::get_exp(f.as_raw()) }) / log2_radix - 1.0).abs();
         // add 1 for '-' and an extra 1 in case of rounding errors
         let exp_digits = (exp * LOG10_2).ceil() as usize + 2;
         // '.', exp separator, exp_digits
