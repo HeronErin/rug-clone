@@ -257,7 +257,17 @@ Specifies which cache to free.
 
 ```rust
 use rug::float::{self, FreeCache};
-float::free_cache(FreeCache::All);
+use std::thread;
+
+fn main() {
+    let child = thread::spawn(move || {
+        // some work here that uses Float
+        float::free_cache(FreeCache::Local);
+    });
+    // some work here
+    child.join().expect("couldn't join thread");
+    float::free_cache(FreeCache::All);
+}
 ```
 */
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -283,7 +293,17 @@ thread and all caches before exiting.
 
 ```rust
 use rug::float::{self, FreeCache};
-float::free_cache(FreeCache::All);
+use std::thread;
+
+fn main() {
+    let child = thread::spawn(move || {
+        // some work here that uses Float
+        float::free_cache(FreeCache::Local);
+    });
+    // some work here
+    child.join().expect("couldn't join thread");
+    float::free_cache(FreeCache::All);
+}
 ```
 
 [Valgrind]: http://www.valgrind.org/
