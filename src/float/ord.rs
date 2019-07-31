@@ -14,13 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
 use crate::Float;
-use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
-use std::slice;
 
 /**
 A float that supports total ordering and hashing.
@@ -115,24 +112,19 @@ impl Hash for OrdFloat {
     where
         H: Hasher,
     {
-        let s = &self.inner;
-        s.get_exp().hash(state);
-        let nan = if s.is_nan() { 1u8 << 4 } else { 0 };
-        let infinite = if s.is_infinite() { 1u8 << 3 } else { 0 };
-        let zero = if s.is_zero() { 1u8 << 2 } else { 0 };
-        let normal = if s.is_normal() { 1u8 << 1 } else { 0 };
-        let sign = if s.is_sign_negative() { 1u8 } else { 0 };
-        let flags = nan | infinite | zero | normal | sign;
-        flags.hash(state);
-        if normal != 0 {
-            let prec: usize = cast(s.prec());
-            let mut limbs = prec / cast::<_, usize>(gmp::LIMB_BITS);
-            // MPFR keeps unused bits set to zero, so use whole of last limb
-            if prec % cast::<_, usize>(gmp::LIMB_BITS) > 0 {
-                limbs += 1;
-            };
-            let slice = unsafe { slice::from_raw_parts(s.inner().d, limbs) };
-            slice.hash(state);
+        let float = &self.inner;
+        float.inner().sign.hash(state);
+        float.inner().exp.hash(state);
+        if float.is_normal() {
+            let slice = float.data();
+            //   * Do not hash the least significant zero limbs, as
+            //     equal numbers with different precisions must have
+            //     equal hashes.
+            //   * MPFR keeps unused bits set to zero, so there is no
+            //     need to mask least significant limb.
+            if let Some(first) = slice.iter().position(|&limb| limb != 0) {
+                slice[first..].hash(state);
+            }
         }
     }
 }
@@ -236,5 +228,22 @@ mod tests {
         assert_ne!(calculate_hash(ord_p), calculate_hash(ord_n));
 
         float::free_cache(FreeCache::All);
+    }
+
+    #[test]
+    fn check_hash_different_prec() {
+        let f = Float::with_val(53, 23.5);
+        let g = Float::with_val(5301, 23.5);
+        assert_eq!(f, g);
+        let ord_f = f.as_ord();
+        let ord_g = g.as_ord();
+        assert_eq!(ord_f, ord_g);
+        let mut hasher_f = DefaultHasher::new();
+        ord_f.hash(&mut hasher_f);
+        let hash_f = hasher_f.finish();
+        let mut hasher_g = DefaultHasher::new();
+        ord_g.hash(&mut hasher_g);
+        let hash_g = hasher_g.finish();
+        assert_eq!(hash_f, hash_g);
     }
 }

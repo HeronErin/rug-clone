@@ -23,7 +23,7 @@ use crate::float::{self, OrdFloat, Round, SmallFloat, Special};
 #[cfg(feature = "integer")]
 use crate::integer::big::BorrowInteger;
 use crate::misc;
-use crate::ops::{AddAssignRound, AssignRound, NegAssign};
+use crate::ops::{AddAssignRound, AssignRound, DivRounding, NegAssign};
 #[cfg(feature = "rand")]
 use crate::rand::RandState;
 use crate::Assign;
@@ -44,6 +44,7 @@ use std::num::FpCategory;
 use std::ops::{Add, AddAssign, Deref};
 use std::os::raw::{c_char, c_int, c_long, c_ulong};
 use std::ptr;
+use std::slice;
 use std::str;
 use std::{i32, u32};
 
@@ -246,6 +247,12 @@ impl Float {
     #[inline]
     pub(crate) unsafe fn inner_mut(&mut self) -> &mut mpfr_t {
         &mut self.inner
+    }
+    #[inline]
+    pub(crate) fn data(&self) -> &[gmp::limb_t] {
+        let prec = cast::<_, usize>(self.inner.prec);
+        let limbs = prec.div_ceil(cast::<_, usize>(gmp::LIMB_BITS));
+        unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }
 }
 
