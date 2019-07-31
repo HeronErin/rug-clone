@@ -70,6 +70,7 @@ impl Drop for Rational {
 }
 
 impl Hash for Rational {
+    #[inline]
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,
