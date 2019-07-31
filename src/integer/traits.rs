@@ -14,7 +14,6 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
 use crate::ext::xmpz;
 use crate::integer::big;
 use crate::integer::ParseIntegerError;
@@ -28,7 +27,6 @@ use std::error::Error;
 use std::fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex};
 use std::hash::{Hash, Hasher};
 use std::mem;
-use std::slice;
 use std::str::FromStr;
 use std::{i32, u32};
 
@@ -65,17 +63,13 @@ impl Drop for Integer {
 }
 
 impl Hash for Integer {
+    #[inline]
     fn hash<H>(&self, state: &mut H)
     where
         H: Hasher,
     {
-        let size = self.inner().size;
-        size.hash(state);
-        if size != 0 {
-            let limbs: usize = cast(size.checked_abs().expect("overflow"));
-            let slice = unsafe { slice::from_raw_parts(self.inner().d, limbs) };
-            slice.hash(state);
-        }
+        self.inner().size.hash(state);
+        self.data().hash(state);
     }
 }
 
