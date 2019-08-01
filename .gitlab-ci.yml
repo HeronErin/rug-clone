@@ -162,6 +162,5 @@ stable-i686-gnulinux-valgrind:
   - apt-get install -y -qq valgrind
   - cargo +$TOOLCHAIN test --features serde --lib
   - valgrind --leak-check=full --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
-#Commenting out because https://github.com/rust-lang/rust/issues/63023
-#  - cargo +$TOOLCHAIN test --release --features serde --lib
-#  - valgrind --leak-check=full --error-exitcode=1 "$(ls target/release/deps/rug* | grep -v '\.d')"
+  - cargo +$TOOLCHAIN test --release --features serde --lib
+  - valgrind --leak-check=full --error-exitcode=1 --suppressions=i686-release.supp "$(ls target/release/deps/rug* | grep -v '\.d')"
