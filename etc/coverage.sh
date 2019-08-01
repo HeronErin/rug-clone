@@ -19,12 +19,11 @@ etc/extract-doc-tests.sh
 
 ## generate coverage.report
 
-(
-    printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$PWD"
-    printf 'Compilation started at %s\n\n' "$(date)"
-    etc/invoke-tarpaulin.sh
-    printf '\nCompilation finished at %s\n' "$(date)"
-) > coverage.report
+REPORT=coverage.report
+printf '%s*- mode: compilation; default-directory: "%s" -*-\n' - "$PWD" > "$REPORT"
+printf 'Compilation started at %s\n\n' "$(date)" >> "$REPORT"
+stdbuf -oL etc/invoke-tarpaulin.sh | tee --append "$REPORT"
+printf '\nCompilation finished at %s\n' "$(date)" >> "$REPORT"
 
 # restore original sources
 etc/extract-doc-tests.sh restore
