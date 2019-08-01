@@ -48,7 +48,7 @@ beta-x86_64-gnulinux:
   variables:
     TOOLCHAIN: beta-x86_64
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 stable-x86_64-gnulinux:
   image: amd64/rust:1
@@ -58,7 +58,7 @@ stable-x86_64-gnulinux:
   variables:
     TOOLCHAIN: stable-x86_64
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 nightly-x86_64-gnulinux:
   image: amd64/rust:1
@@ -68,7 +68,7 @@ nightly-x86_64-gnulinux:
   variables:
     TOOLCHAIN: nightly-x86_64
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 1.31.1-x86_64-gnulinux:
   image: amd64/rust:1
@@ -78,7 +78,7 @@ nightly-x86_64-gnulinux:
   variables:
     TOOLCHAIN: 1.31.1-x86_64
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 stable-x86_64-gnulinux-valgrind:
   image: amd64/rust:1
@@ -87,14 +87,15 @@ stable-x86_64-gnulinux-valgrind:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
+    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --error-exitcode=1
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
-  - ./extract_doc_tests.sh
+  - etc/extract_doc_tests.sh
   - cargo +$TOOLCHAIN test --features serde --lib
-  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
+  - valgrind $VALGRIND_OPTIONS "$(ls target/debug/deps/rug* | grep -v '\.d')"
   - cargo +$TOOLCHAIN test --release --features serde --lib
-  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 "$(ls target/release/deps/rug* | grep -v '\.d')"
-  - ./extract_doc_tests.sh restore
+  - valgrind $VALGRIND_OPTIONS "$(ls target/release/deps/rug* | grep -v '\.d')"
+  - etc/extract_doc_tests.sh restore
 
 clibs-i686-gnulinux:
   image: i386/rust:1
@@ -120,7 +121,7 @@ beta-i686-gnulinux:
   variables:
     TOOLCHAIN: beta-i686
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 stable-i686-gnulinux:
   image: i386/rust:1
@@ -130,7 +131,7 @@ stable-i686-gnulinux:
   variables:
     TOOLCHAIN: stable-i686
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 nightly-i686-gnulinux:
   image: i386/rust:1
@@ -140,7 +141,7 @@ nightly-i686-gnulinux:
   variables:
     TOOLCHAIN: nightly-i686
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 1.31.1-i686-gnulinux:
   image: i386/rust:1
@@ -150,7 +151,7 @@ nightly-i686-gnulinux:
   variables:
     TOOLCHAIN: 1.31.1-i686
   script:
-  - ./test-gitlab-ci.sh
+  - etc/test-gitlab-ci.sh
 
 stable-i686-gnulinux-valgrind:
   image: i386/rust:1
@@ -159,11 +160,12 @@ stable-i686-gnulinux-valgrind:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: stable-i686
+    VALGRIND_OPTIONS: --leak-check=full --show-leak-kinds=all --error-exitcode=1
   script:
   - apt-get update -qq && apt-get install -y -qq valgrind
-  - ./extract_doc_tests.sh
+  - etc/extract_doc_tests.sh
   - cargo +$TOOLCHAIN test --features serde --lib
-  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
+  - valgrind $VALGRIND_OPTIONS "$(ls target/debug/deps/rug* | grep -v '\.d')"
   - cargo +$TOOLCHAIN test --release --features serde --lib
-  - valgrind --leak-check=full --show-leak-kinds=all --error-exitcode=1 --suppressions=i686-release.supp "$(ls target/release/deps/rug* | grep -v '\.d')"
-  - ./extract_doc_tests.sh restore
+  - valgrind $VALGRIND_OPTIONS --suppressions=etc/i686-release.supp "$(ls target/release/deps/rug* | grep -v '\.d')"
+  - etc/extract_doc_tests.sh restore

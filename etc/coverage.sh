@@ -17,7 +17,7 @@ if [ -e target ]; then
 fi
 
 ## first extract docs
-./extract_doc_tests.sh
+etc/extract_doc_tests.sh
 
 ## generate coverage.report
 
@@ -57,7 +57,7 @@ p                       # print the line(s) as sed is invoked with -e
 ) > coverage.report
 
 # restore original sources
-./extract_doc_tests.sh restore
+etc/extract_doc_tests.sh restore
 
 if [ -e target ]; then
     rm -r target
