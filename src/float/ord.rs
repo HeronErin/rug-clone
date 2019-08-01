@@ -116,7 +116,7 @@ impl Hash for OrdFloat {
         float.inner().sign.hash(state);
         float.inner().exp.hash(state);
         if float.is_normal() {
-            let slice = float.data();
+            let slice = float.inner_data();
             //   * Do not hash the least significant zero limbs, as
             //     equal numbers with different precisions must have
             //     equal hashes.

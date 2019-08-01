@@ -248,7 +248,7 @@ impl Float {
         &mut self.inner
     }
     #[inline]
-    pub(crate) fn data(&self) -> &[gmp::limb_t] {
+    pub(crate) fn inner_data(&self) -> &[gmp::limb_t] {
         let prec = cast::cast::<_, usize>(self.inner.prec);
         let limbs = prec.div_ceil(cast::cast::<_, usize>(gmp::LIMB_BITS));
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }

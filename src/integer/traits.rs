@@ -69,7 +69,7 @@ impl Hash for Integer {
         H: Hasher,
     {
         self.inner().size.hash(state);
-        self.data().hash(state);
+        self.inner_data().hash(state);
     }
 }
 

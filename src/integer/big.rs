@@ -197,7 +197,7 @@ impl Integer {
         &mut self.inner
     }
     #[inline]
-    pub(crate) fn data(&self) -> &[gmp::limb_t] {
+    pub(crate) fn inner_data(&self) -> &[gmp::limb_t] {
         let limbs = cast::cast::<_, usize>(self.inner.size.checked_abs().expect("overflow"));
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }
