@@ -33,6 +33,7 @@ clibs-x86_64-gnulinux:
     - cargo/
     - gmp-mpfr-sys-cache/
   script:
+  - cargo fetch
   - cargo test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
   artifacts:
     paths:
@@ -124,6 +125,7 @@ clibs-i686-gnulinux:
     - cargo/
     - gmp-mpfr-sys-cache/
   script:
+  - cargo fetch
   - cargo test --no-default-features --features "gmp-mpfr-sys/mpc gmp-mpfr-sys/ctest" -p gmp-mpfr-sys
   artifacts:
     paths:
