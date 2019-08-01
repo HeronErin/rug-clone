@@ -11,7 +11,6 @@ stages:
 
 before_script:
   - getconf LONG_BIT
-  - apt-get update -qq && apt-get install -y -qq diffutils gcc make m4
   - rustup --version
   - if [ -n "$TOOLCHAIN" ]; then rustup install $TOOLCHAIN; fi
   - if [[ "$TOOLCHAIN" == beta* ]]; then rustup component add --toolchain $TOOLCHAIN rustfmt clippy; fi
@@ -26,7 +25,7 @@ after_script:
   - cp -R $CARGO_HOME/registry/cache cargo/registry/ && echo Updated registry/cache
 
 clibs-x86_64-gnulinux:
-  image: amd64/rust:slim
+  image: amd64/rust:1
   stage: clibs
   cache:
     key: $CI_JOB_NAME
@@ -42,7 +41,7 @@ clibs-x86_64-gnulinux:
     expire_in: 1 day
 
 beta-x86_64-gnulinux:
-  image: amd64/rust:slim
+  image: amd64/rust:1
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -52,7 +51,7 @@ beta-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 stable-x86_64-gnulinux:
-  image: amd64/rust:slim
+  image: amd64/rust:1
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -62,7 +61,7 @@ stable-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 nightly-x86_64-gnulinux:
-  image: amd64/rust:slim
+  image: amd64/rust:1
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -72,7 +71,7 @@ nightly-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 1.31.1-x86_64-gnulinux:
-  image: amd64/rust:slim
+  image: amd64/rust:1
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
@@ -82,14 +81,13 @@ nightly-x86_64-gnulinux:
   - ./test-gitlab-ci.sh
 
 stable-x86_64-gnulinux-valgrind:
-  image: amd64/rust:slim
+  image: amd64/rust:1
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: stable-x86_64
   script:
-  - apt-get install -y -qq valgrind
   - ./extract_doc_tests.sh
   - cargo +$TOOLCHAIN test --features serde --lib
   - valgrind --leak-check=full --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
@@ -98,7 +96,7 @@ stable-x86_64-gnulinux-valgrind:
   - ./extract_doc_tests.sh restore
 
 clibs-i686-gnulinux:
-  image: i386/rust:slim
+  image: i386/rust:1
   stage: clibs
   cache:
     key: $CI_JOB_NAME
@@ -114,7 +112,7 @@ clibs-i686-gnulinux:
     expire_in: 1 day
 
 beta-i686-gnulinux:
-  image: i386/rust:slim
+  image: i386/rust:1
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -124,7 +122,7 @@ beta-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 stable-i686-gnulinux:
-  image: i386/rust:slim
+  image: i386/rust:1
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -134,7 +132,7 @@ stable-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 nightly-i686-gnulinux:
-  image: i386/rust:slim
+  image: i386/rust:1
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -144,7 +142,7 @@ nightly-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 1.31.1-i686-gnulinux:
-  image: i386/rust:slim
+  image: i386/rust:1
   stage: test
   dependencies:
   - clibs-i686-gnulinux
@@ -154,14 +152,13 @@ nightly-i686-gnulinux:
   - ./test-gitlab-ci.sh
 
 stable-i686-gnulinux-valgrind:
-  image: i386/rust:slim
+  image: i386/rust:1
   stage: test
   dependencies:
   - clibs-i686-gnulinux
   variables:
     TOOLCHAIN: stable-i686
   script:
-  - apt-get install -y -qq valgrind
   - ./extract_doc_tests.sh
   - cargo +$TOOLCHAIN test --features serde --lib
   - valgrind --leak-check=full --error-exitcode=1 "$(ls target/debug/deps/rug* | grep -v '\.d')"
