@@ -30,7 +30,7 @@ environment:
 
 cache:
   - '%USERPROFILE%\.cargo\registry\cache -> Cargo.toml'
-  - '%LOCALAPPDATA%\gmp-mpfr-sys'
+  - '%LOCALAPPDATA%\gmp-mpfr-sys -> .appveyor.yml'
 
 install:
   - set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;%USERPROFILE%\.cargo\bin;%PATH%
