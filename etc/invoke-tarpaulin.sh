@@ -29,5 +29,5 @@ FILTER_SCRIPT='
 p                       # print the line(s) as sed is invoked with -e
 '
 
-cargo +1.31.1 tarpaulin -v --features serde --ignore-tests --exclude-files build.rs |&
-    sed -n -e "$FILTER_SCRIPT"
+EXCLUDE="--exclude-files build.rs src/ext/xmpz32.rs"
+cargo +1.31.1 tarpaulin -v --features serde --ignore-tests $EXCLUDE |& sed -n -e "$FILTER_SCRIPT"
