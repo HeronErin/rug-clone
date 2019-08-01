@@ -84,6 +84,10 @@ nightly-x86_64-gnulinux:
 1.31.1-x86_64-gnulinux-tarpaulin:
   image: amd64/rust:1
   stage: test
+  cache:
+    key: $CI_JOB_NAME
+    paths:
+    - cargo/
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
