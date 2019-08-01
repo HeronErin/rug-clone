@@ -16,7 +16,7 @@
 
 use crate::{Assign, Integer};
 
-use crate::cast::cast;
+use crate::cast;
 use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::mem;
@@ -87,7 +87,7 @@ impl Clone for Mpz {
     #[inline]
     fn clone(&self) -> Mpz {
         Mpz {
-            alloc: cast(LIMBS_IN_SMALL),
+            alloc: cast::cast(LIMBS_IN_SMALL),
             size: self.size,
             d: Default::default(),
         }
@@ -118,7 +118,7 @@ impl SmallInteger {
     pub fn new() -> Self {
         SmallInteger {
             inner: Mpz {
-                alloc: cast(LIMBS_IN_SMALL),
+                alloc: cast::cast(LIMBS_IN_SMALL),
                 size: 0,
                 d: Default::default(),
             },

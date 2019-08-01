@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::ext::xmpz;
 use crate::integer::Order;
 use crate::misc;
@@ -198,7 +198,7 @@ impl Integer {
     }
     #[inline]
     pub(crate) fn data(&self) -> &[gmp::limb_t] {
-        let limbs = cast::<_, usize>(self.inner.size.checked_abs().expect("overflow"));
+        let limbs = cast::cast::<_, usize>(self.inner.size.checked_abs().expect("overflow"));
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }
 }
@@ -262,8 +262,8 @@ impl Integer {
     /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
-        cast::<_, usize>(self.inner.alloc)
-            .checked_mul(cast::<_, usize>(gmp::LIMB_BITS))
+        cast::cast::<_, usize>(self.inner.alloc)
+            .checked_mul(cast::cast::<_, usize>(gmp::LIMB_BITS))
             .expect("overflow")
     }
 
@@ -298,7 +298,7 @@ impl Integer {
             .expect("overflow");
         if alloc_bits < req_bits {
             unsafe {
-                gmp::mpz_realloc2(self.as_raw_mut(), cast(req_bits));
+                gmp::mpz_realloc2(self.as_raw_mut(), cast::cast(req_bits));
             }
         }
     }
@@ -329,7 +329,7 @@ impl Integer {
         let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
         if self.inner.alloc > req_limbs {
             unsafe {
-                gmp::_mpz_realloc(self.as_raw_mut(), cast(req_limbs));
+                gmp::_mpz_realloc(self.as_raw_mut(), cast::cast(req_limbs));
             }
         }
     }
@@ -754,9 +754,9 @@ impl Integer {
         let digit_count = self.significant_digits::<T>();
         let zero_count = len.checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
-            (dst.offset(cast(digit_count)), dst)
+            (dst.offset(cast::cast(digit_count)), dst)
         } else {
-            (dst, dst.offset(cast(zero_count)))
+            (dst, dst.offset(cast::cast(zero_count)))
         };
         // use *mut u8 to allow for unaligned pointers
         (zeros as *mut u8).write_bytes(0, zero_count * T::BYTES);
@@ -1102,11 +1102,11 @@ impl Integer {
     pub fn to_isize(&self) -> Option<isize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_i32().map(cast)
+            self.to_i32().map(cast::cast)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_i64().map(cast)
+            self.to_i64().map(cast::cast)
         }
     }
 
@@ -1281,11 +1281,11 @@ impl Integer {
     pub fn to_usize(&self) -> Option<usize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_u32().map(cast)
+            self.to_u32().map(cast::cast)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_u64().map(cast)
+            self.to_u64().map(cast::cast)
         }
     }
 
@@ -1526,11 +1526,11 @@ impl Integer {
     pub fn to_usize_wrapping(&self) -> usize {
         #[cfg(target_pointer_width = "32")]
         {
-            cast(self.to_u32_wrapping())
+            cast::cast(self.to_u32_wrapping())
         }
         #[cfg(target_pointer_width = "64")]
         {
-            cast(self.to_u64_wrapping())
+            cast::cast(self.to_u64_wrapping())
         }
     }
 
@@ -1638,7 +1638,7 @@ impl Integer {
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let mut exp: c_long = 0;
         let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.as_raw()) };
-        (f, cast(exp))
+        (f, cast::cast(exp))
     }
 
     /// Returns a string representation of the number for the
@@ -2051,7 +2051,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        cast(xmpz::significant_bits(self))
+        cast::cast(xmpz::significant_bits(self))
     }
 
     /// Returns the number of bits required to represent the value
@@ -4079,7 +4079,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), cast(reps)) };
+        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), cast::cast(reps)) };
         match p {
             0 => IsPrime::No,
             1 => IsPrime::Probably,
@@ -5626,7 +5626,7 @@ impl Assign<ParseIncomplete> for Integer {
                 src.digits.len(),
                 src.radix,
             );
-            self.inner.size = cast(if src.is_negative { -size } else { size });
+            self.inner.size = cast::cast(if src.is_negative { -size } else { size });
         }
     }
 }
@@ -5638,7 +5638,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
     use self::ParseIntegerError as Error;
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let bradix: u8 = cast(radix);
+    let bradix: u8 = cast::cast(radix);
 
     let mut digits = Vec::with_capacity(bytes.len());
     let mut has_sign = false;

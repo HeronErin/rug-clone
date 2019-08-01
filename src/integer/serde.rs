@@ -73,7 +73,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::cast::cast;
+    use crate::cast;
     use crate::{Assign, Integer};
     use serde_json::json;
 
@@ -111,7 +111,7 @@ mod tests {
             let mut bincode = Vec::<u8>::new();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(cast(value.len()))
+                .write_u64::<LittleEndian>(cast::cast(value.len()))
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

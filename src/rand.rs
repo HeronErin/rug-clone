@@ -25,7 +25,7 @@ Random number generation.
 // uninitialized memory, otherwise we may be left with uninitialized
 // memory which can eventually lead to undefined behavior.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::Integer;
 use gmp_mpfr_sys::gmp::{self, randstate_t};
 use std::marker::PhantomData;
@@ -841,35 +841,35 @@ c_callback! {
 #[cfg(gmp_limb_bits_64)]
 unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 64, bits % 64);
-    let limbs: isize = cast(limbs);
+    let limbs: isize = cast::cast(limbs);
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *limb.offset(i) = cast(n);
+        *limb.offset(i) = cast::cast(n);
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
         if rest > 32 {
             let mask = !(!0 << (rest - 32));
-            n |= u64::from(gen.gen_bits(cast(rest - 32)) & mask) << 32;
+            n |= u64::from(gen.gen_bits(cast::cast(rest - 32)) & mask) << 32;
         }
-        *limb.offset(limbs) = cast(n);
+        *limb.offset(limbs) = cast::cast(n);
     } else if rest > 0 {
         let mask = !(!0 << rest);
-        let n = u64::from(gen.gen_bits(cast(rest)) & mask);
-        *limb.offset(limbs) = cast(n);
+        let n = u64::from(gen.gen_bits(cast::cast(rest)) & mask);
+        *limb.offset(limbs) = cast::cast(n);
     }
 }
 
 #[cfg(gmp_limb_bits_32)]
 unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 32, bits % 32);
-    let limbs: isize = cast(limbs);
+    let limbs: isize = cast::cast(limbs);
     for i in 0..limbs {
-        *limb.offset(i) = cast(gen.gen());
+        *limb.offset(i) = cast::cast(gen.gen());
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *limb.offset(limbs) = cast(gen.gen_bits(cast(rest)) & mask);
+        *limb.offset(limbs) = cast::cast(gen.gen_bits(cast::cast(rest)) & mask);
     }
 }
 

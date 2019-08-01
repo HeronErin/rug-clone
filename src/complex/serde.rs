@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::complex::OrdComplex;
 use crate::float;
 use crate::serdeize::{self, Data, PrecReq, PrecVal};
@@ -61,8 +61,8 @@ impl<'de> Deserialize<'de> for Complex {
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
             let parts = place.as_mut_real_imag();
-            mpfr::set_prec(parts.0.as_raw_mut(), cast(prec.0));
-            mpfr::set_prec(parts.1.as_raw_mut(), cast(prec.1));
+            mpfr::set_prec(parts.0.as_raw_mut(), cast::cast(prec.0));
+            mpfr::set_prec(parts.1.as_raw_mut(), cast::cast(prec.1));
         }
         place.assign(p);
         Ok(())
@@ -121,7 +121,7 @@ impl<'de> Deserialize<'de> for OrdComplex {
 
 #[cfg(test)]
 mod tests {
-    use crate::cast::cast;
+    use crate::cast;
     use crate::float::{self, FreeCache, Special};
     use crate::{Assign, Complex};
     use serde_json::json;
@@ -173,7 +173,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec.1).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(cast(value.len()))
+                .write_u64::<LittleEndian>(cast::cast(value.len()))
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

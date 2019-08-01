@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::ext::xmpfr::{self, raw_round};
 use crate::misc::{Limbs, MaybeLimb, NegAbs};
 use crate::{Assign, Float};
@@ -227,10 +227,10 @@ macro_rules! unsigned_32 {
                     xmpfr::custom_zero(ptr, limbs_ptr, $bits);
                 } else {
                     let leading = self.leading_zeros();
-                    let limb_leading = leading + cast::<_, u32>(gmp::LIMB_BITS) - $bits;
+                    let limb_leading = leading + cast::cast::<_, u32>(gmp::LIMB_BITS) - $bits;
                     limbs[0] = MaybeLimb::new(gmp::limb_t::from(self) << limb_leading);
                     let exp = $bits - leading;
-                    xmpfr::custom_regular(ptr, limbs_ptr, cast(exp), $bits);
+                    xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(exp), $bits);
                 }
             }
         }
@@ -263,7 +263,7 @@ impl SealedToSmall for u64 {
                 limbs[0] = MaybeLimb::new(sval as u32);
                 limbs[1] = MaybeLimb::new((sval >> 32) as u32);
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, cast(64 - leading), 64);
+            xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(64 - leading), 64);
         }
     }
 }
@@ -291,7 +291,7 @@ impl SealedToSmall for u128 {
                 limbs[2] = MaybeLimb::new((sval >> 64) as u32);
                 limbs[3] = MaybeLimb::new((sval >> 96) as u32);
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, cast(128 - leading), 128);
+            xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(128 - leading), 128);
         }
     }
 }

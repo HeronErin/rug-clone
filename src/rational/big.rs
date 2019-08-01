@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::ext::xmpq;
 use crate::ext::xmpz;
 use crate::integer::big as big_integer;
@@ -2676,16 +2676,16 @@ impl Assign<ParseIncomplete> for Rational {
             let (num, den) = self.as_mut_numer_denom_no_canonicalization();
             xmpz::realloc_for_mpn_set_str(num, n, src.radix);
             let size = gmp::mpn_set_str(num.inner_mut().d, str, n, src.radix);
-            num.inner_mut().size = cast(if src.is_negative { -size } else { size });
+            num.inner_mut().size = cast::cast(if src.is_negative { -size } else { size });
 
-            let (str, n) = (str.offset(cast(n)), src.digits.len() - n);
+            let (str, n) = (str.offset(cast::cast(n)), src.digits.len() - n);
             if n == 0 {
                 xmpz::set_1(den);
                 return;
             }
             xmpz::realloc_for_mpn_set_str(den, n, src.radix);
             let size = gmp::mpn_set_str(den.inner_mut().d, str, n, src.radix);
-            den.inner_mut().size = cast(size);
+            den.inner_mut().size = cast::cast(size);
         }
         unsafe {
             gmp::mpq_canonicalize(self.as_raw_mut());
@@ -2700,7 +2700,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
     use self::ParseRationalError as Error;
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let bradix: u8 = cast(radix);
+    let bradix: u8 = cast::cast(radix);
 
     let mut digits = Vec::with_capacity(bytes.len() + 1);
     let mut has_sign = false;

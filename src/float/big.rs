@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::ext::xmpfr::{self, ordering1, raw_round};
 use crate::float::arith::{
     AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete,
@@ -249,8 +249,8 @@ impl Float {
     }
     #[inline]
     pub(crate) fn data(&self) -> &[gmp::limb_t] {
-        let prec = cast::<_, usize>(self.inner.prec);
-        let limbs = prec.div_ceil(cast::<_, usize>(gmp::LIMB_BITS));
+        let prec = cast::cast::<_, usize>(self.inner.prec);
+        let limbs = prec.div_ceil(cast::cast::<_, usize>(gmp::LIMB_BITS));
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }
 }
@@ -495,7 +495,7 @@ impl Float {
         );
         unsafe {
             let_uninit_ptr!(ret: Float, ret_ptr);
-            mpfr::init2(cast_ptr_mut!(ret_ptr, mpfr_t), cast(prec));
+            mpfr::init2(cast_ptr_mut!(ret_ptr, mpfr_t), cast::cast(prec));
             assume_init!(ret)
         }
     }
@@ -511,7 +511,7 @@ impl Float {
     /// ```
     #[inline]
     pub fn prec(&self) -> u32 {
-        unsafe { cast(mpfr::get_prec(self.as_raw())) }
+        unsafe { cast::cast(mpfr::get_prec(self.as_raw())) }
     }
 
     /// Sets the precision, rounding to the nearest.
@@ -560,7 +560,8 @@ impl Float {
             prec >= float::prec_min() && prec <= float::prec_max(),
             "precision out of range"
         );
-        let ret = unsafe { mpfr::prec_round(self.as_raw_mut(), cast(prec), raw_round(round)) };
+        let ret =
+            unsafe { mpfr::prec_round(self.as_raw_mut(), cast::cast(prec), raw_round(round)) };
         ordering1(ret)
     }
 
@@ -896,7 +897,7 @@ impl Float {
         }
         let mut i = Integer::new();
         let exp = unsafe { mpfr::get_z_2exp(i.as_raw_mut(), self.as_raw()) };
-        Some((i, cast(exp)))
+        Some((i, cast::cast(exp)))
     }
 
     #[cfg(feature = "rational")]
@@ -1232,7 +1233,7 @@ impl Float {
             );
             mpfr::get_d_2exp(&mut exp, sf.as_raw(), raw_round(round))
         };
-        (f as f32, cast(exp))
+        (f as f32, cast::cast(exp))
     }
 
     /// Converts to an [`f64`] and an exponent, rounding to the
@@ -1286,7 +1287,7 @@ impl Float {
     pub fn to_f64_exp_round(&self, round: Round) -> (f64, i32) {
         let mut exp: c_long = 0;
         let f = unsafe { mpfr::get_d_2exp(&mut exp, self.as_raw(), raw_round(round)) };
-        (f, cast(exp))
+        (f, cast::cast(exp))
     }
 
     /// Returns a string representation of `self` for the specified
@@ -1697,7 +1698,7 @@ impl Float {
     pub fn get_exp(&self) -> Option<i32> {
         if self.is_normal() {
             let e = unsafe { mpfr::get_exp(self.as_raw()) };
-            Some(cast(e))
+            Some(cast::cast(e))
         } else {
             None
         }
@@ -1755,8 +1756,8 @@ impl Float {
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
             Some(BorrowInteger {
                 inner: gmp::mpz_t {
-                    alloc: cast(limbs),
-                    size: cast(limbs),
+                    alloc: cast::cast(limbs),
+                    size: cast::cast(limbs),
                     d: self.inner.d,
                 },
                 phantom: PhantomData,
@@ -2022,7 +2023,7 @@ impl Float {
         }
         let exp_min = mpfr::exp_t::from(normal_exp_min);
         let sub_exp_min = exp_min
-            .checked_sub(cast::<_, mpfr::exp_t>(self.prec() - 1))
+            .checked_sub(cast::cast::<_, mpfr::exp_t>(self.prec() - 1))
             .expect("overflow");
         let exp = unsafe { mpfr::get_exp(self.as_raw()) };
         if exp < sub_exp_min || exp >= exp_min {
@@ -8061,7 +8062,7 @@ where
             .map(|r| -> *const mpfr_t { r.as_raw() })
             .collect::<Vec<_>>();
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
-        let n = cast(refs.len());
+        let n = cast::cast(refs.len());
         let ret = unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
     }
@@ -8104,7 +8105,7 @@ where
         refs.push(self.as_raw());
         refs.extend(src.values.map(|r| -> *const mpfr_t { r.as_raw() }));
         let tab = cast_ptr!(refs.as_ptr(), *mut mpfr_t);
-        let n = cast(refs.len());
+        let n = cast::cast(refs.len());
         let ret = unsafe { mpfr::sum(self.as_raw_mut(), tab, n, raw_round(round)) };
         ordering1(ret)
     }
@@ -8513,10 +8514,11 @@ pub(crate) fn req_chars(f: &Float, format: Format, extra: usize) -> usize {
             };
             // p is u32, dividing can only decrease it, so m fits in u32
             let m = (f64::from(p) / log2_radix).ceil() as u32;
-            cast::<_, usize>(m).checked_add(2).expect("overflow")
+            cast::cast::<_, usize>(m).checked_add(2).expect("overflow")
         };
         const LOG10_2: f64 = 0.301_029_995_663_981_2f64;
-        let exp = (cast::<_, f64>(unsafe { mpfr::get_exp(f.as_raw()) }) / log2_radix - 1.0).abs();
+        let exp =
+            (cast::cast::<_, f64>(unsafe { mpfr::get_exp(f.as_raw()) }) / log2_radix - 1.0).abs();
         // add 1 for '-' and an extra 1 in case of rounding errors
         let exp_digits = (exp * LOG10_2).ceil() as usize + 2;
         // '.', exp separator, exp_digits
@@ -8581,7 +8583,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         let c_buf = mpfr::get_str(
             write_at_p1 as *mut c_char,
             exp_ptr,
-            cast(radix_with_case),
+            cast::cast(radix_with_case),
             digits,
             f.as_raw(),
             raw_round(format.round),
@@ -8650,7 +8652,7 @@ impl AssignRound<ParseIncomplete> for Float {
                 self.as_raw_mut(),
                 c_string.as_ptr(),
                 cast_ptr_mut!(&mut c_str_end, *mut c_char),
-                cast(radix),
+                cast::cast(radix),
                 raw_round(round),
             )
         };
@@ -8668,7 +8670,7 @@ macro_rules! parse_error {
 
 fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatError> {
     assert!(radix >= 2 && radix <= 36, "radix {} out of range", radix);
-    let bradix: u8 = cast(radix);
+    let bradix: u8 = cast::cast(radix);
     let small_bound = b'a' - 10 + bradix;
     let capital_bound = b'A' - 10 + bradix;
     let digit_bound = b'0' + bradix;
@@ -8913,7 +8915,7 @@ fn ieee_storage_bits_for_prec(prec: u32) -> Option<u32> {
     let estimate = prec - 4 * prec.leading_zeros() + 113;
     // k must be a multiple of 32
     let k = (estimate + 16) & !31;
-    let p = k - cast::<_, u32>((f64::from(k).log2() * 4.0).round()) + 13;
+    let p = k - cast::cast::<_, u32>((f64::from(k).log2() * 4.0).round()) + 13;
     if p == prec {
         Some(k)
     } else {

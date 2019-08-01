@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::float::{self, OrdFloat};
 use crate::serdeize::{self, Data, PrecReq, PrecVal};
 use crate::{Assign, Float};
@@ -57,7 +57,7 @@ impl<'de> Deserialize<'de> for Float {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
-            mpfr::set_prec(place.as_raw_mut(), cast(prec));
+            mpfr::set_prec(place.as_raw_mut(), cast::cast(prec));
         }
         place.assign(p);
         Ok(())
@@ -105,7 +105,7 @@ impl<'de> Deserialize<'de> for OrdFloat {
 
 #[cfg(test)]
 mod tests {
-    use crate::cast::cast;
+    use crate::cast;
     use crate::float::{self, FreeCache, Special};
     use crate::{Assign, Float};
     use serde_json::json;
@@ -153,7 +153,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(cast(value.len()))
+                .write_u64::<LittleEndian>(cast::cast(value.len()))
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

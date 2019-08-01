@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::integer::small::Mpz;
 use crate::integer::ToSmall;
 use crate::misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL};
@@ -118,12 +118,12 @@ impl SmallRational {
         SmallRational {
             inner: Mpq {
                 num: Mpz {
-                    alloc: cast(LIMBS_IN_SMALL),
+                    alloc: cast::cast(LIMBS_IN_SMALL),
                     size: 0,
                     d: Default::default(),
                 },
                 den: Mpz {
-                    alloc: cast(LIMBS_IN_SMALL),
+                    alloc: cast::cast(LIMBS_IN_SMALL),
                     size: 1,
                     d: Default::default(),
                 },

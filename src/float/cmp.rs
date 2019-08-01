@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::ext::xmpfr::{self, ordering1};
 use crate::float::big::{IExpIncomplete, UExpIncomplete};
 use crate::float::Special;
@@ -136,9 +136,9 @@ cmp_i! { i32, |f, &t: &i32| unsafe { mpfr::cmp_si(f, t.into()) } }
 cmp_i! { i64, |f, &t: &i64| unsafe { xmpfr::cmp_i64(f, t) } }
 cmp_i! { i128, |f, &t: &i128| unsafe { xmpfr::cmp_i128(f, t) } }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, cast(t)) } }
+cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, cast::cast(t)) } }
 #[cfg(target_pointer_width = "64")]
-cmp_i! { isize, |f, &t: &isize| unsafe { xmpfr::cmp_i64(f, cast(t)) } }
+cmp_i! { isize, |f, &t: &isize| unsafe { xmpfr::cmp_i64(f, cast::cast(t)) } }
 
 cmp_i! { u8, |f, &t: &u8| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u16, |f, &t: &u16| unsafe { mpfr::cmp_ui(f, t.into()) } }
@@ -146,9 +146,9 @@ cmp_i! { u32, |f, &t: &u32| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u64, |f, &t: &u64| unsafe { xmpfr::cmp_u64(f, t) } }
 cmp_i! { u128, |f, &t: &u128| unsafe { xmpfr::cmp_u128(f, t) } }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, cast(t)) } }
+cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, cast::cast(t)) } }
 #[cfg(target_pointer_width = "64")]
-cmp_i! { usize, |f, &t: &usize| unsafe { xmpfr::cmp_u64(f, cast(t)) } }
+cmp_i! { usize, |f, &t: &usize| unsafe { xmpfr::cmp_u64(f, cast::cast(t)) } }
 
 cmp_f! { f32, |f, &t: &f32| unsafe { mpfr::cmp_d(f, t.into()) } }
 cmp_f! { f64, |f, &t: &f64| unsafe { mpfr::cmp_d(f, t) } }

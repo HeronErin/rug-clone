@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::ext::xmpfr::{self, ordering1, raw_round};
 use crate::float::big::{self, ExpFormat, Format};
 use crate::float::{Constant, Round, Special};
@@ -49,7 +49,7 @@ impl Clone for Float {
     #[inline]
     fn clone_from(&mut self, source: &Float) {
         unsafe {
-            mpfr::set_prec(self.as_raw_mut(), cast(source.prec()));
+            mpfr::set_prec(self.as_raw_mut(), cast::cast(source.prec()));
         }
         self.assign(source);
     }
@@ -297,7 +297,7 @@ macro_rules! conv_ops_cast {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $New, round: Round) -> Ordering {
-                <Float as AssignRound<$Existing>>::assign_round(self, cast(src), round)
+                <Float as AssignRound<$Existing>>::assign_round(self, cast::cast(src), round)
             }
         }
 

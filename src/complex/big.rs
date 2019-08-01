@@ -14,7 +14,7 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::cast;
+use crate::cast;
 use crate::complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
 use crate::complex::{OrdComplex, Prec};
 use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
@@ -275,7 +275,7 @@ impl Complex {
         unsafe {
             let_uninit_ptr!(dst: Complex, dst_ptr);
             let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
-            mpc::init3(inner_ptr, cast(p.0), cast(p.1));
+            mpc::init3(inner_ptr, cast::cast(p.0), cast::cast(p.1));
             assume_init!(dst)
         }
     }
@@ -3437,7 +3437,7 @@ where
         }
         let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
         let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
-        let n = cast(reals.len());
+        let n = cast::cast(reals.len());
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
@@ -3492,7 +3492,7 @@ where
         }
         let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
         let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
-        let n = cast(reals.len());
+        let n = cast::cast(reals.len());
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
             (
@@ -3522,13 +3522,13 @@ fn prods_real(pairs: &[(&Complex, &Complex)]) -> Vec<Float> {
         let bp = cmp::max(brp, bip);
         let mut r = Float::new(arp.checked_add(bp).expect("overflow"));
         unsafe {
-            mpfr::set_prec(r.as_raw_mut(), cast(arp + brp));
+            mpfr::set_prec(r.as_raw_mut(), cast::cast(arp + brp));
         }
         r.assign(ar * br);
         prods.push(r);
         r = Float::new(aip.checked_add(bp).expect("overflow"));
         unsafe {
-            mpfr::set_prec(r.as_raw_mut(), cast(aip + bip));
+            mpfr::set_prec(r.as_raw_mut(), cast::cast(aip + bip));
         }
         r.assign(ai * bi);
         r.neg_assign();
@@ -3545,12 +3545,12 @@ fn prods_imag(prods: &mut Vec<Float>, pairs: &[(&Complex, &Complex)]) {
         let (arp, aip) = (ar.prec(), ai.prec());
         let (brp, bip) = (br.prec(), bi.prec());
         unsafe {
-            mpfr::set_prec(prods[i].as_raw_mut(), cast(arp + bip));
+            mpfr::set_prec(prods[i].as_raw_mut(), cast::cast(arp + bip));
         }
         prods[i].assign(ar * bi);
         i += 1;
         unsafe {
-            mpfr::set_prec(prods[i].as_raw_mut(), cast(aip + brp));
+            mpfr::set_prec(prods[i].as_raw_mut(), cast::cast(aip + brp));
         }
         prods[i].assign(ai * br);
         i += 1;
