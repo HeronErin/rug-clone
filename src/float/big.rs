@@ -31,7 +31,6 @@ use crate::Assign;
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-#[cfg(feature = "integer")]
 use gmp_mpfr_sys::gmp;
 use gmp_mpfr_sys::mpfr::{self, mpfr_t};
 use std::cmp::Ordering;
