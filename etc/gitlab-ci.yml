@@ -80,6 +80,24 @@ nightly-x86_64-gnulinux:
   script:
   - etc/test-gitlab-ci.sh
 
+1.31.1-x86_64-gnulinux-tarpaulin:
+  image: amd64/rust:1
+  stage: test
+  dependencies:
+  - clibs-x86_64-gnulinux
+  variables:
+    TOOLCHAIN: 1.31.1-x86_64
+    REQ_COVERAGE: "74.66"
+  script:
+  # build tarpaulin using stable, as it does not compile with 1.31.1
+  - cargo install --version 0.8.5 cargo-tarpaulin
+  - etc/extract-doc-tests.sh
+  # invoke-tarpaulin.sh uses the 1.31.1 toolchain
+  - stdbuf -o0 etc/invoke-tarpaulin.sh | tee tarpaulin.log
+  - etc/extract-doc-tests.sh restore
+  - echo "Check that coverage not less than $REQ_COVERAGE%"
+  - tail -1 tarpaulin.log | awk '{ if ($1 < '$REQ_COVERAGE') { exit 1 } }'
+
 stable-x86_64-gnulinux-valgrind:
   image: amd64/rust:1
   stage: test
