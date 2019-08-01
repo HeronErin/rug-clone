@@ -17,37 +17,7 @@ if [ -e target ]; then
 fi
 
 ## first extract docs
-
-EXTRACT_SCRIPT='
-p                       # print original, as sed is called quiet
-/```rust$/,/```$/{      # work between ```rust and ```
-    \,//[/!],!s,^,        , # indent uncommented lines
-    s, *//[/!],       ,     # uncomment commented lines
-    s, *$,,                 # remove trailing spaces
-    s,^\( *\)# ,\1/* # */ , # comment hiding hash
-    s,    ```rust$,{,       # replace ```rust with {
-    s, rug::, /*& */ ,      # comment rug::
-    s, ::rug, /*& */ ,      # comment ::rug
-    s,fn main(),/* & */,    # comment fn main()
-    s,    ```,},            # replace ``` with }
-    H                       # append to hold
-}
-${                      # at the end of the file
-    x                       # move the hold to pattern space
-    /./{                    # if hold was not empty
-        s/^.//                  # remove leading newline
-        i\
-// AUTOEXTRACTED DOCTESTS BELOW
-        i\
-#[test]
-        i\
-fn check_doctests() {
-        p                       # print the hold (wrapped by fn)
-        i\
-}
-    }
-}'
-sed -i$SUFFIX -n -e "$EXTRACT_SCRIPT" src/**/*.rs
+./extract_doc_tests.sh
 
 ## generate coverage.report
 
@@ -87,9 +57,7 @@ p                       # print the line(s) as sed is invoked with -e
 ) > coverage.report
 
 # restore original sources
-for f in src/**/*.rs$SUFFIX; do
-    mv "$f" "${f%$SUFFIX}"
-done
+./extract_doc_tests.sh restore
 
 if [ -e target ]; then
     rm -r target
