@@ -2794,7 +2794,7 @@ let error: ParseRationalError = match Rational::parse_radix(s, 4) {
     Ok(_) => unreachable!(),
     Err(error) => error,
 };
-println!("Parse error: {:?}", error);
+println!("Parse error: {}", error);
 ```
 
 [`Rational::parse_radix`]: ../struct.Rational.html#method.parse_radix

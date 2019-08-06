@@ -3945,7 +3945,7 @@ let error: ParseComplexError = match Complex::parse_radix(s, 4) {
     Ok(_) => unreachable!(),
     Err(error) => error,
 };
-println!("Parse error: {:?}", error);
+println!("Parse error: {}", error);
 ```
 
 [`Complex::parse_radix`]: ../struct.Complex.html#method.parse_radix

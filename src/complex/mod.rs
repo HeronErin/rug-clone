@@ -145,7 +145,7 @@ mod tests {
                     assert_eq!(*c.real(), r, "real mismatch for {}", s);
                     assert_eq!(*c.imag(), i, "imaginary mismatch for {}", s);
                 }
-                Err(e) => panic!("could not parse {} because {:?}", s, e),
+                Err(e) => panic!("could not parse {} because {}", s, e),
             }
         }
 

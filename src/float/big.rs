@@ -8854,7 +8854,7 @@ let error: ParseFloatError = match Float::parse_radix(s, 4) {
     Ok(_) => unreachable!(),
     Err(error) => error,
 };
-println!("Parse error: {:?}", error);
+println!("Parse error: {}", error);
 ```
 
 [`Float::parse_radix`]: ../struct.Float.html#method.parse_radix
