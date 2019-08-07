@@ -64,10 +64,7 @@ impl Drop for Integer {
 
 impl Hash for Integer {
     #[inline]
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
-    {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.inner().size.hash(state);
         self.inner_data().hash(state);
     }

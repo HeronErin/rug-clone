@@ -736,10 +736,7 @@ impl Float {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseFloatError>
-    where
-        S: AsRef<[u8]>,
-    {
+    pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseFloatError> {
         parse(src.as_ref(), 10)
     }
 
@@ -801,10 +798,10 @@ impl Float {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseFloatError>
-    where
-        S: AsRef<[u8]>,
-    {
+    pub fn parse_radix<S: AsRef<[u8]>>(
+        src: S,
+        radix: i32,
+    ) -> Result<ParseIncomplete, ParseFloatError> {
         parse(src.as_ref(), radix)
     }
 
@@ -7909,10 +7906,7 @@ impl Float {
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomBitsIncomplete<'a, 'b>
-    where
-        'b: 'a,
-    {
+    pub fn random_bits<'a, 'b: 'a>(rng: &'a mut RandState<'b>) -> RandomBitsIncomplete<'a, 'b> {
         RandomBitsIncomplete { rng }
     }
 
@@ -7962,10 +7956,7 @@ impl Float {
     /// [`random_bits`]: #method.random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_cont<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomCont<'a, 'b>
-    where
-        'b: 'a,
-    {
+    pub fn random_cont<'a, 'b: 'a>(rng: &'a mut RandState<'b>) -> RandomCont<'a, 'b> {
         RandomCont { rng }
     }
 
@@ -7998,10 +7989,7 @@ impl Float {
     /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_normal<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomNormal<'a, 'b>
-    where
-        'b: 'a,
-    {
+    pub fn random_normal<'a, 'b: 'a>(rng: &'a mut RandState<'b>) -> RandomNormal<'a, 'b> {
         RandomNormal { rng }
     }
 
@@ -8034,10 +8022,7 @@ impl Float {
     /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_exp<'a, 'b>(rng: &'a mut RandState<'b>) -> RandomExp<'a, 'b>
-    where
-        'b: 'a,
-    {
+    pub fn random_exp<'a, 'b: 'a>(rng: &'a mut RandState<'b>) -> RandomExp<'a, 'b> {
         RandomExp { rng }
     }
 }
@@ -8361,10 +8346,7 @@ ref_math_op1_float! { xmpfr::frac; struct FractIncomplete {} }
 ref_math_op1_2_float! { xmpfr::modf; struct TruncFractIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct RandomBitsIncomplete<'a, 'b: 'a> {
     rng: &'a mut RandState<'b>,
 }
 
@@ -8380,10 +8362,7 @@ impl Assign<RandomBitsIncomplete<'_, '_>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomCont<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct RandomCont<'a, 'b: 'a> {
     rng: &'a mut RandState<'b>,
 }
 
@@ -8400,10 +8379,7 @@ impl AssignRound<RandomCont<'_, '_>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomNormal<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct RandomNormal<'a, 'b: 'a> {
     rng: &'a mut RandState<'b>,
 }
 
@@ -8420,10 +8396,7 @@ impl AssignRound<RandomNormal<'_, '_>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomExp<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct RandomExp<'a, 'b: 'a> {
     rng: &'a mut RandState<'b>,
 }
 

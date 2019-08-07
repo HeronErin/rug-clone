@@ -23,10 +23,7 @@ use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 
 impl Serialize for Float {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let prec = self.prec();
         let radix = if prec <= 32 || !self.is_normal() {
             10
@@ -41,19 +38,16 @@ impl Serialize for Float {
 }
 
 impl<'de> Deserialize<'de> for Float {
-    fn deserialize<D>(deserializer: D) -> Result<Float, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Float, D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
         Ok(Float::with_val(prec, p))
     }
 
-    fn deserialize_in_place<D>(deserializer: D, place: &mut Float) -> Result<(), D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize_in_place<D: Deserializer<'de>>(
+        deserializer: D,
+        place: &mut Float,
+    ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
@@ -64,10 +58,7 @@ impl<'de> Deserialize<'de> for Float {
     }
 }
 
-fn de_data<'de, D>(deserializer: D) -> Result<(u32, i32, String), D::Error>
-where
-    D: Deserializer<'de>,
-{
+fn de_data<'de, D: Deserializer<'de>>(deserializer: D) -> Result<(u32, i32, String), D::Error> {
     let Data { prec, radix, value } = serdeize::deserialize("Float", PrecReq::One, deserializer)?;
     let prec = match prec {
         PrecVal::One(one) => one,
@@ -88,17 +79,14 @@ impl Serialize for OrdFloat {
 }
 
 impl<'de> Deserialize<'de> for OrdFloat {
-    fn deserialize<D>(deserializer: D) -> Result<OrdFloat, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<OrdFloat, D::Error> {
         Float::deserialize(deserializer).map(From::from)
     }
 
-    fn deserialize_in_place<D>(deserializer: D, place: &mut OrdFloat) -> Result<(), D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize_in_place<D: Deserializer<'de>>(
+        deserializer: D,
+        place: &mut OrdFloat,
+    ) -> Result<(), D::Error> {
         Float::deserialize_in_place(deserializer, place.as_float_mut())
     }
 }

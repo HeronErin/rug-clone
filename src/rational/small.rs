@@ -194,11 +194,7 @@ impl SmallRational {
     /// ```
     ///
     /// [`SmallRational`]: struct.SmallRational.html
-    pub unsafe fn from_canonical<Num, Den>(num: Num, den: Den) -> Self
-    where
-        Num: ToSmall,
-        Den: ToSmall,
-    {
+    pub unsafe fn from_canonical<Num: ToSmall, Den: ToSmall>(num: Num, den: Den) -> Self {
         let mut dst = SmallRational::default();
         dst.assign_canonical(num, den);
         dst
@@ -229,11 +225,7 @@ impl SmallRational {
     /// ```
     ///
     /// [`SmallRational`]: struct.SmallRational.html
-    pub unsafe fn assign_canonical<Num, Den>(&mut self, num: Num, den: Den)
-    where
-        Num: ToSmall,
-        Den: ToSmall,
-    {
+    pub unsafe fn assign_canonical<Num: ToSmall, Den: ToSmall>(&mut self, num: Num, den: Den) {
         let (num_limbs, den_limbs) = if self.num_is_first() {
             (&mut self.first_limbs, &mut self.last_limbs)
         } else {
@@ -280,10 +272,7 @@ impl Deref for SmallRational {
     }
 }
 
-impl<Num> Assign<Num> for SmallRational
-where
-    Num: ToSmall,
-{
+impl<Num: ToSmall> Assign<Num> for SmallRational {
     #[inline]
     fn assign(&mut self, src: Num) {
         let (num_limbs, den_limbs) = if self.num_is_first() {
@@ -297,10 +286,7 @@ where
     }
 }
 
-impl<Num> From<Num> for SmallRational
-where
-    Num: ToSmall,
-{
+impl<Num: ToSmall> From<Num> for SmallRational {
     fn from(src: Num) -> Self {
         let mut dst = SmallRational::default();
         src.copy(&mut dst.inner.num.size, &mut dst.first_limbs);
@@ -310,11 +296,7 @@ where
     }
 }
 
-impl<Num, Den> Assign<(Num, Den)> for SmallRational
-where
-    Num: ToSmall,
-    Den: ToSmall,
-{
+impl<Num: ToSmall, Den: ToSmall> Assign<(Num, Den)> for SmallRational {
     fn assign(&mut self, src: (Num, Den)) {
         assert!(!src.1.is_zero(), "division by zero");
         {
@@ -332,11 +314,7 @@ where
     }
 }
 
-impl<Num, Den> From<(Num, Den)> for SmallRational
-where
-    Num: ToSmall,
-    Den: ToSmall,
-{
+impl<Num: ToSmall, Den: ToSmall> From<(Num, Den)> for SmallRational {
     fn from(src: (Num, Den)) -> Self {
         let mut dst = SmallRational::default();
         dst.assign(src);

@@ -471,10 +471,7 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    pub fn from_digits<T>(digits: &[T], order: Order) -> Self
-    where
-        T: UnsignedPrimitive,
-    {
+    pub fn from_digits<T: UnsignedPrimitive>(digits: &[T], order: Order) -> Self {
         let capacity = digits.len().checked_mul(T::BITS).expect("overflow");
         let mut i = Integer::with_capacity(capacity);
         i.assign_digits(digits, order);
@@ -499,10 +496,7 @@ impl Integer {
     ///
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    pub fn assign_digits<T>(&mut self, digits: &[T], order: Order)
-    where
-        T: UnsignedPrimitive,
-    {
+    pub fn assign_digits<T: UnsignedPrimitive>(&mut self, digits: &[T], order: Order) {
         unsafe {
             self.assign_digits_unaligned(digits.as_ptr(), digits.len(), order);
         }
@@ -547,10 +541,12 @@ impl Integer {
     ///
     /// [upt]: integer/trait.UnsignedPrimitive.html
     /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
-    pub unsafe fn assign_digits_unaligned<T>(&mut self, src: *const T, len: usize, order: Order)
-    where
-        T: UnsignedPrimitive,
-    {
+    pub unsafe fn assign_digits_unaligned<T: UnsignedPrimitive>(
+        &mut self,
+        src: *const T,
+        len: usize,
+        order: Order,
+    ) {
         gmp::mpz_import(
             self.as_raw_mut(),
             len,
@@ -582,10 +578,7 @@ impl Integer {
     ///
     /// [upt]: integer/trait.UnsignedPrimitive.html
     #[inline]
-    pub fn significant_digits<T>(&self) -> usize
-    where
-        T: UnsignedPrimitive,
-    {
+    pub fn significant_digits<T: UnsignedPrimitive>(&self) -> usize {
         xmpz::significant_bits(self).div_ceil(T::BITS)
     }
 
@@ -609,10 +602,7 @@ impl Integer {
     ///
     /// [`Vec`]: https://doc.rust-lang.org/nightly/std/vec/struct.Vec.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    pub fn to_digits<T>(&self, order: Order) -> Vec<T>
-    where
-        T: UnsignedPrimitive,
-    {
+    pub fn to_digits<T: UnsignedPrimitive>(&self, order: Order) -> Vec<T> {
         let digit_count = self.significant_digits::<T>();
         let mut v = Vec::with_capacity(digit_count);
         unsafe {
@@ -660,10 +650,7 @@ impl Integer {
     /// [`significant_digits`]: #method.significant_digits
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    pub fn write_digits<T>(&self, digits: &mut [T], order: Order)
-    where
-        T: UnsignedPrimitive,
-    {
+    pub fn write_digits<T: UnsignedPrimitive>(&self, digits: &mut [T], order: Order) {
         unsafe {
             self.write_digits_unaligned(digits.as_mut_ptr(), digits.len(), order);
         }
@@ -747,10 +734,12 @@ impl Integer {
     /// [`to_digits`]: #method.to_digits
     /// [upt]: integer/trait.UnsignedPrimitive.html
     /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
-    pub unsafe fn write_digits_unaligned<T>(&self, dst: *mut T, len: usize, order: Order)
-    where
-        T: UnsignedPrimitive,
-    {
+    pub unsafe fn write_digits_unaligned<T: UnsignedPrimitive>(
+        &self,
+        dst: *mut T,
+        len: usize,
+        order: Order,
+    ) {
         let digit_count = self.significant_digits::<T>();
         let zero_count = len.checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
@@ -881,10 +870,7 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse<S>(src: S) -> Result<ParseIncomplete, ParseIntegerError>
-    where
-        S: AsRef<[u8]>,
-    {
+    pub fn parse<S: AsRef<[u8]>>(src: S) -> Result<ParseIncomplete, ParseIntegerError> {
         parse(src.as_ref(), 10)
     }
 
@@ -928,10 +914,10 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
     #[inline]
-    pub fn parse_radix<S>(src: S, radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
-    where
-        S: AsRef<[u8]>,
-    {
+    pub fn parse_radix<S: AsRef<[u8]>>(
+        src: S,
+        radix: i32,
+    ) -> Result<ParseIncomplete, ParseIntegerError> {
         parse(src.as_ref(), radix)
     }
 
@@ -4917,13 +4903,10 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<'a, 'b>(
+    pub fn random_bits<'a, 'b: 'a>(
         bits: u32,
         rng: &'a mut RandState<'b>,
-    ) -> RandomBitsIncomplete<'a, 'b>
-    where
-        'b: 'a,
-    {
+    ) -> RandomBitsIncomplete<'a, 'b> {
         RandomBitsIncomplete { bits, rng }
     }
 
@@ -5006,13 +4989,10 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_below_ref<'a, 'b>(
+    pub fn random_below_ref<'a, 'b: 'a>(
         &'a self,
         rng: &'a mut RandState<'b>,
-    ) -> RandomBelowIncomplete<'a, 'b>
-    where
-        'b: 'a,
-    {
+    ) -> RandomBelowIncomplete<'a, 'b> {
         RandomBelowIncomplete {
             ref_self: self,
             rng,
@@ -5496,10 +5476,7 @@ impl Assign<LucasIncomplete> for (Integer, Integer) {
 from_assign! { LucasIncomplete => Integer, Integer }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct RandomBitsIncomplete<'a, 'b: 'a> {
     bits: u32,
     rng: &'a mut RandState<'b>,
 }
@@ -5525,10 +5502,7 @@ impl From<RandomBitsIncomplete<'_, '_>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomBelowIncomplete<'a, 'b>
-where
-    'b: 'a,
-{
+pub struct RandomBelowIncomplete<'a, 'b: 'a> {
     ref_self: &'a Integer,
     rng: &'a mut RandState<'b>,
 }

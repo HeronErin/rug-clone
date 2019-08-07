@@ -108,10 +108,7 @@ impl OrdFloat {
 }
 
 impl Hash for OrdFloat {
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
-    {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         let float = &self.inner;
         float.inner().sign.hash(state);
         float.inner().exp.hash(state);
@@ -204,10 +201,7 @@ mod tests {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
 
-    fn calculate_hash<T>(t: &T) -> u64
-    where
-        T: Hash,
-    {
+    fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();
         t.hash(&mut s);
         s.finish()

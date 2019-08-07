@@ -20,10 +20,7 @@ use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 
 impl Serialize for Integer {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let prec = PrecVal::Zero;
         let radix = if self.significant_bits() <= 32 {
             10
@@ -37,19 +34,16 @@ impl Serialize for Integer {
 }
 
 impl<'de> Deserialize<'de> for Integer {
-    fn deserialize<D>(deserializer: D) -> Result<Integer, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Integer, D::Error> {
         let (radix, value) = de_data(deserializer)?;
         let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
         Ok(Integer::from(p))
     }
 
-    fn deserialize_in_place<D>(deserializer: D, place: &mut Integer) -> Result<(), D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize_in_place<D: Deserializer<'de>>(
+        deserializer: D,
+        place: &mut Integer,
+    ) -> Result<(), D::Error> {
         let (radix, value) = de_data(deserializer)?;
         let p = Integer::parse_radix(&value, radix).map_err(DeError::custom)?;
         place.assign(p);
@@ -57,10 +51,7 @@ impl<'de> Deserialize<'de> for Integer {
     }
 }
 
-fn de_data<'de, D>(deserializer: D) -> Result<(i32, String), D::Error>
-where
-    D: Deserializer<'de>,
-{
+fn de_data<'de, D: Deserializer<'de>>(deserializer: D) -> Result<(i32, String), D::Error> {
     let Data { prec, radix, value } =
         serdeize::deserialize("Integer", PrecReq::Zero, deserializer)?;
     match prec {

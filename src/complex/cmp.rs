@@ -142,10 +142,7 @@ mod tests {
         }
     }
 
-    fn combinations<T>(t: &[T]) -> Vec<(T, T)>
-    where
-        T: Clone,
-    {
+    fn combinations<T: Clone>(t: &[T]) -> Vec<(T, T)> {
         let mut ret = Vec::with_capacity(t.len() * t.len());
         for re in t {
             for im in t {

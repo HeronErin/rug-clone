@@ -184,10 +184,7 @@ impl Deref for SmallComplex {
     }
 }
 
-impl<Re> Assign<Re> for SmallComplex
-where
-    Re: ToSmall,
-{
+impl<Re: ToSmall> Assign<Re> for SmallComplex {
     fn assign(&mut self, src: Re) {
         unsafe {
             src.copy(&mut self.inner.re, &mut self.first_limbs);
@@ -200,10 +197,7 @@ where
     }
 }
 
-impl<Re> From<Re> for SmallComplex
-where
-    Re: ToSmall,
-{
+impl<Re: ToSmall> From<Re> for SmallComplex {
     fn from(src: Re) -> Self {
         let mut dst = SmallComplex {
             inner: Mpc {
@@ -235,11 +229,7 @@ where
     }
 }
 
-impl<Re, Im> Assign<(Re, Im)> for SmallComplex
-where
-    Re: ToSmall,
-    Im: ToSmall,
-{
+impl<Re: ToSmall, Im: ToSmall> Assign<(Re, Im)> for SmallComplex {
     fn assign(&mut self, src: (Re, Im)) {
         unsafe {
             src.0.copy(&mut self.inner.re, &mut self.first_limbs);
@@ -248,11 +238,7 @@ where
     }
 }
 
-impl<Re, Im> From<(Re, Im)> for SmallComplex
-where
-    Re: ToSmall,
-    Im: ToSmall,
-{
+impl<Re: ToSmall, Im: ToSmall> From<(Re, Im)> for SmallComplex {
     fn from(src: (Re, Im)) -> Self {
         let mut dst = SmallComplex {
             inner: Mpc {

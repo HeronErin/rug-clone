@@ -37,10 +37,11 @@ pub struct Data {
     pub value: String,
 }
 
-pub fn serialize<S>(name: &'static str, data: &Data, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
+pub fn serialize<S: Serializer>(
+    name: &'static str,
+    data: &Data,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
     let mut state = match data.prec {
         PrecVal::Zero => serializer.serialize_struct(name, 2)?,
         PrecVal::One(one) => {
@@ -75,10 +76,7 @@ impl<'de> Visitor<'de> for FieldVisitor {
         formatter.write_str("`radix` or `value`")
     }
 
-    fn visit_str<E>(self, value: &str) -> Result<Field, E>
-    where
-        E: DeError,
-    {
+    fn visit_str<E: DeError>(self, value: &str) -> Result<Field, E> {
         match value {
             "radix" => Ok(Field::Radix),
             "value" => Ok(Field::Value),
@@ -88,10 +86,7 @@ impl<'de> Visitor<'de> for FieldVisitor {
 }
 
 impl<'de> Deserialize<'de> for Field {
-    fn deserialize<D>(deserializer: D) -> Result<Field, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Field, D::Error> {
         deserializer.deserialize_identifier(FieldVisitor)
     }
 }
@@ -112,10 +107,7 @@ impl<'de> Visitor<'de> for PrecFieldVisitor {
         formatter.write_str("`prec`, `radix` or `value`")
     }
 
-    fn visit_str<E>(self, value: &str) -> Result<PrecField, E>
-    where
-        E: DeError,
-    {
+    fn visit_str<E: DeError>(self, value: &str) -> Result<PrecField, E> {
         match value {
             "prec" => Ok(PrecField::Prec),
             "radix" => Ok(PrecField::Field(Field::Radix)),
@@ -126,10 +118,7 @@ impl<'de> Visitor<'de> for PrecFieldVisitor {
 }
 
 impl<'de> Deserialize<'de> for PrecField {
-    fn deserialize<D>(deserializer: D) -> Result<PrecField, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<PrecField, D::Error> {
         deserializer.deserialize_identifier(PrecFieldVisitor)
     }
 }
@@ -143,10 +132,7 @@ impl<'de> Visitor<'de> for BigVisitor {
         formatter.write_str(self.0)
     }
 
-    fn visit_seq<V>(self, mut seq: V) -> Result<Data, V::Error>
-    where
-        V: SeqAccess<'de>,
-    {
+    fn visit_seq<V: SeqAccess<'de>>(self, mut seq: V) -> Result<Data, V::Error> {
         let prec = match self.1 {
             PrecReq::Zero => PrecVal::Zero,
             PrecReq::One => PrecVal::One(
@@ -171,10 +157,7 @@ impl<'de> Visitor<'de> for BigVisitor {
         Ok(Data { prec, radix, value })
     }
 
-    fn visit_map<V>(self, mut map: V) -> Result<Data, V::Error>
-    where
-        V: MapAccess<'de>,
-    {
+    fn visit_map<V: MapAccess<'de>>(self, mut map: V) -> Result<Data, V::Error> {
         let mut prec = match self.1 {
             PrecReq::Zero => Some(PrecVal::Zero),
             PrecReq::One | PrecReq::Two => None,
@@ -217,14 +200,11 @@ impl<'de> Visitor<'de> for BigVisitor {
     }
 }
 
-pub fn deserialize<'de, D>(
+pub fn deserialize<'de, D: Deserializer<'de>>(
     name: &'static str,
     prec_req: PrecReq,
     deserializer: D,
-) -> Result<Data, D::Error>
-where
-    D: Deserializer<'de>,
-{
+) -> Result<Data, D::Error> {
     let fields = match prec_req {
         PrecReq::Zero => FIELDS,
         PrecReq::One | PrecReq::Two => PREC_FIELDS,
@@ -326,14 +306,11 @@ pub mod test {
         }
 
         impl<'a> BincodeRead<'a> for SliceReader<'a> {
-            fn forward_read_str<V>(
+            fn forward_read_str<V: Visitor<'a>>(
                 &mut self,
                 _length: usize,
                 _visitor: V,
-            ) -> BincodeResult<V::Value>
-            where
-                V: Visitor<'a>,
-            {
+            ) -> BincodeResult<V::Value> {
                 unimplemented!()
             }
 
@@ -343,14 +320,11 @@ pub mod test {
                 Ok(ret)
             }
 
-            fn forward_read_bytes<V>(
+            fn forward_read_bytes<V: Visitor<'a>>(
                 &mut self,
                 _length: usize,
                 _visitor: V,
-            ) -> BincodeResult<V::Value>
-            where
-                V: Visitor<'a>,
-            {
+            ) -> BincodeResult<V::Value> {
                 unimplemented!()
             }
         }

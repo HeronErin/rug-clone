@@ -341,10 +341,7 @@ impl SealedToSmall for f64 {
     }
 }
 
-impl<T> Assign<T> for SmallFloat
-where
-    T: ToSmall,
-{
+impl<T: ToSmall> Assign<T> for SmallFloat {
     #[inline]
     fn assign(&mut self, src: T) {
         unsafe {
@@ -353,10 +350,7 @@ where
     }
 }
 
-impl<T> From<T> for SmallFloat
-where
-    T: ToSmall,
-{
+impl<T: ToSmall> From<T> for SmallFloat {
     #[inline]
     fn from(src: T) -> Self {
         let mut dst = SmallFloat {

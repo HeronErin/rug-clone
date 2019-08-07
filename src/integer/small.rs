@@ -366,20 +366,14 @@ impl SealedToSmall for usize {
     is_zero! {}
 }
 
-impl<T> Assign<T> for SmallInteger
-where
-    T: ToSmall,
-{
+impl<T: ToSmall> Assign<T> for SmallInteger {
     #[inline]
     fn assign(&mut self, src: T) {
         src.copy(&mut self.inner.size, &mut self.limbs);
     }
 }
 
-impl<T> From<T> for SmallInteger
-where
-    T: ToSmall,
-{
+impl<T: ToSmall> From<T> for SmallInteger {
     #[inline]
     fn from(src: T) -> Self {
         let mut dst = SmallInteger::default();

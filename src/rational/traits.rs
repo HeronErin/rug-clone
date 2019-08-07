@@ -71,10 +71,7 @@ impl Drop for Rational {
 
 impl Hash for Rational {
     #[inline]
-    fn hash<H>(&self, state: &mut H)
-    where
-        H: Hasher,
-    {
+    fn hash<H: Hasher>(&self, state: &mut H) {
         self.numer().hash(state);
         self.denom().hash(state);
     }

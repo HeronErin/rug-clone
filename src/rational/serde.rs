@@ -20,10 +20,7 @@ use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 
 impl Serialize for Rational {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let prec = PrecVal::Zero;
         let radix =
             if self.numer().significant_bits() <= 32 && self.denom().significant_bits() <= 32 {
@@ -38,19 +35,16 @@ impl Serialize for Rational {
 }
 
 impl<'de> Deserialize<'de> for Rational {
-    fn deserialize<D>(deserializer: D) -> Result<Rational, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Rational, D::Error> {
         let (radix, value) = de_data(deserializer)?;
         let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
         Ok(Rational::from(p))
     }
 
-    fn deserialize_in_place<D>(deserializer: D, place: &mut Rational) -> Result<(), D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize_in_place<D: Deserializer<'de>>(
+        deserializer: D,
+        place: &mut Rational,
+    ) -> Result<(), D::Error> {
         let (radix, value) = de_data(deserializer)?;
         let p = Rational::parse_radix(&value, radix).map_err(DeError::custom)?;
         place.assign(p);
@@ -58,10 +52,7 @@ impl<'de> Deserialize<'de> for Rational {
     }
 }
 
-fn de_data<'de, D>(deserializer: D) -> Result<(i32, String), D::Error>
-where
-    D: Deserializer<'de>,
-{
+fn de_data<'de, D: Deserializer<'de>>(deserializer: D) -> Result<(i32, String), D::Error> {
     let Data { prec, radix, value } =
         serdeize::deserialize("Rational", PrecReq::Zero, deserializer)?;
     match prec {

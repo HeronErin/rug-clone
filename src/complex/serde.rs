@@ -24,10 +24,7 @@ use serde::de::{Deserialize, Deserializer, Error as DeError};
 use serde::ser::{Serialize, Serializer};
 
 impl Serialize for Complex {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let prec = self.prec();
         let radix = if (prec.0 <= 32 || !self.real().is_normal())
             && (prec.1 <= 32 || !self.imag().is_normal())
@@ -44,19 +41,16 @@ impl Serialize for Complex {
 }
 
 impl<'de> Deserialize<'de> for Complex {
-    fn deserialize<D>(deserializer: D) -> Result<Complex, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Complex, D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
         Ok(Complex::with_val(prec, p))
     }
 
-    fn deserialize_in_place<D>(deserializer: D, place: &mut Complex) -> Result<(), D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize_in_place<D: Deserializer<'de>>(
+        deserializer: D,
+        place: &mut Complex,
+    ) -> Result<(), D::Error> {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
@@ -69,10 +63,9 @@ impl<'de> Deserialize<'de> for Complex {
     }
 }
 
-fn de_data<'de, D>(deserializer: D) -> Result<((u32, u32), i32, String), D::Error>
-where
-    D: Deserializer<'de>,
-{
+fn de_data<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<((u32, u32), i32, String), D::Error> {
     let Data { prec, radix, value } = serdeize::deserialize("Complex", PrecReq::Two, deserializer)?;
     let prec = match prec {
         PrecVal::Two(two) => two,
@@ -95,26 +88,20 @@ where
 }
 
 impl Serialize for OrdComplex {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         self.as_complex().serialize(serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for OrdComplex {
-    fn deserialize<D>(deserializer: D) -> Result<OrdComplex, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<OrdComplex, D::Error> {
         Complex::deserialize(deserializer).map(From::from)
     }
 
-    fn deserialize_in_place<D>(deserializer: D, place: &mut OrdComplex) -> Result<(), D::Error>
-    where
-        D: Deserializer<'de>,
-    {
+    fn deserialize_in_place<D: Deserializer<'de>>(
+        deserializer: D,
+        place: &mut OrdComplex,
+    ) -> Result<(), D::Error> {
         Complex::deserialize_in_place(deserializer, place.as_complex_mut())
     }
 }
