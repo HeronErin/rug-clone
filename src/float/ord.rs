@@ -16,8 +16,10 @@
 
 use crate::Float;
 use gmp_mpfr_sys::mpfr;
-use std::cmp::Ordering;
-use std::hash::{Hash, Hasher};
+use std::{
+    cmp::Ordering,
+    hash::{Hash, Hasher},
+};
 
 /**
 A float that supports total ordering and hashing.
@@ -30,8 +32,10 @@ positive NaNs produces equality.
 # Examples
 
 ```rust
-use rug::float::{OrdFloat, Special};
-use rug::Float;
+use rug::{
+    float::{OrdFloat, Special},
+    Float,
+};
 use std::cmp::Ordering;
 
 let pos_nan_f = Float::with_val(53, Special::Nan);
@@ -73,8 +77,7 @@ impl OrdFloat {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::OrdFloat;
-    /// use rug::Float;
+    /// use rug::{float::OrdFloat, Float};
     /// let f = Float::with_val(53, 1.5);
     /// let ord = OrdFloat::from(f);
     /// let f_ref = ord.as_float();
@@ -92,8 +95,7 @@ impl OrdFloat {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::OrdFloat;
-    /// use rug::Float;
+    /// use rug::{float::OrdFloat, Float};
     /// let f = Float::with_val(53, -1.5);
     /// let mut ord = OrdFloat::from(f);
     /// ord.as_float_mut().abs_mut();

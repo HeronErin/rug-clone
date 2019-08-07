@@ -14,26 +14,30 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::CheckedCast;
-use crate::complex::SmallComplex;
-use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
-use crate::float::SmallFloat;
-use crate::ops::{
-    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
-    MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
-    PowFromRound, SubAssignRound, SubFrom, SubFromRound,
-};
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{Complex, Float};
-use gmp_mpfr_sys::mpc::{self, mpc_t};
-use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
-    SubAssign,
+use crate::{
+    cast::CheckedCast,
+    complex::SmallComplex,
+    ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2},
+    float::SmallFloat,
+    ops::{
+        AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
+        MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
+        PowFromRound, SubAssignRound, SubFrom, SubFromRound,
+    },
+    Complex, Float,
 };
-use std::os::raw::{c_int, c_long, c_ulong};
+use gmp_mpfr_sys::mpc::{self, mpc_t};
+use std::{
+    ops::{
+        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+        SubAssign,
+    },
+    os::raw::{c_int, c_long, c_ulong},
+};
 
 impl Neg for Complex {
     type Output = Complex;

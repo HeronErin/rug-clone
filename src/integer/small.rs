@@ -14,15 +14,18 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{Assign, Integer};
-
-use crate::cast;
-use crate::misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL};
+use crate::{
+    cast,
+    misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL},
+    Assign, Integer,
+};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use std::mem;
-use std::ops::Deref;
-use std::os::raw::c_int;
-use std::sync::atomic::{AtomicPtr, Ordering};
+use std::{
+    mem,
+    ops::Deref,
+    os::raw::c_int,
+    sync::atomic::{AtomicPtr, Ordering},
+};
 
 /**
 A small integer that does not require any memory allocation.
@@ -41,8 +44,7 @@ implements [`Deref<Target = Integer>`][`Deref`].
 # Examples
 
 ```rust
-use rug::integer::SmallInteger;
-use rug::Integer;
+use rug::{integer::SmallInteger, Integer};
 // `a` requires a heap allocation
 let mut a = Integer::from(250);
 // `b` can reside on the stack
@@ -143,8 +145,7 @@ impl SmallInteger {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::SmallInteger;
-    /// use rug::Assign;
+    /// use rug::{integer::SmallInteger, Assign};
     /// let mut i = SmallInteger::from(1u64);
     /// let capacity = i.capacity();
     /// // another u64 will not require a reallocation

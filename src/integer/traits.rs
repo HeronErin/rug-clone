@@ -14,21 +14,22 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpz;
-use crate::integer::big;
-use crate::integer::ParseIntegerError;
+use crate::{
+    ext::xmpz,
+    integer::{big, ParseIntegerError},
+    Assign, Integer,
+};
+use std::{
+    fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
+    hash::{Hash, Hasher},
+    mem,
+    str::FromStr,
+};
 #[cfg(try_from)]
-use crate::integer::TryFromIntegerError;
-use crate::{Assign, Integer};
-#[cfg(try_from)]
-use std::convert::TryFrom;
-#[cfg(try_from)]
-use std::error::Error;
-use std::fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex};
-use std::hash::{Hash, Hasher};
-use std::mem;
-use std::str::FromStr;
-use std::{i32, u32};
+use {
+    crate::integer::TryFromIntegerError,
+    std::{convert::TryFrom, error::Error},
+};
 
 impl Default for Integer {
     #[inline]

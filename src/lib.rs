@@ -166,8 +166,7 @@ trait has to be brought into scope, for example
 
 ```rust
 # #[cfg(feature = "integer")] {
-use rug::ops::Pow;
-use rug::Integer;
+use rug::{ops::Pow, Integer};
 let base = Integer::from(10);
 let power = base.pow(5);
 assert_eq!(power, 100_000);
@@ -185,8 +184,7 @@ with “`From`”. For example the counterpart to [`SubAssign`] is
 
 ```rust
 # #[cfg(feature = "integer")] {
-use rug::ops::SubFrom;
-use rug::Integer;
+use rug::{ops::SubFrom, Integer};
 let mut rhs = Integer::from(10);
 // set rhs = 100 − rhs
 rhs.sub_from(100);
@@ -243,8 +241,7 @@ allocation would take place even if it is not necessary.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Constant;
-use rug::Float;
+use rug::{float::Constant, Float};
 // x has a precision of 10 bits
 let x = Float::with_val(10, 180);
 // y has a precision of 50 bits

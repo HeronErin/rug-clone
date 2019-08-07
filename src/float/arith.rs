@@ -14,26 +14,30 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::CheckedCast;
-use crate::ext::xmpfr::{self, ordering1, raw_round};
-use crate::float::{Round, SmallFloat};
-use crate::ops::{
-    AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
-    MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
-    PowFromRound, SubAssignRound, SubFrom, SubFromRound,
-};
-use crate::Float;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use std::cmp::Ordering;
-use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
-    SubAssign,
+use crate::{
+    cast::CheckedCast,
+    ext::xmpfr::{self, ordering1, raw_round},
+    float::{Round, SmallFloat},
+    ops::{
+        AddAssignRound, AddFrom, AddFromRound, AssignRound, DivAssignRound, DivFrom, DivFromRound,
+        MulAssignRound, MulFrom, MulFromRound, NegAssign, Pow, PowAssign, PowAssignRound, PowFrom,
+        PowFromRound, SubAssignRound, SubFrom, SubFromRound,
+    },
+    Float,
 };
-use std::os::raw::{c_int, c_long, c_ulong};
+use gmp_mpfr_sys::mpfr::{self, mpfr_t};
+use std::{
+    cmp::Ordering,
+    ops::{
+        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+        SubAssign,
+    },
+    os::raw::{c_int, c_long, c_ulong},
+};
 
 impl Neg for Float {
     type Output = Float;

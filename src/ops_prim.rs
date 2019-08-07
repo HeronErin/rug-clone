@@ -14,14 +14,18 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ops::{
-    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding, DivRoundingAssign,
-    DivRoundingFrom, MulFrom, NegAssign, NotAssign, Pow, PowAssign, PowFrom, RemFrom, RemRounding,
-    RemRoundingAssign, RemRoundingFrom, ShlFrom, ShrFrom, SubFrom,
+use crate::{
+    ops::{
+        AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, DivRounding, DivRoundingAssign,
+        DivRoundingFrom, MulFrom, NegAssign, NotAssign, Pow, PowAssign, PowFrom, RemFrom,
+        RemRounding, RemRoundingAssign, RemRoundingFrom, ShlFrom, ShrFrom, SubFrom,
+    },
+    Assign,
 };
-use crate::Assign;
-use std::borrow::Cow;
-use std::ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
+use std::{
+    borrow::Cow,
+    ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub},
+};
 
 macro_rules! assign_from {
     ($T:ty; $op:ident; $Imp:ident $method:ident) => {

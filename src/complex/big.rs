@@ -14,30 +14,44 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::complex::arith::{AddMulIncomplete, SubMulFromIncomplete};
-use crate::complex::{OrdComplex, Prec};
-use crate::ext::xmpc::{self, ordering2, raw_round2, Ordering2, Round2};
-use crate::ext::xmpfr::raw_round;
-use crate::float::big::{
-    self as big_float, ExpFormat, Format as FloatFormat, ParseIncomplete as FloatParseIncomplete,
-};
-use crate::float::{self, ParseFloatError, Round, Special};
-use crate::misc;
-use crate::ops::{AddAssignRound, AssignRound, NegAssign};
 #[cfg(feature = "rand")]
 use crate::rand::RandState;
-use crate::{Assign, Float};
-use gmp_mpfr_sys::mpc::{self, mpc_t};
-use gmp_mpfr_sys::mpfr;
-use std::cmp::{self, Ordering};
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::marker::PhantomData;
-use std::mem;
-use std::ops::{Add, AddAssign, Deref};
-use std::os::raw::c_int;
-use std::slice;
+use crate::{
+    cast,
+    complex::{
+        arith::{AddMulIncomplete, SubMulFromIncomplete},
+        OrdComplex, Prec,
+    },
+    ext::{
+        xmpc::{self, ordering2, raw_round2, Ordering2, Round2},
+        xmpfr::raw_round,
+    },
+    float::{
+        self,
+        big::{
+            self as big_float, ExpFormat, Format as FloatFormat,
+            ParseIncomplete as FloatParseIncomplete,
+        },
+        ParseFloatError, Round, Special,
+    },
+    misc,
+    ops::{AddAssignRound, AssignRound, NegAssign},
+    Assign, Float,
+};
+use gmp_mpfr_sys::{
+    mpc::{self, mpc_t},
+    mpfr,
+};
+use std::{
+    cmp::{self, Ordering},
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    marker::PhantomData,
+    mem,
+    ops::{Add, AddAssign, Deref},
+    os::raw::c_int,
+    slice,
+};
 
 /**
 A multi-precision complex number with arbitrarily large precision and
@@ -110,8 +124,7 @@ have four versions:
     selected during the assignment.
 
 ```rust
-use rug::float::Round;
-use rug::Complex;
+use rug::{float::Round, Complex};
 use std::cmp::Ordering;
 let expected = Complex::with_val(53, (1.2985, 0.6350));
 
@@ -345,8 +358,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// let round = (Round::Down, Round::Up);
     /// let (c, dir) = Complex::with_val_round(4, (3.3, 2.3), round);
@@ -413,8 +425,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// let mut r = Complex::with_val(6, (4.875, 4.625));
     /// assert_eq!(r, (4.875, 4.625));
@@ -710,8 +721,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// let c = Complex::with_val(10, 10.4);
     /// let down = (Round::Down, Round::Down);
     /// let nearest = (Round::Nearest, Round::Nearest);
@@ -995,8 +1005,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::Complex;
+    /// use rug::{float::Special, Complex};
     /// use std::cmp::Ordering;
     ///
     /// let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
@@ -1028,8 +1037,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::{Assign, Complex};
+    /// use rug::{float::Special, Assign, Complex};
     /// let mut c = Complex::with_val(53, (Special::NegZero, Special::Zero));
     /// assert!(c.eq0());
     /// c += 5.2;
@@ -1242,8 +1250,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
@@ -1347,8 +1354,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// let mut a = Complex::with_val(53, (10, 0));
     /// let b = Complex::with_val(53, (1, -1));
@@ -1518,8 +1524,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// let mut c = Complex::with_val(4, (1.25, 1.25));
         /// // (1.25 + 1.25i) squared is (0 + 3.125i).
@@ -1539,8 +1544,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// let c = Complex::with_val(53, (1.25, 1.25));
         /// // (1.25 + 1.25i) squared is (0 + 3.125i).
@@ -1590,8 +1594,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// let mut c = Complex::with_val(4, (2, 2.25));
         /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
@@ -1611,8 +1614,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// let c = Complex::with_val(53, (2, 2.25));
         /// // Square root of (2 + 2.25i) is (1.5828 + 0.7108i).
@@ -1723,8 +1725,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::Complex;
-    /// use rug::float::Round;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// // Use only 4 bits of precision to show rounding.
     /// let mut c = Complex::with_val(4, (30, 40));
@@ -1820,8 +1821,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// // use only 4 bits of precision
     /// let mut c = Complex::with_val(4, (3, 4));
@@ -1924,8 +1924,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // only 4 bits of precision for imaginary part
         /// let mut c = Complex::with_val((53, 4), (127, 15));
@@ -1992,8 +1991,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// let mut c = Complex::with_val(4, (1, 2));
         /// // 1/(1 + 2i) = (0.2 − 0.4i), binary (0.00110011..., −0.01100110...)
@@ -2072,8 +2070,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Complex;
+    /// use rug::{float::Round, Complex};
     /// use std::cmp::Ordering;
     /// // use only 4 bits of precision
     /// let mut c = Complex::with_val(4, (3, 4));
@@ -2151,8 +2148,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1.5, -0.5));
@@ -2218,8 +2214,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1.5, -0.5));
@@ -2313,8 +2308,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (0.5, -0.75));
@@ -2379,8 +2373,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2445,8 +2438,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2534,8 +2526,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut sin = Complex::with_val(4, (1, 1));
@@ -2572,9 +2563,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Complex};
-        /// use rug::float::Round;
-        /// use rug::ops::AssignRound;
+        /// use rug::{float::Round, ops::AssignRound, Assign, Complex};
         /// use std::cmp::Ordering;
         /// let phase = Complex::with_val(53, (1, 1));
         ///
@@ -2636,8 +2625,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2703,8 +2691,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2770,8 +2757,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2837,8 +2823,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2904,8 +2889,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -2971,8 +2955,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -3038,8 +3021,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -3105,8 +3087,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -3174,8 +3155,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -3243,8 +3223,7 @@ impl Complex {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Complex;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Complex};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut c = Complex::with_val(4, (1, 1));
@@ -3307,8 +3286,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::{Assign, Complex};
+    /// use rug::{rand::RandState, Assign, Complex};
     /// let mut rand = RandState::new();
     /// let mut c = Complex::new(2);
     /// c.assign(Complex::random_bits(&mut rand));
@@ -3353,8 +3331,7 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Complex;
+    /// use rug::{rand::RandState, Complex};
     /// let mut rand = RandState::new();
     /// let c = Complex::with_val(2, Complex::random_cont(&mut rand));
     /// let (re, im) = c.into_real_imag();
@@ -3910,8 +3887,7 @@ are accepted.
 # Examples
 
 ```rust
-use rug::complex::ParseComplexError;
-use rug::Complex;
+use rug::{complex::ParseComplexError, Complex};
 // This string is not a complex number.
 let s = "something completely different (_!_!_)";
 let error: ParseComplexError = match Complex::parse_radix(s, 4) {

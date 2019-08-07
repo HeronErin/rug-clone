@@ -14,23 +14,28 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::{self, CheckedCast};
-use crate::ext::xmpz;
-use crate::integer::SmallInteger;
-use crate::misc::NegAbs;
-use crate::ops::{
-    AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
-    PowAssign, RemFrom, SubFrom,
+use crate::{
+    cast::{self, CheckedCast},
+    ext::xmpz,
+    integer::SmallInteger,
+    misc::NegAbs,
+    ops::{
+        AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
+        PowAssign, RemFrom, SubFrom,
+    },
+    Assign, Integer,
 };
-use crate::{Assign, Integer};
 use gmp_mpfr_sys::gmp;
-use std::cmp;
-use std::iter::{Product, Sum};
-use std::ops::{
-    Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div, DivAssign,
-    Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub, SubAssign,
+use std::{
+    cmp,
+    iter::{Product, Sum},
+    ops::{
+        Add, AddAssign, BitAnd, BitAndAssign, BitOr, BitOrAssign, BitXor, BitXorAssign, Div,
+        DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign, Shr, ShrAssign, Sub,
+        SubAssign,
+    },
+    os::raw::{c_long, c_ulong},
 };
-use std::os::raw::{c_long, c_ulong};
 
 // Specialize From implementation so that allocation is done with the
 // right capacity, as Integer::from(&Integer) allocates properly.

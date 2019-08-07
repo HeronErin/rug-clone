@@ -14,14 +14,18 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::complex::OrdComplex;
-use crate::float;
-use crate::serdeize::{self, Data, PrecReq, PrecVal};
-use crate::{Assign, Complex};
+use crate::{
+    cast,
+    complex::OrdComplex,
+    float,
+    serdeize::{self, Data, PrecReq, PrecVal},
+    Assign, Complex,
+};
 use gmp_mpfr_sys::mpfr;
-use serde::de::{Deserialize, Deserializer, Error as DeError};
-use serde::ser::{Serialize, Serializer};
+use serde::{
+    de::{Deserialize, Deserializer, Error as DeError},
+    ser::{Serialize, Serializer},
+};
 
 impl Serialize for Complex {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {

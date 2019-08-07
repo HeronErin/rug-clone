@@ -14,17 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpfr;
-use crate::float::small::Mpfr;
-use crate::float::ToSmall;
-use crate::misc::Limbs;
-use crate::{Assign, Complex};
-use gmp_mpfr_sys::gmp;
-use gmp_mpfr_sys::mpc;
-use gmp_mpfr_sys::mpfr;
-use std::mem;
-use std::ops::Deref;
-use std::sync::atomic::Ordering;
+use crate::{
+    ext::xmpfr,
+    float::{small::Mpfr, ToSmall},
+    misc::Limbs,
+    Assign, Complex,
+};
+use gmp_mpfr_sys::{gmp, mpc, mpfr};
+use std::{mem, ops::Deref, sync::atomic::Ordering};
 
 /**
 A small complex number that does not require any memory allocation.
@@ -54,8 +51,7 @@ implements [`Deref<Target = Complex>`][`Deref`].
 # Examples
 
 ```rust
-use rug::complex::SmallComplex;
-use rug::Complex;
+use rug::{complex::SmallComplex, Complex};
 // `a` requires a heap allocation
 let mut a = Complex::with_val(53, (1, 2));
 // `b` can reside on the stack

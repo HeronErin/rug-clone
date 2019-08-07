@@ -14,10 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::serdeize::{self, Data, PrecReq, PrecVal};
-use crate::{Assign, Integer};
-use serde::de::{Deserialize, Deserializer, Error as DeError};
-use serde::ser::{Serialize, Serializer};
+use crate::{
+    serdeize::{self, Data, PrecReq, PrecVal},
+    Assign, Integer,
+};
+use serde::{
+    de::{Deserialize, Deserializer, Error as DeError},
+    ser::{Serialize, Serializer},
+};
 
 impl Serialize for Integer {
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {

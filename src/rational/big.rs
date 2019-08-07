@@ -14,20 +14,21 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpq;
-use crate::ext::xmpz;
-use crate::integer::big as big_integer;
-use crate::misc;
-use crate::{Assign, Integer};
+use crate::{
+    cast,
+    ext::{xmpq, xmpz},
+    integer::big as big_integer,
+    misc, Assign, Integer,
+};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::cmp::Ordering;
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::i32;
-use std::marker::PhantomData;
-use std::mem;
-use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
+use std::{
+    cmp::Ordering,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    marker::PhantomData,
+    mem,
+    ops::{Add, AddAssign, Deref, Mul, MulAssign},
+};
 
 /**
 An arbitrary-precision rational number.
@@ -568,8 +569,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rational::SmallRational;
-    /// use rug::Rational;
+    /// use rug::{rational::SmallRational, Rational};
     /// use std::f32;
     /// let min = Rational::from_f32(f32::MIN).unwrap();
     /// let minus_small = min - &*SmallRational::from((7, 2));
@@ -591,8 +591,7 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rational::SmallRational;
-    /// use rug::Rational;
+    /// use rug::{rational::SmallRational, Rational};
     /// use std::f64;
     ///
     /// // An `f64` has 53 bits of precision.
@@ -2783,8 +2782,7 @@ are accepted.
 # Examples
 
 ```rust
-use rug::rational::ParseRationalError;
-use rug::Rational;
+use rug::{rational::ParseRationalError, Rational};
 // This string is not a rational number.
 let s = "something completely different (_!_!_)";
 let error: ParseRationalError = match Rational::parse_radix(s, 4) {

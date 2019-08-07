@@ -14,17 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::misc::NegAbs;
-use crate::ops::NegAssign;
 #[cfg(feature = "rand")]
 use crate::rand::RandState;
-use crate::Integer;
+use crate::{cast, misc::NegAbs, ops::NegAssign, Integer};
 use gmp_mpfr_sys::gmp;
-use std::cmp::Ordering;
-use std::os::raw::{c_long, c_ulong};
-use std::ptr;
-use std::{i16, i8, u16, u8};
+use std::{
+    cmp::Ordering,
+    i16, i8,
+    os::raw::{c_long, c_ulong},
+    ptr, u16, u8,
+};
 
 #[cfg(gmp_limb_bits_32)]
 pub use crate::ext::xmpz32::*;

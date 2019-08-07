@@ -14,12 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::float::Special;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{Complex, Float};
+use crate::{float::Special, Complex, Float};
 
 impl PartialEq for Complex {
     #[inline]

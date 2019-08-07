@@ -14,29 +14,32 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpfr::{self, ordering1, raw_round};
-use crate::float::big::{self, ExpFormat, Format};
-use crate::float::{Constant, Round, Special};
-use crate::ops::AssignRound;
-#[cfg(all(try_from, feature = "rational"))]
-use crate::rational::TryFromFloatError;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use crate::{Assign, Float};
-use gmp_mpfr_sys::mpfr;
-use std::cmp::Ordering;
-#[cfg(all(try_from, feature = "rational"))]
-use std::convert::TryFrom;
-use std::fmt::{
-    Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult, UpperExp,
-    UpperHex,
+use crate::{
+    cast,
+    ext::xmpfr::{self, ordering1, raw_round},
+    float::{
+        big::{self, ExpFormat, Format},
+        Constant, Round, Special,
+    },
+    ops::AssignRound,
+    Assign, Float,
 };
-use std::mem;
-use std::os::raw::{c_long, c_ulong};
-use std::{i32, u32};
+use gmp_mpfr_sys::mpfr;
+use std::{
+    cmp::Ordering,
+    fmt::{
+        Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
+        UpperExp, UpperHex,
+    },
+    mem,
+    os::raw::{c_long, c_ulong},
+};
+#[cfg(all(try_from, feature = "rational"))]
+use {crate::rational::TryFromFloatError, std::convert::TryFrom};
 
 impl Clone for Float {
     #[inline]

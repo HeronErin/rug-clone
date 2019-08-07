@@ -14,38 +14,41 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpfr::{self, ordering1, raw_round};
-use crate::float::arith::{
-    AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete,
-};
-use crate::float::{self, OrdFloat, Round, SmallFloat, Special};
-#[cfg(feature = "integer")]
-use crate::integer::big::BorrowInteger;
-use crate::misc;
-use crate::ops::{AddAssignRound, AssignRound, DivRounding, NegAssign};
 #[cfg(feature = "rand")]
 use crate::rand::RandState;
-use crate::Assign;
-#[cfg(feature = "integer")]
-use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
-use gmp_mpfr_sys::gmp;
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use std::cmp::Ordering;
-use std::error::Error;
-use std::ffi::{CStr, CString};
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::marker::PhantomData;
-use std::mem;
-use std::num::FpCategory;
-use std::ops::{Add, AddAssign, Deref};
-use std::os::raw::{c_char, c_int, c_long, c_ulong};
-use std::ptr;
-use std::slice;
-use std::str;
-use std::{i32, u32};
+use crate::{
+    cast,
+    ext::xmpfr::{self, ordering1, raw_round},
+    float::{
+        self,
+        arith::{AddMulIncomplete, MulAddMulIncomplete, MulSubMulIncomplete, SubMulFromIncomplete},
+        OrdFloat, Round, SmallFloat, Special,
+    },
+    misc,
+    ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
+    Assign,
+};
+#[cfg(feature = "integer")]
+use crate::{integer::big::BorrowInteger, Integer};
+use gmp_mpfr_sys::{
+    gmp,
+    mpfr::{self, mpfr_t},
+};
+use std::{
+    cmp::Ordering,
+    error::Error,
+    ffi::{CStr, CString},
+    fmt::{Display, Formatter, Result as FmtResult},
+    i32,
+    marker::PhantomData,
+    mem,
+    num::FpCategory,
+    ops::{Add, AddAssign, Deref},
+    os::raw::{c_char, c_int, c_long, c_ulong},
+    ptr, slice, str, u32,
+};
 
 /**
 A multi-precision floating-point number with arbitrarily large
@@ -58,9 +61,7 @@ rounding is returned.
 # Examples
 
 ```rust
-use rug::float::Round;
-use rug::ops::DivAssignRound;
-use rug::Float;
+use rug::{float::Round, ops::DivAssignRound, Float};
 use std::cmp::Ordering;
 // A precision of 32 significant bits is specified here.
 // (The primitive `f32` has a precision of 24 and
@@ -163,8 +164,7 @@ versions:
     during the assignment.
 
 ```rust
-use rug::float::Round;
-use rug::Float;
+use rug::{float::Round, Float};
 use std::cmp::Ordering;
 let expected = 0.9490_f64;
 
@@ -201,9 +201,11 @@ the MPFR website. The program computes a lower bound on 1 + 1/1! +
 `Sum is 2.7182818284590452353602874713526624977572470936999595749669131`
 
 ```rust
-use rug::float::{self, FreeCache, Round};
-use rug::ops::{AddAssignRound, AssignRound, MulAssignRound};
-use rug::Float;
+use rug::{
+    float::{self, FreeCache, Round},
+    ops::{AddAssignRound, AssignRound, MulAssignRound},
+    Float,
+};
 
 let mut t = Float::with_val(200, 1.0);
 let mut s = Float::with_val(200, 1.0);
@@ -461,8 +463,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// let (f1, dir) = Float::with_val_round(4, 3.3, Round::Nearest);
     /// // 3.3 with precision 4 is rounded down to 3.25
@@ -544,8 +545,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// // 16.25 has seven significant bits (binary 10000.01)
     /// let mut f = Float::with_val(53, 16.25);
@@ -835,8 +835,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// let f = Float::with_val(53, 13.7);
     /// let (i, dir) = match f.to_integer_round(Round::Down) {
@@ -867,8 +866,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::{Assign, Float};
+    /// use rug::{float::Special, Assign, Float};
     /// let mut float = Float::with_val(16, 6.5);
     /// // 6.5 in binary is 110.1
     /// // Since the precision is 16 bits, this becomes
@@ -908,10 +906,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::{Float, Rational};
-    /// use std::cmp::Ordering;
-    /// use std::str::FromStr;
+    /// use rug::{float::Round, Float, Rational};
+    /// use std::{cmp::Ordering, str::FromStr};
     ///
     /// // Consider the number 123,456,789 / 10,000,000,000.
     /// let parse = Float::parse("0.0123456789").unwrap();
@@ -996,8 +992,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// let f = Float::with_val(53, -13.7);
     /// assert_eq!(f.to_i32_saturating_round(Round::Up), Some(-13));
     /// ```
@@ -1054,8 +1049,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// let f = Float::with_val(53, 13.7);
     /// assert_eq!(f.to_u32_saturating_round(Round::Down), Some(13));
     /// ```
@@ -1108,8 +1102,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::f32;
     /// let f = Float::with_val(53, 1.0 + (-50f64).exp2());
     /// assert_eq!(f.to_f32_round(Round::Up), 1.0 + f32::EPSILON);
@@ -1153,8 +1146,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::f64;
     /// // (2.0 ^ −90) + 1
     /// let f: Float = Float::with_val(100, -90).exp2() + 1;
@@ -1204,8 +1196,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// let frac_10_3 = Float::with_val(64, 10) / 3u32;
     /// let (f_down, exp_down) = frac_10_3.to_f32_exp_round(Round::Down);
     /// assert_eq!((f_down, exp_down), (0.8333333, 2));
@@ -1270,8 +1261,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// let frac_10_3 = Float::with_val(64, 10) / 3u32;
     /// let (f_down, exp_down) = frac_10_3.to_f64_exp_round(Round::Down);
     /// assert_eq!((f_down, exp_down), (0.8333333333333333, 2));
@@ -1301,8 +1291,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::Float;
+    /// use rug::{float::Special, Float};
     /// let neg_inf = Float::with_val(53, Special::NegInfinity);
     /// assert_eq!(neg_inf.to_string_radix(10, None), "-inf");
     /// assert_eq!(neg_inf.to_string_radix(16, None), "-@inf@");
@@ -1331,8 +1320,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// let twentythree = Float::with_val(8, 23.3);
     /// let down = twentythree.to_string_radix_round(10, Some(2), Round::Down);
     /// assert_eq!(down, "2.3e1");
@@ -1437,8 +1425,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::Float;
+    /// use rug::{float::Special, Float};
     /// use std::cmp::Ordering;
     ///
     /// let nan_f = Float::with_val(53, Special::Nan);
@@ -1541,8 +1528,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::{Assign, Float};
+    /// use rug::{float::Special, Assign, Float};
     /// let mut f = Float::with_val(53, Special::Zero);
     /// assert!(f.is_zero());
     /// f.assign(Special::NegZero);
@@ -1564,8 +1550,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::{Assign, Float};
+    /// use rug::{float::Special, Assign, Float};
     /// let mut f = Float::with_val(53, Special::Zero);
     /// assert!(!f.is_normal());
     /// f += 5.2;
@@ -1589,8 +1574,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::Float;
+    /// use rug::{float::Special, Float};
     /// use std::num::FpCategory;
     /// let nan = Float::with_val(53, Special::Nan);
     /// let infinite = Float::with_val(53, Special::Infinity);
@@ -1625,8 +1609,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Special;
-    /// use rug::{Assign, Float};
+    /// use rug::{float::Special, Assign, Float};
     /// use std::cmp::Ordering;
     /// let mut f = Float::with_val(53, Special::NegZero);
     /// assert_eq!(f.cmp0(), Some(Ordering::Equal));
@@ -1920,10 +1903,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
-    /// use std::f32;
     /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
@@ -1961,7 +1942,6 @@ impl Float {
     ///
     /// ```rust
     /// use rug::Float;
-    /// use std::f32;
     /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
@@ -1994,10 +1974,8 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
-    /// use std::f32;
     /// // minimum single subnormal is 0.5 × 2 ^ −148 = 2 ^ −149
     /// let single_min_subnormal = (-149f64).exp2();
     /// assert_eq!(single_min_subnormal, single_min_subnormal as f32 as f64);
@@ -2057,9 +2035,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::ops::AddAssignRound;
-    /// use rug::Float;
+    /// use rug::{float::Round, ops::AddAssignRound, Float};
     /// use std::cmp::Ordering;
     ///
     /// // Give each value only 4 bits of precision for example purposes.
@@ -2208,8 +2184,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
@@ -2342,8 +2317,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// // Use only 4 bits of precision for demonstration purposes.
     /// // 1.5 in binary is 1.1.
@@ -2471,8 +2445,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// let mut a = Float::with_val(53, 24);
     /// let b = Float::with_val(53, 1.5);
@@ -2606,8 +2579,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// let mut a = Float::with_val(53, 24);
     /// let b = Float::with_val(53, 1.5);
@@ -2824,8 +2796,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(3, 5.0);
@@ -2889,8 +2860,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, 5.0);
@@ -2978,8 +2948,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, 5.0);
@@ -3043,8 +3012,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, 5.0);
@@ -3108,8 +3076,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, 5.0);
@@ -3383,8 +3350,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Round;
-    /// use rug::Float;
+    /// use rug::{float::Round, Float};
     /// use std::cmp::Ordering;
     /// let min = Float::with_val(53, -1.5);
     /// let max = Float::with_val(53, 1.5);
@@ -3525,8 +3491,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 5 in binary is 101
         /// let mut f = Float::with_val(4, -5.0);
@@ -3591,8 +3556,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// let mut a = Float::with_val(53, 5.2);
         /// let b = Float::with_val(53, -2);
@@ -3656,8 +3620,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// let mut a = Float::with_val(53, 5.2);
         /// let b = Float::with_val(53, 12.5);
@@ -3740,8 +3703,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// let mut a = Float::with_val(53, 12.5);
         /// let b = Float::with_val(53, 7.3);
@@ -3817,8 +3779,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5);
@@ -3909,8 +3870,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5);
@@ -3976,8 +3936,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5);
@@ -4043,8 +4002,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5);
@@ -4110,8 +4068,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5);
@@ -4177,8 +4134,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.5);
@@ -4243,8 +4199,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -4309,8 +4264,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -4375,8 +4329,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -4464,8 +4417,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut sin = Float::with_val(4, 1.25);
@@ -4500,9 +4452,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Float};
-        /// use rug::float::Round;
-        /// use rug::ops::AssignRound;
+        /// use rug::{float::Round, ops::AssignRound, Assign, Float};
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
         ///
@@ -4564,8 +4514,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -4630,8 +4579,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -4697,8 +4645,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -4763,8 +4710,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, -0.75);
@@ -4830,8 +4776,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, -0.75);
@@ -4897,8 +4842,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, -0.75);
@@ -4977,8 +4921,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut y = Float::with_val(4, 3.0);
@@ -5050,8 +4993,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5117,8 +5059,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5184,8 +5125,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5273,8 +5213,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut sinh = Float::with_val(4, 1.25);
@@ -5309,9 +5248,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::{Assign, Float};
-        /// use rug::float::Round;
-        /// use rug::ops::AssignRound;
+        /// use rug::{float::Round, ops::AssignRound, Assign, Float};
         /// use std::cmp::Ordering;
         /// let phase = Float::with_val(53, 1.25);
         ///
@@ -5374,8 +5311,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5441,8 +5377,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5508,8 +5443,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5575,8 +5509,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5644,8 +5577,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -5713,8 +5645,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 0.75);
@@ -5809,8 +5740,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// let two_to_m10 = (-10f64).exp2();
         /// // Use only 4 bits of precision to show rounding.
@@ -5882,8 +5812,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// let two_to_m10 = (-10f64).exp2();
         /// // Use only 4 bits of precision to show rounding.
@@ -5952,8 +5881,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6021,8 +5949,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6091,8 +6018,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6162,8 +6088,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6233,8 +6158,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6279,8 +6203,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Constant;
-    /// use rug::Float;
+    /// use rug::{float::Constant, Float};
     /// use std::cmp::Ordering;
     ///
     /// // gamma of 1/2 is √π
@@ -6298,8 +6221,7 @@ impl Float {
     /// [`Ordering::Less`].
     ///
     /// ```rust
-    /// use rug::float::Constant;
-    /// use rug::Float;
+    /// use rug::{float::Constant, Float};
     /// use std::cmp::Ordering;
     ///
     /// // gamma of −1/2 is −2√π
@@ -6331,8 +6253,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Constant;
-    /// use rug::Float;
+    /// use rug::{float::Constant, Float};
     /// use std::cmp::Ordering;
     ///
     /// // gamma of −1/2 is −2√π
@@ -6365,8 +6286,10 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::{Constant, Round};
-    /// use rug::Float;
+    /// use rug::{
+    ///     float::{Constant, Round},
+    ///     Float,
+    /// };
     /// use std::cmp::Ordering;
     ///
     /// // gamma of −1/2 is −2√π
@@ -6418,8 +6341,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::float::Constant;
-    /// use rug::{Assign, Float};
+    /// use rug::{float::Constant, Assign, Float};
     /// use std::cmp::Ordering;
     ///
     /// let neg1_2 = Float::with_val(53, -0.5);
@@ -6481,8 +6403,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6550,8 +6471,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6643,8 +6563,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6712,8 +6631,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6781,8 +6699,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6850,8 +6767,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6919,8 +6835,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -6988,8 +6903,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -7057,8 +6971,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -7126,8 +7039,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -7197,8 +7109,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -7270,8 +7181,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -7341,8 +7251,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // Use only 4 bits of precision to show rounding.
         /// let mut f = Float::with_val(4, 1.25);
@@ -7546,8 +7455,7 @@ impl Float {
         /// the truncated integer.
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use rug::ops::AssignRound;
         /// let f = Float::with_val(53, 6.5);
         /// // 6.5 (binary 110.1) is rounded to 7 (binary 111)
@@ -7803,8 +7711,7 @@ impl Float {
         /// # Examples
         ///
         /// ```rust
-        /// use rug::Float;
-        /// use rug::float::Round;
+        /// use rug::{float::Round, Float};
         /// use std::cmp::Ordering;
         /// // 0.515625 in binary is 0.100001
         /// let mut f1 = Float::with_val(53, -23.515625);
@@ -7893,8 +7800,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::{Assign, Float};
+    /// use rug::{rand::RandState, Assign, Float};
     /// let mut rand = RandState::new();
     /// let mut f = Float::new(2);
     /// f.assign(Float::random_bits(&mut rand));
@@ -7934,8 +7840,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Float;
+    /// use rug::{rand::RandState, Float};
     /// let mut rand = RandState::new();
     /// let f = Float::with_val(2, Float::random_cont(&mut rand));
     /// // The significand is either 0b10 or 0b11
@@ -7976,8 +7881,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Float;
+    /// use rug::{rand::RandState, Float};
     /// let mut rand = RandState::new();
     /// let f = Float::with_val(53, Float::random_normal(&mut rand));
     /// println!("Normal random number: {}", f);
@@ -8009,8 +7913,7 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Float;
+    /// use rug::{rand::RandState, Float};
     /// let mut rand = RandState::new();
     /// let f = Float::with_val(53, Float::random_exp(&mut rand));
     /// println!("Exponential random number: {}", f);
@@ -8819,8 +8722,7 @@ accepted.
 # Examples
 
 ```rust
-use rug::float::ParseFloatError;
-use rug::Float;
+use rug::{float::ParseFloatError, Float};
 // This string is not a floating-point number.
 let s = "something completely different (_!_!_)";
 let error: ParseFloatError = match Float::parse_radix(s, 4) {

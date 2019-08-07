@@ -15,8 +15,10 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::Complex;
-use std::cmp::Ordering;
-use std::hash::{Hash, Hasher};
+use std::{
+    cmp::Ordering,
+    hash::{Hash, Hasher},
+};
 
 /**
 A complex number that supports total ordering and hashing.
@@ -30,9 +32,7 @@ positive NaNs produces equality.
 # Examples
 
 ```rust
-use rug::complex::OrdComplex;
-use rug::float::Special;
-use rug::Complex;
+use rug::{complex::OrdComplex, float::Special, Complex};
 use std::cmp::Ordering;
 
 let nan_c = Complex::with_val(53, (Special::Nan, Special::Nan));
@@ -67,8 +67,7 @@ impl OrdComplex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::complex::OrdComplex;
-    /// use rug::Complex;
+    /// use rug::{complex::OrdComplex, Complex};
     /// let c = Complex::with_val(53, (1.5, 2.5));
     /// let ord = OrdComplex::from(c);
     /// let c_ref = ord.as_complex();
@@ -87,8 +86,7 @@ impl OrdComplex {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::complex::OrdComplex;
-    /// use rug::Complex;
+    /// use rug::{complex::OrdComplex, Complex};
     /// let c = Complex::with_val(53, (1.5, -2.5));
     /// let mut ord = OrdComplex::from(c);
     /// ord.as_complex_mut().conj_mut();

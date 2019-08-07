@@ -45,8 +45,7 @@ pub trait NegAssign {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::NegAssign;
+    /// use rug::{ops::NegAssign, Integer};
     /// let mut i = Integer::from(-42);
     /// i.neg_assign();
     /// assert_eq!(i, 42);
@@ -80,8 +79,7 @@ pub trait NotAssign {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::NotAssign;
+    /// use rug::{ops::NotAssign, Integer};
     /// let mut i = Integer::from(-42);
     /// i.not_assign();
     /// assert_eq!(i, !-42);
@@ -117,8 +115,7 @@ pub trait AddFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::AddFrom;
+    /// use rug::{ops::AddFrom, Integer};
     /// let mut rhs = Integer::from(10);
     /// rhs.add_from(100);
     /// // rhs = 100 + 10
@@ -155,8 +152,7 @@ pub trait SubFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::SubFrom;
+    /// use rug::{ops::SubFrom, Integer};
     /// let mut rhs = Integer::from(10);
     /// rhs.sub_from(100);
     /// // rhs = 100 − 10
@@ -203,8 +199,7 @@ pub trait MulFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::MulFrom;
+    /// use rug::{ops::MulFrom, Integer};
     /// let mut rhs = Integer::from(5);
     /// rhs.mul_from(50);
     /// // rhs = 50 × 5
@@ -241,8 +236,7 @@ pub trait DivFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::DivFrom;
+    /// use rug::{ops::DivFrom, Integer};
     /// let mut rhs = Integer::from(5);
     /// rhs.div_from(50);
     /// // rhs = 50 / 5
@@ -279,8 +273,7 @@ pub trait RemFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::RemFrom;
+    /// use rug::{ops::RemFrom, Integer};
     /// let mut rhs = Integer::from(2);
     /// rhs.rem_from(17);
     /// // rhs = 17 / 2
@@ -317,8 +310,7 @@ pub trait BitAndFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::BitAndFrom;
+    /// use rug::{ops::BitAndFrom, Integer};
     /// let mut rhs = Integer::from(0xf0);
     /// rhs.bitand_from(0x33);
     /// // rhs = 0x33 & 0xf0
@@ -355,8 +347,7 @@ pub trait BitOrFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::BitOrFrom;
+    /// use rug::{ops::BitOrFrom, Integer};
     /// let mut rhs = Integer::from(0xf0);
     /// rhs.bitor_from(0x33);
     /// // rhs = 0x33 | 0xf0
@@ -393,8 +384,7 @@ pub trait BitXorFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::BitXorFrom;
+    /// use rug::{ops::BitXorFrom, Integer};
     /// let mut rhs = Integer::from(0xf0);
     /// rhs.bitxor_from(0x33);
     /// // rhs = 0x33 ^ 0xf0
@@ -413,8 +403,7 @@ Compound left shift and assignment to the rhs operand.
 
 ```rust
 # #[cfg(feature = "integer")] {
-use rug::ops::ShlFrom;
-use rug::Integer;
+use rug::{ops::ShlFrom, Integer};
 use std::mem;
 struct I(Integer);
 impl ShlFrom for I {
@@ -455,8 +444,7 @@ Compound right shift and assignment to the rhs operand.
 
 ```rust
 # #[cfg(feature = "integer")] {
-use rug::ops::ShrFrom;
-use rug::Integer;
+use rug::{ops::ShrFrom, Integer};
 use std::mem;
 struct I(Integer);
 impl ShrFrom for I {
@@ -515,8 +503,7 @@ pub trait Pow<Rhs> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::Pow;
+    /// use rug::{ops::Pow, Integer};
     /// let base = Integer::from(10);
     /// let power = base.pow(5);
     /// assert_eq!(power, 100_000);
@@ -550,8 +537,7 @@ pub trait PowAssign<Rhs> {
     ///
     /// ```rust
     /// # #[cfg(feature = "integer")] {
-    /// use rug::Integer;
-    /// use rug::ops::PowAssign;
+    /// use rug::{ops::PowAssign, Integer};
     /// let mut i = Integer::from(10);
     /// i.pow_assign(5);
     /// assert_eq!(i, 100_000);
@@ -587,8 +573,7 @@ pub trait PowFrom<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::ops::PowFrom;
+    /// use rug::{ops::PowFrom, Float};
     /// let mut rhs = Float::with_val(53, 5);
     /// rhs.pow_from(10);
     /// // rhs = 10 ^ 5
@@ -605,8 +590,7 @@ Assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::AssignRound;
+use rug::{float::Round, ops::AssignRound};
 use std::cmp::Ordering;
 struct F(f64);
 impl AssignRound<f64> for F {
@@ -635,9 +619,7 @@ pub trait AssignRound<Src = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::AssignRound;
+    /// use rug::{float::Round, ops::AssignRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::new(4);
@@ -661,9 +643,7 @@ Compound addition and assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::AddAssignRound;
-use rug::Float;
+use rug::{float::Round, ops::AddAssignRound, Float};
 use std::cmp::Ordering;
 struct F(f64);
 impl AddAssignRound<f64> for F {
@@ -695,9 +675,7 @@ pub trait AddAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::AddAssignRound;
+    /// use rug::{float::Round, ops::AddAssignRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
@@ -718,9 +696,11 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::{AddAssignRound, AddFromRound};
-use rug::Float;
+use rug::{
+    float::Round,
+    ops::{AddAssignRound, AddFromRound},
+    Float,
+};
 use std::cmp::Ordering;
 struct F(f64);
 impl AddFromRound<f64> for F {
@@ -752,9 +732,7 @@ pub trait AddFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::AddFromRound;
+    /// use rug::{float::Round, ops::AddFromRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -0.3);
@@ -775,9 +753,7 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::SubAssignRound;
-use rug::Float;
+use rug::{float::Round, ops::SubAssignRound, Float};
 use std::cmp::Ordering;
 struct F(f64);
 impl SubAssignRound<f64> for F {
@@ -809,9 +785,7 @@ pub trait SubAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::SubAssignRound;
+    /// use rug::{float::Round, ops::SubAssignRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
@@ -832,9 +806,11 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::{SubAssignRound, SubFromRound};
-use rug::Float;
+use rug::{
+    float::Round,
+    ops::{SubAssignRound, SubFromRound},
+    Float,
+};
 use std::cmp::Ordering;
 struct F(f64);
 impl SubFromRound<f64> for F {
@@ -866,9 +842,7 @@ pub trait SubFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::SubFromRound;
+    /// use rug::{float::Round, ops::SubFromRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 0.3);
@@ -889,9 +863,7 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::MulAssignRound;
-use rug::Float;
+use rug::{float::Round, ops::MulAssignRound, Float};
 use std::cmp::Ordering;
 struct F(f64);
 impl MulAssignRound<f64> for F {
@@ -923,9 +895,7 @@ pub trait MulAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::MulAssignRound;
+    /// use rug::{float::Round, ops::MulAssignRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
@@ -946,9 +916,11 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::{MulAssignRound, MulFromRound};
-use rug::Float;
+use rug::{
+    float::Round,
+    ops::{MulAssignRound, MulFromRound},
+    Float,
+};
 use std::cmp::Ordering;
 struct F(f64);
 impl MulFromRound<f64> for F {
@@ -980,9 +952,7 @@ pub trait MulFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::MulFromRound;
+    /// use rug::{float::Round, ops::MulFromRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 13);
@@ -1002,9 +972,7 @@ Compound division and assignment with a specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::DivAssignRound;
-use rug::Float;
+use rug::{float::Round, ops::DivAssignRound, Float};
 use std::cmp::Ordering;
 struct F(f64);
 impl DivAssignRound<f64> for F {
@@ -1036,9 +1004,7 @@ pub trait DivAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::DivAssignRound;
+    /// use rug::{float::Round, ops::DivAssignRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
@@ -1059,9 +1025,11 @@ rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::{DivAssignRound, DivFromRound};
-use rug::Float;
+use rug::{
+    float::Round,
+    ops::{DivAssignRound, DivFromRound},
+    Float,
+};
 use std::cmp::Ordering;
 struct F(f64);
 impl DivFromRound<f64> for F {
@@ -1093,9 +1061,7 @@ pub trait DivFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::DivFromRound;
+    /// use rug::{float::Round, ops::DivFromRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);
@@ -1116,9 +1082,7 @@ method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::Float;
-use rug::float::Round;
-use rug::ops::PowAssignRound;
+use rug::{Float, float::Round, ops::PowAssignRound};
 use std::cmp::Ordering;
 struct F(f64);
 impl PowAssignRound<f64> for F {
@@ -1150,9 +1114,7 @@ pub trait PowAssignRound<Rhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::PowAssignRound;
+    /// use rug::{float::Round, ops::PowAssignRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, -3);
@@ -1173,9 +1135,11 @@ specified rounding method.
 
 ```rust
 # #[cfg(feature = "float")] {
-use rug::float::Round;
-use rug::ops::{PowAssignRound, PowFromRound};
-use rug::Float;
+use rug::{
+    float::Round,
+    ops::{PowAssignRound, PowFromRound},
+    Float,
+};
 use std::cmp::Ordering;
 struct F(f64);
 impl PowFromRound<f64> for F {
@@ -1207,9 +1171,7 @@ pub trait PowFromRound<Lhs = Self> {
     ///
     /// ```rust
     /// # #[cfg(feature = "float")] {
-    /// use rug::Float;
-    /// use rug::float::Round;
-    /// use rug::ops::PowFromRound;
+    /// use rug::{float::Round, ops::PowFromRound, Float};
     /// use std::cmp::Ordering;
     /// // only four significant bits
     /// let mut f = Float::with_val(4, 5);

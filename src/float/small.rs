@@ -14,17 +14,22 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpfr::{self, raw_round};
-use crate::misc::{Limbs, MaybeLimb, NegAbs};
-use crate::{Assign, Float};
-use gmp_mpfr_sys::gmp;
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
-use std::mem;
-use std::ops::Deref;
-use std::os::raw::c_int;
-use std::sync::atomic::{AtomicPtr, Ordering};
-use std::{i32, u32};
+use crate::{
+    cast,
+    ext::xmpfr::{self, raw_round},
+    misc::{Limbs, MaybeLimb, NegAbs},
+    Assign, Float,
+};
+use gmp_mpfr_sys::{
+    gmp,
+    mpfr::{self, mpfr_t},
+};
+use std::{
+    mem,
+    ops::Deref,
+    os::raw::c_int,
+    sync::atomic::{AtomicPtr, Ordering},
+};
 
 /**
 A small float that does not require any memory allocation.
@@ -51,8 +56,7 @@ The `SmallFloat` type can be coerced to a [`Float`], as it implements
 # Examples
 
 ```rust
-use rug::float::SmallFloat;
-use rug::Float;
+use rug::{float::SmallFloat, Float};
 // `a` requires a heap allocation, has 53-bit precision
 let mut a = Float::with_val(53, 250);
 // `b` can reside on the stack

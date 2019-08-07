@@ -14,15 +14,14 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::integer::small::Mpz;
-use crate::integer::ToSmall;
-use crate::misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL};
-use crate::{Assign, Rational};
+use crate::{
+    cast,
+    integer::{small::Mpz, ToSmall},
+    misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL},
+    Assign, Rational,
+};
 use gmp_mpfr_sys::gmp;
-use std::mem;
-use std::ops::Deref;
-use std::sync::atomic::Ordering;
+use std::{mem, ops::Deref, sync::atomic::Ordering};
 
 /**
 A small rational number that does not require any memory allocation.
@@ -41,8 +40,7 @@ implements [`Deref<Target = Rational>`][`Deref`].
 # Examples
 
 ```rust
-use rug::rational::SmallRational;
-use rug::Rational;
+use rug::{rational::SmallRational, Rational};
 // `a` requires a heap allocation
 let mut a = Rational::from((100, 13));
 // `b` can reside on the stack
@@ -211,8 +209,7 @@ impl SmallRational {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rational::SmallRational;
-    /// use rug::Assign;
+    /// use rug::{rational::SmallRational, Assign};
     /// let mut a = SmallRational::new();
     /// unsafe {
     ///     a.assign_canonical(-13, 10);

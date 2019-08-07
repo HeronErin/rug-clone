@@ -14,13 +14,17 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::ext::xmpq;
-use crate::ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom};
-use crate::{Assign, Rational};
-use std::iter::{Product, Sum};
-use std::ops::{
-    Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
-    SubAssign,
+use crate::{
+    ext::xmpq,
+    ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
+    Assign, Rational,
+};
+use std::{
+    iter::{Product, Sum},
+    ops::{
+        Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
+        SubAssign,
+    },
 };
 
 // Specialize From implementation so that allocation is done with the

@@ -14,19 +14,22 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::complex::big::{self, Format};
-use crate::ext::xmpc::{ordering2, raw_round2, Ordering2, Round2};
-use crate::float::big::ExpFormat;
-use crate::float::{Round, Special};
-use crate::ops::AssignRound;
-use crate::{Assign, Complex, Float};
-use gmp_mpfr_sys::mpc;
-use std::cmp::Ordering;
-use std::fmt::{
-    Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal, Result as FmtResult,
-    UpperExp, UpperHex,
+use crate::{
+    complex::big::{self, Format},
+    ext::xmpc::{ordering2, raw_round2, Ordering2, Round2},
+    float::{big::ExpFormat, Round, Special},
+    ops::AssignRound,
+    Assign, Complex, Float,
 };
-use std::mem;
+use gmp_mpfr_sys::mpc;
+use std::{
+    cmp::Ordering,
+    fmt::{
+        Alignment, Binary, Debug, Display, Formatter, LowerExp, LowerHex, Octal,
+        Result as FmtResult, UpperExp, UpperHex,
+    },
+    mem,
+};
 
 impl Clone for Complex {
     #[inline]

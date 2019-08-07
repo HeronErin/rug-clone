@@ -45,8 +45,7 @@ floating-point number to a [`Rational`] number fails.
 # #![cfg_attr(nightly_try_from, feature(try_from))]
 # fn main() {
 # #[cfg(try_from)] {
-use rug::rational::TryFromFloatError;
-use rug::Rational;
+use rug::{rational::TryFromFloatError, Rational};
 use std::convert::TryFrom;
 // This is not finite and cannot be converted to Rational.
 let inf = 1.0f32 / 0.0;

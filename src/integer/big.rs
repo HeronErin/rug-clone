@@ -14,24 +14,20 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpz;
-use crate::integer::Order;
-use crate::misc;
-use crate::ops::DivRounding;
 #[cfg(feature = "rand")]
 use crate::rand::RandState;
-use crate::Assign;
+use crate::{cast, ext::xmpz, integer::Order, misc, ops::DivRounding, Assign};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
-use std::cmp::Ordering;
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::marker::PhantomData;
-use std::mem;
-use std::ops::{Add, AddAssign, Deref, Mul, MulAssign};
-use std::os::raw::{c_char, c_int, c_long, c_void};
-use std::slice;
-use std::{i32, u32};
+use std::{
+    cmp::Ordering,
+    error::Error,
+    fmt::{Display, Formatter, Result as FmtResult},
+    marker::PhantomData,
+    mem,
+    ops::{Add, AddAssign, Deref, Mul, MulAssign},
+    os::raw::{c_char, c_int, c_long, c_void},
+    slice,
+};
 
 /**
 An arbitrary-precision integer.
@@ -461,8 +457,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// let digits = [0x5678u16, 0x1234u16];
     /// let i = Integer::from_digits(&digits, Order::Lsf);
     /// assert_eq!(i, 0x1234_5678);
@@ -486,8 +481,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// let digits = [0x5678u16, 0x1234u16];
     /// let mut i = Integer::new();
     /// i.assign_digits(&digits, Order::Lsf);
@@ -522,8 +516,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// // hex bytes: [ fe dc ba 98 87 87 87 87 76 54 32 10 ]
     /// let digits = [
     ///     0xfedc_ba98u32.to_be(),
@@ -589,8 +582,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// let i = Integer::from(0x1234_5678_9abc_def0u64);
     /// let digits = i.to_digits::<u32>(Order::MsfBe);
     /// assert_eq!(digits, [0x1234_5678u32.to_be(), 0x9abc_def0u32.to_be()]);
@@ -637,8 +629,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// let i = Integer::from(0x1234_5678_9abc_def0u64);
     /// let mut digits = [0xffff_ffffu32; 4];
     /// i.write_digits(&mut digits, Order::MsfBe);
@@ -687,8 +678,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// let i = Integer::from(0xfedc_ba98_7654_3210u64);
     /// let mut digits = [0xffff_ffffu32; 4];
     /// let ptr = digits.as_mut_ptr();
@@ -712,8 +702,7 @@ impl Integer {
     /// call to the safe method [`to_digits`].
     ///
     /// ```rust
-    /// use rug::integer::Order;
-    /// use rug::Integer;
+    /// use rug::{integer::Order, Integer};
     /// let i = Integer::from(0x1234_5678_9abc_def0u64);
     /// let len = i.significant_digits::<u32>();
     /// assert_eq!(len, 2);
@@ -4053,8 +4042,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::integer::IsPrime;
-    /// use rug::Integer;
+    /// use rug::{integer::IsPrime, Integer};
     /// let no = Integer::from(163 * 4003);
     /// assert_eq!(no.is_probably_prime(15), IsPrime::No);
     /// let yes = Integer::from(21_751);
@@ -4889,8 +4877,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::{Assign, Integer};
+    /// use rug::{rand::RandState, Assign, Integer};
     /// let mut rand = RandState::new();
     /// let mut i = Integer::from(Integer::random_bits(0, &mut rand));
     /// assert_eq!(i, 0);
@@ -4921,8 +4908,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Integer;
+    /// use rug::{rand::RandState, Integer};
     /// let mut rand = RandState::new();
     /// let i = Integer::from(15);
     /// let below = i.random_below(&mut rand);
@@ -4946,8 +4932,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Integer;
+    /// use rug::{rand::RandState, Integer};
     /// let mut rand = RandState::new();
     /// let mut i = Integer::from(15);
     /// i.random_below_mut(&mut rand);
@@ -4975,8 +4960,7 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Integer;
+    /// use rug::{rand::RandState, Integer};
     /// let mut rand = RandState::new();
     /// let bound = Integer::from(15);
     /// let i = Integer::from(bound.random_below_ref(&mut rand));
@@ -5671,8 +5655,7 @@ are accepted.
 # Examples
 
 ```rust
-use rug::integer::ParseIntegerError;
-use rug::Integer;
+use rug::{integer::ParseIntegerError, Integer};
 // This string is not an integer.
 let s = "something completely different (_!_!_)";
 let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
@@ -5720,8 +5703,7 @@ See the [`Integer::is_probably_prime`] method.
 # Examples
 
 ```rust
-use rug::integer::IsPrime;
-use rug::Integer;
+use rug::{integer::IsPrime, Integer};
 let no = Integer::from(163 * 4003);
 assert_eq!(no.is_probably_prime(15), IsPrime::No);
 let yes = Integer::from(21_751);

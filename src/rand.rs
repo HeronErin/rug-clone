@@ -25,16 +25,16 @@ Random number generation.
 // uninitialized memory, otherwise we may be left with uninitialized
 // memory which can eventually lead to undefined behavior.
 
-use crate::cast;
-use crate::Integer;
+use crate::{cast, Integer};
 use gmp_mpfr_sys::gmp::{self, randstate_t};
-use std::marker::PhantomData;
-use std::mem;
-use std::os::raw::{c_ulong, c_void};
 #[cfg(not(ffi_panic_aborts))]
 use std::panic::{self, AssertUnwindSafe};
-use std::process;
-use std::ptr;
+use std::{
+    marker::PhantomData,
+    mem,
+    os::raw::{c_ulong, c_void},
+    process, ptr,
+};
 
 /**
 The state of a random number generator.
@@ -145,8 +145,7 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Integer;
+    /// use rug::{rand::RandState, Integer};
     /// let a = match Integer::from_str_radix("292787ebd3329ad7e7575e2fd", 16) {
     ///     Ok(i) => i,
     ///     Err(_) => unreachable!(),
@@ -217,8 +216,10 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::{RandGen, RandState};
-    /// use rug::Integer;
+    /// use rug::{
+    ///     rand::{RandGen, RandState},
+    ///     Integer,
+    /// };
     /// struct Seed;
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
@@ -262,8 +263,10 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::{RandGen, RandState};
-    /// use rug::Integer;
+    /// use rug::{
+    ///     rand::{RandGen, RandState},
+    ///     Integer,
+    /// };
     /// struct Seed;
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
@@ -440,8 +443,7 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::RandState;
-    /// use rug::Integer;
+    /// use rug::{rand::RandState, Integer};
     /// let seed = Integer::from(123456);
     /// let mut rand = RandState::new();
     /// rand.seed(&seed);
@@ -520,8 +522,7 @@ panic, they can cause the program to abort.
 # Examples
 
 ```rust
-use rug::rand::RandGen;
-use rug::Integer;
+use rug::{rand::RandGen, Integer};
 struct SimpleGenerator {
     seed: u64,
 }
@@ -643,8 +644,10 @@ pub trait RandGen: Send + Sync {
     /// # Examples
     ///
     /// ```rust
-    /// use rug::rand::{RandGen, RandState};
-    /// use rug::{Assign, Integer};
+    /// use rug::{
+    ///     rand::{RandGen, RandState},
+    ///     Assign, Integer,
+    /// };
     /// struct Seed {
     ///     inner: Integer,
     /// };
@@ -673,8 +676,10 @@ pub trait RandGen: Send + Sync {
     /// function.
     ///
     /// ```rust
-    /// use rug::rand::{RandGen, RandState};
-    /// use rug::Integer;
+    /// use rug::{
+    ///     rand::{RandGen, RandState},
+    ///     Integer,
+    /// };
     /// use std::mem;
     /// struct Seed {
     ///     num: isize,

@@ -32,9 +32,11 @@ mod serde;
 pub(crate) mod small;
 mod traits;
 
-pub use crate::float::big::ParseFloatError;
-pub use crate::float::ord::OrdFloat;
-pub use crate::float::small::{SmallFloat, ToSmall};
+pub use crate::float::{
+    big::ParseFloatError,
+    ord::OrdFloat,
+    small::{SmallFloat, ToSmall},
+};
 use gmp_mpfr_sys::mpfr;
 use std::{i32, u32};
 
@@ -120,9 +122,7 @@ is, the one with the least significant bit set to zero.
 # Examples
 
 ```rust
-use rug::float::Round;
-use rug::ops::AssignRound;
-use rug::Float;
+use rug::{float::Round, ops::AssignRound, Float};
 let mut f4 = Float::new(4);
 f4.assign_round(10.4, Round::Nearest);
 assert_eq!(f4, 10);
@@ -138,9 +138,7 @@ Rounding to the nearest will round numbers exactly between two
 representable numbers to the even one.
 
 ```rust
-use rug::float::Round;
-use rug::ops::AssignRound;
-use rug::Float;
+use rug::{float::Round, ops::AssignRound, Float};
 // 24 is 11000 in binary
 // 25 is 11001 in binary
 // 26 is 11010 in binary
@@ -180,8 +178,7 @@ The available floating-point constants.
 # Examples
 
 ```rust
-use rug::float::Constant;
-use rug::Float;
+use rug::{float::Constant, Float};
 
 let log2 = Float::with_val(53, Constant::Log2);
 let pi = Float::with_val(53, Constant::Pi);
@@ -214,8 +211,7 @@ Special floating-point values.
 # Examples
 
 ```rust
-use rug::float::Special;
-use rug::Float;
+use rug::{float::Special, Float};
 
 let zero = Float::with_val(53, Special::Zero);
 let neg_zero = Float::with_val(53, Special::NegZero);

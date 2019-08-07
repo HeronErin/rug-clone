@@ -14,12 +14,8 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpq;
-use crate::misc::NegAbs;
-use crate::{Integer, Rational};
+use crate::{cast, ext::xmpq, misc::NegAbs, Integer, Rational};
 use std::cmp::Ordering;
-use std::i32;
 
 impl Eq for Rational {}
 

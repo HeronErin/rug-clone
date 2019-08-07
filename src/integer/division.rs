@@ -14,14 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast::CheckedCast;
-use crate::ext::xmpz;
-use crate::integer::SmallInteger;
-use crate::ops::{
-    DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,
-    RemRoundingFrom,
+use crate::{
+    cast::CheckedCast,
+    ext::xmpz,
+    integer::SmallInteger,
+    ops::{
+        DivRounding, DivRoundingAssign, DivRoundingFrom, RemRounding, RemRoundingAssign,
+        RemRoundingFrom,
+    },
+    Assign, Integer,
 };
-use crate::{Assign, Integer};
 use std::os::raw::{c_long, c_ulong};
 
 // big / big -> Big

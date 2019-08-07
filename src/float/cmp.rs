@@ -14,18 +14,21 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::cast;
-use crate::ext::xmpfr::{self, ordering1};
-use crate::float::big::{IExpIncomplete, UExpIncomplete};
-use crate::float::Special;
-use crate::Float;
 #[cfg(feature = "integer")]
 use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
+use crate::{
+    cast,
+    ext::xmpfr::{self, ordering1},
+    float::{
+        big::{IExpIncomplete, UExpIncomplete},
+        Special,
+    },
+    Float,
+};
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
-use std::{i32, u32};
 
 impl PartialEq for Float {
     #[inline]
