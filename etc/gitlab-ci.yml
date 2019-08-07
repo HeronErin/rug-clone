@@ -92,7 +92,7 @@ nightly-x86_64-gnulinux:
   - clibs-x86_64-gnulinux
   variables:
     TOOLCHAIN: 1.31.1-x86_64
-    REQ_COVERAGE: "76.5"
+    REQ_COVERAGE: "77.0"
   script:
   # build tarpaulin using stable, as it does not compile with 1.31.1
   - cargo install --version 0.8.5 cargo-tarpaulin
