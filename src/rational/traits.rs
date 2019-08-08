@@ -314,7 +314,6 @@ mod tests {
     #[test]
     fn check_fallible_conversions() {
         use crate::tests::{F32, F64};
-        use Rational;
         for &f in F32 {
             let r = Rational::try_from(f);
             assert_eq!(r.is_ok(), f.is_finite());

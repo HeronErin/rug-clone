@@ -167,8 +167,7 @@ fn rhs_has_more_alloc(lhs: &Rational, rhs: &Rational) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::ops::Pow;
-    use crate::Rational;
+    use crate::{ops::Pow, Rational};
 
     macro_rules! test_ref_op {
         ($first:expr, $second:expr) => {

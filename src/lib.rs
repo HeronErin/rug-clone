@@ -487,8 +487,7 @@ fn _static_assertions() {
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
     #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
-    use std::{f32, f64};
-    use std::{i128, i16, i32, i64, i8, u128, u16, u32, u64, u8};
+    use std::{f32, f64, i128, i16, i32, i64, i8, u128, u16, u32, u64, u8};
 
     pub const U8: &[u8] = &[0, 1, 100, 101, i8::MAX as u8 + 1, u8::MAX];
     pub const I8: &[i8] = &[i8::MIN, -101, -100, -1, 0, 1, 100, 101, i8::MAX];

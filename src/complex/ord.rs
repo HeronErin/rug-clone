@@ -153,10 +153,14 @@ impl From<OrdComplex> for Complex {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
-    use crate::Complex;
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
+    use crate::{
+        float::{self, FreeCache, Special},
+        Complex,
+    };
+    use std::{
+        collections::hash_map::DefaultHasher,
+        hash::{Hash, Hasher},
+    };
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();

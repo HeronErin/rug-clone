@@ -84,9 +84,10 @@ impl Prec for (u32, u32) {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::tests::Cmp;
-    use crate::float::{self, FreeCache, Special};
-    use crate::{Assign, Complex};
+    use crate::{
+        float::{self, tests::Cmp, FreeCache, Special},
+        Assign, Complex,
+    };
     use std::f64;
 
     #[test]

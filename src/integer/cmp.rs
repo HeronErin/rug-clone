@@ -159,11 +159,11 @@ impl PartialOrd<Integer> for f64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::{I128, I32, I64, U128, U32, U64};
-    use crate::Integer;
-    use std::cmp::Ordering;
-    use std::ops::Neg;
-    use std::{f32, f64};
+    use crate::{
+        tests::{I128, I32, I64, U128, U32, U64},
+        Integer,
+    };
+    use std::{cmp::Ordering, f32, f64, ops::Neg};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Integer])
     where

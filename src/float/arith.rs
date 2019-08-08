@@ -752,15 +752,15 @@ unsafe fn mul_sub(
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity)]
 pub(crate) mod tests {
-    use crate::float::{self, FreeCache, Special};
-    use crate::ops::Pow;
-    use crate::Float;
-    #[cfg(feature = "integer")]
-    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
+    use crate::{
+        float::{self, FreeCache, Special},
+        ops::Pow,
+        Float,
+    };
     #[cfg(feature = "integer")]
-    use std::str::FromStr;
+    use {crate::Integer, std::str::FromStr};
 
     pub fn same(a: Float, b: Float) -> bool {
         if a.is_nan() && b.is_nan() {

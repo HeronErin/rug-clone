@@ -308,9 +308,11 @@ unsafe impl Sync for Complex {}
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Round};
-    use crate::ops::AssignRound;
-    use crate::{Assign, Complex};
+    use crate::{
+        float::{self, FreeCache, Round},
+        ops::AssignRound,
+        Assign, Complex,
+    };
     use std::cmp::Ordering;
 
     #[test]

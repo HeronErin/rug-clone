@@ -112,9 +112,11 @@ impl<'de> Deserialize<'de> for OrdComplex {
 
 #[cfg(test)]
 mod tests {
-    use crate::cast;
-    use crate::float::{self, FreeCache, Special};
-    use crate::{Assign, Complex};
+    use crate::{
+        cast,
+        float::{self, FreeCache, Special},
+        Assign, Complex,
+    };
     use serde_json::json;
 
     fn assert(a: &Complex, b: &Complex) {

@@ -198,10 +198,14 @@ impl From<OrdFloat> for Float {
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
-    use crate::Float;
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
+    use crate::{
+        float::{self, FreeCache, Special},
+        Float,
+    };
+    use std::{
+        collections::hash_map::DefaultHasher,
+        hash::{Hash, Hasher},
+    };
 
     fn calculate_hash<T: Hash>(t: &T) -> u64 {
         let mut s = DefaultHasher::new();

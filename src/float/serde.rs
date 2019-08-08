@@ -97,9 +97,11 @@ impl<'de> Deserialize<'de> for OrdFloat {
 
 #[cfg(test)]
 mod tests {
-    use crate::cast;
-    use crate::float::{self, FreeCache, Special};
-    use crate::{Assign, Float};
+    use crate::{
+        cast,
+        float::{self, FreeCache, Special},
+        Assign, Float,
+    };
     use serde_json::json;
 
     fn assert(a: &Float, b: &Float) {

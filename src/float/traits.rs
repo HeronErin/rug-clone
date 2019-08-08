@@ -372,9 +372,11 @@ unsafe impl Sync for Float {}
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use crate::float::{self, FreeCache};
-    use crate::ops::AssignRound;
-    use crate::{Assign, Float};
+    use crate::{
+        float::{self, FreeCache},
+        ops::AssignRound,
+        Assign, Float,
+    };
     use std::cmp::Ordering;
 
     #[test]
@@ -400,8 +402,7 @@ mod tests {
     #[cfg(all(try_from, feature = "rational"))]
     #[test]
     fn check_fallible_conversions() {
-        use crate::float::Special;
-        use crate::{Float, Rational};
+        use crate::{float::Special, Float, Rational};
         use std::convert::TryFrom;
         let large = [
             Float::with_val(20, Special::Zero),

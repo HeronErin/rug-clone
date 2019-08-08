@@ -5592,8 +5592,7 @@ impl Assign<ParseIncomplete> for Integer {
 from_assign! { ParseIncomplete => Integer }
 
 fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError> {
-    use self::ParseErrorKind as Kind;
-    use self::ParseIntegerError as Error;
+    use self::{ParseErrorKind as Kind, ParseIntegerError as Error};
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
     let bradix: u8 = cast::cast(radix);

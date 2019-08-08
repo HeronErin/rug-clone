@@ -320,14 +320,18 @@ pub fn free_cache(which: FreeCache) {
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity, clippy::float_cmp)]
 pub(crate) mod tests {
-    use crate::float::{self, FreeCache, Round, Special};
     #[cfg(feature = "rand")]
     use crate::rand::{RandGen, RandState};
-    use crate::{Assign, Float};
+    use crate::{
+        float::{self, FreeCache, Round, Special},
+        Assign, Float,
+    };
     use gmp_mpfr_sys::{gmp, mpfr};
-    use std::cmp::Ordering;
-    use std::f64;
-    use std::fmt::{Debug, Error as FmtError, Formatter};
+    use std::{
+        cmp::Ordering,
+        f64,
+        fmt::{Debug, Error as FmtError, Formatter},
+    };
 
     #[derive(Clone, Copy)]
     pub enum Cmp {

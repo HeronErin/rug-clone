@@ -743,16 +743,15 @@ unsafe fn mul_sub(
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity)]
 mod tests {
-    use crate::float::arith::tests as float_tests;
-    use crate::float::{self, FreeCache, Special};
-    use crate::ops::{NegAssign, Pow};
-    #[cfg(feature = "integer")]
-    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
-    use crate::{Complex, Float};
+    use crate::{
+        float::{self, arith::tests as float_tests, FreeCache, Special},
+        ops::{NegAssign, Pow},
+        Complex, Float,
+    };
     #[cfg(feature = "integer")]
-    use std::str::FromStr;
+    use {crate::Integer, std::str::FromStr};
 
     #[test]
     fn check_neg() {

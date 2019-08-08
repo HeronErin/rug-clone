@@ -67,8 +67,7 @@ pub struct TryFromFloatError {
 
 #[cfg(test)]
 mod tests {
-    use crate::rational::SmallRational;
-    use crate::{Integer, Rational};
+    use crate::{rational::SmallRational, Integer, Rational};
 
     #[test]
     fn check_fract_trunc() {

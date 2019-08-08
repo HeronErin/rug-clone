@@ -517,10 +517,14 @@ fn rhs_has_more_alloc(lhs: &Integer, rhs: &Integer) -> bool {
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity)]
 mod tests {
-    use crate::ops::{AddFrom, Pow, SubFrom};
-    use crate::Integer;
-    use std::cmp::Ordering;
-    use std::ops::{AddAssign, SubAssign};
+    use crate::{
+        ops::{AddFrom, Pow, SubFrom},
+        Integer,
+    };
+    use std::{
+        cmp::Ordering,
+        ops::{AddAssign, SubAssign},
+    };
 
     macro_rules! test_op {
         ($lhs:ident $op:tt $rhs:ident) => {

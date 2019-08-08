@@ -335,8 +335,7 @@ impl Assign for SmallRational {
 
 #[cfg(test)]
 mod tests {
-    use crate::rational::SmallRational;
-    use crate::Assign;
+    use crate::{rational::SmallRational, Assign};
 
     #[test]
     fn check_assign() {

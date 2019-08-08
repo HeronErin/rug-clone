@@ -292,12 +292,11 @@ cmp_f! { f32 f64 }
 
 #[cfg(test)]
 mod tests {
-    use crate::tests::{I128, I32, I64, U128, U32, U64};
-    use crate::Rational;
-    use std::cmp::Ordering;
-    use std::ops::Neg;
-    use std::ops::Sub;
-    use std::{f32, f64};
+    use crate::{
+        tests::{I128, I32, I64, U128, U32, U64},
+        Rational,
+    };
+    use std::{cmp::Ordering, f32, f64, ops::Neg, ops::Sub};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
     where

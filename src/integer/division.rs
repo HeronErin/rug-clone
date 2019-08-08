@@ -767,8 +767,10 @@ where
 #[cfg(test)]
 #[allow(clippy::cognitive_complexity)]
 mod tests {
-    use crate::ops::{DivRounding, RemRounding};
-    use crate::Integer;
+    use crate::{
+        ops::{DivRounding, RemRounding},
+        Integer,
+    };
 
     macro_rules! check_div_rem_prim {
         ($list:expr, $against:expr) => {

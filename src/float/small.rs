@@ -390,8 +390,10 @@ impl Assign for SmallFloat {
 #[cfg(test)]
 #[allow(clippy::float_cmp)]
 mod tests {
-    use crate::float::{self, FreeCache, SmallFloat};
-    use crate::Assign;
+    use crate::{
+        float::{self, FreeCache, SmallFloat},
+        Assign,
+    };
 
     #[test]
     fn check_assign() {

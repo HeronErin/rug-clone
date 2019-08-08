@@ -191,15 +191,15 @@ cmp! { IExpIncomplete }
 
 #[cfg(test)]
 mod tests {
-    use crate::float::{self, FreeCache, Special};
-    #[cfg(feature = "integer")]
-    use crate::Integer;
     #[cfg(feature = "rational")]
     use crate::Rational;
-    use crate::{Assign, Float};
+    use crate::{
+        float::{self, FreeCache, Special},
+        Assign, Float,
+    };
     use std::cmp::Ordering;
     #[cfg(feature = "integer")]
-    use std::str::FromStr;
+    use {crate::Integer, std::str::FromStr};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Float])
     where

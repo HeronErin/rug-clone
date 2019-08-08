@@ -325,7 +325,6 @@ mod tests {
     #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
-        use {Assign, Integer};
         let mut int = Integer::new();
         check_fallible_conversions_helper!(int, 8, i8, u8);
         check_fallible_conversions_helper!(int, 16, i16, u16);
