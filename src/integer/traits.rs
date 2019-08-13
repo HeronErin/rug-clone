@@ -74,7 +74,7 @@ impl Hash for Integer {
 impl Assign for Integer {
     #[inline]
     fn assign(&mut self, src: Integer) {
-        mem::drop(mem::replace(self, src));
+        drop(mem::replace(self, src));
     }
 }
 

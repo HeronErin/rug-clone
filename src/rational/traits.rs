@@ -124,7 +124,7 @@ impl UpperHex for Rational {
 impl Assign for Rational {
     #[inline]
     fn assign(&mut self, src: Rational) {
-        mem::drop(mem::replace(self, src));
+        drop(mem::replace(self, src));
     }
 }
 

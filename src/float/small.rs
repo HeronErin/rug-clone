@@ -383,7 +383,7 @@ impl Assign<&Self> for SmallFloat {
 impl Assign for SmallFloat {
     #[inline]
     fn assign(&mut self, other: Self) {
-        mem::drop(mem::replace(self, other));
+        drop(mem::replace(self, other));
     }
 }
 

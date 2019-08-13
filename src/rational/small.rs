@@ -329,7 +329,7 @@ impl Assign<&Self> for SmallRational {
 impl Assign for SmallRational {
     #[inline]
     fn assign(&mut self, other: Self) {
-        mem::drop(mem::replace(self, other));
+        drop(mem::replace(self, other));
     }
 }
 

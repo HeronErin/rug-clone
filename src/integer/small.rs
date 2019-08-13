@@ -393,7 +393,7 @@ impl Assign<&Self> for SmallInteger {
 impl Assign for SmallInteger {
     #[inline]
     fn assign(&mut self, other: Self) {
-        mem::drop(mem::replace(self, other));
+        drop(mem::replace(self, other));
     }
 }
 
