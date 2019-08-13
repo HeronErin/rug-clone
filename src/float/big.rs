@@ -2663,9 +2663,9 @@ impl Float {
         /// the following are also implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
         ///   * <code>[PartialEq][`PartialEq`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialEq][`PartialEq`]&lt;Float&gt; for [Src][`Src`]</code>
+        ///   * <code>[PartialEq][`PartialEq`]&lt;[Float][`Float`]&gt; for Src</code>
         ///   * <code>[PartialOrd][`PartialOrd`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialOrd][`PartialOrd`]&lt;Float&gt; for [Src][`Src`]</code>
+        ///   * <code>[PartialOrd][`PartialOrd`]&lt;[Float][`Float`]&gt; for Src</code>
         ///
         /// # Examples
         ///
@@ -2698,9 +2698,9 @@ impl Float {
         /// the following are also implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
         ///   * <code>[PartialEq][`PartialEq`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialEq][`PartialEq`]&lt;Float&gt; for [Src][`Src`]</code>
+        ///   * <code>[PartialEq][`PartialEq`]&lt;[Float][`Float`]&gt; for Src</code>
         ///   * <code>[PartialOrd][`PartialOrd`]&lt;Src&gt; for [Float][`Float`]</code>
-        ///   * <code>[PartialOrd][`PartialOrd`]&lt;Float&gt; for [Src][`Src`]</code>
+        ///   * <code>[PartialOrd][`PartialOrd`]&lt;[Float][`Float`]&gt; for Src</code>
         ///
         /// # Examples
         ///
