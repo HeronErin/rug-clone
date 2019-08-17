@@ -949,7 +949,7 @@ impl Rational {
     /// Borrows a negated copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// [`Deref<Target = Rational>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -967,7 +967,8 @@ impl Rational {
     /// assert_eq!(*reneg_r, r);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Rational`]: struct.Rational.html
     pub fn as_neg(&self) -> BorrowRational<'_> {
         let mut ret = BorrowRational {
@@ -984,7 +985,7 @@ impl Rational {
     /// Borrows an absolute copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// [`Deref<Target = Rational>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1002,7 +1003,8 @@ impl Rational {
     /// assert_eq!(*reabs_r, *abs_r);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Rational`]: struct.Rational.html
     pub fn as_abs(&self) -> BorrowRational<'_> {
         let mut ret = BorrowRational {
@@ -1019,7 +1021,7 @@ impl Rational {
     /// Borrows a reciprocal copy of the [`Rational`] number.
     ///
     /// The returned object implements
-    /// [`Deref<Target = Rational>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
     ///
     /// This method performs some shallow copying, swapping numerator
     /// and denominator and making sure the sign is in the numerator.
@@ -1041,7 +1043,8 @@ impl Rational {
     /// assert_eq!(*rerecip_r, r);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Rational`]: struct.Rational.html
     pub fn as_recip(&self) -> BorrowRational<'_> {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");

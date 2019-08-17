@@ -46,7 +46,8 @@ different precisions.
   * [`f64`]: the part will have 53 bits of precision.
 
 The `SmallComplex` type can be coerced to a [`Complex`], as it
-implements [`Deref<Target = Complex>`][`Deref`].
+implements
+<code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
 
 # Examples
 
@@ -61,8 +62,9 @@ assert_eq!(*a.real(), -9);
 assert_eq!(*a.imag(), -18.5);
 ```
 
+[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
 [`Complex`]: ../struct.Complex.html
-[`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html

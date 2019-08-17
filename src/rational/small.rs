@@ -35,7 +35,8 @@ Although no allocation is required, setting the value of a
 denominator need to be canonicalized.
 
 The `SmallRational` type can be coerced to a [`Rational`], as it
-implements [`Deref<Target = Rational>`][`Deref`].
+implements
+<code>[Deref]&lt;[Target] = [Rational][`Rational`]&gt;</code>.
 
 # Examples
 
@@ -50,7 +51,8 @@ assert_eq!(*a.numer(), -21);
 assert_eq!(*a.denom(), 13);
 ```
 
-[`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
 [`Rational`]: ../struct.Rational.html
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html

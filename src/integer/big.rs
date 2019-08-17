@@ -1693,7 +1693,7 @@ impl Integer {
     /// Borrows a negated copy of the [`Integer`].
     ///
     /// The returned object implements
-    /// [`Deref<Target = Integer>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1711,7 +1711,8 @@ impl Integer {
     /// assert_eq!(*reneg_i, i);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger {
@@ -1725,7 +1726,7 @@ impl Integer {
     /// Borrows an absolute copy of the [`Integer`].
     ///
     /// The returned object implements
-    /// [`Deref<Target = Integer>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1743,7 +1744,8 @@ impl Integer {
     /// assert_eq!(*reabs_i, *abs_i);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut ret = BorrowInteger {

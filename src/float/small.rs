@@ -51,7 +51,7 @@ according to the type of the primitive used to set its value.
   * [`f64`]: the `SmallFloat` will have 53 bits of precision.
 
 The `SmallFloat` type can be coerced to a [`Float`], as it implements
-[`Deref<Target = Float>`][`Deref`].
+<code>[Deref]&lt;[Target] = [Float][`Float`]&gt;</code>.
 
 # Examples
 
@@ -68,7 +68,8 @@ a *= &*b;
 assert_eq!(a, -15000);
 ```
 
-[`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
 [`Float`]: ../struct.Float.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html

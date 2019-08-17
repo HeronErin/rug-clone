@@ -39,7 +39,8 @@ a `SmallInteger`; the functions would still need to check for the size
 of an [`Integer`] obtained using `SmallInteger`.
 
 The `SmallInteger` type can be coerced to an [`Integer`], as it
-implements [`Deref<Target = Integer>`][`Deref`].
+implements
+<code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
 
 # Examples
 
@@ -56,7 +57,8 @@ a.lcm_mut(&SmallInteger::from(30));
 assert_eq!(a, 1500);
 ```
 
-[`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
 [`Integer`]: ../struct.Integer.html
 [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html

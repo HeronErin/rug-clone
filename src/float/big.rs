@@ -1348,7 +1348,7 @@ impl Float {
     /// Borrows a negated copy of the [`Float`].
     ///
     /// The returned object implements
-    /// [`Deref<Target = Float>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Float][`Float`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -1366,7 +1366,8 @@ impl Float {
     /// assert_eq!(*reneg_f, f);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat<'_> {
         let mut ret = BorrowFloat {
@@ -1385,7 +1386,7 @@ impl Float {
     /// Borrows an absolute copy of the [`Float`].
     ///
     /// The returned object implements
-    /// [`Deref<Target = Float>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Float][`Float`]&gt;</code>.
     ///
     /// This method performs a shallow copy and possibly negates it,
     /// and negation does not change the allocated data.
@@ -1403,7 +1404,8 @@ impl Float {
     /// assert_eq!(*reabs_f, *abs_f);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat<'_> {
         let mut ret = BorrowFloat {
@@ -1689,7 +1691,7 @@ impl Float {
     /// reference to its significand as an [`Integer`].
     ///
     /// The unwrapped returned object implements
-    /// [`Deref<Target = Integer>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Integer][`Integer`]&gt;</code>.
     ///
     /// The number of [significant bits][`significant_bits`] of a
     /// returned significand is at least equal to the
@@ -1722,7 +1724,8 @@ impl Float {
     /// assert_eq!(check_int << sig_bits << (check_exp - exp), *significand);
     /// ```
     ///
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     /// [`get_exp`]: #method.get_exp
     /// [`is_normal`]: #method.is_normal

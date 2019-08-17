@@ -875,7 +875,7 @@ impl Complex {
     /// Borrows a negated copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// [`Deref<Target = Complex>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates it, and
     /// negation does not change the allocated data.
@@ -893,8 +893,9 @@ impl Complex {
     /// assert_eq!(*reneg_c, c);
     /// ```
     ///
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_neg(&self) -> BorrowComplex<'_> {
         // shallow copy
         let mut ret = BorrowComplex {
@@ -914,7 +915,7 @@ impl Complex {
     /// Borrows a conjugate copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// [`Deref<Target = Complex>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
     ///
     /// This method performs a shallow copy and negates its imaginary
     /// part, and negation does not change the allocated data.
@@ -932,8 +933,9 @@ impl Complex {
     /// assert_eq!(*reconj_c, c);
     /// ```
     ///
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     pub fn as_conj(&self) -> BorrowComplex<'_> {
         let mut ret = BorrowComplex {
             inner: self.inner,
@@ -951,7 +953,7 @@ impl Complex {
     /// Borrows a rotated copy of the [`Complex`] number.
     ///
     /// The returned object implements
-    /// [`Deref<Target = Complex>`][`Deref`].
+    /// <code>[Deref]&lt;[Target] = [Complex][`Complex`]&gt;</code>.
     ///
     /// This method operates by performing some shallow copying;
     /// unlike the [`mul_i`] method and friends, this method swaps the
@@ -973,8 +975,9 @@ impl Complex {
     /// assert_eq!(*mul_1_c, c);
     /// ```
     ///
+    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
-    /// [`Deref`]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
         let inner = unsafe {
