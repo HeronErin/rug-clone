@@ -467,7 +467,7 @@ impl Integer {
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [upt]: integer/trait.UnsignedPrimitive.html
     pub fn from_digits<T: UnsignedPrimitive>(digits: &[T], order: Order) -> Self {
-        let capacity = digits.len().checked_mul(T::BITS).expect("overflow");
+        let capacity = digits.len().checked_mul(T::PRIVATE.bits).expect("overflow");
         let mut i = Integer::with_capacity(capacity);
         i.assign_digits(digits, order);
         i
@@ -540,13 +540,15 @@ impl Integer {
         len: usize,
         order: Order,
     ) {
+        let bytes = mem::size_of::<T>();
+        let nails = 8 * bytes - T::PRIVATE.bits;
         gmp::mpz_import(
             self.as_raw_mut(),
             len,
             order.order(),
-            T::BYTES,
+            bytes,
             order.endian(),
-            T::NAILS,
+            nails,
             src as *const c_void,
         );
     }
@@ -572,7 +574,7 @@ impl Integer {
     /// [upt]: integer/trait.UnsignedPrimitive.html
     #[inline]
     pub fn significant_digits<T: UnsignedPrimitive>(&self) -> usize {
-        xmpz::significant_bits(self).div_ceil(T::BITS)
+        xmpz::significant_bits(self).div_ceil(T::PRIVATE.bits)
     }
 
     /// Converts the absolute value to a [`Vec`] of digits of type
@@ -604,9 +606,9 @@ impl Integer {
                 digits_ptr as *mut c_void,
                 count_ptr,
                 order.order(),
-                T::BYTES,
+                T::PRIVATE.bytes,
                 order.endian(),
-                T::NAILS,
+                T::PRIVATE.nails,
                 self.as_raw(),
             );
             assert_eq!(assume_init!(count), digit_count);
@@ -737,15 +739,15 @@ impl Integer {
             (dst, dst.offset(cast::cast(zero_count)))
         };
         // use *mut u8 to allow for unaligned pointers
-        (zeros as *mut u8).write_bytes(0, zero_count * T::BYTES);
+        (zeros as *mut u8).write_bytes(0, zero_count * T::PRIVATE.bytes);
         let_uninit_ptr!(count, count_ptr);
         gmp::mpz_export(
             digits as *mut c_void,
             count_ptr,
             order.order(),
-            T::BYTES,
+            T::PRIVATE.bytes,
             order.endian(),
-            T::NAILS,
+            T::PRIVATE.nails,
             self.as_raw(),
         );
         assert_eq!(assume_init!(count), digit_count);
@@ -5759,16 +5761,27 @@ pub enum IsPrime {
 /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
 pub trait UnsignedPrimitive: SealedUnsignedPrimitive {}
 
+pub struct PrivateUnsignedPrimitive {
+    bytes: usize,
+    bits: usize,
+    nails: usize,
+}
+
 pub unsafe trait SealedUnsignedPrimitive: Sized {
-    const BYTES: usize = mem::size_of::<Self>();
-    const BITS: usize = Self::BYTES * 8;
-    const NAILS: usize = 0;
+    const PRIVATE: PrivateUnsignedPrimitive = PrivateUnsignedPrimitive {
+        bytes: mem::size_of::<Self>(),
+        bits: mem::size_of::<Self>() * 8,
+        nails: 0
+    };
 }
 
 impl UnsignedPrimitive for bool {}
 unsafe impl SealedUnsignedPrimitive for bool {
-    const BITS: usize = 1;
-    const NAILS: usize = Self::BYTES * 8 - 1;
+    const PRIVATE: PrivateUnsignedPrimitive = PrivateUnsignedPrimitive {
+        bytes: mem::size_of::<Self>(),
+        bits: 1,
+        nails: mem::size_of::<Self>() * 8 - 1,
+    };
 }
 
 impl UnsignedPrimitive for u8 {}
