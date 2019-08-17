@@ -4285,16 +4285,16 @@ impl Integer {
         ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// In the case that only one of the two cofactors is
-        /// required,
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// <code>[Assign][`Assign`]&lt;Src&gt; for
-        /// [(][tuple]&amp;mut [Integer][`Integer`],
-        /// &amp;mut [Integer][`Integer`][)][tuple]</code>
-        /// <code>[From][`From`]&lt;Src&gt; for
-        /// [(][tuple][Integer][`Integer`], [Integer][`Integer`][)][tuple]</code>
-        /// are also implemented with the returned
-        /// [incomplete-computation value][icv] as `Src`.
+        /// required, the following are also implemented:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for
+        ///     [(][tuple]&amp;mut [Integer][`Integer`],
+        ///     &amp;mut [Integer][`Integer`][)][tuple]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for
+        ///     [(][tuple][Integer][`Integer`],
+        ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// The GCD is always positive except when both inputs are
         /// zero. If the inputs are *a* and *b*, then the GCD is *g*
