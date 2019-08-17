@@ -823,8 +823,10 @@ impl Integer {
         Ok(Integer::from(Integer::parse_radix(src, radix)?))
     }
 
-    /// Parses a decimal string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into an [`Integer`].
+    /// Parses a decimal string slice (<code>&amp;[str]</code>) or
+    /// byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into an
+    /// [`Integer`].
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -855,6 +857,7 @@ impl Integer {
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
@@ -863,8 +866,9 @@ impl Integer {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into an [`Integer`].
+    /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into an
+    /// [`Integer`].
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -899,6 +903,7 @@ impl Integer {
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html

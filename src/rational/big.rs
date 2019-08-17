@@ -467,8 +467,10 @@ impl Rational {
         Ok(Rational::from(Rational::parse_radix(src, radix)?))
     }
 
-    /// Parses a decimal string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into a [`Rational`] number.
+    /// Parses a decimal string slice (<code>&amp;[str]</code>) or
+    /// byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// [`Rational`] number.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -504,6 +506,7 @@ impl Rational {
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [`Rational`]: struct.Rational.html
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
@@ -512,8 +515,9 @@ impl Rational {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into a [`Rational`] number.
+    /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// [`Rational`] number.
     ///
     /// The following are implemented with the unwrapped returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -553,6 +557,7 @@ impl Rational {
     /// [`Assign`]: trait.Assign.html
     /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
     /// [`Rational`]: struct.Rational.html
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html

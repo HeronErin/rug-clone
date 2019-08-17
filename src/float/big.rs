@@ -687,8 +687,10 @@ impl Float {
         &mut self.inner
     }
 
-    /// Parses a decimal string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into a [`Float`].
+    /// Parses a decimal string slice (<code>&amp;[str]</code>) or
+    /// byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// [`Float`].
     ///
     /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
     /// is implemented with the unwrapped returned
@@ -732,6 +734,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Float`]: struct.Float.html
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
@@ -740,8 +743,9 @@ impl Float {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into a [`Float`].
+    /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// [`Float`].
     ///
     /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Float][`Float`]</code>
     /// is implemented with the unwrapped returned
@@ -794,6 +798,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Float`]: struct.Float.html
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html

@@ -572,8 +572,10 @@ impl Complex {
         &mut self.inner
     }
 
-    /// Parses a decimal string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into a [`Complex`] number.
+    /// Parses a decimal string slice (<code>&amp;[str]</code>) or
+    /// byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// [`Complex`] number.
     ///
     /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     /// is implemented with the unwrapped returned
@@ -614,6 +616,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Complex`]: struct.Complex.html
     /// [`Float::parse`]: struct.Float.html#method.parse
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
@@ -622,8 +625,9 @@ impl Complex {
         parse(src.as_ref(), 10)
     }
 
-    /// Parses a string slice ([`&str`][str]) or byte slice
-    /// ([`&[u8]`][slice]) into a [`Complex`] number.
+    /// Parses a string slice (<code>&amp;[str]</code>) or byte slice
+    /// (<code>[&amp;\[][slice][u8][`u8`][\]][slice]</code>) into a
+    /// [`Complex`] number.
     ///
     /// <code>[AssignRound][`AssignRound`]&lt;Src&gt; for [Complex][`Complex`]</code>
     /// is implemented with the unwrapped returned
@@ -668,6 +672,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Complex`]: struct.Complex.html
     /// [`Float::parse_radix`]: struct.Float.html#method.parse_radix
+    /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
     /// [str]: https://doc.rust-lang.org/nightly/std/primitive.str.html
