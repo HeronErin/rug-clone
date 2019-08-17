@@ -419,7 +419,6 @@ mod tests {
 
     fn check_known_cmp<T>(t: T, against: &Rational, ord: Ordering)
     where
-        Rational: PartialEq<T> + PartialEq<<T as Neg>::Output>,
         Rational: PartialOrd<T> + PartialOrd<<T as Neg>::Output>,
         T: Copy + Neg + PartialEq<Rational> + PartialOrd<Rational>,
         <T as Neg>::Output: PartialEq<Rational> + PartialOrd<Rational>,
@@ -437,7 +436,6 @@ mod tests {
 
     fn check_nan_cmp<T>(t: T, against: &Rational)
     where
-        Rational: PartialEq<T> + PartialEq<<T as Neg>::Output>,
         Rational: PartialOrd<T> + PartialOrd<<T as Neg>::Output>,
         T: Copy + Neg + PartialEq<Rational> + PartialOrd<Rational>,
         <T as Neg>::Output: PartialEq<Rational> + PartialOrd<Rational>,

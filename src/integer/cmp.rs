@@ -215,9 +215,8 @@ mod tests {
 
     fn check_known_cmp<T>(t: T, against: &Integer, ord: Ordering)
     where
-        Integer: PartialEq<T> + PartialOrd<T>,
+        Integer: PartialOrd<T> + PartialOrd<<T as Neg>::Output>,
         T: Copy + Neg + PartialEq<Integer> + PartialOrd<Integer>,
-        Integer: PartialEq<<T as Neg>::Output> + PartialOrd<<T as Neg>::Output>,
         <T as Neg>::Output: PartialEq<Integer> + PartialOrd<Integer>,
     {
         let neg = against.as_neg();
@@ -233,9 +232,8 @@ mod tests {
 
     fn check_nan_cmp<T>(t: T, against: &Integer)
     where
-        Integer: PartialEq<T> + PartialOrd<T>,
+        Integer: PartialOrd<T> + PartialOrd<<T as Neg>::Output>,
         T: Copy + Neg + PartialEq<Integer> + PartialOrd<Integer>,
-        Integer: PartialEq<<T as Neg>::Output> + PartialOrd<<T as Neg>::Output>,
         <T as Neg>::Output: PartialEq<Integer> + PartialOrd<Integer>,
     {
         let neg = against.as_neg();

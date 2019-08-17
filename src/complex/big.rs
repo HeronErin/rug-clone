@@ -3835,11 +3835,11 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
     bytes = misc::trim_start(bytes);
     bytes = misc::trim_end(bytes);
     if bytes.is_empty() {
-        parse_error!(ParseErrorKind::NoDigits)?;
+        return parse_error!(ParseErrorKind::NoDigits);
     }
     if let Some((inside, remainder)) = misc::matched_brackets(bytes) {
         if !misc::trim_start(remainder).is_empty() {
-            parse_error!(ParseErrorKind::CloseNotLast)?;
+            return parse_error!(ParseErrorKind::CloseNotLast);
         }
         bytes = misc::trim_start(inside);
         bytes = misc::trim_end(bytes);
@@ -3852,14 +3852,14 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
     let (real, imag) = if let Some(comma) = misc::find_outside_brackets(bytes, b',') {
         let real = misc::trim_end(&bytes[..comma]);
         if real.is_empty() {
-            parse_error!(ParseErrorKind::NoRealDigits)?;
+            return parse_error!(ParseErrorKind::NoRealDigits);
         }
         let imag = misc::trim_start(&bytes[comma + 1..]);
         if imag.is_empty() {
-            parse_error!(ParseErrorKind::NoImagDigits)?;
+            return parse_error!(ParseErrorKind::NoImagDigits);
         }
         if misc::find_outside_brackets(imag, b',').is_some() {
-            parse_error!(ParseErrorKind::MultipleSeparators)?;
+            return parse_error!(ParseErrorKind::MultipleSeparators);
         }
         (real, imag)
     } else if let Some(space) = misc::find_space_outside_brackets(bytes) {
@@ -3868,19 +3868,19 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
         let imag = misc::trim_start(&bytes[space + 1..]);
         assert!(!imag.is_empty());
         if misc::find_space_outside_brackets(imag).is_some() {
-            parse_error!(ParseErrorKind::MultipleSeparators)?;
+            return parse_error!(ParseErrorKind::MultipleSeparators);
         }
         (real, imag)
     } else {
-        parse_error!(ParseErrorKind::MissingSeparator)?
+        return parse_error!(ParseErrorKind::MissingSeparator);
     };
     let re = match Float::parse_radix(real, radix) {
         Ok(re) => re,
-        Err(e) => parse_error!(ParseErrorKind::InvalidRealFloat(e))?,
+        Err(e) => return parse_error!(ParseErrorKind::InvalidRealFloat(e)),
     };
     let im = match Float::parse_radix(imag, radix) {
         Ok(im) => im,
-        Err(e) => parse_error!(ParseErrorKind::InvalidImagFloat(e))?,
+        Err(e) => return parse_error!(ParseErrorKind::InvalidImagFloat(e)),
     };
     Ok(ParseIncomplete::Complex(re, im))
 }

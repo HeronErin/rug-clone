@@ -5771,7 +5771,7 @@ pub unsafe trait SealedUnsignedPrimitive: Sized {
     const PRIVATE: PrivateUnsignedPrimitive = PrivateUnsignedPrimitive {
         bytes: mem::size_of::<Self>(),
         bits: mem::size_of::<Self>() * 8,
-        nails: 0
+        nails: 0,
     };
 }
 

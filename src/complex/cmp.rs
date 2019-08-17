@@ -118,8 +118,8 @@ mod tests {
 
     fn check_eq_big<'a, T>(s: &'a [T], against: &[Complex])
     where
-        Complex: for<'b> Assign<&'b T> + for<'b> Assign<&'b (T, T)>,
-        Complex: PartialEq<T> + PartialEq<(T, T)>,
+        Complex:
+            for<'b> Assign<&'b T> + for<'b> Assign<&'b (T, T)> + PartialEq<T> + PartialEq<(T, T)>,
         T: Clone + PartialEq<Complex>,
         (T, T): Clone + PartialEq<Complex>,
     {

@@ -8562,7 +8562,7 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatErro
     bytes = misc::trim_start(bytes);
     bytes = misc::trim_end(bytes);
     if bytes.is_empty() {
-        parse_error!(ParseErrorKind::NoDigits)?;
+        return parse_error!(ParseErrorKind::NoDigits);
     }
 
     let mut has_sign = false;
@@ -8572,7 +8572,7 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatErro
         has_minus = bytes[0] == b'-';
         bytes = misc::trim_start(&bytes[1..]);
         if bytes.is_empty() {
-            parse_error!(ParseErrorKind::NoDigits)?;
+            return parse_error!(ParseErrorKind::NoDigits);
         }
     }
 
@@ -8594,15 +8594,15 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatErro
             b
         };
         let valid_digit = match b {
-            b'.' if exp => parse_error!(ParseErrorKind::PointInExp)?,
-            b'.' if has_point => parse_error!(ParseErrorKind::TooManyPoints)?,
+            b'.' if exp => return parse_error!(ParseErrorKind::PointInExp),
+            b'.' if has_point => return parse_error!(ParseErrorKind::TooManyPoints),
             b'.' => {
                 v.push(b'.');
                 has_point = true;
                 continue;
             }
-            b'@' if exp => parse_error!(ParseErrorKind::TooManyExp)?,
-            b'@' if !has_digits => parse_error!(ParseErrorKind::SignifNoDigits)?,
+            b'@' if exp => return parse_error!(ParseErrorKind::TooManyExp),
+            b'@' if !has_digits => return parse_error!(ParseErrorKind::SignifNoDigits),
             b'@' => {
                 v.push(b'@');
                 exp = true;
@@ -8628,16 +8628,16 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseFloatErro
             _ => false,
         };
         if !valid_digit {
-            parse_error!(ParseErrorKind::InvalidDigit)?;
+            return parse_error!(ParseErrorKind::InvalidDigit);
         }
         v.push(b);
         has_digits = true;
     }
     if !has_digits {
         if exp {
-            parse_error!(ParseErrorKind::ExpNoDigits)?;
+            return parse_error!(ParseErrorKind::ExpNoDigits);
         } else {
-            parse_error!(ParseErrorKind::NoDigits)?;
+            return parse_error!(ParseErrorKind::NoDigits);
         }
     }
     // we've only added checked bytes, so we know there are no nuls
