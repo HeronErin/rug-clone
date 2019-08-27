@@ -23,7 +23,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem,
+    mem::{self, ManuallyDrop},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
     os::raw::{c_char, c_int, c_long, c_void},
     slice,
@@ -1722,12 +1722,9 @@ impl Integer {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     pub fn as_neg(&self) -> BorrowInteger<'_> {
-        let mut ret = BorrowInteger {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        ret.inner.size = self.inner.size.checked_neg().expect("overflow");
-        ret
+        let mut raw = self.inner;
+        raw.size = raw.size.checked_neg().expect("overflow");
+        unsafe { BorrowInteger::from_raw(raw) }
     }
 
     /// Borrows an absolute copy of the [`Integer`].
@@ -1755,12 +1752,9 @@ impl Integer {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     pub fn as_abs(&self) -> BorrowInteger<'_> {
-        let mut ret = BorrowInteger {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        ret.inner.size = self.inner.size.checked_abs().expect("overflow");
-        ret
+        let mut raw = self.inner;
+        raw.size = raw.size.checked_abs().expect("overflow");
+        unsafe { BorrowInteger::from_raw(raw) }
     }
 
     /// Returns [`true`] if the number is even.
@@ -5521,16 +5515,25 @@ impl From<RandomBelowIncomplete<'_, '_>> for Integer {
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowInteger<'a> {
-    pub(crate) inner: mpz_t,
-    pub(crate) phantom: PhantomData<&'a Integer>,
+    inner: ManuallyDrop<Integer>,
+    phantom: PhantomData<&'a Integer>,
+}
+
+impl BorrowInteger<'_> {
+    // unsafe because the lifetime is obtained from return type
+    pub(crate) unsafe fn from_raw<'a>(raw: mpz_t) -> BorrowInteger<'a> {
+        BorrowInteger {
+            inner: ManuallyDrop::new(Integer::from_raw(raw)),
+            phantom: PhantomData,
+        }
+    }
 }
 
 impl Deref for BorrowInteger<'_> {
     type Target = Integer;
     #[inline]
     fn deref(&self) -> &Integer {
-        let ptr = cast_ptr!(&self.inner, Integer);
-        unsafe { &*ptr }
+        &*self.inner
     }
 }
 

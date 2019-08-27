@@ -26,7 +26,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem,
+    mem::{self, ManuallyDrop},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
 };
 
@@ -976,15 +976,9 @@ impl Rational {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Rational`]: struct.Rational.html
     pub fn as_neg(&self) -> BorrowRational<'_> {
-        let mut ret = BorrowRational {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        let size = self.numer().inner().size.checked_neg().expect("overflow");
-        unsafe {
-            (*gmp::mpq_numref(&mut ret.inner)).size = size;
-        }
-        ret
+        let mut raw = self.inner;
+        raw.num.size = raw.num.size.checked_neg().expect("overflow");
+        unsafe { BorrowRational::from_raw(raw) }
     }
 
     /// Borrows an absolute copy of the [`Rational`] number.
@@ -1012,15 +1006,9 @@ impl Rational {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Rational`]: struct.Rational.html
     pub fn as_abs(&self) -> BorrowRational<'_> {
-        let mut ret = BorrowRational {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        let size = self.numer().inner().size.checked_abs().expect("overflow");
-        unsafe {
-            (*gmp::mpq_numref(&mut ret.inner)).size = size;
-        }
-        ret
+        let mut raw = self.inner;
+        raw.num.size = raw.num.size.checked_abs().expect("overflow");
+        unsafe { BorrowRational::from_raw(raw) }
     }
 
     /// Borrows a reciprocal copy of the [`Rational`] number.
@@ -1053,22 +1041,15 @@ impl Rational {
     /// [`Rational`]: struct.Rational.html
     pub fn as_recip(&self) -> BorrowRational<'_> {
         assert_ne!(self.cmp0(), Ordering::Equal, "division by zero");
-        let inner = unsafe {
-            let_uninit_ptr!(inner, inner_ptr);
-            let mut dst_num = self.denom().as_raw().read();
-            let mut dst_den = self.numer().as_raw().read();
-            if dst_den.size < 0 {
-                dst_den.size = dst_den.size.wrapping_neg();
-                dst_num.size = dst_num.size.checked_neg().expect("overflow");
-            }
-            gmp::mpq_numref(inner_ptr).write(dst_num);
-            gmp::mpq_denref(inner_ptr).write(dst_den);
-            assume_init!(inner)
+        let mut raw = mpq_t {
+            num: self.inner.den,
+            den: self.inner.num,
         };
-        BorrowRational {
-            inner,
-            phantom: PhantomData,
+        if raw.den.size < 0 {
+            raw.den.size = raw.den.size.wrapping_neg();
+            raw.num.size = raw.num.size.checked_neg().expect("overflow");
         }
+        unsafe { BorrowRational::from_raw(raw) }
     }
 
     /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
@@ -2625,16 +2606,25 @@ ref_math_op1! { Rational; xmpq::square; struct SquareIncomplete {} }
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowRational<'a> {
-    inner: mpq_t,
+    inner: ManuallyDrop<Rational>,
     phantom: PhantomData<&'a Rational>,
+}
+
+impl BorrowRational<'_> {
+    // unsafe because the lifetime is obtained from return type
+    unsafe fn from_raw<'a>(raw: mpq_t) -> BorrowRational<'a> {
+        BorrowRational {
+            inner: ManuallyDrop::new(Rational::from_raw(raw)),
+            phantom: PhantomData,
+        }
+    }
 }
 
 impl Deref for BorrowRational<'_> {
     type Target = Rational;
     #[inline]
     fn deref(&self) -> &Rational {
-        let ptr = cast_ptr!(&self.inner, Rational);
-        unsafe { &*ptr }
+        &*self.inner
     }
 }
 

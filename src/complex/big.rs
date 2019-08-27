@@ -47,7 +47,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem,
+    mem::{self, ManuallyDrop},
     ops::{Add, AddAssign, Deref},
     os::raw::c_int,
     slice,
@@ -902,19 +902,15 @@ impl Complex {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
     pub fn as_neg(&self) -> BorrowComplex<'_> {
-        // shallow copy
-        let mut ret = BorrowComplex {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        unsafe {
-            NegAssign::neg_assign(&mut (*mpc::realref(&mut ret.inner)).sign);
-            NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
-            if self.real().is_nan() || self.imag().is_nan() {
+        let mut raw = self.inner;
+        raw.re.sign = -raw.re.sign;
+        raw.im.sign = -raw.im.sign;
+        if self.real().is_nan() || self.imag().is_nan() {
+            unsafe {
                 mpfr::set_nanflag();
             }
         }
-        ret
+        unsafe { BorrowComplex::from_raw(raw) }
     }
 
     /// Borrows a conjugate copy of the [`Complex`] number.
@@ -942,17 +938,14 @@ impl Complex {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
     pub fn as_conj(&self) -> BorrowComplex<'_> {
-        let mut ret = BorrowComplex {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        unsafe {
-            NegAssign::neg_assign(&mut (*mpc::imagref(&mut ret.inner)).sign);
-            if self.imag().is_nan() {
+        let mut raw = self.inner;
+        raw.im.sign = -raw.im.sign;
+        if self.imag().is_nan() {
+            unsafe {
                 mpfr::set_nanflag();
             }
         }
-        ret
+        unsafe { BorrowComplex::from_raw(raw) }
     }
 
     /// Borrows a rotated copy of the [`Complex`] number.
@@ -985,26 +978,21 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
-        let inner = unsafe {
-            let_uninit_ptr!(inner: mpc_t, inner_ptr);
-            let mut dst_re = self.imag().as_raw().read();
-            let mut dst_im = self.real().as_raw().read();
-            if negative {
-                NegAssign::neg_assign(&mut dst_im.sign);
-            } else {
-                NegAssign::neg_assign(&mut dst_re.sign);
-            }
-            mpc::realref(inner_ptr).write(dst_re);
-            mpc::imagref(inner_ptr).write(dst_im);
-            if self.real().is_nan() || self.imag().is_nan() {
+        let mut raw = mpc_t {
+            re: self.inner.im,
+            im: self.inner.re,
+        };
+        if negative {
+            raw.im.sign = -raw.im.sign;
+        } else {
+            raw.re.sign = -raw.re.sign;
+        }
+        if self.real().is_nan() || self.imag().is_nan() {
+            unsafe {
                 mpfr::set_nanflag();
             }
-            assume_init!(inner)
-        };
-        BorrowComplex {
-            inner,
-            phantom: PhantomData,
         }
+        unsafe { BorrowComplex::from_raw(raw) }
     }
 
     /// Borrows the [`Complex`] number as an ordered complex number of
@@ -3692,16 +3680,25 @@ impl AssignRound<RandomCont<'_, '_>> for Complex {
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowComplex<'a> {
-    inner: mpc_t,
+    inner: ManuallyDrop<Complex>,
     phantom: PhantomData<&'a Complex>,
+}
+
+impl BorrowComplex<'_> {
+    // unsafe because the lifetime is obtained from return type
+    unsafe fn from_raw<'a>(raw: mpc_t) -> BorrowComplex<'a> {
+        BorrowComplex {
+            inner: ManuallyDrop::new(Complex::from_raw(raw)),
+            phantom: PhantomData,
+        }
+    }
 }
 
 impl Deref for BorrowComplex<'_> {
     type Target = Complex;
     #[inline]
     fn deref(&self) -> &Complex {
-        let ptr = cast_ptr!(&self.inner, Complex);
-        unsafe { &*ptr }
+        &*self.inner
     }
 }
 

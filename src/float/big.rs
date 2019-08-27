@@ -43,7 +43,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     i32,
     marker::PhantomData,
-    mem,
+    mem::{self, ManuallyDrop},
     num::FpCategory,
     ops::{Add, AddAssign, Deref},
     os::raw::{c_char, c_int, c_long, c_ulong},
@@ -1375,17 +1375,14 @@ impl Float {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat<'_> {
-        let mut ret = BorrowFloat {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        NegAssign::neg_assign(&mut ret.inner.sign);
+        let mut raw = self.inner;
+        raw.sign = -raw.sign;
         if self.is_nan() {
             unsafe {
                 mpfr::set_nanflag();
             }
         }
-        ret
+        unsafe { BorrowFloat::from_raw(raw) }
     }
 
     /// Borrows an absolute copy of the [`Float`].
@@ -1413,17 +1410,14 @@ impl Float {
     /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
     /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat<'_> {
-        let mut ret = BorrowFloat {
-            inner: self.inner,
-            phantom: PhantomData,
-        };
-        ret.inner.sign = 1;
+        let mut raw = self.inner;
+        raw.sign = 1;
         if self.is_nan() {
             unsafe {
                 mpfr::set_nanflag();
             }
         }
-        ret
+        unsafe { BorrowFloat::from_raw(raw) }
     }
 
     /// Borrows the [`Float`] as an ordered floating-point number of
@@ -1742,14 +1736,12 @@ impl Float {
         if self.is_normal() {
             let limb_bits = mpfr::prec_t::from(gmp::LIMB_BITS);
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
-            Some(BorrowInteger {
-                inner: gmp::mpz_t {
-                    alloc: cast::cast(limbs),
-                    size: cast::cast(limbs),
-                    d: self.inner.d,
-                },
-                phantom: PhantomData,
-            })
+            let raw_int = gmp::mpz_t {
+                alloc: cast::cast(limbs),
+                size: cast::cast(limbs),
+                d: self.inner.d,
+            };
+            Some(unsafe { BorrowInteger::from_raw(raw_int) })
         } else {
             None
         }
@@ -8326,16 +8318,25 @@ impl AssignRound<RandomExp<'_, '_>> for Float {
 #[derive(Debug)]
 #[repr(transparent)]
 pub struct BorrowFloat<'a> {
-    inner: mpfr_t,
+    inner: ManuallyDrop<Float>,
     phantom: PhantomData<&'a Float>,
+}
+
+impl BorrowFloat<'_> {
+    // unsafe because the lifetime is obtained from return type
+    unsafe fn from_raw<'a>(raw: mpfr_t) -> BorrowFloat<'a> {
+        BorrowFloat {
+            inner: ManuallyDrop::new(Float::from_raw(raw)),
+            phantom: PhantomData,
+        }
+    }
 }
 
 impl Deref for BorrowFloat<'_> {
     type Target = Float;
     #[inline]
     fn deref(&self) -> &Float {
-        let ptr = cast_ptr!(&self.inner, Float);
-        unsafe { &*ptr }
+        &*self.inner
     }
 }
 
