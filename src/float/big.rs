@@ -1167,7 +1167,7 @@ impl Float {
     /// Converts to an [`f32`] and an exponent, rounding to the
     /// nearest.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1193,7 +1193,7 @@ impl Float {
     /// Converts to an [`f32`] and an exponent, applying the specified
     /// rounding method.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1232,7 +1232,7 @@ impl Float {
     /// Converts to an [`f64`] and an exponent, rounding to the
     /// nearest.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1258,7 +1258,7 @@ impl Float {
     /// Converts to an [`f64`] and an exponent, applying the specified
     /// rounding method.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ *x* < 1.
+    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1.
     ///
     /// If the value is too small or too large for the target type,
     /// the minimum or maximum value allowed is returned.
@@ -1658,7 +1658,8 @@ impl Float {
     /// If the value is a [normal number][`is_normal`], returns its
     /// exponent.
     ///
-    /// The significand is assumed to be in the range 0.5 ≤ *x* < 1.
+    /// The significand is assumed to be in the range
+    /// 0.5 ≤ <i>x</i> < 1.
     ///
     /// # Examples
     ///
@@ -1854,9 +1855,9 @@ impl Float {
     ///     precision of 24 bits,
     ///   * binary64 (double precision) with 64 storage bits and a
     ///     precision of 53 bits,
-    ///   * binary{<i>k</i>} with *k* storage bits where *k* is a
-    ///     multiple of 32 and *k* ≥ 128, and a precision of
-    ///     *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
+    ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i>
+    ///     is a multiple of 32 and <i>k</i> ≥ 128, and a precision of
+    ///     <i>k</i> − round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
     ///
     /// This method has no effect if the value is not in the subnormal
     /// range.
@@ -1893,9 +1894,9 @@ impl Float {
     ///     precision of 24 bits,
     ///   * binary64 (double precision) with 64 storage bits and a
     ///     precision of 53 bits,
-    ///   * binary{<i>k</i>} with *k* storage bits where *k* is a
-    ///     multiple of 32 and *k* ≥ 128, and a precision of
-    ///     *k* − round(4 × log<sub>2</sub> *k*) + 13 bits.
+    ///   * binary{<i>k</i>} with <i>k</i> storage bits where <i>k</i>
+    ///     is a multiple of 32 and <i>k</i> ≥ 128, and a precision of
+    ///     <i>k</i> − round(4 × log<sub>2</sub> <i>k</i>) + 13 bits.
     ///
     /// This method simply propagates `prev_rounding` if the value is
     /// not in the subnormal range.
@@ -1930,10 +1931,12 @@ impl Float {
     ///
     /// Subnormalization is only performed when the exponent lies
     /// within the subnormal range, that is when
-    /// `normal_exp_min` − *precision* + 1 ≤ *exponent* < `normal_exp_min`.
+    ///
+    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> < `normal_exp_min`
+    ///
     /// For example, for IEEE 754 single precision, the precision is
     /// 24 and `normal_exp_min` is −125, so the subnormal range would
-    /// be −148 ≤ *exponent* < −125.
+    /// be −148 ≤ <i>exponent</i> < −125.
     ///
     /// This method has no effect if the value is not in the subnormal
     /// range.
@@ -1963,10 +1966,12 @@ impl Float {
     ///
     /// Subnormalization is only performed when the exponent lies
     /// within the subnormal range, that is when
-    /// `normal_exp_min` − *precision* + 1 ≤ *exponent* < `normal_exp_min`.
+    ///
+    /// `normal_exp_min` − <i>precision</i> + 1 ≤ <i>exponent</i> < `normal_exp_min`
+    ///
     /// For example, for IEEE 754 single precision, the precision is
     /// 24 and `normal_exp_min` is −125, so the subnormal range would
-    /// be −148 ≤ *exponent* < −125.
+    /// be −148 ≤ <i>exponent</i> < −125.
     ///
     /// This method simply propagates `prev_rounding` if the value is
     /// not in the subnormal range.
@@ -5680,7 +5685,7 @@ impl Float {
         fn atanh_ref -> AtanhIncomplete;
     }
     math_op0! {
-        /// Computes the factorial of *n*.
+        /// Computes the factorial of <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -6506,7 +6511,7 @@ impl Float {
         fn zeta_ref -> ZetaIncomplete;
     }
     math_op0! {
-        /// Computes the Riemann Zeta function on *u*.
+        /// Computes the Riemann Zeta function on <i>u</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -6804,7 +6809,7 @@ impl Float {
     math_op1_float! {
         xmpfr::jn;
         /// Computes the value of the first kind Bessel function of
-        /// order *n*, rounding to the nearest.
+        /// order <i>n</i>, rounding to the nearest.
         ///
         /// # Examples
         ///
@@ -6817,7 +6822,7 @@ impl Float {
         /// ```
         fn jn(n: i32);
         /// Computes the value of the first kind Bessel function of
-        /// order *n*, rounding to the nearest.
+        /// order <i>n</i>, rounding to the nearest.
         ///
         /// # Examples
         ///
@@ -6830,7 +6835,7 @@ impl Float {
         /// ```
         fn jn_mut;
         /// Computes the value of the first kind Bessel function of
-        /// order *n*, applying the specified rounding method.
+        /// order <i>n</i>, applying the specified rounding method.
         ///
         /// # Examples
         ///
@@ -6846,7 +6851,7 @@ impl Float {
         /// assert_eq!(dir, Ordering::Greater);
         /// ```
         fn jn_round;
-        /// Computes the first kind Bessel function of order *n*.
+        /// Computes the first kind Bessel function of order <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -7008,7 +7013,7 @@ impl Float {
     math_op1_float! {
         xmpfr::yn;
         /// Computes the value of the second kind Bessel function of
-        /// order *n*, rounding to the nearest.
+        /// order <i>n</i>, rounding to the nearest.
         ///
         /// # Examples
         ///
@@ -7021,7 +7026,7 @@ impl Float {
         /// ```
         fn yn(n: i32);
         /// Computes the value of the second kind Bessel function of
-        /// order *n*, rounding to the nearest.
+        /// order <i>n</i>, rounding to the nearest.
         ///
         /// # Examples
         ///
@@ -7034,7 +7039,7 @@ impl Float {
         /// ```
         fn yn_mut;
         /// Computes the value of the second kind Bessel function of
-        /// order *n*, applying the specified rounding method.
+        /// order <i>n</i>, applying the specified rounding method.
         ///
         /// # Examples
         ///
@@ -7050,7 +7055,7 @@ impl Float {
         /// assert_eq!(dir, Ordering::Less);
         /// ```
         fn yn_round;
-        /// Computes the second kind Bessel function of order *n*.
+        /// Computes the second kind Bessel function of order <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -7774,15 +7779,16 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the range 0 ≤ *x* < 1.
+    /// Generates a random number in the range 0 ≤ <i>x</i> < 1.
     ///
     /// This is equivalent to generating a random integer in the range
-    /// 0 ≤ *x* < 2<sup>*p*</sup>, where 2<sup>*p*</sup> is two raised
-    /// to the power of the precision, and then dividing the integer
-    /// by 2<sup>*p*</sup>. The smallest non-zero result will thus be
-    /// 2<sup>−<i>p</i></sup>, and will only have one bit set. In the
-    /// smaller possible results, many bits will be zero, and not all
-    /// the precision will be used.
+    /// 0 ≤ <i>x</i> < 2<sup><i>p</i></sup>, where
+    /// 2<sup><i>p</i></sup> is two raised to the power of the
+    /// precision, and then dividing the integer by
+    /// 2<sup><i>p</i></sup>. The smallest non-zero result will thus
+    /// be 2<sup>−<i>p</i></sup>, and will only have one bit set. In
+    /// the smaller possible results, many bits will be zero, and not
+    /// all the precision will be used.
     ///
     /// There is a corner case where the generated random number is
     /// converted to NaN: if the precision is very large, the
@@ -7817,7 +7823,7 @@ impl Float {
     }
 
     #[cfg(feature = "rand")]
-    /// Generates a random number in the continuous range 0 ≤ *x* < 1.
+    /// Generates a random number in the continuous range 0 ≤ <i>x</i> < 1.
     ///
     /// The result can be rounded up to be equal to one. Unlike the
     /// [`random_bits`] method which generates a discrete random

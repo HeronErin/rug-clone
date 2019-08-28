@@ -140,7 +140,7 @@ impl RandState<'_> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm *X* = (*a* × *X* + *c*) mod 2<sup>*bits*</sup>.
+    /// algorithm <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>bits</i></sup>.
     ///
     /// # Examples
     ///
@@ -171,10 +171,10 @@ impl RandState<'_> {
     /// Creates a new random generator with a linear congruential
     /// algorithm like the [`new_linear_congruential`] method.
     ///
-    /// For the linear congrentail algorithm *X* = (*a* × *X* + *c*)
-    /// mod 2<sup>*bits*</sup>, *a*, *c* and *bits* are selected from
-    /// a table such that at least *size* bits of each *X* will be
-    /// used, that is *bits* ≥ *size*. The table only has values for a
+    /// For the linear congrentail algorithm <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>)
+    /// mod 2<sup><i>bits</i></sup>, <i>a</i>, <i>c</i> and <i>bits</i> are selected from
+    /// a table such that at least <i>size</i> bits of each <i>X</i> will be
+    /// used, that is <i>bits</i> ≥ <i>size</i>. The table only has values for a
     /// size of up to 256 bits; [`None`] will be returned if the
     /// requested size is larger.
     ///

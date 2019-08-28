@@ -1575,8 +1575,8 @@ impl Integer {
 
     /// Converts to an [`f32`] and an exponent, rounding towards zero.
     ///
-    /// The returned [`f32`] is in the range 0.5 ≤ *x* < 1. If the
-    /// value is zero, `(0.0, 0)` is returned.
+    /// The returned [`f32`] is in the range 0.5 ≤ <i>x</i> < 1. If
+    /// the value is zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -1600,8 +1600,8 @@ impl Integer {
 
     /// Converts to an [`f64`] and an exponent, rounding towards zero.
     ///
-    /// The returned [`f64`] is in the range 0.5 ≤ *x* < 1. If the
-    /// value is zero, `(0.0, 0)` is returned.
+    /// The returned [`f64`] is in the range 0.5 ≤ <i>x</i> < 1. If
+    /// the value is zero, `(0.0, 0)` is returned.
     ///
     /// # Examples
     ///
@@ -1827,7 +1827,7 @@ impl Integer {
         unsafe { gmp::mpz_divisible_ui_p(self.as_raw(), divisor.into()) != 0 }
     }
 
-    /// Returns [`true`] if the number is divisible by 2<sup>*b*</sup>.
+    /// Returns [`true`] if the number is divisible by 2<sup><i>b</i></sup>.
     ///
     /// # Examples
     ///
@@ -1845,10 +1845,10 @@ impl Integer {
         unsafe { gmp::mpz_divisible_2exp_p(self.as_raw(), b.into()) != 0 }
     }
 
-    /// Returns [`true`] if the number is congruent to *c* mod
-    /// *divisor*, that is, if there exists a *q* such that `self` =
-    /// *c* + *q* × *divisor*. Unlike other division functions,
-    /// `divisor` can be zero.
+    /// Returns [`true`] if the number is congruent to <i>c</i> mod
+    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that
+    /// `self` = <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other
+    /// division functions, `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1869,10 +1869,10 @@ impl Integer {
         unsafe { gmp::mpz_congruent_p(self.as_raw(), c.as_raw(), divisor.as_raw()) != 0 }
     }
 
-    /// Returns [`true`] if the number is congruent to *c* mod
-    /// *divisor*, that is, if there exists a *q* such that `self` =
-    /// *c* + *q* × *divisor*. Unlike other division functions,
-    /// `divisor` can be zero.
+    /// Returns [`true`] if the number is congruent to <i>c</i> mod
+    /// <i>divisor</i>, that is, if there exists a <i>q</i> such that
+    /// `self` = <i>c</i> + <i>q</i> × <i>divisor</i>. Unlike other
+    /// division functions, `divisor` can be zero.
     ///
     /// # Examples
     ///
@@ -1891,9 +1891,9 @@ impl Integer {
         unsafe { gmp::mpz_congruent_ui_p(self.as_raw(), c.into(), divisor.into()) != 0 }
     }
 
-    /// Returns [`true`] if the number is congruent to *c* mod
-    /// 2<sup>*b*</sup>, that is, if there exists a *q* such that
-    /// `self` = *c* + *q* × 2<sup>*b*</sup>.
+    /// Returns [`true`] if the number is congruent to <i>c</i> mod
+    /// 2<sup><i>b</i></sup>, that is, if there exists a <i>q</i> such
+    /// that `self` = <i>c</i> + <i>q</i> × 2<sup><i>b</i></sup>.
     ///
     /// # Examples
     ///
@@ -2553,8 +2553,8 @@ impl Integer {
 
     math_op1! {
         xmpz::fdiv_r_2exp;
-        /// Keeps the *n* least significant bits only, producing a
-        /// result that is greater or equal to 0.
+        /// Keeps the <i>n</i> least significant bits only, producing
+        /// a result that is greater or equal to 0.
         ///
         /// # Examples
         ///
@@ -2565,8 +2565,8 @@ impl Integer {
         /// assert_eq!(keep_8, 0xff);
         /// ```
         fn keep_bits(n: u32);
-        /// Keeps the *n* least significant bits only, producing a
-        /// result that is greater or equal to 0.
+        /// Keeps the <i>n</i> least significant bits only, producing
+        /// a result that is greater or equal to 0.
         ///
         /// # Examples
         ///
@@ -2577,8 +2577,8 @@ impl Integer {
         /// assert_eq!(i, 0xff);
         /// ```
         fn keep_bits_mut;
-        /// Keeps the *n* least significant bits only, producing a
-        /// result that is greater or equal to 0.
+        /// Keeps the <i>n</i> least significant bits only, producing
+        /// a result that is greater or equal to 0.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -2604,9 +2604,9 @@ impl Integer {
 
     math_op1! {
         xmpz::keep_signed_bits;
-        /// Keeps the *n* least significant bits only, producing a
-        /// negative result if the <i>n</i>th least significant bit is
-        /// one.
+        /// Keeps the <i>n</i> least significant bits only, producing
+        /// a negative result if the <i>n</i>th least significant bit
+        /// is one.
         ///
         /// # Examples
         ///
@@ -2620,9 +2620,9 @@ impl Integer {
         /// assert_eq!(j_keep_8, 15);
         /// ```
         fn keep_signed_bits(n: u32);
-        /// Keeps the *n* least significant bits only, producing a
-        /// negative result if the <i>n</i>th least significant bit is
-        /// one.
+        /// Keeps the <i>n</i> least significant bits only, producing
+        /// a negative result if the <i>n</i>th least significant bit
+        /// is one.
         ///
         /// # Examples
         ///
@@ -2636,9 +2636,9 @@ impl Integer {
         /// assert_eq!(j, 15);
         /// ```
         fn keep_signed_bits_mut;
-        /// Keeps the *n* least significant bits only, producing a
-        /// negative result if the <i>n</i>th least significant bit is
-        /// one.
+        /// Keeps the <i>n</i> least significant bits only, producing
+        /// a negative result if the <i>n</i>th least significant bit
+        /// is one.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -3713,8 +3713,8 @@ impl Integer {
         ///
         /// # Panics
         ///
-        /// Panics if *n* is zero or if *n* is even and the value is
-        /// negative.
+        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+        /// value is negative.
         ///
         /// # Examples
         ///
@@ -3729,8 +3729,8 @@ impl Integer {
         ///
         /// # Panics
         ///
-        /// Panics if *n* is zero or if *n* is even and the value is
-        /// negative.
+        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+        /// value is negative.
         ///
         /// # Examples
         ///
@@ -3768,14 +3768,14 @@ impl Integer {
         /// root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
-        /// root raised to the power of *n*.
+        /// root raised to the power of <i>n</i>.
         ///
         /// The initial value of `remainder` is ignored.
         ///
         /// # Panics
         ///
-        /// Panics if *n* is zero or if *n* is even and the value is
-        /// negative.
+        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+        /// value is negative.
         ///
         /// # Examples
         ///
@@ -3791,14 +3791,14 @@ impl Integer {
         /// root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
-        /// root raised to the power of *n*.
+        /// root raised to the power of <i>n</i>.
         ///
         /// The initial value of `remainder` is ignored.
         ///
         /// # Panics
         ///
-        /// Panics if *n* is zero or if *n* is even and the value is
-        /// negative.
+        /// Panics if <i>n</i> is zero or if <i>n</i> is even and the
+        /// value is negative.
         ///
         /// # Examples
         ///
@@ -3815,7 +3815,7 @@ impl Integer {
         /// root and the remainder.
         ///
         /// The remainder is the original number minus the truncated
-        /// root raised to the power of *n*.
+        /// root raised to the power of <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -4199,21 +4199,23 @@ impl Integer {
         /// from the two inputs.
         ///
         /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are *a* and *b*, then the GCD is *g*
-        /// and the cofactors are *s* and *t* such that
+        /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
+        /// GCD is <i>g</i> and the cofactors are <i>s</i> and
+        /// <i>t</i> such that
         ///
-        /// *a* × *s* + *b* × *t* = *g*
+        /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
         ///
-        /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
-        /// and *t* uniquely. There are a few exceptional cases:
+        /// The values <i>s</i> and <i>t</i> are chosen such that
+        /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+        /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
+        /// define <i>s</i> and <i>t</i> uniquely. There are a few
+        /// exceptional cases:
         ///
-        ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
-        ///     *t* = sgn(*b*).
-        ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
-        ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
-        ///     2<i>g</i>, then *t* = sgn(*b*).
+        ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
+        ///     <i>t</i> = sgn(<i>b</i>).
+        ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
+        ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+        ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
         ///
         /// The initial value of `rop` is ignored.
         ///
@@ -4237,21 +4239,23 @@ impl Integer {
         /// stored in `other` and `rop`.
         ///
         /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are *a* and *b*, then the GCD is *g*
-        /// and the cofactors are *s* and *t* such that
+        /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
+        /// GCD is <i>g</i> and the cofactors are <i>s</i> and
+        /// <i>t</i> such that
         ///
-        /// *a* × *s* + *b* × *t* = *g*
+        /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
         ///
-        /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
-        /// and *t* uniquely. There are a few exceptional cases:
+        /// The values <i>s</i> and <i>t</i> are chosen such that
+        /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+        /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
+        /// define <i>s</i> and <i>t</i> uniquely. There are a few
+        /// exceptional cases:
         ///
-        ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
-        ///     *t* = sgn(*b*).
-        ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
-        ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
-        ///     2<i>g</i>, then *t* = sgn(*b*).
+        ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
+        ///     <i>t</i> = sgn(<i>b</i>).
+        ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
+        ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+        ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
         ///
         /// The initial value of `rop` is ignored.
         ///
@@ -4300,21 +4304,23 @@ impl Integer {
         ///     [Integer][`Integer`][)][tuple]</code>
         ///
         /// The GCD is always positive except when both inputs are
-        /// zero. If the inputs are *a* and *b*, then the GCD is *g*
-        /// and the cofactors are *s* and *t* such that
+        /// zero. If the inputs are <i>a</i> and <i>b</i>, then the
+        /// GCD is <i>g</i> and the cofactors are <i>s</i> and
+        /// <i>t</i> such that
         ///
-        /// *a* × *s* + *b* × *t* = *g*
+        /// <i>a</i> × <i>s</i> + <i>b</i> × <i>t</i> = <i>g</i>
         ///
-        /// The values *s* and *t* are chosen such that normally,
-        /// |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and |<i>t</i>| <
-        /// |<i>a</i>| / (2<i>g</i>), and these relations define *s*
-        /// and *t* uniquely. There are a few exceptional cases:
+        /// The values <i>s</i> and <i>t</i> are chosen such that
+        /// normally, |<i>s</i>| < |<i>b</i>| / (2<i>g</i>) and
+        /// |<i>t</i>| < |<i>a</i>| / (2<i>g</i>), and these relations
+        /// define <i>s</i> and <i>t</i> uniquely. There are a few
+        /// exceptional cases:
         ///
-        ///   * If |<i>a</i>| = |<i>b</i>|, then *s* = 0,
-        ///     *t* = sgn(*b*).
-        ///   * Otherwise, if *b* = 0 or |<i>b</i>| = 2<i>g</i>, then
-        ///     *s* = sgn(*a*), and if *a* = 0 or |<i>a</i>| =
-        ///     2<i>g</i>, then *t* = sgn(*b*).
+        ///   * If |<i>a</i>| = |<i>b</i>|, then <i>s</i> = 0,
+        ///     <i>t</i> = sgn(<i>b</i>).
+        ///   * Otherwise, if <i>b</i> = 0 or |<i>b</i>| = 2<i>g</i>,
+        ///     then <i>s</i> = sgn(<i>a</i>), and if <i>a</i> = 0 or
+        ///     |<i>a</i>| = 2<i>g</i>, then <i>t</i> = sgn(<i>b</i>).
         ///
         /// # Examples
         ///
@@ -4551,7 +4557,7 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the factorial of *n*.
+        /// Computes the factorial of <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -4576,7 +4582,7 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the double factorial of *n*.
+        /// Computes the double factorial of <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -4601,7 +4607,7 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the *m*-multi factorial of *n*.
+        /// Computes the <i>m</i>-multi factorial of <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -4626,7 +4632,7 @@ impl Integer {
     }
 
     math_op0! {
-        /// Computes the primorial of *n*.
+        /// Computes the primorial of <i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -4653,7 +4659,7 @@ impl Integer {
 
     math_op1! {
         xmpz::bin_ui;
-        /// Computes the binomial coefficient over *k*.
+        /// Computes the binomial coefficient over <i>k</i>.
         ///
         /// # Examples
         ///
@@ -4665,7 +4671,7 @@ impl Integer {
         /// assert_eq!(bin, 21);
         /// ```
         fn binomial(k: u32);
-        /// Computes the binomial coefficient over *k*.
+        /// Computes the binomial coefficient over <i>k</i>.
         ///
         /// # Examples
         ///
@@ -4677,7 +4683,7 @@ impl Integer {
         /// assert_eq!(i, 21);
         /// ```
         fn binomial_mut;
-        /// Computes the binomial coefficient over *k*.
+        /// Computes the binomial coefficient over <i>k</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -4700,7 +4706,7 @@ impl Integer {
         fn binomial_ref -> BinomialIncomplete;
     }
     math_op0! {
-        /// Computes the binomial coefficient *n* over *k*.
+        /// Computes the binomial coefficient <i>n</i> over <i>k</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:

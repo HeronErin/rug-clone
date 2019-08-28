@@ -2248,8 +2248,8 @@ impl Complex {
         /// Generates a root of unity, rounding to the nearest.
         ///
         /// The generated number is the <i>n</i>th root of unity
-        /// raised to the power *k*, that is its magnitude is 1 and
-        /// its argument is 2π<i>k</i>/<i>n</i>.
+        /// raised to the power <i>k</i>, that is its magnitude is 1
+        /// and its argument is 2π<i>k</i>/<i>n</i>.
         ///
         /// The following are implemented with the returned
         /// [incomplete-computation value][icv] as `Src`:
@@ -3256,15 +3256,16 @@ impl Complex {
 
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
-    /// imaginary parts in the range 0 ≤ *x* < 1.
+    /// imaginary parts in the range 0 ≤ <i>x</i> < 1.
     ///
     /// This is equivalent to generating a random integer in the range
-    /// 0 ≤ *x* < 2<sup>*p*</sup> for each part, where 2<sup>*p*</sup>
-    /// is two raised to the power of the precision, and then dividing
-    /// the integer by 2<sup>*p*</sup>. The smallest non-zero result
-    /// will thus be 2<sup>−<i>p</i></sup>, and will only have one bit
-    /// set. In the smaller possible results, many bits will be zero,
-    /// and not all the precision will be used.
+    /// 0 ≤ <i>x</i> < 2<sup><i>p</i></sup> for each part, where
+    /// 2<sup><i>p</i></sup> is two raised to the power of the
+    /// precision, and then dividing the integer by
+    /// 2<sup><i>p</i></sup>. The smallest non-zero result will thus
+    /// be 2<sup>−<i>p</i></sup>, and will only have one bit set. In
+    /// the smaller possible results, many bits will be zero, and not
+    /// all the precision will be used.
     ///
     /// There is a corner case where the generated random number part
     /// is converted to NaN: if the precision is very large, the
@@ -3303,8 +3304,8 @@ impl Complex {
 
     #[cfg(feature = "rand")]
     /// Generates a random complex number with both the real and
-    /// imaginary parts in the continous range 0 ≤ *x* < 1, and rounds
-    /// to the nearest.
+    /// imaginary parts in the continous range 0 ≤ <i>x</i> < 1, and
+    /// rounds to the nearest.
     ///
     /// The result parts can be rounded up to be equal to one. Unlike
     /// the [`assign_random_bits`] method which generates a discrete
