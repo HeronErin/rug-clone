@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "rand")]
-use crate::rand::RandState;
+use crate::rand::{RandState, ThreadRandState};
 use crate::{
     cast,
     complex::{
@@ -3361,6 +3361,41 @@ impl Complex {
     pub fn random_cont<'a, 'b: 'a>(rng: &'a mut RandState<'b>) -> RandomCont<'a, 'b> {
         RandomCont { rng }
     }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random complex number with both the real and
+    /// imaginary parts in the range 0 ≤ <i>x</i> < 1.
+    ///
+    /// This is similar to [`random_bits`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_bits`]: #method.random_bits
+    #[inline]
+    pub fn thread_random_bits<'a, 'b: 'a>(
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomBitsIncomplete<'a, 'b> {
+        ThreadRandomBitsIncomplete { rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random complex number with both the real and
+    /// imaginary parts in the continous range 0 ≤ <i>x</i> < 1, and
+    /// rounds to the nearest.
+    ///
+    /// This is similar to [`random_cont`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_cont`]: #method.random_cont
+    #[inline]
+    pub fn thread_random_cont<'a, 'b: 'a>(
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomCont<'a, 'b> {
+        ThreadRandomCont { rng }
+    }
 }
 
 #[derive(Debug)]
@@ -3674,6 +3709,41 @@ impl AssignRound<RandomCont<'_, '_>> for Complex {
         let imag_dir = self
             .mut_imag()
             .assign_round(Float::random_cont(src.rng), round.1);
+        (real_dir, imag_dir)
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomBitsIncomplete<'a, 'b: 'a> {
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl Assign<ThreadRandomBitsIncomplete<'_, '_>> for Complex {
+    #[inline]
+    fn assign(&mut self, src: ThreadRandomBitsIncomplete<'_, '_>) {
+        self.mut_real().assign(Float::thread_random_bits(src.rng));
+        self.mut_imag().assign(Float::thread_random_bits(src.rng));
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomCont<'a, 'b: 'a> {
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl AssignRound<ThreadRandomCont<'_, '_>> for Complex {
+    type Round = Round2;
+    type Ordering = Ordering2;
+    #[inline]
+    fn assign_round(&mut self, src: ThreadRandomCont<'_, '_>, round: Round2) -> Ordering2 {
+        let real_dir = self
+            .mut_real()
+            .assign_round(Float::thread_random_cont(src.rng), round.0);
+        let imag_dir = self
+            .mut_imag()
+            .assign_round(Float::thread_random_cont(src.rng), round.1);
         (real_dir, imag_dir)
     }
 }

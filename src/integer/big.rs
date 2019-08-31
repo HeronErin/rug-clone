@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "rand")]
-use crate::rand::RandState;
+use crate::rand::{RandState, ThreadRandState};
 use crate::{cast, ext::xmpz, integer::Order, misc, ops::DivRounding, Assign};
 use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{
@@ -4991,6 +4991,88 @@ impl Integer {
             rng,
         }
     }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number with a specified maximum number of
+    /// bits.
+    ///
+    /// This is similar to [`random_bits`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_bits`]: #method.random_bits
+    #[inline]
+    pub fn thread_random_bits<'a, 'b: 'a>(
+        bits: u32,
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomBitsIncomplete<'a, 'b> {
+        ThreadRandomBitsIncomplete { bits, rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a non-negative random number below the given
+    /// boundary value.
+    ///
+    /// This is similar to [`random_below`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_below`]: #method.random_below
+    #[inline]
+    pub fn thread_random_below(mut self, rng: &mut ThreadRandState<'_>) -> Self {
+        self.thread_random_below_mut(rng);
+        self
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a non-negative random number below the given
+    /// boundary value.
+    ///
+    /// This is similar to [`random_below_mut`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_below_mut`]: #method.random_below_mut
+    #[inline]
+    pub fn thread_random_below_mut(&mut self, rng: &mut ThreadRandState<'_>) {
+        xmpz::thread_urandomm(self, rng, None);
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a non-negative random number below the given
+    /// boundary value.
+    ///
+    /// This is similar to [`random_below_ref`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is less than or equal to zero.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_below_ref`]: #method.random_below_ref
+    #[inline]
+    pub fn thread_random_below_ref<'a, 'b: 'a>(
+        &'a self,
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomBelowIncomplete<'a, 'b> {
+        ThreadRandomBelowIncomplete {
+            ref_self: self,
+            rng,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -5512,6 +5594,56 @@ impl Assign<RandomBelowIncomplete<'_, '_>> for Integer {
 impl From<RandomBelowIncomplete<'_, '_>> for Integer {
     #[inline]
     fn from(src: RandomBelowIncomplete<'_, '_>) -> Self {
+        let mut dst = Integer::new();
+        dst.assign(src);
+        dst
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomBitsIncomplete<'a, 'b: 'a> {
+    bits: u32,
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl Assign<ThreadRandomBitsIncomplete<'_, '_>> for Integer {
+    #[inline]
+    fn assign(&mut self, src: ThreadRandomBitsIncomplete<'_, '_>) {
+        unsafe {
+            gmp::mpz_urandomb(self.as_raw_mut(), src.rng.as_raw_mut(), src.bits.into());
+        }
+    }
+}
+
+#[cfg(feature = "rand")]
+impl From<ThreadRandomBitsIncomplete<'_, '_>> for Integer {
+    #[inline]
+    fn from(src: ThreadRandomBitsIncomplete<'_, '_>) -> Self {
+        let mut dst = Integer::new();
+        dst.assign(src);
+        dst
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomBelowIncomplete<'a, 'b: 'a> {
+    ref_self: &'a Integer,
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl Assign<ThreadRandomBelowIncomplete<'_, '_>> for Integer {
+    #[inline]
+    fn assign(&mut self, src: ThreadRandomBelowIncomplete<'_, '_>) {
+        xmpz::thread_urandomm(self, src.rng, Some(src.ref_self));
+    }
+}
+
+#[cfg(feature = "rand")]
+impl From<ThreadRandomBelowIncomplete<'_, '_>> for Integer {
+    #[inline]
+    fn from(src: ThreadRandomBelowIncomplete<'_, '_>) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst

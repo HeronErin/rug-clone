@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "rand")]
-use crate::rand::RandState;
+use crate::rand::{RandState, ThreadRandState};
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{
@@ -7934,6 +7934,72 @@ impl Float {
     pub fn random_exp<'a, 'b: 'a>(rng: &'a mut RandState<'b>) -> RandomExp<'a, 'b> {
         RandomExp { rng }
     }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the range 0 ≤ <i>x</i> < 1.
+    ///
+    /// This is similar to [`random_bits`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_bits`]: #method.random_bits
+    #[inline]
+    pub fn thread_random_bits<'a, 'b: 'a>(
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomBitsIncomplete<'a, 'b> {
+        ThreadRandomBitsIncomplete { rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number in the continuous range 0 ≤ <i>x</i> < 1.
+    ///
+    /// This is similar to [`random_cont`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_cont`]: #method.random_cont
+    #[inline]
+    pub fn thread_random_cont<'a, 'b: 'a>(
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomCont<'a, 'b> {
+        ThreadRandomCont { rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number according to a standard normal
+    /// Gaussian distribution, rounding to the nearest.
+    ///
+    /// This is similar to [`random_normal`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_normal`]: #method.random_normal
+    #[inline]
+    pub fn thread_random_normal<'a, 'b: 'a>(
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomNormal<'a, 'b> {
+        ThreadRandomNormal { rng }
+    }
+
+    #[cfg(feature = "rand")]
+    /// Generates a random number according to an exponential
+    /// distribution with mean one, rounding to the nearest.
+    ///
+    /// This is similar to [`random_exp`] but uses
+    /// [`ThreadRandState`], which can only be used in a single
+    /// thread.
+    ///
+    /// [`ThreadRandState`]: rand/struct.ThreadRandState.html
+    /// [`random_exp`]: #method.random_exp
+    #[inline]
+    pub fn thread_random_exp<'a, 'b: 'a>(
+        rng: &'a mut ThreadRandState<'b>,
+    ) -> ThreadRandomExp<'a, 'b> {
+        ThreadRandomExp { rng }
+    }
 }
 
 #[derive(Debug)]
@@ -8315,6 +8381,73 @@ impl AssignRound<RandomExp<'_, '_>> for Float {
     type Ordering = Ordering;
     #[inline]
     fn assign_round(&mut self, src: RandomExp<'_, '_>, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::erandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
+        ordering1(ret)
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomBitsIncomplete<'a, 'b: 'a> {
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl Assign<ThreadRandomBitsIncomplete<'_, '_>> for Float {
+    #[inline]
+    fn assign(&mut self, src: ThreadRandomBitsIncomplete<'_, '_>) {
+        unsafe {
+            let err = mpfr::urandomb(self.as_raw_mut(), src.rng.as_raw_mut());
+            assert_eq!(self.is_nan(), err != 0);
+        }
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomCont<'a, 'b: 'a> {
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl AssignRound<ThreadRandomCont<'_, '_>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(&mut self, src: ThreadRandomCont<'_, '_>, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::urandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
+        ordering1(ret)
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomNormal<'a, 'b: 'a> {
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl AssignRound<ThreadRandomNormal<'_, '_>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(&mut self, src: ThreadRandomNormal<'_, '_>, round: Round) -> Ordering {
+        let ret =
+            unsafe { mpfr::nrandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
+        ordering1(ret)
+    }
+}
+
+#[cfg(feature = "rand")]
+pub struct ThreadRandomExp<'a, 'b: 'a> {
+    rng: &'a mut ThreadRandState<'b>,
+}
+
+#[cfg(feature = "rand")]
+impl AssignRound<ThreadRandomExp<'_, '_>> for Float {
+    type Round = Round;
+    type Ordering = Ordering;
+    #[inline]
+    fn assign_round(&mut self, src: ThreadRandomExp<'_, '_>, round: Round) -> Ordering {
         let ret =
             unsafe { mpfr::erandom(self.as_raw_mut(), src.rng.as_raw_mut(), raw_round(round)) };
         ordering1(ret)

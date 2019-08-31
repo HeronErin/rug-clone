@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[cfg(feature = "rand")]
-use crate::rand::RandState;
+use crate::rand::{RandState, ThreadRandState};
 use crate::{cast, misc::NegAbs, ops::NegAssign, Integer};
 use gmp_mpfr_sys::gmp;
 use std::{
@@ -456,6 +456,23 @@ pub fn powm_sec(rop: &mut Integer, base: Option<&Integer>, exp: &Integer, modu: 
 #[cfg(feature = "rand")]
 #[inline]
 pub fn urandomm(rop: &mut Integer, state: &mut RandState<'_>, n: Option<&Integer>) {
+    assert_eq!(
+        n.unwrap_or(rop).cmp0(),
+        Ordering::Greater,
+        "cannot be below zero"
+    );
+    unsafe {
+        gmp::mpz_urandomm(
+            rop.as_raw_mut(),
+            state.as_raw_mut(),
+            n.unwrap_or(rop).as_raw(),
+        );
+    }
+}
+
+#[cfg(feature = "rand")]
+#[inline]
+pub fn thread_urandomm(rop: &mut Integer, state: &mut ThreadRandState<'_>, n: Option<&Integer>) {
     assert_eq!(
         n.unwrap_or(rop).cmp0(),
         Ordering::Greater,
