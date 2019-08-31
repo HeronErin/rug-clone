@@ -322,6 +322,7 @@ impl RandState<'_> {
     ///     multiple copies of it. Since this function takes over
     ///     ownership, no other copies of the passed value should
     ///     exist.
+    ///   * The object must be thread safe.
     ///
     /// # Examples
     ///
@@ -505,6 +506,157 @@ impl RandState<'_> {
     /// ```
     ///
     /// [`bits`]: #method.bits
+    #[inline]
+    pub fn below(&mut self, bound: u32) -> u32 {
+        assert_ne!(bound, 0, "cannot be below zero");
+        unsafe { gmp::urandomm_ui(self.as_raw_mut(), bound.into()) as u32 }
+    }
+}
+
+/**
+The state of a random number generator that is suitable for a single thread only.
+
+This is similar to [`RandState`] but can only be used in a single thread.
+
+[`RandState`]: struct.RandState.html
+*/
+#[repr(transparent)]
+pub struct ThreadRandState<'a> {
+    inner: randstate_t,
+    phantom: PhantomData<&'a dyn ThreadRandGen>,
+}
+
+impl Clone for ThreadRandState<'_> {
+    #[inline]
+    fn clone(&self) -> ThreadRandState<'static> {
+        unsafe {
+            let_zeroed_ptr!(inner: randstate_t, inner_ptr);
+            gmp::randinit_set(inner_ptr, self.as_raw());
+            // If d is null, then boxed_clone must have returned None.
+            let inner = assume_init!(inner);
+            if inner.seed.d.is_null() {
+                panic!("`ThreadRandGen::boxed_clone` returned `None`");
+            }
+            ThreadRandState {
+                inner,
+                phantom: PhantomData,
+            }
+        }
+    }
+}
+
+impl Drop for ThreadRandState<'_> {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe {
+            gmp::randclear(self.as_raw_mut());
+        }
+    }
+}
+
+impl ThreadRandState<'_> {
+    /// Creates a new custom random generator.
+    ///
+    /// This is similar to [`RandState::new_custom`]. The difference
+    /// is that this method takes a [`ThreadRandGen`] that does not
+    /// have to implement [`Send`] or [`Sync`].
+    ///
+    /// [`RandState::new_custom`]: struct.RandState.html#method.new_custom
+    /// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
+    /// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+    /// [`ThreadRandGen`]: trait.ThreadRandGen.html
+    pub fn new_custom(custom: &mut dyn ThreadRandGen) -> ThreadRandState<'_> {
+        let b: Box<&mut dyn ThreadRandGen> = Box::new(custom);
+        let r_ptr: *mut &mut dyn ThreadRandGen = Box::into_raw(b);
+        let inner = randstate_t {
+            seed: gmp::mpz_t {
+                alloc: 0,
+                size: 0,
+                d: r_ptr as *mut gmp::limb_t,
+            },
+            alg: 0,
+            algdata: &THREAD_CUSTOM_FUNCS as *const Funcs as *mut c_void,
+        };
+        ThreadRandState {
+            inner,
+            phantom: PhantomData,
+        }
+    }
+
+    /// Creates a new custom random generator.
+    ///
+    /// This is similar to [`RandState::new_custom_boxed`]. The
+    /// difference is that this method takes a [`ThreadRandGen`] that
+    /// does not have to implement [`Send`] or [`Sync`].
+    ///
+    /// [`RandState::new_custom_boxed`]: struct.RandState.html#method.new_custom_boxed
+    /// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
+    /// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+    /// [`ThreadRandGen`]: trait.ThreadRandGen.html
+    pub fn new_custom_boxed(custom: Box<dyn ThreadRandGen>) -> ThreadRandState<'static> {
+        let b: Box<Box<dyn ThreadRandGen>> = Box::new(custom);
+        let r_ptr: *mut Box<dyn ThreadRandGen> = Box::into_raw(b);
+        let inner = randstate_t {
+            seed: gmp::mpz_t {
+                alloc: 0,
+                size: 0,
+                d: r_ptr as *mut gmp::limb_t,
+            },
+            alg: 0,
+            algdata: &THREAD_CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
+        };
+        ThreadRandState {
+            inner,
+            phantom: PhantomData,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn as_raw(&self) -> *const randstate_t {
+        &self.inner
+    }
+
+    #[inline]
+    pub(crate) fn as_raw_mut(&mut self) -> *mut randstate_t {
+        &mut self.inner
+    }
+
+    /// Seeds the random generator.
+    ///
+    /// This is similar to [`RandState::seed`].
+    ///
+    /// [`RandState::seed`]: struct.RandState.html#method.seed
+    #[inline]
+    pub fn seed(&mut self, seed: &Integer) {
+        unsafe {
+            gmp::randseed(self.as_raw_mut(), seed.as_raw());
+        }
+    }
+
+    /// Generates a random number with the specified number of bits.
+    ///
+    /// This is similar to [`RandState::bits`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if `bits` is greater than 32.
+    ///
+    /// [`RandState::bits`]: struct.RandState.html#method.bits
+    #[inline]
+    pub fn bits(&mut self, bits: u32) -> u32 {
+        assert!(bits <= 32, "bits out of range");
+        unsafe { gmp::urandomb_ui(self.as_raw_mut(), bits.into()) as u32 }
+    }
+
+    /// Generates a random number below the given boundary value.
+    ///
+    /// This is similar to [`RandState::below`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if the boundary value is zero.
+    ///
+    /// [`RandState::below`]: struct.RandState.html#method.below
     #[inline]
     pub fn below(&mut self, bound: u32) -> u32 {
         assert_ne!(bound, 0, "cannot be below zero");
@@ -752,8 +904,81 @@ pub trait RandGen: Send + Sync {
     }
 }
 
+/**
+Custom random number generator to be used with [`ThreadRandState`].
+
+The methods implemented for this trait, as well as possible
+destructors, can be used by FFI callback functions. If these methods
+panic, they can cause the program to abort.
+
+This is similar to [`RandGen`] but can only be used in a single thread.
+
+[`RandGen`]: trait.RandGen.html
+[`ThreadRandState`]: struct.ThreadRandState.html
+*/
+pub trait ThreadRandGen {
+    /// Gets a random 32-bit unsigned integer.
+    ///
+    /// This is similar to [`RandGen::gen`].
+    ///
+    /// [`RandGen::gen`]: trait.RandGen.html#tymethod.gen
+    fn gen(&mut self) -> u32;
+
+    /// Gets up to 32 random bits.
+    ///
+    /// The default implementation simply calls the [`gen`] method
+    /// once and returns the most significant required bits.
+    ///
+    /// This method can be overridden to store any unused bits for
+    /// later use. This can be useful for example if the random number
+    /// generation process is computationally expensive.
+    ///
+    /// This method is similar to [`RandGen::gen_bits`].
+    ///
+    /// [`RandGen::gen_bits`]: trait.RandGen.html#method.gen_bits
+    /// [`gen`]: #tymethod.gen
+    fn gen_bits(&mut self, bits: u32) -> u32 {
+        let gen = self.gen();
+        match bits {
+            0 => 0,
+            1..=32 => gen >> (32 - bits),
+            _ => gen,
+        }
+    }
+
+    /// Seeds the random number generator.
+    ///
+    /// The default implementation of this function does nothing.
+    ///
+    /// Note that the [`ThreadRandState::seed`] method will pass its seed
+    /// parameter exactly to this function without using it otherwise.
+    ///
+    /// This method is similar to [`RandGen::seed`].
+    ///
+    /// [`RandGen::seed`]: trait.RandGen.html#method.seed
+    /// [`ThreadRandState::seed`]: struct.ThreadRandState.html#method.seed
+    #[inline]
+    fn seed(&mut self, seed: &Integer) {
+        let _ = seed;
+    }
+
+    /// Optionally clones the random number generator.
+    ///
+    /// The default implementation returns [`None`].
+    ///
+    /// This method is similar to [`RandGen::boxed_clone`].
+    ///
+    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
+    #[inline]
+    fn boxed_clone(&self) -> Option<Box<dyn ThreadRandGen>> {
+        None
+    }
+}
+
 fn _static_assertions() {
     static_assert_size!(RandState<'_>, randstate_t);
+    static_assert_size!(ThreadRandState<'_>, randstate_t);
 }
 
 #[repr(C)]
@@ -841,6 +1066,50 @@ c_callback! {
         let r_ptr = (*src).seed.d as *const Box<dyn RandGen>;
         gen_copy(&**r_ptr, dst);
     }
+
+    fn thread_custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+        let r_ptr = (*s).seed.d as *mut &mut dyn ThreadRandGen;
+        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+    }
+
+    fn thread_custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
+        let r_ptr = (*s).seed.d as *mut &mut dyn ThreadRandGen;
+        thread_gen_bits(*r_ptr, limb, bits);
+    }
+
+    fn thread_custom_clear(s: *mut randstate_t) {
+        let r_ptr = (*s).seed.d as *mut &mut dyn ThreadRandGen;
+        drop(Box::from_raw(r_ptr));
+    }
+
+    fn thread_custom_iset(dst: *mut randstate_t, src: *const randstate_t) {
+        let r_ptr = (*src).seed.d as *const &mut dyn ThreadRandGen;
+        thread_gen_copy(*r_ptr, dst);
+    }
+
+    fn thread_custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+        let r_ptr = (*s).seed.d as *mut Box<dyn ThreadRandGen>;
+        (*r_ptr).seed(&*cast_ptr!(seed, Integer));
+    }
+
+    fn thread_custom_boxed_get(
+        s: *mut randstate_t,
+        limb: *mut gmp::limb_t,
+        bits: c_ulong,
+    ) {
+        let r_ptr = (*s).seed.d as *mut Box<dyn ThreadRandGen>;
+        thread_gen_bits(&mut **r_ptr, limb, bits);
+    }
+
+    fn thread_custom_boxed_clear(s: *mut randstate_t) {
+        let r_ptr = (*s).seed.d as *mut Box<dyn ThreadRandGen>;
+        drop(Box::from_raw(r_ptr));
+    }
+
+    fn thread_custom_boxed_iset(dst: *mut randstate_t, src: *const randstate_t) {
+        let r_ptr = (*src).seed.d as *const Box<dyn ThreadRandGen>;
+        thread_gen_copy(&**r_ptr, dst);
+    }
 }
 
 #[cfg(gmp_limb_bits_64)]
@@ -901,6 +1170,64 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
     };
 }
 
+#[cfg(gmp_limb_bits_64)]
+unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+    let (limbs, rest) = (bits / 64, bits % 64);
+    let limbs: isize = cast::cast(limbs);
+    for i in 0..limbs {
+        let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
+        *limb.offset(i) = cast::cast(n);
+    }
+    if rest >= 32 {
+        let mut n = u64::from(gen.gen());
+        if rest > 32 {
+            let mask = !(!0 << (rest - 32));
+            n |= u64::from(gen.gen_bits(cast::cast(rest - 32)) & mask) << 32;
+        }
+        *limb.offset(limbs) = cast::cast(n);
+    } else if rest > 0 {
+        let mask = !(!0 << rest);
+        let n = u64::from(gen.gen_bits(cast::cast(rest)) & mask);
+        *limb.offset(limbs) = cast::cast(n);
+    }
+}
+
+#[cfg(gmp_limb_bits_32)]
+unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+    let (limbs, rest) = (bits / 32, bits % 32);
+    let limbs: isize = cast::cast(limbs);
+    for i in 0..limbs {
+        *limb.offset(i) = cast::cast(gen.gen());
+    }
+    if rest > 0 {
+        let mask = !(!0 << rest);
+        *limb.offset(limbs) = cast::cast(gen.gen_bits(cast::cast(rest)) & mask);
+    }
+}
+
+unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
+    let other = gen.boxed_clone();
+    // Do not panic here if other is None, as panics cannot cross FFI
+    // boundareies. Instead, set dst_ptr.seed.d to null.
+    let (dst_r_ptr, funcs) = if let Some(other) = other {
+        let b: Box<Box<dyn ThreadRandGen>> = Box::new(other);
+        let dst_r_ptr: *mut Box<dyn ThreadRandGen> = Box::into_raw(b);
+        let funcs = &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
+        (dst_r_ptr, funcs)
+    } else {
+        (ptr::null_mut(), &ABORT_FUNCS as *const Funcs as *mut c_void)
+    };
+    *dst = randstate_t {
+        seed: gmp::mpz_t {
+            alloc: 0,
+            size: 0,
+            d: dst_r_ptr as *mut gmp::limb_t,
+        },
+        alg: 0,
+        algdata: funcs,
+    };
+}
+
 const ABORT_FUNCS: Funcs = Funcs {
     seed: Some(abort_seed),
     get: Some(abort_get),
@@ -920,6 +1247,20 @@ const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     get: Some(custom_boxed_get),
     clear: Some(custom_boxed_clear),
     iset: Some(custom_boxed_iset),
+};
+
+const THREAD_CUSTOM_FUNCS: Funcs = Funcs {
+    seed: Some(thread_custom_seed),
+    get: Some(thread_custom_get),
+    clear: Some(thread_custom_clear),
+    iset: Some(thread_custom_iset),
+};
+
+const THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
+    seed: Some(thread_custom_boxed_seed),
+    get: Some(thread_custom_boxed_get),
+    clear: Some(thread_custom_boxed_clear),
+    iset: Some(thread_custom_boxed_iset),
 };
 
 #[cfg(test)]
