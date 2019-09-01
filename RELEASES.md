@@ -12,6 +12,11 @@ Verison 1.6.0 (unreleased)
     `i128`, `u8`, `u16`, `u64` and `u128` were added to the existing
     implementations for `i32` and `u32`.
   * The function `float::free_cache` was added.
+  * `ThreadRandState` and `ThreadRandGen` were added to the `rand`
+    module to enable the use of custom random generators that are not
+    `Send` and `Sync`.
+  * Methods which take `ThreadRandState` were added to match all the
+    methods which take `RandState` in the numeric types.
 
 Verison 1.5.2 (2019-07-26)
 ==========================
