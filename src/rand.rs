@@ -368,6 +368,15 @@ impl RandState<'_> {
     ///
     /// The returned object should be freed to avoid memory leaks.
     ///
+    /// # Panics
+    ///
+    /// This method panics if the [`RandState`] object was created
+    /// using [`new_custom`], as the borrow into the custom generator
+    /// would be terminated once `self` is consumed. This would lead
+    /// to undefined behavior if the returned object is used. This
+    /// method does work with objects created using
+    /// [`new_custom_boxed`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -383,10 +392,19 @@ impl RandState<'_> {
     /// }
     /// ```
     ///
+    /// [`RandState`]: struct.RandState.html
+    /// [`new_custom_boxed`]: #method.new_custom_boxed
+    /// [`new_custom`]: #method.new_custom
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
+        let funcs = unsafe { &*(ret.algdata as *const Funcs) };
+        assert!(
+            funcs.get != Some(custom_get) && funcs.get != Some(thread_custom_get),
+            "cannot convert custom `RandState` into raw, \
+             consider using `new_custom_boxed` instead of `new_custom`"
+        );
         mem::forget(self);
         ret
     }
@@ -659,12 +677,30 @@ impl ThreadRandState<'_> {
     /// object is not thread safe. Notably, it should *not* be used in
     /// [`RandState::from_raw`].
     ///
-    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// # Panics
+    ///
+    /// This method panics if the [`ThreadRandState`] object was
+    /// created using [`new_custom`], as the borrow into the custom
+    /// generator would be terminated once `self` is consumed. This
+    /// would lead to undefined behavior if the returned object is
+    /// used. This method does work with objects created using
+    /// [`new_custom_boxed`].
+    ///
     /// [`RandState::from_raw`]: struct.RandState.html#method.from_raw
     /// [`RandState::into_raw`]: struct.RandState.html#method.into_raw
+    /// [`ThreadRandState`]: struct.ThreadRandState.html
+    /// [`new_custom_boxed`]: #method.new_custom_boxed
+    /// [`new_custom`]: #method.new_custom
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
+        let funcs = unsafe { &*(ret.algdata as *const Funcs) };
+        assert!(
+            funcs.get != Some(custom_get) && funcs.get != Some(thread_custom_get),
+            "cannot convert custom `ThreadRandState` into raw, \
+             consider using `new_custom_boxed` instead of `new_custom`"
+        );
         mem::forget(self);
         ret
     }
@@ -1405,6 +1441,14 @@ mod tests {
         let _ = rand1.clone();
     }
 
+    #[test]
+    #[should_panic(expected = "cannot convert custom `RandState` into raw")]
+    fn check_custom_into_raw() {
+        let mut gen = NoCloneGenerator;
+        let rand1 = RandState::new_custom(&mut gen);
+        let _ = rand1.into_raw();
+    }
+
     // include a dummy pointer to make !Send and !Sync
     struct ThreadSimpleGenerator {
         _dummy: *const i32,
@@ -1471,6 +1515,14 @@ mod tests {
         let mut gen = ThreadNoCloneGenerator;
         let rand1 = ThreadRandState::new_custom(&mut gen);
         let _ = rand1.clone();
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot convert custom `ThreadRandState` into raw")]
+    fn thread_check_custom_into_raw() {
+        let mut gen = ThreadNoCloneGenerator;
+        let rand1 = ThreadRandState::new_custom(&mut gen);
+        let _ = rand1.into_raw();
     }
 
     #[test]
