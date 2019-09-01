@@ -226,6 +226,7 @@ impl RandState<'_> {
     /// struct Seed;
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
     ///         0x8cef7310
     ///     }
     /// }
@@ -273,6 +274,7 @@ impl RandState<'_> {
     /// struct Seed;
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
     ///         0x8cef7310
     ///     }
     /// }
@@ -539,6 +541,24 @@ The state of a random number generator that is suitable for a single thread only
 
 This is similar to [`RandState`] but can only be used in a single thread.
 
+# Examples
+
+```rust
+use rug::rand::ThreadRandState;
+# struct Gen { _dummy: *const i32, seed: u64 };
+# impl rug::rand::ThreadRandGen for Gen {
+#     fn gen(&mut self) -> u32 {
+#         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+#         (self.seed >> 32) as u32
+#     }
+# }
+# fn create_generator() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+let mut gen = create_generator();
+let mut rand = ThreadRandState::new_custom(&mut gen);
+let u = rand.bits(32);
+println!("32 random bits: {:032b}", u);
+```
+
 [`RandState`]: struct.RandState.html
 */
 #[repr(transparent)]
@@ -582,6 +602,29 @@ impl ThreadRandState<'_> {
     /// is that this method takes a [`ThreadRandGen`] that does not
     /// have to implement [`Send`] or [`Sync`].
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{
+    ///     rand::{ThreadRandGen, ThreadRandState},
+    ///     Integer,
+    /// };
+    /// // dummy pointer field to ensure Seed is not Send and not Sync
+    /// struct Seed(*const ());
+    /// impl ThreadRandGen for Seed {
+    ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
+    ///         0x8cef7310
+    ///     }
+    /// }
+    /// let mut seed = Seed(&());
+    /// let mut rand = ThreadRandState::new_custom(&mut seed);
+    /// let mut i = Integer::from(15);
+    /// i.thread_random_below_mut(&mut rand);
+    /// println!("0 ≤ {} < 15", i);
+    /// assert!(i < 15);
+    /// ```
+    ///
     /// [`RandState::new_custom`]: struct.RandState.html#method.new_custom
     /// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
     /// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
@@ -610,6 +653,29 @@ impl ThreadRandState<'_> {
     /// difference is that this method takes a [`ThreadRandGen`] that
     /// does not have to implement [`Send`] or [`Sync`].
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{
+    ///     rand::{ThreadRandGen, ThreadRandState},
+    ///     Integer,
+    /// };
+    /// // dummy pointer field to ensure Seed is not Send and not Sync
+    /// struct Seed(*const ());
+    /// impl ThreadRandGen for Seed {
+    ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
+    ///         0x8cef7310
+    ///     }
+    /// }
+    /// let seed = Box::new(Seed(&()));
+    /// let mut rand = ThreadRandState::new_custom_boxed(seed);
+    /// let mut i = Integer::from(15);
+    /// i.thread_random_below_mut(&mut rand);
+    /// println!("0 ≤ {} < 15", i);
+    /// assert!(i < 15);
+    /// ```
+    ///
     /// [`RandState::new_custom_boxed`]: struct.RandState.html#method.new_custom_boxed
     /// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
     /// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
@@ -635,7 +701,11 @@ impl ThreadRandState<'_> {
     /// Creates a random generator from an initialized
     /// [GMP random generator][`randstate_t`].
     ///
-    /// This is similar to [`RandState::from_raw`], but the object does not need to be thread safe.
+    /// This is similar to [`RandState::from_raw`], but the object
+    /// does not need to be thread safe. You *can* use this method if
+    /// the object is thread safe, but in that case
+    /// [`RandState::from_raw`] is probably better as it allows the
+    /// returned object to be shared and transferred across threads.
     ///
     /// # Safety
     ///
@@ -655,6 +725,31 @@ impl ThreadRandState<'_> {
     ///     multiple copies of it. Since this function takes over
     ///     ownership, no other copies of the passed value should
     ///     exist.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
+    /// # fn main() {
+    /// # #[cfg(maybe_uninit)] {
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::rand::ThreadRandState;
+    /// use std::mem::MaybeUninit;
+    /// let mut rand = unsafe {
+    ///     // Do not use MabyeUninit::uninit, as gmp::randinit_default
+    ///     // does not initialize all of the fields of raw.
+    ///     let mut raw = MaybeUninit::zeroed();
+    ///     gmp::randinit_default(raw.as_mut_ptr());
+    ///     let raw = raw.assume_init();
+    ///     // raw is initialized and unique
+    ///     ThreadRandState::from_raw(raw)
+    /// };
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// // since rand is a ThreadRandState now, deallocation is automatic
+    /// # }
+    /// # }
+    /// ```
     ///
     /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html#method.zeroed
     /// [`RandState::from_raw`]: struct.RandState.html#method.from_raw
@@ -686,6 +781,30 @@ impl ThreadRandState<'_> {
     /// used. This method does work with objects created using
     /// [`new_custom_boxed`].
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::rand::ThreadRandState;
+    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # impl rug::rand::ThreadRandGen for Gen {
+    /// #     fn gen(&mut self) -> u32 {
+    /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    /// #         (self.seed >> 32) as u32
+    /// #     }
+    /// # }
+    /// # fn create_generator() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+    /// let gen = Box::new(create_generator());
+    /// let rand = ThreadRandState::new_custom_boxed(gen);
+    /// let mut raw = rand.into_raw();
+    /// unsafe {
+    ///     let u = gmp::urandomb_ui(&mut raw, 32) as u32;
+    ///     println!("32 random bits: {:032b}", u);
+    ///     // free object to prevent memory leak
+    ///     gmp::randclear(&mut raw);
+    /// }
+    /// ```
+    ///
     /// [`RandState::from_raw`]: struct.RandState.html#method.from_raw
     /// [`RandState::into_raw`]: struct.RandState.html#method.into_raw
     /// [`ThreadRandState`]: struct.ThreadRandState.html
@@ -713,7 +832,29 @@ impl ThreadRandState<'_> {
     ///
     /// This is similar to [`RandState::as_raw`].
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::ThreadRandState;
+    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # impl rug::rand::ThreadRandGen for Gen {
+    /// #     fn gen(&mut self) -> u32 {
+    /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    /// #         (self.seed >> 32) as u32
+    /// #     }
+    /// # }
+    /// # fn create_generator() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+    /// let mut gen = create_generator();
+    /// let mut rand = ThreadRandState::new_custom(&mut gen);
+    /// let raw_ptr = rand.as_raw();
+    /// // There is not much you can do with an immutable randstate_t pointer.
+    /// println!("pointer: {:p}", raw_ptr);
+    /// let u = rand.bits(32);
+    /// println!("32 random bits: {:032b}", u);
+    /// ```
+    ///
     /// [`RandState::as_raw`]: struct.RandState.html#method.as_raw
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw(&self) -> *const randstate_t {
         &self.inner
@@ -727,7 +868,32 @@ impl ThreadRandState<'_> {
     ///
     /// This is similar to [`RandState::as_raw_mut`].
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use gmp_mpfr_sys::gmp;
+    /// use rug::rand::ThreadRandState;
+    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # impl rug::rand::ThreadRandGen for Gen {
+    /// #     fn gen(&mut self) -> u32 {
+    /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    /// #         (self.seed >> 32) as u32
+    /// #     }
+    /// # }
+    /// # fn create_generator() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+    /// let mut gen = create_generator();
+    /// let mut rand = ThreadRandState::new_custom(&mut gen);
+    /// let raw_ptr = rand.as_raw_mut();
+    /// unsafe {
+    ///     let u1 = gmp::urandomb_ui(raw_ptr, 32) as u32;
+    ///     println!("32 random bits: {:032b}", u1);
+    /// }
+    /// let u2 = rand.bits(32);
+    /// println!("another 32 random bits: {:032b}", u2);
+    /// ```
+    ///
     /// [`RandState::as_raw_mut`]: struct.RandState.html#method.as_raw_mut
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner
@@ -736,6 +902,33 @@ impl ThreadRandState<'_> {
     /// Seeds the random generator.
     ///
     /// This is similar to [`RandState::seed`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::{rand::ThreadRandState, Integer};
+    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # impl rug::rand::ThreadRandGen for Gen {
+    /// #     fn gen(&mut self) -> u32 {
+    /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    /// #         (self.seed >> 32) as u32
+    /// #     }
+    /// #     fn seed(&mut self, seed: &Integer) { self.seed = seed.to_u64_wrapping() }
+    /// # }
+    /// # fn create_generator_with_seed() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+    /// let mut gen = create_generator_with_seed();
+    /// let seed = Integer::from(123456);
+    /// let mut rand = ThreadRandState::new_custom(&mut gen);
+    /// rand.seed(&seed);
+    /// let u1a = rand.bits(32);
+    /// let u1b = rand.bits(32);
+    /// // reseed with the same seed
+    /// rand.seed(&seed);
+    /// let u2a = rand.bits(32);
+    /// let u2b = rand.bits(32);
+    /// assert_eq!(u1a, u2a);
+    /// assert_eq!(u1b, u2b);
+    /// ```
     ///
     /// [`RandState::seed`]: struct.RandState.html#method.seed
     #[inline]
@@ -753,6 +946,25 @@ impl ThreadRandState<'_> {
     ///
     /// Panics if `bits` is greater than 32.
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::ThreadRandState;
+    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # impl rug::rand::ThreadRandGen for Gen {
+    /// #     fn gen(&mut self) -> u32 {
+    /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    /// #         (self.seed >> 32) as u32
+    /// #     }
+    /// # }
+    /// # fn create_generator() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+    /// let mut gen = create_generator();
+    /// let mut rand = ThreadRandState::new_custom(&mut gen);
+    /// let u = rand.bits(16);
+    /// assert!(u < (1 << 16));
+    /// println!("16 random bits: {:016b}", u);
+    /// ```
+    ///
     /// [`RandState::bits`]: struct.RandState.html#method.bits
     #[inline]
     pub fn bits(&mut self, bits: u32) -> u32 {
@@ -767,6 +979,25 @@ impl ThreadRandState<'_> {
     /// # Panics
     ///
     /// Panics if the boundary value is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::ThreadRandState;
+    /// # struct Gen { _dummy: *const i32, seed: u64 };
+    /// # impl rug::rand::ThreadRandGen for Gen {
+    /// #     fn gen(&mut self) -> u32 {
+    /// #         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+    /// #         (self.seed >> 32) as u32
+    /// #     }
+    /// # }
+    /// # fn create_generator() -> Gen { Gen { _dummy: &0i32, seed: 1 } }
+    /// let mut gen = create_generator();
+    /// let mut rand = ThreadRandState::new_custom(&mut gen);
+    /// let u = rand.below(10000);
+    /// assert!(u < 10000);
+    /// println!("0 ≤ {} < 10000", u);
+    /// ```
     ///
     /// [`RandState::below`]: struct.RandState.html#method.below
     #[inline]
@@ -950,6 +1181,7 @@ pub trait RandGen: Send + Sync {
     /// };
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
     ///         0x8cef7310
     ///     }
     ///     fn seed(&mut self, seed: &Integer) {
@@ -1024,6 +1256,50 @@ destructors, can be used by FFI callback functions. If these methods
 panic, they can cause the program to abort.
 
 This is similar to [`RandGen`] but can only be used in a single thread.
+
+# Examples
+
+```rust
+# #[cfg(skip_this)]
+use rand::{rngs::ThreadRng, thread_rng};
+# struct ThreadRng(*const i32, u32);
+# impl ThreadRng {
+#     pub fn next_u32(&mut self) -> u32 { self.1 = self.1.wrapping_add(1); self.1 }
+# }
+# fn thread_rng() -> ThreadRng { ThreadRng(&0i32, !0 - 10) }
+use rug::rand::{ThreadRandGen, ThreadRandState};
+struct Generator(ThreadRng);
+impl ThreadRandGen for Generator {
+    fn gen(&mut self) -> u32 {
+        self.0.next_u32()
+    }
+}
+let mut rng = Generator(thread_rng());
+let mut state = ThreadRandState::new_custom(&mut rng);
+let u = state.below(10000);
+assert!(u < 10000);
+println!("0 ≤ {} < 10000", u);
+```
+
+This would not compile, since `ThreadRng` is not [`Send`] and not
+[`Sync`].
+
+```compile_fail
+# #[cfg(skip_this)]
+use rand::{rngs::ThreadRng, thread_rng};
+# struct ThreadRng(*const i32, u32);
+# impl ThreadRng {
+#     pub fn next_u32(&mut self) -> u32 { self.1 = self.1.wrapping_add(1); self.1 }
+# }
+# fn thread_rng() -> ThreadRng { ThreadRng(&0i32, !0 - 10) }
+use rug::rand::RandGen;
+struct Generator(ThreadRng);
+impl RandGen for Generator {
+    fn gen(&mut self) -> u32 {
+        self.0.next_u32()
+    }
+}
+```
 
 [`RandGen`]: trait.RandGen.html
 [`ThreadRandState`]: struct.ThreadRandState.html
