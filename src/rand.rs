@@ -24,6 +24,9 @@ Random number generation.
 // initialize all the fields. So we must use zeroed rather than
 // uninitialized memory, otherwise we may be left with uninitialized
 // memory which can eventually lead to undefined behavior.
+//
+// The proper fix will be to use MaybeUninit when gmp-mpfr-sys 1.2 is
+// eventually released.
 
 use crate::{cast, Integer};
 use gmp_mpfr_sys::gmp::{self, randstate_t};
@@ -653,7 +656,7 @@ impl ThreadRandState<'_> {
     /// The returned object should be freed to avoid memory leaks.
     ///
     /// This is similar to [`RandState::into_raw`], but the returned
-    /// object is not thread safe and must *not* be used in
+    /// object is not thread safe. Notably, it should *not* be used in
     /// [`RandState::from_raw`].
     ///
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
@@ -1338,7 +1341,9 @@ const THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
 
 #[cfg(test)]
 mod tests {
-    use crate::rand::{RandGen, RandState};
+    use crate::rand::{RandGen, RandState, ThreadRandGen, ThreadRandState};
+    use gmp_mpfr_sys::gmp;
+    use std::ptr;
 
     struct SimpleGenerator {
         seed: u64,
@@ -1398,5 +1403,93 @@ mod tests {
         let mut gen = NoCloneGenerator;
         let rand1 = RandState::new_custom(&mut gen);
         let _ = rand1.clone();
+    }
+
+    // include a dummy pointer to make !Send and !Sync
+    struct ThreadSimpleGenerator {
+        _dummy: *const i32,
+        seed: u64,
+    }
+
+    impl ThreadRandGen for ThreadSimpleGenerator {
+        fn gen(&mut self) -> u32 {
+            self.seed = self
+                .seed
+                .wrapping_mul(6_364_136_223_846_793_005)
+                .wrapping_add(1);
+            (self.seed >> 32) as u32
+        }
+        fn boxed_clone(&self) -> Option<Box<dyn ThreadRandGen>> {
+            let other = ThreadSimpleGenerator {
+                _dummy: ptr::null(),
+                seed: self.seed,
+            };
+            let boxed = Box::new(other);
+            Some(boxed)
+        }
+    }
+
+    #[test]
+    fn thread_check_custom_clone() {
+        let mut gen = ThreadSimpleGenerator {
+            _dummy: ptr::null(),
+            seed: 1,
+        };
+        let third2;
+        {
+            let mut rand1 = ThreadRandState::new_custom(&mut gen);
+            let mut rand2 = rand1.clone();
+            let first1 = rand1.bits(32);
+            let first2 = rand2.bits(32);
+            assert_eq!(first1, first2);
+            let second1 = rand1.bits(32);
+            let second2 = rand2.bits(32);
+            assert_eq!(second1, second2);
+            assert_ne!(first1, second1);
+            third2 = rand2.bits(32);
+            assert_ne!(second2, third2);
+        }
+        let mut rand3 = ThreadRandState::new_custom_boxed(Box::new(gen));
+        let mut rand4 = rand3.clone();
+        let third3 = rand3.bits(32);
+        let third4 = rand4.bits(32);
+        assert_eq!(third2, third3);
+        assert_eq!(third2, third4);
+    }
+
+    struct ThreadNoCloneGenerator;
+
+    impl ThreadRandGen for ThreadNoCloneGenerator {
+        fn gen(&mut self) -> u32 {
+            0
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "`ThreadRandGen::boxed_clone` returned `None`")]
+    fn thread_check_custom_no_clone() {
+        let mut gen = ThreadNoCloneGenerator;
+        let rand1 = ThreadRandState::new_custom(&mut gen);
+        let _ = rand1.clone();
+    }
+
+    #[test]
+    fn thread_check_raw() {
+        let mut check = RandState::new();
+        // RandState is more restrictive than ThreadRandState; so this
+        // conversion is sound.
+        let mut state = unsafe { ThreadRandState::from_raw(check.clone().into_raw()) };
+        assert_eq!(state.bits(32), check.bits(32));
+        assert_eq!(
+            unsafe { gmp::urandomb_ui(state.as_raw_mut(), 32) as u32 },
+            check.bits(32)
+        );
+        let mut raw = state.into_raw();
+        assert_eq!(
+            unsafe { gmp::urandomb_ui(&mut raw, 32) as u32 },
+            check.bits(32)
+        );
+        let mut state = unsafe { ThreadRandState::from_raw(raw) };
+        assert_eq!(state.below(100), check.below(100));
     }
 }
