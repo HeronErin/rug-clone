@@ -401,9 +401,9 @@ impl RandState<'_> {
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
-        let funcs = unsafe { &*(ret.algdata as *const Funcs) };
+        let funcs = ret.algdata as *const Funcs;
         assert!(
-            funcs.get != Some(custom_get) && funcs.get != Some(thread_custom_get),
+            !ptr::eq(funcs, &CUSTOM_FUNCS) && !ptr::eq(funcs, &THREAD_CUSTOM_FUNCS),
             "cannot convert custom `RandState` into raw, \
              consider using `new_custom_boxed` instead of `new_custom`"
         );
@@ -814,9 +814,9 @@ impl ThreadRandState<'_> {
     #[inline]
     pub fn into_raw(self) -> randstate_t {
         let ret = self.inner;
-        let funcs = unsafe { &*(ret.algdata as *const Funcs) };
+        let funcs = ret.algdata as *const Funcs;
         assert!(
-            funcs.get != Some(custom_get) && funcs.get != Some(thread_custom_get),
+            !ptr::eq(funcs, &CUSTOM_FUNCS) && !ptr::eq(funcs, &THREAD_CUSTOM_FUNCS),
             "cannot convert custom `ThreadRandState` into raw, \
              consider using `new_custom_boxed` instead of `new_custom`"
         );
@@ -1618,35 +1618,35 @@ unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
     };
 }
 
-const ABORT_FUNCS: Funcs = Funcs {
+static ABORT_FUNCS: Funcs = Funcs {
     seed: Some(abort_seed),
     get: Some(abort_get),
     clear: Some(abort_clear),
     iset: Some(abort_iset),
 };
 
-const CUSTOM_FUNCS: Funcs = Funcs {
+static CUSTOM_FUNCS: Funcs = Funcs {
     seed: Some(custom_seed),
     get: Some(custom_get),
     clear: Some(custom_clear),
     iset: Some(custom_iset),
 };
 
-const CUSTOM_BOXED_FUNCS: Funcs = Funcs {
+static CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     seed: Some(custom_boxed_seed),
     get: Some(custom_boxed_get),
     clear: Some(custom_boxed_clear),
     iset: Some(custom_boxed_iset),
 };
 
-const THREAD_CUSTOM_FUNCS: Funcs = Funcs {
+static THREAD_CUSTOM_FUNCS: Funcs = Funcs {
     seed: Some(thread_custom_seed),
     get: Some(thread_custom_get),
     clear: Some(thread_custom_clear),
     iset: Some(thread_custom_iset),
 };
 
-const THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
+static THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     seed: Some(thread_custom_boxed_seed),
     get: Some(thread_custom_boxed_get),
     clear: Some(thread_custom_boxed_clear),
