@@ -1396,23 +1396,24 @@ macro_rules! c_callback {
     )* };
 }
 
+// abort functions do not need a wrapper to abort on panic, they never panic and always abort
+unsafe extern "C" fn abort_seed(_: *mut randstate_t, _: *const gmp::mpz_t) {
+    process::abort();
+}
+
+unsafe extern "C" fn abort_get(_: *mut randstate_t, _: *mut gmp::limb_t, _: c_ulong) {
+    process::abort();
+}
+
+unsafe extern "C" fn abort_clear(_: *mut randstate_t) {
+    process::abort();
+}
+
+unsafe extern "C" fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
+    process::abort();
+}
+
 c_callback! {
-    fn abort_seed(_: *mut randstate_t, _: *const gmp::mpz_t) {
-        process::abort();
-    }
-
-    fn abort_get(_: *mut randstate_t, _: *mut gmp::limb_t, _: c_ulong) {
-        process::abort();
-    }
-
-    fn abort_clear(_: *mut randstate_t) {
-        process::abort();
-    }
-
-    fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
-        process::abort();
-    }
-
     fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
         let r_ptr = (*s).seed.d as *mut &mut dyn RandGen;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
