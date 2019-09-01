@@ -54,6 +54,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+[`rand`]: https://docs.rs/rug/~1.6/rug/rand/index.html
 [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
