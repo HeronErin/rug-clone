@@ -1302,6 +1302,8 @@ impl RandGen for Generator {
 ```
 
 [`RandGen`]: trait.RandGen.html
+[`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
+[`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
 [`ThreadRandState`]: struct.ThreadRandState.html
 */
 pub trait ThreadRandGen {
