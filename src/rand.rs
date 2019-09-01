@@ -611,13 +611,86 @@ impl ThreadRandState<'_> {
         }
     }
 
+    /// Creates a random generator from an initialized
+    /// [GMP random generator][`randstate_t`].
+    ///
+    /// This is similar to [`RandState::from_raw`], but the object does not need to be thread safe.
+    ///
+    /// # Safety
+    ///
+    ///   * The value must be initialized. Note that the GMP functions
+    ///     do not initialize all fields of the
+    ///     [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] object,
+    ///     which can eventually lead to reading uninitialized memory,
+    ///     and that is undefined behaviour in Rust even if no
+    ///     decision is made using the read value. One way to ensure
+    ///     that there is no uninitialized memory inside `raw` is to
+    ///     use [`MaybeUninit::zeroed`] to initialize `raw` before
+    ///     initializing with a function such as
+    ///     [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
+    ///     like in the example below.
+    ///   * The [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] type
+    ///     can be considered as a kind of pointer, so there can be
+    ///     multiple copies of it. Since this function takes over
+    ///     ownership, no other copies of the passed value should
+    ///     exist.
+    ///
+    /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html#method.zeroed
+    /// [`RandState::from_raw`]: struct.RandState.html#method.from_raw
+    /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
-    pub(crate) fn as_raw(&self) -> *const randstate_t {
+    pub unsafe fn from_raw(raw: randstate_t) -> ThreadRandState<'static> {
+        ThreadRandState {
+            inner: raw,
+            phantom: PhantomData,
+        }
+    }
+
+    /// Converts a random generator into a
+    /// [GMP random generator][`randstate_t`].
+    ///
+    /// The returned object should be freed to avoid memory leaks.
+    ///
+    /// This is similar to [`RandState::into_raw`], but the returned
+    /// object is not thread safe and must *not* be used in
+    /// [`RandState::from_raw`].
+    ///
+    /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
+    /// [`RandState::from_raw`]: struct.RandState.html#method.from_raw
+    /// [`RandState::into_raw`]: struct.RandState.html#method.into_raw
+    #[inline]
+    pub fn into_raw(self) -> randstate_t {
+        let ret = self.inner;
+        mem::forget(self);
+        ret
+    }
+
+    /// Returns a pointer to the inner
+    /// [GMP random generator][`randstate_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// This is similar to [`RandState::as_raw`].
+    ///
+    /// [`RandState::as_raw`]: struct.RandState.html#method.as_raw
+    #[inline]
+    pub fn as_raw(&self) -> *const randstate_t {
         &self.inner
     }
 
+    /// Returns an unsafe mutable pointer to the inner
+    /// [GMP random generator][`randstate_t`].
+    ///
+    /// The returned pointer will be valid for as long as `self` is
+    /// valid.
+    ///
+    /// This is similar to [`RandState::as_raw_mut`].
+    ///
+    /// [`RandState::as_raw_mut`]: struct.RandState.html#method.as_raw_mut
     #[inline]
-    pub(crate) fn as_raw_mut(&mut self) -> *mut randstate_t {
+    pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner
     }
 
