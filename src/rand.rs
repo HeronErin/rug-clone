@@ -99,6 +99,8 @@ impl RandState<'_> {
     /// Creates a new random generator with a compromise between speed
     /// and randomness.
     ///
+    /// Currently this is equivalent to [`new_mersenne_twister`].
+    ///
     /// # Examples
     ///
     /// ```rust
@@ -107,20 +109,16 @@ impl RandState<'_> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
+    ///
+    /// [`new_mersenne_twister`]: #method.new_mersenne_twister
     #[inline]
     pub fn new() -> RandState<'static> {
-        unsafe {
-            let_zeroed_ptr!(inner, inner_ptr);
-            gmp::randinit_default(inner_ptr);
-            let inner = assume_init!(inner);
-            RandState {
-                inner,
-                phantom: PhantomData,
-            }
-        }
+        RandState::new_mersenne_twister()
     }
 
     /// Creates a random generator with a Mersenne Twister algorithm.
+    ///
+    /// This algorithm is fast and has good randomness properties.
     ///
     /// # Examples
     ///
@@ -143,7 +141,11 @@ impl RandState<'_> {
     }
 
     /// Creates a new random generator with a linear congruential
-    /// algorithm <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>bits</i></sup>.
+    /// algorithm <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>m</i></sup>.
+    ///
+    /// The low bits of <i>X</i> in this algorithm are not very
+    /// random, so only the high half of each <i>X</i> is actually
+    /// used, that is the higher <i>m</i>/2 bits.
     ///
     /// # Examples
     ///
@@ -154,15 +156,15 @@ impl RandState<'_> {
     ///     Err(_) => unreachable!(),
     /// };
     /// let c = 1;
-    /// let bits = 100;
-    /// let mut rand = RandState::new_linear_congruential(&a, c, bits);
+    /// let m = 100;
+    /// let mut rand = RandState::new_linear_congruential(&a, c, m);
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// ```
-    pub fn new_linear_congruential(a: &Integer, c: u32, bits: u32) -> RandState<'static> {
+    pub fn new_linear_congruential(a: &Integer, c: u32, m: u32) -> RandState<'static> {
         unsafe {
             let_zeroed_ptr!(inner, inner_ptr);
-            gmp::randinit_lc_2exp(inner_ptr, a.as_raw(), c.into(), bits.into());
+            gmp::randinit_lc_2exp(inner_ptr, a.as_raw(), c.into(), m.into());
             let inner = assume_init!(inner);
             RandState {
                 inner,
@@ -174,11 +176,12 @@ impl RandState<'_> {
     /// Creates a new random generator with a linear congruential
     /// algorithm like the [`new_linear_congruential`] method.
     ///
-    /// For the linear congrentail algorithm <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>)
-    /// mod 2<sup><i>bits</i></sup>, <i>a</i>, <i>c</i> and <i>bits</i> are selected from
-    /// a table such that at least <i>size</i> bits of each <i>X</i> will be
-    /// used, that is <i>bits</i> ≥ <i>size</i>. The table only has values for a
-    /// size of up to 256 bits; [`None`] will be returned if the
+    /// For the linear congruential algorithm
+    /// <i>X</i> = (<i>a</i> × <i>X</i> + <i>c</i>) mod 2<sup><i>m</i></sup>,
+    /// <i>a</i>, <i>c</i> and <i>m</i> are selected from a table
+    /// such that at least <i>size</i> bits of each <i>X</i> will be
+    /// used, that is <i>m</i>/2 ≥ <i>size</i>. The table only has
+    /// values for <i>size</i> ≤ 128; [`None`] will be returned if the
     /// requested size is larger.
     ///
     /// # Examples
@@ -1863,5 +1866,11 @@ mod tests {
         );
         let mut state = unsafe { ThreadRandState::from_raw(raw) };
         assert_eq!(state.below(100), check.below(100));
+    }
+
+    #[test]
+    fn congruential_size() {
+        assert!(RandState::new_linear_congruential_size(128).is_some());
+        assert!(RandState::new_linear_congruential_size(129).is_none());
     }
 }
