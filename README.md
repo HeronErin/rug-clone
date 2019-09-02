@@ -40,8 +40,8 @@ option) any later version. See the full text of the [GNU LGPL] and
   * [`ThreadRandState`] and [`ThreadRandGen`] were added to the
     [`rand`] module to enable the use of custom random generators that
     are not [`Send`] and [`Sync`].
-  * Methods which take [`ThreadRandState`] were added to match all the
-    methods which take [`RandState`] in the numeric types.
+  * Numeric type methods which take [`RandState`] now can also take
+    [`ThreadRandState`].
 
 [`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
 [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html

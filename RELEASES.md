@@ -15,8 +15,8 @@ Verison 1.6.0 (unreleased)
   * `ThreadRandState` and `ThreadRandGen` were added to the `rand`
     module to enable the use of custom random generators that are not
     `Send` and `Sync`.
-  * Methods which take `ThreadRandState` were added to match all the
-    methods which take `RandState` in the numeric types.
+  * Numeric type methods which take `RandState` now can also take
+    `ThreadRandState`.
 
 Verison 1.5.2 (2019-07-26)
 ==========================

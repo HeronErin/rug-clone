@@ -620,7 +620,7 @@ impl ThreadRandState<'_> {
     /// let mut seed = Seed(&());
     /// let mut rand = ThreadRandState::new_custom(&mut seed);
     /// let mut i = Integer::from(15);
-    /// i.thread_random_below_mut(&mut rand);
+    /// i.random_below_mut(&mut rand);
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
@@ -671,7 +671,7 @@ impl ThreadRandState<'_> {
     /// let seed = Box::new(Seed(&()));
     /// let mut rand = ThreadRandState::new_custom_boxed(seed);
     /// let mut i = Integer::from(15);
-    /// i.thread_random_below_mut(&mut rand);
+    /// i.random_below_mut(&mut rand);
     /// println!("0 ≤ {} < 15", i);
     /// assert!(i < 15);
     /// ```
@@ -1653,6 +1653,47 @@ static THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     clear: Some(thread_custom_boxed_clear),
     iset: Some(thread_custom_boxed_iset),
 };
+
+/// Used to generate random numbers.
+///
+/// This trait is implemented by
+///   1. [`RandState`], which is thread safe and implements [`Send`]
+///      and [`Sync`].
+///   2. [`ThreadRandState`], which can only be used in a single
+///      thread.
+///
+/// This trait is sealed and cannot be implemented for more types.
+///
+/// [`RandState`]: struct.RandState.html
+/// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
+/// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+/// [`ThreadRandState`]: struct.ThreadRandState.html
+pub trait MutRandState: SealedMutRandState {}
+
+mod hide {
+    use gmp_mpfr_sys::gmp::randstate_t;
+    #[repr(transparent)]
+    pub struct Private<'a>(pub(crate) &'a mut randstate_t);
+    pub trait SealedMutRandState {
+        fn private(&mut self) -> Private;
+    }
+}
+use self::hide::{Private, SealedMutRandState};
+
+impl MutRandState for RandState<'_> {}
+impl SealedMutRandState for RandState<'_> {
+    #[inline]
+    fn private(&mut self) -> Private {
+        Private(&mut self.inner)
+    }
+}
+impl MutRandState for ThreadRandState<'_> {}
+impl SealedMutRandState for ThreadRandState<'_> {
+    #[inline]
+    fn private(&mut self) -> Private {
+        Private(&mut self.inner)
+    }
+}
 
 #[cfg(test)]
 mod tests {

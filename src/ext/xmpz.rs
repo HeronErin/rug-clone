@@ -14,10 +14,10 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "rand")]
-use crate::rand::{RandState, ThreadRandState};
 use crate::{cast, misc::NegAbs, ops::NegAssign, Integer};
 use gmp_mpfr_sys::gmp;
+#[cfg(feature = "rand")]
+use gmp_mpfr_sys::gmp::randstate_t;
 use std::{
     cmp::Ordering,
     i16, i8,
@@ -455,35 +455,14 @@ pub fn powm_sec(rop: &mut Integer, base: Option<&Integer>, exp: &Integer, modu: 
 
 #[cfg(feature = "rand")]
 #[inline]
-pub fn urandomm(rop: &mut Integer, state: &mut RandState<'_>, n: Option<&Integer>) {
+pub fn urandomm(rop: &mut Integer, state: &mut randstate_t, n: Option<&Integer>) {
     assert_eq!(
         n.unwrap_or(rop).cmp0(),
         Ordering::Greater,
         "cannot be below zero"
     );
     unsafe {
-        gmp::mpz_urandomm(
-            rop.as_raw_mut(),
-            state.as_raw_mut(),
-            n.unwrap_or(rop).as_raw(),
-        );
-    }
-}
-
-#[cfg(feature = "rand")]
-#[inline]
-pub fn thread_urandomm(rop: &mut Integer, state: &mut ThreadRandState<'_>, n: Option<&Integer>) {
-    assert_eq!(
-        n.unwrap_or(rop).cmp0(),
-        Ordering::Greater,
-        "cannot be below zero"
-    );
-    unsafe {
-        gmp::mpz_urandomm(
-            rop.as_raw_mut(),
-            state.as_raw_mut(),
-            n.unwrap_or(rop).as_raw(),
-        );
+        gmp::mpz_urandomm(rop.as_raw_mut(), state, n.unwrap_or(rop).as_raw());
     }
 }
 
