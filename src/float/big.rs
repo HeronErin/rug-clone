@@ -3299,12 +3299,12 @@ impl Float {
     /// assert_eq!(clamped2, 0.5);
     /// ```
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
+    pub fn clamp<Min, Max>(mut self, min: &Min, max: &Max) -> Self
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
-            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+            + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
         self.clamp_round(min, max, Default::default());
         self
@@ -3333,12 +3333,12 @@ impl Float {
     /// assert_eq!(in_range, 0.5);
     /// ```
     #[inline]
-    pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
+    pub fn clamp_mut<Min, Max>(&mut self, min: &Min, max: &Max)
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
-            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+            + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
         self.clamp_round(min, max, Default::default());
     }
@@ -3368,17 +3368,12 @@ impl Float {
     /// assert_eq!(in_range, 0.5);
     /// assert_eq!(dir2, Ordering::Equal);
     /// ```
-    pub fn clamp_round<'a, 'b, Min, Max>(
-        &mut self,
-        min: &'a Min,
-        max: &'b Max,
-        round: Round,
-    ) -> Ordering
+    pub fn clamp_round<Min, Max>(&mut self, min: &Min, max: &Max, round: Round) -> Ordering
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
-            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'b Max, Round = Round, Ordering = Ordering>,
+            + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
         if (*self).lt(min) {
             let dir = self.assign_round(min, round);
@@ -3448,16 +3443,16 @@ impl Float {
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn clamp_ref<'a, Min, Max>(
-        &'a self,
-        min: &'a Min,
-        max: &'a Max,
-    ) -> ClampIncomplete<'a, Min, Max>
+    pub fn clamp_ref<'min, 'max, Min, Max>(
+        &self,
+        min: &'min Min,
+        max: &'max Max,
+    ) -> ClampIncomplete<'_, 'min, 'max, Min, Max>
     where
         Self: PartialOrd<Min>
             + PartialOrd<Max>
-            + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-            + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+            + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+            + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
     {
         ClampIncomplete {
             ref_self: self,
@@ -8087,29 +8082,29 @@ ref_math_op1_float! { xmpfr::signum; struct SignumIncomplete {} }
 ref_math_op2_float! { xmpfr::copysign; struct CopysignIncomplete { y } }
 
 #[derive(Debug)]
-pub struct ClampIncomplete<'a, Min, Max>
+pub struct ClampIncomplete<'s, 'min, 'max, Min, Max>
 where
     Float: PartialOrd<Min>
         + PartialOrd<Max>
-        + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-        + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+        + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+        + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
 {
-    ref_self: &'a Float,
-    min: &'a Min,
-    max: &'a Max,
+    ref_self: &'s Float,
+    min: &'min Min,
+    max: &'max Max,
 }
 
-impl<'a, Min, Max> AssignRound<ClampIncomplete<'a, Min, Max>> for Float
+impl<Min, Max> AssignRound<ClampIncomplete<'_, '_, '_, Min, Max>> for Float
 where
     Self: PartialOrd<Min>
         + PartialOrd<Max>
-        + AssignRound<&'a Min, Round = Round, Ordering = Ordering>
-        + AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
+        + for<'a> AssignRound<&'a Min, Round = Round, Ordering = Ordering>
+        + for<'a> AssignRound<&'a Max, Round = Round, Ordering = Ordering>,
 {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: ClampIncomplete<'a, Min, Max>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: ClampIncomplete<Min, Max>, round: Round) -> Ordering {
         if src.ref_self.lt(src.min) {
             let dir = self.assign_round(src.min, round);
             if (*self).gt(src.max) {

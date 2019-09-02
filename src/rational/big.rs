@@ -1335,9 +1335,9 @@ impl Rational {
     /// assert_eq!(clamped2, (1, 2));
     /// ```
     #[inline]
-    pub fn clamp<'a, 'b, Min, Max>(mut self, min: &'a Min, max: &'b Max) -> Self
+    pub fn clamp<Min, Max>(mut self, min: &Min, max: &Max) -> Self
     where
-        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'b Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
     {
         self.clamp_mut(min, max);
         self
@@ -1362,9 +1362,9 @@ impl Rational {
     /// in_range.clamp_mut(&min, &max);
     /// assert_eq!(in_range, (1, 2));
     /// ```
-    pub fn clamp_mut<'a, 'b, Min, Max>(&mut self, min: &'a Min, max: &'b Max)
+    pub fn clamp_mut<Min, Max>(&mut self, min: &Min, max: &Max)
     where
-        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'b Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
     {
         if (&*self).lt(min) {
             self.assign(min);
@@ -1407,13 +1407,13 @@ impl Rational {
     /// [`Rational`]: struct.Rational.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn clamp_ref<'a, Min, Max>(
-        &'a self,
-        min: &'a Min,
-        max: &'a Max,
-    ) -> ClampIncomplete<'a, Min, Max>
+    pub fn clamp_ref<'min, 'max, Min, Max>(
+        &self,
+        min: &'min Min,
+        max: &'max Max,
+    ) -> ClampIncomplete<'_, 'min, 'max, Min, Max>
     where
-        Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
+        Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
     {
         ClampIncomplete {
             ref_self: self,
@@ -2549,21 +2549,21 @@ ref_math_op1! { Rational; xmpq::abs; struct AbsIncomplete {} }
 ref_rat_op_int! { xmpq::signum; struct SignumIncomplete {} }
 
 #[derive(Debug)]
-pub struct ClampIncomplete<'a, Min, Max>
+pub struct ClampIncomplete<'s, 'min, 'max, Min, Max>
 where
-    Rational: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
+    Rational: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
 {
-    ref_self: &'a Rational,
-    min: &'a Min,
-    max: &'a Max,
+    ref_self: &'s Rational,
+    min: &'min Min,
+    max: &'max Max,
 }
 
-impl<'a, Min, Max> Assign<ClampIncomplete<'a, Min, Max>> for Rational
+impl<Min, Max> Assign<ClampIncomplete<'_, '_, '_, Min, Max>> for Rational
 where
-    Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
+    Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
 {
     #[inline]
-    fn assign(&mut self, src: ClampIncomplete<'a, Min, Max>) {
+    fn assign(&mut self, src: ClampIncomplete<Min, Max>) {
         if src.ref_self.lt(src.min) {
             self.assign(src.min);
             assert!(!(&*self).gt(src.max), "minimum larger than maximum");
@@ -2576,12 +2576,12 @@ where
     }
 }
 
-impl<'a, Min, Max> From<ClampIncomplete<'a, Min, Max>> for Rational
+impl<Min, Max> From<ClampIncomplete<'_, '_, '_, Min, Max>> for Rational
 where
-    Self: PartialOrd<Min> + PartialOrd<Max> + Assign<&'a Min> + Assign<&'a Max>,
+    Self: PartialOrd<Min> + PartialOrd<Max> + for<'a> Assign<&'a Min> + for<'a> Assign<&'a Max>,
 {
     #[inline]
-    fn from(src: ClampIncomplete<'a, Min, Max>) -> Self {
+    fn from(src: ClampIncomplete<Min, Max>) -> Self {
         let mut dst = Rational::new();
         dst.assign(src);
         dst
