@@ -533,7 +533,7 @@ impl Integer {
     /// ```
     ///
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
+    /// [valid]: https://doc.rust-lang.org/nightly/core/ptr/index.html#safety
     pub unsafe fn assign_digits_unaligned<T: UnsignedPrimitive>(
         &mut self,
         src: *const T,
@@ -724,7 +724,7 @@ impl Integer {
     /// [`significant_digits`]: #method.significant_digits
     /// [`to_digits`]: #method.to_digits
     /// [upt]: integer/trait.UnsignedPrimitive.html
-    /// [valid]: https://doc.rust-lang.org/nightly/std/ptr/index.html#safety
+    /// [valid]: https://doc.rust-lang.org/nightly/core/ptr/index.html#safety
     pub unsafe fn write_digits_unaligned<T: UnsignedPrimitive>(
         &self,
         dst: *mut T,
@@ -857,7 +857,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
@@ -903,7 +903,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
@@ -935,7 +935,7 @@ impl Integer {
     /// assert_eq!(large.to_i8(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
     #[inline]
     pub fn to_i8(&self) -> Option<i8> {
@@ -964,7 +964,7 @@ impl Integer {
     /// assert_eq!(large.to_i16(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
     #[inline]
     pub fn to_i16(&self) -> Option<i16> {
@@ -993,7 +993,7 @@ impl Integer {
     /// assert_eq!(large.to_i32(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32(&self) -> Option<i32> {
@@ -1022,7 +1022,7 @@ impl Integer {
     /// assert_eq!(large.to_i64(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
     #[inline]
     pub fn to_i64(&self) -> Option<i64> {
@@ -1051,7 +1051,7 @@ impl Integer {
     /// assert_eq!(large.to_i128(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
     #[inline]
     pub fn to_i128(&self) -> Option<i128> {
@@ -1078,7 +1078,7 @@ impl Integer {
     /// assert_eq!(large.to_isize(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
     #[inline]
     pub fn to_isize(&self) -> Option<isize> {
@@ -1110,7 +1110,7 @@ impl Integer {
     /// assert_eq!(large.to_u8(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     #[inline]
     pub fn to_u8(&self) -> Option<u8> {
@@ -1139,7 +1139,7 @@ impl Integer {
     /// assert_eq!(large.to_u16(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
     #[inline]
     pub fn to_u16(&self) -> Option<u16> {
@@ -1168,7 +1168,7 @@ impl Integer {
     /// assert_eq!(large.to_u32(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32(&self) -> Option<u32> {
@@ -1197,7 +1197,7 @@ impl Integer {
     /// assert_eq!(large.to_u64(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
     #[inline]
     pub fn to_u64(&self) -> Option<u64> {
@@ -1228,7 +1228,7 @@ impl Integer {
     /// assert_eq!(large.to_u128(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
     #[inline]
     pub fn to_u128(&self) -> Option<u128> {
@@ -1257,7 +1257,7 @@ impl Integer {
     /// assert_eq!(large.to_usize(), None);
     /// ```
     ///
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
     #[inline]
     pub fn to_usize(&self) -> Option<usize> {
@@ -1718,8 +1718,8 @@ impl Integer {
     /// assert_eq!(*reneg_i, i);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     pub fn as_neg(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
@@ -1748,8 +1748,8 @@ impl Integer {
     /// assert_eq!(*reabs_i, *abs_i);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     pub fn as_abs(&self) -> BorrowInteger<'_> {
         let mut raw = self.inner;
@@ -1988,7 +1988,7 @@ impl Integer {
     /// assert_eq!(Integer::from(5).cmp0(), Ordering::Greater);
     /// ```
     ///
-    /// [`cmp`]: https://doc.rust-lang.org/nightly/std/cmp/trait.Ord.html#tymethod.cmp
+    /// [`cmp`]: https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html#tymethod.cmp
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(self.as_raw()).cmp(&0) }
@@ -2243,10 +2243,10 @@ impl Integer {
     /// assert_eq!(sum, expected);
     /// ```
     ///
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -2280,10 +2280,10 @@ impl Integer {
     /// assert_eq!(dot, expected);
     /// ```
     ///
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -2322,10 +2322,10 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
-    /// [`MulAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.MulAssign.html
-    /// [`Mul`]: https://doc.rust-lang.org/nightly/std/ops/trait.Mul.html
+    /// [`MulAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.MulAssign.html
+    /// [`Mul`]: https://doc.rust-lang.org/nightly/core/ops/trait.Mul.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn product<'a, I>(values: I) -> ProductIncomplete<'a, I>
@@ -2378,7 +2378,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn abs_ref -> AbsIncomplete;
@@ -2438,7 +2438,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn signum_ref -> SignumIncomplete;
@@ -2532,7 +2532,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -2596,7 +2596,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn keep_bits_ref -> KeepBitsIncomplete;
@@ -2656,7 +2656,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn keep_signed_bits_ref -> KeepSignedBitsIncomplete;
@@ -2706,7 +2706,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn next_power_of_two_ref -> NextPowerOfTwoIncomplete;
@@ -2786,7 +2786,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -2870,7 +2870,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -2951,7 +2951,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -3041,7 +3041,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -3116,7 +3116,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -3212,7 +3212,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn div_exact_ref -> DivExactIncomplete;
@@ -3275,7 +3275,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn div_exact_u_ref -> DivExactUIncomplete;
@@ -3309,8 +3309,8 @@ impl Integer {
     /// assert_eq!(inv_mod_5, 3);
     /// ```
     ///
-    /// [`Err`]: https://doc.rust-lang.org/nightly/std/result/enum.Result.html#variant.Err
-    /// [`Ok`]: https://doc.rust-lang.org/nightly/std/result/enum.Result.html#variant.Ok
+    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
+    /// [`Ok`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn invert(mut self, modulo: &Self) -> Result<Self, Self> {
         match self.invert_mut(modulo) {
@@ -3381,7 +3381,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     pub fn invert_ref<'a>(&'a self, modulo: &'a Self) -> Option<InvertIncomplete<'a>> {
@@ -3430,8 +3430,8 @@ impl Integer {
     /// assert_eq!(power, 943);
     /// ```
     ///
-    /// [`Err`]: https://doc.rust-lang.org/nightly/std/result/enum.Result.html#variant.Err
-    /// [`Ok`]: https://doc.rust-lang.org/nightly/std/result/enum.Result.html#variant.Ok
+    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
+    /// [`Ok`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Ok
     #[inline]
     pub fn pow_mod(mut self, exponent: &Self, modulo: &Self) -> Result<Self, Self> {
         match self.pow_mod_mut(exponent, modulo) {
@@ -3507,7 +3507,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     pub fn pow_mod_ref<'a>(
@@ -3640,7 +3640,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -3674,7 +3674,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn u_pow_u(base: u32, exponent: u32) -> UPowUIncomplete;
@@ -3701,7 +3701,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn i_pow_u(base: i32, exponent: u32) -> IPowUIncomplete;
@@ -3757,7 +3757,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn root_ref -> RootIncomplete;
@@ -3847,7 +3847,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -3893,7 +3893,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn square_ref -> SquareIncomplete;
@@ -3946,7 +3946,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn sqrt_ref -> SqrtIncomplete;
@@ -4031,7 +4031,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -4110,7 +4110,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn next_prime_ref -> NextPrimeIncomplete;
@@ -4187,7 +4187,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn gcd_ref -> GcdIncomplete;
@@ -4361,7 +4361,7 @@ impl Integer {
         /// assert_eq!(t2, 1);
         /// ```
         ///
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Assign`]: trait.Assign.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
@@ -4433,7 +4433,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn lcm_ref -> LcmIncomplete;
@@ -4575,7 +4575,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn factorial(n: u32) -> FactorialIncomplete;
@@ -4600,7 +4600,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn factorial_2(n: u32) -> Factorial2Incomplete;
@@ -4625,7 +4625,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn factorial_m(n: u32, m: u32) -> FactorialMIncomplete;
@@ -4650,7 +4650,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         #[inline]
@@ -4700,7 +4700,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn binomial_ref -> BinomialIncomplete;
@@ -4724,7 +4724,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn binomial_u(n: u32, k: u32) -> BinomialUIncomplete;
@@ -4753,7 +4753,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`fibonacci_2`]: #method.fibonacci_2
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
@@ -4796,7 +4796,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -4826,7 +4826,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [`lucas_2`]: #method.lucas_2
         /// [icv]: index.html#incomplete-computation-values
@@ -4867,7 +4867,7 @@ impl Integer {
         /// ```
         ///
         /// [`Assign`]: trait.Assign.html
-        /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -4895,7 +4895,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -4978,7 +4978,7 @@ impl Integer {
     /// ```
     ///
     /// [`Assign`]: trait.Assign.html
-    /// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+    /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]

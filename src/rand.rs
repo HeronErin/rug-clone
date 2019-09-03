@@ -197,7 +197,7 @@ impl RandState<'_> {
     /// println!("32 random bits: {:032b}", u);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`new_linear_congruential`]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'static>> {
         unsafe {
@@ -242,7 +242,7 @@ impl RandState<'_> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom(custom: &mut dyn RandGen) -> RandState<'_> {
         let b: Box<&mut dyn RandGen> = Box::new(custom);
@@ -290,7 +290,7 @@ impl RandState<'_> {
     /// assert!(i < 15);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     pub fn new_custom_boxed(custom: Box<dyn RandGen>) -> RandState<'static> {
         let b: Box<Box<dyn RandGen>> = Box::new(custom);
@@ -358,7 +358,7 @@ impl RandState<'_> {
     /// # }
     /// ```
     ///
-    /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html#method.zeroed
+    /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html#method.zeroed
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     #[inline]
@@ -678,8 +678,8 @@ impl ThreadRandState<'_> {
     /// ```
     ///
     /// [`RandState::new_custom`]: struct.RandState.html#method.new_custom
-    /// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
-    /// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+    /// [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+    /// [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
     /// [`ThreadRandGen`]: trait.ThreadRandGen.html
     pub fn new_custom(custom: &mut dyn ThreadRandGen) -> ThreadRandState<'_> {
         let b: Box<&mut dyn ThreadRandGen> = Box::new(custom);
@@ -729,8 +729,8 @@ impl ThreadRandState<'_> {
     /// ```
     ///
     /// [`RandState::new_custom_boxed`]: struct.RandState.html#method.new_custom_boxed
-    /// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
-    /// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+    /// [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+    /// [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
     /// [`ThreadRandGen`]: trait.ThreadRandGen.html
     pub fn new_custom_boxed(custom: Box<dyn ThreadRandGen>) -> ThreadRandState<'static> {
         let b: Box<Box<dyn ThreadRandGen>> = Box::new(custom);
@@ -803,7 +803,7 @@ impl ThreadRandState<'_> {
     /// # }
     /// ```
     ///
-    /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html#method.zeroed
+    /// [`MaybeUninit::zeroed`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html#method.zeroed
     /// [`RandState::from_raw`]: struct.RandState.html#method.from_raw
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
@@ -1317,7 +1317,7 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(other.gen(), 0xC0B1_8CCF);
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     #[inline]
     fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
         None
@@ -1378,8 +1378,8 @@ impl RandGen for Generator {
 ```
 
 [`RandGen`]: trait.RandGen.html
-[`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
-[`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`ThreadRandState`]: struct.ThreadRandState.html
 */
 pub trait ThreadRandGen {
@@ -1434,7 +1434,7 @@ pub trait ThreadRandGen {
     ///
     /// This method is similar to [`RandGen::boxed_clone`].
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`RandGen::boxed_clone`]: trait.RandGen.html#method.boxed_clone
     #[inline]
     fn boxed_clone(&self) -> Option<Box<dyn ThreadRandGen>> {
@@ -1741,8 +1741,8 @@ static THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
 /// This trait is sealed and cannot be implemented for more types.
 ///
 /// [`RandState`]: struct.RandState.html
-/// [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
-/// [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+/// [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+/// [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 /// [`ThreadRandState`]: struct.ThreadRandState.html
 pub trait MutRandState: SealedMutRandState {}
 

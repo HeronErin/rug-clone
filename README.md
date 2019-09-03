@@ -46,8 +46,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 [`RandState::into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
 [`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
-[`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
-[`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html
+[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`ThreadRandGen`]: https://docs.rs/rug/~1.6/rug/rand/trait.ThreadRandGen.html
 [`ThreadRandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.ThreadRandState.html
 [`float::free_cache`]: https://docs.rs/rug/~1.6/rug/float/fn.free_cache.html
@@ -96,9 +96,9 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`Float::u_exp`]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.u_exp
 [`Integer::assign_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.assign_digits_unaligned
 [`Integer::write_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_unaligned
-[`MaybeUninit`]: https://doc.rust-lang.org/nightly/std/mem/union.MaybeUninit.html
+[`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
 [`from_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.from_raw
-[`mem::uninitialized`]: https://doc.rust-lang.org/nightly/std/mem/fn.uninitialized.html
+[`mem::uninitialized`]: https://doc.rust-lang.org/nightly/core/mem/fn.uninitialized.html
 
 ### Version 1.4.0 news (2019-04-24)
 

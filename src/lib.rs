@@ -349,8 +349,8 @@ provided by the crate.
 [`Complex`]: struct.Complex.html
 [`Float::with_val`]: struct.Float.html#method.with_val
 [`Float`]: struct.Float.html
-[`From::from`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html#tymethod.from
-[`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+[`From::from`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from
+[`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 [`Integer::abs_ref`]: struct.Integer.html#method.abs_ref
 [`Integer::gcd_ref`]: struct.Integer.html#method.gcd_ref
 [`Integer::new`]: struct.Integer.html#method.new
@@ -360,7 +360,7 @@ provided by the crate.
 [`Pow`]: ops/trait.Pow.html
 [`RandState`]: rand/struct.RandState.html
 [`Rational`]: struct.Rational.html
-[`SubAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.SubAssign.html
+[`SubAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.SubAssign.html
 [`SubFrom`]: ops/trait.SubFrom.html
 [`assign_round`]: ops/trait.AssignRound.html#tymethod.assign_round
 [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html

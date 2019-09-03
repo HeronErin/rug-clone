@@ -68,8 +68,8 @@ a *= &*b;
 assert_eq!(a, -15000);
 ```
 
-[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
 [`Float`]: ../struct.Float.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
@@ -184,7 +184,7 @@ impl Deref for SmallFloat {
 /// and [`f64`].
 ///
 /// [`Assign`]: ../trait.Assign.html
-/// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+/// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 /// [`SmallFloat`]: struct.SmallFloat.html
 /// [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
 /// [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html

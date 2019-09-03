@@ -229,9 +229,9 @@ float::free_cache(FreeCache::All);
 
 [MPFR sample]: https://www.mpfr.org/sample.html
 [`Nearest`]: float/enum.Round.html#variant.Nearest
-[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
-[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Greater
-[`Ordering::Less`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Less
+[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+[`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
@@ -948,7 +948,7 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     /// [`Rational`]: struct.Rational.html
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/std/convert/trait.TryFrom.html
+    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`is_finite`]: #method.is_finite
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
@@ -981,7 +981,7 @@ impl Float {
     /// assert_eq!(f.to_i32_saturating(), Some(i32::MAX));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating(&self) -> Option<i32> {
@@ -1002,7 +1002,7 @@ impl Float {
     /// assert_eq!(f.to_i32_saturating_round(Round::Up), Some(-13));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
     #[inline]
     pub fn to_i32_saturating_round(&self, round: Round) -> Option<i32> {
@@ -1038,7 +1038,7 @@ impl Float {
     /// assert_eq!(f.to_u32_saturating(), Some(u32::MAX));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating(&self) -> Option<u32> {
@@ -1059,7 +1059,7 @@ impl Float {
     /// assert_eq!(f.to_u32_saturating_round(Round::Down), Some(13));
     /// ```
     ///
-    /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
+    /// [`None`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html#variant.None
     /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
     #[inline]
     pub fn to_u32_saturating_round(&self, round: Round) -> Option<u32> {
@@ -1371,8 +1371,8 @@ impl Float {
     /// assert_eq!(*reneg_f, f);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Float`]: struct.Float.html
     pub fn as_neg(&self) -> BorrowFloat<'_> {
         let mut raw = self.inner;
@@ -1406,8 +1406,8 @@ impl Float {
     /// assert_eq!(*reabs_f, *abs_f);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Float`]: struct.Float.html
     pub fn as_abs(&self) -> BorrowFloat<'_> {
         let mut raw = self.inner;
@@ -1622,7 +1622,7 @@ impl Float {
     /// assert_eq!(f.cmp0(), None);
     /// ```
     ///
-    /// [`partial_cmp`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialOrd.html#tymethod.partial_cmp
+    /// [`partial_cmp`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html#tymethod.partial_cmp
     #[inline]
     pub fn cmp0(&self) -> Option<Ordering> {
         if self.is_nan() {
@@ -1724,8 +1724,8 @@ impl Float {
     /// assert_eq!(check_int << sig_bits << (check_exp - exp), *significand);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Integer`]: struct.Integer.html
     /// [`get_exp`]: #method.get_exp
     /// [`is_normal`]: #method.is_normal
@@ -2065,8 +2065,8 @@ impl Float {
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Float`]: struct.Float.html
@@ -2109,8 +2109,8 @@ impl Float {
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Float`]: struct.Float.html
@@ -2686,8 +2686,8 @@ impl Float {
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
         /// [`Float`]: struct.Float.html
-        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
-        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialOrd.html
+        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
+        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
         /// [icv]: index.html#incomplete-computation-values
         fn u_exp(u: u32, exp: i32) -> UExpIncomplete;
     }
@@ -2721,8 +2721,8 @@ impl Float {
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
         /// [`Float`]: struct.Float.html
-        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
-        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialOrd.html
+        /// [`PartialEq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html
+        /// [`PartialOrd`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialOrd.html
         /// [icv]: index.html#incomplete-computation-values
         fn i_exp(i: i32, exp: i32) -> IExpIncomplete;
     }
@@ -6236,8 +6236,8 @@ impl Float {
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [`Ordering::Greater`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Greater
-    /// [`Ordering::Less`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Less
+    /// [`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+    /// [`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
     #[inline]
     pub fn ln_abs_gamma(mut self) -> (Self, Ordering) {
         let sign = self.ln_abs_gamma_round(Default::default()).0;
@@ -6268,8 +6268,8 @@ impl Float {
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [`Ordering::Greater`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Greater
-    /// [`Ordering::Less`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Less
+    /// [`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+    /// [`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
     #[inline]
     pub fn ln_abs_gamma_mut(&mut self) -> Ordering {
         self.ln_abs_gamma_round(Default::default()).0
@@ -6361,7 +6361,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
-    /// [`Ordering`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
     #[inline]
@@ -7728,7 +7728,7 @@ impl Float {
         /// assert_eq!(dir2, (Ordering::Equal, Ordering::Less));
         /// ```
         ///
-        /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
+        /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
         ///
@@ -7858,7 +7858,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Float`]: struct.Float.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [`random_bits`]: #method.random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -7891,7 +7891,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Float`]: struct.Float.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_normal<Rand: MutRandState>(rng: &mut Rand) -> RandomNormalIncomplete<Rand> {
@@ -7923,7 +7923,7 @@ impl Float {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Float`]: struct.Float.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_exp<Rand: MutRandState>(rng: &mut Rand) -> RandomExpIncomplete<Rand> {

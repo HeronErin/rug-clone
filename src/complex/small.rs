@@ -62,8 +62,8 @@ assert_eq!(*a.real(), -9);
 assert_eq!(*a.imag(), -18.5);
 ```
 
-[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
 [`Complex`]: ../struct.Complex.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html

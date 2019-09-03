@@ -51,8 +51,8 @@ assert_eq!(*a.numer(), -21);
 assert_eq!(*a.denom(), 13);
 ```
 
-[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
 [`Rational`]: ../struct.Rational.html
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html

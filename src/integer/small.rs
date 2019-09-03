@@ -57,8 +57,8 @@ a.lcm_mut(&SmallInteger::from(30));
 assert_eq!(a, 1500);
 ```
 
-[Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-[Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+[Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+[Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
 [`Integer`]: ../struct.Integer.html
 [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
@@ -196,7 +196,7 @@ impl Deref for SmallInteger {
 /// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
 /// [`Assign`]: ../trait.Assign.html
-/// [`From`]: https://doc.rust-lang.org/nightly/std/convert/trait.From.html
+/// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
 /// [`SmallInteger`]: struct.SmallInteger.html
 /// [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
 /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html

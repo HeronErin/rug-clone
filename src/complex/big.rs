@@ -156,9 +156,9 @@ assert_eq!(d, (1, 1));
 ```
 
 [`Nearest`]: float/enum.Round.html#variant.Nearest
-[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
-[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Greater
-[`Ordering::Less`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Less
+[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+[`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
@@ -898,8 +898,8 @@ impl Complex {
     /// assert_eq!(*reneg_c, c);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
     pub fn as_neg(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
@@ -934,8 +934,8 @@ impl Complex {
     /// assert_eq!(*reconj_c, c);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
     pub fn as_conj(&self) -> BorrowComplex<'_> {
         let mut raw = self.inner;
@@ -973,8 +973,8 @@ impl Complex {
     /// assert_eq!(*mul_1_c, c);
     /// ```
     ///
-    /// [Deref]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html
-    /// [Target]: https://doc.rust-lang.org/nightly/std/ops/trait.Deref.html#associatedtype.Target
+    /// [Deref]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html
+    /// [Target]: https://doc.rust-lang.org/nightly/core/ops/trait.Deref.html#associatedtype.Target
     /// [`Complex`]: struct.Complex.html
     /// [`mul_i`]: #method.mul_i
     pub fn as_mul_i(&self, negative: bool) -> BorrowComplex<'_> {
@@ -1042,7 +1042,7 @@ impl Complex {
     /// assert!(!c.eq0());
     /// ```
     ///
-    /// [`eq`]: https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html#tymethod.eq
+    /// [`eq`]: https://doc.rust-lang.org/nightly/core/cmp/trait.PartialEq.html#tymethod.eq
     #[inline]
     pub fn eq0(&self) -> bool {
         self.real().cmp0() == Some(Ordering::Equal) && self.imag().cmp0() == Some(Ordering::Equal)
@@ -1116,8 +1116,8 @@ impl Complex {
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Complex`]: struct.Complex.html
@@ -1176,8 +1176,8 @@ impl Complex {
     /// ```
     ///
     /// [`AddAssignRound`]: ops/trait.AddAssignRound.html
-    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
-    /// [`Add`]: https://doc.rust-lang.org/nightly/std/ops/trait.Add.html
+    /// [`AddAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.AddAssign.html
+    /// [`Add`]: https://doc.rust-lang.org/nightly/core/ops/trait.Add.html
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Complex`]: struct.Complex.html
@@ -3354,7 +3354,7 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Complex`]: struct.Complex.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/std/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [`assign_random_bits`]: #method.assign_random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
