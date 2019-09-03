@@ -386,8 +386,8 @@ impl Rational {
     /// Creates a [`Rational`] number from an [`f32`] if it is
     /// [finite][`f32::is_finite`], losing no precision.
     ///
-    /// If the compiler supports [`TryFrom`], this conversion can also
-    /// be performed using `Rational::try_from(value)`.
+    /// This conversion can also be performed using
+    /// <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>.
     ///
     /// # Examples
     ///
@@ -402,9 +402,9 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`f32::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
         Rational::from_f64(value.into())
@@ -413,8 +413,8 @@ impl Rational {
     /// Creates a [`Rational`] number from an [`f64`] if it is
     /// [finite][`f64::is_finite`], losing no precision.
     ///
-    /// If the compiler supports [`TryFrom`], this conversion can also
-    /// be performed using `Rational::try_from(value)`.
+    /// This conversion can also be performed using
+    /// <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>.
     ///
     /// # Examples
     ///
@@ -429,9 +429,9 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`f64::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
         if value.is_finite() {

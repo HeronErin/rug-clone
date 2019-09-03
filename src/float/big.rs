@@ -904,9 +904,9 @@ impl Float {
     /// If the value is a [finite number][`is_finite`], returns a
     /// [`Rational`] number preserving all the precision of the value.
     ///
-    /// If the compiler supports [`TryFrom`], this conversion can also
-    /// be performed using `Rational::try_from(&float)` or
-    /// `Rational::try_from(float)`.
+    /// This conversion can also be performed using
+    /// <code>[Rational][`Rational`]::[try_from][`try_from`](&amp;float)</code> or
+    /// <code>[Rational][`Rational`]::[try_from][`try_from`](float)</code>.
     ///
     /// # Examples
     ///
@@ -948,8 +948,8 @@ impl Float {
     ///
     /// [`Float`]: struct.Float.html
     /// [`Rational`]: struct.Rational.html
-    /// [`TryFrom`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html
     /// [`is_finite`]: #method.is_finite
+    /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn to_rational(&self) -> Option<Rational> {
         if !self.is_finite() {
