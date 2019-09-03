@@ -5,6 +5,10 @@
 // the copyright notice and this notice are preserved. This file is
 // offered as-is, without any warranty.
 
+#![allow(dead_code)]
+#![allow(unused_variables)]
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+
 use std::{
     env,
     ffi::OsString,

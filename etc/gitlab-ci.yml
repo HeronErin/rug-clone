@@ -71,13 +71,13 @@ nightly-x86_64-gnulinux:
   script:
   - etc/test-gitlab-ci.sh
 
-1.31.1-x86_64-gnulinux:
+1.37.0-x86_64-gnulinux:
   image: amd64/rust:1
   stage: test
   dependencies:
   - clibs-x86_64-gnulinux
   variables:
-    TOOLCHAIN: 1.31.1-x86_64
+    TOOLCHAIN: 1.37.0-x86_64
   script:
   - etc/test-gitlab-ci.sh
 
@@ -167,13 +167,13 @@ nightly-i686-gnulinux:
   script:
   - etc/test-gitlab-ci.sh
 
-1.31.1-i686-gnulinux:
+1.37.0-i686-gnulinux:
   image: i386/rust:1
   stage: test
   dependencies:
   - clibs-i686-gnulinux
   variables:
-    TOOLCHAIN: 1.31.1-i686
+    TOOLCHAIN: 1.37.0-i686
   script:
   - etc/test-gitlab-ci.sh
 

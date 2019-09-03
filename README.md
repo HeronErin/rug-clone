@@ -205,7 +205,7 @@ add it as a dependency inside [*Cargo.toml*]:
 rug = "1.6"
 ```
 
-Rug requires rustc version 1.31.0 or later.
+Rug requires rustc version 1.37.0 or later.
 
 Rug also depends on the [GMP], [MPFR] and [MPC] libraries through the
 low-level FFI bindings in the [gmp-mpfr-sys crate][sys crate], which
