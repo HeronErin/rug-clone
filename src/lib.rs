@@ -98,8 +98,8 @@ Rug types and primitives. The following are provided:
     assignments using the [`Assign`] trait are supported for all the
     primitives in 1 above as well as [`bool`], [`isize`] and
     [`usize`].
- 3. Comparisons between Rug types and all the primitives listed in 1
-    and 2 above are supported.
+ 3. Comparisons between Rug types and all the numeric primitives
+    listed in 1 and 2 above are supported.
  4. For [`Rational`] numbers, conversions and comparisons are also
     supported for tuples containing two integer primitives: the first
     is the numerator and the second is the denominator which must not
