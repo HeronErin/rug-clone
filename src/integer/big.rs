@@ -4899,10 +4899,7 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<Rand: MutRandState>(
-        bits: u32,
-        rng: &mut Rand,
-    ) -> RandomBitsIncomplete<Rand> {
+    pub fn random_bits(bits: u32, rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { bits, rng }
     }
 
@@ -4925,7 +4922,7 @@ impl Integer {
     /// assert!(below < 15);
     /// ```
     #[inline]
-    pub fn random_below<Rand: MutRandState>(mut self, rng: &mut Rand) -> Self {
+    pub fn random_below(mut self, rng: &mut dyn MutRandState) -> Self {
         self.random_below_mut(rng);
         self
     }
@@ -4949,7 +4946,7 @@ impl Integer {
     /// assert!(i < 15);
     /// ```
     #[inline]
-    pub fn random_below_mut<Rand: MutRandState>(&mut self, rng: &mut Rand) {
+    pub fn random_below_mut(&mut self, rng: &mut dyn MutRandState) {
         xmpz::urandomm(self, rng.private().0, None);
     }
 
@@ -4982,10 +4979,10 @@ impl Integer {
     /// [`Integer`]: struct.Integer.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_below_ref<'a, Rand: MutRandState>(
+    pub fn random_below_ref<'a>(
         &'a self,
-        rng: &'a mut Rand,
-    ) -> RandomBelowIncomplete<'a, Rand> {
+        rng: &'a mut dyn MutRandState,
+    ) -> RandomBelowIncomplete<'a> {
         RandomBelowIncomplete {
             ref_self: self,
             rng,
@@ -5469,15 +5466,15 @@ impl Assign<LucasIncomplete> for (Integer, Integer) {
 from_assign! { LucasIncomplete => Integer, Integer }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, Rand: MutRandState> {
+pub struct RandomBitsIncomplete<'a> {
     bits: u32,
-    rng: &'a mut Rand,
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> Assign<RandomBitsIncomplete<'_, Rand>> for Integer {
+impl Assign<RandomBitsIncomplete<'_>> for Integer {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete<Rand>) {
+    fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
             gmp::mpz_urandomb(self.as_raw_mut(), src.rng.private().0, src.bits.into());
         }
@@ -5485,9 +5482,9 @@ impl<Rand: MutRandState> Assign<RandomBitsIncomplete<'_, Rand>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> From<RandomBitsIncomplete<'_, Rand>> for Integer {
+impl From<RandomBitsIncomplete<'_>> for Integer {
     #[inline]
-    fn from(src: RandomBitsIncomplete<Rand>) -> Self {
+    fn from(src: RandomBitsIncomplete) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst
@@ -5495,23 +5492,23 @@ impl<Rand: MutRandState> From<RandomBitsIncomplete<'_, Rand>> for Integer {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomBelowIncomplete<'a, Rand: MutRandState> {
+pub struct RandomBelowIncomplete<'a> {
     ref_self: &'a Integer,
-    rng: &'a mut Rand,
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> Assign<RandomBelowIncomplete<'_, Rand>> for Integer {
+impl Assign<RandomBelowIncomplete<'_>> for Integer {
     #[inline]
-    fn assign(&mut self, src: RandomBelowIncomplete<Rand>) {
+    fn assign(&mut self, src: RandomBelowIncomplete) {
         xmpz::urandomm(self, src.rng.private().0, Some(src.ref_self));
     }
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> From<RandomBelowIncomplete<'_, Rand>> for Integer {
+impl From<RandomBelowIncomplete<'_>> for Integer {
     #[inline]
-    fn from(src: RandomBelowIncomplete<Rand>) -> Self {
+    fn from(src: RandomBelowIncomplete) -> Self {
         let mut dst = Integer::new();
         dst.assign(src);
         dst

@@ -3298,7 +3298,7 @@ impl Complex {
     /// [`Complex`]: struct.Complex.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<Rand: MutRandState>(rng: &mut Rand) -> RandomBitsIncomplete<Rand> {
+    pub fn random_bits(rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { rng }
     }
 
@@ -3358,7 +3358,7 @@ impl Complex {
     /// [`assign_random_bits`]: #method.assign_random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_cont<Rand: MutRandState>(rng: &mut Rand) -> RandomContIncomplete<Rand> {
+    pub fn random_cont(rng: &mut dyn MutRandState) -> RandomContIncomplete {
         RandomContIncomplete { rng }
     }
 }
@@ -3644,30 +3644,30 @@ ref_math_op1_complex! { xmpc::acosh; struct AcoshIncomplete {} }
 ref_math_op1_complex! { xmpc::atanh; struct AtanhIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, Rand: MutRandState> {
-    rng: &'a mut Rand,
+pub struct RandomBitsIncomplete<'a> {
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> Assign<RandomBitsIncomplete<'_, Rand>> for Complex {
+impl Assign<RandomBitsIncomplete<'_>> for Complex {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete<Rand>) {
+    fn assign(&mut self, src: RandomBitsIncomplete) {
         self.mut_real().assign(Float::random_bits(src.rng));
         self.mut_imag().assign(Float::random_bits(src.rng));
     }
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomContIncomplete<'a, Rand: MutRandState> {
-    rng: &'a mut Rand,
+pub struct RandomContIncomplete<'a> {
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> AssignRound<RandomContIncomplete<'_, Rand>> for Complex {
+impl AssignRound<RandomContIncomplete<'_>> for Complex {
     type Round = Round2;
     type Ordering = Ordering2;
     #[inline]
-    fn assign_round(&mut self, src: RandomContIncomplete<Rand>, round: Round2) -> Ordering2 {
+    fn assign_round(&mut self, src: RandomContIncomplete, round: Round2) -> Ordering2 {
         let real_dir = self
             .mut_real()
             .assign_round(Float::random_cont(src.rng), round.0);

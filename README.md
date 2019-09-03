@@ -44,6 +44,18 @@ option) any later version. See the full text of the [GNU LGPL] and
   * Numeric type methods which take [`RandState`] now can also take
     [`ThreadRandState`].
 
+#### Compatibility note
+
+  * The numeric type methods which took
+    <code>&mut [RandState][`RandState`]</code> were changed to take
+    <code>&mut dyn [MutRandState][`MutRandState`]</code> instead.
+    Under normal use, this does not have any affect apart from
+    allowing the use of
+	<code>&mut [ThreadRandState][`ThreadRandState`]</code> as well.
+    With function inlining and optimization, the generated code should
+    be the same even though there is now a fat pointer in use.
+
+[`MutRandState`]: https://docs.rs/rug/~1.6/rug/rand/trait.MutRandState.html
 [`RandState::into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
 [`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
 [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html

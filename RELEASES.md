@@ -19,6 +19,16 @@ Verison 1.6.0 (unreleased)
   * Numeric type methods which take `RandState` now can also take
     `ThreadRandState`.
 
+Compatibility note
+------------------
+
+  * The numeric type methods which took `&mut RandState` were changed
+    to take `&mut dyn MutRandState` instead. Under normal use, this
+    does not have any affect apart from allowing the use of
+	`&mut ThreadRandState` as well. With function inlining and
+    optimization, the generated code should be the same even though
+    there is now a fat pointer in use.
+
 Verison 1.5.2 (2019-07-26)
 ==========================
 

@@ -7813,7 +7813,7 @@ impl Float {
     /// [`Float`]: struct.Float.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_bits<Rand: MutRandState>(rng: &mut Rand) -> RandomBitsIncomplete<Rand> {
+    pub fn random_bits(rng: &mut dyn MutRandState) -> RandomBitsIncomplete {
         RandomBitsIncomplete { rng }
     }
 
@@ -7862,7 +7862,7 @@ impl Float {
     /// [`random_bits`]: #method.random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_cont<Rand: MutRandState>(rng: &mut Rand) -> RandomContIncomplete<Rand> {
+    pub fn random_cont(rng: &mut dyn MutRandState) -> RandomContIncomplete {
         RandomContIncomplete { rng }
     }
 
@@ -7894,7 +7894,7 @@ impl Float {
     /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_normal<Rand: MutRandState>(rng: &mut Rand) -> RandomNormalIncomplete<Rand> {
+    pub fn random_normal(rng: &mut dyn MutRandState) -> RandomNormalIncomplete {
         RandomNormalIncomplete { rng }
     }
 
@@ -7926,7 +7926,7 @@ impl Float {
     /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
-    pub fn random_exp<Rand: MutRandState>(rng: &mut Rand) -> RandomExpIncomplete<Rand> {
+    pub fn random_exp(rng: &mut dyn MutRandState) -> RandomExpIncomplete {
         RandomExpIncomplete { rng }
     }
 }
@@ -8250,14 +8250,14 @@ ref_math_op1_float! { xmpfr::frac; struct FractIncomplete {} }
 ref_math_op1_2_float! { xmpfr::modf; struct TruncFractIncomplete {} }
 
 #[cfg(feature = "rand")]
-pub struct RandomBitsIncomplete<'a, Rand: MutRandState> {
-    rng: &'a mut Rand,
+pub struct RandomBitsIncomplete<'a> {
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> Assign<RandomBitsIncomplete<'_, Rand>> for Float {
+impl Assign<RandomBitsIncomplete<'_>> for Float {
     #[inline]
-    fn assign(&mut self, src: RandomBitsIncomplete<Rand>) {
+    fn assign(&mut self, src: RandomBitsIncomplete) {
         unsafe {
             let err = mpfr::urandomb(self.as_raw_mut(), src.rng.private().0);
             assert_eq!(self.is_nan(), err != 0);
@@ -8266,16 +8266,16 @@ impl<Rand: MutRandState> Assign<RandomBitsIncomplete<'_, Rand>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomContIncomplete<'a, Rand: MutRandState> {
-    rng: &'a mut Rand,
+pub struct RandomContIncomplete<'a> {
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> AssignRound<RandomContIncomplete<'_, Rand>> for Float {
+impl AssignRound<RandomContIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: RandomContIncomplete<Rand>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: RandomContIncomplete, round: Round) -> Ordering {
         let ret =
             unsafe { mpfr::urandom(self.as_raw_mut(), src.rng.private().0, raw_round(round)) };
         ordering1(ret)
@@ -8283,16 +8283,16 @@ impl<Rand: MutRandState> AssignRound<RandomContIncomplete<'_, Rand>> for Float {
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomNormalIncomplete<'a, Rand: MutRandState> {
-    rng: &'a mut Rand,
+pub struct RandomNormalIncomplete<'a> {
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> AssignRound<RandomNormalIncomplete<'_, Rand>> for Float {
+impl AssignRound<RandomNormalIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: RandomNormalIncomplete<Rand>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: RandomNormalIncomplete, round: Round) -> Ordering {
         let ret =
             unsafe { mpfr::nrandom(self.as_raw_mut(), src.rng.private().0, raw_round(round)) };
         ordering1(ret)
@@ -8300,16 +8300,16 @@ impl<Rand: MutRandState> AssignRound<RandomNormalIncomplete<'_, Rand>> for Float
 }
 
 #[cfg(feature = "rand")]
-pub struct RandomExpIncomplete<'a, Rand: MutRandState> {
-    rng: &'a mut Rand,
+pub struct RandomExpIncomplete<'a> {
+    rng: &'a mut dyn MutRandState,
 }
 
 #[cfg(feature = "rand")]
-impl<Rand: MutRandState> AssignRound<RandomExpIncomplete<'_, Rand>> for Float {
+impl AssignRound<RandomExpIncomplete<'_>> for Float {
     type Round = Round;
     type Ordering = Ordering;
     #[inline]
-    fn assign_round(&mut self, src: RandomExpIncomplete<Rand>, round: Round) -> Ordering {
+    fn assign_round(&mut self, src: RandomExpIncomplete, round: Round) -> Ordering {
         let ret =
             unsafe { mpfr::erandom(self.as_raw_mut(), src.rng.private().0, raw_round(round)) };
         ordering1(ret)
