@@ -37,12 +37,14 @@ option) any later version. See the full text of the [GNU LGPL] and
     [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
     existing implementations for [`i32`] and [`u32`].
   * The function [`float::free_cache`] was added.
+  * The method [`RandState::into_custom_boxed`] was added.
   * [`ThreadRandState`] and [`ThreadRandGen`] were added to the
     [`rand`] module to enable the use of custom random generators that
     are not [`Send`] and [`Sync`].
   * Numeric type methods which take [`RandState`] now can also take
     [`ThreadRandState`].
 
+[`RandState::into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
 [`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
 [`Send`]: https://doc.rust-lang.org/nightly/std/marker/trait.Send.html
 [`Sync`]: https://doc.rust-lang.org/nightly/std/marker/trait.Sync.html

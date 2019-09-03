@@ -51,6 +51,7 @@ let u = rand.bits(32);
 println!("32 random bits: {:032b}", u);
 ```
 */
+#[derive(Debug)]
 #[repr(transparent)]
 pub struct RandState<'a> {
     inner: randstate_t,
@@ -230,7 +231,7 @@ impl RandState<'_> {
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
     ///         // not really random
-    ///         0x8cef7310
+    ///         0x8CEF_7310
     ///     }
     /// }
     /// let mut seed = Seed;
@@ -278,7 +279,7 @@ impl RandState<'_> {
     /// impl RandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
     ///         // not really random
-    ///         0x8cef7310
+    ///         0x8CEF_7310
     ///     }
     /// }
     /// let seed = Box::new(Seed);
@@ -465,6 +466,53 @@ impl RandState<'_> {
         &mut self.inner
     }
 
+    /// Converts a random generator into
+    /// <code>[Box][`Box`]&lt;dyn [RandGen][`RandGen`]&gt;</code>
+    /// if possible.
+    ///
+    /// If the conversion is not possible,
+    /// <code>[Err][`Err`](self)</code> is returned.
+    ///
+    /// This conversion is always possible when the random generator
+    /// was created with [`new_custom_boxed`]. It is also possible if
+    /// the generator was cloned, directly or indirectly, from another
+    /// generator that was created with [`new_custom`] or
+    /// [`new_custom_boxed`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::{RandGen, RandState};
+    /// struct Seed;
+    /// impl RandGen for Seed {
+    ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
+    ///         0x8CEF_7310
+    ///     }
+    /// }
+    /// let seed = Box::new(Seed);
+    /// let rand = RandState::new_custom_boxed(seed);
+    /// let mut back_to_seed = rand.into_custom_boxed().unwrap();
+    /// assert_eq!(back_to_seed.gen(), 0x8CEF_7310);
+    /// ```
+    ///
+    /// [`Box`]: https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html
+    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
+    /// [`RandGen`]: trait.RandGen.html
+    /// [`RandState::into_custom_boxed`]: struct.RandState.html#method.into_custom_boxed
+    /// [`new_custom_boxed`]: #method.new_custom_boxed
+    /// [`new_custom`]: #method.new_custom
+    #[inline]
+    pub fn into_custom_boxed(self) -> Result<Box<dyn RandGen>, Self> {
+        if !ptr::eq(self.inner.algdata as *const Funcs, &CUSTOM_BOXED_FUNCS) {
+            return Err(self);
+        }
+        let r_ptr = self.inner.seed.d as *mut Box<dyn RandGen>;
+        mem::forget(self);
+        let boxed_box: Box<Box<dyn RandGen>> = unsafe { Box::from_raw(r_ptr) };
+        Ok(*boxed_box)
+    }
+
     /// Seeds the random generator.
     ///
     /// # Examples
@@ -564,6 +612,7 @@ println!("32 random bits: {:032b}", u);
 
 [`RandState`]: struct.RandState.html
 */
+#[derive(Debug)]
 #[repr(transparent)]
 pub struct ThreadRandState<'a> {
     inner: randstate_t,
@@ -617,7 +666,7 @@ impl ThreadRandState<'_> {
     /// impl ThreadRandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
     ///         // not really random
-    ///         0x8cef7310
+    ///         0x8CEF_7310
     ///     }
     /// }
     /// let mut seed = Seed(&());
@@ -668,7 +717,7 @@ impl ThreadRandState<'_> {
     /// impl ThreadRandGen for Seed {
     ///     fn gen(&mut self) -> u32 {
     ///         // not really random
-    ///         0x8cef7310
+    ///         0x8CEF_7310
     ///     }
     /// }
     /// let seed = Box::new(Seed(&()));
@@ -900,6 +949,58 @@ impl ThreadRandState<'_> {
     #[inline]
     pub fn as_raw_mut(&mut self) -> *mut randstate_t {
         &mut self.inner
+    }
+
+    /// Converts a random generator into
+    /// <code>[Box][`Box`]&lt;dyn [ThreadRandGen][`ThreadRandGen`]&gt;</code>
+    /// if possible.
+    ///
+    /// If the conversion is not possible,
+    /// <code>[Err][`Err`](self)</code> is returned.
+    ///
+    /// This conversion is always possible when the random generator
+    /// was created with [`new_custom_boxed`]. It is also possible if
+    /// the generator was cloned, directly or indirectly, from another
+    /// generator that was created with [`new_custom`] or
+    /// [`new_custom_boxed`].
+    ///
+    /// This is similar to [`RandState::into_custom_boxed`].
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::rand::{ThreadRandGen, ThreadRandState};
+    /// struct Seed;
+    /// impl ThreadRandGen for Seed {
+    ///     fn gen(&mut self) -> u32 {
+    ///         // not really random
+    ///         0x8CEF_7310
+    ///     }
+    /// }
+    /// let seed = Box::new(Seed);
+    /// let rand = ThreadRandState::new_custom_boxed(seed);
+    /// let mut back_to_seed = rand.into_custom_boxed().unwrap();
+    /// assert_eq!(back_to_seed.gen(), 0x8CEF_7310);
+    /// ```
+    ///
+    /// [`Box`]: https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html
+    /// [`Err`]: https://doc.rust-lang.org/nightly/core/result/enum.Result.html#variant.Err
+    /// [`RandState::into_custom_boxed`]: struct.RandState.html#method.into_custom_boxed
+    /// [`ThreadRandGen`]: trait.ThreadRandGen.html
+    /// [`new_custom_boxed`]: #method.new_custom_boxed
+    /// [`new_custom`]: #method.new_custom
+    #[inline]
+    pub fn into_custom_boxed(self) -> Result<Box<dyn ThreadRandGen>, Self> {
+        if !ptr::eq(
+            self.inner.algdata as *const Funcs,
+            &THREAD_CUSTOM_BOXED_FUNCS,
+        ) {
+            return Err(self);
+        }
+        let r_ptr = self.inner.seed.d as *mut Box<dyn ThreadRandGen>;
+        mem::forget(self);
+        let boxed_box: Box<Box<dyn ThreadRandGen>> = unsafe { Box::from_raw(r_ptr) };
+        Ok(*boxed_box)
     }
 
     /// Seeds the random generator.
