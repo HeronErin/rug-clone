@@ -1331,7 +1331,7 @@ This is similar to [`RandGen`] but can only be used in a single thread.
 
 ```rust
 # #[cfg(skip_this)]
-use rand::{rngs::ThreadRng, thread_rng};
+use rand::{rngs::ThreadRng, thread_rng, RngCore};
 # struct ThreadRng(*const i32, u32);
 # impl ThreadRng {
 #     pub fn next_u32(&mut self) -> u32 { self.1 = self.1.wrapping_add(1); self.1 }
@@ -1356,7 +1356,7 @@ This would not compile, since `ThreadRng` is not [`Send`] and not
 
 ```compile_fail
 # #[cfg(skip_this)]
-use rand::{rngs::ThreadRng, thread_rng};
+use rand::{rngs::ThreadRng, thread_rng, RngCore};
 # struct ThreadRng(*const i32, u32);
 # impl ThreadRng {
 #     pub fn next_u32(&mut self) -> u32 { self.1 = self.1.wrapping_add(1); self.1 }
