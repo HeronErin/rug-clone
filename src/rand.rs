@@ -16,6 +16,35 @@
 
 /*!
 Random number generation.
+
+This module provides two main structs.
+
+ 1. [`RandState`] is thread safe and can be shared and sent across threads.
+ 2. [`ThreadRandState`] is suitable for use in a single thread.
+
+[`RandState`] has constructors for Mersenne Twister and for linear
+congruential random number generators. It can also be constructed
+using a custom random number generator implementing the [`RandGen`]
+trait, which has to implement [`Send`] and [`Sync`] too.
+
+If you need a custom random number generator that cannot be shared or
+sent across threads, you can use [`ThreadRandState`] instead.
+[`ThreadRandState`] can be constructed using a custom random number
+generator implementing the [`ThreadRandGen`] trait, which does *not*
+have to implement [`Send`] or [`Sync`].
+
+Both [`RandState`] and [`ThreadRandState`] implement the
+[`MutRandState`] trait so that they can be used with methods like
+[`Integer::random_below`].
+
+[`Integer::random_below`]: ../struct.Integer.html#method.random_below
+[`MutRandState`]: trait.MutRandState.html
+[`RandGen`]: trait.RandGen.html
+[`RandState`]: struct.RandState.html
+[`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
+[`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
+[`ThreadRandGen`]: trait.ThreadRandGen.html
+[`ThreadRandState`]: struct.ThreadRandState.html
 */
 
 // UNDEFINED BEHAVIOR WARNING:
@@ -1723,7 +1752,8 @@ static THREAD_CUSTOM_BOXED_FUNCS: Funcs = Funcs {
     iset: Some(thread_custom_boxed_iset),
 };
 
-/// Used to generate random numbers.
+/// Used to pass the state of random number generators by mutable
+/// reference.
 ///
 /// This trait is implemented by
 ///   1. [`RandState`], which is thread safe and implements [`Send`]
