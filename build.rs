@@ -28,7 +28,6 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    env.check_feature("try_from", TRY_TRY_FROM, Some("try_from"));
     env.check_feature("maybe_uninit", TRY_MAYBE_UNINIT, Some("maybe_uninit"));
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
@@ -164,13 +163,6 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
     file.write_all(contents.as_bytes())
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }
-
-const TRY_TRY_FROM: &str = r#"// try_try_from.rs
-use std::convert::TryFrom;
-fn main() {
-    let _ = i8::try_from(1u64);
-}
-"#;
 
 const TRY_MAYBE_UNINIT: &str = r#"// try_maybe_uninit.rs
 use std::mem::MaybeUninit;

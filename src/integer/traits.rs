@@ -16,19 +16,16 @@
 
 use crate::{
     ext::xmpz,
-    integer::{big, ParseIntegerError},
+    integer::{big, ParseIntegerError, TryFromIntegerError},
     Assign, Integer,
 };
 use std::{
+    convert::TryFrom,
+    error::Error,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
     hash::{Hash, Hasher},
     mem,
     str::FromStr,
-};
-#[cfg(try_from)]
-use {
-    crate::integer::TryFromIntegerError,
-    std::{convert::TryFrom, error::Error},
 };
 
 impl Default for Integer {
@@ -94,7 +91,6 @@ impl From<&Integer> for Integer {
 
 macro_rules! try_from {
     ($T:ty, $method:ident) => {
-        #[cfg(try_from)]
         impl TryFrom<Integer> for $T {
             type Error = TryFromIntegerError;
             #[inline]
@@ -102,7 +98,7 @@ macro_rules! try_from {
                 TryFrom::try_from(&value)
             }
         }
-        #[cfg(try_from)]
+
         impl TryFrom<&Integer> for $T {
             type Error = TryFromIntegerError;
             #[inline]
@@ -260,14 +256,12 @@ fn fmt_radix(
     f.pad_integral(!neg, prefix, buf)
 }
 
-#[cfg(try_from)]
 impl Error for TryFromIntegerError {
     fn description(&self) -> &str {
         "out of range conversion attempted"
     }
 }
 
-#[cfg(try_from)]
 impl Display for TryFromIntegerError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Display::fmt(self.description(), f)
@@ -281,7 +275,6 @@ unsafe impl Sync for Integer {}
 #[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{Assign, Integer};
-    #[cfg(try_from)]
     use std::convert::TryFrom;
 
     #[test]
@@ -295,7 +288,6 @@ mod tests {
         assert_eq!(i, -2);
     }
 
-    #[cfg(try_from)]
     macro_rules! check_fallible_conversions_helper {
         ($int:ident, $bits:expr, $I:ty, $U:ty) => {{
             const I_MIN: $I = -1 << ($bits - 1);
@@ -322,7 +314,6 @@ mod tests {
         }};
     }
 
-    #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
         let mut int = Integer::new();

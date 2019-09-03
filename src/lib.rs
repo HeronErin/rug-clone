@@ -399,7 +399,6 @@ provided by the crate.
 #![doc(html_logo_url = "https://tspiteri.gitlab.io/gmp-mpfr-sys/rug.svg")]
 #![doc(test(attr(deny(warnings))))]
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(nightly_try_from, feature(try_from))]
 #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
 // allowed to deal with e.g. 1i32.into(): c_long which can be i32 or i64
 #![allow(clippy::identity_conversion)]
@@ -492,7 +491,7 @@ fn _static_assertions() {
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
-    #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
+    #[cfg(any(feature = "rational", feature = "float"))]
     use std::{f32, f64};
     use std::{i128, i16, i32, i64, i8, u128, u16, u32, u64, u8};
 
@@ -556,7 +555,7 @@ mod tests {
         u64::MAX as i128 + 1,
         i128::MAX,
     ];
-    #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
+    #[cfg(any(feature = "rational", feature = "float"))]
     pub const F32: &[f32] = &[
         -f32::NAN,
         f32::NEG_INFINITY,
@@ -579,7 +578,7 @@ mod tests {
         f32::INFINITY,
         f32::NAN,
     ];
-    #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]
+    #[cfg(any(feature = "rational", feature = "float"))]
     pub const F64: &[f64] = &[
         -f64::NAN,
         f64::NEG_INFINITY,

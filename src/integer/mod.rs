@@ -54,7 +54,6 @@ pub use crate::integer::{
 
 use std::os::raw::c_int;
 
-#[cfg(try_from)]
 /**
 An error which can be returned when a checked conversion from
 [`Integer`] fails.
@@ -62,9 +61,6 @@ An error which can be returned when a checked conversion from
 # Examples
 
 ```rust
-# #![cfg_attr(nightly_try_from, feature(try_from))]
-# fn main() {
-# #[cfg(try_from)] {
 use rug::{integer::TryFromIntegerError, Integer};
 use std::convert::TryFrom;
 // This is negative and cannot be converted to u32.
@@ -74,13 +70,10 @@ let error: TryFromIntegerError = match u32::try_from(&i) {
     Err(error) => error,
 };
 println!("Error: {}", error);
-# }
-# }
 ```
 
 [`Integer`]: ../struct.Integer.html
 */
-#[allow(clippy::needless_doctest_main)]
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromIntegerError {
     _unused: (),

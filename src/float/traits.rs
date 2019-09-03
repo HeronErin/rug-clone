@@ -16,8 +16,6 @@
 
 #[cfg(feature = "integer")]
 use crate::Integer;
-#[cfg(feature = "rational")]
-use crate::Rational;
 use crate::{
     ext::xmpfr::{self, ordering1, raw_round},
     float::{
@@ -38,8 +36,11 @@ use std::{
     mem,
     os::raw::{c_long, c_ulong},
 };
-#[cfg(all(try_from, feature = "rational"))]
-use {crate::rational::TryFromFloatError, std::convert::TryFrom};
+#[cfg(feature = "rational")]
+use {
+    crate::{rational::TryFromFloatError, Rational},
+    std::convert::TryFrom,
+};
 
 impl Clone for Float {
     #[inline]
@@ -331,7 +332,7 @@ conv_ops_cast! { usize, u64 }
 conv_ops! { f32, xmpfr::set_f32 }
 conv_ops! { f64, xmpfr::set_f64 }
 
-#[cfg(all(try_from, feature = "rational"))]
+#[cfg(feature = "rational")]
 impl TryFrom<Float> for Rational {
     type Error = TryFromFloatError;
     #[inline]
@@ -340,7 +341,7 @@ impl TryFrom<Float> for Rational {
     }
 }
 
-#[cfg(all(try_from, feature = "rational"))]
+#[cfg(feature = "rational")]
 impl TryFrom<&Float> for Rational {
     type Error = TryFromFloatError;
     #[inline]
@@ -399,7 +400,7 @@ mod tests {
         float::free_cache(FreeCache::All);
     }
 
-    #[cfg(all(try_from, feature = "rational"))]
+    #[cfg(feature = "rational")]
     #[test]
     fn check_fallible_conversions() {
         use crate::{float::Special, Float, Rational};

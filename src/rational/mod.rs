@@ -34,7 +34,6 @@ mod traits;
 pub use crate::rational::big::ParseRationalError;
 pub use crate::rational::small::SmallRational;
 
-#[cfg(try_from)]
 /**
 An error which can be returned when a checked conversion from a
 floating-point number to a [`Rational`] number fails.
@@ -42,9 +41,6 @@ floating-point number to a [`Rational`] number fails.
 # Examples
 
 ```rust
-# #![cfg_attr(nightly_try_from, feature(try_from))]
-# fn main() {
-# #[cfg(try_from)] {
 use rug::{rational::TryFromFloatError, Rational};
 use std::convert::TryFrom;
 // This is not finite and cannot be converted to Rational.
@@ -54,13 +50,10 @@ let error: TryFromFloatError = match Rational::try_from(inf) {
     Err(error) => error,
 };
 println!("Error: {}", error);
-# }
-# }
 ```
 
 [`Rational`]: ../struct.Rational.html
 */
-#[allow(clippy::needless_doctest_main)]
 #[derive(Clone, Copy, Debug)]
 pub struct TryFromFloatError {
     pub(crate) _unused: (),

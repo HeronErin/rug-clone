@@ -16,21 +16,18 @@
 
 use crate::{
     ext::{xmpq, xmpz},
-    rational::{big, ParseRationalError},
+    rational::{big, ParseRationalError, TryFromFloatError},
     Assign, Integer, Rational,
 };
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::{
     cmp::Ordering,
+    convert::TryFrom,
+    error::Error,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
     hash::{Hash, Hasher},
     mem,
     str::FromStr,
-};
-#[cfg(try_from)]
-use {
-    crate::rational::TryFromFloatError,
-    std::{convert::TryFrom, error::Error},
 };
 
 impl Default for Rational {
@@ -243,7 +240,6 @@ where
     }
 }
 
-#[cfg(try_from)]
 impl TryFrom<f32> for Rational {
     type Error = TryFromFloatError;
     #[inline]
@@ -252,7 +248,6 @@ impl TryFrom<f32> for Rational {
     }
 }
 
-#[cfg(try_from)]
 impl TryFrom<f64> for Rational {
     type Error = TryFromFloatError;
     #[inline]
@@ -275,14 +270,12 @@ fn fmt_radix(
     f.pad_integral(!neg, prefix, buf)
 }
 
-#[cfg(try_from)]
 impl Error for TryFromFloatError {
     fn description(&self) -> &str {
         "conversion of infinite or NaN value attempted"
     }
 }
 
-#[cfg(try_from)]
 impl Display for TryFromFloatError {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         Display::fmt(self.description(), f)
@@ -296,7 +289,6 @@ unsafe impl Sync for Rational {}
 #[allow(clippy::float_cmp)]
 mod tests {
     use crate::{Assign, Rational};
-    #[cfg(try_from)]
     use std::convert::TryFrom;
 
     #[test]
@@ -310,7 +302,6 @@ mod tests {
         assert_eq!(r, (2, 3));
     }
 
-    #[cfg(try_from)]
     #[test]
     fn check_fallible_conversions() {
         use crate::tests::{F32, F64};
