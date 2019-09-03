@@ -29,7 +29,7 @@ Random number generation.
 // eventually released.
 
 use crate::{cast, Integer};
-use gmp_mpfr_sys::gmp::{self, randstate_t};
+use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randstate_t};
 #[cfg(not(ffi_panic_aborts))]
 use std::panic::{self, AssertUnwindSafe};
 use std::{
@@ -248,10 +248,10 @@ impl RandState<'_> {
         let b: Box<&mut dyn RandGen> = Box::new(custom);
         let r_ptr: *mut &mut dyn RandGen = Box::into_raw(b);
         let inner = randstate_t {
-            seed: gmp::mpz_t {
+            seed: mpz_t {
                 alloc: 0,
                 size: 0,
-                d: r_ptr as *mut gmp::limb_t,
+                d: r_ptr as *mut limb_t,
             },
             alg: 0,
             algdata: &CUSTOM_FUNCS as *const Funcs as *mut c_void,
@@ -296,10 +296,10 @@ impl RandState<'_> {
         let b: Box<Box<dyn RandGen>> = Box::new(custom);
         let r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
         let inner = randstate_t {
-            seed: gmp::mpz_t {
+            seed: mpz_t {
                 alloc: 0,
                 size: 0,
-                d: r_ptr as *mut gmp::limb_t,
+                d: r_ptr as *mut limb_t,
             },
             alg: 0,
             algdata: &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
@@ -316,21 +316,18 @@ impl RandState<'_> {
     /// # Safety
     ///
     ///   * The value must be initialized. Note that the GMP functions
-    ///     do not initialize all fields of the
-    ///     [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] object,
-    ///     which can eventually lead to reading uninitialized memory,
-    ///     and that is undefined behaviour in Rust even if no
+    ///     do not initialize all fields of the [`randstate_t`]
+    ///     object, which can eventually lead to reading uninitialized
+    ///     memory, and that is undefined behaviour in Rust even if no
     ///     decision is made using the read value. One way to ensure
     ///     that there is no uninitialized memory inside `raw` is to
     ///     use [`MaybeUninit::zeroed`] to initialize `raw` before
-    ///     initializing with a function such as
-    ///     [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
+    ///     initializing with a function such as [`randinit_default`],
     ///     like in the example below.
-    ///   * The [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] type
-    ///     can be considered as a kind of pointer, so there can be
-    ///     multiple copies of it. Since this function takes over
-    ///     ownership, no other copies of the passed value should
-    ///     exist.
+    ///   * The [`randstate_t`] type can be considered as a kind of
+    ///     pointer, so there can be multiple copies of it. Since this
+    ///     function takes over ownership, no other copies of the
+    ///     passed value should exist.
     ///   * The object must be thread safe.
     ///
     /// # Examples
@@ -685,10 +682,10 @@ impl ThreadRandState<'_> {
         let b: Box<&mut dyn ThreadRandGen> = Box::new(custom);
         let r_ptr: *mut &mut dyn ThreadRandGen = Box::into_raw(b);
         let inner = randstate_t {
-            seed: gmp::mpz_t {
+            seed: mpz_t {
                 alloc: 0,
                 size: 0,
-                d: r_ptr as *mut gmp::limb_t,
+                d: r_ptr as *mut limb_t,
             },
             alg: 0,
             algdata: &THREAD_CUSTOM_FUNCS as *const Funcs as *mut c_void,
@@ -736,10 +733,10 @@ impl ThreadRandState<'_> {
         let b: Box<Box<dyn ThreadRandGen>> = Box::new(custom);
         let r_ptr: *mut Box<dyn ThreadRandGen> = Box::into_raw(b);
         let inner = randstate_t {
-            seed: gmp::mpz_t {
+            seed: mpz_t {
                 alloc: 0,
                 size: 0,
-                d: r_ptr as *mut gmp::limb_t,
+                d: r_ptr as *mut limb_t,
             },
             alg: 0,
             algdata: &THREAD_CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void,
@@ -762,21 +759,18 @@ impl ThreadRandState<'_> {
     /// # Safety
     ///
     ///   * The value must be initialized. Note that the GMP functions
-    ///     do not initialize all fields of the
-    ///     [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] object,
-    ///     which can eventually lead to reading uninitialized memory,
-    ///     and that is undefined behaviour in Rust even if no
+    ///     do not initialize all fields of the [`randstate_t`]
+    ///     object, which can eventually lead to reading uninitialized
+    ///     memory, and that is undefined behaviour in Rust even if no
     ///     decision is made using the read value. One way to ensure
     ///     that there is no uninitialized memory inside `raw` is to
     ///     use [`MaybeUninit::zeroed`] to initialize `raw` before
-    ///     initializing with a function such as
-    ///     [`gmp_mpfr_sys::gmp::randinit_default`][`randinit_default`],
+    ///     initializing with a function such as [`randinit_default`],
     ///     like in the example below.
-    ///   * The [`gmp_mpfr_sys::gmp::randstate_t`][`randstate_t`] type
-    ///     can be considered as a kind of pointer, so there can be
-    ///     multiple copies of it. Since this function takes over
-    ///     ownership, no other copies of the passed value should
-    ///     exist.
+    ///   * The [`randstate_t`] type can be considered as a kind of
+    ///     pointer, so there can be multiple copies of it. Since this
+    ///     function takes over ownership, no other copies of the
+    ///     passed value should exist.
     ///
     /// # Examples
     ///
@@ -1448,11 +1442,12 @@ fn _static_assertions() {
 }
 
 #[repr(C)]
+#[derive(Clone, Copy, Debug)]
 struct Funcs {
-    seed: Option<unsafe extern "C" fn(*mut randstate_t, *const gmp::mpz_t)>,
-    get: Option<unsafe extern "C" fn(*mut randstate_t, *mut gmp::limb_t, c_ulong)>,
-    clear: Option<unsafe extern "C" fn(*mut randstate_t)>,
-    iset: Option<unsafe extern "C" fn(*mut randstate_t, *const randstate_t)>,
+    seed: Option<unsafe extern "C" fn(rstate: *mut randstate_t, seed: *const mpz_t)>,
+    get: Option<unsafe extern "C" fn(rstate: *mut randstate_t, dest: *mut limb_t, nbits: c_ulong)>,
+    clear: Option<unsafe extern "C" fn(rstate: *mut randstate_t)>,
+    iset: Option<unsafe extern "C" fn(dst: *mut randstate_t, src: *const randstate_t)>,
 }
 
 #[cfg(not(ffi_panic_aborts))]
@@ -1473,11 +1468,11 @@ macro_rules! c_callback {
 }
 
 // abort functions do not need a wrapper to abort on panic, they never panic and always abort
-unsafe extern "C" fn abort_seed(_: *mut randstate_t, _: *const gmp::mpz_t) {
+unsafe extern "C" fn abort_seed(_: *mut randstate_t, _: *const mpz_t) {
     process::abort();
 }
 
-unsafe extern "C" fn abort_get(_: *mut randstate_t, _: *mut gmp::limb_t, _: c_ulong) {
+unsafe extern "C" fn abort_get(_: *mut randstate_t, _: *mut limb_t, _: c_ulong) {
     process::abort();
 }
 
@@ -1490,12 +1485,12 @@ unsafe extern "C" fn abort_iset(_: *mut randstate_t, _: *const randstate_t) {
 }
 
 c_callback! {
-    fn custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+    fn custom_seed(s: *mut randstate_t, seed: *const mpz_t) {
         let r_ptr = (*s).seed.d as *mut &mut dyn RandGen;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
-    fn custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
+    fn custom_get(s: *mut randstate_t, limb: *mut limb_t, bits: c_ulong) {
         let r_ptr = (*s).seed.d as *mut &mut dyn RandGen;
         gen_bits(*r_ptr, limb, bits);
     }
@@ -1510,14 +1505,14 @@ c_callback! {
         gen_copy(*r_ptr, dst);
     }
 
-    fn custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+    fn custom_boxed_seed(s: *mut randstate_t, seed: *const mpz_t) {
         let r_ptr = (*s).seed.d as *mut Box<dyn RandGen>;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
     fn custom_boxed_get(
         s: *mut randstate_t,
-        limb: *mut gmp::limb_t,
+        limb: *mut limb_t,
         bits: c_ulong,
     ) {
         let r_ptr = (*s).seed.d as *mut Box<dyn RandGen>;
@@ -1534,12 +1529,12 @@ c_callback! {
         gen_copy(&**r_ptr, dst);
     }
 
-    fn thread_custom_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+    fn thread_custom_seed(s: *mut randstate_t, seed: *const mpz_t) {
         let r_ptr = (*s).seed.d as *mut &mut dyn ThreadRandGen;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
-    fn thread_custom_get(s: *mut randstate_t, limb: *mut gmp::limb_t, bits: c_ulong) {
+    fn thread_custom_get(s: *mut randstate_t, limb: *mut limb_t, bits: c_ulong) {
         let r_ptr = (*s).seed.d as *mut &mut dyn ThreadRandGen;
         thread_gen_bits(*r_ptr, limb, bits);
     }
@@ -1554,14 +1549,14 @@ c_callback! {
         thread_gen_copy(*r_ptr, dst);
     }
 
-    fn thread_custom_boxed_seed(s: *mut randstate_t, seed: *const gmp::mpz_t) {
+    fn thread_custom_boxed_seed(s: *mut randstate_t, seed: *const mpz_t) {
         let r_ptr = (*s).seed.d as *mut Box<dyn ThreadRandGen>;
         (*r_ptr).seed(&*cast_ptr!(seed, Integer));
     }
 
     fn thread_custom_boxed_get(
         s: *mut randstate_t,
-        limb: *mut gmp::limb_t,
+        limb: *mut limb_t,
         bits: c_ulong,
     ) {
         let r_ptr = (*s).seed.d as *mut Box<dyn ThreadRandGen>;
@@ -1580,7 +1575,7 @@ c_callback! {
 }
 
 #[cfg(gmp_limb_bits_64)]
-unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 64, bits % 64);
     let limbs: isize = cast::cast(limbs);
     for i in 0..limbs {
@@ -1602,7 +1597,7 @@ unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong)
 }
 
 #[cfg(gmp_limb_bits_32)]
-unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 32, bits % 32);
     let limbs: isize = cast::cast(limbs);
     for i in 0..limbs {
@@ -1626,10 +1621,10 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
         (ptr::null_mut(), &ABORT_FUNCS as *const Funcs as *mut c_void)
     };
     *dst = randstate_t {
-        seed: gmp::mpz_t {
+        seed: mpz_t {
             alloc: 0,
             size: 0,
-            d: dst_r_ptr as *mut gmp::limb_t,
+            d: dst_r_ptr as *mut limb_t,
         },
         alg: 0,
         algdata: funcs,
@@ -1637,7 +1632,7 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
 }
 
 #[cfg(gmp_limb_bits_64)]
-unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 64, bits % 64);
     let limbs: isize = cast::cast(limbs);
     for i in 0..limbs {
@@ -1659,7 +1654,7 @@ unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut gmp::limb_t, b
 }
 
 #[cfg(gmp_limb_bits_32)]
-unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut gmp::limb_t, bits: c_ulong) {
+unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 32, bits % 32);
     let limbs: isize = cast::cast(limbs);
     for i in 0..limbs {
@@ -1683,10 +1678,10 @@ unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
         (ptr::null_mut(), &ABORT_FUNCS as *const Funcs as *mut c_void)
     };
     *dst = randstate_t {
-        seed: gmp::mpz_t {
+        seed: mpz_t {
             alloc: 0,
             size: 0,
-            d: dst_r_ptr as *mut gmp::limb_t,
+            d: dst_r_ptr as *mut limb_t,
         },
         alg: 0,
         algdata: funcs,
