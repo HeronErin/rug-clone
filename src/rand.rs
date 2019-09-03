@@ -1615,10 +1615,9 @@ unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut gmp::limb_t, bits: c_ulong)
 }
 
 unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
-    let other = gen.boxed_clone();
-    // Do not panic here if other is None, as panics cannot cross FFI
-    // boundareies. Instead, set dst_ptr.seed.d to null.
-    let (dst_r_ptr, funcs) = if let Some(other) = other {
+    // Do not panic here if boxed_clone returns None, as panics cannot
+    // cross FFI boundaries. Instead, set dst_ptr.seed.d to null.
+    let (dst_r_ptr, funcs) = if let Some(other) = gen.boxed_clone() {
         let b: Box<Box<dyn RandGen>> = Box::new(other);
         let dst_r_ptr: *mut Box<dyn RandGen> = Box::into_raw(b);
         let funcs = &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
@@ -1673,13 +1672,12 @@ unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut gmp::limb_t, b
 }
 
 unsafe fn thread_gen_copy(gen: &dyn ThreadRandGen, dst: *mut randstate_t) {
-    let other = gen.boxed_clone();
-    // Do not panic here if other is None, as panics cannot cross FFI
-    // boundareies. Instead, set dst_ptr.seed.d to null.
-    let (dst_r_ptr, funcs) = if let Some(other) = other {
+    // Do not panic here if boxed_clone returns None, as panics cannot
+    // cross FFI boundaries. Instead, set dst_ptr.seed.d to null.
+    let (dst_r_ptr, funcs) = if let Some(other) = gen.boxed_clone() {
         let b: Box<Box<dyn ThreadRandGen>> = Box::new(other);
         let dst_r_ptr: *mut Box<dyn ThreadRandGen> = Box::into_raw(b);
-        let funcs = &CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
+        let funcs = &THREAD_CUSTOM_BOXED_FUNCS as *const Funcs as *mut c_void;
         (dst_r_ptr, funcs)
     } else {
         (ptr::null_mut(), &ABORT_FUNCS as *const Funcs as *mut c_void)
