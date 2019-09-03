@@ -17,7 +17,7 @@
 use crate::{
     ext::xmpfr::{self, raw_round},
     float::Round,
-    misc::{AsOrPanic, Limbs, MaybeLimb, NegAbs},
+    misc::{AsOrPanic, NegAbs},
     Assign, Float,
 };
 use az::Az;
@@ -26,11 +26,14 @@ use gmp_mpfr_sys::{
     mpfr::{self, exp_t, mpfr_t, prec_t},
 };
 use std::{
-    mem,
+    mem::{self, MaybeUninit},
     ops::Deref,
     os::raw::c_int,
     sync::atomic::{AtomicPtr, Ordering},
 };
+
+const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
+type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 
 /**
 A small float that does not require any memory allocation.
@@ -234,7 +237,7 @@ macro_rules! unsigned_32 {
                 } else {
                     let leading = self.leading_zeros();
                     let limb_leading = leading + gmp::LIMB_BITS.az::<u32>() - $bits;
-                    limbs[0] = MaybeLimb::new(limb_t::from(self) << limb_leading);
+                    limbs[0] = MaybeUninit::new(limb_t::from(self) << limb_leading);
                     let exp = $bits - leading;
                     xmpfr::custom_regular(ptr, limbs_ptr, exp.as_or_panic(), $bits);
                 }
@@ -262,12 +265,12 @@ impl SealedToSmall for u64 {
             let sval = self << leading;
             #[cfg(gmp_limb_bits_64)]
             {
-                limbs[0] = MaybeLimb::new(sval);
+                limbs[0] = MaybeUninit::new(sval);
             }
             #[cfg(gmp_limb_bits_32)]
             {
-                limbs[0] = MaybeLimb::new(sval as u32);
-                limbs[1] = MaybeLimb::new((sval >> 32) as u32);
+                limbs[0] = MaybeUninit::new(sval as u32);
+                limbs[1] = MaybeUninit::new((sval >> 32) as u32);
             }
             xmpfr::custom_regular(ptr, limbs_ptr, (64 - leading).as_or_panic(), 64);
         }
@@ -287,15 +290,15 @@ impl SealedToSmall for u128 {
             let sval = self << leading;
             #[cfg(gmp_limb_bits_64)]
             {
-                limbs[0] = MaybeLimb::new(sval as u64);
-                limbs[1] = MaybeLimb::new((sval >> 64) as u64);
+                limbs[0] = MaybeUninit::new(sval as u64);
+                limbs[1] = MaybeUninit::new((sval >> 64) as u64);
             }
             #[cfg(gmp_limb_bits_32)]
             {
-                limbs[0] = MaybeLimb::new(sval as u32);
-                limbs[1] = MaybeLimb::new((sval >> 32) as u32);
-                limbs[2] = MaybeLimb::new((sval >> 64) as u32);
-                limbs[3] = MaybeLimb::new((sval >> 96) as u32);
+                limbs[0] = MaybeUninit::new(sval as u32);
+                limbs[1] = MaybeUninit::new((sval >> 32) as u32);
+                limbs[2] = MaybeUninit::new((sval >> 64) as u32);
+                limbs[3] = MaybeUninit::new((sval >> 96) as u32);
             }
             xmpfr::custom_regular(ptr, limbs_ptr, (128 - leading).as_or_panic(), 128);
         }

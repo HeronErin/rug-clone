@@ -64,7 +64,7 @@ use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randstate_t};
 use std::panic::{self, AssertUnwindSafe};
 use std::{
     marker::PhantomData,
-    mem,
+    mem::{self, MaybeUninit},
     os::raw::{c_ulong, c_void},
     process, ptr,
 };
@@ -99,10 +99,10 @@ impl Clone for RandState<'_> {
     #[inline]
     fn clone(&self) -> RandState<'static> {
         unsafe {
-            let_zeroed_ptr!(inner: randstate_t, inner_ptr);
-            gmp::randinit_set(inner_ptr, self.as_raw());
+            let mut inner = MaybeUninit::zeroed();
+            gmp::randinit_set(inner.as_mut_ptr(), self.as_raw());
             // If d is null, then boxed_clone must have returned None.
-            let inner = assume_init!(inner);
+            let inner = inner.assume_init();
             if inner.seed.d.is_null() {
                 panic!("`RandGen::boxed_clone` returned `None`");
             }
@@ -161,11 +161,10 @@ impl RandState<'_> {
     /// ```
     pub fn new_mersenne_twister() -> RandState<'static> {
         unsafe {
-            let_zeroed_ptr!(inner, inner_ptr);
-            gmp::randinit_mt(inner_ptr);
-            let inner = assume_init!(inner);
+            let mut inner = MaybeUninit::zeroed();
+            gmp::randinit_mt(inner.as_mut_ptr());
             RandState {
-                inner,
+                inner: inner.assume_init(),
                 phantom: PhantomData,
             }
         }
@@ -194,11 +193,10 @@ impl RandState<'_> {
     /// ```
     pub fn new_linear_congruential(a: &Integer, c: u32, m: u32) -> RandState<'static> {
         unsafe {
-            let_zeroed_ptr!(inner, inner_ptr);
-            gmp::randinit_lc_2exp(inner_ptr, a.as_raw(), c.into(), m.into());
-            let inner = assume_init!(inner);
+            let mut inner = MaybeUninit::zeroed();
+            gmp::randinit_lc_2exp(inner.as_mut_ptr(), a.as_raw(), c.into(), m.into());
             RandState {
-                inner,
+                inner: inner.assume_init(),
                 phantom: PhantomData,
             }
         }
@@ -231,11 +229,10 @@ impl RandState<'_> {
     /// [`new_linear_congruential`]: #method.new_linear_congruential
     pub fn new_linear_congruential_size(size: u32) -> Option<RandState<'static>> {
         unsafe {
-            let_zeroed_ptr!(inner, inner_ptr);
-            if gmp::randinit_lc_2exp_size(inner_ptr, size.into()) != 0 {
-                let inner = assume_init!(inner);
+            let mut inner = MaybeUninit::zeroed();
+            if gmp::randinit_lc_2exp_size(inner.as_mut_ptr(), size.into()) != 0 {
                 Some(RandState {
-                    inner,
+                    inner: inner.assume_init(),
                     phantom: PhantomData,
                 })
             } else {
@@ -368,9 +365,6 @@ impl RandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
-    /// # fn main() {
-    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::RandState;
     /// use std::mem::MaybeUninit;
@@ -386,15 +380,12 @@ impl RandState<'_> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// // since rand is a RandState now, deallocation is automatic
-    /// # }
-    /// # }
     /// ```
     ///
     /// [`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     /// [`zeroed`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html#method.zeroed
-    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> RandState<'static> {
         RandState {
@@ -656,10 +647,10 @@ impl Clone for ThreadRandState<'_> {
     #[inline]
     fn clone(&self) -> ThreadRandState<'static> {
         unsafe {
-            let_zeroed_ptr!(inner: randstate_t, inner_ptr);
-            gmp::randinit_set(inner_ptr, self.as_raw());
+            let mut inner = MaybeUninit::zeroed();
+            gmp::randinit_set(inner.as_mut_ptr(), self.as_raw());
             // If d is null, then boxed_clone must have returned None.
-            let inner = assume_init!(inner);
+            let inner = inner.assume_init();
             if inner.seed.d.is_null() {
                 panic!("`ThreadRandGen::boxed_clone` returned `None`");
             }
@@ -818,9 +809,6 @@ impl ThreadRandState<'_> {
     /// # Examples
     ///
     /// ```rust
-    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
-    /// # fn main() {
-    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::rand::ThreadRandState;
     /// use std::mem::MaybeUninit;
@@ -836,8 +824,6 @@ impl ThreadRandState<'_> {
     /// let u = rand.bits(32);
     /// println!("32 random bits: {:032b}", u);
     /// // since rand is a ThreadRandState now, deallocation is automatic
-    /// # }
-    /// # }
     /// ```
     ///
     /// [`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
@@ -846,7 +832,6 @@ impl ThreadRandState<'_> {
     /// [`randinit_default`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/fn.randinit_default.html
     /// [`randstate_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.randstate_t.html
     /// [`zeroed`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html#method.zeroed
-    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: randstate_t) -> ThreadRandState<'static> {
         ThreadRandState {

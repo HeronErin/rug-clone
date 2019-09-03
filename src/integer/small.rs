@@ -14,18 +14,18 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-    misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL},
-    Assign, Integer,
-};
+use crate::{misc::NegAbs, Assign, Integer};
 use az::Az;
-use gmp_mpfr_sys::gmp::{limb_t, mpz_t};
+use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use std::{
-    mem,
+    mem::{self, MaybeUninit},
     ops::Deref,
     os::raw::c_int,
     sync::atomic::{AtomicPtr, Ordering},
 };
+
+pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
+pub type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 
 /**
 A small integer that does not require any memory allocation.
@@ -249,7 +249,7 @@ macro_rules! one_limb {
                     *size = 0;
                 } else {
                     *size = 1;
-                    limbs[0] = MaybeLimb::new(self.into());
+                    limbs[0] = MaybeUninit::new(self.into());
                 }
             }
 
@@ -269,7 +269,7 @@ impl SealedToSmall for bool {
             *size = 0;
         } else {
             *size = 1;
-            limbs[0] = MaybeLimb::new(1);
+            limbs[0] = MaybeUninit::new(1);
         }
     }
 
@@ -294,11 +294,11 @@ impl SealedToSmall for u64 {
             *size = 0;
         } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = MaybeLimb::new(self as u32);
+            limbs[0] = MaybeUninit::new(self as u32);
         } else {
             *size = 2;
-            limbs[0] = MaybeLimb::new(self as u32);
-            limbs[1] = MaybeLimb::new((self >> 32) as u32);
+            limbs[0] = MaybeUninit::new(self as u32);
+            limbs[1] = MaybeUninit::new((self >> 32) as u32);
         }
     }
 
@@ -315,11 +315,11 @@ impl SealedToSmall for u128 {
             *size = 0;
         } else if self <= 0xffff_ffff_ffff_ffff {
             *size = 1;
-            limbs[0] = MaybeLimb::new(self as u64);
+            limbs[0] = MaybeUninit::new(self as u64);
         } else {
             *size = 2;
-            limbs[0] = MaybeLimb::new(self as u64);
-            limbs[1] = MaybeLimb::new((self >> 64) as u64);
+            limbs[0] = MaybeUninit::new(self as u64);
+            limbs[1] = MaybeUninit::new((self >> 64) as u64);
         }
     }
 
@@ -330,22 +330,22 @@ impl SealedToSmall for u128 {
             *size = 0;
         } else if self <= 0xffff_ffff {
             *size = 1;
-            limbs[0] = MaybeLimb::new(self as u32);
+            limbs[0] = MaybeUninit::new(self as u32);
         } else if self <= 0xffff_ffff_ffff_ffff {
             *size = 2;
-            limbs[0] = MaybeLimb::new(self as u32);
-            limbs[1] = MaybeLimb::new((self >> 32) as u32);
+            limbs[0] = MaybeUninit::new(self as u32);
+            limbs[1] = MaybeUninit::new((self >> 32) as u32);
         } else if self <= 0xffff_ffff_ffff_ffff_ffff_ffff {
             *size = 3;
-            limbs[0] = MaybeLimb::new(self as u32);
-            limbs[1] = MaybeLimb::new((self >> 32) as u32);
-            limbs[2] = MaybeLimb::new((self >> 64) as u32);
+            limbs[0] = MaybeUninit::new(self as u32);
+            limbs[1] = MaybeUninit::new((self >> 32) as u32);
+            limbs[2] = MaybeUninit::new((self >> 64) as u32);
         } else {
             *size = 4;
-            limbs[0] = MaybeLimb::new(self as u32);
-            limbs[1] = MaybeLimb::new((self >> 32) as u32);
-            limbs[2] = MaybeLimb::new((self >> 64) as u32);
-            limbs[3] = MaybeLimb::new((self >> 96) as u32);
+            limbs[0] = MaybeUninit::new(self as u32);
+            limbs[1] = MaybeUninit::new((self >> 32) as u32);
+            limbs[2] = MaybeUninit::new((self >> 64) as u32);
+            limbs[3] = MaybeUninit::new((self >> 96) as u32);
         }
     }
 

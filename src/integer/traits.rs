@@ -24,7 +24,7 @@ use std::{
     error::Error,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
     hash::{Hash, Hasher},
-    mem,
+    mem::{self, MaybeUninit},
     str::FromStr,
 };
 
@@ -39,9 +39,9 @@ impl Clone for Integer {
     #[inline]
     fn clone(&self) -> Integer {
         unsafe {
-            let_uninit_ptr!(dst, dst_ptr);
-            xmpz::init_set(dst_ptr, self);
-            assume_init!(dst)
+            let mut dst = MaybeUninit::uninit();
+            xmpz::init_set(dst.as_mut_ptr(), self);
+            dst.assume_init()
         }
     }
 
@@ -142,9 +142,9 @@ macro_rules! assign {
             #[inline]
             fn from(src: $T) -> Self {
                 unsafe {
-                    let_uninit_ptr!(dst, dst_ptr);
-                    $init_set(dst_ptr, src);
-                    assume_init!(dst)
+                    let mut dst = MaybeUninit::uninit();
+                    $init_set(dst.as_mut_ptr(), src);
+                    dst.assume_init()
                 }
             }
         }

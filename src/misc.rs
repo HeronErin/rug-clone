@@ -17,9 +17,6 @@
 #![allow(dead_code)]
 
 use az::CheckedCast;
-use gmp_mpfr_sys::gmp::{self, limb_t};
-#[cfg(maybe_uninit)]
-use std::mem::MaybeUninit;
 
 pub trait AsOrPanic {
     fn as_or_panic<Dst>(self) -> Dst
@@ -185,41 +182,4 @@ pub fn find_space_outside_brackets(bytes: &[u8]) -> Option<usize> {
         }
     }
     None
-}
-
-pub const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
-pub type Limbs = [MaybeLimb; LIMBS_IN_SMALL];
-
-#[cfg(maybe_uninit)]
-pub type MaybeLimb = MaybeUninit<limb_t>;
-
-#[cfg(not(maybe_uninit))]
-#[derive(Clone, Copy)]
-#[repr(C)]
-pub union MaybeLimb {
-    uninit: (),
-    val: limb_t,
-}
-#[cfg(not(maybe_uninit))]
-impl MaybeLimb {
-    #[inline]
-    pub const fn uninit() -> MaybeLimb {
-        MaybeLimb { uninit: () }
-    }
-    #[inline]
-    pub const fn new(val: limb_t) -> MaybeLimb {
-        MaybeLimb { val }
-    }
-    #[inline]
-    pub fn as_ptr(&self) -> *const limb_t {
-        unsafe { &self.val }
-    }
-    #[inline]
-    pub fn as_mut_ptr(&mut self) -> *mut limb_t {
-        unsafe { &mut self.val }
-    }
-    #[inline]
-    pub unsafe fn assume_init(self) -> limb_t {
-        self.val
-    }
 }

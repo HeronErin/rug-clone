@@ -17,11 +17,21 @@
 use crate::{
     ext::xmpfr,
     float::{small::Mpfr, ToSmall},
-    misc::Limbs,
     Assign, Complex,
 };
-use gmp_mpfr_sys::{gmp::limb_t, mpc::mpc_t, mpfr::mpfr_t};
-use std::{mem, ops::Deref, sync::atomic::Ordering};
+use gmp_mpfr_sys::{
+    gmp::{self, limb_t},
+    mpc::mpc_t,
+    mpfr::mpfr_t,
+};
+use std::{
+    mem::{self, MaybeUninit},
+    ops::Deref,
+    sync::atomic::Ordering,
+};
+
+const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
+type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 
 /**
 A small complex number that does not require any memory allocation.

@@ -25,7 +25,7 @@ use az::{Az, CheckedAs};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::{
     cmp::Ordering,
-    mem,
+    mem::{self, MaybeUninit},
     os::raw::{c_int, c_long, c_ulong},
 };
 
@@ -439,13 +439,13 @@ pub fn cmp_finite_d(op1: &Rational, op2: f64) -> Ordering {
     // cmp(num1, op2 * den1)
     let cmp;
     unsafe {
-        let_uninit_ptr!(op2_f, op2_ptr);
-        gmp::mpf_init2(op2_ptr, 53);
-        let mut op2_f = assume_init!(op2_f);
+        let mut op2_f = MaybeUninit::uninit();
+        gmp::mpf_init2(op2_f.as_mut_ptr(), 53);
+        let mut op2_f = op2_f.assume_init();
         gmp::mpf_set_d(&mut op2_f, op2);
-        let_uninit_ptr!(rhs, rhs_ptr);
-        gmp::mpf_init2(rhs_ptr, (den1_bits + 53).as_or_panic());
-        let mut rhs = assume_init!(rhs);
+        let mut rhs = MaybeUninit::uninit();
+        gmp::mpf_init2(rhs.as_mut_ptr(), (den1_bits + 53).as_or_panic());
+        let mut rhs = rhs.assume_init();
         gmp::mpf_set_z(&mut rhs, den1.as_raw());
         gmp::mpf_mul(&mut rhs, &rhs, &op2_f);
         cmp = -gmp::mpf_cmp_z(&rhs, num1.as_raw());

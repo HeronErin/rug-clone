@@ -16,12 +16,18 @@
 
 use crate::{
     integer::{small::Mpz, ToSmall},
-    misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL},
     Assign, Rational,
 };
 use az::Az;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
-use std::{mem, ops::Deref, sync::atomic::Ordering};
+use std::{
+    mem::{self, MaybeUninit},
+    ops::Deref,
+    sync::atomic::Ordering,
+};
+
+const LIMBS_IN_SMALL: usize = (128 / gmp::LIMB_BITS) as usize;
+type Limbs = [MaybeUninit<limb_t>; LIMBS_IN_SMALL];
 
 /**
 A small rational number that does not require any memory allocation.
@@ -281,7 +287,7 @@ impl<Num: ToSmall> Assign<Num> for SmallRational {
         };
         src.copy(&mut self.inner.num.size, num_limbs);
         self.inner.den.size = 1;
-        den_limbs[0] = MaybeLimb::new(1);
+        den_limbs[0] = MaybeUninit::new(1);
     }
 }
 
@@ -290,7 +296,7 @@ impl<Num: ToSmall> From<Num> for SmallRational {
         let mut dst = SmallRational::default();
         src.copy(&mut dst.inner.num.size, &mut dst.first_limbs);
         dst.inner.den.size = 1;
-        dst.last_limbs[0] = MaybeLimb::new(1);
+        dst.last_limbs[0] = MaybeUninit::new(1);
         dst
     }
 }

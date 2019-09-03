@@ -26,7 +26,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem::{self, ManuallyDrop},
+    mem::{self, ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
 };
 
@@ -174,9 +174,9 @@ impl Rational {
     #[inline]
     pub fn new() -> Self {
         unsafe {
-            let_uninit_ptr!(ret: Rational, ret_ptr);
-            gmp::mpq_init(cast_ptr_mut!(ret_ptr, mpq_t));
-            assume_init!(ret)
+            let mut ret = MaybeUninit::uninit();
+            gmp::mpq_init(cast_ptr_mut!(ret.as_mut_ptr(), mpq_t));
+            ret.assume_init()
         }
     }
 
@@ -199,9 +199,6 @@ impl Rational {
     /// # Examples
     ///
     /// ```rust
-    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
-    /// # fn main() {
-    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Rational;
     /// use std::mem::MaybeUninit;
@@ -216,14 +213,11 @@ impl Rational {
     /// };
     /// assert_eq!(r, (-145, 10));
     /// // since r is a Rational now, deallocation is automatic
-    /// # }
-    /// # }
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
     /// [`mpq_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpq_t.html
     /// [gmp mpq]: https://tspiteri.gitlab.io/gmp-mpfr-sys/gmp/Rational-Number-Functions.html#index-Rational-number-functions
-    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpq_t) -> Self {
         Rational { inner: raw }
@@ -657,13 +651,13 @@ impl Rational {
     where
         Integer: From<Num> + From<Den>,
     {
-        let_uninit_ptr!(dst: Rational, dst_ptr);
-        let inner_ptr = cast_ptr_mut!(dst_ptr, mpq_t);
+        let mut dst = MaybeUninit::uninit();
+        let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpq_t);
         let dnum = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
         dnum.write(Integer::from(num));
         let dden = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
         dden.write(Integer::from(den));
-        assume_init!(dst)
+        dst.assume_init()
     }
 
     /// Assigns to the numerator and denominator without

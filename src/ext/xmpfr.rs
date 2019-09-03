@@ -29,6 +29,7 @@ use gmp_mpfr_sys::{
 };
 use std::{
     cmp::Ordering,
+    mem::MaybeUninit,
     os::raw::{c_int, c_void},
 };
 #[cfg(feature = "integer")]
@@ -412,10 +413,10 @@ unsafe fn divf_mulz_divz(
 }
 
 pub unsafe fn get_f32(op: *const mpfr_t, rnd: rnd_t) -> f32 {
-    let_uninit_ptr!(single, single_ptr);
     let mut limb: limb_t = 0;
-    custom_zero(single_ptr, &mut limb, 24);
-    let mut single = assume_init!(single);
+    let mut single = MaybeUninit::uninit();
+    custom_zero(single.as_mut_ptr(), &mut limb, 24);
+    let mut single = single.assume_init();
     mpfr::set(&mut single, op, rnd);
     let val = mpfr::get_d(&single, rnd);
     val as f32

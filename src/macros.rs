@@ -2519,107 +2519,19 @@ macro_rules! cast_ptr_mut {
     }};
 }
 
-#[cfg(any(feature = "integer", feature = "float", feature = "rand"))]
-macro_rules! need_unsafe {
-    () => {
-        #[allow(clippy::useless_transmute)]
-        {
-            let _: () = std::mem::transmute(());
-        }
-    };
-}
-
-#[cfg(maybe_uninit)]
-#[cfg(any(feature = "integer", feature = "float"))]
-macro_rules! let_uninit_ptr {
-    ($uninit:ident, $ptr:ident) => {
-        // make this unsafe to match cfg(not(maybe_uninit))
-        need_unsafe!();
-        let mut $uninit = std::mem::MaybeUninit::uninit();
-        let $ptr = $uninit.as_mut_ptr();
-    };
-    ($uninit:ident: $T:ty, $ptr:ident) => {
-        // make this unsafe to match cfg(not(maybe_uninit))
-        need_unsafe!();
-        let mut $uninit = std::mem::MaybeUninit::<$T>::uninit();
-        let $ptr = $uninit.as_mut_ptr();
-    };
-}
-
-#[cfg(not(maybe_uninit))]
-#[cfg(any(feature = "integer", feature = "float"))]
-macro_rules! let_uninit_ptr {
-    ($uninit:ident, $ptr:ident) => {
-        let mut $uninit = std::mem::uninitialized();
-        let $ptr = &mut $uninit as *mut _;
-    };
-    ($uninit:ident: $T:ty, $ptr:ident) => {
-        let mut $uninit = std::mem::uninitialized::<$T>();
-        let $ptr = &mut $uninit as *mut $T;
-    };
-}
-
-#[cfg(maybe_uninit)]
-#[cfg(feature = "rand")]
-macro_rules! let_zeroed_ptr {
-    ($uninit:ident, $ptr:ident) => {
-        // make this unsafe to match cfg(not(maybe_uninit))
-        need_unsafe!();
-        let mut $uninit = std::mem::MaybeUninit::zeroed();
-        let $ptr = $uninit.as_mut_ptr();
-    };
-    ($uninit:ident: $T:ty, $ptr:ident) => {
-        // make this unsafe to match cfg(not(maybe_uninit))
-        need_unsafe!();
-        let mut $uninit = std::mem::MaybeUninit::<$T>::zeroed();
-        let $ptr = $uninit.as_mut_ptr();
-    };
-}
-
-#[cfg(not(maybe_uninit))]
-#[cfg(feature = "rand")]
-macro_rules! let_zeroed_ptr {
-    ($uninit:ident, $ptr:ident) => {
-        let mut $uninit = std::mem::zeroed();
-        let $ptr = &mut $uninit as *mut _;
-    };
-    ($uninit:ident: $T:ty, $ptr:ident) => {
-        let mut $uninit = std::mem::zeroed::<$T>();
-        let $ptr = &mut $uninit as *mut $T;
-    };
-}
-
-#[cfg(maybe_uninit)]
-#[cfg(any(feature = "integer", feature = "float", feature = "rand"))]
-macro_rules! assume_init {
-    ($uninit:ident) => {
-        $uninit.assume_init()
-    };
-}
-
-#[cfg(not(maybe_uninit))]
-#[cfg(any(feature = "integer", feature = "float", feature = "rand"))]
-macro_rules! assume_init {
-    ($uninit:ident) => {{
-        // make this unsafe to match cfg(maybe_uninit)
-        need_unsafe!();
-        $uninit
-    }};
-}
-
 #[cfg(gmp_limb_bits_64)]
 #[cfg(any(feature = "integer", feature = "float"))]
 macro_rules! small_limbs {
     () => {
         [
-            $crate::misc::MaybeLimb::uninit(),
-            $crate::misc::MaybeLimb::uninit(),
+            std::mem::MaybeUninit::uninit(),
+            std::mem::MaybeUninit::uninit(),
         ]
     };
     ($limb:expr) => {
         [
-            $crate::misc::MaybeLimb::new($limb),
-            $crate::misc::MaybeLimb::uninit(),
+            std::mem::MaybeUninit::new($limb),
+            std::mem::MaybeUninit::uninit(),
         ]
     };
 }
@@ -2629,18 +2541,18 @@ macro_rules! small_limbs {
 macro_rules! small_limbs {
     () => {
         [
-            $crate::misc::MaybeLimb::uninit(),
-            $crate::misc::MaybeLimb::uninit(),
-            $crate::misc::MaybeLimb::uninit(),
-            $crate::misc::MaybeLimb::uninit(),
+            std::mem::MaybeUninit::uninit(),
+            std::mem::MaybeUninit::uninit(),
+            std::mem::MaybeUninit::uninit(),
+            std::mem::MaybeUninit::uninit(),
         ]
     };
     ($limb:expr) => {
         [
-            $crate::misc::MaybeLimb::new($limb),
-            $crate::misc::MaybeLimb::uninit(),
-            $crate::misc::MaybeLimb::uninit(),
-            $crate::misc::MaybeLimb::uninit(),
+            std::mem::MaybeUninit::new($limb),
+            std::mem::MaybeUninit::uninit(),
+            std::mem::MaybeUninit::uninit(),
+            std::mem::MaybeUninit::uninit(),
         ]
     };
 }

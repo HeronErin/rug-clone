@@ -30,7 +30,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem::{self, ManuallyDrop},
+    mem::{self, ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
     os::raw::{c_char, c_int, c_long, c_void},
     slice,
@@ -231,9 +231,9 @@ impl Integer {
     #[inline]
     pub fn new() -> Self {
         unsafe {
-            let_uninit_ptr!(dst, dst_ptr);
-            xmpz::init(dst_ptr);
-            assume_init!(dst)
+            let mut dst = MaybeUninit::uninit();
+            xmpz::init(dst.as_mut_ptr());
+            dst.assume_init()
         }
     }
 
@@ -252,9 +252,9 @@ impl Integer {
     #[inline]
     pub fn with_capacity(bits: usize) -> Self {
         unsafe {
-            let_uninit_ptr!(dst, dst_ptr);
-            xmpz::init2(dst_ptr, bits);
-            assume_init!(dst)
+            let mut dst = MaybeUninit::uninit();
+            xmpz::init2(dst.as_mut_ptr(), bits);
+            dst.assume_init()
         }
     }
 
@@ -358,9 +358,6 @@ impl Integer {
     /// # Examples
     ///
     /// ```rust
-    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
-    /// # fn main() {
-    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::gmp;
     /// use rug::Integer;
     /// use std::mem::MaybeUninit;
@@ -373,13 +370,10 @@ impl Integer {
     /// };
     /// assert_eq!(i, 15);
     /// // since i is an Integer now, deallocation is automatic
-    /// # }
-    /// # }
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
     /// [`mpz_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/gmp/struct.mpz_t.html
-    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpz_t) -> Self {
         Integer { inner: raw }
@@ -616,17 +610,17 @@ impl Integer {
         let mut v = Vec::with_capacity(digit_count);
         unsafe {
             let digits_ptr = v.as_mut_ptr();
-            let_uninit_ptr!(count, count_ptr);
+            let mut count = MaybeUninit::uninit();
             gmp::mpz_export(
                 digits_ptr as *mut c_void,
-                count_ptr,
+                count.as_mut_ptr(),
                 order.order(),
                 T::PRIVATE.bytes,
                 order.endian(),
                 T::PRIVATE.nails,
                 self.as_raw(),
             );
-            assert_eq!(assume_init!(count), digit_count);
+            assert_eq!(count.assume_init(), digit_count);
             v.set_len(digit_count);
         }
         v
@@ -755,17 +749,17 @@ impl Integer {
         };
         // use *mut u8 to allow for unaligned pointers
         (zeros as *mut u8).write_bytes(0, zero_count * T::PRIVATE.bytes);
-        let_uninit_ptr!(count, count_ptr);
+        let mut count = MaybeUninit::uninit();
         gmp::mpz_export(
             digits as *mut c_void,
-            count_ptr,
+            count.as_mut_ptr(),
             order.order(),
             T::PRIVATE.bytes,
             order.endian(),
             T::PRIVATE.nails,
             self.as_raw(),
         );
-        assert_eq!(assume_init!(count), digit_count);
+        assert_eq!(count.assume_init(), digit_count);
     }
 
     /// Creates an [`Integer`] from an [`f32`] if it is
@@ -811,9 +805,9 @@ impl Integer {
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
             unsafe {
-                let_uninit_ptr!(dst, dst_ptr);
-                xmpz::init_set_f64(dst_ptr, val);
-                Some(assume_init!(dst))
+                let mut dst = MaybeUninit::uninit();
+                xmpz::init_set_f64(dst.as_mut_ptr(), val);
+                Some(dst.assume_init())
             }
         } else {
             None

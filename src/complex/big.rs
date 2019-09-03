@@ -46,7 +46,7 @@ use std::{
     error::Error,
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
-    mem::{self, ManuallyDrop},
+    mem::{self, ManuallyDrop, MaybeUninit},
     ops::{Add, AddAssign, Deref},
     os::raw::c_int,
     slice,
@@ -229,10 +229,10 @@ impl Complex {
             "precision out of range"
         );
         unsafe {
-            let_uninit_ptr!(dst: Complex, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
+            let mut dst = MaybeUninit::uninit();
+            let inner_ptr = cast_ptr_mut!(dst.as_mut_ptr(), mpc_t);
             mpc::init3(inner_ptr, p.0.as_or_panic(), p.1.as_or_panic());
-            assume_init!(dst)
+            dst.assume_init()
         }
     }
 
@@ -403,9 +403,6 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
-    /// # fn main() {
-    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::mpc;
     /// use rug::Complex;
     /// use std::mem::MaybeUninit;
@@ -419,13 +416,10 @@ impl Complex {
     /// };
     /// assert_eq!(c, (-14.5, 3.25));
     /// // since c is a Complex now, deallocation is automatic
-    /// # }
-    /// # }
     /// ```
     ///
     /// [`Complex`]: struct.Complex.html
     /// [`mpc_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpc/struct.mpc_t.html
-    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpc_t) -> Self {
         Complex { inner: raw }

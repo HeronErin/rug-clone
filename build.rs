@@ -28,7 +28,6 @@ fn main() {
         out_dir: PathBuf::from(cargo_env("OUT_DIR")),
         rustc: cargo_env("RUSTC"),
     };
-    env.check_feature("maybe_uninit", TRY_MAYBE_UNINIT, Some("maybe_uninit"));
     env.check_ffi_panic_aborts();
     if env::var_os("CARGO_FEATURE_GMP_MPFR_SYS").is_some() {
         let bits =
@@ -163,17 +162,6 @@ fn create_file_or_panic(filename: &Path, contents: &str) {
     file.write_all(contents.as_bytes())
         .unwrap_or_else(|_| panic!("Unable to write to file: {:?}", filename));
 }
-
-const TRY_MAYBE_UNINIT: &str = r#"// try_maybe_uninit.rs
-use std::mem::MaybeUninit;
-fn main() {
-    let mut x = MaybeUninit::<u8>::zeroed();
-    let _ = x.as_ptr();
-    let _ = x.as_mut_ptr();
-    let _ = unsafe { x.assume_init() };
-    let _ = MaybeUninit::<u8>::uninit();
-}
-"#;
 
 const TRY_FFI_PANIC_ABORTS: &str = r#"// try_ffi_panic_aborts.rs
 extern "C" fn ffi_panic() {

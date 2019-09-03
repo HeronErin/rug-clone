@@ -41,7 +41,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     i32,
     marker::PhantomData,
-    mem::{self, ManuallyDrop},
+    mem::{self, ManuallyDrop, MaybeUninit},
     num::FpCategory,
     ops::{Add, AddAssign, Deref},
     os::raw::{c_char, c_int, c_long, c_ulong},
@@ -418,9 +418,9 @@ impl Float {
             "precision out of range"
         );
         unsafe {
-            let_uninit_ptr!(ret: Float, ret_ptr);
-            mpfr::init2(cast_ptr_mut!(ret_ptr, mpfr_t), prec.as_or_panic());
-            assume_init!(ret)
+            let mut ret = MaybeUninit::uninit();
+            mpfr::init2(cast_ptr_mut!(ret.as_mut_ptr(), mpfr_t), prec.as_or_panic());
+            ret.assume_init()
         }
     }
 
@@ -502,9 +502,6 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
-    /// # fn main() {
-    /// # #[cfg(maybe_uninit)] {
     /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Float;
     /// use std::mem::MaybeUninit;
@@ -518,13 +515,10 @@ impl Float {
     /// };
     /// assert_eq!(f, -14.5);
     /// // since f is a Float now, deallocation is automatic
-    /// # }
-    /// # }
     /// ```
     ///
     /// [`Float`]: struct.Float.html
     /// [`mpfr_t`]: https://docs.rs/gmp-mpfr-sys/~1.1/gmp_mpfr_sys/mpfr/struct.mpfr_t.html
-    #[allow(clippy::needless_doctest_main)]
     #[inline]
     pub unsafe fn from_raw(raw: mpfr_t) -> Self {
         Float { inner: raw }
@@ -9316,17 +9310,17 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         let write_at = vec.as_mut_ptr().add(vec.len());
         // start one character late, as we need to insert '.'
         let write_at_p1 = write_at.add(1);
-        let_uninit_ptr!(maybe_exp, exp_ptr);
+        let mut maybe_exp = MaybeUninit::uninit();
         let c_buf = mpfr::get_str(
             write_at_p1 as *mut c_char,
-            exp_ptr,
+            maybe_exp.as_mut_ptr(),
             radix_with_case.as_or_panic(),
             digits,
             f.as_raw(),
             raw_round(format.round),
         );
         assert_eq!(c_buf, write_at_p1 as *mut c_char);
-        exp = assume_init!(maybe_exp);
+        exp = maybe_exp.assume_init();
         let c_str = CStr::from_ptr(write_at_p1 as *mut c_char);
         let c_bytes = c_str.to_bytes();
         // add one because we'll insert a '.'
