@@ -31,7 +31,7 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
-### Version 1.6.0 news (unreleased)
+### Version 1.6.0 news (2019-09-03)
 
   * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],
     [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
@@ -53,7 +53,7 @@ option) any later version. See the full text of the [GNU LGPL] and
     allowing the use of
 	<code>&mut [ThreadRandState][`ThreadRandState`]</code> as well.
     With function inlining and optimization, the generated code should
-    be the same even though there is now a fat pointer in use.
+    have the same performance.
 
 [`MutRandState`]: https://docs.rs/rug/~1.6/rug/rand/trait.MutRandState.html
 [`RandState::into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
@@ -74,60 +74,6 @@ option) any later version. See the full text of the [GNU LGPL] and
 [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
 [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
-
-### Version 1.5.2 news (2019-07-26)
-
-  * Bug fix:
-    <code>[Pow][`Pow`]<[i32][`i32`]> for [Rational][`Rational`]</code>
-    was returning the reciprocal of the correct result.
-
-[`Pow`]: https://docs.rs/rug/~1.5/rug/ops/trait.Pow.html
-[`Rational`]: https://docs.rs/rug/~1.5/rug/struct.Rational.html
-[`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
-
-### Version 1.5.1 news (2019-07-10)
-
-  * Bug fix: a memory leak in conversions of [`Float`] to string was
-    fixed ([issue 11]).
-
-[issue 11]: https://gitlab.com/tspiteri/rug/issues/11
-
-### Version 1.5.0 news (2019-07-04)
-
-  * The method [`Integer::assign_digits_unaligned`] was added to
-    enable reading digits from unaligned memory.
-  * The method [`Integer::write_digits_unaligned`] was added to enable
-    writing digits to unaligned and uninitialized memory.
-  * The methods [`Float::u_exp`] and [`Float::i_exp`] were added.
-  * The method [`Complex::abs_round`] was added.
-  * The documentation examples on [`from_raw`] methods now use
-    [`MaybeUninit`] instead of [`mem::uninitialized`].
-
-[`Complex::abs_round`]: https://docs.rs/rug/~1.5/rug/struct.Complex.html#method.abs_round
-[`Float::i_exp`]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.i_exp
-[`Float::u_exp`]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.u_exp
-[`Integer::assign_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.assign_digits_unaligned
-[`Integer::write_digits_unaligned`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.write_digits_unaligned
-[`MaybeUninit`]: https://doc.rust-lang.org/nightly/core/mem/union.MaybeUninit.html
-[`from_raw`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.from_raw
-[`mem::uninitialized`]: https://doc.rust-lang.org/nightly/core/mem/fn.uninitialized.html
-
-### Version 1.4.0 news (2019-04-24)
-
-  * Rug now requires rustc version 1.31.0 or later.
-  * The method [`RandState::as_raw`] was fixed to take `&self` instead
-    of `&mut self`.
-  * [`float::prec_min`] and [`float::prec_max`] are now const
-    functions.
-  * Methods [`Float::copysign`], [`Float::copysign_mut`] and
-    [`Float::copysign_ref`] were added.
-
-[`Float::copysign_mut`]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.copysign_mut
-[`Float::copysign_ref`]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.copysign_ref
-[`Float::copysign`]: https://docs.rs/rug/~1.5/rug/struct.Float.html#method.copysign
-[`RandState::as_raw`]: https://docs.rs/rug/~1.5/rug/rand/struct.RandState.html#method.as_raw
-[`float::prec_max`]: https://docs.rs/rug/~1.5/rug/float/fn.prec_max.html
-[`float::prec_min`]: https://docs.rs/rug/~1.5/rug/float/fn.prec_min.html
 
 ### Other releases
 
@@ -225,7 +171,7 @@ add it as a dependency inside [*Cargo.toml*]:
 
 ```toml
 [dependencies]
-rug = "1.5"
+rug = "1.6"
 ```
 
 Rug requires rustc version 1.31.0 or later.
@@ -264,7 +210,7 @@ features selectively, you can add the dependency like this to
 
 ```toml
 [dependencies.rug]
-version = "1.5"
+version = "1.6"
 default-features = false
 features = ["integer", "float", "rand"]
 ```
@@ -276,7 +222,7 @@ is not required and thus not enabled. In that case, only the
 provided by the crate.
 
 [*Cargo.toml*]: https://doc.rust-lang.org/cargo/guide/dependencies.html
-[*Incomplete-computation values*]: https://docs.rs/rug/~1.5/rug/index.html#incomplete-computation-values
+[*Incomplete-computation values*]: https://docs.rs/rug/~1.6/rug/index.html#incomplete-computation-values
 [*RELEASES.md*]: https://gitlab.com/tspiteri/rug/blob/master/RELEASES.md
 [GMP]: https://gmplib.org/
 [GNU GPL]: https://www.gnu.org/licenses/gpl-3.0.html
@@ -284,20 +230,20 @@ provided by the crate.
 [GNU]: https://www.gnu.org/
 [MPC]: http://www.multiprecision.org/mpc/
 [MPFR]: https://www.mpfr.org/
-[`Assign::assign`]: https://docs.rs/rug/~1.5/rug/trait.Assign.html#tymethod.assign
-[`Assign`]: https://docs.rs/rug/~1.5/rug/trait.Assign.html
-[`Complex`]: https://docs.rs/rug/~1.5/rug/struct.Complex.html
-[`Float`]: https://docs.rs/rug/~1.5/rug/struct.Float.html
-[`Integer::new`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.new
-[`Integer::parse_radix`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.parse_radix
-[`Integer::parse`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html#method.parse
-[`Integer`]: https://docs.rs/rug/~1.5/rug/struct.Integer.html
-[`RandState`]: https://docs.rs/rug/~1.5/rug/rand/struct.RandState.html
-[`Rational`]: https://docs.rs/rug/~1.5/rug/struct.Rational.html
-[`ops`]: https://docs.rs/rug/~1.5/rug/ops/index.html
+[`Assign::assign`]: https://docs.rs/rug/~1.6/rug/trait.Assign.html#tymethod.assign
+[`Assign`]: https://docs.rs/rug/~1.6/rug/trait.Assign.html
+[`Complex`]: https://docs.rs/rug/~1.6/rug/struct.Complex.html
+[`Float`]: https://docs.rs/rug/~1.6/rug/struct.Float.html
+[`Integer::new`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.new
+[`Integer::parse_radix`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse_radix
+[`Integer::parse`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse
+[`Integer`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html
+[`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
+[`Rational`]: https://docs.rs/rug/~1.6/rug/struct.Rational.html
+[`ops`]: https://docs.rs/rug/~1.6/rug/ops/index.html
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
-[operators]: https://docs.rs/rug/~1.5/rug/index.html#operators
-[primitive types]: https://docs.rs/rug/~1.5/rug/index.html#using-with-primitive-types
+[operators]: https://docs.rs/rug/~1.6/rug/index.html#operators
+[primitive types]: https://docs.rs/rug/~1.6/rug/index.html#using-with-primitive-types
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde
 [sys crate]: https://crates.io/crates/gmp-mpfr-sys

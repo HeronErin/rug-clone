@@ -5,7 +5,7 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
-Verison 1.6.0 (unreleased)
+Verison 1.6.0 (2019-09-03)
 ==========================
 
   * Arithmetic operator implementations for `i8`, `i16`, `i64`,
@@ -26,8 +26,7 @@ Compatibility note
     to take `&mut dyn MutRandState` instead. Under normal use, this
     does not have any affect apart from allowing the use of
 	`&mut ThreadRandState` as well. With function inlining and
-    optimization, the generated code should be the same even though
-    there is now a fat pointer in use.
+    optimization, the generated code should have the same performance.
 
 Verison 1.5.2 (2019-07-26)
 ==========================
