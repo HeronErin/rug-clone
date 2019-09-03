@@ -551,7 +551,7 @@ use rug::rand::ThreadRandState;
 # struct Gen { _dummy: *const i32, seed: u64 };
 # impl rug::rand::ThreadRandGen for Gen {
 #     fn gen(&mut self) -> u32 {
-#         self.seed = self.seed.wrapping_mul(6_364_136_223_846_793_005).wrapping_add(1);
+#         self.seed = self.seed.wrapping_mul(0x5851_F42D_4C95_7F2D).wrapping_add(1);
 #         (self.seed >> 32) as u32
 #     }
 # }
@@ -1020,23 +1020,29 @@ panic, they can cause the program to abort.
 # Examples
 
 ```rust
-use rug::{rand::RandGen, Integer};
+use rug::{
+    rand::{RandGen, RandState},
+    Integer,
+};
 struct SimpleGenerator {
     seed: u64,
 }
 impl RandGen for SimpleGenerator {
     fn gen(&mut self) -> u32 {
-        self.seed =
-            self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+        // linear congruential algorithm with m = 64
+        const A: u64 = 0x5851_F42D_4C95_7F2D;
+        const C: u64 = 1;
+        self.seed = self.seed.wrapping_mul(A).wrapping_add(C);
         (self.seed >> 32) as u32
     }
     fn seed(&mut self, seed: &Integer) {
         self.seed = seed.to_u64_wrapping();
     }
 }
-let mut rand = SimpleGenerator { seed: 1 };
-assert_eq!(rand.gen(), 1481765933);
-assert_eq!(rand.seed, 6364136223846793006);
+let mut gen = SimpleGenerator { seed: 1 };
+let mut state = RandState::new_custom(&mut gen);
+assert_eq!(state.bits(32), 0x5851_F42D);
+assert_eq!(state.bits(32), 0xC0B1_8CCF);
 ```
 
 [`RandState`]: struct.RandState.html
@@ -1053,18 +1059,18 @@ pub trait RandGen: Send + Sync {
     /// }
     /// impl RandGen for SimpleGenerator {
     ///     fn gen(&mut self) -> u32 {
-    ///         self.seed =
-    ///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+    ///         // linear congruential algorithm with m = 64
+    ///         const A: u64 = 0x5851_F42D_4C95_7F2D;
+    ///         const C: u64 = 1;
+    ///         self.seed = self.seed.wrapping_mul(A).wrapping_add(C);
     ///         (self.seed >> 32) as u32
     ///     }
     /// }
     /// let mut rand = SimpleGenerator { seed: 1 };
-    /// let first = rand.gen();
-    /// assert_eq!(rand.seed, 6364136223846793006);
-    /// assert_eq!(first, 1481765933);
-    /// let second = rand.gen();
-    /// assert_eq!(rand.seed, 13885033948157127959);
-    /// assert_eq!(second, 3232861391);
+    /// assert_eq!(rand.gen(), 0x5851_F42D);
+    /// assert_eq!(rand.seed, 0x5851_F42D_4C95_7F2E);
+    /// assert_eq!(rand.gen(), 0xC0B1_8CCF);
+    /// assert_eq!(rand.seed, 0xC0B1_8CCF_4E25_2D17);
     /// ```
     fn gen(&mut self) -> u32;
 
@@ -1083,30 +1089,32 @@ pub trait RandGen: Send + Sync {
     /// use rug::rand::RandGen;
     /// struct SimpleGenerator {
     ///     seed: u64,
-    ///     buffer: u64,
+    ///     buffer: u32,
     ///     len: u32,
     /// }
     /// impl RandGen for SimpleGenerator {
     ///     fn gen(&mut self) -> u32 {
-    ///         self.gen_bits(32)
+    ///         // linear congruential algorithm with m = 64
+    ///         const A: u64 = 0x5851_F42D_4C95_7F2D;
+    ///         const C: u64 = 1;
+    ///         self.seed = self.seed.wrapping_mul(A).wrapping_add(C);
+    ///         (self.seed >> 32) as u32
     ///     }
     ///     fn gen_bits(&mut self, bits: u32) -> u32 {
     ///         let mut bits = match bits {
     ///             0 => return 0,
     ///             1..=31 => bits,
-    ///             _ => 32,
+    ///             _ => return self.gen(),
     ///         };
     ///         let mut ret = 0;
     ///         if bits > self.len {
     ///             bits -= self.len;
-    ///             ret |= (self.buffer << bits) as u32;
-    ///             self.seed = self.seed.wrapping_mul(6364136223846793005);
-    ///             self.seed = self.seed.wrapping_add(1);
-    ///             self.buffer = self.seed;
-    ///             self.len = 64;
+    ///             ret |= self.buffer << bits;
+    ///             self.buffer = self.gen();
+    ///             self.len = 32;
     ///         }
     ///         self.len -= bits;
-    ///         ret |= (self.buffer >> self.len) as u32;
+    ///         ret |= self.buffer >> self.len;
     ///         self.buffer &= !(!0 << self.len);
     ///         ret
     ///     }
@@ -1116,10 +1124,10 @@ pub trait RandGen: Send + Sync {
     ///     buffer: 0,
     ///     len: 0,
     /// };
-    /// let full = 6364136223846793006_u64;
-    /// assert_eq!(rand.gen_bits(16), (full >> 48) as u32);
-    /// assert_eq!(rand.gen_bits(32), (full >> 16) as u32);
-    /// assert_eq!(rand.gen_bits(16), full as u32 & 0xffff);
+    /// let (first_32, second_32) = (0x5851_F42D, 0xC0B1_8CCF);
+    /// assert_eq!(rand.gen_bits(24), first_32 >> 8);
+    /// assert_eq!(rand.gen_bits(24), ((first_32 & 0xFF) << 16) | (second_32 >> 16));
+    /// assert_eq!(rand.gen_bits(16), second_32 & 0xFFFF);
     /// ```
     ///
     /// [`gen`]: #tymethod.gen
@@ -1127,7 +1135,7 @@ pub trait RandGen: Send + Sync {
         let gen = self.gen();
         match bits {
             0 => 0,
-            1..=32 => gen >> (32 - bits),
+            1..=31 => gen >> (32 - bits),
             _ => gen,
         }
     }
@@ -1168,41 +1176,6 @@ pub trait RandGen: Send + Sync {
     /// assert_eq!(seed.inner, i);
     /// ```
     ///
-    /// Since the seed parameter is only passed to this function and
-    /// not used otherwise, with unsafe code you can pass a reference
-    /// to anything, or even an `isize` or `usize`, to the seeding
-    /// function.
-    ///
-    /// ```rust
-    /// use rug::{
-    ///     rand::{RandGen, RandState},
-    ///     Integer,
-    /// };
-    /// use std::mem;
-    /// struct Seed {
-    ///     num: isize,
-    /// };
-    /// impl RandGen for Seed {
-    ///     fn gen(&mut self) -> u32 {
-    ///         // not really random
-    ///         0x8cef7310
-    ///     }
-    ///     fn seed(&mut self, seed: &Integer) {
-    ///         // unsafe code to transmute from &Integer to isize
-    ///         self.num = unsafe { mem::transmute(seed) };
-    ///     }
-    /// }
-    /// let mut seed = Seed { num: 15 };
-    /// let i = -12345_isize;
-    /// {
-    ///     // unsafe code to transmute from isize to &Integer
-    ///     let ir = unsafe { mem::transmute(i) };
-    ///     let mut rand = RandState::new_custom(&mut seed);
-    ///     rand.seed(ir);
-    /// }
-    /// assert_eq!(seed.num, i);
-    /// ```
-    ///
     /// [`RandState::seed`]: struct.RandState.html#method.seed
     #[inline]
     fn seed(&mut self, seed: &Integer) {
@@ -1222,8 +1195,10 @@ pub trait RandGen: Send + Sync {
     /// }
     /// impl RandGen for SimpleGenerator {
     ///     fn gen(&mut self) -> u32 {
-    ///         self.seed =
-    ///             self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
+    ///         // linear congruential algorithm with m = 64
+    ///         const A: u64 = 0x5851_F42D_4C95_7F2D;
+    ///         const C: u64 = 1;
+    ///         self.seed = self.seed.wrapping_mul(A).wrapping_add(C);
     ///         (self.seed >> 32) as u32
     ///     }
     ///     fn boxed_clone(&self) -> Option<Box<dyn RandGen>> {
@@ -1233,15 +1208,12 @@ pub trait RandGen: Send + Sync {
     ///     }
     /// }
     /// let mut rand = SimpleGenerator { seed: 1 };
-    /// let first = rand.gen();
-    /// assert_eq!(rand.seed, 6364136223846793006);
-    /// assert_eq!(first, 1481765933);
+    /// assert_eq!(rand.gen(), 0x5851_F42D);
+    /// assert_eq!(rand.seed, 0x5851_F42D_4C95_7F2E);
     /// let mut other = rand.boxed_clone().unwrap();
-    /// let second = rand.gen();
-    /// assert_eq!(rand.seed, 13885033948157127959);
-    /// assert_eq!(second, 3232861391);
-    /// let second_other = other.gen();
-    /// assert_eq!(second_other, 3232861391);
+    /// assert_eq!(rand.gen(), 0xC0B1_8CCF);
+    /// assert_eq!(rand.seed, 0xC0B1_8CCF_4E25_2D17);
+    /// assert_eq!(other.gen(), 0xC0B1_8CCF);
     /// ```
     ///
     /// [`None`]: https://doc.rust-lang.org/nightly/std/option/enum.Option.html#variant.None
