@@ -36,8 +36,12 @@ option) any later version. See the full text of the [GNU LGPL] and
   * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],
     [`i128`], [`u8`], [`u16`], [`u64`] and [`u128`] were added to the
     existing implementations for [`i32`] and [`u32`].
-  * The function [`float::free_cache`] was added.
-  * The method [`RandState::into_custom_boxed`] was added.
+  * The function
+    <code>[float][`float`]::[free_cache][`free_cache`]</code> was
+    added.
+  * The method
+    <code>[RandState][`RandState`]::[into_custom_boxed][`into_custom_boxed`]</code>
+    was added.
   * [`ThreadRandState`] and [`ThreadRandGen`] were added to the
     [`rand`] module to enable the use of custom random generators that
     are not [`Send`] and [`Sync`].
@@ -56,18 +60,19 @@ option) any later version. See the full text of the [GNU LGPL] and
     have the same performance.
 
 [`MutRandState`]: https://docs.rs/rug/~1.6/rug/rand/trait.MutRandState.html
-[`RandState::into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
 [`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
 [`Send`]: https://doc.rust-lang.org/nightly/core/marker/trait.Send.html
 [`Sync`]: https://doc.rust-lang.org/nightly/core/marker/trait.Sync.html
 [`ThreadRandGen`]: https://docs.rs/rug/~1.6/rug/rand/trait.ThreadRandGen.html
 [`ThreadRandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.ThreadRandState.html
-[`float::free_cache`]: https://docs.rs/rug/~1.6/rug/float/fn.free_cache.html
+[`float`]: https://docs.rs/rug/~1.6/rug/float/index.html
+[`free_cache`]: https://docs.rs/rug/~1.6/rug/float/fn.free_cache.html
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
+[`into_custom_boxed`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html#method.into_custom_boxed
 [`rand`]: https://docs.rs/rug/~1.6/rug/rand/index.html
 [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
@@ -99,17 +104,19 @@ int = (int >> 128) - 1;
 assert_eq!(int, 0xfffe_ffff_u32);
 ```
 
-  * [`Integer::new()`][`Integer::new`] creates a new [`Integer`]
-    intialized to zero.
+  * <code>[Integer][`Integer`]::[new][`new`]</code> creates a new
+    [`Integer`] intialized to zero.
   * To assign values to Rug types, we use the [`Assign`] trait and its
-    method [`assign`][`Assign::assign`]. We do not use the
+    method [`Assign::assign`]. We do not use the
     [assignment operator `=`][assignment] as that would drop the
     left-hand-side operand and replace it with a right-hand-side
     operand of the same type, which is not what we want here.
   * Arbitrary precision numbers can hold numbers that are too large to
     fit in a primitive type. To assign such a number to the large
     types, we use strings rather than primitives; in the example this
-    is done using [`Integer::parse`] and [`Integer::parse_radix`].
+    is done using <code>[Integer][`Integer`]::[parse][`parse`]</code>
+    and
+    <code>[Integer][`Integer`]::[parse_radix][`parse_radix`]</code>.
   * We can compare Rug types to primitive types or to other Rug types
     using the normal comparison operators, for example
     `int > 100_000_000`.
@@ -234,13 +241,13 @@ provided by the crate.
 [`Assign`]: https://docs.rs/rug/~1.6/rug/trait.Assign.html
 [`Complex`]: https://docs.rs/rug/~1.6/rug/struct.Complex.html
 [`Float`]: https://docs.rs/rug/~1.6/rug/struct.Float.html
-[`Integer::new`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.new
-[`Integer::parse_radix`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse_radix
-[`Integer::parse`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse
 [`Integer`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html
 [`RandState`]: https://docs.rs/rug/~1.6/rug/rand/struct.RandState.html
 [`Rational`]: https://docs.rs/rug/~1.6/rug/struct.Rational.html
+[`new`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.new
 [`ops`]: https://docs.rs/rug/~1.6/rug/ops/index.html
+[`parse_radix`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse_radix
+[`parse`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.parse
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [operators]: https://docs.rs/rug/~1.6/rug/index.html#operators
 [primitive types]: https://docs.rs/rug/~1.6/rug/index.html#using-with-primitive-types

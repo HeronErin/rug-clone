@@ -336,10 +336,10 @@ impl Integer {
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`gmp_mpfr_sys::gmp::mpz_t`][`mpz_t`] type can be
-    ///     considered as a kind of pointer, so there can be multiple
-    ///     copies of it. Since this function takes over ownership, no
-    ///     other copies of the passed value should exist.
+    ///   * The [`mpz_t`] type can be considered as a kind of pointer,
+    ///     so there can be multiple copies of it. Since this function
+    ///     takes over ownership, no other copies of the passed value
+    ///     should exist.
     ///
     /// # Examples
     ///
@@ -754,7 +754,7 @@ impl Integer {
     }
 
     /// Creates an [`Integer`] from an [`f32`] if it is
-    /// [finite][`f32::is_finite`], rounding towards zero.
+    /// [finite][`is_finite`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -768,15 +768,15 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
-    /// [`f32::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     #[inline]
     pub fn from_f32(val: f32) -> Option<Self> {
         Integer::from_f64(val.into())
     }
 
     /// Creates an [`Integer`] from an [`f64`] if it is
-    /// [finite][`f64::is_finite`], rounding towards zero.
+    /// [finite][`is_finite`], rounding towards zero.
     ///
     /// # Examples
     ///
@@ -790,8 +790,8 @@ impl Integer {
     /// ```
     ///
     /// [`Integer`]: struct.Integer.html
-    /// [`f64::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     #[inline]
     pub fn from_f64(val: f64) -> Option<Self> {
         if val.is_finite() {
@@ -1650,7 +1650,7 @@ impl Integer {
         s
     }
 
-    /// Assigns from an [`f32`] if it is [finite][`f32::is_finite`],
+    /// Assigns from an [`f32`] if it is [finite][`is_finite`],
     /// rounding towards zero.
     ///
     /// # Examples
@@ -1667,14 +1667,14 @@ impl Integer {
     /// assert_eq!(i, -12);
     /// ```
     ///
-    /// [`f32::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an [`f64`] if it is [finite][`f64::is_finite`],
+    /// Assigns from an [`f64`] if it is [finite][`is_finite`],
     /// rounding towards zero.
     ///
     /// # Examples
@@ -1690,8 +1690,8 @@ impl Integer {
     /// assert_eq!(i, 12);
     /// ```
     ///
-    /// [`f64::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         xmpz::set_f64(self, val)
@@ -1975,8 +1975,8 @@ impl Integer {
         xmpz::power_of_two_p(self)
     }
 
-    /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
-    /// is faster.
+    /// Returns the same result as
+    /// <code>self.[cmp][`cmp`](&amp;0.[into][`into`]())</code>, but is faster.
     ///
     /// # Examples
     ///
@@ -1989,6 +1989,7 @@ impl Integer {
     /// ```
     ///
     /// [`cmp`]: https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html#tymethod.cmp
+    /// [`into`]: https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#tymethod.into
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         unsafe { gmp::mpz_sgn(self.as_raw()).cmp(&0) }
@@ -5663,8 +5664,9 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
 /**
 An error which can be returned when parsing an [`Integer`].
 
-See the [`Integer::parse_radix`] method for details on what strings
-are accepted.
+See the
+<code>[Integer][`Integer`]::[parse_radix][`parse_radix`]</code> method
+for details on what strings are accepted.
 
 # Examples
 
@@ -5679,7 +5681,7 @@ let error: ParseIntegerError = match Integer::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`Integer::parse_radix`]: ../struct.Integer.html#method.parse_radix
+[`parse_radix`]: ../struct.Integer.html#method.parse_radix
 [`Integer`]: ../struct.Integer.html
 */
 pub struct ParseIntegerError {
@@ -5712,7 +5714,9 @@ impl Display for ParseIntegerError {
 /**
 Whether a number is prime.
 
-See the [`Integer::is_probably_prime`] method.
+See the
+<code>[Integer][`Integer`]::[is_probably_prime][`is_probably_prime`]</code>
+method.
 
 # Examples
 
@@ -5727,7 +5731,8 @@ let probably = Integer::from(817_504_243);
 assert_eq!(probably.is_probably_prime(15), IsPrime::Probably);
 ```
 
-[`Integer::is_probably_prime`]: ../struct.Integer.html#method.is_probably_prime
+[`Integer`]: ../struct.Integer.html
+[`is_probably_prime`]: ../struct.Integer.html#method.is_probably_prime
 */
 pub enum IsPrime {
     /// The number is definitely not prime.
@@ -5742,28 +5747,31 @@ pub enum IsPrime {
 /// type are provided.
 ///
 /// For conversion from digits to [`Integer`], see
-/// [`Integer::from_digits`] and [`Integer::assign_digits`]. For
-/// conversion from [`Integer`] to digits, see
-/// [`Integer::significant_digits`], [`Integer::to_digits`], and
-/// [`Integer::write_digits`].
+/// <code>[Integer][`Integer`]::[from_digits][`from_digits`]</code>
+/// and
+/// <code>[Integer][`Integer`]::[assign_digits][`assign_digits`]</code>.
+/// For conversion from [`Integer`] to digits, see
+/// <code>[Integer][`Integer`]::[significant_digits][`significant_digits`]</code>,
+/// <code>[Integer][`Integer`]::[to_digits][`to_digits`]</code>, and
+/// <code>[Integer][`Integer`]::[write_digits][`write_digits`]</code>.
 ///
 /// This trait is sealed and cannot be implemented for more types; it
 /// is implemented for [`bool`] and the unsigned integer types [`u8`],
 /// [`u16`], [`u32`], [`u64`], [`u128`] and [`usize`].
 ///
-/// [`Integer::assign_digits`]: ../struct.Integer.html#method.assign_digits
-/// [`Integer::from_digits`]: ../struct.Integer.html#method.from_digits
-/// [`Integer::significant_digits`]: ../struct.Integer.html#method.significant_digits
-/// [`Integer::to_digits`]: ../struct.Integer.html#method.to_digits
-/// [`Integer::write_digits`]: ../struct.Integer.html#method.write_digits
 /// [`Integer`]: ../struct.Integer.html
+/// [`assign_digits`]: ../struct.Integer.html#method.assign_digits
 /// [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
+/// [`from_digits`]: ../struct.Integer.html#method.from_digits
+/// [`significant_digits`]: ../struct.Integer.html#method.significant_digits
+/// [`to_digits`]: ../struct.Integer.html#method.to_digits
 /// [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 /// [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
 /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
 /// [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 /// [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
+/// [`write_digits`]: ../struct.Integer.html#method.write_digits
 /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
 pub trait UnsignedPrimitive: SealedUnsignedPrimitive {}
 

@@ -64,17 +64,19 @@ assert_eq!(int, 0xfffe_ffff_u32);
 # }
 ```
 
-  * [`Integer::new()`][`Integer::new`] creates a new [`Integer`]
-    intialized to zero.
+  * <code>[Integer][`Integer`]::[new][`new`]</code> creates a new
+    [`Integer`] intialized to zero.
   * To assign values to Rug types, we use the [`Assign`] trait and its
-    method [`assign`][`Assign::assign`]. We do not use the
+    method [`Assign::assign`]. We do not use the
     [assignment operator `=`][assignment] as that would drop the
     left-hand-side operand and replace it with a right-hand-side
     operand of the same type, which is not what we want here.
   * Arbitrary precision numbers can hold numbers that are too large to
     fit in a primitive type. To assign such a number to the large
     types, we use strings rather than primitives; in the example this
-    is done using [`Integer::parse`] and [`Integer::parse_radix`].
+    is done using <code>[Integer][`Integer`]::[parse][`parse`]</code>
+    and
+    <code>[Integer][`Integer`]::[parse_radix][`parse_radix`]</code>.
   * We can compare Rug types to primitive types or to other Rug types
     using the normal comparison operators, for example
     `int > 100_000_000`.
@@ -213,12 +215,14 @@ values:
 
  1. Assign them to an existing object without unnecessary allocations.
     This is usually achieved using the [`Assign`] trait or a similar
-    method, for example [`int.assign(incomplete)`][`Assign::assign`]
-    and [`float.assign_round(incomplete, Round::Up)`][`assign_round`].
+    method, for example
+    <code>int.[assign][`Assign::assign`](incomplete)</code> and
+    <code>float.[assign_round][`assign_round`](incomplete, [Round][`Round`]::[Up][`Up`])</code>.
  2. Convert them to the final value using the [`From`] trait or a
     similar method, for example
-    [`Integer::from(incomplete)`][`From::from`] and
-    [`Float::with_val(53, incomplete)`][`Float::with_val`].
+    <code>[Integer][`Integer`]::[from][`From::from`](incomplete)</code>
+    and <code>[Float][`Float`]::[with_val][`with_val`](53,
+    incomplete)</code>.
 
 Let us consider a couple of examples.
 
@@ -265,11 +269,11 @@ Many operations can return incomplete-computation values:
   * binary operators applied to a primitive and a reference, for
     example `&int * 10`;
   * methods that take a reference, for example
-    [`int.abs_ref()`][`Integer::abs_ref`];
+    <code>int.[abs_ref][`abs_ref`]()</code>;
   * methods that take two references, for example
-    [`int1.gcd_ref(&int2)`][`Integer::gcd_ref`];
+    <code>int1.[gcd_ref][`gcd_ref`](&amp;int2)</code>;
   * string parsing, for example
-    [`Integer::parse("12")`][`Integer::parse`];
+    <code>[Integer][`Integer`]::[parse][`parse`]("12")</code>;
   * and more.
 
 These operations return objects that can be stored in temporary
@@ -347,38 +351,40 @@ provided by the crate.
 [`Assign::assign`]: trait.Assign.html#tymethod.assign
 [`Assign`]: trait.Assign.html
 [`Complex`]: struct.Complex.html
-[`Float::with_val`]: struct.Float.html#method.with_val
 [`Float`]: struct.Float.html
 [`From::from`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html#tymethod.from
 [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
-[`Integer::abs_ref`]: struct.Integer.html#method.abs_ref
-[`Integer::gcd_ref`]: struct.Integer.html#method.gcd_ref
-[`Integer::new`]: struct.Integer.html#method.new
-[`Integer::parse_radix`]: struct.Integer.html#method.parse_radix
-[`Integer::parse`]: struct.Integer.html#method.parse
 [`Integer`]: struct.Integer.html
 [`Pow`]: ops/trait.Pow.html
 [`RandState`]: rand/struct.RandState.html
 [`Rational`]: struct.Rational.html
+[`Round`]: float/enum.Round.html
 [`SubAssign`]: https://doc.rust-lang.org/nightly/core/ops/trait.SubAssign.html
 [`SubFrom`]: ops/trait.SubFrom.html
+[`Up`]: float/enum.Round.html#variant.Up
+[`abs_ref`]: struct.Integer.html#method.abs_ref
 [`assign_round`]: ops/trait.AssignRound.html#tymethod.assign_round
 [`bool`]: https://doc.rust-lang.org/nightly/std/primitive.bool.html
 [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
 [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+[`gcd_ref`]: struct.Integer.html#method.gcd_ref
 [`i128`]: https://doc.rust-lang.org/nightly/std/primitive.i128.html
 [`i16`]: https://doc.rust-lang.org/nightly/std/primitive.i16.html
 [`i32`]: https://doc.rust-lang.org/nightly/std/primitive.i32.html
 [`i64`]: https://doc.rust-lang.org/nightly/std/primitive.i64.html
 [`i8`]: https://doc.rust-lang.org/nightly/std/primitive.i8.html
 [`isize`]: https://doc.rust-lang.org/nightly/std/primitive.isize.html
+[`new`]: struct.Integer.html#method.new
 [`ops`]: ops/index.html
+[`parse_radix`]: struct.Integer.html#method.parse_radix
+[`parse`]: struct.Integer.html#method.parse
 [`u128`]: https://doc.rust-lang.org/nightly/std/primitive.u128.html
 [`u16`]: https://doc.rust-lang.org/nightly/std/primitive.u16.html
 [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
 [`u64`]: https://doc.rust-lang.org/nightly/std/primitive.u64.html
 [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
 [`usize`]: https://doc.rust-lang.org/nightly/std/primitive.usize.html
+[`with_val`]: struct.Float.html#method.with_val
 [assignment]: https://doc.rust-lang.org/reference/expressions/operator-expr.html#assignment-expressions
 [rug crate]: https://crates.io/crates/rug
 [serde crate]: https://crates.io/crates/serde

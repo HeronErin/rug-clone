@@ -112,12 +112,12 @@ have four versions:
  3. The third method has a “`_round`” suffix, mutates the operand,
     applies the specified [rounding method][`Round`] to the real and
     imaginary parts, and returns the rounding direction for both:
-      * [`Ordering::Less`] if the stored part is less than the exact
-        result,
-      * [`Ordering::Equal`] if the stored part is equal to the exact
-        result,
-      * [`Ordering::Greater`] if the stored part is greater than the
-        exact result.
+      * <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if the
+        stored part is less than the exact result,
+      * <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code> if the
+        stored part is equal to the exact result,
+      * <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
+        the stored part is greater than the exact result.
  4. The fourth method has a “`_ref`” suffix and borrows the operand.
     The returned item is an [incomplete-computation value][icv] that
     can be assigned to a `Complex` number; the rounding method is
@@ -155,10 +155,11 @@ assert!(*(sin_d - &expected).abs().real() < 0.0001);
 assert_eq!(d, (1, 1));
 ```
 
+[`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+[`Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+[`Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
 [`Nearest`]: float/enum.Round.html#variant.Nearest
-[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
-[`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
+[`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
@@ -449,10 +450,10 @@ impl Complex {
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`gmp_mpfr_sys::mpc::mpc_t`][`mpc_t`] type can be
-    ///     considered as a kind of pointer, so there can be multiple
-    ///     copies of it. Since this function takes over ownership, no
-    ///     other copies of the passed value should exist.
+    ///   * The [`mpc_t`] type can be considered as a kind of pointer,
+    ///     so there can be multiple copies of it. Since this function
+    ///     takes over ownership, no other copies of the passed value
+    ///     should exist.
     ///
     /// # Examples
     ///
@@ -584,8 +585,8 @@ impl Complex {
     /// The string can contain either of the following three:
     ///
     ///  1. One floating-point number that can be parsed by
-    ///     [`Float::parse`]. ASCII whitespace is treated in the same
-    ///     way as well.
+    ///     <code>[Float][`Float`]::[parse][`parse`]</code>. ASCII
+    ///     whitespace is treated in the same way as well.
     ///  2. Two floating-point numbers inside round brackets separated
     ///     by one comma. ASCII whitespace is treated in the same way
     ///     as 1 above, and is also allowed around the brackets and
@@ -615,7 +616,8 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Complex`]: struct.Complex.html
-    /// [`Float::parse`]: struct.Float.html#method.parse
+    /// [`Float`]: struct.Float.html
+    /// [`parse`]: struct.Float.html#method.parse
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
@@ -636,8 +638,8 @@ impl Complex {
     /// The string can contain either of the following three:
     ///
     ///  1. One floating-point number that can be parsed by
-    ///     [`Float::parse_radix`]. ASCII whitespace is treated in the
-    ///     same way as well.
+    ///     <code>[Float][`Float`]::[parse_radix][`parse_radix`]</code>.
+    ///     ASCII whitespace is treated in the same way as well.
     ///  2. Two floating-point numbers inside round brackets separated
     ///     by one comma. ASCII whitespace is treated in the same way
     ///     as 1 above, and is also allowed around the brackets and
@@ -671,7 +673,8 @@ impl Complex {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Complex`]: struct.Complex.html
-    /// [`Float::parse_radix`]: struct.Float.html#method.parse_radix
+    /// [`Float`]: struct.Float.html
+    /// [`parse_radix`]: struct.Float.html#method.parse_radix
     /// [`u8`]: https://doc.rust-lang.org/nightly/std/primitive.u8.html
     /// [icv]: index.html#incomplete-computation-values
     /// [slice]: https://doc.rust-lang.org/nightly/std/primitive.slice.html
@@ -1027,8 +1030,8 @@ impl Complex {
         unsafe { &*cast_ptr!(self, OrdComplex) }
     }
 
-    /// Returns the same result as [`self.eq(&0)`][`eq`], but is
-    /// faster.
+    /// Returns the same result as
+    /// <code>self.[eq][`eq`](&amp;0)</code>, but is faster.
     ///
     /// # Examples
     ///
@@ -1486,6 +1489,7 @@ impl Complex {
         ///
         /// [`AssignRound`]: ops/trait.AssignRound.html
         /// [`Assign`]: trait.Assign.html
+        /// [`Complex`]: struct.Complex.html
         /// [icv]: index.html#incomplete-computation-values
         fn proj_ref -> ProjIncomplete;
     }
@@ -3317,8 +3321,9 @@ impl Complex {
     /// cases, not in some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// [`Ordering::Equal`], as the random numbers generated can be
-    /// considered to have infinite precision before rounding.
+    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>,
+    /// as the random numbers generated can be considered to have
+    /// infinite precision before rounding.
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -3354,7 +3359,8 @@ impl Complex {
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
     /// [`Complex`]: struct.Complex.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+    /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [`assign_random_bits`]: #method.assign_random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -3887,8 +3893,9 @@ fn parse(mut bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseComplexEr
 /**
 An error which can be returned when parsing a [`Complex`] number.
 
-See the [`Complex::parse_radix`] method for details on what strings
-are accepted.
+See the
+<code>[Complex][`Complex`]::[parse_radix][`parse_radix`]</code>
+method for details on what strings are accepted.
 
 # Examples
 
@@ -3903,8 +3910,8 @@ let error: ParseComplexError = match Complex::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`Complex::parse_radix`]: ../struct.Complex.html#method.parse_radix
 [`Complex`]: ../struct.Complex.html
+[`parse_radix`]: ../struct.Complex.html#method.parse_radix
 */
 pub struct ParseComplexError {
     kind: ParseErrorKind,

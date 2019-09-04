@@ -152,12 +152,12 @@ versions:
  3. The third method has a “`_round`” suffix, mutates the operand,
     applies the specified [rounding method][`Round`], and returns the
     rounding direction:
-      * [`Ordering::Less`] if the stored value is less than the exact
-        result,
-      * [`Ordering::Equal`] if the stored value is equal to the exact
-        result,
-      * [`Ordering::Greater`] if the stored value is greater than the
-        exact result.
+      * <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if the
+        stored value is less than the exact result,
+      * <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code> if the
+        stored value is equal to the exact result,
+      * <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
+        the stored value is greater than the exact result.
  4. The fourth method has a “`_ref`” suffix and borrows the operand.
     The returned item is an [incomplete-computation value][icv] that
     can be assigned to a `Float`; the rounding method is selected
@@ -228,10 +228,11 @@ float::free_cache(FreeCache::All);
 ```
 
 [MPFR sample]: https://www.mpfr.org/sample.html
+[`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+[`Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+[`Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
 [`Nearest`]: float/enum.Round.html#variant.Nearest
-[`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
-[`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
-[`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
+[`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
 [`Round`]: float/enum.Round.html
 [icv]: index.html#incomplete-computation-values
 */
@@ -571,10 +572,10 @@ impl Float {
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`gmp_mpfr_sys::mpfr::mpfr_t`][`mpfr_t`] type can be
-    ///     considered as a kind of pointer, so there can be multiple
-    ///     copies of it. Since this function takes over ownership, no
-    ///     other copies of the passed value should exist.
+    ///   * The [`mpfr_t`] type can be considered as a kind of
+    ///     pointer, so there can be multiple copies of it. Since this
+    ///     function takes over ownership, no other copies of the
+    ///     passed value should exist.
     ///
     /// # Examples
     ///
@@ -1605,7 +1606,8 @@ impl Float {
     }
 
     /// Returns the same result as
-    /// [`self.partial_cmp(&0)`][`partial_cmp`], but is faster.
+    /// <code>self.[partial_cmp][`partial_cmp`](&amp;0)</code>, but is
+    /// faster.
     ///
     /// # Examples
     ///
@@ -6197,8 +6199,10 @@ impl Float {
     /// Computes the logarithm of the absolute value of the gamma
     /// function on `self`, rounding to the nearest.
     ///
-    /// Returns [`Ordering::Less`] if the gamma function is negative,
-    /// or [`Ordering::Greater`] if the gamma function is positive.
+    /// Returns <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if
+    /// the gamma function is negative, or
+    /// <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
+    /// the gamma function is positive.
     ///
     /// # Examples
     ///
@@ -6218,7 +6222,7 @@ impl Float {
     /// ```
     ///
     /// If the gamma function is negative, the sign returned is
-    /// [`Ordering::Less`].
+    /// <code>[Ordering][`Ordering`]::[Less][`Less`]</code>.
     ///
     /// ```rust
     /// use rug::{float::Constant, Float};
@@ -6236,8 +6240,9 @@ impl Float {
     /// assert_eq!(ln_gamma, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
-    /// [`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
+    /// [`Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+    /// [`Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     #[inline]
     pub fn ln_abs_gamma(mut self) -> (Self, Ordering) {
         let sign = self.ln_abs_gamma_round(Default::default()).0;
@@ -6247,8 +6252,10 @@ impl Float {
     /// Computes the logarithm of the absolute value of the gamma
     /// function on `self`, rounding to the nearest.
     ///
-    /// Returns [`Ordering::Less`] if the gamma function is negative,
-    /// or [`Ordering::Greater`] if the gamma function is positive.
+    /// Returns <code>[Ordering][`Ordering`]::[Less][`Less`]</code> if
+    /// the gamma function is negative, or
+    /// <code>[Ordering][`Ordering`]::[Greater][`Greater`]</code> if
+    /// the gamma function is positive.
     ///
     /// # Examples
     ///
@@ -6268,8 +6275,9 @@ impl Float {
     /// assert_eq!(f, Float::with_val(53, &ln_gamma_64));
     /// ```
     ///
-    /// [`Ordering::Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
-    /// [`Ordering::Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
+    /// [`Greater`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Greater
+    /// [`Less`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Less
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     #[inline]
     pub fn ln_abs_gamma_mut(&mut self) -> Ordering {
         self.ln_abs_gamma_round(Default::default()).0
@@ -6361,6 +6369,7 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Float`]: struct.Float.html
     /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     /// [tuple]: https://doc.rust-lang.org/nightly/std/primitive.tuple.html
@@ -7699,8 +7708,9 @@ impl Float {
         /// applying the specified rounding method.
         ///
         /// The first element of the returned tuple of rounding
-        /// directions is always [`Ordering::Equal`], as truncating a
-        /// value in place will always be exact.
+        /// directions is always
+        /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as
+        /// truncating a value in place will always be exact.
         ///
         /// The integer part is stored in `self` and keeps its
         /// precision, while the fractional part is stored in `fract`
@@ -7728,7 +7738,8 @@ impl Float {
         /// assert_eq!(dir2, (Ordering::Equal, Ordering::Less));
         /// ```
         ///
-        /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+        /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+        /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
         fn trunc_fract_round;
         /// Gets the integer and fractional parts of the number.
         ///
@@ -7830,8 +7841,9 @@ impl Float {
     /// some corner case.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// [`Ordering::Equal`], as the random numbers generated can be
-    /// considered to have infinite precision before rounding.
+    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as the
+    /// random numbers generated can be considered to have infinite
+    /// precision before rounding.
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -7857,8 +7869,9 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [`Float`]: struct.Float.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [`random_bits`]: #method.random_bits
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
@@ -7871,8 +7884,9 @@ impl Float {
     /// Gaussian distribution, rounding to the nearest.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// [`Ordering::Equal`], as the random numbers generated can be
-    /// considered to have infinite precision before rounding.
+    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as the
+    /// random numbers generated can be considered to have infinite
+    /// precision before rounding.
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -7890,8 +7904,9 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [`Float`]: struct.Float.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_normal(rng: &mut dyn MutRandState) -> RandomNormalIncomplete {
@@ -7903,8 +7918,9 @@ impl Float {
     /// distribution with mean one, rounding to the nearest.
     ///
     /// Rounding directions for generated random numbers cannot be
-    /// [`Ordering::Equal`], as the random numbers generated can be
-    /// considered to have infinite precision before rounding.
+    /// <code>[Ordering][`Ordering`]::[Equal][`Equal`]</code>, as the
+    /// random numbers generated can be considered to have infinite
+    /// precision before rounding.
     ///
     /// The following are implemented with the returned
     /// [incomplete-computation value][icv] as `Src`:
@@ -7922,8 +7938,9 @@ impl Float {
     ///
     /// [`AssignRound`]: ops/trait.AssignRound.html
     /// [`Assign`]: trait.Assign.html
+    /// [`Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
     /// [`Float`]: struct.Float.html
-    /// [`Ordering::Equal`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html#variant.Equal
+    /// [`Ordering`]: https://doc.rust-lang.org/nightly/core/cmp/enum.Ordering.html
     /// [icv]: index.html#incomplete-computation-values
     #[inline]
     pub fn random_exp(rng: &mut dyn MutRandState) -> RandomExpIncomplete {
@@ -8726,8 +8743,8 @@ fn skip_nan_extra(bytes: &[u8]) -> Option<&[u8]> {
 /**
 An error which can be returned when parsing a [`Float`].
 
-See the [`Float::parse_radix`] method for details on what strings are
-accepted.
+See the <code>[Float][`Float`]::[parse_radix][`parse_radix`]</code>
+method for details on what strings are accepted.
 
 # Examples
 
@@ -8742,8 +8759,8 @@ let error: ParseFloatError = match Float::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`Float::parse_radix`]: ../struct.Float.html#method.parse_radix
 [`Float`]: ../struct.Float.html
+[`parse_radix`]: ../struct.Float.html#method.parse_radix
 */
 pub struct ParseFloatError {
     kind: ParseErrorKind,

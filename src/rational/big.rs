@@ -261,10 +261,10 @@ impl Rational {
     /// # Safety
     ///
     ///   * The value must be initialized.
-    ///   * The [`gmp_mpfr_sys::gmp::mpq_t`][`mpq_t`] type can be
-    ///     considered as a kind of pointer, so there can be multiple
-    ///     copies of it. Since this function takes over ownership, no
-    ///     other copies of the passed value should exist.
+    ///   * The [`mpq_t`] type can be considered as a kind of pointer,
+    ///     so there can be multiple copies of it. Since this function
+    ///     takes over ownership, no other copies of the passed value
+    ///     should exist.
     ///   * The numerator and denominator must be in canonical form,
     ///     as the rest of the library assumes that they are. Most GMP
     ///     functions leave the rational number in canonical form, but
@@ -384,7 +384,7 @@ impl Rational {
     }
 
     /// Creates a [`Rational`] number from an [`f32`] if it is
-    /// [finite][`f32::is_finite`], losing no precision.
+    /// [finite][`is_finite`], losing no precision.
     ///
     /// This conversion can also be performed using
     /// <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>.
@@ -402,8 +402,8 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`f32::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn from_f32(value: f32) -> Option<Self> {
@@ -411,7 +411,7 @@ impl Rational {
     }
 
     /// Creates a [`Rational`] number from an [`f64`] if it is
-    /// [finite][`f64::is_finite`], losing no precision.
+    /// [finite][`is_finite`], losing no precision.
     ///
     /// This conversion can also be performed using
     /// <code>[Rational][`Rational`]::[try_from][`try_from`](value)</code>.
@@ -429,8 +429,8 @@ impl Rational {
     /// ```
     ///
     /// [`Rational`]: struct.Rational.html
-    /// [`f64::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`try_from`]: https://doc.rust-lang.org/nightly/core/convert/trait.TryFrom.html#tymethod.try_from
     #[inline]
     pub fn from_f64(value: f64) -> Option<Self> {
@@ -652,8 +652,8 @@ impl Rational {
         s
     }
 
-    /// Assigns from an [`f32`] if it is [finite][`f32::is_finite`],
-    /// losing no precision.
+    /// Assigns from an [`f32`] if it is [finite][`is_finite`], losing
+    /// no precision.
     ///
     /// # Examples
     ///
@@ -669,15 +669,15 @@ impl Rational {
     /// assert_eq!(r, (1275, 100));
     /// ```
     ///
-    /// [`f32::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     /// [`f32`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f32.html#method.is_finite
     #[inline]
     pub fn assign_f32(&mut self, val: f32) -> Result<(), ()> {
         self.assign_f64(val.into())
     }
 
-    /// Assigns from an [`f64`] if it is [finite][`f64::is_finite`],
-    /// losing no precision.
+    /// Assigns from an [`f64`] if it is [finite][`is_finite`], losing
+    /// no precision.
     ///
     /// # Examples
     ///
@@ -692,8 +692,8 @@ impl Rational {
     /// assert_eq!(r, (1275, 100));
     /// ```
     ///
-    /// [`f64::is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     /// [`f64`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html
+    /// [`is_finite`]: https://doc.rust-lang.org/nightly/std/primitive.f64.html#method.is_finite
     #[inline]
     pub fn assign_f64(&mut self, val: f64) -> Result<(), ()> {
         if val.is_finite() {
@@ -1052,7 +1052,8 @@ impl Rational {
         unsafe { BorrowRational::from_raw(raw) }
     }
 
-    /// Returns the same result as [`self.cmp(&0.into())`][`cmp`], but
+    /// Returns the same result as
+    /// <code>self.[cmp][`cmp`](&amp;0.[into][`into`]())</code>, but
     /// is faster.
     ///
     /// # Examples
@@ -1066,6 +1067,7 @@ impl Rational {
     /// ```
     ///
     /// [`cmp`]: https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html#tymethod.cmp
+    /// [`into`]: https://doc.rust-lang.org/nightly/core/convert/trait.Into.html#tymethod.into
     #[inline]
     pub fn cmp0(&self) -> Ordering {
         self.numer().cmp0()
@@ -2773,8 +2775,9 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseRationalError
 /**
 An error which can be returned when parsing a [`Rational`] number.
 
-See the [`Rational::parse_radix`] method for details on what strings
-are accepted.
+See the
+<code>[Rational][`Rational`]::[parse_radix][`parse_radix`]</code>
+method for details on what strings are accepted.
 
 # Examples
 
@@ -2789,8 +2792,8 @@ let error: ParseRationalError = match Rational::parse_radix(s, 4) {
 println!("Parse error: {}", error);
 ```
 
-[`Rational::parse_radix`]: ../struct.Rational.html#method.parse_radix
 [`Rational`]: ../struct.Rational.html
+[`parse_radix`]: ../struct.Rational.html#method.parse_radix
 */
 pub struct ParseRationalError {
     kind: ParseErrorKind,
