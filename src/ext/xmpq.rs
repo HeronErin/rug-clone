@@ -523,10 +523,6 @@ pub fn mul_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
 #[inline]
 pub fn div_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
     assert_ne!(rhs.cmp0(), Ordering::Equal, "division by zero");
-    if rhs.cmp0() == Ordering::Equal {
-        set_0(rop);
-        return;
-    }
     unsafe {
         let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
         // gcd = gcd(lhs.numer, rhs)

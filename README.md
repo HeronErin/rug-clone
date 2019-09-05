@@ -35,6 +35,11 @@ option) any later version. See the full text of the [GNU LGPL] and
 
   * Arithmetic operations with one [`Integer`] operand and one
     [`Rational`] operand were added.
+  * The method
+    <code>[Integer][`Integer`]::[div_exact_from][`div_exact_from`]</code>
+    was added.
+
+[`div_exact_from`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.div_exact_from
 
 ### Version 1.6.0 news (2019-09-03)
 

@@ -10,6 +10,7 @@ Verison 1.7.0 (unreleased)
 
   * Arithmetic operations with one `Integer` operand and one
     `Rational` operand were added.
+  * The method `Integer::div_exact_from` was added.
 
 Verison 1.6.0 (2019-09-03)
 ==========================
