@@ -38,8 +38,22 @@ option) any later version. See the full text of the [GNU LGPL] and
   * The method
     <code>[Integer][`Integer`]::[div_exact_from][`div_exact_from`]</code>
     was added.
+  * The methods <code>[Integer][`Integer`]::[gcd_u][`gcd_u`]</code>,
+    <code>[Integer][`Integer`]::[gcd_u_mut][`gcd_u_mut`]</code> and
+    <code>[Integer][`Integer`]::[gcd_u_ref][`gcd_u_ref`]</code> were
+    added.
+  * The methods <code>[Integer][`Integer`]::[lcm_u][`lcm_u`]</code>,
+    <code>[Integer][`Integer`]::[lcm_u_mut][`lcm_u_mut`]</code> and
+    <code>[Integer][`Integer`]::[lcm_u_ref][`lcm_u_ref`]</code> were
+    added.
 
 [`div_exact_from`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.div_exact_from
+[`gcd_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u_mut
+[`gcd_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u_ref
+[`gcd_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.gcd_u
+[`lcm_u_mut`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_mut
+[`lcm_u_ref`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u_ref
+[`lcm_u`]: https://docs.rs/rug/~1.6/rug/struct.Integer.html#method.lcm_u
 
 ### Version 1.6.0 news (2019-09-03)
 

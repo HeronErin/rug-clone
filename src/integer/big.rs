@@ -26,7 +26,7 @@ use std::{
     mem::{self, ManuallyDrop},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
     os::raw::{c_char, c_int, c_long, c_void},
-    slice,
+    ptr, slice,
 };
 
 /**
@@ -4218,6 +4218,86 @@ impl Integer {
         /// [icv]: index.html#incomplete-computation-values
         fn gcd_ref -> GcdIncomplete;
     }
+    math_op1! {
+        xmpz::gcd_ui;
+        /// Finds the greatest common divisor.
+        ///
+        /// The result is always positive except when both inputs are
+        /// zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::new();
+        /// // gcd of 0, 0 is 0
+        /// let gcd1 = i.gcd_u(0);
+        /// assert_eq!(gcd1, 0);
+        /// // gcd of 0, 10 is 10
+        /// let gcd2 = gcd1.gcd_u(10);
+        /// assert_eq!(gcd2, 10);
+        /// // gcd of 10, 25 is 5
+        /// let gcd3 = gcd2.gcd_u(25);
+        /// assert_eq!(gcd3, 5);
+        /// ```
+        fn gcd_u(other: u32);
+        /// Finds the greatest common divisor.
+        ///
+        /// The result is always positive except when both inputs are
+        /// zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::new();
+        /// // gcd of 0, 0 is 0
+        /// i.gcd_u_mut(0);
+        /// assert_eq!(i, 0);
+        /// // gcd of 0, 10 is 10
+        /// i.gcd_u_mut(10);
+        /// assert_eq!(i, 10);
+        /// // gcd of 10, 25 is 5
+        /// i.gcd_u_mut(25);
+        /// assert_eq!(i, 5);
+        /// ```
+        fn gcd_u_mut;
+        /// Finds the greatest common divisor.
+        ///
+        /// The result is always positive except when both inputs are
+        /// zero.
+        ///
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Option][`Option`]&lt;[u32][`u32`]&gt;</code>
+        ///
+        /// The last item above is useful to obtain the result as a
+        /// [`u32`] if it fits. If `other` > 0 , the result always
+        /// fits. If the result does not fit, it is equal to the
+        /// absolute value of `self`.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(100);
+        /// let r = i.gcd_u_ref(125);
+        /// // gcd of 100, 125 is 25
+        /// assert_eq!(Integer::from(r), 25);
+        /// let r = i.gcd_u_ref(125);
+        /// assert_eq!(Option::<u32>::from(r), Some(25));
+        /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
+        /// [`Option`]: https://doc.rust-lang.org/nightly/core/option/enum.Option.html
+        /// [`u32`]: https://doc.rust-lang.org/nightly/std/primitive.u32.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn gcd_u_ref -> GcdUIncomplete;
+    }
     math_op2_3! {
         xmpz::gcdext;
         /// Finds the greatest common divisor (GCD) of the two inputs
@@ -4463,6 +4543,71 @@ impl Integer {
         /// [`Integer`]: struct.Integer.html
         /// [icv]: index.html#incomplete-computation-values
         fn lcm_ref -> LcmIncomplete;
+    }
+
+    math_op1! {
+        xmpz::lcm_ui;
+        /// Finds the least common multiple.
+        ///
+        /// The result is always positive except when one or both
+        /// inputs are zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(10);
+        /// // lcm of 10, 25 is 50
+        /// let lcm1 = i.lcm_u(25);
+        /// assert_eq!(lcm1, 50);
+        /// // lcm of 50, 0 is 0
+        /// let lcm2 = lcm1.lcm_u(0);
+        /// assert_eq!(lcm2, 0);
+        /// ```
+        fn lcm_u(other: u32);
+        /// Finds the least common multiple.
+        ///
+        /// The result is always positive except when one or both
+        /// inputs are zero.
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let mut i = Integer::from(10);
+        /// // lcm of 10, 25 is 50
+        /// i.lcm_u_mut(25);
+        /// assert_eq!(i, 50);
+        /// // lcm of 50, 0 is 0
+        /// i.lcm_u_mut(0);
+        /// assert_eq!(i, 0);
+        /// ```
+        fn lcm_u_mut;
+        /// Finds the least common multiple.
+        ///
+        /// The result is always positive except when one or both
+        /// inputs are zero.
+        ///
+        /// The following are implemented with the returned
+        /// [incomplete-computation value][icv] as `Src`:
+        ///   * <code>[Assign][`Assign`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///   * <code>[From][`From`]&lt;Src&gt; for [Integer][`Integer`]</code>
+        ///
+        /// # Examples
+        ///
+        /// ```rust
+        /// use rug::Integer;
+        /// let i = Integer::from(100);
+        /// let r = i.lcm_u_ref(125);
+        /// // lcm of 100, 125 is 500
+        /// assert_eq!(Integer::from(r), 500);
+        /// ```
+        ///
+        /// [`Assign`]: trait.Assign.html
+        /// [`From`]: https://doc.rust-lang.org/nightly/core/convert/trait.From.html
+        /// [`Integer`]: struct.Integer.html
+        /// [icv]: index.html#incomplete-computation-values
+        fn lcm_u_ref -> LcmUIncomplete;
     }
 
     /// Calculates the Jacobi symbol (`self`/<i>n</i>).
@@ -5353,6 +5498,20 @@ ref_math_op1! { Integer; xmpz::sqrt; struct SqrtIncomplete {} }
 ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
 ref_math_op2! { Integer; xmpz::gcd; struct GcdIncomplete { other } }
+ref_math_op1! { Integer; xmpz::gcd_ui; struct GcdUIncomplete { other: u32 } }
+
+impl From<GcdUIncomplete<'_>> for Option<u32> {
+    #[inline]
+    fn from(src: GcdUIncomplete) -> Self {
+        let gcd =
+            unsafe { gmp::mpz_gcd_ui(ptr::null_mut(), src.ref_self.as_raw(), src.other.into()) };
+        if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
+            None
+        } else {
+            cast::checked_cast(gcd)
+        }
+    }
+}
 
 impl Assign<GcdIncomplete<'_>> for (&mut Integer, &mut Integer) {
     #[inline]
@@ -5393,6 +5552,7 @@ impl Assign<GcdIncomplete<'_>> for (Integer, Integer, Integer) {
 from_assign! { GcdIncomplete<'_> => Integer, Integer, Integer }
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
+ref_math_op1! { Integer; xmpz::lcm_ui; struct LcmUIncomplete { other: u32 } }
 
 #[derive(Debug)]
 pub struct InvertIncomplete<'a> {

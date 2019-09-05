@@ -172,6 +172,20 @@ pub fn divexact_ui(q: &mut Integer, dividend: Option<&Integer>, divisor: u32) {
 }
 
 #[inline]
+pub fn gcd_ui(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
+    unsafe {
+        gmp::mpz_gcd_ui(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.into());
+    }
+}
+
+#[inline]
+pub fn lcm_ui(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
+    unsafe {
+        gmp::mpz_lcm_ui(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.into());
+    }
+}
+
+#[inline]
 pub fn root(rop: &mut Integer, op: Option<&Integer>, n: u32) {
     assert_ne!(n, 0, "zeroth root");
     let op_ptr = op.unwrap_or(rop).as_raw();
