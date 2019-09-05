@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ext::xmpz::*, misc::NegAbs, Integer};
-use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::{self, mpz_t};
 use std::{cmp::Ordering, i32, i64, u32, u64};
 
 #[inline]
@@ -72,14 +72,14 @@ pub unsafe fn init_set_u128(rop: *mut Integer, u: u128) {
     if u <= u128::from(u64::MAX) {
         init_set_u64(rop, u as u64);
     } else if u <= !(!0u128 << 96) {
-        gmp::mpz_init2(cast_ptr_mut!(rop, gmp::mpz_t), 96);
+        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 96);
         let rop = &mut *rop;
         rop.inner_mut().size = 3;
         *limb_mut(rop, 0) = u as u32;
         *limb_mut(rop, 1) = (u >> 32) as u32;
         *limb_mut(rop, 2) = (u >> 64) as u32;
     } else {
-        gmp::mpz_init2(cast_ptr_mut!(rop, gmp::mpz_t), 128);
+        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 128);
         let rop = &mut *rop;
         rop.inner_mut().size = 4;
         *limb_mut(rop, 0) = u as u32;
@@ -94,7 +94,7 @@ pub unsafe fn init_set_u64(rop: *mut Integer, u: u64) {
     if u <= u64::from(u32::MAX) {
         init_set_u32(rop, u as u32);
     } else {
-        gmp::mpz_init2(cast_ptr_mut!(rop, gmp::mpz_t), 64);
+        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 64);
         let rop = &mut *rop;
         rop.inner_mut().size = 2;
         *limb_mut(rop, 0) = u as u32;
@@ -105,9 +105,9 @@ pub unsafe fn init_set_u64(rop: *mut Integer, u: u64) {
 #[inline]
 pub unsafe fn init_set_u32(rop: *mut Integer, u: u32) {
     if u == 0 {
-        gmp::mpz_init(cast_ptr_mut!(rop, gmp::mpz_t));
+        gmp::mpz_init(cast_ptr_mut!(rop, mpz_t));
     } else {
-        gmp::mpz_init2(cast_ptr_mut!(rop, gmp::mpz_t), 32);
+        gmp::mpz_init2(cast_ptr_mut!(rop, mpz_t), 32);
         let rop = &mut *rop;
         rop.inner_mut().size = 1;
         *limb_mut(rop, 0) = u;

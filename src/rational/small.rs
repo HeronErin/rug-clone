@@ -20,7 +20,7 @@ use crate::{
     misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL},
     Assign, Rational,
 };
-use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
 use std::{mem, ops::Deref, sync::atomic::Ordering};
 
 /**
@@ -89,7 +89,7 @@ struct Mpq {
 }
 
 fn _static_assertions() {
-    static_assert_same_layout!(Mpq, gmp::mpq_t);
+    static_assert_same_layout!(Mpq, mpq_t);
 }
 
 impl Default for SmallRational {
@@ -249,8 +249,8 @@ impl SmallRational {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = self.first_limbs[0].as_ptr() as *mut gmp::limb_t;
-        let last = self.last_limbs[0].as_ptr() as *mut gmp::limb_t;
+        let first = self.first_limbs[0].as_ptr() as *mut limb_t;
+        let last = self.last_limbs[0].as_ptr() as *mut limb_t;
         let (num_d, den_d) = if self.num_is_first() {
             (first, last)
         } else {

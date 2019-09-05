@@ -20,7 +20,7 @@ use crate::{
     misc::Limbs,
     Assign, Complex,
 };
-use gmp_mpfr_sys::{gmp, mpc, mpfr};
+use gmp_mpfr_sys::{gmp::limb_t, mpc::mpc_t, mpfr::mpfr_t};
 use std::{mem, ops::Deref, sync::atomic::Ordering};
 
 /**
@@ -112,7 +112,7 @@ struct Mpc {
 }
 
 fn _static_assertions() {
-    static_assert_same_layout!(Mpc, mpc::mpc_t);
+    static_assert_same_layout!(Mpc, mpc_t);
 }
 
 impl SmallComplex {
@@ -160,8 +160,8 @@ impl SmallComplex {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d fields.
-        let first = self.first_limbs[0].as_ptr() as *mut gmp::limb_t;
-        let last = self.last_limbs[0].as_ptr() as *mut gmp::limb_t;
+        let first = self.first_limbs[0].as_ptr() as *mut limb_t;
+        let last = self.last_limbs[0].as_ptr() as *mut limb_t;
         let (re_d, im_d) = if self.re_is_first() {
             (first, last)
         } else {
@@ -187,7 +187,7 @@ impl<Re: ToSmall> Assign<Re> for SmallComplex {
         unsafe {
             src.copy(&mut self.inner.re, &mut self.first_limbs);
             xmpfr::custom_zero(
-                cast_ptr_mut!(&mut self.inner.im, mpfr::mpfr_t),
+                cast_ptr_mut!(&mut self.inner.im, mpfr_t),
                 self.last_limbs[0].as_mut_ptr(),
                 self.inner.re.prec,
             );
@@ -218,7 +218,7 @@ impl<Re: ToSmall> From<Re> for SmallComplex {
         unsafe {
             src.copy(&mut dst.inner.re, &mut dst.first_limbs);
             xmpfr::custom_zero(
-                cast_ptr_mut!(&mut dst.inner.im, mpfr::mpfr_t),
+                cast_ptr_mut!(&mut dst.inner.im, mpfr_t),
                 dst.last_limbs[0].as_mut_ptr(),
                 dst.inner.re.prec,
             );

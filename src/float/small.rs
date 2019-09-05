@@ -21,8 +21,8 @@ use crate::{
     Assign, Float,
 };
 use gmp_mpfr_sys::{
-    gmp,
-    mpfr::{self, mpfr_t},
+    gmp::{self, limb_t},
+    mpfr::{self, exp_t, mpfr_t, prec_t},
 };
 use std::{
     mem,
@@ -95,10 +95,10 @@ pub struct SmallFloat {
 
 #[repr(C)]
 pub struct Mpfr {
-    pub prec: mpfr::prec_t,
+    pub prec: prec_t,
     pub sign: c_int,
-    pub exp: mpfr::exp_t,
-    pub d: AtomicPtr<gmp::limb_t>,
+    pub exp: exp_t,
+    pub d: AtomicPtr<limb_t>,
 }
 
 fn _static_assertions() {
@@ -156,7 +156,7 @@ impl SmallFloat {
     fn update_d(&self) {
         // Since this is borrowed, the limb won't move around, and we
         // can set the d field.
-        let d = self.limbs[0].as_ptr() as *mut gmp::limb_t;
+        let d = self.limbs[0].as_ptr() as *mut limb_t;
         self.inner.d.store(d, Ordering::Relaxed);
     }
 }
@@ -233,7 +233,7 @@ macro_rules! unsigned_32 {
                 } else {
                     let leading = self.leading_zeros();
                     let limb_leading = leading + cast::cast::<_, u32>(gmp::LIMB_BITS) - $bits;
-                    limbs[0] = MaybeLimb::new(gmp::limb_t::from(self) << limb_leading);
+                    limbs[0] = MaybeLimb::new(limb_t::from(self) << limb_leading);
                     let exp = $bits - leading;
                     xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(exp), $bits);
                 }

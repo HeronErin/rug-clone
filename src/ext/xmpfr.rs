@@ -21,24 +21,30 @@ use crate::{
     ops::NegAssign,
     Float,
 };
+#[cfg(feature = "rational")]
+use gmp_mpfr_sys::gmp::mpq_t;
 use gmp_mpfr_sys::{
-    gmp,
-    mpfr::{self, mpfr_t},
+    gmp::limb_t,
+    mpfr::{self, exp_t, mpfr_t, prec_t, rnd_t},
 };
 use std::{
     cmp::Ordering,
     os::raw::{c_int, c_void},
 };
 #[cfg(feature = "integer")]
-use {crate::float, std::cmp};
+use {
+    crate::float,
+    gmp_mpfr_sys::gmp::{self, mpz_t},
+    std::cmp,
+};
 
 #[inline]
-pub fn raw_round(round: Round) -> mpfr::rnd_t {
+pub fn raw_round(round: Round) -> rnd_t {
     match round {
-        Round::Nearest => mpfr::rnd_t::RNDN,
-        Round::Zero => mpfr::rnd_t::RNDZ,
-        Round::Up => mpfr::rnd_t::RNDU,
-        Round::Down => mpfr::rnd_t::RNDD,
+        Round::Nearest => rnd_t::RNDN,
+        Round::Zero => rnd_t::RNDZ,
+        Round::Up => rnd_t::RNDU,
+        Round::Down => rnd_t::RNDD,
         _ => unreachable!(),
     }
 }
@@ -159,11 +165,11 @@ pub fn signum(rop: &mut Float, op: Option<&Float>, _rnd: Round) -> Ordering {
     let op_ptr = op.unwrap_or(rop).as_raw();
     ordering1(unsafe {
         if mpfr::nan_p(op_ptr) != 0 {
-            mpfr::set(rop_ptr, op_ptr, mpfr::rnd_t::RNDZ)
+            mpfr::set(rop_ptr, op_ptr, rnd_t::RNDZ)
         } else if mpfr::signbit(op_ptr) != 0 {
-            mpfr::set_si(rop_ptr, -1, mpfr::rnd_t::RNDZ)
+            mpfr::set_si(rop_ptr, -1, rnd_t::RNDZ)
         } else {
-            mpfr::set_si(rop_ptr, 1, mpfr::rnd_t::RNDZ)
+            mpfr::set_si(rop_ptr, 1, rnd_t::RNDZ)
         }
     })
 }
@@ -324,44 +330,29 @@ wrap! { fn frac(op) -> mpfr::frac }
 
 #[cfg(feature = "integer")]
 #[inline]
-pub unsafe fn z_div(
-    r: *mut mpfr_t,
-    lhs: *const gmp::mpz_t,
-    rhs: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn z_div(r: *mut mpfr_t, lhs: *const mpz_t, rhs: *const mpfr_t, rnd: rnd_t) -> c_int {
     divf_mulz_divz(r, rhs, Some(lhs), None, rnd)
 }
 
 #[cfg(feature = "rational")]
 #[inline]
-pub unsafe fn q_sub(
-    r: *mut mpfr_t,
-    lhs: *const gmp::mpq_t,
-    rhs: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn q_sub(r: *mut mpfr_t, lhs: *const mpq_t, rhs: *const mpfr_t, rnd: rnd_t) -> c_int {
     let flip_rnd = match rnd {
-        mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
-        mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
+        rnd_t::RNDU => rnd_t::RNDD,
+        rnd_t::RNDD => rnd_t::RNDU,
         unchanged => unchanged,
     };
     let flip_ret = -mpfr::sub_q(r, rhs, lhs, flip_rnd);
     if mpfr::zero_p(r) == 0 {
         // the negation here is exact
-        mpfr::neg(r, r, mpfr::rnd_t::RNDN);
+        mpfr::neg(r, r, rnd_t::RNDN);
     }
     -flip_ret
 }
 
 #[cfg(feature = "rational")]
 #[inline]
-pub unsafe fn q_div(
-    r: *mut mpfr_t,
-    lhs: *const gmp::mpq_t,
-    rhs: *const mpfr_t,
-    rnd: mpfr::rnd_t,
-) -> c_int {
+pub unsafe fn q_div(r: *mut mpfr_t, lhs: *const mpq_t, rhs: *const mpfr_t, rnd: rnd_t) -> c_int {
     let lhs_num = gmp::mpq_numref_const(lhs);
     let lhs_den = gmp::mpq_denref_const(lhs);
     divf_mulz_divz(r, rhs, Some(lhs_num), Some(lhs_den), rnd)
@@ -373,9 +364,9 @@ pub unsafe fn q_div(
 unsafe fn divf_mulz_divz(
     rop: *mut mpfr_t,
     f: *const mpfr_t,
-    mul: Option<*const gmp::mpz_t>,
-    div: Option<*const gmp::mpz_t>,
-    rnd: mpfr::rnd_t,
+    mul: Option<*const mpz_t>,
+    div: Option<*const mpz_t>,
+    rnd: rnd_t,
 ) -> c_int {
     let mul_size = mul.map(|i| (*i).size);
     let div_size = div.map(|i| (*i).size);
@@ -405,7 +396,7 @@ unsafe fn divf_mulz_divz(
         let bits: u32 = cast::cast(gmp::mpz_sizeinbase(div, 2));
         prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
-        mpfr::mul_z(denom_buf.as_raw_mut(), f, div, mpfr::rnd_t::RNDN);
+        mpfr::mul_z(denom_buf.as_raw_mut(), f, div, rnd_t::RNDN);
         denom_buf.as_raw()
     } else {
         f
@@ -420,9 +411,9 @@ unsafe fn divf_mulz_divz(
     }
 }
 
-pub unsafe fn get_f32(op: *const mpfr_t, rnd: mpfr::rnd_t) -> f32 {
+pub unsafe fn get_f32(op: *const mpfr_t, rnd: rnd_t) -> f32 {
     let_uninit_ptr!(single, single_ptr);
-    let mut limb: gmp::limb_t = 0;
+    let mut limb: limb_t = 0;
     custom_zero(single_ptr, &mut limb, 24);
     let mut single = assume_init!(single);
     mpfr::set(&mut single, op, rnd);
@@ -431,12 +422,12 @@ pub unsafe fn get_f32(op: *const mpfr_t, rnd: mpfr::rnd_t) -> f32 {
 }
 
 #[inline]
-pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn set_f32(rop: *mut mpfr_t, op: f32, rnd: rnd_t) -> c_int {
     set_f64(rop, op.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: rnd_t) -> c_int {
     // retain sign in case of NaN
     let sign_neg = op.is_sign_negative();
     let ret = mpfr::set_d(rop, op, rnd);
@@ -447,13 +438,13 @@ pub unsafe fn set_f64(rop: *mut mpfr_t, op: f64, rnd: mpfr::rnd_t) -> c_int {
 }
 
 #[inline]
-pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn set_i128(rop: *mut mpfr_t, val: i128, rnd: rnd_t) -> c_int {
     let small = SmallFloat::from(val);
     mpfr::set(rop, small.as_raw(), rnd)
 }
 
 #[inline]
-pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: rnd_t) -> c_int {
     let small = SmallFloat::from(val);
     mpfr::set(rop, small.as_raw(), rnd)
 }
@@ -505,11 +496,11 @@ pub unsafe fn submul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
     (m1, m2): (*const mpfr_t, *const mpfr_t),
-    rnd: mpfr::rnd_t,
+    rnd: rnd_t,
 ) -> c_int {
     let reverse_rnd = match rnd {
-        mpfr::rnd_t::RNDU => mpfr::rnd_t::RNDD,
-        mpfr::rnd_t::RNDD => mpfr::rnd_t::RNDU,
+        rnd_t::RNDU => rnd_t::RNDD,
+        rnd_t::RNDD => rnd_t::RNDU,
         unchanged => unchanged,
     };
     let reverse_ord = mpfr::fms(rop, m1, m2, add, reverse_rnd);
@@ -518,38 +509,33 @@ pub unsafe fn submul(
 }
 
 #[inline]
-pub unsafe fn custom_zero(f: *mut mpfr_t, limbs: *mut gmp::limb_t, prec: mpfr::prec_t) {
+pub unsafe fn custom_zero(f: *mut mpfr_t, limbs: *mut limb_t, prec: prec_t) {
     mpfr::custom_init(limbs as *mut c_void, prec);
     mpfr::custom_init_set(f, mpfr::ZERO_KIND, 0, prec, limbs as *mut c_void);
 }
 
 #[inline]
-pub unsafe fn custom_regular(
-    f: *mut mpfr_t,
-    limbs: *mut gmp::limb_t,
-    exp: mpfr::exp_t,
-    prec: mpfr::prec_t,
-) {
+pub unsafe fn custom_regular(f: *mut mpfr_t, limbs: *mut limb_t, exp: exp_t, prec: prec_t) {
     mpfr::custom_init(limbs as *mut c_void, prec);
     mpfr::custom_init_set(f, mpfr::REGULAR_KIND, exp, prec, limbs as *mut c_void);
 }
 
 #[inline]
-pub unsafe fn shl_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn shl_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: rnd_t) -> c_int {
     mpfr::mul_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn shr_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn shr_u32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: u32, rnd: rnd_t) -> c_int {
     mpfr::div_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn shl_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn shl_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: rnd_t) -> c_int {
     mpfr::mul_2si(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn shr_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: mpfr::rnd_t) -> c_int {
+pub unsafe fn shr_i32(rop: *mut mpfr_t, op1: *const mpfr_t, op2: i32, rnd: rnd_t) -> c_int {
     mpfr::div_2si(rop, op1, op2.into(), rnd)
 }

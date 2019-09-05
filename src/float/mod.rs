@@ -37,7 +37,7 @@ pub use crate::float::{
     ord::OrdFloat,
     small::{SmallFloat, ToSmall},
 };
-use gmp_mpfr_sys::mpfr;
+use gmp_mpfr_sys::mpfr::{self, exp_t, prec_t};
 use std::{i32, u32};
 
 /**
@@ -53,7 +53,7 @@ println!("Minimum exponent is {}", float::exp_min());
 #[inline]
 pub fn exp_min() -> i32 {
     let min = unsafe { mpfr::get_emin() };
-    if min > mpfr::exp_t::from(i32::MIN) {
+    if min > exp_t::from(i32::MIN) {
         min as i32
     } else {
         i32::MIN
@@ -73,7 +73,7 @@ println!("Maximum exponent is {}", float::exp_max());
 #[inline]
 pub fn exp_max() -> i32 {
     let max = unsafe { mpfr::get_emax() };
-    if max < mpfr::exp_t::from(i32::MAX) {
+    if max < exp_t::from(i32::MAX) {
         max as i32
     } else {
         i32::MAX
@@ -107,7 +107,7 @@ println!("Maximum precision is {}", float::prec_max());
 */
 #[inline]
 pub const fn prec_max() -> u32 {
-    const MAX_FITS: bool = mpfr::PREC_MAX < u32::MAX as mpfr::prec_t;
+    const MAX_FITS: bool = mpfr::PREC_MAX < u32::MAX as prec_t;
     const VALUES: [u32; 2] = [u32::MAX, mpfr::PREC_MAX as u32];
     VALUES[MAX_FITS as usize]
 }

@@ -29,7 +29,7 @@ use crate::{
     },
     Float,
 };
-use gmp_mpfr_sys::mpfr::{self, mpfr_t};
+use gmp_mpfr_sys::mpfr::{self, mpfr_t, rnd_t};
 use std::{
     cmp::Ordering,
     ops::{
@@ -543,14 +543,14 @@ mul_op_noncommut_round! {
 }
 
 trait PrimOps<Long>: AsLong {
-    unsafe fn add(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn sub(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn sub_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn mul(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn div(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn div_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int;
-    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int;
+    unsafe fn add(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
+    unsafe fn sub(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
+    unsafe fn sub_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
+    unsafe fn mul(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
+    unsafe fn div(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
+    unsafe fn div_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
+    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int;
+    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int;
 }
 
 trait AsLong: Copy {
@@ -572,7 +572,7 @@ as_long! { f64: f32 f64 }
 macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int {
+        unsafe fn $fn(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int {
             if let Some(op2) = op2.checked_cast() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
@@ -585,7 +585,7 @@ macro_rules! forward {
 macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
-        unsafe fn $fn(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+        unsafe fn $fn(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
             if let Some(op1) = op1.checked_cast() {
                 $deleg_long(rop, op1, op2, rnd)
             } else {
@@ -609,7 +609,7 @@ where
     forward! { fn pow() -> mpfr::pow_si, mpfr::pow }
 
     #[inline]
-    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
         let small: SmallFloat = op1.into();
         mpfr::pow(rop, small.as_raw(), op2, rnd)
     }
@@ -641,13 +641,13 @@ where
     reverse! { fn div_from() -> mpfr::d_div, mpfr::div }
 
     #[inline]
-    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: mpfr::rnd_t) -> c_int {
+    unsafe fn pow(rop: *mut mpfr_t, op1: *const mpfr_t, op2: Self, rnd: rnd_t) -> c_int {
         let small: SmallFloat = op2.into();
         mpfr::pow(rop, op1, small.as_raw(), rnd)
     }
 
     #[inline]
-    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: mpfr::rnd_t) -> c_int {
+    unsafe fn pow_from(rop: *mut mpfr_t, op1: Self, op2: *const mpfr_t, rnd: rnd_t) -> c_int {
         let small: SmallFloat = op1.into();
         mpfr::pow(rop, small.as_raw(), op2, rnd)
     }
@@ -724,7 +724,7 @@ unsafe fn add_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
     mul: MulIncomplete<'_>,
-    rnd: mpfr::rnd_t,
+    rnd: rnd_t,
 ) -> c_int {
     mpfr::fma(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), add, rnd)
 }
@@ -734,7 +734,7 @@ unsafe fn sub_mul(
     rop: *mut mpfr_t,
     add: *const mpfr_t,
     mul: MulIncomplete<'_>,
-    rnd: mpfr::rnd_t,
+    rnd: rnd_t,
 ) -> c_int {
     xmpfr::submul(rop, add, (mul.lhs.as_raw(), mul.rhs.as_raw()), rnd)
 }
@@ -744,7 +744,7 @@ unsafe fn mul_sub(
     rop: *mut mpfr_t,
     mul: MulIncomplete<'_>,
     sub: *const mpfr_t,
-    rnd: mpfr::rnd_t,
+    rnd: rnd_t,
 ) -> c_int {
     mpfr::fms(rop, mul.lhs.as_raw(), mul.rhs.as_raw(), sub, rnd)
 }

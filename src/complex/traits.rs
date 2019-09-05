@@ -21,7 +21,7 @@ use crate::{
     ops::AssignRound,
     Assign, Complex, Float,
 };
-use gmp_mpfr_sys::mpc;
+use gmp_mpfr_sys::mpc::{self, mpc_t};
 use std::{
     cmp::Ordering,
     fmt::{
@@ -63,7 +63,7 @@ where
     fn from(re: Re) -> Self {
         unsafe {
             let_uninit_ptr!(dst: Complex, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc::mpc_t);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
             let real = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
             real.write(Float::from(re));
             let imag = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);
@@ -81,7 +81,7 @@ where
     fn from((re, im): (Re, Im)) -> Self {
         unsafe {
             let_uninit_ptr!(dst: Complex, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc::mpc_t);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpc_t);
             let real = cast_ptr_mut!(mpc::realref(inner_ptr), Float);
             real.write(Float::from(re));
             let imag = cast_ptr_mut!(mpc::imagref(inner_ptr), Float);

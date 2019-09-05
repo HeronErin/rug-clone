@@ -15,9 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{cast, misc::NegAbs, ops::NegAssign, Integer};
-use gmp_mpfr_sys::gmp;
 #[cfg(feature = "rand")]
 use gmp_mpfr_sys::gmp::randstate_t;
+use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
 use std::{
     cmp::Ordering,
     i16, i8,
@@ -81,19 +81,19 @@ pub fn set(rop: &mut Integer, op: Option<&Integer>) {
 
 #[inline]
 pub unsafe fn init(rop: *mut Integer) {
-    let rop = cast_ptr_mut!(rop, gmp::mpz_t);
+    let rop = cast_ptr_mut!(rop, mpz_t);
     gmp::mpz_init(rop);
 }
 
 #[inline]
 pub unsafe fn init2(rop: *mut Integer, bits: usize) {
-    let rop = cast_ptr_mut!(rop, gmp::mpz_t);
+    let rop = cast_ptr_mut!(rop, mpz_t);
     gmp::mpz_init2(rop, cast::cast(bits));
 }
 
 #[inline]
 pub unsafe fn init_set(rop: *mut Integer, op: &Integer) {
-    let rop = cast_ptr_mut!(rop, gmp::mpz_t);
+    let rop = cast_ptr_mut!(rop, mpz_t);
     gmp::mpz_init_set(rop, op.as_raw());
 }
 
@@ -492,7 +492,7 @@ wrap! { fn bin_ui(op; k: u32) -> gmp::mpz_bin_ui }
 
 #[cold]
 #[inline]
-pub fn cold_realloc(rop: &mut Integer, limbs: gmp::size_t) {
+pub fn cold_realloc(rop: &mut Integer, limbs: size_t) {
     unsafe {
         cold_realloc_raw(rop.as_raw_mut(), limbs);
     }
@@ -525,7 +525,7 @@ pub fn set_m1(rop: &mut Integer) {
 }
 
 #[inline]
-pub fn set_nonzero(rop: &mut Integer, limb: gmp::limb_t) {
+pub fn set_nonzero(rop: &mut Integer, limb: limb_t) {
     if rop.inner().alloc < 1 {
         cold_realloc(rop, 1);
     }
@@ -536,7 +536,7 @@ pub fn set_nonzero(rop: &mut Integer, limb: gmp::limb_t) {
 }
 
 #[inline]
-pub fn set_limb(rop: &mut Integer, limb: gmp::limb_t) {
+pub fn set_limb(rop: &mut Integer, limb: limb_t) {
     if limb == 0 {
         set_0(rop);
     } else {
@@ -546,17 +546,17 @@ pub fn set_limb(rop: &mut Integer, limb: gmp::limb_t) {
 
 #[cold]
 #[inline]
-unsafe fn cold_realloc_raw(rop: *mut gmp::mpz_t, limbs: gmp::size_t) {
+unsafe fn cold_realloc_raw(rop: *mut mpz_t, limbs: size_t) {
     gmp::_mpz_realloc(rop, limbs);
 }
 
 #[inline]
-unsafe fn set_0_raw(rop: *mut gmp::mpz_t) {
+unsafe fn set_0_raw(rop: *mut mpz_t) {
     (*rop).size = 0;
 }
 
 #[inline]
-unsafe fn set_1_raw(rop: *mut gmp::mpz_t) {
+unsafe fn set_1_raw(rop: *mut mpz_t) {
     if (*rop).alloc < 1 {
         cold_realloc_raw(rop, 1);
     }
@@ -565,7 +565,7 @@ unsafe fn set_1_raw(rop: *mut gmp::mpz_t) {
 }
 
 #[inline]
-unsafe fn set_m1_raw(rop: *mut gmp::mpz_t) {
+unsafe fn set_m1_raw(rop: *mut mpz_t) {
     if (*rop).alloc < 1 {
         cold_realloc_raw(rop, 1);
     }
@@ -657,7 +657,7 @@ pub unsafe fn init_set_i32(rop: *mut Integer, i: i32) {
 pub fn fits_u8(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(u8::MAX),
+        1 => (unsafe { limb(op, 0) }) <= limb_t::from(u8::MAX),
         _ => false,
     }
 }
@@ -666,8 +666,8 @@ pub fn fits_u8(op: &Integer) -> bool {
 pub fn fits_i8(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i8::MAX as u8),
-        -1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i8::MIN as u8),
+        1 => (unsafe { limb(op, 0) }) <= limb_t::from(i8::MAX as u8),
+        -1 => (unsafe { limb(op, 0) }) <= limb_t::from(i8::MIN as u8),
         _ => false,
     }
 }
@@ -676,7 +676,7 @@ pub fn fits_i8(op: &Integer) -> bool {
 pub fn fits_u16(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(u16::MAX),
+        1 => (unsafe { limb(op, 0) }) <= limb_t::from(u16::MAX),
         _ => false,
     }
 }
@@ -685,8 +685,8 @@ pub fn fits_u16(op: &Integer) -> bool {
 pub fn fits_i16(op: &Integer) -> bool {
     match op.inner().size {
         0 => true,
-        1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i16::MAX as u16),
-        -1 => (unsafe { limb(op, 0) }) <= gmp::limb_t::from(i16::MIN as u16),
+        1 => (unsafe { limb(op, 0) }) <= limb_t::from(i16::MAX as u16),
+        -1 => (unsafe { limb(op, 0) }) <= limb_t::from(i16::MIN as u16),
         _ => false,
     }
 }
@@ -759,7 +759,7 @@ pub fn mulsub_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
 }
 
 #[inline]
-fn bitcount_to_u32(bits: gmp::bitcnt_t) -> Option<u32> {
+fn bitcount_to_u32(bits: bitcnt_t) -> Option<u32> {
     if bits == !0 {
         None
     } else {
@@ -775,7 +775,7 @@ pub fn popcount(op: &Integer) -> Option<u32> {
 #[inline]
 pub fn zerocount(op: &Integer) -> Option<u32> {
     if op.cmp0() == Ordering::Less {
-        let size = gmp::size_t::from(op.inner().size);
+        let size = size_t::from(op.inner().size);
         let abs_size = size.wrapping_neg();
         let d = op.inner().d;
         let count = unsafe {
@@ -835,12 +835,12 @@ pub fn power_of_two_p(op: &Integer) -> bool {
 }
 
 #[inline]
-pub unsafe fn limb(z: &Integer, index: isize) -> gmp::limb_t {
+pub unsafe fn limb(z: &Integer, index: isize) -> limb_t {
     *z.inner().d.offset(index)
 }
 
 #[inline]
-pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut gmp::limb_t {
+pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut limb_t {
     &mut *z.inner_mut().d.offset(index)
 }
 
@@ -957,7 +957,7 @@ pub fn set_f64(rop: &mut Integer, op: f64) -> Result<(), ()> {
 #[inline]
 pub unsafe fn init_set_f64(rop: *mut Integer, op: f64) {
     assert!(op.is_finite());
-    let rop = cast_ptr_mut!(rop, gmp::mpz_t);
+    let rop = cast_ptr_mut!(rop, mpz_t);
     gmp::mpz_init_set_d(rop, op);
 }
 
@@ -977,7 +977,7 @@ pub fn cmp_f64(op1: &Integer, op2: f64) -> Option<Ordering> {
     }
 }
 
-unsafe fn ui_tdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+unsafe fn ui_tdiv_q_raw(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
@@ -996,7 +996,7 @@ unsafe fn ui_tdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn ui_tdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+unsafe fn ui_tdiv_r_raw(r: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
         // n / +abs_d -> 0, n
@@ -1011,7 +1011,7 @@ unsafe fn ui_tdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn ui_cdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+unsafe fn ui_cdiv_q_raw(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
@@ -1039,7 +1039,7 @@ unsafe fn ui_cdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn ui_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+unsafe fn ui_cdiv_r_raw(r: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
@@ -1066,7 +1066,7 @@ unsafe fn ui_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn si_cdiv_q_raw(q: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+unsafe fn si_cdiv_q_raw(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let (neg_n, abs_n) = n.neg_abs();
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
@@ -1099,7 +1099,7 @@ unsafe fn si_cdiv_q_raw(q: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn si_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+unsafe fn si_cdiv_r_raw(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let (neg_n, abs_n) = n.neg_abs();
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
@@ -1139,7 +1139,7 @@ unsafe fn si_cdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn ui_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+unsafe fn ui_fdiv_q_raw(q: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
@@ -1167,7 +1167,7 @@ unsafe fn ui_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn ui_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
+unsafe fn ui_fdiv_r_raw(r: *mut mpz_t, n: c_ulong, d: *const mpz_t) {
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_n = gmp::mpz_cmpabs_ui(d, n) > 0;
     if abs_d_greater_n {
@@ -1194,7 +1194,7 @@ unsafe fn ui_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_ulong, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn si_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+unsafe fn si_fdiv_q_raw(q: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let (neg_n, abs_n) = n.neg_abs();
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
@@ -1227,7 +1227,7 @@ unsafe fn si_fdiv_q_raw(q: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
     }
 }
 
-unsafe fn si_fdiv_r_raw(r: *mut gmp::mpz_t, n: c_long, d: *const gmp::mpz_t) {
+unsafe fn si_fdiv_r_raw(r: *mut mpz_t, n: c_long, d: *const mpz_t) {
     let (neg_n, abs_n) = n.neg_abs();
     let neg_d = gmp::mpz_sgn(d) < 0;
     let abs_d_greater_abs_n = gmp::mpz_cmpabs_ui(d, abs_n) > 0;
@@ -1611,7 +1611,7 @@ pub fn si_ediv_r(r: &mut Integer, n: c_long, d: Option<&Integer>) {
 }
 
 pub fn and_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
-    let lop2 = gmp::limb_t::from(op2);
+    let lop2 = limb_t::from(op2);
     let ans_limb0 = {
         let op1 = op1.unwrap_or(rop);
         match op1.cmp0() {
@@ -1624,7 +1624,7 @@ pub fn and_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
 }
 
 pub fn ior_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
-    let lop2 = gmp::limb_t::from(op2);
+    let lop2 = limb_t::from(op2);
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
             gmp::mpz_set_ui(rop.as_raw_mut(), op2);
@@ -1651,7 +1651,7 @@ pub fn ior_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
 }
 
 pub fn xor_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
-    let lop2 = gmp::limb_t::from(op2);
+    let lop2 = limb_t::from(op2);
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
             gmp::mpz_set_ui(rop.as_raw_mut(), op2);
@@ -1685,7 +1685,7 @@ pub fn xor_ui(rop: &mut Integer, op1: Option<&Integer>, op2: c_ulong) {
 }
 
 pub fn and_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
-    let lop2 = op2 as gmp::limb_t;
+    let lop2 = op2 as limb_t;
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => {
             set_0(rop);
@@ -1726,7 +1726,7 @@ pub fn and_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
 }
 
 pub fn ior_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
-    let lop2 = op2 as gmp::limb_t;
+    let lop2 = op2 as limb_t;
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
             gmp::mpz_set_si(rop.as_raw_mut(), op2);
@@ -1765,7 +1765,7 @@ pub fn ior_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
 }
 
 pub fn xor_si(rop: &mut Integer, op1: Option<&Integer>, op2: c_long) {
-    let lop2 = op2 as gmp::limb_t;
+    let lop2 = op2 as limb_t;
     match op1.unwrap_or(rop).cmp0() {
         Ordering::Equal => unsafe {
             gmp::mpz_set_si(rop.as_raw_mut(), op2);

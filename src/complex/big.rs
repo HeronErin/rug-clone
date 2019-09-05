@@ -40,7 +40,7 @@ use crate::{
 };
 use gmp_mpfr_sys::{
     mpc::{self, mpc_t},
-    mpfr,
+    mpfr::{self, mpfr_t},
 };
 use std::{
     cmp::{self, Ordering},
@@ -493,16 +493,19 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::{mpc, mpfr};
+    /// use gmp_mpfr_sys::{
+    ///     mpc,
+    ///     mpfr::{self, rnd_t},
+    /// };
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
     /// let mut m = c.into_raw();
     /// unsafe {
     ///     let re_ptr = mpc::realref_const(&m);
-    ///     let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
+    ///     let re = mpfr::get_d(re_ptr, rnd_t::RNDN);
     ///     assert_eq!(re, -14.5);
     ///     let im_ptr = mpc::imagref_const(&m);
-    ///     let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
+    ///     let im = mpfr::get_d(im_ptr, rnd_t::RNDN);
     ///     assert_eq!(im, 3.25);
     ///     // free object to prevent memory leak
     ///     mpc::clear(&mut m);
@@ -526,16 +529,19 @@ impl Complex {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::{mpc, mpfr};
+    /// use gmp_mpfr_sys::{
+    ///     mpc,
+    ///     mpfr::{self, rnd_t},
+    /// };
     /// use rug::Complex;
     /// let c = Complex::with_val(53, (-14.5, 3.25));
     /// let m_ptr = c.as_raw();
     /// unsafe {
     ///     let re_ptr = mpc::realref_const(m_ptr);
-    ///     let re = mpfr::get_d(re_ptr, mpfr::rnd_t::RNDN);
+    ///     let re = mpfr::get_d(re_ptr, rnd_t::RNDN);
     ///     assert_eq!(re, -14.5);
     ///     let im_ptr = mpc::imagref_const(m_ptr);
-    ///     let im = mpfr::get_d(im_ptr, mpfr::rnd_t::RNDN);
+    ///     let im = mpfr::get_d(im_ptr, rnd_t::RNDN);
     ///     assert_eq!(im, 3.25);
     /// }
     /// // c is still valid
@@ -3388,14 +3394,14 @@ where
             (lower, None) => lower,
             (_, Some(upper)) => upper,
         };
-        let mut reals = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
-        let mut imags = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
+        let mut reals = Vec::<*const mpfr_t>::with_capacity(capacity);
+        let mut imags = Vec::<*const mpfr_t>::with_capacity(capacity);
         for value in src.values {
             reals.push(value.real().as_raw());
             imags.push(value.imag().as_raw());
         }
-        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
-        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
+        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr_t);
+        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr_t);
         let n = cast::cast(reals.len());
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();
@@ -3441,16 +3447,16 @@ where
             (lower, None) => lower + 1,
             (_, Some(upper)) => upper + 1,
         };
-        let mut reals = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
-        let mut imags = Vec::<*const mpfr::mpfr_t>::with_capacity(capacity);
+        let mut reals = Vec::<*const mpfr_t>::with_capacity(capacity);
+        let mut imags = Vec::<*const mpfr_t>::with_capacity(capacity);
         reals.push(self.real().as_raw());
         imags.push(self.imag().as_raw());
         for value in src.values {
             reals.push(value.real().as_raw());
             imags.push(value.imag().as_raw());
         }
-        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr::mpfr_t);
-        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr::mpfr_t);
+        let tab_real = cast_ptr!(reals.as_ptr(), *mut mpfr_t);
+        let tab_imag = cast_ptr!(imags.as_ptr(), *mut mpfr_t);
         let n = cast::cast(reals.len());
         let (ord_real, ord_imag) = unsafe {
             let (real, imag) = self.as_mut_real_imag();

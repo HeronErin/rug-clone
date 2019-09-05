@@ -19,7 +19,7 @@ use crate::{
     rational::{big, ParseRationalError},
     Assign, Integer, Rational,
 };
-use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::{
     cmp::Ordering,
     fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
@@ -45,7 +45,7 @@ impl Clone for Rational {
     fn clone(&self) -> Rational {
         unsafe {
             let_uninit_ptr!(dst: Rational, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpq_t);
             let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
             xmpz::init_set(num, self.numer());
             let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
@@ -167,7 +167,7 @@ where
     fn from(src: Num) -> Self {
         unsafe {
             let_uninit_ptr!(dst: Rational, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpq_t);
             let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
             num.write(Integer::from(src));
             let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
@@ -198,7 +198,7 @@ where
     fn from(src: (Num, Den)) -> Self {
         unsafe {
             let_uninit_ptr!(dst: Rational, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpq_t);
             let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
             num.write(Integer::from(src.0));
             let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);
@@ -231,7 +231,7 @@ where
     fn from(src: &'a (Num, Den)) -> Self {
         unsafe {
             let_uninit_ptr!(dst: Rational, dst_ptr);
-            let inner_ptr = cast_ptr_mut!(dst_ptr, gmp::mpq_t);
+            let inner_ptr = cast_ptr_mut!(dst_ptr, mpq_t);
             let num = cast_ptr_mut!(gmp::mpq_numref(inner_ptr), Integer);
             num.write(Integer::from(&src.0));
             let den = cast_ptr_mut!(gmp::mpq_denref(inner_ptr), Integer);

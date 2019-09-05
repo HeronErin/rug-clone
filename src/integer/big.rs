@@ -17,7 +17,7 @@
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
 use crate::{cast, ext::xmpz, integer::Order, misc, ops::DivRounding, Assign};
-use gmp_mpfr_sys::gmp::{self, mpz_t};
+use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use std::{
     cmp::Ordering,
     error::Error,
@@ -193,7 +193,7 @@ impl Integer {
         &mut self.inner
     }
     #[inline]
-    pub(crate) fn inner_data(&self) -> &[gmp::limb_t] {
+    pub(crate) fn inner_data(&self) -> &[limb_t] {
         let limbs = cast::cast::<_, usize>(self.inner.size.checked_abs().expect("overflow"));
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }

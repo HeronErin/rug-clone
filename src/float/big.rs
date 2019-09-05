@@ -30,11 +30,9 @@ use crate::{
     ops::{AddAssignRound, AssignRound, DivRounding, NegAssign},
     Assign,
 };
-#[cfg(feature = "integer")]
-use crate::{integer::big::BorrowInteger, Integer};
 use gmp_mpfr_sys::{
-    gmp,
-    mpfr::{self, mpfr_t},
+    gmp::{self, limb_t},
+    mpfr::{self, exp_t, mpfr_t},
 };
 use std::{
     cmp::Ordering,
@@ -48,6 +46,11 @@ use std::{
     ops::{Add, AddAssign, Deref},
     os::raw::{c_char, c_int, c_long, c_ulong},
     ptr, slice, str, u32,
+};
+#[cfg(feature = "integer")]
+use {
+    crate::{integer::big::BorrowInteger, Integer},
+    gmp_mpfr_sys::{gmp::mpz_t, mpfr::prec_t},
 };
 
 /**
@@ -251,7 +254,7 @@ impl Float {
         &mut self.inner
     }
     #[inline]
-    pub(crate) fn inner_data(&self) -> &[gmp::limb_t] {
+    pub(crate) fn inner_data(&self) -> &[limb_t] {
         let prec = cast::cast::<_, usize>(self.inner.prec);
         let limbs = prec.div_ceil(cast::cast::<_, usize>(gmp::LIMB_BITS));
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
@@ -583,14 +586,14 @@ impl Float {
     /// # #![cfg_attr(nightly_maybe_uninit, feature(maybe_uninit))]
     /// # fn main() {
     /// # #[cfg(maybe_uninit)] {
-    /// use gmp_mpfr_sys::mpfr;
+    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Float;
     /// use std::mem::MaybeUninit;
     /// let f = unsafe {
     ///     let mut m = MaybeUninit::uninit();
     ///     mpfr::init2(m.as_mut_ptr(), 53);
     ///     let mut m = m.assume_init();
-    ///     mpfr::set_d(&mut m, -14.5, mpfr::rnd_t::RNDN);
+    ///     mpfr::set_d(&mut m, -14.5, rnd_t::RNDN);
     ///     // m is initialized and unique
     ///     Float::from_raw(m)
     /// };
@@ -615,12 +618,12 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::mpfr;
+    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Float;
     /// let f = Float::with_val(53, -14.5);
     /// let mut m = f.into_raw();
     /// unsafe {
-    ///     let d = mpfr::get_d(&m, mpfr::rnd_t::RNDN);
+    ///     let d = mpfr::get_d(&m, rnd_t::RNDN);
     ///     assert_eq!(d, -14.5);
     ///     // free object to prevent memory leak
     ///     mpfr::clear(&mut m);
@@ -645,12 +648,12 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::mpfr;
+    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Float;
     /// let f = Float::with_val(53, -14.5);
     /// let m_ptr = f.as_raw();
     /// unsafe {
-    ///     let d = mpfr::get_d(m_ptr, mpfr::rnd_t::RNDN);
+    ///     let d = mpfr::get_d(m_ptr, rnd_t::RNDN);
     ///     assert_eq!(d, -14.5);
     /// }
     /// // f is still valid
@@ -672,12 +675,12 @@ impl Float {
     /// # Examples
     ///
     /// ```rust
-    /// use gmp_mpfr_sys::mpfr;
+    /// use gmp_mpfr_sys::mpfr::{self, rnd_t};
     /// use rug::Float;
     /// let mut f = Float::with_val(53, -14.5);
     /// let m_ptr = f.as_raw_mut();
     /// unsafe {
-    ///     mpfr::add_ui(m_ptr, m_ptr, 10, mpfr::rnd_t::RNDN);
+    ///     mpfr::add_ui(m_ptr, m_ptr, 10, rnd_t::RNDN);
     /// }
     /// assert_eq!(f, -4.5);
     /// ```
@@ -1737,9 +1740,9 @@ impl Float {
     #[inline]
     pub fn get_significand(&self) -> Option<BorrowInteger<'_>> {
         if self.is_normal() {
-            let limb_bits = mpfr::prec_t::from(gmp::LIMB_BITS);
+            let limb_bits = prec_t::from(gmp::LIMB_BITS);
             let limbs = (self.inner.prec - 1) / limb_bits + 1;
-            let raw_int = gmp::mpz_t {
+            let raw_int = mpz_t {
                 alloc: cast::cast(limbs),
                 size: cast::cast(limbs),
                 d: self.inner.d,
@@ -2003,9 +2006,9 @@ impl Float {
         if !self.is_normal() {
             return prev_rounding;
         }
-        let exp_min = mpfr::exp_t::from(normal_exp_min);
+        let exp_min = exp_t::from(normal_exp_min);
         let sub_exp_min = exp_min
-            .checked_sub(cast::cast::<_, mpfr::exp_t>(self.prec() - 1))
+            .checked_sub(cast::cast::<_, exp_t>(self.prec() - 1))
             .expect("overflow");
         let exp = unsafe { mpfr::get_exp(self.as_raw()) };
         if exp < sub_exp_min || exp >= exp_min {
@@ -8476,7 +8479,7 @@ pub(crate) fn append_to_string(s: &mut String, f: &Float, format: Format) {
         .precision
         .map(|x| if x == 1 { 2 } else { x })
         .unwrap_or(0);
-    let mut exp: mpfr::exp_t;
+    let mut exp: exp_t;
     unsafe {
         let vec = s.as_mut_vec();
         let write_at = vec.as_mut_ptr().add(vec.len());

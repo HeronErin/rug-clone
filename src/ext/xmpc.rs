@@ -15,11 +15,13 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{complex::SmallComplex, ext::xmpfr, float::Round, Complex};
+#[cfg(feature = "rational")]
+use gmp_mpfr_sys::gmp::mpq_t;
 #[cfg(feature = "integer")]
-use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::mpz_t;
 use gmp_mpfr_sys::{
-    mpc::{self, mpc_t},
-    mpfr,
+    mpc::{self, mpc_t, rnd_t},
+    mpfr::{self, rnd_t as mpfr_rnd_t},
 };
 use std::{
     cmp::Ordering,
@@ -31,7 +33,7 @@ pub type Round2 = (Round, Round);
 pub type Ordering2 = (Ordering, Ordering);
 
 #[inline]
-pub fn raw_round2(round: Round2) -> mpc::rnd_t {
+pub fn raw_round2(round: Round2) -> rnd_t {
     match (round.0, round.1) {
         (Round::Nearest, Round::Nearest) => mpc::RNDNN,
         (Round::Nearest, Round::Zero) => mpc::RNDNZ,
@@ -164,7 +166,7 @@ wrap! { fn atanh(op) -> mpc::atanh }
 macro_rules! sum_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: mpc::rnd_t) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: rnd_t) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
                 $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
@@ -177,7 +179,7 @@ macro_rules! sum_forward {
 macro_rules! sub_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: rnd_t) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
                 $func(mpc::realref(rop), op1, mpc::realref_const(op2), rnd_re),
@@ -190,7 +192,7 @@ macro_rules! sub_reverse {
 macro_rules! prod_forward {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: mpc::rnd_t) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: *const mpc_t, op2: $T, rnd: rnd_t) -> c_int {
             let (rnd_re, rnd_im) = rnd_re_im(rnd);
             ord_ord(
                 $func(mpc::realref(rop), mpc::realref_const(op1), op2, rnd_re),
@@ -203,7 +205,7 @@ macro_rules! prod_forward {
 macro_rules! div_reverse {
     (fn $name:ident($T:ty) -> $func:path) => {
         #[inline]
-        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: mpc::rnd_t) -> c_int {
+        pub unsafe fn $name(rop: *mut mpc_t, op1: $T, op2: *const mpc_t, rnd: rnd_t) -> c_int {
             let op1 = SmallComplex::from(op1);
             mpc::div(rop, op1.as_raw(), op2, rnd)
         }
@@ -214,41 +216,41 @@ sum_forward! { fn add_ui(c_ulong) -> mpfr::add_ui }
 sum_forward! { fn add_si(c_long) -> mpfr::add_si }
 sum_forward! { fn add_d(f64) -> mpfr::add_d }
 #[cfg(feature = "integer")]
-sum_forward! { fn add_z(*const gmp::mpz_t) -> mpfr::add_z }
+sum_forward! { fn add_z(*const mpz_t) -> mpfr::add_z }
 #[cfg(feature = "rational")]
-sum_forward! { fn add_q(*const gmp::mpq_t) -> mpfr::add_q }
+sum_forward! { fn add_q(*const mpq_t) -> mpfr::add_q }
 
 sum_forward! { fn sub_ui(c_ulong) -> mpfr::sub_ui }
 sum_forward! { fn sub_si(c_long) -> mpfr::sub_si }
 sum_forward! { fn sub_d(f64) -> mpfr::sub_d }
 #[cfg(feature = "integer")]
-sum_forward! { fn sub_z(*const gmp::mpz_t) -> mpfr::sub_z }
+sum_forward! { fn sub_z(*const mpz_t) -> mpfr::sub_z }
 #[cfg(feature = "rational")]
-sum_forward! { fn sub_q(*const gmp::mpq_t) -> mpfr::sub_q }
+sum_forward! { fn sub_q(*const mpq_t) -> mpfr::sub_q }
 
 sub_reverse! { fn ui_sub(c_ulong) -> mpfr::ui_sub }
 sub_reverse! { fn si_sub(c_long) -> mpfr::si_sub }
 sub_reverse! { fn d_sub(f64) -> mpfr::d_sub }
 #[cfg(feature = "integer")]
-sub_reverse! { fn z_sub(*const gmp::mpz_t) -> mpfr::z_sub }
+sub_reverse! { fn z_sub(*const mpz_t) -> mpfr::z_sub }
 #[cfg(feature = "rational")]
-sub_reverse! { fn q_sub(*const gmp::mpq_t) -> xmpfr::q_sub }
+sub_reverse! { fn q_sub(*const mpq_t) -> xmpfr::q_sub }
 
 prod_forward! { fn mul_ui(c_ulong) -> mpfr::mul_ui }
 prod_forward! { fn mul_si(c_long) -> mpfr::mul_si }
 prod_forward! { fn mul_d(f64) -> mpfr::mul_d }
 #[cfg(feature = "integer")]
-prod_forward! { fn mul_z(*const gmp::mpz_t) -> mpfr::mul_z }
+prod_forward! { fn mul_z(*const mpz_t) -> mpfr::mul_z }
 #[cfg(feature = "rational")]
-prod_forward! { fn mul_q(*const gmp::mpq_t) -> mpfr::mul_q }
+prod_forward! { fn mul_q(*const mpq_t) -> mpfr::mul_q }
 
 prod_forward! { fn div_ui(c_ulong) -> mpfr::div_ui }
 prod_forward! { fn div_si(c_long) -> mpfr::div_si }
 prod_forward! { fn div_d(f64) -> mpfr::div_d }
 #[cfg(feature = "integer")]
-prod_forward! { fn div_z(*const gmp::mpz_t) -> mpfr::div_z }
+prod_forward! { fn div_z(*const mpz_t) -> mpfr::div_z }
 #[cfg(feature = "rational")]
-prod_forward! { fn div_q(*const gmp::mpq_t) -> mpfr::div_q }
+prod_forward! { fn div_q(*const mpq_t) -> mpfr::div_q }
 
 div_reverse! { fn ui_div(c_ulong) -> mpfr::ui_div }
 div_reverse! { fn si_div(c_long) -> mpfr::si_div }
@@ -259,7 +261,7 @@ pub unsafe fn mulsub(
     rop: *mut mpc_t,
     (m1, m2): (*const mpc_t, *const mpc_t),
     sub: *const mpc_t,
-    rnd: mpc::rnd_t,
+    rnd: rnd_t,
 ) -> c_int {
     let sub_complex = &*cast_ptr!(sub, Complex);
     let add = sub_complex.as_neg();
@@ -271,7 +273,7 @@ pub unsafe fn submul(
     rop: *mut mpc_t,
     add: *const mpc_t,
     (m1, m2): (*const mpc_t, *const mpc_t),
-    rnd: mpc::rnd_t,
+    rnd: rnd_t,
 ) -> c_int {
     let m1_complex = &*cast_ptr!(m1, Complex);
     let neg_m1 = m1_complex.as_neg();
@@ -279,19 +281,19 @@ pub unsafe fn submul(
 }
 
 #[inline]
-fn rnd_re_im(r: mpc::rnd_t) -> (mpfr::rnd_t, mpfr::rnd_t) {
+fn rnd_re_im(r: rnd_t) -> (mpfr_rnd_t, mpfr_rnd_t) {
     let re = match r & 0x0f {
-        0 => mpfr::rnd_t::RNDN,
-        1 => mpfr::rnd_t::RNDZ,
-        2 => mpfr::rnd_t::RNDU,
-        3 => mpfr::rnd_t::RNDD,
+        0 => mpfr_rnd_t::RNDN,
+        1 => mpfr_rnd_t::RNDZ,
+        2 => mpfr_rnd_t::RNDU,
+        3 => mpfr_rnd_t::RNDD,
         _ => unreachable!(),
     };
     let im = match r >> 4 {
-        0 => mpfr::rnd_t::RNDN,
-        1 => mpfr::rnd_t::RNDZ,
-        2 => mpfr::rnd_t::RNDU,
-        3 => mpfr::rnd_t::RNDD,
+        0 => mpfr_rnd_t::RNDN,
+        1 => mpfr_rnd_t::RNDZ,
+        2 => mpfr_rnd_t::RNDU,
+        3 => mpfr_rnd_t::RNDD,
         _ => unreachable!(),
     };
     (re, im)
@@ -313,21 +315,21 @@ fn ord_ord(re: c_int, im: c_int) -> c_int {
 }
 
 #[inline]
-pub unsafe fn shl_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: mpc::rnd_t) -> c_int {
+pub unsafe fn shl_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: rnd_t) -> c_int {
     mpc::mul_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn shr_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: mpc::rnd_t) -> c_int {
+pub unsafe fn shr_u32(rop: *mut mpc_t, op1: *const mpc_t, op2: u32, rnd: rnd_t) -> c_int {
     mpc::div_2ui(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn shl_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: mpc::rnd_t) -> c_int {
+pub unsafe fn shl_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: rnd_t) -> c_int {
     mpc::mul_2si(rop, op1, op2.into(), rnd)
 }
 
 #[inline]
-pub unsafe fn shr_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: mpc::rnd_t) -> c_int {
+pub unsafe fn shr_i32(rop: *mut mpc_t, op1: *const mpc_t, op2: i32, rnd: rnd_t) -> c_int {
     mpc::div_2si(rop, op1, op2.into(), rnd)
 }

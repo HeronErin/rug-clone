@@ -19,7 +19,7 @@ use crate::{
     misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL},
     Assign, Integer,
 };
-use gmp_mpfr_sys::gmp::{self, mpz_t};
+use gmp_mpfr_sys::gmp::{limb_t, mpz_t};
 use std::{
     mem,
     ops::Deref,
@@ -76,7 +76,7 @@ pub struct SmallInteger {
 pub struct Mpz {
     pub alloc: c_int,
     pub size: c_int,
-    pub d: AtomicPtr<gmp::limb_t>,
+    pub d: AtomicPtr<limb_t>,
 }
 
 fn _static_assertions() {
@@ -170,7 +170,7 @@ impl SmallInteger {
     fn update_d(&self) {
         // Since this is borrowed, the limbs won't move around, and we
         // can set the d field.
-        let d = self.limbs[0].as_ptr() as *mut gmp::limb_t;
+        let d = self.limbs[0].as_ptr() as *mut limb_t;
         self.inner.d.store(d, Ordering::Relaxed);
     }
 }

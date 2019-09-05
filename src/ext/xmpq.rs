@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{cast, ext::xmpz, misc::NegAbs, rational::SmallRational, Integer, Rational};
-use gmp_mpfr_sys::gmp;
+use gmp_mpfr_sys::gmp::{self, mpq_t};
 use std::{cmp::Ordering, os::raw::c_int};
 
 macro_rules! wrap {
@@ -77,7 +77,7 @@ fn process_int_rat<F>(
 
 #[inline]
 pub unsafe fn init_set(rop: *mut Rational, op: &Rational) {
-    let rop = cast_ptr_mut!(rop, gmp::mpq_t);
+    let rop = cast_ptr_mut!(rop, mpq_t);
     let num = cast_ptr_mut!(gmp::mpq_numref(rop), Integer);
     let den = cast_ptr_mut!(gmp::mpq_denref(rop), Integer);
     xmpz::init_set(num, op.numer());
