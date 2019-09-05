@@ -161,10 +161,8 @@ macro_rules! arith_noncommut_float {
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
         $T:ty;
-        $Incomplete:ident,
-        $FromIncomplete:ident;
-        $OwnedIncomplete:ident,
-        $FromOwnedIncomplete:ident
+        $Incomplete:ident, $OwnedIncomplete:ident;
+        $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_noncommut_round! {
             Float, Round => Ordering;
@@ -175,8 +173,8 @@ macro_rules! arith_noncommut_float {
             $ImpFrom { $method_from }
             $ImpFromRound { $method_from_round }
             $T;
-            $Incomplete, $FromIncomplete;
-            $OwnedIncomplete, $FromOwnedIncomplete
+            $Incomplete, $OwnedIncomplete;
+            $FromIncomplete, $FromOwnedIncomplete
         }
     };
 }
@@ -247,8 +245,8 @@ arith_noncommut_float! {
     SubFrom { sub_from }
     SubFromRound { sub_from_round }
     Integer;
-    SubIntegerIncomplete, SubFromIntegerIncomplete;
-    SubOwnedIntegerIncomplete, SubFromOwnedIntegerIncomplete
+    SubIntegerIncomplete, SubOwnedIntegerIncomplete;
+    SubFromIntegerIncomplete, SubFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_commut_float! {
@@ -270,8 +268,8 @@ arith_noncommut_float! {
     DivFrom { div_from }
     DivFromRound { div_from_round }
     Integer;
-    DivIntegerIncomplete, DivFromIntegerIncomplete;
-    DivOwnedIntegerIncomplete, DivFromOwnedIntegerIncomplete
+    DivIntegerIncomplete, DivOwnedIntegerIncomplete;
+    DivFromIntegerIncomplete, DivFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_forward_float! {
@@ -303,8 +301,8 @@ arith_noncommut_float! {
     SubFrom { sub_from }
     SubFromRound { sub_from_round }
     Rational;
-    SubRationalIncomplete, SubFromRationalIncomplete;
-    SubOwnedRationalIncomplete, SubFromOwnedRationalIncomplete
+    SubRationalIncomplete, SubOwnedRationalIncomplete;
+    SubFromRationalIncomplete, SubFromOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
 arith_commut_float! {
@@ -326,8 +324,8 @@ arith_noncommut_float! {
     DivFrom { div_from }
     DivFromRound { div_from_round }
     Rational;
-    DivRationalIncomplete, DivFromRationalIncomplete;
-    DivOwnedRationalIncomplete, DivFromOwnedRationalIncomplete
+    DivRationalIncomplete, DivOwnedRationalIncomplete;
+    DivFromRationalIncomplete, DivFromOwnedRationalIncomplete
 }
 
 macro_rules! arith_prim_exact_float {

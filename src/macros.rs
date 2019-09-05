@@ -2008,10 +2008,8 @@ macro_rules! arith_noncommut_round {
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
         $T:ty;
-        $Incomplete:ident,
-        $OwnedIncomplete:ident;
-        $FromIncomplete:ident,
-        $FromOwnedIncomplete:ident
+        $Incomplete:ident, $OwnedIncomplete:ident;
+        $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_forward_round! {
             $Big, $Round => $Ordering;

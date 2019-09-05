@@ -158,10 +158,8 @@ macro_rules! arith_noncommut_complex {
         $ImpFrom:ident { $method_from:ident }
         $ImpFromRound:ident { $method_from_round:ident }
         $T:ty;
-        $Incomplete:ident,
-        $FromIncomplete:ident;
-        $OwnedIncomplete:ident,
-        $FromOwnedIncomplete:ident
+        $Incomplete:ident, $OwnedIncomplete:ident;
+        $FromIncomplete:ident, $FromOwnedIncomplete:ident
     ) => {
         arith_noncommut_round! {
             Complex, Round2 => Ordering2;
@@ -172,8 +170,8 @@ macro_rules! arith_noncommut_complex {
             $ImpFrom { $method_from }
             $ImpFromRound { $method_from_round }
             $T;
-            $Incomplete, $FromIncomplete;
-            $OwnedIncomplete, $FromOwnedIncomplete
+            $Incomplete, $OwnedIncomplete;
+            $FromIncomplete, $FromOwnedIncomplete
         }
     };
 }
@@ -242,8 +240,8 @@ arith_noncommut_complex! {
     SubFrom { sub_from }
     SubFromRound { sub_from_round }
     Float;
-    SubFloatIncomplete, SubFromFloatIncomplete;
-    SubOwnedFloatIncomplete, SubFromOwnedFloatIncomplete
+    SubFloatIncomplete, SubOwnedFloatIncomplete;
+    SubFromFloatIncomplete, SubFromOwnedFloatIncomplete
 }
 arith_commut_complex! {
     mpc::mul_fr;
@@ -263,8 +261,8 @@ arith_noncommut_complex! {
     DivFrom { div_from }
     DivFromRound { div_from_round }
     Float;
-    DivFloatIncomplete, DivFromFloatIncomplete;
-    DivOwnedFloatIncomplete, DivFromOwnedFloatIncomplete
+    DivFloatIncomplete, DivOwnedFloatIncomplete;
+    DivFromFloatIncomplete, DivFromOwnedFloatIncomplete
 }
 arith_forward_complex! {
     mpc::pow_fr;
@@ -469,8 +467,8 @@ arith_noncommut_complex! {
     SubFrom { sub_from }
     SubFromRound { sub_from_round }
     Integer;
-    SubIntegerIncomplete, SubFromIntegerIncomplete;
-    SubOwnedIntegerIncomplete, SubFromOwnedIntegerIncomplete
+    SubIntegerIncomplete, SubOwnedIntegerIncomplete;
+    SubFromIntegerIncomplete, SubFromOwnedIntegerIncomplete
 }
 #[cfg(feature = "integer")]
 arith_commut_complex! {
@@ -512,8 +510,8 @@ arith_noncommut_complex! {
     SubFrom { sub_from }
     SubFromRound { sub_from_round }
     Rational;
-    SubRationalIncomplete, SubFromRationalIncomplete;
-    SubOwnedRationalIncomplete, SubFromOwnedRationalIncomplete
+    SubRationalIncomplete, SubOwnedRationalIncomplete;
+    SubFromRationalIncomplete, SubFromOwnedRationalIncomplete
 }
 #[cfg(feature = "rational")]
 arith_commut_complex! {
