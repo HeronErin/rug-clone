@@ -259,8 +259,8 @@ impl Float {
 }
 
 fn _static_assertions() {
-    static_assert_size!(Float, mpfr_t);
-    static_assert_size!(BorrowFloat<'_>, mpfr_t);
+    static_assert_same_layout!(Float, mpfr_t);
+    static_assert_same_layout!(BorrowFloat<'_>, mpfr_t);
 }
 
 macro_rules! ref_math_op0_float {

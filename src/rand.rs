@@ -1508,8 +1508,8 @@ pub trait ThreadRandGen {
 }
 
 fn _static_assertions() {
-    static_assert_size!(RandState<'_>, randstate_t);
-    static_assert_size!(ThreadRandState<'_>, randstate_t);
+    static_assert_same_layout!(RandState<'_>, randstate_t);
+    static_assert_same_layout!(ThreadRandState<'_>, randstate_t);
 }
 
 #[repr(C)]

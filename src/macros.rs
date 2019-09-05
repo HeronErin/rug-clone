@@ -2862,12 +2862,10 @@ macro_rules! static_assert {
 }
 
 #[cfg(any(feature = "integer", feature = "float"))]
-macro_rules! static_assert_size {
+macro_rules! static_assert_same_layout {
     ($T:ty, $U:ty) => {
-        static_assert_size!($T: std::mem::size_of::<$U>());
-    };
-    ($T:ty: $size:expr) => {
-        static_assert!(std::mem::size_of::<$T>() == $size);
+        static_assert!(std::mem::size_of::<$T>() == std::mem::size_of::<$U>());
+        static_assert!(std::mem::align_of::<$T>() == std::mem::align_of::<$U>());
     };
 }
 

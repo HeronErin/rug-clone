@@ -200,8 +200,8 @@ impl Integer {
 }
 
 fn _static_assertions() {
-    static_assert_size!(Integer, mpz_t);
-    static_assert_size!(BorrowInteger<'_>, mpz_t);
+    static_assert_same_layout!(Integer, mpz_t);
+    static_assert_same_layout!(BorrowInteger<'_>, mpz_t);
 }
 
 impl Integer {

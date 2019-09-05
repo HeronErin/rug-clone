@@ -89,7 +89,7 @@ struct Mpq {
 }
 
 fn _static_assertions() {
-    static_assert_size!(Mpq, gmp::mpq_t);
+    static_assert_same_layout!(Mpq, gmp::mpq_t);
 }
 
 impl Default for SmallRational {

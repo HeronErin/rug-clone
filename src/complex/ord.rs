@@ -58,7 +58,7 @@ pub struct OrdComplex {
 }
 
 fn _static_assertions() {
-    static_assert_size!(OrdComplex, Complex);
+    static_assert_same_layout!(OrdComplex, Complex);
 }
 
 impl OrdComplex {

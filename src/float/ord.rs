@@ -68,7 +68,7 @@ pub struct OrdFloat {
 }
 
 fn _static_assertions() {
-    static_assert_size!(OrdFloat, Float);
+    static_assert_same_layout!(OrdFloat, Float);
 }
 
 impl OrdFloat {

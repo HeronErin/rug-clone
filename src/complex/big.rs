@@ -169,8 +169,8 @@ pub struct Complex {
 }
 
 fn _static_assertions() {
-    static_assert_size!(Complex, mpc_t);
-    static_assert_size!(BorrowComplex<'_>, mpc_t);
+    static_assert_same_layout!(Complex, mpc_t);
+    static_assert_same_layout!(BorrowComplex<'_>, mpc_t);
 }
 
 macro_rules! ref_math_op0_complex {

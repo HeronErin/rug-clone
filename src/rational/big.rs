@@ -92,8 +92,8 @@ pub struct Rational {
 }
 
 fn _static_assertions() {
-    static_assert_size!(Rational, mpq_t);
-    static_assert_size!(BorrowRational<'_>, mpq_t);
+    static_assert_same_layout!(Rational, mpq_t);
+    static_assert_same_layout!(BorrowRational<'_>, mpq_t);
 }
 
 macro_rules! rat_op_int {

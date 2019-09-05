@@ -112,7 +112,7 @@ struct Mpc {
 }
 
 fn _static_assertions() {
-    static_assert_size!(Mpc, mpc::mpc_t);
+    static_assert_same_layout!(Mpc, mpc::mpc_t);
 }
 
 impl SmallComplex {
