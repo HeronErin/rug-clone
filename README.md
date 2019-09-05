@@ -31,6 +31,11 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ## What’s new
 
+### Version 1.7.0 news (unreleased)
+
+  * Arithmetic operations with one [`Integer`] operand and one
+    [`Rational`] operand were added.
+
 ### Version 1.6.0 news (2019-09-03)
 
   * Arithmetic operator implementations for [`i8`], [`i16`], [`i64`],

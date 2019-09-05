@@ -5,6 +5,12 @@ modification, are permitted in any medium without royalty provided the
 copyright notice and this notice are preserved. This file is offered
 as-is, without any warranty. -->
 
+Verison 1.7.0 (unreleased)
+==========================
+
+  * Arithmetic operations with one `Integer` operand and one
+    `Rational` operand were added.
+
 Verison 1.6.0 (2019-09-03)
 ==========================
 

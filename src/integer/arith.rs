@@ -53,7 +53,7 @@ arith_unary! {
         dst
     }
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::add;
     Add { add }
@@ -68,7 +68,7 @@ arith_binary! {
         dst
     }
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::sub;
     Sub { sub }
@@ -83,7 +83,7 @@ arith_binary! {
         dst
     }
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::mul;
     Mul { mul }
@@ -92,7 +92,7 @@ arith_binary! {
     MulIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::tdiv_q;
     Div { div }
@@ -101,7 +101,7 @@ arith_binary! {
     DivIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::tdiv_r;
     Rem { rem }
@@ -117,7 +117,7 @@ arith_unary! {
     NotAssign { not_assign }
     NotIncomplete
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::and;
     BitAnd { bitand }
@@ -126,7 +126,7 @@ arith_binary! {
     BitAndIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::ior;
     BitOr { bitor }
@@ -135,7 +135,7 @@ arith_binary! {
     BitOrIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Integer;
     xmpz::xor;
     BitXor { bitxor }

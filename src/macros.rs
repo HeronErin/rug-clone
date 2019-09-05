@@ -562,7 +562,7 @@ macro_rules! arith_unary {
 // Big = Incomplete
 // Incomplete -> Big
 #[cfg(feature = "integer")]
-macro_rules! arith_binary {
+macro_rules! arith_binary_self {
     (
         $Big:ty;
         $func:path;
@@ -572,7 +572,7 @@ macro_rules! arith_binary {
         $Incomplete:ident;
         $rhs_has_more_alloc:path
     ) => {
-        arith_binary! {
+        arith_binary_self! {
             $Big;
             $func;
             $Imp { $method }
@@ -683,6 +683,298 @@ macro_rules! arith_binary {
             #[inline]
             fn from($from_src: $Incomplete<'_>) -> $Big $from_block
         }
+    };
+}
+
+// big # t -> Big
+// big # &t -> Big
+// &big # t -> OwnedIncomplete
+// &big # &t -> Incomplete
+// big #= t
+// big #= &t
+// struct OwnedIncomplete
+// Big = OwnedIncomplete
+// OwnedIncomplete -> Big
+// struct Incomplete
+// Big = Incomplete
+// Incomplete -> Big
+#[cfg(feature = "rational")]
+macro_rules! arith_binary {
+    (
+        $Big:ty;
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $T:ty;
+        $Incomplete:ident, $OwnedIncomplete:ident
+    ) => {
+        impl $Imp<$T> for $Big {
+            type Output = $Big;
+            #[inline]
+            fn $method(mut self, rhs: $T) -> $Big {
+                self.$method_assign(&rhs);
+                self
+            }
+        }
+
+        impl $Imp<&$T> for $Big {
+            type Output = $Big;
+            #[inline]
+            fn $method(mut self, rhs: &$T) -> $Big {
+                self.$method_assign(rhs);
+                self
+            }
+        }
+
+        impl<'a> $Imp<$T> for &'a $Big {
+            type Output = $OwnedIncomplete<'a>;
+            #[inline]
+            fn $method(self, rhs: $T) -> $OwnedIncomplete<'a> {
+                $OwnedIncomplete { lhs: self, rhs }
+            }
+        }
+
+        impl<'a> $Imp<&'a $T> for &'a $Big {
+            type Output = $Incomplete<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $T) -> $Incomplete<'_> {
+                $Incomplete { lhs: self, rhs }
+            }
+        }
+
+        impl $ImpAssign<$T> for $Big {
+            #[inline]
+            fn $method_assign(&mut self, rhs: $T) {
+                self.$method_assign(&rhs);
+            }
+        }
+
+        impl $ImpAssign<&$T> for $Big {
+            #[inline]
+            fn $method_assign(&mut self, rhs: &$T) {
+                $func(self, None, rhs);
+            }
+        }
+
+        #[derive(Debug)]
+        pub struct $Incomplete<'a> {
+            lhs: &'a $Big,
+            rhs: &'a $T,
+        }
+
+        impl Assign<$Incomplete<'_>> for $Big {
+            #[inline]
+            fn assign(&mut self, src: $Incomplete<'_>) {
+                $func(self, Some(src.lhs), src.rhs);
+            }
+        }
+
+        from_assign! { $Incomplete<'_> => $Big }
+
+        #[derive(Debug)]
+        pub struct $OwnedIncomplete<'a> {
+            lhs: &'a $Big,
+            rhs: $T,
+        }
+
+        impl Assign<$OwnedIncomplete<'_>> for $Big {
+            #[inline]
+            fn assign(&mut self, src: $OwnedIncomplete<'_>) {
+                $func(self, Some(src.lhs), &src.rhs);
+            }
+        }
+
+        from_assign! { $OwnedIncomplete<'_> => $Big }
+    };
+}
+
+// arith_binary!
+// t # big -> Big
+// t # &big -> OwnedIncomplete
+// &t # big -> Big
+// &t # &big -> Incomplete
+// t #-> big
+// &t #-> big
+#[cfg(feature = "rational")]
+macro_rules! arith_commut {
+    (
+        $Big:ty;
+        $func:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $T:ty;
+        $Incomplete:ident, $OwnedIncomplete:ident
+    ) => {
+        arith_binary! {
+            $Big;
+            $func;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $T;
+            $Incomplete, $OwnedIncomplete
+        }
+
+        impl $Imp<$Big> for $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                rhs.$method(self)
+            }
+        }
+
+        impl<'a> $Imp<&'a $Big> for $T {
+            type Output = $OwnedIncomplete<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $Big) -> $OwnedIncomplete<'a> {
+                rhs.$method(self)
+            }
+        }
+
+        impl $Imp<$Big> for &$T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, rhs: $Big) -> $Big {
+                rhs.$method(self)
+            }
+        }
+
+        impl<'a> $Imp<&'a $Big> for &'a $T {
+            type Output = $Incomplete<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $Big) -> $Incomplete<'_> {
+                rhs.$method(self)
+            }
+        }
+
+        impl $ImpFrom<$T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: $T) {
+                self.$method_assign(lhs);
+            }
+        }
+
+        impl $ImpFrom<&$T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: &$T) {
+                self.$method_assign(lhs);
+            }
+        }
+    };
+}
+
+// arith_binary!
+// t # big -> Big
+// t # &big -> FromOwnedIncomplete
+// &t # big -> Big
+// &t # &big -> FromIncomplete
+// t #-> big
+// &t #-> big
+// struct FromIncomplete
+// Big = FromIncomplete
+// FromIncomplete -> Big
+// struct FromOwnedIncomplete
+// Big = FromOwnedIncomplete
+// FromOwnedIncomplete -> Big
+#[cfg(feature = "rational")]
+macro_rules! arith_noncommut {
+    (
+        $Big:ty;
+        $func:path;
+        $func_from:path;
+        $Imp:ident { $method:ident }
+        $ImpAssign:ident { $method_assign:ident }
+        $ImpFrom:ident { $method_from:ident }
+        $T:ty;
+        $Incomplete:ident, $OwnedIncomplete:ident;
+        $FromIncomplete:ident, $FromOwnedIncomplete:ident
+    ) => {
+        arith_binary! {
+            $Big;
+            $func;
+            $Imp { $method }
+            $ImpAssign { $method_assign }
+            $T;
+            $Incomplete, $OwnedIncomplete
+        }
+
+        impl $Imp<$Big> for $T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, mut rhs: $Big) -> $Big {
+                rhs.$method_from(&self);
+                rhs
+            }
+        }
+
+        impl<'a> $Imp<&'a $Big> for $T {
+            type Output = $FromOwnedIncomplete<'a>;
+            #[inline]
+            fn $method(self, rhs: &$Big) -> $FromOwnedIncomplete<'_> {
+                $FromOwnedIncomplete { lhs: self, rhs }
+            }
+        }
+
+        impl $Imp<$Big> for &$T {
+            type Output = $Big;
+            #[inline]
+            fn $method(self, mut rhs: $Big) -> $Big {
+                rhs.$method_from(self);
+                rhs
+            }
+        }
+
+        impl<'a> $Imp<&'a $Big> for &'a $T {
+            type Output = $FromIncomplete<'a>;
+            #[inline]
+            fn $method(self, rhs: &'a $Big) -> $FromIncomplete<'_> {
+                $FromIncomplete { lhs: self, rhs }
+            }
+        }
+
+        impl $ImpFrom<$T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: $T) {
+                self.$method_from(&lhs);
+            }
+        }
+
+        impl $ImpFrom<&$T> for $Big {
+            #[inline]
+            fn $method_from(&mut self, lhs: &$T) {
+                $func_from(self, lhs, None);
+            }
+        }
+
+        #[derive(Debug)]
+        pub struct $FromIncomplete<'a> {
+            lhs: &'a $T,
+            rhs: &'a $Big,
+        }
+
+        impl Assign<$FromIncomplete<'_>> for $Big {
+            #[inline]
+            fn assign(&mut self, src: $FromIncomplete<'_>) {
+                $func_from(self, src.lhs, Some(src.rhs));
+            }
+        }
+
+        from_assign! { $FromIncomplete<'_> => $Big }
+
+        #[derive(Debug)]
+        pub struct $FromOwnedIncomplete<'a> {
+            lhs: $T,
+            rhs: &'a $Big,
+        }
+
+        impl Assign<$FromOwnedIncomplete<'_>> for $Big {
+            #[inline]
+            fn assign(&mut self, src: $FromOwnedIncomplete<'_>) {
+                $func_from(self, &src.lhs, Some(src.rhs));
+            }
+        }
+
+        from_assign! { $FromOwnedIncomplete<'_> => $Big }
     };
 }
 

@@ -17,7 +17,7 @@
 use crate::{
     ext::xmpq,
     ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
-    Assign, Rational,
+    Assign, Integer, Rational,
 };
 use std::{
     iter::{Product, Sum},
@@ -41,7 +41,7 @@ arith_unary! {
         dst
     }
 }
-arith_binary! {
+arith_binary_self! {
     Rational;
     xmpq::add;
     Add { add }
@@ -50,7 +50,7 @@ arith_binary! {
     AddIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Rational;
     xmpq::sub;
     Sub { sub }
@@ -59,7 +59,7 @@ arith_binary! {
     SubIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Rational;
     xmpq::mul;
     Mul { mul }
@@ -68,7 +68,7 @@ arith_binary! {
     MulIncomplete;
     rhs_has_more_alloc
 }
-arith_binary! {
+arith_binary_self! {
     Rational;
     xmpq::div;
     Div { div }
@@ -76,6 +76,47 @@ arith_binary! {
     DivFrom { div_from }
     DivIncomplete;
     rhs_has_more_alloc
+}
+
+arith_commut! {
+    Rational;
+    xmpq::add_z;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
+    Integer;
+    AddIntegerIncomplete, AddOwnedIntegerIncomplete
+}
+arith_noncommut! {
+    Rational;
+    xmpq::sub_z;
+    xmpq::z_sub;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
+    Integer;
+    SubIntegerIncomplete, SubOwnedIntegerIncomplete;
+    SubFromIntegerIncomplete, SubFromOwnedIntegerIncomplete
+}
+arith_commut! {
+    Rational;
+    xmpq::mul_z;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
+    Integer;
+    MulIntegerIncomplete, MulOwnedIntegerIncomplete
+}
+arith_noncommut! {
+    Rational;
+    xmpq::div_z;
+    xmpq::z_div;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
+    Integer;
+    DivIntegerIncomplete, DivOwnedIntegerIncomplete;
+    DivFromIntegerIncomplete, DivFromOwnedIntegerIncomplete
 }
 
 arith_prim! {
@@ -167,7 +208,7 @@ fn rhs_has_more_alloc(lhs: &Rational, rhs: &Rational) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{ops::Pow, Rational};
+    use crate::{ops::Pow, Integer, Rational};
 
     macro_rules! test_ref_op {
         ($first:expr, $second:expr) => {
@@ -200,6 +241,51 @@ mod tests {
         test_ref_op!(&lhs << pi, lhs.clone() << pi);
         test_ref_op!(&lhs >> pi, lhs.clone() >> pi);
         test_ref_op!((&lhs).pow(pi), lhs.clone().pow(pi));
+    }
+
+    macro_rules! test_numer_denom {
+        ($first:expr, $second:expr) => {{
+            let a = $first;
+            let b = $second;
+            assert_eq!(
+                a.numer(),
+                b.numer(),
+                "({}).numer() != ({}).numer()",
+                stringify!($first),
+                stringify!($second)
+            );
+            assert_eq!(
+                a.denom(),
+                b.denom(),
+                "({}).denom() != ({}).denom()",
+                stringify!($first),
+                stringify!($second)
+            );
+        }};
+    }
+
+    #[test]
+    fn check_arith_int() {
+        let r = &Rational::from((-15, 128));
+        let zero = &Integer::new();
+        let minus_100 = &Integer::from(-100);
+
+        test_numer_denom!(r.clone() + zero, r + Rational::from(zero));
+        test_numer_denom!(r.clone() - zero, r - Rational::from(zero));
+        test_numer_denom!(r.clone() * zero, r * Rational::from(zero));
+        test_numer_denom!(r.clone() + minus_100, r + Rational::from(minus_100));
+        test_numer_denom!(r.clone() - minus_100, r - Rational::from(minus_100));
+        test_numer_denom!(r.clone() * minus_100, r * Rational::from(minus_100));
+        test_numer_denom!(r.clone() / minus_100, r / Rational::from(minus_100));
+
+        test_numer_denom!(zero + r.clone(), Rational::from(zero) + r);
+        test_numer_denom!(zero - r.clone(), Rational::from(zero) - r);
+        test_numer_denom!(zero * r.clone(), Rational::from(zero) * r);
+        test_numer_denom!(zero / r.clone(), Rational::from(zero) / r);
+        test_numer_denom!(minus_100 + r.clone(), Rational::from(minus_100) + r);
+        test_numer_denom!(minus_100 - r.clone(), Rational::from(minus_100) - r);
+        test_numer_denom!(minus_100 * r.clone(), Rational::from(minus_100) * r);
+        test_numer_denom!(minus_100 / r.clone(), Rational::from(minus_100) / r);
     }
 
     #[test]

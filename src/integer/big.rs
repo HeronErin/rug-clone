@@ -3218,6 +3218,31 @@ impl Integer {
         /// [icv]: index.html#incomplete-computation-values
         fn div_exact_ref -> DivExactIncomplete;
     }
+
+    /// Performs an exact division `dividend` / `self`.
+    ///
+    /// This is much faster than normal division, but produces
+    /// correct results only when the division is exact.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `self` is zero.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use rug::Integer;
+    /// let mut i = Integer::from(12345);
+    /// i.div_exact_from(&Integer::from(12345 * 54321));
+    /// assert_eq!(i, 54321);
+    /// ```
+    pub fn div_exact_from(&mut self, dividend: &Integer) {
+        xmpz::check_div0(self);
+        unsafe {
+            gmp::mpz_divexact(self.as_raw_mut(), dividend.as_raw(), self.as_raw());
+        }
+    }
+
     math_op1! {
         xmpz::divexact_ui;
         /// Performs an exact division.
