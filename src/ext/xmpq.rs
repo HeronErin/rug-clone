@@ -455,36 +455,30 @@ pub fn add_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
     if let Some(lhs) = lhs {
         rop.assign(lhs);
     }
-    // no canonicalization is necessary, as (numer + rhs * denom) is
-    // not divisible by denom when numer is not divisible by denom
-    unsafe {
-        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
-        *numer += rhs * &*denom
-    }
+    // No canonicalization is necessary, as (numer + rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom.
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    *numer += rhs * &*denom
 }
 
 pub fn sub_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
     if let Some(lhs) = lhs {
         rop.assign(lhs);
     }
-    // no canonicalization is necessary, as (numer - rhs * denom) is
-    // not divisible by denom when numer is not divisible by denom
-    unsafe {
-        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
-        *numer -= rhs * &*denom
-    }
+    // No canonicalization is necessary, as (numer - rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom.
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    *numer -= rhs * &*denom
 }
 
 pub fn z_sub(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
     if let Some(rhs) = rhs {
         rop.assign(rhs);
     }
-    // no canonicalization is necessary, as (lhs * denom - numer) is
-    // not divisible by denom when numer is not divisible by denom
-    unsafe {
-        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
-        numer.sub_from(lhs * &*denom)
-    }
+    // No canonicalization is necessary, as (lhs * denom - numer) is
+    // not divisible by denom when numer is not divisible by denom.
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    numer.sub_from(lhs * &*denom)
 }
 
 pub fn mul_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
@@ -492,106 +486,97 @@ pub fn mul_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
         set_0(rop);
         return;
     }
-    unsafe {
-        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
-        // gcd = gcd(lhs.denom, rhs)
-        // ans = (lhs.numer * rhs/gcd) / (lhs.denom/gcd)
-        if let Some(lhs) = lhs {
-            // store gcd temporarily in numer
-            numer.assign(lhs.denom().gcd_ref(rhs));
-            if *numer != 1u32 {
-                denom.assign(lhs.denom().div_exact_ref(numer));
-                numer.div_exact_from(rhs);
-                *numer *= lhs.numer();
-            } else {
-                numer.assign(lhs.numer() * rhs);
-                denom.assign(lhs.denom());
-            }
+    // Canonicalization is done in this function.
+    //     gcd = gcd(lhs.denom, rhs)
+    //     (numer, denom) = (rhs / gcd * lhs.numer, lhs.denom / gcd)
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    if let Some(lhs) = lhs {
+        // store gcd temporarily in numer
+        numer.assign(lhs.denom().gcd_ref(rhs));
+        if !xmpz::is_1(numer) {
+            denom.assign(lhs.denom().div_exact_ref(numer));
+            numer.div_exact_from(rhs);
+            *numer *= lhs.numer();
         } else {
-            let mut gcd = Integer::from(denom.gcd_ref(rhs));
-            if gcd != 1u32 {
-                denom.div_exact_mut(&gcd);
-                gcd.div_exact_from(rhs);
-                *numer *= gcd;
-            } else {
-                *numer *= rhs;
-            }
+            numer.assign(lhs.numer() * rhs);
+            denom.assign(lhs.denom());
+        }
+    } else {
+        let mut gcd = Integer::from(denom.gcd_ref(rhs));
+        if !xmpz::is_1(&gcd) {
+            denom.div_exact_mut(&gcd);
+            gcd.div_exact_from(rhs);
+            *numer *= gcd;
+        } else {
+            *numer *= rhs;
         }
     }
 }
 
-#[inline]
 pub fn div_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
-    assert_ne!(rhs.cmp0(), Ordering::Equal, "division by zero");
-    unsafe {
-        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
-        // gcd = gcd(lhs.numer, rhs)
-        // ans = (lhs.numer/gcd) / (lhs.denom * rhs/gcd)
-        if let Some(lhs) = lhs {
-            // store gcd temporarily in numer
-            numer.assign(lhs.numer().gcd_ref(rhs));
-            if *numer != 1u32 {
-                denom.assign(rhs.div_exact_ref(numer));
-                *denom *= lhs.denom();
-                numer.div_exact_from(lhs.numer());
-            } else {
-                numer.assign(lhs.numer());
-                denom.assign(lhs.denom() * rhs);
-            }
+    xmpz::check_div0(rhs);
+    // Canonicalization is done in this function.
+    //     gcd = gcd(lhs.numer, rhs)
+    //     (numer, denom) = (lhs.numer / gcd, rhs / gcd * lhs.denom)
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    if let Some(lhs) = lhs {
+        // store gcd temporarily in numer
+        numer.assign(lhs.numer().gcd_ref(rhs));
+        if !xmpz::is_1(numer) {
+            denom.assign(rhs.div_exact_ref(numer));
+            *denom *= lhs.denom();
+            numer.div_exact_from(lhs.numer());
         } else {
-            let mut gcd = Integer::from(numer.gcd_ref(rhs));
-            if gcd != 1u32 {
-                numer.div_exact_mut(&gcd);
-                gcd.div_exact_from(rhs);
-                *denom *= gcd;
-            } else {
-                *denom *= rhs;
-            }
+            numer.assign(lhs.numer());
+            denom.assign(lhs.denom() * rhs);
         }
-        if denom.cmp0() == Ordering::Less {
-            numer.neg_assign();
-            denom.neg_assign();
+    } else {
+        let mut gcd = Integer::from(numer.gcd_ref(rhs));
+        if !xmpz::is_1(&gcd) {
+            numer.div_exact_mut(&gcd);
+            gcd.div_exact_from(rhs);
+            *denom *= gcd;
+        } else {
+            *denom *= rhs;
         }
+    }
+    if denom.cmp0() == Ordering::Less {
+        numer.neg_assign();
+        denom.neg_assign();
     }
 }
 
-#[inline]
 pub fn z_div(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
-    assert_ne!(
-        rhs.unwrap_or(rop).cmp0(),
-        Ordering::Equal,
-        "division by zero"
-    );
-    unsafe {
-        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
-        // gcd = gcd(lhs, rhs.numer)
-        // ans = (lhs/gcd * rhs.denom) / (rhs.numer/gcd)
-        if let Some(rhs) = rhs {
-            // store gcd temporarily in numer
-            numer.assign(rhs.numer().gcd_ref(lhs));
-            if *numer != 1u32 {
-                denom.assign(rhs.numer().div_exact_ref(numer));
-                numer.div_exact_from(lhs);
-                *numer *= rhs.denom();
-            } else {
-                numer.assign(lhs * rhs.denom());
-                denom.assign(rhs.numer());
-            }
+    xmpz::check_div0(rhs.unwrap_or(rop).numer());
+    // Canonicalization is done in this function.
+    //     gcd = gcd(lhs, rhs.numer)
+    //     (numer, denom) = (lhs / gcd * rhs.denom, rhs.numer / gcd)
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    if let Some(rhs) = rhs {
+        // store gcd temporarily in numer
+        numer.assign(rhs.numer().gcd_ref(lhs));
+        if !xmpz::is_1(numer) {
+            denom.assign(rhs.numer().div_exact_ref(numer));
+            numer.div_exact_from(lhs);
+            *numer *= rhs.denom();
         } else {
-            let mut gcd = Integer::from(numer.gcd_ref(lhs));
-            mem::swap(numer, denom);
-            if gcd != 1u32 {
-                denom.div_exact_mut(&gcd);
-                gcd.div_exact_from(lhs);
-                *numer *= gcd;
-            } else {
-                *numer *= lhs;
-            }
+            numer.assign(lhs * rhs.denom());
+            denom.assign(rhs.numer());
         }
-        if denom.cmp0() == Ordering::Less {
-            numer.neg_assign();
-            denom.neg_assign();
+    } else {
+        let mut gcd = Integer::from(numer.gcd_ref(lhs));
+        mem::swap(numer, denom);
+        if !xmpz::is_1(&gcd) {
+            denom.div_exact_mut(&gcd);
+            gcd.div_exact_from(lhs);
+            *numer *= gcd;
+        } else {
+            *numer *= lhs;
         }
+    }
+    if denom.cmp0() == Ordering::Less {
+        numer.neg_assign();
+        denom.neg_assign();
     }
 }
 
