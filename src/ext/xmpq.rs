@@ -14,9 +14,16 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{cast, ext::xmpz, misc::NegAbs, rational::SmallRational, Integer, Rational};
+use crate::{
+    cast,
+    ext::xmpz,
+    misc::NegAbs,
+    ops::{NegAssign, SubFrom},
+    rational::SmallRational,
+    Assign, Integer, Rational,
+};
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::{cmp::Ordering, os::raw::c_int};
+use std::{cmp::Ordering, mem, os::raw::c_int};
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
@@ -442,4 +449,265 @@ pub fn cmp_finite_d(op1: &Rational, op2: f64) -> Ordering {
         gmp::mpf_clear(&mut op2_f);
     }
     ord(cmp)
+}
+
+pub fn add_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
+    if let Some(lhs) = lhs {
+        rop.assign(lhs);
+    }
+    // no canonicalization is necessary, as (numer + rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom
+    unsafe {
+        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
+        *numer += rhs * &*denom
+    }
+}
+
+pub fn sub_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
+    if let Some(lhs) = lhs {
+        rop.assign(lhs);
+    }
+    // no canonicalization is necessary, as (numer - rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom
+    unsafe {
+        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
+        *numer -= rhs * &*denom
+    }
+}
+
+pub fn z_sub(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
+    if let Some(rhs) = rhs {
+        rop.assign(rhs);
+    }
+    // no canonicalization is necessary, as (lhs * denom - numer) is
+    // not divisible by denom when numer is not divisible by denom
+    unsafe {
+        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
+        numer.sub_from(lhs * &*denom)
+    }
+}
+
+pub fn mul_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
+    if rhs.cmp0() == Ordering::Equal {
+        set_0(rop);
+        return;
+    }
+    unsafe {
+        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
+        // gcd = gcd(lhs.denom, rhs)
+        // ans = (lhs.numer * rhs/gcd) / (lhs.denom/gcd)
+        if let Some(lhs) = lhs {
+            // store gcd temporarily in numer
+            numer.assign(lhs.denom().gcd_ref(rhs));
+            if *numer != 1u32 {
+                denom.assign(lhs.denom().div_exact_ref(numer));
+                numer.div_exact_from(rhs);
+                *numer *= lhs.numer();
+            } else {
+                numer.assign(lhs.numer() * rhs);
+                denom.assign(lhs.denom());
+            }
+        } else {
+            let mut gcd = Integer::from(denom.gcd_ref(rhs));
+            if gcd != 1u32 {
+                denom.div_exact_mut(&gcd);
+                gcd.div_exact_from(rhs);
+                *numer *= gcd;
+            } else {
+                *numer *= rhs;
+            }
+        }
+    }
+}
+
+#[inline]
+pub fn div_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
+    assert_ne!(rhs.cmp0(), Ordering::Equal, "division by zero");
+    if rhs.cmp0() == Ordering::Equal {
+        set_0(rop);
+        return;
+    }
+    unsafe {
+        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
+        // gcd = gcd(lhs.numer, rhs)
+        // ans = (lhs.numer/gcd) / (lhs.denom * rhs/gcd)
+        if let Some(lhs) = lhs {
+            // store gcd temporarily in numer
+            numer.assign(lhs.numer().gcd_ref(rhs));
+            if *numer != 1u32 {
+                denom.assign(rhs.div_exact_ref(numer));
+                *denom *= lhs.denom();
+                numer.div_exact_from(lhs.numer());
+            } else {
+                numer.assign(lhs.numer());
+                denom.assign(lhs.denom() * rhs);
+            }
+        } else {
+            let mut gcd = Integer::from(numer.gcd_ref(rhs));
+            if gcd != 1u32 {
+                numer.div_exact_mut(&gcd);
+                gcd.div_exact_from(rhs);
+                *denom *= gcd;
+            } else {
+                *denom *= rhs;
+            }
+        }
+        if denom.cmp0() == Ordering::Less {
+            numer.neg_assign();
+            denom.neg_assign();
+        }
+    }
+}
+
+#[inline]
+pub fn z_div(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
+    assert_ne!(
+        rhs.unwrap_or(rop).cmp0(),
+        Ordering::Equal,
+        "division by zero"
+    );
+    unsafe {
+        let (numer, denom) = rop.as_mut_numer_denom_no_canonicalization();
+        // gcd = gcd(lhs, rhs.numer)
+        // ans = (lhs/gcd * rhs.denom) / (rhs.numer/gcd)
+        if let Some(rhs) = rhs {
+            // store gcd temporarily in numer
+            numer.assign(rhs.numer().gcd_ref(lhs));
+            if *numer != 1u32 {
+                denom.assign(rhs.numer().div_exact_ref(numer));
+                numer.div_exact_from(lhs);
+                *numer *= rhs.denom();
+            } else {
+                numer.assign(lhs * rhs.denom());
+                denom.assign(rhs.numer());
+            }
+        } else {
+            let mut gcd = Integer::from(numer.gcd_ref(lhs));
+            mem::swap(numer, denom);
+            if gcd != 1u32 {
+                denom.div_exact_mut(&gcd);
+                gcd.div_exact_from(lhs);
+                *numer *= gcd;
+            } else {
+                *numer *= lhs;
+            }
+        }
+        if denom.cmp0() == Ordering::Less {
+            numer.neg_assign();
+            denom.neg_assign();
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{ext::xmpq, Assign, Integer, Rational};
+
+    #[test]
+    fn check_add_sub_z() {
+        let mut r = Rational::from((13, 7));
+        let i = Integer::from(-5);
+
+        // 13/7 + -5 = -22/7
+        xmpq::add_z(&mut r, None, &i);
+        assert_eq!(*r.numer(), -22);
+        assert_eq!(*r.denom(), 7);
+
+        // -22/7 - -5 = 13/7
+        xmpq::sub_z(&mut r, None, &i);
+        assert_eq!(*r.numer(), 13);
+        assert_eq!(*r.denom(), 7);
+
+        // -5 - 13/7 = -48/7
+        xmpq::z_sub(&mut r, &i, None);
+        assert_eq!(*r.numer(), -48);
+        assert_eq!(*r.denom(), 7);
+    }
+
+    #[test]
+    fn check_mul_z() {
+        let mut r = Rational::from((13, 10));
+        let mut rr = Rational::new();
+        let mut i = Integer::from(-6);
+
+        // 13/10 * -6 = -39/5
+        xmpq::mul_z(&mut rr, Some(&r), &i);
+        assert_eq!(*rr.numer(), -39);
+        assert_eq!(*rr.denom(), 5);
+        // 13/10 * 6 = 39/5
+        xmpq::mul_z(&mut r, None, &i.as_neg());
+        assert_eq!(*r.numer(), 39);
+        assert_eq!(*r.denom(), 5);
+
+        rr.assign(0);
+
+        // 39/5 * -6 = -234/5
+        xmpq::mul_z(&mut rr, Some(&r), &i);
+        assert_eq!(*rr.numer(), -234);
+        assert_eq!(*rr.denom(), 5);
+        // 39/5 * 6 = 234/5
+        xmpq::mul_z(&mut r, None, &i.as_neg());
+        assert_eq!(*r.numer(), 234);
+        assert_eq!(*r.denom(), 5);
+
+        i.assign(0);
+        xmpq::mul_z(&mut r, None, &i);
+        assert_eq!(*r.numer(), 0);
+        assert_eq!(*r.denom(), 1);
+    }
+
+    #[test]
+    fn check_div_z() {
+        let mut r = Rational::from((10, 13));
+        let mut rr = Rational::new();
+        let i = Integer::from(-6);
+
+        // 10/13 / -6 = -5/39
+        xmpq::div_z(&mut rr, Some(&r), &i);
+        assert_eq!(*rr.numer(), -5);
+        assert_eq!(*rr.denom(), 39);
+        // 10/13 / 6 = 5/39
+        xmpq::div_z(&mut r, None, &i.as_neg());
+        assert_eq!(*r.numer(), 5);
+        assert_eq!(*r.denom(), 39);
+
+        rr.assign(0);
+
+        // 5/39 / -6 = -5/234
+        xmpq::div_z(&mut rr, Some(&r), &i);
+        assert_eq!(*rr.numer(), -5);
+        assert_eq!(*rr.denom(), 234);
+        // 5/39 / 6 = 5/234
+        xmpq::div_z(&mut r, None, &i.as_neg());
+        assert_eq!(*r.numer(), 5);
+        assert_eq!(*r.denom(), 234);
+    }
+
+    #[test]
+    fn check_z_div() {
+        let mut r = Rational::from((10, 13));
+        let mut rr = Rational::new();
+        let i = Integer::from(-6);
+
+        // -6 / 10/13 = -39/5
+        xmpq::z_div(&mut rr, &i, Some(&r));
+        assert_eq!(*rr.numer(), -39);
+        assert_eq!(*rr.denom(), 5);
+        // 6 / 10/13 / 6 = 39/5
+        xmpq::z_div(&mut r, &i.as_neg(), None);
+        assert_eq!(*r.numer(), 39);
+        assert_eq!(*r.denom(), 5);
+
+        rr.assign(0);
+        r.recip_mut();
+
+        // -6 / 39/5 = -234/5
+        xmpq::z_div(&mut rr, &i, Some(&r));
+        assert_eq!(*rr.numer(), -234);
+        assert_eq!(*rr.denom(), 5);
+        // 6 / 39/5 = 234/5
+        xmpq::z_div(&mut r, &i.as_neg(), None);
+        assert_eq!(*r.numer(), 234);
+        assert_eq!(*r.denom(), 5);
+    }
 }
