@@ -23,7 +23,11 @@ use crate::{
     Assign, Integer, Rational,
 };
 use gmp_mpfr_sys::gmp::{self, mpq_t};
-use std::{cmp::Ordering, mem, os::raw::c_int};
+use std::{
+    cmp::Ordering,
+    mem,
+    os::raw::{c_int, c_long, c_ulong},
+};
 
 macro_rules! wrap {
     (fn $fn:ident($($op:ident),* $(; $param:ident: $T:ty)*) -> $deleg:path) => {
@@ -458,7 +462,7 @@ pub fn add_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
     // No canonicalization is necessary, as (numer + rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
     let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
-    *numer += rhs * &*denom
+    *numer += rhs * &*denom;
 }
 
 pub fn sub_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
@@ -468,7 +472,7 @@ pub fn sub_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
     // No canonicalization is necessary, as (numer - rhs * denom) is
     // not divisible by denom when numer is not divisible by denom.
     let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
-    *numer -= rhs * &*denom
+    *numer -= rhs * &*denom;
 }
 
 pub fn z_sub(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
@@ -478,7 +482,7 @@ pub fn z_sub(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
     // No canonicalization is necessary, as (lhs * denom - numer) is
     // not divisible by denom when numer is not divisible by denom.
     let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
-    numer.sub_from(lhs * &*denom)
+    numer.sub_from(lhs * &*denom);
 }
 
 pub fn mul_z(rop: &mut Rational, lhs: Option<&Rational>, rhs: &Integer) {
@@ -577,6 +581,73 @@ pub fn z_div(rop: &mut Rational, lhs: &Integer, rhs: Option<&Rational>) {
     if denom.cmp0() == Ordering::Less {
         numer.neg_assign();
         denom.neg_assign();
+    }
+}
+
+pub fn add_ui(rop: &mut Rational, lhs: Option<&Rational>, rhs: c_ulong) {
+    if let Some(lhs) = lhs {
+        rop.assign(lhs);
+    }
+    // No canonicalization is necessary, as (numer + rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom.
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    *numer += rhs * &*denom;
+}
+
+pub fn sub_ui(rop: &mut Rational, lhs: Option<&Rational>, rhs: c_ulong) {
+    if let Some(lhs) = lhs {
+        rop.assign(lhs);
+    }
+    // No canonicalization is necessary, as (numer + rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom.
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    *numer -= rhs * &*denom;
+}
+
+pub fn ui_sub(rop: &mut Rational, lhs: c_ulong, rhs: Option<&Rational>) {
+    if let Some(rhs) = rhs {
+        rop.assign(rhs);
+    }
+    // No canonicalization is necessary, as (numer + rhs * denom) is
+    // not divisible by denom when numer is not divisible by denom.
+    let (numer, denom) = unsafe { rop.as_mut_numer_denom_no_canonicalization() };
+    numer.sub_from(lhs * &*denom);
+}
+
+#[inline]
+pub fn add_si(rop: &mut Rational, op1: Option<&Rational>, op2: c_long) {
+    match op2.neg_abs() {
+        (false, op2_abs) => {
+            add_ui(rop, op1, op2_abs);
+        }
+        (true, op2_abs) => {
+            sub_ui(rop, op1, op2_abs);
+        }
+    }
+}
+
+#[inline]
+pub fn sub_si(rop: &mut Rational, lhs: Option<&Rational>, rhs: c_long) {
+    match rhs.neg_abs() {
+        (false, rhs_abs) => {
+            sub_ui(rop, lhs, rhs_abs);
+        }
+        (true, rhs_abs) => {
+            add_ui(rop, lhs, rhs_abs);
+        }
+    }
+}
+
+#[inline]
+pub fn si_sub(rop: &mut Rational, lhs: c_long, rhs: Option<&Rational>) {
+    match lhs.neg_abs() {
+        (false, lhs_abs) => {
+            ui_sub(rop, lhs_abs, rhs);
+        }
+        (true, lhs_abs) => {
+            add_ui(rop, rhs, lhs_abs);
+            neg(rop, None);
+        }
     }
 }
 
@@ -690,5 +761,47 @@ mod tests {
         xmpq::z_div(&mut r, &i.as_neg(), None);
         assert_eq!(*r.numer(), 234);
         assert_eq!(*r.denom(), 5);
+    }
+
+    #[test]
+    fn check_add_sub_ui_si() {
+        let mut r = Rational::from((13, 7));
+        let mut rr = Rational::new();
+
+        // 13/7 + -5 = -22/7
+        xmpq::add_si(&mut rr, Some(&r), -5);
+        assert_eq!(*rr.numer(), -22);
+        assert_eq!(*rr.denom(), 7);
+        // 13/7 + 5 = 48/7
+        xmpq::add_si(&mut rr, Some(&r), 5);
+        assert_eq!(*rr.numer(), 48);
+        assert_eq!(*rr.denom(), 7);
+        xmpq::add_ui(&mut r, None, 5);
+        assert_eq!(*r.numer(), 48);
+        assert_eq!(*r.denom(), 7);
+
+        // 48/7 - -5 = 83/7
+        xmpq::sub_si(&mut rr, Some(&r), -5);
+        assert_eq!(*rr.numer(), 83);
+        assert_eq!(*rr.denom(), 7);
+        // 48/7 - 5 = 13/7
+        xmpq::sub_si(&mut rr, Some(&r), 5);
+        assert_eq!(*rr.numer(), 13);
+        assert_eq!(*rr.denom(), 7);
+        xmpq::sub_ui(&mut r, None, 5);
+        assert_eq!(*r.numer(), 13);
+        assert_eq!(*r.denom(), 7);
+
+        // -5 - 13/7 = -48/7
+        xmpq::si_sub(&mut rr, -5, Some(&r));
+        assert_eq!(*rr.numer(), -48);
+        assert_eq!(*rr.denom(), 7);
+        // 5 - 13/7 = 22/7
+        xmpq::si_sub(&mut rr, 5, Some(&r));
+        assert_eq!(*rr.numer(), 22);
+        assert_eq!(*rr.denom(), 7);
+        xmpq::ui_sub(&mut r, 5, None);
+        assert_eq!(*r.numer(), 22);
+        assert_eq!(*r.denom(), 7);
     }
 }
