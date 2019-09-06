@@ -1300,9 +1300,8 @@ macro_rules! mul_op_commut {
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $Mul:ident;
-        $Incomplete:ident
-    ) => {
+        $($Mul:ident, $Incomplete:ident;)*
+    ) => { $(
         mul_op! {
             $Big;
             $func;
@@ -1335,7 +1334,7 @@ macro_rules! mul_op_commut {
                 <$Big as $ImpAssign<$Mul<'_>>>::$method_assign(self, lhs);
             }
         }
-    };
+    )* };
 }
 
 // mul_op!
@@ -1349,15 +1348,12 @@ macro_rules! mul_op_commut {
 macro_rules! mul_op_noncommut {
     (
         $Big:ty;
-        $func:path,
-        $func_from:path;
+        $func:path, $func_from:path;
         $Imp:ident { $method:ident }
         $ImpAssign:ident { $method_assign:ident }
         $ImpFrom:ident { $method_from:ident }
-        $Mul:ident;
-        $Incomplete:ident,
-        $FromIncomplete:ident
-    ) => {
+        $($Mul:ident, $Incomplete:ident, $FromIncomplete:ident;)*
+    ) => { $(
         mul_op! {
             $Big;
             $func;
@@ -1406,7 +1402,7 @@ macro_rules! mul_op_noncommut {
         }
 
         from_assign! { $FromIncomplete<'_> => $Big }
-    };
+    )* };
 }
 
 #[cfg(feature = "float")]

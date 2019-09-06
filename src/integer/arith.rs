@@ -324,26 +324,7 @@ mul_op_commut! {
     Add { add }
     AddAssign { add_assign }
     AddFrom { add_from }
-    MulIncomplete;
-    AddMulIncomplete
-}
-mul_op_commut! {
-    Integer;
-    xmpz::addmul_u32;
-    Add { add }
-    AddAssign { add_assign }
-    AddFrom { add_from }
-    MulU32Incomplete;
-    AddMulU32Incomplete
-}
-mul_op_commut! {
-    Integer;
-    xmpz::addmul_i32;
-    Add { add }
-    AddAssign { add_assign }
-    AddFrom { add_from }
-    MulI32Incomplete;
-    AddMulI32Incomplete
+    MulIncomplete, AddMulIncomplete;
 }
 mul_op_noncommut! {
     Integer;
@@ -351,26 +332,41 @@ mul_op_noncommut! {
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    MulIncomplete;
-    SubMulIncomplete, SubMulFromIncomplete
+    MulIncomplete, SubMulIncomplete, SubMulFromIncomplete;
+}
+mul_op_commut! {
+    Integer;
+    PrimOps::addmul;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
+    MulI8Incomplete, AddMulI8Incomplete;
+    MulI16Incomplete, AddMulI16Incomplete;
+    MulI32Incomplete, AddMulI32Incomplete;
+    MulI64Incomplete, AddMulI64Incomplete;
+    MulI128Incomplete, AddMulI128Incomplete;
+    MulU8Incomplete, AddMulU8Incomplete;
+    MulU16Incomplete, AddMulU16Incomplete;
+    MulU32Incomplete, AddMulU32Incomplete;
+    MulU64Incomplete, AddMulU64Incomplete;
+    MulU128Incomplete, AddMulU128Incomplete;
 }
 mul_op_noncommut! {
     Integer;
-    xmpz::submul_u32, xmpz::mulsub_u32;
+    PrimOps::submul, PrimOps::mulsub;
     Sub { sub }
     SubAssign { sub_assign }
     SubFrom { sub_from }
-    MulU32Incomplete;
-    SubMulU32Incomplete, SubMulFromU32Incomplete
-}
-mul_op_noncommut! {
-    Integer;
-    xmpz::submul_i32, xmpz::mulsub_i32;
-    Sub { sub }
-    SubAssign { sub_assign }
-    SubFrom { sub_from }
-    MulI32Incomplete;
-    SubMulI32Incomplete, SubMulFromI32Incomplete
+    MulI8Incomplete, SubMulI8Incomplete, SubMulFromI8Incomplete;
+    MulI16Incomplete, SubMulI16Incomplete, SubMulFromI16Incomplete;
+    MulI32Incomplete, SubMulI32Incomplete, SubMulFromI32Incomplete;
+    MulI64Incomplete, SubMulI64Incomplete, SubMulFromI64Incomplete;
+    MulI128Incomplete, SubMulI128Incomplete, SubMulFromI128Incomplete;
+    MulU8Incomplete, SubMulU8Incomplete, SubMulFromU8Incomplete;
+    MulU16Incomplete, SubMulU16Incomplete, SubMulFromU16Incomplete;
+    MulU32Incomplete, SubMulU32Incomplete, SubMulFromU32Incomplete;
+    MulU64Incomplete, SubMulU64Incomplete, SubMulFromU64Incomplete;
+    MulU128Incomplete, SubMulU128Incomplete, SubMulFromU128Incomplete;
 }
 
 trait PrimOps<Long>: AsLong {
@@ -385,6 +381,9 @@ trait PrimOps<Long>: AsLong {
     fn and(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
     fn ior(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
     fn xor(rop: &mut Integer, op1: Option<&Integer>, op2: Self);
+    fn addmul(rop: &mut Integer, op1: &Integer, op2: Self);
+    fn submul(rop: &mut Integer, op1: &Integer, op2: Self);
+    fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self);
 }
 
 trait AsLong: Copy {
@@ -444,6 +443,36 @@ where
     forward! { fn and() -> xmpz::and_si, xmpz::and }
     forward! { fn ior() -> xmpz::ior_si, xmpz::ior }
     forward! { fn xor() -> xmpz::xor_si, xmpz::xor }
+
+    #[inline]
+    fn addmul(rop: &mut Integer, op1: &Integer, op2: Self) {
+        if let Some(op2) = op2.checked_cast() {
+            xmpz::addmul_si(rop, op1, op2);
+        } else {
+            let small: SmallInteger = op2.into();
+            xmpz::addmul(rop, op1, &*small);
+        }
+    }
+
+    #[inline]
+    fn submul(rop: &mut Integer, op1: &Integer, op2: Self) {
+        if let Some(op2) = op2.checked_cast() {
+            xmpz::submul_si(rop, op1, op2);
+        } else {
+            let small: SmallInteger = op2.into();
+            xmpz::submul(rop, op1, &*small);
+        }
+    }
+
+    #[inline]
+    fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self) {
+        if let Some(op2) = op2.checked_cast() {
+            xmpz::mulsub_si(rop, op1, op2);
+        } else {
+            let small: SmallInteger = op2.into();
+            xmpz::mulsub(rop, op1, &*small);
+        }
+    }
 }
 
 impl<T> PrimOps<c_ulong> for T
@@ -461,6 +490,36 @@ where
     forward! { fn and() -> xmpz::and_ui, xmpz::and }
     forward! { fn ior() -> xmpz::ior_ui, xmpz::ior }
     forward! { fn xor() -> xmpz::xor_ui, xmpz::xor }
+
+    #[inline]
+    fn addmul(rop: &mut Integer, op1: &Integer, op2: Self) {
+        if let Some(op2) = op2.checked_cast() {
+            xmpz::addmul_ui(rop, op1, op2);
+        } else {
+            let small: SmallInteger = op2.into();
+            xmpz::addmul(rop, op1, &*small);
+        }
+    }
+
+    #[inline]
+    fn submul(rop: &mut Integer, op1: &Integer, op2: Self) {
+        if let Some(op2) = op2.checked_cast() {
+            xmpz::submul_ui(rop, op1, op2);
+        } else {
+            let small: SmallInteger = op2.into();
+            xmpz::submul(rop, op1, &*small);
+        }
+    }
+
+    #[inline]
+    fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self) {
+        if let Some(op2) = op2.checked_cast() {
+            xmpz::mulsub_ui(rop, op1, op2);
+        } else {
+            let small: SmallInteger = op2.into();
+            xmpz::mulsub(rop, op1, &*small);
+        }
+    }
 }
 
 impl<T> Sum<T> for Integer

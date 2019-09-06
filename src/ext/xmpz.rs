@@ -713,19 +713,19 @@ pub fn addmul(rop: &mut Integer, op1: &Integer, op2: &Integer) {
 }
 
 #[inline]
-pub fn addmul_u32(rop: &mut Integer, op1: &Integer, op2: u32) {
+pub fn addmul_ui(rop: &mut Integer, op1: &Integer, op2: c_ulong) {
     unsafe {
-        gmp::mpz_addmul_ui(rop.as_raw_mut(), op1.as_raw(), op2.into());
+        gmp::mpz_addmul_ui(rop.as_raw_mut(), op1.as_raw(), op2);
     }
 }
 
 #[inline]
-pub fn addmul_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
+pub fn addmul_si(rop: &mut Integer, op1: &Integer, op2: c_long) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        addmul_u32(rop, op1, op2_abs);
+        addmul_ui(rop, op1, op2_abs);
     } else {
-        submul_u32(rop, op1, op2_abs);
+        submul_ui(rop, op1, op2_abs);
     }
 }
 
@@ -744,31 +744,31 @@ pub fn mulsub(rop: &mut Integer, op1: &Integer, op2: &Integer) {
 }
 
 #[inline]
-pub fn submul_u32(rop: &mut Integer, op1: &Integer, op2: u32) {
+pub fn submul_ui(rop: &mut Integer, op1: &Integer, op2: c_ulong) {
     unsafe {
-        gmp::mpz_submul_ui(rop.as_raw_mut(), op1.as_raw(), op2.into());
+        gmp::mpz_submul_ui(rop.as_raw_mut(), op1.as_raw(), op2);
     }
 }
 
 #[inline]
-pub fn mulsub_u32(rop: &mut Integer, op1: &Integer, op2: u32) {
-    submul_u32(rop, op1, op2);
+pub fn mulsub_ui(rop: &mut Integer, op1: &Integer, op2: c_ulong) {
+    submul_ui(rop, op1, op2);
     rop.neg_assign();
 }
 
 #[inline]
-pub fn submul_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
+pub fn submul_si(rop: &mut Integer, op1: &Integer, op2: c_long) {
     let (op2_neg, op2_abs) = op2.neg_abs();
     if !op2_neg {
-        submul_u32(rop, op1, op2_abs);
+        submul_ui(rop, op1, op2_abs);
     } else {
-        addmul_u32(rop, op1, op2_abs);
+        addmul_ui(rop, op1, op2_abs);
     }
 }
 
 #[inline]
-pub fn mulsub_i32(rop: &mut Integer, op1: &Integer, op2: i32) {
-    submul_i32(rop, op1, op2);
+pub fn mulsub_si(rop: &mut Integer, op1: &Integer, op2: c_long) {
+    submul_si(rop, op1, op2);
     rop.neg_assign();
 }
 
