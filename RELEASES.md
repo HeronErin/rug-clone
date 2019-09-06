@@ -8,8 +8,8 @@ as-is, without any warranty. -->
 Verison 1.7.0 (unreleased)
 ==========================
 
-  * Arithmetic operations with one `Integer` operand and one
-    `Rational` operand were added.
+  * Arithmetic operations with one `Integer` or integer primitive
+    operand and one `Rational` operand were added.
   * The method `Integer::div_exact_from` was added.
   * The methods `Integer::gcd_u`, `Integer::gcd_u_mut` and
     `Integer::gcd_u_ref` were added.

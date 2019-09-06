@@ -15,7 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
+    cast::CheckedCast,
     ext::xmpq,
+    integer::{arith::AsLong, SmallInteger},
     ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
     Assign, Integer, Rational,
 };
@@ -25,6 +27,7 @@ use std::{
         Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Shl, ShlAssign, Shr, ShrAssign, Sub,
         SubAssign,
     },
+    os::raw::{c_long, c_ulong},
 };
 
 // Specialize From implementation so that allocation is done with the
@@ -119,6 +122,75 @@ arith_noncommut! {
     DivFromIntegerIncomplete, DivFromOwnedIntegerIncomplete
 }
 
+arith_prim_commut! {
+    Rational;
+    PrimOps::add;
+    Add { add }
+    AddAssign { add_assign }
+    AddFrom { add_from }
+    i8, AddI8Incomplete;
+    i16, AddI16Incomplete;
+    i32, AddI32Incomplete;
+    i64, AddI64Incomplete;
+    i128, AddI128Incomplete;
+    u8, AddU8Incomplete;
+    u16, AddU16Incomplete;
+    u32, AddU32Incomplete;
+    u64, AddU64Incomplete;
+    u128, AddU128Incomplete;
+}
+arith_prim_noncommut! {
+    Rational;
+    PrimOps::sub, PrimOps::sub_from;
+    Sub { sub }
+    SubAssign { sub_assign }
+    SubFrom { sub_from }
+    i8, SubI8Incomplete, SubFromI8Incomplete;
+    i16, SubI16Incomplete, SubFromI16Incomplete;
+    i32, SubI32Incomplete, SubFromI32Incomplete;
+    i64, SubI64Incomplete, SubFromI64Incomplete;
+    i128, SubI128Incomplete, SubFromI128Incomplete;
+    u8, SubU8Incomplete, SubFromU8Incomplete;
+    u16, SubU16Incomplete, SubFromU16Incomplete;
+    u32, SubU32Incomplete, SubFromU32Incomplete;
+    u64, SubU64Incomplete, SubFromU64Incomplete;
+    u128, SubU128Incomplete, SubFromU128Incomplete;
+}
+arith_prim_commut! {
+    Rational;
+    PrimOps::mul;
+    Mul { mul }
+    MulAssign { mul_assign }
+    MulFrom { mul_from }
+    i8, MulI8Incomplete;
+    i16, MulI16Incomplete;
+    i32, MulI32Incomplete;
+    i64, MulI64Incomplete;
+    i128, MulI128Incomplete;
+    u8, MulU8Incomplete;
+    u16, MulU16Incomplete;
+    u32, MulU32Incomplete;
+    u64, MulU64Incomplete;
+    u128, MulU128Incomplete;
+}
+arith_prim_noncommut! {
+    Rational;
+    PrimOps::div, PrimOps::div_from;
+    Div { div }
+    DivAssign { div_assign }
+    DivFrom { div_from }
+    i8, DivI8Incomplete, DivFromI8Incomplete;
+    i16, DivI16Incomplete, DivFromI16Incomplete;
+    i32, DivI32Incomplete, DivFromI32Incomplete;
+    i64, DivI64Incomplete, DivFromI64Incomplete;
+    i128, DivI128Incomplete, DivFromI128Incomplete;
+    u8, DivU8Incomplete, DivFromU8Incomplete;
+    u16, DivU16Incomplete, DivFromU16Incomplete;
+    u32, DivU32Incomplete, DivFromU32Incomplete;
+    u64, DivU64Incomplete, DivFromU64Incomplete;
+    u128, DivU128Incomplete, DivFromU128Incomplete;
+}
+
 arith_prim! {
     Rational;
     xmpq::lshift_i32;
@@ -161,6 +233,66 @@ arith_prim! {
     Pow { pow }
     PowAssign { pow_assign }
     u32, PowU32Incomplete;
+}
+
+trait PrimOps<Long>: AsLong {
+    fn add(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
+    fn sub(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
+    fn sub_from(rop: &mut Rational, op1: Self, op2: Option<&Rational>);
+    fn mul(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
+    fn div(rop: &mut Rational, op1: Option<&Rational>, op2: Self);
+    fn div_from(rop: &mut Rational, op1: Self, op2: Option<&Rational>);
+}
+
+macro_rules! forward {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        fn $fn(rop: &mut Rational, op1: Option<&Rational>, op2: Self) {
+            if let Some(op2) = op2.checked_cast() {
+                $deleg_long(rop, op1, op2);
+            } else {
+                let small: SmallInteger = op2.into();
+                $deleg(rop, op1, &*small);
+            }
+        }
+    };
+}
+macro_rules! reverse {
+    (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
+        #[inline]
+        fn $fn(rop: &mut Rational, op1: Self, op2: Option<&Rational>) {
+            if let Some(op1) = op1.checked_cast() {
+                $deleg_long(rop, op1, op2);
+            } else {
+                let small: SmallInteger = op1.into();
+                $deleg(rop, &*small, op2);
+            }
+        }
+    };
+}
+
+impl<T> PrimOps<c_long> for T
+where
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
+{
+    forward! { fn add() -> xmpq::add_si, xmpq::add_z }
+    forward! { fn sub() -> xmpq::sub_si, xmpq::sub_z }
+    reverse! { fn sub_from() -> xmpq::si_sub, xmpq::z_sub }
+    forward! { fn mul() -> xmpq::mul_si, xmpq::mul_z }
+    forward! { fn div() -> xmpq::div_si, xmpq::div_z }
+    reverse! { fn div_from() -> xmpq::si_div, xmpq::z_div }
+}
+
+impl<T> PrimOps<c_ulong> for T
+where
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
+{
+    forward! { fn add() -> xmpq::add_ui, xmpq::add_z }
+    forward! { fn sub() -> xmpq::sub_ui, xmpq::sub_z }
+    reverse! { fn sub_from() -> xmpq::ui_sub, xmpq::z_sub }
+    forward! { fn mul() -> xmpq::mul_ui, xmpq::mul_z }
+    forward! { fn div() -> xmpq::div_ui, xmpq::div_z }
+    reverse! { fn div_from() -> xmpq::ui_div, xmpq::z_div }
 }
 
 impl<T> Sum<T> for Rational
@@ -210,6 +342,7 @@ fn rhs_has_more_alloc(lhs: &Rational, rhs: &Rational) -> bool {
 #[allow(clippy::cognitive_complexity)]
 mod tests {
     use crate::{ops::Pow, Integer, Rational};
+    use std::cmp::Ordering;
 
     macro_rules! test_ref_op {
         ($first:expr, $second:expr) => {
@@ -296,5 +429,64 @@ mod tests {
         assert_eq!(pow_pos, ((-12i32).pow(3), 7i32.pow(3u32)));
         let pow_neg = a.clone().pow(-3i32);
         assert_eq!(pow_neg, ((-7i32).pow(3), 12i32.pow(3)));
+    }
+
+    macro_rules! check_u_s {
+        ($list:expr, $against:expr) => {
+            for &op in $list {
+                let rat_op = Rational::from(op);
+                for b in &$against {
+                    test_numer_denom!(b.clone() + op, b.clone() + &rat_op);
+                    test_numer_denom!(b.clone() - op, b.clone() - &rat_op);
+                    test_numer_denom!(b.clone() * op, b.clone() * &rat_op);
+                    if op != 0 {
+                        test_numer_denom!(b.clone() / op, b.clone() / &rat_op);
+                    }
+                    test_numer_denom!(op + b.clone(), rat_op.clone() + b);
+                    test_numer_denom!(op - b.clone(), rat_op.clone() - b);
+                    test_numer_denom!(op * b.clone(), rat_op.clone() * b);
+                    if b.cmp0() != Ordering::Equal {
+                        test_numer_denom!(op / b.clone(), rat_op.clone() / b);
+                    }
+                }
+            }
+        };
+    }
+
+    fn num_den<T>(s: &[T]) -> impl Iterator<Item = Rational> + '_
+    where
+        T: Copy + Eq + From<bool>,
+        Rational: From<(T, T)>,
+    {
+        let zero = T::from(false);
+        let one = T::from(true);
+        s.iter()
+            .map(move |&den| if den == zero { one } else { den })
+            .flat_map(move |den| s.iter().map(move |&num| Rational::from((num, den))))
+    }
+
+    #[test]
+    fn check_arith_u_s() {
+        use crate::tests::{I128, I16, I32, I64, I8, U128, U16, U32, U64, U8};
+        let large = [(1, 3, 100), (-11, 5, 200), (33, 79, -150)];
+        let against = (large.iter().map(|&(n, d, s)| Rational::from((n, d)) << s))
+            .chain(num_den(I32))
+            .chain(num_den(U32))
+            .chain(num_den(I64))
+            .chain(num_den(U64))
+            .chain(num_den(I128))
+            .chain(num_den(U128))
+            .collect::<Vec<Rational>>();
+
+        check_u_s!(I8, against);
+        check_u_s!(I16, against);
+        check_u_s!(I32, against);
+        check_u_s!(I64, against);
+        check_u_s!(I128, against);
+        check_u_s!(U8, against);
+        check_u_s!(U16, against);
+        check_u_s!(U32, against);
+        check_u_s!(U64, against);
+        check_u_s!(U128, against);
     }
 }

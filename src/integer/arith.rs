@@ -386,7 +386,7 @@ trait PrimOps<Long>: AsLong {
     fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self);
 }
 
-trait AsLong: Copy {
+pub trait AsLong: Copy {
     type Long;
 }
 

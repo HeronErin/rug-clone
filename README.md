@@ -33,8 +33,8 @@ option) any later version. See the full text of the [GNU LGPL] and
 
 ### Version 1.7.0 news (unreleased)
 
-  * Arithmetic operations with one [`Integer`] operand and one
-    [`Rational`] operand were added.
+  * Arithmetic operations with one [`Integer`] or integer primitive
+    operand and one [`Rational`] operand were added.
   * The method
     <code>[Integer][`Integer`]::[div_exact_from][`div_exact_from`]</code>
     was added.

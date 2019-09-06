@@ -38,7 +38,7 @@ assert_eq!(int, 15);
 [`SmallInteger`]: struct.SmallInteger.html
 */
 
-mod arith;
+pub(crate) mod arith;
 pub(crate) mod big;
 mod cmp;
 mod division;
