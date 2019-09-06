@@ -160,26 +160,36 @@ pub fn next_pow_of_two(rop: &mut Integer, op: Option<&Integer>) {
 }
 
 #[inline]
-pub fn divexact_ui(q: &mut Integer, dividend: Option<&Integer>, divisor: u32) {
+pub fn divexact_ui(q: &mut Integer, dividend: Option<&Integer>, divisor: c_ulong) {
     assert_ne!(divisor, 0, "division by zero");
     unsafe {
-        gmp::mpz_divexact_ui(
-            q.as_raw_mut(),
-            dividend.unwrap_or(q).as_raw(),
-            divisor.into(),
-        );
+        gmp::mpz_divexact_ui(q.as_raw_mut(), dividend.unwrap_or(q).as_raw(), divisor);
     }
 }
 
 #[inline]
-pub fn gcd_ui(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
-    unsafe {
-        gmp::mpz_gcd_ui(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.into());
-    }
+pub fn divexact_u32(q: &mut Integer, dividend: Option<&Integer>, divisor: u32) {
+    divexact_ui(q, dividend, divisor.into())
 }
 
 #[inline]
-pub fn lcm_ui(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
+pub fn gcd_ui(rop: Option<&mut Integer>, op1: Option<&Integer>, op2: c_ulong) -> c_ulong {
+    let (rop_raw, op1_raw) = match (rop, op1) {
+        (Some(rop), Some(op1)) => (rop.as_raw_mut(), op1.as_raw()),
+        (Some(rop), None) => (rop.as_raw_mut(), rop.as_raw()),
+        (None, Some(op1)) => (ptr::null_mut(), op1.as_raw()),
+        (None, None) => panic!("no operand"),
+    };
+    unsafe { gmp::mpz_gcd_ui(rop_raw, op1_raw, op2) }
+}
+
+#[inline]
+pub fn gcd_u32(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
+    gcd_ui(Some(rop), op1, op2.into());
+}
+
+#[inline]
+pub fn lcm_u32(rop: &mut Integer, op1: Option<&Integer>, op2: u32) {
     unsafe {
         gmp::mpz_lcm_ui(rop.as_raw_mut(), op1.unwrap_or(rop).as_raw(), op2.into());
     }

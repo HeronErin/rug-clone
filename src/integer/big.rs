@@ -26,7 +26,7 @@ use std::{
     mem::{self, ManuallyDrop},
     ops::{Add, AddAssign, Deref, Mul, MulAssign},
     os::raw::{c_char, c_int, c_long, c_void},
-    ptr, slice,
+    slice,
 };
 
 /**
@@ -3244,7 +3244,7 @@ impl Integer {
     }
 
     math_op1! {
-        xmpz::divexact_ui;
+        xmpz::divexact_u32;
         /// Performs an exact division.
         ///
         /// This is much faster than normal division, but produces
@@ -4219,7 +4219,7 @@ impl Integer {
         fn gcd_ref -> GcdIncomplete;
     }
     math_op1! {
-        xmpz::gcd_ui;
+        xmpz::gcd_u32;
         /// Finds the greatest common divisor.
         ///
         /// The result is always positive except when both inputs are
@@ -4546,7 +4546,7 @@ impl Integer {
     }
 
     math_op1! {
-        xmpz::lcm_ui;
+        xmpz::lcm_u32;
         /// Finds the least common multiple.
         ///
         /// The result is always positive except when one or both
@@ -5426,7 +5426,7 @@ ref_math_op2_2! { Integer; xmpz::fdiv_qr; struct DivRemFloorIncomplete { divisor
 ref_math_op2_2! { Integer; xmpz::rdiv_qr; struct DivRemRoundIncomplete { divisor } }
 ref_math_op2_2! { Integer; xmpz::ediv_qr; struct DivRemEucIncomplete { divisor } }
 ref_math_op2! { Integer; xmpz::divexact; struct DivExactIncomplete { divisor } }
-ref_math_op1! { Integer; xmpz::divexact_ui; struct DivExactUIncomplete { divisor: u32 } }
+ref_math_op1! { Integer; xmpz::divexact_u32; struct DivExactUIncomplete { divisor: u32 } }
 
 #[derive(Debug)]
 pub struct PowModIncomplete<'a> {
@@ -5498,13 +5498,12 @@ ref_math_op1! { Integer; xmpz::sqrt; struct SqrtIncomplete {} }
 ref_math_op1_2! { Integer; xmpz::sqrtrem; struct SqrtRemIncomplete {} }
 ref_math_op1! { Integer; xmpz::nextprime; struct NextPrimeIncomplete {} }
 ref_math_op2! { Integer; xmpz::gcd; struct GcdIncomplete { other } }
-ref_math_op1! { Integer; xmpz::gcd_ui; struct GcdUIncomplete { other: u32 } }
+ref_math_op1! { Integer; xmpz::gcd_u32; struct GcdUIncomplete { other: u32 } }
 
 impl From<GcdUIncomplete<'_>> for Option<u32> {
     #[inline]
     fn from(src: GcdUIncomplete) -> Self {
-        let gcd =
-            unsafe { gmp::mpz_gcd_ui(ptr::null_mut(), src.ref_self.as_raw(), src.other.into()) };
+        let gcd = xmpz::gcd_ui(None, Some(src.ref_self), src.other.into());
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
@@ -5552,7 +5551,7 @@ impl Assign<GcdIncomplete<'_>> for (Integer, Integer, Integer) {
 from_assign! { GcdIncomplete<'_> => Integer, Integer, Integer }
 
 ref_math_op2! { Integer; xmpz::lcm; struct LcmIncomplete { other } }
-ref_math_op1! { Integer; xmpz::lcm_ui; struct LcmUIncomplete { other: u32 } }
+ref_math_op1! { Integer; xmpz::lcm_u32; struct LcmUIncomplete { other: u32 } }
 
 #[derive(Debug)]
 pub struct InvertIncomplete<'a> {
