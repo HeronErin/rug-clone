@@ -390,8 +390,8 @@ pub fn cmp_i32(op1: &Rational, n2: i32, d2: u32) -> Ordering {
 
 #[inline]
 pub fn cmp_u64(op1: &Rational, n2: u64, d2: u64) -> Ordering {
-    if let Some(n2) = cast::checked_cast(n2) {
-        if let Some(d2) = cast::checked_cast(d2) {
+    if let Some(n2) = az::checked_cast(n2) {
+        if let Some(d2) = az::checked_cast(d2) {
             return ord(unsafe { gmp::mpq_cmp_ui(op1.as_raw(), n2, d2) });
         }
     }
@@ -401,8 +401,8 @@ pub fn cmp_u64(op1: &Rational, n2: u64, d2: u64) -> Ordering {
 
 #[inline]
 pub fn cmp_i64(op1: &Rational, n2: i64, d2: u64) -> Ordering {
-    if let Some(n2) = cast::checked_cast(n2) {
-        if let Some(d2) = cast::checked_cast(d2) {
+    if let Some(n2) = az::checked_cast(n2) {
+        if let Some(d2) = az::checked_cast(d2) {
             return ord(unsafe { gmp::mpq_cmp_si(op1.as_raw(), n2, d2) });
         }
     }
@@ -412,8 +412,8 @@ pub fn cmp_i64(op1: &Rational, n2: i64, d2: u64) -> Ordering {
 
 #[inline]
 pub fn cmp_u128(op1: &Rational, n2: u128, d2: u128) -> Ordering {
-    if let Some(n2) = cast::checked_cast(n2) {
-        if let Some(d2) = cast::checked_cast(d2) {
+    if let Some(n2) = az::checked_cast(n2) {
+        if let Some(d2) = az::checked_cast(d2) {
             return ord(unsafe { gmp::mpq_cmp_ui(op1.as_raw(), n2, d2) });
         }
     }
@@ -423,8 +423,8 @@ pub fn cmp_u128(op1: &Rational, n2: u128, d2: u128) -> Ordering {
 
 #[inline]
 pub fn cmp_i128(op1: &Rational, n2: i128, d2: u128) -> Ordering {
-    if let Some(n2) = cast::checked_cast(n2) {
-        if let Some(d2) = cast::checked_cast(d2) {
+    if let Some(n2) = az::checked_cast(n2) {
+        if let Some(d2) = az::checked_cast(d2) {
             return ord(unsafe { gmp::mpq_cmp_si(op1.as_raw(), n2, d2) });
         }
     }

@@ -15,12 +15,12 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast::CheckedCast,
     ext::xmpq,
     integer::{arith::AsLong, SmallInteger},
     ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
     Assign, Integer, Rational,
 };
+use az::CheckedAs;
 use std::{
     iter::{Product, Sum},
     ops::{
@@ -248,7 +248,7 @@ macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn(rop: &mut Rational, op1: Option<&Rational>, op2: Self) {
-            if let Some(op2) = op2.checked_cast() {
+            if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op2.into();
@@ -261,7 +261,7 @@ macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn(rop: &mut Rational, op1: Self, op2: Option<&Rational>) {
-            if let Some(op1) = op1.checked_cast() {
+            if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op1.into();
@@ -273,7 +273,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
+    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpq::add_si, xmpq::add_z }
     forward! { fn sub() -> xmpq::sub_si, xmpq::sub_z }
@@ -285,7 +285,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
+    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpq::add_ui, xmpq::add_z }
     forward! { fn sub() -> xmpq::sub_ui, xmpq::sub_z }

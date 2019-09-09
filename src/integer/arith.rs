@@ -15,7 +15,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast::{self, CheckedCast},
+    cast,
     ext::xmpz,
     integer::SmallInteger,
     misc::NegAbs,
@@ -25,6 +25,7 @@ use crate::{
     },
     Assign, Integer,
 };
+use az::CheckedAs;
 use gmp_mpfr_sys::gmp;
 use std::{
     cmp,
@@ -405,7 +406,7 @@ macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn(rop: &mut Integer, op1: Option<&Integer>, op2: Self) {
-            if let Some(op2) = op2.checked_cast() {
+            if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op2.into();
@@ -418,7 +419,7 @@ macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn(rop: &mut Integer, op1: Self, op2: Option<&Integer>) {
-            if let Some(op1) = op1.checked_cast() {
+            if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op1.into();
@@ -430,7 +431,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
+    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpz::add_si, xmpz::add }
     forward! { fn sub() -> xmpz::sub_si, xmpz::sub }
@@ -446,7 +447,7 @@ where
 
     #[inline]
     fn addmul(rop: &mut Integer, op1: &Integer, op2: Self) {
-        if let Some(op2) = op2.checked_cast() {
+        if let Some(op2) = op2.checked_as() {
             xmpz::addmul_si(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
@@ -456,7 +457,7 @@ where
 
     #[inline]
     fn submul(rop: &mut Integer, op1: &Integer, op2: Self) {
-        if let Some(op2) = op2.checked_cast() {
+        if let Some(op2) = op2.checked_as() {
             xmpz::submul_si(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
@@ -466,7 +467,7 @@ where
 
     #[inline]
     fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self) {
-        if let Some(op2) = op2.checked_cast() {
+        if let Some(op2) = op2.checked_as() {
             xmpz::mulsub_si(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
@@ -477,7 +478,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
+    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpz::add_ui, xmpz::add }
     forward! { fn sub() -> xmpz::sub_ui, xmpz::sub }
@@ -493,7 +494,7 @@ where
 
     #[inline]
     fn addmul(rop: &mut Integer, op1: &Integer, op2: Self) {
-        if let Some(op2) = op2.checked_cast() {
+        if let Some(op2) = op2.checked_as() {
             xmpz::addmul_ui(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
@@ -503,7 +504,7 @@ where
 
     #[inline]
     fn submul(rop: &mut Integer, op1: &Integer, op2: Self) {
-        if let Some(op2) = op2.checked_cast() {
+        if let Some(op2) = op2.checked_as() {
             xmpz::submul_ui(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();
@@ -513,7 +514,7 @@ where
 
     #[inline]
     fn mulsub(rop: &mut Integer, op1: &Integer, op2: Self) {
-        if let Some(op2) = op2.checked_cast() {
+        if let Some(op2) = op2.checked_as() {
             xmpz::mulsub_ui(rop, op1, op2);
         } else {
             let small: SmallInteger = op2.into();

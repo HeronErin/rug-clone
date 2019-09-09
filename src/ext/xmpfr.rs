@@ -451,7 +451,7 @@ pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: rnd_t) -> c_int {
 
 #[inline]
 pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
+    if let Some(op2) = az::checked_cast(op2) {
         mpfr::cmp_si(op1, op2)
     } else {
         let small = SmallFloat::from(op2);
@@ -461,7 +461,7 @@ pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
 
 #[inline]
 pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
-    if let Some(op2) = cast::checked_cast(op2) {
+    if let Some(op2) = az::checked_cast(op2) {
         mpfr::cmp_ui(op1, op2)
     } else {
         let small = SmallFloat::from(op2);

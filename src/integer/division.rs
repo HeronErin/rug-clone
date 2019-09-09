@@ -15,7 +15,6 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast::CheckedCast,
     ext::xmpz,
     integer::SmallInteger,
     ops::{
@@ -24,6 +23,7 @@ use crate::{
     },
     Assign, Integer,
 };
+use az::CheckedAs;
 use std::os::raw::{c_long, c_ulong};
 
 // big / big -> Big
@@ -697,7 +697,7 @@ macro_rules! forward {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn(rop: &mut Integer, op1: Option<&Integer>, op2: Self) {
-            if let Some(op2) = op2.checked_cast() {
+            if let Some(op2) = op2.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op2.into();
@@ -710,7 +710,7 @@ macro_rules! reverse {
     (fn $fn:ident() -> $deleg_long:path, $deleg:path) => {
         #[inline]
         fn $fn(rop: &mut Integer, op1: Self, op2: Option<&Integer>) {
-            if let Some(op1) = op1.checked_cast() {
+            if let Some(op1) = op1.checked_as() {
                 $deleg_long(rop, op1, op2);
             } else {
                 let small: SmallInteger = op1.into();
@@ -722,7 +722,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
+    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallInteger>,
 {
     forward! { fn tdiv_q() -> xmpz::tdiv_q_si, xmpz::tdiv_q }
     forward! { fn cdiv_q() -> xmpz::cdiv_q_si, xmpz::cdiv_q }
@@ -744,7 +744,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
+    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallInteger>,
 {
     forward! { fn tdiv_q() -> xmpz::tdiv_q_ui, xmpz::tdiv_q }
     forward! { fn cdiv_q() -> xmpz::cdiv_q_ui, xmpz::cdiv_q }

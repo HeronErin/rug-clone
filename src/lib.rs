@@ -406,7 +406,6 @@ provided by the crate.
 
 #[macro_use]
 mod macros;
-mod cast;
 mod ext;
 #[cfg(any(feature = "integer", feature = "float"))]
 mod misc;
@@ -489,6 +488,14 @@ fn _static_assertions() {
     static_assert!(NUMB_BITS == 32);
     static_assert!(NUMB_BITS % 8 == 0);
     static_assert!(mem::size_of::<limb_t>() == NUMB_BITS as usize / 8);
+}
+
+mod cast {
+    use az::CheckedAs;
+    #[inline]
+    pub fn cast<Src: CheckedAs<Dst>, Dst>(src: Src) -> Dst {
+        src.checked_as().expect("overflow")
+    }
 }
 
 #[cfg(all(test, any(feature = "integer", feature = "float")))]

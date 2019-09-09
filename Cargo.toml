@@ -27,6 +27,9 @@ complex = ["float", "gmp-mpfr-sys/mpc"]
 rand = ["integer"]
 fail-on-warnings = []
 
+[dependencies.az]
+version = "0.1.0"
+
 [dependencies.gmp-mpfr-sys]
 version = "~1.1.13"
 default-features = false

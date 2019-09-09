@@ -5507,7 +5507,7 @@ impl From<GcdUIncomplete<'_>> for Option<u32> {
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
-            cast::checked_cast(gcd)
+            az::checked_cast(gcd)
         }
     }
 }
