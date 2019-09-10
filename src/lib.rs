@@ -490,14 +490,6 @@ fn _static_assertions() {
     static_assert!(mem::size_of::<limb_t>() == NUMB_BITS as usize / 8);
 }
 
-mod cast {
-    use az::CheckedAs;
-    #[inline]
-    pub fn cast<Src: CheckedAs<Dst>, Dst>(src: Src) -> Dst {
-        src.checked_as().expect("overflow")
-    }
-}
-
 #[cfg(all(test, any(feature = "integer", feature = "float")))]
 mod tests {
     #[cfg(any(all(try_from, feature = "rational"), feature = "float"))]

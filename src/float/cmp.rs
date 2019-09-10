@@ -19,7 +19,6 @@ use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{
-    cast,
     ext::xmpfr::{self, ordering1},
     float::{
         big::{IExpIncomplete, UExpIncomplete},
@@ -27,6 +26,7 @@ use crate::{
     },
     Float,
 };
+use az::Az;
 use gmp_mpfr_sys::mpfr;
 use std::cmp::Ordering;
 
@@ -139,9 +139,9 @@ cmp_i! { i32, |f, &t: &i32| unsafe { mpfr::cmp_si(f, t.into()) } }
 cmp_i! { i64, |f, &t: &i64| unsafe { xmpfr::cmp_i64(f, t) } }
 cmp_i! { i128, |f, &t: &i128| unsafe { xmpfr::cmp_i128(f, t) } }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, cast::cast(t)) } }
+cmp_i! { isize, |f, &t: &isize| unsafe { mpfr::cmp_si(f, t.az()) } }
 #[cfg(target_pointer_width = "64")]
-cmp_i! { isize, |f, &t: &isize| unsafe { xmpfr::cmp_i64(f, cast::cast(t)) } }
+cmp_i! { isize, |f, &t: &isize| unsafe { xmpfr::cmp_i64(f, t.az()) } }
 
 cmp_i! { u8, |f, &t: &u8| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u16, |f, &t: &u16| unsafe { mpfr::cmp_ui(f, t.into()) } }
@@ -149,9 +149,9 @@ cmp_i! { u32, |f, &t: &u32| unsafe { mpfr::cmp_ui(f, t.into()) } }
 cmp_i! { u64, |f, &t: &u64| unsafe { xmpfr::cmp_u64(f, t) } }
 cmp_i! { u128, |f, &t: &u128| unsafe { xmpfr::cmp_u128(f, t) } }
 #[cfg(target_pointer_width = "32")]
-cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, cast::cast(t)) } }
+cmp_i! { usize, |f, &t: &usize| unsafe { mpfr::cmp_ui(f, t.az()) } }
 #[cfg(target_pointer_width = "64")]
-cmp_i! { usize, |f, &t: &usize| unsafe { xmpfr::cmp_u64(f, cast::cast(t)) } }
+cmp_i! { usize, |f, &t: &usize| unsafe { xmpfr::cmp_u64(f, t.az()) } }
 
 cmp_f! { f32, |f, &t: &f32| unsafe { mpfr::cmp_d(f, t.into()) } }
 cmp_f! { f64, |f, &t: &f64| unsafe { mpfr::cmp_d(f, t) } }

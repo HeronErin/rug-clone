@@ -14,7 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{cast, ext::xmpq, misc::NegAbs, Integer, Rational};
+use crate::{
+    ext::xmpq,
+    misc::{AsOrPanic, NegAbs},
+    Integer, Rational,
+};
 use std::cmp::Ordering;
 
 impl Eq for Rational {}
@@ -110,7 +114,7 @@ macro_rules! cmp_num_cast {
         impl PartialOrd<$New> for Rational {
             #[inline]
             fn partial_cmp(&self, other: &$New) -> Option<Ordering> {
-                self.partial_cmp(&cast::cast::<_, $Existing>(*other))
+                self.partial_cmp(&(*other).as_or_panic::<$Existing>())
             }
         }
         cmp_common! { $New }
@@ -151,7 +155,7 @@ macro_rules! cmp_num_iden {
                 } else {
                     self
                 };
-                let cmp = $func(to_compare, cast::cast(other.0), cast::cast(abs_den));
+                let cmp = $func(to_compare, other.0.as_or_panic(), abs_den.as_or_panic());
                 if neg_den {
                     Some(cmp.reverse())
                 } else {
@@ -169,7 +173,7 @@ macro_rules! cmp_num_uden {
             #[inline]
             fn partial_cmp(&self, other: &($Num, $Den)) -> Option<Ordering> {
                 assert_ne!(other.1, 0, "division by zero");
-                Some($func(self, cast::cast(other.0), cast::cast(other.1)))
+                Some($func(self, other.0.as_or_panic(), other.1.as_or_panic()))
             }
         }
         cmp_common!{ ($Num, $Den) }
@@ -274,7 +278,7 @@ macro_rules! cmp_f {
             #[inline]
             fn partial_cmp(&self, other: &$T) -> Option<Ordering> {
                 if other.is_finite() {
-                    Some(xmpq::cmp_finite_d(self, cast::cast(*other)))
+                    Some(xmpq::cmp_finite_d(self, (*other).as_or_panic()))
                 } else if other.is_nan() {
                     None
                 } else if other.is_sign_negative() {

@@ -19,12 +19,12 @@ use crate::Integer;
 #[cfg(feature = "rational")]
 use crate::Rational;
 use crate::{
-    cast,
     ext::xmpfr::{self, ordering1, raw_round},
     float::{
         big::{self, ExpFormat, Format},
         Constant, Round, Special,
     },
+    misc::AsOrPanic,
     ops::AssignRound,
     Assign, Float,
 };
@@ -52,7 +52,7 @@ impl Clone for Float {
     #[inline]
     fn clone_from(&mut self, source: &Float) {
         unsafe {
-            mpfr::set_prec(self.as_raw_mut(), cast::cast(source.prec()));
+            mpfr::set_prec(self.as_raw_mut(), source.prec().as_or_panic());
         }
         self.assign(source);
     }
@@ -300,7 +300,7 @@ macro_rules! conv_ops_cast {
             type Ordering = Ordering;
             #[inline]
             fn assign_round(&mut self, src: $New, round: Round) -> Ordering {
-                <Float as AssignRound<$Existing>>::assign_round(self, cast::cast(src), round)
+                <Float as AssignRound<$Existing>>::assign_round(self, src.as_or_panic(), round)
             }
         }
 

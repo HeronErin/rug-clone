@@ -15,11 +15,11 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     integer::{small::Mpz, ToSmall},
     misc::{Limbs, MaybeLimb, LIMBS_IN_SMALL},
     Assign, Rational,
 };
+use az::Az;
 use gmp_mpfr_sys::gmp::{self, limb_t, mpq_t};
 use std::{mem, ops::Deref, sync::atomic::Ordering};
 
@@ -118,12 +118,12 @@ impl SmallRational {
         SmallRational {
             inner: Mpq {
                 num: Mpz {
-                    alloc: cast::cast(LIMBS_IN_SMALL),
+                    alloc: LIMBS_IN_SMALL.az(),
                     size: 0,
                     d: Default::default(),
                 },
                 den: Mpz {
-                    alloc: cast::cast(LIMBS_IN_SMALL),
+                    alloc: LIMBS_IN_SMALL.az(),
                     size: 1,
                     d: Default::default(),
                 },

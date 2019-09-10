@@ -69,7 +69,7 @@ fn de_data<'de, D: Deserializer<'de>>(deserializer: D) -> Result<(i32, String), 
 
 #[cfg(test)]
 mod tests {
-    use crate::{cast, Assign, Rational};
+    use crate::{misc::AsOrPanic, Assign, Rational};
     use serde_json::json;
 
     fn assert(a: &Rational, b: &Rational) {
@@ -106,7 +106,7 @@ mod tests {
             let mut bincode = Vec::<u8>::new();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(cast::cast(value.len()))
+                .write_u64::<LittleEndian>(value.len().as_or_panic())
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

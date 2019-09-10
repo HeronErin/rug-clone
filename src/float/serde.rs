@@ -15,8 +15,8 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     float::{self, OrdFloat},
+    misc::AsOrPanic,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Float,
 };
@@ -55,7 +55,7 @@ impl<'de> Deserialize<'de> for Float {
         let (prec, radix, value) = de_data(deserializer)?;
         let p = Float::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
-            mpfr::set_prec(place.as_raw_mut(), cast::cast(prec));
+            mpfr::set_prec(place.as_raw_mut(), prec.as_or_panic());
         }
         place.assign(p);
         Ok(())
@@ -98,8 +98,8 @@ impl<'de> Deserialize<'de> for OrdFloat {
 #[cfg(test)]
 mod tests {
     use crate::{
-        cast,
         float::{self, FreeCache, Special},
+        misc::AsOrPanic,
         Assign, Float,
     };
     use serde_json::json;
@@ -147,7 +147,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(cast::cast(value.len()))
+                .write_u64::<LittleEndian>(value.len().as_or_panic())
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

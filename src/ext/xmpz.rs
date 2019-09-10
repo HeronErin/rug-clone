@@ -14,7 +14,11 @@
 // License and a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{cast, misc::NegAbs, ops::NegAssign, Integer};
+use crate::{
+    misc::{AsOrPanic, NegAbs},
+    ops::NegAssign,
+    Integer,
+};
 #[cfg(feature = "rand")]
 use gmp_mpfr_sys::gmp::randstate_t;
 use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
@@ -88,7 +92,7 @@ pub unsafe fn init(rop: *mut Integer) {
 #[inline]
 pub unsafe fn init2(rop: *mut Integer, bits: usize) {
     let rop = cast_ptr_mut!(rop, mpz_t);
-    gmp::mpz_init2(rop, cast::cast(bits));
+    gmp::mpz_init2(rop, bits.as_or_panic());
 }
 
 #[inline]
@@ -143,7 +147,7 @@ pub fn next_pow_of_two(rop: &mut Integer, op: Option<&Integer>) {
         set_1(rop);
         return;
     }
-    let significant = cast::cast(significant_bits(op.unwrap_or(rop)));
+    let significant = significant_bits(op.unwrap_or(rop)).as_or_panic();
     let first_one = unsafe { gmp::mpn_scan1(op.unwrap_or(rop).inner().d, 0) };
     let bit = if first_one == significant - 1 {
         if op.is_none() {
@@ -456,7 +460,7 @@ pub fn ediv_r(r: &mut Integer, n: Option<&Integer>, d: Option<&Integer>) {
 pub fn remove(rop: &mut Integer, op: Option<&Integer>, f: &Integer) -> u32 {
     let count =
         unsafe { gmp::mpz_remove(rop.as_raw_mut(), op.unwrap_or(rop).as_raw(), f.as_raw()) };
-    cast::cast(count)
+    count.as_or_panic()
 }
 
 #[inline]
@@ -787,7 +791,7 @@ fn bitcount_to_u32(bits: bitcnt_t) -> Option<u32> {
     if bits == !0 {
         None
     } else {
-        Some(cast::cast(bits))
+        Some(bits.as_or_panic())
     }
 }
 
@@ -835,18 +839,18 @@ pub fn significant_bits(op: &Integer) -> usize {
         return 0;
     }
     let size = size.neg_abs().1;
-    unsafe { gmp::mpn_sizeinbase(op.inner().d, cast::cast(size), 2) }
+    unsafe { gmp::mpn_sizeinbase(op.inner().d, size.as_or_panic(), 2) }
 }
 
 pub fn signed_bits(op: &Integer) -> u32 {
     let significant = significant_bits(op);
     if op.cmp0() == Ordering::Less {
-        let first_one: usize = cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
+        let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).as_or_panic::<usize>();
         if first_one == significant - 1 {
-            return cast::cast(significant);
+            return significant.as_or_panic();
         }
     }
-    cast::cast(significant.checked_add(1).expect("overflow"))
+    significant.checked_add(1).expect("overflow").as_or_panic()
 }
 
 pub fn power_of_two_p(op: &Integer) -> bool {
@@ -854,7 +858,7 @@ pub fn power_of_two_p(op: &Integer) -> bool {
         return false;
     }
     let significant = significant_bits(op);
-    let first_one: usize = cast::cast(unsafe { gmp::mpn_scan1(op.inner().d, 0) });
+    let first_one = (unsafe { gmp::mpn_scan1(op.inner().d, 0) }).as_or_panic::<usize>();
     first_one == significant - 1
 }
 
@@ -875,7 +879,7 @@ pub fn realloc_for_mpn_set_str(rop: &mut Integer, len: usize, radix: i32) {
     // add 1 because mpn_set_str requires an extra limb
     let limbs = (bits / f64::from(gmp::LIMB_BITS)).ceil() + 1.0;
     unsafe {
-        gmp::_mpz_realloc(rop.as_raw_mut(), cast::cast(limbs));
+        gmp::_mpz_realloc(rop.as_raw_mut(), limbs.as_or_panic());
     }
 }
 
@@ -892,7 +896,7 @@ pub fn round_away(rem: &Integer, divisor: &Integer) -> bool {
     }
 
     let mut rem_limb = if s_rem == s_divisor {
-        let rem_next_limb = unsafe { limb(rem, cast::cast(s_rem - 1)) };
+        let rem_next_limb = unsafe { limb(rem, (s_rem - 1).as_or_panic()) };
         if (rem_next_limb >> (gmp::LIMB_BITS - 1)) != 0 {
             return true;
         }
@@ -901,8 +905,8 @@ pub fn round_away(rem: &Integer, divisor: &Integer) -> bool {
         0
     };
     for i in (1..s_divisor).rev() {
-        let div_limb = unsafe { limb(divisor, cast::cast(i)) };
-        let rem_next_limb = unsafe { limb(rem, cast::cast(i - 1)) };
+        let div_limb = unsafe { limb(divisor, i.as_or_panic()) };
+        let rem_next_limb = unsafe { limb(rem, (i - 1).as_or_panic()) };
         rem_limb |= (rem_next_limb >> (gmp::LIMB_BITS - 1)) & 1;
         if rem_limb > div_limb {
             return true;

@@ -15,12 +15,12 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     float::{Round, SmallFloat},
     misc::NegAbs,
     ops::NegAssign,
     Float,
 };
+use az::CheckedAs;
 #[cfg(feature = "rational")]
 use gmp_mpfr_sys::gmp::mpq_t;
 use gmp_mpfr_sys::{
@@ -33,7 +33,7 @@ use std::{
 };
 #[cfg(feature = "integer")]
 use {
-    crate::float,
+    crate::{float, misc::AsOrPanic},
     gmp_mpfr_sys::gmp::{self, mpz_t},
     std::cmp,
 };
@@ -392,8 +392,8 @@ unsafe fn divf_mulz_divz(
 
     let mut denom_buf: Float;
     let denom = if let Some(div) = div {
-        let mut prec: u32 = cast::cast((*f).prec);
-        let bits: u32 = cast::cast(gmp::mpz_sizeinbase(div, 2));
+        let mut prec = (*f).prec.as_or_panic::<u32>();
+        let bits = gmp::mpz_sizeinbase(div, 2).as_or_panic::<u32>();
         prec = prec.checked_add(bits).expect("overflow");
         denom_buf = Float::new(prec);
         mpfr::mul_z(denom_buf.as_raw_mut(), f, div, rnd_t::RNDN);
@@ -402,7 +402,7 @@ unsafe fn divf_mulz_divz(
         f
     };
     if let Some(mul) = mul {
-        let bits: u32 = cast::cast(gmp::mpz_sizeinbase(mul, 2));
+        let bits = gmp::mpz_sizeinbase(mul, 2).as_or_panic::<u32>();
         let mut buf = Float::new(cmp::max(float::prec_min(), bits));
         mpfr::set_z(buf.as_raw_mut(), mul, rnd);
         mpfr::div(rop, buf.as_raw(), denom, rnd)
@@ -451,7 +451,7 @@ pub unsafe fn set_u128(rop: *mut mpfr_t, val: u128, rnd: rnd_t) -> c_int {
 
 #[inline]
 pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
-    if let Some(op2) = az::checked_cast(op2) {
+    if let Some(op2) = op2.checked_as() {
         mpfr::cmp_si(op1, op2)
     } else {
         let small = SmallFloat::from(op2);
@@ -461,7 +461,7 @@ pub unsafe fn cmp_i64(op1: *const mpfr_t, op2: i64) -> c_int {
 
 #[inline]
 pub unsafe fn cmp_u64(op1: *const mpfr_t, op2: u64) -> c_int {
-    if let Some(op2) = az::checked_cast(op2) {
+    if let Some(op2) = op2.checked_as() {
         mpfr::cmp_ui(op1, op2)
     } else {
         let small = SmallFloat::from(op2);

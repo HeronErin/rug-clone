@@ -15,9 +15,9 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     complex::OrdComplex,
     float,
+    misc::AsOrPanic,
     serdeize::{self, Data, PrecReq, PrecVal},
     Assign, Complex,
 };
@@ -59,8 +59,8 @@ impl<'de> Deserialize<'de> for Complex {
         let p = Complex::parse_radix(&value, radix).map_err(DeError::custom)?;
         unsafe {
             let parts = place.as_mut_real_imag();
-            mpfr::set_prec(parts.0.as_raw_mut(), cast::cast(prec.0));
-            mpfr::set_prec(parts.1.as_raw_mut(), cast::cast(prec.1));
+            mpfr::set_prec(parts.0.as_raw_mut(), prec.0.as_or_panic());
+            mpfr::set_prec(parts.1.as_raw_mut(), prec.1.as_or_panic());
         }
         place.assign(p);
         Ok(())
@@ -113,8 +113,8 @@ impl<'de> Deserialize<'de> for OrdComplex {
 #[cfg(test)]
 mod tests {
     use crate::{
-        cast,
         float::{self, FreeCache, Special},
+        misc::AsOrPanic,
         Assign, Complex,
     };
     use serde_json::json;
@@ -166,7 +166,7 @@ mod tests {
             bincode.write_u32::<LittleEndian>(prec.1).unwrap();
             bincode.write_i32::<LittleEndian>(radix).unwrap();
             bincode
-                .write_u64::<LittleEndian>(cast::cast(value.len()))
+                .write_u64::<LittleEndian>(value.len().as_or_panic())
                 .unwrap();
             bincode.write_all(value.as_bytes()).unwrap();
             match self {

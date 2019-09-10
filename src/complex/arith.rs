@@ -29,7 +29,7 @@ use crate::{
     },
     Complex, Float,
 };
-use az::CheckedAs;
+use az::{CheckedAs, CheckedCast};
 use gmp_mpfr_sys::mpc::{self, mpc_t, rnd_t};
 use std::{
     ops::{
@@ -638,7 +638,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallFloat> + Into<SmallComplex>,
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallFloat> + Into<SmallComplex>,
 {
     forward! { fn add() -> xmpc::add_si, mpc::add_fr }
     forward! { fn sub() -> xmpc::sub_si, mpc::sub_fr }
@@ -662,7 +662,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallFloat> + Into<SmallComplex>,
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallFloat> + Into<SmallComplex>,
 {
     forward! { fn add() -> xmpc::add_ui, mpc::add_fr }
     forward! { fn sub() -> xmpc::sub_ui, mpc::sub_fr }
@@ -686,7 +686,7 @@ where
 
 impl<T> PrimOps<f64> for T
 where
-    T: AsLong<Long = f64> + CheckedAs<f64> + Into<SmallFloat> + Into<SmallComplex>,
+    T: AsLong<Long = f64> + CheckedCast<f64> + Into<SmallFloat> + Into<SmallComplex>,
 {
     forward! { fn add() -> xmpc::add_d, mpc::add_fr }
     forward! { fn sub() -> xmpc::sub_d, mpc::sub_fr }

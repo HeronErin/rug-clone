@@ -15,11 +15,11 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     ext::xmpfr::{self, raw_round},
-    misc::{Limbs, MaybeLimb, NegAbs},
+    misc::{AsOrPanic, Limbs, MaybeLimb, NegAbs},
     Assign, Float,
 };
+use az::Az;
 use gmp_mpfr_sys::{
     gmp::{self, limb_t},
     mpfr::{self, exp_t, mpfr_t, prec_t},
@@ -232,10 +232,10 @@ macro_rules! unsigned_32 {
                     xmpfr::custom_zero(ptr, limbs_ptr, $bits);
                 } else {
                     let leading = self.leading_zeros();
-                    let limb_leading = leading + cast::cast::<_, u32>(gmp::LIMB_BITS) - $bits;
+                    let limb_leading = leading + gmp::LIMB_BITS.az::<u32>() - $bits;
                     limbs[0] = MaybeLimb::new(limb_t::from(self) << limb_leading);
                     let exp = $bits - leading;
-                    xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(exp), $bits);
+                    xmpfr::custom_regular(ptr, limbs_ptr, exp.as_or_panic(), $bits);
                 }
             }
         }
@@ -268,7 +268,7 @@ impl SealedToSmall for u64 {
                 limbs[0] = MaybeLimb::new(sval as u32);
                 limbs[1] = MaybeLimb::new((sval >> 32) as u32);
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(64 - leading), 64);
+            xmpfr::custom_regular(ptr, limbs_ptr, (64 - leading).as_or_panic(), 64);
         }
     }
 }
@@ -296,7 +296,7 @@ impl SealedToSmall for u128 {
                 limbs[2] = MaybeLimb::new((sval >> 64) as u32);
                 limbs[3] = MaybeLimb::new((sval >> 96) as u32);
             }
-            xmpfr::custom_regular(ptr, limbs_ptr, cast::cast(128 - leading), 128);
+            xmpfr::custom_regular(ptr, limbs_ptr, (128 - leading).as_or_panic(), 128);
         }
     }
 }

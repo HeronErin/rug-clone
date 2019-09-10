@@ -28,7 +28,7 @@ use crate::{
     },
     Float,
 };
-use az::CheckedAs;
+use az::{CheckedAs, CheckedCast};
 use gmp_mpfr_sys::mpfr::{self, mpfr_t, rnd_t};
 use std::{
     cmp::Ordering,
@@ -596,7 +596,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallFloat>,
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallFloat>,
 {
     forward! { fn add() -> mpfr::add_si, mpfr::add }
     forward! { fn sub() -> mpfr::sub_si, mpfr::sub }
@@ -615,7 +615,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallFloat>,
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallFloat>,
 {
     forward! { fn add() -> mpfr::add_ui, mpfr::add }
     forward! { fn sub() -> mpfr::sub_ui, mpfr::sub }
@@ -629,7 +629,7 @@ where
 
 impl<T> PrimOps<f64> for T
 where
-    T: AsLong<Long = f64> + CheckedAs<f64> + Into<SmallFloat>,
+    T: AsLong<Long = f64> + CheckedCast<f64> + Into<SmallFloat>,
 {
     forward! { fn add() -> mpfr::add_d, mpfr::add }
     forward! { fn sub() -> mpfr::sub_d, mpfr::sub }

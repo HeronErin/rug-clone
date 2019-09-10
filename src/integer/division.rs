@@ -23,7 +23,7 @@ use crate::{
     },
     Assign, Integer,
 };
-use az::CheckedAs;
+use az::{CheckedAs, CheckedCast};
 use std::os::raw::{c_long, c_ulong};
 
 // big / big -> Big
@@ -722,7 +722,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallInteger>,
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
 {
     forward! { fn tdiv_q() -> xmpz::tdiv_q_si, xmpz::tdiv_q }
     forward! { fn cdiv_q() -> xmpz::cdiv_q_si, xmpz::cdiv_q }
@@ -744,7 +744,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallInteger>,
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
 {
     forward! { fn tdiv_q() -> xmpz::tdiv_q_ui, xmpz::tdiv_q }
     forward! { fn cdiv_q() -> xmpz::cdiv_q_ui, xmpz::cdiv_q }

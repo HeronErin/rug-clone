@@ -16,9 +16,25 @@
 
 #![allow(dead_code)]
 
+use az::CheckedCast;
 use gmp_mpfr_sys::gmp::{self, limb_t};
 #[cfg(maybe_uninit)]
 use std::mem::MaybeUninit;
+
+pub trait AsOrPanic {
+    fn as_or_panic<Dst>(self) -> Dst
+    where
+        Self: CheckedCast<Dst>;
+}
+impl<T> AsOrPanic for T {
+    #[inline]
+    fn as_or_panic<Dst>(self) -> Dst
+    where
+        Self: CheckedCast<Dst>,
+    {
+        self.checked_cast().expect("overflow")
+    }
+}
 
 pub trait NegAbs {
     type Abs;

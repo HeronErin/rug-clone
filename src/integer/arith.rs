@@ -15,17 +15,16 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     ext::xmpz,
     integer::SmallInteger,
-    misc::NegAbs,
+    misc::{AsOrPanic, NegAbs},
     ops::{
         AddFrom, BitAndFrom, BitOrFrom, BitXorFrom, DivFrom, MulFrom, NegAssign, NotAssign, Pow,
         PowAssign, RemFrom, SubFrom,
     },
     Assign, Integer,
 };
-use az::CheckedAs;
+use az::{Az, CheckedAs, CheckedCast};
 use gmp_mpfr_sys::gmp;
 use std::{
     cmp,
@@ -431,7 +430,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallInteger>,
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpz::add_si, xmpz::add }
     forward! { fn sub() -> xmpz::sub_si, xmpz::sub }
@@ -478,7 +477,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallInteger>,
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpz::add_ui, xmpz::add }
     forward! { fn sub() -> xmpz::sub_ui, xmpz::sub }
@@ -559,14 +558,13 @@ where
 fn alloc_for_add(lhs: &Integer, rhs: &Integer) -> Integer {
     let lhs_size = lhs.inner().size.neg_abs().1;
     let rhs_size = rhs.inner().size.neg_abs().1;
-    let size = cmp::max(lhs_size, rhs_size);
-    let size = cast::cast::<_, usize>(size);
+    let size = cmp::max(lhs_size, rhs_size).as_or_panic::<usize>();
     // size must be < max, not just ≤ max, because we need to add 1 to it
     assert!(
-        size < usize::max_value() / (gmp::LIMB_BITS as usize),
+        size < usize::max_value() / gmp::LIMB_BITS.az::<usize>(),
         "overflow"
     );
-    Integer::with_capacity((size + 1) * (gmp::LIMB_BITS as usize))
+    Integer::with_capacity((size + 1) * gmp::LIMB_BITS.az::<usize>())
 }
 
 #[inline]

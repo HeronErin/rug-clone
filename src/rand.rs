@@ -58,7 +58,7 @@ Both [`RandState`] and [`ThreadRandState`] implement the
 // The proper fix will be to use MaybeUninit when gmp-mpfr-sys 1.2 is
 // eventually released.
 
-use crate::{cast, Integer};
+use crate::{misc::AsOrPanic, Integer};
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t, randstate_t};
 #[cfg(not(ffi_panic_aborts))]
 use std::panic::{self, AssertUnwindSafe};
@@ -1648,35 +1648,35 @@ c_callback! {
 #[cfg(gmp_limb_bits_64)]
 unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 64, bits % 64);
-    let limbs: isize = cast::cast(limbs);
+    let limbs = limbs.as_or_panic::<isize>();
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *limb.offset(i) = cast::cast(n);
+        *limb.offset(i) = n.as_or_panic();
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
         if rest > 32 {
             let mask = !(!0 << (rest - 32));
-            n |= u64::from(gen.gen_bits(cast::cast(rest - 32)) & mask) << 32;
+            n |= u64::from(gen.gen_bits((rest - 32).as_or_panic()) & mask) << 32;
         }
-        *limb.offset(limbs) = cast::cast(n);
+        *limb.offset(limbs) = n.as_or_panic();
     } else if rest > 0 {
         let mask = !(!0 << rest);
-        let n = u64::from(gen.gen_bits(cast::cast(rest)) & mask);
-        *limb.offset(limbs) = cast::cast(n);
+        let n = u64::from(gen.gen_bits(rest.as_or_panic()) & mask);
+        *limb.offset(limbs) = n.as_or_panic();
     }
 }
 
 #[cfg(gmp_limb_bits_32)]
 unsafe fn gen_bits(gen: &mut dyn RandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 32, bits % 32);
-    let limbs: isize = cast::cast(limbs);
+    let limbs = limbs.as_or_panic::<isize>();
     for i in 0..limbs {
-        *limb.offset(i) = cast::cast(gen.gen());
+        *limb.offset(i) = gen.gen().as_or_panic();
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *limb.offset(limbs) = cast::cast(gen.gen_bits(cast::cast(rest)) & mask);
+        *limb.offset(limbs) = (gen.gen_bits(rest.as_or_panic()) & mask).as_or_panic();
     }
 }
 
@@ -1705,35 +1705,35 @@ unsafe fn gen_copy(gen: &dyn RandGen, dst: *mut randstate_t) {
 #[cfg(gmp_limb_bits_64)]
 unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 64, bits % 64);
-    let limbs: isize = cast::cast(limbs);
+    let limbs = limbs.as_or_panic::<isize>();
     for i in 0..limbs {
         let n = u64::from(gen.gen()) | u64::from(gen.gen()) << 32;
-        *limb.offset(i) = cast::cast(n);
+        *limb.offset(i) = n.as_or_panic();
     }
     if rest >= 32 {
         let mut n = u64::from(gen.gen());
         if rest > 32 {
             let mask = !(!0 << (rest - 32));
-            n |= u64::from(gen.gen_bits(cast::cast(rest - 32)) & mask) << 32;
+            n |= u64::from(gen.gen_bits((rest - 32).as_or_panic()) & mask) << 32;
         }
-        *limb.offset(limbs) = cast::cast(n);
+        *limb.offset(limbs) = n.as_or_panic();
     } else if rest > 0 {
         let mask = !(!0 << rest);
-        let n = u64::from(gen.gen_bits(cast::cast(rest)) & mask);
-        *limb.offset(limbs) = cast::cast(n);
+        let n = u64::from(gen.gen_bits(rest.as_or_panic()) & mask);
+        *limb.offset(limbs) = n.as_or_panic();
     }
 }
 
 #[cfg(gmp_limb_bits_32)]
 unsafe fn thread_gen_bits(gen: &mut dyn ThreadRandGen, limb: *mut limb_t, bits: c_ulong) {
     let (limbs, rest) = (bits / 32, bits % 32);
-    let limbs: isize = cast::cast(limbs);
+    let limbs = limbs.as_or_panic::<isize>();
     for i in 0..limbs {
-        *limb.offset(i) = cast::cast(gen.gen());
+        *limb.offset(i) = gen.gen().as_or_panic();
     }
     if rest > 0 {
         let mask = !(!0 << rest);
-        *limb.offset(limbs) = cast::cast(gen.gen_bits(cast::cast(rest)) & mask);
+        *limb.offset(limbs) = (gen.gen_bits(rest.as_or_panic()) & mask).as_or_panic();
     }
 }
 

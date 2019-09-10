@@ -20,7 +20,7 @@ use crate::{
     ops::{AddFrom, DivFrom, MulFrom, NegAssign, Pow, PowAssign, SubFrom},
     Assign, Integer, Rational,
 };
-use az::CheckedAs;
+use az::{CheckedAs, CheckedCast};
 use std::{
     iter::{Product, Sum},
     ops::{
@@ -273,7 +273,7 @@ macro_rules! reverse {
 
 impl<T> PrimOps<c_long> for T
 where
-    T: AsLong<Long = c_long> + CheckedAs<c_long> + Into<SmallInteger>,
+    T: AsLong<Long = c_long> + CheckedCast<c_long> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpq::add_si, xmpq::add_z }
     forward! { fn sub() -> xmpq::sub_si, xmpq::sub_z }
@@ -285,7 +285,7 @@ where
 
 impl<T> PrimOps<c_ulong> for T
 where
-    T: AsLong<Long = c_ulong> + CheckedAs<c_ulong> + Into<SmallInteger>,
+    T: AsLong<Long = c_ulong> + CheckedCast<c_ulong> + Into<SmallInteger>,
 {
     forward! { fn add() -> xmpq::add_ui, xmpq::add_z }
     forward! { fn sub() -> xmpq::sub_ui, xmpq::sub_z }

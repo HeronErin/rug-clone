@@ -16,7 +16,14 @@
 
 #[cfg(feature = "rand")]
 use crate::rand::MutRandState;
-use crate::{cast, ext::xmpz, integer::Order, misc, ops::DivRounding, Assign};
+use crate::{
+    ext::xmpz,
+    integer::Order,
+    misc::{self, AsOrPanic},
+    ops::DivRounding,
+    Assign,
+};
+use az::{Az, CheckedAs};
 use gmp_mpfr_sys::gmp::{self, limb_t, mpz_t};
 use std::{
     cmp::Ordering,
@@ -194,7 +201,12 @@ impl Integer {
     }
     #[inline]
     pub(crate) fn inner_data(&self) -> &[limb_t] {
-        let limbs = cast::cast::<_, usize>(self.inner.size.checked_abs().expect("overflow"));
+        let limbs = self
+            .inner
+            .size
+            .checked_abs()
+            .expect("overflow")
+            .as_or_panic::<usize>();
         unsafe { slice::from_raw_parts(self.inner.d, limbs) }
     }
 }
@@ -258,8 +270,10 @@ impl Integer {
     /// ```
     #[inline]
     pub fn capacity(&self) -> usize {
-        cast::cast::<_, usize>(self.inner.alloc)
-            .checked_mul(cast::cast::<_, usize>(gmp::LIMB_BITS))
+        self.inner
+            .alloc
+            .as_or_panic::<usize>()
+            .checked_mul(gmp::LIMB_BITS.az::<usize>())
             .expect("overflow")
     }
 
@@ -294,7 +308,7 @@ impl Integer {
             .expect("overflow");
         if alloc_bits < req_bits {
             unsafe {
-                gmp::mpz_realloc2(self.as_raw_mut(), cast::cast(req_bits));
+                gmp::mpz_realloc2(self.as_raw_mut(), req_bits.as_or_panic());
             }
         }
     }
@@ -325,7 +339,7 @@ impl Integer {
         let req_limbs = if used_limbs == 0 { 1 } else { used_limbs };
         if self.inner.alloc > req_limbs {
             unsafe {
-                gmp::_mpz_realloc(self.as_raw_mut(), cast::cast(req_limbs));
+                gmp::_mpz_realloc(self.as_raw_mut(), req_limbs.as_or_panic());
             }
         }
     }
@@ -734,9 +748,9 @@ impl Integer {
         let digit_count = self.significant_digits::<T>();
         let zero_count = len.checked_sub(digit_count).expect("not enough capacity");
         let (zeros, digits) = if order.order() < 0 {
-            (dst.offset(cast::cast(digit_count)), dst)
+            (dst.offset(digit_count.as_or_panic()), dst)
         } else {
-            (dst, dst.offset(cast::cast(zero_count)))
+            (dst, dst.offset(zero_count.as_or_panic()))
         };
         // use *mut u8 to allow for unaligned pointers
         (zeros as *mut u8).write_bytes(0, zero_count * T::PRIVATE.bytes);
@@ -1084,11 +1098,11 @@ impl Integer {
     pub fn to_isize(&self) -> Option<isize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_i32().map(cast::cast)
+            self.to_i32().map(Az::az)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_i64().map(cast::cast)
+            self.to_i64().map(Az::az)
         }
     }
 
@@ -1263,11 +1277,11 @@ impl Integer {
     pub fn to_usize(&self) -> Option<usize> {
         #[cfg(target_pointer_width = "32")]
         {
-            self.to_u32().map(cast::cast)
+            self.to_u32().map(Az::az)
         }
         #[cfg(target_pointer_width = "64")]
         {
-            self.to_u64().map(cast::cast)
+            self.to_u64().map(Az::az)
         }
     }
 
@@ -1508,11 +1522,11 @@ impl Integer {
     pub fn to_usize_wrapping(&self) -> usize {
         #[cfg(target_pointer_width = "32")]
         {
-            cast::cast(self.to_u32_wrapping())
+            self.to_u32_wrapping().az()
         }
         #[cfg(target_pointer_width = "64")]
         {
-            cast::cast(self.to_u64_wrapping())
+            self.to_u64_wrapping().az()
         }
     }
 
@@ -1620,7 +1634,7 @@ impl Integer {
     pub fn to_f64_exp(&self) -> (f64, u32) {
         let mut exp: c_long = 0;
         let f = unsafe { gmp::mpz_get_d_2exp(&mut exp, self.as_raw()) };
-        (f, cast::cast(exp))
+        (f, exp.as_or_panic())
     }
 
     /// Returns a string representation of the number for the
@@ -2030,7 +2044,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn significant_bits(&self) -> u32 {
-        cast::cast(xmpz::significant_bits(self))
+        xmpz::significant_bits(self).as_or_panic()
     }
 
     /// Returns the number of bits required to represent the value
@@ -4082,7 +4096,7 @@ impl Integer {
     /// ```
     #[inline]
     pub fn is_probably_prime(&self, reps: u32) -> IsPrime {
-        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), cast::cast(reps)) };
+        let p = unsafe { gmp::mpz_probab_prime_p(self.as_raw(), reps.as_or_panic()) };
         match p {
             0 => IsPrime::No,
             1 => IsPrime::Probably,
@@ -5507,7 +5521,7 @@ impl From<GcdUIncomplete<'_>> for Option<u32> {
         if gcd == 0 && src.ref_self.cmp0() != Ordering::Equal {
             None
         } else {
-            az::checked_cast(gcd)
+            gcd.checked_as()
         }
     }
 }
@@ -5784,7 +5798,7 @@ impl Assign<ParseIncomplete> for Integer {
                 src.digits.len(),
                 src.radix,
             );
-            self.inner.size = cast::cast(if src.is_negative { -size } else { size });
+            self.inner.size = (if src.is_negative { -size } else { size }).as_or_panic();
         }
     }
 }
@@ -5795,7 +5809,7 @@ fn parse(bytes: &[u8], radix: i32) -> Result<ParseIncomplete, ParseIntegerError>
     use self::{ParseErrorKind as Kind, ParseIntegerError as Error};
 
     assert!(radix >= 2 && radix <= 36, "radix out of range");
-    let bradix: u8 = cast::cast(radix);
+    let bradix = radix.as_or_panic::<u8>();
 
     let mut digits = Vec::with_capacity(bytes.len());
     let mut has_sign = false;

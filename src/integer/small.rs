@@ -15,10 +15,10 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-    cast,
     misc::{Limbs, MaybeLimb, NegAbs, LIMBS_IN_SMALL},
     Assign, Integer,
 };
+use az::Az;
 use gmp_mpfr_sys::gmp::{limb_t, mpz_t};
 use std::{
     mem,
@@ -91,7 +91,7 @@ impl Clone for Mpz {
     #[inline]
     fn clone(&self) -> Mpz {
         Mpz {
-            alloc: cast::cast(LIMBS_IN_SMALL),
+            alloc: LIMBS_IN_SMALL.az(),
             size: self.size,
             d: Default::default(),
         }
@@ -122,7 +122,7 @@ impl SmallInteger {
     pub fn new() -> Self {
         SmallInteger {
             inner: Mpz {
-                alloc: cast::cast(LIMBS_IN_SMALL),
+                alloc: LIMBS_IN_SMALL.az(),
                 size: 0,
                 d: Default::default(),
             },
