@@ -300,7 +300,8 @@ mod tests {
         tests::{I128, I32, I64, U128, U32, U64},
         Rational,
     };
-    use std::{cmp::Ordering, f32, f64, ops::Neg, ops::Sub};
+    use az::{Az, Cast};
+    use std::{cmp::Ordering, f32, f64, ops::Neg};
 
     fn check_cmp_prim<T>(s: &[T], against: &[Rational])
     where
@@ -350,17 +351,17 @@ mod tests {
         check_cmp_prim(I128, &against);
     }
 
-    #[allow(clippy::eq_op)]
     fn check_cmp_prim_tuple<N, D>(num: &[N], den: &[D], against: &[Rational])
     where
         Rational: From<(N, D)> + PartialEq<(N, D)> + PartialOrd<(N, D)>,
         N: Copy,
-        D: Copy + Eq + Sub<Output = D>,
+        D: Copy + Eq,
         (N, D): PartialEq<Rational> + PartialOrd<Rational>,
+        u8: Cast<D>,
     {
         for n in num {
             for d in den {
-                if *d == *d - *d {
+                if *d == 0.az() {
                     continue;
                 }
                 let op = (*n, *d);

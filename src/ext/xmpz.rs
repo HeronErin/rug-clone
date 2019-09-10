@@ -19,6 +19,7 @@ use crate::{
     ops::NegAssign,
     Integer,
 };
+use az::Az;
 #[cfg(feature = "rand")]
 use gmp_mpfr_sys::gmp::randstate_t;
 use gmp_mpfr_sys::gmp::{self, bitcnt_t, limb_t, mpz_t, size_t};
@@ -872,10 +873,9 @@ pub unsafe fn limb_mut(z: &mut Integer, index: isize) -> &mut limb_t {
     &mut *z.inner_mut().d.offset(index)
 }
 
-#[allow(clippy::cast_lossless)]
 pub fn realloc_for_mpn_set_str(rop: &mut Integer, len: usize, radix: i32) {
     // add 1 for possible rounding errors
-    let bits = (f64::from(radix).log2() * (len as f64)).ceil() + 1.0;
+    let bits = (f64::from(radix).log2() * len.az::<f64>()).ceil() + 1.0;
     // add 1 because mpn_set_str requires an extra limb
     let limbs = (bits / f64::from(gmp::LIMB_BITS)).ceil() + 1.0;
     unsafe {
