@@ -3160,8 +3160,13 @@ macro_rules! cast_ptr {
     ($src:expr, $T:ty) => {{
         struct Ptr<T>(*const T);
         impl<T> Ptr<T> {
-            fn get(&self) -> T {
+            fn static_check_size(&self) -> T {
                 unreachable!()
+            }
+            #[inline(always)]
+            fn get(self) -> *const $T {
+                debug_assert_eq!(std::mem::align_of::<$T>(), std::mem::align_of::<T>());
+                self.0 as *const $T
             }
         }
         let ptr = Ptr($src);
@@ -3169,10 +3174,10 @@ macro_rules! cast_ptr {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
-                let _ = std::mem::transmute::<_, $T>(ptr.get());
+                let _ = std::mem::transmute::<_, $T>(ptr.static_check_size());
             }
         }
-        ptr.0 as *const $T
+        ptr.get()
     }};
 }
 
@@ -3181,8 +3186,13 @@ macro_rules! cast_ptr_mut {
     ($src:expr, $T:ty) => {{
         struct Ptr<T>(*mut T);
         impl<T> Ptr<T> {
-            fn get(&self) -> T {
+            fn static_check_size(&self) -> T {
                 unreachable!()
+            }
+            #[inline(always)]
+            fn get(self) -> *mut $T {
+                debug_assert_eq!(std::mem::align_of::<$T>(), std::mem::align_of::<T>());
+                self.0 as *mut $T
             }
         }
         let ptr = Ptr($src);
@@ -3190,10 +3200,10 @@ macro_rules! cast_ptr_mut {
             #[allow(unused_unsafe)]
             #[allow(clippy::transmute_ptr_to_ptr)]
             unsafe {
-                let _ = std::mem::transmute::<_, $T>(ptr.get());
+                let _ = std::mem::transmute::<_, $T>(ptr.static_check_size());
             }
         }
-        ptr.0 as *mut $T
+        ptr.get()
     }};
 }
 
